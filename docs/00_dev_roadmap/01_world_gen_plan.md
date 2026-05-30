@@ -192,6 +192,7 @@ Replace "pure noise decides domain" with a shaped macro mask:
    - Reserve the southwest for the largest lake/basin feature.
    - Keep surrounding elevation low and gently rolled.
    - Use broad authored-looking shorelines, not puddle noise.
+   - Current visual debt: lake and tarn water still read too circular/artificial; defer shoreline reshaping to the water/material feature pass.
 
 This gives us Stonehearth-style flat regions without forcing every 16x16 area to a single height.
 

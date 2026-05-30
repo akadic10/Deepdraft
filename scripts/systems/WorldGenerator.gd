@@ -54,8 +54,10 @@ const VALLEY_CORRIDOR_WIGGLE_RATIO: float = 0.035
 const VALLEY_TERRACE_STEP: int = 2
 const FOOTHILL_TERRACE_STEP: int = 4
 const MOUNTAIN_TERRACE_STEP: int = 8
-const PLATEAU_MAX_HEIGHT_RANGE: int = 6
-const PLATEAU_MAX_MOUNTAIN_HEIGHT: int = 96
+const HIGHLAND_TERRACE_STEP: int = 6
+const PLATEAU_MAX_HEIGHT_RANGE: int = 5
+const PLATEAU_MAX_MOUNTAIN_HEIGHT: int = 104
+const PLATEAU_MIN_DOMINANT_COLUMNS: int = 92
 const PLATEAU_SNAP_DELTA: int = 2
 
 # ── Lake / tarn parameters ────────────────────────────────────────────────────
@@ -535,9 +537,7 @@ func _compute_domain_map() -> void:
 
 	for x in range(WORLD_SIZE_X):
 		for z in range(WORLD_SIZE_Z):
-			var north_influence := 1.0 - (float(z) / float(WORLD_SIZE_Z - 1))
-			var west_influence := 1.0 - (float(x) / float(WORLD_SIZE_X - 1))
-			var northwest_influence := sqrt(north_influence * west_influence)
+			var northwest_influence := _northwest_mountain_influence(x, z)
 			var edge_noise := (noise_domain.get_noise_2d(x, z) + 1.0) * 0.5
 			var basin_strength := _southwest_basin_strength(x, z)
 			var highland_strength := _southeast_highland_strength(x, z)
@@ -647,19 +647,28 @@ func _valley_height(x: int, z: int) -> float:
 
 
 func _terraced_height(raw_height: int, domain_n: float, corridor_strength: float, x: int, z: int) -> int:
-	var step := VALLEY_TERRACE_STEP
-	if corridor_strength > 0.45:
-		step = VALLEY_TERRACE_STEP
-	elif domain_n > DOMAIN_MOUNTAIN_THRESHOLD:
-		step = MOUNTAIN_TERRACE_STEP
-	elif domain_n > DOMAIN_VALLEY_THRESHOLD:
-		step = FOOTHILL_TERRACE_STEP
-
-	var jitter := int(abs(hash(Vector2i(x / 16, z / 16))) % step)
-	if step <= 2:
-		jitter = 0
-
+	var step := _terrace_step_for(x, z, domain_n, corridor_strength)
+	var jitter := _terrace_jitter(x, z, step)
 	return clampi(((raw_height + jitter) / step) * step - jitter, 1, WORLD_SIZE_Y - 1)
+
+
+func _terrace_step_for(x: int, z: int, domain_n: float, corridor_strength: float) -> int:
+	if corridor_strength > 0.45:
+		return VALLEY_TERRACE_STEP
+	if _southeast_highland_strength(x, z) > 0.35:
+		return HIGHLAND_TERRACE_STEP
+	if domain_n > DOMAIN_MOUNTAIN_THRESHOLD:
+		return MOUNTAIN_TERRACE_STEP
+	if domain_n > DOMAIN_VALLEY_THRESHOLD:
+		return FOOTHILL_TERRACE_STEP
+	return VALLEY_TERRACE_STEP
+
+
+func _terrace_jitter(x: int, z: int, step: int) -> int:
+	if step <= 2:
+		return 0
+	var break_noise := (noise_domain.get_noise_2d(float(x) + 12000.0, float(z) + 12000.0) + 1.0) * 0.5
+	return int(round((break_noise - 0.5) * float(step)))
 
 
 func _apply_plateau_smoothing() -> void:
@@ -690,6 +699,9 @@ func _apply_plateau_smoothing() -> void:
 			if max_h - min_h > PLATEAU_MAX_HEIGHT_RANGE:
 				continue
 			var target_height := _dominant_height(height_counts)
+			var dominant_count := height_counts.get(target_height, 0) as int
+			if dominant_count < PLATEAU_MIN_DOMINANT_COLUMNS:
+				continue
 			if mountain_columns > 128 and target_height > PLATEAU_MAX_MOUNTAIN_HEIGHT:
 				continue
 
@@ -703,6 +715,8 @@ func _apply_plateau_smoothing() -> void:
 					if absi(current - target_height) > PLATEAU_SNAP_DELTA:
 						continue
 					if current == target_height:
+						continue
+					if _plateau_bias_strength(wx, wz, lx, lz) < 0.50:
 						continue
 					heightmap[idx] = target_height
 					changed_in_chunk += 1
@@ -719,6 +733,13 @@ func _apply_plateau_smoothing() -> void:
 	_plateau_smoothed_chunks = smoothed_chunks
 
 
+func _plateau_bias_strength(x: int, z: int, lx: int, lz: int) -> float:
+	var edge_dist := mini(mini(lx, CHUNK_SIZE - 1 - lx), mini(lz, CHUNK_SIZE - 1 - lz))
+	var interior := clampf(float(edge_dist) / 5.0, 0.0, 1.0)
+	var broad_noise := (noise_domain.get_noise_2d(float(x) + 18000.0, float(z) + 18000.0) + 1.0) * 0.5
+	return (interior * 0.65) + (broad_noise * 0.35)
+
+
 func _dominant_height(height_counts: Dictionary) -> int:
 	var best_height := 0
 	var best_count := -1
@@ -731,18 +752,33 @@ func _dominant_height(height_counts: Dictionary) -> int:
 	return best_height
 
 
+func _northwest_mountain_influence(x: int, z: int) -> float:
+	var pos := Vector2(float(x), float(z))
+	var north_influence := 1.0 - (float(z) / float(WORLD_SIZE_Z - 1))
+	var west_influence := 1.0 - (float(x) / float(WORLD_SIZE_X - 1))
+	var corner := sqrt(north_influence * west_influence)
+	var anchor := Vector2.ZERO
+	var radius := float(WORLD_SIZE_X) * 1.05
+	var radial := _radial_strength(pos, anchor, radius)
+	var diagonal := clampf(1.0 - ((float(x) * 0.42 + float(z)) / (float(WORLD_SIZE_Z) * 1.04)), 0.0, 1.0)
+	return clampf((corner * 0.72) + (radial * 0.32) + (diagonal * 0.12), 0.0, 1.0)
+
+
 func _valley_corridor_strength(x: int, z: int) -> float:
 	var center_z := float(WORLD_SIZE_Z) * VALLEY_CORRIDOR_CENTER_Z_RATIO
+	var spline_drop := _northwest_mountain_influence(x, z) * float(WORLD_SIZE_Z) * 0.10
 	var wiggle := noise_valley.get_noise_2d(float(x) * 0.25, 3000.0) * float(WORLD_SIZE_Z) * VALLEY_CORRIDOR_WIGGLE_RATIO
 	var half_width := maxf(32.0, float(WORLD_SIZE_Z) * VALLEY_CORRIDOR_HALF_WIDTH_RATIO)
-	var dist := absf(float(z) - (center_z + wiggle))
+	var dist := absf(float(z) - (center_z - spline_drop + wiggle))
 	var t := clampf(1.0 - (dist / half_width), 0.0, 1.0)
 	return t * t * (3.0 - (2.0 * t))
 
 
 func _valley_corridor_height(x: int, z: int) -> float:
 	var detail := (noise_valley.get_noise_2d(x + 5000, z) + 1.0) * 0.5
-	return lerp(float(VALLEY_MIN), float(VALLEY_MIN + 2), detail)
+	var center_bias := _valley_corridor_strength(x, z)
+	var floor_height: float = lerp(float(VALLEY_MIN), float(VALLEY_MIN + 2), detail * 0.55)
+	return lerp(float(VALLEY_MAX - 1), floor_height, center_bias)
 
 
 func _lowland_height(x: int, z: int) -> float:
