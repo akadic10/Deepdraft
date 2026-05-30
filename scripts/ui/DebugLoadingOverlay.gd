@@ -68,6 +68,13 @@ func _update_text() -> void:
 			render.get("overview_step", 0),
 			"on" if render.get("overview_sides", false) else "off",
 		],
+		"overview faces: top %d->%d  side %d  check %d/%d" % [
+			render.get("overview_sampled_top_faces", 0),
+			render.get("overview_merged_top_faces", 0),
+			render.get("overview_side_faces", 0),
+			render.get("overview_validation_mismatches", 0),
+			render.get("overview_validation_samples", 0),
+		],
 		"maps: %s" % maps_text,
 		"domain %%: M %.1f  V %.1f  L %.1f" % [
 			domains.get("mountain_pct", 0.0),

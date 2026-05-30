@@ -62,6 +62,11 @@ var _material: StandardMaterial3D
 var _overview_node: MeshInstance3D = null
 var _overview_built: bool = false
 var _overview_rock_color: Color = Color.GRAY
+var _overview_sampled_top_faces: int = 0
+var _overview_merged_top_faces: int = 0
+var _overview_side_faces: int = 0
+var _overview_validation_samples: int = 0
+var _overview_validation_mismatches: int = 0
 var _region_nodes: Dictionary = {}
 var _chunk_nodes: Dictionary = {}   # Vector3i → MeshInstance3D
 
@@ -565,11 +570,24 @@ func _add_surface_quad(
 		indices: PackedInt32Array,
 		size: float = 1.0) -> void:
 
+	_add_surface_rect(origin, color, verts, norms, cols, indices, size, size)
+
+
+func _add_surface_rect(
+		origin: Vector3,
+		color: Color,
+		verts: PackedVector3Array,
+		norms: PackedVector3Array,
+		cols: PackedColorArray,
+		indices: PackedInt32Array,
+		size_x: float,
+		size_z: float) -> void:
+
 	var base := verts.size()
 	verts.append(origin)
-	verts.append(origin + Vector3(0, 0, size))
-	verts.append(origin + Vector3(size, 0, size))
-	verts.append(origin + Vector3(size, 0, 0))
+	verts.append(origin + Vector3(0, 0, size_z))
+	verts.append(origin + Vector3(size_x, 0, size_z))
+	verts.append(origin + Vector3(size_x, 0, 0))
 
 	for i in range(4):
 		norms.append(Vector3.UP)
@@ -673,6 +691,8 @@ func _add_overview_side_band(
 	if top_y <= bottom_y:
 		return
 
+	_overview_side_faces += 1
+
 	var base := verts.size()
 	verts.append(Vector3(a.x, top_y, a.z))
 	verts.append(Vector3(b.x, top_y, b.z))
@@ -765,7 +785,15 @@ func _build_block_face_overview() -> void:
 	var indices: PackedInt32Array = []
 	var season: String = WorldClock.season
 	_cache_overview_side_colors(season)
+	_overview_sampled_top_faces = 0
+	_overview_merged_top_faces = 0
+	_overview_side_faces = 0
+	_overview_validation_samples = 0
+	_overview_validation_mismatches = 0
 
+	var sample_cells: Dictionary = {}
+	var grid_w := ceili(float(WORLD_SIZE_X) / float(step))
+	var grid_z := ceili(float(WORLD_SIZE_Z) / float(step))
 	for wx in range(0, WORLD_SIZE_X, step):
 		for wz in range(0, WORLD_SIZE_Z, step):
 			var wy := WorldGenerator.get_visible_surface_y(wx, wz)
@@ -774,16 +802,28 @@ func _build_block_face_overview() -> void:
 			var block_id := WorldGenerator.get_visible_surface_block_id(wx, wz)
 			if BlockRegistry.is_transparent(block_id):
 				continue
+			var generated_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
+			_overview_validation_samples += 1
+			if generated_id != block_id:
+				_overview_validation_mismatches += 1
 
 			var color := BlockRegistry.get_color(block_id, season)
 			var block_def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
 			var block_kind: String = block_def.get("kind", "unknown")
-			var top_y := float(wy + 1)
-			var origin := Vector3(float(wx), top_y, float(wz))
-			var tile_size := float(mini(step, mini(WORLD_SIZE_X - wx, WORLD_SIZE_Z - wz)))
-			_add_surface_quad(origin, color, verts, norms, cols, indices, tile_size)
+			var key := Vector2i(wx / step, wz / step)
+			sample_cells[key] = {
+				"wx": wx,
+				"wz": wz,
+				"wy": wy,
+				"block_id": block_id,
+				"color": color,
+				"kind": block_kind,
+			}
 			if show_overview_sides:
-				_add_overview_sides(wx, wz, step, top_y, color, block_kind, verts, norms, cols, indices)
+				_add_overview_sides(wx, wz, step, float(wy + 1), color, block_kind, verts, norms, cols, indices)
+
+	_overview_sampled_top_faces = sample_cells.size()
+	_add_greedy_overview_tops(sample_cells, grid_w, grid_z, step, verts, norms, cols, indices)
 
 	if verts.is_empty():
 		return
@@ -809,7 +849,79 @@ func _build_block_face_overview() -> void:
 	_overview_node.visible = true
 	_overview_built = true
 	_meshes_built += 1
-	print("WorldRenderer: built block-face overview (%d verts, step=%d)." % [verts.size(), step])
+	print("WorldRenderer: built block-face overview (%d verts, step=%d, tops %d->%d, sides %d, validation mismatches %d/%d)." % [
+		verts.size(),
+		step,
+		_overview_sampled_top_faces,
+		_overview_merged_top_faces,
+		_overview_side_faces,
+		_overview_validation_mismatches,
+		_overview_validation_samples,
+	])
+
+
+func _add_greedy_overview_tops(
+		sample_cells: Dictionary,
+		grid_w: int,
+		grid_z: int,
+		step: int,
+		verts: PackedVector3Array,
+		norms: PackedVector3Array,
+		cols: PackedColorArray,
+		indices: PackedInt32Array) -> void:
+
+	var visited: Dictionary = {}
+	for gx in range(grid_w):
+		for gz in range(grid_z):
+			var key := Vector2i(gx, gz)
+			if visited.has(key) or not sample_cells.has(key):
+				continue
+
+			var cell: Dictionary = sample_cells[key]
+			var width := 1
+			while gx + width < grid_w:
+				var next_key := Vector2i(gx + width, gz)
+				if visited.has(next_key) or not _overview_top_cells_merge(cell, sample_cells.get(next_key, {})):
+					break
+				width += 1
+
+			var height := 1
+			var can_extend := true
+			while gz + height < grid_z and can_extend:
+				for dx in range(width):
+					var row_key := Vector2i(gx + dx, gz + height)
+					if visited.has(row_key) or not _overview_top_cells_merge(cell, sample_cells.get(row_key, {})):
+						can_extend = false
+						break
+				if can_extend:
+					height += 1
+
+			for dx in range(width):
+				for dz in range(height):
+					visited[Vector2i(gx + dx, gz + dz)] = true
+
+			var wx: int = cell["wx"]
+			var wz: int = cell["wz"]
+			var wy: int = cell["wy"]
+			var color: Color = cell["color"]
+			var size_x := float(mini(step * width, WORLD_SIZE_X - wx))
+			var size_z := float(mini(step * height, WORLD_SIZE_Z - wz))
+			_add_surface_rect(
+				Vector3(float(wx), float(wy + 1), float(wz)),
+				color,
+				verts,
+				norms,
+				cols,
+				indices,
+				size_x,
+				size_z)
+			_overview_merged_top_faces += 1
+
+
+func _overview_top_cells_merge(a: Dictionary, b: Dictionary) -> bool:
+	if a.is_empty() or b.is_empty():
+		return false
+	return int(a.get("wy", -999999)) == int(b.get("wy", -999998)) and int(a.get("block_id", -1)) == int(b.get("block_id", -2))
 
 
 func _add_overview_sides(
@@ -1128,6 +1240,11 @@ func get_render_stats() -> Dictionary:
 		"overview_built": _overview_built,
 		"overview_step": overview_step,
 		"overview_sides": show_overview_sides,
+		"overview_sampled_top_faces": _overview_sampled_top_faces,
+		"overview_merged_top_faces": _overview_merged_top_faces,
+		"overview_side_faces": _overview_side_faces,
+		"overview_validation_samples": _overview_validation_samples,
+		"overview_validation_mismatches": _overview_validation_mismatches,
 	}
 
 
