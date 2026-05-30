@@ -38,11 +38,16 @@ const DOMAIN_LOWLAND:  int = 0   # domain_n < 0.35
 const DOMAIN_MOUNTAIN_THRESHOLD: float = 0.60
 const DOMAIN_VALLEY_THRESHOLD: float = 0.35
 const NORTHWEST_MOUNTAIN_EDGE_NOISE: float = 0.18
+const SOUTHWEST_BASIN_DOMAIN_PULL: float = 0.30
+const SOUTHEAST_HIGHLAND_DOMAIN_BONUS: float = 0.18
+const WORLD_EDGE_BELT_WIDTH: int = 28
 
 # ── Surface elevation ranges (Y in blocks) ────────────────────────────────────
 const MOUNTAIN_MIN: int = 88;  const MOUNTAIN_MAX: int = 124
 const VALLEY_MIN:   int = 64;  const VALLEY_MAX:   int = 72
 const LOWLAND_MIN:  int = 62;  const LOWLAND_MAX:  int = 67
+const SOUTHEAST_HIGHLAND_MIN: int = 72
+const SOUTHEAST_HIGHLAND_MAX: int = 88
 const VALLEY_CORRIDOR_CENTER_Z_RATIO: float = 0.43
 const VALLEY_CORRIDOR_HALF_WIDTH_RATIO: float = 0.07
 const VALLEY_CORRIDOR_WIGGLE_RATIO: float = 0.035
@@ -192,6 +197,7 @@ func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
 	var shaping: Dictionary = snapshot.get("shaping", {})
 	var water: Dictionary = snapshot.get("water", {})
 	var candidates: Dictionary = snapshot.get("settlement_candidates", {})
+	var macro: Dictionary = snapshot.get("macro", {})
 
 	print("WorldGenerator metrics:")
 	print("  domains: mountain %.1f%%, valley %.1f%%, lowland %.1f%%" % [
@@ -224,6 +230,11 @@ func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
 		water.get("tarn_radius", 0),
 		water.get("tarn_waterline", 0),
 		water.get("tarn_columns", 0),
+	])
+	print("  macro: basin %d, southeast highland %d, edge belt %d columns" % [
+		macro.get("southwest_basin_columns", 0),
+		macro.get("southeast_highland_columns", 0),
+		macro.get("edge_belt_columns", 0),
 	])
 	print("  settlement candidates: %d sampled 20x20 flats" % candidates.get("count", 0))
 
@@ -528,10 +539,16 @@ func _compute_domain_map() -> void:
 			var west_influence := 1.0 - (float(x) / float(WORLD_SIZE_X - 1))
 			var northwest_influence := sqrt(north_influence * west_influence)
 			var edge_noise := (noise_domain.get_noise_2d(x, z) + 1.0) * 0.5
+			var basin_strength := _southwest_basin_strength(x, z)
+			var highland_strength := _southeast_highland_strength(x, z)
+			var corridor_strength := _valley_corridor_strength(x, z)
 			var n := clampf(
 				northwest_influence + ((edge_noise - 0.5) * NORTHWEST_MOUNTAIN_EDGE_NOISE),
 				0.0,
 				1.0)
+			n = lerp(n, 0.18, basin_strength * SOUTHWEST_BASIN_DOMAIN_PULL)
+			n = lerp(n, 0.48, highland_strength * SOUTHEAST_HIGHLAND_DOMAIN_BONUS)
+			n = lerp(n, 0.48, corridor_strength * 0.22)
 			var idx := x * WORLD_SIZE_Z + z
 			domain_n_map[idx] = n
 			if n > DOMAIN_MOUNTAIN_THRESHOLD:
@@ -597,6 +614,12 @@ func _compute_heightmap() -> void:
 			var corridor_strength := _valley_corridor_strength(x, z)
 			if corridor_strength > 0.0:
 				height_f = lerp(height_f, _valley_corridor_height(x, z), corridor_strength)
+			var basin_strength := _southwest_basin_strength(x, z)
+			if basin_strength > 0.0:
+				height_f = lerp(height_f, _southwest_basin_height(x, z), basin_strength)
+			var highland_strength := _southeast_highland_strength(x, z)
+			if highland_strength > 0.0:
+				height_f = lerp(height_f, _southeast_highland_height(x, z), highland_strength)
 
 			var raw_height := int(height_f)
 			var height := _terraced_height(raw_height, n, corridor_strength, x, z)
@@ -728,6 +751,40 @@ func _lowland_height(x: int, z: int) -> float:
 	return lerp(float(LOWLAND_MIN), float(LOWLAND_MAX), detail * 0.3)
 
 
+func _southwest_basin_strength(x: int, z: int) -> float:
+	var center := Vector2(float(WORLD_SIZE_X) * 0.16, float(WORLD_SIZE_Z) * 0.82)
+	var radius := float(WORLD_SIZE_X) * 0.34
+	return _radial_strength(Vector2(float(x), float(z)), center, radius)
+
+
+func _southwest_basin_height(x: int, z: int) -> float:
+	var detail := (noise_valley.get_noise_2d(x + 7000, z + 7000) + 1.0) * 0.5
+	return lerp(float(LOWLAND_MIN - 4), float(LOWLAND_MIN + 2), detail * 0.35)
+
+
+func _southeast_highland_strength(x: int, z: int) -> float:
+	var center := Vector2(float(WORLD_SIZE_X) * 0.82, float(WORLD_SIZE_Z) * 0.78)
+	var radius := float(WORLD_SIZE_X) * 0.30
+	return _radial_strength(Vector2(float(x), float(z)), center, radius)
+
+
+func _southeast_highland_height(x: int, z: int) -> float:
+	var detail := (noise_valley.get_noise_2d(x - 5000, z - 5000) + 1.0) * 0.5
+	return lerp(float(SOUTHEAST_HIGHLAND_MIN), float(SOUTHEAST_HIGHLAND_MAX), detail * 0.45)
+
+
+func _world_edge_belt_strength(x: int, z: int) -> float:
+	var edge_dist := mini(mini(x, WORLD_SIZE_X - 1 - x), mini(z, WORLD_SIZE_Z - 1 - z))
+	return clampf(1.0 - (float(edge_dist) / float(WORLD_EDGE_BELT_WIDTH)), 0.0, 1.0)
+
+
+func _radial_strength(pos: Vector2, center: Vector2, radius: float) -> float:
+	if radius <= 0.0:
+		return 0.0
+	var t := clampf(1.0 - (pos.distance_to(center) / radius), 0.0, 1.0)
+	return t * t * (3.0 - (2.0 * t))
+
+
 # ── Phase 4 — Lake bodies ─────────────────────────────────────────────────────
 
 func _carve_lakes() -> void:
@@ -736,18 +793,34 @@ func _carve_lakes() -> void:
 
 
 func _carve_lowland_lake() -> void:
-	# Centroid of all lowland columns — the natural lowest pocket.
-	var sum_x := 0;  var sum_z := 0;  var count := 0
+	# Prefer the authored southwest basin, then fall back to the whole lowland.
+	var weighted_sum_x := 0.0
+	var weighted_sum_z := 0.0
+	var weight_total := 0.0
+	var sum_x := 0
+	var sum_z := 0
+	var count := 0
 	for x in range(WORLD_SIZE_X):
 		for z in range(WORLD_SIZE_Z):
 			if domain_map[x * WORLD_SIZE_Z + z] == DOMAIN_LOWLAND:
-				sum_x += x;  sum_z += z;  count += 1
+				sum_x += x
+				sum_z += z
+				count += 1
+				var basin_strength := _southwest_basin_strength(x, z)
+				if basin_strength > 0.25:
+					var weight := basin_strength * basin_strength
+					weighted_sum_x += float(x) * weight
+					weighted_sum_z += float(z) * weight
+					weight_total += weight
 
 	if count == 0:
 		push_warning("WorldGenerator: no lowland columns — lowland lake skipped.")
 		return
 
-	lake_center = Vector2i(sum_x / count, sum_z / count)
+	if weight_total > 0.0:
+		lake_center = Vector2i(int(weighted_sum_x / weight_total), int(weighted_sum_z / weight_total))
+	else:
+		lake_center = Vector2i(sum_x / count, sum_z / count)
 
 	for x in range(lake_center.x - LAKE_RADIUS, lake_center.x + LAKE_RADIUS + 1):
 		for z in range(lake_center.y - LAKE_RADIUS, lake_center.y + LAKE_RADIUS + 1):
@@ -816,6 +889,7 @@ func _build_generation_metrics() -> void:
 		},
 		"heights": _compute_height_metrics(),
 		"surface": _compute_surface_metrics(),
+		"macro": _compute_macro_layout_metrics(),
 		"shaping": {
 			"terraced_columns": _terraced_columns,
 			"terraced_pct": _pct(_terraced_columns, total_columns),
@@ -912,6 +986,37 @@ func _compute_surface_metrics() -> Dictionary:
 		"rock_pct": _pct(counts["rock"] as int, total_columns),
 		"water_pct": _pct(counts["water"] as int, total_columns),
 		"other_pct": _pct(counts["other"] as int, total_columns),
+	}
+
+
+func _compute_macro_layout_metrics() -> Dictionary:
+	var basin_columns := 0
+	var highland_columns := 0
+	var edge_columns := 0
+	var basin_peak := 0.0
+	var highland_peak := 0.0
+
+	for x in range(WORLD_SIZE_X):
+		for z in range(WORLD_SIZE_Z):
+			var basin := _southwest_basin_strength(x, z)
+			var highland := _southeast_highland_strength(x, z)
+			var edge := _world_edge_belt_strength(x, z)
+			if basin > 0.25:
+				basin_columns += 1
+			if highland > 0.25:
+				highland_columns += 1
+			if edge > 0.0:
+				edge_columns += 1
+			basin_peak = maxf(basin_peak, basin)
+			highland_peak = maxf(highland_peak, highland)
+
+	return {
+		"southwest_basin_columns": basin_columns,
+		"southwest_basin_peak": basin_peak,
+		"southeast_highland_columns": highland_columns,
+		"southeast_highland_peak": highland_peak,
+		"edge_belt_columns": edge_columns,
+		"edge_belt_width": WORLD_EDGE_BELT_WIDTH,
 	}
 
 

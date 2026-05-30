@@ -55,6 +55,7 @@ func _update_text() -> void:
 	var heights: Dictionary = metrics.get("heights", {})
 	var shaping: Dictionary = metrics.get("shaping", {})
 	var water: Dictionary = metrics.get("water", {})
+	var macro: Dictionary = metrics.get("macro", {})
 	var candidates: Dictionary = metrics.get("settlement_candidates", {})
 
 	_label.text = "\n".join([
@@ -84,6 +85,11 @@ func _update_text() -> void:
 		"water: lake %s  tarn %s" % [
 			str(water.get("lake_center", Vector2i.ZERO)),
 			str(water.get("tarn_center", Vector2i.ZERO)),
+		],
+		"macro: basin %d  SE highland %d  edge %d" % [
+			macro.get("southwest_basin_columns", 0),
+			macro.get("southeast_highland_columns", 0),
+			macro.get("edge_belt_columns", 0),
 		],
 		"settlement candidates: %d" % candidates.get("count", 0),
 		"columns: %d / %d" % [gen.get("generated_columns", 0), gen.get("total_columns", 0)],
