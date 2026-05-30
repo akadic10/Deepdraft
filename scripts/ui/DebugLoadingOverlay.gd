@@ -26,7 +26,7 @@ func _build_ui() -> void:
 	panel.name = "Panel"
 	panel.offset_left = 16.0
 	panel.offset_top = 16.0
-	panel.custom_minimum_size = Vector2(360.0, 0.0)
+	panel.custom_minimum_size = Vector2(520.0, 0.0)
 	add_child(panel)
 
 	_label = Label.new()
@@ -41,6 +41,7 @@ func _update_text() -> void:
 		return
 
 	var gen := WorldGenerator.get_streaming_stats()
+	var metrics := WorldGenerator.get_generation_metrics()
 	var render := {}
 	if _renderer != null and _renderer.has_method("get_render_stats"):
 		render = _renderer.call("get_render_stats")
@@ -49,11 +50,42 @@ func _update_text() -> void:
 	var maps_text := "ready" if gen.get("maps_ready", false) else "building"
 	var in_flight_text := "yes" if gen.get("column_in_flight", false) else "no"
 	var render_mode := "overview faces" if render.get("diorama_active", false) else "streamed block faces"
+	var domains: Dictionary = metrics.get("domains", {})
+	var surface: Dictionary = metrics.get("surface", {})
+	var heights: Dictionary = metrics.get("heights", {})
+	var shaping: Dictionary = metrics.get("shaping", {})
+	var water: Dictionary = metrics.get("water", {})
+	var candidates: Dictionary = metrics.get("settlement_candidates", {})
 
 	_label.text = "\n".join([
 		"World build",
 		"render: %s" % render_mode,
 		"maps: %s" % maps_text,
+		"domain %%: M %.1f  V %.1f  L %.1f" % [
+			domains.get("mountain_pct", 0.0),
+			domains.get("valley_pct", 0.0),
+			domains.get("lowland_pct", 0.0),
+		],
+		"height: %d-%d  avg %.1f" % [
+			heights.get("min", 0),
+			heights.get("max", 0),
+			heights.get("avg", 0.0),
+		],
+		"surface %%: grass %.1f  dirt %.1f  rock %.1f  water %.1f" % [
+			surface.get("grass_pct", 0.0),
+			surface.get("dirt_pct", 0.0),
+			surface.get("rock_pct", 0.0),
+			surface.get("water_pct", 0.0),
+		],
+		"shape: terrace %.1f%%  plateau %d" % [
+			shaping.get("terraced_pct", 0.0),
+			shaping.get("plateau_adjusted_columns", 0),
+		],
+		"water: lake %s  tarn %s" % [
+			str(water.get("lake_center", Vector2i.ZERO)),
+			str(water.get("tarn_center", Vector2i.ZERO)),
+		],
+		"settlement candidates: %d" % candidates.get("count", 0),
 		"columns: %d / %d" % [gen.get("generated_columns", 0), gen.get("total_columns", 0)],
 		"requested: %d  queue: %d  active: %s" % [
 			gen.get("requested_columns", 0),

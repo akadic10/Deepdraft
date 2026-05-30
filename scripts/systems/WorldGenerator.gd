@@ -141,6 +141,11 @@ var _column_in_flight: bool = false
 var _block_spawn_counts: Dictionary = {}  # runtime block ID -> generated count
 var _counted_columns: int = 0
 var _last_count_report_column: int = 0
+var _generation_metrics: Dictionary = {}
+var _domain_counts: Dictionary = {}
+var _terraced_columns: int = 0
+var _plateau_adjusted_columns: int = 0
+var _plateau_smoothed_chunks: int = 0
 
 ## Cooperative cancel flag. Set true on the main thread (e.g. when the game
 ## stops) so the worker exits its chunk loop instead of touching members that
@@ -178,6 +183,49 @@ func _deferred_emit_world_complete() -> void:
 
 func _deferred_emit_maps_ready() -> void:
 	print("WorldGenerator: terrain maps ready; waiting for chunk column requests.")
+
+
+func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
+	var domains: Dictionary = snapshot.get("domains", {})
+	var heights: Dictionary = snapshot.get("heights", {})
+	var surface: Dictionary = snapshot.get("surface", {})
+	var shaping: Dictionary = snapshot.get("shaping", {})
+	var water: Dictionary = snapshot.get("water", {})
+	var candidates: Dictionary = snapshot.get("settlement_candidates", {})
+
+	print("WorldGenerator metrics:")
+	print("  domains: mountain %.1f%%, valley %.1f%%, lowland %.1f%%" % [
+		domains.get("mountain_pct", 0.0),
+		domains.get("valley_pct", 0.0),
+		domains.get("lowland_pct", 0.0),
+	])
+	print("  height: min %d, max %d, avg %.1f" % [
+		heights.get("min", 0),
+		heights.get("max", 0),
+		heights.get("avg", 0.0),
+	])
+	print("  surface: grass %.1f%%, dirt %.1f%%, rock %.1f%%, water %.1f%%" % [
+		surface.get("grass_pct", 0.0),
+		surface.get("dirt_pct", 0.0),
+		surface.get("rock_pct", 0.0),
+		surface.get("water_pct", 0.0),
+	])
+	print("  shaping: terraced %d, plateau-adjusted %d across %d chunk columns" % [
+		shaping.get("terraced_columns", 0),
+		shaping.get("plateau_adjusted_columns", 0),
+		shaping.get("plateau_smoothed_chunks", 0),
+	])
+	print("  water: lake %s r%d y%d columns %d; tarn %s r%d y%d columns %d" % [
+		str(water.get("lake_center", Vector2i.ZERO)),
+		water.get("lake_radius", 0),
+		water.get("lake_waterline", 0),
+		water.get("lake_columns", 0),
+		str(water.get("tarn_center", Vector2i.ZERO)),
+		water.get("tarn_radius", 0),
+		water.get("tarn_waterline", 0),
+		water.get("tarn_columns", 0),
+	])
+	print("  settlement candidates: %d sampled 20x20 flats" % candidates.get("count", 0))
 
 
 func _deferred_print_block_spawn_report(
@@ -241,6 +289,11 @@ func generate(new_seed: int = 0) -> void:
 	_abort = false
 	_maps_ready = false
 	_column_in_flight = false
+	_generation_metrics.clear()
+	_domain_counts.clear()
+	_terraced_columns = 0
+	_plateau_adjusted_columns = 0
+	_plateau_smoothed_chunks = 0
 	_reset_block_spawn_counts()
 	_request_mutex.lock()
 	_column_queue.clear()
@@ -298,6 +351,10 @@ func get_streaming_stats() -> Dictionary:
 	}
 	_request_mutex.unlock()
 	return stats
+
+
+func get_generation_metrics() -> Dictionary:
+	return _generation_metrics.duplicate(true)
 
 
 func get_column_top_y(cx: int, cz: int) -> int:
@@ -382,8 +439,10 @@ func _generate_threaded() -> void:
 	_compute_domain_map()       # Phase 2
 	_compute_heightmap()        # Phase 3
 	_carve_lakes()              # Phase 4
+	_build_generation_metrics()
 	_maps_ready = true
 	call_deferred("_deferred_emit_maps_ready")
+	call_deferred("_deferred_print_generation_metrics", _generation_metrics.duplicate(true))
 	_process_requested_columns()      # Phase 5, demand-driven
 	_maybe_defer_block_spawn_report(true)
 
@@ -490,6 +549,11 @@ func _compute_domain_map() -> void:
 		valley_count,
 		lowland_count,
 	])
+	_domain_counts = {
+		"mountain": mountain_count,
+		"valley": valley_count,
+		"lowland": lowland_count,
+	}
 
 # ── Phase 3 — Surface heightmap (2D) ─────────────────────────────────────────
 
@@ -549,6 +613,7 @@ func _compute_heightmap() -> void:
 			float(corridor_height_sum) / float(corridor_count),
 		])
 	print("WorldGenerator: terrace quantization -> adjusted %d columns." % terraced_count)
+	_terraced_columns = terraced_count
 	_apply_plateau_smoothing()
 
 
@@ -627,6 +692,8 @@ func _apply_plateau_smoothing() -> void:
 		adjusted_columns,
 		smoothed_chunks,
 	])
+	_plateau_adjusted_columns = adjusted_columns
+	_plateau_smoothed_chunks = smoothed_chunks
 
 
 func _dominant_height(height_counts: Dictionary) -> int:
@@ -730,6 +797,189 @@ func _carve_mountain_tarn() -> void:
 	for col: Vector2i in tarn_columns:
 		min_y = min(min_y, heightmap[col.x * WORLD_SIZE_Z + col.y])
 	tarn_waterline = min_y + TARN_DEPTH - 1
+
+
+# -- Generation metrics -------------------------------------------------------
+
+func _build_generation_metrics() -> void:
+	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
+	_generation_metrics = {
+		"seed": world_seed,
+		"world_size": Vector3i(WORLD_SIZE_X, WORLD_SIZE_Y, WORLD_SIZE_Z),
+		"domains": {
+			"mountain": _domain_counts.get("mountain", 0),
+			"valley": _domain_counts.get("valley", 0),
+			"lowland": _domain_counts.get("lowland", 0),
+			"mountain_pct": _pct(_domain_counts.get("mountain", 0), total_columns),
+			"valley_pct": _pct(_domain_counts.get("valley", 0), total_columns),
+			"lowland_pct": _pct(_domain_counts.get("lowland", 0), total_columns),
+		},
+		"heights": _compute_height_metrics(),
+		"surface": _compute_surface_metrics(),
+		"shaping": {
+			"terraced_columns": _terraced_columns,
+			"terraced_pct": _pct(_terraced_columns, total_columns),
+			"plateau_adjusted_columns": _plateau_adjusted_columns,
+			"plateau_adjusted_pct": _pct(_plateau_adjusted_columns, total_columns),
+			"plateau_smoothed_chunks": _plateau_smoothed_chunks,
+		},
+		"water": {
+			"lake_center": lake_center,
+			"lake_radius": LAKE_RADIUS,
+			"lake_waterline": LAKE_WATERLINE,
+			"lake_columns": lake_columns.size(),
+			"tarn_center": tarn_center,
+			"tarn_radius": TARN_RADIUS,
+			"tarn_waterline": tarn_waterline,
+			"tarn_columns": tarn_columns.size(),
+		},
+		"settlement_candidates": _compute_settlement_candidate_metrics(),
+	}
+
+
+func _compute_height_metrics() -> Dictionary:
+	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
+	var min_h := WORLD_SIZE_Y
+	var max_h := 0
+	var sum_h := 0
+	var by_domain := {
+		"mountain": _new_height_bucket(),
+		"valley": _new_height_bucket(),
+		"lowland": _new_height_bucket(),
+	}
+
+	for x in range(WORLD_SIZE_X):
+		for z in range(WORLD_SIZE_Z):
+			var idx := x * WORLD_SIZE_Z + z
+			var h: int = heightmap[idx]
+			min_h = mini(min_h, h)
+			max_h = maxi(max_h, h)
+			sum_h += h
+
+			var bucket: Dictionary = by_domain[_domain_label(domain_map[idx])]
+			bucket["count"] = (bucket.get("count", 0) as int) + 1
+			bucket["min"] = mini(bucket.get("min", WORLD_SIZE_Y) as int, h)
+			bucket["max"] = maxi(bucket.get("max", 0) as int, h)
+			bucket["sum"] = (bucket.get("sum", 0) as int) + h
+
+	for key: String in by_domain.keys():
+		var bucket: Dictionary = by_domain[key]
+		var count := bucket.get("count", 0) as int
+		bucket["avg"] = float(bucket.get("sum", 0) as int) / float(maxi(count, 1))
+		bucket.erase("sum")
+
+	return {
+		"min": min_h,
+		"max": max_h,
+		"avg": float(sum_h) / float(maxi(total_columns, 1)),
+		"by_domain": by_domain,
+	}
+
+
+func _compute_surface_metrics() -> Dictionary:
+	var counts := {
+		"grass": 0,
+		"dirt": 0,
+		"rock": 0,
+		"water": 0,
+		"other": 0,
+	}
+	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
+
+	for x in range(WORLD_SIZE_X):
+		for z in range(WORLD_SIZE_Z):
+			var col := Vector2i(x, z)
+			var block_id := _id_water if lake_columns.has(col) or tarn_columns.has(col) else _pick_surface_block(x, z, col)
+			if _grass_ids.has(block_id):
+				counts["grass"] = (counts["grass"] as int) + 1
+			elif _dirt_ids.has(block_id):
+				counts["dirt"] = (counts["dirt"] as int) + 1
+			elif block_id == _id_water:
+				counts["water"] = (counts["water"] as int) + 1
+			elif block_id == _id_granite or block_id == _id_basalt or block_id == _id_limestone or block_id == _id_marble:
+				counts["rock"] = (counts["rock"] as int) + 1
+			else:
+				counts["other"] = (counts["other"] as int) + 1
+
+	return {
+		"grass": counts["grass"],
+		"dirt": counts["dirt"],
+		"rock": counts["rock"],
+		"water": counts["water"],
+		"other": counts["other"],
+		"grass_pct": _pct(counts["grass"] as int, total_columns),
+		"dirt_pct": _pct(counts["dirt"] as int, total_columns),
+		"rock_pct": _pct(counts["rock"] as int, total_columns),
+		"water_pct": _pct(counts["water"] as int, total_columns),
+		"other_pct": _pct(counts["other"] as int, total_columns),
+	}
+
+
+func _compute_settlement_candidate_metrics() -> Dictionary:
+	const CANDIDATE_SIZE := 20
+	const CANDIDATE_STEP := 8
+	const MAX_HEIGHT_DELTA := 2
+	var count := 0
+	var examples: Array[Vector2i] = []
+
+	for x in range(0, WORLD_SIZE_X - CANDIDATE_SIZE, CANDIDATE_STEP):
+		for z in range(0, WORLD_SIZE_Z - CANDIDATE_SIZE, CANDIDATE_STEP):
+			var min_h := WORLD_SIZE_Y
+			var max_h := 0
+			var has_water := false
+			var mountain_edge_score := 0
+
+			for lx in range(CANDIDATE_SIZE):
+				for lz in range(CANDIDATE_SIZE):
+					var wx := x + lx
+					var wz := z + lz
+					var idx := wx * WORLD_SIZE_Z + wz
+					var h: int = heightmap[idx]
+					min_h = mini(min_h, h)
+					max_h = maxi(max_h, h)
+					if lake_columns.has(Vector2i(wx, wz)) or tarn_columns.has(Vector2i(wx, wz)):
+						has_water = true
+					var n := domain_n_map[idx]
+					if n > 0.50 and n < 0.72:
+						mountain_edge_score += 1
+
+			if has_water:
+				continue
+			if max_h - min_h > MAX_HEIGHT_DELTA:
+				continue
+			if mountain_edge_score < CANDIDATE_SIZE * CANDIDATE_SIZE / 4:
+				continue
+
+			count += 1
+			if examples.size() < 5:
+				examples.append(Vector2i(x + CANDIDATE_SIZE / 2, z + CANDIDATE_SIZE / 2))
+
+	return {
+		"count": count,
+		"sample_size": CANDIDATE_SIZE,
+		"sample_step": CANDIDATE_STEP,
+		"max_height_delta": MAX_HEIGHT_DELTA,
+		"examples": examples,
+	}
+
+
+func _new_height_bucket() -> Dictionary:
+	return {"count": 0, "min": WORLD_SIZE_Y, "max": 0, "sum": 0}
+
+
+func _domain_label(domain: int) -> String:
+	match domain:
+		DOMAIN_MOUNTAIN:
+			return "mountain"
+		DOMAIN_VALLEY:
+			return "valley"
+	return "lowland"
+
+
+func _pct(value: int, total: int) -> float:
+	if total <= 0:
+		return 0.0
+	return float(value) / float(total) * 100.0
 
 
 # ── Phase 5 — Block fill (3D, per chunk) ──────────────────────────────────────
