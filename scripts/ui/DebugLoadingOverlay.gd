@@ -91,9 +91,11 @@ func _update_text() -> void:
 			shaping.get("terraced_pct", 0.0),
 			shaping.get("plateau_adjusted_columns", 0),
 		],
-		"water: lake %s  tarn %s  bank %d" % [
+		"water: lake %s d%d  tarn %s d%d  bank %d" % [
 			str(water.get("lake_center", Vector2i.ZERO)),
+			water.get("lake_depth_max", 0),
 			str(water.get("tarn_center", Vector2i.ZERO)),
+			water.get("tarn_depth_max", 0),
 			water.get("bank_columns", 0),
 		],
 		"macro: basin %d  SE highland %d  edge %d" % [

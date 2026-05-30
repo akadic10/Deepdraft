@@ -69,9 +69,15 @@ const STEEP_SLOPE_ROCK_DELTA: int = 3
 const LAKE_RADIUS:    int = max(8,  WORLD_SIZE_X / 25)   # 128 → 5 → clamped 8; 1024 → 40
 const LAKE_DEPTH:     int = 5
 const LAKE_WATERLINE: int = 62   # fixed surface elevation of the lowland lake
+const LAKE_RADIUS_X_SCALE: float = 1.35
+const LAKE_RADIUS_Z_SCALE: float = 0.82
+const LAKE_SHORE_NOISE: float = 0.18
 
 const TARN_RADIUS: int = max(4, WORLD_SIZE_X / 68)       # 128 → 1 → clamped 4; 1024 → 15
 const TARN_DEPTH:  int = 3
+const TARN_RADIUS_X_SCALE: float = 1.18
+const TARN_RADIUS_Z_SCALE: float = 0.78
+const TARN_SHORE_NOISE: float = 0.12
 # tarn_waterline is derived after carving — see _carve_mountain_tarn()
 
 # ── Ore / gem ladder ──────────────────────────────────────────────────────────
@@ -236,14 +242,20 @@ func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
 		shaping.get("plateau_adjusted_columns", 0),
 		shaping.get("plateau_smoothed_chunks", 0),
 	])
-	print("  water: lake %s r%d y%d columns %d; tarn %s r%d y%d columns %d; banks %d" % [
+	print("  water: lake %s r%d y%d floor %d-%d depth %d columns %d; tarn %s r%d y%d floor %d-%d depth %d columns %d; banks %d" % [
 		str(water.get("lake_center", Vector2i.ZERO)),
 		water.get("lake_radius", 0),
 		water.get("lake_waterline", 0),
+		water.get("lake_floor_min", 0),
+		water.get("lake_floor_max", 0),
+		water.get("lake_depth_max", 0),
 		water.get("lake_columns", 0),
 		str(water.get("tarn_center", Vector2i.ZERO)),
 		water.get("tarn_radius", 0),
 		water.get("tarn_waterline", 0),
+		water.get("tarn_floor_min", 0),
+		water.get("tarn_floor_max", 0),
+		water.get("tarn_depth_max", 0),
 		water.get("tarn_columns", 0),
 		water.get("bank_columns", 0),
 	])
@@ -879,18 +891,22 @@ func _carve_lowland_lake() -> void:
 	else:
 		lake_center = Vector2i(sum_x / count, sum_z / count)
 
-	for x in range(lake_center.x - LAKE_RADIUS, lake_center.x + LAKE_RADIUS + 1):
-		for z in range(lake_center.y - LAKE_RADIUS, lake_center.y + LAKE_RADIUS + 1):
+	var rx := float(LAKE_RADIUS) * LAKE_RADIUS_X_SCALE
+	var rz := float(LAKE_RADIUS) * LAKE_RADIUS_Z_SCALE
+	var bounds := int(ceil(maxf(rx, rz) * (1.0 + LAKE_SHORE_NOISE)))
+	for x in range(lake_center.x - bounds, lake_center.x + bounds + 1):
+		for z in range(lake_center.y - bounds, lake_center.y + bounds + 1):
 			if x < 0 or x >= WORLD_SIZE_X or z < 0 or z >= WORLD_SIZE_Z:
 				continue
-			var dist := Vector2(x, z).distance_to(Vector2(lake_center))
-			if dist > LAKE_RADIUS:
+			var shape := _water_shape_value(x, z, lake_center, rx, rz, 0.42, LAKE_SHORE_NOISE, 9100.0)
+			if shape > 1.0:
 				continue
-			var depth_factor := 1.0 - (dist / float(LAKE_RADIUS))
-			var carve        := int(LAKE_DEPTH * depth_factor)
+			var depth_factor: float = 1.0 - shape
+			var carve: int = max(1, int(round(float(LAKE_DEPTH) * depth_factor)))
 			var idx          := x * WORLD_SIZE_Z + z
 			heightmap[idx]    = min(heightmap[idx], LAKE_WATERLINE - 1 - carve)
 			lake_columns[Vector2i(x, z)] = true
+	_sink_water_columns_below_waterline(lake_columns, LAKE_WATERLINE)
 
 
 func _carve_mountain_tarn() -> void:
@@ -909,15 +925,18 @@ func _carve_mountain_tarn() -> void:
 
 	tarn_center = Vector2i(sum_x / count, sum_z / count)
 
-	for x in range(tarn_center.x - TARN_RADIUS, tarn_center.x + TARN_RADIUS + 1):
-		for z in range(tarn_center.y - TARN_RADIUS, tarn_center.y + TARN_RADIUS + 1):
+	var rx := float(TARN_RADIUS) * TARN_RADIUS_X_SCALE
+	var rz := float(TARN_RADIUS) * TARN_RADIUS_Z_SCALE
+	var bounds := int(ceil(maxf(rx, rz) * (1.0 + TARN_SHORE_NOISE)))
+	for x in range(tarn_center.x - bounds, tarn_center.x + bounds + 1):
+		for z in range(tarn_center.y - bounds, tarn_center.y + bounds + 1):
 			if x < 0 or x >= WORLD_SIZE_X or z < 0 or z >= WORLD_SIZE_Z:
 				continue
-			var dist := Vector2(x, z).distance_to(Vector2(tarn_center))
-			if dist > TARN_RADIUS:
+			var shape := _water_shape_value(x, z, tarn_center, rx, rz, -0.35, TARN_SHORE_NOISE, 12300.0)
+			if shape > 1.0:
 				continue
-			var depth_factor := 1.0 - (dist / float(TARN_RADIUS))
-			var carve        := int(TARN_DEPTH * depth_factor)
+			var depth_factor: float = 1.0 - shape
+			var carve: int = max(1, int(round(float(TARN_DEPTH) * depth_factor)))
 			var idx          := x * WORLD_SIZE_Z + z
 			heightmap[idx]    = min(heightmap[idx], heightmap[idx] - carve)
 			tarn_columns[Vector2i(x, z)] = true
@@ -927,6 +946,28 @@ func _carve_mountain_tarn() -> void:
 	for col: Vector2i in tarn_columns:
 		min_y = min(min_y, heightmap[col.x * WORLD_SIZE_Z + col.y])
 	tarn_waterline = min_y + TARN_DEPTH - 1
+	_sink_water_columns_below_waterline(tarn_columns, tarn_waterline)
+
+
+func _sink_water_columns_below_waterline(columns: Dictionary, waterline: int) -> void:
+	for col_variant: Variant in columns.keys():
+		var col := col_variant as Vector2i
+		if heightmap[col.x * WORLD_SIZE_Z + col.y] >= waterline:
+			heightmap[col.x * WORLD_SIZE_Z + col.y] = waterline - 1
+
+
+func _water_shape_value(x: int, z: int, center: Vector2i, radius_x: float, radius_z: float, rotation: float, noise_amount: float, salt: float) -> float:
+	if radius_x <= 0.0 or radius_z <= 0.0:
+		return 999.0
+	var dx := float(x - center.x)
+	var dz := float(z - center.y)
+	var cos_r := cos(rotation)
+	var sin_r := sin(rotation)
+	var local_x := (dx * cos_r) - (dz * sin_r)
+	var local_z := (dx * sin_r) + (dz * cos_r)
+	var ellipse := sqrt((local_x * local_x) / (radius_x * radius_x) + (local_z * local_z) / (radius_z * radius_z))
+	var shore_noise := (noise_domain.get_noise_2d(float(x) * 0.075 + salt, float(z) * 0.075 - salt) + 1.0) * 0.5
+	return ellipse - ((shore_noise - 0.5) * noise_amount)
 
 
 func _build_water_bank_mask() -> void:
@@ -952,6 +993,8 @@ func _build_water_bank_mask() -> void:
 
 func _build_generation_metrics() -> void:
 	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
+	var lake_floor := _water_floor_metrics(lake_columns, LAKE_WATERLINE)
+	var tarn_floor := _water_floor_metrics(tarn_columns, tarn_waterline)
 	_generation_metrics = {
 		"seed": world_seed,
 		"world_size": Vector3i(WORLD_SIZE_X, WORLD_SIZE_Y, WORLD_SIZE_Z),
@@ -978,13 +1021,36 @@ func _build_generation_metrics() -> void:
 			"lake_radius": LAKE_RADIUS,
 			"lake_waterline": LAKE_WATERLINE,
 			"lake_columns": lake_columns.size(),
+			"lake_floor_min": lake_floor.get("floor_min", 0),
+			"lake_floor_max": lake_floor.get("floor_max", 0),
+			"lake_depth_max": lake_floor.get("depth_max", 0),
 			"tarn_center": tarn_center,
 			"tarn_radius": TARN_RADIUS,
 			"tarn_waterline": tarn_waterline,
 			"tarn_columns": tarn_columns.size(),
+			"tarn_floor_min": tarn_floor.get("floor_min", 0),
+			"tarn_floor_max": tarn_floor.get("floor_max", 0),
+			"tarn_depth_max": tarn_floor.get("depth_max", 0),
 			"bank_columns": water_bank_columns.size(),
 		},
 		"settlement_candidates": _compute_settlement_candidate_metrics(),
+	}
+
+
+func _water_floor_metrics(columns: Dictionary, waterline: int) -> Dictionary:
+	if columns.is_empty():
+		return {"floor_min": 0, "floor_max": 0, "depth_max": 0}
+	var floor_min := WORLD_SIZE_Y
+	var floor_max := 0
+	for col_variant: Variant in columns.keys():
+		var col := col_variant as Vector2i
+		var floor_y: int = heightmap[col.x * WORLD_SIZE_Z + col.y]
+		floor_min = mini(floor_min, floor_y)
+		floor_max = maxi(floor_max, floor_y)
+	return {
+		"floor_min": floor_min,
+		"floor_max": floor_max,
+		"depth_max": maxi(0, waterline - floor_min),
 	}
 
 

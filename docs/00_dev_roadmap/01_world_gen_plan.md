@@ -21,7 +21,7 @@ Status key:
 | Macro Layout Pass | Done | Northwest mountain mass, central/foothill valley corridor, southwest basin, southeast highland, and world-edge belt placeholder are implemented as deterministic influence fields and surfaced in metrics. |
 | Heightmap & Terrace Pass | Done | Directional mountain influence, curved valley corridor flattening, domain-specific terrace quantization, southeast highland terraces, and chunk-aware plateau bias are implemented. Plateau smoothing is now a selective bias rather than whole-chunk flattening. |
 | Surface Material Pass | Done | Surface material selection now uses stable macro regions, slope/elevation/domain rules, rock-heavy mountains, valley grass/dirt patches, dirt/stone water banks, and exposed rock on steep slopes. Per-domain metrics validate the ratios. |
-| Water Body Validation | Partial | Lake and tarn placement, waterline metrics, basin carving, and dirt/stone bank masks exist. Visual debt remains: lake/tarn outlines still read too circular/artificial and need shoreline reshaping later. |
+| Water Body Validation | Done | Lake and tarn placement, irregular shoreline footprints, waterline/floor-depth metrics, basin carving, and dirt/stone bank masks are implemented and validated in debug metrics. Dynamic water simulation remains out of scope for this plan. |
 | Block Inspector Agreement | Partial | Existing inspector reports clicked block key/type/coordinates and helped validate rendering fixes. It still needs explicit domain, surface Y, and overview-vs-real face/source debug text. |
 | Surface Diorama Decision | Partial | The misleading top-only surface view has been replaced for current terrain review by a block-face overview path that includes top/side faces and actual sampled materials. It still needs a formal quarantine/rename and clearer debug labeling as overview approximation. |
 | Block-Faithful Overview Renderer | Partial | Current overview emits block-derived top faces and side faces with deterministic vertical material approximation. Greedy/region merging and stronger sampled-coordinate validation remain. |
@@ -215,7 +215,7 @@ Replace "pure noise decides domain" with a shaped macro mask:
    - Reserve the southwest for the largest lake/basin feature.
    - Keep surrounding elevation low and gently rolled.
    - Use broad authored-looking shorelines, not puddle noise.
-   - Current visual debt: lake and tarn water still read too circular/artificial; defer shoreline reshaping to the water/material feature pass.
+   - First-pass shoreline reshaping now uses deterministic irregular footprints; revisit later only if art direction wants more authored banks, reeds, or flowing water features.
 
 This gives us Stonehearth-style flat regions without forcing every 16x16 area to a single height.
 
