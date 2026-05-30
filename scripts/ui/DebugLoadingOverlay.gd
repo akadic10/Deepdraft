@@ -49,7 +49,7 @@ func _update_text() -> void:
 	var camera_chunk: Vector2i = render.get("camera_chunk", Vector2i.ZERO)
 	var maps_text := "ready" if gen.get("maps_ready", false) else "building"
 	var in_flight_text := "yes" if gen.get("column_in_flight", false) else "no"
-	var render_mode := "overview faces" if render.get("diorama_active", false) else "streamed block faces"
+	var render_mode: String = render.get("render_mode", "unknown")
 	var domains: Dictionary = metrics.get("domains", {})
 	var surface: Dictionary = metrics.get("surface", {})
 	var surface_by_domain: Dictionary = surface.get("by_domain", {})
@@ -64,6 +64,10 @@ func _update_text() -> void:
 	_label.text = "\n".join([
 		"World build",
 		"render: %s" % render_mode,
+		"overview: step %d  sides %s" % [
+			render.get("overview_step", 0),
+			"on" if render.get("overview_sides", false) else "off",
+		],
 		"maps: %s" % maps_text,
 		"domain %%: M %.1f  V %.1f  L %.1f" % [
 			domains.get("mountain_pct", 0.0),

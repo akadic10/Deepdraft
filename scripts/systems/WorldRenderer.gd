@@ -41,12 +41,11 @@ extends Node3D
 ## Coarse full-world overview mesh for high-altitude surface views. This is not
 ## the old top-only preview: it emits top faces plus vertical faces where sampled
 ## neighbouring columns are lower, so the view remains block-face based.
-@export var use_surface_diorama: bool = true
-@export_range(1, 16, 1) var diorama_step: int = 4
-@export var diorama_slice_threshold: int = 96
-@export var show_diorama_sides: bool = true
-@export_range(0, 128, 1) var diorama_edge_bottom_y: int = 0
-@export_range(1, 32, 1) var diorama_side_dirt_depth: int = 14
+@export var use_block_face_overview: bool = true
+@export_range(1, 16, 1) var overview_step: int = 4
+@export var overview_slice_threshold: int = 96
+@export var show_overview_sides: bool = true
+@export_range(0, 128, 1) var overview_edge_bottom_y: int = 0
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -60,11 +59,9 @@ const WORLD_SIZE_Z: int = 1024
 const REGION_SIZE: int = 4
 
 var _material: StandardMaterial3D
-var _diorama_node: MeshInstance3D = null
-var _diorama_built: bool = false
-var _diorama_rock_color: Color = Color.GRAY
-var _diorama_dirt_color: Color = Color.SADDLE_BROWN
-var _diorama_grass_color: Color = Color.GREEN
+var _overview_node: MeshInstance3D = null
+var _overview_built: bool = false
+var _overview_rock_color: Color = Color.GRAY
 var _region_nodes: Dictionary = {}
 var _chunk_nodes: Dictionary = {}   # Vector3i → MeshInstance3D
 
@@ -107,7 +104,7 @@ func _ready() -> void:
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
 
 	_camera_rig = _find_camera(get_tree().current_scene)
-	if _camera_rig != null and not _surface_diorama_active():
+	if _camera_rig != null and not _block_face_overview_active():
 		_update_streaming_center()
 
 	# Auto-create the camera rig if one isn't already in the scene.
@@ -116,14 +113,14 @@ func _ready() -> void:
 
 	if auto_generate:
 		WorldGenerator.generate(world_seed)
-		if not _surface_diorama_active():
+		if not _block_face_overview_active():
 			_enqueue_visible_existing_chunks()
 		print("WorldRenderer: generation started (seed %d)." % WorldGenerator.world_seed)
 
 
 func _process(_delta: float) -> void:
-	if _surface_diorama_active():
-		_update_diorama()
+	if _block_face_overview_active():
+		_update_block_face_overview()
 		return
 
 	_update_streaming_center()
@@ -323,7 +320,7 @@ func _inspect_block_id(pos: Vector3i) -> Dictionary:
 
 
 func _fallback_source_label(pos: Vector3i) -> String:
-	if _surface_diorama_active():
+	if _block_face_overview_active():
 		return "overview_generated"
 	if WorldData.chunk_exists(pos.x / CHUNK_SIZE, pos.y / CHUNK_SIZE, pos.z / CHUNK_SIZE):
 		return "generated_fallback"
@@ -331,8 +328,8 @@ func _fallback_source_label(pos: Vector3i) -> String:
 
 
 func _inspector_render_mode() -> String:
-	if _surface_diorama_active():
-		return "overview approximation"
+	if _block_face_overview_active():
+		return "block-face overview approximation"
 	return "streamed chunk mesh"
 
 
@@ -370,7 +367,7 @@ func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 	_signals_received += 1
 	if _signals_received == 1:
 		print("WorldRenderer: first chunk_dirtied received (%d,%d,%d)." % [cx, cy, cz])
-	if _surface_diorama_active():
+	if _block_face_overview_active():
 		return
 	if not _chunk_should_be_meshed(cx, cy, cz):
 		return
@@ -586,7 +583,7 @@ func _add_surface_quad(
 	indices.append(base + 2)
 
 
-func _add_diorama_side(
+func _add_overview_side(
 		sample_x: int,
 		sample_z: int,
 		a: Vector3,
@@ -608,7 +605,7 @@ func _add_diorama_side(
 	if drop <= 0.0:
 		return
 
-	_add_diorama_side_column(
+	_add_overview_side_column(
 		sample_x,
 		sample_z,
 		a,
@@ -623,7 +620,7 @@ func _add_diorama_side(
 		indices)
 
 
-func _add_diorama_side_column(
+func _add_overview_side_column(
 		sample_x: int,
 		sample_z: int,
 		a: Vector3,
@@ -640,28 +637,28 @@ func _add_diorama_side_column(
 	var y0 := clampi(floori(bottom_y), 0, WORLD_SIZE_Y - 1)
 	var y1 := clampi(ceili(top_y), 1, WORLD_SIZE_Y)
 	var run_bottom := float(y0)
-	var run_color := _diorama_side_color_at(sample_x, y0, sample_z, top_y, top_color)
+	var run_color := _overview_side_color_at(sample_x, y0, sample_z, top_y, top_color)
 
 	for y in range(y0 + 1, y1):
-		var color := _diorama_side_color_at(sample_x, y, sample_z, top_y, top_color)
+		var color := _overview_side_color_at(sample_x, y, sample_z, top_y, top_color)
 		if color != run_color:
-			_add_diorama_side_band(a, b, run_bottom, float(y), run_color, normal, verts, norms, cols, indices)
+			_add_overview_side_band(a, b, run_bottom, float(y), run_color, normal, verts, norms, cols, indices)
 			run_bottom = float(y)
 			run_color = color
 
-	_add_diorama_side_band(a, b, run_bottom, top_y, run_color, normal, verts, norms, cols, indices)
+	_add_overview_side_band(a, b, run_bottom, top_y, run_color, normal, verts, norms, cols, indices)
 
 
-func _diorama_side_color_at(sample_x: int, y: int, sample_z: int, top_y: float, top_color: Color) -> Color:
+func _overview_side_color_at(sample_x: int, y: int, sample_z: int, top_y: float, top_color: Color) -> Color:
 	if y >= int(top_y) - 1:
 		return top_color
 	var block_id := WorldGenerator.get_generated_block_id(sample_x, y, sample_z)
 	if BlockRegistry.is_transparent(block_id):
-		return _diorama_rock_color
+		return _overview_rock_color
 	return BlockRegistry.get_color(block_id, WorldClock.season)
 
 
-func _add_diorama_side_band(
+func _add_overview_side_band(
 		a: Vector3,
 		b: Vector3,
 		bottom_y: float,
@@ -739,35 +736,35 @@ func _free_region_node(key: Vector2i) -> void:
 	_region_nodes.erase(key)
 
 
-# -- Surface diorama ----------------------------------------------------------
+# -- Block-face overview ------------------------------------------------------
 
-func _surface_diorama_active() -> bool:
-	return use_surface_diorama and slice_y >= diorama_slice_threshold
+func _block_face_overview_active() -> bool:
+	return use_block_face_overview and slice_y >= overview_slice_threshold
 
 
-func _update_diorama() -> void:
+func _update_block_face_overview() -> void:
 	if _camera_rig == null:
 		_camera_rig = _find_camera(get_tree().current_scene)
-	if _diorama_node != null:
-		_diorama_node.visible = true
+	if _overview_node != null:
+		_overview_node.visible = true
 	_free_all_streamed_nodes()
 
 	var stats := WorldGenerator.get_streaming_stats()
 	if not stats.get("maps_ready", false):
 		return
-	if not _diorama_built:
-		_build_surface_diorama()
+	if not _overview_built:
+		_build_block_face_overview()
 		_initial_load = false
 
 
-func _build_surface_diorama() -> void:
-	var step: int = maxi(1, diorama_step)
+func _build_block_face_overview() -> void:
+	var step: int = maxi(1, overview_step)
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
 	var cols: PackedColorArray = []
 	var indices: PackedInt32Array = []
 	var season: String = WorldClock.season
-	_cache_diorama_side_colors(season)
+	_cache_overview_side_colors(season)
 
 	for wx in range(0, WORLD_SIZE_X, step):
 		for wz in range(0, WORLD_SIZE_Z, step):
@@ -785,8 +782,8 @@ func _build_surface_diorama() -> void:
 			var origin := Vector3(float(wx), top_y, float(wz))
 			var tile_size := float(mini(step, mini(WORLD_SIZE_X - wx, WORLD_SIZE_Z - wz)))
 			_add_surface_quad(origin, color, verts, norms, cols, indices, tile_size)
-			if show_diorama_sides:
-				_add_diorama_sides(wx, wz, step, top_y, color, block_kind, verts, norms, cols, indices)
+			if show_overview_sides:
+				_add_overview_sides(wx, wz, step, top_y, color, block_kind, verts, norms, cols, indices)
 
 	if verts.is_empty():
 		return
@@ -801,21 +798,21 @@ func _build_surface_diorama() -> void:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 
-	if _diorama_node == null:
-		_diorama_node = MeshInstance3D.new()
-		_diorama_node.name = "SurfaceDiorama"
-		_diorama_node.material_override = _material
-		_diorama_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(_diorama_node)
+	if _overview_node == null:
+		_overview_node = MeshInstance3D.new()
+		_overview_node.name = "BlockFaceOverview"
+		_overview_node.material_override = _material
+		_overview_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_overview_node)
 
-	_diorama_node.mesh = mesh
-	_diorama_node.visible = true
-	_diorama_built = true
+	_overview_node.mesh = mesh
+	_overview_node.visible = true
+	_overview_built = true
 	_meshes_built += 1
-	print("WorldRenderer: built surface diorama (%d verts, step=%d)." % [verts.size(), step])
+	print("WorldRenderer: built block-face overview (%d verts, step=%d)." % [verts.size(), step])
 
 
-func _add_diorama_sides(
+func _add_overview_sides(
 		wx: int,
 		wz: int,
 		step: int,
@@ -828,14 +825,14 @@ func _add_diorama_sides(
 		indices: PackedInt32Array) -> void:
 
 	var size := float(mini(step, mini(WORLD_SIZE_X - wx, WORLD_SIZE_Z - wz)))
-	var edge_y := float(diorama_edge_bottom_y)
-	var east_y := _diorama_neighbor_top_y(wx + step, wz, edge_y)
-	var south_y := _diorama_neighbor_top_y(wx, wz + step, edge_y)
-	var west_y := _diorama_neighbor_top_y(wx - step, wz, edge_y)
-	var north_y := _diorama_neighbor_top_y(wx, wz - step, edge_y)
+	var edge_y := float(overview_edge_bottom_y)
+	var east_y := _overview_neighbor_top_y(wx + step, wz, edge_y)
+	var south_y := _overview_neighbor_top_y(wx, wz + step, edge_y)
+	var west_y := _overview_neighbor_top_y(wx - step, wz, edge_y)
+	var north_y := _overview_neighbor_top_y(wx, wz - step, edge_y)
 
 	if wx + step < WORLD_SIZE_X:
-		_add_diorama_side(
+		_add_overview_side(
 			wx + step - 1,
 			wz,
 			Vector3(float(wx) + size, top_y, float(wz) + size),
@@ -849,7 +846,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	else:
-		_add_diorama_side(
+		_add_overview_side(
 			wx + step - 1,
 			wz,
 			Vector3(float(wx) + size, top_y, float(wz) + size),
@@ -863,7 +860,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	if wz + step < WORLD_SIZE_Z:
-		_add_diorama_side(
+		_add_overview_side(
 			wx,
 			wz + step - 1,
 			Vector3(float(wx), top_y, float(wz) + size),
@@ -877,7 +874,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	else:
-		_add_diorama_side(
+		_add_overview_side(
 			wx,
 			wz + step - 1,
 			Vector3(float(wx), top_y, float(wz) + size),
@@ -891,7 +888,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	if wx - step >= 0:
-		_add_diorama_side(
+		_add_overview_side(
 			wx,
 			wz,
 			Vector3(float(wx), top_y, float(wz)),
@@ -905,7 +902,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	else:
-		_add_diorama_side(
+		_add_overview_side(
 			wx,
 			wz,
 			Vector3(float(wx), top_y, float(wz)),
@@ -919,7 +916,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	if wz - step >= 0:
-		_add_diorama_side(
+		_add_overview_side(
 			wx,
 			wz,
 			Vector3(float(wx) + size, top_y, float(wz)),
@@ -933,7 +930,7 @@ func _add_diorama_sides(
 			cols,
 			indices)
 	else:
-		_add_diorama_side(
+		_add_overview_side(
 			wx,
 			wz,
 			Vector3(float(wx) + size, top_y, float(wz)),
@@ -948,7 +945,7 @@ func _add_diorama_sides(
 			indices)
 
 
-func _diorama_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
+func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
 		return edge_y
 	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
@@ -957,15 +954,9 @@ func _diorama_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	return float(wy + 1)
 
 
-func _cache_diorama_side_colors(season: String) -> void:
-	_diorama_rock_color = BlockRegistry.get_color(
+func _cache_overview_side_colors(season: String) -> void:
+	_overview_rock_color = BlockRegistry.get_color(
 		BlockRegistry.get_id(&"base:terrain:rock:granite"),
-		season)
-	_diorama_dirt_color = BlockRegistry.get_color(
-		BlockRegistry.get_id(&"base:terrain:surface:dirt_01"),
-		season)
-	_diorama_grass_color = BlockRegistry.get_color(
-		BlockRegistry.get_id(&"base:terrain:surface:grass_01"),
 		season)
 
 
@@ -987,7 +978,7 @@ func _free_all_streamed_nodes() -> void:
 # -- View-radius streaming ----------------------------------------------------
 
 func _update_streaming_center() -> void:
-	if _surface_diorama_active():
+	if _block_face_overview_active():
 		return
 	if _camera_rig == null:
 		_camera_rig = _find_camera(get_tree().current_scene)
@@ -1007,7 +998,7 @@ func _update_streaming_center() -> void:
 
 
 func _enqueue_visible_existing_chunks() -> void:
-	if _surface_diorama_active():
+	if _block_face_overview_active():
 		return
 	if _camera_chunk.x < 0:
 		return
@@ -1083,9 +1074,9 @@ func _chunk_in_radius(cx: int, cz: int, radius: int) -> bool:
 # ── Slice visibility ──────────────────────────────────────────────────────────
 
 func _apply_slice_visibility() -> void:
-	if _diorama_node != null:
-		_diorama_node.visible = _surface_diorama_active()
-	if _surface_diorama_active():
+	if _overview_node != null:
+		_overview_node.visible = _block_face_overview_active()
+	if _block_face_overview_active():
 		_free_all_streamed_nodes()
 		return
 	for key: Vector2i in _region_nodes:
@@ -1122,6 +1113,7 @@ func _find_camera(node: Node) -> Camera:
 
 
 func get_render_stats() -> Dictionary:
+	var overview_active := _block_face_overview_active()
 	return {
 		"camera_chunk": _camera_chunk,
 		"view_radius_chunks": view_radius_chunks,
@@ -1131,8 +1123,11 @@ func get_render_stats() -> Dictionary:
 		"meshes_built": _meshes_built,
 		"initial_load": _initial_load,
 		"slice_y": slice_y,
-		"diorama_active": _surface_diorama_active(),
-		"diorama_built": _diorama_built,
+		"render_mode": "block-face overview approximation" if overview_active else "streamed chunk mesh",
+		"overview_active": overview_active,
+		"overview_built": _overview_built,
+		"overview_step": overview_step,
+		"overview_sides": show_overview_sides,
 	}
 
 
