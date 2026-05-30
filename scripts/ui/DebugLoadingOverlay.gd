@@ -52,6 +52,9 @@ func _update_text() -> void:
 	var render_mode := "overview faces" if render.get("diorama_active", false) else "streamed block faces"
 	var domains: Dictionary = metrics.get("domains", {})
 	var surface: Dictionary = metrics.get("surface", {})
+	var surface_by_domain: Dictionary = surface.get("by_domain", {})
+	var mountain_surface: Dictionary = surface_by_domain.get("mountain", {})
+	var valley_surface: Dictionary = surface_by_domain.get("valley", {})
 	var heights: Dictionary = metrics.get("heights", {})
 	var shaping: Dictionary = metrics.get("shaping", {})
 	var water: Dictionary = metrics.get("water", {})
@@ -78,13 +81,20 @@ func _update_text() -> void:
 			surface.get("rock_pct", 0.0),
 			surface.get("water_pct", 0.0),
 		],
+		"surface domain: M rock %.1f  V g/d/r %.1f/%.1f/%.1f" % [
+			mountain_surface.get("rock_pct", 0.0),
+			valley_surface.get("grass_pct", 0.0),
+			valley_surface.get("dirt_pct", 0.0),
+			valley_surface.get("rock_pct", 0.0),
+		],
 		"shape: terrace %.1f%%  plateau %d" % [
 			shaping.get("terraced_pct", 0.0),
 			shaping.get("plateau_adjusted_columns", 0),
 		],
-		"water: lake %s  tarn %s" % [
+		"water: lake %s  tarn %s  bank %d" % [
 			str(water.get("lake_center", Vector2i.ZERO)),
 			str(water.get("tarn_center", Vector2i.ZERO)),
+			water.get("bank_columns", 0),
 		],
 		"macro: basin %d  SE highland %d  edge %d" % [
 			macro.get("southwest_basin_columns", 0),

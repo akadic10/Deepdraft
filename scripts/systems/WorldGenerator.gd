@@ -59,6 +59,9 @@ const PLATEAU_MAX_HEIGHT_RANGE: int = 5
 const PLATEAU_MAX_MOUNTAIN_HEIGHT: int = 104
 const PLATEAU_MIN_DOMINANT_COLUMNS: int = 92
 const PLATEAU_SNAP_DELTA: int = 2
+const MATERIAL_MACRO_CELL_SIZE: int = 32
+const WATER_BANK_RADIUS: int = 4
+const STEEP_SLOPE_ROCK_DELTA: int = 3
 
 # ── Lake / tarn parameters ────────────────────────────────────────────────────
 # Radii scale with world size so the 128-block test world gets a proportional
@@ -120,6 +123,7 @@ var heightmap:    PackedInt32Array    # surface Y per column
 # Lake / tarn geometry
 var lake_columns: Dictionary = {}   # Vector2i → true  (lowland lake footprint)
 var tarn_columns: Dictionary = {}   # Vector2i → true  (mountain tarn footprint)
+var water_bank_columns: Dictionary = {}  # Vector2i → true  (near lake/tarn, but not water)
 var lake_center:  Vector2i  = Vector2i.ZERO
 var tarn_center:  Vector2i  = Vector2i.ZERO
 var tarn_waterline: int     = 0
@@ -218,12 +222,21 @@ func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
 		surface.get("rock_pct", 0.0),
 		surface.get("water_pct", 0.0),
 	])
+	var surface_by_domain: Dictionary = surface.get("by_domain", {})
+	var mountain_surface: Dictionary = surface_by_domain.get("mountain", {})
+	var valley_surface: Dictionary = surface_by_domain.get("valley", {})
+	print("  surface domains: mountain rock %.1f%%; valley grass %.1f%% dirt %.1f%% rock %.1f%%" % [
+		mountain_surface.get("rock_pct", 0.0),
+		valley_surface.get("grass_pct", 0.0),
+		valley_surface.get("dirt_pct", 0.0),
+		valley_surface.get("rock_pct", 0.0),
+	])
 	print("  shaping: terraced %d, plateau-adjusted %d across %d chunk columns" % [
 		shaping.get("terraced_columns", 0),
 		shaping.get("plateau_adjusted_columns", 0),
 		shaping.get("plateau_smoothed_chunks", 0),
 	])
-	print("  water: lake %s r%d y%d columns %d; tarn %s r%d y%d columns %d" % [
+	print("  water: lake %s r%d y%d columns %d; tarn %s r%d y%d columns %d; banks %d" % [
 		str(water.get("lake_center", Vector2i.ZERO)),
 		water.get("lake_radius", 0),
 		water.get("lake_waterline", 0),
@@ -232,6 +245,7 @@ func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
 		water.get("tarn_radius", 0),
 		water.get("tarn_waterline", 0),
 		water.get("tarn_columns", 0),
+		water.get("bank_columns", 0),
 	])
 	print("  macro: basin %d, southeast highland %d, edge belt %d columns" % [
 		macro.get("southwest_basin_columns", 0),
@@ -304,6 +318,12 @@ func generate(new_seed: int = 0) -> void:
 	_column_in_flight = false
 	_generation_metrics.clear()
 	_domain_counts.clear()
+	lake_columns.clear()
+	tarn_columns.clear()
+	water_bank_columns.clear()
+	lake_center = Vector2i.ZERO
+	tarn_center = Vector2i.ZERO
+	tarn_waterline = 0
 	_terraced_columns = 0
 	_plateau_adjusted_columns = 0
 	_plateau_smoothed_chunks = 0
@@ -826,6 +846,7 @@ func _radial_strength(pos: Vector2, center: Vector2, radius: float) -> float:
 func _carve_lakes() -> void:
 	_carve_lowland_lake()
 	_carve_mountain_tarn()
+	_build_water_bank_mask()
 
 
 func _carve_lowland_lake() -> void:
@@ -908,6 +929,25 @@ func _carve_mountain_tarn() -> void:
 	tarn_waterline = min_y + TARN_DEPTH - 1
 
 
+func _build_water_bank_mask() -> void:
+	water_bank_columns.clear()
+	for water_set: Dictionary in [lake_columns, tarn_columns]:
+		for water_col_variant: Variant in water_set.keys():
+			var water_col := water_col_variant as Vector2i
+			for dx in range(-WATER_BANK_RADIUS, WATER_BANK_RADIUS + 1):
+				for dz in range(-WATER_BANK_RADIUS, WATER_BANK_RADIUS + 1):
+					if absi(dx) + absi(dz) > WATER_BANK_RADIUS:
+						continue
+					var wx := water_col.x + dx
+					var wz := water_col.y + dz
+					if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
+						continue
+					var bank_col := Vector2i(wx, wz)
+					if lake_columns.has(bank_col) or tarn_columns.has(bank_col):
+						continue
+					water_bank_columns[bank_col] = true
+
+
 # -- Generation metrics -------------------------------------------------------
 
 func _build_generation_metrics() -> void:
@@ -942,6 +982,7 @@ func _build_generation_metrics() -> void:
 			"tarn_radius": TARN_RADIUS,
 			"tarn_waterline": tarn_waterline,
 			"tarn_columns": tarn_columns.size(),
+			"bank_columns": water_bank_columns.size(),
 		},
 		"settlement_candidates": _compute_settlement_candidate_metrics(),
 	}
@@ -995,21 +1036,24 @@ func _compute_surface_metrics() -> Dictionary:
 		"other": 0,
 	}
 	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
+	var by_domain := {
+		"mountain": _new_surface_bucket(),
+		"valley": _new_surface_bucket(),
+		"lowland": _new_surface_bucket(),
+	}
 
 	for x in range(WORLD_SIZE_X):
 		for z in range(WORLD_SIZE_Z):
 			var col := Vector2i(x, z)
 			var block_id := _id_water if lake_columns.has(col) or tarn_columns.has(col) else _pick_surface_block(x, z, col)
-			if _grass_ids.has(block_id):
-				counts["grass"] = (counts["grass"] as int) + 1
-			elif _dirt_ids.has(block_id):
-				counts["dirt"] = (counts["dirt"] as int) + 1
-			elif block_id == _id_water:
-				counts["water"] = (counts["water"] as int) + 1
-			elif block_id == _id_granite or block_id == _id_basalt or block_id == _id_limestone or block_id == _id_marble:
-				counts["rock"] = (counts["rock"] as int) + 1
-			else:
-				counts["other"] = (counts["other"] as int) + 1
+			var category := _surface_category(block_id)
+			counts[category] = (counts[category] as int) + 1
+			var bucket: Dictionary = by_domain[_domain_label(domain_map[x * WORLD_SIZE_Z + z])]
+			bucket[category] = (bucket[category] as int) + 1
+			bucket["total"] = (bucket["total"] as int) + 1
+
+	for key: String in by_domain.keys():
+		_add_surface_bucket_percentages(by_domain[key])
 
 	return {
 		"grass": counts["grass"],
@@ -1022,6 +1066,7 @@ func _compute_surface_metrics() -> Dictionary:
 		"rock_pct": _pct(counts["rock"] as int, total_columns),
 		"water_pct": _pct(counts["water"] as int, total_columns),
 		"other_pct": _pct(counts["other"] as int, total_columns),
+		"by_domain": by_domain,
 	}
 
 
@@ -1106,6 +1151,31 @@ func _compute_settlement_candidate_metrics() -> Dictionary:
 
 func _new_height_bucket() -> Dictionary:
 	return {"count": 0, "min": WORLD_SIZE_Y, "max": 0, "sum": 0}
+
+
+func _new_surface_bucket() -> Dictionary:
+	return {"grass": 0, "dirt": 0, "rock": 0, "water": 0, "other": 0, "total": 0}
+
+
+func _add_surface_bucket_percentages(bucket: Dictionary) -> void:
+	var total := bucket.get("total", 0) as int
+	bucket["grass_pct"] = _pct(bucket.get("grass", 0) as int, total)
+	bucket["dirt_pct"] = _pct(bucket.get("dirt", 0) as int, total)
+	bucket["rock_pct"] = _pct(bucket.get("rock", 0) as int, total)
+	bucket["water_pct"] = _pct(bucket.get("water", 0) as int, total)
+	bucket["other_pct"] = _pct(bucket.get("other", 0) as int, total)
+
+
+func _surface_category(block_id: int) -> String:
+	if _grass_ids.has(block_id):
+		return "grass"
+	if _dirt_ids.has(block_id):
+		return "dirt"
+	if block_id == _id_water:
+		return "water"
+	if block_id == _id_granite or block_id == _id_basalt or block_id == _id_limestone or block_id == _id_marble:
+		return "rock"
+	return "other"
 
 
 func _domain_label(domain: int) -> String:
@@ -1391,39 +1461,61 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 
 
 func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:
-	var h := hash(col)
 	var idx := x * WORLD_SIZE_Z + z
-
-	# Water banks are dirt-heavy, with occasional exposed stone.
-	if lake_columns.has(col) or tarn_columns.has(col):
-		if h % 5 == 0:
-			return _pick_surface_rock(h, heightmap[idx])
-		return _dirt_ids[0]
-
-	# Deterministic variant selection via hash; no runtime random calls here.
+	var height := heightmap[idx]
 	var slope := _surface_slope(x, z)
 	var domain := domain_map[idx]
-	var n_dirt := (noise_soil.get_noise_2d(x, z) + 1.0) * 0.5
+	var region := _surface_region_value(x, z, 0)
+
+	# Submerged floors and immediate banks are soil/stone, never grass.
+	if lake_columns.has(col) or tarn_columns.has(col):
+		if _surface_region_value(x, z, 7) > 0.72:
+			return _pick_surface_rock(x, z, height)
+		return _dirt_variant(x, z)
+	if _is_water_bank(x, z):
+		if slope >= 2 or _surface_region_value(x, z, 11) > 0.68:
+			return _pick_surface_rock(x, z, height)
+		return _dirt_variant(x, z)
+
+	if slope >= STEEP_SLOPE_ROCK_DELTA:
+		return _pick_surface_rock(x, z, height)
 
 	if domain == DOMAIN_MOUNTAIN:
-		if slope <= 1 and heightmap[idx] < 90 and domain_n_map[idx] < 0.64 and h % 200 == 0:
-			return _grass_ids[h % 16]
-		if slope <= 1 and heightmap[idx] < 94 and domain_n_map[idx] < 0.66 and h % 50 == 0:
-			return _dirt_ids[h % 4]
-		return _pick_surface_rock(h, heightmap[idx])
+		var sheltered_shelf := slope <= 1 and height < 96 and domain_n_map[idx] < 0.68
+		if sheltered_shelf and region > 0.94:
+			return _grass_variant(x, z)
+		if sheltered_shelf and region > 0.86:
+			return _dirt_variant(x, z)
+		return _pick_surface_rock(x, z, height)
 
 	if domain == DOMAIN_VALLEY:
-		if slope >= 3 or h % 9 == 0:
-			return _pick_surface_rock(h, heightmap[idx])
-		if n_dirt > 0.54 or h % 4 == 0:
-			return _dirt_ids[h % 4]
-		return _grass_ids[h % 16]
+		if slope >= 2 and _surface_region_value(x, z, 17) > 0.35:
+			return _pick_surface_rock(x, z, height)
+		if region < 0.50:
+			return _grass_variant(x, z)
+		if region < 0.82:
+			return _dirt_variant(x, z)
+		return _pick_surface_rock(x, z, height)
 
-	if slope >= 3:
-		return _pick_surface_rock(h, heightmap[idx])
-	if n_dirt > 0.62 or h % 5 == 0:
-		return _dirt_ids[h % 4]
-	return _grass_ids[h % 16]
+	if _southeast_highland_strength(x, z) > 0.35:
+		if region < 0.42:
+			return _grass_variant(x, z)
+		if region < 0.66:
+			return _dirt_variant(x, z)
+		return _pick_surface_rock(x, z, height)
+
+	if _southwest_basin_strength(x, z) > 0.30:
+		if region < 0.48:
+			return _dirt_variant(x, z)
+		if region < 0.86:
+			return _grass_variant(x, z)
+		return _pick_surface_rock(x, z, height)
+
+	if region < 0.62:
+		return _grass_variant(x, z)
+	if region < 0.86:
+		return _dirt_variant(x, z)
+	return _pick_surface_rock(x, z, height)
 
 func _surface_slope(x: int, z: int) -> int:
 	var center := heightmap[x * WORLD_SIZE_Z + z]
@@ -1439,12 +1531,34 @@ func _surface_slope(x: int, z: int) -> int:
 	return max_delta
 
 
-func _pick_surface_rock(hash_value: int, y: int) -> int:
+func _is_water_bank(x: int, z: int) -> bool:
+	return water_bank_columns.has(Vector2i(x, z))
+
+
+func _surface_region_value(x: int, z: int, salt: int) -> float:
+	var macro := Vector3i(x / MATERIAL_MACRO_CELL_SIZE, salt, z / MATERIAL_MACRO_CELL_SIZE)
+	var macro_hash := float(abs(hash(macro)) % 1000) / 999.0
+	var field := (noise_domain.get_noise_2d(float(x) * 0.12 + float(salt * 997), float(z) * 0.12 - float(salt * 541)) + 1.0) * 0.5
+	return clampf((macro_hash * 0.62) + (field * 0.38), 0.0, 1.0)
+
+
+func _grass_variant(x: int, z: int) -> int:
+	var cell := Vector3i(x / MATERIAL_MACRO_CELL_SIZE, 31, z / MATERIAL_MACRO_CELL_SIZE)
+	return _grass_ids[abs(hash(cell)) % _grass_ids.size()]
+
+
+func _dirt_variant(x: int, z: int) -> int:
+	var cell := Vector3i(x / MATERIAL_MACRO_CELL_SIZE, 47, z / MATERIAL_MACRO_CELL_SIZE)
+	return _dirt_ids[abs(hash(cell)) % _dirt_ids.size()]
+
+
+func _pick_surface_rock(x: int, z: int, y: int) -> int:
+	var region := _surface_region_value(x, z, 23)
 	if y >= 112:
-		return _id_basalt if hash_value % 5 == 0 else _id_granite
-	if hash_value % 37 == 0:
+		return _id_basalt if region > 0.72 else _id_granite
+	if region > 0.82:
 		return _id_limestone
-	if hash_value % 11 == 0:
+	if region < 0.18:
 		return _id_basalt
 	return _id_granite
 
