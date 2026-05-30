@@ -1,0 +1,147 @@
+{
+  "__comment": [
+    "Dwarf visual component pools for procedural generation.",
+    "",
+    "GENERATION MODEL:",
+    "  Each dwarf is assigned one value from every applicable pool at generation time.",
+    "  Shared pools apply to both genders. Gender-specific pools are separate.",
+    "  All selections use the world seed + dwarf birth-order index as the RNG root,",
+    "  so the same world always produces the same dwarf appearances in the same order.",
+    "",
+    "MAP MESH vs. PORTRAIT:",
+    "  Two visual representations exist for each dwarf:",
+    "    map_mesh    — the 3.3-block character seen walking around the colony.",
+    "                  Only broad features are visible: skin tone, hair colour,",
+    "                  hair silhouette, and beard presence/absence.",
+    "    portrait    — detailed close-up shown in the labour UI and dwarf inspect panel.",
+    "                  All appearance fields are rendered here.",
+    "",
+    "WEIGHT FIELDS:",
+    "  Each option entry may include a 'weight' field (default 1 if omitted).",
+    "  The generator normalises weights and rolls a weighted random selection.",
+    "  Higher weight = more common. Rare options have weight < 1.",
+    "",
+    "AGE TIERS:",
+    "  Visual age tier is cosmetic only — it does not affect stats or lifespan.",
+    "  Young dwarves have smoother skin; Elder dwarves have deeper wrinkles and",
+    "  white or grey hair streaks. Age tier is assigned independently of trait or",
+    "  profession — a young dwarf can be an expert miner if the trait allows it.",
+    "",
+    "SCAR OVERLAY:",
+    "  Scars are a portrait-only overlay drawn on top of the face mesh.",
+    "  'none' means no scar overlay is applied (most common).",
+    "  Scar models are shared between genders."
+  ],
+
+  "shared": {
+
+    "skin_tone": [
+      { "id": "pale",     "display_name": "Pale",      "weight": 2   },
+      { "id": "medium",   "display_name": "Medium",    "weight": 3   },
+      { "id": "tan",      "display_name": "Tan",       "weight": 2   },
+      { "id": "dark",     "display_name": "Dark",      "weight": 1   }
+    ],
+
+    "eye_color": [
+      { "id": "grey",     "display_name": "Grey",      "weight": 3   },
+      { "id": "blue",     "display_name": "Blue",      "weight": 2   },
+      { "id": "green",    "display_name": "Green",     "weight": 2   },
+      { "id": "brown",    "display_name": "Brown",     "weight": 3   },
+      { "id": "amber",    "display_name": "Amber",     "weight": 1   },
+      { "id": "red",      "display_name": "Red",       "weight": 0.3,
+        "__comment": "Rare — unsettling and memorable" }
+    ],
+
+    "hair_color": [
+      { "id": "black",    "display_name": "Black",     "weight": 3   },
+      { "id": "dark_brown","display_name": "Dark Brown","weight": 3   },
+      { "id": "brown",    "display_name": "Brown",     "weight": 3   },
+      { "id": "auburn",   "display_name": "Auburn",    "weight": 2   },
+      { "id": "red",      "display_name": "Red",       "weight": 2   },
+      { "id": "blonde",   "display_name": "Blonde",    "weight": 1   },
+      { "id": "grey",     "display_name": "Grey",      "weight": 1,
+        "__comment": "More common on elder age tier; can appear on any" },
+      { "id": "white",    "display_name": "White",     "weight": 0.5,
+        "__comment": "Rare — most common on elder age tier" }
+    ],
+
+    "age_tier": [
+      { "id": "young",    "display_name": "Young",     "weight": 2   },
+      { "id": "adult",    "display_name": "Adult",     "weight": 4   },
+      { "id": "middle",   "display_name": "Middle-aged","weight": 3  },
+      { "id": "elder",    "display_name": "Elder",     "weight": 1   }
+    ],
+
+    "scar": [
+      { "id": "none",           "display_name": "None",              "weight": 6   },
+      { "id": "cheek_slash",    "display_name": "Cheek Slash",       "weight": 1   },
+      { "id": "brow_notch",     "display_name": "Brow Notch",        "weight": 1   },
+      { "id": "nose_bridge",    "display_name": "Nose Bridge Scar",  "weight": 0.7 },
+      { "id": "chin_split",     "display_name": "Chin Split",        "weight": 0.7 }
+    ]
+
+  },
+
+  "male": {
+
+    "hair_style": [
+      { "id": "short_back",     "display_name": "Short, Swept Back",      "weight": 3 },
+      { "id": "shaved",         "display_name": "Shaved",                 "weight": 2 },
+      { "id": "wild_loose",     "display_name": "Wild and Loose",         "weight": 2 },
+      { "id": "braided_back",   "display_name": "Braided Back",           "weight": 1 },
+      { "id": "bald",           "display_name": "Bald",                   "weight": 1 }
+    ],
+
+    "beard": {
+      "__comment": [
+        "beard_present is rolled first using beard_probability.",
+        "If present, beard_style is selected from the style pool.",
+        "beard_color inherits hair_color by default; override via separate roll",
+        "only if bear_color_independent is true (reserved for future use)."
+      ],
+      "beard_probability": 0.85,
+      "styles": [
+        { "id": "full_long",      "display_name": "Full Long",           "weight": 3 },
+        { "id": "full_braided",   "display_name": "Full Braided",        "weight": 2 },
+        { "id": "short_trimmed",  "display_name": "Short Trimmed",       "weight": 2 },
+        { "id": "forked",         "display_name": "Forked",              "weight": 2 },
+        { "id": "mutton_chops",   "display_name": "Mutton Chops",        "weight": 1 },
+        { "id": "goatee",         "display_name": "Goatee",              "weight": 1 },
+        { "id": "braided_long",   "display_name": "Long Double-Braid",   "weight": 1,
+          "__comment": "Prestigious — long braids with bead adornments" }
+      ]
+    },
+
+    "eyebrow_style": [
+      { "id": "thick_flat",     "display_name": "Thick and Flat",        "weight": 3 },
+      { "id": "bushy",          "display_name": "Bushy",                 "weight": 3 },
+      { "id": "arched",         "display_name": "Arched",                "weight": 2 },
+      { "id": "unibrow",        "display_name": "Unibrow",               "weight": 1 }
+    ]
+
+  },
+
+  "female": {
+
+    "hair_style": [
+      { "id": "bun",            "display_name": "Bun",                   "weight": 3 },
+      { "id": "braid_side",     "display_name": "Side Braid",            "weight": 3 },
+      { "id": "braid_long",     "display_name": "Long Braid",            "weight": 2 },
+      { "id": "short_practical","display_name": "Short, Practical",      "weight": 2 },
+      { "id": "twin_braids",    "display_name": "Twin Braids",           "weight": 2 },
+      { "id": "half_up",        "display_name": "Half-Up",               "weight": 1 },
+      { "id": "loose_long",     "display_name": "Loose Long",            "weight": 1 },
+      { "id": "shaved_sides",   "display_name": "Shaved Sides",          "weight": 1 },
+      { "id": "cropped",        "display_name": "Cropped",               "weight": 1 },
+      { "id": "wild",           "display_name": "Wild",                  "weight": 1 }
+    ],
+
+    "eyebrow_style": [
+      { "id": "thin_arched",    "display_name": "Thin Arched",           "weight": 3 },
+      { "id": "thick_flat",     "display_name": "Thick and Flat",        "weight": 3 },
+      { "id": "bushy",          "display_name": "Bushy",                 "weight": 2 },
+      { "id": "sharp_angled",   "display_name": "Sharp Angled",          "weight": 1 }
+    ]
+
+  }
+}

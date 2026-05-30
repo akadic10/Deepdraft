@@ -1,0 +1,368 @@
+{
+  "__comment": [
+    "Trait definitions for procedural dwarf generation.",
+    "",
+    "TRAIT SYSTEM:",
+    "  Traits are permanent attributes assigned at dwarf generation time.",
+    "  They cannot be gained or lost during play (except Homesick, which fades).",
+    "  Each trait has a polarity (positive / negative) and a rarity weight",
+    "  used when the generator selects which specific trait to assign.",
+    "",
+    "EFFECTS SCHEMA:",
+    "  Each effect object has a 'type' field and type-specific parameters.",
+    "  Effect types:",
+    "    mood_baseline              — permanent additive delta to mood (float)",
+    "    task_speed_modifier        — multiplier on all task durations (< 1.0 = faster)",
+    "    experience_gain_multiplier — multiplier on task counts for a specific profession",
+    "    enables_level_6            — unlocks experience level 6 for a specific profession",
+    "    enables_future_profession  — reserves a profession unlock for when it is implemented",
+    "    outdoor_mood_penalty       — mood delta applied while executing outdoor task types",
+    "    sealed_room_mood_penalty   — mood delta applied while inside a sealed room with no sky",
+    "    food_consumption_modifier  — multiplier on hunger drain rate",
+    "    alcohol_dependency         — see field notes below",
+    "    sleep_duration_modifier    — additional in-game hours of sleep required per cycle",
+    "    damage_modifier            — multiplier on incoming damage (< 1.0 = more resistant)",
+    "    crowd_mood_penalty         — mood delta when within range of crowd_threshold+ dwarves",
+    "    homesick                   — temporary negative mood that fades; see field notes",
+    "",
+    "  alcohol_dependency fields:",
+    "    required_interval_hours    — dwarf must consume alcohol within this window or penalty stacks",
+    "    penalty_per_missed_interval— mood delta added each time the window expires without a drink",
+    "    max_penalty_stacks         — maximum simultaneous stacks (mood floor from this trait alone)",
+    "    bonus_multiplier           — multiplier on all alcohol-related thought magnitudes (drank_ale etc.)",
+    "",
+    "  homesick fields:",
+    "    initial_penalty            — mood delta at arrival",
+    "    fade_duration_days         — in-game days until effect is fully removed (linear fade)",
+    "",
+    "EXCLUSION GROUPS:",
+    "  Traits in the same exclusion group cannot be assigned to the same dwarf.",
+    "  The generator checks exclusions before finalising each trait slot."
+  ],
+
+  "generation_config": {
+    "__comment": [
+      "Weights for how many trait slots a dwarf receives at generation.",
+      "Rolls are weighted: total all weights, pick a random value, find the matching bucket.",
+      "When multiple slots are assigned, the generator fills positive slots from the",
+      "positive pool and negative slots from the negative pool independently.",
+      "'two_positive_one_negative' dwarves are the rarest and most valuable."
+    ],
+    "no_traits":               35,
+    "one_negative":            30,
+    "one_positive":            20,
+    "one_positive_one_negative": 10,
+    "two_positive":             4,
+    "two_positive_one_negative": 1
+  },
+
+  "exclusion_groups": {
+    "outdoor_preference": ["base:trait:hates_the_outdoors", "base:trait:cave_sick"],
+    "mood_baseline":      ["base:trait:cheerful", "base:trait:grumpy"],
+    "work_pace":          ["base:trait:hardworking", "base:trait:lazy"],
+    "sleep_pattern":      ["base:trait:deep_sleeper", "base:trait:light_sleeper"],
+    "social_preference":  ["base:trait:social", "base:trait:loner"]
+  },
+
+  "traits": {
+
+    "__comment_calling": "Calling traits — grant +50% experience gain and unlock profession level 6.",
+
+    "base:trait:born_miner": {
+      "display_name": "Born Miner",
+      "description": "Tunnels feel like home. This dwarf reads rock grain by instinct — fewer wasted swings, richer finds.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:miner", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:miner" }
+      ]
+    },
+
+    "base:trait:brewmasters_intuition": {
+      "display_name": "Brewmaster's Intuition",
+      "description": "A nose for fermentation that cannot be taught. Their batches come out right even when everything else goes wrong.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:brewer", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:brewer" }
+      ]
+    },
+
+    "base:trait:green_thumb": {
+      "display_name": "Green Thumb",
+      "description": "Plants seem to grow faster when this dwarf tends them. Even cave mushrooms respond.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:farmer", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:farmer" }
+      ]
+    },
+
+    "base:trait:architects_eye": {
+      "display_name": "Architect's Eye",
+      "description": "Everything they build sits true. Other dwarves bring their measurements to this one before they start.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:builder", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:builder" }
+      ]
+    },
+
+    "base:trait:merchants_tongue": {
+      "display_name": "Merchant's Tongue",
+      "description": "Caravans linger longer when this dwarf runs the shop. Something about the way they deal.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:merchant", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:merchant" }
+      ]
+    },
+
+    "base:trait:warm_host": {
+      "display_name": "Warm Host",
+      "description": "Travelers feel welcome the moment they step through the door. Guests always seem to stay one night longer.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:innkeeper", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:innkeeper" }
+      ]
+    },
+
+    "base:trait:born_hauler": {
+      "display_name": "Born Hauler",
+      "description": "Has never dropped a load. Has never taken a wrong route. The colony runs on dwarves like this one.",
+      "polarity": "positive",
+      "rarity_weight": 15,
+      "effects": [
+        { "type": "experience_gain_multiplier", "profession": "base:profession:worker", "value": 1.5 },
+        { "type": "enables_level_6",            "profession": "base:profession:worker" }
+      ]
+    },
+
+    "base:trait:loves_to_cook": {
+      "display_name": "Loves to Cook",
+      "description": "Happiest over a fire with a pot and an opinion. A Cook profession does not yet exist — but when it does, this dwarf was born for it.",
+      "polarity": "positive",
+      "rarity_weight": 20,
+      "effects": [
+        { "type": "enables_future_profession", "profession": "base:profession:cook" }
+      ]
+    },
+
+    "__comment_general_positive": "General positive traits — personality and physical strengths.",
+
+    "base:trait:cheerful": {
+      "display_name": "Cheerful",
+      "description": "Rarely has a bad day. The kind of dwarf whose mood is contagious in the best way.",
+      "polarity": "positive",
+      "rarity_weight": 60,
+      "exclusion_group": "mood_baseline",
+      "effects": [
+        { "type": "mood_baseline", "value": 0.06 }
+      ]
+    },
+
+    "base:trait:hardworking": {
+      "display_name": "Hardworking",
+      "description": "Does everything a little faster. Not smarter — just more focused than most.",
+      "polarity": "positive",
+      "rarity_weight": 50,
+      "exclusion_group": "work_pace",
+      "effects": [
+        { "type": "task_speed_modifier", "value": 0.90 }
+      ]
+    },
+
+    "base:trait:iron_constitution": {
+      "display_name": "Iron Constitution",
+      "description": "Shrugs off knocks that would put other dwarves in bed. Bruises faster than they slow down.",
+      "polarity": "positive",
+      "rarity_weight": 30,
+      "effects": [
+        { "type": "damage_modifier", "value": 0.70 }
+      ]
+    },
+
+    "base:trait:deep_sleeper": {
+      "display_name": "Deep Sleeper",
+      "description": "Fully rested in five hours instead of six. Wakes ready to work before the torches are lit.",
+      "polarity": "positive",
+      "rarity_weight": 40,
+      "exclusion_group": "sleep_pattern",
+      "effects": [
+        { "type": "sleep_duration_modifier", "value": -1 }
+      ]
+    },
+
+    "base:trait:iron_stomach": {
+      "display_name": "Iron Stomach",
+      "description": "Content eating the same thing every day. Never complains about the menu.",
+      "polarity": "positive",
+      "rarity_weight": 50,
+      "effects": [
+        { "type": "ignores_food_variety_thoughts", "value": true }
+      ]
+    },
+
+    "base:trait:brave": {
+      "display_name": "Brave",
+      "description": "Does not drop tasks when invaders are nearby. Keeps working while others run. Whether that is wisdom or stubbornness is debatable.",
+      "polarity": "positive",
+      "rarity_weight": 25,
+      "effects": [
+        { "type": "ignores_invader_flee_trigger", "value": true }
+      ]
+    },
+
+    "__comment_negative": "Negative traits — penalties, phobias, and difficult personalities.",
+
+    "base:trait:hates_the_outdoors": {
+      "display_name": "Hates the Outdoors",
+      "description": "Uncomfortable under open sky. Outdoor tasks — farming, surface hauling, tending beehives — leave them unsettled and slow.",
+      "polarity": "negative",
+      "rarity_weight": 80,
+      "exclusion_group": "outdoor_preference",
+      "effects": [
+        { "type": "outdoor_mood_penalty", "value": -0.05,
+          "applies_to_task_types": ["PLANT_SEED", "TEND_FARM", "HARVEST_CROP", "TEND_BEEHIVE",
+                                    "COLLECT_HONEY", "HAUL", "CLEAR_RUBBLE"] }
+      ]
+    },
+
+    "base:trait:cave_sick": {
+      "display_name": "Cave Sick",
+      "description": "Unsettled in sealed underground rooms with no view of the sky. Prefers open air — a difficult thing to find in a mountain colony.",
+      "polarity": "negative",
+      "rarity_weight": 30,
+      "exclusion_group": "outdoor_preference",
+      "effects": [
+        { "type": "sealed_room_mood_penalty", "value": -0.05 }
+      ]
+    },
+
+    "base:trait:grumpy": {
+      "display_name": "Grumpy",
+      "description": "Wakes up in a bad mood and works at it from there. Not unpleasant — just consistently underwhelmed.",
+      "polarity": "negative",
+      "rarity_weight": 80,
+      "exclusion_group": "mood_baseline",
+      "effects": [
+        { "type": "mood_baseline", "value": -0.05 }
+      ]
+    },
+
+    "base:trait:lazy": {
+      "display_name": "Lazy",
+      "description": "Not malicious — just unhurried. Every task takes a little longer than it should.",
+      "polarity": "negative",
+      "rarity_weight": 80,
+      "exclusion_group": "work_pace",
+      "effects": [
+        { "type": "task_speed_modifier", "value": 1.12 }
+      ]
+    },
+
+    "base:trait:light_sleeper": {
+      "display_name": "Light Sleeper",
+      "description": "Needs seven hours of sleep instead of six. Always slightly behind on rest, never quite at full capacity.",
+      "polarity": "negative",
+      "rarity_weight": 70,
+      "exclusion_group": "sleep_pattern",
+      "effects": [
+        { "type": "sleep_duration_modifier", "value": 1 }
+      ]
+    },
+
+    "base:trait:glutton": {
+      "display_name": "Glutton",
+      "description": "Eats considerably more than their share. Food stockpiles vanish faster with this dwarf around.",
+      "polarity": "negative",
+      "rarity_weight": 60,
+      "effects": [
+        { "type": "food_consumption_modifier", "value": 1.5 }
+      ]
+    },
+
+    "base:trait:alcohol_dependent": {
+      "display_name": "Alcohol Dependent",
+      "description": "Must drink regularly or mood deteriorates fast. When supplied, the happiest dwarf in the colony. When the barrels run dry, the first to cause problems.",
+      "polarity": "negative",
+      "rarity_weight": 40,
+      "effects": [
+        {
+          "type": "alcohol_dependency",
+          "required_interval_hours": 16,
+          "penalty_per_missed_interval": -0.06,
+          "max_penalty_stacks": 4,
+          "bonus_multiplier": 1.5,
+          "__comment": "At max stacks: -0.24 mood from craving alone. Combined with other negatives, tantrum is likely. A dry brewery is this dwarf's undoing — and potentially the colony's."
+        }
+      ]
+    },
+
+    "base:trait:loner": {
+      "display_name": "Loner",
+      "description": "Prefers their own company. Thrives on solo mining assignments; struggles in a busy common room.",
+      "polarity": "negative",
+      "rarity_weight": 60,
+      "exclusion_group": "social_preference",
+      "effects": [
+        { "type": "crowd_mood_penalty", "value": -0.04, "crowd_threshold": 4, "range_tiles": 5 }
+      ]
+    },
+
+    "base:trait:fearful": {
+      "display_name": "Fearful",
+      "description": "Drops tasks and flees when an invader comes within range. Hard to rely on when the colony needs defenders.",
+      "polarity": "negative",
+      "rarity_weight": 50,
+      "effects": [
+        { "type": "invader_flee_range_tiles", "value": 15 }
+      ]
+    },
+
+    "base:trait:homesick": {
+      "display_name": "Homesick",
+      "description": "New arrivals sometimes carry the weight of wherever they came from. It fades — but it takes time.",
+      "polarity": "negative",
+      "rarity_weight": 90,
+      "effects": [
+        {
+          "type": "homesick",
+          "initial_penalty": -0.08,
+          "fade_duration_days": 56,
+          "__comment": "56 days = 2 in-game seasons. Fully gone by the time the first winter arrives."
+        }
+      ]
+    },
+
+    "base:trait:frail": {
+      "display_name": "Frail",
+      "description": "Takes injuries more easily than most. One bad cave-in can put this dwarf out for a season.",
+      "polarity": "negative",
+      "rarity_weight": 50,
+      "effects": [
+        { "type": "damage_modifier", "value": 1.45 }
+      ]
+    },
+
+    "base:trait:social": {
+      "display_name": "Social",
+      "description": "Mood lifts noticeably when working alongside others. Suffers quietly in solo assignments.",
+      "polarity": "positive",
+      "rarity_weight": 55,
+      "exclusion_group": "social_preference",
+      "effects": [
+        { "type": "crowd_mood_penalty", "value": 0.03, "crowd_threshold": 3, "range_tiles": 5,
+          "__comment": "Positive value = mood bonus when threshold is met, not a penalty." }
+      ]
+    }
+
+  }
+}

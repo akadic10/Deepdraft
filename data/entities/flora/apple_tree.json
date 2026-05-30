@@ -1,0 +1,110 @@
+{
+  "__comment": [
+    "Apple tree — deciduous fruit tree, primary source of apples for mountain_cider.",
+    "THREE growth stages: sapling (clutter) → mature (3×3) → ancient (5×5, world-gen only).",
+    "PERENNIAL FRUIT: mature and ancient stages auto-yield apples each autumn via fruit_harvest.",
+    "Fruit harvest is NON-DESTRUCTIVE — tree persists. Chop harvest gives wood + seeds only.",
+    "Four seasonal models: spring (blossom), summer (leafy), autumn (fruit-laden), winter (bare).",
+    "Footprint follows the spreading-tree rule — see 42_farming_brewing.md § Surface Trees.",
+    "",
+    "MODEL VARIANTS (mature and ancient only — same rule as oak):",
+    "  summer x3, autumn x2, spring x1, winter x1.",
+    "  The autumn_fruiting model is a SEPARATE key used only during the fruit_harvest FRUITING state.",
+    "  It is always single — no variants for the fruiting overlay state."
+  ],
+
+  "base:flora:apple_tree": {
+    "harvest_resource": "base:resources:wood:apple_wood",
+    "material_tags": ["wood", "tree", "flora", "fruit_tree", "stockpile_wood"],
+    "appeal": 4,
+
+    "stages": {
+
+      "sapling": {
+        "collision": "clutter",
+        "clearance_height": 2,
+        "growth_duration_days": 5,
+        "next_stage": "mature",
+        "models": {
+          "spring": "res://assets/models/flora/trees/apple/apple_sapling_spring.glb",
+          "summer": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+          "autumn": "res://assets/models/flora/trees/apple/apple_sapling_autumn.glb",
+          "winter": "res://assets/models/flora/trees/apple/apple_sapling_winter.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "mature": {
+        "footprint_tiles": 3,
+        "clearance_height": 5,
+        "growth_duration_days": 10,
+        "next_stage": "ancient",
+        "models": {
+          "spring": "res://assets/models/flora/trees/apple/apple_mature_spring.glb",
+          "summer": [
+            "res://assets/models/flora/trees/apple/apple_mature.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_2.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_3.glb"
+          ],
+          "autumn": [
+            "res://assets/models/flora/trees/apple/apple_mature_autumn.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_autumn_2.glb"
+          ],
+          "autumn_fruiting": "res://assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb",
+          "winter": "res://assets/models/flora/trees/apple/apple_mature_winter.glb"
+        },
+        "fruit_harvest": {
+          "harvest_season": "autumn",
+          "yield_item": "base:resources:flora:apple",
+          "yield_min": 4,
+          "yield_max": 6,
+          "post_harvest": "persist"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:apple_wood",    "count": 2, "chance": 1.00 },
+            { "item": "base:resources:seed:apple_seed",    "count": 1, "chance": 0.25 }
+          ]
+        }
+      },
+
+      "ancient": {
+        "footprint_tiles": 5,
+        "world_gen_only": true,
+        "clearance_height": 7,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "spring": "res://assets/models/flora/trees/apple/apple_ancient_spring.glb",
+          "summer": [
+            "res://assets/models/flora/trees/apple/apple_ancient.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_3.glb"
+          ],
+          "autumn": [
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn_2.glb"
+          ],
+          "autumn_fruiting": "res://assets/models/flora/trees/apple/apple_ancient_autumn_fruiting.glb",
+          "winter": "res://assets/models/flora/trees/apple/apple_ancient_winter.glb"
+        },
+        "fruit_harvest": {
+          "harvest_season": "autumn",
+          "yield_item": "base:resources:flora:apple",
+          "yield_min": 7,
+          "yield_max": 10,
+          "post_harvest": "persist"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:apple_wood",    "count": 3, "chance": 1.00 },
+            { "item": "base:resources:seed:apple_seed",    "count": 2, "chance": 0.40 }
+          ]
+        }
+      }
+
+    }
+  }
+}

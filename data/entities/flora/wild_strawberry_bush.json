@@ -1,0 +1,52 @@
+{
+  "__comment": [
+    "Wild strawberry bush — low-elevation surface berry, a luxury fruit caravans prize highly.",
+    "Placed by world gen directly in the 'fruiting' stage near the mountain base.",
+    "Dwarves plant cuttings which start in 'shrub' before becoming 'fruiting'.",
+    "Fruit drops span SPRING and SUMMER — season_only accepts an array of seasons.",
+    "Harvesting system must skip fruit drops outside of spring and summer.",
+    "Four seasonal models: spring (flowers + early fruit), summer (full red fruit),",
+    "autumn (dying back, no fruit), winter (bare ground-level stems).",
+    "Two growth stages: shrub → fruiting."
+  ],
+
+  "base:flora:wild_strawberry_bush": {
+    "harvest_resource": "base:resources:flora:wild_strawberry",
+    "material_tags": ["flora", "bush", "fruit_bush", "wild_plant", "luxury", "stockpile_food"],
+    "appeal": 2,
+
+    "stages": {
+
+      "shrub": {
+        "clearance_height": 1,
+        "growth_duration_days": 3,
+        "next_stage": "fruiting",
+        "models": {
+          "summer": "res://assets/models/flora/bushes/wild_strawberry/strawberry_shrub.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "fruiting": {
+        "clearance_height": 1,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "spring": "res://assets/models/flora/bushes/wild_strawberry/strawberry_fruiting_spring.glb",
+          "summer": "res://assets/models/flora/bushes/wild_strawberry/strawberry_fruiting.glb",
+          "autumn": "res://assets/models/flora/bushes/wild_strawberry/strawberry_dying.glb",
+          "winter": "res://assets/models/flora/bushes/wild_strawberry/strawberry_bare.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:flora:wild_strawberry",        "count": 3, "chance": 1.00, "season_only": ["spring", "summer"] },
+            { "item": "base:resources:seed:strawberry_cutting",      "count": 1, "chance": 0.25 }
+          ]
+        }
+      }
+
+    }
+  }
+}

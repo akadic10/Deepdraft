@@ -1,0 +1,96 @@
+{
+  "__comment": [
+    "Oak tree — slow-growing deciduous hardwood, the cornerstone of the brewing economy.",
+    "oak_stave drops are required for crafting barrels and casks used in wine and spirit aging.",
+    "Also the premium furniture material for high-end colony builds.",
+    "Deciduous: four seasonal models (spring fresh green, summer deep, autumn gold, winter bare).",
+    "Slowest-growing tree; planting oaks is a long-term investment.",
+    "Three growth stages: sapling → mature → ancient.",
+    "",
+    "MODEL VARIANTS (mature and ancient only):",
+    "  Season values may be a single string OR an array of strings.",
+    "  If an array, the tree system picks one entry at spawn time via a world-position hash.",
+    "  The same tree always shows the same variant — no runtime flickering.",
+    "  Variant counts: summer x3, autumn x2, spring x1, winter x1.",
+    "  Art brief: all variants share the same trunk position and XZ footprint.",
+    "  Only the canopy shape, branch layout, and silhouette differ between variants.",
+    "  Naming: oak_mature_summer.glb → base (variant 1), oak_mature_summer_2.glb, oak_mature_summer_3.glb."
+  ],
+
+  "base:flora:oak_tree": {
+    "harvest_resource": "base:resources:wood:oak_log",
+    "material_tags": ["wood", "tree", "flora", "hardwood", "stockpile_wood"],
+    "appeal": 3,
+
+    "stages": {
+
+      "sapling": {
+        "clearance_height": 2,
+        "growth_duration_days": 8,
+        "next_stage": "mature",
+        "models": {
+          "spring": "res://assets/models/flora/trees/oak/oak_sapling_spring.glb",
+          "summer": "res://assets/models/flora/trees/oak/oak_sapling.glb",
+          "autumn": "res://assets/models/flora/trees/oak/oak_sapling_autumn.glb",
+          "winter": "res://assets/models/flora/trees/oak/oak_sapling_winter.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "mature": {
+        "clearance_height": 7,
+        "growth_duration_days": 16,
+        "next_stage": "ancient",
+        "models": {
+          "spring": "res://assets/models/flora/trees/oak/oak_mature_spring.glb",
+          "summer": [
+            "res://assets/models/flora/trees/oak/oak_mature.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_3.glb"
+          ],
+          "autumn": [
+            "res://assets/models/flora/trees/oak/oak_mature_autumn.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_autumn_2.glb"
+          ],
+          "winter": "res://assets/models/flora/trees/oak/oak_mature_winter.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:oak_log",       "count": 4, "chance": 1.00 },
+            { "item": "base:resources:wood:oak_stave",     "count": 2, "chance": 0.40 },
+            { "item": "base:resources:seed:oak_acorn",     "count": 1, "chance": 0.20 }
+          ]
+        }
+      },
+
+      "ancient": {
+        "clearance_height": 10,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "spring": "res://assets/models/flora/trees/oak/oak_ancient_spring.glb",
+          "summer": [
+            "res://assets/models/flora/trees/oak/oak_ancient.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_3.glb"
+          ],
+          "autumn": [
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn_2.glb"
+          ],
+          "winter": "res://assets/models/flora/trees/oak/oak_ancient_winter.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:oak_log",       "count": 8, "chance": 1.00 },
+            { "item": "base:resources:wood:oak_stave",     "count": 4, "chance": 0.60 },
+            { "item": "base:resources:seed:oak_acorn",     "count": 2, "chance": 0.35 }
+          ]
+        }
+      }
+
+    }
+  }
+}

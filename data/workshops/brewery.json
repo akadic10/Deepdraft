@@ -1,0 +1,146 @@
+{
+  "__comment": [
+    "Brewery workshop recipe definitions.",
+    "Loaded when a dwarf is assigned a BREW task — NOT held in memory at boot.",
+    "",
+    "Top-level keys:",
+    "  workshop_key — the block URI this file belongs to",
+    "  recipes      — array of recipe objects",
+    "",
+    "Recipe object fields:",
+    "  id            — permanent namespaced URI; never rename after first save",
+    "  display_name  — shown in the workshop queue UI",
+    "  inputs        — array of { item, count }; all must be in accessible stockpile",
+    "  outputs       — array of { item, count }; placed in nearest output stockpile on completion",
+    "  work_time     — in-game hours a dwarf spends at the workshop block",
+    "  skill_bonus   — each point of skill_brewing above 1 reduces work_time by this fraction",
+    "                  e.g. 0.05 at skill 5 = 4 × 0.05 = 20% faster",
+    "  required_skill — minimum skill_brewing level to unlock this recipe (0 = always available)",
+    "  category      — UI grouping tag: 'ale' | 'stout' | 'mead' | 'cider' | 'wine' | 'spirit' | 'processed_goods'"
+  ],
+
+  "workshop_key": "base:workshop:brewery",
+
+  "recipes": [
+
+    {
+      "__comment": "--- ALES ---",
+      "id": "base:recipe:brew:longbeard_ale",
+      "display_name": "Longbeard Ale",
+      "inputs": [
+        { "item": "base:resources:flora:plump_helmet", "count": 4 },
+        { "item": "base:resources:flora:hops",         "count": 2 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:ale", "count": 5 }
+      ],
+      "work_time": 2,
+      "skill_bonus": 0.05,
+      "required_skill": 0,
+      "category": "ale"
+    },
+
+    {
+      "id": "base:recipe:brew:dark_stout",
+      "display_name": "Dark Stout",
+      "inputs": [
+        { "item": "base:resources:flora:plump_helmet", "count": 7 },
+        { "item": "base:resources:flora:hops",         "count": 3 },
+        { "item": "base:resources:misc:water_bucket",  "count": 1 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:stout", "count": 4 }
+      ],
+      "work_time": 4,
+      "skill_bonus": 0.05,
+      "required_skill": 2,
+      "category": "stout"
+    },
+
+    {
+      "__comment": "--- MEADS ---",
+      "id": "base:recipe:brew:sweet_mead",
+      "display_name": "Sweet Mead",
+      "inputs": [
+        { "item": "base:resources:misc:honey",         "count": 3 },
+        { "item": "base:resources:misc:water_bucket",  "count": 1 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:mead", "count": 4 }
+      ],
+      "work_time": 4,
+      "skill_bonus": 0.06,
+      "required_skill": 2,
+      "category": "mead"
+    },
+
+    {
+      "__comment": "--- CIDERS ---",
+      "id": "base:recipe:brew:mountain_cider",
+      "display_name": "Mountain Cider",
+      "inputs": [
+        { "item": "base:resources:flora:apple",        "count": 6 },
+        { "item": "base:resources:misc:honey",         "count": 1 },
+        { "item": "base:resources:misc:water_bucket",  "count": 1 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:cider", "count": 4 }
+      ],
+      "work_time": 3,
+      "skill_bonus": 0.05,
+      "required_skill": 1,
+      "category": "cider"
+    },
+
+    {
+      "__comment": "--- WINES ---",
+      "id": "base:recipe:brew:grape_wine",
+      "display_name": "Grape Wine",
+      "inputs": [
+        { "item": "base:resources:flora:grape",        "count": 7 },
+        { "item": "base:resources:misc:water_bucket",  "count": 1 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:wine", "count": 3 }
+      ],
+      "work_time": 5,
+      "skill_bonus": 0.06,
+      "required_skill": 3,
+      "category": "wine"
+    },
+
+    {
+      "__comment": "--- SPIRITS ---",
+      "id": "base:recipe:brew:juniper_gin",
+      "display_name": "Juniper Gin",
+      "inputs": [
+        { "item": "base:resources:flora:juniper_berry", "count": 6 },
+        { "item": "base:resources:misc:water_bucket",   "count": 1 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:gin", "count": 3 }
+      ],
+      "work_time": 5,
+      "skill_bonus": 0.07,
+      "required_skill": 4,
+      "category": "spirit"
+    },
+
+    {
+      "__comment": "--- PROCESSED GOODS ---",
+      "id": "base:recipe:brew:pig_tail_cloth",
+      "display_name": "Weave Pig Tail Cloth",
+      "inputs": [
+        { "item": "base:resources:flora:pig_tail", "count": 2 }
+      ],
+      "outputs": [
+        { "item": "base:resources:misc:cloth", "count": 1 }
+      ],
+      "work_time": 1,
+      "skill_bonus": 0.04,
+      "required_skill": 0,
+      "category": "processed_goods"
+    }
+
+  ]
+}

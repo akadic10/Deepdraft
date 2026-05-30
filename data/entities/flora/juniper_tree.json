@@ -1,0 +1,77 @@
+{
+  "__comment": [
+    "Juniper tree — evergreen surface tree valued for its berries.",
+    "Berries are the primary botanical for gin-style spirits (future brewing tier).",
+    "Evergreen: only two season keys (summer baseline, winter snow-dusted).",
+    "Missing season keys fall back to 'summer' at runtime.",
+    "Three growth stages: sapling → mature → ancient.",
+    "",
+    "MODEL VARIANTS (mature and ancient only):",
+    "  summer x2, winter x1. Juniper is columnar — less shape variance possible than oak/pine.",
+    "  Variants differ in: crown tightness, slight lean, berry cluster density.",
+    "  All variants must share the 1×1 block (mature) or 2×2 block (ancient) XZ footprint."
+  ],
+
+  "base:flora:juniper_tree": {
+    "harvest_resource": "base:resources:wood:juniper_log",
+    "material_tags": ["wood", "tree", "flora", "evergreen", "stockpile_wood"],
+    "appeal": 2,
+
+    "stages": {
+
+      "sapling": {
+        "clearance_height": 2,
+        "growth_duration_days": 4,
+        "next_stage": "mature",
+        "models": {
+          "summer": "res://assets/models/flora/trees/juniper/juniper_sapling.glb",
+          "winter": "res://assets/models/flora/trees/juniper/juniper_sapling_winter.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "mature": {
+        "clearance_height": 6,
+        "growth_duration_days": 8,
+        "next_stage": "ancient",
+        "models": {
+          "summer": [
+            "res://assets/models/flora/trees/juniper/juniper_mature.glb",
+            "res://assets/models/flora/trees/juniper/juniper_mature_2.glb"
+          ],
+          "winter": "res://assets/models/flora/trees/juniper/juniper_mature_winter.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:juniper_log",    "count": 4, "chance": 1.00 },
+            { "item": "base:resources:flora:juniper_berry", "count": 2, "chance": 0.40 },
+            { "item": "base:resources:seed:juniper_seed",   "count": 1, "chance": 0.30 }
+          ]
+        }
+      },
+
+      "ancient": {
+        "clearance_height": 10,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "summer": [
+            "res://assets/models/flora/trees/juniper/juniper_ancient.glb",
+            "res://assets/models/flora/trees/juniper/juniper_ancient_2.glb"
+          ],
+          "winter": "res://assets/models/flora/trees/juniper/juniper_ancient_winter.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:juniper_log",    "count": 8, "chance": 1.00 },
+            { "item": "base:resources:flora:juniper_berry", "count": 4, "chance": 0.60 },
+            { "item": "base:resources:seed:juniper_seed",   "count": 2, "chance": 0.50 }
+          ]
+        }
+      }
+
+    }
+  }
+}

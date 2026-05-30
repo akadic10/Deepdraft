@@ -1,0 +1,114 @@
+{
+  "__comment": [
+    "Aging Cellar — deep underground workshop for barrel-conditioning premium drinks.",
+    "",
+    "TEMPERATURE REQUIREMENT (see docs/30_simulation_systems/34_temperature.md):",
+    "  The aging cellar block must be placed inside a *sealed room* whose computed",
+    "  temperature falls within the recipe's temp_range_c. Temperature is determined",
+    "  by the room's mean floor Y plus any heat bonus from torches or braziers placed",
+    "  inside the sealed room.",
+    "",
+    "  progress_pauses_out_of_range: true",
+    "    → When the room's temperature falls outside a recipe's temp_range_c, that",
+    "      recipe's aging progress bar PAUSES. Progress is not lost. Aging resumes",
+    "      automatically once temperature is restored to the valid range.",
+    "    → This applies even mid-batch. A torch removed from the room during aging",
+    "      may drop temperature below the minimum; the batch pauses until a torch",
+    "      is replaced.",
+    "",
+    "  No cooling mechanic exists. If a room is too warm for a recipe, the player",
+    "  must build a new aging cellar at greater depth.",
+    "  If a room is too cold, placing torches inside the sealed room raises its",
+    "  temperature. See 34_temperature.md for the heat_units formula.",
+    "",
+    "PLACEMENT:",
+    "  The aging cellar block may be placed at any Y, but its recipes will only",
+    "  be available if the sealed room's computed temperature is within range.",
+    "  There is no hard placement constraint on Y — temperature is the gating factor.",
+    "",
+    "AGING PROCESS (two-phase, passive):",
+    "  1. LOAD  — A dwarf hauls inputs to the cellar and spends work_time loading.",
+    "  2. AGE   — The cellar ages autonomously for aging_time in-game hours.",
+    "             No dwarf needed. Progress bar visible in workshop UI.",
+    "             Progress pauses if room temperature leaves temp_range_c.",
+    "  3. COLLECT — When aging_time elapses (accumulated while in-range), a COLLECT",
+    "               task auto-queues. A dwarf retrieves the output to a stockpile.",
+    "",
+    "  Only one batch per cellar block may be in progress at a time.",
+    "  Build multiple aging cellar blocks for parallel production.",
+    "",
+    "RECIPE TEMPERATURE RANGES (cold mountain gradient — see 34_temperature.md):",
+    "  Vintage Wine  : 6–10°C  → Cool Cave zone   (Y 57–75 baseline)",
+    "  Aged Stout    : 3–7°C   → Cold Cave zone   (Y 47–64 baseline)",
+    "  Reserve Gin   : 1–4°C   → Deep Cold zone   (Y 37–56 baseline)",
+    "  Frozen Vault  : ≤ 0°C   → Y ≤ 35 baseline — too cold for all aging",
+    "  (Torches can raise base depth temp into range — see 34_temperature.md)"
+  ],
+
+  "workshop_key": "base:workshop:aging_cellar",
+
+  "production_type": "aging",
+  "progress_pauses_out_of_range": true,
+  "max_concurrent_batches": 1,
+
+  "recipes": [
+
+    {
+      "id": "base:recipe:age:aged_stout",
+      "display_name": "Age Dark Stout",
+      "inputs": [
+        { "item": "base:resources:drink:stout",       "count": 3 },
+        { "item": "base:resources:wood:oak_stave",    "count": 2 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:aged_stout",  "count": 2 }
+      ],
+      "work_time": 1,
+      "aging_time": 36,
+      "temp_range_c": { "min": 3, "max": 7 },
+      "skill_bonus": 0.04,
+      "required_skill": 3,
+      "category": "aged_ale",
+      "temp_out_of_range_tooltip": "Too warm for stout — lower temperature or build deeper."
+    },
+
+    {
+      "id": "base:recipe:age:vintage_wine",
+      "display_name": "Age Grape Wine",
+      "inputs": [
+        { "item": "base:resources:drink:wine",          "count": 3 },
+        { "item": "base:resources:wood:oak_stave",      "count": 2 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:vintage_wine",  "count": 2 }
+      ],
+      "work_time": 1,
+      "aging_time": 48,
+      "temp_range_c": { "min": 6, "max": 10 },
+      "skill_bonus": 0.04,
+      "required_skill": 5,
+      "category": "aged_wine",
+      "temp_out_of_range_tooltip": "Temperature out of range for wine — adjust heat sources or depth."
+    },
+
+    {
+      "id": "base:recipe:age:reserve_gin",
+      "display_name": "Age Juniper Gin",
+      "inputs": [
+        { "item": "base:resources:drink:gin",           "count": 3 },
+        { "item": "base:resources:wood:oak_stave",      "count": 2 }
+      ],
+      "outputs": [
+        { "item": "base:resources:drink:reserve_gin",   "count": 2 }
+      ],
+      "work_time": 1,
+      "aging_time": 40,
+      "temp_range_c": { "min": 1, "max": 4 },
+      "skill_bonus": 0.04,
+      "required_skill": 4,
+      "category": "aged_spirit",
+      "temp_out_of_range_tooltip": "Too warm for gin — this recipe needs deep cold stone."
+    }
+
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "__comment": [
+    "Hops plant — surface-only annual bine, primary bittering agent for ales and stouts.",
+    "Must be grown on designated surface dirt farm plots with open sky.",
+    "Annual crop: after harvest the farm plot returns to FALLOW. Dwarves must re-seed from cuttings.",
+    "Three growth stages: seedling → climbing → mature.",
+    "Mature stage has two seasonal models (summer full-leaf, autumn yellow-dry).",
+    "Only the mature stage yields a harvest; earlier stages yield nothing.",
+    "Winter: growth is dormant (WorldClock rate ×0.0) — seedlings and climbing plants",
+    "freeze in place and resume in spring. The mature stage cannot be reached in winter;",
+    "any plant that was not harvested before winter sets in is lost at season change."
+  ],
+
+  "base:flora:hops_plant": {
+    "harvest_resource": "base:resources:flora:hops",
+    "material_tags": ["flora", "crop", "surface_crop", "brewing_plant", "annual", "stockpile_food"],
+    "appeal": 0,
+
+    "stages": {
+
+      "seedling": {
+        "clearance_height": 1,
+        "growth_duration_days": 4,
+        "next_stage": "climbing",
+        "models": {
+          "summer": "res://assets/models/flora/crops/hops/hops_seedling.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "climbing": {
+        "clearance_height": 2,
+        "growth_duration_days": 7,
+        "next_stage": "mature",
+        "models": {
+          "summer": "res://assets/models/flora/crops/hops/hops_climbing.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "mature": {
+        "clearance_height": 3,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "summer": "res://assets/models/flora/crops/hops/hops_mature.glb",
+          "autumn": "res://assets/models/flora/crops/hops/hops_mature_autumn.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:flora:hops",         "count": 5, "chance": 1.00 },
+            { "item": "base:resources:seed:hops_cutting",  "count": 2, "chance": 0.60 }
+          ],
+          "post_harvest": "fallow"
+        }
+      }
+
+    }
+  }
+}

@@ -1,0 +1,419 @@
+{
+  "__comment": [
+    "Profession definitions for all dwarf roles.",
+    "",
+    "PROFESSION SYSTEM:",
+    "  Every dwarf has exactly one active profession at a time.",
+    "  All dwarves start as Worker (base profession, cannot be removed).",
+    "  A dwarf can be promoted to any other profession via the labour UI.",
+    "  Switching professions does not reset experience — accumulated task counts",
+    "  are retained per profession key so a dwarf who returns to a prior role",
+    "  resumes from where they left off.",
+    "",
+    "EXPERIENCE:",
+    "  Experience is tracked as a raw task count per profession key.",
+    "  Experience level (1–5, or 6 with a qualifying trait) is derived at runtime",
+    "  by comparing the task count against the global thresholds defined in",
+    "  'experience_thresholds' below.",
+    "  Level 6 requires both the task count threshold AND a specific trait",
+    "  (trait system not yet designed — flag reserved).",
+    "",
+    "WORK SPEED BONUS:",
+    "  work_speed_bonus_per_level applies to the dwarf's primary task types only.",
+    "  Formula: task_duration × (1.0 - (experience_level - 1) × work_speed_bonus_per_level)",
+    "  At level 5 with bonus 0.05: task_duration × 0.80 (20% faster).",
+    "  At level 6 with bonus 0.05: task_duration × 0.75 (25% faster).",
+    "",
+    "REQUIRED_SKILL IN RECIPE FILES:",
+    "  The 'required_skill' field in brewery.json and aging_cellar.json maps directly",
+    "  to the Brewer's experience level. A Brewer at experience level N can perform",
+    "  any recipe with required_skill ≤ N. The field name is kept as 'required_skill'",
+    "  in recipe files for brevity; it is synonymous with 'required_experience_level'.",
+    "  Other professions with gated tasks will follow the same convention.",
+    "",
+    "FALLBACK BEHAVIOUR:",
+    "  When a specialised dwarf has no primary tasks queued, they fall back to",
+    "  Worker tasks (hauling, clearing rubble). This prevents idle specialists.",
+    "  Fallback task quality and speed are unaffected by profession experience.",
+    "",
+    "STATUS FIELD:",
+    "  'active'          — fully designed and implemented.",
+    "  'not_implemented' — namespace reserved; design stub only.",
+    "                      No tasks or rooms reference this profession yet."
+  ],
+
+  "experience_thresholds": {
+    "__comment": [
+      "Universal thresholds shared by all professions.",
+      "Values are cumulative task counts completed under the given profession.",
+      "Level is derived at runtime — store only the raw task count in save data."
+    ],
+    "level_2":  10,
+    "level_3":  100,
+    "level_4":  500,
+    "level_5":  2500,
+    "level_6":  10000
+  },
+
+  "professions": {
+
+    "base:profession:worker": {
+      "display_name": "Worker",
+      "description": "The foundation of every dwarven colony. Workers haul goods, clear rubble, and fill in wherever a specialist is unavailable. Every dwarf begins as a Worker and retains this as a fallback when reassigned.",
+      "is_base_profession": true,
+      "promotes_from": null,
+      "status": "active",
+
+      "task_types":          ["HAUL", "CLEAR_RUBBLE", "COLLECT_FLOOR_ITEMS"],
+      "fallback_task_types": [],
+
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can haul any item and clear rubble. The backbone of the colony before specialists are trained."
+        },
+        {
+          "level": 2,
+          "description": "Moves between stockpiles and workshops 5% faster. Noticeably more efficient on long haul routes."
+        },
+        {
+          "level": 3,
+          "description": "10% faster. Experienced enough to optimise multi-stop haul paths without supervisor prompting."
+        },
+        {
+          "level": 4,
+          "description": "15% faster. A veteran hauler — rarely idle, rarely inefficient."
+        },
+        {
+          "level": 5,
+          "description": "20% faster. The colony's most reliable mover. Other dwarves clear the corridor when they hear them coming."
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "25% faster. A legendary porter whose efficiency borders on the supernatural. Requires an exceptional trait."
+        }
+      ]
+    },
+
+    "base:profession:miner": {
+      "display_name": "Miner",
+      "description": "Breaks stone, carves tunnels, and expands the colony's underground domain. The colony's primary engine of growth.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "active",
+
+      "task_types":          ["MINE", "CLEAR_RUBBLE", "HAUL_ORE"],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can mine any solid block. Competent but unhurried."
+        },
+        {
+          "level": 2,
+          "description": "5% faster. Learns to read rock grain — fewer wasted swings."
+        },
+        {
+          "level": 3,
+          "description": "10% faster. Can reliably spot ore-bearing stone before it is fully exposed."
+        },
+        {
+          "level": 4,
+          "description": "15% faster. Deep tunnels feel like home. Navigates collapse-risk zones with confidence."
+        },
+        {
+          "level": 5,
+          "description": "20% faster. The mountain yields to a master miner. Other dwarves follow their tunnels because they're always the best way through."
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "25% faster. Small chance to find bonus ore or gem fragments when mining any vein. Requires an exceptional trait."
+        }
+      ]
+    },
+
+    "base:profession:farmer": {
+      "display_name": "Farmer",
+      "description": "Plants, tends, and harvests all crops — both underground cave soil plots and surface dirt fields. Also responsible for tending beehives.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "active",
+
+      "task_types":          ["PLANT_SEED", "TEND_FARM", "HARVEST_CROP", "TEND_BEEHIVE", "COLLECT_HONEY"],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can plant and harvest all crop types. Basic yields — nothing goes to waste, nothing exceptional either."
+        },
+        {
+          "level": 2,
+          "description": "5% faster at all farm tasks. Harvest yield chance improves marginally — fewer empty plots."
+        },
+        {
+          "level": 3,
+          "description": "10% faster. Reliable yields across all crop types. Can manage beehives without disturbing the colony."
+        },
+        {
+          "level": 4,
+          "description": "15% faster. Harvest yields improve noticeably. Seasonal crop timing is handled with precision."
+        },
+        {
+          "level": 5,
+          "description": "20% faster. Maximum yields from every plot. A master farmer turns a modest field into a colony-sustaining operation."
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "25% faster. Occasional double-yield harvests. Plants seem to grow faster when this dwarf is nearby. Requires an exceptional trait."
+        }
+      ]
+    },
+
+    "base:profession:brewer": {
+      "display_name": "Brewer",
+      "description": "Operates the brewery and aging cellar. Unlocks increasingly complex recipes as experience grows. The colony's most craft-intensive profession.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "active",
+
+      "task_types":          ["BREW", "LOAD_AGING_CELLAR", "COLLECT_AGING_CELLAR", "WEAVE_CLOTH"],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+
+      "__comment_recipe_gates": [
+        "required_skill in recipe files maps directly to Brewer experience level.",
+        "A Brewer at level N can perform any recipe with required_skill ≤ N.",
+        "Level 1: required_skill 0–1 → Longbeard Ale, Mountain Cider, Pig Tail Cloth",
+        "Level 2: required_skill 0–2 → + Dark Stout, Sweet Mead",
+        "Level 3: required_skill 0–3 → + Grape Wine, Aged Dark Stout",
+        "Level 4: required_skill 0–4 → + Juniper Gin, Reserve Gin",
+        "Level 5: required_skill 0–5 → + Vintage Wine (full recipe roster unlocked)",
+        "Level 6: all recipes + 10% chance of bonus output unit per batch"
+      ],
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can brew basic ales and ciders (required_skill 0–1). Knows how to start a fire and not ruin the batch.",
+          "recipe_gate": 1
+        },
+        {
+          "level": 2,
+          "description": "5% faster. Unlocks stouts and meads (required_skill 0–2). Starting to develop a palate.",
+          "recipe_gate": 2
+        },
+        {
+          "level": 3,
+          "description": "10% faster. Unlocks grape wine and aged dark stout (required_skill 0–3). Understands that patience is an ingredient.",
+          "recipe_gate": 3
+        },
+        {
+          "level": 4,
+          "description": "15% faster. Unlocks juniper gin and reserve gin (required_skill 0–4). The aging cellar holds no mysteries.",
+          "recipe_gate": 4
+        },
+        {
+          "level": 5,
+          "description": "20% faster. Unlocks vintage wine (required_skill 0–5). Every recipe in the brewer's repertoire is available. Merchants notice.",
+          "recipe_gate": 5
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "25% faster. 10% chance of a bonus output unit on every completed batch. A legendary brewer whose drinks command premium prices. Requires an exceptional trait.",
+          "recipe_gate": 6
+        }
+      ]
+    },
+
+    "base:profession:builder": {
+      "display_name": "Builder",
+      "description": "Constructs walls, floors, and structures. Places and removes furniture. The colony's architect and interior designer.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "active",
+
+      "task_types":          ["BUILD_BLOCK", "DEMOLISH_BLOCK", "PLACE_FURNITURE", "REMOVE_FURNITURE"],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can place and remove all basic block types and furniture. Walls are straight. Mostly."
+        },
+        {
+          "level": 2,
+          "description": "5% faster. Furniture placement is precise. Rooms come together with less wasted effort."
+        },
+        {
+          "level": 3,
+          "description": "10% faster. Can read a floor plan and execute it without supervision."
+        },
+        {
+          "level": 4,
+          "description": "15% faster. Structures are tight and well-proportioned. Other dwarves request this builder by name."
+        },
+        {
+          "level": 5,
+          "description": "20% faster. A master builder. Their structures stand longer, seal better, and look finer than any other dwarf could manage."
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "25% faster. Buildings constructed by this dwarf gain a small structural integrity bonus. Requires an exceptional trait."
+        }
+      ]
+    },
+
+    "base:profession:merchant": {
+      "display_name": "Merchant",
+      "description": "Staffs the Trade Counter in a Shop room. Manages buy orders, collects coins after trade, and represents the colony's commercial interests with visiting caravans.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "active",
+
+      "task_types":          ["STAFF_TRADE_COUNTER", "COLLECT_SHOP_COINS", "RESTOCK_SHOP_STORAGE"],
+      "fallback_task_types": ["HAUL"],
+
+      "room_assignment": "shop",
+      "work_speed_bonus_per_level": 0.02,
+
+      "__comment_sell_bonus": [
+        "For Merchants, work_speed_bonus_per_level instead applies as a sale price modifier.",
+        "Each experience level above 1 adds +2% to all sale prices in the assigned shop.",
+        "At level 5: sale prices are +8% above base_trade_value (before demand modifiers).",
+        "At level 6: +10%. This stacks with the ±20% demand fluctuation on the merchant side."
+      ],
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can staff a Trade Counter and process automated transactions. Gets the job done."
+        },
+        {
+          "level": 2,
+          "description": "Sale prices +2%. Starting to read what caravans want before they arrive."
+        },
+        {
+          "level": 3,
+          "description": "Sale prices +4%. Demand decay sets in more slowly — regulars get slightly better treatment."
+        },
+        {
+          "level": 4,
+          "description": "Sale prices +6%. Caravans are slightly more likely to visit — word of a fair dealer spreads."
+        },
+        {
+          "level": 5,
+          "description": "Sale prices +8%. The colony's trade reputation grows faster with a master merchant behind the counter."
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "Sale prices +10%. Attracts a rare caravan type unavailable to lesser merchants. Requires an exceptional trait."
+        }
+      ]
+    },
+
+    "base:profession:innkeeper": {
+      "display_name": "Innkeeper",
+      "description": "Runs the Tavern room — serving drinks to visiting travelers and managing coin collection from guest room night stands. The colony's host.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "active",
+
+      "task_types":          ["SERVE_DRINK", "SEAT_GUEST", "COLLECT_NIGHT_STAND_COINS", "RESTOCK_TAVERN_STORAGE"],
+      "fallback_task_types": ["HAUL"],
+
+      "room_assignment": "tavern",
+
+      "__comment_bonuses": [
+        "work_speed_bonus_per_level applies to drink service speed (SERVE_DRINK task duration).",
+        "Additionally, each level above 1 adds +1 gold coin to the flat guest lodging fee.",
+        "Base lodging fee: 5 coins. Level 5 Innkeeper: 9 coins per guest night."
+      ],
+
+      "work_speed_bonus_per_level": 0.05,
+      "lodging_fee_bonus_per_level": 1,
+
+      "experience_levels": [
+        {
+          "level": 1,
+          "description": "Can serve drinks and collect lodging fees. Guests are served. Eventually."
+        },
+        {
+          "level": 2,
+          "description": "5% faster service. +1 coin lodging fee. Learns which regulars want their ale before they sit down."
+        },
+        {
+          "level": 3,
+          "description": "10% faster service. +2 coins lodging fee. Guests linger longer — a subtle mark of quality."
+        },
+        {
+          "level": 4,
+          "description": "15% faster service. +3 coins lodging fee. Travelers recommend the inn to others. Spawn chance for new visitors ticks up."
+        },
+        {
+          "level": 5,
+          "description": "20% faster service. +4 coins lodging fee. A master innkeeper. The tavern is always warm, the ale is always cold, and the beds are always made."
+        },
+        {
+          "level": 6,
+          "requires_trait": true,
+          "description": "25% faster service. +5 coins lodging fee. Guests occasionally leave an extra tip on the night stand. Requires an exceptional trait."
+        }
+      ]
+    },
+
+    "base:profession:carpenter": {
+      "display_name": "Carpenter",
+      "description": "Processes raw timber into furniture, structural components, and crafted wooden goods.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "not_implemented",
+
+      "__comment": "Requires a carpentry workshop and a full furniture/crafting design session before activation.",
+
+      "task_types":          [],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+      "experience_levels": []
+    },
+
+    "base:profession:blacksmith": {
+      "display_name": "Blacksmith",
+      "description": "Smelts raw ore into metal ingots and forges tools, weapons, and hardware.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:worker",
+      "status": "not_implemented",
+
+      "__comment": "Requires a smelter and forge workshop design, plus metal ingot resources, before activation.",
+
+      "task_types":          [],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+      "experience_levels": []
+    }
+
+  }
+}

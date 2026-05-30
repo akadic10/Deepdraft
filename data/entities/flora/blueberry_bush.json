@@ -1,0 +1,49 @@
+{
+  "__comment": [
+    "Blueberry bush — high-elevation wild berry bush found on rocky mountain terrain.",
+    "Placed by world gen directly in the 'fruiting' stage.",
+    "Dwarves plant cuttings which start in 'shrub' before becoming 'fruiting'.",
+    "Fruit drops are SUMMER ONLY — harvesting system must check WorldClock.season.",
+    "Two seasonal models for the fruiting stage: summer (blue berries), winter (bare).",
+    "Spring and autumn fall back to the summer model.",
+    "Two growth stages: shrub → fruiting."
+  ],
+
+  "base:flora:blueberry_bush": {
+    "harvest_resource": "base:resources:flora:blueberry",
+    "material_tags": ["flora", "bush", "fruit_bush", "wild_plant", "stockpile_food"],
+    "appeal": 1,
+
+    "stages": {
+
+      "shrub": {
+        "clearance_height": 1,
+        "growth_duration_days": 3,
+        "next_stage": "fruiting",
+        "models": {
+          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_shrub.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "fruiting": {
+        "clearance_height": 1,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_fruiting.glb",
+          "winter": "res://assets/models/flora/bushes/blueberry/blueberry_bare.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:flora:blueberry",         "count": 3, "chance": 1.00, "season_only": "summer" },
+            { "item": "base:resources:seed:blueberry_cutting",  "count": 1, "chance": 0.20 }
+          ]
+        }
+      }
+
+    }
+  }
+}

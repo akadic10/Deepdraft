@@ -1,0 +1,50 @@
+{
+  "__comment": [
+    "Elderberry bush — mid-slope wild berry bush, primary future wine ingredient.",
+    "Placed by world gen directly in the 'fruiting' stage.",
+    "Dwarves plant cuttings which start in 'shrub' before becoming 'fruiting'.",
+    "Fruit drops are AUTUMN ONLY — harvesting system must check WorldClock.season.",
+    "Two seasonal models for the fruiting stage: summer (green), autumn (purple berries),",
+    "winter (bare sticks). Shrub stage uses only the summer model.",
+    "Two growth stages: shrub → fruiting."
+  ],
+
+  "base:flora:elderberry_bush": {
+    "harvest_resource": "base:resources:flora:elderberry",
+    "material_tags": ["flora", "bush", "fruit_bush", "wild_plant", "stockpile_food"],
+    "appeal": 1,
+
+    "stages": {
+
+      "shrub": {
+        "clearance_height": 1,
+        "growth_duration_days": 4,
+        "next_stage": "fruiting",
+        "models": {
+          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_shrub.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "fruiting": {
+        "clearance_height": 1,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_fruiting.glb",
+          "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_fruiting_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/elderberry/elderberry_bare.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:flora:elderberry",         "count": 4, "chance": 1.00, "season_only": "autumn" },
+            { "item": "base:resources:seed:elderberry_cutting",  "count": 1, "chance": 0.20 }
+          ]
+        }
+      }
+
+    }
+  }
+}

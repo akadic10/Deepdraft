@@ -1,0 +1,84 @@
+{
+  "__comment": [
+    "Pine tree — fast-growing evergreen, the primary source of basic construction lumber.",
+    "No fruit. Used for structural beams, flooring, and simple furniture.",
+    "Evergreen: only two season keys (summer baseline, winter snow-laden).",
+    "Missing season keys fall back to 'summer' at runtime.",
+    "Fastest-growing tree in the roster; early-game wood supply.",
+    "Three growth stages: sapling → mature → ancient.",
+    "",
+    "MODEL VARIANTS (mature and ancient only):",
+    "  summer x3, winter x2. Sapling stays single.",
+    "  Variants differ in: silhouette taper angle, branch length, trunk lean (subtle).",
+    "  All variants must have the same XZ footprint and trunk base position."
+  ],
+
+  "base:flora:pine_tree": {
+    "harvest_resource": "base:resources:wood:pine_log",
+    "material_tags": ["wood", "tree", "flora", "evergreen", "stockpile_wood"],
+    "appeal": 1,
+
+    "stages": {
+
+      "sapling": {
+        "clearance_height": 2,
+        "growth_duration_days": 3,
+        "next_stage": "mature",
+        "models": {
+          "summer": "res://assets/models/flora/trees/pine/pine_sapling.glb",
+          "winter": "res://assets/models/flora/trees/pine/pine_sapling_winter.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "mature": {
+        "clearance_height": 8,
+        "growth_duration_days": 6,
+        "next_stage": "ancient",
+        "models": {
+          "summer": [
+            "res://assets/models/flora/trees/pine/pine_mature.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_2.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/pine/pine_mature_winter.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_winter_2.glb"
+          ]
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:pine_log",      "count": 4, "chance": 1.00 },
+            { "item": "base:resources:seed:pine_cone",     "count": 1, "chance": 0.25 }
+          ]
+        }
+      },
+
+      "ancient": {
+        "clearance_height": 12,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "summer": [
+            "res://assets/models/flora/trees/pine/pine_ancient.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_2.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/pine/pine_ancient_winter.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_winter_2.glb"
+          ]
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:wood:pine_log",      "count": 8, "chance": 1.00 },
+            { "item": "base:resources:seed:pine_cone",     "count": 2, "chance": 0.40 }
+          ]
+        }
+      }
+
+    }
+  }
+}

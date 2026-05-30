@@ -1,0 +1,630 @@
+{
+  "__comment": [
+    "Item entity definitions for all dropped / harvested resources.",
+    "Loaded on demand when an item is spawned — NOT held in memory at boot.",
+    "",
+    "Fields:",
+    "  display_name  — human-readable name shown in UI and tooltips",
+    "  description   — one-sentence flavour text shown in the inspect panel",
+    "  model         — path to the MagicaVoxel .glb micro-voxel model (res:// path)",
+    "  stack_max     — maximum units that can occupy a single stockpile cell (integer ≥ 1)",
+    "  weight_class  — 'light' | 'heavy' — affects dwarf carry animation and haul speed",
+    "                  light: full haul speed; heavy: ×0.7 haul speed, one item per trip",
+    "  base_trade_value — base Trade Point (TP) value used by the trade session UI",
+    "                     actual price fluctuates ±20% based on caravan demand model",
+    "  material_tags — flat string array; must include at least one 'stockpile_*' tag",
+    "                  used by stockpile zone filters and crafting ingredient queries"
+  ],
+
+  "__comment_stone": "Raw stone blocks — heavy, common, used for construction",
+
+  "base:resources:stone:granite": {
+    "display_name": "Granite",
+    "description": "A rough block of dense igneous stone, useful for construction.",
+    "model": "res://assets/models/items/stone/granite_block.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 2,
+    "material_tags": ["stone", "igneous", "building_material", "stockpile_stone"]
+  },
+
+  "base:resources:stone:basalt": {
+    "display_name": "Basalt",
+    "description": "A dark volcanic stone, harder than granite.",
+    "model": "res://assets/models/items/stone/basalt_block.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 2,
+    "material_tags": ["stone", "igneous", "building_material", "stockpile_stone"]
+  },
+
+  "base:resources:stone:limestone": {
+    "display_name": "Limestone",
+    "description": "A pale sedimentary stone, easy to cut and shape.",
+    "model": "res://assets/models/items/stone/limestone_block.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 2,
+    "material_tags": ["stone", "sedimentary", "building_material", "stockpile_stone"]
+  },
+
+  "base:resources:stone:marble": {
+    "display_name": "Marble",
+    "description": "A lustrous metamorphic stone prized for its elegance.",
+    "model": "res://assets/models/items/stone/marble_block.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 8,
+    "material_tags": ["stone", "metamorphic", "building_material", "luxury", "stockpile_stone"]
+  },
+
+  "__comment_soil": "Soft earth — farmable cave soil is the most valuable",
+
+  "base:resources:soil:cave_soil": {
+    "display_name": "Cave Soil",
+    "description": "Rich subterranean earth, ideal for underground farming.",
+    "model": "res://assets/models/items/soil/cave_soil.glb",
+    "stack_max": 20,
+    "weight_class": "heavy",
+    "base_trade_value": 1,
+    "material_tags": ["dirt", "soil", "farmable", "stockpile_soil"]
+  },
+
+  "base:resources:soil:light_soil": {
+    "display_name": "Light Soil",
+    "description": "Sandy pale earth, too dry for farming but useful as fill.",
+    "model": "res://assets/models/items/soil/light_soil.glb",
+    "stack_max": 20,
+    "weight_class": "heavy",
+    "base_trade_value": 1,
+    "material_tags": ["dirt", "soil", "stockpile_soil"]
+  },
+
+  "base:resources:soil:dark_soil": {
+    "display_name": "Dark Soil",
+    "description": "Dense clay-rich earth with a damp, earthy smell.",
+    "model": "res://assets/models/items/soil/dark_soil.glb",
+    "stack_max": 20,
+    "weight_class": "heavy",
+    "base_trade_value": 1,
+    "material_tags": ["dirt", "soil", "stockpile_soil"]
+  },
+
+  "__comment_ore": "Metal ore chunks — heavy, moderate trade value",
+
+  "base:resources:ore:copper": {
+    "display_name": "Copper Ore",
+    "description": "A green-tinged ore chunk, the first metal dwarves learn to smelt.",
+    "model": "res://assets/models/items/ore/copper_ore.glb",
+    "stack_max": 15,
+    "weight_class": "heavy",
+    "base_trade_value": 3,
+    "material_tags": ["ore", "metal", "stockpile_ore"]
+  },
+
+  "base:resources:ore:tin": {
+    "display_name": "Tin Ore",
+    "description": "A soft grey ore found near the surface. Easy to smelt, useful for early tools.",
+    "model": "res://assets/models/items/ore/tin_ore.glb",
+    "stack_max": 15,
+    "weight_class": "heavy",
+    "base_trade_value": 2,
+    "material_tags": ["ore", "metal", "stockpile_ore"]
+  },
+
+  "base:resources:ore:iron": {
+    "display_name": "Iron Ore",
+    "description": "A heavy reddish ore, the backbone of dwarven industry.",
+    "model": "res://assets/models/items/ore/iron_ore.glb",
+    "stack_max": 15,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
+    "material_tags": ["ore", "metal", "stockpile_ore"]
+  },
+
+  "base:resources:ore:silver": {
+    "display_name": "Silver Ore",
+    "description": "A pale lustrous ore found in mid-depth veins. Valuable for jewellery and trade.",
+    "model": "res://assets/models/items/ore/silver_ore.glb",
+    "stack_max": 15,
+    "weight_class": "heavy",
+    "base_trade_value": 10,
+    "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
+  },
+
+  "base:resources:ore:coal": {
+    "display_name": "Coal",
+    "description": "A brittle black rock that burns long and hot.",
+    "model": "res://assets/models/items/ore/coal.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 2,
+    "material_tags": ["ore", "fuel", "stockpile_ore"]
+  },
+
+  "base:resources:ore:gold": {
+    "display_name": "Gold Ore",
+    "description": "A gleaming heavy ore. Even raw it catches every torch.",
+    "model": "res://assets/models/items/ore/gold_ore.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 12,
+    "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
+  },
+
+  "base:resources:ore:gold_nugget": {
+    "display_name": "Gold Nugget",
+    "description": "A pure lump of gold separated from the ore matrix. Merchants love these.",
+    "model": "res://assets/models/items/ore/gold_nugget.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 18,
+    "material_tags": ["ore", "metal", "precious", "luxury", "stockpile_ore"]
+  },
+
+  "__comment_gem": "Raw gem crystals — light, very high trade value",
+
+  "base:resources:gem:jade_raw": {
+    "display_name": "Raw Jade",
+    "description": "A dense green stone, prized for carving. Cooler to the touch than you'd expect.",
+    "model": "res://assets/models/items/gem/jade_raw.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 22,
+    "material_tags": ["gem", "precious", "stockpile_gem"]
+  },
+
+  "base:resources:gem:amethyst_raw": {
+    "display_name": "Raw Amethyst",
+    "description": "A translucent purple crystal that catches torchlight beautifully.",
+    "model": "res://assets/models/items/gem/amethyst_raw.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 25,
+    "material_tags": ["gem", "precious", "stockpile_gem"]
+  },
+
+  "base:resources:gem:ruby_raw": {
+    "display_name": "Raw Ruby",
+    "description": "An uncut crimson crystal pulled from deep volcanic stone.",
+    "model": "res://assets/models/items/gem/ruby_raw.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 40,
+    "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
+  },
+
+  "base:resources:gem:sapphire_raw": {
+    "display_name": "Raw Sapphire",
+    "description": "A deep blue crystal that seems to hold starlight within.",
+    "model": "res://assets/models/items/gem/sapphire_raw.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 40,
+    "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
+  },
+
+  "base:resources:gem:emerald_raw": {
+    "display_name": "Raw Emerald",
+    "description": "A vivid green crystal found only in the deepest rock seams.",
+    "model": "res://assets/models/items/gem/emerald_raw.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 45,
+    "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
+  },
+
+  "base:resources:gem:diamond_raw": {
+    "display_name": "Raw Diamond",
+    "description": "An uncut diamond pulled from the uttermost dark. Merchants go silent when they see one.",
+    "model": "res://assets/models/items/gem/diamond_raw.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 80,
+    "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
+  },
+
+  "__comment_misc": "Miscellaneous finds — fossils, unique drops",
+
+  "base:resources:misc:fossil_fragment": {
+    "display_name": "Fossil Fragment",
+    "description": "A stone impression of an ancient creature. Scholars pay handsomely.",
+    "model": "res://assets/models/items/misc/fossil_fragment.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 10,
+    "material_tags": ["misc", "luxury", "stockpile_misc"]
+  },
+
+  "__comment_wood": "Timber — harvested from flora",
+
+  "base:resources:wood:pine_log": {
+    "display_name": "Pine Log",
+    "description": "A straight-grained softwood log, light and easy to work. The backbone of early construction.",
+    "model": "res://assets/models/items/wood/pine_log.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 2,
+    "material_tags": ["wood", "timber", "building_material", "fuel", "stockpile_wood"]
+  },
+
+  "base:resources:wood:oak_log": {
+    "display_name": "Oak Log",
+    "description": "A dense hardwood log with a tight grain. Prized for furniture and barrel staves.",
+    "model": "res://assets/models/items/wood/oak_log.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 5,
+    "material_tags": ["wood", "timber", "hardwood", "building_material", "stockpile_wood"]
+  },
+
+  "base:resources:wood:oak_stave": {
+    "display_name": "Oak Stave",
+    "description": "A split plank of seasoned oak shaped for cooperage. Essential for crafting aging casks.",
+    "model": "res://assets/models/items/wood/oak_stave.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 8,
+    "material_tags": ["wood", "hardwood", "cooperage", "crafting_component", "stockpile_wood"]
+  },
+
+  "base:resources:wood:apple_wood": {
+    "display_name": "Apple Wood",
+    "description": "A fine-grained pinkish wood. Burns slowly with a sweet scent, useful for smoking and light carpentry.",
+    "model": "res://assets/models/items/wood/apple_wood.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 3,
+    "material_tags": ["wood", "timber", "fuel", "stockpile_wood"]
+  },
+
+  "base:resources:wood:juniper_log": {
+    "display_name": "Juniper Log",
+    "description": "A fragrant hardwood log with dense, knotted grain.",
+    "model": "res://assets/models/items/wood/juniper_log.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 3,
+    "material_tags": ["wood", "timber", "building_material", "fuel", "stockpile_wood"]
+  },
+
+  "__comment_flora": "Harvested plant matter — crops, berries, seeds",
+
+  "base:resources:flora:elderberry": {
+    "display_name": "Elderberry",
+    "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
+    "model": "res://assets/models/items/flora/elderberry.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+  "base:resources:flora:blueberry": {
+    "display_name": "Blueberry",
+    "description": "Sweet high-altitude berries with a clean finish. Prized for mead and summer ales.",
+    "model": "res://assets/models/items/flora/blueberry.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 4,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+  "base:resources:flora:wild_strawberry": {
+    "display_name": "Wild Strawberry",
+    "description": "Tiny and intensely sweet. Merchants go quiet when they see a basket of these.",
+    "model": "res://assets/models/items/flora/wild_strawberry.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 6,
+    "material_tags": ["flora", "food", "brewing_ingredient", "luxury", "stockpile_food"]
+  },
+
+  "base:resources:flora:juniper_berry": {
+    "display_name": "Juniper Berry",
+    "description": "Tart blue-black berries with a resinous bite. Prized for gin-style brewing.",
+    "model": "res://assets/models/items/flora/juniper_berry.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 4,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+  "base:resources:flora:plump_helmet": {
+    "display_name": "Plump Helmet",
+    "description": "A bulbous purple mushroom that grows fast in moist cave soil.",
+    "model": "res://assets/models/items/flora/plump_helmet.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 2,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+"base:resources:flora:pig_tail": {
+    "display_name": "Pig Tail",
+    "description": "A curling fibrous plant that can be spun into rough cloth.",
+    "model": "res://assets/models/items/flora/pig_tail.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 2,
+    "material_tags": ["flora", "fiber", "stockpile_food"]
+  },
+
+  "base:resources:flora:apple": {
+    "display_name": "Apple",
+    "description": "A crisp mountain apple. Sweet enough to eat raw, better pressed into cider.",
+    "model": "res://assets/models/items/flora/apple.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+  "__comment_seed": "Seeds — planted by dwarves to start new crop growth",
+
+  "base:resources:seed:pine_cone": {
+    "display_name": "Pine Cone",
+    "description": "A seed-bearing cone from a mature pine. Plant it and wait a few seasons.",
+    "model": "res://assets/models/items/seed/pine_cone.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 2,
+    "material_tags": ["seed", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:oak_acorn": {
+    "display_name": "Oak Acorn",
+    "description": "A small but promising acorn. Oaks are slow to grow and worth every year of the wait.",
+    "model": "res://assets/models/items/seed/oak_acorn.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 4,
+    "material_tags": ["seed", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:apple_seed": {
+    "display_name": "Apple Seed",
+    "description": "A seed pressed from a mountain apple. Give it good soil and a few seasons.",
+    "model": "res://assets/models/items/seed/apple_seed.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["seed", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:elderberry_cutting": {
+    "display_name": "Elderberry Cutting",
+    "description": "A fresh stem cutting from an elderberry bush. Root it in surface soil to grow a new bush.",
+    "model": "res://assets/models/items/seed/elderberry_cutting.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 4,
+    "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:blueberry_cutting": {
+    "display_name": "Blueberry Cutting",
+    "description": "A small blueberry stem. Plant it on rocky high-ground soil for best results.",
+    "model": "res://assets/models/items/seed/blueberry_cutting.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:strawberry_cutting": {
+    "display_name": "Strawberry Cutting",
+    "description": "A runner cutting from a wild strawberry plant. Grows quickly in good surface soil.",
+    "model": "res://assets/models/items/seed/strawberry_cutting.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:pig_tail_seed": {
+    "display_name": "Pig Tail Seed",
+    "description": "A small hard seed from a pig tail plant. Sow in surface dirt before summer for a full season's fiber harvest.",
+    "model": "res://assets/models/items/seed/pig_tail_seed.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 2,
+    "material_tags": ["seed", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:juniper_seed": {
+    "display_name": "Juniper Seed",
+    "description": "A hard dark seed that takes root slowly but grows into a towering tree.",
+    "model": "res://assets/models/items/seed/juniper_seed.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["seed", "flora", "stockpile_seed"]
+  },
+
+  "__comment_drink": "Finished brewed drinks — colony morale and trade goods",
+
+  "base:resources:drink:ale": {
+    "display_name": "Dwarven Ale",
+    "description": "A dark, malty ale brewed from cave wheat or plump helmets.",
+    "model": "res://assets/models/items/drink/ale_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
+  },
+
+  "base:resources:drink:mead": {
+    "display_name": "Sweet Mead",
+    "description": "A golden honey-wine brewed from sweet pods. Light, complex, and expensive.",
+    "model": "res://assets/models/items/drink/mead_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["drink", "alcohol", "morale_item", "luxury", "stockpile_drink"]
+  },
+
+  "__comment_misc2": "Processed goods — outputs from non-brewing workshops",
+
+  "base:resources:misc:cloth": {
+    "display_name": "Pig Tail Cloth",
+    "description": "A coarse woven fabric spun from pig tail fibers.",
+    "model": "res://assets/models/items/misc/cloth_bolt.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 6,
+    "material_tags": ["cloth", "fiber", "building_material", "stockpile_misc"]
+  },
+
+  "base:resources:misc:water_bucket": {
+    "display_name": "Water Bucket",
+    "description": "A wooden bucket filled from a well or underground stream.",
+    "model": "res://assets/models/items/misc/water_bucket.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 1,
+    "material_tags": ["liquid", "brewing_ingredient", "stockpile_misc"]
+  },
+
+  "__comment_new_flora": "New brewing crops — hops and grapes",
+
+  "base:resources:flora:hops": {
+    "display_name": "Hops",
+    "description": "Papery green cones with a sharp, resinous bite. The bitter backbone of any proper ale.",
+    "model": "res://assets/models/items/flora/hops.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+  "base:resources:flora:grape": {
+    "display_name": "Grapes",
+    "description": "Heavy purple clusters from the mountain vine terraces. Sweet, complex, and worth the wait.",
+    "model": "res://assets/models/items/flora/grape.glb",
+    "stack_max": 30,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
+  },
+
+  "__comment_honey": "Honey — produced by beehives, used in mead and cider",
+
+  "base:resources:misc:honey": {
+    "display_name": "Honey",
+    "description": "Thick golden honey from mountain beehives. Adds body and sweetness to brewed drinks.",
+    "model": "res://assets/models/items/misc/honey_jar.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 6,
+    "material_tags": ["misc", "food", "brewing_ingredient", "luxury", "stockpile_misc"]
+  },
+
+  "__comment_new_seeds": "New plant propagation items — hops and grape cuttings",
+
+  "base:resources:seed:hops_cutting": {
+    "display_name": "Hops Cutting",
+    "description": "A rooted stem cutting from a mature hops bine. Plant it on surface soil before summer.",
+    "model": "res://assets/models/items/seed/hops_cutting.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 4,
+    "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
+  },
+
+  "base:resources:seed:grape_cutting": {
+    "display_name": "Grape Cutting",
+    "description": "A short cane cutting from a fruiting grape vine. Takes a season to establish but lasts for years.",
+    "model": "res://assets/models/items/seed/grape_cutting.glb",
+    "stack_max": 50,
+    "weight_class": "light",
+    "base_trade_value": 6,
+    "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
+  },
+
+  "__comment_new_drinks": "New brewed drinks — stout, cider, wine, gin, and their aged variants",
+
+  "base:resources:drink:stout": {
+    "display_name": "Dark Stout",
+    "description": "A thick, near-black ale with a roasted bitterness. Dwarves call it 'proper drinking'.",
+    "model": "res://assets/models/items/drink/stout_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
+  },
+
+  "base:resources:drink:cider": {
+    "display_name": "Mountain Cider",
+    "description": "A crisp, lightly honeyed apple cider. Brisk and refreshing after a long shift in the mines.",
+    "model": "res://assets/models/items/drink/cider_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 5,
+    "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
+  },
+
+  "base:resources:drink:wine": {
+    "display_name": "Grape Wine",
+    "description": "A deep, tannic wine pressed from mountain grapes. Not a dwarf's first choice, but the merchants love it.",
+    "model": "res://assets/models/items/drink/wine_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 7,
+    "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
+  },
+
+  "base:resources:drink:gin": {
+    "display_name": "Juniper Gin",
+    "description": "A sharp, resinous spirit distilled from juniper berries. An acquired taste — and a profitable one.",
+    "model": "res://assets/models/items/drink/gin_cask.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 8,
+    "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
+  },
+
+  "__comment_aged_drinks": "Aged premium variants — produced in the aging cellar, high trade value",
+
+  "base:resources:drink:aged_stout": {
+    "display_name": "Aged Dark Stout",
+    "description": "A stout that has sat in oak for a month of cold stone silence. Smooth, complex, and deeply satisfying.",
+    "model": "res://assets/models/items/drink/aged_stout_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 10,
+    "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
+  },
+
+  "base:resources:drink:vintage_wine": {
+    "display_name": "Vintage Wine",
+    "description": "An oak-aged mountain wine that has mellowed into something extraordinary. Caravans will pay dearly.",
+    "model": "res://assets/models/items/drink/vintage_wine_barrel.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 15,
+    "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
+  },
+
+  "base:resources:drink:reserve_gin": {
+    "display_name": "Reserve Gin",
+    "description": "Juniper gin rested in oak until the harsh edge softens to something almost elegant.",
+    "model": "res://assets/models/items/drink/reserve_gin_cask.glb",
+    "stack_max": 20,
+    "weight_class": "light",
+    "base_trade_value": 12,
+    "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
+  },
+
+  "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+
+  "base:resources:currency:gold_coin": {
+    "display_name": "Gold Coin",
+    "description": "A minted coin accepted by every merchant on the mountain road. Spend it or hoard it.",
+    "model": "res://assets/models/items/currency/gold_coin.glb",
+    "stack_max": 100,
+    "weight_class": "light",
+    "base_trade_value": 1,
+    "material_tags": ["currency", "stockpile_currency"]
+  }
+}

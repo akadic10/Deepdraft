@@ -1,0 +1,55 @@
+{
+  "__comment": [
+    "Grape vine — surface-only perennial vine, primary ingredient for wine.",
+    "Must be grown on designated surface dirt farm plots with open sky.",
+    "Perennial: after harvest the vine remains in the 'fruiting' stage and re-readies",
+    "each summer. Dwarves only need to plant cuttings once.",
+    "Two growth stages: cutting → fruiting.",
+    "Grapes are harvested in SUMMER and AUTUMN only (season_only constraints on yields).",
+    "Winter: the vine goes dormant and displays a bare-cane model. The fruiting stage",
+    "does not reset — it resumes as fruiting in spring and yields again in summer.",
+    "Unlike the annual hops plant, grape vines survive winter and never return to FALLOW",
+    "unless the farm plot is explicitly cleared by the player."
+  ],
+
+  "base:flora:grape_vine": {
+    "harvest_resource": "base:resources:flora:grape",
+    "material_tags": ["flora", "crop", "surface_crop", "brewing_plant", "perennial", "stockpile_food"],
+    "appeal": 1,
+
+    "stages": {
+
+      "cutting": {
+        "clearance_height": 1,
+        "growth_duration_days": 6,
+        "next_stage": "fruiting",
+        "models": {
+          "summer": "res://assets/models/flora/crops/grape/grape_cutting.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "fruiting": {
+        "clearance_height": 2,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "spring": "res://assets/models/flora/crops/grape/grape_budding.glb",
+          "summer": "res://assets/models/flora/crops/grape/grape_fruiting.glb",
+          "autumn": "res://assets/models/flora/crops/grape/grape_harvest.glb",
+          "winter": "res://assets/models/flora/crops/grape/grape_dormant.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:flora:grape",          "count": 5, "chance": 1.00, "season_only": ["summer", "autumn"] },
+            { "item": "base:resources:seed:grape_cutting",   "count": 1, "chance": 0.25 }
+          ],
+          "post_harvest": "persist"
+        }
+      }
+
+    }
+  }
+}

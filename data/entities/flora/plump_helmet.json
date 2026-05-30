@@ -1,0 +1,63 @@
+{
+  "__comment": [
+    "Plump Helmet — the primary underground crop and brewing staple of a dwarven colony.",
+    "Grows on cave soil farm plots in complete darkness. No sunlight required.",
+    "Biologically accurate: mushrooms grow from mycelium in damp organic soil, not from",
+    "planted seeds. This is modelled via auto_reseed: true — after harvest the farm manager",
+    "automatically resets the plot to 'sprouting' without dwarf intervention. No seed item exists.",
+    "",
+    "PLACEMENT: Cave soil farm plots only (base:terrain:soil:cave).",
+    "           Water saturation > 0.3 required (see 42_farming_brewing.md).",
+    "           3 clear air blocks above required for dwarf access.",
+    "",
+    "SEASONS: No seasonal variation — underground plots are unaffected by WorldClock season.",
+    "         Only 'summer' model keys are defined; missing season keys fall back to 'summer'",
+    "         at runtime (standard fallback — see 42_farming_brewing.md).",
+    "",
+    "GROWTH: Two stages — sprouting → mature.",
+    "        sprouting: 6 in-game days → advances to mature.",
+    "        mature: final stage; stays until harvested.",
+    "        After harvest: plot returns to FALLOW, then auto-reseeds to sprouting.",
+    "",
+    "YIELD: 4× plump_helmet per harvest. No cutting or seed drop needed."
+  ],
+
+  "base:flora:plump_helmet": {
+    "harvest_resource": "base:resources:flora:plump_helmet",
+    "material_tags": ["flora", "crop", "cave_crop", "mushroom", "food", "stockpile_food"],
+    "appeal": 0,
+    "requires_light": false,
+    "auto_reseed": true,
+
+    "stages": {
+
+      "sprouting": {
+        "clearance_height": 1,
+        "growth_duration_days": 6,
+        "next_stage": "mature",
+        "models": {
+          "summer": "res://assets/models/flora/crops/plump_helmet/plump_helmet_sprouting.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+
+      "mature": {
+        "clearance_height": 2,
+        "growth_duration_days": null,
+        "next_stage": null,
+        "models": {
+          "summer": "res://assets/models/flora/crops/plump_helmet/plump_helmet_mature.glb"
+        },
+        "harvest": {
+          "yields": [
+            { "item": "base:resources:flora:plump_helmet", "count": 4, "chance": 1.00 }
+          ],
+          "post_harvest": "fallow"
+        }
+      }
+
+    }
+  }
+}

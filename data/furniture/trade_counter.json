@@ -1,0 +1,117 @@
+{
+  "__comment": [
+	"Trade Counter — the room-anchor furniture piece that designates a sealed room as a Shop.",
+	"This is the first furniture definition in the game. Its schema establishes the pattern",
+	"for all future furniture items.",
+	"",
+	"ROOM DESIGNATION:",
+	"  A sealed room (enclosed walls + one or more doors) containing a Trade Counter",
+	"  is automatically designated as a 'shop' room. The room type is re-evaluated",
+	"  whenever any furniture is added to or removed from the room.",
+	"  Only one Trade Counter per room is valid. A second counter invalidates the room",
+	"  designation until one is removed.",
+	"",
+	"ROOM VALIDATION:",
+	"  A shop room may only contain items whose furniture_category is listed in",
+	"  room_compatible_categories. If any item with a category in",
+	"  room_invalidating_categories is placed inside the room, the Shop designation",
+	"  is immediately removed. The room reverts to an undesignated room until the",
+	"  offending item is removed.",
+	"  See furniture_category field on each furniture item for its category string.",
+	"",
+	"SELL SIDE (automated):",
+	"  All items stored in room_compatible storage units inside the shop room are",
+	"  automatically available for sale when a merchant visits. The merchant checks",
+	"  each item against their want list and buys matching stock at",
+	"  base_trade_value ± demand_modifier. The colony receives gold coins equal to",
+	"  the transaction total. Sold items are removed from shop storage immediately.",
+	"",
+	"BUY ORDERS (player-configured, automated):",
+	"  The player configures buy orders on the Trade Counter via the UI.",
+	"  Schema per order: { item_id, max_count, max_price_per_unit }",
+	"  When a merchant carries an item matching a buy order:",
+	"    - The colony buys as many units as available up to max_count.",
+	"    - If gold coin balance is insufficient for the full order, partial fill applies:",
+	"      buy as many units as coins allow at the stated price.",
+	"    - Purchased goods are placed in available shop room storage first.",
+	"      If shop storage is full, goods are dropped on the shop floor.",
+	"    - Dwarves then haul floor goods to appropriate colony stockpiles.",
+	"  Buy orders persist indefinitely and re-evaluate on every merchant visit.",
+	"  Default: empty array (no buy orders). Configured per save, not in this file.",
+	"",
+	"COIN FLOW:",
+	"  Net coins = coins received from sales − coins spent on buy orders.",
+	"  If net is positive, gold coins are added to the nearest stockpile_currency stockpile",
+	"  or dropped at the Trade Counter if none exists.",
+	"  If net is negative (buy orders exceed sale revenue in a single visit),",
+	"  the deficit is drawn from the colony's existing coin stockpile.",
+	"  If the colony cannot cover the deficit, buy orders are partially filled",
+	"  until coins run out.",
+	"",
+	"MERCHANT VISIT CONDITION:",
+	"  Merchants will only stop at the colony if a valid shop room exists AND the",
+	"  shop has at least one item in storage OR at least one active buy order.",
+	"  A shop room with a Trade Counter but no stock and no buy orders is treated",
+	"  as inactive — caravans pass by without stopping.",
+	"",
+	"TRADE NOTIFICATION:",
+	"  On trade completion a summary toast is posted:",
+	"    'Trade complete — sold X items, bought Y items, net +Z coins.'",
+    "  Full transaction log is accessible from the Trade Counter inspect panel."
+  ],
+
+  "furniture_key": "base:furniture:trade_counter",
+  "furniture_category": "trade",
+  "display_name": "Trade Counter",
+  "description": "A heavy stone slab counter. Marks the room as an active shop and manages all trade with visiting merchants.",
+  "model": "res://assets/models/furniture/trade_counter.glb",
+  "footprint": { "width": 2, "depth": 1 },
+  "blocks_movement": true,
+
+  "__comment_collision": [
+	"collision_regions defines one or more axis-aligned boxes in furniture-local block coordinates.",
+	"Origin (0,0,0) = bottom-front-left corner of the footprint. Y is up. Units are game blocks (0.5 m).",
+	"Each region is read by the furniture placement system to create CollisionShape3D nodes at runtime.",
+	"Multi-region is used when different parts of the piece have different heights (e.g. beds).",
+    "A single region covering the full footprint at the correct visual height is the common case."
+  ],
+  "collision_regions": [
+	{ "min": [0, 0, 0], "max": [2, 2, 1] }
+  ],
+
+  "room_anchor": true,
+  "room_type": "shop",
+  "max_per_room": 1,
+
+  "room_compatible_categories": [
+	"trade",
+	"storage",
+    "decorative"
+  ],
+
+  "room_invalidating_categories": [
+	"bed",
+	"workshop",
+    "production"
+  ],
+
+  "sell_source": "room_storage",
+
+  "purchased_goods_destination": "room_storage_or_floor",
+
+  "buy_orders_schema": {
+	"__comment": "Runtime schema — buy orders are saved per-colony, not defined here.",
+	"fields": {
+	  "item_id":            "Namespaced item key, e.g. 'base:resources:ore:iron'",
+	  "max_count":          "Maximum units to buy per merchant visit (integer ≥ 1)",
+	  "max_price_per_unit": "Colony will not pay more than this in gold coins per unit (integer ≥ 1)"
+	},
+	"default": []
+  },
+
+  "trade_reputation_effects": {
+	"visit_with_sale":      5,
+	"visit_no_stock":       0,
+	"visit_skipped":       -5
+  }
+}

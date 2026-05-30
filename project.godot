@@ -1,0 +1,36 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Deepdraft"
+run/main_scene="res://scenes/main/debug_world.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+BlockRegistry="*uid://darckb4wfswr6"
+WorldClock="*uid://cntlqitntp144"
+WorldData="*uid://cbq0ixpilwd48"
+WorldGenerator="*uid://bl38ocrtbuj8s"
+
+[display]
+
+window/size/viewport_width=2560
+window/size/viewport_height=1440
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"

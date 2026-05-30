@@ -1,0 +1,84 @@
+{
+  "__comment": [
+    "Merchant Catalog — items that visiting merchant caravans can potentially sell to the colony.",
+    "",
+    "STATUS: STUB — this file is incomplete. Only items referenced in 51_visitors.md",
+    "are defined here. A full catalog requires a dedicated design session to establish:",
+    "  - The complete list of surface-world goods (spices, fabrics, tools, exotic seeds, etc.)",
+    "  - Which caravan types carry which item categories",
+    "  - Pricing tiers and rarity weights",
+    "  - Any items that are exclusive to high trade_reputation unlocks",
+    "",
+    "SCHEMA (per catalog entry):",
+    "  display_name      — name shown in trade counter inspect panel and notifications",
+    "  description       — one-sentence flavour text",
+    "  base_sell_price   — base gold coins the merchant charges per unit",
+    "                      actual price fluctuates ±20% based on caravan type and",
+    "                      recent purchase history (demand modifier)",
+    "  caravan_types     — array of caravan type keys that may carry this item.",
+    "                      Empty array means no caravan carries it (reserved/future).",
+    "  stock_range       — [min, max] units a caravan of a matching type may carry.",
+    "                      Actual stock is randomised within this range per visit.",
+    "  min_reputation    — minimum trade_reputation required for this item to appear.",
+    "                      0 = always available from first visit.",
+    "  material_tags     — tags used by stockpile zone filters when goods are deposited",
+    "                      into colony storage after purchase.",
+    "",
+    "CARAVAN TYPES (defined in 51_visitors.md):",
+    "  'small_merchant'    — Spring; general goods, small stock",
+    "  'travelling_fair'   — Summer (70% chance); luxury and exotic focus",
+    "  'trade_expedition'  — Autumn; bulk goods, wide catalog",
+    "  'emergency_supply'  — Winter conditional; food and basics only"
+  ],
+
+  "catalog": {
+
+    "__comment_food": "Basic surface food — carried by most caravans as common stock",
+
+    "base:merchant:surface_food": {
+      "display_name": "Surface Provisions",
+      "description": "Dried fruits, hard cheese, and travel bread from the lowland farms.",
+      "base_sell_price": 2,
+      "caravan_types": ["small_merchant", "trade_expedition", "emergency_supply"],
+      "stock_range": [3, 10],
+      "min_reputation": 0,
+      "material_tags": ["food", "stockpile_food"]
+    },
+
+    "__comment_exotic": "Rare and exotic goods — luxury caravans and trade expeditions only",
+
+    "base:merchant:exotic_spice": {
+      "display_name": "Exotic Spice",
+      "description": "Fragrant dried spices from distant lowland markets. Dwarves don't cook with them, but they trade well.",
+      "base_sell_price": 15,
+      "caravan_types": ["travelling_fair", "trade_expedition"],
+      "stock_range": [1, 4],
+      "min_reputation": 0,
+      "material_tags": ["misc", "luxury", "stockpile_misc"]
+    },
+
+    "__comment_seeds": "Rare seeds — plants not native to the mountain that must be imported",
+
+    "base:merchant:rare_seed": {
+      "display_name": "Rare Seed",
+      "description": "A seed packet of unknown lowland origin. Plant it and see what grows.",
+      "base_sell_price": 20,
+      "caravan_types": ["travelling_fair"],
+      "stock_range": [1, 3],
+      "min_reputation": 25,
+      "material_tags": ["seed", "flora", "stockpile_seed"]
+    }
+
+  },
+
+  "__comment_todo": [
+    "TODO — items to design and add in a future catalog session:",
+    "  - Lowland tools (pickaxe upgrades? future mechanic)",
+    "  - Cloth and textile goods from surface weavers",
+    "  - Exotic animals or livestock (future pasture mechanic)",
+    "  - Maps, manuscripts (future lore/quest items)",
+    "  - Metal ingots the colony cannot yet smelt (future smelter tier)",
+    "  - Reputation-gated luxury goods (silk, dyes, glassware)",
+    "  - Emergency_supply exclusive items (medicine, salted meat)"
+  ]
+}

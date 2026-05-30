@@ -1,0 +1,55 @@
+{
+  "__comment": [
+    "Camera configuration. Source of truth for Camera.gd (21_camera.md).",
+    "Feel ported from Stonehearth's player_camera_controller.lua. Their constants:",
+    "  MIN_ZOOM 50, MAX_ZOOM 340, DEFAULT_ZOOM 110, ZOOM_STEP 20 (scaled by current/MIN — proportional),",
+    "  MIN_X_ANGLE 5, MAX_X_ANGLE 80, DEFAULT_ANGLE 50 (degrees above horizon),",
+    "  SENSITIVITY 0.6, CAMERA_SPEED_SCALE_FACTOR 0.33 (pan scales with zoom), edge scroll on.",
+    "Deepdraft uses NEGATIVE pitch (look-down): -90 = straight down, 0 = horizon, so Stonehearth's",
+    "  5..80 above-horizon maps to -5 (shallow) .. -80 (steep) here, default -50.",
+    "Proportional zoom is implemented in Camera._handle_orbit_and_zoom (step grows with distance)."
+  ],
+
+  "camera_settings": {
+    "fov": 45.0,
+    "near_clip": 0.1,
+    "far_clip": 1200.0,
+    "default_position": { "x": 512.0, "y": 70.0, "z": 512.0 },
+    "default_rotation": { "x": -50.0, "y": 0.0, "z": 0.0 }
+  },
+
+  "movement": {
+    "move_speed": 36.0,
+    "shift_multiplier": 3.5,
+    "smoothing": 0.22,
+    "edge_scroll_enabled": false,
+    "edge_scroll_threshold_pixels": 10
+  },
+
+  "rotation": {
+    "rotation_speed": 0.6,
+    "invert_x": false,
+    "invert_y": false,
+    "min_pitch": -80.0,
+    "max_pitch": -5.0
+  },
+
+  "zoom": {
+    "zoom_speed": 20.0,
+    "min_distance": 50.0,
+    "max_distance": 340.0,
+    "default_distance": 110.0,
+    "proportional": true,
+    "smoothing": 0.15
+  },
+
+  "input_mappings": {
+    "move_forward":  ["KEY_W", "KEY_UP"],
+    "move_backward": ["KEY_S", "KEY_DOWN"],
+    "move_left":     ["KEY_A", "KEY_LEFT"],
+    "move_right":    ["KEY_D", "KEY_RIGHT"],
+    "rotate_action": "MOUSE_BUTTON_MIDDLE",
+    "zoom_in":       "MOUSE_BUTTON_WHEEL_UP",
+    "zoom_out":      "MOUSE_BUTTON_WHEEL_DOWN"
+  }
+}

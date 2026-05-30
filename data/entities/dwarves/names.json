@@ -1,0 +1,65 @@
+{
+  "__comment": [
+    "Dwarf name component pools for procedural generation.",
+    "",
+    "GENERATION MODEL:",
+    "  Every dwarf receives a single given name constructed as:",
+    "    name = prefix + suffix",
+    "  Male and female pools are separate — different phoneme patterns.",
+    "  Male names lean on hard stops and voiced fricatives (Brom-, Dur-, Grun-).",
+    "  Female names lean on softer endings and liquid consonants (Brun-, Kel-, Sol-).",
+    "",
+    "  Pool sizes:",
+    "    Male:   25 prefixes × 20 suffixes = 500 distinct names",
+    "    Female: 25 prefixes × 20 suffixes = 500 distinct names",
+    "    Total:  1 000 distinct names (500 per gender)",
+    "",
+    "UNIQUENESS HANDLING:",
+    "  The generator tracks used names in the current world. If a rolled combination",
+    "  has already been assigned, it re-rolls up to 10 times before falling back to",
+    "  appending the dwarf's birth-order index as a Roman numeral suffix",
+    "  (e.g. 'Bromin II'). This fallback is expected to be extremely rare — at the",
+    "  point where ~500 same-gender dwarves have been generated the pool is",
+    "  effectively exhausted, which requires a very long-running colony.",
+    "",
+    "  Name generation uses the world seed as its RNG root so the same world always",
+    "  produces the same sequence of dwarf names in the same order.",
+    "",
+    "PHONEME NOTES:",
+    "  Not every prefix+suffix pair is equally euphonic — that is intentional.",
+    "  Dwarven names in this world are guttural and idiosyncratic. A name like",
+    "  'Snoruk' or 'Bogorn' is as valid as 'Thorin' or 'Durmar'."
+  ],
+
+  "male": {
+    "prefixes": [
+      "Brom", "Dur",  "Kel",  "Grun", "Thor",
+      "Grim", "Bald", "Dug",  "Fur",  "Kor",
+      "Ral",  "Snor", "Tek",  "Ulv",  "Var",
+      "Horg", "Ber",  "Dal",  "Orm",  "Mund",
+      "Rog",  "Skal", "Wulf", "Dral", "Bog"
+    ],
+    "suffixes": [
+      "in",   "an",   "ik",   "ur",   "ak",
+      "orn",  "ek",   "as",   "uk",   "grim",
+      "rek",  "dor",  "tin",  "bur",  "gar",
+      "din",  "mar",  "lok",  "bar",  "dun"
+    ]
+  },
+
+  "female": {
+    "prefixes": [
+      "Tho",  "Brun", "Kel",  "Hil",  "Sig",
+      "Ing",  "Bryn", "Aud",  "Alf",  "Ger",
+      "Val",  "Frid", "Run",  "Ulv",  "Dag",
+      "Mor",  "Ast",  "Eld",  "Sol",  "Bir",
+      "Gun",  "Hem",  "Ild",  "Lyn",  "Drun"
+    ],
+    "suffixes": [
+      "a",    "ra",   "da",   "na",   "wyn",
+      "dis",  "dra",  "ka",   "la",   "tha",
+      "dris", "bra",  "fen",  "gra",  "lin",
+      "mir",  "sha",  "tris", "vin",  "brin"
+    ]
+  }
+}

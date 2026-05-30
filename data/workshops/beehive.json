@@ -1,0 +1,59 @@
+{
+  "__comment": [
+    "Beehive — outdoor passive honey-producing structure.",
+    "Placed by dwarves on any surface block with open sky (no ceiling within 10 blocks).",
+    "Only one recipe: 'collect_honey'. It takes no inputs — the bees do the work.",
+    "A dwarf is dispatched to the beehive once the production_interval has elapsed.",
+    "The task is auto-queued by the workshop manager; the player does not need to",
+    "manually schedule it. If no dwarf is available, honey accumulates in the hive",
+    "up to internal_capacity and is collected on the next available visit.",
+    "",
+    "Placement constraints:",
+    "  requires_open_sky: true  — same check as surface farm plots (no solid block",
+    "                             within 10 blocks directly above the hive block).",
+    "  surface_only: true       — the block below the beehive must be a surface block",
+    "                             (base:terrain:surface:*).",
+    "",
+    "Seasonal behaviour:",
+    "  spring   — active, production_interval × 1.0 (baseline)",
+    "  summer   — active, production_interval × 0.8 (peak forage — faster)",
+    "  autumn   — active, production_interval × 1.2 (slowing)",
+    "  winter   — DORMANT; no honey is produced, auto-queue suspended.",
+    "             The hive retains any uncollected honey across the dormant period."
+  ],
+
+  "workshop_key": "base:workshop:beehive",
+
+  "placement_constraints": {
+    "requires_open_sky": true,
+    "surface_only": true
+  },
+
+  "production_type": "passive",
+  "production_interval": 48,
+  "internal_capacity": 6,
+
+  "seasonal_modifiers": {
+    "spring": 1.0,
+    "summer": 0.8,
+    "autumn": 1.2,
+    "winter": null
+  },
+
+  "recipes": [
+
+    {
+      "id": "base:recipe:beehive:collect_honey",
+      "display_name": "Collect Honey",
+      "inputs": [],
+      "outputs": [
+        { "item": "base:resources:misc:honey", "count": 2 }
+      ],
+      "work_time": 1,
+      "skill_bonus": 0.0,
+      "required_skill": 0,
+      "category": "honey_production"
+    }
+
+  ]
+}

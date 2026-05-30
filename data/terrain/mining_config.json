@@ -1,0 +1,15 @@
+{
+  "dig_tool": {
+    "xz_cell_size": 4,
+    "y_cell_size": 4,
+    "max_drag_length": 40
+  },
+  "precision_tool": {
+    "default_size": 1,
+    "max_horizontal": 8,
+    "max_vertical": 8
+  },
+  "zone": {
+    "max_workers": 4
+  }
+}

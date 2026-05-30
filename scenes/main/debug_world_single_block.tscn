@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://208wqyg6mhen"]
+
+[ext_resource type="Script" uid="uid://bs3sadtsohrdw" path="res://scripts/systems/SingleBlockViewer.gd" id="1_viewer"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.4, 0.6, 0.85, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+
+[node name="DebugWorldSingleBlock" type="Node3D" unique_id=1709588189]
+script = ExtResource("1_viewer")
+unshaded = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1830755042]
+environment = SubResource("Environment_1")
