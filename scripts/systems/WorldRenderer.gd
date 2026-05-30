@@ -169,11 +169,11 @@ func _build_block_inspector_ui() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "Panel"
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	panel.offset_left = -360.0
-	panel.offset_top = -116.0
+	panel.offset_left = -480.0
+	panel.offset_top = -210.0
 	panel.offset_right = -16.0
 	panel.offset_bottom = -16.0
-	panel.custom_minimum_size = Vector2(344.0, 100.0)
+	panel.custom_minimum_size = Vector2(464.0, 194.0)
 	_inspector_layer.add_child(panel)
 
 	_inspector_label = Label.new()
@@ -241,15 +241,41 @@ func _inspect_block_at_screen_position(screen_pos: Vector2) -> void:
 
 	var pos: Vector3i = hit["pos"]
 	var block_id: int = hit["block_id"]
+	var generated_block_id: int = hit.get("generated_block_id", block_id)
+	var source: String = hit.get("source", "unknown")
+	var face: String = hit.get("face", "unknown")
 	var key_name := BlockRegistry.get_key(block_id)
 	var key := String(key_name)
 	var def := BlockRegistry.get_def(key_name)
 	var kind: String = def.get("kind", "unknown")
+	var generated_key := String(BlockRegistry.get_key(generated_block_id))
+	var season: String = WorldClock.season
+	var color := BlockRegistry.get_color(block_id, season)
+	var column_info: Dictionary = WorldGenerator.get_column_debug_info(pos.x, pos.z) if WorldGenerator.has_method("get_column_debug_info") else {}
+	var visible_key: String = column_info.get("visible_block_key", "")
+	var agreement: String = "yes" if generated_block_id == block_id else "NO"
 	_move_block_inspector_outline(pos)
 	_set_inspector_text("\n".join([
 		"Block inspector",
-		key,
-		"kind: %s" % kind,
+		"render: %s" % _inspector_render_mode(),
+		"source: %s  face: %s" % [source, face],
+		"hit: %s" % key,
+		"generated: %s  agree: %s" % [generated_key, agreement],
+		"visible top: y %d  %s" % [
+			column_info.get("visible_surface_y", -1),
+			visible_key,
+		],
+		"domain: %s %.3f  surface y: %d" % [
+			column_info.get("domain", "unknown"),
+			column_info.get("domain_n", 0.0),
+			column_info.get("surface_y", -1),
+		],
+		"water: lake %s  tarn %s  bank %s" % [
+			str(column_info.get("is_lake", false)),
+			str(column_info.get("is_tarn", false)),
+			str(column_info.get("is_water_bank", false)),
+		],
+		"kind: %s  color: %s" % [kind, color.to_html(false)],
 		"x: %d  y: %d  z: %d" % [pos.x, pos.y, pos.z],
 	]))
 
@@ -258,33 +284,72 @@ func _find_block_on_ray(origin: Vector3, direction: Vector3, max_distance: float
 	var step := 0.25
 	var distance := 0.0
 	var last_pos := Vector3i(-999999, -999999, -999999)
+	var last_empty_pos := last_pos
 	while distance <= max_distance:
 		var sample := origin + direction * distance
 		var pos := Vector3i(floori(sample.x), floori(sample.y), floori(sample.z))
 		if pos != last_pos:
+			var prev_pos := last_pos
 			last_pos = pos
-			var block_id := _inspect_block_id(pos)
-			if not BlockRegistry.is_transparent(block_id):
+			var hit_info := _inspect_block_id(pos)
+			var block_id: int = hit_info.get("block_id", BlockRegistry.AIR_ID)
+			if BlockRegistry.is_transparent(block_id):
+				last_empty_pos = pos
+			else:
 				return {
 					"pos": pos,
 					"block_id": block_id,
+					"generated_block_id": hit_info.get("generated_block_id", block_id),
+					"source": hit_info.get("source", "unknown"),
+					"face": _hit_face_label(pos - last_empty_pos if last_empty_pos != Vector3i(-999999, -999999, -999999) else pos - prev_pos),
 				}
 		distance += step
 	return {}
 
 
-func _inspect_block_id(pos: Vector3i) -> int:
+func _inspect_block_id(pos: Vector3i) -> Dictionary:
 	if pos.x < 0 or pos.x >= WORLD_SIZE_X or pos.y < 0 or pos.y >= WORLD_SIZE_Y or pos.z < 0 or pos.z >= WORLD_SIZE_Z:
-		return BlockRegistry.AIR_ID
+		return {"block_id": BlockRegistry.AIR_ID, "generated_block_id": BlockRegistry.AIR_ID, "source": "out_of_bounds"}
 	if pos.y > slice_y:
-		return BlockRegistry.AIR_ID
+		return {"block_id": BlockRegistry.AIR_ID, "generated_block_id": BlockRegistry.AIR_ID, "source": "above_slice"}
 
+	var generated_block_id := BlockRegistry.AIR_ID
+	if WorldGenerator.has_method("get_generated_block_id"):
+		generated_block_id = WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
 	var block_id := WorldData.get_block(pos.x, pos.y, pos.z)
 	if not BlockRegistry.is_transparent(block_id):
-		return block_id
-	if WorldGenerator.has_method("get_generated_block_id"):
-		return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
-	return BlockRegistry.AIR_ID
+		return {"block_id": block_id, "generated_block_id": generated_block_id, "source": "streamed_chunk"}
+	return {"block_id": generated_block_id, "generated_block_id": generated_block_id, "source": _fallback_source_label(pos)}
+
+
+func _fallback_source_label(pos: Vector3i) -> String:
+	if _surface_diorama_active():
+		return "overview_generated"
+	if WorldData.chunk_exists(pos.x / CHUNK_SIZE, pos.y / CHUNK_SIZE, pos.z / CHUNK_SIZE):
+		return "generated_fallback"
+	return "unstreamed_generated"
+
+
+func _inspector_render_mode() -> String:
+	if _surface_diorama_active():
+		return "overview approximation"
+	return "streamed chunk mesh"
+
+
+func _hit_face_label(delta: Vector3i) -> String:
+	if delta.x > 0:
+		return "west"
+	if delta.x < 0:
+		return "east"
+	if delta.y > 0:
+		return "bottom"
+	if delta.y < 0:
+		return "top"
+	if delta.z > 0:
+		return "north"
+	if delta.z < 0:
+		return "south"
+	return "unknown"
 
 
 func _set_inspector_text(text: String) -> void:

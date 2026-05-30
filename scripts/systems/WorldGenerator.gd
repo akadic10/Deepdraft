@@ -442,6 +442,29 @@ func get_visible_surface_block_id(wx: int, wz: int) -> int:
 	return _pick_surface_block(wx, wz, col)
 
 
+func get_column_debug_info(wx: int, wz: int) -> Dictionary:
+	if not _maps_ready:
+		return {}
+	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
+		return {}
+	var idx := wx * WORLD_SIZE_Z + wz
+	var col := Vector2i(wx, wz)
+	var surface_y: int = heightmap[idx]
+	var visible_y := get_visible_surface_y(wx, wz)
+	var visible_block_id := get_visible_surface_block_id(wx, wz)
+	return {
+		"domain": _domain_label(domain_map[idx]),
+		"domain_n": domain_n_map[idx],
+		"surface_y": surface_y,
+		"visible_surface_y": visible_y,
+		"visible_block_id": visible_block_id,
+		"visible_block_key": String(BlockRegistry.get_key(visible_block_id)),
+		"is_lake": lake_columns.has(col),
+		"is_tarn": tarn_columns.has(col),
+		"is_water_bank": water_bank_columns.has(col),
+	}
+
+
 func get_generated_block_id(wx: int, wy: int, wz: int) -> int:
 	if not _maps_ready:
 		return BlockRegistry.AIR_ID
