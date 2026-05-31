@@ -109,9 +109,9 @@ func _update_text() -> void:
 			water.get("tarn_depth_max", 0),
 			water.get("bank_columns", 0),
 		],
-		"macro: basin %d  SE highland %d  edge %d" % [
+		"macro: basin %d  SE foothill %d  edge %d" % [
 			macro.get("southwest_basin_columns", 0),
-			macro.get("southeast_highland_columns", 0),
+			macro.get("southeast_foothill_columns", 0),
 			macro.get("edge_belt_columns", 0),
 		],
 		"settlement candidates: %d" % candidates.get("count", 0),

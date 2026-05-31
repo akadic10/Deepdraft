@@ -38,11 +38,10 @@ extends Node3D
 ## frame. Once caught up we fall back to meshes_per_frame for smooth in-game edits.
 @export var meshes_per_frame_initial: int = 12
 
-## Coarse full-world overview mesh for high-altitude surface views. This is not
-## the old top-only preview: it emits top faces plus vertical faces where sampled
-## neighbouring columns are lower, so the view remains block-face based.
+## Exact full-world overview mesh for high-altitude surface views. It emits top
+## faces plus vertical faces where neighbouring columns are lower, so terrain
+## bands stay block-accurate while the camera is zoomed out.
 @export var use_block_face_overview: bool = true
-@export_range(1, 16, 1) var overview_step: int = 4
 @export var overview_slice_threshold: int = 96
 @export var show_overview_sides: bool = true
 @export_range(0, 128, 1) var overview_edge_bottom_y: int = 0
@@ -57,6 +56,7 @@ const WORLD_SIZE_X: int = 1024
 const WORLD_SIZE_Y: int = 128
 const WORLD_SIZE_Z: int = 1024
 const REGION_SIZE: int = 4
+const OVERVIEW_STEP: int = 1
 
 var _material: StandardMaterial3D
 var _overview_node: MeshInstance3D = null
@@ -171,16 +171,16 @@ func _build_block_inspector_ui() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "Panel"
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	panel.offset_left = -480.0
-	panel.offset_top = -210.0
+	panel.offset_left = -520.0
+	panel.offset_top = -300.0
 	panel.offset_right = -16.0
 	panel.offset_bottom = -16.0
-	panel.custom_minimum_size = Vector2(464.0, 194.0)
+	panel.custom_minimum_size = Vector2(504.0, 284.0)
 	_inspector_layer.add_child(panel)
 
 	_inspector_label = Label.new()
 	_inspector_label.name = "Details"
-	_inspector_label.add_theme_font_size_override("font_size", 15)
+	_inspector_label.add_theme_font_size_override("font_size", 13)
 	_inspector_label.text = "Block inspector\nclick a block"
 	panel.add_child(_inspector_label)
 	_build_block_inspector_outline()
@@ -272,6 +272,15 @@ func _inspect_block_at_screen_position(screen_pos: Vector2) -> void:
 			column_info.get("domain_n", 0.0),
 			column_info.get("surface_y", -1),
 		],
+		"height band: %s" % column_info.get("height_band", "unknown"),
+		"lowland cap grass: band %d  distance %d" % [
+			column_info.get("lowland_cap_grass_band", 0),
+			column_info.get("lowland_cap_grass_distance", -1),
+		],
+		"foothill cap grass: band %d  distance %d" % [
+			column_info.get("foothill_cap_grass_band", 0),
+			column_info.get("foothill_cap_grass_distance", -1),
+		],
 		"water: lake %s  tarn %s  bank %s" % [
 			str(column_info.get("is_lake", false)),
 			str(column_info.get("is_tarn", false)),
@@ -327,14 +336,17 @@ func _inspect_block_id(pos: Vector3i) -> Dictionary:
 func _fallback_source_label(pos: Vector3i) -> String:
 	if _block_face_overview_active():
 		return "overview_generated"
-	if WorldData.chunk_exists(pos.x / CHUNK_SIZE, pos.y / CHUNK_SIZE, pos.z / CHUNK_SIZE):
+	if WorldData.chunk_exists(
+			int(floor(float(pos.x) / float(CHUNK_SIZE))),
+			int(floor(float(pos.y) / float(CHUNK_SIZE))),
+			int(floor(float(pos.z) / float(CHUNK_SIZE)))):
 		return "generated_fallback"
 	return "unstreamed_generated"
 
 
 func _inspector_render_mode() -> String:
 	if _block_face_overview_active():
-		return "block-face overview approximation"
+		return "block-face overview exact"
 	return "streamed chunk mesh"
 
 
@@ -608,7 +620,6 @@ func _add_overview_side(
 		b: Vector3,
 		bottom_y: float,
 		top_color: Color,
-		top_kind: String,
 		normal: Vector3,
 		verts: PackedVector3Array,
 		norms: PackedVector3Array,
@@ -778,7 +789,7 @@ func _update_block_face_overview() -> void:
 
 
 func _build_block_face_overview() -> void:
-	var step: int = maxi(1, overview_step)
+	var step: int = OVERVIEW_STEP
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
 	var cols: PackedColorArray = []
@@ -810,7 +821,9 @@ func _build_block_face_overview() -> void:
 			var color := BlockRegistry.get_color(block_id, season)
 			var block_def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
 			var block_kind: String = block_def.get("kind", "unknown")
-			var key := Vector2i(wx / step, wz / step)
+			var key := Vector2i(
+				int(floor(float(wx) / float(step))),
+				int(floor(float(wz) / float(step))))
 			sample_cells[key] = {
 				"wx": wx,
 				"wz": wz,
@@ -820,7 +833,7 @@ func _build_block_face_overview() -> void:
 				"kind": block_kind,
 			}
 			if show_overview_sides:
-				_add_overview_sides(wx, wz, step, float(wy + 1), color, block_kind, verts, norms, cols, indices)
+				_add_overview_sides(wx, wz, step, float(wy + 1), color, verts, norms, cols, indices)
 
 	_overview_sampled_top_faces = sample_cells.size()
 	_add_greedy_overview_tops(sample_cells, grid_w, grid_z, step, verts, norms, cols, indices)
@@ -930,7 +943,6 @@ func _add_overview_sides(
 		step: int,
 		top_y: float,
 		top_color: Color,
-		top_kind: String,
 		verts: PackedVector3Array,
 		norms: PackedVector3Array,
 		cols: PackedColorArray,
@@ -951,7 +963,6 @@ func _add_overview_sides(
 			Vector3(float(wx) + size, top_y, float(wz)),
 			east_y,
 			top_color,
-			top_kind,
 			Vector3.RIGHT,
 			verts,
 			norms,
@@ -965,7 +976,6 @@ func _add_overview_sides(
 			Vector3(float(wx) + size, top_y, float(wz)),
 			edge_y,
 			top_color,
-			top_kind,
 			Vector3.RIGHT,
 			verts,
 			norms,
@@ -979,7 +989,6 @@ func _add_overview_sides(
 			Vector3(float(wx) + size, top_y, float(wz) + size),
 			south_y,
 			top_color,
-			top_kind,
 			Vector3.BACK,
 			verts,
 			norms,
@@ -993,7 +1002,6 @@ func _add_overview_sides(
 			Vector3(float(wx) + size, top_y, float(wz) + size),
 			edge_y,
 			top_color,
-			top_kind,
 			Vector3.BACK,
 			verts,
 			norms,
@@ -1007,7 +1015,6 @@ func _add_overview_sides(
 			Vector3(float(wx), top_y, float(wz) + size),
 			west_y,
 			top_color,
-			top_kind,
 			Vector3.LEFT,
 			verts,
 			norms,
@@ -1021,7 +1028,6 @@ func _add_overview_sides(
 			Vector3(float(wx), top_y, float(wz) + size),
 			edge_y,
 			top_color,
-			top_kind,
 			Vector3.LEFT,
 			verts,
 			norms,
@@ -1035,7 +1041,6 @@ func _add_overview_sides(
 			Vector3(float(wx), top_y, float(wz)),
 			north_y,
 			top_color,
-			top_kind,
 			Vector3.FORWARD,
 			verts,
 			norms,
@@ -1049,7 +1054,6 @@ func _add_overview_sides(
 			Vector3(float(wx), top_y, float(wz)),
 			edge_y,
 			top_color,
-			top_kind,
 			Vector3.FORWARD,
 			verts,
 			norms,
@@ -1068,7 +1072,7 @@ func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 
 func _cache_overview_side_colors(season: String) -> void:
 	_overview_rock_color = BlockRegistry.get_color(
-		BlockRegistry.get_id(&"base:terrain:rock:granite"),
+		BlockRegistry.get_id(&"base:terrain:rock:rock07"),
 		season)
 
 
@@ -1235,10 +1239,10 @@ func get_render_stats() -> Dictionary:
 		"meshes_built": _meshes_built,
 		"initial_load": _initial_load,
 		"slice_y": slice_y,
-		"render_mode": "block-face overview approximation" if overview_active else "streamed chunk mesh",
+		"render_mode": _inspector_render_mode(),
 		"overview_active": overview_active,
 		"overview_built": _overview_built,
-		"overview_step": overview_step,
+		"overview_step": OVERVIEW_STEP,
 		"overview_sides": show_overview_sides,
 		"overview_sampled_top_faces": _overview_sampled_top_faces,
 		"overview_merged_top_faces": _overview_merged_top_faces,

@@ -7,7 +7,7 @@
 | :---- | :---------- | :------------------------------------------------ |
 | **X** | 1024 blocks | East–West wilderness profile                      |
 | **Z** | 1024 blocks | North–South wilderness profile                    |
-| **Y** | 128 blocks  | Vertical (0 = bedrock floor, 127 = mountain peak) |
+| **Y** | 128 blocks  | Vertical (0..3 = bedrock floor, 127 = mountain peak) |
 
 *   **Voxel Physical Dimension**: 1 engine block = $0.5\text{m} \times 0.5\text{m} \times 0.5\text{m}$.
 *   **Total Playable Boundary**: $512\text{m} \times 512\text{m} \times 64\text{m}$ (Quarter Square Kilometer).
@@ -181,13 +181,15 @@ The world heightmap is not uniform. Terrain domain determines the elevation rang
 
 | Domain | Surface Y range | Notes |
 |---|---|---|
-| Mountain | 78 – 96 | Ridge peaks; primary dwarf dig-in faces |
-| Valley | 64 – 72 | Flat farmland and trade road corridor |
-| Lowland | 62 – 67 | Open wilderness floor; lake and river mouth |
-| River channel | ≤ 61 | Carved 1–3 blocks below surrounding surface |
-| Lake basin floor | ≥ 10 | Bowl-shaped depression; water fills to Y 62 |
+| Mountain | 44-115 | Ridge shelves and primary dwarf dig-in faces |
+| Valley / Foothills | 20-43 | Flat farmland, trade road corridor, and stepped foothill shelves |
+| Lowland | 12-19 | Open wilderness floor; lake and river mouth |
+| River channel | <= 61 | Carved 1-3 blocks below surrounding surface |
+| Lake basin floor | >= 11 | Bowl-shaped depression; water fills to Y 18 |
 
-Domain boundaries transition smoothly — blended columns between mountain and valley produce natural slopes, not cliff edges. The fixed lake waterline is `Y = 62`. Underground systems (ore depth, cave generation, soil bands) are unaffected by surface domain; they read only absolute Y position.
+Domain boundaries are resolved on the 32x32 macro grid before heights are assigned. Lowland macro cells require a true lowland majority and isolated non-anchor lowland cells are promoted to valley, which prevents single lowland plates from appearing inside foothills. The fixed lowland lake waterline is `Y = 18`. Underground systems (ore depth, cave generation, soil bands) are unaffected by surface domain; they read only absolute Y position.
+
+After lake carving and shelf cleanup, a final edge-detail pass adds shallow blocky ledges only along foothill and mountain shelf edges. It does not apply to lowland, settlement/plain, lake, tarn, or water-bank columns, and it keeps pushed heights inside the source shelf band so visible materials still match the terrain strata rules.
 
 ---
 
@@ -195,10 +197,10 @@ Domain boundaries transition smoothly — blended columns between mountain and v
 
 > **HARD ENGINE RULE — never bypass in any script or task processing thread.**
 
-*   The baseline matrix layer **`Y = 0`** is occupied entirely by un-minable bedrock (`"dwarf:bedrock"`).
-*   Any player click or raycast selector seeking to remove a block must execute a safety validator (`target_global_y > 0`) before resolving.
-*   The `TaskServer` manager must automatically throw out and reject any queued mining assignments pointing directly at `Y = 0`.
-*   The procedural `WorldGen` algorithm must write bedrock down across the entire $1024 \times 1024$ floor plane at `Y = 0` unconditionally.
+*   The baseline matrix layers **`Y = 0..3`** are occupied entirely by un-minable bedrock (`"base:terrain:bedrock"`).
+*   Any player click or raycast selector seeking to remove a block must execute a safety validator (`target_global_y > 3`) before resolving.
+*   The `TaskServer` manager must automatically throw out and reject any queued mining assignments pointing at `Y = 0..3`.
+*   The procedural `WorldGen` algorithm must write bedrock down across the entire $1024 \times 1024$ floor slab at `Y = 0..3` unconditionally.
 
 ---
 

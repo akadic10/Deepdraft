@@ -1,59 +1,25 @@
 {
   "__comment": [
-    "Per-block resource definitions. Loaded on demand when a block is mined —",
+    "Per-block resource definitions. Loaded on demand when a block is mined -",
     "NOT held in memory at boot. Keys must match terrain_blocks.json exactly.",
     "",
     "Fields:",
-    "  durability      — number of dwarf hits required to mine this block (integer ≥ 1)",
-    "  drops           — array of { item, count, chance } loot table entries",
-    "  depth_bias      — optional { max_y } cap; block cannot generate above this Y",
-    "  noise_threshold — minimum noise value (0.0–1.0) for vein placement",
-    "  material_tags   — flat string array used by stockpiles, crafting, and AI queries",
+    "  durability      - number of dwarf hits required to mine this block (integer >= 1)",
+    "  drops           - array of { item, count, chance } loot table entries",
+    "  depth_bias      - optional { max_y } cap; block cannot generate above this Y",
+    "  noise_threshold - minimum noise value (0.0-1.0) for vein placement",
+    "  material_tags   - flat string array used by stockpiles, crafting, and AI queries",
     "",
     "durability design notes:",
     "  - Correlates with hardness in terrain_blocks.json but is a separate concern.",
     "    hardness = minimum tool tier required; durability = hit count at that tier.",
     "  - The mining system reads durability once per block and counts down each swing.",
-    "  - A block with hardness -1 (bedrock) is never loaded from this file — the mining",
+    "  - A block with hardness -1 (bedrock) is never loaded from this file - the mining",
     "    service rejects it before any file I/O occurs."
   ],
 
-  "__comment_rock": "Stone blocks — always drop one unit of their stone type",
 
-  "base:terrain:rock:granite": {
-    "durability": 3,
-    "drops": [
-      { "item": "base:resources:stone:granite",  "count": 1, "chance": 1.00 }
-    ],
-    "material_tags": ["stone", "igneous", "stockpile_stone", "building_material"]
-  },
-
-  "base:terrain:rock:basalt": {
-    "durability": 4,
-    "drops": [
-      { "item": "base:resources:stone:basalt",   "count": 1, "chance": 1.00 }
-    ],
-    "material_tags": ["stone", "igneous", "stockpile_stone", "building_material"]
-  },
-
-  "base:terrain:rock:limestone": {
-    "durability": 2,
-    "drops": [
-      { "item": "base:resources:stone:limestone",      "count": 1, "chance": 1.00 },
-      { "item": "base:resources:misc:fossil_fragment", "count": 1, "chance": 0.10 }
-    ],
-    "material_tags": ["stone", "sedimentary", "stockpile_stone", "building_material"]
-  },
-
-  "base:terrain:rock:marble": {
-    "durability": 3,
-    "drops": [
-      { "item": "base:resources:stone:marble",   "count": 1, "chance": 1.00 }
-    ],
-    "material_tags": ["stone", "metamorphic", "stockpile_stone", "building_material", "luxury"]
-  },
-
-  "__comment_surface": "Surface biome blocks — 16 grass colour variants all share the same drop profile",
+  "__comment_surface": "Surface biome blocks - 8 grass colour variants all share the same drop profile",
 
   "base:terrain:surface:grass_01":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:grass_02":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
@@ -63,21 +29,12 @@
   "base:terrain:surface:grass_06":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:grass_07":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:grass_08":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_09":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_10":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_11":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_12":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_13":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_14":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_15":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_16":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-
   "base:terrain:surface:dirt_01":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:dirt_02":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:dirt_03":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:dirt_04":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 1.00 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
 
-  "__comment_soil": "Soft earth — farmable cave soil has the 'farmable' tag",
+  "__comment_soil": "Soft earth - farmable cave soil has the 'farmable' tag",
 
   "base:terrain:soil:cave": {
     "durability": 1,
@@ -103,19 +60,8 @@
     "material_tags": ["dirt", "soil", "stockpile_soil"]
   },
 
-  "__comment_obsidian": "Volcanic glass — static deep pocket, placed by worldgen noise. Placeholder until lava+water interaction is implemented; at that point obsidian should form dynamically at fluid contact boundaries instead.",
 
-  "base:terrain:rock:obsidian": {
-    "durability": 6,
-    "drops": [
-      { "item": "base:resources:stone:obsidian", "count": 1, "chance": 1.00 }
-    ],
-    "depth_bias": { "max_y": 20 },
-    "noise_threshold": 0.82,
-    "material_tags": ["stone", "igneous", "volcanic", "luxury", "stockpile_stone", "building_material"]
-  },
-
-  "__comment_ore": "Ore veins — depth-biased; deeper = rarer",
+  "__comment_ore": "Ore veins - depth-biased; deeper = rarer",
 
   "base:terrain:ore:copper": {
     "durability": 3,
@@ -178,7 +124,7 @@
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
   },
 
-  "__comment_gem": "Gem deposits — mid-depth tier (jade, amethyst) and deep tier (ruby, sapphire, emerald, diamond)",
+  "__comment_gem": "Gem deposits - mid-depth tier (jade, amethyst) and deep tier (ruby, sapphire, emerald, diamond)",
 
   "base:terrain:gem:jade": {
     "durability": 5,

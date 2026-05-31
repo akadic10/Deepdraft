@@ -1,10 +1,10 @@
 {
   "__comment": [
-    "Seasonal colour palettes for all surface block variants (grass × 16, dirt × 4).",
+    "Seasonal colour palettes for active surface block variants (grass × 8, dirt × 4).",
     "Loaded once at boot alongside terrain_blocks.json.",
     "",
     "Structure: { variant_key: { season: hex_color } }",
-    "  variant_key — suffix of the block URI: 'grass_01' … 'grass_16', 'dirt_01' … 'dirt_04'",
+    "  variant_key — suffix of the block URI: 'grass_01' … 'grass_08', 'dirt_01' … 'dirt_04'",
     "  season      — 'spring' | 'summer' | 'autumn' | 'winter'",
     "  hex_color   — 6-digit RGB hex string (no alpha)",
     "",
@@ -15,9 +15,13 @@
     "",
     "Palette design notes:",
     "  Grass:",
+    "    Stonehearth-style lowland rings: grass_01 = grass_edge_1, grass_02 = grass_edge_2, grass_03 = soft fade, grass_04 = base grass",
+    "    grass_01…grass_04 — lower plains / settlement grass",
+    "    grass_05…grass_08 — valley / highland / foothill grass",
+    "    grass_05...grass_08 keep the local highland/foothill edge pairs",
     "    spring  — fresh yellow-greens to medium greens; lighter, higher lightness",
-    "    summer  — deep lush greens; the hex_color baseline in terrain_blocks.json",
-    "    autumn  — warm oranges, golds, and rusty browns",
+    "    summer  — muted Stonehearth-like greens; the hex_color baseline in terrain_blocks.json is only a fallback",
+    "    autumn  — warm olive, gold, and rusty grass tones",
     "    winter  — snow whites with a cool blue-grey tint; low saturation",
     "  Dirt:",
     "    spring  — darker and wetter; rain-soaked earth",
@@ -27,64 +31,40 @@
   ],
 
   "grass_01": {
-    "spring": "#7DC242", "summer": "#4A8022", "autumn": "#C86E26", "winter": "#E6EDF2"
+    "spring": "#9CCD83", "summer": "#AFCC7C", "autumn": "#AACE65", "winter": "#C8C773"
   },
   "grass_02": {
-    "spring": "#88C84E", "summer": "#528626", "autumn": "#D47C34", "winter": "#DBE6ED"
+    "spring": "#8FC880", "summer": "#9DBF76", "autumn": "#A7C35E", "winter": "#C1C26D"
   },
   "grass_03": {
-    "spring": "#6EBA38", "summer": "#3E7A1C", "autumn": "#B86022", "winter": "#EEF3F7"
+    "spring": "#86C37C", "summer": "#94B873", "autumn": "#A6BD5B", "winter": "#BCBD6A"
   },
   "grass_04": {
-    "spring": "#92CC54", "summer": "#568A28", "autumn": "#CC742C", "winter": "#D3E2EB"
+    "spring": "#7EBB78", "summer": "#8BB270", "autumn": "#A5BA59", "winter": "#B7B867"
   },
   "grass_05": {
-    "spring": "#82C046", "summer": "#4C8224", "autumn": "#DE883E", "winter": "#E2EBF0"
+    "spring": "#89BC7D", "summer": "#82A979", "autumn": "#999456", "winter": "#D8E3EA"
   },
   "grass_06": {
-    "spring": "#9AD05A", "summer": "#608C30", "autumn": "#B06020", "winter": "#C9D9E5"
+    "spring": "#7FB274", "summer": "#789C72", "autumn": "#8E894F", "winter": "#D1DEE7"
   },
   "grass_07": {
-    "spring": "#74BC3E", "summer": "#427E1E", "autumn": "#D07830", "winter": "#ECF1F5"
+    "spring": "#6EA66F", "summer": "#668A6A", "autumn": "#827A48", "winter": "#CAD8E1"
   },
   "grass_08": {
-    "spring": "#8EC850", "summer": "#548828", "autumn": "#C46828", "winter": "#D7E4EE"
-  },
-  "grass_09": {
-    "spring": "#6AB836", "summer": "#3C781A", "autumn": "#E08C3C", "winter": "#F0F3F8"
-  },
-  "grass_10": {
-    "spring": "#96CE56", "summer": "#5E8A2E", "autumn": "#BC6422", "winter": "#CAD8E4"
-  },
-  "grass_11": {
-    "spring": "#7CC044", "summer": "#488422", "autumn": "#D47E36", "winter": "#E4EDF3"
-  },
-  "grass_12": {
-    "spring": "#A0D462", "summer": "#629032", "autumn": "#A85C1E", "winter": "#CFDBEA"
-  },
-  "grass_13": {
-    "spring": "#80BE44", "summer": "#3A7A1C", "autumn": "#CA7030", "winter": "#EEF2F7"
-  },
-  "grass_14": {
-    "spring": "#94CA54", "summer": "#5C8C2C", "autumn": "#DC8440", "winter": "#C6D5E2"
-  },
-  "grass_15": {
-    "spring": "#70BA3C", "summer": "#408020", "autumn": "#B46424", "winter": "#E8EFF4"
-  },
-  "grass_16": {
-    "spring": "#8AC84E", "summer": "#648E34", "autumn": "#E09040", "winter": "#D4E1EC"
+    "spring": "#5D9565", "summer": "#587C64", "autumn": "#6E6940", "winter": "#BFCDD8"
   },
 
   "__comment_dirt": "4 dirt variants — rain-soaked in spring, dry in summer, earthy in autumn, frost-grey in winter",
 
   "dirt_01": {
-    "spring": "#5C3E22", "summer": "#7A5C3A", "autumn": "#6A4E2C", "winter": "#A8A098"
-  },
-  "dirt_02": {
     "spring": "#523618", "summer": "#6E5030", "autumn": "#604428", "winter": "#9E968E"
   },
-  "dirt_03": {
+  "dirt_02": {
     "spring": "#60401E", "summer": "#7E5836", "autumn": "#6E4E2A", "winter": "#ACA49C"
+  },
+  "dirt_03": {
+    "spring": "#5C3E22", "summer": "#7A5C3A", "autumn": "#6A4E2C", "winter": "#A8A098"
   },
   "dirt_04": {
     "spring": "#664828", "summer": "#866040", "autumn": "#745432", "winter": "#B2AAA0"

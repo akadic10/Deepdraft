@@ -1,17 +1,17 @@
 {
   "__comment": [
-    "Block type registry — the hot-path file. Loaded once at boot and cached.",
+    "Block type registry - the hot-path file. Loaded once at boot and cached.",
     "Each key is the PERMANENT save-file string. Runtime IDs are session-only",
-    "integers mapped from these keys at load time — never store integers in saves.",
+    "integers mapped from these keys at load time - never store integers in saves.",
     "See data/terrain/NAMING_RULES.md for key format conventions.",
     "See data/terrain/block_resources.json for drop/yield/depth data.",
     "",
     "Surface colour palette note:",
-    "  grass_NN (×16) and dirt_NN (×4) use hex_color as the SUMMER baseline only.",
+    "  grass_NN (x8) and dirt_NN (x4) use hex_color as the SUMMER baseline only.",
     "  At runtime the renderer looks up the active colour from:",
-    "    data/terrain/surface_palettes.json → [variant_name][season]",
+    "    data/terrain/surface_palettes.json -> [variant_name][season]",
     "  If the palette file is absent or the key is missing, hex_color is used as fallback.",
-    "  Block IDs never change between seasons — only the rendered colour swaps."
+    "  Block IDs never change between seasons - only the rendered colour swaps."
   ],
 
   "block_types": {
@@ -20,42 +20,39 @@
     "base:terrain:void":           { "kind": "void",       "hex_color": "#00000000", "hardness":  0 },
     "base:terrain:bedrock":        { "kind": "bedrock",    "hex_color": "#111116",   "hardness": -1 },
 
-    "__comment_rock": "Igneous, sedimentary, and metamorphic stone layers",
-    "base:terrain:rock:granite":   { "kind": "rock",       "hex_color": "#4B5358",   "hardness":  3 },
-    "base:terrain:rock:basalt":    { "kind": "rock",       "hex_color": "#2E2E2E",   "hardness":  4 },
-    "base:terrain:rock:limestone": { "kind": "rock",       "hex_color": "#C2B89A",   "hardness":  2 },
-    "base:terrain:rock:marble":    { "kind": "rock",       "hex_color": "#E8E8E4",   "hardness":  3 },
-    "__comment_obsidian": "Volcanic glass — rare deep pockets near the magma floor. Static worldgen placement for now; intended to become a dynamic lava+water formation product when the magma system is added.",
-    "base:terrain:rock:obsidian":  { "kind": "rock",       "hex_color": "#1A1A2E",   "hardness":  5 },
+    "__comment_rock": "Authored vertical rock bands used by the current terrain generator",
+    "base:terrain:rock:rock01":    { "kind": "rock",       "hex_color": "#879199",   "hardness":  3 },
+    "base:terrain:rock:rock02":    { "kind": "rock",       "hex_color": "#78838C",   "hardness":  3 },
+    "base:terrain:rock:rock03":    { "kind": "rock",       "hex_color": "#697680",   "hardness":  3 },
+    "base:terrain:rock:rock04":    { "kind": "rock",       "hex_color": "#5B6973",   "hardness":  3 },
+    "base:terrain:rock:rock05":    { "kind": "rock",       "hex_color": "#4E5C67",   "hardness":  3 },
+    "base:terrain:rock:rock06":    { "kind": "rock",       "hex_color": "#424F5A",   "hardness":  3 },
+    "base:terrain:rock:rock07":    { "kind": "rock",       "hex_color": "#36444E",   "hardness":  3 },
+    "base:terrain:rock:rock08":    { "kind": "rock",       "hex_color": "#2D3943",   "hardness":  3 },
+    "base:terrain:rock:rock09":    { "kind": "rock",       "hex_color": "#25303A",   "hardness":  3 },
+    "base:terrain:rock:rock10":    { "kind": "rock",       "hex_color": "#1D2630",   "hardness":  3 },
+    "base:terrain:rock:rock11":    { "kind": "rock",       "hex_color": "#151A22",   "hardness":  3 },
 
     "__comment_soil": "Soft earth and cave soil patches",
     "base:terrain:soil:cave":      { "kind": "dirt",       "hex_color": "#6B4C2A",   "hardness":  1 },
     "base:terrain:soil:light":     { "kind": "dirt",       "hex_color": "#918154",   "hardness":  1 },
     "base:terrain:soil:dark":      { "kind": "dirt",       "hex_color": "#807147",   "hardness":  1 },
 
-    "__comment_surface": "Surface biome blocks — 16 grass + 4 dirt colour variants. hex_color = summer baseline; see surface_palettes.json for all seasons.",
-    "base:terrain:surface:grass_01":    { "kind": "grass",      "hex_color": "#4A8022",   "hardness":  1 },
-    "base:terrain:surface:grass_02":    { "kind": "grass",      "hex_color": "#528626",   "hardness":  1 },
-    "base:terrain:surface:grass_03":    { "kind": "grass",      "hex_color": "#3E7A1C",   "hardness":  1 },
-    "base:terrain:surface:grass_04":    { "kind": "grass",      "hex_color": "#568A28",   "hardness":  1 },
-    "base:terrain:surface:grass_05":    { "kind": "grass",      "hex_color": "#4C8224",   "hardness":  1 },
-    "base:terrain:surface:grass_06":    { "kind": "grass",      "hex_color": "#608C30",   "hardness":  1 },
-    "base:terrain:surface:grass_07":    { "kind": "grass",      "hex_color": "#427E1E",   "hardness":  1 },
-    "base:terrain:surface:grass_08":    { "kind": "grass",      "hex_color": "#548828",   "hardness":  1 },
-    "base:terrain:surface:grass_09":    { "kind": "grass",      "hex_color": "#3C781A",   "hardness":  1 },
-    "base:terrain:surface:grass_10":    { "kind": "grass",      "hex_color": "#5E8A2E",   "hardness":  1 },
-    "base:terrain:surface:grass_11":    { "kind": "grass",      "hex_color": "#488422",   "hardness":  1 },
-    "base:terrain:surface:grass_12":    { "kind": "grass",      "hex_color": "#629032",   "hardness":  1 },
-    "base:terrain:surface:grass_13":    { "kind": "grass",      "hex_color": "#3A7A1C",   "hardness":  1 },
-    "base:terrain:surface:grass_14":    { "kind": "grass",      "hex_color": "#5C8C2C",   "hardness":  1 },
-    "base:terrain:surface:grass_15":    { "kind": "grass",      "hex_color": "#408020",   "hardness":  1 },
-    "base:terrain:surface:grass_16":    { "kind": "grass",      "hex_color": "#648E34",   "hardness":  1 },
-    "base:terrain:surface:dirt_01":     { "kind": "dirt",       "hex_color": "#7A5C3A",   "hardness":  1 },
-    "base:terrain:surface:dirt_02":     { "kind": "dirt",       "hex_color": "#6E5030",   "hardness":  1 },
-    "base:terrain:surface:dirt_03":     { "kind": "dirt",       "hex_color": "#7E5836",   "hardness":  1 },
+    "__comment_surface": "Surface biome blocks - 8 grass + 4 dirt colour variants. hex_color = summer baseline; see surface_palettes.json for all seasons.",
+    "base:terrain:surface:grass_01":    { "kind": "grass",      "hex_color": "#AFCC7C",   "hardness":  1 },
+    "base:terrain:surface:grass_02":    { "kind": "grass",      "hex_color": "#9DBF76",   "hardness":  1 },
+    "base:terrain:surface:grass_03":    { "kind": "grass",      "hex_color": "#94B873",   "hardness":  1 },
+    "base:terrain:surface:grass_04":    { "kind": "grass",      "hex_color": "#8BB270",   "hardness":  1 },
+    "base:terrain:surface:grass_05":    { "kind": "grass",      "hex_color": "#608C30",   "hardness":  1 },
+    "base:terrain:surface:grass_06":    { "kind": "grass",      "hex_color": "#548828",   "hardness":  1 },
+    "base:terrain:surface:grass_07":    { "kind": "grass",      "hex_color": "#4C8224",   "hardness":  1 },
+    "base:terrain:surface:grass_08":    { "kind": "grass",      "hex_color": "#427E1E",   "hardness":  1 },
+    "base:terrain:surface:dirt_01":     { "kind": "dirt",       "hex_color": "#6E5030",   "hardness":  1 },
+    "base:terrain:surface:dirt_02":     { "kind": "dirt",       "hex_color": "#7E5836",   "hardness":  1 },
+    "base:terrain:surface:dirt_03":     { "kind": "dirt",       "hex_color": "#7A5C3A",   "hardness":  1 },
     "base:terrain:surface:dirt_04":     { "kind": "dirt",       "hex_color": "#866040",   "hardness":  1 },
 
-    "__comment_ore": "Metal ore veins — depth-biased by block_resources.json",
+    "__comment_ore": "Metal ore veins - depth-biased by block_resources.json",
     "base:terrain:ore:copper":     { "kind": "copper_ore", "hex_color": "#C87533",   "hardness":  3 },
     "base:terrain:ore:tin":        { "kind": "tin_ore",    "hex_color": "#A8B8A0",   "hardness":  2 },
     "base:terrain:ore:iron":       { "kind": "iron_ore",   "hex_color": "#7A5C45",   "hardness":  4 },
@@ -63,10 +60,10 @@
     "base:terrain:ore:coal":       { "kind": "coal",       "hex_color": "#021C24",   "hardness":  2 },
     "base:terrain:ore:gold":       { "kind": "gold_ore",   "hex_color": "#FFD700",   "hardness":  5 },
 
-    "__comment_water": "Fluid blocks — placed by worldgen into lake and tarn basins; later used by the CA water simulation",
+    "__comment_water": "Fluid blocks - placed by worldgen into lake and tarn basins; later used by the CA water simulation",
     "base:terrain:water:source": { "kind": "water", "hex_color": "#3A7BD5", "hardness": 0 },
 
-    "__comment_gem": "Gem deposits — two depth tiers; jade/amethyst mid-depth, ruby/sapphire/emerald deep, diamond endgame",
+    "__comment_gem": "Gem deposits - two depth tiers; jade/amethyst mid-depth, ruby/sapphire/emerald deep, diamond endgame",
     "base:terrain:gem:jade":       { "kind": "gem",        "hex_color": "#0E7A5A",   "hardness":  4 },
     "base:terrain:gem:amethyst":   { "kind": "gem",        "hex_color": "#7D3C98",   "hardness":  4 },
     "base:terrain:gem:ruby":       { "kind": "gem",        "hex_color": "#9B111E",   "hardness":  5 },
@@ -74,20 +71,5 @@
     "base:terrain:gem:emerald":    { "kind": "gem",        "hex_color": "#00A86B",   "hardness":  5 },
     "base:terrain:gem:diamond":    { "kind": "gem",        "hex_color": "#C8E8F4",   "hardness":  6 }
 
-  },
-
-  "__comment_selectable": [
-    "Maps a 'kind' string to the UI entity shown when the player clicks a vein.",
-    "Only kinds the player can inspect need an entry here."
-  ],
-  "selectable_kinds": {
-    "copper_ore": "base:terrain:ui:vein:copper",
-    "tin_ore":    "base:terrain:ui:vein:tin",
-    "iron_ore":   "base:terrain:ui:vein:iron",
-    "silver_ore": "base:terrain:ui:vein:silver",
-    "coal":       "base:terrain:ui:vein:coal",
-    "gold_ore":   "base:terrain:ui:vein:gold",
-    "gem":        "base:terrain:ui:vein:gem",
-    "grass":      "base:terrain:ui:surface:grass"
   }
 }

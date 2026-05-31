@@ -8,16 +8,15 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 
 | Block Key | Category | Hardness | Yield | Notes |
 |---|---|---|---|---|
-| `base:terrain:rock:granite`   | Igneous    | 3 | 1× Stone              | Most common surface stone |
-| `base:terrain:rock:basalt`    | Igneous    | 4 | 1× Stone              | Deep layer, darker |
-| `base:terrain:rock:limestone` | Sedimentary| 2 | 1× Stone + 10% Fossil | Mid layers |
-| `base:terrain:rock:marble`    | Metamorphic| 3 | 1× Marble (luxury)    | Rare veins |
+| `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | Stone TBD | Authored mountain shelves |
+| `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | Stone TBD | Valley/foothill body bands |
+| `base:terrain:rock:rock11` | Foundation rock | 3 | Stone TBD | Stable band above bedrock |
 | `base:terrain:ore:iron`       | Ore        | 4 | 2× Iron Ore           | Common ore |
 | `base:terrain:ore:copper`     | Ore        | 3 | 2× Copper Ore         | Shallow, early-game |
 | `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore           | Deep, rare |
 | `base:terrain:gem:ruby`       | Gem        | 5 | 1× Ruby               | Very rare, high trade value |
 | `base:terrain:soil:cave`      | Soil       | 1 | 1× Soil               | Farmable (see `42_farming_brewing.md`) |
-| `base:terrain:bedrock`        | Bedrock    | ∞ | None                  | **Unmovable — Y=0 protocol** |
+| `base:terrain:bedrock`        | Bedrock    | ∞ | None                  | **Unmovable — Y=0..3 protocol** |
 
 **Hardness** determines mining time: `mine_time = base_time × hardness / dwarf_mining_skill`.
 
@@ -118,17 +117,22 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
 
 The world is generated once at new-game time, driven entirely by `world_seed`. All phases are fully deterministic — the same seed always produces the same mountain silhouette, valley shape, river path, and lake position. Generation runs on a background thread; chunks are handed to the main thread for mesh-building as they complete.
 
-The pipeline runs **five phases in order**:
+The pipeline runs **six phases in order**:
 
 1. Build all noise instances
-2. Compute terrain domain map (2D — classifies every column as mountain, valley, or lowland)
-3. Compute surface heightmap (2D — elevation per column, shaped by domain)
+2. Compute terrain domain map (2D - classifies every column as mountain, valley, or lowland)
+3. Compute surface heightmap (2D - elevation per column, shaped by domain)
 4. Carve both lake bodies into the heightmap (lowland lake + mountain tarn)
-5. Fill all blocks (per chunk, 3D — underground passes unchanged)
+5. Apply final shelf edge detail
+6. Fill all blocks (per chunk, 3D - underground passes unchanged)
 
 Each phase reads data produced by prior phases.
 
-> **Agent note:** Use separate `FastNoiseLite` instances per logical layer, each with its own seed offset. Never reuse or reconfigure a single instance across passes — it is error-prone and makes the code unreadable.
+> **Agent note:** Use separate `FastNoiseLite` instances per logical layer, each with its own seed offset. Never reuse or reconfigure a single instance across passes - it is error-prone and makes the code unreadable.
+
+Macro domain cleanup happens before height assignment. A 32x32 lowland macro cell now needs a real lowland majority; isolated non-anchor lowland cells with no cardinal lowland neighbor are promoted to valley. This prevents single lowland plates from appearing in the middle of foothill shelves while preserving the authored southwest basin and settlement/plain anchors.
+
+The final edge-detail pass is intentionally narrow. It applies only to foothill shelves 1-3 and mountain shelves 1-6, after lake carving and shelf cleanup. It pushes shallow blocky ledges into exactly one lower cardinal neighbor direction, skips lowland/settlement/water columns, and keeps the pushed height inside the source shelf band so existing dirt/grass and rock strata remain valid.
 
 ---
 
@@ -138,9 +142,9 @@ Three terrain domains drive surface character across the map:
 
 | Domain | `domain_n` range | Surface Y range | Character |
 |---|---|---|---|
-| **Mountain** | > 0.60 | 78 – 96 | Jagged ridge peaks. The dwarves' homeland; primary dig-in faces. |
-| **Valley** | 0.35 – 0.60 | 64 – 72 | Wide flat basin. Farmland, trade road, caravan approach corridor. |
-| **Lowland** | < 0.35 | 62 – 67 | Lowest ground. Lake basin, river mouth, open wilderness floor. |
+| **Mountain** | > 0.60 | 44 – 115 | Jagged ridge shelves. The dwarves' homeland; primary dig-in faces. |
+| **Valley / Foothills** | 0.35 – 0.60 | 20 – 43 | Wide flat basin, farmland, trade road corridor, and stepped foothill shelves. |
+| **Lowland** | < 0.35 | 12 – 19 | Lowest ground. Lake basin, river mouth, open wilderness floor. |
 
 Transitions between domains are **blended** — a column near the mountain/valley border lerps between the two height targets, producing natural slopes rather than hard cliff edges. There are no abrupt vertical walls between biomes.
 
@@ -260,9 +264,9 @@ func _compute_domain_map() -> void:
 Each column's surface elevation is computed from its domain, with smooth blending in border transition bands:
 
 ```gdscript
-const MOUNTAIN_MIN := 78;  const MOUNTAIN_MAX := 96
-const VALLEY_MIN   := 64;  const VALLEY_MAX   := 72
-const LOWLAND_MIN  := 62;  const LOWLAND_MAX  := 67
+const MOUNTAIN_MIN := 44;  const MOUNTAIN_MAX := 115
+const VALLEY_MIN   := 20;  const VALLEY_MAX   := 27
+const LOWLAND_MIN  := 12;  const LOWLAND_MAX  := 15
 
 func _compute_heightmap() -> void:
     for x in range(WORLD_SIZE_X):
@@ -314,7 +318,7 @@ Two lake bodies are carved in this phase. Both use the same soft-bowl technique;
 ```gdscript
 const LAKE_RADIUS    := 40    # blocks from center to rim — lowland lake
 const LAKE_DEPTH     := 5     # maximum carve depth at center — lowland lake
-const LAKE_WATERLINE := 62    # fixed water surface elevation; must be ≥ LOWLAND_MIN - 1
+const LAKE_WATERLINE := 18    # fixed water surface elevation just below the lowland grass cap
 
 const TARN_RADIUS    := 15    # blocks from center to rim — mountain tarn
 const TARN_DEPTH     := 3     # maximum carve depth at center — mountain tarn
@@ -383,7 +387,7 @@ func _carve_mountain_tarn() -> void:
     tarn_waterline = min_y + TARN_DEPTH - 1
 ```
 
-> **Design note:** The tarn sits well above `LAKE_WATERLINE` (Y 62). If a player digs a channel connecting the two bodies, water flows downhill under the CA rules, producing emergent river-like behaviour. No river simulation is needed.
+> **Design note:** The tarn sits well above `LAKE_WATERLINE` (Y 18). If a player digs a channel connecting the two bodies, water flows downhill under the CA rules, producing emergent river-like behaviour. No river simulation is needed.
 
 ---
 
@@ -399,7 +403,7 @@ func generate_block(x: int, y: int, z: int) -> StringName:
     var surface_y := heightmap[x * WORLD_SIZE_Z + z]
 
     # --- Absolute boundaries ---
-    if y == 0:
+    if y <= 3:
         return &"base:terrain:bedrock"
 
     # --- Above surface ---
@@ -432,7 +436,7 @@ func generate_block(x: int, y: int, z: int) -> StringName:
     if n_soil > 0.68 and y >= 20 and y <= 60:
         return &"base:terrain:soil:cave"
 
-    return _pick_stone(n_stone, y)
+    return _fallback_rock_id(y)
 ```
 
 ### Ore Selection
@@ -467,23 +471,34 @@ func _pick_ore(x: int, y: int, z: int, n_ore: float) -> StringName:
     return &""
 ```
 
-### Stone Selection
+### Authored Rock Selection
 
-Stone type varies smoothly by depth and large-scale regional noise:
+Surface-generation rock now follows authored height shelves before legacy regional stone noise:
 
 ```gdscript
-func _pick_stone(n_stone: float, y: int) -> StringName:
-    # Limestone bands in the mid-depth sedimentary zone
-    if y >= 40 and y <= 80 and n_stone > 0.55:
-        return &"base:terrain:rock:limestone"
-    # Marble appears as rare pockets anywhere below Y=50
-    if y < 50 and n_stone > 0.78:
-        return &"base:terrain:rock:marble"
-    # Basalt dominates the deep layers
-    if y < 35:
-        return &"base:terrain:rock:basalt"
-    # Granite fills everything else
-    return &"base:terrain:rock:granite"
+func _altitude_rock_body_id(y: int) -> StringName:
+    if y >= 12 and y <= 19:
+        return &"base:terrain:rock:rock10"
+    if y >= 20 and y <= 27:
+        return &"base:terrain:rock:rock09"
+    if y >= 28 and y <= 35:
+        return &"base:terrain:rock:rock08"
+    if y >= 36 and y <= 43:
+        return &"base:terrain:rock:rock07"
+    return &"base:terrain:rock:rock10"
+
+func _mountain_strata_block_id(y: int) -> StringName:
+    if y >= 44 and y <= 55:
+        return &"base:terrain:rock:rock06"
+    if y >= 56 and y <= 67:
+        return &"base:terrain:rock:rock05"
+    if y >= 68 and y <= 79:
+        return &"base:terrain:rock:rock04"
+    if y >= 80 and y <= 91:
+        return &"base:terrain:rock:rock03"
+    if y >= 92 and y <= 103:
+        return &"base:terrain:rock:rock02"
+    return &"base:terrain:rock:rock01"
 ```
 
 ### Phase 5b — Surface Skin
@@ -519,7 +534,7 @@ func _pick_surface_block(x: int, y: int, z: int) -> StringName:
       a. Lowland lake  (centroid of lowland zone, radius 40; store lake_columns)
       b. Mountain tarn (centroid of mountain/valley border band, radius 15; store tarn_columns, derive tarn_waterline)
 5.  For each chunk, for each block:
-      a. Bedrock at Y=0
+      a. Bedrock at Y=0..3
       b. Water source above surface_y in lake_columns (≤ LAKE_WATERLINE) or tarn_columns (≤ tarn_waterline)
       c. Void above surface_y (all other columns)
       d. Surface skin at surface_y                       (grass / dirt / bank variants via hash)
@@ -557,7 +572,7 @@ Before issuing any `MINE` task, `TaskManager` must run a pre-flight safety check
 
 ```gdscript
 func is_safe_to_mine(pos: Vector3i) -> bool:
-    if pos.y == 0: return false                      # bedrock protocol
+    if pos.y <= 3: return false                      # bedrock protocol
     var score := compute_support_score(pos)
     return score >= collapse_threshold               # or warn if borderline
 ```

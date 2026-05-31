@@ -42,7 +42,7 @@ To ensure structural focus and guarantee optimal performance targets, the engine
 1. **RTS Perspective Only**: Gameplay is strictly viewed through a top-down, smooth-orbiting god-view camera rig equipped with vertical layer slicing. Direct keyboard WASD character manipulation or third-person traversal is entirely excluded.
 2. **Uniform Data Grid**: The underlying world simulation tracks space via a uniform 0.5m data array matrix. Individual terrain tiles do not utilize separate textures or polygon meshes; they are generated dynamically as flat-shaded, single-color voxel cubes.
 3. **Entity Decoupling**: Untouched environment blocks are represented entirely as basic color indices inside a flat 1D data array. Highly detailed, high-density micro-voxel assets imported from MagicaVoxel exist purely as free-floating item drop entities or moving character scenes spawned _after_ a grid tile changes.
-4. **Absolute Safety Nets**: The baseline array floor layer (Y = 0) consists of un-minable bedrock across the entire 1024 × 1024 plane, preventing physics logic loops or characters clipping into an empty void.
+4. **Absolute Safety Nets**: The baseline array floor layers (Y = 0..3) consist of un-minable bedrock across the entire 1024 × 1024 plane, preventing physics logic loops or characters clipping into an empty void.
 
 ---
 

@@ -18,7 +18,7 @@ These constraints were locked in after deliberate design discussion and must not
 
 Two permanent lake bodies are carved and filled during world generation (see `43_mining_materials.md` — Phases 3–4):
 
-**Lowland Lake** — A circular basin (~40 block radius) at the centroid of the lowland zone, filled to the fixed waterline at Y 62. Every block in `lake_columns` below Y 62 is initialized as a water source block at `mass = 1.0`. This is the largest water body on the map and the primary source for irrigation and brewing.
+**Lowland Lake** — A circular basin (~40 block radius) at the centroid of the lowland zone, filled to the fixed waterline at Y 26. Every block in `lake_columns` below Y 26 is initialized as a water source block at `mass = 1.0`. This is the largest water body on the map and the primary source for irrigation and brewing.
 
 **Mountain Tarn** — A smaller circular basin (~15 block radius) carved at the mountain/valley border centroid, at a naturally higher elevation. Every block in `tarn_columns` below the tarn's local waterline is initialized as a water source block. Because the tarn sits above the lowland lake, a dwarf who digs a channel between them will cause water to flow downhill under the CA rules — producing functional river-like behaviour emergently, without a simulated river.
 

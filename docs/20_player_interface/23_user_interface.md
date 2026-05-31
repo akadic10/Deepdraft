@@ -40,7 +40,7 @@ Each buildable entry is a `BuildEntry` resource:
 class_name BuildEntry extends Resource
 @export var display_name: String
 @export var icon: Texture2D
-@export var cost: Dictionary          # { "base:resources:stone:granite": 4 }
+@export var cost: Dictionary          # { "base:resources:wood:pine_log": 4 }
 @export var action_type: StringName   # &"mine", &"place_block", &"designate_farm"
 @export var requires_floor: bool      # must have solid floor below
 ```
@@ -73,7 +73,7 @@ These are the top-level tag groups shown in the filter panel UI:
 
 | UI Label | Filter Tag | Covers |
 |---|---|---|
-| Stone | `stockpile_stone` | Granite, basalt, limestone, marble |
+| Stone | `stockpile_stone` | Mined rock and construction stone |
 | Ore | `stockpile_ore` | Copper, iron, coal, gold, gold nuggets |
 | Gems | `stockpile_gem` | Raw ruby, raw sapphire |
 | Soil | `stockpile_soil` | Cave soil, light soil, dark soil |
