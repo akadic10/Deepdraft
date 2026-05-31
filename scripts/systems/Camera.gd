@@ -248,6 +248,9 @@ func _handle_orbit_and_zoom(event: InputEvent) -> void:
 		# Proportional step (Stonehearth feel): the closer you are, the finer the
 		# step; far out, each notch covers more ground. Scales by target/min.
 		if mbe.pressed:
+			if (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN) \
+					and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_ALT)):
+				return
 			var step := _zoom_speed
 			if _zoom_proportional:
 				step = _zoom_speed * (_target_zoom / _zoom_min)

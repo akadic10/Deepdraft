@@ -758,7 +758,7 @@ func _apply_macro_domain_coherence() -> void:
 		for mz in range(macro_count_z):
 			macro_domains[mx * macro_count_z + mz] = _macro_cell_terrain_profile(mx, mz)["domain"]
 
-	var promoted_lowland_islands := _promote_isolated_macro_lowlands(macro_domains, macro_count_x, macro_count_z)
+	var promoted_lowland_islands := _promote_disconnected_macro_lowlands(macro_domains, macro_count_x, macro_count_z)
 
 	for mx in range(macro_count_x):
 		for mz in range(macro_count_z):
@@ -772,11 +772,47 @@ func _apply_macro_domain_coherence() -> void:
 					domain_map[x * WORLD_SIZE_Z + z] = macro_domain
 
 	if promoted_lowland_islands > 0:
-		print("WorldGenerator: macro domain coherence -> promoted %d isolated lowland cells to valley." % promoted_lowland_islands)
+		print("WorldGenerator: macro domain coherence -> promoted %d disconnected lowland cells to valley." % promoted_lowland_islands)
 
 
-func _promote_isolated_macro_lowlands(macro_domains: PackedInt32Array, macro_count_x: int, macro_count_z: int) -> int:
-	var next_domains := macro_domains.duplicate()
+func _promote_disconnected_macro_lowlands(macro_domains: PackedInt32Array, macro_count_x: int, macro_count_z: int) -> int:
+	var reachable := PackedByteArray()
+	reachable.resize(macro_domains.size())
+	var queue: Array[Vector2i] = []
+
+	for mx in range(macro_count_x):
+		for mz in range(macro_count_z):
+			var idx := mx * macro_count_z + mz
+			if macro_domains[idx] != DOMAIN_LOWLAND:
+				continue
+			if not _is_macro_lowland_anchor(mx, mz, macro_count_x, macro_count_z):
+				continue
+			reachable[idx] = 1
+			queue.append(Vector2i(mx, mz))
+
+	var head: int = 0
+	var directions: Array[Vector2i] = [
+		Vector2i(-1, 0),
+		Vector2i(1, 0),
+		Vector2i(0, -1),
+		Vector2i(0, 1),
+	]
+	while head < queue.size():
+		var cell: Vector2i = queue[head]
+		head += 1
+		for direction: Vector2i in directions:
+			var nx: int = cell.x + direction.x
+			var nz: int = cell.y + direction.y
+			if nx < 0 or nx >= macro_count_x or nz < 0 or nz >= macro_count_z:
+				continue
+			var nidx: int = nx * macro_count_z + nz
+			if reachable[nidx] == 1:
+				continue
+			if macro_domains[nidx] != DOMAIN_LOWLAND:
+				continue
+			reachable[nidx] = 1
+			queue.append(Vector2i(nx, nz))
+
 	var promoted := 0
 
 	for mx in range(macro_count_x):
@@ -784,41 +820,22 @@ func _promote_isolated_macro_lowlands(macro_domains: PackedInt32Array, macro_cou
 			var idx := mx * macro_count_z + mz
 			if macro_domains[idx] != DOMAIN_LOWLAND:
 				continue
-			if _is_macro_lowland_anchor(mx, mz):
-				continue
-
-			var cardinal_lowland_neighbors := 0
-			var cardinal_non_lowland_neighbors := 0
-			for dx in range(-1, 2):
-				for dz in range(-1, 2):
-					if dx == 0 and dz == 0:
-						continue
-					var nx := mx + dx
-					var nz := mz + dz
-					if nx < 0 or nx >= macro_count_x or nz < 0 or nz >= macro_count_z:
-						continue
-					if absi(dx) + absi(dz) != 1:
-						continue
-					if macro_domains[nx * macro_count_z + nz] == DOMAIN_LOWLAND:
-						cardinal_lowland_neighbors += 1
-					else:
-						cardinal_non_lowland_neighbors += 1
-
-			if cardinal_lowland_neighbors == 0 and cardinal_non_lowland_neighbors >= 2:
-				next_domains[idx] = DOMAIN_VALLEY
+			if reachable[idx] == 0:
+				macro_domains[idx] = DOMAIN_VALLEY
 				promoted += 1
 
-	for i in range(macro_domains.size()):
-		macro_domains[i] = next_domains[i]
 	return promoted
 
 
-func _is_macro_lowland_anchor(mx: int, mz: int) -> bool:
+func _is_macro_lowland_anchor(mx: int, mz: int, macro_count_x: int, macro_count_z: int) -> bool:
 	var center_x := mini((mx * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1)
 	var center_z := mini((mz * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
 	return (
 		_southwest_basin_strength(center_x, center_z) > 0.30
-		or _settlement_plain_strength(center_x, center_z) > SETTLEMENT_PLAIN_MACRO_THRESHOLD
+		or mx == 0
+		or mz == 0
+		or mx == macro_count_x - 1
+		or mz == macro_count_z - 1
 	)
 
 # -- Phase 3 - Surface heightmap (2D) -----------------------------------------
@@ -897,8 +914,10 @@ func _macro_height_for_cell(mx: int, mz: int) -> int:
 	if settlement_strength > 0.0:
 		raw_height = lerp(raw_height, float(SETTLEMENT_PLAIN_SURFACE_Y), settlement_strength)
 
-	if settlement_strength > SETTLEMENT_PLAIN_MACRO_THRESHOLD:
+	if settlement_strength > SETTLEMENT_PLAIN_MACRO_THRESHOLD and macro_domain == DOMAIN_LOWLAND:
 		return SETTLEMENT_PLAIN_SURFACE_Y
+	if settlement_strength > SETTLEMENT_PLAIN_MACRO_THRESHOLD:
+		return FOOTHILL_SHELF_MIN_Y + FOOTHILL_SHELF_HEIGHT - 1
 	if southeast_foothill_strength > SOUTHEAST_FOOTHILL_MACRO_MIN and macro_domain == DOMAIN_VALLEY:
 		return _southeast_foothill_macro_height(center_x, center_z, southeast_foothill_strength)
 
@@ -984,7 +1003,7 @@ func _expanded_macro_height(x: int, z: int, macro_height: int) -> int:
 	var corridor_strength := _valley_corridor_strength(x, z)
 
 	if _is_settlement_plain_macro_column(x, z):
-		return SETTLEMENT_PLAIN_SURFACE_Y
+		return SETTLEMENT_PLAIN_SURFACE_Y if macro_height <= LOWLAND_SHELF_MAX_Y else macro_height
 	if domain_n > DOMAIN_MOUNTAIN_THRESHOLD:
 		return clampi(macro_height, 1, WORLD_SIZE_Y - 1)
 	if macro_height >= LOWLAND_SHELF_MIN_Y and macro_height <= LOWLAND_SHELF_MAX_Y:
@@ -1076,8 +1095,6 @@ func _is_foothill_shelf_column(x: int, z: int) -> bool:
 	var idx := x * WORLD_SIZE_Z + z
 	var h: int = heightmap[idx]
 	if h < FOOTHILL_SHELF_MIN_Y or h > FOOTHILL_SHELF_MAX_Y:
-		return false
-	if _is_settlement_plain_macro_column(x, z):
 		return false
 	return true
 

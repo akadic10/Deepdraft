@@ -1,60 +1,59 @@
-# 01 — World Generation Roadmap
+# 01 - World Generation Roadmap
 
-The original world-generation plan has been implemented. Its enduring content has been parked in
-the permanent reference docs; this file is now a forward-looking roadmap only.
+> **Document review legend for Obsidian**
+>
+> <span style="color:#3fb950;">Green = keep</span> |
+> <span style="color:#d29922;">Yellow = review / move to a more specific plan</span> |
+> <span style="color:#f85149;">Red = safe to delete or archive once you are comfortable</span>
 
-**Where the plan moved:**
+## Document Review - 2026-05-31
 
-- **Design intent** (plateau terrain rule, surface strata rule, grass palette rule, design north
-  star, core world composition, Stonehearth reference) → `40_economy_colony/43_mining_materials.md`
-  § *World Design Intent (North Star)*.
-- **Generation pipeline** (noise, domain map, heightmap, macro-cell lakes, surface skin, ore/rock
-  fill) → `43_mining_materials.md` § *World Generation Pipeline*.
-- **Render modes & debug tools** (near chunk mesh, block-face overview, world-edge slab, debug
-  overlay + block inspector) → `20_player_interface/24_world_rendering.md` § *Terrain Render
-  Modes* / *Debug Overlay & Block Inspector*.
-- **Resource distribution** (ore / gem / cave-soil placement) → `02_resource_distribution_plan.md`.
+This file is no longer the source of truth for world generation design. The original plan has been implemented, and the permanent rules now live in the reference docs linked below.
 
-**Hard guardrails** (enforced across the above): bedrock immutable at `Y0–3`; generation fully
-deterministic from `world_seed`; block IDs namespaced at save boundaries; terrain identity lives
-in data, not renderer tricks.
+Use this file only as a small follow-up backlog until the remaining yellow items are moved, completed, or deleted.
 
 ---
 
-## Status — First Milestone (done)
+## <span style="color:#3fb950;">KEEP - Where The Plan Moved</span>
 
-The low-risk shape and validation pass is complete: macro layout maps; NW mountain, central
-valley, SW basin, SE highland, and edge belt; terrace quantization; macro-region surface
-materials; lowland lake + mountain tarn; debug metrics; and inspector/generated/render
-agreement. The mountain reads as exposed stone, the valley exposes settlement candidates, water
-has non-grass banks, the surface is not a grass blanket, and the overview is block-face based.
+These links are still useful breadcrumbs to the permanent source-of-truth docs.
 
----
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> **Design intent** - plateau terrain rule, surface strata rule, grass palette rule, design north star, core world composition, and Stonehearth reference moved to `40_economy_colony/43_mining_materials.md` section *World Design Intent (North Star)*.
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> **Generation pipeline** - noise, domain map, heightmap, macro-cell lakes, surface skin, and ore/rock fill moved to `43_mining_materials.md` section *World Generation Pipeline*.
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> **Render modes and debug tools** - near chunk mesh, block-face overview, world-edge slab, debug overlay, and block inspector moved to `20_player_interface/24_world_rendering.md` sections *Terrain Render Modes* and *Debug Overlay & Block Inspector*.
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> **Resource distribution** - ore, gem, and cave-soil placement moved to `02_resource_distribution_plan.md`.
 
-## Second Milestone (next)
+## <span style="color:#d29922;">REVIEW / MOVE - Second Milestone</span>
 
-1. Add the world-edge presentation slab (see `24_world_rendering.md` § Terrain Render Modes).
-2. Improve overview side-face merging.
-3. Add sampled comparison tests between the overview mesh and generated chunks.
-4. Add a road / path mask through the valley.
-5. Add scatter maps for future flora and boulders (see *Future scatter* below).
-6. Add screenshots / repeatable debug captures for terrain review.
+These are the remaining active worldgen follow-up items. Keep them here only if this file is still acting as the worldgen backlog. Otherwise move each item into a focused plan.
 
-## Future scatter maps (not yet built)
+1. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> Add the world-edge presentation slab. Source: `24_world_rendering.md` section *Terrain Render Modes*.
+2. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> Improve overview side-face merging.
+3. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> Add sampled comparison tests between the overview mesh and generated chunks.
+4. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> Add a road / path mask through the valley.
+5. <span style="color:#3fb950;"><strong>KEEP:</strong></span> Add scatter maps for future flora and boulders.
+6. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> Add screenshots / repeatable debug captures for terrain review.
 
-Worldgen does not spawn flora yet, but should eventually produce maps that make placement easy:
-dense edge forest, valley trees, mountain pines/junipers, boulders, scree, flowers/shrubs,
-road-side detail, lake-bank reeds. Placement rules for later: large props need local flatness
-checks; plant visual overhangs add no terrain collision; props are placed entities, not terrain
-blocks. (See `40_economy_colony/42_farming_brewing.md` for the entity/collision rules.)
+## <span style="color:#3fb950;">KEEP - Future Scatter Maps</span>
 
-## Open questions
+<span style="color:#3fb950;"><strong>KEEP:</strong></span> Worldgen does not spawn flora yet, but should eventually produce maps that make placement easy: dense edge forest, valley trees, mountain pines/junipers, boulders, scree, flowers/shrubs, road-side detail, and lake-bank reeds.
 
-- Should the mountain always be northwest, or should future seeds rotate the macro composition?
-- Should the first trade road be visible immediately as packed dirt?
-- Should snow or cold high-altitude stone exist in a future pass?
-- Should settlement candidates become real UI hints, or stay debug-only?
-- How calm should the eventual world-edge slab be, compared with the current block-face overview?
+Placement rules for later:
+
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> Large props need local flatness checks.
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> Plant visual overhangs add no terrain collision.
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> Props are placed entities, not terrain blocks.
+- <span style="color:#3fb950;"><strong>KEEP:</strong></span> Entity and collision rules live in `40_economy_colony/42_farming_brewing.md`.
+
+## <span style="color:#d29922;">REVIEW - Open Questions</span>
+
+Keep any question you still want to answer. Delete any question that no longer matters.
+
+- <span style="color:#d29922;"><strong>REVIEW:</strong></span> Should the mountain always be northwest, or should future seeds rotate the macro composition?
+- <span style="color:#d29922;"><strong>REVIEW:</strong></span> Should the first trade road be visible immediately as packed dirt?
+- <span style="color:#d29922;"><strong>REVIEW:</strong></span> Should snow or cold high-altitude stone exist in a future pass?
+- <span style="color:#d29922;"><strong>REVIEW:</strong></span> Should settlement candidates become real UI hints, or stay debug-only?
+- <span style="color:#d29922;"><strong>REVIEW:</strong></span> How calm should the eventual world-edge slab be, compared with the current block-face overview?
 
 ---
 

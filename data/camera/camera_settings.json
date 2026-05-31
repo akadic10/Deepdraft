@@ -35,10 +35,10 @@
   },
 
   "zoom": {
-    "zoom_speed": 20.0,
-    "min_distance": 50.0,
-    "max_distance": 340.0,
-    "default_distance": 110.0,
+    "zoom_speed": 8.0,
+    "min_distance": 6.0,
+    "max_distance": 180.0,
+    "default_distance": 85.0,
     "proportional": true,
     "smoothing": 0.15
   },

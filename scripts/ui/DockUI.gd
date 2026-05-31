@@ -2,6 +2,7 @@ class_name DockUI
 extends CanvasLayer
 
 signal dock_action_invoked(action: String, target: String)
+signal tool_requested(tool_id: String)
 
 const DOCK_HEIGHT := 92.0
 const DOCK_BOTTOM_MARGIN := 24.0
@@ -131,17 +132,17 @@ func _make_dock_button(entry: Dictionary) -> Button:
 
 
 func _make_separator() -> Control:
-	var wrap := MarginContainer.new()
-	wrap.name = "Separator"
-	wrap.custom_minimum_size = Vector2(10.0, 54.0)
-	wrap.add_theme_constant_override("margin_left", 3)
-	wrap.add_theme_constant_override("margin_right", 3)
+	var separator_wrap := MarginContainer.new()
+	separator_wrap.name = "Separator"
+	separator_wrap.custom_minimum_size = Vector2(10.0, 54.0)
+	separator_wrap.add_theme_constant_override("margin_left", 3)
+	separator_wrap.add_theme_constant_override("margin_right", 3)
 
 	var line := ColorRect.new()
 	line.color = Color(1, 1, 1, 0.18)
 	line.custom_minimum_size = Vector2(1.0, 44.0)
-	wrap.add_child(line)
-	return wrap
+	separator_wrap.add_child(line)
+	return separator_wrap
 
 
 func _build_action_panel() -> void:
@@ -180,6 +181,14 @@ func _build_action_panel() -> void:
 
 
 func _dispatch(action: String, target: String) -> void:
+	if action == "open_panel" and target == "mine":
+		_panel_container.visible = false
+		_active_panel_target = ""
+		tool_requested.emit("mine_precision")
+		dock_action_invoked.emit(action, target)
+		_refresh_active_buttons()
+		return
+
 	match action:
 		"open_panel":
 			_open_action_panel(target)
@@ -201,11 +210,11 @@ func _open_action_panel(target: String) -> void:
 	_panel_title.text = _target_title(target)
 	_clear_children(_panel_body)
 	for label in _panel_actions(target):
-		_panel_body.add_child(_make_panel_action_button(label))
+		_panel_body.add_child(_make_panel_action_button(label, target))
 	_panel_container.visible = true
 
 
-func _make_panel_action_button(label: String) -> Button:
+func _make_panel_action_button(label: String, target: String) -> Button:
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(128.0, 46.0)
 	button.focus_mode = Control.FOCUS_NONE
@@ -215,7 +224,23 @@ func _make_panel_action_button(label: String) -> Button:
 	button.add_theme_stylebox_override("normal", _normal_button_style)
 	button.add_theme_stylebox_override("hover", _hover_button_style)
 	button.add_theme_stylebox_override("pressed", _active_button_style)
+	button.pressed.connect(func() -> void:
+		_dispatch_panel_action(target, label)
+	)
 	return button
+
+
+func _dispatch_panel_action(target: String, label: String) -> void:
+	if target == "mine" and label == "Mine Block":
+		_panel_container.visible = false
+		_active_panel_target = ""
+		tool_requested.emit("mine_precision")
+		_refresh_active_buttons()
+		return
+	if label == "Cancel":
+		_panel_container.visible = false
+		_active_panel_target = ""
+		_refresh_active_buttons()
 
 
 func _toggle_window(target: String) -> void:

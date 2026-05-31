@@ -67,6 +67,7 @@ var _overview_merged_top_faces: int = 0
 var _overview_side_faces: int = 0
 var _overview_validation_samples: int = 0
 var _overview_validation_mismatches: int = 0
+var _visual_cut_blocks: Dictionary = {}
 var _region_nodes: Dictionary = {}
 var _chunk_nodes: Dictionary = {}   # Vector3i → MeshInstance3D
 
@@ -469,6 +470,22 @@ func _inspector_render_mode() -> String:
 	return "streamed chunk mesh"
 
 
+func set_visual_cut_blocks(blocks: Dictionary) -> void:
+	_visual_cut_blocks = blocks.duplicate()
+	_invalidate_visual_cut_meshes()
+
+
+func _invalidate_visual_cut_meshes() -> void:
+	_overview_built = false
+	if _block_face_overview_active():
+		if _overview_node != null:
+			_overview_node.mesh = null
+		return
+	for key: Vector2i in _region_nodes.keys():
+		_enqueue_region(key)
+	_enqueue_visible_existing_chunks()
+
+
 func _hit_face_label(delta: Vector3i) -> String:
 	if delta.x > 0:
 		return "west"
@@ -532,7 +549,7 @@ func _rebuild_chunk(cx: int, cy: int, cz: int) -> void:
 		_free_chunk_node(key)
 		return
 
-	var mesh  := ChunkMesher.build_mesh(chunk, cx, cy, cz)
+	var mesh  := ChunkMesher.build_mesh(chunk, cx, cy, cz, _visual_cut_blocks)
 
 	if mesh == null:
 		_free_chunk_node(key)
@@ -620,7 +637,7 @@ func _rebuild_region(key: Vector2i) -> void:
 				var chunk := WorldData.get_chunk_if_exists(cx, cy, cz)
 				if chunk == null:
 					continue
-				var mesh := ChunkMesher.build_mesh(chunk, cx, cy, cz)
+				var mesh := ChunkMesher.build_mesh(chunk, cx, cy, cz, _visual_cut_blocks)
 				if mesh == null:
 					continue
 				_append_mesh_arrays(mesh, Vector3(cx * CHUNK_SIZE, cy * CHUNK_SIZE, cz * CHUNK_SIZE), verts, norms, cols, indices)
@@ -926,12 +943,11 @@ func _build_block_face_overview() -> void:
 	var grid_z := ceili(float(WORLD_SIZE_Z) / float(step))
 	for wx in range(0, WORLD_SIZE_X, step):
 		for wz in range(0, WORLD_SIZE_Z, step):
-			var wy := WorldGenerator.get_visible_surface_y(wx, wz)
-			if wy < 0 or wy > slice_y:
+			var surface := _overview_visible_surface_after_cut(wx, wz)
+			if surface.is_empty():
 				continue
-			var block_id := WorldGenerator.get_visible_surface_block_id(wx, wz)
-			if BlockRegistry.is_transparent(block_id):
-				continue
+			var wy: int = surface["wy"]
+			var block_id: int = surface["block_id"]
 			var generated_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
 			_overview_validation_samples += 1
 			if generated_id != block_id:
@@ -1183,10 +1199,27 @@ func _add_overview_sides(
 func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
 		return edge_y
+	var surface := _overview_visible_surface_after_cut(wx, wz)
+	if surface.is_empty():
+		return edge_y
+	return float(int(surface["wy"]) + 1)
+
+
+func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
 	if wy < 0 or wy > slice_y:
-		return edge_y
-	return float(wy + 1)
+		return {}
+	while wy >= 0 and _visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+		wy -= 1
+	if wy < 0:
+		return {}
+	var block_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
+	if BlockRegistry.is_transparent(block_id):
+		return {}
+	return {
+		"wy": wy,
+		"block_id": block_id,
+	}
 
 
 func _cache_overview_side_colors(season: String) -> void:

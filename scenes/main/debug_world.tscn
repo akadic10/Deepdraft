@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://jpdd1mgtrg87" path="res://scripts/systems/WorldRenderer.gd" id="2_renderer"]
 [ext_resource type="Script" uid="uid://celh80fxot11y" path="res://scripts/ui/DebugLoadingOverlay.gd" id="3_overlay"]
 [ext_resource type="Script" uid="uid://bqj48r1hijhfc" path="res://scripts/ui/DockUI.gd" id="4_dock"]
+[ext_resource type="Script" uid="uid://bx1i6l408piua" path="res://scripts/systems/MiningDesignationController.gd" id="5_mining"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -45,6 +46,12 @@ script = ExtResource("1_camera")
 
 [node name="Renderer" type="Node3D" parent="." unique_id=1162811613]
 script = ExtResource("2_renderer")
+
+[node name="MiningDesignationController" type="Node3D" parent="." unique_id=1776126510]
+script = ExtResource("5_mining")
+camera_path = NodePath("../CameraRig")
+dock_ui_path = NodePath("../DockUI")
+renderer_path = NodePath("../Renderer")
 
 [node name="DebugLoadingOverlay" type="CanvasLayer" parent="." unique_id=1381146874]
 script = ExtResource("3_overlay")

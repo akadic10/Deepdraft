@@ -134,6 +134,11 @@ The Stonehearth plateau pattern comes before any visual detail:
 Plains/settlement areas vary only 0–2 blocks locally; foothills step in **8-block shelves**;
 mountains step in **12-block shelves**. If a later idea fights this rule, this rule wins.
 
+Lowland is not allowed to appear as an embedded island inside foothills. Lowland macro cells
+must connect to the true lowland basin or a map-edge lowland mass; disconnected lowland cells
+are promoted to valley/foothill before heightmap expansion. A settlement plain inside foothill
+territory stays flat, but it uses the first foothill shelf rather than cutting a lowland hole.
+
 ### Surface strata rule
 
 Plains use a real earth body under the grass cap, never grass directly on stone:

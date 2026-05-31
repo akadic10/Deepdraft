@@ -20,7 +20,7 @@ extends RefCounted
 ## Builds and returns an ArrayMesh for the given chunk.
 ## Returns null if the chunk contains no visible blocks (all-void or all-buried).
 ## WorldRenderer must handle null — free the MeshInstance3D for that chunk.
-static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
+static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int, visual_cut_blocks: Dictionary = {}) -> ArrayMesh:
 	var verts:   PackedVector3Array = []
 	var norms:   PackedVector3Array = []
 	var cols:    PackedColorArray   = []
@@ -33,6 +33,11 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 		for lx in range(16):
 			for lz in range(16):
 				var block_id: int = local_blocks[Chunk.local_index(lx, ly, lz)]
+				var wx := cx * 16 + lx
+				var wy := cy * 16 + ly
+				var wz := cz * 16 + lz
+				if visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+					continue
 
 				# Skip transparent blocks (void, water) — they produce no geometry.
 				if BlockRegistry.is_transparent(block_id):
@@ -44,7 +49,7 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 				var oz    := float(lz)
 
 				# ── +X face (right) ───────────────────────────────────────────
-				if _neighbor_transparent(lx + 1, ly, lz, cx, cy, cz, local_blocks):
+				if _neighbor_transparent(lx + 1, ly, lz, cx, cy, cz, local_blocks, visual_cut_blocks):
 					_add_quad(verts, norms, cols, indices,
 						Vector3(ox+1, oy,   oz  ),
 						Vector3(ox+1, oy+1, oz  ),
@@ -53,7 +58,7 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 						Vector3(1, 0, 0), color)
 
 				# ── -X face (left) ────────────────────────────────────────────
-				if _neighbor_transparent(lx - 1, ly, lz, cx, cy, cz, local_blocks):
+				if _neighbor_transparent(lx - 1, ly, lz, cx, cy, cz, local_blocks, visual_cut_blocks):
 					_add_quad(verts, norms, cols, indices,
 						Vector3(ox,   oy,   oz+1),
 						Vector3(ox,   oy+1, oz+1),
@@ -62,7 +67,7 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 						Vector3(-1, 0, 0), color)
 
 				# ── +Y face (top) ─────────────────────────────────────────────
-				if _neighbor_transparent(lx, ly + 1, lz, cx, cy, cz, local_blocks):
+				if _neighbor_transparent(lx, ly + 1, lz, cx, cy, cz, local_blocks, visual_cut_blocks):
 					_add_quad(verts, norms, cols, indices,
 						Vector3(ox,   oy+1, oz  ),
 						Vector3(ox,   oy+1, oz+1),
@@ -71,7 +76,7 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 						Vector3(0, 1, 0), color)
 
 				# ── -Y face (bottom) ──────────────────────────────────────────
-				if _neighbor_transparent(lx, ly - 1, lz, cx, cy, cz, local_blocks):
+				if _neighbor_transparent(lx, ly - 1, lz, cx, cy, cz, local_blocks, visual_cut_blocks):
 					_add_quad(verts, norms, cols, indices,
 						Vector3(ox+1, oy,   oz  ),
 						Vector3(ox+1, oy,   oz+1),
@@ -80,7 +85,7 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 						Vector3(0, -1, 0), color)
 
 				# ── +Z face (back) ────────────────────────────────────────────
-				if _neighbor_transparent(lx, ly, lz + 1, cx, cy, cz, local_blocks):
+				if _neighbor_transparent(lx, ly, lz + 1, cx, cy, cz, local_blocks, visual_cut_blocks):
 					_add_quad(verts, norms, cols, indices,
 						Vector3(ox+1, oy,   oz+1),
 						Vector3(ox+1, oy+1, oz+1),
@@ -89,7 +94,7 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 						Vector3(0, 0, 1), color)
 
 				# ── -Z face (front) ───────────────────────────────────────────
-				if _neighbor_transparent(lx, ly, lz - 1, cx, cy, cz, local_blocks):
+				if _neighbor_transparent(lx, ly, lz - 1, cx, cy, cz, local_blocks, visual_cut_blocks):
 					_add_quad(verts, norms, cols, indices,
 						Vector3(ox,   oy,   oz  ),
 						Vector3(ox,   oy+1, oz  ),
@@ -124,15 +129,22 @@ static func build_mesh(chunk: Chunk, cx: int, cy: int, cz: int) -> ArrayMesh:
 static func _neighbor_transparent(
 		dlx: int, dly: int, dlz: int,
 		cx: int, cy: int, cz: int,
-		local_blocks: PackedByteArray) -> bool:
-
-	if dlx >= 0 and dlx < 16 and dly >= 0 and dly < 16 and dlz >= 0 and dlz < 16:
-		# In-chunk: use the cached array.
-		return BlockRegistry.is_transparent(local_blocks[Chunk.local_index(dlx, dly, dlz)])
+		local_blocks: PackedByteArray,
+		visual_cut_blocks: Dictionary) -> bool:
 
 	var wx := cx * 16 + dlx
 	var wy := cy * 16 + dly
 	var wz := cz * 16 + dlz
+
+	if wx >= 0 and wx < WorldData.WORLD_SIZE_X \
+			and wy >= 0 and wy < WorldData.WORLD_SIZE_Y \
+			and wz >= 0 and wz < WorldData.WORLD_SIZE_Z \
+			and visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+		return true
+
+	if dlx >= 0 and dlx < 16 and dly >= 0 and dly < 16 and dlz >= 0 and dlz < 16:
+		# In-chunk: use the cached array.
+		return BlockRegistry.is_transparent(local_blocks[Chunk.local_index(dlx, dly, dlz)])
 
 	if wx < 0 or wx >= WorldData.WORLD_SIZE_X \
 			or wy < 0 or wy >= WorldData.WORLD_SIZE_Y \
