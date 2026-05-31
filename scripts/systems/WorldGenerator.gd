@@ -99,30 +99,32 @@ const LAKE_MIN_MACRO_CELLS: int = 12
 const TARN_RADIUS: int = max(4, WORLD_SIZE_X / 68)       # metrics label; macro tarn no longer uses circular carving
 const TARN_FLOOR_Y: int = 47
 const TARN_WATERLINE: int = 54
-const TARN_MACRO_RADIUS_X: int = 1
-const TARN_MACRO_RADIUS_Z: int = 1
-const TARN_MIN_MACRO_CELLS: int = 4
 
-# -- Ore / gem ladder ----------------------------------------------------------
-# Evaluated in ascending rarity order. First condition match wins.
-# Source of truth is block_resources.json; values are inlined here so the
-# generator does not need a separate file load at generation time.
-# Format per entry: [block_key, noise_threshold, max_y_exclusive]
-# max_y_exclusive: ore only spawns at y < max_y (deeper = rarer).
-const ORE_LADDER: Array = [
-	[&"base:terrain:ore:tin",      0.68, 95],
-	[&"base:terrain:ore:copper",   0.70, 90],
-	[&"base:terrain:ore:coal",     0.68, 85],
-	[&"base:terrain:ore:iron",     0.72, 80],
-	[&"base:terrain:ore:silver",   0.75, 60],
-	[&"base:terrain:ore:gold",     0.78, 40],
-	[&"base:terrain:gem:jade",     0.78, 60],
-	[&"base:terrain:gem:amethyst", 0.80, 55],
-	[&"base:terrain:gem:ruby",     0.85, 20],
-	[&"base:terrain:gem:sapphire", 0.87, 20],
-	[&"base:terrain:gem:emerald",  0.86, 15],
-	[&"base:terrain:gem:diamond",  0.92,  8],
+# -- Resource distribution order ----------------------------------------------
+# Rarest-first. Placement windows are cached from block_resources.json on the
+# main thread before generation starts so the worker never touches registries.
+const METAL_RESOURCE_KEYS: Array = [
+	&"base:terrain:ore:gold",
+	&"base:terrain:ore:silver",
+	&"base:terrain:ore:iron",
+	&"base:terrain:ore:copper",
+	&"base:terrain:ore:tin",
+	&"base:terrain:ore:coal",
 ]
+
+const GEM_RESOURCE_KEYS: Array = [
+	&"base:terrain:gem:diamond",
+	&"base:terrain:gem:emerald",
+	&"base:terrain:gem:sapphire",
+	&"base:terrain:gem:ruby",
+	&"base:terrain:gem:amethyst",
+	&"base:terrain:gem:jade",
+]
+
+const SOIL_RESOURCE_KEYS: Array = [
+	&"base:terrain:soil:cave",
+]
+const RESOURCE_PERIMETER_SUPPRESSION_WIDTH: int = 8
 
 # -- Signals -------------------------------------------------------------------
 ## Emitted from the generator thread each time a chunk is fully filled.
@@ -135,8 +137,9 @@ signal world_complete()
 # -- Generation state ----------------------------------------------------------
 var world_seed: int = 0
 
-# Six noise instances - one per logical layer; never reuse across passes.
-var noise_ore:      FastNoiseLite   # ore / gem vein mask
+# Seven noise instances - one per logical layer; never reuse across passes.
+var noise_ore:      FastNoiseLite   # broad metal vein mask
+var noise_gem:      FastNoiseLite   # small gem pocket mask
 var noise_cave:     FastNoiseLite   # cave void mask
 var noise_soil:     FastNoiseLite   # cave soil patches + surface dirt fraction
 var noise_domain:   FastNoiseLite   # broad terrain domain map
@@ -171,10 +174,13 @@ var _id_rock09:    int = 0
 var _id_rock10:    int = 0
 var _id_rock11:    int = 0
 var _mountain_rock_ids: Array[int] = [] # shelf 1..6 -> rock06..rock01
-var _id_cave_soil: int = 0
 var _grass_ids:    Array[int] = []   # [0..7] -> active grass_01..grass_08
 var _dirt_ids:     Array[int] = []   # [0..3]  -> dirt_01..dirt_04
-var _ore_ids:      Array[int] = []   # parallel to ORE_LADDER
+var _resource_replaceable_rock_ids: Dictionary = {}
+var _metal_windows: Array[Dictionary] = []
+var _gem_windows:   Array[Dictionary] = []
+var _soil_windows:  Array[Dictionary] = []
+var _resource_focus_windows: Array[Dictionary] = []
 
 var _gen_thread: Thread = null
 var _request_mutex: Mutex = null
@@ -322,14 +328,13 @@ func _deferred_print_block_spawn_report(
 		total_blocks,
 	])
 	print("  ore/gem focus:")
-	for i in range(ORE_LADDER.size()):
-		var ore_id: int = _ore_ids[i]
-		var ore_count := snapshot.get(ore_id, 0) as int
-		var ore_ratio := 0.0
+	for window: Dictionary in _resource_focus_windows:
+		var resource_id: int = window.get("id", -1)
+		var resource_count := snapshot.get(resource_id, 0) as int
+		var resource_ratio := 0.0
 		if total_blocks > 0:
-			ore_ratio = (float(ore_count) / float(total_blocks)) * 100.0
-		var ore_key := String(ORE_LADDER[i][0] as StringName)
-		print("    %s: %d (%.3f%%)" % [ore_key, ore_count, ore_ratio])
+			resource_ratio = (float(resource_count) / float(total_blocks)) * 100.0
+		print("    %s: %d (%.3f%%)" % [String(window.get("key", &"")), resource_count, resource_ratio])
 	print("  all block types:")
 	for row: Array in rows:
 		var count := row[0] as int
@@ -559,10 +564,13 @@ func _cache_block_ids() -> void:
 	_id_rock09    = BlockRegistry.get_id(&"base:terrain:rock:rock09")
 	_id_rock10    = BlockRegistry.get_id(&"base:terrain:rock:rock10")
 	_id_rock11    = BlockRegistry.get_id(&"base:terrain:rock:rock11")
+	_resource_replaceable_rock_ids.clear()
+	for i in range(1, 12):
+		_resource_replaceable_rock_ids[BlockRegistry.get_id(StringName("base:terrain:rock:rock%02d" % i))] = true
+
 	_mountain_rock_ids.clear()
 	for i in range(6, 0, -1):
 		_mountain_rock_ids.append(BlockRegistry.get_id(StringName("base:terrain:rock:rock%02d" % i)))
-	_id_cave_soil = BlockRegistry.get_id(&"base:terrain:soil:cave")
 
 	_grass_ids.clear()
 	for i in range(1, 9):
@@ -572,9 +580,49 @@ func _cache_block_ids() -> void:
 	for i in range(1, 5):
 		_dirt_ids.append(BlockRegistry.get_id(StringName("base:terrain:surface:dirt_%02d" % i)))
 
-	_ore_ids.clear()
-	for entry: Array in ORE_LADDER:
-		_ore_ids.append(BlockRegistry.get_id(entry[0] as StringName))
+	_cache_resource_windows()
+
+
+func _cache_resource_windows() -> void:
+	_metal_windows = _build_resource_windows(METAL_RESOURCE_KEYS, "ore")
+	_gem_windows = _build_resource_windows(GEM_RESOURCE_KEYS, "gem")
+	_soil_windows = _build_resource_windows(SOIL_RESOURCE_KEYS, "soil")
+
+	_resource_focus_windows.clear()
+	_resource_focus_windows.append_array(_gem_windows)
+	_resource_focus_windows.append_array(_metal_windows)
+	_resource_focus_windows.append_array(_soil_windows)
+
+
+func _build_resource_windows(keys: Array, expected_channel: String) -> Array[Dictionary]:
+	var windows: Array[Dictionary] = []
+	for key_variant: Variant in keys:
+		var key := key_variant as StringName
+		var id := BlockRegistry.get_id(key)
+		if id < 0:
+			push_warning("WorldGenerator: resource block key is not registered: %s" % String(key))
+			continue
+
+		var def := BlockRegistry.get_resource_def(key)
+		if def.is_empty():
+			push_warning("WorldGenerator: missing block_resources metadata for %s" % String(key))
+			continue
+
+		var channel := String(def.get("noise_channel", ""))
+		if channel != expected_channel:
+			push_warning("WorldGenerator: %s uses noise_channel '%s', expected '%s'." % [String(key), channel, expected_channel])
+			continue
+
+		var depth_bias: Dictionary = def.get("depth_bias", {})
+		windows.append({
+			"key": key,
+			"id": id,
+			"min_y": int(depth_bias.get("min_y", 0)),
+			"max_y": int(depth_bias.get("max_y", WORLD_SIZE_Y - 1)),
+			"threshold": float(def.get("noise_threshold", 1.0)),
+			"channel": channel,
+		})
+	return windows
 
 
 # -- Pipeline (background thread) ----------------------------------------------
@@ -652,6 +700,14 @@ func _build_noise_instances() -> void:
 	noise_valley.frequency       = 0.012
 	noise_valley.fractal_octaves = 2
 
+	# Layer 7 - Gem pocket mask
+	# Higher frequency than metal veins so gems appear as smaller clusters.
+	noise_gem = FastNoiseLite.new()
+	noise_gem.noise_type       = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise_gem.seed             = world_seed + 7
+	noise_gem.frequency        = 0.06
+	noise_gem.fractal_octaves  = 3
+
 
 # -- Phase 2 - Domain map (2D) -------------------------------------------------
 
@@ -659,10 +715,6 @@ func _compute_domain_map() -> void:
 	var size := WORLD_SIZE_X * WORLD_SIZE_Z
 	domain_map.resize(size)
 	domain_n_map.resize(size)
-
-	var mountain_count := 0
-	var valley_count := 0
-	var lowland_count := 0
 
 	for x in range(WORLD_SIZE_X):
 		for z in range(WORLD_SIZE_Z):
@@ -682,13 +734,10 @@ func _compute_domain_map() -> void:
 			domain_n_map[idx] = n
 			if n > DOMAIN_MOUNTAIN_THRESHOLD:
 				domain_map[idx] = DOMAIN_MOUNTAIN
-				mountain_count += 1
 			elif n > DOMAIN_VALLEY_THRESHOLD:
 				domain_map[idx] = DOMAIN_VALLEY
-				valley_count += 1
 			else:
 				domain_map[idx] = DOMAIN_LOWLAND
-				lowland_count += 1
 
 	_apply_macro_domain_coherence()
 	_recount_domain_counts()
@@ -1695,10 +1744,8 @@ func _smooth_unit(value: float) -> float:
 
 func _carve_lakes() -> void:
 	_carve_lowland_lake()
+	_apply_macro_shelf_step_limit()
 	_carve_mountain_tarn()
-	_apply_macro_shelf_step_limit()
-	_restore_mountain_tarn_surround()
-	_apply_macro_shelf_step_limit()
 	_build_water_bank_mask()
 
 
@@ -1858,34 +1905,17 @@ func _carve_mountain_tarn() -> void:
 	var macro_count_z := (WORLD_SIZE_Z + TERRAIN_MACRO_CELL_SIZE - 1) / TERRAIN_MACRO_CELL_SIZE
 	var anchor := _mountain_tarn_anchor(macro_count_x, macro_count_z)
 	if anchor.x < 0:
-		push_warning("WorldGenerator: no mountain shelf-1 macro cell - mountain tarn skipped.")
+		push_warning("WorldGenerator: no mountain tarn cell with full M1/M2 3x3 surround - mountain tarn skipped.")
 		return
 
-	var selected_cells: Array[Vector2i] = []
-	for mx in range(macro_count_x):
-		for mz in range(macro_count_z):
-			if not _tarn_macro_cell_is_eligible(mx, mz, anchor):
-				continue
-			if _tarn_macro_shape(mx, mz, anchor) <= 1.0:
-				selected_cells.append(Vector2i(mx, mz))
-
-	if not selected_cells.has(anchor):
-		selected_cells.append(anchor)
-	_expand_tarn_to_minimum_macro_cells(selected_cells, anchor, macro_count_x, macro_count_z)
-	_apply_mountain_tarn_plateau_ring(selected_cells, macro_count_x, macro_count_z)
-
-	var sum_x := 0
-	var sum_z := 0
-	for cell: Vector2i in selected_cells:
-		sum_x += mini((cell.x * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1)
-		sum_z += mini((cell.y * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
-		_apply_mountain_tarn_macro_cell(cell.x, cell.y)
-
-	tarn_center = Vector2i(sum_x / selected_cells.size(), sum_z / selected_cells.size())
+	_apply_mountain_tarn_macro_cell(anchor.x, anchor.y)
+	tarn_center = Vector2i(
+		mini((anchor.x * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1),
+		mini((anchor.y * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
+	)
 	tarn_waterline = TARN_WATERLINE
 	_recount_domain_counts()
-	print("WorldGenerator: mountain shelf-1 tarn uses %d macro cells; anchor %s; water Y%d-Y%d." % [
-		selected_cells.size(),
+	print("WorldGenerator: mountain shelf-1 tarn uses 1 macro cell; anchor %s; water Y%d-Y%d." % [
 		str(anchor),
 		TARN_FLOOR_Y + 1,
 		tarn_waterline,
@@ -1898,17 +1928,16 @@ func _mountain_tarn_anchor(macro_count_x: int, macro_count_z: int) -> Vector2i:
 
 	for mx in range(1, macro_count_x - 1):
 		for mz in range(1, macro_count_z - 1):
+			if not _tarn_has_required_mountain_surround(mx, mz):
+				continue
+
 			var center_x := mini((mx * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1)
 			var center_z := mini((mz * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
 			var idx := center_x * WORLD_SIZE_Z + center_z
-			var h: int = heightmap[idx]
 			var domain_n := domain_n_map[idx]
-			var is_shelf_one := h >= MOUNTAIN_MIN and h < MOUNTAIN_MIN + MOUNTAIN_SHELF_HEIGHT
 			var near_mountain_edge := 1.0 - clampf(absf(domain_n - 0.64) / 0.18, 0.0, 1.0)
 			var northwest_bias := _northwest_mountain_influence(center_x, center_z)
 			var score := (near_mountain_edge * 2.0) + northwest_bias
-			if not is_shelf_one:
-				score -= 2.0
 			if score > best_score:
 				best_score = score
 				best_cell = Vector2i(mx, mz)
@@ -1916,59 +1945,22 @@ func _mountain_tarn_anchor(macro_count_x: int, macro_count_z: int) -> Vector2i:
 	return best_cell
 
 
-func _tarn_macro_cell_is_eligible(mx: int, mz: int, anchor: Vector2i) -> bool:
-	if Vector2i(mx, mz) == anchor:
-		return true
-	var center_x := mini((mx * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1)
-	var center_z := mini((mz * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
-	var h: int = heightmap[center_x * WORLD_SIZE_Z + center_z]
-	return h >= MOUNTAIN_MIN and h < MOUNTAIN_MIN + (MOUNTAIN_SHELF_HEIGHT * 2)
+func _tarn_has_required_mountain_surround(mx: int, mz: int) -> bool:
+	# Hard rule: a mountain tarn is one water macro cell surrounded by a full
+	# 3x3 macro footprint. The center must be mountain shelf 1; every surrounding
+	# cell must be mountain shelf 1 or mountain shelf 2.
+	if _macro_shelf_rank(_macro_cell_height(mx, mz)) != 4:
+		return false
 
-
-func _tarn_macro_shape(mx: int, mz: int, anchor: Vector2i) -> float:
-	var dx := float(mx - anchor.x) / float(maxi(TARN_MACRO_RADIUS_X, 1))
-	var dz := float(mz - anchor.y) / float(maxi(TARN_MACRO_RADIUS_Z, 1))
-	var ellipse := sqrt((dx * dx) + (dz * dz))
-	var center_x := mini((mx * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1)
-	var center_z := mini((mz * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
-	var shore_noise := (noise_domain.get_noise_2d(float(center_x) * 0.075 + 12300.0, float(center_z) * 0.075 - 12300.0) + 1.0) * 0.5
-	return ellipse - ((shore_noise - 0.5) * 0.10)
-
-
-func _expand_tarn_to_minimum_macro_cells(selected_cells: Array[Vector2i], anchor: Vector2i, macro_count_x: int, macro_count_z: int) -> void:
-	if selected_cells.size() >= TARN_MIN_MACRO_CELLS:
-		return
-
-	var candidates: Array = []
-	for mx in range(macro_count_x):
-		for mz in range(macro_count_z):
-			var cell := Vector2i(mx, mz)
-			if selected_cells.has(cell):
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			if dx == 0 and dz == 0:
 				continue
-			if not _tarn_macro_cell_is_eligible(mx, mz, anchor):
-				continue
-			candidates.append([_tarn_macro_shape(mx, mz, anchor), cell])
+			var rank := _macro_shelf_rank(_macro_cell_height(mx + dx, mz + dz))
+			if rank != 4 and rank != 5:
+				return false
 
-	candidates.sort_custom(func(a: Array, b: Array) -> bool:
-		return (a[0] as float) < (b[0] as float)
-	)
-
-	for row: Array in candidates:
-		if selected_cells.size() >= TARN_MIN_MACRO_CELLS:
-			break
-		selected_cells.append(row[1] as Vector2i)
-
-
-func _apply_mountain_tarn_plateau_ring(selected_cells: Array[Vector2i], macro_count_x: int, macro_count_z: int) -> void:
-	for cell: Vector2i in selected_cells:
-		for dx in range(-1, 2):
-			for dz in range(-1, 2):
-				var ring_cell := Vector2i(cell.x + dx, cell.y + dz)
-				if ring_cell.x < 0 or ring_cell.x >= macro_count_x or ring_cell.y < 0 or ring_cell.y >= macro_count_z:
-					continue
-				if selected_cells.has(ring_cell):
-					continue
-				_apply_mountain_plateau_macro_cell(ring_cell.x, ring_cell.y)
+	return true
 
 
 func _apply_mountain_tarn_macro_cell(mx: int, mz: int) -> void:
@@ -1976,86 +1968,6 @@ func _apply_mountain_tarn_macro_cell(mx: int, mz: int) -> void:
 	for x in range(mx * TERRAIN_MACRO_CELL_SIZE, mini(WORLD_SIZE_X, (mx + 1) * TERRAIN_MACRO_CELL_SIZE)):
 		for z in range(mz * TERRAIN_MACRO_CELL_SIZE, mini(WORLD_SIZE_Z, (mz + 1) * TERRAIN_MACRO_CELL_SIZE)):
 			tarn_columns[Vector2i(x, z)] = true
-
-
-func _restore_mountain_tarn_surround() -> void:
-	if tarn_columns.is_empty():
-		return
-
-	var macro_count_x := (WORLD_SIZE_X + TERRAIN_MACRO_CELL_SIZE - 1) / TERRAIN_MACRO_CELL_SIZE
-	var macro_count_z := (WORLD_SIZE_Z + TERRAIN_MACRO_CELL_SIZE - 1) / TERRAIN_MACRO_CELL_SIZE
-	var water_cells := _macro_cells_from_columns(tarn_columns)
-	var ring_cells: Dictionary = {}
-	var outer_cells: Dictionary = {}
-
-	for water_cell_variant: Variant in water_cells.keys():
-		var water_cell := water_cell_variant as Vector2i
-		for dx in range(-1, 2):
-			for dz in range(-1, 2):
-				if dx == 0 and dz == 0:
-					continue
-				var ring_cell := Vector2i(water_cell.x + dx, water_cell.y + dz)
-				if ring_cell.x < 0 or ring_cell.x >= macro_count_x or ring_cell.y < 0 or ring_cell.y >= macro_count_z:
-					continue
-				if water_cells.has(ring_cell):
-					continue
-				ring_cells[ring_cell] = true
-
-	for ring_cell_variant: Variant in ring_cells.keys():
-		var ring_cell := ring_cell_variant as Vector2i
-		for dx in range(-1, 2):
-			for dz in range(-1, 2):
-				if dx == 0 and dz == 0:
-					continue
-				var outer_cell := Vector2i(ring_cell.x + dx, ring_cell.y + dz)
-				if outer_cell.x < 0 or outer_cell.x >= macro_count_x or outer_cell.y < 0 or outer_cell.y >= macro_count_z:
-					continue
-				if water_cells.has(outer_cell) or ring_cells.has(outer_cell):
-					continue
-				outer_cells[outer_cell] = true
-
-	var mountain_shelf_one := MOUNTAIN_MIN + MOUNTAIN_SHELF_HEIGHT - 1
-	for ring_cell_variant: Variant in ring_cells.keys():
-		var ring_cell := ring_cell_variant as Vector2i
-		_apply_macro_cell_height_and_domain(ring_cell.x, ring_cell.y, mountain_shelf_one, DOMAIN_MOUNTAIN)
-
-	var raised_transition_cells := 0
-	var capped_mountain_cells := 0
-	var mountain_shelf_two := MOUNTAIN_MIN + (MOUNTAIN_SHELF_HEIGHT * 2) - 1
-	for outer_cell_variant: Variant in outer_cells.keys():
-		var outer_cell := outer_cell_variant as Vector2i
-		var current_height := _macro_cell_height(outer_cell.x, outer_cell.y)
-		if current_height < FOOTHILL_SHELF_MAX_Y:
-			_apply_macro_cell_height_and_domain(outer_cell.x, outer_cell.y, FOOTHILL_SHELF_MAX_Y, DOMAIN_VALLEY)
-			raised_transition_cells += 1
-		elif current_height > mountain_shelf_two:
-			_apply_macro_cell_height_and_domain(outer_cell.x, outer_cell.y, mountain_shelf_two, DOMAIN_MOUNTAIN)
-			capped_mountain_cells += 1
-
-	_recount_domain_counts()
-	print("WorldGenerator: mountain tarn surround -> restored %d M1 macro cells, %d F3 transition cells, and %d M2 cap cells." % [
-		ring_cells.size(),
-		raised_transition_cells,
-		capped_mountain_cells,
-	])
-
-
-func _macro_cells_from_columns(columns: Dictionary) -> Dictionary:
-	var cells: Dictionary = {}
-	for col_variant: Variant in columns.keys():
-		var col := col_variant as Vector2i
-		cells[Vector2i(col.x / TERRAIN_MACRO_CELL_SIZE, col.y / TERRAIN_MACRO_CELL_SIZE)] = true
-	return cells
-
-
-func _apply_mountain_plateau_macro_cell(mx: int, mz: int) -> void:
-	var center_x := mini((mx * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_X - 1)
-	var center_z := mini((mz * TERRAIN_MACRO_CELL_SIZE) + (TERRAIN_MACRO_CELL_SIZE / 2), WORLD_SIZE_Z - 1)
-	var current: int = heightmap[center_x * WORLD_SIZE_Z + center_z]
-	var shelf_one_top := MOUNTAIN_MIN + MOUNTAIN_SHELF_HEIGHT - 1
-	var shelf_two_top := MOUNTAIN_MIN + (MOUNTAIN_SHELF_HEIGHT * 2) - 1
-	var target_height := shelf_one_top if current <= shelf_one_top else shelf_two_top
-	_apply_macro_cell_height_and_domain(mx, mz, target_height, DOMAIN_MOUNTAIN)
 
 
 func _apply_macro_cell_height_and_domain(mx: int, mz: int, target_height: int, target_domain: int) -> void:
@@ -2802,7 +2714,7 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 
 	# Stable foundation layer above bedrock.
 	if y > BEDROCK_MAX_Y and y <= FOUNDATION_ROCK_MAX_Y:
-		return _id_rock11
+		return _apply_resource_veins(x, y, z, surf_y, _id_rock11)
 
 	# Above surface
 	if y > surf_y:
@@ -2813,19 +2725,24 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 		return _id_void
 
 	if _is_lowland_shelf_column(x, z) and y >= LOWLAND_SHELF_MIN_Y and y <= LOWLAND_SHELF_MAX_Y:
-		return _lowland_shelf_block_id(x, z, y)
+		var lowland_block := _lowland_shelf_block_id(x, z, y)
+		return _apply_resource_veins(x, y, z, surf_y, lowland_block)
 
 	if _is_foothill_shelf_column(x, z) and y >= LOWLAND_SHELF_MIN_Y and y < _foothill_shelf_start_for_column(x, z):
-		return _foothill_body_rock_id(y)
+		var foothill_body_block := _foothill_body_rock_id(y)
+		return _apply_resource_veins(x, y, z, surf_y, foothill_body_block)
 
 	if _is_foothill_shelf_column(x, z) and y >= FOOTHILL_SHELF_MIN_Y and y <= FOOTHILL_SHELF_MAX_Y:
-		return _foothill_shelf_block_id(x, z, y)
+		var foothill_shelf_block := _foothill_shelf_block_id(x, z, y)
+		return _apply_resource_veins(x, y, z, surf_y, foothill_shelf_block)
 
 	if _is_mountain_shelf_column(x, z) and y >= LOWLAND_SHELF_MIN_Y and y < MOUNTAIN_MIN:
-		return _altitude_rock_body_id(y)
+		var mountain_body_block := _altitude_rock_body_id(y)
+		return _apply_resource_veins(x, y, z, surf_y, mountain_body_block)
 
 	if _is_mountain_shelf_column(x, z) and y >= MOUNTAIN_MIN and y <= MOUNTAIN_MAX:
-		return _mountain_shelf_block_id(y)
+		var mountain_shelf_block := _mountain_shelf_block_id(y)
+		return _apply_resource_veins(x, y, z, surf_y, mountain_shelf_block)
 
 	# Surface skin
 	if y == surf_y:
@@ -2841,23 +2758,10 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 		if n_cave > 0.65:
 			return _id_void
 
-	# Ore / gem vein - the shallowest ladder entry caps at y < 95, so blocks
-	# at or above 95 can never contain ore. Skip the sample there.
-	if y < 95:
-		var n_ore := (noise_ore.get_noise_3d(x, y, z) + 1.0) * 0.5
-		var ore := _pick_ore(y, n_ore)
-		if ore != -1:
-			return ore
-
-	# Farmable cave soil - only in the Y 20-60 band.
-	if y >= 20 and y <= 60:
-		var n_soil := (noise_soil.get_noise_3d(x, y, z) + 1.0) * 0.5
-		if n_soil > 0.68:
-			return _id_cave_soil
-
 	# Fallback for columns outside authored strata ranges. Current worldgen
 	# should rarely reach this; keep it on the active rock ladder if it does.
-	return _fallback_rock_id(y)
+	var fallback_rock := _fallback_rock_id(y)
+	return _apply_resource_veins(x, y, z, surf_y, fallback_rock)
 
 
 func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:
@@ -2944,7 +2848,7 @@ func _surface_region_value(x: int, z: int, salt: int) -> float:
 
 func _grass_variant(x: int, z: int) -> int:
 	if _grass_ids.is_empty():
-		return _id_cave_soil
+		return _id_rock10
 
 	var lowland_cap_band_index := _lowland_cap_grass_band_variant_index(x, z)
 	if lowland_cap_band_index >= 0:
@@ -3087,14 +2991,72 @@ func _pick_surface_rock(x: int, z: int, y: int) -> int:
 	return _id_rock07
 
 
-func _pick_ore(y: int, n_ore: float) -> int:
-	# Returns the ID of the first ore whose depth and noise conditions are met,
-	# or -1 if this position should not contain an ore vein.
-	for i in range(ORE_LADDER.size()):
-		var entry: Array = ORE_LADDER[i]
-		if y < (entry[2] as int) and n_ore > (entry[1] as float):
-			return _ore_ids[i]
+func _apply_resource_veins(x: int, y: int, z: int, surf_y: int, rock_id: int) -> int:
+	if y <= BEDROCK_MAX_Y:
+		return rock_id
+	if y >= surf_y:
+		return rock_id
+	if not _is_resource_replaceable_rock(rock_id):
+		return rock_id
+	if _is_resource_perimeter_column(x, z):
+		return rock_id
+	if _is_natural_exposed_wall(x, y, z):
+		return rock_id
+
+	if _y_in_any_resource_window(_gem_windows, y):
+		var n_gem := (noise_gem.get_noise_3d(x, y, z) + 1.0) * 0.5
+		var gem := _pick_resource_from_windows(_gem_windows, y, n_gem)
+		if gem != -1:
+			return gem
+
+	if _y_in_any_resource_window(_metal_windows, y):
+		var n_ore := (noise_ore.get_noise_3d(x, y, z) + 1.0) * 0.5
+		var ore := _pick_resource_from_windows(_metal_windows, y, n_ore)
+		if ore != -1:
+			return ore
+
+	if _y_in_any_resource_window(_soil_windows, y):
+		var n_soil := (noise_soil.get_noise_3d(x, y, z) + 1.0) * 0.5
+		var soil := _pick_resource_from_windows(_soil_windows, y, n_soil)
+		if soil != -1:
+			return soil
+
+	return rock_id
+
+
+func _is_resource_replaceable_rock(block_id: int) -> bool:
+	return _resource_replaceable_rock_ids.has(block_id)
+
+
+func _is_resource_perimeter_column(x: int, z: int) -> bool:
+	var edge_dist := mini(mini(x, WORLD_SIZE_X - 1 - x), mini(z, WORLD_SIZE_Z - 1 - z))
+	return edge_dist < RESOURCE_PERIMETER_SUPPRESSION_WIDTH
+
+
+func _is_natural_exposed_wall(x: int, y: int, z: int) -> bool:
+	if x > 0 and heightmap[(x - 1) * WORLD_SIZE_Z + z] < y:
+		return true
+	if x < WORLD_SIZE_X - 1 and heightmap[(x + 1) * WORLD_SIZE_Z + z] < y:
+		return true
+	if z > 0 and heightmap[x * WORLD_SIZE_Z + z - 1] < y:
+		return true
+	if z < WORLD_SIZE_Z - 1 and heightmap[x * WORLD_SIZE_Z + z + 1] < y:
+		return true
+	return false
+
+
+func _pick_resource_from_windows(windows: Array[Dictionary], y: int, noise_value: float) -> int:
+	for window: Dictionary in windows:
+		if y >= int(window.get("min_y", 0)) and y <= int(window.get("max_y", WORLD_SIZE_Y - 1)) and noise_value > float(window.get("threshold", 1.0)):
+			return int(window.get("id", -1))
 	return -1
+
+
+func _y_in_any_resource_window(windows: Array[Dictionary], y: int) -> bool:
+	for window: Dictionary in windows:
+		if y >= int(window.get("min_y", 0)) and y <= int(window.get("max_y", WORLD_SIZE_Y - 1)):
+			return true
+	return false
 
 
 func _fallback_rock_id(y: int) -> int:

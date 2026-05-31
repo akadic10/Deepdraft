@@ -1,13 +1,14 @@
 {
   "__comment": [
-    "Per-block resource definitions. Loaded on demand when a block is mined -",
-    "NOT held in memory at boot. Keys must match terrain_blocks.json exactly.",
+    "Per-block resource definitions. Loaded by BlockRegistry at boot for generation",
+    "and mining metadata. Keys must match terrain_blocks.json exactly.",
     "",
     "Fields:",
     "  durability      - number of dwarf hits required to mine this block (integer >= 1)",
     "  drops           - array of { item, count, chance } loot table entries",
-    "  depth_bias      - optional { max_y } cap; block cannot generate above this Y",
-    "  noise_threshold - minimum noise value (0.0-1.0) for vein placement",
+    "  depth_bias      - optional { min_y, max_y } inclusive generation window",
+    "  noise_threshold - minimum noise value (0.0-1.0) for vein/pocket placement",
+    "  noise_channel   - generation noise field: ore, gem, or soil",
     "  material_tags   - flat string array used by stockpiles, crafting, and AI queries",
     "",
     "durability design notes:",
@@ -41,6 +42,9 @@
     "drops": [
       { "item": "base:resources:soil:cave_soil", "count": 1, "chance": 1.00 }
     ],
+    "depth_bias": { "min_y": 18, "max_y": 60 },
+    "noise_threshold": 0.66,
+    "noise_channel": "soil",
     "material_tags": ["dirt", "soil", "farmable", "stockpile_soil"]
   },
 
@@ -68,8 +72,9 @@
     "drops": [
       { "item": "base:resources:ore:copper", "count": 2, "chance": 1.00 }
     ],
-    "depth_bias": { "max_y": 90 },
-    "noise_threshold": 0.70,
+    "depth_bias": { "min_y": 45, "max_y": 88 },
+    "noise_threshold": 0.66,
+    "noise_channel": "ore",
     "material_tags": ["ore", "metal", "stockpile_ore"]
   },
 
@@ -78,8 +83,9 @@
     "drops": [
       { "item": "base:resources:ore:tin", "count": 2, "chance": 1.00 }
     ],
-    "depth_bias": { "max_y": 95 },
-    "noise_threshold": 0.68,
+    "depth_bias": { "min_y": 55, "max_y": 95 },
+    "noise_threshold": 0.66,
+    "noise_channel": "ore",
     "material_tags": ["ore", "metal", "stockpile_ore"]
   },
 
@@ -88,8 +94,9 @@
     "drops": [
       { "item": "base:resources:ore:iron",   "count": 2, "chance": 1.00 }
     ],
-    "depth_bias": { "max_y": 80 },
-    "noise_threshold": 0.72,
+    "depth_bias": { "min_y": 20, "max_y": 72 },
+    "noise_threshold": 0.70,
+    "noise_channel": "ore",
     "material_tags": ["ore", "metal", "stockpile_ore"]
   },
 
@@ -98,8 +105,9 @@
     "drops": [
       { "item": "base:resources:ore:silver", "count": 1, "chance": 1.00 }
     ],
-    "depth_bias": { "max_y": 60 },
-    "noise_threshold": 0.75,
+    "depth_bias": { "min_y": 16, "max_y": 52 },
+    "noise_threshold": 0.80,
+    "noise_channel": "ore",
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
   },
 
@@ -108,8 +116,9 @@
     "drops": [
       { "item": "base:resources:ore:coal",   "count": 2, "chance": 1.00 }
     ],
-    "depth_bias": { "max_y": 85 },
-    "noise_threshold": 0.68,
+    "depth_bias": { "min_y": 12, "max_y": 90 },
+    "noise_threshold": 0.72,
+    "noise_channel": "ore",
     "material_tags": ["ore", "fuel", "stockpile_ore"]
   },
 
@@ -119,8 +128,9 @@
       { "item": "base:resources:ore:gold",        "count": 1, "chance": 1.00 },
       { "item": "base:resources:ore:gold_nugget", "count": 1, "chance": 0.15 }
     ],
-    "depth_bias": { "max_y": 40 },
-    "noise_threshold": 0.78,
+    "depth_bias": { "min_y": 8, "max_y": 36 },
+    "noise_threshold": 0.84,
+    "noise_channel": "ore",
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
   },
 
@@ -131,8 +141,9 @@
     "drops": [
       { "item": "base:resources:gem:jade_raw",      "count": 1, "chance": 0.90 }
     ],
-    "depth_bias": { "max_y": 60 },
-    "noise_threshold": 0.78,
+    "depth_bias": { "min_y": 28, "max_y": 58 },
+    "noise_threshold": 0.80,
+    "noise_channel": "gem",
     "material_tags": ["gem", "precious", "stockpile_gem"]
   },
 
@@ -141,8 +152,9 @@
     "drops": [
       { "item": "base:resources:gem:amethyst_raw",  "count": 1, "chance": 0.90 }
     ],
-    "depth_bias": { "max_y": 55 },
-    "noise_threshold": 0.80,
+    "depth_bias": { "min_y": 20, "max_y": 48 },
+    "noise_threshold": 0.82,
+    "noise_channel": "gem",
     "material_tags": ["gem", "precious", "stockpile_gem"]
   },
 
@@ -151,8 +163,9 @@
     "drops": [
       { "item": "base:resources:gem:ruby_raw",      "count": 1, "chance": 0.85 }
     ],
-    "depth_bias": { "max_y": 20 },
-    "noise_threshold": 0.85,
+    "depth_bias": { "min_y": 6, "max_y": 22 },
+    "noise_threshold": 0.88,
+    "noise_channel": "gem",
     "material_tags": ["gem", "precious", "stockpile_gem"]
   },
 
@@ -161,8 +174,9 @@
     "drops": [
       { "item": "base:resources:gem:sapphire_raw",  "count": 1, "chance": 0.85 }
     ],
-    "depth_bias": { "max_y": 20 },
-    "noise_threshold": 0.87,
+    "depth_bias": { "min_y": 6, "max_y": 22 },
+    "noise_threshold": 0.89,
+    "noise_channel": "gem",
     "material_tags": ["gem", "precious", "stockpile_gem"]
   },
 
@@ -171,8 +185,9 @@
     "drops": [
       { "item": "base:resources:gem:emerald_raw",   "count": 1, "chance": 0.82 }
     ],
-    "depth_bias": { "max_y": 15 },
-    "noise_threshold": 0.86,
+    "depth_bias": { "min_y": 5, "max_y": 16 },
+    "noise_threshold": 0.90,
+    "noise_channel": "gem",
     "material_tags": ["gem", "precious", "stockpile_gem"]
   },
 
@@ -181,8 +196,9 @@
     "drops": [
       { "item": "base:resources:gem:diamond_raw",   "count": 1, "chance": 0.65 }
     ],
-    "depth_bias": { "max_y": 8 },
-    "noise_threshold": 0.92,
+    "depth_bias": { "min_y": 4, "max_y": 12 },
+    "noise_threshold": 0.90,
+    "noise_channel": "gem",
     "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
   }
 }

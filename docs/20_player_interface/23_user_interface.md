@@ -2,7 +2,7 @@
 
 ## Overview
 
-All UI is implemented as Godot `Control` nodes on a `CanvasLayer`. No 3D world-space UI elements. The interface is divided into four zones: **Status Bar** (top), **Side Panel** (right), **Build Menu** (bottom), and **Notification Layer** (overlay).
+All UI is implemented as Godot `Control` nodes on a `CanvasLayer`. No 3D world-space UI elements. The interface is divided into four zones: **Status Bar** (top), **Side Panel** (right), **Dock** (bottom — a floating command bar), and **Notification Layer** (overlay).
 
 ## Stockpile Display Readouts
 
@@ -21,29 +21,73 @@ The top status bar shows live colony resource counters.
 - A counter flashes **red** for 2 seconds if the quantity drops to zero.
 - A counter flashes **green** for 1 second when a batch of goods is received (trade delivery).
 
-## Build / Designation Menus
+## Floating Dock (Bottom Command Bar)
 
-The bottom build bar contains tabbed categories:
+The bottom zone is a **floating dock** — a centered, rounded, semi-transparent bar
+(macOS-dark-mode style) that sits above the 3D viewport on the `CanvasLayer`. It is the
+single bottom UI surface and **replaces** the older tabbed build bar. Icons are **emoji
+glyphs** rather than an authored texture atlas.
 
-| Tab | Contents |
+### Data-Driven Layout
+
+Dock order, icons, and action bindings live in `data/ui/dock.json` and are loaded by the
+`UIRegistry` autoload (Registry Pattern — no other script reads the file directly). The
+data file's scope is **layout only**: order, emoji, label, tooltip, and an action *id*.
+The action *logic* lives in GDScript — the dock node maps each `action` string to a handler
+via a dispatch table — per the JSON-vs-GDScript rule (*JSON = what things are, GDScript =
+what things do*). Buildable-entry catalogs (costs, `action_type`, `requires_floor`) are a
+separate concern and are **not** part of `dock.json`. When those catalogs are specced they
+will be JSON loaded by their owning registry, never `.tres` Resources (see AGENT.md).
+
+```json
+{
+  "items": [
+    { "id": "mine",  "emoji": "⛏️", "label": "Mine",  "action": "open_panel",    "target": "mine" },
+    { "type": "separator" },
+    { "id": "labor", "emoji": "👷", "label": "Labor", "action": "toggle_window", "target": "labor" }
+  ]
+}
+```
+
+`UIRegistry.get_dock_items()` returns the ordered, validated list. Separator entries are
+`{ "type": "separator" }`; button entries carry `id`, `emoji`, `label`, `tooltip`,
+`action`, and `target`. Malformed entries are skipped with a warning at load.
+
+### Action Types
+
+| `action` | Effect |
+|---|---|
+| `open_panel` | Opens a build/designation panel above the dock. Panels are **mutually exclusive** — opening one closes any other. `target` names the panel. |
+| `toggle_window` | Toggles a movable floating window (labor, stockpiles, trade). `target` names the window. |
+
+### Default Items
+
+| Order | Emoji         | Label      | Action          | Target       |
+| ----- | ------------- | ---------- | --------------- | ------------ |
+| 1     | ⛏️            | Mine       | `open_panel`    | `mine`       |
+| 2     | 🧱            | Build      | `open_panel`    | `build`      |
+| 3     | 🌾            | Farm       | `open_panel`    | `farm`       |
+| 4     | ⚔️            | Military   | `open_panel`    | `military`   |
+| —     | *(separator)* |            |                 |              |
+| 5     | 👷            | Labor      | `toggle_window` | `labor`      |
+| 6     | 📦            | Stockpiles | `toggle_window` | `stockpiles` |
+| 7     | 💰            | Trade      | `toggle_window` | `trade`      |
+
+### Panels (opened by `open_panel`)
+
+| Panel | Contents |
 |---|---|
 | Mine | Designate mining zones, clear rubble, channel floors |
 | Build | Place workshops, doors, furniture, stockpile zones |
 | Farm | Designate soil plots, assign crops |
 | Military | Set patrol routes, guard posts (future) |
 
-### Menu Item Entry Format
+### Emoji Rendering Requirement
 
-Each buildable entry is a `BuildEntry` resource:
-
-```gdscript
-class_name BuildEntry extends Resource
-@export var display_name: String
-@export var icon: Texture2D
-@export var cost: Dictionary          # { "base:resources:wood:pine_log": 4 }
-@export var action_type: StringName   # &"mine", &"place_block", &"designate_farm"
-@export var requires_floor: bool      # must have solid floor below
-```
+Emoji icons require an **emoji-capable fallback font** in the project theme (e.g. Noto
+Color Emoji). Godot's default theme font does not render emoji. Godot 4 supports
+color-glyph fonts (COLR/CPAL, CBDT/CBLC, sbix) once one is loaded. Verify with a small
+smoke test (a `Label` reading `⛏️🌾⚔️` on a `CanvasLayer`) before building the full dock.
 
 ## Stockpile Zone System
 

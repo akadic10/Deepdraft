@@ -21,6 +21,7 @@ BlockRegistry="*uid://darckb4wfswr6"
 WorldClock="*uid://cntlqitntp144"
 WorldData="*uid://cbq0ixpilwd48"
 WorldGenerator="*uid://bl38ocrtbuj8s"
+UIRegistry="*res://scripts/registries/UIRegistry.gd"
 
 [display]
 

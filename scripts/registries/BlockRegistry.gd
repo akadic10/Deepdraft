@@ -1,8 +1,9 @@
 extends Node
 
 # ── File paths ────────────────────────────────────────────────────────────────
-const BLOCKS_PATH   := "res://data/terrain/terrain_blocks.json"
-const PALETTES_PATH := "res://data/terrain/surface_palettes.json"
+const BLOCKS_PATH    := "res://data/terrain/terrain_blocks.json"
+const PALETTES_PATH  := "res://data/terrain/surface_palettes.json"
+const RESOURCES_PATH := "res://data/terrain/block_resources.json"
 
 # ── Internal tables ───────────────────────────────────────────────────────────
 # Keys with "__" prefix in the JSON are documentation comments — always skipped.
@@ -14,6 +15,7 @@ var _key_to_id:        Dictionary = {}   # StringName  →  int
 var _id_to_key:        Array      = []   # int         →  StringName
 var _id_to_def:        Array      = []   # int         →  Dictionary (full block def)
 var _surface_palettes: Dictionary = {}   # variant_suffix  →  { season: Color }
+var _resource_defs:    Dictionary = {}
 
 ## Runtime ID of "base:terrain:void" — the zero/air value used everywhere.
 ## Set after _load_blocks() completes.
@@ -23,6 +25,7 @@ var AIR_ID: int = 0
 func _ready() -> void:
 	_load_blocks()
 	_load_palettes()
+	_load_resource_defs()
 	AIR_ID = get_id(&"base:terrain:void")
 	print("BlockRegistry: loaded %d block types." % _id_to_key.size())
 
@@ -95,6 +98,33 @@ func _load_palettes() -> void:
 		_surface_palettes[variant] = color_map
 
 
+func _load_resource_defs() -> void:
+	var file := FileAccess.open(RESOURCES_PATH, FileAccess.READ)
+	if file == null:
+		push_warning("BlockRegistry: cannot open %s - resource metadata unavailable." % RESOURCES_PATH)
+		return
+
+	var json := JSON.new()
+	var err  := json.parse(file.get_as_text())
+	file.close()
+
+	if err != OK:
+		push_error("BlockRegistry: JSON parse error in %s - %s" % [RESOURCES_PATH, json.get_error_message()])
+		return
+
+	var root: Dictionary = json.data
+	_resource_defs.clear()
+	for raw_key: String in root:
+		if raw_key.begins_with("__"):
+			continue
+
+		var def = root[raw_key]
+		if typeof(def) != TYPE_DICTIONARY:
+			continue
+
+		_resource_defs[StringName(raw_key)] = def
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 ## Returns the runtime integer ID for a namespaced block key.
@@ -118,6 +148,12 @@ func get_def(key: StringName) -> Dictionary:
 	if id < 0:
 		return {}
 	return _id_to_def[id]
+
+
+## Returns mining/generation metadata for a block key from block_resources.json.
+## Returns {} if the key has no resource definition.
+func get_resource_def(key: StringName) -> Dictionary:
+	return _resource_defs.get(key, {})
 
 
 ## Returns true if the block is physically solid (not void, not water).

@@ -58,32 +58,44 @@ Blocks are declared inside a structured data file using a nested **Namespaced St
 *   **Session-Local IDs**: Integer IDs (`0`, `1`, `2`) are strictly temporary and runtime-only.
 
 ### Registry JSON Format (`res://data/terrain/terrain_blocks.json`)
+
+Keys use the `base:terrain:` namespace. Each definition carries `kind`, `hex_color`, and `hardness`. The file has a single top-level `block_types` object (41 active blocks: `void`, `bedrock`, `rock:rock01`–`rock11`, `surface:grass_01`–`08`, `surface:dirt_01`–`04`, `soil:cave/light/dark`, `ore:*`, `gem:*`, `water:source`).
+
 ```json
 {
   "block_types": {
-    "dwarf:air": {
-      "kind": "air",
-      "hex_color": "#00000000"
+    "base:terrain:void": {
+      "kind": "void",
+      "hex_color": "#00000000",
+      "hardness": 0
     },
-    "dwarf:bedrock": {
+    "base:terrain:bedrock": {
       "kind": "bedrock",
-      "hex_color": "#111116"
+      "hex_color": "#111116",
+      "hardness": -1
     },
-    "dwarf:stone_layer_1": {
+    "base:terrain:rock:rock06": {
       "kind": "rock",
-      "hex_color": "#4b5358"
+      "hex_color": "#424F5A",
+      "hardness": 3
     },
-    "dwarf:ore_gold": {
-      "kind": "gold",
-      "hex_color": "#ffd700",
-      "drops_item_entity": "res://scenes/entities/items/gold_nugget.tscn"
+    "base:terrain:ore:iron": {
+      "kind": "iron_ore",
+      "hex_color": "#7A5C45",
+      "hardness": 4
+    },
+    "base:terrain:surface:grass_03": {
+      "kind": "grass",
+      "hex_color": "#94B873",
+      "hardness": 1
     }
-  },
-  "selectable_kinds": {
-    "gold": "dwarf:ui:blocks:gold_vein_panel"
   }
 }
 ```
+
+> **Surface colours are seasonal.** For `surface:grass_*` and `surface:dirt_*` blocks, `BlockRegistry.get_color()` reads `data/terrain/surface_palettes.json` (per-season tint) and only falls back to `hex_color` if no palette entry exists. All other kinds use `hex_color` directly.
+>
+> **Item drops** are no longer declared inline on the block (there is no `drops_item_entity` / `selectable_kinds` field). What a mined block yields is defined separately in `data/terrain/block_resources.json` and `data/entities/items/resources.json`.
 
 ### Save File Serialization
 *   When saving a game state, the grid matrix translates runtime integers back into their permanent namespaced text strings. Save configurations remain forward and backward compatible.
@@ -99,8 +111,8 @@ To achieve maximum performance over a 134-million-voxel grid, the game cleanly d
 *   The chunk rendering script reads the `hex_color` code from the JSON registry and applies it instantly to the cube vertices via a fast vertex-color color map. No complex textures or high-density voxel files are processed inside solid terrain walls.
 
 ### 2. Micro-Voxel Floating Items
-*   The moment a dwarf mines an ore or stone block, that grid position is overwritten to `dwarf:air`.
-*   The engine reads the `"drops_item_entity"` flag and instantly spawns a floating 3D item entity scene (`.tscn`) at those coordinates. 
+*   The moment a dwarf mines an ore or stone block, that grid position is overwritten to `base:terrain:void`.
+*   The engine looks up the block's drop entry (in `block_resources.json`) and instantly spawns a floating 3D item entity scene (`.tscn`) at those coordinates. 
 *   These standalone item drops host the high-density micro-voxel `.glb` model files imported from MagicaVoxel, allowing loose cargo on the floor to look beautifully detailed without lagging the engine environment.
 
 ### 3. Entity Space Clearance Rules

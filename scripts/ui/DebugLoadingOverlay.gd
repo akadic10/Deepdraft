@@ -3,14 +3,20 @@ extends CanvasLayer
 
 @export var renderer_path: NodePath
 
+var _panel: PanelContainer
+var _title_bar: PanelContainer
 var _label: Label
 var _renderer: Node
+var _world_generator: Node
 var _elapsed: float = 0.0
+var _dragging: bool = false
 
 
 func _ready() -> void:
 	_renderer = get_node_or_null(renderer_path)
+	_world_generator = get_node_or_null("/root/WorldGenerator")
 	_build_ui()
+	visible = false
 
 
 func _process(delta: float) -> void:
@@ -22,17 +28,76 @@ func _process(delta: float) -> void:
 
 
 func _build_ui() -> void:
-	var panel := PanelContainer.new()
-	panel.name = "Panel"
-	panel.offset_left = 16.0
-	panel.offset_top = 16.0
-	panel.custom_minimum_size = Vector2(520.0, 0.0)
-	add_child(panel)
+	_panel = PanelContainer.new()
+	_panel.name = "Panel"
+	_panel.position = Vector2(16.0, 16.0)
+	_panel.custom_minimum_size = Vector2(540.0, 0.0)
+	_panel.add_theme_stylebox_override("panel", _window_style())
+	add_child(_panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 1)
+	margin.add_theme_constant_override("margin_right", 1)
+	margin.add_theme_constant_override("margin_top", 1)
+	margin.add_theme_constant_override("margin_bottom", 1)
+	_panel.add_child(margin)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 0)
+	margin.add_child(column)
+
+	_title_bar = PanelContainer.new()
+	_title_bar.name = "TitleBar"
+	_title_bar.custom_minimum_size = Vector2(0.0, 34.0)
+	_title_bar.mouse_default_cursor_shape = Control.CURSOR_MOVE
+	_title_bar.add_theme_stylebox_override("panel", _title_bar_style())
+	_title_bar.gui_input.connect(_on_title_bar_gui_input)
+	column.add_child(_title_bar)
+
+	var title_margin := MarginContainer.new()
+	title_margin.add_theme_constant_override("margin_left", 10)
+	title_margin.add_theme_constant_override("margin_right", 8)
+	title_margin.add_theme_constant_override("margin_top", 4)
+	title_margin.add_theme_constant_override("margin_bottom", 4)
+	_title_bar.add_child(title_margin)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	title_margin.add_child(header)
+
+	var title := Label.new()
+	title.text = "World Build"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 15)
+	header.add_child(title)
+
+	var close := Button.new()
+	close.name = "CloseButton"
+	close.text = "X"
+	close.custom_minimum_size = Vector2(28.0, 24.0)
+	close.focus_mode = Control.FOCUS_NONE
+	close.tooltip_text = "Close"
+	close.add_theme_font_size_override("font_size", 13)
+	close.add_theme_stylebox_override("normal", _close_button_style(Color(0.58, 0.08, 0.08, 0.95)))
+	close.add_theme_stylebox_override("hover", _close_button_style(Color(0.78, 0.10, 0.10, 1.0)))
+	close.add_theme_stylebox_override("pressed", _close_button_style(Color(0.42, 0.04, 0.04, 1.0)))
+	close.pressed.connect(func() -> void:
+		visible = false
+	)
+	header.add_child(close)
+
+	var body_margin := MarginContainer.new()
+	body_margin.add_theme_constant_override("margin_left", 10)
+	body_margin.add_theme_constant_override("margin_right", 10)
+	body_margin.add_theme_constant_override("margin_top", 8)
+	body_margin.add_theme_constant_override("margin_bottom", 10)
+	column.add_child(body_margin)
 
 	_label = Label.new()
 	_label.name = "Stats"
 	_label.add_theme_font_size_override("font_size", 15)
-	panel.add_child(_label)
+	body_margin.add_child(_label)
 	_update_text()
 
 
@@ -40,8 +105,11 @@ func _update_text() -> void:
 	if _label == null:
 		return
 
-	var gen := WorldGenerator.get_streaming_stats()
-	var metrics := WorldGenerator.get_generation_metrics()
+	var gen := {}
+	var metrics := {}
+	if _world_generator != null:
+		gen = _world_generator.call("get_streaming_stats")
+		metrics = _world_generator.call("get_generation_metrics")
 	var render := {}
 	if _renderer != null and _renderer.has_method("get_render_stats"):
 		render = _renderer.call("get_render_stats")
@@ -62,7 +130,6 @@ func _update_text() -> void:
 	var candidates: Dictionary = metrics.get("settlement_candidates", {})
 
 	_label.text = "\n".join([
-		"World build",
 		"render: %s" % render_mode,
 		"overview: step %d  sides %s" % [
 			render.get("overview_step", 0),
@@ -132,3 +199,53 @@ func _update_text() -> void:
 			render.get("meshes_built", 0),
 		],
 	])
+
+
+func _on_title_bar_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse := event as InputEventMouseButton
+		if mouse.button_index == MOUSE_BUTTON_LEFT:
+			_dragging = mouse.pressed
+	elif event is InputEventMouseMotion and _dragging:
+		var motion := event as InputEventMouseMotion
+		_panel.position += motion.relative
+
+
+func _window_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.070, 0.075, 0.080, 0.92)
+	style.border_color = Color(1, 1, 1, 0.16)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 7
+	style.corner_radius_top_right = 7
+	style.corner_radius_bottom_left = 7
+	style.corner_radius_bottom_right = 7
+	return style
+
+
+func _title_bar_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.13, 0.14, 0.98)
+	style.corner_radius_top_left = 7
+	style.corner_radius_top_right = 7
+	return style
+
+
+func _close_button_style(bg: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = Color(1.0, 0.45, 0.45, 0.50)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 5
+	style.corner_radius_top_right = 5
+	style.corner_radius_bottom_left = 5
+	style.corner_radius_bottom_right = 5
+	style.content_margin_left = 6.0
+	style.content_margin_right = 6.0
+	return style

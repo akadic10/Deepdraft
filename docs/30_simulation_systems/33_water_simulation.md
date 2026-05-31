@@ -18,11 +18,13 @@ These constraints were locked in after deliberate design discussion and must not
 
 Two permanent lake bodies are carved and filled during world generation (see `43_mining_materials.md` — Phases 3–4):
 
-**Lowland Lake** — A circular basin (~40 block radius) at the centroid of the lowland zone, filled to the fixed waterline at Y 26. Every block in `lake_columns` below Y 26 is initialized as a water source block at `mass = 1.0`. This is the largest water body on the map and the primary source for irrigation and brewing.
+**Lowland Lake** — Built from whole 32×32 macro cells in the lowland band (not a circular bowl), with at least one full cell touching the south map edge. Floor sits at Y 11; water fills **Y 12 through Y 18** (`LAKE_WATERLINE = 18`). Every block in `lake_columns` at or below the waterline is a water source block (`mass = 1.0` once the CA is implemented). This is the largest water body on the map and the primary source for irrigation and brewing.
 
-**Mountain Tarn** — A smaller circular basin (~15 block radius) carved at the mountain/valley border centroid, at a naturally higher elevation. Every block in `tarn_columns` below the tarn's local waterline is initialized as a water source block. Because the tarn sits above the lowland lake, a dwarf who digs a channel between them will cause water to flow downhill under the CA rules — producing functional river-like behaviour emergently, without a simulated river.
+**Mountain Tarn** — A single 32×32 macro-cell body placed on **mountain shelf 1** at a naturally higher elevation. It requires a full 3×3 macro footprint: the water cell in the center, surrounded on all eight sides by mountain shelf 1 or mountain shelf 2 cells. Fixed geometry: floor Y 47, water fills **Y 48 through Y 54** (`TARN_WATERLINE = 54`). It has no surrounding restore pass or plateau ring; invalid placements are skipped rather than repaired. Because the tarn sits well above the lowland lake, a dwarf who digs a channel between them will cause water to flow downhill under the CA rules — producing functional river-like behaviour emergently, without a simulated river.
 
 Source blocks are permanent — they are never consumed by flow and will sustain any channel a dwarf connects to them. Neither body grows, overflows, or changes unless a dwarf digs into it.
+
+> **Implementation status:** Worldgen already places the water **source blocks** for both bodies (see `43_mining_materials.md` Phase 3). The CA tick loop, mass model, and dirty-flag frontier described below are **not yet implemented** — this section is the design spec for that work.
 
 ---
 

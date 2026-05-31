@@ -17,9 +17,9 @@ CameraRig (Node3D)          ← panning pivot, moves in XZ plane
 
 | Parameter | Value | Notes |
 |---|---|---|
-| Pan speed | 20 units/s (keyboard), drag-speed from edge-scroll | Scales with zoom distance |
-| Zoom range | 10–340 units | Min/max spring length |
-| Pitch clamp | 5°–80° above horizon | Prevents gimbal flip and under-ground views |
+| Pan speed | 36 units/s (keyboard), ×3.5 with shift | Scales with zoom distance |
+| Zoom range | 50–340 units (default 110) | Min/max spring length |
+| Pitch clamp | −5° to −80° (look-down) | Stored as negative degrees; −5° ≈ shallow, −80° ≈ steep. Prevents gimbal flip and under-ground views |
 | Orbit | Middle-mouse drag | Horizontal only by default |
 | Edge scroll | Screen-edge mouse | Optional; toggle in settings |
 

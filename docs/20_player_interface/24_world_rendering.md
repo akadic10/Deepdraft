@@ -101,4 +101,40 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
 
 ---
 
+## Terrain Render Modes
+
+> Migrated from `00_dev_roadmap/01_world_gen_plan.md`. The renderer may simplify geometry, but
+> it must simplify **exposed block faces** — never invent a painted surface that disagrees with
+> the generated blocks. `WorldRenderer` implements the first two modes today.
+
+### Accepted modes
+
+1. **Near streamed chunk mesh.** Built from generated chunks (`ChunkMesher`); emits real exposed
+   block faces. Used for inspection, mining, selection, and close review.
+2. **Block-face overview mesh.** For high-altitude / zoomed-out surface views. Uses deterministic
+   generated column data; emits top faces plus vertical faces at sampled height drops; greedily
+   merges same-material, same-plane faces; labels itself as an approximation in the debug UI.
+3. **World-edge presentation slab** *(future — Second Milestone).* Large, calm boundary panels —
+   not a per-block noisy side dump, and must not contradict the visible playable surface blocks.
+
+### Rejected modes
+
+Never use these as the main validation view: a top-only painted heightmap; fake grass/dirt/rock
+side bands; screen-space or fog-dependent material choices; one vertical wall stripe per terrain
+sample at the world boundary.
+
+## Debug Overlay & Block Inspector
+
+The debug overlay (`DebugLoadingOverlay`) exposes generation/render state: map readiness, active
+render mode, overview step, overview sampled/merged face counts, overview validation mismatch
+count, domain percentages, surface material percentages, height min/max/average, water-body
+stats, settlement-candidate count, generated column count, and mesh count / queue count.
+
+The block inspector reports, per hovered block: render mode, hit source, face direction, hit
+block key, **generated block key**, agreement (yes/no), coordinate, domain, surface Y, visible
+top Y, water/bank flags, kind, and colour. The agreement check is the core validation that the
+overview/inspector and the generated blocks never disagree.
+
+---
+
 *Prev: [23_user_interface.md](./23_user_interface.md)*
