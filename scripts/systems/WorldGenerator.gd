@@ -530,6 +530,22 @@ func get_visible_surface_y(wx: int, wz: int) -> int:
 	return heightmap[wx * WORLD_SIZE_Z + wz]
 
 
+## Visible surface height for the overview's neighbor/side math, returning -1
+## when the visible surface is non-solid (water) so callers can treat it as a
+## map edge - matching the transparency result of get_generated_block_id without
+## generating the (discarded) surface block. Water is the only transparent
+## surface skin, so the lake/tarn check is equivalent. O(1), thread-safe.
+func get_overview_surface_height(wx: int, wz: int) -> int:
+	if not _maps_ready:
+		return -1
+	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
+		return -1
+	var col := Vector2i(wx, wz)
+	if lake_columns.has(col) or tarn_columns.has(col):
+		return -1
+	return heightmap[wx * WORLD_SIZE_Z + wz]
+
+
 func get_visible_surface_block_id(wx: int, wz: int) -> int:
 	if not _maps_ready:
 		return BlockRegistry.AIR_ID
@@ -613,6 +629,20 @@ func get_generated_block_id(wx: int, wy: int, wz: int) -> int:
 	if wx < 0 or wx >= WORLD_SIZE_X or wy < 0 or wy >= WORLD_SIZE_Y or wz < 0 or wz >= WORLD_SIZE_Z:
 		return BlockRegistry.AIR_ID
 	return _generate_block_id(wx, wy, wz)
+
+
+## Strata block id without ore/gem/soil veins or cave voids. Same authored rock
+## the full generator would place, minus the 3D-noise detail. Used by the
+## block-face overview for cliff-side coloring, where that detail is invisible
+## but its noise sampling dominates the build cost. Thread-safe (reads only the
+## immutable maps + noise; no member writes), so it is safe to call from a
+## WorkerThreadPool task.
+func get_overview_strata_block_id(wx: int, wy: int, wz: int) -> int:
+	if not _maps_ready:
+		return BlockRegistry.AIR_ID
+	if wx < 0 or wx >= WORLD_SIZE_X or wy < 0 or wy >= WORLD_SIZE_Y or wz < 0 or wz >= WORLD_SIZE_Z:
+		return BlockRegistry.AIR_ID
+	return _generate_block_id(wx, wy, wz, false)
 
 
 # -- ID cache (main thread) ----------------------------------------------------
@@ -2866,7 +2896,12 @@ func _column_chunk_max_y(cx: int, cz: int) -> int:
 	return max_y
 
 
-func _generate_block_id(x: int, y: int, z: int) -> int:
+# apply_resource_detail: when false, the authored strata rock is returned
+# without ore/gem/soil vein replacement and without cave voids. The block-face
+# overview uses this for cliff-side coloring, where the 3D resource/cave noise
+# is invisible at navigation zoom but dominates the per-column cost. Real chunk
+# generation always passes true.
+func _generate_block_id(x: int, y: int, z: int, apply_resource_detail: bool = true) -> int:
 	var col    := Vector2i(x, z)
 	var surf_y := heightmap[x * WORLD_SIZE_Z + z]
 
@@ -2876,7 +2911,7 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 
 	# Stable foundation layer above bedrock.
 	if y > BEDROCK_MAX_Y and y <= FOUNDATION_ROCK_MAX_Y:
-		return _apply_resource_veins(x, y, z, surf_y, _id_rock11)
+		return _apply_resource_veins(x, y, z, surf_y, _id_rock11) if apply_resource_detail else _id_rock11
 
 	# Above surface
 	if y > surf_y:
@@ -2888,23 +2923,23 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 
 	if _is_lowland_shelf_column(x, z) and y >= LOWLAND_SHELF_MIN_Y and y <= LOWLAND_SHELF_MAX_Y:
 		var lowland_block := _lowland_shelf_block_id(x, z, y)
-		return _apply_resource_veins(x, y, z, surf_y, lowland_block)
+		return _apply_resource_veins(x, y, z, surf_y, lowland_block) if apply_resource_detail else lowland_block
 
 	if _is_foothill_shelf_column(x, z) and y >= LOWLAND_SHELF_MIN_Y and y < _foothill_shelf_start_for_column(x, z):
 		var foothill_body_block := _foothill_body_rock_id(y)
-		return _apply_resource_veins(x, y, z, surf_y, foothill_body_block)
+		return _apply_resource_veins(x, y, z, surf_y, foothill_body_block) if apply_resource_detail else foothill_body_block
 
 	if _is_foothill_shelf_column(x, z) and y >= FOOTHILL_SHELF_MIN_Y and y <= FOOTHILL_SHELF_MAX_Y:
 		var foothill_shelf_block := _foothill_shelf_block_id(x, z, y)
-		return _apply_resource_veins(x, y, z, surf_y, foothill_shelf_block)
+		return _apply_resource_veins(x, y, z, surf_y, foothill_shelf_block) if apply_resource_detail else foothill_shelf_block
 
 	if _is_mountain_shelf_column(x, z) and y >= LOWLAND_SHELF_MIN_Y and y < MOUNTAIN_MIN:
 		var mountain_body_block := _altitude_rock_body_id(y)
-		return _apply_resource_veins(x, y, z, surf_y, mountain_body_block)
+		return _apply_resource_veins(x, y, z, surf_y, mountain_body_block) if apply_resource_detail else mountain_body_block
 
 	if _is_mountain_shelf_column(x, z) and y >= MOUNTAIN_MIN and y <= MOUNTAIN_MAX:
 		var mountain_shelf_block := _mountain_shelf_block_id(y)
-		return _apply_resource_veins(x, y, z, surf_y, mountain_shelf_block)
+		return _apply_resource_veins(x, y, z, surf_y, mountain_shelf_block) if apply_resource_detail else mountain_shelf_block
 
 	# Surface skin
 	if y == surf_y:
@@ -2915,7 +2950,8 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 	# affect the result, and return as early as possible.
 
 	# Cave void - only possible deeper than 5 blocks below the surface.
-	if y < surf_y - 5:
+	# Skipped without resource detail (overview side faces don't show caves).
+	if apply_resource_detail and y < surf_y - 5:
 		var n_cave := (noise_cave.get_noise_3d(x, y, z) + 1.0) * 0.5
 		if n_cave > 0.65:
 			return _id_void
@@ -2923,7 +2959,7 @@ func _generate_block_id(x: int, y: int, z: int) -> int:
 	# Fallback for columns outside authored strata ranges. Current worldgen
 	# should rarely reach this; keep it on the active rock ladder if it does.
 	var fallback_rock := _fallback_rock_id(y)
-	return _apply_resource_veins(x, y, z, surf_y, fallback_rock)
+	return _apply_resource_veins(x, y, z, surf_y, fallback_rock) if apply_resource_detail else fallback_rock
 
 
 func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:

@@ -47,6 +47,16 @@ extends Node3D
 @export_range(0, 128, 1) var overview_edge_bottom_y: int = 0
 @export_range(1, 64, 1) var overview_tiles_per_frame: int = 8
 @export_range(0, 32, 1) var overview_startup_radius_tiles: int = 5
+## Debug only. When true, each overview column re-runs the full generation
+## pipeline (get_generated_block_id) to cross-check the cached surface block.
+## This doubles per-column generation cost across the whole world, so it stays
+## off in normal runs. Validation has held at 0 mismatches / 1,048,576 columns.
+@export var overview_validate_block_ids: bool = false
+## Debug only. When true, _rebuild_overview_tile accumulates per-section timing
+## (surface loop, side build, top merge, mesh creation) and prints the breakdown
+## plus the single slowest tile when the full overview completes.
+## TEMPORARILY DEFAULTED TRUE for profiling - set back to false once measured.
+@export var overview_profile: bool = true
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -60,6 +70,10 @@ const WORLD_SIZE_Z: int = 1024
 const REGION_SIZE: int = 4
 const OVERVIEW_STEP: int = 1
 const OVERVIEW_TILE_SIZE: int = 32
+## Vertical sampling stride for cliff-side coloring. The side walk samples one
+## block in this many to find color bands; at navigation zoom per-block vertical
+## banding is not resolvable, so >1 cuts side-face generation calls proportionally.
+const OVERVIEW_SIDE_COLOR_STEP: int = 4
 
 var _material: StandardMaterial3D
 var _overview_node: MeshInstance3D = null
@@ -77,6 +91,15 @@ var _dirty_overview_tiles: Array[Vector2i] = []
 var _dirty_overview_tile_set: Dictionary = {}
 var _overview_tile_side_faces_working: int = 0
 var _visual_cut_blocks: Dictionary = {}
+# Per-section profiling accumulators (usec), only written when overview_profile.
+var _ovp_loop_usec: int = 0
+var _ovp_sides_usec: int = 0
+var _ovp_merge_usec: int = 0
+var _ovp_mesh_usec: int = 0
+var _ovp_tiles: int = 0
+var _ovp_max_tile_usec: int = 0
+var _ovp_max_tile_key: Vector2i = Vector2i(-1, -1)
+var _ovp_max_breakdown: Dictionary = {}
 var _region_nodes: Dictionary = {}
 var _chunk_nodes: Dictionary = {}   # Vector3i → MeshInstance3D
 
@@ -897,12 +920,14 @@ func _add_overview_side_column(
 	var run_bottom := float(y0)
 	var run_color := _overview_side_color_at(sample_x, y0, sample_z, top_y, top_color)
 
-	for y in range(y0 + 1, y1):
+	var y := y0 + 1
+	while y < y1:
 		var color := _overview_side_color_at(sample_x, y, sample_z, top_y, top_color)
 		if color != run_color:
 			_add_overview_side_band(a, b, run_bottom, float(y), run_color, normal, verts, norms, cols, indices)
 			run_bottom = float(y)
 			run_color = color
+		y += OVERVIEW_SIDE_COLOR_STEP
 
 	_add_overview_side_band(a, b, run_bottom, top_y, run_color, normal, verts, norms, cols, indices)
 
@@ -910,7 +935,10 @@ func _add_overview_side_column(
 func _overview_side_color_at(sample_x: int, y: int, sample_z: int, top_y: float, top_color: Color) -> Color:
 	if y >= int(top_y) - 1:
 		return top_color
-	var block_id := WorldGenerator.get_generated_block_id(sample_x, y, sample_z)
+	# Strata-only lookup: cliff faces show authored rock by altitude, not ore
+	# veins or caves (invisible at overview zoom), which avoids the dominant
+	# per-Y 3D-noise cost of the full generation pipeline.
+	var block_id := WorldGenerator.get_overview_strata_block_id(sample_x, y, sample_z)
 	if BlockRegistry.is_transparent(block_id):
 		return _overview_rock_color
 	return BlockRegistry.get_color(block_id, WorldClock.season)
@@ -1009,6 +1037,14 @@ func _invalidate_overview_global() -> void:
 	_overview_side_faces = 0
 	_overview_validation_samples = 0
 	_overview_validation_mismatches = 0
+	_ovp_loop_usec = 0
+	_ovp_sides_usec = 0
+	_ovp_merge_usec = 0
+	_ovp_mesh_usec = 0
+	_ovp_tiles = 0
+	_ovp_max_tile_usec = 0
+	_ovp_max_tile_key = Vector2i(-1, -1)
+	_ovp_max_breakdown = {}
 	_overview_startup_tile_goal = 0
 	_overview_startup_center = Vector2i(-1, -1)
 	_overview_startup_ready_msec = 0
@@ -1146,6 +1182,21 @@ func _update_block_face_overview() -> void:
 			_overview_validation_samples,
 			_elapsed_since_start_seconds(_overview_complete_msec),
 		])
+		if overview_profile and _ovp_tiles > 0:
+			var total_us := _ovp_loop_usec + _ovp_sides_usec + _ovp_merge_usec + _ovp_mesh_usec
+			print("WorldRenderer: overview build profile over %d tiles (CPU %.2f s): surface_loop %.2f s (%.0f%%), sides %.2f s (%.0f%%), top_merge %.2f s (%.0f%%), mesh_create %.2f s (%.0f%%)." % [
+				_ovp_tiles,
+				float(total_us) / 1e6,
+				float(_ovp_loop_usec) / 1e6, 100.0 * float(_ovp_loop_usec) / float(maxi(total_us, 1)),
+				float(_ovp_sides_usec) / 1e6, 100.0 * float(_ovp_sides_usec) / float(maxi(total_us, 1)),
+				float(_ovp_merge_usec) / 1e6, 100.0 * float(_ovp_merge_usec) / float(maxi(total_us, 1)),
+				float(_ovp_mesh_usec) / 1e6, 100.0 * float(_ovp_mesh_usec) / float(maxi(total_us, 1)),
+			])
+			print("WorldRenderer: slowest overview tile %s at %.1f ms -> %s" % [
+				str(_ovp_max_tile_key),
+				float(_ovp_max_tile_usec) / 1000.0,
+				str(_ovp_max_breakdown),
+			])
 		_print_startup_performance_report()
 	else:
 		_overview_built = true
@@ -1233,6 +1284,11 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 	var sampled_top_faces := 0
 	var validation_samples := 0
 	var validation_mismatches := 0
+	var prof := overview_profile
+	var t_sides_usec := 0
+	var t_loop_usec := 0
+	var t_merge_usec := 0
+	var t_loop0 := Time.get_ticks_usec() if prof else 0
 	for wx in range(x0, x1, step):
 		for wz in range(z0, z1, step):
 			var surface := _overview_visible_surface_after_cut(wx, wz)
@@ -1240,10 +1296,14 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 				continue
 			var wy: int = surface["wy"]
 			var block_id: int = surface["block_id"]
-			var generated_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
-			validation_samples += 1
-			if generated_id != block_id:
-				validation_mismatches += 1
+			# Debug-only cross-check. The drawn color comes from block_id below;
+			# this second full generation pass is pure validation and is off by
+			# default (see overview_validate_block_ids).
+			if overview_validate_block_ids:
+				var generated_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
+				validation_samples += 1
+				if generated_id != block_id:
+					validation_mismatches += 1
 
 			var color := BlockRegistry.get_color(block_id, season)
 			var block_def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
@@ -1260,19 +1320,31 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 				"kind": block_kind,
 			}
 			if show_overview_sides:
-				_add_overview_sides(wx, wz, step, float(wy + 1), color, verts, norms, cols, indices)
+				if prof:
+					var s := Time.get_ticks_usec()
+					_add_overview_sides(wx, wz, step, float(wy + 1), color, verts, norms, cols, indices)
+					t_sides_usec += Time.get_ticks_usec() - s
+				else:
+					_add_overview_sides(wx, wz, step, float(wy + 1), color, verts, norms, cols, indices)
+
+	if prof:
+		t_loop_usec = (Time.get_ticks_usec() - t_loop0) - t_sides_usec
 
 	sampled_top_faces = sample_cells.size()
+	var t_merge0 := Time.get_ticks_usec() if prof else 0
 	var merged_before := _overview_merged_top_faces
 	_add_greedy_overview_tops(sample_cells, grid_w, grid_z, step, verts, norms, cols, indices)
 	var merged_top_faces := _overview_merged_top_faces - merged_before
 	_overview_merged_top_faces = merged_before
+	if prof:
+		t_merge_usec = Time.get_ticks_usec() - t_merge0
 
 	if verts.is_empty():
 		_free_overview_tile_node(tile_key)
 		_overview_tile_stats.erase(tile_key)
 		return
 
+	var t_mesh0 := Time.get_ticks_usec() if prof else 0
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
@@ -1286,6 +1358,24 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 	var mi := _get_or_create_overview_tile_node(tile_key)
 	mi.mesh = mesh
 	mi.visible = true
+	if prof:
+		var t_mesh_usec := Time.get_ticks_usec() - t_mesh0
+		_ovp_loop_usec += t_loop_usec
+		_ovp_sides_usec += t_sides_usec
+		_ovp_merge_usec += t_merge_usec
+		_ovp_mesh_usec += t_mesh_usec
+		_ovp_tiles += 1
+		var tile_total := t_loop_usec + t_sides_usec + t_merge_usec + t_mesh_usec
+		if tile_total > _ovp_max_tile_usec:
+			_ovp_max_tile_usec = tile_total
+			_ovp_max_tile_key = tile_key
+			_ovp_max_breakdown = {
+				"loop_us": t_loop_usec,
+				"sides_us": t_sides_usec,
+				"merge_us": t_merge_usec,
+				"mesh_us": t_mesh_usec,
+				"verts": verts.size(),
+			}
 	if _first_visible_mesh_msec == 0:
 		_first_visible_mesh_msec = Time.get_ticks_msec()
 		print("WorldRenderer: first visible overview tile after %.3f s at tile %s." % [
@@ -1496,10 +1586,17 @@ func _add_overview_sides(
 func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
 		return edge_y
-	var surface := _overview_visible_surface_after_cut(wx, wz)
-	if surface.is_empty():
+	# Height only - the side wall just needs the neighbor's top. Avoid the full
+	# get_generated_block_id surface generation that _overview_visible_surface_after_cut
+	# runs and discards here; it was ~4 wasted surface generations per column.
+	var wy := WorldGenerator.get_overview_surface_height(wx, wz)
+	if wy < 0 or wy > slice_y:
 		return edge_y
-	return float(int(surface["wy"]) + 1)
+	while wy >= 0 and _visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+		wy -= 1
+	if wy < 0:
+		return edge_y
+	return float(wy + 1)
 
 
 func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
