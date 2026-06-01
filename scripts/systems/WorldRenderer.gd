@@ -46,6 +46,7 @@ extends Node3D
 @export var show_overview_sides: bool = true
 @export_range(0, 128, 1) var overview_edge_bottom_y: int = 0
 @export_range(1, 64, 1) var overview_tiles_per_frame: int = 8
+@export_range(0, 32, 1) var overview_startup_radius_tiles: int = 5
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -87,6 +88,19 @@ var _dirty_set:   Dictionary      = {}   # Vector3i → true  (dedup guard)
 
 var _signals_received: int = 0
 var _meshes_built: int = 0
+var _startup_started_msec: int = 0
+var _first_visible_mesh_msec: int = 0
+var _region_rebuild_msec_total: int = 0
+var _region_rebuild_msec_max: int = 0
+var _region_rebuild_count: int = 0
+var _overview_build_msec_total: int = 0
+var _overview_build_msec_max: int = 0
+var _overview_build_count: int = 0
+var _overview_startup_tile_goal: int = 0
+var _overview_startup_center: Vector2i = Vector2i(-1, -1)
+var _overview_startup_ready_msec: int = 0
+var _overview_complete_msec: int = 0
+var _startup_report_printed: bool = false
 
 ## True until the world finishes generating AND the initial mesh queue drains.
 ## While true, _process builds at the faster meshes_per_frame_initial rate.
@@ -128,6 +142,7 @@ func _ready() -> void:
 	call_deferred("_setup_camera_rig")
 
 	if auto_generate:
+		_startup_started_msec = Time.get_ticks_msec()
 		WorldGenerator.generate(world_seed)
 		if not _block_face_overview_active():
 			_enqueue_visible_existing_chunks()
@@ -158,6 +173,7 @@ func _process(_delta: float) -> void:
 	if _initial_load and _dirty_region_queue.is_empty() and not WorldGenerator.is_generating():
 		_initial_load = false
 		print("WorldRenderer: initial load complete — %d meshes built." % _meshes_built)
+		_print_startup_performance_report()
 
 	if built > 0:
 		_meshes_built += built
@@ -681,6 +697,7 @@ func _region_should_exist(key: Vector2i) -> bool:
 
 
 func _rebuild_region(key: Vector2i) -> void:
+	var t_start := Time.get_ticks_msec()
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
 	var cols: PackedColorArray = []
@@ -716,6 +733,17 @@ func _rebuild_region(key: Vector2i) -> void:
 	region_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var mi := _get_or_create_region_node(key)
 	mi.mesh = region_mesh
+	if _first_visible_mesh_msec == 0:
+		_first_visible_mesh_msec = Time.get_ticks_msec()
+		print("WorldRenderer: first visible region mesh after %.3f s at region %s." % [
+			_elapsed_since_start_seconds(_first_visible_mesh_msec),
+			str(key),
+		])
+
+	var elapsed := Time.get_ticks_msec() - t_start
+	_region_rebuild_count += 1
+	_region_rebuild_msec_total += elapsed
+	_region_rebuild_msec_max = maxi(_region_rebuild_msec_max, elapsed)
 
 
 func _rebuild_surface_region(key: Vector2i) -> void:
@@ -975,6 +1003,10 @@ func _invalidate_overview_global() -> void:
 	_overview_side_faces = 0
 	_overview_validation_samples = 0
 	_overview_validation_mismatches = 0
+	_overview_startup_tile_goal = 0
+	_overview_startup_center = Vector2i(-1, -1)
+	_overview_startup_ready_msec = 0
+	_overview_complete_msec = 0
 	if _overview_node != null:
 		_overview_node.queue_free()
 		_overview_node = null
@@ -1065,11 +1097,21 @@ func _update_block_face_overview() -> void:
 	if not _overview_built and not _overview_rebuild_queued and _dirty_overview_tiles.is_empty():
 		_queue_full_overview_rebuild()
 	_drain_overview_tile_queue()
+	if _initial_load and _overview_startup_tile_goal > 0 and _overview_tile_nodes.size() >= _overview_startup_tile_goal:
+		_initial_load = false
+		_overview_startup_ready_msec = Time.get_ticks_msec()
+		print("WorldRenderer: startup overview radius ready (%d/%d tiles built, queue=%d)." % [
+			_overview_tile_nodes.size(),
+			_overview_startup_tile_goal,
+			_dirty_overview_tiles.size(),
+		])
+		_print_startup_performance_report()
 	if not _dirty_overview_tiles.is_empty():
 		return
 	if _overview_rebuild_queued:
 		_overview_rebuild_queued = false
 		_overview_built = true
+		_overview_complete_msec = Time.get_ticks_msec()
 		_initial_load = false
 		print("WorldRenderer: built block-face overview tiles (%d tiles, step=%d, tops %d->%d, sides %d, validation mismatches %d/%d)." % [
 			_overview_tile_nodes.size(),
@@ -1080,6 +1122,7 @@ func _update_block_face_overview() -> void:
 			_overview_validation_mismatches,
 			_overview_validation_samples,
 		])
+		_print_startup_performance_report()
 	else:
 		_overview_built = true
 
@@ -1088,10 +1131,46 @@ func _queue_full_overview_rebuild() -> void:
 	_invalidate_overview_global()
 	var tile_count_x := ceili(float(WORLD_SIZE_X) / float(OVERVIEW_TILE_SIZE))
 	var tile_count_z := ceili(float(WORLD_SIZE_Z) / float(OVERVIEW_TILE_SIZE))
-	for tx in range(tile_count_x):
-		for tz in range(tile_count_z):
-			_enqueue_overview_tile(Vector2i(tx, tz))
+	var center := _overview_startup_center_tile(tile_count_x, tile_count_z)
+	_overview_startup_center = center
+	for key in _overview_tiles_center_first(center, tile_count_x, tile_count_z):
+		_enqueue_overview_tile(key)
+		if _overview_startup_tile_goal == 0 and _overview_tile_distance(key, center) > overview_startup_radius_tiles:
+			_overview_startup_tile_goal = _dirty_overview_tiles.size() - 1
+	if _overview_startup_tile_goal == 0:
+		_overview_startup_tile_goal = _dirty_overview_tiles.size()
 	_overview_rebuild_queued = true
+
+
+func _overview_startup_center_tile(tile_count_x: int, tile_count_z: int) -> Vector2i:
+	if _camera_rig == null:
+		_camera_rig = _find_camera(get_tree().current_scene)
+	if _camera_rig == null:
+		return Vector2i(floori(float(tile_count_x) * 0.5), floori(float(tile_count_z) * 0.5))
+	return Vector2i(
+		clampi(int(floor(_camera_rig.global_position.x / float(OVERVIEW_TILE_SIZE))), 0, tile_count_x - 1),
+		clampi(int(floor(_camera_rig.global_position.z / float(OVERVIEW_TILE_SIZE))), 0, tile_count_z - 1))
+
+
+func _overview_tiles_center_first(center: Vector2i, tile_count_x: int, tile_count_z: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	var max_radius := maxi(
+		maxi(center.x, tile_count_x - 1 - center.x),
+		maxi(center.y, tile_count_z - 1 - center.y))
+	for radius in range(max_radius + 1):
+		for dx in range(-radius, radius + 1):
+			for dz in range(-radius, radius + 1):
+				if maxi(absi(dx), absi(dz)) != radius:
+					continue
+				var key := Vector2i(center.x + dx, center.y + dz)
+				if key.x < 0 or key.x >= tile_count_x or key.y < 0 or key.y >= tile_count_z:
+					continue
+				result.append(key)
+	return result
+
+
+func _overview_tile_distance(a: Vector2i, b: Vector2i) -> int:
+	return maxi(absi(a.x - b.x), absi(a.y - b.y))
 
 
 func _drain_overview_tile_queue() -> void:
@@ -1107,6 +1186,7 @@ func _drain_overview_tile_queue() -> void:
 
 
 func _rebuild_overview_tile(tile_key: Vector2i) -> void:
+	var t_start := Time.get_ticks_msec()
 	var step: int = OVERVIEW_STEP
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
@@ -1182,6 +1262,12 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 	var mi := _get_or_create_overview_tile_node(tile_key)
 	mi.mesh = mesh
 	mi.visible = true
+	if _first_visible_mesh_msec == 0:
+		_first_visible_mesh_msec = Time.get_ticks_msec()
+		print("WorldRenderer: first visible overview tile after %.3f s at tile %s." % [
+			_elapsed_since_start_seconds(_first_visible_mesh_msec),
+			str(tile_key),
+		])
 	_overview_tile_stats[tile_key] = {
 		"sampled_top_faces": sampled_top_faces,
 		"merged_top_faces": merged_top_faces,
@@ -1189,6 +1275,10 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 		"validation_samples": validation_samples,
 		"validation_mismatches": validation_mismatches,
 	}
+	var elapsed := Time.get_ticks_msec() - t_start
+	_overview_build_count += 1
+	_overview_build_msec_total += elapsed
+	_overview_build_msec_max = maxi(_overview_build_msec_max, elapsed)
 
 
 func _add_greedy_overview_tops(
@@ -1562,6 +1652,89 @@ func _find_camera(node: Node) -> Camera:
 	return null
 
 
+func _elapsed_since_start_seconds(at_msec: int) -> float:
+	if _startup_started_msec <= 0 or at_msec <= 0:
+		return 0.0
+	return float(at_msec - _startup_started_msec) / 1000.0
+
+
+func _print_startup_performance_report() -> void:
+	if _startup_report_printed:
+		return
+	_startup_report_printed = true
+
+	var now := Time.get_ticks_msec()
+	var gen_stats := WorldGenerator.get_streaming_stats()
+	var first_mesh_sec := _elapsed_since_start_seconds(_first_visible_mesh_msec)
+	var total_sec := _elapsed_since_start_seconds(now)
+	var avg_region_ms := 0.0
+	if _region_rebuild_count > 0:
+		avg_region_ms = float(_region_rebuild_msec_total) / float(_region_rebuild_count)
+	var avg_overview_ms := 0.0
+	if _overview_build_count > 0:
+		avg_overview_ms = float(_overview_build_msec_total) / float(_overview_build_count)
+	var avg_column_ms := 0.0
+	var column_count := int(gen_stats.get("column_fill_count", 0))
+	if column_count > 0:
+		avg_column_ms = float(gen_stats.get("column_fill_ms_total", 0)) / float(column_count)
+
+	print("StartupPerformance:")
+	print("  total_to_initial_load: %.3f s" % total_sec)
+	print("  first_visible_terrain: %.3f s" % first_mesh_sec)
+	print("  mode: %s  camera_chunk=%s  slice=%d" % [_inspector_render_mode(), str(_camera_chunk), slice_y])
+	print("  world_maps: ready=%s  precompute=%.3f s  ready_at=%.3f s" % [
+		str(gen_stats.get("maps_ready", false)),
+		float(gen_stats.get("map_precompute_ms", 0)) / 1000.0,
+		float(gen_stats.get("maps_ready_ms", 0)) / 1000.0,
+	])
+	var map_phase_timings: Array = gen_stats.get("map_phase_timings", [])
+	if not map_phase_timings.is_empty():
+		print("  map_phases:")
+		for phase in map_phase_timings:
+			var phase_dict: Dictionary = phase
+			print("    %s: %.3f s" % [
+				String(phase_dict.get("name", "unknown")),
+				float(phase_dict.get("ms", 0)) / 1000.0,
+			])
+	print("  columns: filled=%d  chunks=%d  total=%.3f s  avg=%.2f ms  max=%d ms  requested=%d  queue=%d" % [
+		column_count,
+		int(gen_stats.get("column_chunks_submitted", 0)),
+		float(gen_stats.get("column_fill_ms_total", 0)) / 1000.0,
+		avg_column_ms,
+		int(gen_stats.get("column_fill_ms_max", 0)),
+		int(gen_stats.get("requested_columns", 0)),
+		int(gen_stats.get("queue_size", 0)),
+	])
+	print("  region_meshes: count=%d  nodes=%d  total=%.3f s  avg=%.2f ms  max=%d ms" % [
+		_region_rebuild_count,
+		_region_nodes.size(),
+		float(_region_rebuild_msec_total) / 1000.0,
+		avg_region_ms,
+		_region_rebuild_msec_max,
+	])
+	print("  overview_tiles: count=%d  nodes=%d  total=%.3f s  avg=%.2f ms  max=%d ms  active=%s" % [
+		_overview_build_count,
+		_overview_tile_nodes.size(),
+		float(_overview_build_msec_total) / 1000.0,
+		avg_overview_ms,
+		_overview_build_msec_max,
+		str(_block_face_overview_active()),
+	])
+	print("  overview_startup: center=%s  radius_tiles=%d  goal=%d  queue_remaining=%d" % [
+		str(_overview_startup_center),
+		overview_startup_radius_tiles,
+		_overview_startup_tile_goal,
+		_dirty_overview_tiles.size(),
+	])
+	print("  overview_state: startup_ready=%s  startup_ready_at=%.3f s  full_complete=%s  full_complete_at=%.3f s" % [
+		str(_overview_startup_ready_msec > 0),
+		_elapsed_since_start_seconds(_overview_startup_ready_msec),
+		str(_overview_built),
+		_elapsed_since_start_seconds(_overview_complete_msec),
+	])
+	print("  meshes_built_counter: %d" % _meshes_built)
+
+
 func get_render_stats() -> Dictionary:
 	var overview_active := _block_face_overview_active()
 	return {
@@ -1586,6 +1759,19 @@ func get_render_stats() -> Dictionary:
 		"overview_side_faces": _overview_side_faces,
 		"overview_validation_samples": _overview_validation_samples,
 		"overview_validation_mismatches": _overview_validation_mismatches,
+		"startup_elapsed_ms": Time.get_ticks_msec() - _startup_started_msec if _startup_started_msec > 0 else 0,
+		"first_visible_mesh_ms": _first_visible_mesh_msec - _startup_started_msec if _first_visible_mesh_msec > 0 and _startup_started_msec > 0 else 0,
+		"region_rebuild_count": _region_rebuild_count,
+		"region_rebuild_ms_total": _region_rebuild_msec_total,
+		"region_rebuild_ms_max": _region_rebuild_msec_max,
+		"overview_build_count": _overview_build_count,
+		"overview_build_ms_total": _overview_build_msec_total,
+		"overview_build_ms_max": _overview_build_msec_max,
+		"overview_startup_center": _overview_startup_center,
+		"overview_startup_radius_tiles": overview_startup_radius_tiles,
+		"overview_startup_tile_goal": _overview_startup_tile_goal,
+		"overview_startup_ready_ms": _overview_startup_ready_msec - _startup_started_msec if _overview_startup_ready_msec > 0 and _startup_started_msec > 0 else 0,
+		"overview_complete_ms": _overview_complete_msec - _startup_started_msec if _overview_complete_msec > 0 and _startup_started_msec > 0 else 0,
 	}
 
 

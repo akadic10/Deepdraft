@@ -1,6 +1,20 @@
-# Mining Performance Plan
+# 04 - Mining Performance Plan
 
-## Goal
+> **Document review legend for Obsidian**
+>
+> <span style="color:#3fb950;">Green = keep</span> |
+> <span style="color:#d29922;">Yellow = review / move to a more specific plan</span> |
+> <span style="color:#f85149;">Red = safe to delete or archive once you are comfortable</span>
+
+## Document Review - 2026-06-01
+
+This plan contains both completed mining performance work and remaining validation/polish items.
+Keep the current architecture notes while they help explain the delta-rendering model. Review or
+archive historical restore-state sections once the implementation has been fully validated in-game.
+
+---
+
+## <span style="color:#3fb950;">KEEP - Goal</span>
 
 Keep the current Stonehearth-like mining designation behavior intact while making single-block
 add/remove operations feel instant. The working behavior from `03_mining_plan` is now the baseline:
@@ -9,14 +23,14 @@ confirmed mining zones visually cut terrain, remain yellow/selectable, and can b
 The next step is performance only. Do not change mining UX, zone semantics, colors, or the current
 visual deduction result while doing this pass.
 
-## Implementation Audit - 2026-06-01
+## <span style="color:#d29922;">REVIEW / ARCHIVE LATER - Implementation Audit - 2026-06-01</span>
 
 This document was re-audited after restoring a project backup, before the performance pass below was
 re-implemented. At that restore point, the code was still mostly at the pre-performance state
 described below. Some renderer infrastructure existed, but ordinary mining add/remove still used a
 full visual-cut replacement and broad terrain invalidation.
 
-### Implemented In Current Code
+### <span style="color:#3fb950;">KEEP / CONFIRMED - Implemented In Current Code</span>
 
 - `ChunkMesher.build_mesh(chunk, cx, cy, cz, visual_cut_blocks)` accepts a cut-block mask.
 - `ChunkMesher` skips mesh emission for blocks present in `visual_cut_blocks`.
@@ -31,7 +45,7 @@ full visual-cut replacement and broad terrain invalidation.
 - `WorldRenderer` has a global block-face overview renderer that accounts for visual cuts through
   `_overview_visible_surface_after_cut()`.
 
-### Outstanding / Not Implemented
+### <span style="color:#d29922;">REVIEW - Outstanding / Not Implemented At Restore Point</span>
 
 - No delta visual-cut APIs exist in `WorldRenderer`: `add_visual_cut_blocks()` and
   `remove_visual_cut_blocks()` are absent.
@@ -52,14 +66,14 @@ full visual-cut replacement and broad terrain invalidation.
 - `_rebuild_zones_mesh()` still rebuilds all confirmed zone geometry on each add/remove/select,
   which was acceptable for the first terrain pass but remains future work.
 
-### Current Status
+### <span style="color:#d29922;">REVIEW / ARCHIVE LATER - Restore-Point Current Status</span>
 
 At the restore point, the visual-cut rendering behavior was present, but the performance work from
 this plan was not complete. The likely freeze path still existed for overview-mode edits because a
 single mining change could force `_build_block_face_overview()` to rescan the full `1024 x 1024`
 surface grid.
 
-## Performance Pass Update - 2026-06-01
+## <span style="color:#3fb950;">KEEP - Performance Pass Update - 2026-06-01</span>
 
 The code-level performance pass from this plan has now been implemented.
 
@@ -86,7 +100,7 @@ Still outstanding:
 - `_rebuild_zones_mesh()` still rebuilds all confirmed mining-zone overlay geometry. This is not the
   original terrain-freeze path, but remains future polish for very large numbers of zones.
 
-## Current Problem
+## <span style="color:#d29922;">REVIEW / ARCHIVE LATER - Original Current Problem</span>
 
 Designating or removing even a `1x1x1` mining zone can freeze the game for roughly 15 seconds.
 The freeze is not caused by the one-block zone mesh itself. It comes from invalidating renderer
@@ -104,7 +118,7 @@ Current flow:
 
 This preserves correctness but treats every mining edit like a global terrain edit.
 
-## Current Hot Paths
+## <span style="color:#d29922;">REVIEW / MOVE - Original Hot Paths</span>
 
 - `scripts/systems/MiningDesignationController.gd`
   - `_sync_visual_cut_blocks()` loops over every zone and every block on every add/remove.
@@ -118,7 +132,7 @@ This preserves correctness but treats every mining edit like a global terrain ed
   - The visual cut handling is correct and should stay: skip cut blocks and treat cut neighbors as
     transparent.
 
-## Desired Shape
+## <span style="color:#3fb950;">KEEP - Desired Shape</span>
 
 Mining zone edits should become localized invalidations:
 
@@ -128,9 +142,9 @@ Mining zone edits should become localized invalidations:
   resets, or explicit global invalidation.
 - Single-block mining edits should complete within one or two frames, not seconds.
 
-## Proposed Architecture
+## <span style="color:#3fb950;">KEEP - Proposed Architecture</span>
 
-### 1. Send Deltas Instead Of Full Replacement
+### <span style="color:#3fb950;">KEEP - 1. Send Deltas Instead Of Full Replacement</span>
 
 Add renderer APIs that preserve the current full-replacement path for safety but let mining use
 small edits:
@@ -150,7 +164,7 @@ The mining controller should call the delta methods during normal add/remove:
 
 The renderer then computes affected chunks/tiles from those changed blocks.
 
-### 2. Localize Streamed Region Rebuilds
+### <span style="color:#3fb950;">KEEP - 2. Localize Streamed Region Rebuilds</span>
 
 For non-overview/chunk-region rendering, do not enqueue all existing regions.
 
@@ -169,7 +183,7 @@ keeps the current region mesh design while avoiding global invalidation.
 Expected result: a `1x1x1` edit should rebuild one region in the common case, or a small handful
 near region/chunk boundaries.
 
-### 3. Tile The Block-Face Overview Mesh
+### <span style="color:#3fb950;">KEEP - 3. Tile The Block-Face Overview Mesh</span>
 
 The block-face overview is the main source of the large freeze. It is currently one global mesh.
 That makes any single mining cut require a full `WORLD_SIZE_X * WORLD_SIZE_Z` rescan.
@@ -203,7 +217,7 @@ Affected tile calculation:
 
 This keeps the visual result but changes the unit of rebuild from the full world to a small tile.
 
-### 4. Preserve Global Overview Rebuild For Global Events
+### <span style="color:#3fb950;">KEEP - 4. Preserve Global Overview Rebuild For Global Events</span>
 
 Keep a global overview invalidation method for cases where local dirty tiles are insufficient:
 
@@ -215,7 +229,7 @@ Keep a global overview invalidation method for cases where local dirty tiles are
 
 For mining add/remove, use tile invalidation only.
 
-### 5. Make Mining Zone Mesh Rebuild Incremental Later
+### <span style="color:#d29922;">REVIEW / MOVE - 5. Make Mining Zone Mesh Rebuild Incremental Later</span>
 
 The yellow mining zone overlay is not the current 15-second freeze, but it will become noticeable
 with large designations.
@@ -224,7 +238,7 @@ For this performance pass, it is acceptable to keep `_rebuild_zones_mesh()` as-i
 invalidations are fixed, consider splitting zone overlays into per-zone mesh nodes so adding or
 removing one zone does not rebuild all confirmed zone geometry.
 
-## Implementation Milestones
+## <span style="color:#d29922;">REVIEW / ARCHIVE LATER - Implementation Milestones</span>
 
 Legend: `[x]` present in the restored code, `[ ]` not implemented, `[~]` partially present but not
 wired to solve the mining-edit performance problem.
@@ -243,7 +257,7 @@ wired to solve the mining-edit performance problem.
 9. `[ ]` Re-measure the same three test cases.
 10. `[ ]` Remove or gate noisy timing logs behind a debug flag.
 
-## Next Implementation Order
+## <span style="color:#d29922;">REVIEW - Next Implementation Order</span>
 
 1. Add debug-gated timing around the current hot paths so the restored baseline is measurable.
 2. Add `add_visual_cut_blocks()` and `remove_visual_cut_blocks()` to `WorldRenderer` while keeping
@@ -253,7 +267,7 @@ wired to solve the mining-edit performance problem.
 5. Tile the block-face overview and route mining edits to dirty overview tiles only.
 6. Re-run the `1x1x1`, `3x3x1`, and `4x4x4` checks in both overview and streamed modes.
 
-## Acceptance Criteria
+## <span style="color:#3fb950;">KEEP - Acceptance Criteria</span>
 
 - `[~]` Adding a `1x1x1` mining zone in overview mode does not force a global overview rebuild; needs
   interactive feel validation.
@@ -270,7 +284,7 @@ wired to solve the mining-edit performance problem.
 - `[x]` No global overview rebuild occurs for ordinary mining add/remove.
 - `[x]` No all-region streamed rebuild occurs for ordinary mining add/remove.
 
-## Risks
+## <span style="color:#d29922;">REVIEW - Risks</span>
 
 - Overview tile seams may appear if side faces do not sample neighbor columns across tile
   boundaries. Dirty one-column margins and neighboring tiles when in doubt.
@@ -281,7 +295,7 @@ wired to solve the mining-edit performance problem.
 - The full replacement API can accidentally reintroduce global invalidation if the mining
   controller keeps using it for normal edits.
 
-## Notes From Stonehearth Comparison
+## <span style="color:#3fb950;">KEEP - Notes From Stonehearth Comparison</span>
 
 Stonehearth's renderer applies terrain cuts as renderer state rather than immediately mutating the
 terrain store. Our current visual cut follows that idea correctly, but our invalidation granularity

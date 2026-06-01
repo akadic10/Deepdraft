@@ -128,6 +128,18 @@ func _update_text() -> void:
 	var water: Dictionary = metrics.get("water", {})
 	var macro: Dictionary = metrics.get("macro", {})
 	var candidates: Dictionary = metrics.get("settlement_candidates", {})
+	var map_phase_text := "n/a"
+	var map_phase_timings: Array = gen.get("map_phase_timings", [])
+	var slowest_map_phase_ms := -1
+	for phase in map_phase_timings:
+		var phase_dict: Dictionary = phase
+		var phase_ms := int(phase_dict.get("ms", 0))
+		if phase_ms > slowest_map_phase_ms:
+			slowest_map_phase_ms = phase_ms
+			map_phase_text = "%s %.2fs" % [
+				String(phase_dict.get("name", "unknown")),
+				float(phase_ms) / 1000.0,
+			]
 
 	_label.text = "\n".join([
 		"render: %s" % render_mode,
@@ -183,6 +195,23 @@ func _update_text() -> void:
 		],
 		"settlement candidates: %d" % candidates.get("count", 0),
 		"columns: %d / %d" % [gen.get("generated_columns", 0), gen.get("total_columns", 0)],
+		"timing: maps %.2fs  columns %.2fs  region %.2fs  overview %.2fs" % [
+			float(gen.get("map_precompute_ms", 0)) / 1000.0,
+			float(gen.get("column_fill_ms_total", 0)) / 1000.0,
+			float(render.get("region_rebuild_ms_total", 0)) / 1000.0,
+			float(render.get("overview_build_ms_total", 0)) / 1000.0,
+		],
+		"slowest map phase: %s" % map_phase_text,
+		"first terrain: %.2fs  elapsed: %.2fs" % [
+			float(render.get("first_visible_mesh_ms", 0)) / 1000.0,
+			float(render.get("startup_elapsed_ms", gen.get("startup_elapsed_ms", 0))) / 1000.0,
+		],
+		"overview startup: %d/%d  ready %.2fs  full %.2fs" % [
+			render.get("overview_build_count", 0),
+			render.get("overview_startup_tile_goal", 0),
+			float(render.get("overview_startup_ready_ms", 0)) / 1000.0,
+			float(render.get("overview_complete_ms", 0)) / 1000.0,
+		],
 		"requested: %d  queue: %d  active: %s" % [
 			gen.get("requested_columns", 0),
 			gen.get("queue_size", 0),

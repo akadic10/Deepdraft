@@ -197,6 +197,27 @@ var _domain_counts: Dictionary = {}
 var _terraced_columns: int = 0
 var _plateau_adjusted_columns: int = 0
 var _plateau_smoothed_chunks: int = 0
+var _startup_started_msec: int = 0
+var _maps_ready_msec: int = 0
+var _map_precompute_msec: int = 0
+var _map_phase_timings: Array[Dictionary] = []
+var _column_fill_msec_total: int = 0
+var _column_fill_msec_max: int = 0
+var _column_fill_count: int = 0
+var _column_chunks_submitted: int = 0
+
+## Scratch state shared with WorkerThreadPool group-task workers during the
+## parallel map-fill phases. Each worker handles one X column (all Z), writing
+## only its own disjoint slice of the destination maps, so concurrent writes to
+## these member arrays never touch the same index. Read-only inputs (macro
+## grids) and per-column debug accumulators live here so the worker callable
+## needs no captured locals. Only valid for the duration of the phase that sets
+## them; generation is single-flight, so reuse across phases is safe.
+var _hm_macro_heights: PackedInt32Array = PackedInt32Array()
+var _hm_macro_count_z: int = 0
+var _hm_terraced_col: PackedInt32Array = PackedInt32Array()
+var _hm_corridor_count_col: PackedInt32Array = PackedInt32Array()
+var _hm_corridor_height_col: PackedInt32Array = PackedInt32Array()
 
 ## Cooperative cancel flag. Set true on the main thread (e.g. when the game
 ## stops) so the worker exits its chunk loop instead of touching members that
@@ -358,6 +379,25 @@ func generate(new_seed: int = 0) -> void:
 	world_seed = new_seed if new_seed != 0 else randi()
 	print("WorldGenerator: starting generation (seed %d)." % world_seed)
 
+	_reset_generation_state()
+	_cache_block_ids()
+
+	# Clean up the thread object on the main thread once the world is done.
+	world_complete.connect(_cleanup_thread, CONNECT_ONE_SHOT | CONNECT_DEFERRED)
+
+	_gen_thread = Thread.new()
+	_gen_thread.start(_generate_threaded)
+
+
+func _reset_generation_state() -> void:
+	_startup_started_msec = Time.get_ticks_msec()
+	_maps_ready_msec = 0
+	_map_precompute_msec = 0
+	_map_phase_timings.clear()
+	_column_fill_msec_total = 0
+	_column_fill_msec_max = 0
+	_column_fill_count = 0
+	_column_chunks_submitted = 0
 	_abort = false
 	_maps_ready = false
 	_column_in_flight = false
@@ -382,13 +422,6 @@ func generate(new_seed: int = 0) -> void:
 	_requested_columns.clear()
 	_generated_columns.clear()
 	_request_mutex.unlock()
-	_cache_block_ids()
-
-	# Clean up the thread object on the main thread once the world is done.
-	world_complete.connect(_cleanup_thread, CONNECT_ONE_SHOT | CONNECT_DEFERRED)
-
-	_gen_thread = Thread.new()
-	_gen_thread.start(_generate_threaded)
 
 
 func _cleanup_thread() -> void:
@@ -430,6 +463,14 @@ func get_streaming_stats() -> Dictionary:
 		"generated_columns": _generated_columns.size(),
 		"column_in_flight": _column_in_flight,
 		"total_columns": CHUNK_COUNT_X * CHUNK_COUNT_Z,
+		"startup_elapsed_ms": Time.get_ticks_msec() - _startup_started_msec if _startup_started_msec > 0 else 0,
+		"map_precompute_ms": _map_precompute_msec,
+		"map_phase_timings": _map_phase_timings.duplicate(true),
+		"maps_ready_ms": _maps_ready_msec - _startup_started_msec if _maps_ready_msec > 0 and _startup_started_msec > 0 else 0,
+		"column_fill_ms_total": _column_fill_msec_total,
+		"column_fill_ms_max": _column_fill_msec_max,
+		"column_fill_count": _column_fill_count,
+		"column_chunks_submitted": _column_chunks_submitted,
 	}
 	_request_mutex.unlock()
 	return stats
@@ -629,17 +670,21 @@ func _build_resource_windows(keys: Array, expected_channel: String) -> Array[Dic
 
 func _generate_threaded() -> void:
 	var t_start := Time.get_ticks_msec()
+	var t_maps_start := t_start
 
-	_build_noise_instances()    # Phase 1
-	_compute_domain_map()       # Phase 2
-	_compute_heightmap()        # Phase 3
-	_carve_lakes()              # Phase 4
-	_apply_edge_detail()
-	_build_lowland_cap_grass_band_map()
-	_build_foothill_cap_grass_band_map()
-	_build_generation_metrics()
+	_run_timed_map_phase("noise_instances", Callable(self, "_build_noise_instances"))             # Phase 1
+	_run_timed_map_phase("domain_map", Callable(self, "_compute_domain_map"))                    # Phase 2
+	_run_timed_map_phase("heightmap", Callable(self, "_compute_heightmap"))                      # Phase 3
+	_run_timed_map_phase("lakes", Callable(self, "_carve_lakes"))                                # Phase 4
+	_run_timed_map_phase("edge_detail", Callable(self, "_apply_edge_detail"))
+	_run_timed_map_phase("lowland_grass_band", Callable(self, "_build_lowland_cap_grass_band_map"))
+	_run_timed_map_phase("foothill_grass_band", Callable(self, "_build_foothill_cap_grass_band_map"))
+	_maps_ready_msec = Time.get_ticks_msec()
+	_map_precompute_msec = _maps_ready_msec - t_maps_start
 	_maps_ready = true
 	call_deferred("_deferred_emit_maps_ready")
+
+	_run_timed_map_phase("generation_metrics", Callable(self, "_build_generation_metrics"))
 	call_deferred("_deferred_print_generation_metrics", _generation_metrics.duplicate(true))
 	_process_requested_columns()      # Phase 5, demand-driven
 	_maybe_defer_block_spawn_report(true)
@@ -647,6 +692,18 @@ func _generate_threaded() -> void:
 	var elapsed := (Time.get_ticks_msec() - t_start) / 1000.0
 	print("WorldGenerator: stopped in %.1f s." % elapsed)
 	call_deferred("_deferred_emit_world_complete")
+
+
+func _run_timed_map_phase(label: String, fn: Callable) -> void:
+	var t_phase_start := Time.get_ticks_msec()
+	fn.call()
+	var elapsed := Time.get_ticks_msec() - t_phase_start
+	_request_mutex.lock()
+	_map_phase_timings.append({
+		"name": label,
+		"ms": elapsed,
+	})
+	_request_mutex.unlock()
 
 
 # -- Phase 1 - Noise instances -------------------------------------------------
@@ -716,28 +773,12 @@ func _compute_domain_map() -> void:
 	domain_map.resize(size)
 	domain_n_map.resize(size)
 
-	for x in range(WORLD_SIZE_X):
-		for z in range(WORLD_SIZE_Z):
-			var northwest_influence := _northwest_mountain_influence(x, z)
-			var edge_noise := (noise_domain.get_noise_2d(x, z) + 1.0) * 0.5
-			var basin_strength := _southwest_basin_strength(x, z)
-			var southeast_foothill_strength := _southeast_foothill_strength(x, z)
-			var corridor_strength := _valley_corridor_strength(x, z)
-			var n := clampf(
-				northwest_influence + ((edge_noise - 0.5) * NORTHWEST_MOUNTAIN_EDGE_NOISE),
-				0.0,
-				1.0)
-			n = lerp(n, 0.18, basin_strength * SOUTHWEST_BASIN_DOMAIN_PULL)
-			n = lerp(n, 0.48, southeast_foothill_strength * SOUTHEAST_FOOTHILL_DOMAIN_BONUS)
-			n = lerp(n, 0.48, corridor_strength * 0.22)
-			var idx := x * WORLD_SIZE_Z + z
-			domain_n_map[idx] = n
-			if n > DOMAIN_MOUNTAIN_THRESHOLD:
-				domain_map[idx] = DOMAIN_MOUNTAIN
-			elif n > DOMAIN_VALLEY_THRESHOLD:
-				domain_map[idx] = DOMAIN_VALLEY
-			else:
-				domain_map[idx] = DOMAIN_LOWLAND
+	# Embarrassingly parallel: each X column writes a disjoint Z slice of
+	# domain_map / domain_n_map and calls only read-only helpers + noise reads.
+	# One group-task element per X column; the pool chunks them across threads.
+	var task_id := WorkerThreadPool.add_group_task(
+		Callable(self, "_domain_map_column"), WORLD_SIZE_X, -1, false, "domain_map")
+	WorkerThreadPool.wait_for_group_task_completion(task_id)
 
 	_apply_macro_domain_coherence()
 	_recount_domain_counts()
@@ -746,6 +787,36 @@ func _compute_domain_map() -> void:
 		_domain_counts.get("valley", 0),
 		_domain_counts.get("lowland", 0),
 	])
+
+
+## WorkerThreadPool group-task body: fills one X column of the domain maps.
+## Writes only indices [x * WORLD_SIZE_Z .. x * WORLD_SIZE_Z + WORLD_SIZE_Z),
+## which are disjoint across X, so concurrent execution is race-free. All
+## helpers called here are pure reads (noise sampling is a const read on
+## FastNoiseLite and safe to call from multiple threads).
+func _domain_map_column(x: int) -> void:
+	var base := x * WORLD_SIZE_Z
+	for z in range(WORLD_SIZE_Z):
+		var northwest_influence := _northwest_mountain_influence(x, z)
+		var edge_noise := (noise_domain.get_noise_2d(x, z) + 1.0) * 0.5
+		var basin_strength := _southwest_basin_strength(x, z)
+		var southeast_foothill_strength := _southeast_foothill_strength(x, z)
+		var corridor_strength := _valley_corridor_strength(x, z)
+		var n := clampf(
+			northwest_influence + ((edge_noise - 0.5) * NORTHWEST_MOUNTAIN_EDGE_NOISE),
+			0.0,
+			1.0)
+		n = lerp(n, 0.18, basin_strength * SOUTHWEST_BASIN_DOMAIN_PULL)
+		n = lerp(n, 0.48, southeast_foothill_strength * SOUTHEAST_FOOTHILL_DOMAIN_BONUS)
+		n = lerp(n, 0.48, corridor_strength * 0.22)
+		var idx := base + z
+		domain_n_map[idx] = n
+		if n > DOMAIN_MOUNTAIN_THRESHOLD:
+			domain_map[idx] = DOMAIN_MOUNTAIN
+		elif n > DOMAIN_VALLEY_THRESHOLD:
+			domain_map[idx] = DOMAIN_VALLEY
+		else:
+			domain_map[idx] = DOMAIN_LOWLAND
 
 
 func _apply_macro_domain_coherence() -> void:
@@ -852,24 +923,27 @@ func _compute_heightmap() -> void:
 		for mz in range(macro_count_z):
 			macro_heights[mx * macro_count_z + mz] = _macro_height_for_cell(mx, mz)
 
+	# Parallel per-column fill. Each X column writes its own disjoint Z slice of
+	# heightmap and records its debug tallies into its own slot of the per-column
+	# scratch arrays, so there are no cross-thread writes to shared indices.
+	# macro_heights is read-only during the fill.
+	_hm_macro_heights = macro_heights
+	_hm_macro_count_z = macro_count_z
+	_hm_terraced_col.resize(WORLD_SIZE_X)
+	_hm_corridor_count_col.resize(WORLD_SIZE_X)
+	_hm_corridor_height_col.resize(WORLD_SIZE_X)
+
+	var task_id := WorkerThreadPool.add_group_task(
+		Callable(self, "_heightmap_column"), WORLD_SIZE_X, -1, false, "heightmap")
+	WorkerThreadPool.wait_for_group_task_completion(task_id)
+
 	var corridor_count := 0
 	var corridor_height_sum := 0
 	var terraced_count := 0
-
 	for x in range(WORLD_SIZE_X):
-		for z in range(WORLD_SIZE_Z):
-			var idx := x * WORLD_SIZE_Z + z
-			var mx := x / TERRAIN_MACRO_CELL_SIZE
-			var mz := z / TERRAIN_MACRO_CELL_SIZE
-			var macro_height: int = macro_heights[mx * macro_count_z + mz]
-			var height := _expanded_macro_height(x, z, macro_height)
-			var corridor_strength := _valley_corridor_strength(x, z)
-			heightmap[idx] = height
-			if height != macro_height:
-				terraced_count += 1
-			if corridor_strength > 0.5:
-				corridor_count += 1
-				corridor_height_sum += height
+		terraced_count += _hm_terraced_col[x]
+		corridor_count += _hm_corridor_count_col[x]
+		corridor_height_sum += _hm_corridor_height_col[x]
 
 	if corridor_count > 0:
 		print("WorldGenerator: valley corridor -> columns %d, average height %.1f." % [
@@ -886,6 +960,36 @@ func _compute_heightmap() -> void:
 	_apply_mountain_foothill_transition()
 	_apply_lowland_foothill_transition()
 	_apply_macro_shelf_step_limit()
+
+
+## WorkerThreadPool group-task body: fills one X column of the heightmap and
+## records that column's debug tallies into its own scratch slot. Writes only
+## heightmap[x * WORLD_SIZE_Z + z] for this x (disjoint across X) and the single
+## scratch slot at index x, so concurrent execution is race-free. Reads
+## _hm_macro_heights / domain_n_map (filled by the prior phase) and noise, all
+## read-only. Must be called only between the add_group_task and its
+## wait_for_group_task_completion in _compute_heightmap.
+func _heightmap_column(x: int) -> void:
+	var macro_count_z := _hm_macro_count_z
+	var mx := x / TERRAIN_MACRO_CELL_SIZE
+	var base := x * WORLD_SIZE_Z
+	var terraced := 0
+	var corridor_count := 0
+	var corridor_height_sum := 0
+	for z in range(WORLD_SIZE_Z):
+		var mz := z / TERRAIN_MACRO_CELL_SIZE
+		var macro_height: int = _hm_macro_heights[mx * macro_count_z + mz]
+		var height := _expanded_macro_height(x, z, macro_height)
+		var corridor_strength := _valley_corridor_strength(x, z)
+		heightmap[base + z] = height
+		if height != macro_height:
+			terraced += 1
+		if corridor_strength > 0.5:
+			corridor_count += 1
+			corridor_height_sum += height
+	_hm_terraced_col[x] = terraced
+	_hm_corridor_count_col[x] = corridor_count
+	_hm_corridor_height_col[x] = corridor_height_sum
 
 
 func _macro_height_for_cell(mx: int, mz: int) -> int:
@@ -2633,6 +2737,8 @@ func _pop_requested_column() -> Vector2i:
 
 
 func _fill_chunk_column(cx: int, cz: int) -> void:
+	var t_column_start := Time.get_ticks_msec()
+	var submitted_chunks := 0
 	var top_y := _column_chunk_max_y(cx, cz)
 	var top_cy := top_y / CHUNK_SIZE
 
@@ -2659,6 +2765,15 @@ func _fill_chunk_column(cx: int, cz: int) -> void:
 		chunk.has_void = found_void
 		WorldData.submit_chunk(cx, cy, cz, chunk)
 		call_deferred("_deferred_emit_chunk_generated", cx, cy, cz)
+		submitted_chunks += 1
+
+	var elapsed := Time.get_ticks_msec() - t_column_start
+	_request_mutex.lock()
+	_column_fill_count += 1
+	_column_fill_msec_total += elapsed
+	_column_fill_msec_max = maxi(_column_fill_msec_max, elapsed)
+	_column_chunks_submitted += submitted_chunks
+	_request_mutex.unlock()
 
 
 func _reset_block_spawn_counts() -> void:

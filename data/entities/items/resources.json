@@ -616,6 +616,18 @@
     "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
   },
 
+  "__comment_special": "Special items — unique or limited-use objects that anchor major game flows",
+
+  "base:items:special:settlement_flag": {
+    "display_name": "Settlement Flag",
+    "description": "A folded banner and stout marker pole used to choose where the first settlement will take root.",
+    "model": "res://assets/models/items/misc/settlement_flag.glb",
+    "stack_max": 1,
+    "weight_class": "light",
+    "base_trade_value": 0,
+    "material_tags": ["special", "placeable", "settlement_anchor", "stockpile_misc"]
+  },
+
   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
 
   "base:resources:currency:gold_coin": {

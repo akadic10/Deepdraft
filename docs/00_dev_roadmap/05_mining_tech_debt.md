@@ -1,8 +1,22 @@
 # 05 - Mining Tech Debt
 
+> **Document review legend for Obsidian**
+>
+> <span style="color:#3fb950;">Green = keep</span> |
+> <span style="color:#d29922;">Yellow = review / move to a more specific plan</span> |
+> <span style="color:#f85149;">Red = safe to delete or archive once you are comfortable</span>
+
+## Document Review - 2026-06-01
+
+This file is still useful as a focused mining cleanup backlog. Both current items are yellow:
+real enough to keep visible, but small enough that they may move into implementation tasks once
+the next mining pass begins.
+
+---
+
 This file tracks small cleanup items discovered while reviewing the mining implementation. It is for debt that is real but not urgent enough to interrupt the current feature pass.
 
-## Restore Audit - 2026-06-01
+## <span style="color:#d29922;">REVIEW - Restore Audit - 2026-06-01</span>
 
 Both debt items below are still valid in the restored project.
 
@@ -17,9 +31,9 @@ No additional small mining cleanup item was found during this restore audit. Per
 work is tracked in `04_mining_performance.md`, and first-slice UX backlog is tracked in
 `03_mining_plan.md`.
 
-## Config Source Of Truth
+## <span style="color:#d29922;">REVIEW / MOVE - Config Source Of Truth</span>
 
-**Status:** Open
+**Status:** <span style="color:#d29922;">Open / review</span>
 
 **Context:** `data/terrain/mining_config.json` is the source of truth for mining tool tuning, but `scripts/systems/MiningDesignationController.gd` currently initializes the same values inline:
 
@@ -58,9 +72,9 @@ Then keep `_load_config()` as the only path that applies real tuning from `minin
 - `data/terrain/mining_config.json` remains the only intended tuning surface.
 - No behavior changes to precision mining controls.
 
-## Foreground vs Background Mining Overlay Readability
+## <span style="color:#d29922;">REVIEW / MOVE - Foreground vs Background Mining Overlay Readability</span>
 
-**Status:** Open
+**Status:** <span style="color:#d29922;">Open / review</span>
 
 **Context:** Stonehearth makes mining selections easier to read by rendering two different overlay layers:
 
