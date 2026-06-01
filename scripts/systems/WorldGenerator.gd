@@ -134,6 +134,11 @@ signal chunk_generated(cx: int, cy: int, cz: int)
 ## Emitted from the generator thread when all chunks are complete.
 signal world_complete()
 
+## Emitted (deferred, main thread) once the post-maps_ready grass-band surface
+## passes finish. Listeners should refresh any surface meshes already built
+## during the gate window so the grass-band tiers become visible.
+signal grass_bands_ready()
+
 # -- Generation state ----------------------------------------------------------
 var world_seed: int = 0
 
@@ -188,6 +193,11 @@ var _column_queue: Array[Vector2i] = []
 var _requested_columns: Dictionary = {}   # Vector2i -> true
 var _generated_columns: Dictionary = {}   # Vector2i -> true
 var _maps_ready: bool = false
+## Gate read on the main thread by the grass-band variant lookups. False while
+## the deferred grass-band passes are still writing their arrays, so readers
+## return the procedural fallback instead of touching arrays mid-write. Flipped
+## true (main thread) by _deferred_finalize_grass_bands once writes complete.
+var _grass_bands_ready: bool = false
 var _column_in_flight: bool = false
 var _block_spawn_counts: Dictionary = {}  # runtime block ID -> generated count
 var _counted_columns: int = 0
@@ -255,6 +265,16 @@ func _deferred_emit_world_complete() -> void:
 
 func _deferred_emit_maps_ready() -> void:
 	print("WorldGenerator: terrain maps ready; waiting for chunk column requests.")
+
+
+## Runs on the main thread after the generator thread finishes the deferred
+## grass-band passes. Opening the gate here (rather than on the generator
+## thread) guarantees the array writes are complete and visible before any
+## reader is allowed in, and pairs the gate flip with the refresh request so
+## listeners re-mesh surfaces that were built with fallback grass.
+func _deferred_finalize_grass_bands() -> void:
+	_grass_bands_ready = true
+	grass_bands_ready.emit()
 
 
 func _deferred_print_generation_metrics(snapshot: Dictionary) -> void:
@@ -400,6 +420,7 @@ func _reset_generation_state() -> void:
 	_column_chunks_submitted = 0
 	_abort = false
 	_maps_ready = false
+	_grass_bands_ready = false
 	_column_in_flight = false
 	_generation_metrics.clear()
 	_domain_counts.clear()
@@ -563,25 +584,25 @@ func _height_band_label(surface_y: int) -> String:
 
 
 func _lowland_cap_grass_band_debug(idx: int) -> int:
-	if lowland_cap_grass_band_map.is_empty():
+	if not _grass_bands_ready or lowland_cap_grass_band_map.is_empty():
 		return 0
 	return lowland_cap_grass_band_map[idx]
 
 
 func _lowland_cap_grass_distance_debug(idx: int) -> int:
-	if lowland_cap_grass_distance_map.is_empty():
+	if not _grass_bands_ready or lowland_cap_grass_distance_map.is_empty():
 		return -1
 	return lowland_cap_grass_distance_map[idx]
 
 
 func _foothill_cap_grass_band_debug(idx: int) -> int:
-	if foothill_cap_grass_band_map.is_empty():
+	if not _grass_bands_ready or foothill_cap_grass_band_map.is_empty():
 		return 0
 	return foothill_cap_grass_band_map[idx]
 
 
 func _foothill_cap_grass_distance_debug(idx: int) -> int:
-	if foothill_cap_grass_distance_map.is_empty():
+	if not _grass_bands_ready or foothill_cap_grass_distance_map.is_empty():
 		return -1
 	return foothill_cap_grass_distance_map[idx]
 
@@ -677,12 +698,21 @@ func _generate_threaded() -> void:
 	_run_timed_map_phase("heightmap", Callable(self, "_compute_heightmap"))                      # Phase 3
 	_run_timed_map_phase("lakes", Callable(self, "_carve_lakes"))                                # Phase 4
 	_run_timed_map_phase("edge_detail", Callable(self, "_apply_edge_detail"))
-	_run_timed_map_phase("lowland_grass_band", Callable(self, "_build_lowland_cap_grass_band_map"))
-	_run_timed_map_phase("foothill_grass_band", Callable(self, "_build_foothill_cap_grass_band_map"))
 	_maps_ready_msec = Time.get_ticks_msec()
 	_map_precompute_msec = _maps_ready_msec - t_maps_start
 	_maps_ready = true
 	call_deferred("_deferred_emit_maps_ready")
+
+	# Grass-band surface caps are cosmetic surface-variant overrides only; they
+	# do not change terrain shape. They are deferred until AFTER maps_ready so
+	# first-visible terrain does not wait on them. While they run, the
+	# _grass_bands_ready gate keeps the variant readers from touching these
+	# arrays, so the main-thread overview build (which renders fallback grass)
+	# never reads them concurrently. _deferred_finalize_grass_bands flips the
+	# gate and asks listeners to refresh once the arrays are fully written.
+	_run_timed_map_phase("lowland_grass_band", Callable(self, "_build_lowland_cap_grass_band_map"))
+	_run_timed_map_phase("foothill_grass_band", Callable(self, "_build_foothill_cap_grass_band_map"))
+	call_deferred("_deferred_finalize_grass_bands")
 
 	_run_timed_map_phase("generation_metrics", Callable(self, "_build_generation_metrics"))
 	call_deferred("_deferred_print_generation_metrics", _generation_metrics.duplicate(true))
@@ -3005,6 +3035,8 @@ func _grass_variant(x: int, z: int) -> int:
 
 
 func _lowland_cap_grass_band_variant_index(x: int, z: int) -> int:
+	if not _grass_bands_ready:
+		return -1
 	if lowland_cap_grass_band_map.is_empty():
 		return -1
 	var idx := x * WORLD_SIZE_Z + z
@@ -3015,6 +3047,8 @@ func _lowland_cap_grass_band_variant_index(x: int, z: int) -> int:
 
 
 func _foothill_cap_grass_band_variant_index(x: int, z: int) -> int:
+	if not _grass_bands_ready:
+		return -1
 	if foothill_cap_grass_band_map.is_empty():
 		return -1
 	var idx := x * WORLD_SIZE_Z + z

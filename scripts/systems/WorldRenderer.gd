@@ -133,6 +133,12 @@ func _ready() -> void:
 	# via WorldData._deferred_emit_chunk_dirtied, so immediate connection is safe.
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
 
+	# Grass bands are computed after maps_ready, so the first overview tiles are
+	# meshed with fallback grass. When the bands finish, re-mesh the already-built
+	# overview tiles in place so the band tiers appear (no node free => no flicker).
+	# Emitted on the main thread, so immediate connection is safe.
+	WorldGenerator.grass_bands_ready.connect(_on_grass_bands_ready)
+
 	_camera_rig = _find_camera(get_tree().current_scene)
 	if _camera_rig != null and not _block_face_overview_active():
 		_update_streaming_center()
@@ -1015,6 +1021,23 @@ func _invalidate_overview_global() -> void:
 	_overview_tile_nodes.clear()
 
 
+## Re-mesh the already-built block-face overview tiles in place after the
+## deferred grass-band passes finish. We re-queue existing tile keys rather than
+## calling _invalidate_overview_global(), so nodes are reused (no free/recreate)
+## and the surface does not flicker. Tiles still queued from the initial build
+## are left alone — they will mesh fresh with the now-open grass gate. Streamed
+## chunks are not handled here: at this point startup is in overview mode, and
+## any later streamed chunk builds after the gate is already open.
+func _on_grass_bands_ready() -> void:
+	if not _block_face_overview_active():
+		return
+	if _overview_tile_nodes.is_empty():
+		return
+	for key: Vector2i in _overview_tile_nodes.keys():
+		_enqueue_overview_tile(key)
+	_overview_built = false
+
+
 func _enqueue_overview_tiles_for_blocks(blocks: Array[Vector3i]) -> void:
 	for block: Vector3i in blocks:
 		_enqueue_overview_tile_for_world(block.x, block.z)
@@ -1060,11 +1083,11 @@ func _free_overview_tile_node(key: Vector2i) -> void:
 	_overview_tile_nodes.erase(key)
 
 
-func _set_overview_nodes_visible(is_visible: bool) -> void:
+func _set_overview_nodes_visible(make_visible: bool) -> void:
 	if _overview_node != null:
-		_overview_node.visible = is_visible
+		_overview_node.visible = make_visible
 	for key: Vector2i in _overview_tile_nodes:
-		(_overview_tile_nodes[key] as MeshInstance3D).visible = is_visible
+		(_overview_tile_nodes[key] as MeshInstance3D).visible = make_visible
 
 
 func _recompute_overview_stats() -> void:
@@ -1113,7 +1136,7 @@ func _update_block_face_overview() -> void:
 		_overview_built = true
 		_overview_complete_msec = Time.get_ticks_msec()
 		_initial_load = false
-		print("WorldRenderer: built block-face overview tiles (%d tiles, step=%d, tops %d->%d, sides %d, validation mismatches %d/%d)." % [
+		print("WorldRenderer: built block-face overview tiles (%d tiles, step=%d, tops %d->%d, sides %d, validation mismatches %d/%d) in %.2f s since startup." % [
 			_overview_tile_nodes.size(),
 			OVERVIEW_STEP,
 			_overview_sampled_top_faces,
@@ -1121,6 +1144,7 @@ func _update_block_face_overview() -> void:
 			_overview_side_faces,
 			_overview_validation_mismatches,
 			_overview_validation_samples,
+			_elapsed_since_start_seconds(_overview_complete_msec),
 		])
 		_print_startup_performance_report()
 	else:
