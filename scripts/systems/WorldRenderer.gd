@@ -45,6 +45,7 @@ extends Node3D
 @export var overview_slice_threshold: int = 96
 @export var show_overview_sides: bool = true
 @export_range(0, 128, 1) var overview_edge_bottom_y: int = 0
+@export_range(1, 64, 1) var overview_tiles_per_frame: int = 8
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -57,16 +58,23 @@ const WORLD_SIZE_Y: int = 128
 const WORLD_SIZE_Z: int = 1024
 const REGION_SIZE: int = 4
 const OVERVIEW_STEP: int = 1
+const OVERVIEW_TILE_SIZE: int = 32
 
 var _material: StandardMaterial3D
 var _overview_node: MeshInstance3D = null
 var _overview_built: bool = false
+var _overview_rebuild_queued: bool = false
 var _overview_rock_color: Color = Color.GRAY
 var _overview_sampled_top_faces: int = 0
 var _overview_merged_top_faces: int = 0
 var _overview_side_faces: int = 0
 var _overview_validation_samples: int = 0
 var _overview_validation_mismatches: int = 0
+var _overview_tile_nodes: Dictionary = {}
+var _overview_tile_stats: Dictionary = {}
+var _dirty_overview_tiles: Array[Vector2i] = []
+var _dirty_overview_tile_set: Dictionary = {}
+var _overview_tile_side_faces_working: int = 0
 var _visual_cut_blocks: Dictionary = {}
 var _region_nodes: Dictionary = {}
 var _chunk_nodes: Dictionary = {}   # Vector3i → MeshInstance3D
@@ -472,14 +480,41 @@ func _inspector_render_mode() -> String:
 
 func set_visual_cut_blocks(blocks: Dictionary) -> void:
 	_visual_cut_blocks = blocks.duplicate()
-	_invalidate_visual_cut_meshes()
+	_invalidate_visual_cut_meshes_global()
 
 
-func _invalidate_visual_cut_meshes() -> void:
-	_overview_built = false
+func add_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	var changed: Array[Vector3i] = []
+	for block: Vector3i in blocks:
+		if _visual_cut_blocks.has(block):
+			continue
+		_visual_cut_blocks[block] = true
+		changed.append(block)
+	_invalidate_visual_cut_blocks(changed)
+
+
+func remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	var changed: Array[Vector3i] = []
+	for block: Vector3i in blocks:
+		if not _visual_cut_blocks.has(block):
+			continue
+		_visual_cut_blocks.erase(block)
+		changed.append(block)
+	_invalidate_visual_cut_blocks(changed)
+
+
+func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	if blocks.is_empty():
+		return
 	if _block_face_overview_active():
-		if _overview_node != null:
-			_overview_node.mesh = null
+		_enqueue_overview_tiles_for_blocks(blocks)
+		return
+	_enqueue_regions_for_cut_blocks(blocks)
+
+
+func _invalidate_visual_cut_meshes_global() -> void:
+	_invalidate_overview_global()
+	if _block_face_overview_active():
 		return
 	for key: Vector2i in _region_nodes.keys():
 		_enqueue_region(key)
@@ -603,6 +638,30 @@ func _enqueue_region(key: Vector2i) -> void:
 	if not _dirty_region_set.has(key):
 		_dirty_region_set[key] = true
 		_dirty_region_queue.append(key)
+
+
+func _enqueue_regions_for_cut_blocks(blocks: Array[Vector3i]) -> void:
+	var offsets := [
+		Vector3i.ZERO,
+		Vector3i(-1, 0, 0),
+		Vector3i(1, 0, 0),
+		Vector3i(0, -1, 0),
+		Vector3i(0, 1, 0),
+		Vector3i(0, 0, -1),
+		Vector3i(0, 0, 1),
+	]
+	for block: Vector3i in blocks:
+		for offset: Vector3i in offsets:
+			var pos := block + offset
+			if pos.x < 0 or pos.x >= WORLD_SIZE_X \
+					or pos.y < 0 or pos.y >= WORLD_SIZE_Y \
+					or pos.z < 0 or pos.z >= WORLD_SIZE_Z:
+				continue
+			var cx := floori(float(pos.x) / float(CHUNK_SIZE))
+			var cz := floori(float(pos.z) / float(CHUNK_SIZE))
+			var key := _region_key(cx, cz)
+			if _region_should_exist(key):
+				_enqueue_region(key)
 
 
 func _region_key(cx: int, cz: int) -> Vector2i:
@@ -838,7 +897,7 @@ func _add_overview_side_band(
 	if top_y <= bottom_y:
 		return
 
-	_overview_side_faces += 1
+	_overview_tile_side_faces_working += 1
 
 	var base := verts.size()
 	verts.append(Vector3(a.x, top_y, a.z))
@@ -905,6 +964,91 @@ func _free_region_node(key: Vector2i) -> void:
 
 # -- Block-face overview ------------------------------------------------------
 
+func _invalidate_overview_global() -> void:
+	_overview_built = false
+	_overview_rebuild_queued = false
+	_dirty_overview_tiles.clear()
+	_dirty_overview_tile_set.clear()
+	_overview_tile_stats.clear()
+	_overview_sampled_top_faces = 0
+	_overview_merged_top_faces = 0
+	_overview_side_faces = 0
+	_overview_validation_samples = 0
+	_overview_validation_mismatches = 0
+	if _overview_node != null:
+		_overview_node.queue_free()
+		_overview_node = null
+	for key: Vector2i in _overview_tile_nodes.keys():
+		(_overview_tile_nodes[key] as MeshInstance3D).queue_free()
+	_overview_tile_nodes.clear()
+
+
+func _enqueue_overview_tiles_for_blocks(blocks: Array[Vector3i]) -> void:
+	for block: Vector3i in blocks:
+		_enqueue_overview_tile_for_world(block.x, block.z)
+		_enqueue_overview_tile_for_world(block.x - 1, block.z)
+		_enqueue_overview_tile_for_world(block.x + 1, block.z)
+		_enqueue_overview_tile_for_world(block.x, block.z - 1)
+		_enqueue_overview_tile_for_world(block.x, block.z + 1)
+	_overview_built = false
+
+
+func _enqueue_overview_tile_for_world(wx: int, wz: int) -> void:
+	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
+		return
+	_enqueue_overview_tile(Vector2i(
+		floori(float(wx) / float(OVERVIEW_TILE_SIZE)),
+		floori(float(wz) / float(OVERVIEW_TILE_SIZE))))
+
+
+func _enqueue_overview_tile(key: Vector2i) -> void:
+	if _dirty_overview_tile_set.has(key):
+		return
+	_dirty_overview_tile_set[key] = true
+	_dirty_overview_tiles.append(key)
+
+
+func _get_or_create_overview_tile_node(key: Vector2i) -> MeshInstance3D:
+	if _overview_tile_nodes.has(key):
+		return _overview_tile_nodes[key] as MeshInstance3D
+
+	var mi := MeshInstance3D.new()
+	mi.name = "BlockFaceOverview_%d_%d" % [key.x, key.y]
+	mi.material_override = _material
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	_overview_tile_nodes[key] = mi
+	return mi
+
+
+func _free_overview_tile_node(key: Vector2i) -> void:
+	if not _overview_tile_nodes.has(key):
+		return
+	(_overview_tile_nodes[key] as MeshInstance3D).queue_free()
+	_overview_tile_nodes.erase(key)
+
+
+func _set_overview_nodes_visible(is_visible: bool) -> void:
+	if _overview_node != null:
+		_overview_node.visible = is_visible
+	for key: Vector2i in _overview_tile_nodes:
+		(_overview_tile_nodes[key] as MeshInstance3D).visible = is_visible
+
+
+func _recompute_overview_stats() -> void:
+	_overview_sampled_top_faces = 0
+	_overview_merged_top_faces = 0
+	_overview_side_faces = 0
+	_overview_validation_samples = 0
+	_overview_validation_mismatches = 0
+	for stats: Dictionary in _overview_tile_stats.values():
+		_overview_sampled_top_faces += int(stats.get("sampled_top_faces", 0))
+		_overview_merged_top_faces += int(stats.get("merged_top_faces", 0))
+		_overview_side_faces += int(stats.get("side_faces", 0))
+		_overview_validation_samples += int(stats.get("validation_samples", 0))
+		_overview_validation_mismatches += int(stats.get("validation_mismatches", 0))
+
+
 func _block_face_overview_active() -> bool:
 	return use_block_face_overview and slice_y >= overview_slice_threshold
 
@@ -912,19 +1056,57 @@ func _block_face_overview_active() -> bool:
 func _update_block_face_overview() -> void:
 	if _camera_rig == null:
 		_camera_rig = _find_camera(get_tree().current_scene)
-	if _overview_node != null:
-		_overview_node.visible = true
+	_set_overview_nodes_visible(true)
 	_free_all_streamed_nodes()
 
 	var stats := WorldGenerator.get_streaming_stats()
 	if not stats.get("maps_ready", false):
 		return
-	if not _overview_built:
-		_build_block_face_overview()
+	if not _overview_built and not _overview_rebuild_queued and _dirty_overview_tiles.is_empty():
+		_queue_full_overview_rebuild()
+	_drain_overview_tile_queue()
+	if not _dirty_overview_tiles.is_empty():
+		return
+	if _overview_rebuild_queued:
+		_overview_rebuild_queued = false
+		_overview_built = true
 		_initial_load = false
+		print("WorldRenderer: built block-face overview tiles (%d tiles, step=%d, tops %d->%d, sides %d, validation mismatches %d/%d)." % [
+			_overview_tile_nodes.size(),
+			OVERVIEW_STEP,
+			_overview_sampled_top_faces,
+			_overview_merged_top_faces,
+			_overview_side_faces,
+			_overview_validation_mismatches,
+			_overview_validation_samples,
+		])
+	else:
+		_overview_built = true
 
 
-func _build_block_face_overview() -> void:
+func _queue_full_overview_rebuild() -> void:
+	_invalidate_overview_global()
+	var tile_count_x := ceili(float(WORLD_SIZE_X) / float(OVERVIEW_TILE_SIZE))
+	var tile_count_z := ceili(float(WORLD_SIZE_Z) / float(OVERVIEW_TILE_SIZE))
+	for tx in range(tile_count_x):
+		for tz in range(tile_count_z):
+			_enqueue_overview_tile(Vector2i(tx, tz))
+	_overview_rebuild_queued = true
+
+
+func _drain_overview_tile_queue() -> void:
+	var built := 0
+	while _dirty_overview_tiles.size() > 0 and built < overview_tiles_per_frame:
+		var key: Vector2i = _dirty_overview_tiles.pop_front()
+		_dirty_overview_tile_set.erase(key)
+		_rebuild_overview_tile(key)
+		built += 1
+	if built > 0:
+		_recompute_overview_stats()
+		_meshes_built += built
+
+
+func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 	var step: int = OVERVIEW_STEP
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
@@ -932,33 +1114,39 @@ func _build_block_face_overview() -> void:
 	var indices: PackedInt32Array = []
 	var season: String = WorldClock.season
 	_cache_overview_side_colors(season)
-	_overview_sampled_top_faces = 0
-	_overview_merged_top_faces = 0
-	_overview_side_faces = 0
-	_overview_validation_samples = 0
-	_overview_validation_mismatches = 0
+	_overview_tile_side_faces_working = 0
 
 	var sample_cells: Dictionary = {}
-	var grid_w := ceili(float(WORLD_SIZE_X) / float(step))
-	var grid_z := ceili(float(WORLD_SIZE_Z) / float(step))
-	for wx in range(0, WORLD_SIZE_X, step):
-		for wz in range(0, WORLD_SIZE_Z, step):
+	var x0 := tile_key.x * OVERVIEW_TILE_SIZE
+	var z0 := tile_key.y * OVERVIEW_TILE_SIZE
+	var x1 := mini(WORLD_SIZE_X, x0 + OVERVIEW_TILE_SIZE)
+	var z1 := mini(WORLD_SIZE_Z, z0 + OVERVIEW_TILE_SIZE)
+	if x0 < 0 or x0 >= WORLD_SIZE_X or z0 < 0 or z0 >= WORLD_SIZE_Z:
+		return
+
+	var grid_w := ceili(float(x1 - x0) / float(step))
+	var grid_z := ceili(float(z1 - z0) / float(step))
+	var sampled_top_faces := 0
+	var validation_samples := 0
+	var validation_mismatches := 0
+	for wx in range(x0, x1, step):
+		for wz in range(z0, z1, step):
 			var surface := _overview_visible_surface_after_cut(wx, wz)
 			if surface.is_empty():
 				continue
 			var wy: int = surface["wy"]
 			var block_id: int = surface["block_id"]
 			var generated_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
-			_overview_validation_samples += 1
+			validation_samples += 1
 			if generated_id != block_id:
-				_overview_validation_mismatches += 1
+				validation_mismatches += 1
 
 			var color := BlockRegistry.get_color(block_id, season)
 			var block_def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
 			var block_kind: String = block_def.get("kind", "unknown")
 			var key := Vector2i(
-				int(floor(float(wx) / float(step))),
-				int(floor(float(wz) / float(step))))
+				int(floor(float(wx - x0) / float(step))),
+				int(floor(float(wz - z0) / float(step))))
 			sample_cells[key] = {
 				"wx": wx,
 				"wz": wz,
@@ -970,10 +1158,15 @@ func _build_block_face_overview() -> void:
 			if show_overview_sides:
 				_add_overview_sides(wx, wz, step, float(wy + 1), color, verts, norms, cols, indices)
 
-	_overview_sampled_top_faces = sample_cells.size()
+	sampled_top_faces = sample_cells.size()
+	var merged_before := _overview_merged_top_faces
 	_add_greedy_overview_tops(sample_cells, grid_w, grid_z, step, verts, norms, cols, indices)
+	var merged_top_faces := _overview_merged_top_faces - merged_before
+	_overview_merged_top_faces = merged_before
 
 	if verts.is_empty():
+		_free_overview_tile_node(tile_key)
+		_overview_tile_stats.erase(tile_key)
 		return
 
 	var arrays: Array = []
@@ -986,26 +1179,16 @@ func _build_block_face_overview() -> void:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 
-	if _overview_node == null:
-		_overview_node = MeshInstance3D.new()
-		_overview_node.name = "BlockFaceOverview"
-		_overview_node.material_override = _material
-		_overview_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(_overview_node)
-
-	_overview_node.mesh = mesh
-	_overview_node.visible = true
-	_overview_built = true
-	_meshes_built += 1
-	print("WorldRenderer: built block-face overview (%d verts, step=%d, tops %d->%d, sides %d, validation mismatches %d/%d)." % [
-		verts.size(),
-		step,
-		_overview_sampled_top_faces,
-		_overview_merged_top_faces,
-		_overview_side_faces,
-		_overview_validation_mismatches,
-		_overview_validation_samples,
-	])
+	var mi := _get_or_create_overview_tile_node(tile_key)
+	mi.mesh = mesh
+	mi.visible = true
+	_overview_tile_stats[tile_key] = {
+		"sampled_top_faces": sampled_top_faces,
+		"merged_top_faces": merged_top_faces,
+		"side_faces": _overview_tile_side_faces_working,
+		"validation_samples": validation_samples,
+		"validation_mismatches": validation_mismatches,
+	}
 
 
 func _add_greedy_overview_tops(
@@ -1342,8 +1525,7 @@ func _chunk_in_radius(cx: int, cz: int, radius: int) -> bool:
 # ── Slice visibility ──────────────────────────────────────────────────────────
 
 func _apply_slice_visibility() -> void:
-	if _overview_node != null:
-		_overview_node.visible = _block_face_overview_active()
+	_set_overview_nodes_visible(_block_face_overview_active())
 	if _block_face_overview_active():
 		_free_all_streamed_nodes()
 		return
@@ -1395,6 +1577,9 @@ func get_render_stats() -> Dictionary:
 		"overview_active": overview_active,
 		"overview_built": _overview_built,
 		"overview_step": OVERVIEW_STEP,
+		"overview_tile_size": OVERVIEW_TILE_SIZE,
+		"overview_tiles": _overview_tile_nodes.size(),
+		"overview_dirty_tiles": _dirty_overview_tiles.size(),
 		"overview_sides": show_overview_sides,
 		"overview_sampled_top_faces": _overview_sampled_top_faces,
 		"overview_merged_top_faces": _overview_merged_top_faces,

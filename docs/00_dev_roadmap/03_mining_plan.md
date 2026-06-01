@@ -12,6 +12,23 @@ The first mining-designation slice is mostly implemented in `scripts/systems/Min
 
 Use this file as a mining UX/parity backlog. Delete the completed planning scaffolding once you are comfortable, keep the active behavior rules, and move performance-specific work to `04_mining_performance.md`.
 
+## Restore Audit - 2026-06-01
+
+The restored project matches the core player-facing behavior described in this document:
+
+- Dock `Mine` emits `mine_precision` through `DockUI.tool_requested`.
+- `MiningDesignationController` enters hover/drag mining mode, shows a preview, confirms on left
+  mouse release, and keeps the tool active.
+- Shift / Alt mouse-wheel resize horizontal and vertical precision sizes.
+- Ctrl-confirm subtracts from existing zones.
+- Right-click and Escape exit mining mode.
+- Confirmed zones remain selectable and open a compact `Mining Zone` window with `Remove` and `X`.
+- Selection filtering ignores out-of-bounds blocks, transparent blocks, water, and `y <= 3`.
+- Confirmed zones visually cut terrain through renderer state; `WorldData` is not mutated.
+
+Known restore-point gaps are the intended backlog items below, plus the performance work now tracked
+in `04_mining_performance.md`. No missing first-slice mining UX feature was found during this audit.
+
 ---
 
 ## <span style="color:#3fb950;">KEEP - Source References</span>
@@ -134,7 +151,7 @@ These are the parts of the old Stonehearth parity review that still look active.
 3. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Size labels and rulers.** Current `Label3D` size labels exist, but they are not full X/Z rulers and may still be hard to read.
 4. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Modifier redraw.** Force preview rebuild on Ctrl press/release so removal color changes immediately even if the mouse hit did not change.
 5. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Cursor and user feedback.** Add a small mining-mode instruction callout; cursor assets can wait.
-6. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Mining terrain grid visibility.** Generate the grid from visible/exposed faces only; do not rely on `no_depth_test` to draw every nearby candidate line.
+6. <span style="color:#3fb950;"><strong>KEEP / IMPLEMENTED ENOUGH:</strong></span> **Mining terrain grid visibility.** The restored code builds the terrain grid from visible surface tops plus exposed side faces around the camera, and the terrain grid material is depth-tested. Remaining overlay readability work belongs in `05_mining_tech_debt.md`.
 7. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> **Zone data model.** When worker mining begins, split full zone blocks, completed blocks, destination blocks, and reserved blocks.
 
 ---

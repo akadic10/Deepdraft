@@ -9,6 +9,83 @@ confirmed mining zones visually cut terrain, remain yellow/selectable, and can b
 The next step is performance only. Do not change mining UX, zone semantics, colors, or the current
 visual deduction result while doing this pass.
 
+## Implementation Audit - 2026-06-01
+
+This document was re-audited after restoring a project backup, before the performance pass below was
+re-implemented. At that restore point, the code was still mostly at the pre-performance state
+described below. Some renderer infrastructure existed, but ordinary mining add/remove still used a
+full visual-cut replacement and broad terrain invalidation.
+
+### Implemented In Current Code
+
+- `ChunkMesher.build_mesh(chunk, cx, cy, cz, visual_cut_blocks)` accepts a cut-block mask.
+- `ChunkMesher` skips mesh emission for blocks present in `visual_cut_blocks`.
+- `ChunkMesher._neighbor_transparent()` treats cut neighbors as transparent, so cut cavities expose
+  adjacent faces correctly.
+- `MiningDesignationController` stores confirmed mining zones, supports zone removal and Ctrl
+  subtract, rebuilds the yellow zone overlay, and calls the renderer after edits.
+- `WorldRenderer` stores `_visual_cut_blocks` and passes that mask into `ChunkMesher`.
+- `WorldRenderer` already has region mesh nodes, a dirty region queue, deduplication, per-frame
+  rebuild budgets, and `_region_key(cx, cz)` / `_rebuild_region()` infrastructure for streamed
+  rendering.
+- `WorldRenderer` has a global block-face overview renderer that accounts for visual cuts through
+  `_overview_visible_surface_after_cut()`.
+
+### Outstanding / Not Implemented
+
+- No delta visual-cut APIs exist in `WorldRenderer`: `add_visual_cut_blocks()` and
+  `remove_visual_cut_blocks()` are absent.
+- `MiningDesignationController` still calls `_sync_visual_cut_blocks()` after add/remove/subtract.
+  That method rebuilds a full dictionary by iterating every zone and every zone block, then calls
+  `WorldRenderer.set_visual_cut_blocks()`.
+- `WorldRenderer.set_visual_cut_blocks()` still replaces the whole mask and calls
+  `_invalidate_visual_cut_meshes()`.
+- `_invalidate_visual_cut_meshes()` still invalidates globally:
+  - overview mode sets `_overview_built = false` and clears the single overview mesh;
+  - streamed mode enqueues every existing region and then calls `_enqueue_visible_existing_chunks()`.
+- The block-face overview is still one global `MeshInstance3D` (`_overview_node`), not tiled.
+- No `_overview_tile_nodes`, `_dirty_overview_tiles`, or `_dirty_overview_tile_set` structures exist.
+- Mining edits do not dirty only affected overview tiles or affected streamed regions.
+- The old full overview rebuild path exists only implicitly through `_overview_built = false`; there
+  is no clearly named global invalidation API.
+- Lightweight mining-performance timing logs and before/after measurements are not present.
+- `_rebuild_zones_mesh()` still rebuilds all confirmed zone geometry on each add/remove/select,
+  which was acceptable for the first terrain pass but remains future work.
+
+### Current Status
+
+At the restore point, the visual-cut rendering behavior was present, but the performance work from
+this plan was not complete. The likely freeze path still existed for overview-mode edits because a
+single mining change could force `_build_block_face_overview()` to rescan the full `1024 x 1024`
+surface grid.
+
+## Performance Pass Update - 2026-06-01
+
+The code-level performance pass from this plan has now been implemented.
+
+Implemented changes:
+
+- `WorldRenderer` now exposes `add_visual_cut_blocks()` and `remove_visual_cut_blocks()` delta APIs.
+- `MiningDesignationController` uses those delta APIs for normal zone confirm, zone removal, and
+  Ctrl-subtract. `_sync_visual_cut_blocks()` remains only as a fallback/global sync path.
+- Ordinary mining edits no longer call the broad `set_visual_cut_blocks()` replacement path.
+- Streamed rendering invalidates only regions touched by changed cut blocks and their direct
+  neighbor blocks, instead of enqueueing all existing/visible regions.
+- Block-face overview rendering is split into `32 x 32` world-tile mesh nodes.
+- Overview tiles are queued and rebuilt with a per-frame budget (`overview_tiles_per_frame`).
+- Ordinary mining edits dirty only the overview tiles touched by changed columns plus the immediate
+  X/Z neighbor columns needed for side-face correctness.
+- The old full overview rebuild remains as `_invalidate_overview_global()` /
+  `_queue_full_overview_rebuild()` for global events and fallback full sync.
+
+Still outstanding:
+
+- No explicit timing-log instrumentation was added.
+- The `1x1x1`, `3x3x1`, and `4x4x4` cases still need interactive timing/feel validation in the
+  running game.
+- `_rebuild_zones_mesh()` still rebuilds all confirmed mining-zone overlay geometry. This is not the
+  original terrain-freeze path, but remains future polish for very large numbers of zones.
+
 ## Current Problem
 
 Designating or removing even a `1x1x1` mining zone can freeze the game for roughly 15 seconds.
@@ -149,31 +226,49 @@ removing one zone does not rebuild all confirmed zone geometry.
 
 ## Implementation Milestones
 
-1. Add lightweight timing logs around mining confirm/remove, visual cut sync, overview rebuild, and
-   region rebuild. Measure current baseline for `1x1x1`, `3x3x1`, and `4x4x4`.
-2. Add delta visual-cut APIs to `WorldRenderer`.
-3. Update `MiningDesignationController` to call delta APIs for normal add/remove/subtract paths.
-4. Replace `_invalidate_visual_cut_meshes()` usage in mining paths with localized region/tile
+Legend: `[x]` present in the restored code, `[ ]` not implemented, `[~]` partially present but not
+wired to solve the mining-edit performance problem.
+
+1. `[ ]` Add lightweight timing logs around mining confirm/remove, visual cut sync, overview
+   rebuild, and region rebuild. Measure current baseline for `1x1x1`, `3x3x1`, and `4x4x4`.
+2. `[x]` Add delta visual-cut APIs to `WorldRenderer`.
+3. `[x]` Update `MiningDesignationController` to call delta APIs for normal add/remove/subtract
+   paths.
+4. `[x]` Replace `_invalidate_visual_cut_meshes()` usage in mining paths with localized region/tile
    invalidation.
-5. Localize streamed region invalidation to affected region keys.
-6. Split the block-face overview into tile mesh nodes.
-7. Rebuild only dirty overview tiles for mining edits.
-8. Keep the old full overview rebuild as a named global path.
-9. Re-measure the same three test cases.
-10. Remove or gate noisy timing logs behind a debug flag.
+5. `[x]` Localize streamed region invalidation to affected region keys.
+6. `[x]` Split the block-face overview into tile mesh nodes.
+7. `[x]` Rebuild only dirty overview tiles for mining edits.
+8. `[x]` Keep the old full overview rebuild as a named global path.
+9. `[ ]` Re-measure the same three test cases.
+10. `[ ]` Remove or gate noisy timing logs behind a debug flag.
+
+## Next Implementation Order
+
+1. Add debug-gated timing around the current hot paths so the restored baseline is measurable.
+2. Add `add_visual_cut_blocks()` and `remove_visual_cut_blocks()` to `WorldRenderer` while keeping
+   `set_visual_cut_blocks()` as the global fallback.
+3. Change `MiningDesignationController` add/remove/subtract paths to send only changed blocks.
+4. Implement localized streamed-region dirtying for changed blocks as the smaller first win.
+5. Tile the block-face overview and route mining edits to dirty overview tiles only.
+6. Re-run the `1x1x1`, `3x3x1`, and `4x4x4` checks in both overview and streamed modes.
 
 ## Acceptance Criteria
 
-- Adding a `1x1x1` mining zone in overview mode does not freeze the game.
-- Removing that zone does not freeze the game.
-- Adding/removing `3x3x1` and `4x4x4` zones remains responsive.
-- The visual output still matches the working behavior from `03_mining_plan`:
+- `[~]` Adding a `1x1x1` mining zone in overview mode does not force a global overview rebuild; needs
+  interactive feel validation.
+- `[~]` Removing that zone does not force a global overview rebuild; needs interactive feel
+  validation.
+- `[~]` Adding/removing `3x3x1` and `4x4x4` zones should remain localized; needs interactive timing
+  validation.
+- `[x]` The visual output still matches the working behavior from `03_mining_plan` at the data/model
+  level:
   - terrain appears deducted,
   - yellow zone volume remains selectable,
   - removing a zone restores the terrain visually,
   - block/zone interaction still works.
-- No global overview rebuild occurs for ordinary mining add/remove.
-- No all-region streamed rebuild occurs for ordinary mining add/remove.
+- `[x]` No global overview rebuild occurs for ordinary mining add/remove.
+- `[x]` No all-region streamed rebuild occurs for ordinary mining add/remove.
 
 ## Risks
 

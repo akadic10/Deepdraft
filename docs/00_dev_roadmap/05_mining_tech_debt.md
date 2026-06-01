@@ -2,6 +2,21 @@
 
 This file tracks small cleanup items discovered while reviewing the mining implementation. It is for debt that is real but not urgent enough to interrupt the current feature pass.
 
+## Restore Audit - 2026-06-01
+
+Both debt items below are still valid in the restored project.
+
+- `Config Source Of Truth` is still open: `MiningDesignationController.gd` loads
+  `data/terrain/mining_config.json`, but the same numbers are still initialized inline as unnamed
+  fallback values.
+- `Foreground vs Background Mining Overlay Readability` is still open: preview and zone overlays use
+  no-depth fill/line materials for full regions, and there is no separate stronger depth-tested
+  exposed/floating subset yet.
+
+No additional small mining cleanup item was found during this restore audit. Performance-specific
+work is tracked in `04_mining_performance.md`, and first-slice UX backlog is tracked in
+`03_mining_plan.md`.
+
 ## Config Source Of Truth
 
 **Status:** Open

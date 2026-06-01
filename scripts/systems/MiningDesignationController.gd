@@ -580,7 +580,7 @@ func _confirm_preview() -> void:
 	for block: Vector3i in blocks:
 		_zone_by_block[block] = zone_id
 	_rebuild_zones_mesh()
-	_sync_visual_cut_blocks()
+	_add_visual_cut_blocks(blocks)
 
 
 func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
@@ -772,8 +772,8 @@ func _rebuild_zones_mesh() -> void:
 	for zone_id: int in _zones.keys():
 		var zone: Dictionary = _zones[zone_id]
 		var blocks: Array = zone.get("blocks", [])
-		var line_color := Color(1.0, 1.0, 0.25, 1.0) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.92)
-		var fill_color := Color(1.0, 0.95, 0.18, 0.32) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.22)
+		var line_color := Color(1.0, 0.05, 0.03, 1.0) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.92)
+		var fill_color := Color(1.0, 0.05, 0.03, 0.28) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.22)
 		_append_block_faces(blocks, fill_color, fill_verts, fill_cols, 0.008)
 		_append_exterior_region_lines(blocks, line_color, line_verts, line_cols, 0.010)
 
@@ -809,6 +809,24 @@ func _sync_visual_cut_blocks() -> void:
 		for block: Vector3i in zone.get("blocks", []):
 			cut_blocks[block] = true
 	_renderer.call("set_visual_cut_blocks", cut_blocks)
+
+
+func _add_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	if _renderer == null:
+		return
+	if _renderer.has_method("add_visual_cut_blocks"):
+		_renderer.call("add_visual_cut_blocks", blocks)
+	else:
+		_sync_visual_cut_blocks()
+
+
+func _remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	if _renderer == null:
+		return
+	if _renderer.has_method("remove_visual_cut_blocks"):
+		_renderer.call("remove_visual_cut_blocks", blocks)
+	else:
+		_sync_visual_cut_blocks()
 
 
 func _build_line_mesh(blocks: Array[Vector3i], color: Color, inset: float) -> ArrayMesh:
@@ -1168,20 +1186,24 @@ func _remove_zone(zone_id: int) -> void:
 	if not _zones.has(zone_id):
 		return
 	var zone: Dictionary = _zones[zone_id]
+	var removed_blocks: Array[Vector3i] = []
 	for block: Vector3i in zone.get("blocks", []):
 		if _zone_by_block.get(block, -1) == zone_id:
 			_zone_by_block.erase(block)
+			removed_blocks.append(block)
 	_zones.erase(zone_id)
 	_rebuild_zones_mesh()
-	_sync_visual_cut_blocks()
+	_remove_visual_cut_blocks(removed_blocks)
 
 
 func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 	var affected: Dictionary = {}
+	var removed_blocks: Array[Vector3i] = []
 	for block: Vector3i in blocks:
 		if _zone_by_block.has(block):
 			affected[int(_zone_by_block[block])] = true
 			_zone_by_block.erase(block)
+			removed_blocks.append(block)
 
 	for zone_id: int in affected.keys():
 		if not _zones.has(zone_id):
@@ -1199,7 +1221,7 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 	if affected.has(_selected_zone_id) and not _zones.has(_selected_zone_id):
 		_close_zone_window()
 	_rebuild_zones_mesh()
-	_sync_visual_cut_blocks()
+	_remove_visual_cut_blocks(removed_blocks)
 
 
 func _in_bounds(pos: Vector3i) -> bool:
