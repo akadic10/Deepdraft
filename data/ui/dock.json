@@ -20,6 +20,14 @@
       "target": "chop"
     },
     {
+      "id": "gather",
+      "emoji": "🧺",
+      "label": "Gather",
+      "tooltip": "Designate things fo gathering",
+      "action": "open_panel",
+      "target": "gather"
+    },
+    {
       "id": "build",
       "emoji": "🔨",
       "label": "Build",
@@ -27,9 +35,10 @@
       "action": "open_panel",
       "target": "build"
     },
+    { "type": "separator" },
     {
       "id": "storage_zone",
-      "emoji": "🟩",
+      "emoji": "📦",
       "label": "Storage Zone",
       "tooltip": "Draw a rectangle to designate ground storage areas",
       "action": "open_panel",
@@ -43,6 +52,7 @@
       "action": "open_panel",
       "target": "farm"
     },
+    { "type": "separator" },
     {
       "id": "military",
       "emoji": "⚔️",
@@ -75,6 +85,23 @@
       "tooltip": "Trade Counter, buy orders, and caravan log",
       "action": "toggle_window",
       "target": "trade"
+    },
+    { "type": "separator" },
+    {
+      "id": "slice",
+      "emoji": "👀",
+      "label": "Slice",
+      "tooltip": "Slice view",
+      "action": "toggle_window",
+      "target": "slice"
+    },
+    {
+      "id": "xray",
+      "emoji": "🩻",
+      "label": "X-Ray",
+      "tooltip": "xray view",
+      "action": "toggle_window",
+      "target": "xray"
     },
     { "type": "separator" },
     {

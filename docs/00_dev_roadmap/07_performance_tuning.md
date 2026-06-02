@@ -8,15 +8,48 @@
 
 ## Document Review - 2026-06-01
 
-This is the live startup-performance worklog. It records what has been measured, what has
-been changed and why, and the outstanding bottleneck that still blocks a Stonehearth-class
-startup. It complements, and should not duplicate:
+**STATUS: TARGET MET.** In a release build the world is interactive in ~5.0 s with first terrain
+at ~4.6 s - under Stonehearth's 5.28 s reference - and the full world overview finishes at
+~9.7 s. The startup-performance effort is considered done; remaining items are optional polish
+(see *Outcome* below). This file is the worklog of how we got there.
+
+It complements, and should not duplicate:
 
 - `06_initial_world_load_sky_fog_view_distance_plan.md` - the architectural plan (local
-  generation, fog/camera budget, visibility regions). Still the source of truth for the
-  long-term direction.
+  generation, fog/camera budget, visibility regions). The bounded-generation rewrite it
+  describes was **not needed** to hit the target and remains available only if the world grows.
 - `04_mining_performance.md` - the tiled block-face overview and delta visual-cut work that
   this document builds on.
+
+---
+
+## <span style="color:#3fb950;">KEEP - Outcome (2026-06-01)</span>
+
+Full-journey result, from the start of this effort to the shipped (release) build:
+
+| Metric | Start (debug) | End, editor (debug) | End, **release** |
+|---|---:|---:|---:|
+| First visible terrain | ~15.5 s | 10.2 s | **4.57 s** |
+| Startup -> interactive | ~20.2 s | 11.65 s | **5.01 s** |
+| Map precompute | ~15.5 s | 10.1 s | **4.54 s** |
+| Full world overview built | ~47.8 s (stopwatch) | 23.5 s | **9.71 s** |
+
+Two compounding factors got us here:
+
+1. **Algorithmic / architectural work** (this doc): parallelized map passes, deferred grass
+   bands, removed redundant per-column generation in the overview, and threaded the overview
+   tile build. This is what made the *editor* number drop ~20 s -> 11.6 s and the full build
+   ~47 s -> 23.5 s.
+2. **Release export** (~2.3-2.4x on top): stripping debug bounds/type checks and editor/debugger
+   overhead from the million-iteration loops. This is what took 11.6 s -> 5.0 s. GDScript is
+   still interpreted bytecode in release - export is not native compilation - so the speedup is
+   from removed debug checks, not compilation.
+
+**Key lesson: measure in a release build before optimizing.** We nearly committed to the big
+bounded-generation rewrite to chase 6 s; a release export alone beat the target. Always compare
+against release numbers (export with *Export With Debug* unchecked; set the console wrapper to
+include Release to see the `StartupPerformance` prints), and run twice to skip first-launch
+shader/asset warmup.
 
 ---
 
@@ -36,19 +69,22 @@ is "stop doing redundant, full-resolution, main-thread work to present it."
 All numbers from the in-engine `StartupPerformance` report on the same machine, random seed per
 run (`generate(0)` -> `randi()`), 1024 x 128 x 1024 world.
 
-| Stage | total_to_initial_load | first_visible_terrain | map precompute | full overview build |
+| Stage (all editor/debug unless noted) | total_to_initial_load | first_visible_terrain | map precompute | full overview build |
 |---|---:|---:|---:|---:|
 | Pre-work baseline (interim overview gating, doc 06) | ~19.8 s | ~15.4 s | ~15.5 s | (not stamped) |
 | After map-pass parallelization | 17.79 s | 13.02 s | 12.98 s | (not stamped) |
 | After grass-band deferral | 15.90 s | 10.38 s | 10.33 s | (not stamped) |
-| Latest measured | 15.49 s | 10.16 s | 10.11 s | **44.13 s** |
+| After overview build stamp added | 15.49 s | 10.16 s | 10.11 s | **44.13 s** |
+| After removing redundant overview generation (validation, surface-id neighbour, vein/cave-free sides) | 12.71 s | 10.16 s | 10.11 s | 29.84 s |
+| After threading the overview tile build | 11.65 s | 10.30 s | 10.24 s | 23.53 s |
+| **Release build (same code)** | **5.01 s** | **4.57 s** | **4.54 s** | **9.71 s** |
 
-> **Important measurement correction:** `total_to_initial_load` / `startup_ready` (~15.5 s) only
-> marks when the **121-tile center radius** is built, not when the world is playable. The
-> renderer keeps meshing the remaining ~900 tiles afterward. A stopwatch to "actually playable"
-> measured **~47.8 s**, which matches the newly added full-overview timestamp (`built ... 1024
-> tiles ... in 44.13 s since startup`). Always compare against the full-overview line, not
-> startup_ready.
+> **Two measurement corrections we learned the hard way:**
+> 1. `total_to_initial_load` / `startup_ready` only marks when the **121-tile center radius** is
+>    built, not when the whole map is meshed. Compare "feel of fully built" against the
+>    full-overview timestamp line (`built ... 1024 tiles ... in N s`), not startup_ready.
+> 2. Editor/debug numbers are ~2.3x slower than a release build for these script-heavy loops.
+>    The numbers that matter are the **release** row above. Do not tune against debug numbers.
 
 ### Latest map-phase breakdown (precompute, gen thread)
 
@@ -105,11 +141,15 @@ Renamed `_set_overview_nodes_visible(is_visible)` -> `(make_visible)` to stop sh
 
 ---
 
-## <span style="color:#f85149;">CRITICAL - The Real Bottleneck (overview build)</span>
+## <span style="color:#3fb950;">RESOLVED - The Overview-Build Bottleneck (kept for the record)</span>
 
-The dominant cost is no longer map generation. It is the **block-face overview being meshed on
-the main thread, at per-block resolution, with redundant generation per column.** This is what
-keeps the game at a crawl for ~44 s and prevents jitter-free scrolling.
+> **Resolved.** Findings 1, 2 and 4 below were the real cost and have been fixed (redundant
+> generation removed, build threaded). Finding 3 (`OVERVIEW_STEP`) was left as-is - the release
+> build is fast enough that per-block resolution is fine. Kept here as the diagnosis trail.
+
+The dominant cost was never map generation. It was the **block-face overview being meshed on
+the main thread, at per-block resolution, with redundant generation per column** - which kept
+the game at a crawl during the build and prevented jitter-free scrolling.
 
 ### <span style="color:#f85149;">Finding 1 - All overview meshing runs on the main thread</span>
 
@@ -145,32 +185,36 @@ times, not once.
 
 ---
 
-## <span style="color:#d29922;">REVIEW - Candidate Fixes (ranked by leverage)</span>
+## <span style="color:#3fb950;">DONE / OPTIONAL - Fixes (was: ranked candidates)</span>
 
-Not yet implemented. Listed so we can decide order and confirm none regress the working visual.
+Implemented this session:
 
-1. <span style="color:#f85149;">**Remove the per-column validation re-generation**</span> in
-   `_rebuild_overview_tile`. Keep it only behind an explicit debug flag, run on a sparse sample,
-   not every column. Expected: roughly halves top-face cost. Lowest risk, highest certainty.
-2. <span style="color:#d29922;">**Move overview meshing off the main thread.**</span> Generate
-   tile geometry (vertex/normal/color/index arrays) in a worker; only the final
-   `ArrayMesh`/`MeshInstance3D` assignment must touch the main thread. Removes the ~3 FPS stall
-   and the scroll jitter. Biggest feel improvement.
-3. <span style="color:#d29922;">**Coarsen `OVERVIEW_STEP` to 4-8 for the navigation view.**</span>
-   16-64x fewer samples/faces for the whole map. Pairs with a higher-detail step only when zoomed
-   in. Confirm the look at navigation zoom first.
-4. <span style="color:#d29922;">**Cache the surface block id during precompute.**</span> The
-   surface skin is recomputed on demand (`_pick_surface_block` re-runs slope/region/grass-variant
-   noise) every time the overview asks for a column. A cheap per-column `surface_block_id` array
-   filled during the (already running) map passes would make overview/streaming surface lookups
-   O(1) instead of re-deriving them.
-5. <span style="color:#d29922;">**Scope the grass-band re-mesh to cap tiles only.**</span>
-   `_on_grass_bands_ready` currently re-meshes all built tiles; only cap columns actually change
-   between fallback and final. Also make the fallback a single flat grass variant so the interim
-   is clean instead of a checkerboard.
-6. <span style="color:#d29922;">**Finish parallelizing / pruning the heightmap serial remainder.**</span>
-   Parallelize the `macro_heights` precompute loop; drop or gate the four shaping post-passes
-   that currently produce zero changes.
+1. <span style="color:#3fb950;">**[DONE]** Removed the per-column validation re-generation</span>
+   (now behind `overview_validate_block_ids`, off by default).
+2. <span style="color:#3fb950;">**[DONE]** Threaded the overview tile build</span> - the geometry build
+   (`_build_overview_tile_geometry`) is pure and runs on a `WorkerThreadPool` group task per
+   frame batch; the main thread only assigns the finished `ArrayMesh`. Toggle: `overview_threaded`.
+   A main-thread cut-block snapshot (`_ovt_cut`) keeps workers safe while mining mutates cuts.
+3. <span style="color:#3fb950;">**[DONE]** Vein/cave-free side coloring + height-only neighbour
+   lookup</span> - `get_overview_strata_block_id` and `get_overview_surface_height` removed the
+   bulk of redundant per-column surface generation; side-color walk subsampled by
+   `OVERVIEW_SIDE_COLOR_STEP`.
+4. <span style="color:#3fb950;">**[DONE]** Dropped the dead `block_kind` per-column lookup.</span>
+5. <span style="color:#3fb950;">**[DONE]** Parallelized `domain_map` + `heightmap` main fills</span>
+   (`WorkerThreadPool`, per-X column); grass bands deferred past `maps_ready`.
+
+Optional remaining (only if a specific problem shows up in a release playtest):
+
+- <span style="color:#d29922;">**Side-face greedy merge.**</span> The only remaining hotspot is
+  mountain tiles (~110 ms / ~127 k verts each in release). Merging adjacent coplanar same-colour
+  cliff quads (as we already do for tops) would shrink them, fully smooth scrolling over the NW
+  mountain *during* the background build, and improve thread load-balance. Do this **only if**
+  that hitch is actually noticeable in a release playtest - it may already be fine.
+- <span style="color:#d29922;">**Scope the grass-band re-mesh to cap tiles.**</span>
+  `_on_grass_bands_ready` re-meshes all built tiles; only grass-cap columns change. Faster
+  building means more tiles get redundantly re-meshed (~500). Low value unless profiling says so.
+- <span style="color:#d29922;">**Bounded local generation (doc 06).**</span> Not needed for the
+  target. Revisit only if the world size grows or precompute creeps back up.
 
 ---
 

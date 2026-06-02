@@ -52,11 +52,14 @@ extends Node3D
 ## This doubles per-column generation cost across the whole world, so it stays
 ## off in normal runs. Validation has held at 0 mismatches / 1,048,576 columns.
 @export var overview_validate_block_ids: bool = false
-## Debug only. When true, _rebuild_overview_tile accumulates per-section timing
+## Debug only. When true, the overview tile build accumulates per-section timing
 ## (surface loop, side build, top merge, mesh creation) and prints the breakdown
 ## plus the single slowest tile when the full overview completes.
-## TEMPORARILY DEFAULTED TRUE for profiling - set back to false once measured.
-@export var overview_profile: bool = true
+@export var overview_profile: bool = false
+## When true, each frame's batch of overview tiles is built in parallel on a
+## WorkerThreadPool; the main thread only assigns the finished meshes. Set false
+## to fall back to the synchronous per-tile build (e.g. to isolate a problem).
+@export var overview_threaded: bool = true
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -89,8 +92,17 @@ var _overview_tile_nodes: Dictionary = {}
 var _overview_tile_stats: Dictionary = {}
 var _dirty_overview_tiles: Array[Vector2i] = []
 var _dirty_overview_tile_set: Dictionary = {}
-var _overview_tile_side_faces_working: int = 0
 var _visual_cut_blocks: Dictionary = {}
+# Immutable cut-block snapshot read by the overview build (incl. worker threads).
+# Set on the main thread before each drain so workers never read the live
+# _visual_cut_blocks while mining could mutate it.
+var _ovt_cut: Dictionary = {}
+# Group-task scratch for the threaded overview build (main thread sets these
+# before dispatch; workers read _ovt_batch/_ovt_season read-only and write their
+# own disjoint _ovt_results slot).
+var _ovt_batch: Array[Vector2i] = []
+var _ovt_results: Array = []
+var _ovt_season: String = ""
 # Per-section profiling accumulators (usec), only written when overview_profile.
 var _ovp_loop_usec: int = 0
 var _ovp_sides_usec: int = 0
@@ -959,8 +971,6 @@ func _add_overview_side_band(
 	if top_y <= bottom_y:
 		return
 
-	_overview_tile_side_faces_working += 1
-
 	var base := verts.size()
 	verts.append(Vector3(a.x, top_y, a.z))
 	verts.append(Vector3(b.x, top_y, b.z))
@@ -1249,39 +1259,70 @@ func _overview_tile_distance(a: Vector2i, b: Vector2i) -> int:
 
 
 func _drain_overview_tile_queue() -> void:
-	var built := 0
-	while _dirty_overview_tiles.size() > 0 and built < overview_tiles_per_frame:
+	if _dirty_overview_tiles.is_empty():
+		return
+	# Read-only-during-build state, set once on the main thread before any worker
+	# runs: side rock color, cut-block snapshot, and season.
+	_cache_overview_side_colors(WorldClock.season)
+	_ovt_cut = _visual_cut_blocks.duplicate()
+	_ovt_season = WorldClock.season
+
+	# Pull this frame's batch off the dirty queue.
+	var batch: Array[Vector2i] = []
+	while _dirty_overview_tiles.size() > 0 and batch.size() < overview_tiles_per_frame:
 		var key: Vector2i = _dirty_overview_tiles.pop_front()
 		_dirty_overview_tile_set.erase(key)
-		_rebuild_overview_tile(key)
-		built += 1
-	if built > 0:
-		_recompute_overview_stats()
-		_meshes_built += built
+		batch.append(key)
+	if batch.is_empty():
+		return
+
+	if overview_threaded and batch.size() > 1:
+		# Build all tiles in the batch in parallel; each worker writes only its own
+		# _ovt_results slot and reads only the read-only state above. The main thread
+		# blocks until the batch finishes (~batch_time / cores) then assigns meshes.
+		_ovt_batch = batch
+		_ovt_results = []
+		_ovt_results.resize(batch.size())
+		var task_id := WorkerThreadPool.add_group_task(
+			Callable(self, "_overview_build_worker"), batch.size(), -1, false, "overview_tiles")
+		WorkerThreadPool.wait_for_group_task_completion(task_id)
+		for i in range(batch.size()):
+			_assign_overview_tile(batch[i], _ovt_results[i])
+	else:
+		for key: Vector2i in batch:
+			_assign_overview_tile(key, _build_overview_tile_geometry(key, _ovt_season))
+
+	_recompute_overview_stats()
+	_meshes_built += batch.size()
 
 
-func _rebuild_overview_tile(tile_key: Vector2i) -> void:
-	var t_start := Time.get_ticks_msec()
+## WorkerThreadPool group-task body: builds one tile of the current batch into its
+## own results slot. Pure read of shared state (see _build_overview_tile_geometry).
+func _overview_build_worker(i: int) -> void:
+	_ovt_results[i] = _build_overview_tile_geometry(_ovt_batch[i], _ovt_season)
+
+
+# PURE geometry build for one overview tile. Reads only read-only state
+# (WorldGenerator maps/noise, BlockRegistry, _visual_cut_blocks, _overview_rock_color
+# which is set before the batch) and writes NO member variables, so it is safe to
+# run on a WorkerThreadPool task. Returns the mesh arrays + per-tile stats/timings,
+# or {} when the tile has no geometry. The main-thread wrapper creates the mesh.
+func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictionary:
 	var step: int = OVERVIEW_STEP
+	var x0 := tile_key.x * OVERVIEW_TILE_SIZE
+	var z0 := tile_key.y * OVERVIEW_TILE_SIZE
+	if x0 < 0 or x0 >= WORLD_SIZE_X or z0 < 0 or z0 >= WORLD_SIZE_Z:
+		return {}
+	var x1 := mini(WORLD_SIZE_X, x0 + OVERVIEW_TILE_SIZE)
+	var z1 := mini(WORLD_SIZE_Z, z0 + OVERVIEW_TILE_SIZE)
+
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
 	var cols: PackedColorArray = []
 	var indices: PackedInt32Array = []
-	var season: String = WorldClock.season
-	_cache_overview_side_colors(season)
-	_overview_tile_side_faces_working = 0
-
 	var sample_cells: Dictionary = {}
-	var x0 := tile_key.x * OVERVIEW_TILE_SIZE
-	var z0 := tile_key.y * OVERVIEW_TILE_SIZE
-	var x1 := mini(WORLD_SIZE_X, x0 + OVERVIEW_TILE_SIZE)
-	var z1 := mini(WORLD_SIZE_Z, z0 + OVERVIEW_TILE_SIZE)
-	if x0 < 0 or x0 >= WORLD_SIZE_X or z0 < 0 or z0 >= WORLD_SIZE_Z:
-		return
-
 	var grid_w := ceili(float(x1 - x0) / float(step))
 	var grid_z := ceili(float(z1 - z0) / float(step))
-	var sampled_top_faces := 0
 	var validation_samples := 0
 	var validation_mismatches := 0
 	var prof := overview_profile
@@ -1296,9 +1337,7 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 				continue
 			var wy: int = surface["wy"]
 			var block_id: int = surface["block_id"]
-			# Debug-only cross-check. The drawn color comes from block_id below;
-			# this second full generation pass is pure validation and is off by
-			# default (see overview_validate_block_ids).
+			# Debug-only cross-check; off by default (see overview_validate_block_ids).
 			if overview_validate_block_ids:
 				var generated_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
 				validation_samples += 1
@@ -1306,8 +1345,6 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 					validation_mismatches += 1
 
 			var color := BlockRegistry.get_color(block_id, season)
-			var block_def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
-			var block_kind: String = block_def.get("kind", "unknown")
 			var key := Vector2i(
 				int(floor(float(wx - x0) / float(step))),
 				int(floor(float(wz - z0) / float(step))))
@@ -1317,7 +1354,6 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 				"wy": wy,
 				"block_id": block_id,
 				"color": color,
-				"kind": block_kind,
 			}
 			if show_overview_sides:
 				if prof:
@@ -1330,27 +1366,50 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 	if prof:
 		t_loop_usec = (Time.get_ticks_usec() - t_loop0) - t_sides_usec
 
-	sampled_top_faces = sample_cells.size()
+	# Sides are the only geometry added in the loop above; each band is one quad
+	# (6 indices), so this counts side faces without a shared running counter.
+	var side_faces := indices.size() / 6
+	var sampled_top_faces := sample_cells.size()
 	var t_merge0 := Time.get_ticks_usec() if prof else 0
-	var merged_before := _overview_merged_top_faces
-	_add_greedy_overview_tops(sample_cells, grid_w, grid_z, step, verts, norms, cols, indices)
-	var merged_top_faces := _overview_merged_top_faces - merged_before
-	_overview_merged_top_faces = merged_before
+	var merged_top_faces := _add_greedy_overview_tops(sample_cells, grid_w, grid_z, step, verts, norms, cols, indices)
 	if prof:
 		t_merge_usec = Time.get_ticks_usec() - t_merge0
 
 	if verts.is_empty():
+		return {}
+
+	return {
+		"verts": verts,
+		"norms": norms,
+		"cols": cols,
+		"indices": indices,
+		"sampled_top_faces": sampled_top_faces,
+		"merged_top_faces": merged_top_faces,
+		"side_faces": side_faces,
+		"validation_samples": validation_samples,
+		"validation_mismatches": validation_mismatches,
+		"t_loop_usec": t_loop_usec,
+		"t_sides_usec": t_sides_usec,
+		"t_merge_usec": t_merge_usec,
+	}
+
+
+# Main-thread: take a (possibly worker-built) geometry result and create the mesh
+# + update bookkeeping. Only this part touches member state / the scene tree.
+func _assign_overview_tile(tile_key: Vector2i, result: Dictionary) -> void:
+	var t_start := Time.get_ticks_msec()
+	if result.is_empty():
 		_free_overview_tile_node(tile_key)
 		_overview_tile_stats.erase(tile_key)
 		return
 
-	var t_mesh0 := Time.get_ticks_usec() if prof else 0
+	var t_mesh0 := Time.get_ticks_usec() if overview_profile else 0
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = verts
-	arrays[Mesh.ARRAY_NORMAL] = norms
-	arrays[Mesh.ARRAY_COLOR] = cols
-	arrays[Mesh.ARRAY_INDEX] = indices
+	arrays[Mesh.ARRAY_VERTEX] = result["verts"]
+	arrays[Mesh.ARRAY_NORMAL] = result["norms"]
+	arrays[Mesh.ARRAY_COLOR] = result["cols"]
+	arrays[Mesh.ARRAY_INDEX] = result["indices"]
 
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -1358,23 +1417,24 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 	var mi := _get_or_create_overview_tile_node(tile_key)
 	mi.mesh = mesh
 	mi.visible = true
-	if prof:
+
+	if overview_profile:
 		var t_mesh_usec := Time.get_ticks_usec() - t_mesh0
-		_ovp_loop_usec += t_loop_usec
-		_ovp_sides_usec += t_sides_usec
-		_ovp_merge_usec += t_merge_usec
+		_ovp_loop_usec += int(result["t_loop_usec"])
+		_ovp_sides_usec += int(result["t_sides_usec"])
+		_ovp_merge_usec += int(result["t_merge_usec"])
 		_ovp_mesh_usec += t_mesh_usec
 		_ovp_tiles += 1
-		var tile_total := t_loop_usec + t_sides_usec + t_merge_usec + t_mesh_usec
+		var tile_total := int(result["t_loop_usec"]) + int(result["t_sides_usec"]) + int(result["t_merge_usec"]) + t_mesh_usec
 		if tile_total > _ovp_max_tile_usec:
 			_ovp_max_tile_usec = tile_total
 			_ovp_max_tile_key = tile_key
 			_ovp_max_breakdown = {
-				"loop_us": t_loop_usec,
-				"sides_us": t_sides_usec,
-				"merge_us": t_merge_usec,
+				"loop_us": int(result["t_loop_usec"]),
+				"sides_us": int(result["t_sides_usec"]),
+				"merge_us": int(result["t_merge_usec"]),
 				"mesh_us": t_mesh_usec,
-				"verts": verts.size(),
+				"verts": (result["verts"] as PackedVector3Array).size(),
 			}
 	if _first_visible_mesh_msec == 0:
 		_first_visible_mesh_msec = Time.get_ticks_msec()
@@ -1383,11 +1443,11 @@ func _rebuild_overview_tile(tile_key: Vector2i) -> void:
 			str(tile_key),
 		])
 	_overview_tile_stats[tile_key] = {
-		"sampled_top_faces": sampled_top_faces,
-		"merged_top_faces": merged_top_faces,
-		"side_faces": _overview_tile_side_faces_working,
-		"validation_samples": validation_samples,
-		"validation_mismatches": validation_mismatches,
+		"sampled_top_faces": int(result["sampled_top_faces"]),
+		"merged_top_faces": int(result["merged_top_faces"]),
+		"side_faces": int(result["side_faces"]),
+		"validation_samples": int(result["validation_samples"]),
+		"validation_mismatches": int(result["validation_mismatches"]),
 	}
 	var elapsed := Time.get_ticks_msec() - t_start
 	_overview_build_count += 1
@@ -1403,8 +1463,9 @@ func _add_greedy_overview_tops(
 		verts: PackedVector3Array,
 		norms: PackedVector3Array,
 		cols: PackedColorArray,
-		indices: PackedInt32Array) -> void:
+		indices: PackedInt32Array) -> int:
 
+	var merged := 0
 	var visited: Dictionary = {}
 	for gx in range(grid_w):
 		for gz in range(grid_z):
@@ -1450,7 +1511,8 @@ func _add_greedy_overview_tops(
 				indices,
 				size_x,
 				size_z)
-			_overview_merged_top_faces += 1
+			merged += 1
+	return merged
 
 
 func _overview_top_cells_merge(a: Dictionary, b: Dictionary) -> bool:
@@ -1592,7 +1654,7 @@ func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	var wy := WorldGenerator.get_overview_surface_height(wx, wz)
 	if wy < 0 or wy > slice_y:
 		return edge_y
-	while wy >= 0 and _visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
 		wy -= 1
 	if wy < 0:
 		return edge_y
@@ -1603,7 +1665,7 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
 	if wy < 0 or wy > slice_y:
 		return {}
-	while wy >= 0 and _visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
 		wy -= 1
 	if wy < 0:
 		return {}

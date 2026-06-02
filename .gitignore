@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Exported game builds (regenerable via Project > Export; keep export_presets.cfg)
+/build/
+/export/
+/*.exe
+/*.pck
+/*.zip
