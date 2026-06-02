@@ -105,8 +105,13 @@ func daylight_hours(day_of_year: int) -> float:
     const PERIOD := 112.0
     # Shift so day 28 = peak (cosine maximum)
     var angle := (day_of_year - 28.0) / PERIOD * TAU
-    return MEAN - AMPL * cos(angle)   # subtract: cos=1 at peak = longest day
+    return MEAN + AMPL * cos(angle)   # ADD: cos=1 at day 28 (summer solstice) = longest day (16 h)
 ```
+
+> **Correction (2026-06-02):** an earlier revision of this block used `MEAN - AMPL * cos(angle)`,
+> which inverts the seasons (shortest day at the summer solstice). The sign is `+`. This is the
+> form implemented in `WorldClock.daylight_hours()` and consumed by the sky day/night system
+> (`docs/00_dev_roadmap/08_sky_plan.md`, Phase 3).
 
 Within each in-game day, sky brightness also transitions on a smooth curve (sine ramp) rather than a step — sunrise and sunset should each take roughly 1 in-game hour to fully transition. Underground areas are unaffected by lighting, but the surface ambient light and the UI sky tint should follow this curve.
 

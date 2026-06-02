@@ -1,0 +1,36 @@
+{
+  "__comment": [
+    "Weather definition. Loaded by the WeatherManager autoload. One file per weather type.",
+    "BASE + OVERRIDE model: a weather file overrides only the deltas of data/sky/sky_settings.json",
+    "via 'sky_overrides'. 'clear' is the baseline weather and overrides nothing.",
+    "",
+    "DATA ONLY. Selection (weighted per season), scheduling, and the gradient/curve crossfade live",
+    "in WeatherManager.gd / SkyController.gd.",
+    "",
+    "FIELDS:",
+    "  id                           - namespaced weather key (used by data/calendar/weather_schedule.json)",
+    "  display_name                 - UI label",
+    "  vision_multiplier            - GAMEPLAY sight/streaming radius scale (1.0 = full). Separate from",
+    "                                 the fog 'distance' look; multiplies WorldRenderer view radius and",
+    "                                 camera far clip (ties weather to the doc-06 streaming budget).",
+    "  is_dark_during_daytime       - dims daytime ambient (overcast/storm feel)",
+    "  hide_cloud_shadows           - suppress moving cloud shadow projector (future)",
+    "  snow_accumulation_per_minute - per game-minute snow cover delta; negative = melt/decay",
+    "  sky_gradient                 - per-weather sky gradient PNG (faithful sky-shader route only; ",
+    "                                 omit if driving ProceduralSky colours from data)",
+    "  sky_overrides                - partial sky_settings.json (only the curves that differ from base)",
+    "  thoughts                     - mood thoughts applied to dwarves while active (see 41_dwarf_agents.md)",
+    "",
+    "Keys beginning with '__' are documentation comments and are skipped by the loader."
+  ],
+
+  "id": "base:weather:clear",
+  "display_name": "Clear",
+  "vision_multiplier": 1.0,
+  "is_dark_during_daytime": false,
+  "hide_cloud_shadows": false,
+  "snow_accumulation_per_minute": -0.0007,
+  "sky_gradient": "res://assets/sky/gradients/clear.png",
+  "sky_overrides": {},
+  "thoughts": []
+}

@@ -1,5 +1,0 @@
-TOTAL_FILES 41
-UNDER_400B 0
-assets/dwarves/body/head_young.glb bytes=71364 pos=1528 idx=2292 min=[-5.0, 19.0, -3.0] max=[5.0, 27.0, 5.0]
-assets/dwarves/body/body_base.glb bytes=136868 pos=2952 idx=4428 min=[-7.0, 2.0, -3.0] max=[7.0, 19.0, 3.0]
-assets/dwarves/scars/scar_chin_split.glb bytes=2904 pos=40 idx=60 min=[0.0, 19.0, 5.0] max=[1.0, 21.0, 6.0]

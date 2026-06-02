@@ -22,6 +22,8 @@ WorldClock="*uid://cntlqitntp144"
 WorldData="*uid://cbq0ixpilwd48"
 WorldGenerator="*uid://bl38ocrtbuj8s"
 UIRegistry="*res://scripts/registries/UIRegistry.gd"
+SkyController="*res://scripts/systems/SkyController.gd"
+WeatherManager="*res://scripts/systems/WeatherManager.gd"
 
 [display]
 
