@@ -88,6 +88,23 @@
     },
     { "type": "separator" },
     {
+      "id": "clock",
+      "emoji": "🕒",
+      "label": "Clock",
+      "tooltip": "Shows the clock",
+      "action": "toggle_window",
+      "target": "clock"
+    },
+    {
+      "id": "calendar",
+      "emoji": "📅",
+      "label": "Calendar",
+      "tooltip": "Shows the clock",
+      "action": "toggle_window",
+      "target": "calendar"
+    },
+    { "type": "separator" },
+    {
       "id": "slice",
       "emoji": "👀",
       "label": "Slice",
