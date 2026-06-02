@@ -1,6 +1,0 @@
-X -4 4
-Y 19 27
-Z -3 4
-cube_count 448
-head_young 452
-head_adult 466

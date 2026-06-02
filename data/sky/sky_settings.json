@@ -1,0 +1,164 @@
+{
+  "__comment": [
+    "Default / clear-day sky master. Loaded by the SkyController autoload.",
+    "Trimmed Forward+ equivalent of Stonehearth's data/calendar/sky_settings.json; colour and",
+    "height_fog numbers below are seeded directly from Stonehearth's validated sunny settings.",
+    "",
+    "DATA ONLY. Per-frame interpolation between keyframes lives in SkyController.gd. Weather files",
+    "(data/weather/*.json) override only the deltas of this base via their 'sky_overrides' block.",
+    "",
+    "Keys beginning with '__' are documentation comments and are skipped by the loader.",
+    "",
+    "KEYFRAME SHAPE: every curve is an array of { \"at\": <event_name>, ... } points. 'at' must be",
+    "one of the event_times in data/calendar/calendar.json. SkyController expands event names to",
+    "seconds, sorts, and interpolates; the curve wraps from the last point back to the first.",
+    "",
+    "CELESTIALS (sun, moon): each directional light has:",
+    "  light_color   [r,g,b] 0-1  - emitted colour; (0,0,0) => light switched OFF (this is how the",
+    "                               sun 'sets' and the moon 'rises'). Also tints the fog (see below).",
+    "  ambient_color [r,g,b] 0-1  - ambient/fill contribution at that time",
+    "  angle_pitch   degrees      - sun arc: 0 at horizon (sunrise) -> -90 overhead (midday) ->",
+    "                               -180 (sunset). Yaw/roll are fixed on the light node for v1.",
+    "",
+    "HEIGHT FOG: [fog_height, thickness, noise, distance] keyed by event. THIS IS THE SKY/FOG MATCH:",
+    "  fog colour is taken from the active celestial light colour, so sky and fog always agree",
+    "  (docs/20_player_interface/24_world_rendering.md). Mapping to Godot Environment:",
+    "    fog_height - world Y below which ground fog accumulates (0 = none). Volumetric-fog height term.",
+    "    thickness  - fog density / opacity                          -> Environment.fog_density",
+    "    noise      - animated noise breakup strength (cosmetic; defer) ",
+    "    distance   - MAX honest view distance in world units        -> Environment.fog_depth_end",
+    "                 (final cap = min(distance, render budget from doc 06))",
+    "",
+    "STARFIELD: brightness 0 in daylight, 1 at night; drives the star layer / night sky tint.",
+    "",
+    "SKY GRADIENT: if the faithful [time x height] sky-shader route is chosen (08_sky_plan.md Q4),",
+    "the per-weather gradient PNG path lives on the weather file, not here. If instead ProceduralSky",
+    "colours are driven from data, add a 'sky_gradient_colors' block here keyed to the same events.",
+    "",
+    "ENVIRONMENT (Phase 1): the non-time-varying renderer base + the current static sky look,",
+    "mirrored from scenes/main/debug_world.tscn. SkyController applies this on boot, so the look",
+    "now lives in data with no visual change. Phase 2 will animate sky_*_color / fog_light_color /",
+    "fog_depth_end from the sun + height_fog curves below, keyed to WorldClock."
+  ],
+
+  "environment": {
+    "sky_top_color":          [0.42, 0.58, 0.78],
+    "sky_horizon_color":      [0.62, 0.68, 0.74],
+    "ground_bottom_color":    [0.28, 0.31, 0.34],
+    "ground_horizon_color":   [0.62, 0.68, 0.74],
+    "ambient_color":          [0.60, 0.62, 0.68],
+    "ambient_energy":         0.4,
+    "fog_enabled":            true,
+    "fog_light_color":        [0.62, 0.68, 0.74],
+    "fog_density":            0.42,
+    "fog_aerial_perspective": 1.0,
+    "fog_sky_affect":         0.55,
+    "fog_sun_scatter":        0.15,
+    "fog_depth_curve":        0.8,
+    "__note_depth_range":     "fog_depth_begin/end are NOT static — SkyController pins them to the camera far clip (begin = 0.7 x far) so terrain dissolves into the sky at the draw distance (Stonehearth voxel/fog model).",
+    "__legacy_depth_end":     170.0
+  },
+
+  "__comment_sky_gradient_colors": [
+    "PHASE 2 day/night sky. top / horizon / ground_bottom colours keyed by event name.",
+    "SkyController evaluates these against WorldClock.hour each frame and drives the",
+    "ProceduralSkyMaterial. fog_light_color tracks 'horizon' so fog always matches the sky.",
+    "Hand-authored starting values (midday = the Phase-1 static look); calibrate against screenshots."
+  ],
+  "sky_gradient_colors": {
+    "top": [
+      { "at": "midnight",      "rgb": [0.03, 0.04, 0.10] },
+      { "at": "sunrise_start", "rgb": [0.07, 0.08, 0.16] },
+      { "at": "sunrise",       "rgb": [0.30, 0.30, 0.45] },
+      { "at": "sunrise_end",   "rgb": [0.42, 0.58, 0.78] },
+      { "at": "midday",        "rgb": [0.42, 0.58, 0.78] },
+      { "at": "sunset_start",  "rgb": [0.42, 0.55, 0.74] },
+      { "at": "sunset",        "rgb": [0.34, 0.30, 0.46] },
+      { "at": "sunset_end",    "rgb": [0.03, 0.04, 0.10] }
+    ],
+    "horizon": [
+      { "at": "midnight",      "rgb": [0.10, 0.11, 0.18] },
+      { "at": "sunrise_start", "rgb": [0.18, 0.16, 0.22] },
+      { "at": "sunrise",       "rgb": [0.72, 0.50, 0.40] },
+      { "at": "sunrise_end",   "rgb": [0.62, 0.68, 0.74] },
+      { "at": "midday",        "rgb": [0.62, 0.68, 0.74] },
+      { "at": "sunset_start",  "rgb": [0.66, 0.62, 0.64] },
+      { "at": "sunset",        "rgb": [0.76, 0.46, 0.34] },
+      { "at": "sunset_end",    "rgb": [0.10, 0.11, 0.18] }
+    ],
+    "ground_bottom": [
+      { "at": "midnight",    "rgb": [0.04, 0.05, 0.08] },
+      { "at": "sunrise_end", "rgb": [0.28, 0.31, 0.34] },
+      { "at": "midday",      "rgb": [0.28, 0.31, 0.34] },
+      { "at": "sunset_end",  "rgb": [0.04, 0.05, 0.08] }
+    ]
+  },
+
+  "sun": {
+    "light_color": [
+      { "at": "midnight",      "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunrise_start", "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunrise",       "rgb": [0.45, 0.55, 0.62] },
+      { "at": "sunrise_end",   "rgb": [0.52, 0.52, 0.70] },
+      { "at": "midday",        "rgb": [0.52, 0.52, 0.70] },
+      { "at": "sunset_start",  "rgb": [0.52, 0.52, 0.70] },
+      { "at": "sunset",        "rgb": [0.59, 0.51, 0.65] },
+      { "at": "sunset_end",    "rgb": [0.00, 0.00, 0.00] }
+    ],
+    "ambient_color": [
+      { "at": "midnight",      "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunrise_start", "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunrise",       "rgb": [0.56, 0.40, 0.36] },
+      { "at": "sunrise_end",   "rgb": [0.57, 0.54, 0.47] },
+      { "at": "midday",        "rgb": [0.57, 0.54, 0.47] },
+      { "at": "sunset_start",  "rgb": [0.57, 0.54, 0.47] },
+      { "at": "sunset",        "rgb": [0.52, 0.39, 0.32] },
+      { "at": "sunset_end",    "rgb": [0.00, 0.00, 0.00] }
+    ],
+    "angle_pitch": [
+      { "at": "sunrise_start", "deg": 0 },
+      { "at": "sunrise_end",   "deg": -30 },
+      { "at": "midday",        "deg": -90 },
+      { "at": "sunset_start",  "deg": -150 },
+      { "at": "sunset_end",    "deg": -180 }
+    ]
+  },
+
+  "moon": {
+    "light_color": [
+      { "at": "midnight",      "rgb": [0.193, 0.271, 0.313] },
+      { "at": "sunrise_start", "rgb": [0.227, 0.319, 0.368] },
+      { "at": "sunrise_end",   "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunset_start",  "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunset_end",    "rgb": [0.227, 0.319, 0.368] }
+    ],
+    "ambient_color": [
+      { "at": "midnight",      "rgb": [0.209, 0.155, 0.229] },
+      { "at": "sunrise_start", "rgb": [0.264, 0.201, 0.285] },
+      { "at": "sunrise_end",   "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunset_start",  "rgb": [0.00, 0.00, 0.00] },
+      { "at": "sunset_end",    "rgb": [0.264, 0.201, 0.285] }
+    ],
+    "angle_pitch": [
+      { "at": "midnight",      "deg": -90 },
+      { "at": "sunrise_end",   "deg": -165 },
+      { "at": "sunset_start",  "deg": -15 },
+      { "at": "sunset_end",    "deg": -90 }
+    ]
+  },
+
+  "height_fog": [
+    { "at": "midnight",    "fog_height": 100, "thickness": 0.5, "noise": 1, "distance": 100 },
+    { "at": "sunrise_end", "fog_height": 50,  "thickness": 0.4, "noise": 1, "distance": 150 },
+    { "at": "midday",      "fog_height": 0,   "thickness": 0.3, "noise": 1, "distance": 500 },
+    { "at": "sunset_end",  "fog_height": 50,  "thickness": 0.4, "noise": 1, "distance": 150 }
+  ],
+
+  "starfield_brightness": [
+    { "at": "midnight",      "value": 1.0 },
+    { "at": "sunrise_start", "value": 1.0 },
+    { "at": "sunrise_end",   "value": 0.0 },
+    { "at": "sunset_start",  "value": 0.0 },
+    { "at": "sunset_end",    "value": 1.0 }
+  ]
+}

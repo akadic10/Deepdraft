@@ -1,0 +1,56 @@
+{
+  "__comment": [
+    "Master calendar / time definition. Loaded once at boot by the WorldClock autoload.",
+    "WorldClock is authoritative for the whole simulation - no other system tracks its own",
+    "day/season/hour counter (see docs/10_core_foundation/11_overview.md and 13_architecture.md).",
+    "",
+    "This file is DATA ONLY (JSON = what things are). Timer advancement, signal emission, and",
+    "speed control live in WorldClock.gd (GDScript = what things do).",
+    "",
+    "Keys beginning with '__' are documentation comments and are skipped by the loader.",
+    "",
+    "FIELDS:",
+    "  time_scale.real_seconds_per_game_hour - wall-clock seconds per in-game hour at x1 speed",
+    "  time_scale.hours_per_day / days_per_season / seasons_per_year - calendar structure",
+    "  season_order      - canonical cycle; index into this drives day_of_year()",
+    "  start             - new-game calendar position (matches WorldClock.gd defaults today)",
+    "  event_times       - named time-of-day events in HOURS. Shared by the clock AND every sky/fog",
+    "                      curve in data/sky/sky_settings.json (curves key against these names).",
+    "  day_length_curve  - seasonal day-length cosine from 11_overview.md S5. day_of_year 0-111;",
+    "                      summer solstice (longest day) at day 28, winter solstice at day 84.",
+    "                      daylight_hours(doy) = mean - amplitude * cos((doy - summer_solstice)/112 * TAU)",
+    "",
+    "NOTE: rise/set 'peak' sub-events (sunrise_peak_start, etc.) used by Stonehearth are NOT defined",
+    "here yet. For v1, sky curves key only against the 8 base events below. If a softer shoulder is",
+    "needed later, add a 'rise_set_length_hours' field and derive peak events in WorldClock."
+  ],
+
+  "time_scale": {
+    "real_seconds_per_game_hour": 60,
+    "hours_per_day": 24,
+    "days_per_season": 28,
+    "seasons_per_year": 4
+  },
+
+  "season_order": ["spring", "summer", "autumn", "winter"],
+
+  "start": { "year": 1, "season": "summer", "day": 1, "hour": 8.0 },
+
+  "event_times": {
+    "midnight":      0,
+    "sunrise_start": 5,
+    "sunrise":       6,
+    "sunrise_end":   7,
+    "midday":        14,
+    "sunset_start":  20,
+    "sunset":        21,
+    "sunset_end":    22
+  },
+
+  "day_length_curve": {
+    "mean_hours":          12.0,
+    "amplitude_hours":     4.0,
+    "summer_solstice_doy": 28,
+    "winter_solstice_doy": 84
+  }
+}

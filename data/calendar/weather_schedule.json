@@ -1,0 +1,40 @@
+{
+  "__comment": [
+    "Per-season weighted weather table. Loaded by the WeatherManager autoload.",
+    "On each scheduled switch (a daily alarm), the manager draws the next day's weather from the",
+    "current season's weighted set. Draws use a SEEDED rng stream derived from world_seed + calendar",
+    "position, so a given seed replays identical weather (parallels the determinism Hard Rule).",
+    "",
+    "Each season maps to an array of { weather, weight } entries. 'weather' must match an id in a",
+    "data/weather/*.json file. Higher weight = more likely. Weights are relative, not percentages.",
+    "",
+    "Stonehearth keeps this table in its season/biome data; Deepdraft has no seasons data file yet,",
+    "so the schedule lives here. Values below are a starting distribution and are TBD in a tuning pass.",
+    "",
+    "Keys beginning with '__' are documentation comments and are skipped by the loader."
+  ],
+
+  "spring": [
+    { "weather": "base:weather:clear",    "weight": 55 },
+    { "weather": "base:weather:overcast", "weight": 30 },
+    { "weather": "base:weather:foggy",    "weight": 15 }
+  ],
+
+  "summer": [
+    { "weather": "base:weather:clear",    "weight": 75 },
+    { "weather": "base:weather:overcast", "weight": 20 },
+    { "weather": "base:weather:foggy",    "weight": 5 }
+  ],
+
+  "autumn": [
+    { "weather": "base:weather:clear",    "weight": 40 },
+    { "weather": "base:weather:overcast", "weight": 35 },
+    { "weather": "base:weather:foggy",    "weight": 25 }
+  ],
+
+  "winter": [
+    { "weather": "base:weather:clear",    "weight": 30 },
+    { "weather": "base:weather:overcast", "weight": 30 },
+    { "weather": "base:weather:snow",     "weight": 40 }
+  ]
+}

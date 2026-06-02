@@ -13,7 +13,7 @@
   "camera_settings": {
     "fov": 45.0,
     "near_clip": 0.1,
-    "far_clip": 1200.0,
+    "far_clip": 1024.0,
     "default_position": { "x": 512.0, "y": 70.0, "z": 512.0 },
     "default_rotation": { "x": -50.0, "y": 0.0, "z": 0.0 }
   },

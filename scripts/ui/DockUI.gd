@@ -22,8 +22,11 @@ var _panel_body: HBoxContainer
 var _window_offset: int = 0
 var _ui_registry: Node
 var _world_clock: Node
+var _weather_mgr: Node
 var _world_info_overlay: CanvasLayer
 var _block_inspector_overlay: CanvasLayer
+var _clock_value_labels: Dictionary = {}
+var _clock_refresh_accum: float = 0.0
 
 var _normal_button_style: StyleBox
 var _hover_button_style: StyleBox
@@ -37,6 +40,7 @@ func _ready() -> void:
 		push_error("DockUI: UIRegistry autoload is missing.")
 		return
 	_world_clock = get_node_or_null("/root/WorldClock")
+	_weather_mgr = get_node_or_null("/root/WeatherManager")
 	_build_styles()
 	_build_root()
 	_build_dock()
@@ -44,6 +48,17 @@ func _ready() -> void:
 	_set_world_info_overlay(_find_canvas_layer(get_tree().current_scene, "DebugLoadingOverlay"))
 	_set_block_inspector_overlay(_find_canvas_layer(get_tree().current_scene, "BlockInspector"))
 	_refresh_active_buttons()
+
+
+func _process(delta: float) -> void:
+	# Only does work while the live Clock window is open.
+	if _clock_value_labels.is_empty():
+		return
+	_clock_refresh_accum += delta
+	if _clock_refresh_accum < 0.1:
+		return
+	_clock_refresh_accum = 0.0
+	_update_clock_labels()
 
 
 func _build_styles() -> void:
@@ -250,6 +265,9 @@ func _toggle_window(target: String) -> void:
 	if target == "block_inspector":
 		_toggle_block_inspector_overlay()
 		return
+	if target == "clock":
+		_toggle_clock_window()
+		return
 
 	if _open_windows.has(target):
 		var existing := _open_windows[target] as Control
@@ -316,6 +334,139 @@ func _make_window(target: String) -> PanelContainer:
 		column.add_child(row)
 
 	return window
+
+
+func _toggle_clock_window() -> void:
+	if _open_windows.has("clock"):
+		var existing := _open_windows["clock"] as Control
+		_open_windows.erase("clock")
+		_clock_value_labels.clear()
+		existing.queue_free()
+		_refresh_active_buttons()
+		return
+
+	var window := _make_clock_window()
+	_root.add_child(window)
+	_open_windows["clock"] = window
+	_update_clock_labels()
+	_refresh_active_buttons()
+
+
+func _make_clock_window() -> PanelContainer:
+	var window := PanelContainer.new()
+	window.name = "ClockWindow"
+	window.position = WINDOW_START + Vector2(28.0 * _window_offset, 28.0 * _window_offset)
+	window.size = Vector2(220.0, 0.0)
+	window.custom_minimum_size = Vector2(200.0, 0.0)
+	window.add_theme_stylebox_override("panel", _panel_style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 8))
+	_window_offset = (_window_offset + 1) % 5
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	window.add_child(margin)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 10)
+	margin.add_child(column)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	column.add_child(header)
+
+	var title := Label.new()
+	title.text = "Clock"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.add_theme_font_size_override("font_size", 17)
+	header.add_child(title)
+
+	var close := Button.new()
+	close.text = "X"
+	close.custom_minimum_size = Vector2(32.0, 28.0)
+	close.focus_mode = Control.FOCUS_NONE
+	close.tooltip_text = "Close"
+	close.add_theme_stylebox_override("normal", _normal_button_style)
+	close.add_theme_stylebox_override("hover", _hover_button_style)
+	close.add_theme_stylebox_override("pressed", _active_button_style)
+	close.pressed.connect(func() -> void:
+		_open_windows.erase("clock")
+		_clock_value_labels.clear()
+		window.queue_free()
+		_refresh_active_buttons()
+	)
+	header.add_child(close)
+
+	_clock_value_labels = {}
+	for field in ["season", "day", "time", "weather"]:
+		var row := Label.new()
+		row.add_theme_font_size_override("font_size", 15)
+		column.add_child(row)
+		_clock_value_labels[field] = row
+
+	# Test controls — advance the clock / cycle weather to preview the systems.
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 8)
+	column.add_child(buttons)
+	buttons.add_child(_make_clock_button("+1 Hour", Callable(self, "_advance_clock").bind("advance_hours", 1.0)))
+	buttons.add_child(_make_clock_button("+1 Season", Callable(self, "_advance_clock").bind("advance_season")))
+
+	var buttons2 := HBoxContainer.new()
+	buttons2.add_theme_constant_override("separation", 8)
+	column.add_child(buttons2)
+	buttons2.add_child(_make_clock_button("Weather →", Callable(self, "_cycle_weather")))
+
+	return window
+
+
+func _make_clock_button(text: String, on_press: Callable) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(100.0, 30.0)
+	button.add_theme_font_size_override("font_size", 13)
+	button.add_theme_stylebox_override("normal",  _style(Color(1, 1, 1, 0.07), Color(1, 1, 1, 0.16), 1, 6))
+	button.add_theme_stylebox_override("hover",   _style(Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.22), 1, 6))
+	button.add_theme_stylebox_override("pressed", _style(Color(1, 1, 1, 0.20), Color(1, 1, 1, 0.28), 1, 6))
+	button.pressed.connect(on_press)
+	return button
+
+
+func _advance_clock(method: String, arg = null) -> void:
+	if _world_clock == null:
+		return
+	if arg == null:
+		_world_clock.call(method)
+	else:
+		_world_clock.call(method, arg)
+	_update_clock_labels()
+
+
+func _cycle_weather() -> void:
+	if _weather_mgr != null:
+		_weather_mgr.call("cycle_weather")
+	_update_clock_labels()
+
+
+func _update_clock_labels() -> void:
+	if _clock_value_labels.is_empty():
+		return
+	var season_text := "Unknown"
+	var day_text    := "Unknown"
+	var time_text   := "Unknown"
+	if _world_clock != null:
+		season_text = String(_world_clock.get("season")).capitalize()
+		day_text    = "%d" % int(_world_clock.get("day"))
+		time_text   = String(_world_clock.call("time_string"))
+	var weather_text := "—"
+	if _weather_mgr != null:
+		weather_text = String(_weather_mgr.call("current_weather_name"))
+	(_clock_value_labels["season"] as Label).text = "Season      %s" % season_text
+	(_clock_value_labels["day"] as Label).text    = "Day         %s" % day_text
+	(_clock_value_labels["time"] as Label).text   = "Time        %s" % time_text
+	if _clock_value_labels.has("weather"):
+		(_clock_value_labels["weather"] as Label).text = "Weather     %s" % weather_text
 
 
 func _refresh_active_buttons() -> void:
@@ -430,12 +581,12 @@ func _window_rows(target: String) -> Array[String]:
 
 func _world_info_rows() -> Array[String]:
 	if _world_clock == null:
-		return ["Season      Unknown", "Year        Unknown", "Day         Unknown", "Hour        Unknown"]
+		return ["Season      Unknown", "Year        Unknown", "Day         Unknown", "Time        Unknown"]
 	return [
 		"Season      %s" % String(_world_clock.get("season")).capitalize(),
 		"Year        %d" % int(_world_clock.get("year")),
 		"Day         %d" % int(_world_clock.get("day")),
-		"Hour        %.1f" % float(_world_clock.get("hour")),
+		"Time        %s" % String(_world_clock.call("time_string")),
 	]
 
 
