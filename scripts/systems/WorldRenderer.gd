@@ -76,8 +76,6 @@ const OVERVIEW_TILE_SIZE: int = 32
 ## Vertical sampling stride for cliff-side coloring. The side walk samples one
 ## block in this many to find color bands; at navigation zoom per-block vertical
 ## banding is not resolvable, so >1 cuts side-face generation calls proportionally.
-const OVERVIEW_SIDE_COLOR_STEP: int = 4
-
 var _material: StandardMaterial3D
 var _overview_node: MeshInstance3D = null
 var _overview_built: bool = false
@@ -173,6 +171,11 @@ func _ready() -> void:
 	# overview tiles in place so the band tiers appear (no node free => no flicker).
 	# Emitted on the main thread, so immediate connection is safe.
 	WorldGenerator.grass_bands_ready.connect(_on_grass_bands_ready)
+
+	# Seasonal surface palettes (surface_palettes.json) are baked into vertex colours at
+	# mesh-build time, so when the season turns we re-mesh whatever is currently built —
+	# same in-place, no-flicker pattern as _on_grass_bands_ready().
+	WorldClock.season_changed.connect(_on_season_changed)
 
 	_camera_rig = _find_camera(get_tree().current_scene)
 	if _camera_rig != null and not _block_face_overview_active():
@@ -939,17 +942,19 @@ func _add_overview_side_column(
 			_add_overview_side_band(a, b, run_bottom, float(y), run_color, normal, verts, norms, cols, indices)
 			run_bottom = float(y)
 			run_color = color
-		y += OVERVIEW_SIDE_COLOR_STEP
+		y += 1   # per-block — every wall block face shows its own block's colour (no sampling step)
 
 	_add_overview_side_band(a, b, run_bottom, top_y, run_color, normal, verts, norms, cols, indices)
 
 
-func _overview_side_color_at(sample_x: int, y: int, sample_z: int, top_y: float, top_color: Color) -> Color:
-	if y >= int(top_y) - 1:
-		return top_color
-	# Strata-only lookup: cliff faces show authored rock by altitude, not ore
-	# veins or caves (invisible at overview zoom), which avoids the dominant
-	# per-Y 3D-noise cost of the full generation pipeline.
+## Per-block honest side colour (Hard Rule 9): every wall block face shows that block's OWN
+## colour — the grass cap samples as grass, soil bands as soil, rock shelves as rock. The former
+## top-colour override and 4-block sampling step repainted blocks and were removed (2026-06-03).
+## _top_y/_top_color are retained in the signature for call-site stability only.
+func _overview_side_color_at(sample_x: int, y: int, sample_z: int, _top_y: float, _top_color: Color) -> Color:
+	# Strata-only lookup: ore veins stay concealed on natural walls (that is a DATA rule —
+	# 43_mining_materials.md resource concealment) and caves are skipped (invisible at overview
+	# zoom), which avoids the dominant per-Y 3D-noise cost of the full generation pipeline.
 	var block_id := WorldGenerator.get_overview_strata_block_id(sample_x, y, sample_z)
 	if BlockRegistry.is_transparent(block_id):
 		return _overview_rock_color
@@ -1082,6 +1087,24 @@ func _on_grass_bands_ready() -> void:
 	for key: Vector2i in _overview_tile_nodes.keys():
 		_enqueue_overview_tile(key)
 	_overview_built = false
+
+
+## Re-bake seasonal surface colours when the season turns. Every mesh path reads
+## WorldClock.season at build time (ChunkMesher, regions, overview tiles), so re-queuing
+## the already-built meshes is sufficient — nodes are reused in place (no free, no flicker)
+## and the queues drain at the normal per-frame budget, so the recolour sweeps across the
+## map over a few seconds rather than stalling a frame.
+func _on_season_changed(_new_season: String) -> void:
+	# Block-face overview tiles (the zoomed-out surface).
+	if not _overview_tile_nodes.is_empty():
+		for key: Vector2i in _overview_tile_nodes.keys():
+			_enqueue_overview_tile(key)
+		_overview_built = false
+	# Streamed surface regions and chunk meshes (the zoomed-in view).
+	for rkey: Vector2i in _region_nodes.keys():
+		_enqueue_region(rkey)
+	for ckey: Vector3i in _chunk_nodes.keys():
+		_enqueue_chunk(ckey)
 
 
 func _enqueue_overview_tiles_for_blocks(blocks: Array[Vector3i]) -> void:
@@ -1368,6 +1391,7 @@ func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictio
 
 	# Sides are the only geometry added in the loop above; each band is one quad
 	# (6 indices), so this counts side faces without a shared running counter.
+	@warning_ignore("integer_division")
 	var side_faces := indices.size() / 6
 	var sampled_top_faces := sample_cells.size()
 	var t_merge0 := Time.get_ticks_usec() if prof else 0

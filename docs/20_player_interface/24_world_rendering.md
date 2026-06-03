@@ -114,6 +114,10 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
 2. **Block-face overview mesh.** For high-altitude / zoomed-out surface views. Uses deterministic
    generated column data; emits top faces plus vertical faces at sampled height drops; greedily
    merges same-material, same-plane faces; labels itself as an approximation in the debug UI.
+   **Side-face colours are per-block exact** (since 2026-06-03): every wall block face shows that
+   block's *own* colour — the 1-block grass cap renders grass on its sides, and the 2-block soil
+   bands and rock shelves render true. Banding may merge only **identical adjacent colours**; the
+   "approximation" is geometric simplification, never colour.
 3. **World-edge presentation slab** *(future — Second Milestone).* Large, calm boundary panels —
    not a per-block noisy side dump, and must not contradict the visible playable surface blocks.
 
@@ -121,7 +125,10 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
 
 Never use these as the main validation view: a top-only painted heightmap; fake grass/dirt/rock
 side bands; screen-space or fog-dependent material choices; one vertical wall stripe per terrain
-sample at the world boundary.
+sample at the world boundary; **coarse side-colour sampling steps or top-colour overrides that
+repaint a block's face with a different block's colour** (a 4-block Y sampling step plus a
+top-colour override did exactly this — swallowing the grass cap so grass blocks showed dirt
+sides — removed 2026-06-03; a block's faces must always show that block's colour).
 
 ## Debug Overlay & Block Inspector
 

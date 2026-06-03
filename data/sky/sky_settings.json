@@ -86,11 +86,22 @@
       { "at": "sunset",        "rgb": [0.76, 0.46, 0.34] },
       { "at": "sunset_end",    "rgb": [0.10, 0.11, 0.18] }
     ],
+    "__ground_bottom_note": [
+      "FULL-360 DIORAMA SKY (2026-06-03): ground_bottom mirrors the horizon keyframes, so the",
+      "entire below-horizon hemisphere is one continuous atmosphere colour - the world floats in",
+      "haze like Stonehearth's embark island, with no dark 'ground' band. This also makes a flat",
+      "fog colour match the backdrop (08_sky_plan.md S5). To restore a grounded horizon, dim these",
+      "toward the old [0.28, 0.31, 0.34] day / [0.04, 0.05, 0.08] night values."
+    ],
     "ground_bottom": [
-      { "at": "midnight",    "rgb": [0.04, 0.05, 0.08] },
-      { "at": "sunrise_end", "rgb": [0.28, 0.31, 0.34] },
-      { "at": "midday",      "rgb": [0.28, 0.31, 0.34] },
-      { "at": "sunset_end",  "rgb": [0.04, 0.05, 0.08] }
+      { "at": "midnight",      "rgb": [0.10, 0.11, 0.18] },
+      { "at": "sunrise_start", "rgb": [0.18, 0.16, 0.22] },
+      { "at": "sunrise",       "rgb": [0.72, 0.50, 0.40] },
+      { "at": "sunrise_end",   "rgb": [0.62, 0.68, 0.74] },
+      { "at": "midday",        "rgb": [0.62, 0.68, 0.74] },
+      { "at": "sunset_start",  "rgb": [0.66, 0.62, 0.64] },
+      { "at": "sunset",        "rgb": [0.76, 0.46, 0.34] },
+      { "at": "sunset_end",    "rgb": [0.10, 0.11, 0.18] }
     ]
   },
 

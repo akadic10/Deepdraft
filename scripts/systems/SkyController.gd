@@ -78,9 +78,6 @@ var _c_fog_thickness_w: Array = []
 var _c_fog_distance_w: Array = []
 var _darken: float = 1.0
 var _vision: float = 1.0
-var _fog_density_applied: float = -1.0
-var _fog_end_applied: float = -1.0
-var _fog_begin_applied: float = -1.0
 
 
 func _ready() -> void:
@@ -306,8 +303,8 @@ func _scalar_curve(arr, key: String) -> Array:
 	return out
 
 
-func _event_hour(name: String) -> float:
-	return float(_event_hours.get(name, -1.0))
+func _event_hour(event_name: String) -> float:
+	return float(_event_hours.get(event_name, -1.0))
 
 
 # ── Evaluation (keyframe interpolation with 24-hour wraparound) ───────────────

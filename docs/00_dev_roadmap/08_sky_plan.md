@@ -202,13 +202,22 @@ original `StandardMaterial3D`; fog = the scene's authored Environment. Safe.
 ## 6. <span style="color:#d29922;">Open items / next steps</span>
 
 1. ~~Fix the blue sun~~ — **DONE and verified in-engine 2026-06-03** (§1a).
-2. Surface meshes don't recolour on `season_changed` (winter palette bakes only into rebuilt
-   chunks) — wire a surface-mesh refresh to the signal.
+2. ~~Surface meshes don't recolour on `season_changed`~~ — **DONE and verified across all four
+   seasons 2026-06-03** (`WorldRenderer._on_season_changed` re-queues overview tiles, regions, and
+   chunk meshes in place). Palette tuning observations now live in `09_grass_color_tuning.md`.
 3. Sky colours are hand-authored placeholders — calibrate against Stonehearth screenshots
    (bluer, brighter; midday was kept identical to the pre-session scene).
+   *2026-06-03:* **full-360 diorama sky applied** — `ground_bottom` now mirrors the horizon
+   keyframes (no dark below-horizon band; the world floats in continuous atmosphere, Stonehearth
+   embark style). Also reduces the §5 "two lines" problem for any future fog. Revert by dimming
+   `ground_bottom` back toward the old grounded values (noted in the JSON).
 4. Fog — only per §5, as its own carefully-tested effort.
 5. `vision_multiplier` is visual-only; coupling to the streaming radius (doc 06 budget) deferred.
 6. Starfield, sine rise/set ramp, snow accumulation, weather mood thoughts — Phase 5 polish, unstarted.
+7. **Overview wall honesty — DONE and verified 2026-06-03.** Removed the 4-block side-colour
+   sampling step and the top-colour override from `WorldRenderer`; wall faces are now per-block
+   exact (grass blocks are grass from all sides; the authored 2-block soil bands render true).
+   Contract recorded in `24_world_rendering.md` (accepted mode 2 + rejected modes).
 
 ---
 
