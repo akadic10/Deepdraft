@@ -95,14 +95,20 @@
   },
 
   "sun": {
+    "__light_color_note": [
+      "WARM-WHITE values (blue-grass fix, 08_sky_plan.md S1a). SkyController normalises the hue",
+      "(rgb / max) and uses the max channel as brightness (energy = max x 1.5), so:",
+      "  [0.67, 0.65, 0.62] -> hue (1.0, 0.97, 0.93) near-white, energy ~1.0 = the original scene sun.",
+      "Do NOT seed these from Stonehearth's bluish light values - their renderer, not ours."
+    ],
     "light_color": [
       { "at": "midnight",      "rgb": [0.00, 0.00, 0.00] },
       { "at": "sunrise_start", "rgb": [0.00, 0.00, 0.00] },
-      { "at": "sunrise",       "rgb": [0.45, 0.55, 0.62] },
-      { "at": "sunrise_end",   "rgb": [0.52, 0.52, 0.70] },
-      { "at": "midday",        "rgb": [0.52, 0.52, 0.70] },
-      { "at": "sunset_start",  "rgb": [0.52, 0.52, 0.70] },
-      { "at": "sunset",        "rgb": [0.59, 0.51, 0.65] },
+      { "at": "sunrise",       "rgb": [0.55, 0.45, 0.35] },
+      { "at": "sunrise_end",   "rgb": [0.67, 0.65, 0.62] },
+      { "at": "midday",        "rgb": [0.67, 0.65, 0.62] },
+      { "at": "sunset_start",  "rgb": [0.67, 0.65, 0.62] },
+      { "at": "sunset",        "rgb": [0.60, 0.47, 0.36] },
       { "at": "sunset_end",    "rgb": [0.00, 0.00, 0.00] }
     ],
     "ambient_color": [

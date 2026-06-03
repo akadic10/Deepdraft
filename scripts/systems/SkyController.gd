@@ -137,7 +137,7 @@ func _bind_to_scene() -> void:
 	_camera = _find_by_class(scene, "Camera3D") as Camera3D   # fog pins to its far plane
 	_renderer = scene.get_node_or_null("Renderer")
 	if _renderer == null or not _renderer.has_method("set_terrain_fog"):
-		_renderer = _find_node_with_method(scene, "set_terrain_fog")
+		_renderer = _find_by_method(scene, "set_terrain_fog")
 
 	if _world_env != null:
 		_env = _world_env.environment

@@ -1,425 +1,214 @@
-# 08 - Sky, Fog & World Edge Plan
+# 08 - Sky, Clock & Weather: Session Record and Replay Guide
 
-Status: Stonehearth source review complete, 2026-06-02.
+> **Document review legend for Obsidian**
+>
+> <span style="color:#3fb950;">Green = keep / verified</span> |
+> <span style="color:#d29922;">Yellow = review / tune</span> |
+> <span style="color:#f85149;">Red = failed approach — do not repeat as-is</span>
 
-This plan replaces the earlier sky draft. It is based on direct review of Stonehearth's sky,
-weather, atmosphere, and fog files in `P:\stonehearth`.
+Status: rewritten 2026-06-03 as the **session record** after the 2026-06-02 build session ended
+with a blue-grass regression. This doc explains exactly what was built, where it lives in git,
+what broke and why, and how to replay or discard each piece.
 
-## Core Finding
+---
 
-Stonehearth's sky appears to go completely around the map, but it is **not** a fixed shell around
-the terrain. It is a camera-centered sky backdrop:
+## 0. <span style="color:#3fb950;">Where the work lives — nothing is lost</span>
 
-- The sky geometry follows the camera.
-- It renders behind everything with depth disabled.
-- The shader samples a vertical sky gradient by time of day and height.
-- Terrain edges disappear because fog blends distant world pixels into sky-colored haze before the
-  edge becomes visually important.
+The entire session is **committed**:
 
-So the important lesson is not "build a huge sky around the map." The lesson is:
+| Commit | Contents |
+|---|---|
+| `88c0a84` "fog" | All systems + data: `WorldClock` (ticking), `SkyController`, `WeatherManager`, `data/calendar/*`, `data/sky/*`, `data/weather/*`, autoload registrations, `11_overview.md` formula fix, camera `far_clip` 512 |
+| `bc7d86f` "dock update" | `DockUI` (clock window, +1 Hour / +1 Season / Weather buttons), `dock.json` icons |
+| `1c830cf` | Merge of the two |
 
-> Render an always-distant sky, then make distant terrain fade into a matching sky/fog color.
+**To discard everything from the session:** `git revert 1c830cf` (or reset to `6bf72ae` "June2nd start").
+**To keep it and fix the blue grass:** apply §1 below — it is a small fix, not a rebuild.
 
-## Stonehearth Files Reviewed
+> **RECOVERY COMPLETED 2026-06-03** via staged re-enable, each step verified in-engine by Alen:
+> 1. clock-only (Sky/Weather autoloads off) ✅ → 2. warm-white sun data (§1a) ✅ →
+> 3. `SkyController` re-enabled — green grass at midday, warm dusk, night fade ✅ →
+> 4. `WeatherManager` re-enabled — weather names + cycling + darkening ✅.
+> Also fixed a merge artifact: `SkyController` line 140 called `_find_node_with_method()` (renamed
+> in the external merge) instead of the defined `_find_by_method()` — a parse error that made the
+> whole autoload `<null>`. Cross-checked both systems for further undefined calls: none.
+> **Current state: everything from the session works except fog (off by design, §5).**
 
-Key files:
+---
 
-- `services/client/sky_renderer/sky_renderer_service.lua`
-- `services/client/weather_render/weather_render_service.lua`
-- `services/server/weather/weather_service.lua`
-- `services/server/weather/weather_state.lua`
-- `data/calendar/sky_settings.json`
-- `data/calendar/calendar_constants.json`
-- `data/weather/*/*_sky_settings.json`
-- `data/horde/shaders/skysphere.shader`
-- `data/horde/shaders/fullscreen_quad_height_fog.shader`
-- `data/horde/shaders/utilityLib/atmosphere.glsl`
-- `data/horde/shaders/utilityLib/fog.glsl`
-- `data/horde/shaders/voxel/deferred_attributes.shader`
-- `data/horde/materials/skysphere.material.json`
+## 1. <span style="color:#f85149;">THE BLUE GRASS — root cause and fix</span>
 
-## What Stonehearth Does
+This is what ended the session, and it has a precise cause. Two contributors:
 
-### Camera-Centered Sky
+### 1a. The sun light is blue (primary — persists at all times, looks "unfixable")
 
-`skysphere.shader` offsets sky vertices by `camViewerPos`:
+`data/sky/sky_settings.json` seeds the sun's daytime `light_color` with Stonehearth's raw value
+`[0.52, 0.52, 0.70]`. `SkyController._apply_light()` then **normalises the hue**:
 
-```glsl
-worldPos += vec4(camViewerPos, 1.0);
+```gdscript
+light.light_color  = Color(c.r / b, c.g / b, c.b / b)   # [0.52,0.52,0.70] -> (0.74, 0.74, 1.00) = BLUE
+light.light_energy = b * energy_scale
 ```
 
-The sky material uses no depth test/write. This makes the sky effectively infinite from the
-player's perspective. The player can never pan to the sky geometry or reveal where it begins.
-
-The fragment shader samples:
-
-```glsl
-vec2 uv = vec2(parameters.x, gradient);
-```
-
-`parameters.x` is normalized time of day. `gradient` is vertical position on the sky. This means
-Stonehearth's sky is a **time by height gradient texture**, not a panoramic image.
-
-### Time-Keyed Sky Data
-
-`calendar_constants.json` defines named events:
-
-| Event | Hour |
-|---|---:|
-| midnight | 0 |
-| sunrise_start | 5 |
-| sunrise | 6 |
-| sunrise_end | 7 |
-| midday | 14 |
-| sunset_start | 20 |
-| sunset | 21 |
-| sunset_end | 22 |
-
-`sky_renderer_service.lua` expands these into softer rise/set sub-events:
-
-- `sunrise_peak_start`
-- `sunrise_peak_mid`
-- `sunrise_peak_end`
-- `sunset_peak_start`
-- `sunset_peak_mid`
-- `sunset_peak_end`
-
-Sky colors, sun colors, moon colors, fog values, and scattering are all interpolated through these
-named events.
-
-### Sun and Moon Drive Lighting
-
-Stonehearth creates directional lights for sun and moon. Each has keyframed:
-
-- `light_colors`
-- `ambient_colors`
-- `angles`
-- `depth_offset_values`
-
-The renderer picks the brightest active celestial as the important light and pushes its color and
-position into global uniforms:
-
-- `celestialLightPos`
-- `celestialLightColor`
-
-When a celestial's color becomes black, the light is disabled. That is how the sun sets and moon
-rises.
-
-### Fog Color Is Coupled to Sky Lighting
-
-The fullscreen height fog pass computes:
-
-```glsl
-gl_FragColor = (celestialLightColor * heightFogColorMult) * foggyness;
-```
-
-So fog is not an unrelated grey overlay. It is tinted by the active sun or moon color, with a
-weather/time multiplier.
-
-This is the main reason Stonehearth's horizon looks coherent: sky, lighting, and fog are authored
-from the same time/weather data.
-
-### Height Fog Values
-
-Default sunny `height_fog` values from `data/calendar/sky_settings.json`:
-
-| Time | Fog height | Thickness | Noise | Distance |
-|---|---:|---:|---:|---:|
-| midnight | 100 | 0.5 | 1 | 100 |
-| sunrise_end | 50 | 0.4 | 1 | 150 |
-| midday | 0 | 0.3 | 1 | 500 |
-| sunset_end | 50 | 0.4 | 1 | 150 |
-| day_length | 100 | 0.5 | 1 | 100 |
-
-Decoded:
-
-- `fog_height`: vertical height below which ground fog accumulates.
-- `thickness`: fog opacity/density.
-- `noise`: animated breakup strength. Stonehearth has parts of this disabled/commented because it
-  was visually unstable.
-- `distance`: effective view distance. Larger means farther visibility.
-
-### Weather Swaps Sky Settings
-
-Weather JSON points to a sky settings file:
-
-```json
-{
-  "sky_settings": "stonehearth:sky_settings:foggy",
-  "vision_multiplier": 0.4,
-  "hide_cloud_shadows": true,
-  "is_dark_during_daytime": true
-}
-```
-
-When weather changes, `weather_render_service.lua` calls:
-
-```lua
-stonehearth.sky_renderer:transition_sky(sky_settings, 2500)
-```
-
-That crossfades:
-
-- sky gradient texture
-- sun and moon colors
-- light angles
-- ambient colors
-- height fog
-- scattering
-- starfield brightness
-
-Weather also applies a gameplay `vision_multiplier` through the terrain service. Foggy weather, for
-example, both looks foggier and reduces sight radius.
-
-### World Edge Treatment
-
-Stonehearth does not use a special map-edge shader or boundary wall.
-
-The edge treatment is a combination of:
-
-- camera-centered sky behind everything
-- terrain fog/atmosphere data written by terrain shaders
-- fullscreen fog blending distant pixels into sky-colored haze
-- far terrain being visually obscured before the camera reaches a harsh edge
-- dense edge foliage helping hide low-angle boundaries
-
-The important practical result:
-
-> The visible map edge dissolves into sky-colored fog. The sky itself is always available behind
-> the terrain because it follows the camera.
-
-## What Deepdraft Should Copy
-
-Deepdraft should copy the behavior, not the Horde3D implementation.
-
-### 1. Keep the Sky Camera-Infinite
-
-Use Godot's `WorldEnvironment` sky or a custom `Sky` shader as an always-distant background. Do not
-build a physical sky cylinder or wall around the `1024 x 1024` map.
-
-For a faithful Stonehearth-like version, use a custom sky shader with:
-
-- gradient texture sampled by time of day and vertical sky direction
-- optional target gradient for weather crossfade
-- no visible horizon geometry
-
-For the simpler version, continue using `ProceduralSkyMaterial` and drive:
-
-- `sky_top_color`
-- `sky_horizon_color`
-- `ground_bottom_color`
-- `ground_horizon_color`
-
-### 2. Match Fog to the Sky Horizon
-
-The fog color should be nearly identical to the current sky horizon color.
-
-For Godot:
-
-- `Environment.fog_light_color` should track sky horizon color or active sun/moon color.
-- `fog_aerial_perspective` should stay enabled when it helps distant terrain blend toward the sky.
-- Fog should hide the far clip before terrain visibly cuts off.
-
-### 3. Separate Mood Fog From Edge-Hiding Fog
-
-Stonehearth has two useful ideas:
-
-- atmospheric fog for mood and time/weather
-- distance/edge fog that prevents far terrain cuts from showing
-
-Deepdraft can approximate both with Godot environment fog:
-
-- Mood: density, color, and optional volumetric/height fog.
-- Edge hiding: ensure fog reaches near-full opacity before the camera far clip.
-
-The edge hiding goal is the non-negotiable one. The player should not see a hard far clip line.
-
-### 4. Keep Weather Data-Driven
-
-Weather should own:
-
-- display name
-- fog override
-- sky color/gradient override
-- `vision_multiplier`
-- snow accumulation
-- dark-during-day flag
-- future mood thoughts
-
-Weather should not directly modify terrain identity.
-
-### 5. Keep the Underground Slice Void Dark
-
-The sky system is for above-ground and world-edge presentation. It must not brighten the black slice
-void above underground rooms. That black void is part of the slice-view language and should continue
-to read as solid mountain overhead.
-
-## Deepdraft Target Architecture
-
-### Existing Files
-
-Current relevant Deepdraft files:
-
-- `scenes/main/debug_world.tscn`
-- `scripts/systems/SkyController.gd`
-- `scripts/systems/WeatherManager.gd`
-- `scripts/systems/WorldClock.gd`
-- `data/sky/sky_settings.json`
-- `data/weather/*.json`
-- `data/calendar/calendar.json`
-- `data/calendar/weather_schedule.json`
-
-### Owner Responsibilities
-
-`WorldClock`:
-
-- owns calendar time
-- emits hour/day/season signals
-- computes day-of-year and seasonal daylight length
-
-`SkyController`:
-
-- owns `data/sky/sky_settings.json`
-- binds to `WorldEnvironment`, sun, moon, and camera
-- applies current sky colors
-- applies current fog color/density/distance
-- interpolates time-of-day curves
-- receives weather overrides
-
-`WeatherManager`:
-
-- owns `data/weather/*.json`
-- owns `data/calendar/weather_schedule.json`
-- chooses current weather by season
-- applies weather to `SkyController`
-- exposes current weather to UI/debug
-
-`WorldRenderer` / camera:
-
-- should eventually respect weather `vision_multiplier`
-- should avoid rendering terrain beyond fog-hidden distance where possible
-
-## Implementation Plan
-
-### Phase 1 - Clean Stonehearth-Style Baseline
-
-Goal: make the current static sky/fog clearly match Stonehearth's edge behavior.
-
-- Keep or create a `WorldEnvironment`.
-- Set a calm daytime sky with horizon color matched to fog.
-- Use exponential or depth fog so terrain fades out before the far clip.
-- Verify at high camera zoom and map edge that no hard terrain cutoff is visible.
-
-Acceptance:
-
-- From a surface overview, the map edge dissolves into haze.
-- The sky appears in every direction.
-- No visible sky wall, cylinder, or boundary plane.
-
-### Phase 2 - Time-of-Day Curves
-
-Goal: drive sky, sun, moon, and fog from `WorldClock`.
-
-- Interpolate sky top/horizon colors by hour.
-- Move sun and moon directional lights through keyed angles.
-- Switch sun/moon off when color reaches black.
-- Tie fog color to sky horizon or active celestial color.
-- Keep sunrise/sunset soft.
-
-Acceptance:
-
-- Sunrise and sunset change sky and fog together.
-- Night fog becomes darker and closer.
-- Daytime returns to an open, airy view.
-
-### Phase 3 - Seasonal Day Length
-
-Goal: Deepdraft's season system should exceed Stonehearth's static day length.
-
-Use the existing design:
-
-- summer solstice around day-of-year 28
-- winter solstice around day-of-year 84
-- daylight range roughly 8 to 16 in-game hours
-- smooth cosine curve, no season-boundary snap
-
-Acceptance:
-
-- Summer days are visibly longer.
-- Winter days are visibly shorter.
-- Sunrise/sunset event times update smoothly across the year.
-
-### Phase 4 - Weather Crossfade
-
-Goal: weather changes sky and fog as one coherent system.
-
-- Weather picks a sky/fog profile.
-- Crossfade active sky/fog values over a short transition.
-- Clear, overcast, foggy, and snow should each have distinct visibility and color.
-- Weather `vision_multiplier` should eventually affect render radius and camera far clip, not just
-  visual fog.
-
-Acceptance:
-
-- Foggy weather visibly shortens the view and softens the horizon.
-- Snow/overcast darken the day without making the sky/fog mismatch.
-- Manual weather cycling is available for testing.
-
-### Phase 5 - Polish
-
-Deferred polish:
-
-- custom time-by-height sky gradient shader
-- weather gradient textures
-- starfield
-- cloud shadow toggle
-- volumetric height fog
-- animated fog noise
-- snow accumulation visuals
-
-## Practical Godot Guidance
-
-Recommended near-term Godot settings:
-
-- Use `ProceduralSkyMaterial` first.
-- Keep horizon and fog color nearly identical.
-- Prefer exponential fog if depth fog does not fully obscure the far clip.
-- Tune fog so clear daytime is open, not claustrophobic.
-- Lower visibility for overcast/fog/snow through both fog and renderer distance when possible.
-
-Stonehearth's sunny midday target is a good starting point:
-
-- low or zero ground fog
-- moderate haze
-- long view distance
-- sky and fog color match
-
-Deepdraft should be slightly heavier and more ominous than Stonehearth:
-
-- clear surface fog can be a little denser
-- winter/night/fog should close in faster
-- underground slice view should remain dark above the cut
-
-## Hard Rules
-
-1. Do not create a physical sky wall or boundary shell around the map.
-2. Do not use fog or sky to fake block identity.
-3. Do not brighten the underground slice void as part of the sky system.
-4. Do not hand-edit `.tres` or `.import` resources.
-5. Keep sky/weather values data-driven where practical.
-6. Weather may change visibility and presentation; it must not rewrite terrain data.
-
-## Answer to the Original Question
-
-Does the Stonehearth sky go completely around the map?
-
-**Visually, yes. Physically, not as a map-wrapping object.** Stonehearth renders a camera-centered
-sky backdrop that is always behind the world, then blends distant terrain into matched sky-colored
-fog. The player experiences it as an all-around sky because it follows the camera and cannot be
-approached.
-
-For Deepdraft, the correct target is a camera-infinite sky plus sky-matched fog, not a giant
-skybox boundary around the playable slab.
+Result: the entire world is lit by a **blue directional light** (plus blue sky-sourced ambient),
+shifting green grass toward blue. Because `SkyController` re-applies this **every frame**, editing
+the light or Environment in the editor appears to do nothing — hence "unfixable." Stonehearth's
+bluish light values work in *their* renderer (different lighting model, scattering, water hacks —
+their own comments say so); they must **not** be transplanted into a Godot light's hue.
+
+**Fix (choose one):**
+- *Data fix — APPLIED 2026-06-03:* in `sky_settings.json`, sun day `light_color` is now
+  `[0.67, 0.65, 0.62]` → hue (1.0, 0.97, 0.93) near-white, energy 0.67×1.5 ≈ **1.0 — the original
+  scene's sun**. Dawn `[0.55, 0.45, 0.35]` / dusk `[0.60, 0.47, 0.36]` give warm-orange light at
+  ~0.83/0.90 energy. (Note: values like `[1.0, 0.97, 0.92]` would over-brighten — max channel sets
+  energy, so 1.0 → energy 1.5.)
+- *Code fix:* in `_apply_light()`, use a fixed warm-white hue and take only **brightness** from the
+  curve: `light.light_color = Color(1.0, 0.98, 0.94)` and keep `light_energy = b * energy_scale`.
+- *Off switch:* remove the `SkyController` autoload from `project.godot` (sky/lights revert to the
+  scene; the clock and weather still run harmlessly).
+
+### 1b. Winter grass palette is icy blue-white (secondary — after "+1 Season")
+
+`data/terrain/surface_palettes.json` (authored **before** this session) defines winter grass such
+as `grass_05 = #D8E3EA` — icy blue-white, by design. `ChunkMesher` bakes the **current season's**
+palette into vertex colours at mesh-build time. Pressing the Clock window's **+1 Season** into
+winter makes newly-rebuilt chunks bake the icy palette (and mixes with older summer-baked meshes).
+A restart returns to summer (`calendar.json` start) — this one fixes itself; it is listed so the
+"+1 Season" test button is not mistaken for a bug. Known follow-up: rebuild surface meshes on
+`season_changed` so seasons recolour consistently.
+
+---
+
+## 2. <span style="color:#3fb950;">What was built and verified (keep)</span>
+
+| Phase | Deliverable | Files | Status |
+|---|---|---|---|
+| 0 — Ticking clock | 1 in-game day = 24 real min; rolls hour→day→season→year; signals `hour_changed`/`day_changed`/`season_changed`; speed/pause; 24h `time_string()`; `advance_hours()`/`advance_season()` test API | `scripts/systems/WorldClock.gd`, `data/calendar/calendar.json` | ✅ worked in-engine |
+| UI | Live Clock dock window (Season/Day/Time/Weather) + **+1 Hour**, **+1 Season**, **Weather →** test buttons | `scripts/ui/DockUI.gd`, `data/ui/dock.json` | ✅ worked in-engine |
+| 1 — Data-driven sky | `SkyController` autoload loads `sky_settings.json`, applies the static look (data → Environment pipeline) | `scripts/systems/SkyController.gd`, `data/sky/sky_settings.json` | ✅ worked in-engine |
+| 2 — Day/night | Keyframed sun/moon colour+pitch, sky gradient colours, evaluated against `WorldClock.hour` (~20 Hz), runtime Moon light, 24h wraparound interpolation | same files | ✅ motion confirmed in-engine — but see §1a (blue sun) |
+| 3 — Seasonal day length | Sunrise/sunset event hours recomputed daily from the solstice cosine (summer ~16 h lit, winter ~8 h); **fixed the inverted sign in `11_overview.md` §5** (`+cos`, not `−cos`) | same + `docs/10_core_foundation/11_overview.md` | ✅ verified by user |
+| 4 — Weather | `WeatherManager` autoload: per-season weighted pick (seeded), daily switch, manual cycle; sky darkening + vision blending | `scripts/systems/WeatherManager.gd`, `data/calendar/weather_schedule.json`, `data/weather/{clear,foggy,overcast,snow}.json` | ✅ switching confirmed in-engine |
+| Fog | — | — | ❌ all approaches failed; full post-mortem in §5. Fog driving is OFF (`MANAGE_FOG = false`); fog = scene Environment |
+
+All rollover/interpolation/weighted-pick math was validated headlessly (Python ports) before
+shipping; the items marked ✅ were additionally confirmed running by Alen.
+
+**Architecture (per AGENT.md rules):** JSON = what things are, GDScript = what things do. Each
+system owns its data file (Registry Pattern): `WorldClock` ← `calendar.json`; `SkyController` ←
+`sky_settings.json`; `WeatherManager` ← `weather_schedule.json` + `weather/*.json`. Autoload order:
+`… WorldClock … UIRegistry, SkyController, WeatherManager` (Sky/Weather bind to the scene one frame
+after `_ready` because autoloads initialise before the main scene).
+
+---
+
+## 3. <span style="color:#3fb950;">Replay steps (in session order)</span>
+
+If rebuilding from scratch (e.g. after a revert), this is the order that worked:
+
+1. **Master data files first.** `data/calendar/calendar.json` (time scale 60 s/game-hour, 24 h/day,
+   28 d/season, season order, start date, the 8 named `event_times`, `day_length_curve`),
+   `data/calendar/weather_schedule.json` (per-season weighted table),
+   `data/sky/sky_settings.json` (environment base + keyframed sun/moon/sky-gradient curves, keyed
+   by event *names*), `data/weather/*.json` (base+override model: `vision_multiplier`,
+   `is_dark_during_daytime`, `sky_overrides`). All current files validate and cross-reference.
+2. **Phase 0 — make `WorldClock` tick.** `_process` advances `hour += delta×speed/real_s_per_hour`;
+   `while hour >= 24` roll a day; day > 28 rolls season (emit `season_changed` *before*
+   `day_changed`); season wrap rolls year. Emit `hour_changed` only on whole-hour boundaries.
+   Test: 1440 s at ×1 = exactly +1 day and 24 hour-ticks; 112 days = +1 year, seasons cycle.
+3. **Clock window + test buttons** in `DockUI` (`toggle_window` target `"clock"`): live labels
+   (throttled `_process` ~10 Hz, only while open) + buttons calling `WorldClock.advance_hours(1)`,
+   `advance_season()`, `WeatherManager.cycle_weather()`. These made every later phase testable.
+4. **Phase 1 — `SkyController` static.** Autoload; `await get_tree().process_frame`; find
+   `WorldEnvironment`/`DirectionalLight3D`/`Camera3D` by class; apply the `environment` block.
+   No visual change = pipeline proven.
+5. **Phase 2 — day/night.** Build curves as sorted `[hour, value]` arrays (event name → hour via
+   the calendar), evaluate at `WorldClock.hour` with 24 h wraparound, lerp; drive sky gradient
+   colours, fog-independent ambient (sky-sourced, darkens free), sun/moon colour+pitch (create the
+   Moon at runtime, shadows off). **Apply §1a here: warm-white sun hue, curve = brightness only.**
+6. **Phase 3 — seasonal day length.** Recompute the rise/set event hours each day/season change:
+   `daylight = mean + ampl·cos((doy − summer_solstice)/total·TAU)` (**+cos** — the doc had it
+   inverted), `sunrise = midday − daylight/2`, `sunset = midday + daylight/2`, ±1 h twilight
+   shoulders; rebuild curves on `day_changed`/`season_changed`. Summer ≈ 05–23 lit, winter ≈ 10–18.
+7. **Phase 4 — weather.** `WeatherManager`: load defs + schedule, seed RNG from
+   `WorldGenerator.world_seed`, pick per season (weighted), switch on `day_changed`, hand the dict
+   to `SkyController.apply_weather()` which smooths darken/vision targets (~1.5 s blend).
+8. **Fog — do NOT replay any of the session's fog attempts.** Read §5 first.
+
+---
+
+## 4. <span style="color:#3fb950;">Verified Stonehearth findings (the research — keep)</span>
+
+Read from `P:\stonehearth` source; all confirmed in code, not inferred:
+
+- **Sky** = a camera-locked sphere sampling **one gradient texture: X = time-of-day, Y =
+  horizon→zenith** (`skysphere.shader`). Day/night scrolls X; weather **crossfades** to a second
+  gradient (`transition factor`). Star layer fades in at night.
+- **Calendar-keyed curves** (`sky_settings.json` + `sky_renderer_service.lua`): all sky/fog/light
+  values are keyframed against named events (`sunrise_start … sunset_end`, from
+  `calendar_constants.json`: sunrise 6, midday 14, sunset 21), linearly interpolated per frame.
+- **Celestials**: sun + moon as directional lights with keyframed colour/ambient/angles; a light
+  whose colour reaches (0,0,0) switches off (how the sun "sets"). **Their bluish light values are
+  tuned for their renderer — do not transplant the hues into Godot lights (§1a).**
+- **TWO independent fog systems** (the session's key discovery, and where it went wrong):
+  1. **Atmosphere** — `fullscreen_quad_height_fog.shader`, the `height_fog [fog_height, thickness,
+     noise, distance]` params (clear midday `[0, 0.3, 1, 500]`, night `[100, 0.5, 1, 100]`, foggy
+     `[70, 0.8, 5, 250]`). A mood/scattering layer tinted by `celestialLightColor`.
+  2. **Edge dissolve** — `voxel/fog.shader` in the `Fog` pipeline stage: redraws geometry in the
+     **far 30% of the frustum** (`frustum_start="0.7"`) with
+     `fogFac = clamp(depth²/farPlane²·2−1, 0, 1)` and **`fogColor = the rendered sky sampled at
+     that screen pixel`** (`skySampler` ← `SkyTemp` buffer). Opaque exactly at the camera far
+     plane. **This per-pixel sky sampling is why their terrain edge and sky are ONE line** (§5).
+- **Weather** (`weather_service.lua`): per-season weighted random, plans 3 days ahead, switches at
+  04:30, previous weather lingers a day; each weather def carries `sky_settings` +
+  `vision_multiplier` (foggy 0.4 — applied to the gameplay *sight radius*, separate from fog) +
+  `is_dark_during_daytime` + snow accumulation per minute.
+
+---
+
+## 5. <span style="color:#f85149;">Fog post-mortem — read before any new fog attempt</span>
+
+Every fog approach failed. The chain, so it is never repeated blind:
+
+| Attempt | Result | Why it failed |
+|---|---|---|
+| Godot Environment **depth fog** pinned to far clip (begin 0.7×far, end = far) | invisible | Godot's depth-fog mode produced no visible effect on this scene (confirmed later by diagnostic) |
+| Saturate-before-clip (end 0.9×far, wider band, curve 0.8) | invisible | same — tuning values on a mode that wasn't rendering |
+| **Red diagnostic** (exponential mode, red, density 0.02) | **terrain went fully red** | ✅ the only useful step: proved Environment fog *does* reach the terrain; the dead layer was depth *mode*, not the material/render path |
+| Exponential fog, sky-horizon colour, density 3.0/view | whole scene washed out | exponential tints *everything* (18 %+ even in the foreground); flat grey fog colour ≠ sky |
+| Custom terrain shader (faithful `calcFogFac`, ALBEDO→EMISSION fade) | **two distinct lines** — terrain cutoff and sky horizon | the fundamental issue, below |
+
+**The fundamental issue (Alen identified it):** the screenshots showed *two* lines — one where the
+blocks end, one where the sky's horizon band starts. In Stonehearth there is **one** line, because
+their fog colour is **the sky pixel directly behind each fragment** — terrain provably converges to
+whatever the sky shows there. A **flat** fog colour (everything the session tried) can never merge
+the two lines: the terrain fades to one constant colour while the sky behind it is a *gradient*,
+and the terrain cutoff (far clip) does not coincide with the sky's visual horizon.
+
+**Requirements for a correct future attempt (not tried this session):**
+1. Fog colour must equal **the sky behind the pixel** — either render the sky to a texture and
+   sample it in the terrain shader (Stonehearth's actual method), or compute the ProceduralSky's
+   analytic colour for the fragment's view direction inside the terrain shader (same gradient
+   maths, no texture needed).
+2. Verify the render mechanism with an unmistakable diagnostic **before** tuning any values.
+3. One variable per change, screenshot per change — in-engine; headless maths cannot validate looks.
+4. Calibrate the sky to a clean blue first; a grey horizon band makes every fade read as murk.
+
+Current state: `SkyController.MANAGE_FOG = false` (no fog driving); `WorldRenderer` uses the
+original `StandardMaterial3D`; fog = the scene's authored Environment. Safe.
+
+---
+
+## 6. <span style="color:#d29922;">Open items / next steps</span>
+
+1. ~~Fix the blue sun~~ — **DONE and verified in-engine 2026-06-03** (§1a).
+2. Surface meshes don't recolour on `season_changed` (winter palette bakes only into rebuilt
+   chunks) — wire a surface-mesh refresh to the signal.
+3. Sky colours are hand-authored placeholders — calibrate against Stonehearth screenshots
+   (bluer, brighter; midday was kept identical to the pre-session scene).
+4. Fog — only per §5, as its own carefully-tested effort.
+5. `vision_multiplier` is visual-only; coupling to the streaming radius (doc 06 budget) deferred.
+6. Starfield, sine rise/set ramp, snow accumulation, weather mood thoughts — Phase 5 polish, unstarted.
 
 ---
 
