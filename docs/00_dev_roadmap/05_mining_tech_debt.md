@@ -6,73 +6,28 @@
 > <span style="color:#d29922;">Yellow = review / move to a more specific plan</span> |
 > <span style="color:#f85149;">Red = safe to delete or archive once you are comfortable</span>
 
-## Document Review - 2026-06-01
+## Status - 2026-06-05
 
-This file is still useful as a focused mining cleanup backlog. Both current items are yellow:
-real enough to keep visible, but small enough that they may move into implementation tasks once
-the next mining pass begins.
+This file is **the consolidated mining backlog**: tech debt plus UX/perf polish. It absorbed
+the live remainders of the retired `03_mining_plan.md` (parity polish) and
+`04_mining_performance.md` (zone overlay rebuild) on 2026-06-05. Permanent specs live
+elsewhere: tool spec in `43_mining_materials.md` §Mining Tools, invalidation contract in
+`24_world_rendering.md` §Mining-Edit Invalidation Contract. Every item below was verified
+still open against the code on 2026-06-05.
 
----
+Open items: overlay readability, zone overlay whole-rebuild, parity polish 1–6.
 
-This file tracks small cleanup items discovered while reviewing the mining implementation. It is for debt that is real but not urgent enough to interrupt the current feature pass.
+## <span style="color:#3fb950;">RESOLVED 2026-06-05 - Config Source Of Truth</span>
 
-## <span style="color:#d29922;">REVIEW - Restore Audit - 2026-06-01</span>
+`MiningDesignationController.gd` now names its inline values as explicit
+`FALLBACK_DEFAULT_SIZE` / `FALLBACK_MAX_HORIZONTAL` / `FALLBACK_MAX_VERTICAL` /
+`FALLBACK_MAX_DRAG_LENGTH` constants, referenced from both the var initializers and the
+`_load_config()` defaults (the numbers previously lived unnamed in three places).
+`data/terrain/mining_config.json` remains the only intended tuning surface — JSON wins;
+the constants exist solely so the tool fails gracefully if the config file is missing or
+malformed. No behavior change.
 
-Both debt items below are still valid in the restored project.
-
-- `Config Source Of Truth` is still open: `MiningDesignationController.gd` loads
-  `data/terrain/mining_config.json`, but the same numbers are still initialized inline as unnamed
-  fallback values.
-- `Foreground vs Background Mining Overlay Readability` is still open: preview and zone overlays use
-  no-depth fill/line materials for full regions, and there is no separate stronger depth-tested
-  exposed/floating subset yet.
-
-No additional small mining cleanup item was found during this restore audit. Performance-specific
-work is tracked in `04_mining_performance.md`, and first-slice UX backlog is tracked in
-`03_mining_plan.md`.
-
-## <span style="color:#d29922;">REVIEW / MOVE - Config Source Of Truth</span>
-
-**Status:** <span style="color:#d29922;">Open / review</span>
-
-**Context:** `data/terrain/mining_config.json` is the source of truth for mining tool tuning, but `scripts/systems/MiningDesignationController.gd` currently initializes the same values inline:
-
-```gdscript
-var _horizontal_size: int = 1
-var _vertical_size: int = 1
-var _max_horizontal: int = 8
-var _max_vertical: int = 8
-var _max_drag_length: int = 40
-```
-
-The controller does load and override these from JSON in `_load_config()`, so behavior is correct. The issue is readability: the inline values look like a second configuration source.
-
-**Desired cleanup:** Make the code values explicit fallbacks, not apparent config.
-
-```gdscript
-const FALLBACK_DEFAULT_SIZE := 1
-const FALLBACK_MAX_HORIZONTAL := 8
-const FALLBACK_MAX_VERTICAL := 8
-const FALLBACK_MAX_DRAG_LENGTH := 40
-
-var _horizontal_size: int = FALLBACK_DEFAULT_SIZE
-var _vertical_size: int = FALLBACK_DEFAULT_SIZE
-var _max_horizontal: int = FALLBACK_MAX_HORIZONTAL
-var _max_vertical: int = FALLBACK_MAX_VERTICAL
-var _max_drag_length: int = FALLBACK_MAX_DRAG_LENGTH
-```
-
-Then keep `_load_config()` as the only path that applies real tuning from `mining_config.json`.
-
-**Rule:** JSON wins. Code constants exist only so the tool can fail gracefully if the config file is missing or malformed.
-
-**Acceptance criteria:**
-
-- `MiningDesignationController.gd` names these values as fallback defaults.
-- `data/terrain/mining_config.json` remains the only intended tuning surface.
-- No behavior changes to precision mining controls.
-
-## <span style="color:#d29922;">REVIEW / MOVE - Foreground vs Background Mining Overlay Readability</span>
+## <span style="color:#d29922;">REVIEW - Foreground vs Background Mining Overlay Readability</span>
 
 **Status:** <span style="color:#d29922;">Open / review</span>
 
@@ -119,6 +74,51 @@ choice — the overlay never paints inside hidden rock). See `11_slice_xray_plan
 The "faintly readable" rule above applies to structure hidden *behind terrain* within the
 visible volume, not to structure above the slice plane.
 
+## <span style="color:#d29922;">REVIEW - Zone Overlay Mesh Is Rebuilt Whole (moved from retired 04_mining_performance.md, 2026-06-05)</span>
+
+**Status:** <span style="color:#d29922;">Open / polish — not the old freeze path</span>
+
+`_rebuild_zones_mesh()` rebuilds ALL confirmed zone overlay geometry into one combined mesh
+on every confirm / remove / select / DEV-mine, and (since doc 11 Phase 3) on every slice
+change via `visible_volume_changed` — the per-block VisibleVolume clip runs inside the same
+all-zones loop. Fine at current zone counts; will become noticeable with many large zones.
+Fix shape when needed: per-zone mesh nodes so one edit touches one zone's mesh, and the
+slice clip re-evaluates only zones intersecting the changed plane rows.
+
+The terrain-side invalidation contract that pass established is now normative in
+`24_world_rendering.md` §Mining-Edit Invalidation Contract.
+
+**Timing validation (conditional, doc-07 rule):** the 04 plan's formal `1×1×1` / `3×3×1` /
+`4×4×4` before/after measurements were never taken — the freeze was eliminated and daily
+DEV-mine use has not surfaced hitches. Re-measure (release build) only if mining edits ever
+feel hitchy in play.
+
+## <span style="color:#d29922;">REVIEW - Stonehearth Parity Polish (moved from retired 03_mining_plan.md, 2026-06-05)</span>
+
+Mining-UX polish items from the old parity review, all verified still open in
+`MiningDesignationController.gd` on move day. The permanent tool spec now lives in
+`43_mining_materials.md` §Mining Tools.
+
+1. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Drag height locking.**
+   During drag, intersect the mouse ray against an anchor-height plane instead of raycasting
+   terrain every update (`_update_hover_preview` re-raycasts terrain each frame today). Keeps
+   selection stable on slopes and terraces.
+2. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Selection support offset /
+   validity display.** Keep the preview visually rectangular, but make invalid or filtered
+   blocks clearer before confirmation.
+3. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Size labels and rulers.**
+   `Label3D` size labels exist, but they are not full X/Z rulers and may still be hard to
+   read.
+4. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Modifier redraw.** Force
+   preview rebuild on Ctrl press/release — today `_update_hover_preview` early-returns on an
+   unchanged hit, so the removal colour only updates when the mouse hit changes.
+5. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Cursor and user feedback.**
+   Add a small mining-mode instruction callout; cursor assets can wait.
+6. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Zone data model (worker
+   prep).** The mined/designation set split shipped with slice Phase SO-2b; the remaining
+   split — completed blocks, destination blocks, reserved blocks — lands with real mining
+   execution (spec: `43_mining_materials.md` §Mining Zone Entity).
+
 ---
 
-*Prev: [04_mining_performance.md](./04_mining_performance.md)*
+*Prev: [00_dev_roadmap](.) — docs 03 and 04 retired 2026-06-05; specs moved to `43_mining_materials.md` §Mining Tools and `24_world_rendering.md` §Mining-Edit Invalidation Contract*

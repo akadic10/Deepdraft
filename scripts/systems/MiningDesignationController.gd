@@ -15,6 +15,14 @@ const TERRAIN_GRID_MAX_RADIUS := 168
 const TERRAIN_GRID_REBUILD_CELL := 8
 const TERRAIN_GRID_OFFSET := 0.006
 
+## Fallback defaults only — data/terrain/mining_config.json is the single tuning
+## surface (JSON wins; see _load_config). These exist so the tool fails gracefully
+## if the config file is missing or malformed.
+const FALLBACK_DEFAULT_SIZE := 1
+const FALLBACK_MAX_HORIZONTAL := 8
+const FALLBACK_MAX_VERTICAL := 8
+const FALLBACK_MAX_DRAG_LENGTH := 40
+
 enum ToolState { INACTIVE, HOVER, DRAGGING }
 
 var _state: ToolState = ToolState.INACTIVE
@@ -22,11 +30,11 @@ var _camera_rig: Camera
 var _dock_ui: DockUI
 var _renderer: Node
 
-var _horizontal_size: int = 1
-var _vertical_size: int = 1
-var _max_horizontal: int = 8
-var _max_vertical: int = 8
-var _max_drag_length: int = 40
+var _horizontal_size: int = FALLBACK_DEFAULT_SIZE
+var _vertical_size: int = FALLBACK_DEFAULT_SIZE
+var _max_horizontal: int = FALLBACK_MAX_HORIZONTAL
+var _max_vertical: int = FALLBACK_MAX_VERTICAL
+var _max_drag_length: int = FALLBACK_MAX_DRAG_LENGTH
 
 var _hover_hit: Dictionary = {}
 var _anchor_hit: Dictionary = {}
@@ -193,11 +201,11 @@ func _load_config() -> void:
 	var root: Dictionary = json.data
 	var precision: Dictionary = root.get("precision_tool", {})
 	var dig_tool: Dictionary = root.get("dig_tool", {})
-	_horizontal_size = int(precision.get("default_size", 1))
-	_vertical_size = int(precision.get("default_size", 1))
-	_max_horizontal = int(precision.get("max_horizontal", 8))
-	_max_vertical = int(precision.get("max_vertical", 8))
-	_max_drag_length = int(dig_tool.get("max_drag_length", 40))
+	_horizontal_size = int(precision.get("default_size", FALLBACK_DEFAULT_SIZE))
+	_vertical_size = int(precision.get("default_size", FALLBACK_DEFAULT_SIZE))
+	_max_horizontal = int(precision.get("max_horizontal", FALLBACK_MAX_HORIZONTAL))
+	_max_vertical = int(precision.get("max_vertical", FALLBACK_MAX_VERTICAL))
+	_max_drag_length = int(dig_tool.get("max_drag_length", FALLBACK_MAX_DRAG_LENGTH))
 
 
 func _build_materials() -> void:

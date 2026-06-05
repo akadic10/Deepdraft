@@ -566,7 +566,8 @@ tunnels)" the dormant streamed-chunk path is reserved for (`set_overview_enabled
 **Forward note:** real mining execution will hit the same property — an actually-mined
 lateral tunnel will not render in the overview either. When tunnels become diggable, the
 interior view needs the streamed path composited near the camera, X-Ray, or both.
-<span style="color:#3fb950;">**Superseded same day:** the DEV instant-mine tool (doc 03)
+<span style="color:#3fb950;">**Superseded same day:** the DEV instant-mine tool (now
+`43_mining_materials.md` §DEV Instant Mine; doc 03 retired 2026-06-05)
 created a real producer of mined holes, which unblocked the targeted fix — see
 Phase SO-2b below.</span>
 
@@ -956,7 +957,8 @@ x-ray with zero additional code (they already consume the contract from Phase 3)
 
 ## 5. Performance guardrails (the "rock solid" checklist)
 
-Non-negotiables, distilled from ref §2.8 / §3.5 and our own doc-04/07 lessons:
+Non-negotiables, distilled from ref §2.8 / §3.5 and our own doc-04/07 lessons (doc 04 retired
+2026-06-05 — its contract is now `24_world_rendering.md` §Mining-Edit Invalidation Contract):
 
 1. **No global invalidation on any slice/x-ray state change.** The only allowed full pass is
    x-ray mode toggle, and it is bounded by carved volume. (Doc-04's 15-second freeze came from
@@ -996,7 +998,7 @@ Non-negotiables, distilled from ref §2.8 / §3.5 and our own doc-04/07 lessons:
 | 1. Mesher slice clip + dirty-row math | `ChunkMesher.gd`, `WorldRenderer.gd` | 0 |
 | 2. Slice tool + palette + hotkeys + seeding | `DockUI.gd`, new `scripts/systems/SliceController.gd` (or fold into renderer), `data/ui/dock.json`, `project.godot` `[input]` <span style="color:#d29922;">(ownership note)</span> | 1 |
 | 2b. Mining grid on the cut floor (effective-top math) | `MiningDesignationController.gd` | 2 |
-| SO-2b. Mined-cavity rendering (set split, side punch, shell) | `WorldRenderer.gd`, `MiningDesignationController.gd` | DEV mine tool (doc 03) |
+| SO-2b. Mined-cavity rendering (set split, side punch, shell) | `WorldRenderer.gd`, `MiningDesignationController.gd` | DEV mine tool (`43_mining_materials.md` §DEV Instant Mine) |
 | SO-2c. Slice-cut face dimming (luminance, pre-FOW interim) | `WorldRenderer.gd` | SO-2b |
 | 3. VisibleVolume contract + mining overlay clipping | `WorldRenderer.gd`, `MiningDesignationController.gd` | 1 |
 | 4. Overview interplay polish | `WorldRenderer.gd` | 2 |

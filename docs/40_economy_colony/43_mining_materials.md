@@ -30,7 +30,10 @@ The player designates mining regions using two tools. Both tools create a **mini
 
 ---
 
-### Tool 1 — Dig (Large, Grid-Snapped)
+### Tool 1 — Dig (Large, Grid-Snapped) — NOT YET IMPLEMENTED
+
+> Deferred. Only Tool 2 (Precision Dig) is built today; this section is the design spec for
+> when the large snapped tool lands.
 
 The primary mining tool. The player clicks and drags on any terrain face; the selection **snaps outward** to the nearest 4×4×4 cell boundary. The result always covers a complete cell — you can never designate a partial cell.
 
@@ -68,19 +71,78 @@ A single click (no drag) always produces a **4×4×4 zone**. Dragging expands th
 
 ---
 
-### Tool 2 — Precision Dig (Variable, 1-Block Minimum)
+### Tool 2 — Precision Dig (Variable, 1-Block Minimum) — SHIPPED (designation only)
 
-A single-block tool for surgical work: finishing a room corner, punching a doorway, clearing one specific block. Starts at 1×1×1 and is resized interactively before confirming.
+> Migrated from the original `00_dev_roadmap/03_mining_plan.md` (retired 2026-06-05; live
+> polish items in `05_mining_tech_debt.md`). Implemented in
+> `scripts/systems/MiningDesignationController.gd`; verified against the code on retirement
+> day. Tuning lives in `data/terrain/mining_config.json` (defaults 1×1, max 8×8, max drag
+> 40) — the controller's inline values are fallbacks only; JSON wins.
+
+A single-block tool for surgical work: finishing a room corner, punching a doorway, clearing one specific block. Starts at 1×1×1 and is resized interactively before confirming. Dock `Mine` requests `mine_precision` via `DockUI.tool_requested`; the tool stays active after each confirm for repeated designations.
 
 | Control | Effect |
 |---|---|
+| Left click + drag | Designate the mining region (mouse-up confirms) |
 | Shift + MouseWheel up/down | Expand/shrink horizontal extent (X and Z), 1–8 blocks |
 | Alt + MouseWheel up/down | Expand/shrink vertical extent (Y), 1–8 blocks |
-| Right-click | Cancel |
+| Ctrl held while confirming | Subtract existing mining zones under the selected region |
+| Right-click / Escape | Cancel / exit mining mode |
 
 The selection is anchored at the clicked face normal — the region grows away from the face the player pointed at. There is no grid snapping. The region is always exactly the size shown.
 
+**Region math** (`_build_precision_region()` / `_map_precision_axis()`):
+
+```text
+if normal.y != 0:                       # clicked a top/bottom face
+    min_y = anchor.y + 1 - size_vertical
+    max_y = anchor.y + 1
+else:                                   # clicked a side face
+    min_y = anchor.y - floor(size_vertical / 2)
+    max_y = anchor.y + floor(size_vertical / 2 + 0.5)
+```
+
+Invariants: the origin block is always included; horizontal extents round up to a multiple of
+the current horizontal size; the region grows away from the clicked face when there is a
+horizontal face normal; axes without a normal component are centered by half the horizontal
+size; max drag length is enforced by trimming one horizontal-size step.
+
+**Selection filters:** out-of-bounds, transparent blocks, water, and `y <= 3` (Bedrock
+Protocol) are never selected; a preview with no valid mineable blocks confirms to nothing.
+Designation is clipped to the visible volume (WYSIWYG — confirm designates exactly what the
+preview shows; `11_slice_xray_plan.md` Phase 3).
+
+**Zone selection:** clicking a confirmed zone opens a compact `Mining Zone` window with
+`Remove`, `X`, and the DEV mine button below.
+
+**Visual terrain cut model (interim, until worker mining):** confirmed zones visually cut
+terrain through renderer state only — `WorldData` is never mutated by designation. The
+controller pushes localized deltas (`add_visual_cut_blocks` / `remove_visual_cut_blocks`);
+`ChunkMesher` skips cut blocks and the overview recomputes visible surfaces after subtracting
+them. Designations render concealed everywhere (strata-only ghost — a plan reveals nothing;
+see the unified exposure principle, `24_world_rendering.md`).
+
 This tool is intentionally slower to use than the Dig tool. A 1×1×1 precision dig is for fine work; players who want to carve a room should use the Dig tool.
+
+---
+
+### DEV Instant Mine (testing tool, added 2026-06-05)
+
+Not gameplay: the Mining Zone window's **DEV Mine (no drops)** button executes the selected
+zone immediately — no dwarves, no drops. Semantics:
+
+- The zone's blocks become **mined**: zone bookkeeping is erased, the renderer's visual cuts
+  are KEPT (in overview mode the cut set is the authoritative record of removal — the
+  generated heightmap would resurrect the rock otherwise), and `WorldData` gets void written
+  wherever a chunk actually exists. The renderer's `add_mined_blocks()` moves them into the
+  mined set (exact-colour reveal per the unified exposure principle).
+- Mined blocks are transparent to the designation raycast (the freshly exposed rock
+  behind/beneath is designatable — iterative digging works), excluded from new designations,
+  and stepped past by the terrain grid's effective-top walk.
+- No undo; a new run regenerates the world. Replaced by real mining execution later.
+- Lateral digs surfaced the overview's cavity-invisibility property and unblocked its fix —
+  see `11_slice_xray_plan.md` Phase SO-2b (mined/designation set split, side-band punching,
+  cavity shell).
 
 ---
 
@@ -113,7 +175,8 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
 
 ## World Design Intent (North Star)
 
-> Migrated from the original `00_dev_roadmap/01_world_gen_plan.md`. These are the enduring
+> Migrated from the original `00_dev_roadmap/01_world_gen_plan.md` (retired 2026-06-05; live
+> remainder in `00_dev_roadmap/12_worldgen_second_milestone.md`). These are the enduring
 > design rules the generated world must read as; the pipeline below is how they are produced.
 
 Deepdraft borrows **Stonehearth's clarity**, not its systems or assets. The world should read
@@ -230,7 +293,7 @@ Transitions between domains are **blended** — a column near the mountain/valle
 
 ### World Seed
 
-`world_seed` is a signed 32-bit integer stored in the save file header at new-game time. All 6 noise instances derive from it via fixed offsets (`+1` ore, `+2` cave, `+3` soil, `+4` domain, `+5` mountain, `+6` valley). Two games with the same seed always produce identical worlds.
+`world_seed` is a signed 32-bit integer stored in the save file header at new-game time. All 7 noise instances derive from it via fixed offsets (`+1` ore, `+2` cave, `+3` soil, `+4` domain, `+5` mountain, `+6` valley, `+7` gem). Two games with the same seed always produce identical worlds.
 
 ```gdscript
 func _new_game_setup(player_seed: int = 0) -> void:
@@ -245,7 +308,7 @@ Passing `0` generates a random seed via `randi()`. Any non-zero value reproduces
 
 ### Noise Instance Configuration
 
-There are **six** noise instances — one per logical layer. There is **no `noise_stone`** layer: rock identity is chosen by authored altitude bands (see *Authored Rock Selection* below), not by noise.
+There are **seven** noise instances — one per logical layer. There is **no `noise_stone`** layer: rock identity is chosen by authored altitude bands (see *Authored Rock Selection* below), not by noise.
 
 ```gdscript
 # WorldGenerator.gd  (called once when generate() starts, before any chunk work)
@@ -299,6 +362,14 @@ func _build_noise_instances() -> void:
     noise_valley.seed            = world_seed + 6
     noise_valley.frequency       = 0.012
     noise_valley.fractal_octaves = 2
+
+    # Layer 7 — Gem pocket mask
+    # Higher frequency, more octaves → small isolated pockets, separate from ore veins.
+    noise_gem = FastNoiseLite.new()
+    noise_gem.noise_type       = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+    noise_gem.seed             = world_seed + 7
+    noise_gem.frequency        = 0.06
+    noise_gem.fractal_octaves  = 3
 ```
 
 ---
@@ -433,67 +504,77 @@ func generate_block(x: int, y: int, z: int) -> StringName:
         return _pick_surface_block(x, z, col)
 
     # --- Underground volume ---
-    var n_cave  := (noise_cave.get_noise_3dv(Vector3(x, y, z))  + 1.0) * 0.5
-    var n_ore   := (noise_ore.get_noise_3dv(Vector3(x, y, z))   + 1.0) * 0.5
-    var n_soil  := (noise_soil.get_noise_3dv(Vector3(x, y, z))  + 1.0) * 0.5
+    var n_cave := (noise_cave.get_noise_3dv(Vector3(x, y, z)) + 1.0) * 0.5
     # No stone-type noise — rock identity comes from authored altitude bands.
 
     # Cave void — no caves within 5 blocks of surface.
     if n_cave > 0.65 and y < surface_y - 5:
         return &"base:terrain:void"
 
-    var ore := _pick_ore(y, n_ore)
-    if ore != &"":
-        return ore
-
-    if n_soil > 0.68 and y >= 20 and y <= 60:
-        return &"base:terrain:soil:cave"
-
-    # Authored rock: mountain shelves above Y44, altitude body bands below.
-    return _altitude_rock_body_id(y) if y < 44 else _mountain_shelf_block_id(y)
+    # Authored rock: mountain shelves above Y44, altitude body bands below —
+    # then the resource pass may replace it (see Resource Distribution below).
+    var rock := _altitude_rock_body_id(y) if y < 44 else _mountain_shelf_block_id(y)
+    return _apply_resource_veins(x, y, z, surface_y, rock)
 ```
 
-### Ore Selection
+### Resource Distribution (Ore, Gem, Cave Soil)
 
-Resource replacement is concealed on untouched exposed walls. `_apply_resource_veins()` keeps
-the authored rock unchanged for natural terrace/mountain side walls and for the outer
-world-edge perimeter band, so the outside slab face cannot reveal metals or gems before the
-player mines inward.
+> Migrated from the original `00_dev_roadmap/02_resource_distribution_plan.md` (retired
+> 2026-06-05; live calibration items in `00_dev_roadmap/12_worldgen_second_milestone.md`).
+> Verified against `WorldGenerator._apply_resource_veins()` on retirement day.
+
+**Source of truth for all bands, thresholds, and channels is
+`data/terrain/block_resources.json`** (`depth_bias.min_y` / `max_y`, `noise_threshold`,
+`noise_channel`). Adding or retuning a resource never requires code changes — only the data
+file. `WorldGenerator` caches the windows at boot (`_cache_resource_windows()`); the
+rarest-first evaluation order is fixed in `METAL_RESOURCE_KEYS` / `GEM_RESOURCE_KEYS` /
+`SOIL_RESOURCE_KEYS`.
+
+**Design goals (enduring guardrails for tuning):**
+
+- **Depth identity / progression** — digging deeper yields better rewards.
+- **Both dig routes pay off** — mining into the mountain face yields common industrial
+  metals; tunneling down from valley/lowland floors is the express route to precious metals
+  and gems.
+- **Deterministic and seed-stable** — noise + position only, never unseeded random calls
+  (Hard Rule 8).
+- **Cheap** — resources layer onto rock blocks only; noise is sampled lazily.
+- **Bedrock is inviolate** — nothing overwrites `Y0–3`.
+- **Surface stays intact** — the override never replaces the visible surface skin; the
+  replaceable set is `rock01`–`rock11` only, so grass, dirt caps, and soil bands are
+  structurally protected.
+- **Natural cliff faces stay readable** — resource overlays do not paint untouched exposed
+  terrain walls.
+- **World-edge perimeter stays concealed** — an 8-column suppression band keeps metals and
+  gems off the outside slab.
 
 > **Slice concealment (HARD rule, 2026-06-04):** the slice view never reveals undiscovered
 > resources either — cut floors render authored strata only (the renderer uses the strata
 > lookup, not the full generated block, for plane-cut tops). Veins, gems, and caves become
 > visible exclusively through mining. See `24_world_rendering.md` §Slice concealment rule.
 
-Ore selection reads `noise_threshold` and `depth_bias.max_y` directly from `block_resources.json` so adding a new ore never requires changing this function — only the data file.
+**Selection method** — `_apply_resource_veins(x, y, z, surf_y, rock_id)`, for each
+sub-surface rock block:
 
-```gdscript
-# Ores are evaluated in ascending rarity order; first match wins.
-# The order here must match the depth/rarity ladder in block_resources.json.
-const ORE_LADDER := [
-    &"base:terrain:ore:tin",
-    &"base:terrain:ore:copper",
-    &"base:terrain:ore:coal",
-    &"base:terrain:ore:iron",
-    &"base:terrain:ore:silver",
-    &"base:terrain:ore:gold",
-    &"base:terrain:gem:jade",
-    &"base:terrain:gem:amethyst",
-    &"base:terrain:gem:ruby",
-    &"base:terrain:gem:sapphire",
-    &"base:terrain:gem:emerald",
-    &"base:terrain:gem:diamond",
-]
+1. Reject bedrock (`y <= 3`) and any block at or above the visible surface (`y >= surf_y`).
+2. Reject non-replaceable blocks (only `rock01`–`rock11` are replaceable).
+3. Reject world-edge perimeter columns (8-wide band).
+4. Reject natural exposed wall blocks (any cardinal neighbour column with a lower surface),
+   so untouched cliffs keep their authored strata.
+5. Evaluate **gems** first, rarest to most common, on `noise_gem`.
+6. Evaluate **metals** next, rarest to most common, on `noise_ore`.
+7. Evaluate **cave soil** last, on `noise_soil`.
+8. Otherwise keep the authored rock.
 
-func _pick_ore(x: int, y: int, z: int, n_ore: float) -> StringName:
-    for block_key in ORE_LADDER:
-        var res := BlockResources.get(block_key)   # loaded from block_resources.json
-        if res == null:
-            continue
-        if y < res.depth_bias.max_y and n_ore > res.noise_threshold:
-            return block_key
-    return &""
-```
+**First-match-wins semantics (important for tuning):** within a category, every entry reads
+the *same* noise channel and the first window matching `(y in band, noise > threshold)`
+wins. Rarest-first ordering therefore gives the rarest resource the top noise slice — which
+only works as intended while thresholds *descend* monotonically down each list. A
+late-listed entry whose threshold is higher than an earlier entry's gets shadowed wherever
+their bands overlap. Coal currently suffers exactly this (threshold 0.72,
+evaluated after iron 0.70 / copper 0.66 / tin 0.66 → effectively spawns only at Y12–19
+despite its declared Y12–90 window) — open calibration item in
+`00_dev_roadmap/12_worldgen_second_milestone.md`.
 
 ### Authored Rock Selection
 

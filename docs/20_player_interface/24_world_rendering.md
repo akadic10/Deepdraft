@@ -108,7 +108,8 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
 
 ## Terrain Render Modes
 
-> Migrated from `00_dev_roadmap/01_world_gen_plan.md`. The renderer may simplify geometry, but
+> Migrated from the original `00_dev_roadmap/01_world_gen_plan.md` (retired 2026-06-05; live
+> remainder in `00_dev_roadmap/12_worldgen_second_milestone.md`). The renderer may simplify geometry, but
 > it must simplify **exposed block faces** — never invent a painted surface that disagrees with
 > the generated blocks. `WorldRenderer` implements the first two modes today.
 
@@ -159,6 +160,33 @@ sample at the world boundary; **coarse side-colour sampling steps or top-colour 
 repaint a block's face with a different block's colour** (a 4-block Y sampling step plus a
 top-colour override did exactly this — swallowing the grass cap so grass blocks showed dirt
 sides — removed 2026-06-03; a block's faces must always show that block's colour).
+
+## Mining-Edit Invalidation Contract
+
+> Migrated from the original `00_dev_roadmap/04_mining_performance.md` (retired 2026-06-05;
+> the performance pass it planned shipped 2026-06-01 and killed the 15-second mining-edit
+> freeze). Verified against `WorldRenderer.gd` / `MiningDesignationController.gd` on
+> retirement day. Slice-change invalidation has its own rules — see
+> `00_dev_roadmap/11_slice_xray_plan.md` Phase SO.
+
+Mining cuts are **renderer state** (Stonehearth's model — designation never mutates
+`WorldData`; only DEV/real mining does). Edits must invalidate locally, never globally:
+
+- **Delta APIs are the normal path:** `add_visual_cut_blocks()` / `remove_visual_cut_blocks()`
+  (and `add_mined_blocks()` for executed mining). The mining controller sends only changed
+  blocks on confirm / remove / Ctrl-subtract.
+- **Dirty rule:** changed blocks dirty their own overview tiles **plus X/Z neighbour columns'
+  tiles** (side faces compare neighbouring column heights); streamed regions dirty only
+  regions containing changed blocks and their direct neighbours. Deduplicated, drained on the
+  existing per-frame budgets.
+- **`set_visual_cut_blocks()` (full replacement) is fallback/global-sync only.** Risk to
+  guard in review: a controller edit path quietly reverting to it reintroduces global
+  invalidation.
+- **`_invalidate_overview_global()` is reserved for genuinely global events:** initial build
+  after worldgen, season/colour changes, render-mode resets, wholesale world-data swaps.
+  Ordinary mining edits must never reach it.
+- **Open polish (tracked in `00_dev_roadmap/05_mining_tech_debt.md`):** the yellow zone
+  overlay (`_rebuild_zones_mesh()`) still rebuilds all zones into one mesh per edit.
 
 ## Debug Overlay & Block Inspector
 

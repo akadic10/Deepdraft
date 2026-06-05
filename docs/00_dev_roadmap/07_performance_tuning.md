@@ -18,8 +18,9 @@ It complements, and should not duplicate:
 - `06_initial_world_load_sky_fog_view_distance_plan.md` - the architectural plan (local
   generation, fog/camera budget, visibility regions). The bounded-generation rewrite it
   describes was **not needed** to hit the target and remains available only if the world grows.
-- `04_mining_performance.md` - the tiled block-face overview and delta visual-cut work that
-  this document builds on.
+- the tiled block-face overview and delta visual-cut work this document builds on — from the
+  retired `04_mining_performance.md`, now normative in `24_world_rendering.md` §Mining-Edit
+  Invalidation Contract.
 
 ---
 
