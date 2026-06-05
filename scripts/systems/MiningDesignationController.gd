@@ -58,6 +58,14 @@ var _preview_fill_node: MeshInstance3D
 var _preview_node: MeshInstance3D
 var _zones_fill_node: MeshInstance3D
 var _zones_node: MeshInstance3D
+## Exposed-layer nodes (doc 05 overlay readability, 2026-06-05): share the ghost
+## layer's meshes but use depth-TESTED materials, so terrain occludes them — the
+## GPU does the exposed/hidden partition. Exposed faces read strong; hidden
+## structure shows only the faint no-depth ghost beneath.
+var _preview_fill_exposed_node: MeshInstance3D
+var _preview_exposed_node: MeshInstance3D
+var _zones_fill_exposed_node: MeshInstance3D
+var _zones_exposed_node: MeshInstance3D
 var _label_horizontal: Label3D
 var _label_vertical: Label3D
 var _terrain_grid_material: StandardMaterial3D
@@ -68,6 +76,12 @@ var _preview_remove_material: StandardMaterial3D
 var _zones_fill_material: StandardMaterial3D
 var _zones_material: StandardMaterial3D
 var _selected_zone_material: StandardMaterial3D
+var _preview_fill_exposed_material: StandardMaterial3D
+var _preview_remove_fill_exposed_material: StandardMaterial3D
+var _preview_exposed_material: StandardMaterial3D
+var _preview_remove_exposed_material: StandardMaterial3D
+var _zones_fill_exposed_material: StandardMaterial3D
+var _zones_exposed_material: StandardMaterial3D
 var _ui_layer: CanvasLayer
 var _zone_window: PanelContainer
 var _zone_title: Label
@@ -163,6 +177,7 @@ func _on_tool_requested(tool_id: String) -> void:
 	_state = ToolState.HOVER
 	_terrain_grid_node.visible = true
 	_preview_node.visible = true
+	_preview_exposed_node.visible = true
 	_rebuild_terrain_grid(true)
 	print("MiningDesignationController: precision mining active.")
 
@@ -177,7 +192,10 @@ func _deactivate_tool() -> void:
 	_terrain_grid_node.mesh = null
 	_preview_fill_node.visible = false
 	_preview_fill_node.mesh = null
+	_preview_fill_exposed_node.visible = false
+	_preview_fill_exposed_node.mesh = null
 	_preview_node.visible = false
+	_preview_exposed_node.visible = false
 	_label_horizontal.visible = false
 	_label_vertical.visible = false
 	_last_grid_center = Vector2i(-999999, -999999)
@@ -210,13 +228,24 @@ func _load_config() -> void:
 
 func _build_materials() -> void:
 	_terrain_grid_material = _line_material(Color(0, 0, 0, 0.28), false)
-	_preview_fill_material = _solid_material(Color(1.0, 0.90, 0.0, 0.42), true)
-	_preview_remove_fill_material = _solid_material(Color(1.0, 0.05, 0.03, 0.18), true)
-	_preview_material = _line_material(Color(1.0, 0.98, 0.0, 1), true)
-	_preview_remove_material = _line_material(Color(1, 0.05, 0.03, 1), true)
-	_zones_fill_material = _solid_material(Color(1.0, 0.88, 0.0, 0.26), true)
-	_zones_material = _line_material(Color(1.0, 0.92, 0.06, 0.92), true)
+	# Layered overlay treatment (doc 05, Stonehearth parity): the original no-depth
+	# materials became the faint GHOST layer (full volume, visible through terrain at
+	# low alpha); the *_exposed_* variants are depth-TESTED at the original strength,
+	# so exposed faces read strong and hidden structure stays faintly readable.
+	# Alphas are tune-in-engine starting points (ghost ≈ 30% of the old values).
+	_preview_fill_material = _solid_material(Color(1.0, 0.90, 0.0, 0.14), true)
+	_preview_remove_fill_material = _solid_material(Color(1.0, 0.05, 0.03, 0.06), true)
+	_preview_material = _line_material(Color(1.0, 0.98, 0.0, 0.30), true)
+	_preview_remove_material = _line_material(Color(1, 0.05, 0.03, 0.30), true)
+	_zones_fill_material = _solid_material(Color(1.0, 0.88, 0.0, 0.08), true)
+	_zones_material = _line_material(Color(1.0, 0.92, 0.06, 0.28), true)
 	_selected_zone_material = _line_material(Color(1.0, 1.0, 0.35, 1), true)
+	_preview_fill_exposed_material = _solid_material(Color(1.0, 0.90, 0.0, 0.42), false)
+	_preview_remove_fill_exposed_material = _solid_material(Color(1.0, 0.05, 0.03, 0.18), false)
+	_preview_exposed_material = _line_material(Color(1.0, 0.98, 0.0, 1), false)
+	_preview_remove_exposed_material = _line_material(Color(1, 0.05, 0.03, 1), false)
+	_zones_fill_exposed_material = _solid_material(Color(1.0, 0.88, 0.0, 0.26), false)
+	_zones_exposed_material = _line_material(Color(1.0, 0.92, 0.06, 0.92), false)
 
 
 func _line_material(color: Color, no_depth: bool) -> StandardMaterial3D:
@@ -256,6 +285,13 @@ func _build_preview_nodes() -> void:
 	_preview_fill_node.visible = false
 	add_child(_preview_fill_node)
 
+	_preview_fill_exposed_node = MeshInstance3D.new()
+	_preview_fill_exposed_node.name = "MiningPreviewFillExposed"
+	_preview_fill_exposed_node.material_override = _preview_fill_exposed_material
+	_preview_fill_exposed_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_preview_fill_exposed_node.visible = false
+	add_child(_preview_fill_exposed_node)
+
 	_preview_node = MeshInstance3D.new()
 	_preview_node.name = "MiningPreview"
 	_preview_node.material_override = _preview_material
@@ -263,17 +299,36 @@ func _build_preview_nodes() -> void:
 	_preview_node.visible = false
 	add_child(_preview_node)
 
+	_preview_exposed_node = MeshInstance3D.new()
+	_preview_exposed_node.name = "MiningPreviewExposed"
+	_preview_exposed_node.material_override = _preview_exposed_material
+	_preview_exposed_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_preview_exposed_node.visible = false
+	add_child(_preview_exposed_node)
+
 	_zones_fill_node = MeshInstance3D.new()
 	_zones_fill_node.name = "MiningZoneFills"
 	_zones_fill_node.material_override = _zones_fill_material
 	_zones_fill_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_zones_fill_node)
 
+	_zones_fill_exposed_node = MeshInstance3D.new()
+	_zones_fill_exposed_node.name = "MiningZoneFillsExposed"
+	_zones_fill_exposed_node.material_override = _zones_fill_exposed_material
+	_zones_fill_exposed_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_zones_fill_exposed_node)
+
 	_zones_node = MeshInstance3D.new()
 	_zones_node.name = "MiningZones"
 	_zones_node.material_override = _zones_material
 	_zones_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_zones_node)
+
+	_zones_exposed_node = MeshInstance3D.new()
+	_zones_exposed_node.name = "MiningZonesExposed"
+	_zones_exposed_node.material_override = _zones_exposed_material
+	_zones_exposed_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_zones_exposed_node)
 
 	_label_horizontal = _make_size_label("1")
 	_label_vertical = _make_size_label("1")
@@ -586,6 +641,8 @@ func _update_hover_preview(force: bool = false) -> void:
 		_preview_blocks.clear()
 		_preview_fill_node.mesh = null
 		_preview_node.mesh = null
+		_preview_fill_exposed_node.mesh = null
+		_preview_exposed_node.mesh = null
 		_label_horizontal.visible = false
 		_label_vertical.visible = false
 		return
@@ -840,6 +897,8 @@ func _current_slice_y() -> int:
 func _rebuild_preview_mesh() -> void:
 	_preview_node.material_override = _preview_remove_material if _preview_is_remove else _preview_material
 	_preview_fill_node.material_override = _preview_remove_fill_material if _preview_is_remove else _preview_fill_material
+	_preview_exposed_node.material_override = _preview_remove_exposed_material if _preview_is_remove else _preview_exposed_material
+	_preview_fill_exposed_node.material_override = _preview_remove_fill_exposed_material if _preview_is_remove else _preview_fill_exposed_material
 	var fill_color := Color(1.0, 0.05, 0.03, 0.18) if _preview_is_remove else Color(1.0, 0.90, 0.0, 0.42)
 	var line_color := Color(1.0, 0.05, 0.03, 1) if _preview_is_remove else Color(1.0, 0.98, 0.0, 1)
 	# VisibleVolume clip (doc 11 Phase 3): the preview shows exactly what confirm
@@ -849,10 +908,19 @@ func _rebuild_preview_mesh() -> void:
 	for block: Vector3i in _preview_raw_blocks:
 		if _visible_in_slice(block):
 			display_blocks.append(block)
-	_preview_fill_node.mesh = _build_fill_mesh(display_blocks, fill_color, 0.018)
-	_preview_node.mesh = _build_bounds_line_mesh(display_blocks, line_color, 0.018)
-	_preview_fill_node.visible = not display_blocks.is_empty()
-	_preview_node.visible = not display_blocks.is_empty()
+	# Ghost (no-depth, faint) and exposed (depth-tested, strong) layers share the
+	# same meshes — the depth buffer partitions exposed from hidden for free.
+	var fill_mesh := _build_fill_mesh(display_blocks, fill_color, 0.018)
+	var line_mesh := _build_bounds_line_mesh(display_blocks, line_color, 0.018)
+	_preview_fill_node.mesh = fill_mesh
+	_preview_fill_exposed_node.mesh = fill_mesh
+	_preview_node.mesh = line_mesh
+	_preview_exposed_node.mesh = line_mesh
+	var has_blocks := not display_blocks.is_empty()
+	_preview_fill_node.visible = has_blocks
+	_preview_fill_exposed_node.visible = has_blocks
+	_preview_node.visible = has_blocks
+	_preview_exposed_node.visible = has_blocks
 
 
 func _rebuild_zones_mesh() -> void:
@@ -878,8 +946,10 @@ func _rebuild_zones_mesh() -> void:
 		_append_block_faces(visible_blocks, fill_color, fill_verts, fill_cols, 0.008)
 		_append_exterior_region_lines(visible_blocks, line_color, line_verts, line_cols, 0.010)
 
+	# Ghost and exposed layers share each mesh (see _build_materials).
 	if line_verts.is_empty():
 		_zones_node.mesh = null
+		_zones_exposed_node.mesh = null
 	else:
 		var line_arrays: Array = []
 		line_arrays.resize(Mesh.ARRAY_MAX)
@@ -888,9 +958,11 @@ func _rebuild_zones_mesh() -> void:
 		var line_mesh := ArrayMesh.new()
 		line_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, line_arrays)
 		_zones_node.mesh = line_mesh
+		_zones_exposed_node.mesh = line_mesh
 
 	if fill_verts.is_empty():
 		_zones_fill_node.mesh = null
+		_zones_fill_exposed_node.mesh = null
 	else:
 		var fill_arrays: Array = []
 		fill_arrays.resize(Mesh.ARRAY_MAX)
@@ -899,6 +971,7 @@ func _rebuild_zones_mesh() -> void:
 		var fill_mesh := ArrayMesh.new()
 		fill_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, fill_arrays)
 		_zones_fill_node.mesh = fill_mesh
+		_zones_fill_exposed_node.mesh = fill_mesh
 
 
 func _sync_visual_cut_blocks() -> void:

@@ -15,7 +15,8 @@ elsewhere: tool spec in `43_mining_materials.md` §Mining Tools, invalidation co
 `24_world_rendering.md` §Mining-Edit Invalidation Contract. Every item below was verified
 still open against the code on 2026-06-05.
 
-Open items: overlay readability, zone overlay whole-rebuild, parity polish 1–6.
+Open items: zone overlay whole-rebuild, parity polish 1–6. (Config source of truth and
+overlay readability both resolved 2026-06-05.)
 
 ## <span style="color:#3fb950;">RESOLVED 2026-06-05 - Config Source Of Truth</span>
 
@@ -27,9 +28,9 @@ Open items: overlay readability, zone overlay whole-rebuild, parity polish 1–6
 the constants exist solely so the tool fails gracefully if the config file is missing or
 malformed. No behavior change.
 
-## <span style="color:#d29922;">REVIEW - Foreground vs Background Mining Overlay Readability</span>
+## <span style="color:#3fb950;">RESOLVED 2026-06-05 - Foreground vs Background Mining Overlay Readability</span>
 
-**Status:** <span style="color:#d29922;">Open / review</span>
+**Status:** <span style="color:#3fb950;">Shipped — verified in-engine by Alen 2026-06-05</span>
 
 **Context:** Stonehearth makes mining selections easier to read by rendering two different overlay layers:
 
@@ -73,6 +74,22 @@ VisibleVolume contract, not by this readability pass — they disappear entirely
 choice — the overlay never paints inside hidden rock). See `11_slice_xray_plan.md` Phase 3.
 The "faintly readable" rule above applies to structure hidden *behind terrain* within the
 visible volume, not to structure above the slice plane.
+
+**SHIPPED 2026-06-05, verified in-engine by Alen:** done in
+`MiningDesignationController.gd` only, simpler than the Stonehearth recipe: no
+exposed-region computation. Four new `*Exposed` MeshInstance3D nodes (preview fill/lines,
+zones fill/lines) **share the ghost layer's meshes** but use depth-TESTED materials at the
+original strengths — the overlay geometry already sits 0.008–0.018 outside the terrain
+faces, so the depth buffer partitions exposed from hidden on the GPU, free, with zero
+extra rebuild cost (item below unaffected). The original no-depth materials became the
+faint ghost layer (alphas cut to ≈30%: preview fill 0.42→0.14, lines 1.0→0.30, remove fill
+0.18→0.06, zones fill 0.26→0.08, zones lines 0.92→0.28).
+
+**Verified:** preview dragged into a wall shows a bright exposed front and faint buried
+interior; a confirmed zone behind a ridge ghosts through the hill instead of punching
+over it; nothing broken in open view (exposed-only overlays read as before); slice
+behaviour unchanged. Alphas accepted at first values — retune only if a future scene
+makes the ghost read wrong.
 
 ## <span style="color:#d29922;">REVIEW - Zone Overlay Mesh Is Rebuilt Whole (moved from retired 04_mining_performance.md, 2026-06-05)</span>
 
