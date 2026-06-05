@@ -38,6 +38,13 @@ var _zones: Dictionary = {}
 var _zone_by_block: Dictionary = {}
 var _selected_zone_id: int = -1
 
+## DEV instant-mine state (testing tool — no drops, no dwarves). Mined blocks
+## stay in the renderer's visual-cut set forever (that IS their removal in
+## overview mode, where most block data is generated on demand) and become
+## transparent to this controller's raycast/grid/designation so the player can
+## designate the newly exposed blocks and dig deeper iteratively.
+var _mined_blocks: Dictionary = {}   # Vector3i -> true
+
 var _terrain_grid_node: MeshInstance3D
 var _preview_fill_node: MeshInstance3D
 var _preview_node: MeshInstance3D
@@ -340,6 +347,21 @@ func _build_zone_window() -> void:
 	)
 	column.add_child(remove)
 
+	# DEV-only instant mine: executes the zone immediately — blocks are removed
+	# from the game (no drops, no dwarves). Testing tool for slice/interiors;
+	# replaced by real mining execution later.
+	var dev_mine := Button.new()
+	dev_mine.text = "DEV Mine (no drops)"
+	dev_mine.custom_minimum_size = Vector2(98.0, 34.0)
+	dev_mine.focus_mode = Control.FOCUS_NONE
+	dev_mine.tooltip_text = "DEV: remove this zone's blocks from the game instantly"
+	dev_mine.add_theme_color_override("font_color", Color(1.0, 0.62, 0.26))
+	dev_mine.add_theme_color_override("font_hover_color", Color(1.0, 0.72, 0.40))
+	dev_mine.pressed.connect(func() -> void:
+		_dev_mine_selected_zone()
+	)
+	column.add_child(dev_mine)
+
 
 func _window_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -434,7 +456,7 @@ func _effective_grid_top(x: int, z: int, slice_y: int) -> int:
 	if top_y < 0:
 		return -1
 	top_y = mini(top_y, slice_y)
-	while top_y >= 0 and _zone_by_block.has(Vector3i(x, top_y, z)):
+	while top_y >= 0 and (_zone_by_block.has(Vector3i(x, top_y, z)) or _mined_blocks.has(Vector3i(x, top_y, z))):
 		top_y -= 1
 	return top_y
 
@@ -634,6 +656,9 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 		# excluded from the DESIGNATION, not just the display (WYSIWYG).
 		if not _visible_in_slice(block):
 			continue
+		# DEV-mined blocks are gone — air cannot be designated.
+		if _mined_blocks.has(block):
+			continue
 		var block_id := _block_id_at(block)
 		if not BlockRegistry.is_solid(block_id):
 			continue
@@ -749,7 +774,9 @@ func _raycast_voxel(screen_pos: Vector2) -> Dictionary:
 	var face_normal := Vector3i.ZERO
 
 	while travelled <= max_distance:
-		if _in_bounds(pos) and _visible_in_slice(pos):
+		# DEV-mined blocks are air: the ray passes through so the freshly
+		# exposed blocks behind/beneath them can be designated (iterative digs).
+		if _in_bounds(pos) and _visible_in_slice(pos) and not _mined_blocks.has(pos):
 			var block_id := _block_id_at(pos)
 			if BlockRegistry.is_solid(block_id):
 				var def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
@@ -1246,6 +1273,50 @@ func _remove_selected_zone() -> void:
 		return
 	_remove_zone(_selected_zone_id)
 	_close_zone_window()
+
+
+# ── DEV instant mine (testing tool — no drops) ────────────────────────────────
+
+func _dev_mine_selected_zone() -> void:
+	if _selected_zone_id < 0:
+		return
+	_dev_mine_zone(_selected_zone_id)
+	_close_zone_window()
+
+
+## Executes a zone immediately: its blocks leave the game. The renderer's
+## visual cuts are deliberately KEPT (in overview mode the cut set is the
+## authoritative record of removal — the generated heightmap would resurrect
+## the rock otherwise); zone bookkeeping is erased so the overlay disappears;
+## WorldData gets void written wherever a chunk actually exists (streamed-mode
+## correctness — never allocate chunks just to hold air). No drops.
+func _dev_mine_zone(zone_id: int) -> void:
+	if not _zones.has(zone_id):
+		return
+	var zone: Dictionary = _zones[zone_id]
+	var mined: Array[Vector3i] = []
+	for block: Vector3i in zone.get("blocks", []):
+		if _zone_by_block.get(block, -1) == zone_id:
+			_zone_by_block.erase(block)
+		_mined_blocks[block] = true
+		mined.append(block)
+		if WorldData.chunk_exists(
+				floori(float(block.x) / 16.0),
+				floori(float(block.y) / 16.0),
+				floori(float(block.z) / 16.0)):
+			WorldData.set_block(block.x, block.y, block.z, BlockRegistry.AIR_ID)
+	_zones.erase(zone_id)
+	# NOTE: no _remove_visual_cut_blocks() here — the cuts ARE the mined holes.
+	# Promote the blocks to MINED in the renderer (doc 11 Phase SO-2b): punches
+	# wall side-bands and grows the cavity shell.
+	if _renderer != null and _renderer.has_method("add_mined_blocks"):
+		_renderer.call("add_mined_blocks", mined)
+	_rebuild_zones_mesh()
+	if _state != ToolState.INACTIVE:
+		_rebuild_terrain_grid(true)   # mined blocks change effective grid tops
+		_update_hover_preview(true)
+	print("MiningDesignationController: DEV mined zone %d (%d blocks, no drops)." % [
+		zone_id, (zone.get("blocks", []) as Array).size()])
 
 
 func _remove_zone(zone_id: int) -> void:

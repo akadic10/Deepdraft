@@ -155,6 +155,24 @@ These are the parts of the old Stonehearth parity review that still look active.
 7. <span style="color:#d29922;"><strong>REVIEW / MOVE:</strong></span> **Zone data model.** When worker mining begins, split full zone blocks, completed blocks, destination blocks, and reserved blocks.
 
 ---
+## <span style="color:#3fb950;">KEEP - DEV Instant Mine (added 2026-06-05)</span>
+
+A testing tool, not gameplay: the Mining Zone window has a **DEV Mine (no drops)** button
+that executes the selected zone immediately — no dwarves, no drops. Semantics:
+
+- The zone's blocks become **mined**: zone bookkeeping is erased, the renderer's visual cuts
+  are KEPT (in overview mode the cut set is the authoritative record of removal — the
+  generated heightmap would resurrect the rock otherwise), and `WorldData` gets void written
+  wherever a chunk actually exists.
+- Mined blocks are transparent to the designation raycast (the freshly exposed rock
+  behind/beneath is designatable — iterative digging works), excluded from new designations,
+  and stepped past by the terrain grid's effective-top walk.
+- No undo; a new run regenerates the world. Replaced by real mining execution later.
+- Lateral digs surfaced the overview's cavity-invisibility property and unblocked its fix —
+  see `11_slice_xray_plan.md` Phase SO-2b (mined/designation set split, side-band punching,
+  cavity shell).
+
+---
 ## <span style="color:#d29922;">REVIEW / MOVE - Performance Work Belongs In 04</span>
 
 <span style="color:#d29922;"><strong>MOVE TO 04:</strong></span> The current visual-cut sync still uses `set_visual_cut_blocks()` with a rebuilt full dictionary. Localized add/remove cut deltas and tiled overview invalidation belong in `04_mining_performance.md`.

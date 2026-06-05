@@ -565,8 +565,259 @@ tunnels)" the dormant streamed-chunk path is reserved for (`set_overview_enabled
 
 **Forward note:** real mining execution will hit the same property — an actually-mined
 lateral tunnel will not render in the overview either. When tunnels become diggable, the
-interior view needs the streamed path composited near the camera, X-Ray, or both. Revisit
-alongside Phase X1; until then, accepted as-is.
+interior view needs the streamed path composited near the camera, X-Ray, or both.
+<span style="color:#3fb950;">**Superseded same day:** the DEV instant-mine tool (doc 03)
+created a real producer of mined holes, which unblocked the targeted fix — see
+Phase SO-2b below.</span>
+
+### <span style="color:#3fb950;">Phase SO-2b — Mined-cavity rendering in the overview (planned 2026-06-05)</span>
+
+**Why now:** the plan deferred cavity rendering because X-Ray's data source — *mined interior
+space* (X2) — had no producer. The DEV instant-mine tool is now a producer: it creates
+genuinely mined holes, not designation plans. With the sequencing blocker gone, the lateral
+invisibility above becomes targetable without the failed SO-2 compositing: the overview keeps
+its per-column-top representation, and mined cavities are expressed by two additive
+mechanisms.
+
+**Design decision (foundational):** **designations and mined blocks become separate sets in
+the renderer.** Designations are plans, not holes — they keep exactly the current behaviour
+(top-deduction only; no wall punching, no shell, no vein reveal). Only MINED blocks get the
+new treatment. Mined ⊂ cuts: every mined block stays in the visual-cut set (top-walk
+deduction unchanged); the new `_mined_blocks` set additionally drives the two mechanisms
+below. Concealment (Hard Rule 11) is honoured by construction: faces exposed by the shell
+were *mined open* — "veins, gems, and caves become visible exclusively through mining" is
+this exact case.
+
+**Mechanism 1 — cut-aware side bands (the hole mouth).** The overview's wall faces are
+colour-run bands emitted per column Y-walk (`_add_overview_side_column`). The wall face at
+height y belongs to block `(sample_x, y, sample_z)`; if that block is mined, the run ends
+before it and restarts after — punching an exact block-sized hole in the cliff face. Cost
+lands only on tiles containing mined wall blocks; the existing mining-edit tile invalidation
+(changed blocks + XZ neighbours) already dirties the right tiles. The no-mined fast path is a
+single empty-dict check.
+
+**Mechanism 2 — the cavity shell (the tunnel interior).** A dedicated mesh renders, for each
+mined block, the faces of its adjacent SOLID blocks (floor, ceiling, back walls), coloured by
+their TRUE generated block ids — veins show, legitimately. Skips: mined neighbours (open
+continuation), out-of-bounds (world edge), neighbours above the slice plane (the black void
+reads as rock), and generated-void neighbours (natural cave adjacency — the cave interior
+stays unrendered for now; discovery rendering is its own future decision). This builder is
+X-Ray full-mode's geometry (X1: interior inflated +1 XZ, floor −1 Y) built early against the
+DEV mined set — Phase X1 inherits a field-tested mesher, and real mining execution later
+plugs into a renderer that already works.
+
+**Implementation shape:** single `MeshInstance3D` shell node, full rebuild on mined-set
+changes, the once-per-frame visible-volume flush (slice clipping), and season change —
+trivially cheap at DEV scale (mined count × ≤6 faces). Scale path when real mining lands:
+per-chunk shell nodes fed by X0's 3×3×3 dirty rule.
+
+**Out of scope, recorded:** designation cut floors keep today's exact-block lookup when a
+designation lowers a column top below the plane (pre-existing behaviour); whether they should
+become strata-only under the set split is a separate decision for the mining-execution pass.
+
+Acceptance criteria:
+
+- A laterally DEV-mined block opens a visible hole in the cliff face; the cavity interior
+  (floor/ceiling/back walls) renders in true block colours; tunnels deepen visibly block by
+  block.
+- Designations are visually unchanged from today (no punch, no shell, no reveal).
+- Slice composes: cavities above the plane vanish; the shell never draws faces above it.
+- Season changes recolour the shell with everything else.
+- No-mined-blocks worlds pay one dictionary check per side column; tile rebuild cost
+  otherwise unchanged.
+
+#### <span style="color:#f85149;">Defect 1 — first build, 2026-06-05: z-fighting noise on open-pit walls</span>
+
+**Observed (Alen):** camera movement over a dug-out open trench shows shifting mottled noise
+on the trench walls; the opposite wall is clean.
+
+**Diagnosis:** duplicate coplanar geometry. An open-from-above excavation is ALREADY fully
+expressed by the overview (cut-walk lowers the column tops; the trench walls are ordinary
+side bands, strata-only). The first shell build also emitted faces for those same walls in
+EXACT colours — two quads on one plane, strata vs vein-speckled, z-fighting. The speckles
+ARE the ore veins flickering through.
+
+**Fix rule:** the shell renders ONLY enclosed cavities — mined blocks *below* their column's
+cut-aware effective top (a solid roof above). Open-from-above mined blocks are the overview's
+job exclusively; the shell skips every face around them. Side-band punching is unaffected
+(it is a natural no-op on open walls and only bites at genuine tunnel mouths).
+
+**Recorded design wrinkle (interim, deliberate):** with the fix, open-pit walls render
+strata-only — concealed — even though mining exposed them. Concealment-SAFE but
+under-revealing versus the rule's spirit. The honest future fix is an exposure-aware side
+colour path (the band knows which faces were mined open); separate decision, not this pass.
+
+#### <span style="color:#f85149;">Defect 2 — first build, 2026-06-05: designations still don't deduct laterally</span>
+
+**Observed (Alen):** a zone designated into a cliff face (64 blocks, side-exposed) does not
+visually deduct, while the same designation on a plateau top would. Not new behaviour — it is
+the original lateral-invisibility property applied to designations, which the SO-2b set split
+deliberately excluded from punch/shell ("plans ≠ holes"). SO-2b made the asymmetry
+conspicuous: mined holes now render laterally, plans don't.
+
+**Resolution options:**
+
+- **A — extend cut visuals to designations, strata-only (recommended):** designated blocks
+  also punch side bands and render shell interiors, coloured via
+  `get_overview_strata_block_id` (never exact — a plan reveals nothing). Reads as a ghost
+  preview of the dig under the yellow overlay; mined interiors keep exact colours. Composes
+  with Defect 1's enclosed-only rule into ONE shell pass over cuts ∪ mined with per-source
+  colouring (each shell face borders exactly one cavity block: mined → exact, designated →
+  strata).
+- **B — accept:** plans deduct from the top only; overlay-only from the side.
+
+**Uniform rule if A is taken:** *a designated or mined block never renders as rock* —
+top-walk, side punch, and shell all derive from the cut set; only the shell's colour source
+distinguishes plan from hole.
+
+> <span style="color:#3fb950;">**Decision: Option A taken (Alen, 2026-06-05).** Implemented
+> same day together with Defect 1's enclosed-only rule — one shell pass over the cut set,
+> per-source colouring.</span>
+
+#### <span style="color:#f85149;">Defect 3 — 2026-06-05: designation cut floor reveals exact resources (CONCEALMENT)</span>
+
+**Observed (Alen):** designating a 1-layer zone on a plateau top immediately renders the cut
+floor beneath it in EXACT generated colours — a copper vein glows under what is only a plan.
+
+**Mechanism:** `_overview_visible_surface_after_cut()` knows only two cases — slice-cut top
+(strata) vs cut-lowered top (`get_generated_block_id`, exact). It cannot tell whether the
+blocks removed above were MINED or merely DESIGNATED, so a plan earns mining's reveal. This
+was parked in the SO-2b plan as "out of scope, recorded"; under Option A's uniform rule it is
+a concealment bug (Hard Rule 11 violated in spirit through the floor path, exactly as the
+old SO-1 vein-speckled cut floors violated it through the slice path).
+
+**Fix rule (agreed, not yet implemented):** the cut-floor colour source depends on the
+SOURCE of the removed blocks above — walk lowered by mined blocks only → exact (mining
+reveals what it exposes); walk containing ANY designated-only block → strata (plans reveal
+nothing; conservative on mixed runs until fully mined). Self-healing: DEV-mining the zone
+later flips its floor from strata to exact at that moment — the reveal working as intended.
+
+#### <span style="color:#f85149;">Defect 4 — 2026-06-05: designation as free prospecting scanner (CONCEALMENT, exploit framing)</span>
+
+**Observed (Alen):** dug a real tunnel first — it legitimately showed only rock. One fresh
+1-layer designation beside it instantly painted the entire copper field below: information
+the honest dig had rightly NOT granted. Designate → read the floor → remove the zone →
+designate elsewhere = full vein prospecting with zero mining.
+
+**Root:** identical to Defect 3 — this entry records the gameplay consequence so the fix is
+judged against it: after the Defect-3 rule, a designation must show a strata floor
+indistinguishable from undisturbed rock, and discovery must require actual mining
+(adjacent honest reveals — like the tunnel's own exact floor strip — remain correct).
+
+> <span style="color:#3fb950;">**Defects 3/4 fix implemented 2026-06-05** (source-aware
+> cut-floor colouring: exact only when the entire cut run above was mined; `_ovt_mined`
+> snapshot restored for worker threads). Verified by Alen: designation floors conceal; mined
+> floors reveal.</span>
+
+#### <span style="color:#f85149;">Defect 5 — 2026-06-05: mined-open WALLS under-reveal (they lie)</span>
+
+**Observed (Alen):** mined a pocket inside the mountain — pit walls rendered plain strata.
+Mined one more layer off a wall: copper appeared exactly where that wall face had been —
+the wall had been copper-bearing rock painted as plain stone. Mining exposed those faces;
+they should have told the truth.
+
+**Mechanism:** pit walls are overview side bands, and `_overview_side_color_at()` is
+strata-only BY DESIGN (vein concealment for natural cliffs, `24_world_rendering.md`). It
+cannot distinguish a mined-open face from a virgin cliff face. This was recorded as the
+deliberate interim wrinkle in Defect 1's fix; these screenshots show it is not acceptable —
+discovery feedback is the point of digging. (The defect-1 z-fight speckles were this truth
+leaking through the old duplicate shell face: the duplicate was removed, the lying band kept.)
+
+**Fix rule — exposure-source-aware wall colouring (symmetric twin of the Defect-3 floor
+rule):** per wall-block face in the side walk, if the adjacent air block in the FACING
+neighbour column at that Y is in the MINED set → exact generated colour (mining reveals what
+it exposes); otherwise → strata (natural, slice, and designation exposure all stay
+concealed). Side walk gains the facing-neighbour column; cost is one dict lookup per Y only
+while mined blocks exist.
+
+**Unified principle (write into doc 24 when this lands):** *a face renders exact colours iff
+the air it faces was created by mining; every other face renders authored data* — floors
+(Defect 3), walls (this defect), and the cavity shell all derive from this one rule.
+
+#### <span style="color:#3fb950;">Phase SO-2b RESULTS — 2026-06-05, verified in-engine by Alen — SO-2b BANKED</span>
+
+**Shipped (WorldRenderer + MiningDesignationController):**
+
+- Designation/mined set split: `_mined_blocks` ⊂ `_visual_cut_blocks`, `_ovt_mined` worker
+  snapshot, `add_mined_blocks()` API fed by the DEV instant-mine tool.
+- Side-band punching for ALL cut blocks (Option A — plans and holes both open wall faces;
+  run-splitting in `_add_overview_side_column`).
+- Cavity shell (`_rebuild_cavity_shell`): enclosed-only cavity interiors, per-source
+  colouring, slice-clipped, season-aware; single node, full rebuild (scale path: per-chunk
+  nodes with X0's 3×3×3 dirty rule when real mining lands).
+- Source-aware cut floors (exact only when the whole cut run above was mined).
+- Exposure-aware walls (exact only where the facing air block was mined open) — the side
+  walk gained its facing-neighbour column; strata fast path intact for clean worlds.
+
+**Defect arc, all closed same day:** 1 (z-fighting → enclosed-only shell), 2 (lateral plan
+deduction → Option A), 3/4 (designation floor reveal / prospecting exploit → source-aware
+floors), 5 (mined walls lying → exposure-aware walls). Each entry above carries its own
+diagnosis and fix rule; the **unified exposure principle** is now normative in
+`24_world_rendering.md` §Slice concealment rule.
+
+**Verified in-engine:** lateral tunnels render with mouth, interior, floor/ceiling; trench
+walls clean (no z-fighting); designations conceal everywhere (floor strata, ghost interior,
+no vein reveal — prospecting exploit dead); mined floors and walls tell the truth (jade/
+cave-soil visible on honestly-exposed faces); natural cliffs unchanged.
+
+**Known limits, recorded:** lateral cavities in the overview render via punch+shell — the
+representation is still per-column-top, so fully roofed interiors are visible only where
+punched mouths or the slice expose them (X-Ray remains the interior *vision* answer);
+exposure state is session-only until the save system; shell is one full-rebuild node
+(fine at DEV scale).
+
+### <span style="color:#3fb950;">Phase SO-2c — Slice-cut face dimming (planned 2026-06-05, Stonehearth-verified)</span>
+
+**Feature request (Alen, from Stonehearth screenshot):** sliced surfaces should read clearly
+darker than real surfaces, so the cut plane is never mistaken for walkable ground.
+
+**Stonehearth source findings (read from `P:\stonehearth` 2026-06-05):** their darkening is
+NOT a slice feature — it is the fog-of-war/visibility system, which the slice merely exposes:
+
+- A global `FogOfWarRT` is written from the visibility regions each frame: the VISIBLE
+  region via `data/horde/materials/fow_visible.material.json` (flat-colour shader), the
+  EXPLORED region via `fow_explored.material.json`, over a dark base — the RT's alpha
+  encodes seen-state (visible 1.0, explored mid, unexplored near-black).
+- Every terrain lighting shader multiplies it in:
+  `lightColor *= texture2D(fowRT, projFowPos.xy).a` (`dir_lighting_f.shader` family), bound
+  in `forward.pipeline.xml`'s Light stage. The screenshot's brightness follows hearthling
+  SIGHT RADIUS, not the slice plane.
+- Precedent factor: the `*_darkened` shader variants (building vision mode) use a flat
+  `albedo = color.rgb * 0.5` — Stonehearth's number for de-emphasized geometry is 50%.
+
+**Deepdraft plan (pre-FOW interim, honest about it):** the full equivalent is visibility
+regions + fog of war (doc 06, Later Phase 1 — needs sight sources, i.e. dwarves). Until
+then, a cheap presentation rule delivers the readability win:
+
+1. Dim SLICE-CUT strata floors by a fixed luminance factor (start at Stonehearth's 0.5;
+   tune in-engine). Applied at colour-bake time in `_overview_visible_surface_after_cut`'s
+   slice-cut path — zero per-frame cost, re-baked by the existing slice invalidation.
+2. <span style="color:#d29922;">Tune-in-engine decisions: do designation ghost floors and
+   the cavity shell's strata faces share the dim (consistent "not really open" language),
+   or stay full-bright? Do slice-clamped wall bands above the cut dim too? Decide by look.</span>
+3. Luminance-only — block identity untouched (Hard Rule 9; same argument as Phase 1's
+   cut-face brightening note, inverted).
+4. **Forward note:** when FOW lands (post-dwarves), this constant folds into the visibility
+   multiply exactly as Stonehearth does it (their slice has no dimming of its own), and the
+   interim rule is deleted.
+
+Acceptance: a slice-cut plateau is instantly distinguishable from natural ground at any
+zoom; toggling slice off restores full brightness; no identity/colour-hue change, only
+luminance; no measurable cost on the slice-step budget.
+
+#### <span style="color:#3fb950;">Phase SO-2c RESULTS — 2026-06-05, verified in-engine by Alen — SO-2c BANKED</span>
+
+Implemented same day: `SLICE_CUT_DIM = 0.5` applied at colour-bake time in the overview tile
+build (the `slice_cut` flag rides out of `_overview_visible_surface_after_cut`); greedy
+top-merge gained a sliced-flag guard so dimmed cut plates never fuse with natural plates of
+the same block at the same height. **Pass at 0.5** — cut planes read as "inside the
+mountain" at any zoom; slice off restores full brightness; zero budget impact (bake-time
+multiply, re-baked by the existing slice invalidation).
+
+Defaults shipped for the open look-decisions: designation ghost floors and cavity-shell
+strata faces stay FULL-BRIGHT (only the plane's own cut floors dim). Revisit only if they
+read wrong in play. Forward note stands: this constant folds into the fog-of-war multiply
+when visibility regions land (doc 06), exactly as Stonehearth does it.
 4. **Measure (SO-3).** Phase-0-style: slice-step tile rebuild counts + worst frame, full-map
    plane drag, verify lowland tiles stay untouched. Known risk: a deep plane step touches every
    mountain tile (~300); if the threaded 8-tile/frame budget janks, add the flat-plate fast path
@@ -745,6 +996,8 @@ Non-negotiables, distilled from ref §2.8 / §3.5 and our own doc-04/07 lessons:
 | 1. Mesher slice clip + dirty-row math | `ChunkMesher.gd`, `WorldRenderer.gd` | 0 |
 | 2. Slice tool + palette + hotkeys + seeding | `DockUI.gd`, new `scripts/systems/SliceController.gd` (or fold into renderer), `data/ui/dock.json`, `project.godot` `[input]` <span style="color:#d29922;">(ownership note)</span> | 1 |
 | 2b. Mining grid on the cut floor (effective-top math) | `MiningDesignationController.gd` | 2 |
+| SO-2b. Mined-cavity rendering (set split, side punch, shell) | `WorldRenderer.gd`, `MiningDesignationController.gd` | DEV mine tool (doc 03) |
+| SO-2c. Slice-cut face dimming (luminance, pre-FOW interim) | `WorldRenderer.gd` | SO-2b |
 | 3. VisibleVolume contract + mining overlay clipping | `WorldRenderer.gd`, `MiningDesignationController.gd` | 1 |
 | 4. Overview interplay polish | `WorldRenderer.gd` | 2 |
 | X0. Interior tracker | future mining-execution system | mining execution |

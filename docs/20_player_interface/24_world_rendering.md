@@ -142,6 +142,15 @@ This is a deliberate departure from "paint every block its own colour" for *inte
 exposed by the plane: interior identity is undiscovered information, and the slice is a camera,
 not a prospecting tool.
 
+> **Unified exposure principle (2026-06-05, shipped with Phase SO-2b):** *a face renders
+> exact block colours iff the air it faces was created by MINING; every other face renders
+> authored data.* Concretely: cut floors are exact only when the entire cut run above was
+> mined (designation floors stay strata — a plan is not a prospecting tool); wall side-bands
+> are exact only where the facing air block was mined open (natural cliffs, slice cuts, and
+> designation ghosts stay strata); the cavity-shell mesh colours per cavity-block source
+> (mined → exact, designated → strata). Derivation and defect history:
+> `00_dev_roadmap/11_slice_xray_plan.md` §Phase SO-2b, Defects 1–5.
+
 ### Rejected modes
 
 Never use these as the main validation view: a top-only painted heightmap; fake grass/dirt/rock

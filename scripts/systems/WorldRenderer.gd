@@ -92,6 +92,13 @@ const WORLD_SIZE_Z: int = 1024
 const REGION_SIZE: int = 4
 const OVERVIEW_STEP: int = 1
 const OVERVIEW_TILE_SIZE: int = 32
+## Luminance factor for SLICE-CUT strata floors (doc 11 Phase SO-2c): cut planes
+## read as "inside the mountain", never as walkable ground. Stonehearth's number
+## for de-emphasized geometry (its darkened shader family) is 0.5; theirs comes
+## from fog-of-war — when Deepdraft grows visibility regions (doc 06), this
+## constant folds into that multiply and dies. Luminance-only: identity untouched
+## (Hard Rule 9). Tune in-engine.
+const SLICE_CUT_DIM: float = 0.5
 ## Vertical sampling stride for cliff-side coloring. The side walk samples one
 ## block in this many to find color bands; at navigation zoom per-block vertical
 ## banding is not resolvable, so >1 cuts side-face generation calls proportionally.
@@ -110,6 +117,17 @@ var _overview_tile_stats: Dictionary = {}
 var _dirty_overview_tiles: Array[Vector2i] = []
 var _dirty_overview_tile_set: Dictionary = {}
 var _visual_cut_blocks: Dictionary = {}
+## MINED blocks (doc 11 Phase SO-2b) — a strict subset of _visual_cut_blocks.
+## Under Option A (defect 2, 2026-06-05) designations and mined holes BOTH punch
+## side bands and render in the cavity shell; this set only selects the shell's
+## colour source — mined → exact generated id (mining reveals), designated →
+## authored strata (a plan reveals nothing). Producer today: the DEV
+## instant-mine tool; later: real mining execution.
+var _mined_blocks: Dictionary = {}
+# Immutable mined-set snapshot for the threaded overview build (same pattern as
+# _ovt_cut): the cut-floor colour rule (defects 3/4) reads it on worker threads.
+var _ovt_mined: Dictionary = {}
+var _cavity_shell_node: MeshInstance3D = null
 ## Chunk coords (Vector3i) → count of visual-cut blocks inside. Lets the
 ## buried-skip exempt chunks that mining has carved into (their cavity faces
 ## must mesh even though the chunk data itself is all-solid).
@@ -242,6 +260,7 @@ func _process(_delta: float) -> void:
 	if _visible_volume_dirty:
 		_visible_volume_dirty = false
 		visible_volume_changed.emit()
+		_rebuild_cavity_shell()   # re-clip cavity faces against the new plane (SO-2b)
 
 	if _block_face_overview_active():
 		# Stamp unconditionally — timing can begin between frames, and a zero
@@ -663,6 +682,195 @@ func remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	_invalidate_visual_cut_blocks(changed)
 
 
+# ── Mined cavities (doc 11 Phase SO-2b) ───────────────────────────────────────
+
+## Marks blocks as MINED — real holes, not designation plans. Mined blocks stay
+## in (or join) the visual-cut set, so the top-deduction path is unchanged; in
+## addition their wall side-bands punch open (overview tile re-mesh via the
+## standard cut invalidation) and the cavity shell grows. There is no removal
+## path — mining is permanent until real execution defines restoration.
+func add_mined_blocks(blocks: Array[Vector3i]) -> void:
+	var changed: Array[Vector3i] = []
+	for block: Vector3i in blocks:
+		if _mined_blocks.has(block):
+			continue
+		_mined_blocks[block] = true
+		changed.append(block)
+		if not _visual_cut_blocks.has(block):
+			_visual_cut_blocks[block] = true
+			_track_cut_chunk(block, 1)
+	if changed.is_empty():
+		return
+	_invalidate_visual_cut_blocks(changed)   # re-punches tiles + rebuilds the shell
+
+
+const _SHELL_DIRS: Array[Vector3i] = [
+	Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
+	Vector3i(0, 1, 0), Vector3i(0, -1, 0),
+	Vector3i(0, 0, 1), Vector3i(0, 0, -1),
+]
+
+
+## Rebuilds the cavity-shell mesh (doc 11 SO-2b + defect fixes 2026-06-05):
+## for every ENCLOSED cavity block — designated or mined — render the faces of
+## adjacent SOLID blocks (floor/ceiling/back walls).
+##
+## Defect-1 rule: a cavity block ABOVE its column's cut-aware effective top is
+## open-from-above — the overview already expresses it (lowered top plate +
+## side bands) and drawing it again z-fights. The shell renders only blocks
+## with solid rock above (true interiors).
+##
+## Defect-2 / Option A rule: colour per cavity-block source — MINED → exact
+## generated id (mining legitimately reveals, Hard Rule 11); DESIGNATED →
+## authored strata id (a plan reveals nothing; reads as a ghost preview under
+## the yellow zone overlay).
+##
+## Skips: cavity-continuation neighbours, faces above the slice plane, world
+## edges, and naturally-void neighbours (cave adjacency — discovery rendering
+## is a future decision). Full rebuild — trivial at DEV scale; per-chunk nodes
+## are the scale path when real mining lands (X0's 3×3×3 dirty rule).
+func _rebuild_cavity_shell() -> void:
+	if _cavity_shell_node == null:
+		_cavity_shell_node = MeshInstance3D.new()
+		_cavity_shell_node.name = "CavityShell"
+		_cavity_shell_node.material_override = _material
+		_cavity_shell_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_cavity_shell_node)
+
+	if _visual_cut_blocks.is_empty():
+		_cavity_shell_node.mesh = null
+		return
+
+	var verts: PackedVector3Array = []
+	var norms: PackedVector3Array = []
+	var cols: PackedColorArray = []
+	var indices: PackedInt32Array = []
+	var season: String = WorldClock.season
+	var col_tops: Dictionary = {}   # per-rebuild cache: Vector2i -> effective top
+
+	for block: Vector3i in _visual_cut_blocks.keys():
+		if block.y > slice_y:
+			continue   # cavity above the plane — hidden with everything else
+		if block.y > _cavity_column_top(block.x, block.z, col_tops):
+			continue   # open-from-above — the overview's job (defect 1)
+		var mined := _mined_blocks.has(block)
+		for dir: Vector3i in _SHELL_DIRS:
+			var n: Vector3i = block + dir
+			if _visual_cut_blocks.has(n):
+				continue   # open continuation of the cavity (plan or hole)
+			if n.y > slice_y:
+				continue   # never draw above the plane
+			if n.x < 0 or n.x >= WORLD_SIZE_X \
+					or n.y < 0 or n.y >= WORLD_SIZE_Y \
+					or n.z < 0 or n.z >= WORLD_SIZE_Z:
+				continue   # world edge
+			var exact_id := WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
+			if BlockRegistry.is_transparent(exact_id):
+				continue   # natural air/cave — nothing to show (yet)
+			var display_id := exact_id if mined \
+					else WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
+			_add_shell_face(n, dir, BlockRegistry.get_color(display_id, season), verts, norms, cols, indices)
+
+	if verts.is_empty():
+		_cavity_shell_node.mesh = null
+		return
+
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = norms
+	arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	_cavity_shell_node.mesh = mesh
+
+
+## Cut-aware effective top of a column (cached per shell rebuild): walk down
+## from min(visible surface, slice plane) through cut blocks — the first solid
+## block is the floor of the open pocket. Cavity blocks ABOVE this value are
+## open-from-above (overview territory); blocks BELOW it are enclosed and get
+## shell faces. Returns -1 while the generator maps are not ready (everything
+## then counts as open — there can be no cavities before maps exist).
+func _cavity_column_top(wx: int, wz: int, col_tops: Dictionary) -> int:
+	var key := Vector2i(wx, wz)
+	if col_tops.has(key):
+		return col_tops[key]
+	var wy := int(WorldGenerator.get_visible_surface_y(wx, wz))
+	if wy < 0:
+		col_tops[key] = -1
+		return -1
+	wy = mini(wy, slice_y)
+	while wy >= 0 and _visual_cut_blocks.has(Vector3i(wx, wy, wz)):
+		wy -= 1
+	col_tops[key] = wy
+	return wy
+
+
+## Emits solid block n's face pointing back toward the cavity (normal = -dir,
+## where dir is cavity→n). Corner tables and reversed winding match
+## ChunkMesher._add_quad so the face renders from inside the cavity.
+func _add_shell_face(
+		n: Vector3i,
+		dir: Vector3i,
+		color: Color,
+		verts: PackedVector3Array,
+		norms: PackedVector3Array,
+		cols: PackedColorArray,
+		indices: PackedInt32Array) -> void:
+
+	var ox := float(n.x)
+	var oy := float(n.y)
+	var oz := float(n.z)
+	var v0: Vector3
+	var v1: Vector3
+	var v2: Vector3
+	var v3: Vector3
+
+	# dir points cavity→n, so the face we draw is n's face with normal -dir.
+	if dir == Vector3i(-1, 0, 0):      # n is -X of cavity → n's +X face
+		v0 = Vector3(ox + 1, oy, oz)
+		v1 = Vector3(ox + 1, oy + 1, oz)
+		v2 = Vector3(ox + 1, oy + 1, oz + 1)
+		v3 = Vector3(ox + 1, oy, oz + 1)
+	elif dir == Vector3i(1, 0, 0):     # n's -X face
+		v0 = Vector3(ox, oy, oz + 1)
+		v1 = Vector3(ox, oy + 1, oz + 1)
+		v2 = Vector3(ox, oy + 1, oz)
+		v3 = Vector3(ox, oy, oz)
+	elif dir == Vector3i(0, -1, 0):    # n below cavity → n's +Y face (the floor)
+		v0 = Vector3(ox, oy + 1, oz)
+		v1 = Vector3(ox, oy + 1, oz + 1)
+		v2 = Vector3(ox + 1, oy + 1, oz + 1)
+		v3 = Vector3(ox + 1, oy + 1, oz)
+	elif dir == Vector3i(0, 1, 0):     # n above cavity → n's -Y face (the ceiling)
+		v0 = Vector3(ox + 1, oy, oz)
+		v1 = Vector3(ox + 1, oy, oz + 1)
+		v2 = Vector3(ox, oy, oz + 1)
+		v3 = Vector3(ox, oy, oz)
+	elif dir == Vector3i(0, 0, -1):    # n's +Z face
+		v0 = Vector3(ox + 1, oy, oz + 1)
+		v1 = Vector3(ox + 1, oy + 1, oz + 1)
+		v2 = Vector3(ox, oy + 1, oz + 1)
+		v3 = Vector3(ox, oy, oz + 1)
+	else:                              # n's -Z face
+		v0 = Vector3(ox, oy, oz)
+		v1 = Vector3(ox, oy + 1, oz)
+		v2 = Vector3(ox + 1, oy + 1, oz)
+		v3 = Vector3(ox + 1, oy, oz)
+
+	var normal := Vector3(-dir.x, -dir.y, -dir.z)
+	var base := verts.size()
+	verts.push_back(v0); verts.push_back(v1)
+	verts.push_back(v2); verts.push_back(v3)
+	for i in range(4):
+		norms.push_back(normal)
+		cols.push_back(color)
+	# Reversed winding (see ChunkMesher._add_quad).
+	indices.push_back(base); indices.push_back(base + 2); indices.push_back(base + 1)
+	indices.push_back(base); indices.push_back(base + 3); indices.push_back(base + 2)
+
+
 func _track_cut_chunk(block: Vector3i, delta: int) -> void:
 	var key := Vector3i(
 		floori(float(block.x) / float(CHUNK_SIZE)),
@@ -678,6 +886,7 @@ func _track_cut_chunk(block: Vector3i, delta: int) -> void:
 func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	if blocks.is_empty():
 		return
+	_rebuild_cavity_shell()   # designations and mined holes both shape the shell (SO-2b A)
 	if _block_face_overview_active():
 		_enqueue_overview_tiles_for_blocks(blocks)
 		return
@@ -685,6 +894,7 @@ func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 
 
 func _invalidate_visual_cut_meshes_global() -> void:
+	_rebuild_cavity_shell()
 	_invalidate_overview_global()
 	if _block_face_overview_active():
 		return
@@ -1073,6 +1283,8 @@ func _add_surface_rect(
 func _add_overview_side(
 		sample_x: int,
 		sample_z: int,
+		neighbor_x: int,
+		neighbor_z: int,
 		a: Vector3,
 		b: Vector3,
 		bottom_y: float,
@@ -1094,6 +1306,8 @@ func _add_overview_side(
 	_add_overview_side_column(
 		sample_x,
 		sample_z,
+		neighbor_x,
+		neighbor_z,
 		a,
 		b,
 		bottom_y,
@@ -1109,6 +1323,8 @@ func _add_overview_side(
 func _add_overview_side_column(
 		sample_x: int,
 		sample_z: int,
+		neighbor_x: int,
+		neighbor_z: int,
 		a: Vector3,
 		b: Vector3,
 		bottom_y: float,
@@ -1122,19 +1338,43 @@ func _add_overview_side_column(
 
 	var y0 := clampi(floori(bottom_y), 0, WORLD_SIZE_Y - 1)
 	var y1 := clampi(ceili(top_y), 1, WORLD_SIZE_Y)
-	var run_bottom := float(y0)
-	var run_color := _overview_side_color_at(sample_x, y0, sample_z, top_y, top_color)
+	var has_cuts := not _ovt_cut.is_empty()
+	var has_mined := not _ovt_mined.is_empty()
+	var run_bottom := -1.0
+	var run_color := Color()
 
-	var y := y0 + 1
-	while y < y1:
-		var color := _overview_side_color_at(sample_x, y, sample_z, top_y, top_color)
-		if color != run_color:
+	for y in range(y0, y1):
+		# Cut wall blocks punch holes (doc 11 SO-2b, Option A 2026-06-05): the
+		# face at height y belongs to block (sample_x, y, sample_z) — if it is
+		# designated OR mined, end the current run and skip it. The cavity shell
+		# fills the interior behind (strata-coloured for plans, exact for holes).
+		if has_cuts and _ovt_cut.has(Vector3i(sample_x, y, sample_z)):
+			if run_bottom >= 0.0:
+				_add_overview_side_band(a, b, run_bottom, float(y), run_color, normal, verts, norms, cols, indices)
+				run_bottom = -1.0
+			continue
+		# Per-block — every wall block face shows its own block's colour (no sampling step).
+		# Defect 5 (2026-06-05) — exposure-source-aware colour: a face whose
+		# facing air block was MINED open tells the truth (exact generated id,
+		# veins included — mining reveals what it exposes); every other face
+		# (natural cliff, slice cut, designation) stays strata-concealed.
+		var color: Color
+		if has_mined and _ovt_mined.has(Vector3i(neighbor_x, y, neighbor_z)):
+			var exact_id := WorldGenerator.get_generated_block_id(sample_x, y, sample_z)
+			color = BlockRegistry.get_color(exact_id, WorldClock.season) \
+					if not BlockRegistry.is_transparent(exact_id) else _overview_rock_color
+		else:
+			color = _overview_side_color_at(sample_x, y, sample_z, top_y, top_color)
+		if run_bottom < 0.0:
+			run_bottom = float(y)
+			run_color = color
+		elif color != run_color:
 			_add_overview_side_band(a, b, run_bottom, float(y), run_color, normal, verts, norms, cols, indices)
 			run_bottom = float(y)
 			run_color = color
-		y += 1   # per-block — every wall block face shows its own block's colour (no sampling step)
 
-	_add_overview_side_band(a, b, run_bottom, top_y, run_color, normal, verts, norms, cols, indices)
+	if run_bottom >= 0.0:
+		_add_overview_side_band(a, b, run_bottom, top_y, run_color, normal, verts, norms, cols, indices)
 
 
 ## Per-block honest side colour (Hard Rule 9): every wall block face shows that block's OWN
@@ -1295,6 +1535,8 @@ func _on_season_changed(_new_season: String) -> void:
 		_enqueue_region(rkey)
 	for ckey: Vector3i in _chunk_nodes.keys():
 		_enqueue_chunk(ckey)
+	# Cavity shell bakes seasonal colours too (SO-2b).
+	_rebuild_cavity_shell()
 
 
 ## Slice-change invalidation for the far field (doc 11 Phase SO): only tiles
@@ -1523,6 +1765,7 @@ func _drain_overview_tile_queue() -> void:
 	# runs: side rock color, cut-block snapshot, and season.
 	_cache_overview_side_colors(WorldClock.season)
 	_ovt_cut = _visual_cut_blocks.duplicate()
+	_ovt_mined = _mined_blocks.duplicate()
 	_ovt_season = WorldClock.season
 
 	# Pull this frame's batch off the dirty queue.
@@ -1603,6 +1846,11 @@ func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictio
 					validation_mismatches += 1
 
 			var color := BlockRegistry.get_color(block_id, season)
+			# SO-2c: slice-cut strata floors dim to read as "inside the
+			# mountain", never walkable ground. Luminance-only (Hard Rule 9).
+			var sliced: bool = surface.get("slice_cut", false)
+			if sliced:
+				color = Color(color.r * SLICE_CUT_DIM, color.g * SLICE_CUT_DIM, color.b * SLICE_CUT_DIM, color.a)
 			var key := Vector2i(
 				int(floor(float(wx - x0) / float(step))),
 				int(floor(float(wz - z0) / float(step))))
@@ -1612,6 +1860,7 @@ func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictio
 				"wy": wy,
 				"block_id": block_id,
 				"color": color,
+				"sliced": sliced,
 			}
 			if show_overview_sides:
 				if prof:
@@ -1777,7 +2026,12 @@ func _add_greedy_overview_tops(
 func _overview_top_cells_merge(a: Dictionary, b: Dictionary) -> bool:
 	if a.is_empty() or b.is_empty():
 		return false
-	return int(a.get("wy", -999999)) == int(b.get("wy", -999998)) and int(a.get("block_id", -1)) == int(b.get("block_id", -2))
+	# SO-2c: a dimmed slice-cut plate must never merge with an undimmed natural
+	# plate of the same block at the same height — the merged rect would paint
+	# one brightness over both.
+	return int(a.get("wy", -999999)) == int(b.get("wy", -999998)) \
+		and int(a.get("block_id", -1)) == int(b.get("block_id", -2)) \
+		and bool(a.get("sliced", false)) == bool(b.get("sliced", false))
 
 
 func _add_overview_sides(
@@ -1802,6 +2056,8 @@ func _add_overview_sides(
 		_add_overview_side(
 			wx + step - 1,
 			wz,
+			wx + step,
+			wz,
 			Vector3(float(wx) + size, top_y, float(wz) + size),
 			Vector3(float(wx) + size, top_y, float(wz)),
 			east_y,
@@ -1814,6 +2070,8 @@ func _add_overview_sides(
 	else:
 		_add_overview_side(
 			wx + step - 1,
+			wz,
+			wx + step,
 			wz,
 			Vector3(float(wx) + size, top_y, float(wz) + size),
 			Vector3(float(wx) + size, top_y, float(wz)),
@@ -1828,6 +2086,8 @@ func _add_overview_sides(
 		_add_overview_side(
 			wx,
 			wz + step - 1,
+			wx,
+			wz + step,
 			Vector3(float(wx), top_y, float(wz) + size),
 			Vector3(float(wx) + size, top_y, float(wz) + size),
 			south_y,
@@ -1841,6 +2101,8 @@ func _add_overview_sides(
 		_add_overview_side(
 			wx,
 			wz + step - 1,
+			wx,
+			wz + step,
 			Vector3(float(wx), top_y, float(wz) + size),
 			Vector3(float(wx) + size, top_y, float(wz) + size),
 			edge_y,
@@ -1853,6 +2115,8 @@ func _add_overview_sides(
 	if wx - step >= 0:
 		_add_overview_side(
 			wx,
+			wz,
+			wx - step,
 			wz,
 			Vector3(float(wx), top_y, float(wz)),
 			Vector3(float(wx), top_y, float(wz) + size),
@@ -1867,6 +2131,8 @@ func _add_overview_sides(
 		_add_overview_side(
 			wx,
 			wz,
+			wx - step,
+			wz,
 			Vector3(float(wx), top_y, float(wz)),
 			Vector3(float(wx), top_y, float(wz) + size),
 			edge_y,
@@ -1880,6 +2146,8 @@ func _add_overview_sides(
 		_add_overview_side(
 			wx,
 			wz,
+			wx,
+			wz - step,
 			Vector3(float(wx) + size, top_y, float(wz)),
 			Vector3(float(wx), top_y, float(wz)),
 			north_y,
@@ -1893,6 +2161,8 @@ func _add_overview_sides(
 		_add_overview_side(
 			wx,
 			wz,
+			wx,
+			wz - step,
 			Vector3(float(wx) + size, top_y, float(wz)),
 			Vector3(float(wx), top_y, float(wz)),
 			edge_y,
@@ -1939,19 +2209,28 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	if wy > slice_y:
 		wy = slice_y
 		slice_cut = true
+	# Defects 3/4 fix (2026-06-05): the floor's colour source follows the SOURCE
+	# of the removed blocks above. A walk that crosses ANY designated-only block
+	# is a plan's floor — strata (plans reveal nothing; designation must not be
+	# a free prospecting scanner). Exact colours are earned only when the entire
+	# run above was MINED (mining reveals what it exposes). Conservative on
+	# mixed runs until they are fully mined; DEV-mining a zone flips its floor
+	# strata → exact at that moment, which is the reveal working as intended.
+	var crossed_plan := false
 	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
+		if not _ovt_mined.has(Vector3i(wx, wy, wz)):
+			crossed_plan = true
 		wy -= 1
-		slice_cut = false   # mining lowered the top below the plane — exact lookup
+		slice_cut = false   # the cut run, not the plane, owns this floor now
 	if wy < 0:
 		return {}
 	var block_id: int
-	if slice_cut:
-		# STRATA-ONLY cut floor (design rule, Alen 2026-06-04): slicing must
-		# NEVER reveal undiscovered resources — cut floors show the authored
-		# rock bands only, everywhere, at every zoom. Veins/gems/caves become
-		# visible exclusively through mining. Bonus: uniform plates greedy-merge
-		# into a few large rects (the vein speckles were the slice sweep's
-		# dominant cost — fragmented tops + huge meshes).
+	if slice_cut or crossed_plan:
+		# STRATA-ONLY cut floor (design rule, Alen 2026-06-04; extended to
+		# designation floors 2026-06-05): slicing and PLANNING must never reveal
+		# undiscovered resources — these floors show the authored rock bands
+		# only. Veins/gems/caves become visible exclusively through mining.
+		# Bonus: uniform plates greedy-merge into a few large rects.
 		block_id = WorldGenerator.get_overview_strata_block_id(wx, wy, wz)
 	else:
 		block_id = WorldGenerator.get_generated_block_id(wx, wy, wz)
@@ -1960,6 +2239,7 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	return {
 		"wy": wy,
 		"block_id": block_id,
+		"slice_cut": slice_cut,   # SO-2c: cut floors dim at colour-bake time
 	}
 
 

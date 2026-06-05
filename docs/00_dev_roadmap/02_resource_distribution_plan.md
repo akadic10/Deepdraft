@@ -45,14 +45,14 @@ This is still useful explanatory context for why the resource bands exist.
 
 ### <span style="color:#d29922;">REVIEW / MOVE - Metals</span>
 
-| Resource | Band (Y) | Threshold | Role |
-|---|---|---|---|
-| Coal | 12-90 | 0.72 | Smelting fuel; broad availability |
-| Tin | 55-95 | 0.66 | Upper mountain; bronze pair with copper |
-| Copper | 45-88 | 0.66 | Upper-mid mountain; early metal |
-| Iron | 20-72 | 0.70 | Economic backbone |
-| Silver | 16-52 | 0.80 | Precious, mid-deep |
-| Gold | 8-36 | 0.84 | Precious, deep |
+| Resource | Band (Y) | Threshold | Role                                    |     |
+| -------- | -------- | --------- | --------------------------------------- | --- |
+| Coal     | 12-90    | 0.72      | Smelting fuel; broad availability       |     |
+| Tin      | 55-95    | 0.66      | Upper mountain; bronze pair with copper |     |
+| Copper   | 45-88    | 0.66      | Upper-mid mountain; early metal         |     |
+| Iron     | 20-72    | 0.70      | Economic backbone                       |     |
+| Silver   | 16-52    | 0.80      | Precious, mid-deep                      |     |
+| Gold     | 8-36     | 0.84      | Precious, deep                          |     |
 
 ### <span style="color:#d29922;">REVIEW / MOVE - Gems</span>
 
