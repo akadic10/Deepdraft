@@ -377,8 +377,8 @@ func _rebuild_terrain_grid(force: bool = false) -> void:
 
 	for x in range(x0, x1 + 1):
 		for z in range(z0, z1 + 1):
-			var top_y := int(WorldGenerator.get_visible_surface_y(x, z))
-			if top_y < 0 or top_y > slice_y:
+			var top_y := _effective_grid_top(x, z, slice_y)
+			if top_y < 0:
 				continue
 			_append_top_face_grid(x, top_y, z, color, verts, cols)
 			_append_visible_side_grid(x, top_y, z, Vector2i(-1, 0), slice_y, color, verts, cols)
@@ -406,6 +406,24 @@ func _terrain_grid_radius() -> int:
 	return clampi(ceili(zoom * 0.9), TERRAIN_GRID_MIN_RADIUS, TERRAIN_GRID_MAX_RADIUS)
 
 
+## Effective visible top for the mining grid (doc 11 Phase 2b): the natural
+## surface clamped to the slice plane, then stepped down past designated cut
+## blocks — the same visible-surface rule the overview applies in
+## WorldRenderer._overview_visible_surface_after_cut(). _zone_by_block is the
+## controller's own designation set, which the renderer's _visual_cut_blocks
+## mirrors, so no renderer query is needed. Returns -1 when no visible block
+## remains in the column (out of bounds / maps not ready / fully cut away —
+## the cut floor cannot reach bedrock because zones never include y <= 3).
+func _effective_grid_top(x: int, z: int, slice_y: int) -> int:
+	var top_y := int(WorldGenerator.get_visible_surface_y(x, z))
+	if top_y < 0:
+		return -1
+	top_y = mini(top_y, slice_y)
+	while top_y >= 0 and _zone_by_block.has(Vector3i(x, top_y, z)):
+		top_y -= 1
+	return top_y
+
+
 func _append_visible_side_grid(
 		x: int,
 		top_y: int,
@@ -420,7 +438,10 @@ func _append_visible_side_grid(
 	var nz := z + dir.y
 	var neighbor_top := -1
 	if nx >= 0 and nx < WORLD_SIZE_X and nz >= 0 and nz < WORLD_SIZE_Z:
-		neighbor_top = int(WorldGenerator.get_visible_surface_y(nx, nz))
+		# Effective (slice- and cut-aware) neighbour top, so cut walls grid from
+		# the cut lip down and flat plane-cut floors emit no side faces between
+		# equal tops (doc 11 Phase 2b).
+		neighbor_top = _effective_grid_top(nx, nz, slice_y)
 	if neighbor_top >= top_y:
 		return
 
@@ -581,6 +602,8 @@ func _confirm_preview() -> void:
 		_zone_by_block[block] = zone_id
 	_rebuild_zones_mesh()
 	_add_visual_cut_blocks(blocks)
+	# New cut blocks change the effective grid tops (Phase 2b) — re-grid now.
+	_rebuild_terrain_grid(true)
 
 
 func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
@@ -1194,6 +1217,8 @@ func _remove_zone(zone_id: int) -> void:
 	_zones.erase(zone_id)
 	_rebuild_zones_mesh()
 	_remove_visual_cut_blocks(removed_blocks)
+	if _state != ToolState.INACTIVE:
+		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
 
 
 func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
@@ -1222,6 +1247,8 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 		_close_zone_window()
 	_rebuild_zones_mesh()
 	_remove_visual_cut_blocks(removed_blocks)
+	if _state != ToolState.INACTIVE:
+		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
 
 
 func _in_bounds(pos: Vector3i) -> bool:

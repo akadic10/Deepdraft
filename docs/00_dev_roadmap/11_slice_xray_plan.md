@@ -305,6 +305,40 @@ from the first dig-down designation (S3's second path) waits for mining executio
 plane → Phase 3 decision note (clip, Stonehearth's choice); missing alignment grid on
 plane-cut floors → Phase 2b below.
 
+#### <span style="color:#d29922;">Open performance note — slice-step stutter (observed 2026-06-05, deferred)</span>
+
+**Observation (Alen, editor/debug, ±1 steps at Y64–65 over the mountain):** a minor but
+feelable hitch per step — 283 tiles, ~1.5 s sweep, **worst frame 58–64 ms** — present with
+and without mining zones, mining tool active or not. Slowest tile is always the world corner
+`(0, 0)` at 34–39 ms, with `sides_us` ≈ 27–30k of it (deep world-edge walls).
+
+**Diagnosis:** this is the accepted SO-1 FINAL cost, now felt interactively. Two compounding
+facts: (1) the threaded tile batch **blocks the main thread** until the whole batch
+completes, so the worst frame ≈ the slowest single tile, not the batch average; (2) side
+faces are **50% of the sweep's total CPU** (profile: sides 50%, surface_loop 44%, merge 6%,
+mesh ~0%) — the exact hotspot doc 07 named and deferred ("side-face greedy merge"). Against
+the §5 target (no frame > 16 ms per step) we sit at 64 ms debug ≈ **~28 ms release** —
+above target.
+
+**Secondary, stacking cost:** with the mining tool active, `_rebuild_terrain_grid` runs
+synchronously on the same frame as a slice step (unthrottled full-radius column loop,
+main-thread; predates Phase 2b — 2b only added cheap per-column lookups). SliceTiming does
+not measure it.
+
+**Levers, in recommended order (none taken yet — measure in a release build first):**
+
+1. **Side-face greedy merge** (doc 07's named lever) — merging coplanar same-colour cliff
+   quads attacks the 50% directly and shrinks the corner tile's 39 ms.
+2. **Non-blocking batch collection** — dispatch the group task, poll
+   `is_group_task_completed()` and assign finished meshes next frame instead of
+   `wait_for_group_task_completion()`. Worst frame becomes assignment-only; sweep latency
+   unchanged. Removes the slowest-tile bound entirely.
+3. **Mining-grid debounce + threading** — defer the grid rebuild until the plane settles
+   (~0.15 s), and/or build its line geometry on a worker (all reads are thread-safe).
+   Fixes the stacking cost only.
+4. **World-edge presentation slab** (Second Milestone, doc 24) — eventually removes the
+   corner-tile edge-wall pathology at the source.
+
 ### <span style="color:#3fb950;">Phase 2b — Mining grid on the cut floor (added 2026-06-05)</span>
 
 **Observed during Phase 2 verification (Alen):** sliced to Y64 with the precision mining tool
@@ -349,6 +383,31 @@ Acceptance criteria:
 - Grid respects existing visual-cut zones (no grid floating over already-designated cavities).
 - No change to selection/raycast behaviour; no block identity revealed.
 - Grid rebuild cost stays within the current per-cell throttle (no per-frame full rebuilds).
+
+#### <span style="color:#3fb950;">Phase 2b RESULTS — 2026-06-05, verified in-engine by Alen — PHASE 2b BANKED</span>
+
+Implemented same-day, in `MiningDesignationController.gd` only:
+
+- `_effective_grid_top(x, z, slice_y)` — natural visible surface clamped to the plane, then
+  stepped down past designated cut blocks via `_zone_by_block` (the controller's own
+  designation set; no renderer query needed — it is the same data the renderer's
+  `_visual_cut_blocks` mirrors).
+- Column loop and `_append_visible_side_grid` neighbour math both use it; the old
+  `top_y > slice_y → skip` is gone. Equal cut tops (flat cut floor) emit no side faces.
+- Zone confirm / remove / Ctrl-subtract force a grid rebuild (guarded to active-tool state),
+  so cavities re-grid immediately in both directions.
+
+**Verified:** grid covers plane-cut floors at `slice_y`, side grid hangs from cut lips,
+nothing grids above the plane, grid re-flows around confirmed zones and restores on removal;
+selection/raycast unchanged.
+
+**Noted, by design:** the designation ray still hits visually-cut blocks (confirmed zones
+must stay clickable), so the gridded cavity floor cannot be designated where a zone occupies
+the blocks above. Revisit when real mining execution replaces visual cuts.
+
+**Performance:** the slice-step grid rebuild remains synchronous/unthrottled (predates 2b;
+2b added only cheap per-column lookups) — tracked with the overview-step cost in the open
+performance note above (lever 3: debounce + thread).
 
 ### <span style="color:#3fb950;">Phase 3 — The VisibleVolume contract (S5)</span>
 
