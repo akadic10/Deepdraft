@@ -108,7 +108,7 @@
       "id": "slice",
       "emoji": "👀",
       "label": "Slice",
-      "tooltip": "Slice view",
+      "tooltip": "Toggle the slice view ( \\ ) — step the cut plane with ] [ and Ctrl+] Ctrl+[",
       "action": "toggle_window",
       "target": "slice"
     },

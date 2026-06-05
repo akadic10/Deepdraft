@@ -60,6 +60,30 @@ will be JSON loaded by their owning registry, never `.tres` Resources (see AGENT
 | `open_panel` | Opens a build/designation panel above the dock. Panels are **mutually exclusive** — opening one closes any other. `target` names the panel. |
 | `toggle_window` | Toggles a movable floating window (labor, stockpiles, trade). `target` names the window. |
 
+Some `toggle_window` targets are intercepted in `DockUI._toggle_window` and routed to a real
+system instead of a generic window: `world_info` / `block_inspector` toggle their overlay
+CanvasLayers, `clock` opens the live Clock window, and `slice` toggles the **Slice tool**
+(see below). `xray` remains a stub until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
+
+### The Slice Tool (shipped 2026-06-05 — doc 11 Phase 2)
+
+The dock's `slice` entry toggles the slice view rather than opening a window. The tool is
+owned by `SliceController` (scene node; DockUI only routes the toggle and mirrors active
+state on the button). While active, a small palette window shows: **▲▲ Cell up**,
+**▲ Block up**, a live `Y = N` readout (`Off` at Y127), **▼ Block down**, **▼▼ Cell down**.
+
+| Input | Effect |
+|---|---|
+| `\` | Toggle the slice view |
+| `]` / `[` | Step the plane one 4-block cell up / down (snaps to cell tops) |
+| `Ctrl+]` / `Ctrl+[` | Step one block up / down |
+
+Clamps: Y4 floor (Bedrock Protocol — one mineable layer always visible) to Y127 = off.
+First activation seeds the plane from the camera's surface column; afterwards the height is
+fully manual and remembered across toggles (session-only until the save system lands).
+Activating Slice will force the future X-Ray tool off, and vice versa — mutual exclusion
+lives in the tool layer, never the renderer.
+
 ### Default Items
 
 | Order | Emoji         | Label      | Action          | Target       |

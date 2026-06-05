@@ -113,6 +113,12 @@ This creates the visual effect where hidden/internal selection lines are still v
 - The player can distinguish selected volume depth without the overlay becoming noisy.
 - The implementation does not change mining zone data or actual terrain blocks.
 
+**Slice interaction (decided 2026-06-05):** zones above the slice plane are handled by the
+VisibleVolume contract, not by this readability pass — they disappear entirely (Stonehearth's
+choice — the overlay never paints inside hidden rock). See `11_slice_xray_plan.md` Phase 3.
+The "faintly readable" rule above applies to structure hidden *behind terrain* within the
+visible volume, not to structure above the slice plane.
+
 ---
 
 *Prev: [04_mining_performance.md](./04_mining_performance.md)*

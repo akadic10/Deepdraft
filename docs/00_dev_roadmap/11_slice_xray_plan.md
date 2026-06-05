@@ -270,6 +270,86 @@ Acceptance criteria:
 - Toggling slice off restores the full view without a global rebuild (off = `slice_y = 127`,
   S1 — one code path, no special "off" state).
 
+#### <span style="color:#3fb950;">Phase 2 RESULTS — 2026-06-05, verified in-engine by Alen — PHASE 2 BANKED</span>
+
+**Shipped:**
+
+- `scripts/systems/SliceController.gd` (new) — tool state, cell-4 stepping snapped to cell
+  tops, clamps [4, 127], one-time camera-column seeding (S3, retries until maps_ready),
+  last-height restore across toggles, hotkey handling, `deactivate_if_active()` exclusion
+  hook for the future X-Ray tool (S7), and the palette window (Clock-window visual language:
+  ▲▲ cell / ▲ block / live `Y = N` readout / ▼ block / ▼▼ cell).
+- `project.godot` `[input]` — `slice_toggle` (\), `slice_cell_up` (]), `slice_cell_down` ([),
+  `slice_single_up` (Ctrl+]), `slice_single_down` (Ctrl+[); physical keycodes. AGENT.md
+  ownership note extended to cover `[input]` (approved 2026-06-05).
+- `DockUI.gd` — `slice` target routes to the controller (no more stub window); button
+  pressed-state tracks `slice_active_changed`; controller self-registers via its
+  `dock_ui_path` export.
+- `scenes/main/debug_world.tscn` — SliceController node, all three paths wired.
+- `data/ui/dock.json` — slice tooltip documents the hotkeys.
+
+**Verified (in-engine, editor/debug):** Y4 floor clamp holds; ] / [ step ±4 (cell), Ctrl+] /
+Ctrl+[ step ±1 with exact-match (no double-fire); Y126 is the last displayed height and 127
+reads "Off"; toggle off/on restores the full view and the last manual height; dock button
+state and live readout track correctly. Stepping cost matches SO-1 FINAL behaviour
+(per-tile invalidation, center-first); release-build re-measure still pending (§5
+guardrail 6).
+
+**Deviations from the plan as written:** the palette window is owned by SliceController
+itself (one CanvasLayer, like MiningDesignationController's zone window) rather than built
+inside DockUI; registration is push-style (`register_slice_controller`) from the controller's
+`dock_ui_path` export. Persistence is session-only (S4 waits for the save system). Seeding
+from the first dig-down designation (S3's second path) waits for mining execution.
+
+**Surfaced during verification, recorded as follow-ups:** floating zone overlays above the
+plane → Phase 3 decision note (clip, Stonehearth's choice); missing alignment grid on
+plane-cut floors → Phase 2b below.
+
+### <span style="color:#3fb950;">Phase 2b — Mining grid on the cut floor (added 2026-06-05)</span>
+
+**Observed during Phase 2 verification (Alen):** sliced to Y64 with the precision mining tool
+active, the black alignment grid is not painted on the plane-cut interior blocks — the cut
+floor where the player most wants to lay out mining queues has no grid at all. Cause, in
+`MiningDesignationController._rebuild_terrain_grid()`:
+
+```gdscript
+var top_y := int(WorldGenerator.get_visible_surface_y(x, z))
+if top_y < 0 or top_y > slice_y:
+    continue          # ← any column whose NATURAL surface is above the plane is skipped
+```
+
+The grid derives from the *natural* terrain surface, so a column cut by the plane is dropped
+entirely instead of gridded at its cut top; the side-face grid inherits the same blindness via
+`neighbor_top`. Designation itself already works there (the DDA raycast is slice-aware and
+reads generated block ids) — the gap is the grid overlay only, which makes laying out queues
+on a cut floor needlessly hard.
+
+**Plan (mirror the overview's visible-surface math):**
+
+1. Effective top per column = `min(get_visible_surface_y(x, z), slice_y)` — the same rule
+   `_overview_visible_surface_after_cut()` applies, including stepping down past visual-cut
+   blocks (existing zone cuts lower the effective top exactly as they do for the overview).
+2. Emit the top-face grid at the effective top — cut floors at `slice_y` get gridded like any
+   natural surface.
+3. Side-face grid spans between *effective* neighbour tops (both clamped by the plane), so cut
+   walls grid correctly from the cut lip down.
+4. Concealment-safe by construction: the grid is line geometry only; it paints no block
+   identity (Hard Rule 11 untouched).
+5. Cost: same column loop, one extra `mini()` + cut-set lookup per column; the existing
+   rebuild-cell / radius throttle already bounds it.
+
+**Sequencing:** can ship before Phase 3 as a local fix (the controller already reads
+`slice_y` every rebuild). When Phase 3 lands, the grid simply swaps its per-frame `slice_y`
+read for the `visible_volume_changed` rebuild trigger — the effective-top math is identical.
+
+Acceptance criteria:
+
+- With the slice active, the alignment grid covers plane-cut floors at `slice_y` and the side
+  grid hangs from cut tops; nothing grids above the plane.
+- Grid respects existing visual-cut zones (no grid floating over already-designated cavities).
+- No change to selection/raycast behaviour; no block identity revealed.
+- Grid rebuild cost stays within the current per-cell throttle (no per-frame full rebuilds).
+
 ### <span style="color:#3fb950;">Phase 3 — The VisibleVolume contract (S5)</span>
 
 New lightweight helper owned by `WorldRenderer` (no new autoload — render concern):
@@ -287,6 +367,16 @@ Consumers, in order:
 1. **MiningDesignationController** — zone fills, exterior lines, previews, and the terrain grid
    clip to the visible volume and rebuild on `visible_volume_changed` (instead of every slice
    change individually). The grid already reads `slice_y`; this unifies it.
+
+   > <span style="color:#3fb950;">**Decision (Alen, 2026-06-05, during Phase 2 verification):**</span>
+   > a mining zone above the slice plane currently keeps drawing its yellow overlay, floating
+   > over the cut (the block-inspector outline does the same). Cosmetic only — the designation
+   > raycast already respects `slice_y`, so hidden rock cannot be *selected*. When this phase
+   > lands, resolve it by clipping: **zones fully above the plane disappear (Stonehearth's
+   > choice — the overlay never paints inside hidden rock)**, rather than rendering a faint
+   > ghost. If a reminder of off-slice designations turns out to be wanted, fold it into the
+   > doc-05 layered-overlay readability pass (low-alpha no-depth full volume + stronger
+   > depth-tested exposed subset), not into this contract.
 2. **Water rendering** (future CA work, doc 33) — lake/tarn surfaces clip the same way
    Stonehearth's water renderer does.
 3. **Entities** (future) — §3.5.
@@ -529,6 +619,7 @@ Non-negotiables, distilled from ref §2.8 / §3.5 and our own doc-04/07 lessons:
 | 0. Instrument slice-row rebuild timing | `WorldRenderer.gd` (debug flag) | — |
 | 1. Mesher slice clip + dirty-row math | `ChunkMesher.gd`, `WorldRenderer.gd` | 0 |
 | 2. Slice tool + palette + hotkeys + seeding | `DockUI.gd`, new `scripts/systems/SliceController.gd` (or fold into renderer), `data/ui/dock.json`, `project.godot` `[input]` <span style="color:#d29922;">(ownership note)</span> | 1 |
+| 2b. Mining grid on the cut floor (effective-top math) | `MiningDesignationController.gd` | 2 |
 | 3. VisibleVolume contract + mining overlay clipping | `WorldRenderer.gd`, `MiningDesignationController.gd` | 1 |
 | 4. Overview interplay polish | `WorldRenderer.gd` | 2 |
 | X0. Interior tracker | future mining-execution system | mining execution |

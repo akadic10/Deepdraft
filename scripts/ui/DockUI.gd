@@ -25,6 +25,7 @@ var _world_clock: Node
 var _weather_mgr: Node
 var _world_info_overlay: CanvasLayer
 var _block_inspector_overlay: CanvasLayer
+var _slice_controller: Node = null
 var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
 
@@ -269,6 +270,10 @@ func _toggle_window(target: String) -> void:
 		_toggle_clock_window()
 		return
 
+	if target == "slice":
+		_toggle_slice_tool()
+		return
+
 	if _open_windows.has(target):
 		var existing := _open_windows[target] as Control
 		existing.queue_free()
@@ -494,11 +499,38 @@ func _toggle_block_inspector_overlay() -> void:
 
 
 func _target_canvas_visible(target: String) -> bool:
-	if target != "world_info":
-		if target != "block_inspector":
-			return false
-		return _block_inspector_overlay != null and _block_inspector_overlay.visible
-	return _world_info_overlay != null and _world_info_overlay.visible
+	match target:
+		"world_info":
+			return _world_info_overlay != null and _world_info_overlay.visible
+		"block_inspector":
+			return _block_inspector_overlay != null and _block_inspector_overlay.visible
+		"slice":
+			return _slice_controller != null and bool(_slice_controller.call("is_active"))
+	return false
+
+
+# ── Slice tool integration (doc 11 Phase 2) ───────────────────────────────────
+# The SliceController owns the tool state and its palette window; the dock's
+# `slice` entry only toggles it. Registration happens from SliceController._ready
+# via its dock_ui_path export (Scene Decoupling Contract — no node paths here).
+
+func register_slice_controller(controller: Node) -> void:
+	_slice_controller = controller
+	if controller.has_signal("slice_active_changed"):
+		var refresh := Callable(self, "_on_slice_active_changed")
+		if not controller.is_connected("slice_active_changed", refresh):
+			controller.connect("slice_active_changed", refresh)
+
+
+func _toggle_slice_tool() -> void:
+	if _slice_controller == null:
+		push_warning("DockUI: slice button pressed but no SliceController is registered.")
+		return
+	_slice_controller.call("toggle_active")
+
+
+func _on_slice_active_changed(_active: bool) -> void:
+	_refresh_active_buttons()
 
 
 func _find_canvas_layer(node: Node, node_name: String) -> CanvasLayer:

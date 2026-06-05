@@ -30,7 +30,8 @@ A defining feature: the player can slice the world horizontally to see undergrou
 - The slice plane hides all geometry above a chosen Y level — implemented (2026-06-04) as the
   slice-aware block-face overview: the whole map stays present at any depth, cut floors show
   authored strata only (slice-concealment rule, `24_world_rendering.md`).
-- Driven by `WorldRenderer.slice_y`; the Slice tool (dock window, doc 11 Phase 2) steps it.
+- Driven by `WorldRenderer.slice_y`; the Slice tool (shipped 2026-06-05 — `SliceController`,
+  dock palette + `\` `]` `[` `Ctrl+]` `Ctrl+[` hotkeys, doc 11 Phase 2) steps it.
 - AUTO mode (slice follows the camera): **dormant by decision** — Stonehearth has no auto-follow
   and manual control proved right (doc 10 §2.3, doc 11 Phase 2.6). `Camera.slice_y_changed`
   still emits but nothing connects to it; revisit only behind a settings toggle.
