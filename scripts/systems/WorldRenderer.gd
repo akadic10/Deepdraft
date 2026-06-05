@@ -20,6 +20,7 @@ extends Node3D
 		if old_y != v:
 			_enqueue_regions_for_slice_change(old_y, v)
 			_enqueue_overview_tiles_for_slice_change(old_y, v)
+			_visible_volume_dirty = true   # VisibleVolume contract (doc 11 Phase 3)
 		_begin_slice_timing(old_y, v)
 
 ## XZ chunk radius around the camera that is allowed to build terrain meshes.
@@ -234,6 +235,14 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# VisibleVolume contract (doc 11 Phase 3, ref doc 10 rule S5): flush at most
+	# ONE visible_volume_changed per frame, before either render branch runs, so
+	# consumers rebuild reactively and never poll. Any number of state changes in
+	# a frame collapse to a single emission.
+	if _visible_volume_dirty:
+		_visible_volume_dirty = false
+		visible_volume_changed.emit()
+
 	if _block_face_overview_active():
 		# Stamp unconditionally — timing can begin between frames, and a zero
 		# stamp poisoned the worst-frame stat (measured against engine start).
@@ -2116,6 +2125,51 @@ func _region_reaches_above(key: Vector2i, plane_y: int) -> bool:
 			if WorldGenerator.get_column_top_y(cx, cz) > plane_y:
 				return true
 	return false
+
+
+# ── VisibleVolume contract (doc 11 Phase 3, ref doc 10 rule S5) ───────────────
+# THE shared visibility interface for every overlay system (mining overlays
+# first; water, entities, and the X-Ray interior set later). Composition order
+# when X-Ray lands: clip plane first, then the x-ray set — same as Stonehearth's
+# intersect_region_with_visible_volume. Consumers connect to
+# visible_volume_changed (emitted at most once per frame, flushed in _process)
+# and rebuild reactively; polling is a contract violation.
+
+## Emitted at most once per frame after any visibility-state change (slice step;
+## later: x-ray toggles / interior-set changes). Connect overlays here.
+signal visible_volume_changed
+
+var _visible_volume_dirty: bool = false
+
+
+## True if a world block position is inside the visible volume.
+## Today: the slice plane. Phase X3 composes the x-ray interior set here.
+func is_block_visible(pos: Vector3i) -> bool:
+	return pos.y <= slice_y
+
+
+## Returns the subset of blocks inside the visible volume (order preserved).
+func filter_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
+	if slice_y >= WORLD_SIZE_Y - 1:
+		return blocks   # slice off — everything visible, skip the scan
+	var out: Array[Vector3i] = []
+	for block: Vector3i in blocks:
+		if block.y <= slice_y:
+			out.append(block)
+	return out
+
+
+## Clips an AABB against the visible volume (cheap path for box overlays).
+## Returns a zero-size AABB when the box lies entirely above the plane.
+func clip_aabb(aabb: AABB) -> AABB:
+	var top := float(slice_y + 1)   # plane cuts ABOVE the slice_y layer
+	if aabb.position.y >= top:
+		return AABB(aabb.position, Vector3.ZERO)
+	if aabb.end.y <= top:
+		return aabb
+	var size := aabb.size
+	size.y = top - aabb.position.y
+	return AABB(aabb.position, size)
 
 
 ## Slice tool hook (doc 11 Phase 4.1): the slice tool forces streamed mode while

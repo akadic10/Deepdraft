@@ -325,7 +325,21 @@ synchronously on the same frame as a slice step (unthrottled full-radius column 
 main-thread; predates Phase 2b — 2b only added cheap per-column lookups). SliceTiming does
 not measure it.
 
-**Levers, in recommended order (none taken yet — measure in a release build first):**
+**RELEASE MEASUREMENT — 2026-06-05 (export, console wrapper, second run):** ±1 steps at
+Y54–56: worst frame **24–27 ms**, slowest tile 14–16 ms, sweep 0.72–0.83 s (294–345 tiles);
+toggle off (54 → 127) worst frame 36 ms (corner tile back to 25.8 ms — full-depth edge
+walls). The 2.3× debug→release rule held (64 → 27 ms). Verdict: still above the §5 16 ms
+target (1 dropped frame at 60 Hz). Notably the worst frame is ~2× the slowest tile — the
+8-tile batch doesn't fit the core count in one wave — which strengthens lever 2. Startup
+re-confirmed the doc-07 baseline (5.3 s interactive, 8.9 s full overview).
+
+**DECISION (Alen, 2026-06-05): performance accepted — levers SHELVED.** 24–27 ms release
+feels fine in play; per the doc-07 rule ("do this only if the hitch is actually noticeable
+in a release playtest") no optimization work is taken. The §5 16 ms target row stands as
+aspiration, not a blocker. Revisit only if a future change makes slice stepping feel worse
+in release; the levers below are the pre-ranked starting points for that day.
+
+**Levers, in recommended order (shelved):**
 
 1. **Side-face greedy merge** (doc 07's named lever) — merging coplanar same-colour cliff
    quads attacks the 50% directly and shrinks the corner tile's 39 ms.
@@ -443,6 +457,35 @@ Consumers, in order:
 The one-per-frame rule is mandatory: any state change sets a dirty flag; `_process` flushes it
 once. No consumer may poll.
 
+#### <span style="color:#3fb950;">Phase 3 RESULTS — 2026-06-05, verified in-engine by Alen — PHASE 3 BANKED</span>
+
+Implemented as API on `WorldRenderer` directly (no separate class — consumers already hold a
+renderer reference): `is_block_visible()`, `filter_blocks()` (slice-off fast path),
+`clip_aabb()`, and `visible_volume_changed` — dirty flag set in the `slice_y` setter, flushed
+at most once per frame at the top of `_process`, before either render branch.
+
+First consumer, `MiningDesignationController`:
+
+- `_visible_in_slice()` routes through `is_block_visible` — the raycast became
+  contract-correct for free; the future x-ray set composes in with zero controller changes.
+- Zone fills + exterior lines clip per zone; a zone fully above the plane **disappears**
+  (per the Phase 3 decision note — data untouched, restores when the plane rises); a
+  partially-cut zone closes its outline at the plane.
+- **Designation is clipped, not just display (WYSIWYG):** `_filter_mineable_blocks` excludes
+  above-plane blocks, so confirm designates exactly what the preview shows — Stonehearth's
+  marquee behaviour (ref doc §2.5). The preview meshes clip identically.
+- Zones, grid, and hover preview rebuild on `visible_volume_changed` (zones even while the
+  tool is inactive); existing rebuild-cache keys prevent same-frame duplicates.
+
+**Verified:** zone above plane vanishes/restores across steps with data intact; mid-zone cut
+closes flat at the plane; preview never paints above the plane and confirm matches it;
+inactive-tool zones still re-clip; slice off (Y127) identical to pre-Phase-3 behaviour.
+
+**Decision (Alen):** a hidden zone's info window staying open is acceptable — left as-is.
+
+**Surfaced during verification:** lateral cavities are invisible until top-exposed — a
+pre-existing renderer property, recorded with disposition in the Phase SO section above.
+
 ### <span style="color:#3fb950;">Phase SO — SLICED OVERVIEW (added 2026-06-04, supersedes the old Phase 4)</span>
 
 **Why (Alen's verdict on Phase 1):** Stonehearth never changes *what world you see* — the whole
@@ -501,6 +544,29 @@ slice timing instrumentation. The streamed chunk path is dormant behind `set_ove
 just steps `WorldRenderer.slice_y` — no mode management, no streaming pre-warm, no
 `set_overview_enabled` calls. §3 Phase 2's streamed-mode choreography and §Phase 4 are obsolete.
 Seeding, clamps [4, 127], and mutual exclusion with the future X-Ray tool still apply.
+
+#### <span style="color:#d29922;">Known renderer property — lateral cavities are invisible until top-exposed (observed 2026-06-05, accepted)</span>
+
+**Observation (Alen, during Phase 3 verification; present since the Phase SO consolidation,
+not a 2b/3 regression):** a designated block visually deducts from the terrain ONLY when it
+is its column's visible top — exposed naturally at the surface, or made the top block by the
+slice plane. A zone cut sideways into a vertical wall face shows its overlay box, but the
+rock face stays solid; step the plane down so the designated blocks become the cut top and
+the cavity appears. (Reproduced with a 2-block zone in a shelf wall at Y81: intact at
+slice 81, deducted at slice 80.)
+
+**Cause — representational, not a bug:** the block-face overview is a per-column top
+renderer. `_overview_visible_surface_after_cut()` lowers a column's top through cut blocks,
+and walls are side bands hung between neighbouring tops. A cavity that changes no column top
+produces zero geometry — lateral holes and tunnel mouths *cannot exist* in this
+representation. This is precisely the "true-3D-interior need (side views into roofed
+tunnels)" the dormant streamed-chunk path is reserved for (`set_overview_enabled(false)`;
+`ChunkMesher` already meshes cut cavities correctly in 3D — `24_world_rendering.md` mode 2).
+
+**Forward note:** real mining execution will hit the same property — an actually-mined
+lateral tunnel will not render in the overview either. When tunnels become diggable, the
+interior view needs the streamed path composited near the camera, X-Ray, or both. Revisit
+alongside Phase X1; until then, accepted as-is.
 4. **Measure (SO-3).** Phase-0-style: slice-step tile rebuild counts + worst frame, full-map
    plane drag, verify lowland tiles stay untouched. Known risk: a deep plane step touches every
    mountain tile (~300); if the threaded 8-tile/frame budget janks, add the flat-plate fast path

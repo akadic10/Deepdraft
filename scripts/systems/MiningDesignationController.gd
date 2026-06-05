@@ -74,6 +74,21 @@ func _ready() -> void:
 	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
 		_dock_ui.tool_requested.connect(_on_tool_requested)
 
+	# VisibleVolume contract (doc 11 Phase 3): all overlay rebuilds triggered by
+	# visibility changes go through this one signal — never per-consumer polling.
+	if _renderer != null and _renderer.has_signal("visible_volume_changed"):
+		_renderer.connect("visible_volume_changed", _on_visible_volume_changed)
+
+
+## One reactive rebuild per visibility change (the renderer emits at most once
+## per frame). Zones re-clip even while the tool is inactive — confirmed zones
+## are always on screen; grid and preview only exist while the tool is active.
+func _on_visible_volume_changed() -> void:
+	_rebuild_zones_mesh()
+	if _state != ToolState.INACTIVE:
+		_rebuild_terrain_grid(true)
+		_update_hover_preview(true)
+
 
 func _process(_delta: float) -> void:
 	if _state == ToolState.INACTIVE:
@@ -613,6 +628,12 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 			continue
 		if block.y <= BEDROCK_MAX_Y:
 			continue
+		# VisibleVolume clip (doc 11 Phase 3): you designate what you can see —
+		# the marquee is visible-volume-intersected, exactly like Stonehearth's
+		# custom-block handler (ref doc 10 §2.5). Blocks above the plane are
+		# excluded from the DESIGNATION, not just the display (WYSIWYG).
+		if not _visible_in_slice(block):
+			continue
 		var block_id := _block_id_at(block)
 		if not BlockRegistry.is_solid(block_id):
 			continue
@@ -766,7 +787,12 @@ func _axis_t_max(origin_axis: float, direction_axis: float, pos_axis: int) -> fl
 	return (boundary - origin_axis) / direction_axis
 
 
+## Single visibility test for everything this controller draws or designates —
+## routed through the renderer's VisibleVolume contract (doc 11 Phase 3) so the
+## future X-Ray set composes in with zero changes here.
 func _visible_in_slice(pos: Vector3i) -> bool:
+	if _renderer != null and _renderer.has_method("is_block_visible"):
+		return bool(_renderer.call("is_block_visible", pos))
 	return pos.y <= _current_slice_y()
 
 
@@ -781,10 +807,17 @@ func _rebuild_preview_mesh() -> void:
 	_preview_fill_node.material_override = _preview_remove_fill_material if _preview_is_remove else _preview_fill_material
 	var fill_color := Color(1.0, 0.05, 0.03, 0.18) if _preview_is_remove else Color(1.0, 0.90, 0.0, 0.42)
 	var line_color := Color(1.0, 0.05, 0.03, 1) if _preview_is_remove else Color(1.0, 0.98, 0.0, 1)
-	_preview_fill_node.mesh = _build_fill_mesh(_preview_raw_blocks, fill_color, 0.018)
-	_preview_node.mesh = _build_bounds_line_mesh(_preview_raw_blocks, line_color, 0.018)
-	_preview_fill_node.visible = not _preview_raw_blocks.is_empty()
-	_preview_node.visible = not _preview_raw_blocks.is_empty()
+	# VisibleVolume clip (doc 11 Phase 3): the preview shows exactly what confirm
+	# will designate — nothing paints above the plane (matches the
+	# _filter_mineable_blocks visibility clip).
+	var display_blocks: Array[Vector3i] = []
+	for block: Vector3i in _preview_raw_blocks:
+		if _visible_in_slice(block):
+			display_blocks.append(block)
+	_preview_fill_node.mesh = _build_fill_mesh(display_blocks, fill_color, 0.018)
+	_preview_node.mesh = _build_bounds_line_mesh(display_blocks, line_color, 0.018)
+	_preview_fill_node.visible = not display_blocks.is_empty()
+	_preview_node.visible = not display_blocks.is_empty()
 
 
 func _rebuild_zones_mesh() -> void:
@@ -795,10 +828,20 @@ func _rebuild_zones_mesh() -> void:
 	for zone_id: int in _zones.keys():
 		var zone: Dictionary = _zones[zone_id]
 		var blocks: Array = zone.get("blocks", [])
+		# VisibleVolume clip (doc 11 Phase 3, decision 2026-06-05): the overlay
+		# never paints inside hidden rock — Stonehearth's choice. A zone fully
+		# above the plane disappears (data untouched); a partially-cut zone
+		# closes its outline at the plane.
+		var visible_blocks: Array[Vector3i] = []
+		for block: Vector3i in blocks:
+			if _visible_in_slice(block):
+				visible_blocks.append(block)
+		if visible_blocks.is_empty():
+			continue
 		var line_color := Color(1.0, 0.05, 0.03, 1.0) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.92)
 		var fill_color := Color(1.0, 0.05, 0.03, 0.28) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.22)
-		_append_block_faces(blocks, fill_color, fill_verts, fill_cols, 0.008)
-		_append_exterior_region_lines(blocks, line_color, line_verts, line_cols, 0.010)
+		_append_block_faces(visible_blocks, fill_color, fill_verts, fill_cols, 0.008)
+		_append_exterior_region_lines(visible_blocks, line_color, line_verts, line_cols, 0.010)
 
 	if line_verts.is_empty():
 		_zones_node.mesh = null
