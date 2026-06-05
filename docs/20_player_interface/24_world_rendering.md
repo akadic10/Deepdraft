@@ -64,6 +64,11 @@ When the terrain slice is active and the player pans to the map edge, they will 
 
 Stonehearth uses a **hard horizontal clip** at `slice_y` — geometry above the slice is completely removed from rendering, leaving a black void. It does not fade or dim.
 
+> **Implemented (2026-06-04):** `WorldRenderer.slice_y` hard-clips the whole map via the
+> slice-aware block-face overview (per-column cut tops, strata-only floors, per-tile
+> invalidation). Verified: ~1.5 s center-first sweep, ~60 ms worst frame for a mountain-depth
+> step (editor/debug). See `00_dev_roadmap/11_slice_xray_plan.md` for the full record.
+
 DwarfVoxel's `slice_fade_bands` (see `21_rts_camera.md`) should apply only at or near the **surface** where transitioning from aboveground to underground view. For slices **deep underground**, default to a hard clip. The black void above reads as solid rock ceiling, which is narratively correct.
 
 ### The Black Ceiling Reads as Rock
@@ -109,17 +114,33 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
 
 ### Accepted modes
 
-1. **Near streamed chunk mesh.** Built from generated chunks (`ChunkMesher`); emits real exposed
-   block faces. Used for inspection, mining, selection, and close review.
-2. **Block-face overview mesh.** For high-altitude / zoomed-out surface views. Uses deterministic
-   generated column data; emits top faces plus vertical faces at sampled height drops; greedily
-   merges same-material, same-plane faces; labels itself as an approximation in the debug UI.
-   **Side-face colours are per-block exact** (since 2026-06-03): every wall block face shows that
-   block's *own* colour — the 1-block grass cap renders grass on its sides, and the 2-block soil
-   bands and rock shelves render true. Banding may merge only **identical adjacent colours**; the
-   "approximation" is geometric simplification, never colour.
+1. **Block-face overview mesh — THE renderer (since 2026-06-04), including all sliced views.**
+   Uses deterministic generated column data; emits top faces plus vertical faces at height
+   drops; greedily merges same-material, same-plane faces. **Side-face colours are per-block
+   exact** (since 2026-06-03): every wall block face shows that block's *own* colour — the
+   1-block grass cap renders grass on its sides, and the 2-block soil bands and rock shelves
+   render true. Banding may merge only **identical adjacent colours**; the "approximation" is
+   geometric simplification, never colour.
+   **Slice-aware (doc 11 Phase SO):** a column whose surface is above `slice_y` renders its cut
+   floor at the plane. Cut floors are **authored strata only** — see the slice-concealment rule
+   below. Neighbour tops are waterline-aware, so water bodies read as calm planes in the cut.
+   Slice changes invalidate only tiles whose terrain reaches above the lower plane (+1-tile wall
+   margin), center-first from the camera.
+2. **Near streamed chunk mesh — DORMANT.** Built from generated chunks (`ChunkMesher`, which
+   supports block-granular slice clipping); reachable only via
+   `WorldRenderer.set_overview_enabled(false)`. Reserved for a future true-3D-interior need
+   (side views into roofed tunnels). It must never run during normal sliced play: exact chunk
+   data on a cut floor reveals veins/caves, violating the concealment rule.
 3. **World-edge presentation slab** *(future — Second Milestone).* Large, calm boundary panels —
    not a per-block noisy side dump, and must not contradict the visible playable surface blocks.
+
+### Slice concealment rule (HARD — Alen, 2026-06-04)
+
+**Slicing must never reveal undiscovered resources.** Cut floors render authored strata only —
+everywhere, at every zoom. Veins, gems, and caves become visible exclusively through mining.
+This is a deliberate departure from "paint every block its own colour" for *interior* blocks
+exposed by the plane: interior identity is undiscovered information, and the slice is a camera,
+not a prospecting tool.
 
 ### Rejected modes
 

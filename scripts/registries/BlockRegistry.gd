@@ -17,6 +17,15 @@ var _id_to_def:        Array      = []   # int         →  Dictionary (full blo
 var _surface_palettes: Dictionary = {}   # variant_suffix  →  { season: Color }
 var _resource_defs:    Dictionary = {}
 
+# Hot-path lookup tables (doc 11 Phase 1d). Built EAGERLY in _ready and never
+# mutated afterwards, so WorkerThreadPool mesh builders can read them without
+# any locking. get_color() / is_transparent() stay as the general API; these
+# LUTs are the per-block fast path for the mesher's inner loops.
+var _color_luts:      Dictionary      = {}   # season → PackedColorArray (runtime-id-indexed)
+var _transparent_lut: PackedByteArray = PackedByteArray()   # runtime id → 1 if transparent
+
+const _LUT_SEASONS := ["spring", "summer", "autumn", "winter"]
+
 ## Runtime ID of "base:terrain:void" — the zero/air value used everywhere.
 ## Set after _load_blocks() completes.
 var AIR_ID: int = 0
@@ -27,7 +36,22 @@ func _ready() -> void:
 	_load_palettes()
 	_load_resource_defs()
 	AIR_ID = get_id(&"base:terrain:void")
+	_build_luts()
 	print("BlockRegistry: loaded %d block types." % _id_to_key.size())
+
+
+func _build_luts() -> void:
+	var count := _id_to_key.size()
+	_transparent_lut.resize(count)
+	for id in range(count):
+		_transparent_lut[id] = 1 if is_transparent(id) else 0
+	_color_luts.clear()
+	for season: String in _LUT_SEASONS:
+		var lut := PackedColorArray()
+		lut.resize(count)
+		for id in range(count):
+			lut[id] = get_color(id, season)
+		_color_luts[season] = lut
 
 
 # ── Loaders ───────────────────────────────────────────────────────────────────
@@ -175,6 +199,19 @@ func is_transparent(id: int) -> bool:
 		return true
 	var kind: String = (_id_to_def[id] as Dictionary).get("kind", "void")
 	return kind == "void"
+
+
+## Hot-path LUT: season → PackedColorArray indexed by runtime block ID.
+## Built once at boot, read-only afterwards (safe from worker threads).
+## Unknown seasons fall back to summer.
+func get_color_lut(season: String) -> PackedColorArray:
+	return _color_luts.get(season, _color_luts.get("summer", PackedColorArray()))
+
+
+## Hot-path LUT: runtime block ID → 1 if transparent (void), else 0.
+## Built once at boot, read-only afterwards (safe from worker threads).
+func get_transparent_lut() -> PackedByteArray:
+	return _transparent_lut
 
 
 ## Returns the display Color for a block at a given season.

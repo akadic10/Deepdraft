@@ -155,6 +155,16 @@ var noise_valley:   FastNoiseLite   # valley / lowland floor detail
 var domain_map:   PackedInt32Array    # DOMAIN_* constant per column
 var domain_n_map: PackedFloat32Array  # raw [0,1] domain noise per column (for blend math)
 var heightmap:    PackedInt32Array    # surface Y per column
+
+# Per-32x32-tile min/max VISIBLE height (waterline-aware), for the renderer's
+# sliced-overview invalidation (doc 11 Phase SO): a slice change only affects
+# tiles whose max reaches above the lower plane. Built on the generator thread
+# after the grass bands; gated by _tile_ranges_ready (same pattern), with a
+# conservative full-range fallback until ready.
+const TILE_RANGE_SIZE: int = 32   # must match WorldRenderer.OVERVIEW_TILE_SIZE
+var _tile_min_visible_y: PackedInt32Array = PackedInt32Array()
+var _tile_max_visible_y: PackedInt32Array = PackedInt32Array()
+var _tile_ranges_ready: bool = false
 var lowland_cap_grass_band_map: PackedByteArray # 0 = no override, 1/2 = tiered edge rings, 4 = base grass
 var lowland_cap_grass_distance_map: PackedInt32Array # -1 = not on the lowland cap, otherwise nearest edge distance
 var foothill_cap_grass_band_map: PackedByteArray # 0 = no override, 1/2/3 = tiered edge rings, 4 = base grass
@@ -421,6 +431,9 @@ func _reset_generation_state() -> void:
 	_abort = false
 	_maps_ready = false
 	_grass_bands_ready = false
+	_tile_ranges_ready = false
+	_tile_min_visible_y.clear()
+	_tile_max_visible_y.clear()
 	_column_in_flight = false
 	_generation_metrics.clear()
 	_domain_counts.clear()
@@ -473,6 +486,19 @@ func request_chunk_column(cx: int, cz: int) -> void:
 		_requested_columns[key] = true
 		_column_queue.append(key)
 	_request_mutex.unlock()
+
+
+## True while a chunk column is requested but not yet generated (queued or in
+## flight on the generator thread; the entry is erased on completion). The
+## renderer uses this to defer region mesh rebuilds until a region's streaming
+## columns are settled (doc 11 Phase 1e). Safe from any thread; one brief
+## mutex acquisition.
+func is_column_pending(cx: int, cz: int) -> bool:
+	var key := Vector2i(cx, cz)
+	_request_mutex.lock()
+	var pending := _requested_columns.has(key)
+	_request_mutex.unlock()
+	return pending
 
 
 func get_streaming_stats() -> Dictionary:
@@ -743,6 +769,7 @@ func _generate_threaded() -> void:
 	_run_timed_map_phase("lowland_grass_band", Callable(self, "_build_lowland_cap_grass_band_map"))
 	_run_timed_map_phase("foothill_grass_band", Callable(self, "_build_foothill_cap_grass_band_map"))
 	call_deferred("_deferred_finalize_grass_bands")
+	_run_timed_map_phase("tile_ranges", Callable(self, "_build_tile_visible_ranges"))
 
 	_run_timed_map_phase("generation_metrics", Callable(self, "_build_generation_metrics"))
 	call_deferred("_deferred_print_generation_metrics", _generation_metrics.duplicate(true))
@@ -2202,6 +2229,53 @@ func _build_water_bank_mask() -> void:
 					if lake_columns.has(bank_col) or tarn_columns.has(bank_col):
 						continue
 					water_bank_columns[bank_col] = true
+
+
+## Builds the per-tile visible-height ranges (doc 11 Phase SO). Runs on the
+## generator thread; readers are gated by _tile_ranges_ready, flipped on the
+## main thread after the arrays are fully written.
+func _build_tile_visible_ranges() -> void:
+	var tiles_x := (WORLD_SIZE_X + TILE_RANGE_SIZE - 1) / TILE_RANGE_SIZE
+	var tiles_z := (WORLD_SIZE_Z + TILE_RANGE_SIZE - 1) / TILE_RANGE_SIZE
+	_tile_min_visible_y.resize(tiles_x * tiles_z)
+	_tile_min_visible_y.fill(WORLD_SIZE_Y)
+	_tile_max_visible_y.resize(tiles_x * tiles_z)
+	_tile_max_visible_y.fill(0)
+
+	for x in range(WORLD_SIZE_X):
+		var tx := x / TILE_RANGE_SIZE
+		for z in range(WORLD_SIZE_Z):
+			var v: int = heightmap[x * WORLD_SIZE_Z + z]
+			var col := Vector2i(x, z)
+			if lake_columns.has(col):
+				v = LAKE_WATERLINE
+			elif tarn_columns.has(col):
+				v = tarn_waterline
+			var idx := tx * tiles_z + (z / TILE_RANGE_SIZE)
+			if v < _tile_min_visible_y[idx]:
+				_tile_min_visible_y[idx] = v
+			if v > _tile_max_visible_y[idx]:
+				_tile_max_visible_y[idx] = v
+
+	call_deferred("_deferred_mark_tile_ranges_ready")
+
+
+func _deferred_mark_tile_ranges_ready() -> void:
+	_tile_ranges_ready = true
+
+
+## Per-32x32-tile visible-height range (min, max), waterline-aware. Returns the
+## full world range until the ranges are computed — conservative: every tile
+## then counts as slice-affected. Thread-safe after the ready gate flips (the
+## arrays are immutable from that point).
+func get_tile_visible_range(tx: int, tz: int) -> Vector2i:
+	if not _tile_ranges_ready:
+		return Vector2i(0, WORLD_SIZE_Y - 1)
+	var tiles_x := (WORLD_SIZE_X + TILE_RANGE_SIZE - 1) / TILE_RANGE_SIZE
+	var tiles_z := (WORLD_SIZE_Z + TILE_RANGE_SIZE - 1) / TILE_RANGE_SIZE
+	if tx < 0 or tx >= tiles_x or tz < 0 or tz >= tiles_z:
+		return Vector2i(0, WORLD_SIZE_Y - 1)
+	return Vector2i(_tile_min_visible_y[tx * tiles_z + tz], _tile_max_visible_y[tx * tiles_z + tz])
 
 
 func _build_lowland_cap_grass_band_map() -> void:

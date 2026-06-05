@@ -460,6 +460,11 @@ the authored rock unchanged for natural terrace/mountain side walls and for the 
 world-edge perimeter band, so the outside slab face cannot reveal metals or gems before the
 player mines inward.
 
+> **Slice concealment (HARD rule, 2026-06-04):** the slice view never reveals undiscovered
+> resources either — cut floors render authored strata only (the renderer uses the strata
+> lookup, not the full generated block, for plane-cut tops). Veins, gems, and caves become
+> visible exclusively through mining. See `24_world_rendering.md` §Slice concealment rule.
+
 Ore selection reads `noise_threshold` and `depth_bias.max_y` directly from `block_resources.json` so adding a new ore never requires changing this function — only the data file.
 
 ```gdscript

@@ -102,6 +102,111 @@ zoom:
 
 Acceptance: a numbers row in this doc to compare every later phase against.
 
+#### <span style="color:#3fb950;">Phase 0 RESULTS — 2026-06-04 (editor/debug build, camera at world centre)</span>
+
+Instrumentation: `WorldRenderer.slice_debug_timing` (default on; silent unless `slice_y` changes).
+Measured by Alen via inspector pokes; seeds 1330346877 / 1699453172.
+
+| Case | Result |
+|---|---|
+| Cold slice-on, 127 → 60 (from overview, zero streamed chunks) | 12.6–23.8 s to fully settled, dominated by background **column generation** (81 columns, 3.85 s gen-thread). 50 region rebuilds collapsing to 7 final nodes — regions rebuild repeatedly as their 16 columns stream in. Worst single frame **964–1821 ms** (initial budget builds up to 12 regions in one frame at 86–294 ms per region rebuild). |
+| Warm step 60 → 59 (in chunk row) | **0 regions, 0 ms** — and 0 visual change (culling is chunk-layer-granular). |
+| Warm step 59 → 60 | **0 regions, 0 ms.** |
+
+**Findings that correct this plan's assumptions:**
+
+1. The current `slice_y` setter does NOT globally rebuild. `_enqueue_visible_existing_chunks()`
+   only enqueues regions **without existing nodes**, so warm steps are free today — because they
+   also do nothing. §1's gap analysis stands: no per-block clip, and additionally:
+2. **Latent bug:** a slice step crossing a 16-block chunk boundary re-enqueues nothing for
+   regions with live nodes — their meshes go stale. Unobserved only because nothing moves
+   `slice_y` at runtime yet. Phase 1b's dirty math fixes this.
+3. The Phase-1 risk is therefore *new* per-step work, not removing old global work: each
+   plane-row region rebuild costs ~86–294 ms (debug; ÷~2.3 for release). If stepping feels
+   hitchy after Phase 1, thread the region mesh build (the proven `_ovt_` WorkerThreadPool
+   pattern) as a Phase 1c — do not pre-emptively combine the two changes.
+4. Cold-transition polish (region rebuilt up to 16× while its columns stream in) is a separate
+   pre-existing cost amplifier; out of scope for this pass, noted for a future streaming pass.
+
+#### <span style="color:#3fb950;">Phase 1 RESULTS — 2026-06-04 (editor/debug, after mesher clip + localized dirty math)</span>
+
+| Case | Result |
+|---|---|
+| Cold 127 → 60 (camera at world centre) | 5.2 s settled, 49 region rebuilds, worst frame **587 ms** (was 964–1821 ms at baseline). |
+| Warm ±1 step, plane ABOVE all local terrain | **0 regions, 0 ms** — dirty rule correctly identifies a non-intersecting plane as free. |
+| Warm ±1 step over the NW mountain (plane cuts rock) | **9 of 10 live regions rebuilt** (the mountain subset), ~1.8 s total, worst frame **~900 ms** — budget builds 4 serial region rebuilds (~200–300 ms each) per frame on the main thread. |
+
+Visual acceptance passed: cut floor renders at the plane, walls below, void above; non-intersected
+terrain renders normally; both step directions produce symmetric rebuild counts (determinism).
+
+**Phase 1c trigger met:** ~900 ms/step debug (~390 ms release) is far above the ≤16 ms/frame
+target. Next lever per §5 guardrail 4: build region mesh arrays on a WorkerThreadPool (the proven
+`_ovt_` batch pattern) so a frame's cost is the MAX single region build, not the SUM. If still
+hitchy after threading, split region nodes per chunk-row (cy) so a slice step rebuilds only the
+plane row — measure between the two changes, one variable at a time.
+
+#### <span style="color:#3fb950;">Phase 1c RESULTS — 2026-06-04 (editor/debug, threaded region batch)</span>
+
+`ChunkMesher.build_arrays` (pure, worker-safe) + `WorldRenderer` batch dispatch
+(`region_threaded`, default on; serial fallback kept).
+
+| Case | Before 1c | After 1c |
+|---|---|---|
+| Warm ±1 step over the mountain (9 regions) | 1.74–1.82 s total, worst frame ~900 ms | **0.73–0.78 s total, worst frame ~485 ms** |
+| Cold 127 → 60 | worst frame 587–964 ms | **worst frame 444 ms** |
+
+**Analysis:** with `vertical_context_chunks = 0` a region rebuild is already only the plane-row
+chunks (~16), so the row-split idea is moot — the cost is **~27 ms per single 16³ chunk mesh**,
+dominated by GDScript inner-loop waste: `BlockRegistry.get_color()` string-splits per solid block
+(~3k/chunk), `is_transparent()` dict lookups per neighbour check (~6/block), and a WorldData mutex
+acquisition per cross-chunk neighbour read (thousands/chunk, contended across workers). Phase 1d
+= LUT caches (colour, transparency) + a 6-neighbour chunk snapshot per build, all inside
+ChunkMesher. Greedy face merging is explicitly deferred (bigger rewrite, separate pass).
+
+#### <span style="color:#3fb950;">Phase 1d RESULTS — 2026-06-04 (editor/debug, mesher fast path) — PHASE 1 BANKED</span>
+
+BlockRegistry eager LUTs (per-season colour `PackedColorArray`, transparency `PackedByteArray`,
+built in `_ready`, immutable → lock-free for workers) + ChunkMesher 6-neighbour chunk snapshot
+(6 mutex ops per chunk instead of thousands) + cut-dict short-circuit when no mining cuts exist.
+
+| Case | 1b (serial) | 1c (threaded) | **1d (fast path)** |
+|---|---|---|---|
+| Warm ±1 step over the mountain (9 regions) | ~1.8 s / ~900 ms worst frame | 0.73 s / ~485 ms | **0.47 s / ~240 ms** |
+| Cold 127 → 60, worst frame | 587–964 ms | 444 ms | **211 ms** |
+
+Per-chunk mesh cost ~27 ms → **~14 ms** (debug). Release estimate ÷~2.3 → ~105 ms worst frame
+per step. Visual output verified identical (cut floor, walls, colours, water).
+
+**Decision: Phase 1 banked here.** Remaining inner-loop cost is `_add_quad` call overhead and
+per-face Vector3 construction — the next meaningful lever is **greedy face merging** (fewer,
+larger quads), a dedicated future pass that also shrinks upload sizes. Not worth blocking the
+Slice tool on. Committed as slice Phase 1 (a: mesher clip, b: localized dirty math, c: threaded
+region batch, d: mesher fast path).
+
+#### <span style="color:#3fb950;">Phase 1e RESULTS — 2026-06-04 (region rebuild defer during streaming)</span>
+
+`WorldGenerator.is_column_pending()` + renderer drain-time defer: regions whose chunk columns are
+still queued/in-flight are requeued (never dropped — each completing column re-dirties its region,
+and the bounded one-pass queue scan prevents pending regions starving ready ones).
+
+| Metric | Before 1e | After 1e |
+|---|---|---|
+| Cold 127 → 60: region rebuilds | 125 for ~10 final nodes (up to ~16× redundancy) | **24** |
+| Cold settle time | ~10.6 s | ~10.5 s — now purely **generator-thread bound** (~130 ms/column, serial); renderer redundancy eliminated |
+| Streamed-mode panning | noticeable churn/stutter | verified improved in-engine (Alen) |
+
+Known remaining limits, by design for this pass: slice view shows only the streamed radius
+(`view_radius_chunks`) — a "sliced overview" for full-map context would be a new render mode;
+cold-transition time is generation throughput, a future streaming-pass concern (parallel column
+fill is the obvious lever). Slice steps over settled terrain: ~240 ms worst frame debug
+(~105 ms release), greedy meshing is the next lever.
+
+**Refinement (same day):** the first defer implementation was all-or-nothing — a region showed
+NOTHING until every column generated, producing swiss-cheese holes inside the streamed area
+while the generator drained its queue. Fixed: defer applies to REbuilds only (`_region_nodes.has`
+guard). First build happens immediately from whatever columns exist (progressive fill); the
+final rebuild waits for the region to settle. ~2 builds per region, no holes.
+
 ### <span style="color:#3fb950;">Phase 1 — Block-granular clip in the mesher (the core)</span>
 
 1. `ChunkMesher.build_mesh(chunk, cx, cy, cz, visual_cut_blocks, slice_y)`:
@@ -189,7 +294,103 @@ Consumers, in order:
 The one-per-frame rule is mandatory: any state change sets a dirty flag; `_process` flushes it
 once. No consumer may poll.
 
-### <span style="color:#3fb950;">Phase 4 — Overview interplay</span>
+### <span style="color:#3fb950;">Phase SO — SLICED OVERVIEW (added 2026-06-04, supersedes the old Phase 4)</span>
+
+**Why (Alen's verdict on Phase 1):** Stonehearth never changes *what world you see* — the whole
+map stays present and the plane removes geometry above it. Deepdraft's slice swapped to a local
+streamed bubble because the full-map representation (block-face overview) was surface-only. The
+mode swap, not the bubble's quality, is the parity gap. Decision: make the overview slice-aware
+BEFORE building the Phase-2 tool.
+
+**Design:**
+
+1. **Slice-aware overview columns (SO-1).** A column whose visible surface is above the plane
+   renders its cut floor at `slice_y`, coloured by `get_overview_strata_block_id` (thread-safe,
+   vein-concealed, cave-less — the approximation stays geometric per doc 24 mode 2; exact caves
+   and veins appear in the near streamed terrain). Neighbour-top math clamps the same way so
+   boundary walls hang from the cut, not from the world bottom. Existing greedy top-merge makes
+   deep-cut tiles nearly free geometry (one strata colour per Y band merges into large plates).
+2. **Per-tile invalidation (SO-1).** WorldGenerator precomputes per-32×32-tile min/max visible
+   height on the generator thread (gated like the grass bands; conservative all-tiles fallback
+   until ready). A slice change rebuilds only tiles with `max_h > min(old, new)` plus their
+   4-neighbours (border walls read neighbour tops). Lowland tiles never rebuild.
+3. ~~**Compositing (SO-2).**~~ <span style="color:#f85149;">**BUILT, THEN REVERTED (2026-06-04).**</span>
+   The "exact streamed bubble near the camera" showed real veins/caves on the cut floor —
+   violating the design rule below. It also produced two hole-punching bugs (full-tile coverage
+   over circularly-clipped partial region meshes) before the design conflict was recognised.
+   Consolidated outcome: **the sliced overview IS the slice view at every depth.** The streamed
+   chunk path is dormant (`set_overview_enabled(false)` only), reserved for a future
+   true-3D-interior need (side views into roofed tunnels). The waterline-aware neighbour-top fix
+   from this detour is kept — it removed a pre-existing ~127k-vert / 843 ms water-wall pathology
+   per water tile.
+
+   > <span style="color:#3fb950;">**DESIGN RULE (Alen): slicing must never reveal undiscovered
+   > resources.** Cut floors show authored strata only — everywhere, at every zoom. Veins, gems,
+   > and caves become visible exclusively through mining. Candidate for AGENT.md Hard Rules when
+   > this ships.</span>
+
+#### <span style="color:#3fb950;">CONSOLIDATED STATE — 2026-06-04, verified in-engine ("back to good")</span>
+
+**The sliced overview is THE slice view.** `WorldRenderer.slice_y` cuts the whole map at any
+depth with no mode switch, no streamed bubble, no resource reveal. Verified numbers (editor/debug,
+seed 1956482717):
+
+| Metric | Value |
+|---|---|
+| Slice 127 → 60 (278 tiles) | 1.54 s, worst frame **61 ms** |
+| Step 59 → 60 | 1.55 s, worst frame 60 ms |
+| Full overview build | 22.5 s (was 26.5 s — waterline fix cut total side faces 587k → **98.6k**) |
+| Pure-overview slice steps | center-first sweep; lowland tiles untouched by mountain-depth planes |
+
+**What ships from this arc:** Phase 1a–e (mesher slice clip — dormant with the streamed path but
+correct and future-needed; localized invalidation; threaded region batches; ChunkMesher LUT fast
+path; streaming rebuild defer), SO-1 (slice-aware overview + per-tile invalidation + tile-range
+cache + strata-only floors + center-first ordering), the waterline neighbour-top fix, and the
+slice timing instrumentation. The streamed chunk path is dormant behind `set_overview_enabled`.
+
+**Phase 2 (the Slice tool) is now simpler than planned:** the dock window's ▲ / `Y = N` / ▼
+just steps `WorldRenderer.slice_y` — no mode management, no streaming pre-warm, no
+`set_overview_enabled` calls. §3 Phase 2's streamed-mode choreography and §Phase 4 are obsolete.
+Seeding, clamps [4, 127], and mutual exclusion with the future X-Ray tool still apply.
+4. **Measure (SO-3).** Phase-0-style: slice-step tile rebuild counts + worst frame, full-map
+   plane drag, verify lowland tiles stay untouched. Known risk: a deep plane step touches every
+   mountain tile (~300); if the threaded 8-tile/frame budget janks, add the flat-plate fast path
+   (tiles fully below the plane emit one merged plate + edge walls without per-column sampling).
+
+#### <span style="color:#3fb950;">SO-1 RESULTS — 2026-06-04 (exact-vein cut floors, first iteration)</span>
+
+Verified working in-engine via `overview_slice_threshold = 0` — full map present and cut at any
+depth ("a huge step in the right direction" — Alen). Measured (editor/debug):
+
+| Step | Tiles | Total | Worst frame |
+|---|---|---|---|
+| 127 → 60 | 291 | 3.0 s | 700 ms |
+| 60 ↔ 59 | 291 | 3.3 s | 705 ms |
+| 60 → 30 | 601 | 5.3 s | 405 ms |
+| 30 → 15 | 1024 | 10.6 s | 462 ms |
+
+**Cost driver identified:** vein/gem speckles on cut floors fragment the greedy top-merge
+(hundreds of small rects per tile instead of a few plates) and balloon mesh uploads.
+
+**Decision (Alen):** STRATA-ONLY far-field cut floors — veins/gems/caves appear only in the
+exact streamed terrain near the camera (SO-2). Doubles as the design answer to instant full-map
+prospecting: discovery requires going there. Plus center-first sweep ordering (fills outward
+from the camera). Re-measure before SO-2.
+
+#### <span style="color:#3fb950;">SO-1 FINAL — 2026-06-04 (strata-only floors + center-first + fixed frame stamps)</span>
+
+| Step | Tiles | Total | Worst frame |
+|---|---|---|---|
+| 127 → 60 | 295 | **1.61 s** | **57 ms** |
+| 60 → 59 | 295 | **1.65 s** | **56 ms** |
+
+Profile (295 tiles): surface_loop 46%, sides 48%, top_merge 6%, **mesh_create ~0%** — the earlier
+~650 ms worst frames were the vein-speckled mesh uploads; with strata plates, uploads vanish.
+Slowest tile 34 ms (world-corner tile, deep edge walls). Release estimate: ~25 ms worst frame,
+~0.7 s sweep. Flat-plate fast path stays in the back pocket; not currently needed. Visuals
+verified in-engine: terraces, soil bands, tarn water plane in the cut — the Stonehearth model.
+
+### <span style="color:#d29922;">Phase 4 (old) — Overview interplay — superseded by Phase SO</span>
 
 Current behaviour (slice ≥ 96 → block-face overview; below → streamed chunks) is kept, with two
 deliberate adjustments:

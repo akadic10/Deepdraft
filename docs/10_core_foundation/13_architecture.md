@@ -75,6 +75,9 @@ func get_generation_metrics() -> Dictionary
 func get_surface_y(wx: int, wz: int) -> int
 func get_visible_surface_y(wx: int, wz: int) -> int           # waterline for lake/tarn columns
 func get_visible_surface_block_id(wx: int, wz: int) -> int
+func is_column_pending(cx: int, cz: int) -> bool              # queued/in-flight; renderer defers region rebuilds (doc 11 Phase 1e)
+func get_overview_strata_block_id(wx: int, wy: int, wz: int) -> int  # authored strata only, no veins/caves; thread-safe (slice concealment)
+func get_tile_visible_range(tx: int, tz: int) -> Vector2i     # per-32×32-tile min/max visible Y (sliced-overview invalidation)
 
 signal chunk_generated(cx: int, cy: int, cz: int)   # CONNECT_DEFERRED — mesh work is main-thread only
 signal world_complete()                             # CONNECT_DEFERRED

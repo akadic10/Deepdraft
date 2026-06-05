@@ -13,9 +13,14 @@ extends Node3D
 
 @export var slice_y: int = 127:
 	set(v):
+		var old_y := slice_y
 		slice_y = v
 		_apply_slice_visibility()
 		_enqueue_visible_existing_chunks()
+		if old_y != v:
+			_enqueue_regions_for_slice_change(old_y, v)
+			_enqueue_overview_tiles_for_slice_change(old_y, v)
+		_begin_slice_timing(old_y, v)
 
 ## XZ chunk radius around the camera that is allowed to build terrain meshes.
 ## The fog in debug_world.tscn hides this streaming boundary.
@@ -25,10 +30,10 @@ extends Node3D
 ## than view_radius_chunks so small camera movements do not churn nodes.
 @export_range(1, 80, 1) var unload_radius_chunks: int = 6
 
-## Extra chunk layers rendered below the current visible surface/slice layer.
-## 0 is fastest for surface view. 1 keeps a little vertical context for slopes
-## and shallow cutaways without drawing every hidden cave below the grass.
-@export_range(0, 8, 1) var vertical_context_chunks: int = 0
+## REMOVED (slice plan doc 11): vertical_context_chunks limited meshing to the
+## top chunk row per column, which made sliced/streamed views read as floating
+## slabs — cliff faces below the visible row were never meshed. All rows up to
+## the visible row are meshable now; the buried-skip keeps interiors free.
 
 ## Chunk meshes built per frame. Keep this conservative until the block-faithful
 ## overview mesh replaces full chunk rendering for high-altitude surface views.
@@ -38,11 +43,14 @@ extends Node3D
 ## frame. Once caught up we fall back to meshes_per_frame for smooth in-game edits.
 @export var meshes_per_frame_initial: int = 12
 
-## Exact full-world overview mesh for high-altitude surface views. It emits top
-## faces plus vertical faces where neighbouring columns are lower, so terrain
-## bands stay block-accurate while the camera is zoomed out.
+## Exact full-world overview mesh — THE renderer for normal play and for every
+## slice depth (doc 11 Phase SO). It emits top faces plus vertical faces where
+## neighbouring columns are lower, block-accurate in geometry; cut floors show
+## authored strata only (slicing never reveals undiscovered resources).
 @export var use_block_face_overview: bool = true
-@export var overview_slice_threshold: int = 96
+## REMOVED (Phase SO consolidation): overview_slice_threshold used to switch to
+## the streamed-bubble mode below slice 96. The sliced overview now covers all
+## depths; the streamed path is dormant (set_overview_enabled).
 @export var show_overview_sides: bool = true
 @export_range(0, 128, 1) var overview_edge_bottom_y: int = 0
 @export_range(1, 64, 1) var overview_tiles_per_frame: int = 8
@@ -60,6 +68,16 @@ extends Node3D
 ## WorkerThreadPool; the main thread only assigns the finished meshes. Set false
 ## to fall back to the synchronous per-tile build (e.g. to isolate a problem).
 @export var overview_threaded: bool = true
+## Debug (slice plan doc 11, Phase 0). When true, every slice_y change logs how
+## many regions were re-enqueued and how long the rebuild queue took to drain
+## (frames, wall ms, worst single frame). Quiet in normal play — nothing changes
+## slice_y at runtime yet, so this only fires on inspector pokes / the slice tool.
+@export var slice_debug_timing: bool = true
+## When true (doc 11 Phase 1c), each frame's batch of dirty regions builds its
+## mesh arrays in parallel on a WorkerThreadPool; the main thread only creates
+## and assigns the ArrayMeshes. The frame cost becomes the MAX single region
+## build instead of the SUM of the batch. Set false for the serial fallback.
+@export var region_threaded: bool = true
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -91,6 +109,10 @@ var _overview_tile_stats: Dictionary = {}
 var _dirty_overview_tiles: Array[Vector2i] = []
 var _dirty_overview_tile_set: Dictionary = {}
 var _visual_cut_blocks: Dictionary = {}
+## Chunk coords (Vector3i) → count of visual-cut blocks inside. Lets the
+## buried-skip exempt chunks that mining has carved into (their cavity faces
+## must mesh even though the chunk data itself is all-solid).
+var _cut_chunks: Dictionary = {}
 # Immutable cut-block snapshot read by the overview build (incl. worker threads).
 # Set on the main thread before each drain so workers never read the live
 # _visual_cut_blocks while mining could mutate it.
@@ -138,6 +160,24 @@ var _startup_report_printed: bool = false
 ## True until the world finishes generating AND the initial mesh queue drains.
 ## While true, _process builds at the faster meshes_per_frame_initial rate.
 var _initial_load: bool = true
+
+# Group-task scratch for the threaded region build (doc 11 Phase 1c). The main
+# thread fills _rgn_batch, dispatches, and BLOCKS until the batch completes, so
+# workers read shared state (slice_y, _visual_cut_blocks, _camera_chunk, the
+# WorldGenerator maps) without it mutating mid-build; each worker writes only
+# its own _rgn_results slot. WorldData reads are mutex-guarded.
+var _rgn_batch: Array[Vector2i] = []
+var _rgn_results: Array = []
+
+# ── Slice-change timing instrumentation (doc 11 Phase 0; gated by slice_debug_timing) ──
+var _slice_timing_active: bool = false
+var _slice_timing_start_msec: int = 0
+var _slice_timing_from: int = 0
+var _slice_timing_to: int = 0
+var _slice_timing_regions_enqueued: int = 0
+var _slice_timing_frames: int = 0
+var _slice_timing_max_frame_ms: int = 0
+var _slice_timing_rebuilds_at_start: int = 0
 
 var _camera_rig: Camera = null
 var _camera_chunk: Vector2i = Vector2i(-9999, -9999)
@@ -195,7 +235,12 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _block_face_overview_active():
+		# Stamp unconditionally — timing can begin between frames, and a zero
+		# stamp poisoned the worst-frame stat (measured against engine start).
+		var t_frame_ov := Time.get_ticks_msec()
 		_update_block_face_overview()
+		if _slice_timing_active:
+			_update_slice_timing(t_frame_ov)
 		return
 
 	_update_streaming_center()
@@ -205,13 +250,54 @@ func _process(_delta: float) -> void:
 	# then settle to the smooth in-game rate once caught up.
 	var budget := meshes_per_frame_initial if _initial_load else meshes_per_frame
 
-	var built := 0
-	while _dirty_region_queue.size() > 0 and built < budget:
+	# Stamp unconditionally (see the overview branch note above).
+	var t_frame := Time.get_ticks_msec()
+
+	# Pull this frame's batch off the dirty queue, skipping out-of-radius keys
+	# and DEFERRING regions whose columns are still streaming in (Phase 1e) —
+	# each completing column re-dirties its region anyway, so rebuilding early
+	# is pure waste (the Phase-0 cold run rebuilt regions up to ~16x this way).
+	# Deferred regions are requeued at the tail, never dropped, so a rare race
+	# with the generator's completion bookkeeping only delays them one frame.
+	# The scan is bounded to one pass over the queue so pending regions cannot
+	# starve ready ones behind them.
+	_rgn_batch.clear()
+	var scan_limit := _dirty_region_queue.size()
+	var scanned := 0
+	while _dirty_region_queue.size() > 0 and _rgn_batch.size() < budget and scanned < scan_limit:
+		scanned += 1
 		var key: Vector2i = _dirty_region_queue.pop_front()
 		_dirty_region_set.erase(key)
-		if _region_should_exist(key):
-			_rebuild_region(key)
-		built += 1
+		if not _region_should_exist(key):
+			continue
+		# Defer REbuilds only: a region with no mesh yet builds immediately from
+		# whatever columns exist (progressive fill, no holes while streaming);
+		# once it has a mesh, further rebuilds wait until its columns settle —
+		# one final rebuild instead of one per completing column (~2 total).
+		if _region_nodes.has(key) and _region_has_pending_columns(key):
+			_enqueue_region(key)
+			continue
+		_rgn_batch.append(key)
+	var built := _rgn_batch.size()
+
+	if not _rgn_batch.is_empty():
+		if region_threaded and _rgn_batch.size() > 1:
+			# Build all regions of the batch in parallel; assign meshes after.
+			_rgn_results.clear()
+			_rgn_results.resize(_rgn_batch.size())
+			var task_id := WorkerThreadPool.add_group_task(
+				Callable(self, "_region_build_worker"), _rgn_batch.size(), -1, false, "region_meshes")
+			WorkerThreadPool.wait_for_group_task_completion(task_id)
+			for i in range(_rgn_batch.size()):
+				_assign_region_mesh(_rgn_batch[i], _rgn_results[i])
+			_rgn_results.clear()
+		else:
+			for key: Vector2i in _rgn_batch:
+				_rebuild_region(key)
+		_rgn_batch.clear()
+
+	if _slice_timing_active:
+		_update_slice_timing(t_frame)
 
 	# Leave initial-load mode once generation is done and the queue is empty.
 	if _initial_load and _dirty_region_queue.is_empty() and not WorldGenerator.is_generating():
@@ -535,11 +621,14 @@ func _fallback_source_label(pos: Vector3i) -> String:
 func _inspector_render_mode() -> String:
 	if _block_face_overview_active():
 		return "block-face overview exact"
-	return "streamed chunk mesh"
+	return "composited: streamed chunks + sliced overview"
 
 
 func set_visual_cut_blocks(blocks: Dictionary) -> void:
 	_visual_cut_blocks = blocks.duplicate()
+	_cut_chunks.clear()
+	for block: Vector3i in _visual_cut_blocks.keys():
+		_track_cut_chunk(block, 1)
 	_invalidate_visual_cut_meshes_global()
 
 
@@ -549,6 +638,7 @@ func add_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 		if _visual_cut_blocks.has(block):
 			continue
 		_visual_cut_blocks[block] = true
+		_track_cut_chunk(block, 1)
 		changed.append(block)
 	_invalidate_visual_cut_blocks(changed)
 
@@ -559,8 +649,21 @@ func remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 		if not _visual_cut_blocks.has(block):
 			continue
 		_visual_cut_blocks.erase(block)
+		_track_cut_chunk(block, -1)
 		changed.append(block)
 	_invalidate_visual_cut_blocks(changed)
+
+
+func _track_cut_chunk(block: Vector3i, delta: int) -> void:
+	var key := Vector3i(
+		floori(float(block.x) / float(CHUNK_SIZE)),
+		floori(float(block.y) / float(CHUNK_SIZE)),
+		floori(float(block.z) / float(CHUNK_SIZE)))
+	var count := int(_cut_chunks.get(key, 0)) + delta
+	if count > 0:
+		_cut_chunks[key] = count
+	else:
+		_cut_chunks.erase(key)
 
 
 func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
@@ -640,11 +743,13 @@ func _rebuild_chunk(cx: int, cy: int, cz: int) -> void:
 	# Fully-buried skip: a solid chunk (no void of its own) whose six neighbours
 	# are also all solid can emit no visible faces. Skip the expensive mesh
 	# build entirely. Cheap has_void flags, set at generation time, drive this.
-	if not chunk.has_void and _is_buried(cx, cy, cz):
+	# NOTE: only valid when the chunk is entirely below the slice plane — a
+	# buried chunk that the plane cuts through must still mesh its cut floor.
+	if not chunk.has_void and _is_buried(cx, cy, cz) and (cy + 1) * CHUNK_SIZE - 1 < slice_y:
 		_free_chunk_node(key)
 		return
 
-	var mesh  := ChunkMesher.build_mesh(chunk, cx, cy, cz, _visual_cut_blocks)
+	var mesh  := ChunkMesher.build_mesh(chunk, cx, cy, cz, _visual_cut_blocks, slice_y)
 
 	if mesh == null:
 		_free_chunk_node(key)
@@ -655,6 +760,20 @@ func _rebuild_chunk(cx: int, cy: int, cz: int) -> void:
 	mi.visible = _chunk_should_be_meshed(cx, cy, cz)
 	if _chunk_nodes.size() == 1:
 		print("WorldRenderer: first solid mesh at world pos %s (chunk %d,%d,%d)." % [str(mi.global_position), cx, cy, cz])
+
+
+## True if this chunk or any of its six direct neighbours contains visual-cut
+## blocks — such chunks are exempt from the buried-skip because mining cavities
+## expose faces in them. O(7) dictionary lookups; worker-safe (read-only during
+## a batch, the main thread blocks while workers run).
+func _cut_chunk_nearby(cx: int, cy: int, cz: int) -> bool:
+	return _cut_chunks.has(Vector3i(cx, cy, cz)) \
+		or _cut_chunks.has(Vector3i(cx + 1, cy, cz)) \
+		or _cut_chunks.has(Vector3i(cx - 1, cy, cz)) \
+		or _cut_chunks.has(Vector3i(cx, cy + 1, cz)) \
+		or _cut_chunks.has(Vector3i(cx, cy - 1, cz)) \
+		or _cut_chunks.has(Vector3i(cx, cy, cz + 1)) \
+		or _cut_chunks.has(Vector3i(cx, cy, cz - 1))
 
 
 ## True when all six neighbour chunks are solid (contain no void). A missing
@@ -730,6 +849,20 @@ func _region_key(cx: int, cz: int) -> Vector2i:
 		floori(float(cz) / float(REGION_SIZE)))
 
 
+## Doc 11 Phase 1e: true while any chunk column in the region is still queued
+## or in flight on the generator thread. Rebuilding such a region is wasted
+## work — every completing column emits chunk_dirtied and re-enqueues it.
+## 16 brief mutex checks per call; negligible next to one region mesh build.
+func _region_has_pending_columns(key: Vector2i) -> bool:
+	var start_cx := key.x * REGION_SIZE
+	var start_cz := key.y * REGION_SIZE
+	for cx in range(start_cx, mini(CHUNK_COUNT_X, start_cx + REGION_SIZE)):
+		for cz in range(start_cz, mini(CHUNK_COUNT_Z, start_cz + REGION_SIZE)):
+			if WorldGenerator.is_column_pending(cx, cz):
+				return true
+	return false
+
+
 func _region_should_exist(key: Vector2i) -> bool:
 	var start_cx := key.x * REGION_SIZE
 	var start_cz := key.y * REGION_SIZE
@@ -740,8 +873,31 @@ func _region_should_exist(key: Vector2i) -> bool:
 	return false
 
 
+## Serial path: build one region's geometry and assign it immediately. Used for
+## single-region batches and the region_threaded = false fallback.
 func _rebuild_region(key: Vector2i) -> void:
 	var t_start := Time.get_ticks_msec()
+	var result := _build_region_geometry(key)
+	result["build_ms"] = Time.get_ticks_msec() - t_start
+	_assign_region_mesh(key, result)
+
+
+## WorkerThreadPool group-task body (doc 11 Phase 1c): builds one region of the
+## current batch into its own results slot. See the _rgn_batch declaration for
+## the thread-safety contract.
+func _region_build_worker(i: int) -> void:
+	var t_start := Time.get_ticks_msec()
+	var result := _build_region_geometry(_rgn_batch[i])
+	result["build_ms"] = Time.get_ticks_msec() - t_start
+	_rgn_results[i] = result
+
+
+## PURE geometry build for one region: the combined mesh arrays of every visible
+## chunk in the 4x4 chunk area. Writes no member state and touches no scene
+## nodes, so it is safe on a WorkerThreadPool task (ChunkMesher.build_arrays is
+## worker-safe; WorldData reads are mutex-guarded). Returns {} when the region
+## has no geometry.
+func _build_region_geometry(key: Vector2i) -> Dictionary:
 	var verts: PackedVector3Array = []
 	var norms: PackedVector3Array = []
 	var cols: PackedColorArray = []
@@ -757,21 +913,51 @@ func _rebuild_region(key: Vector2i) -> void:
 				var chunk := WorldData.get_chunk_if_exists(cx, cy, cz)
 				if chunk == null:
 					continue
-				var mesh := ChunkMesher.build_mesh(chunk, cx, cy, cz, _visual_cut_blocks)
-				if mesh == null:
+				# Buried-skip (worker-safe: has_void flag + mutex-guarded neighbour
+				# checks): a solid chunk whose six neighbours are also solid emits
+				# no faces — UNLESS the slice plane cuts through or sits on it
+				# (cut-floor top faces), or mining has carved into it or a direct
+				# neighbour (cavity wall faces live in the adjacent chunk). This
+				# keeps the all-rows visibility rule cheap: interior rock costs
+				# one flag check plus a few dictionary lookups.
+				if not chunk.has_void \
+						and (cy + 1) * CHUNK_SIZE - 1 < slice_y \
+						and not _cut_chunk_nearby(cx, cy, cz) \
+						and _is_buried(cx, cy, cz):
 					continue
-				_append_mesh_arrays(mesh, Vector3(cx * CHUNK_SIZE, cy * CHUNK_SIZE, cz * CHUNK_SIZE), verts, norms, cols, indices)
+				var built := ChunkMesher.build_arrays(chunk, cx, cy, cz, _visual_cut_blocks, slice_y)
+				if built.is_empty():
+					continue
+				_append_region_arrays(built, Vector3(cx * CHUNK_SIZE, cy * CHUNK_SIZE, cz * CHUNK_SIZE), verts, norms, cols, indices)
 
 	if verts.is_empty():
+		return {}
+	return {
+		"verts": verts,
+		"norms": norms,
+		"cols": cols,
+		"indices": indices,
+	}
+
+
+## Main-thread: create the ArrayMesh from a (possibly worker-built) geometry
+## result, assign or free the region node, and update rebuild bookkeeping.
+func _assign_region_mesh(key: Vector2i, result: Dictionary) -> void:
+	var build_ms := int(result.get("build_ms", 0))
+	_region_rebuild_count += 1
+	_region_rebuild_msec_total += build_ms
+	_region_rebuild_msec_max = maxi(_region_rebuild_msec_max, build_ms)
+
+	if not result.has("verts"):
 		_free_region_node(key)
 		return
 
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = verts
-	arrays[Mesh.ARRAY_NORMAL] = norms
-	arrays[Mesh.ARRAY_COLOR] = cols
-	arrays[Mesh.ARRAY_INDEX] = indices
+	arrays[Mesh.ARRAY_VERTEX] = result["verts"]
+	arrays[Mesh.ARRAY_NORMAL] = result["norms"]
+	arrays[Mesh.ARRAY_COLOR] = result["cols"]
+	arrays[Mesh.ARRAY_INDEX] = result["indices"]
 
 	var region_mesh := ArrayMesh.new()
 	region_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -783,11 +969,6 @@ func _rebuild_region(key: Vector2i) -> void:
 			_elapsed_since_start_seconds(_first_visible_mesh_msec),
 			str(key),
 		])
-
-	var elapsed := Time.get_ticks_msec() - t_start
-	_region_rebuild_count += 1
-	_region_rebuild_msec_total += elapsed
-	_region_rebuild_msec_max = maxi(_region_rebuild_msec_max, elapsed)
 
 
 func _rebuild_surface_region(key: Vector2i) -> void:
@@ -994,27 +1175,28 @@ func _add_overview_side_band(
 	indices.append(base + 3)
 
 
-func _append_mesh_arrays(
-		mesh: ArrayMesh,
+## Appends one chunk's packed arrays (from ChunkMesher.build_arrays) into the
+## combined region arrays, offsetting vertices into region space. Pure data —
+## worker-safe. Normals and colours are bulk-copied; vertices and indices need
+## the per-element offset/rebase.
+func _append_region_arrays(
+		built: Array,
 		offset: Vector3,
 		verts: PackedVector3Array,
 		norms: PackedVector3Array,
 		cols: PackedColorArray,
 		indices: PackedInt32Array) -> void:
 
-	var arrays := mesh.surface_get_arrays(0)
-	var src_verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var src_norms: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-	var src_cols: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
-	var src_indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var src_verts: PackedVector3Array = built[0]
+	var src_norms: PackedVector3Array = built[1]
+	var src_cols: PackedColorArray = built[2]
+	var src_indices: PackedInt32Array = built[3]
 	var base := verts.size()
 
 	for v: Vector3 in src_verts:
 		verts.append(v + offset)
-	for n: Vector3 in src_norms:
-		norms.append(n)
-	for c: Color in src_cols:
-		cols.append(c)
+	norms.append_array(src_norms)
+	cols.append_array(src_cols)
 	for i: int in src_indices:
 		indices.append(base + i)
 
@@ -1080,8 +1262,7 @@ func _invalidate_overview_global() -> void:
 ## chunks are not handled here: at this point startup is in overview mode, and
 ## any later streamed chunk builds after the gate is already open.
 func _on_grass_bands_ready() -> void:
-	if not _block_face_overview_active():
-		return
+	# SO-2: the far field exists in both modes now — refresh it regardless.
 	if _overview_tile_nodes.is_empty():
 		return
 	for key: Vector2i in _overview_tile_nodes.keys():
@@ -1105,6 +1286,46 @@ func _on_season_changed(_new_season: String) -> void:
 		_enqueue_region(rkey)
 	for ckey: Vector3i in _chunk_nodes.keys():
 		_enqueue_chunk(ckey)
+
+
+## Slice-change invalidation for the far field (doc 11 Phase SO): only tiles
+## whose visible terrain reaches above the LOWER of the two planes can change —
+## a tile entirely below both planes is cut by neither. Affected tiles plus
+## their 4-neighbours (boundary walls read neighbour tops) are re-enqueued
+## through the normal threaded/budgeted tile queue. Lowland tiles never rebuild
+## for mountain-depth slices. ~1k Vector2i range reads; trivial.
+func _enqueue_overview_tiles_for_slice_change(old_y: int, new_y: int) -> void:
+	if _overview_tile_nodes.is_empty() and not _overview_rebuild_queued:
+		return   # far field not built (or already torn down) — nothing to refresh
+	var low := mini(old_y, new_y)
+	var tile_count_x := ceili(float(WORLD_SIZE_X) / float(OVERVIEW_TILE_SIZE))
+	var tile_count_z := ceili(float(WORLD_SIZE_Z) / float(OVERVIEW_TILE_SIZE))
+	var affected: Dictionary = {}
+	for tx in range(tile_count_x):
+		for tz in range(tile_count_z):
+			if WorldGenerator.get_tile_visible_range(tx, tz).y > low:
+				affected[Vector2i(tx, tz)] = true
+	if affected.is_empty():
+		return
+	# Add the 1-tile wall margin, then enqueue CENTER-FIRST so the sweep fills
+	# outward from the camera instead of wiping west-to-east across the map.
+	var neighbor_offsets := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+	var to_build: Dictionary = {}
+	for key: Vector2i in affected.keys():
+		to_build[key] = true
+		for offset: Vector2i in neighbor_offsets:
+			var nkey: Vector2i = key + offset
+			if nkey.x < 0 or nkey.x >= tile_count_x or nkey.y < 0 or nkey.y >= tile_count_z:
+				continue
+			to_build[nkey] = true
+	var center := _overview_startup_center_tile(tile_count_x, tile_count_z)
+	var ordered: Array = to_build.keys()
+	ordered.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		return _overview_tile_distance(a, center) < _overview_tile_distance(b, center)
+	)
+	for key: Vector2i in ordered:
+		_enqueue_overview_tile(key)
+	_overview_built = false
 
 
 func _enqueue_overview_tiles_for_blocks(blocks: Array[Vector3i]) -> void:
@@ -1173,8 +1394,13 @@ func _recompute_overview_stats() -> void:
 		_overview_validation_mismatches += int(stats.get("validation_mismatches", 0))
 
 
+## The sliced overview IS the slice view (decision 2026-06-04, doc 11 Phase SO):
+## it covers the whole map at any slice depth, honours mining cuts, and never
+## reveals undiscovered resources. The streamed chunk path stays in the code
+## but DORMANT — reachable only via set_overview_enabled(false), reserved for a
+## future true-3D-interior need (side views into roofed tunnels).
 func _block_face_overview_active() -> bool:
-	return use_block_face_overview and slice_y >= overview_slice_threshold
+	return use_block_face_overview
 
 
 func _update_block_face_overview() -> void:
@@ -1672,12 +1898,20 @@ func _add_overview_sides(
 func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
 		return edge_y
-	# Height only - the side wall just needs the neighbor's top. Avoid the full
-	# get_generated_block_id surface generation that _overview_visible_surface_after_cut
-	# runs and discards here; it was ~4 wasted surface generations per column.
-	var wy := WorldGenerator.get_overview_surface_height(wx, wz)
-	if wy < 0 or wy > slice_y:
+	# WATERLINE-AWARE neighbour top (fix 2026-06-04): the old water-blind helper
+	# returned -1 for lake/tarn columns, so every water column and every bank
+	# drew side walls down to edge_y (Y0) — the tarn tile alone built ~127k
+	# verts (843 ms). Buried inside terrain it went unnoticed; the slice cut
+	# exposed it as a striped water monolith. With the waterline as the top:
+	# water-vs-water emits no walls, banks emit a 1-block lip, and the water
+	# surface quad (opaque) hides the basin interior anyway.
+	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
+	if wy < 0:
 		return edge_y
+	# Slice-aware (Phase SO): a neighbour above the plane is clamped to its cut
+	# top, so boundary walls hang from the cut floor, not the world bottom.
+	if wy > slice_y:
+		wy = slice_y
 	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
 		wy -= 1
 	if wy < 0:
@@ -1687,13 +1921,31 @@ func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 
 func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
-	if wy < 0 or wy > slice_y:
-		return {}
-	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
-		wy -= 1
 	if wy < 0:
 		return {}
-	var block_id := WorldGenerator.get_generated_block_id(wx, wy, wz)
+	# Slice-aware far field (doc 11 Phase SO): a column whose surface is above
+	# the plane shows its CUT FLOOR at slice_y instead of disappearing — the
+	# whole map stays present at any slice depth (the Stonehearth model).
+	var slice_cut := false
+	if wy > slice_y:
+		wy = slice_y
+		slice_cut = true
+	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
+		wy -= 1
+		slice_cut = false   # mining lowered the top below the plane — exact lookup
+	if wy < 0:
+		return {}
+	var block_id: int
+	if slice_cut:
+		# STRATA-ONLY cut floor (design rule, Alen 2026-06-04): slicing must
+		# NEVER reveal undiscovered resources — cut floors show the authored
+		# rock bands only, everywhere, at every zoom. Veins/gems/caves become
+		# visible exclusively through mining. Bonus: uniform plates greedy-merge
+		# into a few large rects (the vein speckles were the slice sweep's
+		# dominant cost — fragmented tops + huge meshes).
+		block_id = WorldGenerator.get_overview_strata_block_id(wx, wy, wz)
+	else:
+		block_id = WorldGenerator.get_generated_block_id(wx, wy, wz)
 	if BlockRegistry.is_transparent(block_id):
 		return {}
 	return {
@@ -1804,11 +2056,16 @@ func _chunk_should_be_meshed(cx: int, cy: int, cz: int) -> bool:
 	return _chunk_y_is_visible(cx, cy, cz) and _chunk_in_radius(cx, cz, view_radius_chunks)
 
 
+## All chunk rows from bedrock UP TO the visible row are meshable, so cliff
+## faces spanning multiple rows and the world below a slice plane render solid
+## (the Stonehearth model: the cut face runs unbroken to the valley floor).
+## Solid interior chunks are discarded cheaply at build time by the buried-skip
+## in _build_region_geometry — only chunks with exposed faces cost anything.
 func _chunk_y_is_visible(cx: int, cy: int, cz: int) -> bool:
 	var top_y: int = WorldGenerator.get_column_top_y(cx, cz)
 	var visible_y: int = mini(slice_y, top_y)
 	var visible_cy: int = clampi(floori(float(visible_y) / float(CHUNK_SIZE)), 0, CHUNK_COUNT_Y - 1)
-	return cy <= visible_cy and cy >= maxi(0, visible_cy - vertical_context_chunks)
+	return cy <= visible_cy
 
 
 func _chunk_in_radius(cx: int, cz: int, radius: int) -> bool:
@@ -1829,6 +2086,130 @@ func _apply_slice_visibility() -> void:
 	for key: Vector2i in _region_nodes:
 		(_region_nodes[key] as MeshInstance3D).visible = _region_should_exist(key)
 	_unload_far_chunks()
+
+
+## Localized slice invalidation (doc 11 Phase 1b). A region's mesh can only
+## change with the slice plane if some column in it reaches above the LOWER of
+## the two planes — terrain entirely below min(old, new) is untouched by either
+## clip, so its geometry is provably identical. This re-enqueues exactly the
+## affected live region nodes; regions without nodes are handled by
+## _enqueue_visible_existing_chunks (and would mesh with the new slice anyway).
+## Also fixes the Phase-0 latent bug: chunk-boundary crossings previously left
+## stale geometry on regions that already had nodes.
+func _enqueue_regions_for_slice_change(old_y: int, new_y: int) -> void:
+	if _block_face_overview_active():
+		return
+	var low_plane := mini(old_y, new_y)
+	for key: Vector2i in _region_nodes.keys():
+		if _region_reaches_above(key, low_plane):
+			_enqueue_region(key)
+
+
+## True if any chunk column in the region has terrain above the given Y.
+## Reads the generator's per-column max (16x16 heightmap scan per chunk column);
+## ~4k int reads per region — negligible next to one region mesh build.
+func _region_reaches_above(key: Vector2i, plane_y: int) -> bool:
+	var start_cx := key.x * REGION_SIZE
+	var start_cz := key.y * REGION_SIZE
+	for cx in range(start_cx, mini(CHUNK_COUNT_X, start_cx + REGION_SIZE)):
+		for cz in range(start_cz, mini(CHUNK_COUNT_Z, start_cz + REGION_SIZE)):
+			if WorldGenerator.get_column_top_y(cx, cz) > plane_y:
+				return true
+	return false
+
+
+## Slice tool hook (doc 11 Phase 4.1): the slice tool forces streamed mode while
+## active, because overview tiles bake slice_y into their geometry and have no
+## cheap per-tile invalidation for a moving plane. Overview tile nodes are
+## hidden, never freed — restoring the surface view on tool close is free.
+func set_overview_enabled(enabled: bool) -> void:
+	if use_block_face_overview == enabled:
+		return
+	use_block_face_overview = enabled
+	_apply_slice_visibility()
+	if not _block_face_overview_active():
+		_update_streaming_center()
+		_enqueue_visible_existing_chunks()
+
+
+# ── Slice-change timing (doc 11 Phase 0) ─────────────────────────────────────
+# Measures what one slice_y change actually costs with the CURRENT invalidation
+# (global _enqueue_visible_existing_chunks). This is the baseline the Phase 1
+# localized dirty math must beat. Gated by slice_debug_timing; zero work when off.
+
+func _begin_slice_timing(from_y: int, to_y: int) -> void:
+	if not slice_debug_timing or from_y == to_y:
+		return
+	_slice_timing_active = true
+	_slice_timing_start_msec = Time.get_ticks_msec()
+	_slice_timing_from = from_y
+	_slice_timing_to = to_y
+	_slice_timing_regions_enqueued = _dirty_region_queue.size() + _dirty_overview_tiles.size()
+	_slice_timing_frames = 0
+	_slice_timing_max_frame_ms = 0
+	_slice_timing_rebuilds_at_start = _region_rebuild_count + _overview_build_count
+	# Reset the overview profile accumulators so a profiled slice step reports
+	# only its own breakdown (overview_profile must be enabled on the node).
+	if overview_profile:
+		_ovp_loop_usec = 0
+		_ovp_sides_usec = 0
+		_ovp_merge_usec = 0
+		_ovp_mesh_usec = 0
+		_ovp_tiles = 0
+		_ovp_max_tile_usec = 0
+		_ovp_max_tile_key = Vector2i(-1, -1)
+		_ovp_max_breakdown = {}
+	print("SliceTiming: slice %d -> %d — %d regions + %d tiles queued, %d region nodes, %d tile nodes, generator %s." % [
+		from_y,
+		to_y,
+		_dirty_region_queue.size(),
+		_dirty_overview_tiles.size(),
+		_region_nodes.size(),
+		_overview_tile_nodes.size(),
+		"streaming" if WorldGenerator.is_generating() else "idle",
+	])
+
+
+## Called once per frame from _process while timing is active (t_frame = msec
+## stamp taken before this frame's drain — region or overview-tile, whichever
+## branch ran). Ends when BOTH rebuild queues are empty AND the generator has
+## no pending columns — newly exposed rows may still be streaming in, and
+## their meshes are part of the slice change's true cost.
+func _update_slice_timing(t_frame: int) -> void:
+	_slice_timing_frames += 1
+	_slice_timing_max_frame_ms = maxi(_slice_timing_max_frame_ms, Time.get_ticks_msec() - t_frame)
+	if not _dirty_region_queue.is_empty():
+		return
+	if not _dirty_overview_tiles.is_empty():
+		return
+	if WorldGenerator.is_generating():
+		return
+	_slice_timing_active = false
+	var total_ms := Time.get_ticks_msec() - _slice_timing_start_msec
+	print("SliceTiming: slice %d -> %d DONE — %d regions+tiles rebuilt (%d queued at start) over %d frames, %.3f s total, worst frame %d ms." % [
+		_slice_timing_from,
+		_slice_timing_to,
+		(_region_rebuild_count + _overview_build_count) - _slice_timing_rebuilds_at_start,
+		_slice_timing_regions_enqueued,
+		_slice_timing_frames,
+		float(total_ms) / 1000.0,
+		_slice_timing_max_frame_ms,
+	])
+	# Per-step cost breakdown (only when overview_profile is enabled): where the
+	# tile time went — worker column loop / side walls / top merge vs main-thread
+	# mesh creation — plus the single slowest tile. Diagnose before tuning.
+	if overview_profile and _ovp_tiles > 0:
+		var total_us := _ovp_loop_usec + _ovp_sides_usec + _ovp_merge_usec + _ovp_mesh_usec
+		print("SliceTiming profile: %d tiles — surface_loop %.2f s (%.0f%%), sides %.2f s (%.0f%%), top_merge %.2f s (%.0f%%), mesh_create %.2f s (%.0f%%); slowest tile %s at %.1f ms -> %s" % [
+			_ovp_tiles,
+			float(_ovp_loop_usec) / 1e6, 100.0 * float(_ovp_loop_usec) / float(maxi(total_us, 1)),
+			float(_ovp_sides_usec) / 1e6, 100.0 * float(_ovp_sides_usec) / float(maxi(total_us, 1)),
+			float(_ovp_merge_usec) / 1e6, 100.0 * float(_ovp_merge_usec) / float(maxi(total_us, 1)),
+			float(_ovp_mesh_usec) / 1e6, 100.0 * float(_ovp_mesh_usec) / float(maxi(total_us, 1)),
+			str(_ovp_max_tile_key),
+			float(_ovp_max_tile_usec) / 1000.0,
+			str(_ovp_max_breakdown),
+		])
 
 
 # ── Camera rig auto-setup ────────────────────────────────────────────────────
