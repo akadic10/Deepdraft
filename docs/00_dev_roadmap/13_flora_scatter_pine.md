@@ -121,26 +121,87 @@ added to `WorldGenerator` (alongside the existing `get_surface_y` etc.); it retu
 
 ## 5. Scale (important — project scale is inconsistent on paper)
 
-`61_voxel_art_guide.md` states 1 block = 0.5 Godot units (export scale 0.0625). **The live
-renderer does not follow this** — `ChunkMesher`/`WorldRenderer` emit one block as a **1.0-unit**
-cube (quads at `ox+1`, chunk nodes at `cx*16`), and the camera centres at x=512 for the
-1024-block world. So in the running game **1 block = 1 Godot unit**.
+The live renderer draws **1 block = 1 Godot unit** — `ChunkMesher`/`WorldRenderer` emit one
+block as a 1.0-unit cube (quads at `ox+1`, chunk nodes at `cx*16`), camera centred at x=512 for
+the 1024-block world. (An earlier `61_voxel_art_guide.md` "universal" rule said 1 block = 0.5
+units / export scale 0.0625; that was wrong for the live world and has been corrected — see doc
+61's per-class scale table.)
 
-The pine GLBs are authored in MagicaVoxel-voxel units with `.import` `root_scale = 1.0` (and
-`.import` files must never be hand-edited — File Ownership Rules). The spawner therefore applies
-the scale itself, as a single tunable:
+**Trees are authored 1:1 — 1 voxel = 1 block** (`tools/generate_pine_glbs.py`,
+`VOX_PER_BLOCK = 1`), the Stonehearth tree convention (their trees render at scale 1.0, one model
+voxel per terrain block). `.import` `root_scale = 1.0` (never hand-edit `.import`); the spawner
+applies the scale:
 
 ```
-instance_scale = godot_units_per_block / voxels_per_block      # 1.0 / 8.0 = 0.125
+instance_scale = godot_units_per_block / voxels_per_block      # 1.0 / 1.0 = 1.0
 ```
 
-At 0.125 a mature pine's 16-voxel trunk box reads as 2 blocks wide — matching the 2×2
-footprint. **This 0.125 is the number most likely to need an in-engine nudge**; it is one
-exported field (`voxels_per_block`) on the spawner, "one number in one place".
+At scale 1.0 each model voxel is one terrain block, so the GLB's voxel height *is* its block
+height — ancient 27 / mature 20 / sapling 8. The spawner's `voxels_per_block` **must equal** the
+generator's `VOX_PER_BLOCK` (both 1); kept in sync by hand. This is the deliberate
+trees-coarser-than-people split Stonehearth uses (their trees 1/block, characters 10/block; ours
+trees 1/block, characters/items 8/block) — it also makes the trees tiny on disk (~2 MB for all 12
+pines vs ~28 MB at 3/block). Characters/items keep 8 voxels/block via their own import scale.
 
 Tree origin: trunk base sits on the **top face** of the surface block. `get_surface_y` returns
 the index of the topmost solid block; its top face is at world `y = surface_y + 1`, so the
 instance is placed there.
+
+---
+
+## 5.1 Size baseline & targets (Stonehearth-matched)
+
+The pines currently read as too small in-engine — even an ancient. To set a defensible
+target we measured the reference game in `P:\stonehearth` (a Stonehearth mod tree: same
+genre, same stylised voxel look) and compared its pines to its people.
+
+**How Stonehearth scales models.** Per its own modding guide
+(`docs/modding_guide/.../item_scale`), the default render scale is **0.1** (1 model voxel =
+0.1 terrain block), and **trees and boulders override to `scale: 1`** (1 voxel = 1 full
+terrain block). Hearthlings stay at 0.1 — the guide notes "their face is 13 voxels wide…
+they barely occupy more than one terrain block of width," which matches the `.qb` files
+exactly. Measuring the actual Qubicle voxels and applying each entity's real scale:
+
+| Stonehearth model | Voxels (H × W) | Scale | World size (H × W, blocks) | × hearthling height |
+|---|---|---|---|---|
+| Hearthling (male) | 32 × 13 | 0.1 | 3.2 × 1.3 | 1.0× |
+| Sapling pine | 12 × 7 | 0.7 | 8.4 × 4.9 | 2.6× |
+| Medium pine | 20 × 9 | 1.0 | 20 × 9 | 6.3× |
+| Large pine | ~27–30 × 15 | 1.0 | ~27 × 15 | ~8.4× |
+
+**The anchor that makes this transferable:** a Stonehearth hearthling (~3.2 blocks tall) is
+essentially identical to the Deepdraft dwarf (3.3 blocks visual, `41_dwarf_agents.md`). The
+people are the same size, so Stonehearth's tree-to-person ratios map straight onto our
+dwarf — and the wide canopy is purely visual (its gameplay collision footprint is only
+~5×5), which is consistent with Hard Rule 5 (plant overhangs carry no collision).
+
+**Adopted Deepdraft pine targets (Stonehearth-matched):**
+
+| Stage | Target height | Target canopy width | × dwarf (3.3 blk) | Delivered (2026-06-06) |
+|---|---|---|---|---|
+| sapling | **~8 blocks** | ~5 blocks | ~2.4× | 8.0 × ~5.5 ✓ |
+| mature (≈ SH medium) | **~20 blocks** | ~9 blocks | ~6× | 20.0 × ~9 ✓ |
+| ancient (≈ SH large) | **~27 blocks** | ~15 blocks | ~8× | 27.0 × ~16 ✓ |
+
+> Note: Stonehearth has only three stages and its "sapling" is still a sizeable ~8-block
+> young tree, not a knee-high seedling. We adopt that here for visual parity; if a true
+> seedling stage is wanted later it should deviate below this ratio deliberately.
+
+**Delivered.** `tools/generate_pine_glbs.py` (new, 2026-06-06) authors all 12 pine GLBs as a
+simple Stonehearth-style **stepped conifer** (bare reddish trunk, a stack of flat needle whorls
+narrowing to a point with 1-block gaps the trunk peeks through, two-tone greens, snow-frosted
+winter variants) at the sizes above. It supersedes the old pines (produced by a script not in the
+repo, ~3× short). Key conventions baked in: **authored 1:1, 1 voxel = 1 block** (`VOX_PER_BLOCK = 1`,
+paired with the spawner's `voxels_per_block = 1.0`, scale 1.0 — see §5 and doc 61); centred on the
+trunk at X=Z=0 with the base at Y=0 (matches `_instance_tree`'s origin); trunk width tracks the
+1 / 2 / 3-block footprints, canopy is visual overhang only. The whole set is ~2.3 MB (ancient
+~340 KB, ~3.8k tris) — the 1:1 grid keeps trees cheap. Collision stays small — footprint XZ ×
+`clearance_height` Y (`pine_tree.json`: sapling 6 / mature 16 / ancient 22). Density is JSON-only
+(`scatter_cell_size` 16, `spawn_chance` 0.33).
+
+Source: Stonehearth modding guide, *Changing the item scale*
+(`P:\stonehearth\docs\modding_guide\modding_guide\basic\adding_items\item_scale\index.html`);
+model dimensions read from the `.qb` files under `P:\stonehearth\entities\`.
 
 ---
 
@@ -193,8 +254,10 @@ confirm:
 
 1. **Parse/load** — no GDScript or scene errors on launch; `SurfaceFloraSpawner` prints its
    loaded-pine count after `grass_bands_ready`.
-2. **Scale** — a mature pine is ~2 blocks wide / ~8 tall. If it's 8× too big, set
-   `voxels_per_block` higher (the GLBs are at voxel scale); if too small, lower it.
+2. **Scale** — confirm the §5.1 targets in-engine (ancient 27 / mature 20 / sapling 8 blocks
+   tall; canopy 15 / 9 / 5 wide) against a 3.3-block dwarf. Trees are authored 1:1, so the
+   spawner's `voxels_per_block` must read **1.0** and each model voxel is exactly one terrain
+   block. If everything is uniformly off, that one field is the dial.
 3. **Elevation** — pines blanket foothills and lower mountain, thin out approaching the
    peaks, vanish above ~Y90, and **none** appear on the lowland/settlement plain or in water.
 4. **Determinism** — same seed → identical forest across two launches.

@@ -31,28 +31,28 @@
   ],
 
   "grass_01": {
-    "spring": "#9CCD83", "summer": "#AFCC7C", "autumn": "#AACE65", "winter": "#C8C773"
+    "spring": "#9CCD83", "summer": "#AFCC7C", "autumn": "#B5B45C", "winter": "#C7CECB"
   },
   "grass_02": {
-    "spring": "#8FC880", "summer": "#9DBF76", "autumn": "#A7C35E", "winter": "#C1C26D"
+    "spring": "#8FC880", "summer": "#9DBF76", "autumn": "#ADA855", "winter": "#C0C8C5"
   },
   "grass_03": {
-    "spring": "#86C37C", "summer": "#94B873", "autumn": "#A6BD5B", "winter": "#BCBD6A"
+    "spring": "#86C37C", "summer": "#94B873", "autumn": "#A6A050", "winter": "#B9C2BF"
   },
   "grass_04": {
-    "spring": "#7EBB78", "summer": "#8BB270", "autumn": "#A5BA59", "winter": "#B7B867"
+    "spring": "#7EBB78", "summer": "#8BB270", "autumn": "#9E984B", "winter": "#B2BCB9"
   },
   "grass_05": {
-    "spring": "#89BC7D", "summer": "#82A979", "autumn": "#999456", "winter": "#D8E3EA"
+    "spring": "#89BC7D", "summer": "#85A96B", "autumn": "#999456", "winter": "#C2CDD6"
   },
   "grass_06": {
-    "spring": "#7FB274", "summer": "#789C72", "autumn": "#8E894F", "winter": "#D1DEE7"
+    "spring": "#7FB274", "summer": "#7A9C64", "autumn": "#8E894F", "winter": "#BCC8D3"
   },
   "grass_07": {
-    "spring": "#6EA66F", "summer": "#668A6A", "autumn": "#827A48", "winter": "#CAD8E1"
+    "spring": "#6EA66F", "summer": "#6B8A59", "autumn": "#827A48", "winter": "#B5C3CE"
   },
   "grass_08": {
-    "spring": "#5D9565", "summer": "#587C64", "autumn": "#6E6940", "winter": "#BFCDD8"
+    "spring": "#5D9565", "summer": "#5E7C50", "autumn": "#6E6940", "winter": "#AABAC6"
   },
 
   "__comment_dirt": "4 dirt variants — rain-soaked in spring, dry in summer, earthy in autumn, frost-grey in winter",

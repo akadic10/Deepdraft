@@ -39,9 +39,10 @@ Open question, decide with implementation:
 > first placed-entity system. Design and conventions (the canonical model-variant resolver, the
 > spawn-time scale rule, the shared vertex-colour material, edge setback) live in
 > `docs/00_dev_roadmap/13_flora_scatter_pine.md` and are meant to be reused by every later
-> species/prop. **Still backlog:** oak valley groves, juniper, apple orchards, the dense edge
-> forest belt (`24_world_rendering.md`), boulders, scree, flowers/shrubs, road-side detail, and
-> lake-bank reeds.
+> species/prop. **Oak, apple, and juniper 1:1 assets are now done too** (`61_voxel_art_guide.md`);
+> their *placement* across the world — a moisture-driven mixed forest — is specced in
+> [`14_flora_distribution_plan.md`](./14_flora_distribution_plan.md). **Still backlog:** boulders,
+> scree, flowers/shrubs, road-side detail, and lake-bank reeds.
 
 Worldgen itself does not bake flora into the chunk data (props are placed entities, not terrain
 — see below); the spawner reads worldgen's domain/height maps at runtime. Tree/bush assets

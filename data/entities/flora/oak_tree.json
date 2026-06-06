@@ -22,6 +22,22 @@
     "material_tags": ["wood", "tree", "flora", "hardwood", "stockpile_wood"],
     "appeal": 3,
 
+    "__placement_comment": "Mixed-forest niche, doc 14: low/wet broadleaf (lowland + foothill, mid-wet moisture). Read by SurfaceFloraSpawner's unified selector.",
+    "placement": {
+      "domains": ["lowland", "foothill"],
+      "exclude_water": true,
+      "min_surface_y": 12,
+      "max_surface_y": 43,
+      "moisture_min": 0.45,
+      "moisture_max": 1.0,
+      "base_density": 0.45,
+      "max_surface_slope": 1,
+      "edge_margin": 2,
+      "edge_dropoff_max": 3,
+      "footprint": { "sapling": 1, "mature": 3, "ancient": 5 },
+      "stage_weights": { "sapling": 0.15, "mature": 0.55, "ancient": 0.30 }
+    },
+
     "stages": {
 
       "sapling": {

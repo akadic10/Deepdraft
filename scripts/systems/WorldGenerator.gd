@@ -150,6 +150,7 @@ var noise_soil:     FastNoiseLite   # cave soil patches + surface dirt fraction
 var noise_domain:   FastNoiseLite   # broad terrain domain map
 var noise_mountain: FastNoiseLite   # mountain ridge detail
 var noise_valley:   FastNoiseLite   # valley / lowland floor detail
+var noise_moisture: FastNoiseLite   # broad moisture map (flora distribution; doc 14)
 
 # 2D column maps  (index: x * WORLD_SIZE_Z + z)
 var domain_map:   PackedInt32Array    # DOMAIN_* constant per column
@@ -555,6 +556,28 @@ func get_domain(wx: int, wz: int) -> int:
 	return domain_map[wx * WORLD_SIZE_Z + wz]
 
 
+## Moisture at a column in [0,1] (doc 14, flora distribution). Combines the broad
+## moisture noise with two adjustments: higher columns trend drier, and columns on
+## a water bank / lake / tarn read wetter. Deterministic from world_seed (Hard
+## Rule 8). Returns 0.5 before maps ready / out of bounds. O(1), thread-safe read.
+func get_moisture(wx: int, wz: int) -> float:
+	if not _maps_ready:
+		return 0.5
+	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
+		return 0.5
+	var m := (noise_moisture.get_noise_2d(float(wx), float(wz)) + 1.0) * 0.5
+	# Elevation drying: drier as the surface rises above the foothill base.
+	var sy: int = heightmap[wx * WORLD_SIZE_Z + wz]
+	var dry := clampf(float(sy - FOOTHILL_SHELF_MIN_Y)
+		/ float(PLATEAU_MAX_MOUNTAIN_HEIGHT - FOOTHILL_SHELF_MIN_Y), 0.0, 1.0)
+	m -= dry * 0.35
+	# Water-proximity boost: banks and water columns are wetter.
+	var col := Vector2i(wx, wz)
+	if water_bank_columns.has(col) or lake_columns.has(col) or tarn_columns.has(col):
+		m += 0.25
+	return clampf(m, 0.0, 1.0)
+
+
 func get_visible_surface_y(wx: int, wz: int) -> int:
 	if not _maps_ready:
 		return -1
@@ -608,6 +631,7 @@ func get_column_debug_info(wx: int, wz: int) -> Dictionary:
 	return {
 		"domain": _domain_label(domain_map[idx]),
 		"domain_n": domain_n_map[idx],
+		"moisture": get_moisture(wx, wz),
 		"height_band": _height_band_label(surface_y),
 		"lowland_cap_grass_band": _lowland_cap_grass_band_debug(idx),
 		"lowland_cap_grass_distance": _lowland_cap_grass_distance_debug(idx),
@@ -863,6 +887,14 @@ func _build_noise_instances() -> void:
 	noise_gem.seed             = world_seed + 7
 	noise_gem.frequency        = 0.06
 	noise_gem.fractal_octaves  = 3
+
+	# Layer 8 - Moisture map (flora distribution, doc 14)
+	# Very low frequency, broad wet/dry regions for the mixed-forest niches.
+	noise_moisture = FastNoiseLite.new()
+	noise_moisture.noise_type      = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise_moisture.seed            = world_seed + 8
+	noise_moisture.frequency       = 0.004
+	noise_moisture.fractal_octaves = 2
 
 
 # -- Phase 2 - Domain map (2D) -------------------------------------------------

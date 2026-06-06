@@ -1,16 +1,19 @@
 class_name SurfaceFloraSpawner
 extends Node3D
 
-## Surface flora placement — first pass: PINE only, extensible to other species.
+## Surface flora placement — MIXED FOREST (pine, oak, apple, juniper).
 ##
-## Scatters pine trees across the world BY ELEVATION (foothills + mountain slopes,
-## never the lowland shelf), streaming them in and out with the camera the same
-## way WorldRenderer streams terrain. This is the project's first system that
-## spawns placed GLB entities into the live scene.
+## Scatters trees across the world by ECOLOGY: each species has an elevation +
+## domain + moisture niche (see WorldGenerator.get_moisture). A single shared
+## scatter grid holds at most one tree per cell; per cell every species is scored
+## for suitability and one is chosen by a seeded weighted pick (or the cell is left
+## open). This blends species across the moisture/elevation gradient and prevents
+## overlapping trunks. Streams in/out with the camera like the terrain.
 ##
-## Design + decisions: docs/00_dev_roadmap/13_flora_scatter_pine.md
-## Placement data:      data/entities/flora/pine_tree.json -> "placement"
-## Footprint / rules:   docs/40_economy_colony/42_farming_brewing.md (Surface Trees)
+## Design + decisions: docs/00_dev_roadmap/14_flora_distribution_plan.md
+##                     docs/00_dev_roadmap/13_flora_scatter_pine.md (pine first pass)
+## Placement data:     data/entities/flora/<species>_tree.json -> "placement"
+## Footprint / rules:  docs/40_economy_colony/42_farming_brewing.md (Surface Trees)
 ##
 ## OWNS its own data loading (the VisitorManager pattern — no separate registry
 ## autoload for flora). All FileAccess for flora JSON happens here.
@@ -28,56 +31,63 @@ const DOMAIN_LOWLAND:  int = 0
 const DOMAIN_VALLEY:   int = 1   # foothill domain / valley corridor
 const DOMAIN_MOUNTAIN: int = 2
 
-const PINE_KEY: String = "base:flora:pine_tree"
-
 # ── Tunables (exported so they can be adjusted in the editor) ─────────────────
 
-## Flora definition JSON. First pass loads pine only; extend to a folder later.
-@export var pine_json_path: String = "res://data/entities/flora/pine_tree.json"
+## Flora definition JSON files. Each holds one "base:flora:*_tree" species block.
+## A file without a "placement" block is skipped (assets exist but no niche yet).
+@export var flora_json_paths: Array[String] = [
+	"res://data/entities/flora/pine_tree.json",
+	"res://data/entities/flora/oak_tree.json",
+	"res://data/entities/flora/apple_tree.json",
+	"res://data/entities/flora/juniper_tree.json",
+]
 
-## XZ chunk radius around the camera that spawns flora. Match WorldRenderer's
-## view_radius_chunks (default 5) so trees and terrain stream together.
+## Shared scatter grid: one candidate tree per cell_size×cell_size block cell
+## (bigger = sparser overall). This is the master density dial; per-species
+## base_density (in each JSON) sets the relative mix within a cell.
+@export_range(2, 64, 1) var scatter_cell_size: int = 14
+
+## Cap on the chance a suitable cell holds a tree (summed species suitability is
+## clamped to this). Keeps even the richest mixing zones from being 100% covered.
+@export_range(0.0, 1.0, 0.01) var max_cell_occupancy: float = 0.9
+
+## XZ chunk radius around the camera that spawns flora (only used when
+## cover_whole_map is OFF). Match WorldRenderer's view_radius_chunks.
 @export_range(1, 64, 1) var view_radius_chunks: int = 5
 
-## Scale conversion. The live world renders 1 block = 1.0 Godot unit (see doc 13
-## §5). GLBs are authored at 8 MagicaVoxel voxels per block with .import
-## root_scale = 1.0 (which must never be edited). So instances are scaled here by
-## godot_units_per_block / voxels_per_block = 1.0 / 8.0 = 0.125. THIS is the
-## number most likely to need an in-engine nudge.
-@export var voxels_per_block: float = 8.0
+## Scale conversion. The live world renders 1 block = 1.0 Godot unit (doc 13 §5).
+## Trees are authored 1:1 — 1 voxel = 1 block (the Stonehearth tree convention,
+## doc 61) with .import root_scale = 1.0 (never edit .import). So instance_scale =
+## godot_units_per_block / voxels_per_block = 1.0 / 1.0 = 1.0. Characters/items use
+## 8 voxels/block via their own import scale.
+@export var voxels_per_block: float = 1.0
 @export var godot_units_per_block: float = 1.0
 
-## Whole-map mode (default): scatter pine across the ENTIRE map once and keep it,
-## so trees do not pop in/out or "follow" the overview camera. The columns are
-## still spawned over several frames (spawn_budget_per_frame) so there is no big
-## one-frame hitch, and nothing is despawned. Turn this OFF to fall back to
-## camera-radius streaming (view_radius_chunks) for a future first-person/close
-## camera where only nearby trees need to exist.
+## Whole-map mode (default): scatter across the ENTIRE map once and keep it, so
+## trees do not pop in/out or "follow" the overview camera. Columns are still
+## spawned over several frames (spawn_budget_per_frame). Turn OFF to fall back to
+## camera-radius streaming (view_radius_chunks) for a future close camera.
 @export var cover_whole_map: bool = true
 
-## Chunk-columns spawned per frame while filling in. Whole-map mode has ~4096
-## columns to cover, so this is higher than a pure streaming radius would need.
+## Chunk-columns spawned per frame while filling in.
 @export_range(1, 256, 1) var spawn_budget_per_frame: int = 24
 
 ## Mature/ancient trees get a StaticBody3D + box collider (dwarves path around
-## them). With no agents in the world yet, whole-map mode spawns thousands of
-## bodies; turn this off if physics cost is a problem until agents exist.
+## them). With no agents yet, whole-map mode spawns thousands of bodies; turn off
+## if physics cost is a problem until agents exist.
 @export var enable_collision: bool = true
 
-## Physics layer for mature/ancient tree colliders. MUST NOT include Layer 1:
-## the RTS camera's SpringArm3D collides against Layer 1 (terrain only) to avoid
-## clipping, so trees on Layer 1 yank the camera down onto a tree on a quick pan.
-## Layer 2 keeps tree obstacles available for future dwarf pathing without
-## touching the camera (same principle as dwarves/items — see Camera.gd).
+## Physics layer for mature/ancient tree colliders. MUST NOT include Layer 1: the
+## RTS camera's SpringArm3D collides against Layer 1 (terrain only) to avoid
+## clipping, so trees on Layer 1 yank the camera down on a quick pan. Layer 2
+## keeps tree obstacles available for future dwarf pathing (see Camera.gd).
 @export_flags_3d_physics var tree_collision_layer: int = 2
 
 @export var debug_logging: bool = true
 
 # ── Loaded data ───────────────────────────────────────────────────────────────
-var _pine_def: Dictionary = {}          # the PINE_KEY block
-var _placement: Dictionary = {}         # _pine_def["placement"]
-var _stages: Dictionary = {}            # _pine_def["stages"]
-var _allowed_domains: Dictionary = {}   # int domain -> true
+## One entry per usable species: { key, name, placement, stages, domains }.
+var _species: Array[Dictionary] = []
 
 # ── Runtime state ─────────────────────────────────────────────────────────────
 var _ready_to_spawn: bool = false
@@ -96,15 +106,13 @@ var _spawned_count: int = 0
 
 func _ready() -> void:
 	_tree_material = _build_tree_material()
-	if not _load_pine_definition():
-		push_error("SurfaceFloraSpawner: failed to load pine definition; disabled.")
+	if not _load_all_flora():
+		push_error("SurfaceFloraSpawner: no usable flora definitions; disabled.")
 		set_process(false)
 		return
 
-	# Arming is poll-based (see _process): the spawner only needs the heightmap
-	# and domain_map, both valid once WorldGenerator reports maps_ready. Polling
-	# avoids any node-_ready ordering race with the renderer that kicks off the
-	# (threaded, deferred) generation.
+	# Arming is poll-based (see _process): the spawner needs the heightmap, domain
+	# map and moisture noise, all valid once WorldGenerator reports maps_ready.
 	if WorldClock.has_signal("season_changed"):
 		WorldClock.season_changed.connect(_on_season_changed)
 	_season = WorldClock.season
@@ -118,14 +126,15 @@ func _arm() -> void:
 	if cover_whole_map:
 		_enqueue_all_columns()
 	if debug_logging:
-		print("SurfaceFloraSpawner: maps ready, pine scatter armed (seed=%d, whole_map=%s, columns_queued=%d)."
-			% [WorldGenerator.world_seed, str(cover_whole_map), _pending.size()])
+		var names := []
+		for sp in _species:
+			names.append(sp["name"])
+		print("SurfaceFloraSpawner: maps ready, scatter armed (seed=%d, species=%s, cell=%d, whole_map=%s, columns=%d)."
+			% [WorldGenerator.world_seed, str(names), scatter_cell_size, str(cover_whole_map), _pending.size()])
 
 
-## Queues every chunk-column in the world, ordered nearest-to-camera first so the
-## area the player is looking at fills in before the far corners. Used once in
-## whole-map mode; columns are then drained by the per-frame budget and never
-## despawned.
+## Queues every chunk-column, nearest-to-camera first so the looked-at area fills
+## before the far corners. Used once in whole-map mode; never despawned.
 func _enqueue_all_columns() -> void:
 	var center := Vector2i(CHUNK_COUNT_X / 2, CHUNK_COUNT_Z / 2)
 	if _camera != null:
@@ -140,7 +149,6 @@ func _enqueue_all_columns() -> void:
 				continue
 			all.append(key)
 			_pending_set[key] = true
-	# Nearest-to-camera first (Chebyshev distance is fine for fill order).
 	all.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
 		var da: int = maxi(absi(a.x - center.x), absi(a.y - center.y))
 		var db: int = maxi(absi(b.x - center.x), absi(b.y - center.y))
@@ -152,14 +160,11 @@ func _enqueue_all_columns() -> void:
 
 func _process(_delta: float) -> void:
 	if not _ready_to_spawn:
-		# Poll WorldGenerator until its terrain maps (height + domain) are built.
 		if bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
 			_arm()
 		else:
 			return
 
-	# Camera-radius streaming is only used when NOT covering the whole map. In
-	# whole-map mode the full column list was queued once at arm time.
 	if not cover_whole_map:
 		if _camera == null:
 			_camera = _find_camera(get_tree().current_scene)
@@ -167,13 +172,12 @@ func _process(_delta: float) -> void:
 				return
 		_update_streaming_center()
 
-	# Drain a bounded number of pending columns this frame.
 	var budget := spawn_budget_per_frame
 	while budget > 0 and not _pending.is_empty():
 		var key: Vector2i = _pending.pop_front()
 		_pending_set.erase(key)
 		if not cover_whole_map and not _column_in_radius(key.x, key.y):
-			continue   # camera moved away before we got to it
+			continue
 		_spawn_column(key.x, key.y)
 		budget -= 1
 
@@ -186,7 +190,6 @@ func _update_streaming_center() -> void:
 		return
 	_camera_chunk = next_chunk
 
-	# Despawn columns that fell out of radius.
 	var to_free: Array[Vector2i] = []
 	for key: Vector2i in _loaded_columns.keys():
 		if not _column_in_radius(key.x, key.y):
@@ -194,7 +197,6 @@ func _update_streaming_center() -> void:
 	for key: Vector2i in to_free:
 		_despawn_column(key)
 
-	# Enqueue newly-visible columns not already loaded or pending.
 	for dz in range(-view_radius_chunks, view_radius_chunks + 1):
 		for dx in range(-view_radius_chunks, view_radius_chunks + 1):
 			var cx := _camera_chunk.x + dx
@@ -218,18 +220,15 @@ func _column_in_radius(cx: int, cz: int) -> bool:
 
 # ── Per-column scatter ────────────────────────────────────────────────────────
 
-## Spawns every pine whose scatter cell is ANCHORED in this chunk column. A cell
-## is owned by the single chunk that contains its origin corner (cell_x*size,
-## cell_z*size), so cells straddling a chunk boundary spawn exactly once.
+## Spawns every tree whose scatter cell is ANCHORED in this chunk column. A cell
+## is owned by the single chunk that contains its origin corner, so cells
+## straddling a chunk boundary spawn exactly once.
 func _spawn_column(cx: int, cz: int) -> void:
 	var nodes: Array[Node3D] = []
 	var x0 := cx * CHUNK_SIZE
 	var z0 := cz * CHUNK_SIZE
-	var size: int = int(_placement.get("scatter_cell_size", 5))
-	if size < 1:
-		size = 1
+	var size := maxi(1, scatter_cell_size)
 
-	# Cells whose origin block lies within [x0 .. x0+15].
 	var cell_x_lo := int(ceil(float(x0) / float(size)))
 	var cell_x_hi := int(floor(float(x0 + CHUNK_SIZE - 1) / float(size)))
 	var cell_z_lo := int(ceil(float(z0) / float(size)))
@@ -244,7 +243,7 @@ func _spawn_column(cx: int, cz: int) -> void:
 	_loaded_columns[Vector2i(cx, cz)] = nodes
 
 
-## Evaluates one scatter cell; returns the spawned tree root or null.
+## Evaluates one scatter cell against ALL species; returns the spawned tree or null.
 func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 	var h_pos := _hash(cell_x, cell_z, 101)          # jitter within cell
 	var jx: int = h_pos % size
@@ -257,57 +256,97 @@ func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 	if wz < 0 or wz >= CHUNK_COUNT_Z * CHUNK_SIZE:
 		return null
 
-	# Domain + water gate.
+	# Environment, read once.
 	var domain := WorldGenerator.get_domain(wx, wz)
-	if not _allowed_domains.has(domain):
-		return null
-	if bool(_placement.get("exclude_water", true)) and _is_water(wx, wz):
-		return null
-
 	var ground_y := WorldGenerator.get_surface_y(wx, wz)
-	if ground_y < int(_placement.get("min_surface_y", 20)):
+	if ground_y < 0:
+		return null
+	var water := _is_water(wx, wz)
+	var moisture := WorldGenerator.get_moisture(wx, wz)
+
+	# Score every species; sum suitability.
+	var total := 0.0
+	var scores: Array[float] = []
+	scores.resize(_species.size())
+	for i in range(_species.size()):
+		var s := _suitability(_species[i], domain, ground_y, moisture, water, wx, wz)
+		scores[i] = s
+		total += s
+	if total <= 0.0:
 		return null
 
-	# Treeline falloff factor [0,1] by surface elevation.
-	var falloff := _falloff_factor(ground_y)
-	if falloff <= 0.0:
+	# Presence test (clamped so even rich cells leave some gaps).
+	var presence := minf(total, max_cell_occupancy)
+	if _unit(_hash(cell_x, cell_z, 202)) >= presence:
 		return null
 
-	# Presence test.
-	var spawn_chance := float(_placement.get("spawn_chance", 0.55)) * falloff
-	if _unit(_hash(cell_x, cell_z, 202)) >= spawn_chance:
+	# Weighted species pick.
+	var r := _unit(_hash(cell_x, cell_z, 303)) * total
+	var chosen := -1
+	var acc := 0.0
+	for i in range(scores.size()):
+		acc += scores[i]
+		if r < acc:
+			chosen = i
+			break
+	if chosen < 0:
 		return null
+	var sp: Dictionary = _species[chosen]
+	var placement: Dictionary = sp["placement"]
+	var stages: Dictionary = sp["stages"]
 
 	# Stage + footprint.
-	var stage_name := _pick_stage(_hash(cell_x, cell_z, 303))
-	var stage_data: Dictionary = _stages.get(stage_name, {})
+	var stage_name := _pick_stage(placement, _hash(cell_x, cell_z, 304))
+	var stage_data: Dictionary = stages.get(stage_name, {})
 	if stage_data.is_empty():
 		return null
-	var footprint: int = int(_footprint_for(stage_name))
+	var footprint: int = _footprint_for(placement, stage_name)
 
-	# Flatness / validity over the footprint.
-	if not _footprint_ok(wx, wz, footprint, ground_y):
+	# Flatness / validity and cliff-lip setback over the footprint.
+	if not _footprint_ok(placement, wx, wz, footprint, ground_y):
+		return null
+	if not _edge_ok(placement, wx, wz, footprint, ground_y):
 		return null
 
-	# Edge setback: keep trees back from cliff lips and the world border so the
-	# canopy (wider than the footprint) does not overhang a drop or the void.
-	if not _edge_ok(wx, wz, footprint, ground_y):
-		return null
-
-	# Resolve the model for the current season (pine = summer/winter only).
 	var model_path := resolve_tree_model_for_season(
 		stage_data, _season, Vector3i(wx, ground_y, wz))
 	if model_path == "":
 		return null
 
-	return _instance_tree(model_path, stage_name, stage_data, wx, wz, ground_y, footprint)
+	return _instance_tree(sp["name"], model_path, stage_name, stage_data, wx, wz, ground_y, footprint)
+
+
+## Per-species suitability weight for a column (0 = unsuitable). Gates on domain,
+## elevation band, water and moisture niche; scaled by base_density, the treeline
+## falloff (if any) and the grove mask (apple).
+func _suitability(sp: Dictionary, domain: int, ground_y: int, moisture: float,
+		water: bool, wx: int, wz: int) -> float:
+	var pl: Dictionary = sp["placement"]
+	if not (sp["domains"] as Dictionary).has(domain):
+		return 0.0
+	if water and bool(pl.get("exclude_water", true)):
+		return 0.0
+	if ground_y < int(pl.get("min_surface_y", 0)):
+		return 0.0
+	if ground_y > int(pl.get("max_surface_y", 100000)):
+		return 0.0
+	var mw := _moisture_weight(pl, moisture)
+	if mw <= 0.0:
+		return 0.0
+	var fall := _falloff_factor(pl, ground_y)
+	if fall <= 0.0:
+		return 0.0
+	var grove := _grove_weight(pl, wx, wz)
+	if grove <= 0.0:
+		return 0.0
+	var base := float(pl.get("base_density", pl.get("spawn_chance", 0.4)))
+	return base * mw * fall * grove
 
 
 # ── Instancing ────────────────────────────────────────────────────────────────
 
-func _instance_tree(
-		model_path: String, stage_name: String, stage_data: Dictionary,
-		wx: int, wz: int, ground_y: int, footprint: int) -> Node3D:
+func _instance_tree(species_name: String, model_path: String, stage_name: String,
+		stage_data: Dictionary, wx: int, wz: int, ground_y: int, footprint: int) -> Node3D:
 	var packed := _load_scene(model_path)
 	if packed == null:
 		return null
@@ -320,9 +359,6 @@ func _instance_tree(
 		float(ground_y + 1),
 		float(wz) + 0.5 * footprint)
 
-	# Saplings are "clutter": no collision (Hard Rule 5). Mature/ancient get a
-	# StaticBody3D root with a box collider so future dwarves path around them
-	# (unless collision is globally disabled for perf while there are no agents).
 	var is_clutter := (stage_name == "sapling") or not enable_collision
 	var root: Node3D
 	if is_clutter:
@@ -334,11 +370,8 @@ func _instance_tree(
 		root = body
 
 	root.position = origin
-	root.name = "pine_%s_%d_%d" % [stage_name, wx, wz]
+	root.name = "%s_%s_%d_%d" % [species_name, stage_name, wx, wz]
 
-	# Visual GLB instance, scaled. Collider (added below) is a sibling of this
-	# under the root, so it is NOT affected by the visual's scale. GLB scene
-	# roots are Node3D; bail defensively if a model imports as something else.
 	var visual := packed.instantiate() as Node3D
 	if visual == null:
 		root.free()
@@ -355,7 +388,7 @@ func _instance_tree(
 		var box := BoxShape3D.new()
 		box.size = Vector3(float(footprint), height, float(footprint))
 		col.shape = box
-		col.position = Vector3(0.0, height * 0.5, 0.0)   # box stands from the ground up
+		col.position = Vector3(0.0, height * 0.5, 0.0)
 		root.add_child(col)
 
 	add_child(root)
@@ -398,11 +431,15 @@ static func resolve_tree_model_for_season(
 	return resolve_tree_model(value, world_pos)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Suitability helpers ───────────────────────────────────────────────────────
 
-func _falloff_factor(surface_y: int) -> float:
-	var full_max := int(_placement.get("full_density_max_y", 75))
-	var fall_max := int(_placement.get("falloff_max_y", 90))
+## Treeline / band falloff [0,1] by surface elevation. Species without
+## full_density_max_y/falloff_max_y (only pine defines them) get a flat 1.0.
+func _falloff_factor(pl: Dictionary, surface_y: int) -> float:
+	if not pl.has("full_density_max_y"):
+		return 1.0
+	var full_max := int(pl.get("full_density_max_y", 75))
+	var fall_max := int(pl.get("falloff_max_y", 90))
 	if surface_y <= full_max:
 		return 1.0
 	if surface_y >= fall_max or fall_max <= full_max:
@@ -410,8 +447,37 @@ func _falloff_factor(surface_y: int) -> float:
 	return 1.0 - float(surface_y - full_max) / float(fall_max - full_max)
 
 
-func _pick_stage(h: int) -> String:
-	var weights: Dictionary = _placement.get("stage_weights", {})
+## Moisture niche weight [0,1]: 1.0 inside [moisture_min, moisture_max], tapering
+## to 0 over moisture_margin outside. Absent keys = no moisture preference (1.0).
+func _moisture_weight(pl: Dictionary, m: float) -> float:
+	var mmin := float(pl.get("moisture_min", 0.0))
+	var mmax := float(pl.get("moisture_max", 1.0))
+	var margin := float(pl.get("moisture_margin", 0.15))
+	if m >= mmin and m <= mmax:
+		return 1.0
+	if margin <= 0.0:
+		return 0.0
+	if m < mmin:
+		return maxf(0.0, 1.0 - (mmin - m) / margin)
+	return maxf(0.0, 1.0 - (m - mmax) / margin)
+
+
+## Grove clustering (apple). Returns 1.0 inside a grove cell, else 0.0. A grove
+## cell is a coarse cell_size×cell_size block region selected by a hashed
+## threshold, so wild apples cluster into orchards instead of even scatter.
+func _grove_weight(pl: Dictionary, wx: int, wz: int) -> float:
+	var g: Dictionary = pl.get("grove", {})
+	if g.is_empty() or not bool(g.get("enabled", false)):
+		return 1.0
+	var cs := maxi(1, int(g.get("cell_size", 28)))
+	var thr := float(g.get("threshold", 0.4))
+	var gx := int(floor(float(wx) / float(cs)))
+	var gz := int(floor(float(wz) / float(cs)))
+	return 1.0 if _unit(_hash(gx, gz, 909)) < thr else 0.0
+
+
+func _pick_stage(pl: Dictionary, h: int) -> String:
+	var weights: Dictionary = pl.get("stage_weights", {})
 	var total := 0.0
 	for k in weights.keys():
 		total += float(weights[k])
@@ -426,15 +492,16 @@ func _pick_stage(h: int) -> String:
 	return "mature"
 
 
-func _footprint_for(stage_name: String) -> int:
-	var fp: Dictionary = _placement.get("footprint", {})
+func _footprint_for(pl: Dictionary, stage_name: String) -> int:
+	var fp: Dictionary = pl.get("footprint", {})
 	return int(fp.get(stage_name, 1))
 
 
 ## True if the footprint columns are solid ground, dry, and flat enough.
-func _footprint_ok(wx: int, wz: int, footprint: int, ground_y: int) -> bool:
-	var max_slope := int(_placement.get("max_surface_slope", 1))
-	var min_y := int(_placement.get("min_surface_y", 20))
+func _footprint_ok(pl: Dictionary, wx: int, wz: int, footprint: int, ground_y: int) -> bool:
+	var max_slope := int(pl.get("max_surface_slope", 1))
+	var min_y := int(pl.get("min_surface_y", 0))
+	var excl_water := bool(pl.get("exclude_water", true))
 	for ddx in range(footprint):
 		for ddz in range(footprint):
 			var sx := wx + ddx
@@ -444,37 +511,34 @@ func _footprint_ok(wx: int, wz: int, footprint: int, ground_y: int) -> bool:
 				return false
 			if absi(sy - ground_y) > max_slope:
 				return false
-			if bool(_placement.get("exclude_water", true)) and _is_water(sx, sz):
+			if excl_water and _is_water(sx, sz):
 				return false
 	return true
 
 
 ## Keeps trees set back from drops. Scans a ring `edge_margin` blocks wide around
-## the footprint and rejects the tree if any ring column is off-world (void) or
-## drops more than `edge_dropoff_max` below the trunk — i.e. the tree sits on a
-## cliff lip / world border where its wider canopy would overhang empty space.
-## edge_margin <= 0 disables the check.
-func _edge_ok(wx: int, wz: int, footprint: int, ground_y: int) -> bool:
-	var margin := int(_placement.get("edge_margin", 1))
+## the footprint and rejects if any ring column is off-world (void) or drops more
+## than `edge_dropoff_max` below the trunk. edge_margin <= 0 disables the check.
+func _edge_ok(pl: Dictionary, wx: int, wz: int, footprint: int, ground_y: int) -> bool:
+	var margin := int(pl.get("edge_margin", 1))
 	if margin <= 0:
 		return true
-	var dropoff_max := int(_placement.get("edge_dropoff_max", 3))
+	var dropoff_max := int(pl.get("edge_dropoff_max", 3))
 	var x_lo := wx - margin
 	var x_hi := wx + footprint - 1 + margin
 	var z_lo := wz - margin
 	var z_hi := wz + footprint - 1 + margin
 	for sx in range(x_lo, x_hi + 1):
 		for sz in range(z_lo, z_hi + 1):
-			# Only the perimeter ring matters; the interior is the footprint.
 			var on_ring := sx < wx or sx > wx + footprint - 1 \
 				or sz < wz or sz > wz + footprint - 1
 			if not on_ring:
 				continue
 			var sy := WorldGenerator.get_surface_y(sx, sz)
 			if sy < 0:
-				return false                      # off-world / void beside the tree
+				return false
 			if ground_y - sy > dropoff_max:
-				return false                      # a real drop the canopy would overhang
+				return false
 	return true
 
 
@@ -520,12 +584,9 @@ func _apply_material_recursive(node: Node) -> void:
 		_apply_material_recursive(child)
 
 
-## Mirrors WorldRenderer._create_material() so trees render like the terrain:
-## vertex colour as albedo, DOUBLE-SIDED (CULL_DISABLED) so the thin/sparse
-## canopy shell never shows see-through "missing" back faces, and LIT
-## (PER_PIXEL) so the voxel facets read as 3D under the sun instead of a flat
-## blob. (The old unshaded/cull_back spec in 61_voxel_art_guide.md predates the
-## lit, double-sided terrain material and is being reconciled to this.)
+## Mirrors WorldRenderer._create_material(): vertex colour as albedo, DOUBLE-SIDED
+## (CULL_DISABLED) so the sparse canopy shell shows no see-through back faces, and
+## LIT (PER_PIXEL) so the voxel facets read as 3D under the sun.
 func _build_tree_material() -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.vertex_color_use_as_albedo = true
@@ -543,15 +604,16 @@ func _on_season_changed(new_season: String) -> void:
 	_season = new_season
 	if not _ready_to_spawn:
 		return
-	# Skip the rebuild when the new season resolves to the SAME models as the old
-	# one — pine uses its "summer" model for spring/summer/autumn, so those
-	# transitions need no change. Avoids a pointless map-wide despawn/respawn
-	# flicker; pine then only rebuilds entering/leaving winter.
-	if _effective_season(old_season) == _effective_season(new_season):
+	# Skip the rebuild only if EVERY species resolves the old and new season to the
+	# same model set (e.g. evergreens map spring/summer/autumn all to "summer").
+	var changed := false
+	for sp in _species:
+		var stages: Dictionary = sp["stages"]
+		if _effective_season_for(stages, old_season) != _effective_season_for(stages, new_season):
+			changed = true
+			break
+	if not changed:
 		return
-	# Re-resolve every tree for the new season. Tear everything down, then re-queue
-	# the SAME coverage we started with — whole-map re-queues the whole map, not
-	# just the camera radius, otherwise only a patch around the camera respawns.
 	for key: Vector2i in _loaded_columns.keys():
 		_despawn_column(key)
 	_pending.clear()
@@ -559,15 +621,13 @@ func _on_season_changed(new_season: String) -> void:
 	if cover_whole_map:
 		_enqueue_all_columns()
 	else:
-		_camera_chunk = Vector2i(-9999, -9999)   # force a streaming recompute next frame
+		_camera_chunk = Vector2i(-9999, -9999)
 
 
-## Resolves a season to the model key it actually uses, per the summer fallback.
-## Pine defines only summer/winter, so spring/summer/autumn all map to "summer".
-## Uses the "mature" stage as reference (all stages share the same season keys).
-## NOTE: pine-only today; a multi-species spawner must check this per species.
-func _effective_season(season: String) -> String:
-	var ref: Dictionary = _stages.get("mature", {})
+## Resolves a season to the model key it actually uses, per the summer fallback,
+## using the "mature" stage as reference (all stages share the same season keys).
+func _effective_season_for(stages: Dictionary, season: String) -> String:
+	var ref: Dictionary = stages.get("mature", {})
 	var models: Dictionary = ref.get("models", {})
 	if models.has(season):
 		return season
@@ -588,35 +648,66 @@ func _find_camera(node: Node) -> Camera:
 
 # ── Data loading (registry pattern — this system owns its flora JSON) ─────────
 
-func _load_pine_definition() -> bool:
-	if not FileAccess.file_exists(pine_json_path):
-		push_error("SurfaceFloraSpawner: missing %s" % pine_json_path)
-		return false
-	var f := FileAccess.open(pine_json_path, FileAccess.READ)
-	if f == null:
-		push_error("SurfaceFloraSpawner: cannot open %s" % pine_json_path)
-		return false
-	var parsed = JSON.parse_string(f.get_as_text())
-	f.close()
-	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has(PINE_KEY):
-		push_error("SurfaceFloraSpawner: malformed pine JSON (missing '%s')" % PINE_KEY)
-		return false
+## Loads every flora JSON; keeps species that have both a "placement" and "stages"
+## block. Files without placement (assets exist but no niche yet) are skipped.
+func _load_all_flora() -> bool:
+	_species.clear()
+	for path in flora_json_paths:
+		if not FileAccess.file_exists(path):
+			push_warning("SurfaceFloraSpawner: missing %s (skipped)" % path)
+			continue
+		var f := FileAccess.open(path, FileAccess.READ)
+		if f == null:
+			push_warning("SurfaceFloraSpawner: cannot open %s (skipped)" % path)
+			continue
+		var parsed = JSON.parse_string(f.get_as_text())
+		f.close()
+		if typeof(parsed) != TYPE_DICTIONARY:
+			push_warning("SurfaceFloraSpawner: malformed JSON %s (skipped)" % path)
+			continue
+		var key := _species_key(parsed)
+		if key == "":
+			push_warning("SurfaceFloraSpawner: no 'base:flora:*' key in %s (skipped)" % path)
+			continue
+		var def: Dictionary = parsed[key]
+		var placement: Dictionary = def.get("placement", {})
+		var stages: Dictionary = def.get("stages", {})
+		if placement.is_empty() or stages.is_empty():
+			if debug_logging:
+				print("SurfaceFloraSpawner: %s has no placement yet (skipped)." % key)
+			continue
+		_species.append({
+			"key": key,
+			"name": _short_name(key),
+			"placement": placement,
+			"stages": stages,
+			"domains": _domains_dict(placement.get("domains", [])),
+		})
+	return not _species.is_empty()
 
-	_pine_def = parsed[PINE_KEY]
-	_placement = _pine_def.get("placement", {})
-	_stages = _pine_def.get("stages", {})
-	if _placement.is_empty() or _stages.is_empty():
-		push_error("SurfaceFloraSpawner: pine def missing 'placement' or 'stages'.")
-		return false
 
-	# Map domain names -> WorldGenerator domain ints.
-	_allowed_domains.clear()
-	for dom_name in _placement.get("domains", []):
+func _species_key(parsed: Dictionary) -> String:
+	for k in parsed.keys():
+		var s := String(k)
+		if s.begins_with("base:flora:"):
+			return s
+	return ""
+
+
+## "base:flora:pine_tree" -> "pine"
+func _short_name(key: String) -> String:
+	var tail := key.get_slice(":", 2)        # "pine_tree"
+	return tail.replace("_tree", "")
+
+
+func _domains_dict(domain_names: Array) -> Dictionary:
+	var d: Dictionary = {}
+	for dom_name in domain_names:
 		match String(dom_name):
-			"lowland":            _allowed_domains[DOMAIN_LOWLAND] = true
-			"valley", "foothill": _allowed_domains[DOMAIN_VALLEY] = true
-			"mountain":           _allowed_domains[DOMAIN_MOUNTAIN] = true
-	return true
+			"lowland":            d[DOMAIN_LOWLAND] = true
+			"valley", "foothill": d[DOMAIN_VALLEY] = true
+			"mountain":           d[DOMAIN_MOUNTAIN] = true
+	return d
 
 
 # ── Debug ─────────────────────────────────────────────────────────────────────
@@ -624,6 +715,7 @@ func _load_pine_definition() -> bool:
 func get_spawn_stats() -> Dictionary:
 	return {
 		"spawned": _spawned_count,
+		"species": _species.size(),
 		"loaded_columns": _loaded_columns.size(),
 		"pending_columns": _pending.size(),
 		"season": _season,

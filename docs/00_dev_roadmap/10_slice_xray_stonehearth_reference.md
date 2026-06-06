@@ -315,4 +315,4 @@ The distilled rules a faithful port must reproduce:
 
 ---
 
-*Prev: [09_grass_color_tuning.md](./09_grass_color_tuning.md) | Next: [11_slice_xray_plan.md](./11_slice_xray_plan.md)*
+*Prev: [08_sky_plan.md](./08_sky_plan.md) | Next: [11_slice_xray_plan.md](./11_slice_xray_plan.md)*

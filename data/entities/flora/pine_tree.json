@@ -42,8 +42,8 @@
       "min_surface_y": 20,
       "full_density_max_y": 75,
       "falloff_max_y": 90,
-      "scatter_cell_size": 8,
-      "spawn_chance": 0.40,
+      "scatter_cell_size": 16,
+      "spawn_chance": 0.33,
       "max_surface_slope": 1,
       "edge_margin": 2,
       "edge_dropoff_max": 3,
@@ -54,7 +54,7 @@
     "stages": {
 
       "sapling": {
-        "clearance_height": 2,
+        "clearance_height": 6,
         "growth_duration_days": 3,
         "next_stage": "mature",
         "models": {
@@ -67,7 +67,7 @@
       },
 
       "mature": {
-        "clearance_height": 8,
+        "clearance_height": 16,
         "growth_duration_days": 6,
         "next_stage": "ancient",
         "models": {
@@ -90,7 +90,7 @@
       },
 
       "ancient": {
-        "clearance_height": 12,
+        "clearance_height": 22,
         "growth_duration_days": null,
         "next_stage": null,
         "models": {

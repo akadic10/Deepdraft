@@ -18,6 +18,23 @@
     "material_tags": ["wood", "tree", "flora", "fruit_tree", "stockpile_wood"],
     "appeal": 4,
 
+    "__placement_comment": "Mixed-forest niche, doc 14: wild fruit tree in sheltered wet low ground (lowland + low foothill), CLUMPED into groves. Also player-plantable. Read by SurfaceFloraSpawner.",
+    "placement": {
+      "domains": ["lowland", "foothill"],
+      "exclude_water": true,
+      "min_surface_y": 12,
+      "max_surface_y": 30,
+      "moisture_min": 0.6,
+      "moisture_max": 1.0,
+      "base_density": 0.4,
+      "max_surface_slope": 1,
+      "edge_margin": 2,
+      "edge_dropoff_max": 3,
+      "footprint": { "sapling": 1, "mature": 3, "ancient": 5 },
+      "stage_weights": { "sapling": 0.2, "mature": 0.55, "ancient": 0.25 },
+      "grove": { "enabled": true, "cell_size": 30, "threshold": 0.35 }
+    },
+
     "stages": {
 
       "sapling": {

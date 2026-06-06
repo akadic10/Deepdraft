@@ -17,6 +17,22 @@
     "material_tags": ["wood", "tree", "flora", "evergreen", "stockpile_wood"],
     "appeal": 2,
 
+    "__placement_comment": "Mixed-forest niche, doc 14: hardy DRY-loving evergreen on rocky/exposed ground (lowland rock through mountain, extends above the pine treeline). Read by SurfaceFloraSpawner.",
+    "placement": {
+      "domains": ["lowland", "foothill", "mountain"],
+      "exclude_water": true,
+      "min_surface_y": 12,
+      "max_surface_y": 95,
+      "moisture_min": 0.0,
+      "moisture_max": 0.4,
+      "base_density": 0.35,
+      "max_surface_slope": 1,
+      "edge_margin": 2,
+      "edge_dropoff_max": 3,
+      "footprint": { "sapling": 1, "mature": 1, "ancient": 2 },
+      "stage_weights": { "sapling": 0.2, "mature": 0.55, "ancient": 0.25 }
+    },
+
     "stages": {
 
       "sapling": {
