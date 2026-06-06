@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://xiav8b5spfgo"
-valid=false
+uid="uid://dbs7huxh5ycxe"
+path="res://.godot/imported/pine_ancient_winter.glb-9c84a12ea44944f9a5b880932c0ce218.scn"
 
 [deps]
 
 source_file="res://assets/models/flora/trees/pine/pine_ancient_winter.glb"
+dest_files=["res://.godot/imported/pine_ancient_winter.glb-9c84a12ea44944f9a5b880932c0ce218.scn"]
 
 [params]
 

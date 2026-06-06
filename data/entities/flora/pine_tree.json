@@ -18,6 +18,39 @@
     "material_tags": ["wood", "tree", "flora", "evergreen", "stockpile_wood"],
     "appeal": 1,
 
+    "__placement_comment": [
+      "World-gen scatter rules read by SurfaceFloraSpawner (data, not logic).",
+      "Pine is the elevation tree: foothill + mountain domains only, never lowland.",
+      "Density by terrain surface Y (in blocks), per WorldGenerator's bands:",
+      "  - min_surface_y .. full_density_max_y : full density (foothill shelf + lower mountain)",
+      "  - full_density_max_y .. falloff_max_y : density ramps linearly to zero (the treeline band)",
+      "  - >= falloff_max_y                    : no pines (bare rock / future snow cap)",
+      "Reference bands (WorldGenerator.gd): foothill shelf Y20-43, mountain Y44-115.",
+      "Determinism (Hard Rule 8): every decision derives from world_seed + column XZ.",
+      "footprint = XZ block extents per stage; spacing and collision use these.",
+      "scatter_cell_size = grid cell (blocks) holding at most one tree, jittered within the cell.",
+      "spawn_chance = probability a full-density cell contains a pine (before falloff scaling).",
+      "max_surface_slope = reject a footprint whose columns differ in surface Y by more than this.",
+      "edge_margin = ring (blocks) around the footprint checked for drops; 0 disables.",
+      "edge_dropoff_max = reject if a ring column is off-world or drops more than this below the trunk (keeps canopies off cliff lips / the world edge)."
+    ],
+
+    "placement": {
+      "domains": ["foothill", "mountain"],
+      "exclude_domains": ["lowland"],
+      "exclude_water": true,
+      "min_surface_y": 20,
+      "full_density_max_y": 75,
+      "falloff_max_y": 90,
+      "scatter_cell_size": 8,
+      "spawn_chance": 0.40,
+      "max_surface_slope": 1,
+      "edge_margin": 2,
+      "edge_dropoff_max": 3,
+      "footprint": { "sapling": 1, "mature": 2, "ancient": 3 },
+      "stage_weights": { "sapling": 0.15, "mature": 0.60, "ancient": 0.25 }
+    },
+
     "stages": {
 
       "sapling": {

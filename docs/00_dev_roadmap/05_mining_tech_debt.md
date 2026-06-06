@@ -15,8 +15,9 @@ elsewhere: tool spec in `43_mining_materials.md` §Mining Tools, invalidation co
 `24_world_rendering.md` §Mining-Edit Invalidation Contract. Every item below was verified
 still open against the code on 2026-06-05.
 
-Open items: zone overlay whole-rebuild, parity polish 1–6. (Config source of truth and
-overlay readability both resolved 2026-06-05.)
+Open items: parity polish 1–7. (Resolved 2026-06-05: config source of truth, overlay
+readability ghost/exposed layers, per-zone overlay split + orange selection. The no-merge
+adjacency decision is logged in `43_mining_materials.md` §Mining Zone Entity.)
 
 ## <span style="color:#3fb950;">RESOLVED 2026-06-05 - Config Source Of Truth</span>
 
@@ -91,18 +92,35 @@ over it; nothing broken in open view (exposed-only overlays read as before); sli
 behaviour unchanged. Alphas accepted at first values — retune only if a future scene
 makes the ghost read wrong.
 
-## <span style="color:#d29922;">REVIEW - Zone Overlay Mesh Is Rebuilt Whole (moved from retired 04_mining_performance.md, 2026-06-05)</span>
+## <span style="color:#3fb950;">RESOLVED 2026-06-05 - Zone Overlay Per-Zone Split (moved from retired 04_mining_performance.md)</span>
 
-**Status:** <span style="color:#d29922;">Open / polish — not the old freeze path</span>
+**Status:** <span style="color:#3fb950;">Shipped — verified in-engine by Alen 2026-06-05</span>
 
-`_rebuild_zones_mesh()` rebuilds ALL confirmed zone overlay geometry into one combined mesh
-on every confirm / remove / select / DEV-mine, and (since doc 11 Phase 3) on every slice
-change via `visible_volume_changed` — the per-block VisibleVolume clip runs inside the same
-all-zones loop. Fine at current zone counts; will become noticeable with many large zones.
-Fix shape when needed: per-zone mesh nodes so one edit touches one zone's mesh, and the
-slice clip re-evaluates only zones intersecting the changed plane rows.
+Was: `_rebuild_zones_mesh()` rebuilt ALL zones into one combined mesh on every confirm /
+remove / select / DEV-mine / slice change. Now (`MiningDesignationController.gd`):
 
-The terrain-side invalidation contract that pass established is now normative in
+- **Per-zone nodes:** each zone owns a `Zone<id>` Node3D under `MiningZoneOverlays` with
+  ghost/exposed fill+line MeshInstance3Ds (shared materials; ghost/exposed share meshes).
+- **Localized rebuilds:** confirm builds one zone; remove/DEV-mine frees one; Ctrl-subtract
+  rebuilds only affected zones; selection recolor rebakes exactly the old + new selected
+  zones (`_set_selected_zone`).
+- **Slice-step skip rule:** each overlay caches its Y-range and clip state
+  (FULL / PARTIAL / HIDDEN). On `visible_volume_changed`, a zone rebuilds only when its
+  state changes or it is PARTIAL under a moved plane — fully-visible and fully-hidden
+  zones cost O(1) per step. Assumes plane-only visibility; revisit when X-Ray joins the
+  visible-volume contract.
+
+**Verified (Alen, 2026-06-05):** confirm/remove/select/DEV-mine redraw correctly;
+Ctrl-subtract across two zones bit both independently; slice steps Y59→55 closed partial
+outlines flat at the plane, hid the zones entirely below their range, and restored cleanly
+back at Y63.
+
+**Bundled same day:** selected-zone highlight recoloured RED → ORANGE (1.0, 0.52, 0.05) —
+red is now reserved exclusively for the Ctrl-subtract removal preview (the two were
+indistinguishable when Ctrl-hovering the selected zone); orange matches the zone window's
+DEV Mine accent. Dead `_selected_zone_material` removed. Verified by Alen.
+
+The terrain-side invalidation contract that pass established is normative in
 `24_world_rendering.md` §Mining-Edit Invalidation Contract.
 
 **Timing validation (conditional, doc-07 rule):** the 04 plan's formal `1×1×1` / `3×3×1` /
@@ -135,6 +153,11 @@ Mining-UX polish items from the old parity review, all verified still open in
    prep).** The mined/designation set split shipped with slice Phase SO-2b; the remaining
    split — completed blocks, destination blocks, reserved blocks — lands with real mining
    execution (spec: `43_mining_materials.md` §Mining Zone Entity).
+7. <span style="color:#d29922;"><strong>REVIEW:</strong></span> **Adjacent-zone seam
+   outline.** Adjacent zones draw a doubled outline at their shared boundary. Zones are
+   deliberately NOT merged (decision + reasoning: `43_mining_materials.md` §Mining Zone
+   Entity, 2026-06-05); if the seam bothers in play, suppress outline faces against
+   any-zone neighbours via `_zone_by_block` — presentation only, never data merging.
 
 ---
 

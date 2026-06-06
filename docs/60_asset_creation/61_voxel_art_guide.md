@@ -37,18 +37,32 @@ Export settings in MagicaVoxel:
 - **Normals:** Flat (never smooth — smooth normals destroy the voxel aesthetic)
 - **Texture bake:** OFF — all colour lives in vertex colour, not a texture atlas
 
-In Godot, imported GLBs must use the project-wide **unlit vertex-colour shader**:
+In Godot, imported GLBs use the **project-wide vertex-colour material** — the same one the
+terrain renderer applies (`WorldRenderer._create_material()`), so world objects and the ground
+shade consistently:
 
 ```gdscript
-# World object shader (unlit, vertex colour only)
-shader_type spatial;
-render_mode unshaded, cull_back;
-
-void fragment() {
-    ALBEDO = COLOR.rgb;
-    ALPHA  = COLOR.a;
-}
+# World object material (vertex colour as albedo, lit, double-sided)
+var mat := StandardMaterial3D.new()
+mat.vertex_color_use_as_albedo = true
+mat.roughness    = 1.0
+mat.metallic     = 0.0
+mat.cull_mode    = BaseMaterial3D.CULL_DISABLED          # double-sided
+mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL # lit by the sun
 ```
+
+> **History (2026-06-06):** this guide previously specified an `unshaded, cull_back` shader.
+> That predated the lit, double-sided terrain material and caused two artifacts on voxel
+> foliage: single-sided culling (`cull_back`) made the thin/sparse canopy shell show
+> see-through "missing" faces, and `unshaded` flattened the voxel facets into a colour blob.
+> Matching the terrain material (`CULL_DISABLED` + `SHADING_MODE_PER_PIXEL`) fixes both. First
+> applied to pine in `SurfaceFloraSpawner` — see `docs/00_dev_roadmap/13_flora_scatter_pine.md`
+> §6. Tradeoff: `CULL_DISABLED` ~doubles a mesh's drawn triangles; terrain already runs this
+> way, so revisit only if it costs too much at scale.
+
+The **highlight/shadow gradient still matters** (top surfaces lighter, recesses darker, baked
+into vertex colour) — lighting enhances that read, it does not replace it. Never flat-fill a
+material with a single colour.
 
 World assets (unlike dwarf parts) do **not** use a runtime `tint` uniform. Their colours are baked at authoring time. If a future system needs runtime recolouring (e.g. banner dye), it will use a separate shader with a tint uniform identical to the dwarf shader in `41b`.
 

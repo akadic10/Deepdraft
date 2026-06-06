@@ -543,6 +543,18 @@ func get_surface_y(wx: int, wz: int) -> int:
 	return heightmap[wx * WORLD_SIZE_Z + wz]
 
 
+## Terrain domain (DOMAIN_LOWLAND / DOMAIN_VALLEY / DOMAIN_MOUNTAIN) at a column.
+## Returns -1 before maps are ready or out of bounds. O(1), thread-safe read of
+## the immutable post-maps domain_map. Used by SurfaceFloraSpawner to gate flora
+## by domain (e.g. pine = foothill + mountain only).
+func get_domain(wx: int, wz: int) -> int:
+	if not _maps_ready:
+		return -1
+	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
+		return -1
+	return domain_map[wx * WORLD_SIZE_Z + wz]
+
+
 func get_visible_surface_y(wx: int, wz: int) -> int:
 	if not _maps_ready:
 		return -1

@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://chdbjiksls5dh"
-valid=false
+uid="uid://cls2ehfv0h0hn"
+path="res://.godot/imported/pine_sapling_winter.glb-a0e6b38af4ed7c9d4d6cfe33654be982.scn"
 
 [deps]
 
 source_file="res://assets/models/flora/trees/pine/pine_sapling_winter.glb"
+dest_files=["res://.godot/imported/pine_sapling_winter.glb-a0e6b38af4ed7c9d4d6cfe33654be982.scn"]
 
 [params]
 

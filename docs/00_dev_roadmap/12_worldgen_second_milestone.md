@@ -34,11 +34,20 @@ Open question, decide with implementation:
 
 ## 2. <span style="color:#3fb950;">Scatter maps for flora and boulders</span>
 
-Worldgen does not spawn flora yet (tree/bush assets already exist under
-`assets/models/flora/`). Worldgen should eventually produce placement maps that make
-spawning easy: dense edge forest (the border foliage belt, `24_world_rendering.md`),
-valley trees, mountain pines/junipers, boulders, scree, flowers/shrubs, road-side
-detail, and lake-bank reeds.
+> **Partly implemented (2026-06-06): pine.** `SurfaceFloraSpawner` now scatters pine across the
+> foothill + mountain bands (elevation-gated, seed-deterministic, whole-map, streamed) — the
+> first placed-entity system. Design and conventions (the canonical model-variant resolver, the
+> spawn-time scale rule, the shared vertex-colour material, edge setback) live in
+> `docs/00_dev_roadmap/13_flora_scatter_pine.md` and are meant to be reused by every later
+> species/prop. **Still backlog:** oak valley groves, juniper, apple orchards, the dense edge
+> forest belt (`24_world_rendering.md`), boulders, scree, flowers/shrubs, road-side detail, and
+> lake-bank reeds.
+
+Worldgen itself does not bake flora into the chunk data (props are placed entities, not terrain
+— see below); the spawner reads worldgen's domain/height maps at runtime. Tree/bush assets
+already exist under `assets/models/flora/`. Remaining work is mostly extending the pine spawner
+to the species/props listed above (each gets its own `placement` data block) plus any worldgen
+hints they need (e.g. the border foliage belt mask).
 
 Placement rules (already normative elsewhere — pointers, not duplicates):
 

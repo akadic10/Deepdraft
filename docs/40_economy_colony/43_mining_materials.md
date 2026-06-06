@@ -158,6 +158,18 @@ Both tools produce the same kind of mining zone entity in the world. Key propert
 
 When a dwarf mines the last block in a zone, the zone entity is automatically destroyed.
 
+> **Adjacency decision (Alen, 2026-06-05): adjacent zones are NOT merged — a deliberate
+> departure from Stonehearth.** Performance reasoning, against the per-zone overlay
+> architecture (`05_mining_tech_debt.md`, shipped same day): merging makes every confirm
+> beside an existing zone rebuild the whole merged zone (unbounded growth — the exact
+> whole-rebuild pathology the per-zone split removed), widens zone Y-ranges until the
+> slice-step clip-state skip never applies, and pays an adjacency/union scan per confirm
+> for zero rendering benefit. Gameplay side-effect, accepted: each zone keeps its own
+> MAX_WORKERS=4 cap rather than a merged zone sharing one cap. Known cosmetic remainder:
+> adjacent zones draw a doubled outline at the shared seam — if it bothers in play, the
+> fix is presentational (suppress outline faces against any-zone neighbours via
+> `_zone_by_block`), never data merging.
+
 ---
 
 ### Worker Assignment Flow

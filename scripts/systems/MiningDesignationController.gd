@@ -56,16 +56,26 @@ var _mined_blocks: Dictionary = {}   # Vector3i -> true
 var _terrain_grid_node: MeshInstance3D
 var _preview_fill_node: MeshInstance3D
 var _preview_node: MeshInstance3D
-var _zones_fill_node: MeshInstance3D
-var _zones_node: MeshInstance3D
 ## Exposed-layer nodes (doc 05 overlay readability, 2026-06-05): share the ghost
 ## layer's meshes but use depth-TESTED materials, so terrain occludes them — the
 ## GPU does the exposed/hidden partition. Exposed faces read strong; hidden
 ## structure shows only the faint no-depth ghost beneath.
 var _preview_fill_exposed_node: MeshInstance3D
 var _preview_exposed_node: MeshInstance3D
-var _zones_fill_exposed_node: MeshInstance3D
-var _zones_exposed_node: MeshInstance3D
+
+## Per-zone overlay nodes (doc 05, 2026-06-05): each confirmed zone owns its own
+## ghost/exposed fill+line MeshInstance3Ds, so confirm/remove/select/DEV-mine
+## rebuilds touch ONE zone's geometry, and slice steps skip zones whose clip
+## state cannot have changed (cached Y-range test below).
+var _zones_root: Node3D
+var _zone_overlays: Dictionary = {}   # zone_id -> {root, fill, fill_exposed, line, line_exposed, min_y, max_y, state, slice_y}
+
+## Clip-state cache values for the slice-step skip rule. Assumes visibility is
+## the slice plane only (renderer is_block_visible today) — revisit when X-Ray
+## joins the visible-volume contract.
+const ZONE_CLIP_FULL := 0      # whole zone at/below the plane → fully visible
+const ZONE_CLIP_PARTIAL := 1   # plane cuts through the zone's Y range
+const ZONE_CLIP_HIDDEN := 2    # whole zone above the plane → invisible
 var _label_horizontal: Label3D
 var _label_vertical: Label3D
 var _terrain_grid_material: StandardMaterial3D
@@ -75,7 +85,6 @@ var _preview_material: StandardMaterial3D
 var _preview_remove_material: StandardMaterial3D
 var _zones_fill_material: StandardMaterial3D
 var _zones_material: StandardMaterial3D
-var _selected_zone_material: StandardMaterial3D
 var _preview_fill_exposed_material: StandardMaterial3D
 var _preview_remove_fill_exposed_material: StandardMaterial3D
 var _preview_exposed_material: StandardMaterial3D
@@ -112,8 +121,22 @@ func _ready() -> void:
 ## One reactive rebuild per visibility change (the renderer emits at most once
 ## per frame). Zones re-clip even while the tool is inactive — confirmed zones
 ## are always on screen; grid and preview only exist while the tool is active.
+## Per-zone skip rule (doc 05, 2026-06-05): a zone re-clips only if the plane
+## change can alter its clip — fully-visible stays fully-visible and hidden
+## stays hidden for O(1) per zone; only PARTIAL zones (and state transitions)
+## pay the rebuild. Assumes plane-only visibility; revisit with X-Ray.
 func _on_visible_volume_changed() -> void:
-	_rebuild_zones_mesh()
+	var slice_y := _current_slice_y()
+	for zone_id: int in _zones.keys():
+		var entry: Dictionary = _zone_overlays.get(zone_id, {})
+		if entry.is_empty():
+			_rebuild_zone_overlay(zone_id)
+			continue
+		var new_state := _zone_clip_state(int(entry["min_y"]), int(entry["max_y"]), slice_y)
+		var old_state := int(entry["state"])
+		if new_state == old_state and (new_state != ZONE_CLIP_PARTIAL or slice_y == int(entry["slice_y"])):
+			continue
+		_rebuild_zone_overlay(zone_id)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)
 		_update_hover_preview(true)
@@ -239,7 +262,6 @@ func _build_materials() -> void:
 	_preview_remove_material = _line_material(Color(1, 0.05, 0.03, 0.30), true)
 	_zones_fill_material = _solid_material(Color(1.0, 0.88, 0.0, 0.08), true)
 	_zones_material = _line_material(Color(1.0, 0.92, 0.06, 0.28), true)
-	_selected_zone_material = _line_material(Color(1.0, 1.0, 0.35, 1), true)
 	_preview_fill_exposed_material = _solid_material(Color(1.0, 0.90, 0.0, 0.42), false)
 	_preview_remove_fill_exposed_material = _solid_material(Color(1.0, 0.05, 0.03, 0.18), false)
 	_preview_exposed_material = _line_material(Color(1.0, 0.98, 0.0, 1), false)
@@ -306,29 +328,9 @@ func _build_preview_nodes() -> void:
 	_preview_exposed_node.visible = false
 	add_child(_preview_exposed_node)
 
-	_zones_fill_node = MeshInstance3D.new()
-	_zones_fill_node.name = "MiningZoneFills"
-	_zones_fill_node.material_override = _zones_fill_material
-	_zones_fill_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(_zones_fill_node)
-
-	_zones_fill_exposed_node = MeshInstance3D.new()
-	_zones_fill_exposed_node.name = "MiningZoneFillsExposed"
-	_zones_fill_exposed_node.material_override = _zones_fill_exposed_material
-	_zones_fill_exposed_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(_zones_fill_exposed_node)
-
-	_zones_node = MeshInstance3D.new()
-	_zones_node.name = "MiningZones"
-	_zones_node.material_override = _zones_material
-	_zones_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(_zones_node)
-
-	_zones_exposed_node = MeshInstance3D.new()
-	_zones_exposed_node.name = "MiningZonesExposed"
-	_zones_exposed_node.material_override = _zones_exposed_material
-	_zones_exposed_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(_zones_exposed_node)
+	_zones_root = Node3D.new()
+	_zones_root.name = "MiningZoneOverlays"
+	add_child(_zones_root)
 
 	_label_horizontal = _make_size_label("1")
 	_label_vertical = _make_size_label("1")
@@ -702,7 +704,7 @@ func _confirm_preview() -> void:
 	}
 	for block: Vector3i in blocks:
 		_zone_by_block[block] = zone_id
-	_rebuild_zones_mesh()
+	_rebuild_zone_overlay(zone_id)
 	_add_visual_cut_blocks(blocks)
 	# New cut blocks change the effective grid tops (Phase 2b) — re-grid now.
 	_rebuild_terrain_grid(true)
@@ -923,55 +925,161 @@ func _rebuild_preview_mesh() -> void:
 	_preview_exposed_node.visible = has_blocks
 
 
-func _rebuild_zones_mesh() -> void:
-	var line_verts: PackedVector3Array = []
-	var line_cols: PackedColorArray = []
+## Rebuilds ONE zone's overlay geometry (creating its nodes on first use).
+## VisibleVolume clip (doc 11 Phase 3, decision 2026-06-05): the overlay never
+## paints inside hidden rock — Stonehearth's choice. A zone fully above the
+## plane disappears (data untouched); a partially-cut zone closes its outline
+## at the plane.
+func _rebuild_zone_overlay(zone_id: int) -> void:
+	if not _zones.has(zone_id):
+		_free_zone_overlay(zone_id)
+		return
+	var zone: Dictionary = _zones[zone_id]
+	var blocks: Array = zone.get("blocks", [])
+	if blocks.is_empty():
+		_free_zone_overlay(zone_id)
+		return
+
+	var entry: Dictionary = _zone_overlays.get(zone_id, {})
+	if entry.is_empty():
+		entry = _create_zone_overlay_nodes(zone_id)
+		_zone_overlays[zone_id] = entry
+
+	var slice_y := _current_slice_y()
+	var min_y := WORLD_SIZE_Y
+	var max_y := 0
+	var visible_blocks: Array[Vector3i] = []
+	for block: Vector3i in blocks:
+		min_y = mini(min_y, block.y)
+		max_y = maxi(max_y, block.y)
+		if _visible_in_slice(block):
+			visible_blocks.append(block)
+	entry["min_y"] = min_y
+	entry["max_y"] = max_y
+	entry["slice_y"] = slice_y
+	entry["state"] = _zone_clip_state(min_y, max_y, slice_y)
+
+	var fill_node: MeshInstance3D = entry["fill"]
+	var fill_exposed_node: MeshInstance3D = entry["fill_exposed"]
+	var line_node: MeshInstance3D = entry["line"]
+	var line_exposed_node: MeshInstance3D = entry["line_exposed"]
+	if visible_blocks.is_empty():
+		fill_node.mesh = null
+		fill_exposed_node.mesh = null
+		line_node.mesh = null
+		line_exposed_node.mesh = null
+		return
+
+	# Selected = ORANGE (red is reserved for the Ctrl-subtract removal preview;
+	# orange also matches the zone window's DEV Mine accent).
+	var selected := zone_id == _selected_zone_id
+	var line_color := Color(1.0, 0.52, 0.05, 1.0) if selected else Color(1.0, 0.88, 0.0, 0.92)
+	var fill_color := Color(1.0, 0.52, 0.05, 0.30) if selected else Color(1.0, 0.88, 0.0, 0.22)
+
 	var fill_verts: PackedVector3Array = []
 	var fill_cols: PackedColorArray = []
-	for zone_id: int in _zones.keys():
-		var zone: Dictionary = _zones[zone_id]
-		var blocks: Array = zone.get("blocks", [])
-		# VisibleVolume clip (doc 11 Phase 3, decision 2026-06-05): the overlay
-		# never paints inside hidden rock — Stonehearth's choice. A zone fully
-		# above the plane disappears (data untouched); a partially-cut zone
-		# closes its outline at the plane.
-		var visible_blocks: Array[Vector3i] = []
-		for block: Vector3i in blocks:
-			if _visible_in_slice(block):
-				visible_blocks.append(block)
-		if visible_blocks.is_empty():
-			continue
-		var line_color := Color(1.0, 0.05, 0.03, 1.0) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.92)
-		var fill_color := Color(1.0, 0.05, 0.03, 0.28) if zone_id == _selected_zone_id else Color(1.0, 0.88, 0.0, 0.22)
-		_append_block_faces(visible_blocks, fill_color, fill_verts, fill_cols, 0.008)
-		_append_exterior_region_lines(visible_blocks, line_color, line_verts, line_cols, 0.010)
+	var line_verts: PackedVector3Array = []
+	var line_cols: PackedColorArray = []
+	_append_block_faces(visible_blocks, fill_color, fill_verts, fill_cols, 0.008)
+	_append_exterior_region_lines(visible_blocks, line_color, line_verts, line_cols, 0.010)
 
 	# Ghost and exposed layers share each mesh (see _build_materials).
-	if line_verts.is_empty():
-		_zones_node.mesh = null
-		_zones_exposed_node.mesh = null
-	else:
-		var line_arrays: Array = []
-		line_arrays.resize(Mesh.ARRAY_MAX)
-		line_arrays[Mesh.ARRAY_VERTEX] = line_verts
-		line_arrays[Mesh.ARRAY_COLOR] = line_cols
-		var line_mesh := ArrayMesh.new()
-		line_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, line_arrays)
-		_zones_node.mesh = line_mesh
-		_zones_exposed_node.mesh = line_mesh
+	var fill_arrays: Array = []
+	fill_arrays.resize(Mesh.ARRAY_MAX)
+	fill_arrays[Mesh.ARRAY_VERTEX] = fill_verts
+	fill_arrays[Mesh.ARRAY_COLOR] = fill_cols
+	var fill_mesh := ArrayMesh.new()
+	fill_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, fill_arrays)
+	fill_node.mesh = fill_mesh
+	fill_exposed_node.mesh = fill_mesh
 
-	if fill_verts.is_empty():
-		_zones_fill_node.mesh = null
-		_zones_fill_exposed_node.mesh = null
-	else:
-		var fill_arrays: Array = []
-		fill_arrays.resize(Mesh.ARRAY_MAX)
-		fill_arrays[Mesh.ARRAY_VERTEX] = fill_verts
-		fill_arrays[Mesh.ARRAY_COLOR] = fill_cols
-		var fill_mesh := ArrayMesh.new()
-		fill_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, fill_arrays)
-		_zones_fill_node.mesh = fill_mesh
-		_zones_fill_exposed_node.mesh = fill_mesh
+	var line_arrays: Array = []
+	line_arrays.resize(Mesh.ARRAY_MAX)
+	line_arrays[Mesh.ARRAY_VERTEX] = line_verts
+	line_arrays[Mesh.ARRAY_COLOR] = line_cols
+	var line_mesh := ArrayMesh.new()
+	line_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, line_arrays)
+	line_node.mesh = line_mesh
+	line_exposed_node.mesh = line_mesh
+
+
+func _create_zone_overlay_nodes(zone_id: int) -> Dictionary:
+	var root := Node3D.new()
+	root.name = "Zone%d" % zone_id
+	_zones_root.add_child(root)
+
+	var fill := MeshInstance3D.new()
+	fill.name = "Fill"
+	fill.material_override = _zones_fill_material
+	fill.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(fill)
+
+	var fill_exposed := MeshInstance3D.new()
+	fill_exposed.name = "FillExposed"
+	fill_exposed.material_override = _zones_fill_exposed_material
+	fill_exposed.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(fill_exposed)
+
+	var line := MeshInstance3D.new()
+	line.name = "Line"
+	line.material_override = _zones_material
+	line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(line)
+
+	var line_exposed := MeshInstance3D.new()
+	line_exposed.name = "LineExposed"
+	line_exposed.material_override = _zones_exposed_material
+	line_exposed.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(line_exposed)
+
+	return {
+		"root": root,
+		"fill": fill,
+		"fill_exposed": fill_exposed,
+		"line": line,
+		"line_exposed": line_exposed,
+		"min_y": 0,
+		"max_y": 0,
+		"state": ZONE_CLIP_FULL,
+		"slice_y": -1,
+	}
+
+
+func _free_zone_overlay(zone_id: int) -> void:
+	var entry: Dictionary = _zone_overlays.get(zone_id, {})
+	if entry.is_empty():
+		return
+	(entry["root"] as Node3D).queue_free()
+	_zone_overlays.erase(zone_id)
+
+
+func _rebuild_all_zone_overlays() -> void:
+	# Free orphans first (zones erased without going through a removal path).
+	for zone_id: int in _zone_overlays.keys().duplicate():
+		if not _zones.has(zone_id):
+			_free_zone_overlay(zone_id)
+	for zone_id: int in _zones.keys():
+		_rebuild_zone_overlay(zone_id)
+
+
+func _zone_clip_state(min_y: int, max_y: int, slice_y: int) -> int:
+	if max_y <= slice_y:
+		return ZONE_CLIP_FULL
+	if min_y > slice_y:
+		return ZONE_CLIP_HIDDEN
+	return ZONE_CLIP_PARTIAL
+
+
+## Selection recolor: only the previously and newly selected zones rebake.
+func _set_selected_zone(zone_id: int) -> void:
+	if _selected_zone_id == zone_id:
+		return
+	var previous := _selected_zone_id
+	_selected_zone_id = zone_id
+	if previous >= 0 and _zones.has(previous):
+		_rebuild_zone_overlay(previous)
+	if zone_id >= 0 and _zones.has(zone_id):
+		_rebuild_zone_overlay(zone_id)
 
 
 func _sync_visual_cut_blocks() -> void:
@@ -1328,9 +1436,8 @@ func _try_select_zone_at_screen(screen_pos: Vector2) -> bool:
 	var block: Vector3i = hit.get("block_pos", Vector3i.ZERO)
 	if not _zone_by_block.has(block):
 		return false
-	_selected_zone_id = int(_zone_by_block[block])
+	_set_selected_zone(int(_zone_by_block[block]))
 	_open_zone_window(_selected_zone_id)
-	_rebuild_zones_mesh()
 	return true
 
 
@@ -1345,8 +1452,7 @@ func _open_zone_window(zone_id: int) -> void:
 
 func _close_zone_window() -> void:
 	_zone_window.visible = false
-	_selected_zone_id = -1
-	_rebuild_zones_mesh()
+	_set_selected_zone(-1)
 
 
 func _remove_selected_zone() -> void:
@@ -1392,7 +1498,7 @@ func _dev_mine_zone(zone_id: int) -> void:
 	# wall side-bands and grows the cavity shell.
 	if _renderer != null and _renderer.has_method("add_mined_blocks"):
 		_renderer.call("add_mined_blocks", mined)
-	_rebuild_zones_mesh()
+	_free_zone_overlay(zone_id)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)   # mined blocks change effective grid tops
 		_update_hover_preview(true)
@@ -1410,7 +1516,7 @@ func _remove_zone(zone_id: int) -> void:
 			_zone_by_block.erase(block)
 			removed_blocks.append(block)
 	_zones.erase(zone_id)
-	_rebuild_zones_mesh()
+	_free_zone_overlay(zone_id)
 	_remove_visual_cut_blocks(removed_blocks)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
@@ -1440,7 +1546,8 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 			_zones[zone_id] = zone
 	if affected.has(_selected_zone_id) and not _zones.has(_selected_zone_id):
 		_close_zone_window()
-	_rebuild_zones_mesh()
+	for zone_id: int in affected.keys():
+		_rebuild_zone_overlay(zone_id)   # frees the overlay if the zone was erased
 	_remove_visual_cut_blocks(removed_blocks)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)

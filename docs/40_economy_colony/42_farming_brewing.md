@@ -226,12 +226,15 @@ All trees share the same three-stage pattern:
 | Oak (`base:flora:oak_tree`) | clutter | 3×3 | 5×5 (world-gen) | Oak stave |
 | Juniper (`base:flora:juniper_tree`) | clutter | 1×1 | 2×2 (world-gen) | Juniper berry |
 | Apple (`base:flora:apple_tree`) | clutter | 3×3 | 5×5 (world-gen) | Apple (fruit harvest) |
+| Pine (`base:flora:pine_tree`) | clutter | 2×2 | 3×3 (world-gen) | Pine log |
 
 **Oak** is a spreading broadleaf. Mature oaks (3×3) are the primary surface obstacle and the only source of oak staves for the aging cellar. Full schema: `data/entities/flora/oak_tree.json`.
 
 **Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 2×2. Full schema: `data/entities/flora/juniper_tree.json`.
 
 **Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Unlike oak and juniper, apple trees are **perennial fruit producers** — see Fruit Trees below. Full schema: `data/entities/flora/apple_tree.json`.
+
+**Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner` (see `docs/00_dev_roadmap/13_flora_scatter_pine.md`). Full schema: `data/entities/flora/pine_tree.json`.
 
 ### Fruit Trees
 
@@ -284,7 +287,7 @@ static func resolve_tree_model(models_value, world_pos: Vector3i) -> String:
     return ""
 ```
 
-Place this as a `static func` on whichever Autoload owns tree entity placement (world-gen system or surface environment manager). Do **not** scatter the hash logic across multiple callers — there must be exactly one resolution point.
+Place this as a `static func` on whichever system owns tree entity placement. It currently lives on `SurfaceFloraSpawner` (the surface-flora scene node, `scripts/systems/SurfaceFloraSpawner.gd`), which all tree spawners call. Do **not** scatter the hash logic across multiple callers — there must be exactly one resolution point.
 
 ### Season Fallback Order
 
