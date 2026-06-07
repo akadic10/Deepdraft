@@ -85,6 +85,10 @@ const DOMAIN_MOUNTAIN: int = 2
 
 @export var debug_logging: bool = true
 
+## Slice tool — placed flora hide above the active cut plane (11_slice_xray_plan.md
+## Phase 5). Wire to the SliceController node; leave empty to disable slice culling.
+@export var slice_controller_path: NodePath
+
 # ── Loaded data ───────────────────────────────────────────────────────────────
 ## One entry per usable species: { key, name, placement, stages, domains }.
 var _species: Array[Dictionary] = []
@@ -103,6 +107,10 @@ var _scene_cache: Dictionary = {}       # model path -> PackedScene
 var _tree_material: Material = null
 var _spawned_count: int = 0
 
+const SLICE_OFF_Y: int = 127            # SliceController.MAX_SLICE_Y → slice off (all flora visible)
+var _slice_controller: Node = null
+var _slice_y: int = SLICE_OFF_Y         # active cut plane; trees with base_y > this are hidden
+
 
 func _ready() -> void:
 	_tree_material = _build_tree_material()
@@ -118,6 +126,12 @@ func _ready() -> void:
 	_season = WorldClock.season
 
 	_camera = _find_camera(get_tree().current_scene)
+
+	# Slice culling: react to the Slice tool moving the cut plane.
+	if not slice_controller_path.is_empty():
+		_slice_controller = get_node_or_null(slice_controller_path)
+		if _slice_controller != null and _slice_controller.has_signal("slice_changed"):
+			_slice_controller.connect("slice_changed", _on_slice_changed)
 
 
 func _arm() -> void:
@@ -391,6 +405,11 @@ func _instance_tree(species_name: String, model_path: String, stage_name: String
 		col.position = Vector3(0.0, height * 0.5, 0.0)
 		root.add_child(col)
 
+	# Slice culling: remember the base for later re-cull, and respect the current cut
+	# plane immediately so trees streamed in while a slice is active spawn hidden.
+	root.set_meta("base_y", ground_y)
+	root.visible = ground_y <= _slice_y
+
 	add_child(root)
 	_spawned_count += 1
 	return root
@@ -403,6 +422,21 @@ func _despawn_column(key: Vector2i) -> void:
 			_spawned_count -= 1
 			n.queue_free()
 	_loaded_columns.erase(key)
+
+
+# ── Slice culling (11_slice_xray_plan.md Phase 5) ─────────────────────────────
+
+## Hide trees whose base sits above the active cut plane. Coarse per-instance toggle:
+## a tree straddling the plane shows whole (canopy may poke above) — acceptable v1; a
+## per-prop clip plane would be the clean follow-up. slice_y = 127 (off) shows all.
+func _on_slice_changed(new_slice_y: int) -> void:
+	if new_slice_y == _slice_y:
+		return
+	_slice_y = new_slice_y
+	for key in _loaded_columns:
+		for n in _loaded_columns[key]:
+			if is_instance_valid(n):
+				n.visible = int(n.get_meta("base_y", 0)) <= _slice_y
 
 
 # ── Canonical model variant resolution (the ONE resolution point, per doc 42) ─

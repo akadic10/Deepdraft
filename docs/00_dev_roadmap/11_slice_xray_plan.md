@@ -869,7 +869,7 @@ deliberate adjustments:
 2. Hide overview tile nodes instantly on slice activation (visibility flip), never free them —
    returning to surface view must be free (nodes re-shown, no rebuild).
 
-### Phase 5 — Entities & forward hooks <span style="color:#f85149;">(deferred until dwarves exist)</span>
+### Phase 5 — Entities & forward hooks <span style="color:#d29922;">(now ACTIVE — flora is the first placed-entity type)</span>
 
 Record the rules now, implement with `DwarfAgent`:
 
@@ -878,6 +878,29 @@ Record the rules now, implement with `DwarfAgent`:
 - Implementation: `visible` flag on the agent's render root, recomputed on
   `visible_volume_changed` + on the agent's own grid-cell change *only while a mode is active*.
 - `clip_mode: custom` escape hatch for special entities (S6 exception), as entity data.
+
+> **✅ Flora slice-culling shipped 2026-06-07 (coarse first pass).**
+> <span style="color:#3fb950;">Was: in the slice view (cut at `Y = 79`) trees rendered in full above
+> the cut plane — placed flora ignored the slice entirely. The "deferred until dwarves" assumption was
+> wrong: `SurfaceFloraSpawner` already spawns thousands of placed GLB trees.</span>
+>
+> **Implemented:** `SurfaceFloraSpawner` now takes a `slice_controller_path` (wired to `SliceController`
+> in `debug_world.tscn`) and connects to **`SliceController.slice_changed(new_slice_y)`**. Each tree
+> stores its base via `set_meta("base_y", ground_y)`; on a slice change every loaded tree's `visible`
+> is set to `base_y <= slice_y`, and newly streamed trees apply the current `slice_y` at spawn time.
+> `slice_y = 127` (off) shows everything. Using the **support** Y (`ground_y`, not the trunk cell)
+> naturally gives the S6 "standing-on-visible-support" behaviour — trees rooted in the visible cut
+> face stay visible.
+>
+> **Coarse by design — accepted as-is 2026-06-07 (not pending work):**
+> - A tree straddling the plane shows **whole** (canopy pokes above the cut). Accepted for now. The
+>   optional clean version is a **per-prop clip plane** in the flora material to clip it like the
+>   block-granular terrain cut. NB: §2.1 rejected a *global* clip plane for terrain, but a per-prop
+>   clip on the separate prop meshes is a smaller, different surface — only if it ever bothers us.
+> - Uses raw `slice_y`, not the `VisibleVolume` contract (Phase 3) — revisit so mined cavities /
+>   lateral cuts cull props too, once those exist.
+> - Same hook will serve future furniture, workshops, dropped items and dwarves (the general Phase 5
+>   rule above). Cross-ref: doc 14 §10.
 
 ---
 

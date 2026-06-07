@@ -187,8 +187,10 @@ coverage is the product of cell size and the summed densities — tune against i
 
 - **Trade road (not yet built, `12` §1):** the valley corridor is forested under this plan, but
   when the road ships its mask must **exclude flora** from the road strip. Flagged dependency.
-- **Slice view:** trees still don't obey the slice plane (`13` §9). A denser mixed forest makes
-  this more visible — revisit slice culling of props.
+- **Slice view:** ✅ trees now obey the slice plane (shipped 2026-06-07). `SurfaceFloraSpawner`
+  connects to `SliceController.slice_changed` and hides trees whose base is above the cut
+  (`11_slice_xray_plan.md` Phase 5). Still coarse — a tree straddling the plane shows whole; a
+  per-prop clip plane is the follow-up.
 - **Performance:** more trees, but the 1:1 models are tiny (KB) and whole-map streaming drains
   over frames; `enable_collision` can stay off until agents exist. Rely on import LODs.
 - **Determinism (Hard Rule 8):** moisture noise and all selection hashes derive from `world_seed`.

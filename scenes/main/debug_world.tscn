@@ -71,3 +71,4 @@ dock_ui_path = NodePath("../DockUI")
 
 [node name="SurfaceFloraSpawner" type="Node3D" parent="."]
 script = ExtResource("7_flora")
+slice_controller_path = NodePath("../SliceController")

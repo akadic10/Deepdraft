@@ -167,10 +167,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
-		if mouse.pressed and mouse.button_index == MOUSE_BUTTON_RIGHT and _state != ToolState.INACTIVE:
-			_deactivate_tool()
-			get_viewport().set_input_as_handled()
-			return
+		# Tool cancel is ESC-only (above). Right-mouse is reserved for the camera orbit
+		# (15_camera_rework.md §8b) — do not consume it here.
 
 		if _state == ToolState.INACTIVE:
 			if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
@@ -212,11 +210,16 @@ func _on_tool_requested(tool_id: String) -> void:
 	if _hint_window != null:
 		_hint_window.visible = true
 	_rebuild_terrain_grid(true)
+	# The wheel now resizes the brush, so stop the camera zooming on it while active.
+	if _camera_rig != null and _camera_rig.has_method("set_zoom_suppressed"):
+		_camera_rig.set_zoom_suppressed(true)
 	print("MiningDesignationController: precision mining active.")
 
 
 func _deactivate_tool() -> void:
 	_state = ToolState.INACTIVE
+	if _camera_rig != null and _camera_rig.has_method("set_zoom_suppressed"):
+		_camera_rig.set_zoom_suppressed(false)   # hand the wheel back to camera zoom
 	_anchor_hit.clear()
 	_hover_hit.clear()
 	_preview_raw_blocks.clear()

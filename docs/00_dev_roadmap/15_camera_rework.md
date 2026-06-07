@@ -8,7 +8,7 @@
 
 Status: **Phases 1–3 shipped & verified in-engine 2026-06-07.** Zoom, pan, orbit, the surface
 floor, cursor-targeted zoom, the emoji cursor and the §8a close-zoom fix are all live and confirmed.
-Only the **optional dynamic orbit pivot** remains (deferred — see §6/§8). Created 2026-06-07.
+The optional **dynamic orbit pivot** is now also shipped. The rework is feature-complete. Created 2026-06-07.
 Triggered by the camera feeling wrong in testing — chiefly that **a single mouse-wheel notch jumped
 from a normal overview straight through the surface**. This doc audits the rig against Stonehearth's
 real camera source (mounted at `P:\stonehearth`, verified — not inferred) and records the rework.
@@ -61,10 +61,12 @@ The rework is implemented in `scripts/systems/Camera.gd` (spring-arm rig kept) a
 
 ### Known follow-ups
 
-- **Dynamic orbit pivot** — orbit still rotates around the rig origin; cursor-zoom moves the pivot to
-  the point of interest so it's usually fine. Deferred (§6).
-- **`_axis_t_max` is dead code** — orphaned when the zoom raycast moved to the height-field march;
-  safe to delete.
+- **Dynamic orbit pivot** — ✅ shipped 2026-06-07. On orbit engage, `_reanchor_orbit_pivot` marches
+  the camera's forward ray to the ground (`_march_surface`) and moves the rig pivot there, recomputing
+  spring length so the camera doesn't move — orbit then spins around what you're looking at. Skips if
+  the look point is outside the zoom range (would force a jump). Toggle: `rotation.dynamic_pivot`.
+- **Mining-tool input conflicts** — ✅ resolved (§8b): tool cancel is now ESC-only (RMB freed for
+  orbit), and an active tool claims the wheel via `Camera.set_zoom_suppressed` (brush resize wins).
 - At close range, props (trees) have no collision, so zooming into a canopy sees through it
   (cosmetic).
 
@@ -324,7 +326,7 @@ Keep the spring-arm hierarchy; correct the math and tuning so zoom is graduated 
 Route A alone resolves the reported bug. Estimated change: ~30 lines in `Camera.gd`, a few JSON
 fields, one doc table.
 
-### Route B — <span style="color:#d29922;">Adopt Stonehearth's cursor-targeted zoom (decision needed)</span>
+### Route B — <span style="color:#3fb950;">Adopt Stonehearth's cursor-targeted zoom (✅ shipped — keep-rig variant)</span>
 
 For true parity ("zoom to where I'm pointing, never through the ground"), move zoom from
 "shrink spring length toward pivot" to "move toward the cursor's surface point":
@@ -347,26 +349,33 @@ For true parity ("zoom to where I'm pointing, never through the ground"), move z
 4. Optional parity extras (each independently toggleable): grab-the-ground drag pan (§2.3), dynamic
    orbit pivot (§2.4), orbit dead zone, snap-during-orbit.
 
-> **Open questions for the user before Route B:**
-> 1. Keep the spring-arm rig (drive it from the raycast) or refactor to a free-position camera?
-> 2. Move orbit to RMB (Stonehearth) or keep MMB? Does RMB conflict with planned context actions?
-> 3. Do we want grab-the-ground drag pan, or are keyboard + edge-scroll enough?
-> 4. Orbit dead zone + snap (Stonehearth feel) vs. our current smoothed orbit — which do you prefer?
+> **Decisions made (2026-06-07) — all resolved, all shipped:**
+> 1. **Keep the spring-arm rig**, driven from the raycast. (Free-camera refactor not needed.)
+> 2. **Orbit moved to RMB** (Stonehearth). ⚠ This *did* turn out to conflict with the mining tool's
+>    RMB-cancel — see §8b.
+> 3. **Yes** to grab-the-ground drag pan (middle-mouse).
+> 4. **Full Stonehearth feel** — dead zone added; orbit was already snap (un-smoothed) in our rig.
 
 ---
 
-## 7. Data schema (proposed `camera_settings.json` zoom block)
+## 7. Data schema — see §0 for the shipped values
+
+> The schema below was the original *proposal*. It is superseded by **§0's "Final tunables" table**,
+> which lists the actual shipped keys and values across all four JSON blocks
+> (`camera_settings` / `movement` / `rotation` / `zoom` / `input_mappings` / `cursors`). Kept here for
+> historical context only.
 
 ```jsonc
+// AS SHIPPED (zoom block — full set in §0):
 "zoom": {
-  "mode": "spring_fraction",      // "spring_fraction" (Route A) | "cursor_target" (Route B)
-  "zoom_step_fraction": 0.18,     // fraction of current distance per notch (Route A)
-  "min_distance": 14,             // raised so closest framing clears terrain
+  "mode": "cursor_target",        // "cursor_target" (default) | "spring_fraction" (fallback)
+  "zoom_step_fraction": 0.18,     // fraction of current distance per notch
+  "cursor_min_gap": 1.5,          // stop this far short of the cursor surface point
+  "min_distance": 2,              // closest spring length (floor prevents clipping)
   "max_distance": 180,
   "default_distance": 85,
-  "cursor_min_gap": 15,           // Route B: stop this far short of the cursor surface point
   "smoothing": 0.15,
-  "zoom_speed": 8.0               // legacy / key-repeat fallback only
+  "zoom_speed": 8.0               // non-proportional fixed-step fallback only
 }
 ```
 
@@ -398,9 +407,10 @@ All feel lives in JSON per the Registry/data rules — no magic numbers back in 
    (full Stonehearth parity): **orbit moved to right-mouse** (`rotate_action`) with a **dead zone**
    (`dead_zone_pixels` 6) before rotation engages — orbit was already snap/un-smoothed in our rig;
    **grab-the-ground drag pan on middle-mouse** (`drag_action`, `Camera._start_drag`/`_handle_drag`)
-   keeps the grabbed world point locked under the cursor. Still open: **dynamic orbit pivot**
-   (raycast-forward target instead of the rig origin) — deferred; cursor-zoom already moves the
-   pivot to the point of interest, so orbiting after a zoom pivots near it in practice.
+   keeps the grabbed world point locked under the cursor. **Dynamic orbit pivot** — ✅ shipped
+   2026-06-07 (`_reanchor_orbit_pivot`): on orbit engage it marches the camera's forward ray to the
+   ground and moves the pivot there (recomputing spring length so the camera doesn't jump), so
+   rotation spins around what you're looking at. Toggle `rotation.dynamic_pivot`.
    - **Cursor feedback (2026-06-07).** Like Stonehearth's cursor swap, an emoji cursor shows the
      active mode: **✋ while grab-dragging, 🔄 while orbiting** (only after the dead zone engages).
      Implemented as a CanvasLayer + Label overlay (`Camera._build_cursor_overlay` /
@@ -457,7 +467,34 @@ All feel lives in JSON per the Registry/data rules — no magic numbers back in 
   - Scale the margin by local ruggedness: ~0 on flat shelves, full margin only where neighbouring
     columns differ a lot (a wall is present).
 
-  Out of scope for the Phase 2 close; revisit before Phase 3 sign-off.
+  Resolved 2026-06-07 with the last candidate (ruggedness-scaled margin) plus the height-field
+  targeting fix and lower `min_distance`/`cursor_min_gap` — see the green block at the top of §8a.
+
+---
+
+## 8b. Input conflicts with the mining tool — ✅ resolved 2026-06-07
+
+Moving orbit to right-mouse (§6 decision 2) surfaced two conflicts with
+`MiningDesignationController`:
+
+1. **RMB orbit vs RMB tool-cancel.** Mining used **RMB to cancel an active tool**. The camera handles
+   orbit in `_input` (before `_unhandled_input`) without consuming it, so RMB-dragging to orbit while
+   a tool was active *also* cancelled the tool.
+2. **Wheel zoom vs brush resize.** When a tool is active the wheel resizes the mining brush — but the
+   camera's `_input` zoomed on the same event first, so both fired.
+
+<span style="color:#3fb950;">**Resolution (decided with the user — Stonehearth-consistent):**</span>
+
+1. **Tool cancel is ESC-only.** Removed the RMB-cancel branch from `MiningDesignationController`
+   (`_deactivate_tool` still bound to ESC). Right-mouse is now reserved for camera orbit, exactly as
+   Stonehearth does (RMB = orbit, ESC = cancel mode). Right-click no longer cancels tools.
+2. **Active tool claims the wheel.** Added `Camera.set_zoom_suppressed(bool)`; the mining tool calls
+   it `true` on activate (`_on_tool_requested`) and `false` on deactivate (`_deactivate_tool`). While
+   a tool is active the camera ignores the wheel (brush resize wins); orbit (RMB) and pan still work.
+   Set via the existing mining→camera reference (`_camera_rig`), no new coupling on the camera side.
+
+Middle-mouse drag-pan was always safe (mining never uses MMB); slice is keys-only; the dock is a
+`Control` and consumes its own clicks.
 
 ---
 
@@ -469,8 +506,9 @@ All feel lives in JSON per the Registry/data rules — no magic numbers back in 
   camera above terrain (Route B: clamps at the cursor surface).
 - **Pan feel:** pan sweep at high overview vs. zoomed-in — fast vs. fine, no constant retuning.
 - **Determinism N/A** (camera is presentation only; no save state, no worldgen interaction).
-- **Regression:** slice hotkeys, mining designation raycast, and dock interaction still work with
-  the new input handling. Orbit-button change (if adopted) must not collide with existing tools.
+- **Regression:** slice hotkeys (keys-only) and dock interaction (Control, consumes its own clicks)
+  are unaffected; MMB grab-pan doesn't collide (mining never uses MMB). RMB-orbit vs mining RMB-cancel
+  and the wheel zoom/brush-resize overlap were both found and **✅ resolved** — see **§8b**.
 - **Screenshots:** fixed-seed before/after at the default position for review.
 
 ---

@@ -50,6 +50,7 @@ var _invert_y:    bool  = false
 var _min_pitch:   float = -85.0
 var _max_pitch:   float = -10.0
 var _orbit_dead_zone: float = 6.0   # pixels of mouse motion before orbit engages (Stonehearth dead zone)
+var _orbit_dynamic_pivot: bool = true  # on orbit engage, re-anchor the pivot to the look point (Stonehearth _get_orbit_target)
 
 var _zoom_speed:  float = 2.0         # legacy / non-proportional fixed step (units per notch)
 var _zoom_min:    float = 5.0
@@ -89,6 +90,7 @@ var _drag_grab:    Vector3 = Vector3.ZERO   # world point grabbed under the curs
 var _cursor_layer: CanvasLayer = null
 var _cursor_label: Label       = null
 var _cursor_os_hidden: bool    = false
+var _zoom_suppressed: bool = false   # an active tool (e.g. mining brush resize) owns the wheel
 var _last_slice_y: int     = -9999
 
 ## Fires when the AUTO-slice Y changes. Connect to WorldRenderer to drive the
@@ -187,6 +189,7 @@ func _load_settings() -> void:
 	_min_pitch  = rot.get("min_pitch",     -85.0)
 	_max_pitch  = rot.get("max_pitch",     -10.0)
 	_orbit_dead_zone = rot.get("dead_zone_pixels", 6.0)
+	_orbit_dynamic_pivot = rot.get("dynamic_pivot", true)
 
 	# zoom ─────────────────────────────────────────────────────────────────────
 	var zm := d.get("zoom", {}) as Dictionary
@@ -315,6 +318,14 @@ func _handle_drag() -> void:
 	global_position.z = _target_pos.z
 
 
+# ── Public API ────────────────────────────────────────────────────────────────
+
+## Let an active tool claim the mouse wheel (e.g. the mining brush resize) so it
+## doesn't also zoom the camera. The tool sets this true on activate, false on deactivate.
+func set_zoom_suppressed(v: bool) -> void:
+	_zoom_suppressed = v
+
+
 # ── Cursor overlay (emoji while orbit/drag is active) ─────────────────────────
 
 ## Build a tiny CanvasLayer + Label that renders an emoji at the mouse position.
@@ -393,6 +404,9 @@ func _handle_orbit_and_zoom(event: InputEvent) -> void:
 			if (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN) \
 					and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_ALT)):
 				return
+			# An active tool (e.g. the mining brush) claims the wheel for its own resize.
+			if _zoom_suppressed and (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+				return
 			if mbe.button_index == MOUSE_BUTTON_WHEEL_UP:
 				_apply_zoom(true)
 			elif mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -407,6 +421,8 @@ func _handle_orbit_and_zoom(event: InputEvent) -> void:
 			if _orbit_accum < _orbit_dead_zone:
 				return
 			_orbit_active = true
+			if _orbit_dynamic_pivot:
+				_reanchor_orbit_pivot()   # spin around what you're looking at
 
 		# Horizontal drag → orbit around Y axis (snap — rotation is not smoothed).
 		# Negative sign: dragging right rotates clockwise (natural feel).
@@ -491,15 +507,18 @@ func _zoom_cursor(zoom_in: bool) -> bool:
 func _zoom_target_point() -> Dictionary:
 	if camera_node == null:
 		return {}
+	var mouse := get_viewport().get_mouse_position()
+	return _march_surface(camera_node.project_ray_origin(mouse),
+		camera_node.project_ray_normal(mouse).normalized())
+
+
+## March a ray against the terrain height field; returns {hit, point} where it first
+## drops to/below the surface, or {} on a miss (ray points up, or no ground within range).
+func _march_surface(origin: Vector3, dir: Vector3) -> Dictionary:
 	if not WorldGenerator.has_method("get_visible_surface_y"):
 		return {}
-	var mouse := get_viewport().get_mouse_position()
-	var origin := camera_node.project_ray_origin(mouse)
-	var dir := camera_node.project_ray_normal(mouse).normalized()
 	if dir.y >= -0.0001:
 		return {}   # not looking downward (the pitch clamp normally prevents this)
-
-	# Step along the ray until it drops to/below the surface height beneath it.
 	const STEP := 1.0
 	const MAX_T := 1200.0
 	var t := 0.0
@@ -512,12 +531,30 @@ func _zoom_target_point() -> Dictionary:
 	return {}
 
 
-## Voxel-grid boundary crossing time along one axis (matches the mining picker).
-func _axis_t_max(origin_axis: float, direction_axis: float, pos_axis: int) -> float:
-	if is_zero_approx(direction_axis):
-		return INF
-	var boundary := float(pos_axis + 1) if direction_axis > 0.0 else float(pos_axis)
-	return (boundary - origin_axis) / direction_axis
+## Dynamic orbit pivot (Stonehearth _get_orbit_target). When orbit engages, move the rig
+## pivot to the ground point straight ahead of the camera and recompute spring length so
+## the camera does NOT move — then the existing orbit math rotates around what you're
+## looking at instead of the old rig origin. Skips (keeps the old pivot) if the look
+## point is out of the zoom range, which would otherwise force a visible jump.
+func _reanchor_orbit_pivot() -> void:
+	if camera_node == null:
+		return
+	var cam := camera_node.global_position
+	var fwd := -camera_node.global_transform.basis.z   # camera forward (look direction)
+	var hit := _march_surface(cam, fwd.normalized())
+	if not hit.get("hit", false):
+		return
+	var p: Vector3 = hit["point"]
+	# p lies along the forward ray, so the pivot→camera direction is unchanged; setting
+	# spring_length = |cam − p| and the rig to p leaves the camera exactly where it is.
+	var new_len := cam.distance_to(p)
+	if new_len < _zoom_min or new_len > _zoom_max:
+		return
+	_target_pos     = p
+	global_position = p
+	_target_zoom    = new_len
+	if spring_arm:
+		spring_arm.spring_length = new_len   # snap live so there's no lerp jump this frame
 
 
 # ── Smooth transforms (exponential decay, frame-rate independent) ─────────────

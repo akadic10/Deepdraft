@@ -38,7 +38,8 @@
     "invert_y": false,
     "min_pitch": -80.0,
     "max_pitch": -5.0,
-    "dead_zone_pixels": 6.0
+    "dead_zone_pixels": 6.0,
+    "dynamic_pivot": true
   },
 
   "zoom": {
