@@ -1,13 +1,15 @@
 {
   "__comment": [
     "Camera configuration. Source of truth for Camera.gd (21_camera.md).",
-    "Feel ported from Stonehearth's player_camera_controller.lua. Their constants:",
-    "  MIN_ZOOM 50, MAX_ZOOM 340, DEFAULT_ZOOM 110, ZOOM_STEP 20 (scaled by current/MIN — proportional),",
-    "  MIN_X_ANGLE 5, MAX_X_ANGLE 80, DEFAULT_ANGLE 50 (degrees above horizon),",
-    "  SENSITIVITY 0.6, CAMERA_SPEED_SCALE_FACTOR 0.33 (pan scales with zoom), edge scroll on.",
+    "Feel ported from Stonehearth's player_camera_controller.lua (verified source 2026-06-07).",
+    "  Real SH constants: _min_zoom 15, _max_zoom 300; zoom step = distance-to-cursor * factor",
+    "  (factor 0.2 <100u / 0.3 <500u / 0.4 else); MIN_X_ANGLE 5, MAX_X_ANGLE 80 above horizon;",
+    "  mouse_orbit_sensitivity 0.26; pan speed = camera position.y (height-proportional).",
     "Deepdraft uses NEGATIVE pitch (look-down): -90 = straight down, 0 = horizon, so Stonehearth's",
     "  5..80 above-horizon maps to -5 (shallow) .. -80 (steep) here, default -50.",
-    "Proportional zoom is implemented in Camera._handle_orbit_and_zoom (step grows with distance)."
+    "ZOOM (15_camera_rework.md Route A): proportional notch = zoom_step_fraction * current distance",
+    "  (geometric zoom). zoom_speed is the non-proportional fixed-step fallback only.",
+    "  min_distance raised 6 -> 14 so the closest framing clears lowland terrain."
   ],
 
   "camera_settings": {
@@ -15,15 +17,19 @@
     "near_clip": 0.1,
     "far_clip": 1024.0,
     "default_position": { "x": 512.0, "y": 70.0, "z": 512.0 },
-    "default_rotation": { "x": -50.0, "y": 0.0, "z": 0.0 }
+    "default_rotation": { "x": -50.0, "y": 0.0, "z": 0.0 },
+    "surface_floor_margin": 8.0,
+    "surface_floor_min_clear": 1.5,
+    "surface_floor_ruggedness": 12.0
   },
 
   "movement": {
-    "move_speed": 36.0,
-    "shift_multiplier": 3.5,
+    "move_speed": 126.0,
+    "shift_multiplier": 0.286,
     "smoothing": 0.22,
     "edge_scroll_enabled": false,
-    "edge_scroll_threshold_pixels": 10
+    "edge_scroll_threshold_pixels": 10,
+    "pan_reference_height": 135.0
   },
 
   "rotation": {
@@ -31,12 +37,16 @@
     "invert_x": false,
     "invert_y": false,
     "min_pitch": -80.0,
-    "max_pitch": -5.0
+    "max_pitch": -5.0,
+    "dead_zone_pixels": 6.0
   },
 
   "zoom": {
+    "mode": "cursor_target",
     "zoom_speed": 8.0,
-    "min_distance": 6.0,
+    "zoom_step_fraction": 0.18,
+    "cursor_min_gap": 1.5,
+    "min_distance": 2.0,
     "max_distance": 180.0,
     "default_distance": 85.0,
     "proportional": true,
@@ -48,8 +58,17 @@
     "move_backward": ["KEY_S", "KEY_DOWN"],
     "move_left":     ["KEY_A", "KEY_LEFT"],
     "move_right":    ["KEY_D", "KEY_RIGHT"],
-    "rotate_action": "MOUSE_BUTTON_MIDDLE",
+    "rotate_action": "MOUSE_BUTTON_RIGHT",
+    "drag_action":   "MOUSE_BUTTON_MIDDLE",
     "zoom_in":       "MOUSE_BUTTON_WHEEL_UP",
     "zoom_out":      "MOUSE_BUTTON_WHEEL_DOWN"
+  },
+
+  "cursors": {
+    "enabled": true,
+    "orbit": "🔄",
+    "drag": "✋",
+    "size": 28,
+    "hide_system_cursor": true
   }
 }

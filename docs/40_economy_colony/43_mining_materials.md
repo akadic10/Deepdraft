@@ -73,11 +73,42 @@ A single click (no drag) always produces a **4×4×4 zone**. Dragging expands th
 
 ### Tool 2 — Precision Dig (Variable, 1-Block Minimum) — SHIPPED (designation only)
 
-> Migrated from the original `00_dev_roadmap/03_mining_plan.md` (retired 2026-06-05; live
-> polish items in `05_mining_tech_debt.md`). Implemented in
-> `scripts/systems/MiningDesignationController.gd`; verified against the code on retirement
-> day. Tuning lives in `data/terrain/mining_config.json` (defaults 1×1, max 8×8, max drag
-> 40) — the controller's inline values are fallbacks only; JSON wins.
+> Migrated from the original `00_dev_roadmap/03_mining_plan.md` (retired 2026-06-05). The
+> follow-up Stonehearth parity-polish pass shipped 2026-06-06 (see *Shipped UX polish* below);
+> its tracking doc `05_mining_tech_debt.md` was retired the same day (git history retains the
+> worklog). Implemented in `scripts/systems/MiningDesignationController.gd`. Tuning lives in
+> `data/terrain/mining_config.json` (defaults 1×1, max 8×8, max drag 40) — the controller's
+> inline values are fallbacks only; JSON wins.
+
+**Shipped UX polish (2026-06-06 Stonehearth parity pass — all verified in-engine):**
+
+- *Drag height locking* — mid-drag the moving end locks to the anchor block's top plane, so the
+  selection footprint stays flat across slopes/terraces (`_raycast_anchor_plane`).
+- *X/Z rulers + depth label* — flat dimension bars (main line + end caps + outward arrowheads) on
+  the selection top, plus a corner depth number, showing the true footprint extents
+  (`_build_ruler_mesh`); modelled on SH `services/client/selection/ruler_widget.lua`.
+- *Instant modifier recolor* — Ctrl press/release flips the designate↔remove colour immediately,
+  even with a stationary cursor.
+- *Mining-mode hint callout* — a control-summary panel (`_build_hint_window`) shown while the
+  tool is active. Custom cursor assets remain deferred.
+- *Dropped — per-cell validity tinting:* SH keeps the marquee rectangular and just designates the
+  terrain-intersected subset (filtered by `_filter_mineable_blocks`); a per-cell display would
+  diverge from SH (`call_handlers/mining_call_handler.lua` only swaps the whole cursor to
+  `invalid_hover`). Only the existing whole-selection "empty confirms to nothing" is kept.
+
+> **Known perf caveat — active-tool per-frame cost (migrated from retired
+> `05_mining_tech_debt.md`, 2026-06-06):** while the tool is active (HOVER or DRAGGING),
+> `_process` runs `_rebuild_terrain_grid()` + `_update_hover_preview()` every frame. Moving the
+> camera (WASD) keeps the mouse fixed on screen but scrolls the world under it, so the hovered
+> block changes every frame → `_update_hover_preview` never early-returns and each frame re-runs
+> `_raycast_voxel` (a DDA march up to `camera.far` = 1024, worst when pointing past terrain at
+> the sky), rebuilds the hover preview mesh, and rebuilds the floor grid → choppy camera movement
+> with the tool on (confirmed pre-existing, not from the 2026-06-06 drag-lock change). Mitigations
+> cheapest-first: (1) cap the voxel march distance / early-out when the ray leaves the world's
+> vertical band; (2) throttle the hover raycast + grid rebuild to ~30 Hz; (3) skip the rebuild on
+> camera-only frames when the hovered block is unchanged. Acceptance: WASD pan stays smooth with
+> the tool active while preview/grid still track the cursor when the mouse moves. (Minor related:
+> holding Ctrl over empty space force-runs the empty-clear branch each frame — negligible.)
 
 A single-block tool for surgical work: finishing a room corner, punching a doorway, clearing one specific block. Starts at 1×1×1 and is resized interactively before confirming. Dock `Mine` requests `mine_precision` via `DockUI.tool_requested`; the tool stays active after each confirm for repeated designations.
 
@@ -158,17 +189,22 @@ Both tools produce the same kind of mining zone entity in the world. Key propert
 
 When a dwarf mines the last block in a zone, the zone entity is automatically destroyed.
 
+> **Backlog — full zone block-state split (worker prep; migrated from retired
+> `05_mining_tech_debt.md` #6, 2026-06-06):** the mined/designation set split shipped with slice
+> Phase SO-2b. The remaining split — **completed**, **destination**, and **reserved** blocks —
+> lands with real mining execution (dwarves reserving and clearing blocks). Not started.
+
 > **Adjacency decision (Alen, 2026-06-05): adjacent zones are NOT merged — a deliberate
 > departure from Stonehearth.** Performance reasoning, against the per-zone overlay
-> architecture (`05_mining_tech_debt.md`, shipped same day): merging makes every confirm
+> architecture (per-zone overlay split, shipped 2026-06-05): merging makes every confirm
 > beside an existing zone rebuild the whole merged zone (unbounded growth — the exact
 > whole-rebuild pathology the per-zone split removed), widens zone Y-ranges until the
 > slice-step clip-state skip never applies, and pays an adjacency/union scan per confirm
 > for zero rendering benefit. Gameplay side-effect, accepted: each zone keeps its own
-> MAX_WORKERS=4 cap rather than a merged zone sharing one cap. Known cosmetic remainder:
-> adjacent zones draw a doubled outline at the shared seam — if it bothers in play, the
-> fix is presentational (suppress outline faces against any-zone neighbours via
-> `_zone_by_block`), never data merging.
+> MAX_WORKERS=4 cap rather than a merged zone sharing one cap. Known cosmetic remainder
+> (was `05_mining_tech_debt.md` #7, retired 2026-06-06): adjacent zones draw a doubled outline
+> at the shared seam — if it bothers in play, the fix is presentational (suppress outline faces
+> against any-zone neighbours via `_zone_by_block`), never data merging.
 
 ---
 

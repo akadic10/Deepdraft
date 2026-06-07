@@ -76,8 +76,11 @@ var _zone_overlays: Dictionary = {}   # zone_id -> {root, fill, fill_exposed, li
 const ZONE_CLIP_FULL := 0      # whole zone at/below the plane → fully visible
 const ZONE_CLIP_PARTIAL := 1   # plane cuts through the zone's Y range
 const ZONE_CLIP_HIDDEN := 2    # whole zone above the plane → invisible
-var _label_horizontal: Label3D
-var _label_vertical: Label3D
+var _label_x: Label3D
+var _label_z: Label3D
+var _label_y: Label3D
+var _ruler_node: MeshInstance3D
+var _ruler_material: StandardMaterial3D
 var _terrain_grid_material: StandardMaterial3D
 var _preview_fill_material: StandardMaterial3D
 var _preview_remove_fill_material: StandardMaterial3D
@@ -95,6 +98,7 @@ var _ui_layer: CanvasLayer
 var _zone_window: PanelContainer
 var _zone_title: Label
 var _zone_body: Label
+var _hint_window: PanelContainer
 var _last_grid_center := Vector2i(-999999, -999999)
 var _last_grid_slice := -999999
 var _last_grid_radius := -1
@@ -146,7 +150,11 @@ func _process(_delta: float) -> void:
 	if _state == ToolState.INACTIVE:
 		return
 	_rebuild_terrain_grid()
-	_update_hover_preview()
+	# Modifier redraw (#4): force a rebuild when Ctrl is pressed/released so the
+	# removal colour updates even if the cursor has not moved to a new block
+	# (otherwise _update_hover_preview early-returns on an unchanged hit).
+	var ctrl_changed := Input.is_key_pressed(KEY_CTRL) != _preview_is_remove
+	_update_hover_preview(ctrl_changed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -201,6 +209,8 @@ func _on_tool_requested(tool_id: String) -> void:
 	_terrain_grid_node.visible = true
 	_preview_node.visible = true
 	_preview_exposed_node.visible = true
+	if _hint_window != null:
+		_hint_window.visible = true
 	_rebuild_terrain_grid(true)
 	print("MiningDesignationController: precision mining active.")
 
@@ -219,8 +229,9 @@ func _deactivate_tool() -> void:
 	_preview_fill_exposed_node.mesh = null
 	_preview_node.visible = false
 	_preview_exposed_node.visible = false
-	_label_horizontal.visible = false
-	_label_vertical.visible = false
+	_clear_dimension_overlay()
+	if _hint_window != null:
+		_hint_window.visible = false
 	_last_grid_center = Vector2i(-999999, -999999)
 	_last_grid_slice = -999999
 	_last_grid_radius = -1
@@ -260,6 +271,7 @@ func _build_materials() -> void:
 	_preview_remove_fill_material = _solid_material(Color(1.0, 0.05, 0.03, 0.06), true)
 	_preview_material = _line_material(Color(1.0, 0.98, 0.0, 0.30), true)
 	_preview_remove_material = _line_material(Color(1, 0.05, 0.03, 0.30), true)
+	_ruler_material = _line_material(Color(1, 1, 1, 0.9), true)
 	_zones_fill_material = _solid_material(Color(1.0, 0.88, 0.0, 0.08), true)
 	_zones_material = _line_material(Color(1.0, 0.92, 0.06, 0.28), true)
 	_preview_fill_exposed_material = _solid_material(Color(1.0, 0.90, 0.0, 0.42), false)
@@ -332,10 +344,19 @@ func _build_preview_nodes() -> void:
 	_zones_root.name = "MiningZoneOverlays"
 	add_child(_zones_root)
 
-	_label_horizontal = _make_size_label("1")
-	_label_vertical = _make_size_label("1")
-	add_child(_label_horizontal)
-	add_child(_label_vertical)
+	_ruler_node = MeshInstance3D.new()
+	_ruler_node.name = "MiningRulers"
+	_ruler_node.material_override = _ruler_material
+	_ruler_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_ruler_node.visible = false
+	add_child(_ruler_node)
+
+	_label_x = _make_size_label("1")
+	_label_z = _make_size_label("1")
+	_label_y = _make_size_label("1")
+	add_child(_label_x)
+	add_child(_label_z)
+	add_child(_label_y)
 
 
 func _make_size_label(text: String) -> Label3D:
@@ -426,6 +447,56 @@ func _build_zone_window() -> void:
 		_dev_mine_selected_zone()
 	)
 	column.add_child(dev_mine)
+
+	_build_hint_window()
+
+
+## Mining-mode instruction callout (#5): a small control-summary panel shown while
+## the tool is active. Informational only — ignores the mouse so it never blocks
+## clicks. Cursor assets are deferred (see doc 05).
+func _build_hint_window() -> void:
+	_hint_window = PanelContainer.new()
+	_hint_window.name = "MiningHintWindow"
+	_hint_window.visible = false
+	_hint_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hint_window.add_theme_stylebox_override("panel", _window_style())
+	# Centred near the top of the screen, content-sized.
+	_hint_window.anchor_left = 0.5
+	_hint_window.anchor_right = 0.5
+	_hint_window.anchor_top = 0.0
+	_hint_window.anchor_bottom = 0.0
+	_hint_window.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_hint_window.grow_vertical = Control.GROW_DIRECTION_END
+	_hint_window.offset_top = 14.0
+	_ui_layer.add_child(_hint_window)
+
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 7)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	_hint_window.add_child(margin)
+
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 3)
+	margin.add_child(column)
+
+	var title := Label.new()
+	title.text = "Mining Tool"
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 15)
+	column.add_child(title)
+
+	var body := Label.new()
+	body.text = "Drag: designate   ·   Ctrl: remove\nShift / Alt + wheel: width / depth   ·   Esc or right-click: exit"
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.add_theme_font_size_override("font_size", 12)
+	body.add_theme_color_override("font_color", Color(0.86, 0.82, 0.74))
+	column.add_child(body)
 
 
 func _window_style() -> StyleBoxFlat:
@@ -634,6 +705,14 @@ func _append_grid_line(
 
 func _update_hover_preview(force: bool = false) -> void:
 	var hit := _raycast_mouse()
+	# Drag height locking (#1): while dragging from a horizontal (top/bottom) face,
+	# lock the moving end to the anchor's height plane instead of following the
+	# terrain raycast, so the selection footprint stays flat across slopes/terraces.
+	if _state == ToolState.DRAGGING and not _anchor_hit.is_empty() \
+			and int(_anchor_hit.get("face_normal", Vector3i.ZERO).y) > 0:
+		var plane_hit := _raycast_anchor_plane()
+		if not plane_hit.is_empty():
+			hit = plane_hit
 	if _dict_equal_hit(hit, _hover_hit) and not force:
 		return
 	_hover_hit = hit
@@ -645,8 +724,7 @@ func _update_hover_preview(force: bool = false) -> void:
 		_preview_node.mesh = null
 		_preview_fill_exposed_node.mesh = null
 		_preview_exposed_node.mesh = null
-		_label_horizontal.visible = false
-		_label_vertical.visible = false
+		_clear_dimension_overlay()
 		return
 
 	var start_hit := _anchor_hit if _state == ToolState.DRAGGING and not _anchor_hit.is_empty() else _hover_hit
@@ -816,6 +894,35 @@ func _raycast_mouse() -> Dictionary:
 		return {}
 	var mouse_pos := get_viewport().get_mouse_position()
 	return _raycast_voxel(mouse_pos)
+
+
+## Drag height locking (#1): intersect the mouse ray with the horizontal plane at
+## the anchor block's top face and return a synthetic hit whose X/Z come from that
+## intersection while Y stays pinned to the anchor. Used only mid-drag on a
+## horizontal face so the rectangle does not climb slopes. Returns {} if the ray
+## is parallel to the plane or points away from it (caller falls back to terrain).
+func _raycast_anchor_plane() -> Dictionary:
+	if _camera_rig == null or _camera_rig.camera_node == null or _anchor_hit.is_empty():
+		return {}
+	var camera := _camera_rig.camera_node
+	var mouse_pos := get_viewport().get_mouse_position()
+	var origin := camera.project_ray_origin(mouse_pos)
+	var direction := camera.project_ray_normal(mouse_pos).normalized()
+	if is_zero_approx(direction.y):
+		return {}
+	var anchor_pos: Vector3i = _anchor_hit["block_pos"]
+	# The selection rests on the anchor block's top face: plane at y = anchor.y + 1.
+	var plane_y := float(anchor_pos.y) + 1.0
+	var t := (plane_y - origin.y) / direction.y
+	if t <= 0.0:
+		return {}
+	var p := origin + direction * t
+	return {
+		"hit": true,
+		"block_pos": Vector3i(floori(p.x), anchor_pos.y, floori(p.z)),
+		"face_normal": _anchor_hit["face_normal"],
+		"block_id": _anchor_hit.get("block_id", 0),
+	}
 
 
 func _raycast_voxel(screen_pos: Vector2) -> Dictionary:
@@ -1402,22 +1509,113 @@ func _append_block_lines(
 			cols.append(color)
 
 
+## Stonehearth-style dimension overlay (#3): X and Z rulers (dimension bars with
+## end caps + outward arrowheads and a midpoint count) laid flat on the top of the
+## selection, plus a depth number at the top corner. Counts are the TRUE footprint
+## extents, not the brush sizes. Rulers/labels hide on any axis of length <= 1.
 func _update_size_labels(raw_blocks: Array[Vector3i]) -> void:
 	if raw_blocks.is_empty():
-		_label_horizontal.visible = false
-		_label_vertical.visible = false
+		_clear_dimension_overlay()
 		return
 	var bounds := _bounds_for_blocks(raw_blocks)
-	var top := float(bounds.position.y + bounds.size.y) + 0.85
+	var top := float(bounds.position.y + bounds.size.y)
+	var label_y := top + 0.9
 	var center := bounds.position + bounds.size * 0.5
+	var x_count := int(round(bounds.size.x))
+	var z_count := int(round(bounds.size.z))
+	var y_count := int(round(bounds.size.y))
 
-	_label_horizontal.text = str(_horizontal_size)
-	_label_horizontal.global_position = Vector3(center.x, top, bounds.position.z - 0.85)
-	_label_horizontal.visible = _horizontal_size > 1
+	_ruler_node.mesh = _build_ruler_mesh(bounds)
+	_ruler_node.visible = _ruler_node.mesh != null
 
-	_label_vertical.text = str(_vertical_size)
-	_label_vertical.global_position = Vector3(bounds.position.x - 0.85, top, center.z)
-	_label_vertical.visible = _vertical_size > 1
+	# X ruler runs along the -Z edge; label centred over it.
+	_label_x.text = str(x_count)
+	_label_x.global_position = Vector3(center.x, label_y, bounds.position.z - 0.6)
+	_label_x.visible = x_count > 1
+
+	# Z ruler runs along the -X edge; label centred over it.
+	_label_z.text = str(z_count)
+	_label_z.global_position = Vector3(bounds.position.x - 0.6, label_y, center.z)
+	_label_z.visible = z_count > 1
+
+	# Depth number at the top far corner (matches Stonehearth's vertical label).
+	_label_y.text = str(y_count)
+	_label_y.global_position = Vector3(
+		bounds.position.x + bounds.size.x,
+		label_y,
+		bounds.position.z + bounds.size.z)
+	_label_y.visible = y_count > 1
+
+
+func _clear_dimension_overlay() -> void:
+	_ruler_node.mesh = null
+	_ruler_node.visible = false
+	_label_x.visible = false
+	_label_z.visible = false
+	_label_y.visible = false
+
+
+## Builds the flat X/Z dimension bars (PRIMITIVE_LINES, vertex-coloured white) on
+## the top plane of the selection. Returns null when neither axis spans > 1.
+func _build_ruler_mesh(bounds: AABB) -> ArrayMesh:
+	var x0 := bounds.position.x
+	var x1 := bounds.position.x + bounds.size.x
+	var z0 := bounds.position.z
+	var z1 := bounds.position.z + bounds.size.z
+	var y := bounds.position.y + bounds.size.y + 0.05   # just above the top face
+	var col := Color(1, 1, 1, 0.9)
+	var off := 0.6    # bar distance outside the footprint edge
+	var cap := 0.22   # end-cap half length
+	var av := 0.5     # arrowhead length along the bar
+	var ah := 0.2     # arrowhead half spread
+
+	var verts: PackedVector3Array = []
+	var cols: PackedColorArray = []
+
+	if bounds.size.x > 1.0:
+		var zr := z0 - off
+		_append_dim_line(verts, cols, col,
+			Vector3(x0, y, zr), Vector3(x1, y, zr), Vector3(0, 0, 1), cap, av, ah)
+	if bounds.size.z > 1.0:
+		var xr := x0 - off
+		_append_dim_line(verts, cols, col,
+			Vector3(xr, y, z0), Vector3(xr, y, z1), Vector3(1, 0, 0), cap, av, ah)
+
+	if verts.is_empty():
+		return null
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_COLOR] = cols
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arrays)
+	return mesh
+
+
+## One dimension line from a to b: main bar, perpendicular end caps, and outward
+## arrowheads at each end (perp is the in-plane unit vector across the bar).
+func _append_dim_line(
+		verts: PackedVector3Array, cols: PackedColorArray, col: Color,
+		a: Vector3, b: Vector3, perp: Vector3,
+		cap: float, av: float, ah: float) -> void:
+	var dir := (b - a).normalized()
+	_push_line(verts, cols, col, a, b)
+	_push_line(verts, cols, col, a - perp * cap, a + perp * cap)
+	_push_line(verts, cols, col, b - perp * cap, b + perp * cap)
+	# arrowheads point outward: tips at a and b, barbs angled back inward
+	_push_line(verts, cols, col, a, a + dir * av + perp * ah)
+	_push_line(verts, cols, col, a, a + dir * av - perp * ah)
+	_push_line(verts, cols, col, b, b - dir * av + perp * ah)
+	_push_line(verts, cols, col, b, b - dir * av - perp * ah)
+
+
+func _push_line(
+		verts: PackedVector3Array, cols: PackedColorArray, col: Color,
+		p: Vector3, q: Vector3) -> void:
+	verts.append(p)
+	verts.append(q)
+	cols.append(col)
+	cols.append(col)
 
 
 func _bounds_for_blocks(blocks: Array[Vector3i]) -> AABB:

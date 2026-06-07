@@ -185,8 +185,9 @@ Mining cuts are **renderer state** (Stonehearth's model — designation never mu
 - **`_invalidate_overview_global()` is reserved for genuinely global events:** initial build
   after worldgen, season/colour changes, render-mode resets, wholesale world-data swaps.
   Ordinary mining edits must never reach it.
-- **Open polish (tracked in `00_dev_roadmap/05_mining_tech_debt.md`):** the yellow zone
-  overlay (`_rebuild_zones_mesh()`) still rebuilds all zones into one mesh per edit.
+- **Resolved 2026-06-05:** the yellow zone overlay no longer rebuilds all zones into one mesh
+  per edit — it was split into per-zone overlay nodes with localized rebuilds (see
+  `43_mining_materials.md` §Mining Zone Entity).
 
 ## Debug Overlay & Block Inspector
 
