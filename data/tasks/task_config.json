@@ -1,0 +1,54 @@
+{
+  "__comment": [
+    "Task scheduler tunables (doc 16 First Dwarf Milestone, §2). Loaded by the",
+    "TaskManager autoload — no other script reads this file (Registry Pattern).",
+    "JSON = what things are (the numbers); GDScript = what things do (the loop).",
+    "",
+    "NO-HANG CONTRACT (doc 16 §2.5 — these keys ARE the guarantees):",
+    "  scheduler_budget_usec   - hard time budget per scheduler wake; the matching",
+    "                            loop stops mid-scan when exceeded and resumes from",
+    "                            its cursor on the next wake. Overload degrades into",
+    "                            assignment LATENCY, never frame time.",
+    "  max_probes_per_wake     - reachability probes per wake, whichever limit hits",
+    "                            first. Probes are the only non-trivial loop cost.",
+    "  probe_node_cap          - A* expansion cap per probe (doc 32: 200). A capped",
+    "                            failure counts as unreachable -> backoff.",
+    "  heartbeat_interval_s    - slow safety-net poll; normal operation is",
+    "                            event-driven wakes (task added, dwarf idle, ...).",
+    "  backoff_base_s / backoff_max_s - unreachable-task retry curve:",
+    "                            min(backoff_base^blocked_count, backoff_max).",
+    "  unreachable_signal_threshold - consecutive blocked probes before",
+    "                            task_unreachable fires (doc 31: 3).",
+    "",
+    "  static_priorities       - per-type base priority (doc 31 table). Stored on",
+    "                            the task at creation; colony bonuses are computed",
+    "                            per wake per TYPE and never written into tasks.",
+    "",
+    "Keys beginning with '__' are documentation comments and are skipped."
+  ],
+
+  "scheduler": {
+    "scheduler_budget_usec": 1000,
+    "max_probes_per_wake": 8,
+    "probe_node_cap": 1200,
+    "heartbeat_interval_s": 0.5,
+    "backoff_base_s": 2.0,
+    "backoff_max_s": 30.0,
+    "unreachable_signal_threshold": 3
+  },
+
+  "static_priorities": {
+    "MINE": 50,
+    "HAUL": 40,
+    "FARM": 35,
+    "BREW": 30,
+    "BUILD": 45,
+    "IDLE": 1,
+    "PATROL": 60
+  },
+
+  "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers — the zone posts this many MINE leases.",
+  "zone_source": {
+    "max_workers": 4
+  }
+}

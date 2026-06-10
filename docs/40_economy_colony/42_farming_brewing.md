@@ -242,6 +242,8 @@ A fruit tree has two independent harvest mechanisms:
 
 **1. Fruit harvest (non-destructive, annual):** Defined by a `fruit_harvest` block on the stage. Each autumn, the tree auto-enters a FRUITING state and a harvest task is queued. A dwarf picks the fruit and deposits it in the nearest food stockpile. The tree persists (`post_harvest: "persist"`). No player action needed beyond having idle dwarves.
 
+For world-spawned apple trees, `SurfaceFloraSpawner.resolve_tree_model_for_season()` treats autumn stages with a `fruit_harvest` block as fruiting and resolves `autumn_fruiting` when that model key exists. Later harvest-state persistence can replace this with per-entity pending/harvested state, but the visual fruiting model must remain reachable through the canonical resolver.
+
 **2. Chop harvest (destructive):** Works the same as any other tree — dwarf fells the tree, yielding wood and a seed drop. Apples come exclusively from the non-destructive fruit harvest, not the fell.
 
 | Species | Fruit item | Season | Mature yield | Ancient yield |
@@ -302,6 +304,8 @@ Pine and Juniper omit `spring` and `autumn` deliberately — `"summer"` is their
 ```gdscript
 static func resolve_tree_model_for_season(stage_data: Dictionary, season: String, world_pos: Vector3i) -> String:
     var models: Dictionary = stage_data.get("models", {})
+    if season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
+        return resolve_tree_model(models["autumn_fruiting"], world_pos)
     var value = models.get(season, models.get("summer", ""))
     if value == "":
         push_error("resolve_tree_model_for_season: no model for season '%s'" % season)

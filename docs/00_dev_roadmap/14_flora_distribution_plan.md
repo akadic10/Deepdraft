@@ -1,8 +1,11 @@
 # 14 - Flora Distribution Plan (mixed forest)
 
-Status: **implemented 2026-06-06 (Phases 1–4), pending in-engine verification.** Defines where the
-four tree species belong and the system that places them. Builds on `13_flora_scatter_pine.md`
-(the pine spawner) and implements `12_worldgen_second_milestone.md` §2 (*Scatter maps for flora*).
+Status: **implemented 2026-06-06; verified in-engine 2026-06-07.** The mixed forest streams and
+reads correctly across zones (camera testing; zone mix confirmed visually). The formal two-launch
+determinism diff was waived for now — easy to revisit if a non-deterministic path is ever suspected.
+Defines where the four tree species belong and the system that places them. Builds on
+`13_flora_scatter_pine.md` (the pine spawner) and implements `12_worldgen_second_milestone.md` §2
+(*Scatter maps for flora*).
 
 **Assets are done.** All four species exist as chunky 1:1 GLBs (`tools/generate_{pine,apple,oak,
 juniper}_glbs.py`; see `61_voxel_art_guide.md`). This plan is about **placement**, not art.
@@ -11,7 +14,9 @@ juniper}_glbs.py`; see `61_voxel_art_guide.md`). This plan is about **placement*
 > `SurfaceFloraSpawner` generalised to a multi-species registry with the unified per-cell selector
 > (Phase 2); `placement` blocks added to oak/apple/juniper (Phase 3); apple grove mask (Phase 4).
 > The placement logic was validated by a Python simulation of the selector (per-zone mix +
-> determinism); it has **not** been run in Godot yet. **One deviation from §6 below:** the scatter
+> determinism) and was then **verified in Godot** (2026-06-07) — the mixed forest streams and reads
+> correctly across zones. The formal two-launch determinism diff was deferred (easy to revisit).
+> **One deviation from §6 below:** the scatter
 > cell size is a single **global** spawner export (`scatter_cell_size`, default 14), not a
 > per-species field — one shared grid holds one tree per cell. Per-species `base_density` (+
 > moisture/grove) set the mix within a cell. Pine's existing `spawn_chance` serves as its
@@ -224,7 +229,7 @@ coverage is the product of cell size and the summed densities — tune against i
 
 ## 12a. Known issues / follow-ups
 
-- **Oak vs apple read too similar in-engine (logged 2026-06-06).** Both are broad chunky green
+- **⏳ TRACKED FUTURE TASK — Oak vs apple read too similar in-engine (logged 2026-06-06).** Both are broad chunky green
   deciduous canopies on brown trunks, so at overview zoom (and outside autumn/spring) they're hard
   to tell apart. Not fixing yet — just recorded. When addressed, candidate differentiators:
   diverge the summer canopy colour (e.g. oak a darker/bluer green, apple a lighter/warmer green),

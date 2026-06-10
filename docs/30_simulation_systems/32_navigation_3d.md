@@ -77,20 +77,30 @@ Multi-level vertical traversal will be implemented via designated block types (`
 ## A\* Cost Function
 
 ```
-G cost (move)     = 1.0  (cardinal)
-                  = 1.414 (diagonal, if enabled — currently disabled)
-                  = 1.2  (step up +1 block)
-                  = 0.9  (step down -1 block — slightly preferred)
-H cost (heuristic) = Manhattan3D(current, goal) × 0.5
+G cost (move)     = 1.0   (cardinal)
+                  = 1.414 (flat diagonal)
+                  = 1.2   (step up +1 block)
+                  = 0.9   (step down -1 block — slightly preferred)
+H cost (heuristic) = octile(XZ) + 0.9 × |dy|     (admissible with diagonals)
 ```
 
-Diagonal movement is currently **disabled** to keep pathfinding aligned with the block face grid.
+> **Diagonal movement ENABLED (Alen, 2026-06-10 — supersedes the original
+> "disabled" rule).** Cardinal-only A* produced L-shaped routes that read wrong in
+> play. Rules: diagonals are **flat only** (vertical ±1 steps remain cardinal) and
+> **never cut corners** — both cardinal in-between cells must be walkable, so agents
+> cannot clip past tree trunks or wall corners. Implemented in `NavGrid._astar()`.
 
 ## Path Reuse and Caching
 
 - Completed paths are cached keyed by `(start_block, goal_block)` with a TTL of `5.0` seconds.
 - On `chunk_changed`, all cached paths whose nodes overlap the changed chunk are immediately invalidated.
-- The Task System's reachability probe uses a **maximum 200-node A\* expansion** for speed; if no path is found within that budget the task is flagged BLOCKED.
+- The Task System's reachability probe uses a **capped A\* expansion** for speed; if no path
+  is found within that budget the task is flagged BLOCKED. The cap is data-driven
+  (`data/tasks/task_config.json` → `scheduler.probe_node_cap`, default **1200**; raised from
+  the original 200 on 2026-06-10 — 200 nodes only "sees" ~30–40 blocks of path, so reachable
+  zones across the settlement plain were probing as unreachable). The cap bounds how far away
+  dwarves notice work; it is a latency/cost dial, never a frame-time risk (probes stay inside
+  the scheduler's per-wake time budget).
 
 ---
 

@@ -35,14 +35,14 @@ var _default_pos: Vector3 = Vector3(0.0, 25.0, 25.0)
 var _default_rot: Vector3 = Vector3(-45.0, 0.0, 0.0)   # degrees
 var _surface_floor_margin:     float = 8.0   # WALL clearance above surface in rugged terrain (no-collider safety)
 var _surface_floor_min_clear:  float = 1.5   # clearance on flat ground (small → full ground-level zoom)
-var _surface_floor_ruggedness: float = 8.0   # local height delta (blocks) at which full wall margin applies (15_camera_rework.md §8a)
+var _surface_floor_ruggedness: float = 8.0   # local height delta (blocks) at which full wall margin applies (21_camera.md, Surface floor)
 
 var _move_speed:  float = 15.0
 var _shift_mult:  float = 2.5
 var _move_smooth: float = 0.1
 var _edge_scroll: bool  = false
 var _edge_px:     int   = 10
-var _pan_ref_height: float = 135.0   # camera world-Y at default framing; move_speed reads face value here (15_camera_rework.md §6 Route A)
+var _pan_ref_height: float = 135.0   # camera world-Y at default framing; move_speed reads face value here (21_camera.md)
 
 var _rot_speed:   float = 0.5
 var _invert_x:    bool  = false
@@ -57,7 +57,7 @@ var _zoom_min:    float = 5.0
 var _zoom_max:    float = 100.0
 var _zoom_default: float = 30.0
 var _zoom_proportional: bool = true   # Stonehearth-style: step scales with current distance
-var _zoom_step_fraction: float = 0.18 # proportional notch = this fraction of current distance (15_camera_rework.md §6 Route A)
+var _zoom_step_fraction: float = 0.18 # proportional notch = this fraction of current distance (21_camera.md)
 var _zoom_mode: String = "cursor_target"  # "cursor_target" = zoom toward mouse (Route B) | "spring_fraction" = Route A
 var _cursor_min_gap: float = 14.0     # cursor zoom stops this far from the targeted surface point (never punches through)
 var _zoom_smooth: float = 0.15
@@ -268,7 +268,7 @@ func _handle_pan(delta: float) -> void:
 	# motion feels consistent at any framing: high overview sweeps fast, low/zoomed-in
 	# nudges finely. Referenced to the default framing height so move_speed reads at
 	# face value there. Using world-Y (not spring_length) also makes a shallow pitch —
-	# which lowers the camera — pan finer automatically. (15_camera_rework.md §6 Route A.)
+	# which lowers the camera — pan finer automatically. (21_camera.md)
 	if camera_node and _pan_ref_height > 0.0:
 		speed *= maxf(camera_node.global_position.y, 1.0) / _pan_ref_height
 
@@ -399,7 +399,7 @@ func _handle_orbit_and_zoom(event: InputEvent) -> void:
 
 		# Scroll wheel: zoom in/out. Dispatches to _apply_zoom → cursor-targeted zoom
 		# (zoom toward the point under the mouse, clamped at that surface) or the
-		# spring_fraction fallback. Both use a geometric per-notch step. (15_camera_rework.md §6.)
+		# spring_fraction fallback. Both use a geometric per-notch step. (21_camera.md)
 		if mbe.pressed:
 			if (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN) \
 					and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_ALT)):
@@ -453,7 +453,7 @@ func _zoom_spring(zoom_in: bool) -> void:
 	_target_zoom = clampf(_target_zoom + (-step if zoom_in else step), _zoom_min, _zoom_max)
 
 
-## Cursor-targeted zoom (15_camera_rework.md §6 Route B, keep-rig variant).
+## Cursor-targeted zoom (21_camera.md, Zoom — keep-rig variant).
 ##
 ## Scales the whole rig (pivot target + spring length) toward the surface point P
 ## under the cursor by a single factor s. Because pivot and camera scale toward P by

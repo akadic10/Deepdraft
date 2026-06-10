@@ -58,6 +58,16 @@
     "material_tags": ["stone", "metamorphic", "building_material", "luxury", "stockpile_stone"]
   },
 
+  "base:resources:stone:rough_stone": {
+    "display_name": "Rough Stone",
+    "description": "A rough-hewn chunk of mountain stone. Dwarves use it to wall up and backfill unwanted openings.",
+    "model": "res://assets/models/items/stone/rough_stone.glb",
+    "stack_max": 10,
+    "weight_class": "heavy",
+    "base_trade_value": 1,
+    "material_tags": ["stone", "building_material", "void_fill", "stockpile_stone"]
+  },
+
   "__comment_soil": "Soft earth — farmable cave soil is the most valuable",
 
   "base:resources:soil:cave_soil": {
@@ -150,16 +160,6 @@
     "weight_class": "heavy",
     "base_trade_value": 12,
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
-  },
-
-  "base:resources:ore:gold_nugget": {
-    "display_name": "Gold Nugget",
-    "description": "A pure lump of gold separated from the ore matrix. Merchants love these.",
-    "model": "res://assets/models/items/ore/gold_nugget.glb",
-    "stack_max": 20,
-    "weight_class": "light",
-    "base_trade_value": 18,
-    "material_tags": ["ore", "metal", "precious", "luxury", "stockpile_ore"]
   },
 
   "__comment_gem": "Raw gem crystals — light, very high trade value",

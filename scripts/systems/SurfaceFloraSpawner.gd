@@ -410,6 +410,18 @@ func _instance_tree(species_name: String, model_path: String, stage_name: String
 	root.set_meta("base_y", ground_y)
 	root.visible = ground_y <= _slice_y
 
+	# Nav occupancy (doc 16 step 3a — dwarves walk around trees): mature/ancient
+	# trunks register footprint × clearance_height with PlacedEntityRegistry.
+	# Saplings (clutter) register nothing; canopy overhang carries no occupancy
+	# (Hard Rule 5 spirit). Independent of enable_collision — occupancy is nav
+	# data, the StaticBody3D is physics.
+	if stage_name != "sapling":
+		var occ_height := int(stage_data.get("clearance_height", footprint * 4))
+		var occ_id := PlacedEntityRegistry.register_box(
+			Vector3i(wx, ground_y + 1, wz),
+			Vector3i(footprint, occ_height, footprint))
+		root.set_meta("occupancy_id", occ_id)
+
 	add_child(root)
 	_spawned_count += 1
 	return root
@@ -419,6 +431,8 @@ func _despawn_column(key: Vector2i) -> void:
 	var nodes: Array = _loaded_columns.get(key, [])
 	for n in nodes:
 		if is_instance_valid(n):
+			if n.has_meta("occupancy_id"):
+				PlacedEntityRegistry.unregister(int(n.get_meta("occupancy_id")))
 			_spawned_count -= 1
 			n.queue_free()
 	_loaded_columns.erase(key)
@@ -458,6 +472,8 @@ static func resolve_tree_model(models_value, world_pos: Vector3i) -> String:
 static func resolve_tree_model_for_season(
 		stage_data: Dictionary, season: String, world_pos: Vector3i) -> String:
 	var models: Dictionary = stage_data.get("models", {})
+	if season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
+		return resolve_tree_model(models["autumn_fruiting"], world_pos)
 	var value = models.get(season, models.get("summer", ""))
 	if value is String and value == "":
 		push_error("resolve_tree_model_for_season: no model for season '%s'" % season)
@@ -663,6 +679,8 @@ func _on_season_changed(new_season: String) -> void:
 func _effective_season_for(stages: Dictionary, season: String) -> String:
 	var ref: Dictionary = stages.get("mature", {})
 	var models: Dictionary = ref.get("models", {})
+	if season == "autumn" and ref.has("fruit_harvest") and models.has("autumn_fruiting"):
+		return "autumn_fruiting"
 	if models.has(season):
 		return season
 	return "summer"

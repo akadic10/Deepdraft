@@ -4,7 +4,7 @@
     "THREE growth stages: sapling (clutter) → mature (3×3) → ancient (5×5, world-gen only).",
     "PERENNIAL FRUIT: mature and ancient stages auto-yield apples each autumn via fruit_harvest.",
     "Fruit harvest is NON-DESTRUCTIVE — tree persists. Chop harvest gives wood + seeds only.",
-    "Four seasonal models: spring (blossom), summer (leafy), autumn (fruit-laden), winter (bare).",
+    "Four seasonal models: spring (blossom), summer (leafy), autumn (gold/rust), winter (bare).",
     "Footprint follows the spreading-tree rule — see 42_farming_brewing.md § Surface Trees.",
     "",
     "MODEL VARIANTS (mature and ancient only — same rule as oak):",

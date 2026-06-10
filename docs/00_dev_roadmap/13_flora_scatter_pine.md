@@ -1,8 +1,11 @@
 # 13 - Flora Scatter: Pine (First Pass)
 
-Status: **in progress** — first surface-flora placement system. Created 2026-06-06.
-Implements the pine slice of `12_worldgen_second_milestone.md` §2 (*Scatter maps for flora
-and boulders*), scoped to **pine only**, structured to extend to oak / juniper / apple.
+Status: **shipped 2026-06-06; placement generalized by `14_flora_distribution_plan.md`.** This was
+the first surface-flora placement system (pine only). Doc 14 then generalized `SurfaceFloraSpawner`
+into a multi-species moisture + niche selector, so the **placement strategy here is superseded** (§2).
+**13 remains the conventions reference** — the scale rule (§5/§5.1), material (§6), collision + the
+camera Layer-2 gotcha (§7), and determinism (§3) — which all flora inherit and 14 does not repeat.
+Implements the pine slice of `12_worldgen_second_milestone.md` §2.
 
 This is the first system in the project that spawns **placed entities** (GLB world objects)
 into the live scene. Until now the world was terrain-only. The pine spawner therefore also
@@ -30,6 +33,12 @@ Decision recorded with the user (2026-06-06):
 ---
 
 ## 2. Elevation strategy
+
+> **Superseded for placement by `14_flora_distribution_plan.md` §5.** The pine-only elevation bands
+> and single `spawn_chance` below were the first pass; placement is now a unified multi-species
+> per-cell selector driven by elevation **and** a moisture channel. Pine's `spawn_chance` survives as
+> its `base_density` fallback, and the bands here still describe pine's niche — but the live selection
+> logic lives in 14. The scale/material/collision/determinism sections (§3, §5–§7) remain current.
 
 Bands come straight from `WorldGenerator.gd` surface-elevation constants and the domain
 classification. Pine reads the **terrain surface Y** (`get_surface_y`, the solid top — not the
@@ -265,8 +274,9 @@ confirm:
    (watch node count while panning).
 6. **Material** — needles render in their baked green, unlit and flat (not pink/untextured,
    not lit-and-shaded).
-7. **Slice/overview** — confirm pines behave acceptably in the slice view (they are scene
-   objects, not terrain; they do not obey the slice plane yet — note if culling is wanted).
+7. **Slice/overview** — pines now obey the slice plane: `SurfaceFloraSpawner` hides trees whose
+   base is above the cut (shipped 2026-06-07; coarse per-instance toggle, `11_slice_xray_plan.md`
+   Phase 5). Confirm trees above the active cut disappear and reappear as it is raised/lowered.
 
 ---
 
@@ -276,6 +286,8 @@ confirm:
   scale, material, and streaming; add their own `placement` blocks.
 - Growth over time (sapling → mature → ancient via `WorldClock`), planting tasks, felling/
   harvest tasks — those belong to the task/agent systems.
-- Pines obeying the slice plane (hide trees above the cut), boulders/scree, lake-bank reeds.
+- ~~Pines obeying the slice plane (hide trees above the cut)~~ — **done 2026-06-07** (coarse
+  base-Y cull, `11_slice_xray_plan.md` Phase 5; a per-prop clip-plane is the optional clean
+  follow-up). Still future: boulders/scree, lake-bank reeds.
 - Snow caps / cold high-altitude stone (open question in doc 12 §3) pairs naturally with the
   treeline defined here.

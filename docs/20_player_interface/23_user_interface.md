@@ -142,7 +142,7 @@ These are the top-level tag groups shown in the filter panel UI:
 | UI Label | Filter Tag | Covers |
 |---|---|---|
 | Stone | `stockpile_stone` | Mined rock and construction stone |
-| Ore | `stockpile_ore` | Copper, iron, coal, gold, gold nuggets |
+| Ore | `stockpile_ore` | Copper, tin, iron, silver, coal, gold |
 | Gems | `stockpile_gem` | Raw ruby, raw sapphire |
 | Soil | `stockpile_soil` | Cave soil, light soil, dark soil |
 | Wood | `stockpile_wood` | Juniper logs (and future timber) |

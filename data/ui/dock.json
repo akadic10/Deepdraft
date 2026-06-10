@@ -122,6 +122,22 @@
     },
     { "type": "separator" },
     {
+      "id": "flag",
+      "emoji": "🚩",
+      "label": "Settle",
+      "tooltip": "Place the Settlement Flag — your dwarves arrive at it (ESC cancels)",
+      "action": "toggle_window",
+      "target": "flag"
+    },
+    {
+      "id": "dwarves",
+      "emoji": "🧔",
+      "label": "Dwarves",
+      "tooltip": "DEV: spawn and inspect dwarves (First Dwarf Milestone)",
+      "action": "toggle_window",
+      "target": "dwarves"
+    },
+    {
       "id": "world_info",
       "emoji": "📊",
       "label": "World",

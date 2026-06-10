@@ -4,6 +4,10 @@
 
 This document catalogues every visual attribute a dwarf can have and defines the modular GLB file strategy for constructing them at runtime. The design goal is the minimum set of authored files that can express all valid combinations without duplicating geometry per color variant.
 
+2026-06-08 rework note: the current generated GLBs are being corrected because `body_base.glb` included arms and legs. The source of truth is now explicit: `body_base.glb` is compact torso plus neck only, while hands and feet remain detached floating parts. Track the regen work in [15_dwarf_asset_rework.md](../00_dev_roadmap/15_dwarf_asset_rework.md).
+
+Scale contract: dwarf parts are authored in an 8-voxels-per-block frame, but `tools/generate_dwarf_glb.py` exports positions in Godot/world units by baking the `0.125` scale into the GLB. Keep Godot import `Root Scale = 1.0` for generated dwarf GLBs.
+
 ---
 
 ## Attribute Catalogue
@@ -14,7 +18,7 @@ All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall
 
 | Attribute | Values | Notes |
 |---|---|---|
-| `skin_tone` | pale · medium · tan · dark | Applied to `head_[age].glb` and `body_base.glb` |
+| `skin_tone` | pale · medium · tan · dark | Applied to `head_[age].glb`, `body_base.glb`, `hand.glb`, and `foot.glb` |
 | `eye_color` | grey · blue · green · brown · amber · red | Applied to `eyes.glb` — separate node, not embedded in head |
 | `hair_color` | black · dark_brown · brown · auburn · red · blonde · grey · white | Applied to all hair/beard/brow shape meshes |
 
@@ -54,7 +58,7 @@ assets/dwarves/
     head_middle.glb
     head_elder.glb
     eyes.glb          ← shared across all age tiers and genders; tinted at runtime
-    body_base.glb
+    body_base.glb  <- compact torso + neck only; no arms or legs
     hand.glb          ← mirrored for left/right at runtime
     foot.glb          ← mirrored for left/right at runtime
 
@@ -125,6 +129,12 @@ DwarfAgent (CharacterBody3D)
 
 Equipment (helmets, armour, boots, weapons) attaches as **additional children** of the relevant part node — identical to how the hair/beard slots work. Equip = add child node. Unequip = remove child node.
 
+Anatomy contract:
+
+- `MeshBody` must never include arms, legs, wrist connectors, ankle connectors, or fused appendage mass.
+- `MeshHandL`, `MeshHandR`, `MeshFootL`, and `MeshFootR` are detached floating parts.
+- Shared absolute authoring coordinates are allowed for simple identity transforms, but the geometry must remain logically separated by GLB.
+
 ---
 
 ## Color Application Strategy
@@ -180,6 +190,10 @@ const EYE_COLORS = {
 func apply_appearance(data: DwarfAppearanceData) -> void:
     _tint_mesh($MeshHead,             SKIN_TONES[data.skin_tone])
     _tint_mesh($MeshBody,             SKIN_TONES[data.skin_tone])
+    _tint_mesh($MeshHandL,            SKIN_TONES[data.skin_tone])
+    _tint_mesh($MeshHandR,            SKIN_TONES[data.skin_tone])
+    _tint_mesh($MeshFootL,            SKIN_TONES[data.skin_tone])
+    _tint_mesh($MeshFootR,            SKIN_TONES[data.skin_tone])
     _tint_mesh($MeshHead/MeshEyes,    EYE_COLORS[data.eye_color])
     _tint_mesh($MeshHead/MeshHair,    HAIR_COLORS[data.hair_color])
     _tint_mesh($MeshHead/MeshBeard,   HAIR_COLORS[data.hair_color])  # null-safe; absent if no beard
@@ -364,7 +378,7 @@ func _attach(parent: Node3D, node_name: String, mesh: Mesh) -> void:
 ## Summary: What Needs to Be Authored
 
 To have a fully working male dwarf with all options:
-- **4** head base meshes (age tiers) + **1** eyes mesh + 1 body + 1 hand + 1 foot (base anatomy: **8**)
+- **4** head base meshes (age tiers) + **1** eyes mesh + 1 torso-only body + 1 hand + 1 foot (base anatomy: **8**)
 - **4** male hair style meshes
 - **7** beard meshes
 - **4** male eyebrow meshes

@@ -114,7 +114,12 @@ Current state: `SkyController.MANAGE_FOG = false`; `WorldRenderer` uses the orig
    diorama sky applied — `ground_bottom` mirrors the horizon keyframes (no dark below-horizon
    band; the world floats in continuous atmosphere). Also eases the §4 "two lines" problem for any
    future fog. Revert by dimming `ground_bottom` toward the old values (noted in the JSON).
-2. **Fog** — only per §4, as its own carefully-tested effort.
+2. **Fog** — only per §4, as its own carefully-tested effort. A correct sky-matched fog also
+   unlocks a **performance lever** (folded in from `07_performance_tuning.md`): once an honest fog
+   dissolves the horizon, the draw/build distance can be capped to the fog distance — fewer far
+   tiles built and drawn. Today the scene uses a static Environment fog (`fog_depth_end = 170`)
+   under `far_clip = 1200` with no honest cap; a time/weather height fog whose colour matches the
+   sky-gradient background would let us tie the built-tile budget to the visible distance.
 3. **`vision_multiplier` is visual-only** — coupling it to the streaming radius is deferred
    (startup performance is already solved; see `07_performance_tuning.md`).
 4. **Phase 5 polish, unstarted:** starfield, sine rise/set ramp, snow accumulation, weather mood.

@@ -22,6 +22,8 @@ const FALLBACK_DEFAULT_SIZE := 1
 const FALLBACK_MAX_HORIZONTAL := 8
 const FALLBACK_MAX_VERTICAL := 8
 const FALLBACK_MAX_DRAG_LENGTH := 40
+const FALLBACK_ZONE_MAX_WORKERS := 4
+const FALLBACK_SWING_BASE_TIME := 2.0
 
 enum ToolState { INACTIVE, HOVER, DRAGGING }
 
@@ -35,6 +37,17 @@ var _vertical_size: int = FALLBACK_DEFAULT_SIZE
 var _max_horizontal: int = FALLBACK_MAX_HORIZONTAL
 var _max_vertical: int = FALLBACK_MAX_VERTICAL
 var _max_drag_length: int = FALLBACK_MAX_DRAG_LENGTH
+var _zone_max_workers: int = FALLBACK_ZONE_MAX_WORKERS
+var _swing_base_time: float = FALLBACK_SWING_BASE_TIME
+var _reach_up: int = 5
+var _reach_down: int = 1
+
+## Cached ItemDropManager scene node (group lookup, lazy).
+var _drop_manager_node: Node = null
+
+## Set when a mined block changes effective grid tops; drained in _process
+## while the tool is active (per-block forced rebuilds would thrash).
+var _grid_dirty: bool = false
 
 var _hover_hit: Dictionary = {}
 var _anchor_hit: Dictionary = {}
@@ -121,6 +134,17 @@ func _ready() -> void:
 	if _renderer != null and _renderer.has_signal("visible_volume_changed"):
 		_renderer.connect("visible_volume_changed", _on_visible_volume_changed)
 
+	# Work-source routing (doc 16 step 5): zones are work sources; TaskManager
+	# signals route reservation releases and lease accounting back to the
+	# owning MiningZoneComponent. The controller is the single router.
+	TaskManager.task_released.connect(_on_zone_task_released)
+	TaskManager.task_completed.connect(_on_zone_task_completed)
+	TaskManager.task_failed.connect(_on_zone_task_failed)
+	TaskManager.task_cancelled.connect(_on_zone_task_cancelled)
+	# Zero-lease zone revival: terrain changes near a stalled zone re-arm it
+	# (mirrors TaskManager's chunk-dirtied early re-arm for blocked tasks).
+	WorldData.chunk_dirtied.connect(_on_world_chunk_dirtied, CONNECT_DEFERRED)
+
 
 ## One reactive rebuild per visibility change (the renderer emits at most once
 ## per frame). Zones re-clip even while the tool is inactive — confirmed zones
@@ -146,9 +170,22 @@ func _on_visible_volume_changed() -> void:
 		_update_hover_preview(true)
 
 
-func _process(_delta: float) -> void:
+var _window_refresh_accum: float = 0.0
+
+func _process(delta: float) -> void:
+	# Keep the zone window's worker/blocked line live while it is open —
+	# independent of tool state (the window outlives tool deactivation).
+	if _zone_window != null and _zone_window.visible and _selected_zone_id >= 0:
+		_window_refresh_accum += delta
+		if _window_refresh_accum >= 0.5:
+			_window_refresh_accum = 0.0
+			if _zones.has(_selected_zone_id):
+				_open_zone_window(_selected_zone_id)
 	if _state == ToolState.INACTIVE:
 		return
+	if _grid_dirty:
+		_grid_dirty = false
+		_rebuild_terrain_grid(true)   # mined blocks changed effective grid tops
 	_rebuild_terrain_grid()
 	# Modifier redraw (#4): force a rebuild when Ctrl is pressed/released so the
 	# removal colour updates even if the cursor has not moved to a new block
@@ -168,7 +205,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
 		# Tool cancel is ESC-only (above). Right-mouse is reserved for the camera orbit
-		# (15_camera_rework.md §8b) — do not consume it here.
+		# (21_camera.md, Tool input contract) — do not consume it here.
 
 		if _state == ToolState.INACTIVE:
 			if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
@@ -261,6 +298,12 @@ func _load_config() -> void:
 	_max_horizontal = int(precision.get("max_horizontal", FALLBACK_MAX_HORIZONTAL))
 	_max_vertical = int(precision.get("max_vertical", FALLBACK_MAX_VERTICAL))
 	_max_drag_length = int(dig_tool.get("max_drag_length", FALLBACK_MAX_DRAG_LENGTH))
+	var zone_cfg: Dictionary = root.get("zone", {})
+	_zone_max_workers = int(zone_cfg.get("max_workers", FALLBACK_ZONE_MAX_WORKERS))
+	var exec_cfg: Dictionary = root.get("execution", {})
+	_swing_base_time = float(exec_cfg.get("swing_base_time_s", FALLBACK_SWING_BASE_TIME))
+	_reach_up = int(exec_cfg.get("reach_up_blocks", _reach_up))
+	_reach_down = int(exec_cfg.get("reach_down_blocks", _reach_down))
 
 
 func _build_materials() -> void:
@@ -777,14 +820,23 @@ func _confirm_preview() -> void:
 
 	var zone_id := _next_zone_id
 	_next_zone_id += 1
+	# The component is the WORK SOURCE (doc 16 §2.7): it owns the
+	# region/completed/destination/reserved split. zone["blocks"] stays the
+	# live REMAINING list for overlay/window paths (mined blocks are erased).
+	var component := MiningZoneComponent.new(self, zone_id, blocks)
+	component.reach_up = _reach_up
+	component.reach_down = _reach_down
 	_zones[zone_id] = {
 		"id": zone_id,
 		"tool": "mine_precision",
 		"blocks": blocks,
 		"enabled": true,
+		"component": component,
 	}
 	for block: Vector3i in blocks:
 		_zone_by_block[block] = zone_id
+	TaskManager.register_work_source(zone_id, component)
+	_top_up_zone_leases(zone_id)
 	_rebuild_zone_overlay(zone_id)
 	_add_visual_cut_blocks(blocks)
 	# New cut blocks change the effective grid tops (Phase 2b) — re-grid now.
@@ -1647,7 +1699,29 @@ func _open_zone_window(zone_id: int) -> void:
 		return
 	var zone: Dictionary = _zones[zone_id]
 	_zone_title.text = "Mining Zone"
-	_zone_body.text = "Blocks: %d" % (zone.get("blocks", []) as Array).size()
+	var component: MiningZoneComponent = zone.get("component")
+	if component != null:
+		var text := "Blocks left: %d / %d   Workers: %d   Faces: %d" % [
+			component.remaining_count(), component.total_count(),
+			component.reserved.size(), component.destination_count()]
+		# Lease health: tell the player WHY nobody is coming (doc 31's
+		# task_unreachable intent — no toast system yet, so it lives here).
+		var now := Time.get_ticks_msec()
+		var assigned := 0
+		var blocked := 0
+		for task_id: int in component.lease_ids.keys():
+			var task := TaskManager.get_task(task_id)
+			if task == null:
+				continue
+			if task.assigned_to >= 0:
+				assigned += 1
+			elif now < task.retry_at:
+				blocked += 1
+		if assigned == 0 and blocked > 0:
+			text += "\nNo worker can reach this zone — retrying."
+		_zone_body.text = text
+	else:
+		_zone_body.text = "Blocks: %d" % (zone.get("blocks", []) as Array).size()
 	_zone_window.visible = true
 
 
@@ -1663,6 +1737,299 @@ func _remove_selected_zone() -> void:
 	_close_zone_window()
 
 
+# ── Zone work source — leases & execution (doc 16 steps 5/6) ─────────────────
+
+## Posts MINE leases up to min(max_workers, unreserved remaining blocks).
+## Leases are INTENT-sized (doc 16 §2.1) — at most max_workers per zone, never
+## per-block tasks. Excess leases self-correct: a dwarf that pulls nothing
+## completes its lease early.
+func _top_up_zone_leases(zone_id: int) -> void:
+	var zone: Dictionary = _zones.get(zone_id, {})
+	if zone.is_empty():
+		return
+	var component: MiningZoneComponent = zone.get("component")
+	if component == null:
+		return
+	var target := mini(_zone_max_workers, component.unreserved_remaining())
+	while component.lease_ids.size() < target:
+		var rep := component.representative_target()
+		if rep.y < 0:
+			break
+		var task_id := TaskManager.add_task(
+			Task.Type.MINE, rep, { "zone_id": zone_id }, zone_id)
+		component.lease_ids[task_id] = true
+
+
+## The component behind a task, or null if the task is not a zone lease.
+func _zone_component_for(task: Task) -> MiningZoneComponent:
+	if task == null or task.type != Task.Type.MINE:
+		return null
+	var zone: Dictionary = _zones.get(task.source_id, {})
+	if zone.is_empty():
+		return null
+	return zone.get("component")
+
+
+func _on_zone_task_released(task: Task, dwarf_id: int, _reason: int) -> void:
+	var component := _zone_component_for(task)
+	if component != null:
+		component.release_worker(dwarf_id)   # reservation freed; completed set untouched (§2.8)
+
+
+func _on_zone_task_completed(task: Task) -> void:
+	_on_zone_lease_finished(task)
+
+
+func _on_zone_task_failed(task: Task, _reason: String) -> void:
+	_on_zone_lease_finished(task)
+
+
+func _on_zone_task_cancelled(task: Task) -> void:
+	_on_zone_lease_finished(task)
+
+
+func _on_zone_lease_finished(task: Task) -> void:
+	var component := _zone_component_for(task)
+	if component == null:
+		return
+	component.lease_ids.erase(task.id)
+	if task.assigned_to >= 0:
+		component.release_worker(task.assigned_to)
+	_maybe_destroy_finished_zone(task.source_id)
+	if _zones.has(task.source_id):
+		_refresh_zone_window(task.source_id)
+
+
+## Stuck-zone revival: a terrain change near a zone with NO working dwarves
+## refreshes it — destination recomputed, leases re-targeted and re-armed,
+## missing leases reposted. This covers BOTH stall shapes:
+##   - zero leases (all completed early while unreachable), and
+##   - blocked leases whose targets went stale (zone designated while sealed;
+##     a later dig exposes its face, but the leases kept probing the interior
+##     rock they were aimed at on confirm — caught in-engine 2026-06-10).
+## Zones with an assigned worker self-maintain (targets refresh on their own
+## mined blocks), so they are skipped. Per-zone 250 ms throttle keeps the
+## per-mined-block cost bounded; worldgen streaming is naturally cheap here
+## because fresh zones rarely intersect streaming chunks without also being
+## worked.
+func _on_world_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
+	if _zones.is_empty():
+		return
+	var chunk := Vector3i(cx, cy, cz)
+	var now := Time.get_ticks_msec()
+	for zone_id: int in _zones.keys():
+		var component: MiningZoneComponent = (_zones[zone_id] as Dictionary).get("component")
+		if component == null or component.is_empty():
+			continue
+		if not component.intersects_chunk(chunk):
+			continue
+		if _zone_has_assigned_worker(component):
+			continue
+		if now - component.last_refresh_msec < 250:
+			continue
+		component.last_refresh_msec = now
+		component.mark_destination_dirty()
+		_top_up_zone_leases(zone_id)
+		_refresh_zone_lease_targets(zone_id)
+
+
+func _zone_has_assigned_worker(component: MiningZoneComponent) -> bool:
+	for task_id: int in component.lease_ids.keys():
+		var task := TaskManager.get_task(task_id)
+		if task != null and task.assigned_to >= 0:
+			return true
+	return false
+
+
+## Swing parameters for one block (doc 43: mine_time = base × hardness /
+## skill; doc 16 §2.7: durability swings per block). Skill speed is applied by
+## the AGENT (its profession multiplier) — this is the block's base cost.
+## Called by MiningZoneComponent.get_block_work.
+func get_zone_block_work(block: Vector3i) -> Dictionary:
+	var block_id := _block_id_at(block)
+	if not BlockRegistry.is_solid(block_id):
+		return {}
+	var key := BlockRegistry.get_key(block_id)
+	var def := BlockRegistry.get_def(key)
+	var hardness := maxi(int(def.get("hardness", 1)), 1)
+	var res := BlockRegistry.get_resource_def(key)
+	var durability := maxi(int(res.get("durability", 2)), 1)
+	var block_time := _swing_base_time * float(hardness)
+	return {
+		"swings": durability,
+		"swing_time": block_time / float(durability),
+	}
+
+
+## THE mining execution pipeline (doc 16 §2.7 step 4) — one block leaves the
+## world. Called by MiningZoneComponent.commit_mined (real mining); the DEV
+## instant-mine button runs the same world-mutation steps minus dwarf/drops.
+## Returns false (and writes nothing) on any guard failure.
+func execute_zone_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> bool:
+	var zone: Dictionary = _zones.get(zone_id, {})
+	if zone.is_empty():
+		return false
+	# Hard Rule 1 — re-validated at the moment of the void write, independent
+	# of designation-time filters.
+	if block.y <= BEDROCK_MAX_Y:
+		push_error("MiningDesignationController: bedrock write blocked at %s." % str(block))
+		return false
+
+	# Capture identity BEFORE the void write (drops + sanity).
+	var pre_id := _block_id_at(block)
+	var was_solid := BlockRegistry.is_solid(pre_id)
+
+	_mine_block_world(block)
+	if was_solid:
+		_spawn_block_drops(pre_id, block)
+
+	# Zone bookkeeping.
+	var component: MiningZoneComponent = zone.get("component")
+	if component != null:
+		component.mark_completed(block, dwarf_id)
+	(zone["blocks"] as Array).erase(block)
+
+	if component != null and component.is_empty():
+		_cancel_pending_zone_leases(zone_id)
+		_maybe_destroy_finished_zone(zone_id)
+	else:
+		_rebuild_zone_overlay(zone_id)
+		_top_up_zone_leases(zone_id)
+		_refresh_zone_lease_targets(zone_id)
+	if _zones.has(zone_id):
+		_refresh_zone_window(zone_id)
+	return true
+
+
+## Mining opens new stand cells, so the zone's reachable-representative moves.
+## Re-target the zone's still-PENDING leases (≤ max_workers of them) so their
+## probes and the chunk-dirtied re-arm aim at live geometry, and clear their
+## backoff — the terrain just changed in this very zone.
+func _refresh_zone_lease_targets(zone_id: int) -> void:
+	var zone: Dictionary = _zones.get(zone_id, {})
+	var component: MiningZoneComponent = zone.get("component") if not zone.is_empty() else null
+	if component == null:
+		return
+	var rep := component.representative_target()
+	if rep.y < 0:
+		return
+	for task_id: int in component.lease_ids.keys():
+		var task := TaskManager.get_task(task_id)
+		if task == null or task.assigned_to >= 0:
+			continue
+		task.target_pos = rep
+		task.retry_at = 0   # re-arm immediately; the next wake re-probes
+
+
+## World-mutation core shared by real mining and DEV mine: materialise the
+## chunk, write void through WorldData (NavGrid + future systems see truth —
+## closes the step-3b DEV wart), promote to MINED in the renderer (exposure
+## pipeline, SO-2b), feed X0, update controller raycast/grid bookkeeping.
+func _mine_block_world(block: Vector3i) -> void:
+	_ensure_chunk_real(block)
+	WorldData.set_block(block.x, block.y, block.z, BlockRegistry.AIR_ID)
+	_mined_blocks[block] = true
+	if _zone_by_block.has(block):
+		_zone_by_block.erase(block)
+	if _renderer != null and _renderer.has_method("add_mined_blocks"):
+		var mined: Array[Vector3i] = [block]
+		_renderer.call("add_mined_blocks", mined)
+	var x0_blocks: Array[Vector3i] = [block]
+	InteriorTracker.on_blocks_mined(x0_blocks)
+	_grid_dirty = true
+
+
+## Materialises an ungenerated chunk from the deterministic generator before
+## the first real write. Without this, WorldData's lazy chunk creation would
+## hand back an ALL-VOID chunk and silently delete 4,095 innocent blocks.
+## Cost: 4,096 generator calls, once per first-touched chunk (~ms scale) —
+## acceptable for v1; thread it only if profiling ever disagrees (doc 11
+## lesson: one variable at a time).
+func _ensure_chunk_real(block: Vector3i) -> void:
+	var cx := block.x >> 4
+	var cy := block.y >> 4
+	var cz := block.z >> 4
+	if WorldData.chunk_exists(cx, cy, cz):
+		return
+	var chunk: Chunk = WorldData.get_chunk(cx, cy, cz)   # creates empty (all void)
+	var has_void := false
+	var base_x := cx << 4
+	var base_y := cy << 4
+	var base_z := cz << 4
+	for ly in range(16):
+		for lz in range(16):
+			for lx in range(16):
+				var id := int(WorldGenerator.get_generated_block_id(
+					base_x + lx, base_y + ly, base_z + lz))
+				chunk.blocks[Chunk.local_index(lx, ly, lz)] = id
+				if BlockRegistry.is_transparent(id):
+					has_void = true
+	chunk.has_void = has_void
+
+
+## Rolls the block's loot table (block_resources.json) and hands drops to the
+## ItemDropManager. randf chance rolls are runtime behaviour, not worldgen —
+## Hard Rule 8 (deterministic terrain identity) does not apply to drops.
+func _spawn_block_drops(pre_block_id: int, block: Vector3i) -> void:
+	var manager := _drop_manager()
+	if manager == null:
+		return
+	var key := BlockRegistry.get_key(pre_block_id)
+	var res := BlockRegistry.get_resource_def(key)
+	var drops: Array = res.get("drops", [])
+	for entry in drops:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var drop: Dictionary = entry
+		if randf() > float(drop.get("chance", 1.0)):
+			continue
+		manager.call("spawn_drop",
+			String(drop.get("item", "")), int(drop.get("count", 1)), block)
+
+
+func _drop_manager() -> Node:
+	if _drop_manager_node == null or not is_instance_valid(_drop_manager_node):
+		_drop_manager_node = get_tree().get_first_node_in_group("item_drop_manager")
+	return _drop_manager_node
+
+
+## Cancels a finished zone's still-PENDING leases; assigned leases complete
+## naturally (their dwarves pull nothing and finish).
+func _cancel_pending_zone_leases(zone_id: int) -> void:
+	var zone: Dictionary = _zones.get(zone_id, {})
+	var component: MiningZoneComponent = zone.get("component") if not zone.is_empty() else null
+	if component == null:
+		return
+	for task_id: int in component.lease_ids.keys().duplicate():
+		var task := TaskManager.get_task(task_id)
+		if task != null and task.assigned_to < 0:
+			TaskManager.cancel_task(task_id)   # cancelled handler erases the lease id
+
+
+## Destroys a zone once it is mined out AND its last lease has finished.
+## (Player removal goes through _remove_zone instead — that path cancels
+## assigned leases too.)
+func _maybe_destroy_finished_zone(zone_id: int) -> void:
+	var zone: Dictionary = _zones.get(zone_id, {})
+	if zone.is_empty():
+		return
+	var component: MiningZoneComponent = zone.get("component")
+	if component == null or not component.is_empty() or not component.lease_ids.is_empty():
+		return
+	TaskManager.unregister_work_source(zone_id)
+	_zones.erase(zone_id)
+	_free_zone_overlay(zone_id)
+	if _selected_zone_id == zone_id:
+		_close_zone_window()
+	print("MiningDesignationController: zone %d mined out — destroyed." % zone_id)
+
+
+func _refresh_zone_window(zone_id: int) -> void:
+	if _selected_zone_id != zone_id or _zone_window == null or not _zone_window.visible:
+		return
+	_open_zone_window(zone_id)
+
+
 # ── DEV instant mine (testing tool — no drops) ────────────────────────────────
 
 func _dev_mine_selected_zone() -> void:
@@ -1672,45 +2039,54 @@ func _dev_mine_selected_zone() -> void:
 	_close_zone_window()
 
 
-## Executes a zone immediately: its blocks leave the game. The renderer's
+## Executes a zone immediately: its blocks leave the game through the SAME
+## world-mutation pipeline as real mining, minus the dwarf and minus drops
+## (doc 16 Phase 4: "the same pipeline minus the dwarf"). The renderer's
 ## visual cuts are deliberately KEPT (in overview mode the cut set is the
 ## authoritative record of removal — the generated heightmap would resurrect
-## the rock otherwise); zone bookkeeping is erased so the overlay disappears;
-## WorldData gets void written wherever a chunk actually exists (streamed-mode
-## correctness — never allocate chunks just to hold air). No drops.
+## the rock otherwise). Chunks are MATERIALISED before the void write, so
+## WorldData and NavGrid see truth everywhere (the step-3b DEV wart is
+## closed). X0 interior tracking runs here too.
 func _dev_mine_zone(zone_id: int) -> void:
 	if not _zones.has(zone_id):
 		return
 	var zone: Dictionary = _zones[zone_id]
+	# Pull the work source out from under any dwarves first.
+	TaskManager.cancel_source_tasks(zone_id)
+	TaskManager.unregister_work_source(zone_id)
 	var mined: Array[Vector3i] = []
 	for block: Vector3i in zone.get("blocks", []):
+		if block.y <= BEDROCK_MAX_Y:
+			continue   # Hard Rule 1 — never write bedrock, even in DEV paths
 		if _zone_by_block.get(block, -1) == zone_id:
 			_zone_by_block.erase(block)
 		_mined_blocks[block] = true
 		mined.append(block)
-		if WorldData.chunk_exists(
-				floori(float(block.x) / 16.0),
-				floori(float(block.y) / 16.0),
-				floori(float(block.z) / 16.0)):
-			WorldData.set_block(block.x, block.y, block.z, BlockRegistry.AIR_ID)
+		_ensure_chunk_real(block)
+		WorldData.set_block(block.x, block.y, block.z, BlockRegistry.AIR_ID)
 	_zones.erase(zone_id)
 	# NOTE: no _remove_visual_cut_blocks() here — the cuts ARE the mined holes.
 	# Promote the blocks to MINED in the renderer (doc 11 Phase SO-2b): punches
 	# wall side-bands and grows the cavity shell.
 	if _renderer != null and _renderer.has_method("add_mined_blocks"):
 		_renderer.call("add_mined_blocks", mined)
+	InteriorTracker.on_blocks_mined(mined)
 	_free_zone_overlay(zone_id)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)   # mined blocks change effective grid tops
 		_update_hover_preview(true)
 	print("MiningDesignationController: DEV mined zone %d (%d blocks, no drops)." % [
-		zone_id, (zone.get("blocks", []) as Array).size()])
+		zone_id, mined.size()])
 
 
 func _remove_zone(zone_id: int) -> void:
 	if not _zones.has(zone_id):
 		return
 	var zone: Dictionary = _zones[zone_id]
+	# Player removal cancels EVERY lease, assigned ones included — working
+	# dwarves abort and return to the idle pool (release protocol, §2.8).
+	TaskManager.cancel_source_tasks(zone_id)
+	TaskManager.unregister_work_source(zone_id)
 	var removed_blocks: Array[Vector3i] = []
 	for block: Vector3i in zone.get("blocks", []):
 		if _zone_by_block.get(block, -1) == zone_id:
@@ -1718,6 +2094,8 @@ func _remove_zone(zone_id: int) -> void:
 			removed_blocks.append(block)
 	_zones.erase(zone_id)
 	_free_zone_overlay(zone_id)
+	# zone["blocks"] holds only REMAINING blocks — already-mined ones left the
+	# list at execution time, so mined cuts are never un-cut here.
 	_remove_visual_cut_blocks(removed_blocks)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
@@ -1740,10 +2118,15 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 		for block: Vector3i in zone.get("blocks", []):
 			if _zone_by_block.get(block, -1) == zone_id:
 				kept.append(block)
+		var component: MiningZoneComponent = zone.get("component")
 		if kept.is_empty():
+			TaskManager.cancel_source_tasks(zone_id)
+			TaskManager.unregister_work_source(zone_id)
 			_zones.erase(zone_id)
 		else:
 			zone["blocks"] = kept
+			if component != null:
+				component.subtract_blocks(removed_blocks)
 			_zones[zone_id] = zone
 	if affected.has(_selected_zone_id) and not _zones.has(_selected_zone_id):
 		_close_zone_window()

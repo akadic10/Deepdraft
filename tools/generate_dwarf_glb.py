@@ -17,7 +17,8 @@ project uses (see any tree under assets/models/flora/):
     * single mesh, single primitive, triangle mode
     * attributes POSITION (VEC3 f32), NORMAL (VEC3 f32), COLOR_0 (VEC4 f32)
     * one material named "vertex_color_unlit"
-    * coordinates in MagicaVoxel voxel units (8 voxels = 1 game block)
+    * authored in MagicaVoxel voxel units, exported in Godot units
+      (8 voxels = 1 game block, so positions are multiplied by 0.125)
     * flat normals, indexed triangles
 
 SHARED COORDINATE FRAME (the important bit)
@@ -32,9 +33,10 @@ NO per-part offset:
       MeshHandL / MeshHandR / MeshFootL / MeshFootR             <- identity
 
 Because nothing is repositioned, every GLB must be authored in ONE absolute
-voxel frame describing the whole dwarf. We model the entire dwarf once, then
-emit each part as its own GLB while keeping the shared coordinates. Dropping
-each mesh in at (0,0,0) reassembles a coherent dwarf automatically.
+frame describing the whole dwarf. We model the entire dwarf once in voxel
+coordinates, then emit each part as its own GLB in Godot world units while
+keeping the shared coordinates. Dropping each mesh in at (0,0,0) reassembles a
+coherent dwarf automatically.
 
 Frame convention:
     X : left(-) / right(+), centred on 0
@@ -44,11 +46,11 @@ Visual height target ~26 voxels = 3.3 game blocks (41b / doc 61).
 
 COLOUR / TINT STRATEGY
 ----------------------
-41b tints head, body, eyes, hair, beard and brows at runtime via a shader that
-multiplies COLOR_0 by a `tint` uniform. So those parts are authored in a
-near-white GRAYSCALE value gradient (top faces lighter, recesses darker): the
-multiply preserves the shading while the tint supplies the hue. Parts that are
-NOT tinted at runtime (hands, feet, scars) are baked with a literal colour.
+41b tints head, body, hands, feet, eyes, hair, beard and brows at runtime via a
+shader that multiplies COLOR_0 by a `tint` uniform. So those parts are authored
+in a near-white GRAYSCALE value gradient (top faces lighter, recesses darker):
+the multiply preserves the shading while the tint supplies the hue. Parts that
+are NOT tinted at runtime (scars) are baked with a literal colour.
 
 Run:  python3 tools/generate_dwarf_glb.py            (writes assets/dwarves/)
       python3 tools/generate_dwarf_glb.py --out DIR  (custom output root)
@@ -59,6 +61,8 @@ import json
 import os
 import struct
 from pathlib import Path
+
+EXPORT_SCALE = 0.125  # 8 authored voxels = 1 Godot/world unit
 
 # ---------------------------------------------------------------------------
 # Voxel container
@@ -151,12 +155,17 @@ def _pad4(b: bytes, fill=b"\x00") -> bytes:
     return b
 
 
-def write_glb(path: Path, name: str, mesh):
+def write_glb(path: Path, name: str, mesh, export_scale: float = 1.0):
     positions, normals, colors, indices = mesh
     if not positions:
         raise ValueError(f"{name}: empty mesh")
 
-    pos_b = b"".join(struct.pack("<3f", *p) for p in positions)
+    scaled_positions = [
+        (p[0] * export_scale, p[1] * export_scale, p[2] * export_scale)
+        for p in positions
+    ]
+
+    pos_b = b"".join(struct.pack("<3f", *p) for p in scaled_positions)
     nrm_b = b"".join(struct.pack("<3f", *n) for n in normals)
     col_b = b"".join(struct.pack("<4f", *c) for c in colors)
     idx_b = b"".join(struct.pack("<I", i) for i in indices)
@@ -179,8 +188,8 @@ def write_glb(path: Path, name: str, mesh):
     v_col = add_view(col_b, 34962)
     v_idx = add_view(idx_b, 34963)
 
-    mins = [min(p[i] for p in positions) for i in range(3)]
-    maxs = [max(p[i] for p in positions) for i in range(3)]
+    mins = [min(p[i] for p in scaled_positions) for i in range(3)]
+    maxs = [max(p[i] for p in scaled_positions) for i in range(3)]
 
     gltf = {
         "asset": {"version": "2.0", "generator": "Deepdraft dwarf part generator"},
@@ -235,11 +244,10 @@ def write_glb(path: Path, name: str, mesh):
 #   Baked parts : literal colour.
 # ---------------------------------------------------------------------------
 
-SKIN_NEUTRAL = (0.97, 0.93, 0.90)   # head + body_base (tinted by skin_tone)
+SKIN_NEUTRAL = (0.97, 0.93, 0.90)   # head/body/hands/feet (tinted by skin_tone)
 HAIR_NEUTRAL = (0.95, 0.95, 0.95)   # hair / beard / brows (tinted by hair_color)
 EYE_WHITE    = (1.00, 1.00, 1.00)   # iris (tinted by eye_color)
 EYE_PUPIL    = (0.18, 0.18, 0.18)   # stays dark after tint multiply
-SKIN_BAKED   = (0.82, 0.62, 0.48)   # hands/feet (not tinted at runtime)
 SCAR_BAKED   = (0.74, 0.46, 0.40)   # scar overlay (not tinted at runtime)
 
 # ---------------------------------------------------------------------------
@@ -292,32 +300,31 @@ def build_eyes():
 
 
 def build_body():
-    """Torso + legs + arms in one mesh (hands/feet are separate parts)."""
+    """Compact torso + short neck only; no arms, legs, or connector geometry."""
     v = Voxels()
-    # legs (stout, two columns), y 2..9
-    v.box(-4, -1, 2, 9, -2, 2, SKIN_NEUTRAL)
-    v.box(1, 4, 2, 9, -2, 2, SKIN_NEUTRAL)
-    # torso, broad, y 9..18
-    v.box(-5, 5, 9, 18, -3, 3, SKIN_NEUTRAL)
-    # shoulders + arms down the sides, y 8..17
-    v.box(-7, -5, 8, 17, -2, 2, SKIN_NEUTRAL)
-    v.box(5, 7, 8, 17, -2, 2, SKIN_NEUTRAL)
-    # neck, y 18..19
+    # small rounded lower torso, y 9..13
+    v.box(-2, 2, 9, 10, -2, 2, SKIN_NEUTRAL)
+    v.box(-3, 3, 10, 13, -2, 3, SKIN_NEUTRAL)
+    # broader upper torso, y 13..18; this is body mass, not arms
+    v.box(-4, 4, 13, 18, -3, 3, SKIN_NEUTRAL)
+    # short neck, y 18..19, touching the head base at y=19
     v.box(-2, 2, 18, 19, -1, 2, SKIN_NEUTRAL)
     return v
 
 
 def build_hand():
-    """Right hand (x>0). Left is the mirror, produced at write time."""
+    """Right floating hand (x>0). Left is mirrored at runtime."""
     v = Voxels()
-    v.box(5, 8, 5, 8, -2, 2, SKIN_BAKED)   # at the lower end of the right arm
+    # Detached from the torso by a visible air gap.
+    v.box(6, 9, 8, 11, -2, 2, SKIN_NEUTRAL)
     return v
 
 
 def build_foot():
-    """Right foot (x>0). Left is the mirror."""
+    """Right floating foot (x>0). Left is mirrored at runtime."""
     v = Voxels()
-    v.box(1, 4, 0, 2, -2, 4, SKIN_BAKED)   # extends forward (+Z) past the ankle
+    # Detached from the torso; no ankle or leg connector geometry.
+    v.box(2, 5, 0, 2, -2, 4, SKIN_NEUTRAL)
     return v
 
 
@@ -541,14 +548,14 @@ def main():
         vox = builder()
         mesh = mesh_from_voxels(vox)
         path = out_root / subdir / f"{name}.glb"
-        size = write_glb(path, name, mesh)
+        size = write_glb(path, name, mesh, export_scale=EXPORT_SCALE)
         total_files += 1
         total_bytes += size
         tris = len(mesh[3]) // 3
         print(f"  {subdir:9s}/{name:24s}  {len(vox):4d} vox  {tris:5d} tris  {size:6d} B")
 
     print(f"\nWrote {total_files} GLBs ({total_bytes/1024:.1f} KB) to {out_root}")
-    print("Reminder: set GLB import Root Scale = 0.0625 in Godot (doc 61 §3).")
+    print("Reminder: generated dwarf GLBs already bake 0.125 scale; keep Godot Root Scale = 1.0.")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,9 @@
 [ext_resource type="Script" uid="uid://bx1i6l408piua" path="res://scripts/systems/MiningDesignationController.gd" id="5_mining"]
 [ext_resource type="Script" path="res://scripts/systems/SliceController.gd" id="6_slice"]
 [ext_resource type="Script" path="res://scripts/systems/SurfaceFloraSpawner.gd" id="7_flora"]
+[ext_resource type="Script" path="res://scripts/entities/DwarfDirector.gd" id="8_dwarves"]
+[ext_resource type="Script" path="res://scripts/systems/FlagPlacementController.gd" id="9_flag"]
+[ext_resource type="Script" path="res://scripts/systems/ItemDropManager.gd" id="10_drops"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -71,4 +74,20 @@ dock_ui_path = NodePath("../DockUI")
 
 [node name="SurfaceFloraSpawner" type="Node3D" parent="."]
 script = ExtResource("7_flora")
+slice_controller_path = NodePath("../SliceController")
+
+[node name="DwarfDirector" type="Node3D" parent="."]
+script = ExtResource("8_dwarves")
+camera_path = NodePath("../CameraRig")
+slice_controller_path = NodePath("../SliceController")
+dock_ui_path = NodePath("../DockUI")
+
+[node name="FlagPlacementController" type="Node3D" parent="."]
+script = ExtResource("9_flag")
+camera_path = NodePath("../CameraRig")
+dock_ui_path = NodePath("../DockUI")
+dwarf_director_path = NodePath("../DwarfDirector")
+
+[node name="ItemDropManager" type="Node3D" parent="."]
+script = ExtResource("10_drops")
 slice_controller_path = NodePath("../SliceController")

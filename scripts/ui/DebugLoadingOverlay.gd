@@ -8,6 +8,8 @@ var _title_bar: PanelContainer
 var _label: Label
 var _renderer: Node
 var _world_generator: Node
+var _task_manager: Node      # /root/TaskManager once it ships (doc 16); null-safe until then
+var _dwarf_director: Node    # scene DwarfDirector once it ships (doc 16); null-safe until then
 var _elapsed: float = 0.0
 var _dragging: bool = false
 
@@ -15,6 +17,7 @@ var _dragging: bool = false
 func _ready() -> void:
 	_renderer = get_node_or_null(renderer_path)
 	_world_generator = get_node_or_null("/root/WorldGenerator")
+	_task_manager = get_node_or_null("/root/TaskManager")
 	_build_ui()
 	visible = false
 
@@ -227,6 +230,74 @@ func _update_text() -> void:
 			render.get("dirty_queue", 0),
 			render.get("meshes_built", 0),
 		],
+		_agents_tasks_text(),
+	])
+
+
+## Agents & Tasks instrumentation (doc 16 Phase 0). Reads TaskManager and the
+## scene's DwarfDirector when they exist; renders a quiet placeholder until the
+## milestone systems ship. The watchdog rule: if oldest-pending age grows while
+## idle dwarves exist, the scheduler is misbehaving (doc 16 §2.5 guarantee 6).
+func _agents_tasks_text() -> String:
+	if _task_manager == null:
+		_task_manager = get_node_or_null("/root/TaskManager")
+	if _dwarf_director == null or not is_instance_valid(_dwarf_director):
+		var scene := get_tree().current_scene
+		if scene != null:
+			_dwarf_director = scene.get_node_or_null("DwarfDirector")
+
+	var dwarf_text := "dwarves: -"
+	if _dwarf_director != null and _dwarf_director.has_method("get_agent_stats"):
+		var a: Dictionary = _dwarf_director.call("get_agent_stats")
+		dwarf_text = "dwarves: %d (idle %d)" % [a.get("count", 0), a.get("idle", 0)]
+
+	var nav_text := ""
+	var nav := get_node_or_null("/root/NavGrid")
+	if nav != null and nav.has_method("get_stats"):
+		var n: Dictionary = nav.call("get_stats")
+		nav_text = "\nnav: paths %d (cache hit %d)  probes %d  expanded %d  chunks %d" % [
+			n.get("paths_served", 0), n.get("path_cache_hits", 0),
+			n.get("probes_run", 0), n.get("nodes_expanded_total", 0),
+			n.get("walkable_chunks_cached", 0),
+		]
+
+	if _task_manager == null or not _task_manager.has_method("get_scheduler_stats"):
+		return dwarf_text + nav_text + "\ntasks: - (TaskManager not loaded)"
+
+	var s: Dictionary = _task_manager.call("get_scheduler_stats")
+	var per_type: Dictionary = s.get("pending_by_type", {})
+	var type_bits := PackedStringArray()
+	for t in per_type:
+		if int(per_type[t]) > 0:
+			type_bits.append("%s %d" % [t, int(per_type[t])])
+	var types_text := " ".join(type_bits) if not type_bits.is_empty() else "none"
+
+	# Mining execution instrumentation (doc 16 step 6): X0 interior cells must
+	# grow with digging and match expectations on a known-size tunnel; drops
+	# count verifies the loot pipeline end to end.
+	var mining_text := ""
+	var interior := get_node_or_null("/root/InteriorTracker")
+	if interior != null and interior.has_method("get_stats"):
+		var i: Dictionary = interior.call("get_stats")
+		mining_text = "\nmining: interior cells %d (chunks %d)" % [
+			i.get("interior_cells", 0), i.get("interior_chunks", 0)]
+		var drop_manager := get_tree().get_first_node_in_group("item_drop_manager")
+		if drop_manager != null and drop_manager.has_method("get_stats"):
+			var d: Dictionary = drop_manager.call("get_stats")
+			mining_text += "  drops %d" % int(d.get("drops", 0))
+
+	return "\n".join([
+		dwarf_text + nav_text,
+		"tasks: pending %d (%s)  active %d  blocked %d" % [
+			s.get("pending_total", 0), types_text,
+			s.get("active", 0), s.get("blocked", 0),
+		],
+		"sched: oldest-pending %.1fs  probes/s %.1f  worst wake %d us  wakes %d" % [
+			s.get("oldest_pending_age_s", 0.0),
+			s.get("probes_per_sec", 0.0),
+			s.get("worst_wake_usec", 0),
+			s.get("wake_count", 0),
+		] + mining_text,
 	])
 
 

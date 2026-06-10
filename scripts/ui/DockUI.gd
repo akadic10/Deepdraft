@@ -26,6 +26,8 @@ var _weather_mgr: Node
 var _world_info_overlay: CanvasLayer
 var _block_inspector_overlay: CanvasLayer
 var _slice_controller: Node = null
+var _dwarf_director: Node = null
+var _flag_controller: Node = null
 var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
 
@@ -272,6 +274,16 @@ func _toggle_window(target: String) -> void:
 
 	if target == "slice":
 		_toggle_slice_tool()
+		return
+
+	if target == "dwarves":
+		if _dwarf_director != null and _dwarf_director.has_method("toggle_window"):
+			_dwarf_director.call("toggle_window")
+		return
+
+	if target == "flag":
+		if _flag_controller != null and _flag_controller.has_method("toggle_active"):
+			_flag_controller.call("toggle_active")
 		return
 
 	if _open_windows.has(target):
@@ -527,6 +539,18 @@ func _toggle_slice_tool() -> void:
 		push_warning("DockUI: slice button pressed but no SliceController is registered.")
 		return
 	_slice_controller.call("toggle_active")
+
+
+## Push-registration from DwarfDirector (the SliceController pattern) — the
+## dock's 'dwarves' entry routes its toggle to the director's DEV window.
+func register_dwarf_director(director: Node) -> void:
+	_dwarf_director = director
+
+
+## Push-registration from FlagPlacementController — the dock's 'flag' entry
+## toggles the settlement-flag placement tool.
+func register_flag_controller(controller: Node) -> void:
+	_flag_controller = controller
 
 
 func _on_slice_active_changed(_active: bool) -> void:

@@ -21,9 +21,14 @@ BlockRegistry="*uid://darckb4wfswr6"
 WorldClock="*uid://cntlqitntp144"
 WorldData="*uid://cbq0ixpilwd48"
 WorldGenerator="*uid://bl38ocrtbuj8s"
+PlacedEntityRegistry="*res://scripts/registries/PlacedEntityRegistry.gd"
+NavGrid="*res://scripts/systems/NavGrid.gd"
+TaskManager="*res://scripts/systems/TaskManager.gd"
+InteriorTracker="*res://scripts/systems/InteriorTracker.gd"
 UIRegistry="*res://scripts/registries/UIRegistry.gd"
 SkyController="*res://scripts/systems/SkyController.gd"
 WeatherManager="*res://scripts/systems/WeatherManager.gd"
+DwarfAssets="*res://scripts/registries/DwarfAssets.gd"
 
 [display]
 

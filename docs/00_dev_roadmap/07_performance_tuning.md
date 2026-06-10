@@ -15,9 +15,10 @@ at ~4.6 s - under Stonehearth's 5.28 s reference - and the full world overview f
 
 It complements, and should not duplicate:
 
-- `06_initial_world_load_sky_fog_view_distance_plan.md` - the architectural plan (local
-  generation, fog/camera budget, visibility regions). The bounded-generation rewrite it
-  describes was **not needed** to hit the target and remains available only if the world grows.
+- `06_world_start_placement.md` - now just the world-start placement backlog feature. (The
+  local-generation / fog-camera-budget architecture this effort once leaned on was retired from
+  that doc in its 2026-06-06 rewrite; the bounded-generation rewrite was **not needed** to hit
+  the target and is recoverable in git only if the world grows.)
 - the tiled block-face overview and delta visual-cut work this document builds on — from the
   retired `04_mining_performance.md`, now normative in `24_world_rendering.md` §Mining-Edit
   Invalidation Contract.
@@ -214,74 +215,20 @@ Optional remaining (only if a specific problem shows up in a release playtest):
 - <span style="color:#d29922;">**Scope the grass-band re-mesh to cap tiles.**</span>
   `_on_grass_bands_ready` re-meshes all built tiles; only grass-cap columns change. Faster
   building means more tiles get redundantly re-meshed (~500). Low value unless profiling says so.
-- <span style="color:#d29922;">**Bounded local generation (doc 06).**</span> Not needed for the
-  target. Revisit only if the world size grows or precompute creeps back up.
+- <span style="color:#d29922;">**Bounded local generation.**</span> Not needed for the target
+  (this architecture was retired from doc 06 in its 2026-06-06 rewrite; recoverable in git).
+  Revisit only if the world size grows or precompute creeps back up.
 
 ---
 
-## <span style="color:#3fb950;">KEEP - Stonehearth Reference: Camera Far Clip, Background & Distance Fog</span>
+## <span style="color:#3fb950;">Stonehearth fog & sky reference → moved to `08_sky_plan.md`</span>
 
-Read from `P:\stonehearth` on 2026-06-01. This is how Stonehearth keeps the whole map present
-and navigable without a hard terrain edge - and why it does not need a large fixed far clip.
-
-### Camera / far clip
-
-- `services/client/camera/player_camera_controller.lua` clamps zoom only: `_min_zoom = 15`,
-  `_max_zoom = 300` (lines 144-145). Zoom step scales with distance (short/med/far factors
-  0.2/0.3/0.4 at <100 / <500 / beyond).
-- There is **no scripted hard far-clip plane** that culls distant terrain. Distant geometry is
-  hidden by **fog that fades into the sky**, not by clipping. The far plane is left to the engine
-  and the horizon is dissolved visually.
-- Contrast - Deepdraft (`data/camera/camera_settings.json`): `far_clip = 1200`, `max_distance
-  = 180`, plus a fixed Godot Environment fog with `fog_depth_end = 170` in `debug_world.tscn`.
-  This is a static, non-time, non-weather approximation.
-
-### Background = time-of-day sky gradient, cross-faded by weather
-
-- `services/client/sky_renderer/sky_renderer_service.lua` sets a **sky gradient texture**
-  (`set_sky_texture('skyGradient', ...)`, e.g. `data/texture_gradient/skybox/sunny/sky_gradient.png`)
-  and samples it by **normalized game time**: `set_sky_parameter('parameters',
-  normalized_game_time, transition_factor, ...)`. The background is a gradient, not a flat color.
-- Weather changes call `transition_sky(new_sky_settings_json_path, transition_interval)`, which
-  cross-fades `skyGradient` -> `targetSkyGradient` and interpolates every sky/light/fog param
-  over the interval. Each weather has its own `data/weather/<name>/<name>_sky_settings.json`.
-
-### Distance fog = shader height-fog, colored by sun and weather
-
-- Fog is a **shader effect** (`data/horde/shaders/fullscreen_quad_height_fog.shader`,
-  `data/horde/shaders/utilityLib/atmosphere.glsl`), driven each frame by
-  `SkyRenderer:_update_height_fog` through global uniforms:
-  - `heightFogParams = (fog_height, fog_thickness_factor, fog_noise_factor, 1.0 / fog_distance_factor)`
-  - `heightFogParams2 = (fogNoiseScaleX, fogNoiseScaleZ, fogNoiseSpeed, 1)`
-  - `heightFogColorMult` = fog tint.
-- Shader distance term: `fFar = clamp(length(pos - camViewerPos) * heightFogParams.w, 0, 1)`,
-  and fog color is `celestialLightColor * heightFogColorMult`. So **fog takes the sun's current
-  color times the weather tint** - the horizon fog matches the sky gradient, and the terrain edge
-  dissolves into the background instead of ending at a visible line.
-- All fog params are **time-of-day interpolated and weather cross-faded**. Concrete values:
-
-| Sky setting | time | height_fog = (height, thickness, noise, distance) | color mult |
-|---|---|---|---|
-| default/sunny | midday | (0, 0.3, 1, **500**) | (1,1,1,1) |
-| default/sunny | dawn/dusk | (50, 0.4, 1, 150) | (1,1,1,1) |
-| default/sunny | midnight | (100, 0.5, 1, 100) | (1,1,1,1) |
-| foggy | midday | (70, 0.8, **5**, 250) | (0.152, 0.16, 0.144, 1) |
-
-  (Source: `data/calendar/sky_settings.json` = `stonehearth:sky_settings:default`,
-  `data/weather/foggy/foggy_sky_settings.json`.)
-
-### <span style="color:#d29922;">REVIEW - Why this matters for performance</span>
-
-The fog is not only cosmetic - it is what lets the renderer **stop drawing far terrain crisply
-without showing a hard edge**. Because the horizon fades to a sky-matched color well before any
-boundary, the effective draw distance can be much smaller than `far_clip`, and the build budget
-can match it (doc 06, Phase 6). Deepdraft currently promises a 1200-unit far clip with fixed
-170-unit fog that neither matches a sky gradient nor tracks time/weather, so it both over-draws
-(no honest distance cap) and shows a flatter horizon. A weather/time-driven height fog whose
-color matches a sky gradient would let us cap drawn/built tiles to the fog distance cleanly.
-
-This is a presentation lever that compounds with the overview-build fixes above: smaller honest
-draw distance -> fewer far tiles that must be built and drawn at all.
+The Stonehearth camera far-clip / sky-gradient background / height-fog research that used to live
+here is consolidated in **`08_sky_plan.md` §3 (the two fog systems) and §4 (the fog post-mortem)** —
+its proper home, and a more complete treatment. The one **performance** takeaway stays in scope here:
+a correct sky-matched fog lets the **honest draw distance be capped to the fog distance**, so fewer
+far tiles need to be built/drawn at all — a presentation lever that compounds with the overview-build
+fixes above. That fog-distance → build-budget link is logged as an open item in `08_sky_plan.md` §5.
 
 ---
 
@@ -369,14 +316,12 @@ the GPU fewer, larger faces.**
   should distant terrain use an engine-native / LOD mesh as Stonehearth does?
 - Should the surface block id be a first-class generated map (like `heightmap`/`domain_map`)
   rather than an on-demand recomputation?
-- After threading the overview build, is `view_radius` / fog tuning (doc 06, Phase 6) still
-  needed, or does smooth full-map meshing make it moot?
-- Should Deepdraft replace fixed Environment fog + `far_clip = 1200` with a Stonehearth-style
-  time/weather-driven height-fog whose color matches a sky-gradient background, so the draw
-  distance can be honestly capped to the fog distance (see reference section above)? Godot
-  supports a custom `sky` shader and height/depth fog; the sky-gradient + fog-color-matches-sky
-  trick is reproducible without Horde3D.
+- After threading the overview build, is `view_radius` / fog tuning still needed, or does smooth
+  full-map meshing make it moot? (The fog direction now lives in `08_sky_plan.md` §4–§5.)
+- The fog-vs-far-clip direction (replace fixed Environment fog + `far_clip = 1200` with a
+  time/weather height fog whose colour matches the sky, then cap draw/build distance to the fog
+  distance) now lives in `08_sky_plan.md` §4–§5, with the Stonehearth fog reference.
 
 ---
 
-*Prev: [06_initial_world_load_sky_fog_view_distance_plan.md](./06_initial_world_load_sky_fog_view_distance_plan.md)*
+*Prev: [06_world_start_placement.md](./06_world_start_placement.md)*

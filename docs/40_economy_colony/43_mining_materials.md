@@ -8,9 +8,9 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 
 | Block Key | Category | Hardness | Yield | Notes |
 |---|---|---|---|---|
-| `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | Stone TBD | Authored mountain shelves |
-| `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | Stone TBD | Valley/foothill body bands |
-| `base:terrain:rock:rock11` | Foundation rock | 3 | Stone TBD | Stable band above bedrock |
+| `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | 1× Rough Stone (50%) | Authored mountain shelves |
+| `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | 1× Rough Stone (50%) | Valley/foothill body bands |
+| `base:terrain:rock:rock11` | Foundation rock | 3 | 1× Rough Stone (50%) | Stable band above bedrock |
 | `base:terrain:ore:iron`       | Ore        | 4 | 2× Iron Ore           | Common ore |
 | `base:terrain:ore:copper`     | Ore        | 3 | 2× Copper Ore         | Shallow, early-game |
 | `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore           | Deep, rare |
@@ -21,6 +21,12 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 **Hardness** determines mining time: `mine_time = base_time × hardness / dwarf_mining_skill`.
 
 `base_time = 2.0` seconds at skill 1 on hardness 1.
+
+> **Rough Stone (added 2026-06-10):** all 11 rock bands drop `base:resources:stone:rough_stone`
+> at 50% chance (tunable — `data/terrain/block_resources.json`). Its purpose is **void fill**:
+> the player will use stocked rough stone to wall up and backfill unwanted openings via a future
+> BUILD designation (mechanic not yet designed — the item and drop exist now so mining
+> execution, `16_first_dwarf_milestone.md` Phase 4, yields it from day one).
 
 ## Mining Tools
 
@@ -157,20 +163,25 @@ This tool is intentionally slower to use than the Dig tool. A 1×1×1 precision 
 
 ---
 
-### DEV Instant Mine (testing tool, added 2026-06-05)
+### DEV Instant Mine (testing tool, added 2026-06-05; re-based 2026-06-10)
 
 Not gameplay: the Mining Zone window's **DEV Mine (no drops)** button executes the selected
-zone immediately — no dwarves, no drops. Semantics:
+zone immediately — no dwarves, no drops. Since real mining execution landed (doc 16 step 6),
+its semantics are **the same pipeline minus the dwarf**:
 
-- The zone's blocks become **mined**: zone bookkeeping is erased, the renderer's visual cuts
-  are KEPT (in overview mode the cut set is the authoritative record of removal — the
-  generated heightmap would resurrect the rock otherwise), and `WorldData` gets void written
-  wherever a chunk actually exists. The renderer's `add_mined_blocks()` moves them into the
-  mined set (exact-colour reveal per the unified exposure principle).
+- The zone's blocks become **mined**: leases are cancelled and the work source unregistered,
+  zone bookkeeping is erased, the renderer's visual cuts are KEPT (in overview mode the cut
+  set is the authoritative record of removal — the generated heightmap would resurrect the
+  rock otherwise), chunks are **materialised from the generator** before the void write, and
+  `WorldData` gets void written everywhere (the old "only where a chunk exists" carve-out —
+  and the nav blind spot it caused — is gone). The renderer's `add_mined_blocks()` moves the
+  blocks into the mined set (exact-colour reveal per the unified exposure principle), and the
+  X0 `InteriorTracker` records the interior columns.
 - Mined blocks are transparent to the designation raycast (the freshly exposed rock
   behind/beneath is designatable — iterative digging works), excluded from new designations,
   and stepped past by the terrain grid's effective-top walk.
-- No undo; a new run regenerates the world. Replaced by real mining execution later.
+- No undo; a new run regenerates the world. Differences from real mining: instant, no
+  drops, no dwarf labour.
 - Lateral digs surfaced the overview's cavity-invisibility property and unblocked its fix —
   see `11_slice_xray_plan.md` Phase SO-2b (mined/designation set split, side-band punching,
   cavity shell).
@@ -189,10 +200,12 @@ Both tools produce the same kind of mining zone entity in the world. Key propert
 
 When a dwarf mines the last block in a zone, the zone entity is automatically destroyed.
 
-> **Backlog — full zone block-state split (worker prep; migrated from retired
-> `05_mining_tech_debt.md` #6, 2026-06-06):** the mined/designation set split shipped with slice
-> Phase SO-2b. The remaining split — **completed**, **destination**, and **reserved** blocks —
-> lands with real mining execution (dwarves reserving and clearing blocks). Not started.
+> **Block-state split — LANDED 2026-06-10 (doc 16 step 5; in-engine verification pending):**
+> the mined/designation set split shipped with slice Phase SO-2b; the remaining split —
+> **completed**, **destination**, and **reserved** blocks — now lives in
+> `scripts/components/MiningZoneComponent.gd` (the zone's work source). Destination is derived
+> lazily (in region, not completed, not reserved, ≥1 walkable stand cell); full reachability
+> is proven by the dwarf at pull time (3 path failures release the lease with backoff).
 
 > **Adjacency decision (Alen, 2026-06-05): adjacent zones are NOT merged — a deliberate
 > departure from Stonehearth.** Performance reasoning, against the per-zone overlay

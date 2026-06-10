@@ -7,9 +7,10 @@
     "  mouse_orbit_sensitivity 0.26; pan speed = camera position.y (height-proportional).",
     "Deepdraft uses NEGATIVE pitch (look-down): -90 = straight down, 0 = horizon, so Stonehearth's",
     "  5..80 above-horizon maps to -5 (shallow) .. -80 (steep) here, default -50.",
-    "ZOOM (15_camera_rework.md Route A): proportional notch = zoom_step_fraction * current distance",
+    "ZOOM (21_camera.md): proportional notch = zoom_step_fraction * current distance",
     "  (geometric zoom). zoom_speed is the non-proportional fixed-step fallback only.",
-    "  min_distance raised 6 -> 14 so the closest framing clears lowland terrain."
+    "  min_distance 2 / cursor_min_gap 1.5 allow ground-level close-up; the surface floor",
+    "  (surface_floor_* keys) prevents clipping instead of a hard min distance."
   ],
 
   "camera_settings": {
