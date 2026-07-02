@@ -253,7 +253,9 @@ def write_glb(path: Path, name: str, mesh, export_scale: float = 1.0):
 
 SKIN_NEUTRAL = (0.97, 0.93, 0.90)   # head/hands (tinted by skin_tone)
 SKIN_GROOVE  = (0.74, 0.70, 0.67)   # finger grooves — colour break survives tint
-HAIR_NEUTRAL = (0.95, 0.95, 0.95)   # hair / beard / brows (tinted by hair_color)
+HAIR_NEUTRAL = (0.90, 0.90, 0.90)   # hair / beard / brows (tinted by hair_color)
+HAIR_LIGHT   = (1.00, 1.00, 1.00)   # scattered highlight voxels (two-tone read)
+HAIR_DARK    = (0.80, 0.80, 0.80)   # scattered shadow voxels
 EYE_WHITE    = (1.00, 1.00, 1.00)   # iris (tinted by eye_color)
 EYE_PUPIL    = (0.18, 0.18, 0.18)   # stays dark after tint multiply
 SCAR_BAKED   = (0.74, 0.46, 0.40)   # scar overlay (not tinted at runtime)
@@ -286,34 +288,57 @@ CROWN_Y = HEAD_Y1 - 2          # main head mass ends here; 2 stepped crown rows 
 
 # ---------------------------- BODY GROUP -----------------------------------
 
-def _chamfer_side_and_bottom_edges(v, x0, x1, y0, y1, z0, z1):
-    """1-voxel chamfer (hearthling read) on the 4 vertical and 4 bottom edges
-    of a box. Top edges are left alone — the stepped crown rounds those."""
-    for y in range(y0, y1):
-        for (x, z) in ((x0, z0), (x0, z1 - 1), (x1 - 1, z0), (x1 - 1, z1 - 1)):
-            v.cells.pop((x, y, z), None)
+def _shade(color, f):
+    return (min(1.0, color[0] * f), min(1.0, color[1] * f), min(1.0, color[2] * f))
+
+
+def _rounded_row(v, y, x0, x1, z0, z1, cut, color):
+    """One y row of a rounded solid: fill [x0,x1) x [z0,z1) in PLAN, skipping
+    cells whose manhattan depth into a corner is < cut — the octagonal plan
+    that makes hearthling masses read round (verified from head.qb)."""
     for x in range(x0, x1):
-        for z in (z0, z1 - 1):
-            v.cells.pop((x, y0, z), None)
-    for z in range(z0, z1):
-        for x in (x0, x1 - 1):
-            v.cells.pop((x, y0, z), None)
+        for z in range(z0, z1):
+            dx = min(x - x0, x1 - 1 - x)
+            dz = min(z - z0, z1 - 1 - z)
+            if dx + dz < cut:
+                continue
+            v.cells[(x, y, z)] = color
+
+
+# Head silhouette profile, scanned from stonehearth male head.qb: octagonal
+# plan (corner cut 3 in the mass), jaw tapering IN at the bottom (2 rows) and
+# the crown stepping IN at the top (3 rows) — round at both ends, never a cube.
+# Per row: (y, inset, corner_cut). z-inset is capped at 2 (the head is only 9
+# deep; a full inset would pinch the profile).
+_HEAD_PROFILE = [
+    (16, 2, 2),   # jaw bottom
+    (17, 1, 2),   # jaw
+    (18, 0, 3), (19, 0, 3), (20, 0, 3), (21, 0, 3), (22, 0, 3), (23, 0, 3),
+    (24, 0, 3),   # mass
+    (25, 1, 2),   # crown step 1
+    (26, 2, 2),   # crown step 2
+    (27, 3, 1),   # top plate
+]
 
 
 def build_head(age):
-    """Hearthling-ratio head (doc 17 §0/§1): dominant 14-wide mass, 1-voxel
-    edge chamfers, a double-stepped crown, and a protruding 2x2x1 nose.
+    """Hearthling-shaped head (scanned from P:/stonehearth head.qb): rounded
+    octagonal plan, tapered jaw AND crown, eye sockets carved into the face
+    (the eyes part sits flush inside them), proud nose + brow ridge, ears.
     Age tiers differ by jowl/brow/chin voxels on the shared base."""
     v = Voxels()
-    # main mass (crown rows added separately)
-    v.box(HEAD_X0, HEAD_X1, HEAD_Y0, CROWN_Y, HEAD_Z0, HEAD_Z1, SKIN_NEUTRAL)
-    _chamfer_side_and_bottom_edges(v, HEAD_X0, HEAD_X1, HEAD_Y0, CROWN_Y, HEAD_Z0, HEAD_Z1)
-    # double-stepped crown (each row inset 1 more — the rounded dome read)
-    v.box(HEAD_X0 + 1, HEAD_X1 - 1, CROWN_Y, CROWN_Y + 1, HEAD_Z0 + 1, HEAD_Z1 - 1, SKIN_NEUTRAL)
-    v.box(HEAD_X0 + 2, HEAD_X1 - 2, CROWN_Y + 1, HEAD_Y1, HEAD_Z0 + 2, HEAD_Z1 - 2, SKIN_NEUTRAL)
-    # brow ridge (proud forehead) on the protrusion layer
+    for (y, inset, cut) in _HEAD_PROFILE:
+        zi = min(inset, 2)
+        f = 0.88 + 0.24 * ((y - HEAD_Y0) / float(HEAD_Y1 - HEAD_Y0 - 1))
+        _rounded_row(v, y, HEAD_X0 + inset, HEAD_X1 - inset,
+                     HEAD_Z0 + zi, HEAD_Z1 - zi, cut, _shade(SKIN_NEUTRAL, f))
+    # eye sockets — carved one deep into the face plane; build_eyes fills them
+    for sx in (-4, 2):
+        for x in range(sx, sx + 2):
+            v.cells.pop((x, EYE_Y, HEAD_Z1 - 1), None)
+    # brow ridge (proud forehead) on the protrusion layer, shading the sockets
     v.box(-5, 5, EYE_Y + 1, EYE_Y + 2, FACE_Z, FACE_Z + 1, SKIN_NEUTRAL)
-    # protruding nose block, 2 wide x 2 tall x 1 deep (doc 17 §1)
+    # protruding nose block, 2 wide x 2 tall x 1 deep, right under the eyes
     v.box(-1, 1, EYE_Y - 2, EYE_Y, FACE_Z, FACE_Z + 1, SKIN_NEUTRAL)
     # ears
     v.box(HEAD_X0 - 1, HEAD_X0, EYE_Y - 1, EYE_Y + 1, -1, 1, SKIN_NEUTRAL)
@@ -326,19 +351,21 @@ def build_head(age):
         # heavier brow shelf above the ridge
         v.box(-5, 5, EYE_Y + 2, EYE_Y + 3, FACE_Z, FACE_Z + 1, SKIN_NEUTRAL)
     if age == "young":
-        # rounder, slightly narrower chin (deepen the bottom chamfer)
-        for z in range(HEAD_Z0 + 1, HEAD_Z1 - 1):
-            v.cells.pop((HEAD_X0 + 1, HEAD_Y0, z), None)
-            v.cells.pop((HEAD_X1 - 2, HEAD_Y0, z), None)
+        # rounder, slightly narrower chin (deepen the jaw taper)
+        for z in range(HEAD_Z0 + 2, HEAD_Z1 - 2):
+            v.cells.pop((HEAD_X0 + 2, HEAD_Y0, z), None)
+            v.cells.pop((HEAD_X1 - 3, HEAD_Y0, z), None)
     return v
 
 
 def build_eyes():
+    """Fills the carved sockets flush (hearthling model): iris cell tinted by
+    eye_color, pupil cell inward, both at the face plane — no pasted-on look."""
     v = Voxels()
-    for sx in (-4, 2):            # left / right eyes, 2 voxels wide each
-        v.box(sx, sx + 2, EYE_Y, EYE_Y + 1, FACE_Z, FACE_Z + 1, EYE_WHITE, shade=False)
-        # a darker pupil voxel pushed one cell in front (inner side of each eye)
-        v.set(sx + 1 if sx < 0 else sx, EYE_Y, FACE_Z + 1, EYE_PUPIL)
+    z = HEAD_Z1 - 1   # inside the socket, flush with the face
+    for sx, pupil_x in ((-4, -3), (2, 2)):
+        for x in range(sx, sx + 2):
+            v.cells[(x, EYE_Y, z)] = EYE_PUPIL if x == pupil_x else EYE_WHITE
     return v
 
 
@@ -348,18 +375,22 @@ def build_body():
     with iron buckle, shoulder notches, tunic collar as the short neck.
     Still no arms, legs, or connector geometry — ever (doc 41 contract)."""
     v = Voxels()
-    # trousers / pelvis — 10 wide vs the 8-wide chest
-    v.box(-5, 5, 6, 9, -3, 3, TROUSER)
+    # trousers / pelvis — 10 wide vs the 8-wide waist, rounded plan corners
+    _rounded_row(v, 6, -5, 5, -3, 3, 2, _shade(TROUSER, 0.88))
+    _rounded_row(v, 7, -5, 5, -3, 3, 1, _shade(TROUSER, 0.96))
+    _rounded_row(v, 8, -5, 5, -3, 3, 1, _shade(TROUSER, 1.04))
     # dark belt band (crisp, unshaded) + protruding iron buckle voxels
-    v.box(-5, 5, 9, 10, -3, 3, BELT_DARK, shade=False)
+    _rounded_row(v, 9, -5, 5, -3, 3, 1, BELT_DARK)
     v.set(-1, 9, 3, BUCKLE_IRON)
     v.set(0, 9, 3, BUCKLE_IRON)
-    # tunic torso
-    v.box(-4, 4, 10, 15, -3, 3, CLOTH_TUNIC)
-    # shoulder notches — 1-voxel steps at the top outer corners
-    for z in range(-3, 3):
-        v.cells.pop((-4, 14, z), None)
-        v.cells.pop((3, 14, z), None)
+    # tunic waist -> chest (slight taper in, then the chest fills out)
+    _rounded_row(v, 10, -4, 4, -3, 3, 1, _shade(CLOTH_TUNIC, 0.90))
+    _rounded_row(v, 11, -4, 4, -3, 3, 1, _shade(CLOTH_TUNIC, 0.94))
+    _rounded_row(v, 12, -4, 4, -3, 4, 1, _shade(CLOTH_TUNIC, 0.98))   # chest curve (+Z)
+    _rounded_row(v, 13, -4, 4, -3, 4, 1, _shade(CLOTH_TUNIC, 1.02))
+    # shoulder plate — flares WIDER than the chest (hearthling slope), rounded
+    _rounded_row(v, 14, -5, 5, -3, 3, 2, _shade(CLOTH_TUNIC, 1.06))
+    _rounded_row(v, 15, -4, 4, -3, 3, 2, _shade(CLOTH_TUNIC, 1.10))
     # tunic collar = the short neck (clothed; skin never shows on the body)
     v.box(-2, 2, 15, 16, -1, 2, CLOTH_TUNIC)
     return v
@@ -380,6 +411,9 @@ def build_hand():
     # colour-break groove lines above the notches (darker value survives tint)
     v.cells[(9, 8, -1)] = SKIN_GROOVE
     v.cells[(9, 8, 1)] = SKIN_GROOVE
+    # round the outer corners (top edge of the fist)
+    for z in (-2, 1):
+        v.cells.pop((9, 10, z), None)
     return v
 
 
@@ -396,6 +430,11 @@ def build_foot():
     v.box(2, 6, 1, 2, 4, 6, BOOT_LEATHER)
     # short ankle cuff
     v.box(3, 5, 3, 4, -1, 2, BOOT_LEATHER)
+    # round the toe cap and heel corners (hearthling boot read)
+    for x in (2, 5):
+        v.cells.pop((x, 2, 4), None)     # toe-top corners... nothing at z4/y2 edge case-safe
+        v.cells.pop((x, 1, 5), None)     # toe front corners
+        v.cells.pop((x, 1, -3), None)    # heel back corners
     # dark sole band under everything (crisp)
     v.box(2, 6, 0, 1, -3, 6, BOOT_SOLE, shade=False)
     return v
@@ -403,54 +442,83 @@ def build_foot():
 
 # ---------------------------- HAIR GROUP -----------------------------------
 
-def _ring(v, y, x0, x1, z0, z1, ix0, ix1, iz0, iz1, color):
-    """One voxel row filling the outer rect minus the inner rect (crown drape)."""
-    for x in range(x0, x1):
-        for z in range(z0, z1):
-            if ix0 <= x < ix1 and iz0 <= z < iz1:
-                continue
-            v.cells[(x, y, z)] = color
+_HEAD_TOPS = None
+
+
+def _head_top_map():
+    """(x,z) -> topmost head y, from the shared base head (adult, no jowls).
+    The scalp shrink-wraps this map, so hair follows the rounded dome exactly
+    whatever the head profile is — no hand-kept ring math."""
+    global _HEAD_TOPS
+    if _HEAD_TOPS is None:
+        tops = {}
+        for (x, y, z) in build_head("adult").cells:
+            key = (x, z)
+            if y > tops.get(key, -99):
+                tops[key] = y
+        _HEAD_TOPS = tops
+    return _HEAD_TOPS
 
 
 def _scalp(v, top_extra=0):
-    """Cap draped over the double-stepped crown: a top slab over the inner
-    step plus rings hugging each step edge, so hair follows the dome."""
-    v.box(HEAD_X0 + 2, HEAD_X1 - 2, HEAD_Y1, HEAD_Y1 + 1 + top_extra,
-          HEAD_Z0 + 2, HEAD_Z1 - 2, HAIR_NEUTRAL)
-    _ring(v, HEAD_Y1 - 1, HEAD_X0 + 1, HEAD_X1 - 1, HEAD_Z0 + 1, HEAD_Z1 - 1,
-          HEAD_X0 + 2, HEAD_X1 - 2, HEAD_Z0 + 2, HEAD_Z1 - 2, HAIR_NEUTRAL)
-    _ring(v, HEAD_Y1 - 2, HEAD_X0, HEAD_X1, HEAD_Z0, HEAD_Z1,
-          HEAD_X0 + 1, HEAD_X1 - 1, HEAD_Z0 + 1, HEAD_Z1 - 1, HAIR_NEUTRAL)
+    """Cap shrink-wrapped over the crown dome (hearthling hair model): one
+    voxel (plus top_extra on the peak) above every dome-region column."""
+    for (x, z), ty in _head_top_map().items():
+        if ty < CROWN_Y - 1:
+            continue   # dome region only — skips ears, nose, ridge, jaw
+        thick = 1 + (top_extra if ty >= HEAD_Y1 - 1 else 0)
+        for k in range(1, thick + 1):
+            v.cells[(x, ty + k, z)] = HAIR_NEUTRAL
 
 
-_HAIR_FORBIDDEN = None
+def _two_tone(v):
+    """Hearthling hair is two-tone: lighter highlight voxels scattered on
+    top-exposed cells (position-hashed, deterministic). The values survive the
+    runtime hair tint multiply as value variation."""
+    for (x, y, z) in list(v.cells):
+        if (x, y + 1, z) in v.cells:
+            continue
+        h = (x * 73856093) ^ (y * 19349663) ^ (z * 83492791)
+        if h % 4 == 0:
+            v.cells[(x, y, z)] = HAIR_LIGHT
+        elif h % 4 == 1:
+            v.cells[(x, y, z)] = HAIR_DARK
 
 
-def _hair_forbidden_cells():
-    """Cells hair may never occupy: any head tier's own geometry (mass, crown,
-    nose, ridge, ears, jowls), the eyes, the brow-part zone, and the beard
-    envelope on the face. Hair boxes may be authored generously; subtracting
-    this set guarantees no coincident-face z-fighting between parts.
-    (The old 8-wide frame shipped WITH such overlaps — latent z-fights.)"""
-    forb = set()
-    for age in AGES:
-        forb |= set(build_head(age).cells)
-    forb |= set(build_eyes().cells)
-    for x in range(-5, 5):
-        for y in range(HEAD_Y0, EYE_Y + 1):          # beard envelope (face)
-            for z in (FACE_Z, FACE_Z + 1):
-                forb.add((x, y, z))
-        for y in range(EYE_Y + 1, EYE_Y + 3):        # brow-part zone
-            forb.add((x, y, FACE_Z + 1))
-    return forb
+_FORBIDDEN_CORE = None    # head (all tiers) + eyes + brow-part zone
+_FORBIDDEN_BEARD_ENV = None   # the face zone reserved for beard parts
 
 
-def _subtract_forbidden(v):
-    global _HAIR_FORBIDDEN
-    if _HAIR_FORBIDDEN is None:
-        _HAIR_FORBIDDEN = _hair_forbidden_cells()
+def _forbidden_sets():
+    """Cells other parts may never occupy. CORE = any head tier's geometry
+    (mass, crown, nose, ridge, ears, jowls), the eyes, and the brow-part
+    zone. BEARD_ENV = the face zone reserved for beards (hair also avoids
+    it). Boxes may be authored generously; subtraction guarantees no
+    coincident-face z-fighting between parts. (The old 8-wide frame shipped
+    WITH such overlaps — latent z-fights.)"""
+    global _FORBIDDEN_CORE, _FORBIDDEN_BEARD_ENV
+    if _FORBIDDEN_CORE is None:
+        core = set()
+        for age in AGES:
+            core |= set(build_head(age).cells)
+        core |= set(build_eyes().cells)
+        core |= set(build_body().cells)   # collar/shoulders — beards drape AROUND
+        env = set()
+        for x in range(-6, 6):
+            for y in range(HEAD_Y0 - 1, EYE_Y + 1):      # beard envelope
+                for z in (FACE_Z, FACE_Z + 1):
+                    env.add((x, y, z))
+            for y in range(EYE_Y + 1, EYE_Y + 3):        # brow-part zone
+                core.add((x, y, FACE_Z + 1))
+        _FORBIDDEN_CORE, _FORBIDDEN_BEARD_ENV = core, env
+    return _FORBIDDEN_CORE, _FORBIDDEN_BEARD_ENV
+
+
+def _subtract_forbidden(v, for_beard=False):
+    core, env = _forbidden_sets()
+    forb = core if for_beard else (core | env)
     for k in list(v.cells):
-        if k in _HAIR_FORBIDDEN:
+        if k in forb:
             v.cells.pop(k)
 
 
@@ -521,49 +589,58 @@ def build_hair(style):
     else:
         raise ValueError(f"unknown hair style {style}")
     _subtract_forbidden(v)
+    _two_tone(v)
     return v
 
 
 # ---------------------------- BEARD GROUP ----------------------------------
 
-def _pop_nose_overlap(v):
-    """Remove beard cells coinciding with the protruding nose block — the
-    beard wraps around it (moustache read) instead of z-fighting it."""
-    for x in range(-1, 1):
-        for y in range(EYE_Y - 2, EYE_Y):
-            v.cells.pop((x, y, FACE_Z), None)
+def _beard_crescent(v, hang_y, with_chops=True):
+    """The hearthling beard shape (scanned from beard.qb): a crescent hugging
+    the jaw — cheek panels rising toward the ears, a band across the lower
+    face with a MOUTH NOTCH, under-chin fill, and a front curtain hanging to
+    hang_y with a rounded tip."""
+    if with_chops:
+        for sx0, sx1 in ((-6, -3), (3, 6)):     # cheek panels up the sides
+            v.box(sx0, sx1, 17, EYE_Y, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
+    v.box(-6, 6, 16, 19, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)   # lower-face band
+    for x in range(-2, 2):                       # the mouth notch
+        v.cells.pop((x, 18, FACE_Z), None)
+    v.box(-4, 4, 15, 16, 3, FACE_Z + 1, HAIR_NEUTRAL)        # under-chin fill (front of collar)
+    if hang_y < 15:
+        v.box(-5, 5, hang_y + 1, 16, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
+        v.box(-4, 4, hang_y, hang_y + 1, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)  # rounded tip
 
 
 def build_beard(style):
     v = Voxels()
-    chin_y = HEAD_Y0          # 16
-    jaw_x0, jaw_x1 = -5, 5    # spans most of the 14-wide face
     if style == "full_long":
-        v.box(jaw_x0, jaw_x1, chin_y - 8, EYE_Y - 1, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
-        v.box(jaw_x0, jaw_x1, chin_y - 8, chin_y, FACE_Z - 1, FACE_Z + 2, HAIR_NEUTRAL)
+        _beard_crescent(v, 9)
     elif style == "full_braided":
-        v.box(jaw_x0, jaw_x1, chin_y - 4, EYE_Y - 1, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
-        # two braids hanging lower
-        v.box(-2, -1, chin_y - 9, chin_y - 4, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
-        v.box(1, 2, chin_y - 9, chin_y - 4, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
+        _beard_crescent(v, 13)
+        v.box(-3, -2, 8, 13, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)   # hanging braids
+        v.box(2, 3, 8, 13, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
     elif style == "short_trimmed":
-        v.box(jaw_x0, jaw_x1, chin_y - 2, EYE_Y - 1, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
+        _beard_crescent(v, 15)
     elif style == "forked":
-        v.box(jaw_x0, jaw_x1, chin_y - 2, EYE_Y - 1, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
-        v.box(-3, -1, chin_y - 7, chin_y - 2, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
-        v.box(1, 3, chin_y - 7, chin_y - 2, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
+        _beard_crescent(v, 14)
+        v.box(-5, -2, 9, 14, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)   # two forks
+        v.box(2, 5, 9, 14, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
     elif style == "mutton_chops":
-        v.box(jaw_x0, jaw_x0 + 2, chin_y - 1, EYE_Y, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
-        v.box(jaw_x1 - 2, jaw_x1, chin_y - 1, EYE_Y, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
+        for sx0, sx1 in ((-6, -3), (3, 6)):      # cheek panels only
+            v.box(sx0, sx1, 16, EYE_Y, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
     elif style == "goatee":
-        v.box(-1, 1, chin_y - 4, EYE_Y - 1, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
+        v.box(-2, 2, 15, 18, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)   # chin patch
+        v.box(-1, 1, 11, 15, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)   # hanging point
+        v.box(-2, 2, 15, 16, 3, FACE_Z, HAIR_NEUTRAL)            # under-chin
     elif style == "braided_long":
-        v.box(jaw_x0, jaw_x1, chin_y - 3, EYE_Y - 1, FACE_Z, FACE_Z + 1, HAIR_NEUTRAL)
-        v.box(-2, -1, chin_y - 12, chin_y - 3, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
-        v.box(1, 2, chin_y - 12, chin_y - 3, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
+        _beard_crescent(v, 14)
+        v.box(-3, -2, 4, 14, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)   # long braids
+        v.box(2, 3, 4, 14, FACE_Z, FACE_Z + 2, HAIR_NEUTRAL)
     else:
         raise ValueError(f"unknown beard style {style}")
-    _pop_nose_overlap(v)
+    _subtract_forbidden(v, for_beard=True)
+    _two_tone(v)
     return v
 
 

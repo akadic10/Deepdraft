@@ -52,6 +52,22 @@ no skeleton). Fingers/toes become carved grooves and colour breaks, not joints.
 > the generator now subtracts a forbidden-cell set; all 1,536 combos verify
 > overlap-free. Face detail beyond the nose stays opportunistic (§3).
 > Details: doc 41b 2026-07-02 note.
+>
+> **Second pass, same day (approved by Alen — "this looks better"):** Alen's
+> verdict on pass 1 was "still very blocky", so the hearthling `.qb` files
+> were parsed DIRECTLY from `P:/stonehearth` (QB parser + reference renders;
+> layer maps of `male/head.qb`, `beard.qb`, `body.qb`, hair styles). Derived
+> shaping rules now in the generator: masses are built from OCTAGONAL-plan
+> rows (`_rounded_row`, corner cut 2–3) tapered at BOTH ends (head profile
+> `_HEAD_PROFILE`: jaw taper + crown steps); eye sockets are CARVED into the
+> face with the eyes part sitting flush inside; hair caps SHRINK-WRAP the
+> dome (`_scalp` follows a head top-map); beards are jaw-hugging CRESCENTS
+> with a mouth notch and rounded hanging tips (`_beard_crescent`); hair and
+> beards are TWO-TONE (deterministic highlight/shadow voxels on exposed
+> surfaces — survives the tint multiply); body gains rounded corners, a chest
+> curve, and a flared shoulder plate. Part z-fights are prevented
+> structurally: every hair/beard subtracts a forbidden-cell set (all head
+> tiers + eyes + brow zone + body); audited overlap-free across all combos.
 
 All shape work happens in the generator (the doc-15 pipeline: regen into a tmp preview
 folder, visual QA render, then replace `assets/dwarves/`). Contract rules that MUST
