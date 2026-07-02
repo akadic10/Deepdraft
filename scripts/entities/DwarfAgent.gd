@@ -715,11 +715,14 @@ func _apply_tints() -> void:
 	var hair: Color = DwarfAssets.HAIR_COLORS.get(appearance.hair_color, Color.WHITE)
 	var eye: Color = DwarfAssets.EYE_COLORS.get(appearance.eye_color, Color.WHITE)
 
-	_tint(_body, skin)
+	# Body and feet are BAKED since the doc-17 regen (clothed tunic torso,
+	# leather boots) — tint WHITE to keep the standard material while leaving
+	# the baked colours alone. Skin tint applies to head and hands only.
+	_tint(_body, Color.WHITE)
 	_tint(_hand_l, skin)
 	_tint(_hand_r, skin)
-	_tint(_foot_l, skin)
-	_tint(_foot_r, skin)
+	_tint(_foot_l, Color.WHITE)
+	_tint(_foot_r, Color.WHITE)
 	if _head != null:
 		# The head mesh itself is skin; children carry their own tints.
 		_tint(_head, skin, false)
