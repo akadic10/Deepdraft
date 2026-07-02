@@ -629,9 +629,17 @@ Fleck colours per ore (terrain vein hex where it reads on grey; readability-push
 rock bands — the same authored shape with body greys only, no fleck patches. The player's
 future void-fill / construction material (`43_mining_materials.md`).
 
+**Soil** (`soil/{light_soil,dark_soil,cave_soil}.glb`, added 2026-06-26, `tools/generate_soil_glbs.py`):
+the SAME authored rock lump as Rough Stone, recoloured into earthy brown ramps — one per soil
+type — with body banding only, no fleck patches. Decided by Alen (2026-06-26) over the earlier
+"low mound" attempt: beside the real stone drops in the pit, a recoloured stone chunk reads
+better than a separate flat mound. Brown ramps (light/mid/dark) derive from the terrain soil
+hex; dark and cave are pushed darker than the near-olive terrain values so the three soils read
+apart. This is the one family that does NOT get its own shape — it reuses the stone silhouette.
+
 Review renders: `tmp/ore_drop_review/*.png`. **Future drop families** (gems = crystal cluster,
-soil = low mound, flora = produce) get their own shapes via the same generator pattern; the
-one-shape-per-family + colour-coding rule applies to each family.
+flora = produce) get their own shapes via the same generator pattern; the one-shape-per-family
++ colour-coding rule applies to each family.
 
 ---
 
