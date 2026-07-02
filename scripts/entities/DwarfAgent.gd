@@ -59,6 +59,19 @@ var _swing_timer: float = 0.0
 var _pull_failures: int = 0
 var _pull_exclude: Dictionary = {}   # Vector3i -> true; this-round path blacklist
 
+## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
+## Deliberately minimal: ONE stat draining per real second (doc 41 rate);
+## below the threshold the dwarf releases its task through the §2.8 protocol
+## and sleeps IN PLACE (no beds yet) for the doc-41 minimum rest, counted in
+## in-game hours (clock-speed aware, frozen while paused). The full needs
+## system (hunger/thirst/mood/thoughts) is its own later milestone.
+const SLEEP_DRAIN_PER_S := 0.003    # doc 41 §Physiological Stats drain rate
+const SLEEP_THRESHOLD := 0.25       # doc 41: sleep taken autonomously below this
+const SLEEP_HOURS := 6.0            # doc 41: minimum rest per 24-hour cycle
+var sleep: float = 1.0
+var _sleeping: bool = false
+var _sleep_hours_left: float = 0.0
+
 ## Fired when a walk order finishes (arrived) or fails (no path / cleared).
 signal walk_finished(success: bool)
 
@@ -93,6 +106,9 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	profession_experience = data.get("profession_experience", {})
 	name = "Dwarf_%d_%s" % [dwarf_id, dwarf_name]
 	_bob_phase = float(dwarf_id) * 1.7   # desynchronise the squad's idle motion
+	# Stagger initial tiredness deterministically (birth-index hash, no randf)
+	# so a squad spawned together does not collapse asleep in the same instant.
+	sleep = 1.0 - fposmod(float(dwarf_id) * 0.191, 0.35)
 
 	_build_parts()
 	_build_collision()
@@ -102,6 +118,15 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	if _sleeping:
+		_process_sleeping(delta)
+		return
+	# Sleep drains in EVERY waking state — idle, walking, working, swinging —
+	# so the threshold can interrupt any of them (doc 16 Phase 5 acceptance).
+	sleep = maxf(sleep - SLEEP_DRAIN_PER_S * delta, 0.0)
+	if sleep <= SLEEP_THRESHOLD:
+		_begin_sleep()
+		return
 	if _task_phase == TaskPhase.EXECUTING:
 		_exec_timer -= delta
 		if _exec_timer <= 0.0:
@@ -126,6 +151,12 @@ func _process(delta: float) -> void:
 ## generic timer. Failure paths use the release protocol — releasing is
 ## always cheap and legal (doc 16 §2.8).
 func receive_task(task_id: int, target_pos: Vector3i) -> void:
+	if _sleeping:
+		# Race guard (should not happen — sleepers leave the idle pool): an
+		# assignment landing in the frame the dwarf fell asleep bounces straight
+		# back to PENDING; releasing is always cheap and legal (§2.8).
+		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
+		return
 	current_task_id = task_id
 	_task_target = target_pos
 	var task := TaskManager.get_task(task_id)
@@ -180,6 +211,97 @@ func _on_walk_finished(success: bool) -> void:
 		_task_phase = TaskPhase.NONE
 		current_task_id = -1
 		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+
+
+# ── Sleep-lite (doc 16 §2.8 / Phase 5) ────────────────────────────────────────
+
+## The interrupt: release whatever we hold through the §2.8 protocol and sleep
+## in place. Local task state is torn down FIRST (phase to NONE before
+## stop_walking, the abort_task ordering) so the synchronous walk_finished(false)
+## cannot re-enter the executors. The zone reservation is freed by the
+## controller on task_released; zone-level progress (completed set) is never
+## touched; partial swing progress is discarded — the block keeps full
+## durability (swings only commit at zero).
+func _begin_sleep() -> void:
+	_sleeping = true
+	_sleep_hours_left = SLEEP_HOURS
+	var had_task := current_task_id >= 0
+	_finish_zone_state()
+	_task_phase = TaskPhase.NONE
+	current_task_id = -1
+	_exec_timer = 0.0
+	stop_walking()
+	_reset_part_offsets()
+	if had_task:
+		# requeue_dwarf = false: we re-enter the idle pool only on waking (§2.8).
+		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
+	else:
+		TaskManager.notify_dwarf_unavailable(dwarf_id)
+
+
+func _process_sleeping(delta: float) -> void:
+	# Duration counts in IN-GAME hours: honours clock speed, freezes on pause.
+	_sleep_hours_left -= delta * WorldClock.game_hours_per_real_second()
+	_sleep_bob()
+	if _sleep_hours_left <= 0.0:
+		_wake_up()
+
+
+func _wake_up() -> void:
+	_sleeping = false
+	sleep = 1.0
+	_sleep_hours_left = 0.0
+	_reset_part_offsets()
+	TaskManager.notify_dwarf_idle(dwarf_id)
+
+
+func is_sleeping() -> bool:
+	return _sleeping
+
+
+## Slow, deep breathing with a drooped head — read as asleep at RTS zoom.
+## Transform offsets only (doc 41: no AnimationPlayer).
+func _sleep_bob() -> void:
+	if _body == null:
+		return
+	var t := float(Time.get_ticks_msec()) / 1000.0 + _bob_phase
+	var breathe := sin(t * 0.9) * 0.030
+	_body.position.y = breathe
+	if _head != null:
+		_head.position.y = breathe * 1.2 - 0.08
+		_head.rotation.x = 0.35
+	if _hand_l != null:
+		_hand_l.position.y = breathe * 0.5
+	if _hand_r != null:
+		_hand_r.position.y = breathe * 0.5
+
+
+# ── DEV interruption helpers (doc 16 Phase 5 — Dwarves window buttons) ────────
+
+## Instant deterministic interruption: force-release the current task with
+## reason PLAYER and return to the idle pool immediately. Returns false if
+## there was nothing to interrupt.
+func dev_force_interrupt() -> bool:
+	if current_task_id < 0:
+		return false
+	_finish_zone_state()
+	_task_phase = TaskPhase.NONE
+	current_task_id = -1
+	_exec_timer = 0.0
+	stop_walking()
+	_reset_part_offsets()
+	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PLAYER)
+	return true
+
+
+## Drops the sleep stat to the threshold so the ORGANIC interrupt path fires on
+## the next frame — tests release + sleep + wake + resume without the ~4-minute
+## real-time drain. Returns false if the dwarf is already asleep.
+func dev_make_tired() -> bool:
+	if _sleeping:
+		return false
+	sleep = SLEEP_THRESHOLD
+	return true
 
 
 # ── Zone-lease executor (doc 16 §2.7 worker loop) ─────────────────────────────

@@ -231,6 +231,15 @@ func notify_dwarf_idle(dwarf_id: int) -> void:
 	_mark_idle(dwarf_id)
 
 
+## A dwarf entered an interrupt behaviour (sleep, combat) while holding NO
+## task — it must leave the idle pool so the scheduler cannot assign to it
+## until notify_dwarf_idle (doc 16 §2.8: a dwarf enters _idle_dwarves only
+## after its interrupt behaviour resolves). Dwarves holding a task use
+## release_dwarf_task(..., requeue_dwarf = false) instead.
+func notify_dwarf_unavailable(dwarf_id: int) -> void:
+	_idle_dwarves.erase(dwarf_id)
+
+
 # ── Stats (debug overlay, doc 16 Phase 0) ────────────────────────────────────
 
 func get_scheduler_stats() -> Dictionary:

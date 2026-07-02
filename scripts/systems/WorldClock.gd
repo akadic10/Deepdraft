@@ -117,6 +117,16 @@ func set_paused(value: bool) -> void:
 	paused = value
 
 
+## In-game hours that elapse per real second at the current speed (0 while
+## paused). For agent behaviours timed in game hours outside this autoload
+## (e.g. sleep-lite, doc 16 Phase 5) — they multiply their _process delta by
+## this instead of tracking their own calendar (WorldClock stays authoritative).
+func game_hours_per_real_second() -> float:
+	if paused or speed <= 0.0:
+		return 0.0
+	return speed / _real_seconds_per_game_hour
+
+
 func toggle_pause() -> void:
 	paused = not paused
 

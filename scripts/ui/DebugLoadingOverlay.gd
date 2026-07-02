@@ -249,7 +249,8 @@ func _agents_tasks_text() -> String:
 	var dwarf_text := "dwarves: -"
 	if _dwarf_director != null and _dwarf_director.has_method("get_agent_stats"):
 		var a: Dictionary = _dwarf_director.call("get_agent_stats")
-		dwarf_text = "dwarves: %d (idle %d)" % [a.get("count", 0), a.get("idle", 0)]
+		dwarf_text = "dwarves: %d (idle %d, sleeping %d)" % [
+			a.get("count", 0), a.get("idle", 0), a.get("sleeping", 0)]
 
 	var nav_text := ""
 	var nav := get_node_or_null("/root/NavGrid")

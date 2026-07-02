@@ -287,10 +287,47 @@ func _dev_add_tasks(count: int, radius: int, snap_walkable: bool) -> void:
 
 func get_agent_stats() -> Dictionary:
 	var idle := 0
+	var sleeping := 0
 	for agent in _agents:
-		if is_instance_valid(agent) and agent.current_task_id < 0:
+		if not is_instance_valid(agent):
+			continue
+		if agent.is_sleeping():
+			sleeping += 1
+		elif agent.current_task_id < 0:
 			idle += 1
-	return { "count": _agents.size(), "idle": idle }
+	return { "count": _agents.size(), "idle": idle, "sleeping": sleeping }
+
+
+# ── DEV interruption (doc 16 Phase 5 — the release-protocol test hooks) ───────
+
+## Force-releases the first working dwarf (reason PLAYER). Instant,
+## deterministic; repeated presses cycle through workers.
+func _dev_interrupt_worker() -> void:
+	for agent in _agents:
+		if is_instance_valid(agent) and agent.dev_force_interrupt():
+			print("DwarfDirector: DEV interrupt — released %s's task (PLAYER)." % agent.dwarf_name)
+			return
+	print("DwarfDirector: DEV interrupt — no dwarf holds a task.")
+
+
+## Drops one dwarf's sleep stat to the threshold — the ORGANIC interrupt path
+## (release → sleep in place → wake → resume) fires next frame. Prefers a
+## working dwarf so the release protocol is actually exercised.
+func _dev_tire_worker() -> void:
+	var fallback: DwarfAgent = null
+	for agent in _agents:
+		if not is_instance_valid(agent) or agent.is_sleeping():
+			continue
+		if agent.current_task_id >= 0:
+			if agent.dev_make_tired():
+				print("DwarfDirector: DEV tire — %s will drop their task and sleep." % agent.dwarf_name)
+				return
+		elif fallback == null:
+			fallback = agent
+	if fallback != null and fallback.dev_make_tired():
+		print("DwarfDirector: DEV tire — %s (idle) will sleep." % fallback.dwarf_name)
+		return
+	print("DwarfDirector: DEV tire — no awake dwarf available.")
 
 
 # ── DEV window (dock 'dwarves' entry; SliceController window language) ────────
@@ -397,6 +434,24 @@ func _build_window() -> void:
 		_dev_add_tasks(500, 0, false)
 	)
 	column.add_child(stress)
+
+	var interrupt := Button.new()
+	interrupt.text = "DEV: interrupt worker"
+	interrupt.tooltip_text = "Force-releases a working dwarf's task (reason PLAYER). The task returns to PENDING; another idle dwarf should pick it up within one heartbeat — doc 16 §2.8 release-protocol test."
+	interrupt.focus_mode = Control.FOCUS_NONE
+	interrupt.custom_minimum_size = Vector2(166.0, 30.0)
+	interrupt.add_theme_font_size_override("font_size", 13)
+	interrupt.pressed.connect(_dev_interrupt_worker)
+	column.add_child(interrupt)
+
+	var tire := Button.new()
+	tire.text = "DEV: tire a worker"
+	tire.tooltip_text = "Drops one dwarf's sleep stat to the threshold — they release their task, sleep in place for 6 in-game hours, then resume work. The organic interrupt path (sleep-lite)."
+	tire.focus_mode = Control.FOCUS_NONE
+	tire.custom_minimum_size = Vector2(166.0, 30.0)
+	tire.add_theme_font_size_override("font_size", 13)
+	tire.pressed.connect(_dev_tire_worker)
+	column.add_child(tire)
 
 	var spawn := Button.new()
 	spawn.text = "DEV: Spawn %d at camera" % squad_size
