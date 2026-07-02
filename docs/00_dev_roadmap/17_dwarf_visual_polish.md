@@ -39,6 +39,20 @@ no skeleton). Fingers/toes become carved grooves and colour breaks, not joints.
 
 ## 1. Asset regeneration (`tools/generate_dwarf_glb.py` + doc 41b)
 
+> **SHIPPED 2026-07-02 (approved by Alen from the QA sheet;
+> `tmp/dwarf_regen_preview/qa_sheet.png`, renderer kept as
+> `tools/render_dwarf_qa.py`).** All four green items landed: hearthling-ratio
+> heads (14 vox wide, chamfered edges, double-stepped crown, 2×2 protruding
+> nose), mitten hands with finger-groove colour breaks, stepped leather boots,
+> and clothes BAKED into `body_base.glb` (tunic + dark belt/buckle + 10-wide
+> trouser pelvis + shoulder notches; overlay parts remain the later path for
+> profession colours). Tint split implemented: body/feet baked, head/hands
+> skin-tinted (`DwarfAgent._apply_tints`). Bonus: a combinatorial audit found
+> the old frame always shipped hair⊂head cell overlaps (latent z-fighting) —
+> the generator now subtracts a forbidden-cell set; all 1,536 combos verify
+> overlap-free. Face detail beyond the nose stays opportunistic (§3).
+> Details: doc 41b 2026-07-02 note.
+
 All shape work happens in the generator (the doc-15 pipeline: regen into a tmp preview
 folder, visual QA render, then replace `assets/dwarves/`). Contract rules that MUST
 survive: four detached parts, no arms/legs, shared authoring frame, 8 vox/block with 0.125

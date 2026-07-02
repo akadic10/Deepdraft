@@ -6,6 +6,8 @@ This document catalogues every visual attribute a dwarf can have and defines the
 
 2026-06-08 rework note: the current generated GLBs are being corrected because `body_base.glb` included arms and legs. The source of truth is now explicit: `body_base.glb` is compact torso plus neck only, while hands and feet remain detached floating parts. Track the regen work in [15_dwarf_asset_rework.md](../00_dev_roadmap/15_dwarf_asset_rework.md).
 
+2026-07-02 quality regen (doc 17 §1, verified overlap-free across all part combos): heads grew to hearthling ratio (14 voxels wide vs the 8-wide chest, 1-voxel edge chamfers, double-stepped crown, protruding 2×2 nose); `body_base.glb` is now a **clothed** torso with BAKED colours (tunic, dark belt + iron buckle, 10-wide trouser pelvis, shoulder notches, tunic collar as the short neck — no skin shows); `foot.glb` is a baked leather **boot** (stepped heel, toe step, dark sole); `hand.glb` is a mitten (palm + thumb mass, finger-groove colour breaks). **Tint pipeline change:** body and feet are no longer skin-tinted — `DwarfAgent._apply_tints` tints them WHITE; skin tint applies to head and hands only. The colour tables below otherwise stand.
+
 Scale contract: dwarf parts are authored in an 8-voxels-per-block frame, but `tools/generate_dwarf_glb.py` exports positions in Godot/world units by baking the `0.125` scale into the GLB. Keep Godot import `Root Scale = 1.0` for generated dwarf GLBs.
 
 ---
