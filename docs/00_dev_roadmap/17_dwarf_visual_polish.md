@@ -57,7 +57,8 @@ clothed) → Alen review → replace live GLBs → verify in-engine height again
 
 ## 2. Walk animation rework (`DwarfAgent.gd`, runtime only)
 
-> **SHIPPED 2026-07-02 (all four items below; in-engine tuning open).** Gait cycle is now
+> **SHIPPED 2026-07-02; verified in-engine by Alen same day ("feels more natural now") —
+> default dials accepted as-is.** Gait cycle is now
 > driven by distance travelled (`_walk_cycle += moved / (stride_length × 2)`); feet alternate
 > a sine-lift SWING half-phase and a flat PLANT half-phase whose backward slide (relative to
 > the body) exactly cancels body motion — the planted foot stays world-fixed. Hands
