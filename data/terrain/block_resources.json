@@ -22,23 +22,24 @@
 
   "__comment_rock": [
     "Authored rock bands (rock01-11) - mined rock SOMETIMES drops Rough Stone (Alen, 2026-06-10).",
-    "chance 0.5 is the initial tuning value: every block mined should not pay out, or stone floods",
-    "the stockpiles, but a mining session must yield enough to backfill openings (the rough stone",
-    "item's purpose - see resources.json 'void_fill' tag). Tune in the economy balance pass.",
+    "chance 0.25 (lowered from 0.50, Alen playtest 2026-06-10 - 0.50 flooded the pit/future stockpiles).",
+    "Every block mined should not pay out, but a mining session must still yield enough to backfill",
+    "openings (the rough stone item's purpose - see resources.json 'void_fill' tag). Revisit in the",
+    "economy balance pass.",
     "All 11 bands share one profile; the drop item is band-independent."
   ],
 
-  "base:terrain:rock:rock01":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock02":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock03":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock04":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock05":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock06":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock07":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock08":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock09":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock10":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock11":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.50 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock01":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock02":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock03":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock04":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock05":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock06":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock07":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock08":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock09":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock10":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock11":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
 
   "__comment_surface": "Surface biome blocks - 8 grass colour variants all share the same drop profile",
 
