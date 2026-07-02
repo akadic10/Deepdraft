@@ -68,6 +68,10 @@ no skeleton). Fingers/toes become carved grooves and colour breaks, not joints.
 > curve, and a flared shoulder plate. Part z-fights are prevented
 > structurally: every hair/beard subtracts a forbidden-cell set (all head
 > tiers + eyes + brow zone + body); audited overlap-free across all combos.
+> **Verified in-engine by Alen, 2026-07-02 ("looks good") — §1 asset pass
+> BANKED.** Remaining in this doc: §3 opportunistic extras only (face detail,
+> body lean into turns) and the future clothes-overlay path for profession
+> colours.
 
 All shape work happens in the generator (the doc-15 pipeline: regen into a tmp preview
 folder, visual QA render, then replace `assets/dwarves/`). Contract rules that MUST
