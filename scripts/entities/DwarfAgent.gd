@@ -79,7 +79,15 @@ signal walk_finished(success: bool)
 ## stands on cell tops (y = floor_y + 1). Direct position movement — no
 ## physics sweep (collision_mask 0); obstacle correctness comes from the nav
 ## grid, not the physics engine.
-const WALK_SPEED := 3.0     # blocks/sec on the flat
+##
+## Walk animation (doc 17 §2 rework, 2026-07-02): the gait cycle is driven by
+## DISTANCE TRAVELLED, not time — feet plant in sync with ground covered at
+## any speed. With foot swing amplitude = stride_length/2 and the planted
+## foot sliding backward (relative to the body) exactly one stride per half
+## cycle, the planted foot stays world-fixed — the core fix for foot sliding.
+@export var walk_speed: float = 2.2      # blocks/s on the flat (doc 17: 3.0 read too fast)
+@export var stride_length: float = 0.7   # blocks covered per step (one foot's half cycle)
+@export var walk_lean_deg: float = 2.5   # forward body pitch while walking (0 = off)
 const SHORTCUT_INTERVAL := 0.3   # s between string-pulling rescans (cost bound)
 var _move_path: Array[Vector3i] = []
 var _move_index: int = 0
@@ -541,7 +549,7 @@ func _follow_path(delta: float) -> void:
 	var target := Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
 	var to_target := target - global_position
 	var distance := to_target.length()
-	var step := WALK_SPEED * delta
+	var step := walk_speed * delta
 
 	# Face travel direction (XZ only). The dwarf part GLBs are authored with
 	# the FACE on the +Z side (generate_dwarf_glb.py FACE_Z), so local +Z —
@@ -560,31 +568,55 @@ func _follow_path(delta: float) -> void:
 			walk_finished.emit(true)
 		return
 	global_position += to_target / distance * step
-	_walk_bob(delta)
+	_walk_bob(step)
 
 
-func _walk_bob(delta: float) -> void:
-	# Feet alternate, hands counter-swing, body bounces — transform offsets
-	# only (doc 41: no AnimationPlayer, no skeleton).
-	_walk_cycle += delta * WALK_SPEED * 2.6
-	var swing := sin(_walk_cycle * TAU)
-	var bounce := absf(sin(_walk_cycle * TAU)) * 0.05
+## Distance-driven gait (doc 17 §2). One full cycle = two steps (left + right),
+## so the body covers stride_length per HALF cycle. Each foot alternates a
+## SWING phase (arcs forward with lift) and a PLANT phase (holds flat while
+## sliding backward relative to the body — i.e. world-fixed, faking a real
+## footstep). Hands counter-swing at half amplitude; the body bounces once per
+## step and leans gently into travel. Transform offsets only (doc 41 contract:
+## no AnimationPlayer, no skeleton).
+func _walk_bob(moved: float) -> void:
+	_walk_cycle = fposmod(_walk_cycle + moved / maxf(stride_length * 2.0, 0.01), 1.0)
+	var amp := stride_length * 0.5   # foot swing amplitude; matches ground covered
+	# Feet: right foot leads the cycle, left is half a cycle out of phase.
+	_pose_foot(_foot_r, _walk_cycle, amp)
+	_pose_foot(_foot_l, fposmod(_walk_cycle + 0.5, 1.0), amp)
+	# Bounce peaks once per step (twice per cycle), at each foot plant.
+	var bounce := absf(sin(_walk_cycle * TAU)) * 0.04
+	var lean := deg_to_rad(walk_lean_deg)
 	if _body != null:
 		_body.position.y = bounce
+		_body.rotation.x = lean
 	if _head != null:
 		_head.position.y = bounce * 1.2
-	if _foot_l != null:
-		_foot_l.position.z = swing * 0.16
-		_foot_l.position.y = maxf(0.0, swing) * 0.08
-	if _foot_r != null:
-		_foot_r.position.z = -swing * 0.16
-		_foot_r.position.y = maxf(0.0, -swing) * 0.08
+		_head.rotation.x = lean * 0.6
+	# Hands counter-swing smoothly at half the foot amplitude (they never plant).
+	var hand_swing := sin(_walk_cycle * TAU) * amp * 0.5
 	if _hand_l != null:
-		_hand_l.position.z = -swing * 0.10
+		_hand_l.position.z = hand_swing
 		_hand_l.position.y = bounce
 	if _hand_r != null:
-		_hand_r.position.z = swing * 0.10
+		_hand_r.position.z = -hand_swing
 		_hand_r.position.y = bounce
+
+
+## One foot's pose at cycle phase q ∈ [0, 1): first half = SWING (back → front
+## along local +Z with a sine lift arc), second half = PLANT (front → back,
+## flat on the ground). Local +Z is the dwarf's facing (GLB authoring frame).
+func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
+	if foot == null:
+		return
+	if q < 0.5:
+		var s := q / 0.5                                   # 0 → 1 across the swing
+		foot.position.z = lerpf(-amp, amp, s)
+		foot.position.y = sin(s * PI) * 0.10               # lift arc
+	else:
+		var s := (q - 0.5) / 0.5                           # 0 → 1 across the plant
+		foot.position.z = lerpf(amp, -amp, s)              # world-fixed vs moving body
+		foot.position.y = 0.0
 
 
 func _reset_part_offsets() -> void:

@@ -57,8 +57,18 @@ clothed) → Alen review → replace live GLBs → verify in-engine height again
 
 ## 2. Walk animation rework (`DwarfAgent.gd`, runtime only)
 
-Current gait is a placeholder sine bob: cycle speed is an arbitrary constant, feet slide
-("doesn't line up with actual steps"), everything is too fast.
+> **SHIPPED 2026-07-02 (all four items below; in-engine tuning open).** Gait cycle is now
+> driven by distance travelled (`_walk_cycle += moved / (stride_length × 2)`); feet alternate
+> a sine-lift SWING half-phase and a flat PLANT half-phase whose backward slide (relative to
+> the body) exactly cancels body motion — the planted foot stays world-fixed. Hands
+> counter-swing at half amplitude; body/head lean `walk_lean_deg` (2.5°) into travel. All
+> three dials are exports on `DwarfAgent`: `walk_speed` (3.0 → **2.2**), `stride_length`
+> (0.7), `walk_lean_deg`. Turn banking was skipped (turns are already smoothed via
+> `lerp_angle`; add only if walking reads flat). Tune by eye in-engine and adjust the
+> exports — no code needed.
+
+Current gait was a placeholder sine bob: cycle speed an arbitrary constant, feet slid
+("doesn't line up with actual steps"), everything too fast.
 
 | Item | Direction |
 |---|---|
