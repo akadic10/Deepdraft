@@ -124,16 +124,22 @@ func reserve_next(dwarf_id: int, from_cell: Vector3i, exclude: Dictionary = {}) 
 	if _destination_dirty:
 		_recompute_destination()
 
+	# Reach-aware selection (Alen playtest, 2026-06-10): prefer a block the
+	# dwarf can mine WITHOUT moving (rank 0) over a merely-nearer one needing a
+	# re-walk (rank 1); tie-break by distance. Stops per-block re-walk churn.
 	var best_block := Vector3i(-1, -1, -1)
+	var best_rank := 2          # 0 = workable from current cell, 1 = otherwise
 	var best_dist := 1 << 30
 	for block: Vector3i in _destination:
 		if completed.has(block) or reserved.has(block) or exclude.has(block):
 			continue
 		if not region.has(block):
 			continue
+		var rank := 0 if _workable_from(block, from_cell) else 1
 		var d := absi(block.x - from_cell.x) + absi(block.y - from_cell.y) \
 				+ absi(block.z - from_cell.z)
-		if d < best_dist:
+		if rank < best_rank or (rank == best_rank and d < best_dist):
+			best_rank = rank
 			best_dist = d
 			best_block = block
 
@@ -249,6 +255,20 @@ func _has_walkable_stand_cell(block: Vector3i) -> bool:
 	return false
 
 
+## True if a dwarf at `cell` can mine `block` without moving: stands on the
+## block (dig under-foot) or beside it laterally within the reach envelope
+## ([-reach_down, +reach_up]). Drives reserve_next's prefer-current-cell rule.
+func _workable_from(block: Vector3i, cell: Vector3i) -> bool:
+	if block == cell:
+		return true
+	var dy := block.y - cell.y
+	if dy < -reach_down or dy > reach_up:
+		return false
+	var dx := block.x - cell.x
+	var dz := block.z - cell.z
+	return (absi(dx) == 1 and dz == 0) or (dx == 0 and absi(dz) == 1)
+
+
 ## All walkable stand cells for a block, nearest to the dwarf first.
 func _walkable_stand_cells(block: Vector3i, from_cell: Vector3i) -> Array[Vector3i]:
 	var cells: Array[Vector3i] = []
@@ -264,6 +284,45 @@ func _walkable_stand_cells(block: Vector3i, from_cell: Vector3i) -> Array[Vector
 		var db := absi(b.x - from_cell.x) + absi(b.y - from_cell.y) + absi(b.z - from_cell.z)
 		return da < db)
 	return cells
+
+
+## Walkable stand cell CLOSEST to `from_cell`, across EVERY workable
+## (unreserved, uncompleted) block. Dwarf-relative reachability-probe target
+## for the scheduler gate (doc 16 sec 2.6), replacing representative_target()
+## for that purpose only.
+##
+## Why (Alen, 2026-06-26): representative_target() returns one top-of-zone
+## cell -- the top block's geometrically nearest stand cell. At a cliff edge
+## that is the high-plateau neighbour, often unreachable, while the reachable
+## ground cell the dwarf stands on (a valid stand cell via reach-up) is
+## farther and never chosen -- so the gate probes one bad cell and reports
+## no-worker-can-reach for a mineable zone. Probing the cell nearest the
+## DWARF tests what reserve_next would pull. (-1,-1,-1) when none workable.
+func nearest_stand_target(from_cell: Vector3i) -> Vector3i:
+	if _destination_dirty:
+		_recompute_destination()
+	var best := Vector3i(-1, -1, -1)
+	var best_d := 1 << 30
+	for block: Vector3i in _destination:
+		if completed.has(block) or reserved.has(block):
+			continue
+		if NavGrid.is_walkable(block):
+			var d0 := absi(block.x - from_cell.x) + absi(block.y - from_cell.y) \
+					+ absi(block.z - from_cell.z)
+			if d0 < best_d:
+				best_d = d0
+				best = block
+		for dir: Vector2i in _LATERAL:
+			for dy: int in _stand_dy_range():
+				var cell := Vector3i(block.x + dir.x, block.y + dy, block.z + dir.y)
+				if not NavGrid.is_walkable(cell):
+					continue
+				var d := absi(cell.x - from_cell.x) + absi(cell.y - from_cell.y) \
+						+ absi(cell.z - from_cell.z)
+				if d < best_d:
+					best_d = d
+					best = cell
+	return best
 
 
 # ── Representative target & bounds ───────────────────────────────────────────

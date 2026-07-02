@@ -331,7 +331,18 @@ func _try_assign(agent: DwarfAgent, bonus: Dictionary, probes_left: int, t_start
 				continue
 			probes_left -= 1
 			_probes_total += 1
-			if NavGrid.probe_reachable(dwarf_cell, task.target_pos, _probe_node_cap):
+			# Dwarf-relative probe target for zone leases (Alen, 2026-06-26): the
+			# lease's static target_pos is one top-of-zone cell that can be
+			# unreachable even when this dwarf could mine lower faces via reach-up.
+			# Probe the workable stand cell nearest THIS dwarf instead.
+			var probe_target := task.target_pos
+			if task.type == Task.Type.MINE and task.source_id != -1:
+				var src: Object = _work_sources.get(task.source_id)
+				if src != null and src.has_method("nearest_stand_target"):
+					var t: Vector3i = src.nearest_stand_target(dwarf_cell)
+					if t.x >= 0:
+						probe_target = t
+			if NavGrid.probe_reachable(dwarf_cell, probe_target, _probe_node_cap):
 				task.blocked_count = 0
 				_assign(task, agent)
 				_scan_cursor[type] = (cursor + scanned) % maxi(ids.size(), 1)
