@@ -500,6 +500,31 @@ always be cheap and legal").
    (`tools/generate_soil_glbs.py` following the ore-generator pattern), colour-coded per
    soil type, paths matching the `model` fields in `resources.json`.
 
+### To bank — final acceptance runs (logged 2026-07-06; last open items of this milestone)
+
+All build steps (0–7) are implemented. The doc-update debt from §5 was **paid 2026-07-06**
+(docs 31, 41, 43, 13, AGENT.md — including new Hard Rule 12, the release protocol). What
+remains is in-engine verification only:
+
+1. **Phase 4 acceptance run (the 8×8×4 plateau checklist):**
+   - [ ] Designate an 8×8×4 zone on a plateau
+   - [ ] ≤ 4 dwarves walk over and dig it out block by block over real time
+   - [ ] Cut floors/walls reveal exact block colours (unified exposure principle)
+   - [ ] Zone window counts down (Workers/Faces live-refresh); zone auto-destroys on empty
+   - [ ] Drops litter the pit (rough stone at 0.25, ore GLBs, soil GLBs — no fallback cubes)
+   - [ ] Overlay "interior cells" counter matches the dug volume (8×8×4 = 256)
+2. **Phase 5 robustness (sleep-lite handoff itself verified 2026-07-02):**
+   - [ ] Interrupt-spam: mash the DEV interrupt button on a working dwarf — no errors, no
+         leaked tasks, no double-reserved block
+   - [ ] Resume-after-waking: a slept dwarf re-enters the idle pool and picks work back up
+         within one heartbeat
+   - [ ] Tire-a-worker → in-place sleep → the idle 5th dwarf takes the lease (re-confirm)
+3. **Housekeeping:** delete the stale `.git/index.lock` (present again as of 2026-07-06),
+   then commit the pending `.glb.import` editor churn.
+
+When all boxes tick, mark this milestone **CLOSED** in this log and update doc 31/43 notes
+from "formal acceptance pending" to banked.
+
 ---
 
 ## 7. Open decisions (resolve before or during build)

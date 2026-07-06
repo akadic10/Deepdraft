@@ -77,7 +77,13 @@ A single click (no drag) always produces a **4×4×4 zone**. Dragging expands th
 
 ---
 
-### Tool 2 — Precision Dig (Variable, 1-Block Minimum) — SHIPPED (designation only)
+### Tool 2 — Precision Dig (Variable, 1-Block Minimum) — SHIPPED (designation + real execution)
+
+> **Real mining execution live since 2026-06-10 (doc 16 Phases 4–5):** confirmed zones are now
+> work sources — dwarves take zone leases, walk over, and mine blocks into `WorldData` for real
+> (see §Worker Assignment Flow below). The "visual cut only" model described further down
+> remains true **for the designation phase**; execution then writes void through
+> `WorldData.set_block` with the bedrock re-guard.
 
 > Migrated from the original `00_dev_roadmap/03_mining_plan.md` (retired 2026-06-05). The
 > follow-up Stonehearth parity-polish pass shipped 2026-06-06 (see *Shipped UX polish* below);
@@ -200,7 +206,8 @@ Both tools produce the same kind of mining zone entity in the world. Key propert
 
 When a dwarf mines the last block in a zone, the zone entity is automatically destroyed.
 
-> **Block-state split — LANDED 2026-06-10 (doc 16 step 5; in-engine verification pending):**
+> **Block-state split — LANDED 2026-06-10 (doc 16 step 5; working in-engine per the 2026-06-10
+> session close — formal Phase 4 acceptance run still to bank):**
 > the mined/designation set split shipped with slice Phase SO-2b; the remaining split —
 > **completed**, **destination**, and **reserved** blocks — now lives in
 > `scripts/components/MiningZoneComponent.gd` (the zone's work source). Destination is derived
@@ -221,16 +228,26 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
 
 ---
 
-### Worker Assignment Flow
+### Worker Assignment Flow — IMPLEMENTED (doc 16 §2.7, live since 2026-06-10)
 
 ```
-1. Player designates zone → MiningZoneComponent created, region set
-2. TaskSystem sees open zone → posts MINE tasks up to MAX_WORKERS (4)
-3. Each dwarf: path to zone adjacent cell → mine one block → loop
-4. On each block mined: WorldGrid removes block, drops item entity, emits chunk_changed
-5. MiningZoneComponent.update_destination() recalculates reachable blocks
-6. When zone.region is empty: zone entity destroyed, tasks cancelled
+1. Player designates zone → MiningZoneComponent created (work source), region set
+2. Component posts min(MAX_WORKERS (4), unreserved remaining) MINE leases to TaskManager
+3. Dwarf holding a lease: pull → reserve → path to stand cell → swing timer → commit, loop
+   - reach-aware pull: blocks workable from the dwarf's CURRENT cell rank first (2026-06-26)
+   - vertical reach envelope: a dwarf beside a face works blocks up to reach_up_blocks (5)
+     above / reach_down_blocks (1) below their stand floor (mining_config.json execution.*)
+   - swing = base × hardness ÷ durability per swing; partial swings discarded on interrupt
+4. On each block mined: bedrock re-guard (y > 3), chunk materialised from the generator before
+   the first write, WorldData.set_block → void, renderer add_mined_blocks (exact-colour
+   exposure), drops spawn via ItemDropManager per block_resources.json, InteriorTracker X0
+   bookkeeping, nav cells invalidated
+5. Destination recompute is lazy and local (blocks completing / chunk_dirtied in zone bounds);
+   stalled zones re-target + re-arm leases when nearby terrain opens
+6. When the zone empties: leases complete, zone entity destroyed
 ```
+
+Interruption at any step releases the lease cleanly (doc 16 §2.8) — the reserved block returns to the destination set, zone progress is never lost.
 
 ---
 

@@ -6,16 +6,24 @@ The following Autoloads are registered in **Project Settings → Autoload** (`pr
 
 > **Registration:** The agent may register these autoloads directly by editing the `[autoload]` section of `project.godot` (see File Ownership Rules in `AGENT.md`). Preserve the load order exactly as listed.
 
-Load order:
+Load order (matches `project.godot` `[autoload]` as of 2026-07-06):
 
 ```
 BlockRegistry
 WorldClock
 WorldData
 WorldGenerator
+PlacedEntityRegistry
+NavGrid
+TaskManager
+InteriorTracker
+UIRegistry
+SkyController
+WeatherManager
+DwarfAssets
 ```
 
-> **Not autoloads:** `WorldRenderer` and `Camera` are **scene nodes** in `scenes/main/debug_world.tscn`, not singletons. Do not reference them as autoloads. `Chunk` and `ChunkMesher` are plain classes (`class_name`), not autoloads either.
+> **Not autoloads:** `WorldRenderer`, `Camera`, `SurfaceFloraSpawner`, `SliceController`, `ItemDropManager`, the designation/placement controllers, and `DwarfDirector` are **scene nodes** in `scenes/main/debug_world.tscn`, not singletons. Do not reference them as autoloads. `Chunk`, `ChunkMesher`, `Task`, `MiningZoneComponent`, and `DwarfFactory` are plain classes (`class_name`), not autoloads either. The dividing line (doc 16 decision): **simulation state = autoload, presentation = scene node.**
 
 ### `BlockRegistry`
 Parses and holds the data-driven block definitions and seasonal surface palettes. Provides fast `StringName` ↔ runtime-int translation and per-season block colours.
@@ -33,19 +41,27 @@ func get_color(id: int, season := "summer") -> Color  # surface variants from su
 > Runtime integer IDs are session-local array indices (assigned in JSON file order) and must **never** be written to save files. Save files always store the namespaced `StringName` key.
 
 ### `WorldClock`
-Authoritative calendar for the whole simulation. All time-sensitive systems read these fields rather than tracking their own counters. (Timer advancement is not yet implemented — the clock is currently a static stub; signals are declared so other systems can connect now.)
+Authoritative calendar for the whole simulation, **live and ticking** (shipped with the sky work, doc 08; data from `data/calendar/calendar.json`). All time-sensitive systems read these fields rather than tracking their own counters.
 
 ```gdscript
 var day:    int      # 1–28 within the current season
 var season: String   # "spring" | "summer" | "autumn" | "winter"
 var year:   int
 var hour:   float    # 0.0–23.99
+var speed:  float    # player time-speed multiplier
+var paused: bool
 
-signal season_changed(new_season: String)
+signal hour_changed(new_hour: int)
 signal day_changed(new_day: int)
+signal season_changed(new_season: String)
 
-func growth_rate_multiplier() -> float   # spring 1.2 / summer 1.0 / autumn 0.8 / winter 0.0
-func day_of_year() -> int                # 0–111
+func set_speed(new_speed: float) -> void
+func set_paused(value: bool) -> void
+func game_hours_per_real_second() -> float   # honours speed; 0 while paused (sleep-lite timing, doc 16 step 7)
+func advance_hours(amount: float) -> void    # DEV/testing
+func growth_rate_multiplier() -> float       # spring 1.2 / summer 1.0 / autumn 0.8 / winter 0.0
+func day_of_year() -> int                    # 0–111
+func daylight_hours(day_of_year: int) -> float  # solstice cosine curve (11_overview.md §5)
 ```
 
 ### `WorldData`
@@ -83,6 +99,61 @@ signal chunk_generated(cx: int, cy: int, cz: int)   # CONNECT_DEFERRED — mesh 
 signal world_complete()                             # CONNECT_DEFERRED
 ```
 
+### `PlacedEntityRegistry` *(doc 16 step 3a)*
+Occupancy registry for placed entities (doc 12 pattern — the terrain grid never knows about entities). Trees register trunk footprints, the Settlement Flag its 1×1×3 box; future workshops/furniture follow. Storage is per-column Y-ranges, not per-cell.
+
+```gdscript
+func occupies(pos: Vector3i) -> bool
+func register_box(box_min: Vector3i, box_size: Vector3i) -> int   # returns handle
+func unregister(id: int) -> void
+
+signal occupancy_changed(box_min: Vector3i, box_size: Vector3i)   # NavGrid invalidates on this
+```
+
+### `NavGrid` *(doc 16 step 3b; spec: 32_navigation_3d.md)*
+Custom 3D A*: solid floor + 3-air clearance + entity occupancy, ±1 steps, flat diagonals without corner cutting, string-pulling for straight walks. Terrain source is `WorldData` where chunks exist, else generated blocks. Per-chunk walkability cache invalidated by `chunk_dirtied` / `occupancy_changed`; path cache TTL 5 s.
+
+```gdscript
+func find_path(start: Vector3i, goal: Vector3i, max_nodes := DEFAULT_MAX_NODES) -> Array[Vector3i]
+func probe_reachable(start: Vector3i, goal: Vector3i, node_cap := PROBE_NODE_CAP) -> bool  # cap from task_config.json
+func is_walkable(cell: Vector3i) -> bool
+func walkable_floor_at(wx: int, wz: int, near_y: int, scan := 4) -> Vector3i
+func line_walkable_flat(a: Vector3i, b: Vector3i, radius := 0.3) -> bool
+```
+
+### `TaskManager` *(doc 16 §2 — the no-hang scheduler)*
+Owns all tasks (dwarves hold task IDs only). Event-driven, time-budgeted, probe-capped matching with per-type sorted buckets, resumable cursors, and exponential backoff for unreachable tasks. Work sources (mining zones; later workshops/stockpiles) post intent-sized leases, never per-block tasks. Tunables live in `data/tasks/task_config.json`.
+
+```gdscript
+func add_task(type: int, target_pos: Vector3i, payload := {}, ...) -> Task
+func cancel_task(task_id: int) -> void
+func complete_dwarf_task(dwarf_id: int) -> void
+func release_dwarf_task(dwarf_id: int, reason: int, requeue_dwarf := true) -> void  # §2.8: always cheap, always legal
+func fail_dwarf_task(dwarf_id: int, reason: String) -> void
+func register_work_source(source_id: int, source: Object) -> void   # + unregister / get / cancel_source_tasks
+func register_dwarf(agent: DwarfAgent) -> void                      # + deregister
+func notify_dwarf_idle(dwarf_id: int) -> void
+func notify_dwarf_unavailable(dwarf_id: int) -> void                # sleeper leaves the idle pool
+func get_scheduler_stats() -> Dictionary                            # debug overlay row
+
+signal task_added / task_assigned / task_released / task_completed / task_failed / task_unreachable
+```
+
+### `InteriorTracker` *(doc 11 Phase X0, piggybacked on mining — doc 16 Phase 4)*
+Data-only interior-column bookkeeping for the future X-Ray mode. Mining (real and DEV) calls `on_blocks_mined()` after the void write; the tracker walks air upward (cap 4) into per-chunk interior sets. Never serialised — rebuilt from the mined set on load.
+
+### `UIRegistry`
+Owner of UI-layout JSON (`data/ui/dock.json`). `get_dock_items()` returns the validated dock list (23_user_interface.md).
+
+### `SkyController` *(doc 08 — day/night live)*
+Drives the scene `WorldEnvironment` sky/fog and Sun/Moon from keyframed curves in `data/sky/sky_settings.json`, animated against `WorldClock`. Fog colour tracks the sky horizon (24_world_rendering.md core principle). Blends weather overrides from `WeatherManager`.
+
+### `WeatherManager` *(doc 08)*
+Per-season weighted weather scheduler (`data/weather/*.json`, `data/calendar/weather_schedule.json`), seeded from the world seed. Emits `weather_changed(weather_id)`; hands overrides to `SkyController`. `set_weather()` / `cycle_weather()` for testing.
+
+### `DwarfAssets` *(doc 16 step 2a; spec: 41b)*
+Owner of the ~41 dwarf part GLBs (preloaded PackedScenes) and the three generation JSON pools (`names` / `appearance` / `traits`). Parts are authored in neutral palettes; head/hands are runtime-tinted, body/feet baked (doc 17 §1 tint split).
+
 > **Planned (not yet implemented):** an `AudioManager` autoload (procedural spatial audio, ambient loops, combat cues) is referenced as forward-looking infrastructure by `24_world_rendering.md` and `52_combat_military.md`. It does **not** exist in the project yet and is not a registered autoload. Add it to the load order here when it ships.
 
 ---
@@ -92,9 +163,10 @@ signal world_complete()                             # CONNECT_DEFERRED
 On application startup, autoloads run their `_ready()` in registration order, before the main scene's nodes initialise:
 
 1. **`BlockRegistry._ready()`** — loads `data/terrain/terrain_blocks.json` (block definitions: `kind` + `hex_color`) and `data/terrain/surface_palettes.json` (per-season grass/dirt colours), assigning runtime integer IDs in file order. It then resolves and caches `AIR_ID = get_id("base:terrain:void")`. Documentation-comment keys (any JSON key beginning with `__`) are skipped.
-2. **`WorldClock._ready()`** — initialises the static calendar fields (no timer is started yet).
+2. **`WorldClock._ready()`** — loads `data/calendar/calendar.json` and starts the live clock (`_process` advances `hour`/`day`/`season`, honouring `speed` and `paused`).
 3. **`WorldData._ready()`** — allocates its `Mutex`. Chunks are **not** pre-allocated; they are created lazily on first write or handed over by the generator via `submit_chunk()`.
 4. **`WorldGenerator._ready()`** — allocates its request mutex and waits. Generation is **not** kicked off at boot; the renderer in the main scene calls `generate(seed)` explicitly, after which the generator builds the 2D maps and then services `request_chunk_column()` calls.
+5. **The remaining autoloads** (`PlacedEntityRegistry` → `DwarfAssets`) follow in registration order. Each loads only its own JSON (registry pattern); `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load.
 
 No game data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`).
 

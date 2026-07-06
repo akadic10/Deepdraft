@@ -1,5 +1,18 @@
 # 41 — Dwarf Agents
 
+> **IMPLEMENTATION STATUS (First Dwarf Milestone, doc 16 — banked 2026-06-10 → 2026-07-02).**
+> Shipped: `DwarfAgent` (`scripts/entities/DwarfAgent.gd`) with the four-part mesh hierarchy,
+> runtime tint split (head/hands tinted, body/feet baked — doc 17 §1), procedural
+> **distance-driven walk gait** (plant/lift foot phases, counter-swinging hands, body lean;
+> `walk_speed` 2.2, `stride_length` 0.7 — all exports, doc 17 §2), zone-lease mining execution
+> with the vertical reach envelope, and **sleep-lite** — the single `sleep` stat below, draining
+> per the table, with in-place sleeping (no beds yet) and the §2.8 release protocol
+> (`16_first_dwarf_milestone.md` step 7). Procedural generation (names/appearance/traits,
+> seed-deterministic per `world_seed + birth_index`) runs through `DwarfFactory` +
+> `DwarfAssets`; dwarves spawn at the player-placed Settlement Flag. NOT yet implemented:
+> hunger/thirst/alcohol/mood/health, thoughts, beds, professions at runtime, portraits, the
+> full needs-interrupt priority ladder — the tables below remain their design source.
+
 ## Overview
 
 Each dwarf is an autonomous agent (`DwarfAgent`, extends `CharacterBody3D`) driven by the Task System. Dwarves have physiological stats that degrade over time and must be replenished through colony resources.

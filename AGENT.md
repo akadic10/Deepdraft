@@ -91,6 +91,7 @@ These constraints appear in individual documents but are listed here for quick r
 9. **Terrain identity lives in data**: Block identity must come from generated block data and JSON registries, not renderer tricks, fog, camera distance, or painted heightmaps. (`24_world_rendering.md`, `43_mining_materials.md`)
 10. **Scene Decoupling Contract (recommended default)**: Prefer `@export` variables for scene references and signals for cross-node communication over explicit node paths (`$Node` / `get_node()`). The agent MAY now create and edit `.tscn` files and register autoloads / set the main scene / register `[input]` actions in `project.godot` — but keep logic scene-agnostic by default and only hardcode node paths when there is a clear reason. Never edit `.tres` or `.import` files. (`13_architecture.md`, File Ownership Rules)
 11. **Slice concealment**: The slice view must never reveal undiscovered resources. Plane-cut floors render authored strata only — everywhere, at every zoom; veins, gems, and caves become visible exclusively through mining. (`24_world_rendering.md`, `43_mining_materials.md`)
+12. **Releasing a task is always cheap and always legal**: No task type may be designed such that abandoning it mid-way corrupts state. Release returns the task to PENDING, frees reservations, and never loses source-level progress; a future carried item is dropped at the dwarf's feet. (`16_first_dwarf_milestone.md` §2.8, `31_task_system.md`)
 
 ---
 
@@ -133,13 +134,18 @@ DwarfVoxel/
 │   ├── workshops/
 │   └── world_gen/
 ├── scripts/                  ← agent-owned GDScript
-│   ├── registries/           ← autoloads that load JSON data
-│   ├── systems/              ← simulation logic autoloads
-│   │   └── MiningSystem.gd   ← exists
-│   ├── components/           ← reusable logic components (no autoload)
-│   │   └── MiningZoneComponent.gd  ← exists
-│   ├── entities/             ← dwarf and visitor agent scripts
-│   └── ui/                   ← UI logic scripts (no node path hardcoding)
+│   ├── registries/           ← registry autoloads (BlockRegistry, PlacedEntityRegistry,
+│   │                            DwarfAssets, UIRegistry)
+│   ├── systems/              ← simulation autoloads (WorldClock, WorldData, WorldGenerator,
+│   │                            NavGrid, TaskManager, InteriorTracker, SkyController,
+│   │                            WeatherManager) + scene-node systems (WorldRenderer, Camera,
+│   │                            SliceController, MiningDesignationController,
+│   │                            FlagPlacementController, SurfaceFloraSpawner, ItemDropManager…)
+│   │                            — authoritative autoload list + load order: docs/10_core_foundation/13_architecture.md
+│   ├── components/           ← reusable logic components, no autoload (MiningZoneComponent)
+│   ├── entities/             ← agent scripts (DwarfAgent, DwarfFactory, DwarfDirector,
+│   │                            DwarfAppearanceData)
+│   └── ui/                   ← UI logic scripts (DockUI, DebugLoadingOverlay)
 └── scenes/                   ← agent may create and edit scenes (git-tracked)
     ├── main/
     ├── ui/
