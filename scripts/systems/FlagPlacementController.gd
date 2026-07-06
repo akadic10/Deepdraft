@@ -55,6 +55,14 @@ func _ready() -> void:
 	_director = get_node_or_null(dwarf_director_path)
 	if _dock_ui != null and _dock_ui.has_method("register_flag_controller"):
 		_dock_ui.call("register_flag_controller", self)
+	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
+		_dock_ui.connect("tool_requested", _on_tool_requested)
+
+
+## One active click-tool at a time: any other tool's activation closes this one.
+func _on_tool_requested(tool_id: String) -> void:
+	if tool_id != "flag" and _active:
+		deactivate()
 
 
 func _process(_delta: float) -> void:

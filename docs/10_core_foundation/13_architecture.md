@@ -17,6 +17,7 @@ PlacedEntityRegistry
 NavGrid
 TaskManager
 InteriorTracker
+StockpileManager
 UIRegistry
 SkyController
 WeatherManager
@@ -141,6 +142,9 @@ signal task_added / task_assigned / task_released / task_completed / task_failed
 
 ### `InteriorTracker` *(doc 11 Phase X0, piggybacked on mining — doc 16 Phase 4)*
 Data-only interior-column bookkeeping for the future X-Ray mode. Mining (real and DEV) calls `on_blocks_mined()` after the void write; the tracker walks air upward (cap 4) into per-chunk interior sets. Never serialised — rebuilt from the mined set on load.
+
+### `StockpileManager` *(doc 18 Phase 3)*
+Colony storage coordinator: registry of stockpile zone work sources (source ids at `1_000_000 + zone_id` — offset from mining's key space), throttled HAUL-lease wake plumbing (drop spawned / task events), and the aggregate view (`get_total(item_key)`, `signal stockpile_changed`) that the doc 23 status-bar counters will consume. Reads its `hauling` config through `TaskManager.get_config_section()` (single-owner rule on `task_config.json`).
 
 ### `UIRegistry`
 Owner of UI-layout JSON (`data/ui/dock.json`). `get_dock_items()` returns the validated dock list (23_user_interface.md).

@@ -199,8 +199,14 @@ func _on_left_release(screen_pos: Vector2) -> void:
 	if _size_label != null:
 		_size_label.visible = false
 	# Short click on empty valid ground = 1×1 zone (DRAG_THRESHOLD, doc 22).
+	# NOTE: built explicitly, never via ternary — `[x] if c else []` yields a
+	# plain Array and crashes assigning to Array[Vector3i] (runtime-only error;
+	# the 2026-07-06 flag-click crash).
 	if screen_pos.distance_to(_drag_start_px) < DRAG_THRESHOLD_PX:
-		_preview_cells = [_anchor_cell] if _is_valid_cell(_anchor_cell, _anchor_cell.y) else []
+		var single: Array[Vector3i] = []
+		if _is_valid_cell(_anchor_cell, _anchor_cell.y):
+			single.append(_anchor_cell)
+		_preview_cells = single
 	if not _preview_cells.is_empty():
 		_confirm_zone(_preview_cells.duplicate())
 	_preview_cells.clear()
@@ -332,6 +338,7 @@ func _confirm_zone(cells: Array[Vector3i]) -> void:
 	_draw_cells(overlay, cells, COLOR_ZONE, COLOR_ZONE_EDGE, zone.floor_y)
 	overlay.visible = zone.floor_y <= _slice_y
 	_zone_overlays[_next_zone_id] = overlay
+	StockpileManager.register_zone(zone)   # work source goes live (doc 18 Phase 3)
 	print("StockpileDesignationController: zone %d created (%d cells at Y %d)." % [
 		_next_zone_id, cells.size(), zone.floor_y])
 	zone_created.emit(_next_zone_id)
@@ -342,6 +349,7 @@ func remove_zone(zone_id: int) -> void:
 	if not _zones.has(zone_id):
 		return
 	var zone: StockpileZoneComponent = _zones[zone_id]
+	StockpileManager.deregister_zone(zone)   # cancels leases, frees stored items
 	for cell: Vector3i in zone.tile_cells:
 		_cell_to_zone.erase(cell)
 	_zones.erase(zone_id)

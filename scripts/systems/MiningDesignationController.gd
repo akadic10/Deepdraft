@@ -239,6 +239,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_tool_requested(tool_id: String) -> void:
 	if tool_id != "mine_precision":
+		# Another click-tool is activating — close this one (the doc 16 tool-
+		# exclusion wart, fixed 2026-07-06 after two active tools ate one click).
+		if _state != ToolState.INACTIVE:
+			_deactivate_tool()
 		return
 	_state = ToolState.HOVER
 	_terrain_grid_node.visible = true

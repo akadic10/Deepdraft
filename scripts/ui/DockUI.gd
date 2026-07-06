@@ -295,6 +295,9 @@ func _toggle_window(target: String) -> void:
 		return
 
 	if target == "flag":
+		# Announce so other click-tools (mining, storage zone) deactivate —
+		# two active tools eating the same click caused the 2026-07-06 crash.
+		tool_requested.emit("flag")
 		if _flag_controller != null and _flag_controller.has_method("toggle_active"):
 			_flag_controller.call("toggle_active")
 		return

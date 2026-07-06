@@ -38,7 +38,10 @@ var current_task_id: int = -1
 ## ZONE_MOVING/ZONE_SWINGING is the MINE-lease executor (doc 16 §2.7): pull a
 ## block from the zone's destination set, reserve it, path to a stand cell,
 ## swing it down, commit, pull the next.
-enum TaskPhase { NONE, MOVING, EXECUTING, ZONE_MOVING, ZONE_SWINGING }
+## HAUL_TO_ITEM/HAUL_TO_ZONE is the HAUL-lease executor (doc 18 §2.3): pull
+## the nearest accepted loose item, reserve it + a deposit cell, walk over,
+## pick it up, carry it to the stockpile, deposit, pull the next.
+enum TaskPhase { NONE, MOVING, EXECUTING, ZONE_MOVING, ZONE_SWINGING, HAUL_TO_ITEM, HAUL_TO_ZONE }
 const GENERIC_WORK_TIME := 1.0   # seconds — generic executor only
 var _task_phase: int = TaskPhase.NONE
 var _task_target: Vector3i = Vector3i.ZERO
@@ -58,6 +61,23 @@ var _swing_time: float = 1.0
 var _swing_timer: float = 0.0
 var _pull_failures: int = 0
 var _pull_exclude: Dictionary = {}   # Vector3i -> true; this-round path blacklist
+
+## HAUL-lease execution state (doc 18 §2.3 + pouch). Mirrors the zone-lease
+## shape: 3 failed rounds release the lease with backoff; EVERYTHING carried
+## is dropped at the feet on ANY interruption (Hard Rule 12). The pouch (SH
+## backpack parity): a pull is a BUNDLE of up to pouch_capacity items visited
+## in order, carried as a stack, deposited in one trip.
+const HAUL_PULL_FAILURE_LIMIT := 3
+const CARRY_OFFSET := Vector3(0.0, 1.8, 0.55)   # chest height, in front (local +Z = facing)
+const CARRY_STACK_STEP := 0.95                  # vertical spacing of pouch items
+var _haul_source_id: int = -1
+var _haul_items: Array[Node3D] = []  # this round's bundle, visit order
+var _haul_index: int = 0             # next bundle item to fetch
+var _haul_deposit: Vector3i = Vector3i(-1, -1, -1)
+var _haul_failures: int = 0
+var _haul_exclude: Dictionary = {}   # Node3D -> true; this-round item blacklist
+var _carried_entries: Array = []     # [[node: Node3D, item_key: String], ...]
+var _carry_speed_mult: float = 1.0
 
 ## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
 ## Deliberately minimal: ONE stat draining per real second (doc 41 rate);
@@ -174,6 +194,12 @@ func receive_task(task_id: int, target_pos: Vector3i) -> void:
 		_pull_exclude.clear()
 		_zone_pull_next()
 		return
+	if task != null and task.type == Task.Type.HAUL and task.payload.has("zone_id"):
+		_haul_source_id = int(task.payload["zone_id"])
+		_haul_failures = 0
+		_haul_exclude.clear()
+		_haul_pull_next()
+		return
 	# Phase is set AFTER walk_to: a synchronous walk_finished(false) from a
 	# failed pathfind must not double-release through _on_walk_finished.
 	if walk_to(target_pos):
@@ -195,6 +221,7 @@ func abort_task() -> void:
 		if source != null:
 			source.call("release_worker", dwarf_id)
 	_finish_zone_state()
+	_finish_haul_state()
 	_task_phase = TaskPhase.NONE
 	current_task_id = -1
 	_exec_timer = 0.0
@@ -209,6 +236,24 @@ func _on_walk_finished(success: bool) -> void:
 		else:
 			# Path invalidated mid-walk — try the block's remaining stand cells.
 			_zone_try_stand()
+		return
+	if _task_phase == TaskPhase.HAUL_TO_ITEM:
+		_task_phase = TaskPhase.NONE
+		if success:
+			_haul_pickup_current()
+		else:
+			_haul_skip_current()   # this item unreachable; the bundle continues
+		return
+	if _task_phase == TaskPhase.HAUL_TO_ZONE:
+		_task_phase = TaskPhase.NONE
+		if success:
+			_haul_deposit_now()
+		else:
+			# Carrying and the path died — drop everything at the feet
+			# (Hard Rule 12); the items re-enter the loose index.
+			_drop_carried_at_feet()
+			_haul_cancel_pull()
+			_haul_count_failure()
 		return
 	if _task_phase != TaskPhase.MOVING:
 		return
@@ -235,6 +280,7 @@ func _begin_sleep() -> void:
 	_sleep_hours_left = SLEEP_HOURS
 	var had_task := current_task_id >= 0
 	_finish_zone_state()
+	_finish_haul_state()
 	_task_phase = TaskPhase.NONE
 	current_task_id = -1
 	_exec_timer = 0.0
@@ -293,6 +339,7 @@ func dev_force_interrupt() -> bool:
 	if current_task_id < 0:
 		return false
 	_finish_zone_state()
+	_finish_haul_state()
 	_task_phase = TaskPhase.NONE
 	current_task_id = -1
 	_exec_timer = 0.0
@@ -474,6 +521,190 @@ func _face_cell(cell: Vector3i) -> void:
 		rotation.y = atan2(flat.x, flat.y)
 
 
+# ── HAUL-lease executor (doc 18 §2.3 worker loop) ─────────────────────────────
+
+func _haul_source() -> RefCounted:
+	if _haul_source_id < 0:
+		return null
+	return TaskManager.get_work_source(_haul_source_id) as RefCounted
+
+
+## Step 1: pull a BUNDLE (main + nearby extras, each with a reserved deposit
+## cell — the pouch). Nothing to pull -> the lease completes early.
+func _haul_pull_next() -> void:
+	if current_task_id < 0:
+		return   # cancelled out from under us mid-loop
+	var source := _haul_source()
+	if source == null:
+		_finish_haul_state()
+		current_task_id = -1
+		TaskManager.fail_dwarf_task(dwarf_id, "stockpile zone gone")
+		return
+	var pull: Dictionary = source.call("reserve_haul", dwarf_id, current_cell(), _haul_exclude)
+	if pull.is_empty():
+		_finish_haul_state()
+		current_task_id = -1
+		TaskManager.complete_dwarf_task(dwarf_id)
+		return
+	_haul_items = pull["items"]
+	_haul_index = 0
+	_haul_deposit = pull["deposit_target"]
+	_carry_speed_mult = float(pull.get("carry_mult", 1.0))
+	_haul_walk_current()
+
+
+## Step 2: walk to the next bundle item; past the end of the bundle, head to
+## the zone with whatever is in the pouch.
+func _haul_walk_current() -> void:
+	if current_task_id < 0:
+		return
+	if _haul_index >= _haul_items.size():
+		# Bundle exhausted. Carrying something -> deliver; nothing at all ->
+		# the whole round failed (every item skipped).
+		if _carried_entries.is_empty():
+			_haul_cancel_pull()
+			_haul_count_failure()
+		elif walk_to(_haul_deposit):
+			_task_phase = TaskPhase.HAUL_TO_ZONE
+		else:
+			_drop_carried_at_feet()
+			_haul_cancel_pull()
+			_haul_count_failure()
+		return
+	var item := _haul_items[_haul_index]
+	if item == null or not is_instance_valid(item):
+		_haul_skip_current()
+		return
+	var stand := _item_stand_cell(item)
+	if stand == current_cell():
+		_haul_pickup_current()
+		return
+	if walk_to(stand):
+		_task_phase = TaskPhase.HAUL_TO_ITEM
+	else:
+		_haul_skip_current()
+
+
+## Step 3: pocket the current bundle item — the node joins the carried stack
+## at chest height. Then on to the next item (or the zone).
+func _haul_pickup_current() -> void:
+	var source := _haul_source()
+	if source == null:
+		_finish_haul_state()
+		current_task_id = -1
+		TaskManager.fail_dwarf_task(dwarf_id, "stockpile zone gone")
+		return
+	var node: Node3D = source.call("take_item", dwarf_id, _haul_index)
+	if node == null:
+		_haul_skip_current()   # item vanished / raced — bundle continues
+		return
+	var key := String(node.get_meta("item_key", ""))
+	_carried_entries.append([node, key])
+	add_child(node)
+	node.position = CARRY_OFFSET + Vector3(0.0, CARRY_STACK_STEP * float(_carried_entries.size() - 1), 0.0)
+	node.rotation = Vector3.ZERO
+	_haul_index += 1
+	_haul_walk_current()
+
+
+## An unreachable/vanished bundle item: blacklist it, free its reservations,
+## move on. Skips never count as round failures by themselves — only an
+## entirely empty-handed round does (_haul_walk_current end branch).
+func _haul_skip_current() -> void:
+	var source := _haul_source()
+	if _haul_index < _haul_items.size():
+		var item := _haul_items[_haul_index]
+		if item != null and is_instance_valid(item):
+			_haul_exclude[item] = true
+		if source != null:
+			source.call("skip_item", dwarf_id, _haul_index)
+	_haul_index += 1
+	_haul_walk_current()
+
+
+## Step 4: multi-deposit — every pouch item lands on its own reserved cell.
+func _haul_deposit_now() -> void:
+	var source := _haul_source()
+	var committed := false
+	if source != null and not _carried_entries.is_empty():
+		committed = bool(source.call("commit_haul", dwarf_id, _carried_entries))
+	if committed:
+		_carried_entries = []   # the zone/drop manager owns the nodes now
+		_carry_speed_mult = 1.0
+		_haul_failures = 0
+		_haul_exclude.clear()
+		_haul_pull_next()
+	else:
+		_drop_carried_at_feet()
+		_haul_cancel_pull()
+		_haul_count_failure()
+
+
+## Frees this round's remaining reservations (idempotent — the zone's
+## task_released route may have freed them already).
+func _haul_cancel_pull() -> void:
+	var source := _haul_source()
+	if source != null:
+		source.call("cancel_haul", dwarf_id)
+	_haul_items = []
+	_haul_index = 0
+	_haul_deposit = Vector3i(-1, -1, -1)
+	_carry_speed_mult = 1.0
+
+
+## The FLOOR cell a dwarf stands on to pick up a drop (mirrors
+## ItemDropManager.item_floor_cell — drops rest on their floor's top face).
+func _item_stand_cell(node: Node3D) -> Vector3i:
+	return Vector3i(
+		floori(node.position.x),
+		int(round(node.position.y)) - 1,
+		floori(node.position.z))
+
+
+func _haul_count_failure() -> void:
+	if current_task_id < 0:
+		return
+	_haul_failures += 1
+	if _haul_failures >= HAUL_PULL_FAILURE_LIMIT:
+		_finish_haul_state()
+		current_task_id = -1
+		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+	else:
+		_haul_pull_next()
+
+
+## Hard Rule 12: everything carried goes back to the world as loose drops at
+## the dwarf's feet — never destroyed, never stuck on the agent.
+func _drop_carried_at_feet() -> void:
+	if _carried_entries.is_empty():
+		return
+	var manager := get_tree().get_first_node_in_group("item_drop_manager")
+	for entry: Array in _carried_entries:
+		var node: Node3D = entry[0]
+		if node == null or not is_instance_valid(node):
+			continue
+		if manager != null and manager.has_method("drop_loose"):
+			manager.call("drop_loose", node, current_cell())
+		else:
+			node.queue_free()   # last resort — should never happen in a live scene
+	_carried_entries = []
+	_carry_speed_mult = 1.0
+
+
+## Interrupt/abort teardown (mirrors _finish_zone_state): drop the pouch,
+## free reservations, clear the loop state. Always cheap, always legal.
+func _finish_haul_state() -> void:
+	if _haul_source_id < 0 and _carried_entries.is_empty():
+		return
+	_drop_carried_at_feet()
+	_haul_cancel_pull()
+	_haul_source_id = -1
+	_haul_failures = 0
+	_haul_exclude.clear()
+	if _task_phase == TaskPhase.HAUL_TO_ITEM or _task_phase == TaskPhase.HAUL_TO_ZONE:
+		_task_phase = TaskPhase.NONE
+
+
 # ── Movement (doc 16 step 3b) ─────────────────────────────────────────────────
 
 ## Current FLOOR cell (the block under the feet). Standing height is
@@ -549,7 +780,8 @@ func _follow_path(delta: float) -> void:
 	var target := Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
 	var to_target := target - global_position
 	var distance := to_target.length()
-	var step := walk_speed * delta
+	# Heavy carried items slow the walk (doc 18 §2.3 / resources.json contract).
+	var step := walk_speed * _carry_speed_mult * delta
 
 	# Face travel direction (XZ only). The dwarf part GLBs are authored with
 	# the FACE on the +Z side (generate_dwarf_glb.py FACE_Z), so local +Z —

@@ -108,14 +108,16 @@ Lease posting mirrors mining: a zone with accepted loose items in the world and 
 capacity posts `min(max_haulers, needed)` leases; `ItemDropManager` spawn events and
 `stockpile_changed` are the wake sources. **No polling.**
 
-### 2.4 Storage is physical
+### 2.4 Storage is physical — one item per tile (REVISED, Alen 2026-07-06)
 
 Deposited items remain visible drop nodes snapped to their zone cell (Stonehearth's look —
-the stockpile IS the pile). `cell_stacks` is the authoritative count; `stack_max` from
-`resources.json` caps a cell (v1 renders a stack as the single GLB; count badges later).
-Capacity = free/compatible cells, so doc 23's `tile_count × 8` rule is superseded by
-per-item `stack_max` — <span style="color:#d29922;">update doc 23 on ship if this survives
-contact with play.</span>
+the stockpile IS the pile). **Ground zones never stack: one item per tile, exactly like
+Stonehearth's ground stockpiles.** The first build stacked invisibly per cell (`stack_max`),
+which Alen's playtest caught immediately: physical storage with hidden counts is a hybrid SH
+deliberately avoids — quantity must be WYSIWYG. `stack_max` in `resources.json` is retired
+from ground zones and reserved for the CONTAINER path (barrel/chest/shelf capacity), which is
+also the SH split (readable ground zones, dense containers). Capacity = empty cells; doc 23's
+`tile_count × 8` rule is superseded — update doc 23 when the UI pass lands.
 
 ---
 
@@ -172,12 +174,36 @@ dumps its contents after a `DROP_ALL_TIMEOUT` (2 h).
   contract (`accepts` / `reserve_deposit_cell` / `deposit` / `stockpile_changed`) that
   container entities implement in the follow-on — matching how doc 61's Barrel and
   Chest/Crate furniture become *functional* later.
-- **Trip batching, Deepdraft-sized:** no backpacks in v1, but the §2.3 pull step prefers the
-  next loose item near the dwarf's deposit cell (reach-aware selection, the mining lesson) so
-  trips chain short. The errand/pouch model is the recorded v2 upgrade if haul trips dominate.
+- **Trip batching — the pouch (SHIPPED 2026-07-06, same day):** full SH parity. A haul pull
+  is a BUNDLE: the nearest accepted item plus up to `pouch_capacity − 1` (3) extras within
+  `pouch_bundle_radius` (8) of it, visited in greedy nearest-neighbour order, carried as a
+  visible stack, multi-deposited in one trip. **The pouch carries anything, stone included**
+  (Alen 2026-07-06 — SH has no weight limit; the first cut's heavy-solo rule would have made
+  the pouch useless for mining output, since nearly all mining drops are `heavy`). Any heavy
+  item aboard applies ×`carry_speed_mult_heavy` for the whole trip. Config keys in
+  `task_config.json` `hauling`; `resources.json` weight_class comment updated to match.
 - **Failed-item requeue = our backoff** — already how TaskManager works; no new machinery.
 
+### Parameter comparison (verified from source, 2026-07-06 — Alen's ask)
+
+| Parameter | Deepdraft | Stonehearth | Note |
+|---|---|---|---|
+| Concurrent haulers | 2 per zone (`max_haulers_per_zone`) | global `max(10, active restock workers)` — no per-storage cap | SH rations errands per COLONY, scaled to workforce; our per-zone cap idled 3 of 5 dwarves in the first playtest |
+| Items per trip | 1 | 4 (backpack 4 = main + `MAX_EXTRA_ITEMS` 3) | the pouch upgrade (below) |
+| Haul vs mine priority | fixed MINE 50 > HAUL 40 | mine fixed 0.4; restock a 0.2–0.7 utility band — good errands OUTRANK mining | worth a scheduler colony-bonus pass later |
+| Failed-item retry | backoff 2^n ≤ 30 s | flat 10 min, batches of 50 | ours recovers faster — keep |
+| Reservation expiry | release-protocol only | 1 s consider lease / 3 h storage lease / 20 s validity cache | their timers guard races Hard Rule 12 prevents structurally |
+| Carry speed | heavy ×0.7 | none found | deliberate Deepdraft flavour — keep |
+| Ground-zone density | ~~stack per cell~~ → **1 item/tile (adopted 2026-07-06)** | 1 item/tile; density via containers | hidden stacking failed the readability test in play; SH parity chosen, density deferred to containers |
+
 ### <span style="color:#d29922;">Recorded for follow-on milestones (not v1)</span>
+
+- **Worker-scaled hauling (the SH model):** replace the per-zone cap with a colony-level
+  errand budget scaled to available workers (`max(10, active haul workers)` in SH). Interim
+  dial: `max_haulers_per_zone` 2 → 4 (2026-07-06, after the 3-idle-dwarves playtest). The
+  pouch half of this item shipped 2026-07-06 (§ above).
+- **Haul-utility priority band:** close item + close storage should be able to outrank mining
+  (SH: restock 0.2–0.7 vs mine 0.4). Touches the scheduler's colony-bonus model (doc 16 §2.2).
 
 - **Container entities** (barrel = small crate 8, chest = large crate ~24–32, shelf below) —
   placeable storage sharing the zone's interface; needs the furniture-placement tool first.
@@ -281,9 +307,10 @@ this doc's build log.
    cell; decide by watching real piles.
 2. <span style="color:#d29922;">**`max_haulers` per zone**</span> — start at 2 (mining uses
    4, hauls are shorter trips); pure data, tune in play.
-3. <span style="color:#d29922;">**Do stored items keep their nodes, or swap to a cheaper
-   stacked representation at count > 1?**</span> — v1 keeps one node per stack (count in
-   data only). Revisit if a 500-item warehouse costs frame time.
+3. <span style="color:#3fb950;">~~Stored-item representation~~ — **DECIDED (Alen,
+   2026-07-06): one item per tile, no ground stacking (SH parity).** Every stored item keeps
+   its own node on its own cell; quantity is WYSIWYG. `stack_max` moves to the container
+   path. Supersedes the earlier one-node-per-stack lean.</span>
 4. <span style="color:#d29922;">**Rough-stone flood, round 2**</span> — hauling makes the
    0.25 drop rate a labour sink, not just clutter. Watch whether haul labour swamps mining;
    the dial is `block_resources.json`.
@@ -315,6 +342,10 @@ this doc's build log.
 
 | Date | Steps | State |
 |---|---|---|
+| 2026-07-06 | **The pouch (Alen: "they still grab one item at a time" — SH batching adopted).** `reserve_haul` now reserves a BUNDLE: main item + up to `pouch_capacity − 1` (3) light extras within `pouch_bundle_radius` (8) of the main, each pairwise with a reserved deposit cell (partial bundles when the zone runs short; **pouch carries anything incl. heavy — Alen's call, since ~all mining drops are heavy; any heavy aboard = ×0.7 trip speed**). Items returned in greedy nearest-neighbour visit order; the executor chains HAUL_TO_ITEM per item (skips broken/unreachable ones — only an entirely empty-handed round counts as a failure), carries the pouch as a visible chest-height stack (`CARRY_STACK_STEP`), and multi-deposits onto per-item cells. `cancel_haul`/`skip_item` free partial reservations; interrupts drop the WHOLE pouch at the feet (Hard Rule 12). New: `ItemDropManager.loose_near` (radius search), config keys `pouch_capacity` 4 / `pouch_bundle_radius` 8. Component bundle block isolation-parsed. | **VERIFIED in-engine by Alen, 2026-07-06 ("works") — pouch BANKED.** Interrupt-spam robustness on a full pouch still worth a pass in a future session. |
+| 2026-07-06 | **One-item-per-tile revision (Alen playtest: "rocks are stacking without me being able to see that").** Hidden per-cell stacking confirmed (rough stone ×10, iron ×15 behind one visible lump) and compared against SH source: their ground stockpiles reserve space per item and never stack; their `stonehearth:stacks` is an internal uses-left counter (clay mound = 60 digs), tooltips only; containers hide contents behind UI; shelves render contents on `ATTITEM*` bones. Decision (Alen): **SH parity — one item per tile.** `_find_deposit_cell` takes empty cells only, `commit_haul` always keeps the node (WYSIWYG), `_has_any_room` = any empty unreserved cell; `stack_max` reserved for containers. §2.4 + §6.3 + comparison table updated. | Implemented — verify: haul 20 drops into a ≥20-cell zone → 20 visible items on 20 tiles, nearest-cell-first; a full zone stops hauling cleanly. |
+| 2026-07-06 | **Defect fix (Alen, in-engine: drew a zone, placed the flag, crash).** Two stacked bugs: (1) `_on_left_release` built the 1×1 short-click list with a ternary — `[x] if c else []` yields a plain `Array` and crashes assigning to `Array[Vector3i]` at RUNTIME (gdparse-invisible; house rule extended: never build typed arrays via ternary); (2) the tool-exclusion wart made it reachable — the flag button never announced itself, so the still-active zone tool consumed the flag-placement click as a short-click confirm. Fixed properly: DockUI's flag branch now emits `tool_requested("flag")`, and ALL THREE click-tools (mining, storage zone, flag) deactivate on any other tool's id — the doc 16 known wart is closed, not worked around. | Implemented — re-run the crash repro: draw a zone, then place the flag; the zone tool should visibly deactivate the moment the flag tool opens, and the flag should place clean. |
+| 2026-07-06 | Phases 2 + 3 (hauling live): **ItemDropManager** grew the loose-item index (§2.1 API: `nearest_loose`/`count_loose`/`reserve`/`take`/`place_stored`/`drop_loose`/`release_stored_cells`, `drop_spawned` signal, `get_item_def` accessor — registry pattern holds); **StockpileZoneComponent** is now a work source (`update_leases` posts ≤ max_haulers HAUL leases; `reserve_haul`/`take_item`/`commit_haul`/`cancel_haul`; `nearest_stand_target` for the scheduler probe hook, which was **generalised from MINE-only to any source** in TaskManager); new **StockpileManager** autoload (zone registry, lease wake plumbing throttled at 0.25 s, aggregates + `stockpile_changed`, hauling config via new `TaskManager.get_config_section` — task_config.json gains a `hauling` block); **DwarfAgent** HAUL executor (§2.3 loop: pull → walk → pick up (carried node at chest, heavy ×0.7 walk speed) → walk → deposit; 3 failures release with backoff; carried item drops at the feet on ANY interrupt — Hard Rule 12 wired into sleep/DEV-interrupt/abort teardown). Work-source id collision avoided by `SOURCE_ID_BASE = 1_000_000` (tech debt: TaskManager-owned allocator when a third source system appears). Review catch: released leases stay PENDING and keep counting against max_haulers — only completed/cancelled/failed erase the lease id. All parse-verified. | **Implemented — NOT yet verified in-engine.** Verify per Phase 3 acceptance: mine a pit (or DEV: Spawn Drops), paint a zone → dwarves clear the drops into tidy per-cell stacks (same-stack-first); DEV interrupt mid-carry → item drops at feet, another dwarf finishes; tire a hauler → same; zone full → hauling stops without churn; remove a stocked zone → items return loose (stacked counts respawn); overlay `storage:` row: stored climbs, loose drains, reserved breathes. REMINDER: new autoload `StockpileManager` → **Project → Reload Current Project** after opening, per the doc 16 lesson. |
 | 2026-07-06 | Playtest note 2 fix: live drag-size readout — a billboard `Label3D` above the marquee centre showing `W × D — N cells` (or `N of M valid` when cells drop out). gdparse-clean. | Implemented — verify with the Phase 1 re-run. |
 | 2026-07-06 | Phases 0 + 1: `StockpileZoneComponent` (data model + the §2.5 storage-contract surface: accepts / reserve_deposit_cell / deposit, same-stack-first policy per §6 decision 1 lean); `StockpileDesignationController` scene node (flat marquee with anchor-plane height lock, per-cell NavGrid validity with invalid cells dropping out, 1×1 short-click zones, per-zone fill+perimeter overlay in blue-cyan, slice culling, compact zone window with Remove, ESC-only cancel per doc 21); dock Storage Zone panel wired (Draw Zone activates the tool; DEV: Spawn Drops scatters the 20-item mix at the view centre — all keys have real GLBs); overlay `storage:` row (zones/cells/stored/loose/reserved); `ItemDropManager.get_stats` extended with loose/reserved; scene wiring in `debug_world.tscn`. All new/edited scripts gdparse-clean. Known warts, accepted: mining tool ignores `tool_requested("storage_zone")` (the existing tool-exclusion DEV wart — my controller does deactivate when another tool activates); dock button active-state refreshes on next dock interaction rather than instantly on ESC. | **Implemented — NOT yet verified in-engine.** Verify per Phase 1 acceptance: paint/remove zones on terraces and flats (marquee stays flat on the anchor plane across slopes); invalid cells (water/occupied/steep) drop out of the preview; short click = 1×1; click a zone → window with live cell/stored counts + Remove; overlay obeys the slice; DEV: Spawn Drops litters ~20 mixed drops at the view centre and the overlay `storage:` row counts them as loose. REMINDER: no new autoloads this pass — no editor reload needed. |
 

@@ -37,6 +37,7 @@ signal task_unreachable(task: Task)
 const CONFIG_PATH := "res://data/tasks/task_config.json"
 
 # ── Config (fallbacks mirror task_config.json) ───────────────────────────────
+var _config_raw: Dictionary = {}          # full parsed task_config.json (see get_config_section)
 var _budget_usec: int = 1000
 var _max_probes_per_wake: int = 8
 var _probe_node_cap: int = 200
@@ -340,12 +341,14 @@ func _try_assign(agent: DwarfAgent, bonus: Dictionary, probes_left: int, t_start
 				continue
 			probes_left -= 1
 			_probes_total += 1
-			# Dwarf-relative probe target for zone leases (Alen, 2026-06-26): the
-			# lease's static target_pos is one top-of-zone cell that can be
-			# unreachable even when this dwarf could mine lower faces via reach-up.
-			# Probe the workable stand cell nearest THIS dwarf instead.
+			# Dwarf-relative probe target for source leases (Alen, 2026-06-26): the
+			# lease's static target_pos is one representative cell that can be
+			# unreachable even when this dwarf could work elsewhere in the source.
+			# Probe the workable stand cell nearest THIS dwarf instead. Generalised
+			# from MINE-only to any work source (doc 18 Phase 3 — stockpile HAUL
+			# leases use the same hook); has_method guards sources without it.
 			var probe_target := task.target_pos
-			if task.type == Task.Type.MINE and task.source_id != -1:
+			if task.source_id != -1:
 				var src: Object = _work_sources.get(task.source_id)
 				if src != null and src.has_method("nearest_stand_target"):
 					var t: Vector3i = src.nearest_stand_target(dwarf_cell)
@@ -448,6 +451,13 @@ func _log_completed(task: Task) -> void:
 		_completed_log.pop_front()
 
 
+## Registry-pattern accessor: TaskManager is the ONE owner of task_config.json;
+## other task-adjacent systems (StockpileManager's hauling block, doc 18) read
+## their sections through here rather than opening the file.
+func get_config_section(section: String) -> Dictionary:
+	return _config_raw.get(section, {})
+
+
 # ── Early re-arm: terrain changed near a blocked target (doc 16 §2.4) ────────
 
 func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
@@ -484,6 +494,7 @@ func _load_config() -> void:
 		return
 	file.close()
 	var d: Dictionary = json.data
+	_config_raw = d
 	var s: Dictionary = d.get("scheduler", {})
 	_budget_usec = int(s.get("scheduler_budget_usec", _budget_usec))
 	_max_probes_per_wake = int(s.get("max_probes_per_wake", _max_probes_per_wake))

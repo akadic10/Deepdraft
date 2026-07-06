@@ -50,5 +50,13 @@
   "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers — the zone posts this many MINE leases.",
   "zone_source": {
     "max_workers": 4
+  },
+
+  "__comment_hauling": "Stockpile hauling (doc 18 Phase 3 + pouch). max_haulers_per_zone: HAUL leases a zone may post — raised 2 -> 4 (2026-07-06, Alen playtest: 3 of 5 dwarves idled beside a busy zone; Stonehearth caps errands per COLONY scaled to workforce, not per storage — the worker-scaled model is the doc 18 follow-on). carry_speed_mult_heavy: walk-speed multiplier while ANY weight_class 'heavy' item is in the pouch (the pouch carries anything, stone included — SH parity, Alen 2026-07-06). pouch_capacity: max items per haul trip (Stonehearth backpack = 4: main item + up to 3 extras). pouch_bundle_radius: extras must lie within this many blocks of the MAIN item (SH nearby-item search equivalent).",
+  "hauling": {
+    "max_haulers_per_zone": 4,
+    "carry_speed_mult_heavy": 0.7,
+    "pouch_capacity": 4,
+    "pouch_bundle_radius": 8
   }
 }
