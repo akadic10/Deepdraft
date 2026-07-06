@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/entities/DwarfDirector.gd" id="8_dwarves"]
 [ext_resource type="Script" path="res://scripts/systems/FlagPlacementController.gd" id="9_flag"]
 [ext_resource type="Script" path="res://scripts/systems/ItemDropManager.gd" id="10_drops"]
+[ext_resource type="Script" path="res://scripts/systems/StockpileDesignationController.gd" id="11_stockpile"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -90,4 +91,10 @@ dwarf_director_path = NodePath("../DwarfDirector")
 
 [node name="ItemDropManager" type="Node3D" parent="."]
 script = ExtResource("10_drops")
+slice_controller_path = NodePath("../SliceController")
+
+[node name="StockpileDesignationController" type="Node3D" parent="."]
+script = ExtResource("11_stockpile")
+camera_path = NodePath("../CameraRig")
+dock_ui_path = NodePath("../DockUI")
 slice_controller_path = NodePath("../SliceController")

@@ -6,7 +6,9 @@
 > <span style="color:#d29922;">Yellow = decision needed or tune-in-engine</span> |
 > <span style="color:#f85149;">Red = explicitly out of scope for this milestone</span>
 
-Status: plan, drafted 2026-06-10. Nothing implemented.
+Status: **CLOSED 2026-07-06.** All phases (0–7) shipped; final acceptance runs banked by Alen
+2026-07-06 (plateau dig, interrupt-spam, resume-after-waking — see §6). Successor milestone:
+`18_stockpiles_hauling.md`.
 
 **Why this milestone:** everything shipped so far is a sandbox with no actors. Real mining
 execution is the named blocker across the docs — X-Ray's interior tracker
@@ -481,6 +483,8 @@ always be cheap and legal").
 
 | 2026-07-02 | 7 (**sleep-lite + DEV interrupt** — the §2.8 interruption producers, the milestone's last unbuilt step): `DwarfAgent` gains a single `sleep` stat (doc-41 rates: drain 0.003/s, threshold 0.25, 6 h rest) draining in every waking state; below threshold the dwarf tears down local task state (abort_task ordering — phase to NONE before `stop_walking` so the synchronous `walk_finished(false)` cannot re-enter the executors), releases via `release_dwarf_task(NEED_INTERRUPT, requeue_dwarf=false)`, sleeps IN PLACE (slow-breathing bob, drooped head; duration in IN-GAME hours via new `WorldClock.game_hours_per_real_second()` — honours speed, freezes on pause), then wakes to `notify_dwarf_idle`. New `TaskManager.notify_dwarf_unavailable()` removes an idle-but-taskless sleeper from the idle pool (§2.8: idle only after the behaviour resolves); `receive_task` race-guards a same-frame assignment by bouncing it back. Initial tiredness staggered deterministically per birth index (no `randf`) so squads don't collapse in unison. DEV hooks in the Dwarves window: **interrupt worker** (force-release, reason PLAYER, instant re-idle) and **tire a worker** (drops the stat to threshold — organic path without the ~4-min drain). Overlay dwarf row now shows `sleeping N`. | **Implemented 2026-07-02; verified in-engine by Alen same day** — a zone worker dozing off releases its lease and the idle 5th dwarf picks it up (the §2.8 handoff working end-to-end). Remaining to bank formally: interrupt-spam robustness, resume-after-waking, and the Phase 4 acceptance run (8×8×4 plateau checklist). |
 
+| 2026-07-06 | Closeout: §5 doc-update debt paid (docs 31/41/43/13 implemented-state notes, AGENT.md Hard Rule 12); final acceptance runs banked in-engine by Alen (Phase 4 plateau checklist, interrupt-spam, resume-after-waking — details in §6 checklist below). | **MILESTONE CLOSED.** Successor: doc 18 (stockpiles + hauling), drafted same day. |
+
 ### Next session — logged 2026-06-10 (Alen's playtest notes) — ✅ all three shipped 2026-06-26 (row above)
 
 1. **Reach-aware block selection (mining efficiency).** Dwarves mine a block, then walk to a
@@ -500,30 +504,26 @@ always be cheap and legal").
    (`tools/generate_soil_glbs.py` following the ore-generator pattern), colour-coded per
    soil type, paths matching the `model` fields in `resources.json`.
 
-### To bank — final acceptance runs (logged 2026-07-06; last open items of this milestone)
+### Final acceptance runs — ✅ BANKED (Alen, in-engine, 2026-07-06)
 
-All build steps (0–7) are implemented. The doc-update debt from §5 was **paid 2026-07-06**
-(docs 31, 41, 43, 13, AGENT.md — including new Hard Rule 12, the release protocol). What
-remains is in-engine verification only:
+All build steps (0–7) implemented. Doc-update debt from §5 **paid 2026-07-06** (docs 31, 41,
+43, 13, AGENT.md — including new Hard Rule 12, the release protocol). Verification:
 
 1. **Phase 4 acceptance run (the 8×8×4 plateau checklist):**
-   - [ ] Designate an 8×8×4 zone on a plateau
-   - [ ] ≤ 4 dwarves walk over and dig it out block by block over real time
-   - [ ] Cut floors/walls reveal exact block colours (unified exposure principle)
-   - [ ] Zone window counts down (Workers/Faces live-refresh); zone auto-destroys on empty
-   - [ ] Drops litter the pit (rough stone at 0.25, ore GLBs, soil GLBs — no fallback cubes)
-   - [ ] Overlay "interior cells" counter matches the dug volume (8×8×4 = 256)
+   - [x] Designate an 8×8×4 zone on a plateau
+   - [x] ≤ 4 dwarves walk over and dig it out block by block over real time
+   - [x] Cut floors/walls reveal exact block colours (unified exposure principle)
+   - [x] Zone window counts down (Workers/Faces live-refresh); zone auto-destroys on empty
+   - [x] Drops litter the pit (rough stone at 0.25, ore GLBs, soil GLBs — no fallback cubes)
+   - [x] Overlay "interior cells" counter matches the dug volume (8×8×4 = 256)
 2. **Phase 5 robustness (sleep-lite handoff itself verified 2026-07-02):**
-   - [ ] Interrupt-spam: mash the DEV interrupt button on a working dwarf — no errors, no
-         leaked tasks, no double-reserved block
-   - [ ] Resume-after-waking: a slept dwarf re-enters the idle pool and picks work back up
-         within one heartbeat
-   - [ ] Tire-a-worker → in-place sleep → the idle 5th dwarf takes the lease (re-confirm)
-3. **Housekeeping:** delete the stale `.git/index.lock` (present again as of 2026-07-06),
-   then commit the pending `.glb.import` editor churn.
+   - [x] Interrupt-spam: no errors, no leaked tasks, no double-reserved block
+   - [x] Resume-after-waking: slept dwarf re-enters the idle pool and picks work back up
+   - [x] Tire-a-worker → in-place sleep → the idle 5th dwarf takes the lease
+3. **Housekeeping:** stale `.git/index.lock` deleted; docs closeout + doc 18 committed
+   (`c5528d6`, 2026-07-06).
 
-When all boxes tick, mark this milestone **CLOSED** in this log and update doc 31/43 notes
-from "formal acceptance pending" to banked.
+**Milestone CLOSED 2026-07-06.**
 
 ---
 

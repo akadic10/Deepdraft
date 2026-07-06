@@ -76,7 +76,13 @@ func spawn_drop(item_key: String, count: int, block: Vector3i) -> void:
 
 
 func get_stats() -> Dictionary:
-	return { "drops": _drop_count }
+	# "loose" = drop nodes currently in the world (all drops are loose until
+	# the Phase 2 reservation API lands — doc 18); "drops" = lifetime spawned.
+	var live: int = 0
+	for child in get_children():
+		if child is Node3D and child.has_meta("base_y"):
+			live += 1
+	return { "drops": _drop_count, "loose": live, "reserved": 0 }
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────

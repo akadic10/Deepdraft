@@ -119,6 +119,79 @@ contact with play.</span>
 
 ---
 
+## 2.5 Stonehearth reference findings (verified from `P:\stonehearth` source, 2026-07-06)
+
+Read directly from `components/storage/storage_component.lua`,
+`services/server/inventory/restock_director.lua`, `ai/task_groups/restock_task_group.lua`,
+`entities/containers/*`, and `data/constants.json`. What Stonehearth actually does:
+
+### One storage component, many faces
+
+The ground stockpile is **not a separate system** — `entities/construction/stockpile` is just
+`"stonehearth:storage": { "type": "stockpile" }`. Every storage form shares one
+`storage_component` with a `type` field:
+
+| Type | Behaviour |
+|---|---|
+| `stockpile` | Ground zone, 1 item per tile |
+| `crate` / `urn` | Placeable container, no special behaviour — pure capacity density |
+| `input_crate` | **Kept filled by workers** pulling from other storage; single-filter; own restock director at HIGHER priority than general hauling (0.5–1 vs 0–0.8) |
+| `output_crate` | Crafters deposit products; haulers never restock it |
+| `backpack` | Private per-character storage — every hearthling carries capacity **4** |
+| `crafter_backpack` | Infinite ingredient-gathering pouch for crafters |
+| `escrow` | Temporary holding during shop transactions |
+
+### The container ladder (capacity / gold value)
+
+Small crate **8**/2g → large crate **32**/4g → large urn **32**/13g → chests → vault
+**256**/150g. Containers are the *upgrade path* from ground zones: same filter UI, same
+hauling, ~4–32× the density per tile. Flavour variants (wood/clay/stone/iron/woven) are
+pure reskins of the same component.
+
+### Shelves exist — and display their contents
+
+`input_shelf_wall_*` (wall-mounted!), `input_shelf_ground_*`, input bins/corners/tables, and
+`output_box_*` all carry `"render_contents": true` — stored items are **visibly placed on the
+shelf**. A shelf is not new machinery; it is a storage container whose contents render.
+Market shelves (`market_shelf_tall_*`) extend the same idea toward trade display.
+
+### Hauling efficiency: errands + backpacks
+
+The per-player **restock director** keeps a priority queue of loose restockable items and
+builds **errands**: one main item + up to `MAX_EXTRA_ITEMS = 3` nearby items bound for the
+same storage — a worker's 4-slot backpack carries the batch in one trip
+(`fill_backpack_from_items` → `fill_storage_from_backpack`). Errands are leased to a worker
+(1 s consider lease, permanent on execute); unreachable items go to a failed list requeued
+after 10 min in batches of 50 (their equivalent of our backoff). Undeploying a container
+dumps its contents after a `DROP_ALL_TIMEOUT` (2 h).
+
+### <span style="color:#3fb950;">What doc 18 adopts now</span>
+
+- **Design the zone as one face of a storage interface, not a one-off.** v1 ships the ground
+  zone only, but `StockpileZoneComponent`'s accept/reserve/deposit surface becomes the shared
+  contract (`accepts` / `reserve_deposit_cell` / `deposit` / `stockpile_changed`) that
+  container entities implement in the follow-on — matching how doc 61's Barrel and
+  Chest/Crate furniture become *functional* later.
+- **Trip batching, Deepdraft-sized:** no backpacks in v1, but the §2.3 pull step prefers the
+  next loose item near the dwarf's deposit cell (reach-aware selection, the mining lesson) so
+  trips chain short. The errand/pouch model is the recorded v2 upgrade if haul trips dominate.
+- **Failed-item requeue = our backoff** — already how TaskManager works; no new machinery.
+
+### <span style="color:#d29922;">Recorded for follow-on milestones (not v1)</span>
+
+- **Container entities** (barrel = small crate 8, chest = large crate ~24–32, shelf below) —
+  placeable storage sharing the zone's interface; needs the furniture-placement tool first.
+- **Storage Shelf** (Alen's ask, 2026-07-06): a 1×1, 2-block-tall wall-adjacent furniture
+  piece, capacity ~8–12, **contents rendered on the shelf** (micro-voxel drop GLBs already
+  exist — placing them on shelf anchor points is the same trick as ground stacks). Dwarven
+  aesthetic per doc 61 §5.4: hewn stone uprights, plank shelves, iron brackets.
+- **Input/output containers** land with workshops (doc 44): brewery input bin (single-filter,
+  restocked at higher priority) and output box slot directly into the doc 23 workshop-lookup
+  API — this is the Stonehearth-verified answer to how workshops stay fed.
+- **Escrow** pattern noted for the doc 51 trade session.
+
+---
+
 ## 3. Milestone phases
 
 ### Phase 0 — Instrument first (doc-07 lesson, again)
@@ -214,14 +287,36 @@ this doc's build log.
 4. <span style="color:#d29922;">**Rough-stone flood, round 2**</span> — hauling makes the
    0.25 drop rate a labour sink, not just clutter. Watch whether haul labour swamps mining;
    the dial is `block_resources.json`.
+5. <span style="color:#d29922;">**Storage interface shape**</span> — §2.5 adoption: how much
+   of the container-facing interface to formalise in v1 (a thin `StorageTarget` contract the
+   zone implements vs just keeping the zone's methods clean for later extraction). Lean:
+   clean methods now, extract the contract when the first container ships.
+6. <span style="color:#d29922;">**Container milestone scope**</span> — barrel/chest/shelf as
+   the immediate doc 19 (needs the furniture placement tool), or defer containers until
+   workshops force the input/output bin question. Alen's shelf interest suggests sooner.
 
 ---
 
 ## 7. Build log
 
+### Playtest notes — logged 2026-07-06 (Alen, first Phase 1 session)
+
+1. **"Free workers are not carrying things to the zone"** — expected at this point, not a
+   defect: hauling is Phases 2–3 (loose-item index + HAUL leases), not yet built. Zones are
+   inert paint until then. Recorded so the expectation is explicit.
+2. **Show the marquee size while drawing** — the player should never count voxels. Add a
+   live `W × D — N cells` readout on the drag (the mining tool's ruler lesson, doc 43).
+   → **Shipped same day** (build-log row below).
+3. **Zone filtering UI** — clicking a zone must eventually open a real filter panel (what is
+   and isn't stored there). The data model already carries `filter_tags` and the zone window
+   is the entry point; the panel itself stays a follow-on (out-of-scope list, §3) — likely
+   alongside the doc 23 category UI. Stonehearth reference: hierarchical filter groups with
+   per-category toggles + an optional single-filter mode for input bins (§2.5).
+
 | Date | Steps | State |
 |---|---|---|
-| — | — | Not started. |
+| 2026-07-06 | Playtest note 2 fix: live drag-size readout — a billboard `Label3D` above the marquee centre showing `W × D — N cells` (or `N of M valid` when cells drop out). gdparse-clean. | Implemented — verify with the Phase 1 re-run. |
+| 2026-07-06 | Phases 0 + 1: `StockpileZoneComponent` (data model + the §2.5 storage-contract surface: accepts / reserve_deposit_cell / deposit, same-stack-first policy per §6 decision 1 lean); `StockpileDesignationController` scene node (flat marquee with anchor-plane height lock, per-cell NavGrid validity with invalid cells dropping out, 1×1 short-click zones, per-zone fill+perimeter overlay in blue-cyan, slice culling, compact zone window with Remove, ESC-only cancel per doc 21); dock Storage Zone panel wired (Draw Zone activates the tool; DEV: Spawn Drops scatters the 20-item mix at the view centre — all keys have real GLBs); overlay `storage:` row (zones/cells/stored/loose/reserved); `ItemDropManager.get_stats` extended with loose/reserved; scene wiring in `debug_world.tscn`. All new/edited scripts gdparse-clean. Known warts, accepted: mining tool ignores `tool_requested("storage_zone")` (the existing tool-exclusion DEV wart — my controller does deactivate when another tool activates); dock button active-state refreshes on next dock interaction rather than instantly on ESC. | **Implemented — NOT yet verified in-engine.** Verify per Phase 1 acceptance: paint/remove zones on terraces and flats (marquee stays flat on the anchor plane across slopes); invalid cells (water/occupied/steep) drop out of the preview; short click = 1×1; click a zone → window with live cell/stored counts + Remove; overlay obeys the slice; DEV: Spawn Drops litters ~20 mixed drops at the view centre and the overlay `storage:` row counts them as loose. REMINDER: no new autoloads this pass — no editor reload needed. |
 
 ---
 

@@ -28,6 +28,7 @@ var _block_inspector_overlay: CanvasLayer
 var _slice_controller: Node = null
 var _dwarf_director: Node = null
 var _flag_controller: Node = null
+var _stockpile_controller: Node = null
 var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
 
@@ -254,6 +255,18 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 		_active_panel_target = ""
 		tool_requested.emit("mine_precision")
 		_refresh_active_buttons()
+		return
+	if target == "storage_zone" and label == "Draw Zone":
+		_panel_container.visible = false
+		_active_panel_target = ""
+		tool_requested.emit("storage_zone")
+		_refresh_active_buttons()
+		return
+	if target == "storage_zone" and label == "DEV: Spawn Drops":
+		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_drops"):
+			_stockpile_controller.call("dev_spawn_drops")
+		else:
+			push_warning("DockUI: no StockpileDesignationController registered.")
 		return
 	if label == "Cancel":
 		_panel_container.visible = false
@@ -518,6 +531,8 @@ func _target_canvas_visible(target: String) -> bool:
 			return _block_inspector_overlay != null and _block_inspector_overlay.visible
 		"slice":
 			return _slice_controller != null and bool(_slice_controller.call("is_active"))
+		"storage_zone":
+			return _stockpile_controller != null and bool(_stockpile_controller.call("is_active"))
 	return false
 
 
@@ -551,6 +566,12 @@ func register_dwarf_director(director: Node) -> void:
 ## toggles the settlement-flag placement tool.
 func register_flag_controller(controller: Node) -> void:
 	_flag_controller = controller
+
+
+## Push-registration from StockpileDesignationController (doc 18 Phase 1) —
+## the Storage Zone panel's actions route here.
+func register_stockpile_controller(controller: Node) -> void:
+	_stockpile_controller = controller
 
 
 func _on_slice_active_changed(_active: bool) -> void:
@@ -612,7 +633,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"build":
 			return ["Workshop", "Furniture", "Stockpile", "Door"]
 		"storage_zone":
-			return ["Draw Zone", "All Goods", "Clear Zone", "Cancel"]
+			return ["Draw Zone", "DEV: Spawn Drops", "Cancel"]
 		"farm":
 			return ["Cave Plot", "Surface Plot", "Plant Crop", "Harvest"]
 		"military":

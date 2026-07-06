@@ -298,8 +298,34 @@ func _agents_tasks_text() -> String:
 			s.get("probes_per_sec", 0.0),
 			s.get("worst_wake_usec", 0),
 			s.get("wake_count", 0),
-		] + mining_text,
+		] + mining_text + _storage_text(),
 	])
+
+
+## Storage instrumentation (doc 18 Phase 0). Zones/stored from the stockpile
+## controller, loose/reserved from ItemDropManager; "hauls" counts active HAUL
+## tasks once Phase 3 lands (0 until then). Null-safe before the tool ships.
+func _storage_text() -> String:
+	var stockpiles := get_tree().get_first_node_in_group("stockpile_controller")
+	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	if stockpiles == null and drops == null:
+		return ""
+	var zones: int = 0
+	var cells: int = 0
+	var stored: int = 0
+	if stockpiles != null and stockpiles.has_method("get_stats"):
+		var z: Dictionary = stockpiles.call("get_stats")
+		zones = int(z.get("zones", 0))
+		cells = int(z.get("cells", 0))
+		stored = int(z.get("stored", 0))
+	var loose: int = 0
+	var reserved: int = 0
+	if drops != null and drops.has_method("get_stats"):
+		var d: Dictionary = drops.call("get_stats")
+		loose = int(d.get("loose", 0))
+		reserved = int(d.get("reserved", 0))
+	return "\nstorage: zones %d (cells %d)  stored %d  loose %d  reserved %d" % [
+		zones, cells, stored, loose, reserved]
 
 
 func _on_title_bar_gui_input(event: InputEvent) -> void:

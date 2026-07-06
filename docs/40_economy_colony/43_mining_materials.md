@@ -206,8 +206,8 @@ Both tools produce the same kind of mining zone entity in the world. Key propert
 
 When a dwarf mines the last block in a zone, the zone entity is automatically destroyed.
 
-> **Block-state split — LANDED 2026-06-10 (doc 16 step 5; working in-engine per the 2026-06-10
-> session close — formal Phase 4 acceptance run still to bank):**
+> **Block-state split — LANDED 2026-06-10 (doc 16 step 5; Phase 4 acceptance run banked
+> 2026-07-06 — milestone closed):**
 > the mined/designation set split shipped with slice Phase SO-2b; the remaining split —
 > **completed**, **destination**, and **reserved** blocks — now lives in
 > `scripts/components/MiningZoneComponent.gd` (the zone's work source). Destination is derived
