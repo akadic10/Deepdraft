@@ -55,6 +55,8 @@ var _active_key: String = ""          # def being placed while the tool is on
 var _yaw: int = 0
 var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
 var _hover_valid: bool = false
+var _invalid_reason: String = ""     # "" | "cell" | "wall" (hint label text)
+var _hint_label: Label3D = null
 
 var _preview: Node3D = null           # cursor ghost (one per activation)
 var _preview_material: StandardMaterial3D = null
@@ -234,12 +236,15 @@ func _update_hover(force: bool = false) -> void:
 
 
 func _placement_valid(origin: Vector3i) -> bool:
+	_invalid_reason = ""
 	var def: Dictionary = _defs.get(_active_key, {})
 	for cell: Vector3i in _footprint_cells(def, origin, _yaw):
 		if not _is_valid_cell(cell):
+			_invalid_reason = "cell"
 			return false
-	if String(def.get("placement", "floor")) == "floor_wall":
-		return _has_wall_behind(def, origin)
+	if String(def.get("placement", "floor")) == "floor_wall" and not _has_wall_behind(def, origin):
+		_invalid_reason = "wall"
+		return false
 	return true
 
 
@@ -321,6 +326,8 @@ func _free_preview() -> void:
 	if _preview != null:
 		_preview.queue_free()
 		_preview = null
+	if _hint_label != null:
+		_hint_label.visible = false
 	_hover_cell = Vector3i(-1, -1, -1)
 	_hover_valid = false
 
@@ -333,6 +340,30 @@ func _position_preview(origin: Vector3i) -> void:
 	_preview.rotation = Vector3(0.0, float(_yaw) * PI * 0.5, 0.0)
 	var tint := TINT_VALID if _hover_valid else TINT_INVALID
 	_preview_material.albedo_color = Color(tint.r, tint.g, tint.b, GHOST_ALPHA)
+	_update_hint(origin)
+
+
+## Why-invalid hint (the mining-ruler lesson: never make the player guess).
+## Shown only for the wall requirement — plain cell blockage is self-evident.
+func _update_hint(origin: Vector3i) -> void:
+	if _hint_label == null:
+		_hint_label = Label3D.new()
+		_hint_label.name = "PlacementHint"
+		_hint_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_hint_label.fixed_size = true
+		_hint_label.pixel_size = 0.0008
+		_hint_label.font_size = 84
+		_hint_label.outline_size = 22
+		_hint_label.modulate = Color(1.0, 0.75, 0.6)
+		_hint_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+		_hint_label.no_depth_test = true
+		add_child(_hint_label)
+	if _invalid_reason == "wall":
+		_hint_label.text = "Needs a solid wall behind — R rotates"
+		_hint_label.position = Vector3(float(origin.x) + 0.5, float(origin.y) + 3.4, float(origin.z) + 0.5)
+		_hint_label.visible = true
+	else:
+		_hint_label.visible = false
 
 
 ## Node position for a footprint: the footprint centre on the floor top

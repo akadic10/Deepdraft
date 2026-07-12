@@ -387,6 +387,11 @@ this doc's build log.
    expected at this point, not a defect: ghosts are inert designations until Phase 3
    (fetch-and-build leases). The doc 18 precedent, recorded so the expectation is explicit.
    Interim: the ghost window's DEV: Instant Build materialises the piece without a dwarf.
+2. **"Why can't I place the shelf" (Alen, 2026-07-11)** — by design (floor_wall needs a
+   solid block behind the back panel; open ground can never be valid) but a UX failure:
+   a permanently-red ghost with no explanation breaks the mining-ruler lesson. → **Shipped
+   same day:** a billboard hint above the ghost when the wall requirement is the blocker
+   ("Needs a solid wall behind — R rotates").
 
 | Date | Steps | State |
 |---|---|---|
