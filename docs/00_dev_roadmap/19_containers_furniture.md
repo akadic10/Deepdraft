@@ -348,16 +348,33 @@ this doc's build log.
 2. <span style="color:#3fb950;">~~Rotation input~~ — **DECIDED (Alen, 2026-07-11): R key.**
    The wheel stays contractually camera/brush (doc 21); R goes in the tool's hint window.</span>
 3. <span style="color:#d29922;">**Allocator migration scope**</span> — new families only
-   (lean) vs migrating mining/zone keyspaces.
-4. <span style="color:#d29922;">**New Task.Type entries**</span> — FETCH_BUILD + UNINSTALL
-   as first-class types (lean — visible in the task log, doc 23) vs overloading BUILD.
-5. <span style="color:#d29922;">**Shelf anchor scale**</span> — ~0.45, tune by eye.
-6. <span style="color:#d29922;">**`stack_max` on containers**</span> — v1 flat item count
-   (SH parity); per-type density stays reserved, unwired.
-7. <span style="color:#d29922;">**Ghost visual**</span> — translucent tinted GLB (lean) vs
-   wireframe; SH uses a translucent ghost form.
-8. <span style="color:#d29922;">**Hauler target preference**</span> — v1 nearest-first per
-   source, no cross-source ranking; watch whether barrels starve zones in play.
+   (lean) vs migrating mining/zone keyspaces. *SH reference (2026-07-11): SH keys everything
+   by globally-unique engine entity ids — ONE id space, no per-system keyspaces. Supports
+   the single allocator as the direction; the migration question is our local wart with no
+   SH analogue. Lean stands.*
+4. <span style="color:#3fb950;">~~New Task.Type entries~~ — **SH-VERIFIED (2026-07-11):
+   first-class.** SH has a dedicated `placement_task_group` (band 0.40–0.93, work_order_tag
+   "haul", permanent place_item tasks) distinct from restock; undeploy's pickup rides the
+   restock flow. Adopt FETCH_BUILD + UNINSTALL as first-class types — and note SH's
+   placement band TOPS restock's (0.93 vs 0.8): installing furniture outranks putting
+   things away, so FETCH_BUILD default priority goes above HAUL (45 vs 40).</span>
+5. <span style="color:#3fb950;">~~Shelf anchor scale~~ — **SH-VERIFIED (2026-07-11): 0.5.**
+   SH's input bins/shelves render stored items on ATTITEM bones at `sca [0.5,0.5,0.5]`
+   with varied per-anchor rotations (scattered, hand-placed look). Adopt 0.5 + per-anchor
+   yaw variation.</span>
+6. <span style="color:#3fb950;">~~`stack_max` on containers~~ — **SH-VERIFIED (2026-07-11):
+   flat item count.** `storage_component` capacity is a plain number everywhere (crate
+   8/32, vault 256); per-type stacking does not exist in SH storage. v1 flat; the per-type
+   density idea keeps its reserved note but has no SH precedent.</span>
+7. <span style="color:#3fb950;">~~Ghost visual~~ — **SH-VERIFIED (2026-07-11): the real
+   model, translucent.** `ghost_form_renderer` is 3 lines: material override
+   `ghost_item.json` → transparent-with-depth at **alpha 0.3**. Adopt: placed-form GLB
+   with a ~0.3-alpha transparent material (validity tint modulates colour).</span>
+8. <span style="color:#3fb950;">~~Hauler target preference~~ — **SH-VERIFIED (2026-07-11):
+   nearest wins, no type preference.** `RestockDirector:_rate_storage_for_item` =
+   `-distance²` — pure proximity; containers and ground stockpiles compete equally. The
+   only preferential storage is the input crate's separate higher-priority director
+   (doc 44's problem). v1 nearest-first is exact parity; nothing to watch.</span>
 
 ---
 
