@@ -261,3 +261,12 @@ The agent may now author scenes, but the decoupling discipline below is still th
 func _ready():
     var health_bar = get_node("UI/HealthBar")
 ```
+
+### Playtest Handoff Note
+
+Godot caches global script classes. After any work session that **adds a new `class_name`
+script or registers an autoload**, tell the human to run **Project → Reload Current
+Project** before playtesting — a stale cache half-loads the changes and produces ghost
+bugs (first hit: doc 16 autoloads; second: doc 19 Phase 3, where pending tasks were
+silently never assigned until the reload). Sessions that only edit existing scripts don't
+need it.
