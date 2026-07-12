@@ -102,7 +102,7 @@ lives in the tool layer, never the renderer.
 | Panel | Contents |
 |---|---|
 | Mine | Designate mining zones, clear rubble, channel floors |
-| Build | Place workshops, doors, furniture, stockpile zones |
+| Build | Place workshops, doors, furniture, stockpile zones — **LIVE for storage furniture (doc 19, 2026-07-11):** 📥 entries (Barrel / Storage Chest / Storage Shelf) activate the furniture ghost tool; a dwarf fetches the packed item and installs it. Installed pieces' windows carry the **📤 Uninstall** toggle (SH parity). Workshops/doors join as their systems land. |
 | Farm | Designate soil plots, assign crops |
 | Military | Set patrol routes, guard posts (future) |
 

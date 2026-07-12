@@ -19,6 +19,14 @@
 > reservations and the §2.8 release protocol (any interrupt drops the whole pouch at the
 > dwarf's feet as loose items). Stockpile source ids live at `1_000_000 + zone_id`
 > (`StockpileManager`); hauling tunables in `task_config.json` `hauling`. Workshops are next.
+>
+> **FETCH_BUILD + UNINSTALL live (doc 19, 2026-07-11):** the furniture pipeline's two
+> first-class types (SH parity — placement is a dedicated task group whose band TOPS
+> restock, hence FETCH_BUILD 45 > HAUL 40). A ghost posts ONE type-matched fetch lease; a
+> 📤-flagged piece posts ONE uninstall lease. Source ids for new families come from
+> `TaskManager.allocate_source_id()` (monotonic from 10M — the doc 18 allocator debt,
+> paid). The zone re-based onto the shared `StorageComponent` contract with containers as
+> the second face; five work-source families now ride one scheduler unchanged.
 
 ## Overview
 
