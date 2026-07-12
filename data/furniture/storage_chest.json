@@ -1,0 +1,38 @@
+{
+  "__comment": [
+    "Storage Chest - the density step up from the barrel (doc 19 container ladder:",
+    "barrel 8 -> chest 24 -> future vault-class). Schema notes: see barrel.json."
+  ],
+  "furniture_key": "base:furniture:storage_chest",
+  "furniture_category": "storage",
+  "display_name": "Storage Chest",
+  "description": "A heavy plank chest with iron-bound corners. Densest storage the colony can build today.",
+  "model": "res://assets/models/furniture/storage_crate.glb",
+  "item_key": "base:resources:furniture:storage_chest",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "room_anchor": false,
+  "storage": {
+    "capacity": 24,
+    "render_contents": false
+  }
+}

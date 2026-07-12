@@ -265,6 +265,10 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 	if target == "storage_zone" and label == "DEV: Spawn Drops":
 		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_drops"):
 			_stockpile_controller.call("dev_spawn_drops")
+		return
+	if target == "storage_zone" and label == "DEV: Spawn Furniture":
+		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_furniture"):
+			_stockpile_controller.call("dev_spawn_furniture")
 		else:
 			push_warning("DockUI: no StockpileDesignationController registered.")
 		return
@@ -636,7 +640,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"build":
 			return ["Workshop", "Furniture", "Stockpile", "Door"]
 		"storage_zone":
-			return ["Draw Zone", "DEV: Spawn Drops", "Cancel"]
+			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
 		"farm":
 			return ["Cave Plot", "Surface Plot", "Plant Crop", "Harvest"]
 		"military":

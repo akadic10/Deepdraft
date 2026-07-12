@@ -1,0 +1,43 @@
+{
+  "__comment": [
+    "Storage Barrel - the first functional storage container (doc 19).",
+    "Follows the trade_counter.json schema. NEW fields established by doc 19:",
+    "  item_key   - the resources.json ITEM form a dwarf fetches to install this piece",
+    "  placement  - 'floor' | 'floor_wall' (floor_wall = needs a solid block behind the back face)",
+    "  yaw_steps  - placement-ghost rotation steps (R key, 90 degrees each)",
+    "  storage    - marks this piece as a storage container (capacity in ITEMS, flat count -",
+    "               SH parity 2026-07-11; render_contents false = opaque density container)"
+  ],
+  "furniture_key": "base:furniture:barrel",
+  "furniture_category": "storage",
+  "display_name": "Barrel",
+  "description": "A stout oak barrel bound in iron. Holds a small stock of whatever the colony hauls into it.",
+  "model": "res://assets/models/furniture/barrel.glb",
+  "item_key": "base:resources:furniture:barrel",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "room_anchor": false,
+  "storage": {
+    "capacity": 8,
+    "render_contents": false
+  }
+}

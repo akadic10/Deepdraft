@@ -59,6 +59,14 @@ const DEV_DROP_MIX: Dictionary = {
 	"base:resources:soil:cave_soil": 1,
 }
 
+## DEV: one packed furniture item of each kind (doc 19 Phase 0 - the v1 item
+## source until crafting/trade produce furniture for real).
+const DEV_FURNITURE_MIX: Dictionary = {
+	"base:resources:furniture:barrel": 1,
+	"base:resources:furniture:storage_chest": 1,
+	"base:resources:furniture:storage_shelf": 1,
+}
+
 signal zone_created(zone_id: int)
 signal zone_removed(zone_id: int)
 
@@ -386,9 +394,19 @@ func get_stats() -> Dictionary:
 
 # ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────
 
+## DEV: drops one packed furniture item of each kind at the view centre
+## (doc 19 Phase 0). Wired to the dock's Storage Zone panel.
+func dev_spawn_furniture() -> void:
+	_dev_spawn_mix(DEV_FURNITURE_MIX)
+
+
 ## Spawns the DEV_DROP_MIX (20 mixed drops) around the ground point at the
 ## screen centre. Wired to the dock's Storage Zone panel.
 func dev_spawn_drops() -> void:
+	_dev_spawn_mix(DEV_DROP_MIX)
+
+
+func _dev_spawn_mix(mix: Dictionary) -> void:
 	var center := _screen_center_surface_cell()
 	if center.x < 0:
 		push_warning("StockpileDesignationController: no ground at view centre for DEV drops.")
@@ -397,8 +415,8 @@ func dev_spawn_drops() -> void:
 	if manager == null or not manager.has_method("spawn_drop"):
 		push_warning("StockpileDesignationController: ItemDropManager not found.")
 		return
-	for item_key: String in DEV_DROP_MIX:
-		var count := int(DEV_DROP_MIX[item_key])
+	for item_key: String in mix:
+		var count := int(mix[item_key])
 		for i: int in range(count):
 			var jitter := Vector3i(randi_range(-3, 3), 0, randi_range(-3, 3))
 			var cell := center + jitter

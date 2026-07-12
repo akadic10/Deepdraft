@@ -1,0 +1,85 @@
+{
+  "__comment": [
+    "Storage Shelf - the WYSIWYG container (doc 19): contents render ON the shelf at the",
+    "anchor points below, capacity == anchor count (never hold more than is visible).",
+    "placement 'floor_wall': the BACK face (local z=0 edge, the solid back panel) must",
+    "stand against a solid block. anchors are furniture-local block coords (origin =",
+    "bottom-front-left, same convention as collision_regions); anchor_scale is the stored",
+    "item render scale - 0.5 per SH ATTITEM parity (2026-07-11), tune-by-eye dial."
+  ],
+  "furniture_key": "base:furniture:storage_shelf",
+  "furniture_category": "storage",
+  "display_name": "Storage Shelf",
+  "description": "Two stout plank shelves on heavy oak uprights. Everything stored on it stays in plain sight.",
+  "model": "res://assets/models/furniture/storage_shelf.glb",
+  "item_key": "base:resources:furniture:storage_shelf",
+  "placement": "floor_wall",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        1,
+        2,
+        1
+      ]
+    }
+  ],
+  "room_anchor": false,
+  "storage": {
+    "capacity": 8,
+    "render_contents": true,
+    "anchor_scale": 0.5,
+    "anchors": [
+      [
+        0.32,
+        0.125,
+        0.35
+      ],
+      [
+        0.68,
+        0.125,
+        0.35
+      ],
+      [
+        0.32,
+        0.125,
+        0.65
+      ],
+      [
+        0.68,
+        0.125,
+        0.65
+      ],
+      [
+        0.32,
+        1.0,
+        0.35
+      ],
+      [
+        0.68,
+        1.0,
+        0.35
+      ],
+      [
+        0.32,
+        1.0,
+        0.65
+      ],
+      [
+        0.68,
+        1.0,
+        0.65
+      ]
+    ]
+  }
+}
