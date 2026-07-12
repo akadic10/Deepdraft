@@ -385,6 +385,18 @@ this doc's build log.
 
 ### Playtest notes
 
+0. **"Dwarves don't want to place the shelf" (Alen, 2026-07-11, Phase 4 session) — the
+   builder-entombment defect.** The ghost's stand target was its own origin cell: the
+   fetcher stood ON the ghost, built, and the install registered occupancy around them —
+   the trapped dwarf's every later probe failed, so each install silently ate a worker
+   until the crew stood frozen inside furniture (screenshot: the whole squad clustered on
+   the installed pieces; hauling froze mid-chest at 12/24). → **Fixed same day:** ghost
+   `nearest_stand_target` returns the nearest walkable cell BESIDE the footprint (never
+   inside it — the mining stand-cell model), plus a dwarf-side guard that starts the build
+   swing only from a legal stand cell. Already-trapped dwarves need a fresh run (no save
+   system — every run regenerates anyway). Incidentally confirmed working in the same
+   screenshot: container hauling (chest at 12/24 with live per-item counts).
+
 1. **"The dwarves aren't reacting to it" (Alen, 2026-07-11, first Phase 2 session)** —
    expected at this point, not a defect: ghosts are inert designations until Phase 3
    (fetch-and-build leases). The doc 18 precedent, recorded so the expectation is explicit.
