@@ -17,7 +17,10 @@ extends RefCounted
 ## scheduler wake, per TYPE — never written into tasks, so colony-state changes
 ## never trigger re-sorts.
 
-enum Type { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL }   # SMELT/FORGE later (doc 44)
+## FETCH_BUILD / UNINSTALL: the furniture pipeline (doc 19 §3.3/§3.4 — a ghost
+## posts ONE fetch-and-build lease; a 📤-flagged piece posts ONE uninstall
+## lease). First-class types per SH parity (dedicated placement_task_group).
+enum Type { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 ## Release reasons (doc 16 §2.8) — passed through task_released for logging/AI.
@@ -62,4 +65,6 @@ static func type_name(t: int) -> String:
 		Type.BUILD:  return "BUILD"
 		Type.IDLE:   return "IDLE"
 		Type.PATROL: return "PATROL"
+		Type.FETCH_BUILD: return "FETCH_BUILD"
+		Type.UNINSTALL:  return "UNINSTALL"
 	return "UNKNOWN"

@@ -66,8 +66,17 @@ var _ghosts: Dictionary = {}          # ghost_id -> FurnitureGhostComponent
 var _cell_to_ghost: Dictionary = {}   # Vector3i -> ghost_id
 
 var _next_installed_id: int = 1
-var _installed: Dictionary = {}       # id -> { key, def, cell, yaw, node, occupancy_id, cells }
+var _installed: Dictionary = {}       # id -> InstalledFurnitureComponent
 var _cell_to_installed: Dictionary = {}   # Vector3i -> installed id
+
+# ── Work-source plumbing (doc 19 Phase 3) ─────────────────────────────────────
+const LEASE_REFRESH_S := 0.25         # the StockpileManager throttle pattern
+var _source_to_ghost: Dictionary = {}     # source_id -> ghost_id
+var _source_to_installed: Dictionary = {} # source_id -> installed_id
+var _drop_manager: Node3D = null
+var _wakes_connected: bool = false
+var _lease_dirty: bool = false
+var _lease_accum: float = 0.0
 
 var _window_layer: CanvasLayer = null
 var _window_panel: PanelContainer = null
@@ -91,6 +100,12 @@ func _ready() -> void:
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
+	# Task-event routing for our two work-source families (doc 19 Phase 3).
+	TaskManager.task_completed.connect(func(task: Task) -> void: _route_task_gone(task, -1))
+	TaskManager.task_cancelled.connect(func(task: Task) -> void: _route_task_gone(task, task.assigned_to))
+	TaskManager.task_failed.connect(func(task: Task, _reason: String) -> void: _route_task_gone(task, task.assigned_to))
+	TaskManager.task_released.connect(_on_task_released)
+	StockpileManager.stockpile_changed.connect(func(_k: String, _d: int) -> void: _mark_lease_dirty())
 	_build_window()
 
 
@@ -129,7 +144,11 @@ func get_defs() -> Dictionary:
 
 
 func get_stats() -> Dictionary:
-	return { "ghosts": _ghosts.size(), "installed": _installed.size() }
+	var uninstalling := 0
+	for installed_id: int in _installed:
+		if (_installed[installed_id] as InstalledFurnitureComponent).flagged_uninstall:
+			uninstalling += 1
+	return { "ghosts": _ghosts.size(), "installed": _installed.size(), "uninstalling": uninstalling }
 
 
 ## Zone/furniture mutual exclusion (doc 19 Phase 2 acceptance): the zone
@@ -178,10 +197,51 @@ func _on_tool_requested(tool_id: String) -> void:
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	# Lazy sibling hookup (the StockpileManager pattern) + throttled lease pass.
+	if not _wakes_connected:
+		_drop_manager = get_tree().get_first_node_in_group("item_drop_manager") as Node3D
+		if _drop_manager != null:
+			_drop_manager.connect("drop_spawned", func(_key: String) -> void: _mark_lease_dirty())
+			_wakes_connected = true
+			for ghost_id: int in _ghosts:
+				(_ghosts[ghost_id] as FurnitureGhostComponent).drop_manager = _drop_manager
+	if _lease_dirty:
+		_lease_accum += delta
+		if _lease_accum >= LEASE_REFRESH_S:
+			_lease_accum = 0.0
+			_lease_dirty = false
+			for ghost_id: int in _ghosts:
+				(_ghosts[ghost_id] as FurnitureGhostComponent).update_lease()
 	if not _active:
 		return
 	_update_hover()
+
+
+func _mark_lease_dirty() -> void:
+	_lease_dirty = true
+
+
+# ── Task-event routing (doc 19 Phase 3 — the StockpileManager shape) ──────────
+
+func _route_task_gone(task: Task, dwarf_id: int) -> void:
+	if _source_to_ghost.has(task.source_id):
+		var ghost: FurnitureGhostComponent = _ghosts.get(int(_source_to_ghost[task.source_id]))
+		if ghost != null:
+			ghost.on_task_gone(task.id, dwarf_id)
+		_mark_lease_dirty()
+	elif _source_to_installed.has(task.source_id):
+		var installed: InstalledFurnitureComponent = _installed.get(int(_source_to_installed[task.source_id]))
+		if installed != null:
+			installed.on_task_gone(task.id, dwarf_id)
+
+
+func _on_task_released(task: Task, dwarf_id: int, _reason: int) -> void:
+	# Released leases return to PENDING — only the dwarf's reservations free.
+	if _source_to_ghost.has(task.source_id):
+		var ghost: FurnitureGhostComponent = _ghosts.get(int(_source_to_ghost[task.source_id]))
+		if ghost != null:
+			ghost.cancel_fetch(dwarf_id)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -442,9 +502,16 @@ func _confirm_ghost() -> void:
 		node.rotation = Vector3(0.0, float(_yaw) * PI * 0.5, 0.0)
 		node.visible = _hover_cell.y + 1 <= _slice_y
 	ghost.node = node
+	# Work source (doc 19 §3.3): allocator id, ONE fetch-and-build lease.
+	ghost.source_id = TaskManager.allocate_source_id()
+	ghost.drop_manager = _drop_manager
+	ghost.install_callback = Callable(self, "_on_ghost_build_complete")
+	TaskManager.register_work_source(ghost.source_id, ghost)
+	_source_to_ghost[ghost.source_id] = ghost.ghost_id
 	_ghosts[ghost.ghost_id] = ghost
 	for cell: Vector3i in ghost.footprint_cells():
 		_cell_to_ghost[cell] = ghost.ghost_id
+	_mark_lease_dirty()
 	print("FurniturePlacementController: ghost %d (%s) at %s yaw %d." % [
 		ghost.ghost_id, _active_key, str(_hover_cell), _yaw])
 	ghost_placed.emit(ghost.ghost_id)
@@ -456,6 +523,10 @@ func cancel_ghost(ghost_id: int) -> void:
 	if not _ghosts.has(ghost_id):
 		return
 	var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
+	if ghost.source_id >= 0:
+		TaskManager.cancel_source_tasks(ghost.source_id)
+		TaskManager.unregister_work_source(ghost.source_id)
+		_source_to_ghost.erase(ghost.source_id)
 	for cell: Vector3i in ghost.footprint_cells():
 		_cell_to_ghost.erase(cell)
 	if ghost.node != null and is_instance_valid(ghost.node):
@@ -464,6 +535,25 @@ func cancel_ghost(ghost_id: int) -> void:
 	if _window_ghost_id == ghost_id:
 		_close_window()
 	ghost_cancelled.emit(ghost_id)
+
+
+## The real build path (doc 19 §3.3 step 4): the fetching dwarf finished the
+## work swing. Retire the ghost WITHOUT cancelling its lease — the dwarf's
+## own complete_dwarf_task resolves it — then run the shared install.
+func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
+	if not _ghosts.has(ghost.ghost_id):
+		return
+	if ghost.source_id >= 0:
+		TaskManager.unregister_work_source(ghost.source_id)
+		_source_to_ghost.erase(ghost.source_id)
+	for cell: Vector3i in ghost.footprint_cells():
+		_cell_to_ghost.erase(cell)
+	if ghost.node != null and is_instance_valid(ghost.node):
+		ghost.node.queue_free()
+	_ghosts.erase(ghost.ghost_id)
+	if _window_ghost_id == ghost.ghost_id:
+		_close_window()
+	_install(ghost.furniture_key, ghost.def, ghost.origin_cell, ghost.yaw_steps)
 
 
 ## DEV: materialise a ghost without a dwarf (the DEV-mine precedent) —
@@ -504,40 +594,60 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int) -> void:
 			size = Vector3i(size.z, size.y, size.x)
 		var box_min := Vector3i(origin.x + int(rmin[0]), origin.y + 1 + int(rmin[1]), origin.z + int(rmin[2]))
 		occupancy_ids.append(PlacedEntityRegistry.register_box(box_min, size))
-	var record := {
-		"key": key, "def": def, "cell": origin, "yaw": yaw,
-		"node": node, "occupancy_ids": occupancy_ids,
-		"cells": _footprint_cells(def, origin, yaw),
-	}
-	_installed[_next_installed_id] = record
-	for cell: Vector3i in record["cells"]:
-		_cell_to_installed[cell] = _next_installed_id
+	var component := InstalledFurnitureComponent.new()
+	component.setup(_next_installed_id, key, def, origin, yaw)
+	component.node = node
+	component.occupancy_ids = occupancy_ids
+	component.cells = _footprint_cells(def, origin, yaw)
+	component.source_id = TaskManager.allocate_source_id()
+	component.uninstall_callback = Callable(self, "_on_uninstall_complete")
+	TaskManager.register_work_source(component.source_id, component)
+	_source_to_installed[component.source_id] = component.installed_id
+	_installed[component.installed_id] = component
+	for cell: Vector3i in component.cells:
+		_cell_to_installed[cell] = component.installed_id
 	print("FurniturePlacementController: installed %s at %s." % [key, str(origin)])
 	furniture_installed.emit(key, origin)
 	_next_installed_id += 1
 
 
-## DEV: tear an installed piece back down into its packed item (poor-man's
-## uninstall until the Phase 3 📤 lease). Occupancy freed, item drops loose.
-func dev_remove_installed(installed_id: int) -> void:
+## The real uninstall path (doc 19 §3.4): the dwarf finished the teardown
+## swing. The dwarf's complete_dwarf_task resolves the lease; contents (Phase
+## 4) and the packed item re-enter the world as ordinary loose drops.
+func _on_uninstall_complete(component: InstalledFurnitureComponent) -> void:
+	_teardown_installed(component.installed_id, false)
+
+
+## Shared teardown. `cancel_lease` true on the DEV path (a live 📤 lease may
+## exist); false when the uninstalling dwarf itself is finishing (its lease
+## completes normally).
+func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
 	if not _installed.has(installed_id):
 		return
-	var record: Dictionary = _installed[installed_id]
-	for occupancy_id: int in record["occupancy_ids"]:
+	var component: InstalledFurnitureComponent = _installed[installed_id]
+	if component.source_id >= 0:
+		component.flagged_uninstall = false   # stop on_task_gone re-posting
+		if cancel_lease:
+			TaskManager.cancel_source_tasks(component.source_id)
+		TaskManager.unregister_work_source(component.source_id)
+		_source_to_installed.erase(component.source_id)
+	for occupancy_id: int in component.occupancy_ids:
 		PlacedEntityRegistry.unregister(occupancy_id)
-	for cell: Vector3i in record["cells"]:
+	for cell: Vector3i in component.cells:
 		_cell_to_installed.erase(cell)
-	var node: Node3D = record["node"]
-	if node != null and is_instance_valid(node):
-		node.queue_free()
+	if component.node != null and is_instance_valid(component.node):
+		component.node.queue_free()
 	_installed.erase(installed_id)
-	var manager := get_tree().get_first_node_in_group("item_drop_manager")
-	var item_key := String((record["def"] as Dictionary).get("item_key", ""))
-	if manager != null and manager.has_method("spawn_drop") and not item_key.is_empty():
-		var cell: Vector3i = record["cell"]
-		manager.call("spawn_drop", item_key, 1, Vector3i(cell.x, cell.y + 1, cell.z))
+	if _drop_manager != null and is_instance_valid(_drop_manager) and not component.item_key.is_empty():
+		var cell := component.origin_cell
+		_drop_manager.call("spawn_drop", component.item_key, 1, Vector3i(cell.x, cell.y + 1, cell.z))
 	if _window_installed_id == installed_id:
 		_close_window()
+
+
+## DEV: instant teardown, no dwarf (kept alongside the real 📤 path).
+func dev_remove_installed(installed_id: int) -> void:
+	_teardown_installed(installed_id, true)
 
 
 # ── Click-select (tool on or off — the A3 lesson) ─────────────────────────────
@@ -591,10 +701,9 @@ func _on_slice_changed(new_slice_y: int) -> void:
 		if ghost.node != null and is_instance_valid(ghost.node):
 			ghost.node.visible = ghost.origin_cell.y + 1 <= _slice_y
 	for installed_id: int in _installed:
-		var record: Dictionary = _installed[installed_id]
-		var node: Node3D = record["node"]
-		if node != null and is_instance_valid(node):
-			node.visible = (record["cell"] as Vector3i).y + 1 <= _slice_y
+		var component: InstalledFurnitureComponent = _installed[installed_id]
+		if component.node != null and is_instance_valid(component.node):
+			component.node.visible = component.origin_cell.y + 1 <= _slice_y
 
 
 # ── Windows (compact — the stockpile zone window pattern) ─────────────────────
@@ -648,9 +757,7 @@ func _build_window() -> void:
 	_window_build_btn.focus_mode = Control.FOCUS_NONE
 	_window_build_btn.custom_minimum_size = Vector2(186.0, 30.0)
 	_window_build_btn.add_theme_font_size_override("font_size", 13)
-	_window_build_btn.pressed.connect(func() -> void:
-		dev_instant_build(_window_ghost_id)
-	)
+	_window_build_btn.pressed.connect(_on_primary_pressed)
 	column.add_child(_window_build_btn)
 
 	_window_remove_btn = Button.new()
@@ -659,6 +766,19 @@ func _build_window() -> void:
 	_window_remove_btn.add_theme_font_size_override("font_size", 13)
 	_window_remove_btn.pressed.connect(_on_remove_pressed)
 	column.add_child(_window_remove_btn)
+
+
+## Primary button: ghost window = DEV Instant Build; installed window = the
+## 📤 uninstall TOGGLE (SH parity — clicking again cancels).
+func _on_primary_pressed() -> void:
+	if _window_ghost_id >= 0:
+		dev_instant_build(_window_ghost_id)
+		return
+	if _window_installed_id >= 0:
+		var component: InstalledFurnitureComponent = _installed.get(_window_installed_id)
+		if component != null:
+			component.set_uninstall(not component.flagged_uninstall)
+			_open_installed_window(_window_installed_id)   # refresh labels
 
 
 func _on_remove_pressed() -> void:
@@ -675,26 +795,32 @@ func _open_ghost_window(ghost_id: int) -> void:
 	_window_ghost_id = ghost_id
 	_window_installed_id = -1
 	_window_title.text = "Ghost — %s" % ghost.display_name()
-	_window_info.text = "Waiting for: %s\n(fetch-and-build lands in Phase 3)" % ghost.item_key
+	if ghost.has_lease():
+		_window_info.text = "Waiting for a dwarf to fetch:\n%s" % ghost.item_key
+	else:
+		_window_info.text = "Needs: %s\n(none in the colony)" % ghost.item_key
+	_window_build_btn.text = "DEV: Instant Build"
 	_window_build_btn.visible = true
 	_window_remove_btn.text = "Cancel 📥"
 	_window_layer.visible = true
 
 
 func _open_installed_window(installed_id: int) -> void:
-	var record: Dictionary = _installed.get(installed_id, {})
-	if record.is_empty():
+	var component: InstalledFurnitureComponent = _installed.get(installed_id)
+	if component == null:
 		return
 	_window_installed_id = installed_id
 	_window_ghost_id = -1
-	var def: Dictionary = record["def"]
-	_window_title.text = String(def.get("display_name", record["key"]))
-	var storage: Dictionary = def.get("storage", {})
+	_window_title.text = component.display_name()
+	var storage: Dictionary = component.def.get("storage", {})
+	var status_line := "Marked for uninstall — a dwarf is coming." if component.flagged_uninstall else "Installed."
 	if storage.is_empty():
-		_window_info.text = "Installed."
+		_window_info.text = status_line
 	else:
-		_window_info.text = "Installed.\nStorage capacity: %d\n(container hauling lands in Phase 4)" % int(storage.get("capacity", 0))
-	_window_build_btn.visible = false
+		_window_info.text = "%s\nStorage capacity: %d\n(container hauling lands in Phase 4)" % [
+			status_line, int(storage.get("capacity", 0))]
+	_window_build_btn.text = "📤 Cancel uninstall" if component.flagged_uninstall else "📤 Uninstall"
+	_window_build_btn.visible = true
 	_window_remove_btn.text = "DEV: Remove (drops item)"
 	_window_layer.visible = true
 

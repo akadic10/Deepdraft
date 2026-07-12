@@ -134,6 +134,24 @@ func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {
 	return best
 
 
+## Nearest unreserved loose item of EXACTLY this key (type-matched fetch,
+## doc 19 §3.3 — SH parity: any item of the URI satisfies a ghost).
+func nearest_loose_of_key(item_key: String, from: Vector3i, exclude: Dictionary = {}) -> Node3D:
+	var best: Node3D = null
+	var best_dist: int = 0x7FFFFFFF
+	for node: Node3D in _loose:
+		if _reserved.has(node) or exclude.has(node) or not is_instance_valid(node):
+			continue
+		if String(_loose[node]) != item_key:
+			continue
+		var cell := item_floor_cell(node)
+		var dist := absi(cell.x - from.x) + absi(cell.y - from.y) + absi(cell.z - from.z)
+		if dist < best_dist:
+			best = node
+			best_dist = dist
+	return best
+
+
 ## Unreserved loose accepted items within `radius` blocks (flat Chebyshev) of
 ## `center`, nearest first, capped at `limit`. The pouch bundle search (doc 18
 ## pouch — SH NearbyItemSearch equivalent). `exclude` = blacklist + main item.
@@ -257,6 +275,26 @@ func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
 	node.visible = floor_cell.y + 1 <= _slice_y
 	_loose[node] = key
 	drop_spawned.emit(key)
+
+
+## The STORED node sitting on a zone cell, or null (fetch withdraw, doc 19
+## §3.3 — zones store one item per tile, so cell -> node is unique).
+func stored_node_at(cell: Vector3i) -> Node3D:
+	for child in get_children():
+		if child is Node3D and bool(child.get_meta("stored", false)) \
+				and item_floor_cell(child as Node3D) == cell:
+			return child as Node3D
+	return null
+
+
+## Withdraw (doc 19 §3.3): a stored node re-enters the loose index already
+## RESERVED by the withdrawing dwarf — no other hauler can grab it between
+## withdrawal and pickup.
+func withdraw_stored(node: Node3D, dwarf_id: int) -> void:
+	node.set_meta("stored", false)
+	var key := String(node.get_meta("item_key", ""))
+	_loose[node] = key
+	_reserved[node] = dwarf_id
 
 
 ## Zone removal: stored nodes on the given cells become loose again, and

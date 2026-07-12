@@ -335,8 +335,8 @@ func _furniture_text() -> String:
 	if furniture == null or not furniture.has_method("get_stats"):
 		return ""
 	var f: Dictionary = furniture.call("get_stats")
-	return "\nfurniture: ghosts %d  installed %d" % [
-		int(f.get("ghosts", 0)), int(f.get("installed", 0))]
+	return "\nfurniture: ghosts %d  installed %d  uninstalling %d" % [
+		int(f.get("ghosts", 0)), int(f.get("installed", 0)), int(f.get("uninstalling", 0))]
 
 
 func _on_title_bar_gui_input(event: InputEvent) -> void:

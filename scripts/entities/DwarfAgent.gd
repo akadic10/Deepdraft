@@ -41,7 +41,8 @@ var current_task_id: int = -1
 ## HAUL_TO_ITEM/HAUL_TO_ZONE is the HAUL-lease executor (doc 18 §2.3): pull
 ## the nearest accepted loose item, reserve it + a deposit cell, walk over,
 ## pick it up, carry it to the stockpile, deposit, pull the next.
-enum TaskPhase { NONE, MOVING, EXECUTING, ZONE_MOVING, ZONE_SWINGING, HAUL_TO_ITEM, HAUL_TO_ZONE }
+enum TaskPhase { NONE, MOVING, EXECUTING, ZONE_MOVING, ZONE_SWINGING, HAUL_TO_ITEM, HAUL_TO_ZONE,
+		FETCH_TO_ITEM, FETCH_TO_GHOST, FETCH_WORKING, UNINSTALL_MOVING, UNINSTALL_WORKING }
 const GENERIC_WORK_TIME := 1.0   # seconds — generic executor only
 var _task_phase: int = TaskPhase.NONE
 var _task_target: Vector3i = Vector3i.ZERO
@@ -78,6 +79,17 @@ var _haul_failures: int = 0
 var _haul_exclude: Dictionary = {}   # Node3D -> true; this-round item blacklist
 var _carried_entries: Array = []     # [[node: Node3D, item_key: String], ...]
 var _carry_speed_mult: float = 1.0
+
+## Furniture pipeline (doc 19 §3.3/§3.4). FETCH_BUILD: reserve item via the
+## ghost work source -> walk -> pick up -> walk to the ghost -> build swing.
+## UNINSTALL: walk to the piece's stand cell -> teardown swing. Interrupts
+## anywhere follow Hard Rule 12 (carried item drops at the feet; an
+## uninstall interrupt leaves the piece installed with the flag set).
+var _fetch_source_id: int = -1
+var _fetch_item: Node3D = null       # reserved (pre-pickup) or carried (post)
+var _fetch_picked_up: bool = false
+var _fetch_heavy: bool = false
+var _uninstall_source_id: int = -1
 
 ## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
 ## Deliberately minimal: ONE stat draining per real second (doc 41 rate);
@@ -166,6 +178,14 @@ func _process(delta: float) -> void:
 	elif _task_phase == TaskPhase.ZONE_SWINGING:
 		_process_swinging(delta)
 		return   # swing bob owns the part offsets this frame
+	elif _task_phase == TaskPhase.FETCH_WORKING:
+		_exec_timer -= delta
+		if _exec_timer <= 0.0:
+			_fetch_complete()
+	elif _task_phase == TaskPhase.UNINSTALL_WORKING:
+		_exec_timer -= delta
+		if _exec_timer <= 0.0:
+			_uninstall_complete()
 	if _move_path.is_empty():
 		_idle_bob()
 	else:
@@ -200,6 +220,14 @@ func receive_task(task_id: int, target_pos: Vector3i) -> void:
 		_haul_exclude.clear()
 		_haul_pull_next()
 		return
+	if task != null and task.type == Task.Type.FETCH_BUILD:
+		_fetch_source_id = task.source_id
+		_fetch_begin()
+		return
+	if task != null and task.type == Task.Type.UNINSTALL:
+		_uninstall_source_id = task.source_id
+		_uninstall_begin()
+		return
 	# Phase is set AFTER walk_to: a synchronous walk_finished(false) from a
 	# failed pathfind must not double-release through _on_walk_finished.
 	if walk_to(target_pos):
@@ -222,6 +250,8 @@ func abort_task() -> void:
 			source.call("release_worker", dwarf_id)
 	_finish_zone_state()
 	_finish_haul_state()
+	_finish_fetch_state()
+	_finish_uninstall_state()
 	_task_phase = TaskPhase.NONE
 	current_task_id = -1
 	_exec_timer = 0.0
@@ -255,6 +285,31 @@ func _on_walk_finished(success: bool) -> void:
 			_haul_cancel_pull()
 			_haul_count_failure()
 		return
+	if _task_phase == TaskPhase.FETCH_TO_ITEM:
+		_task_phase = TaskPhase.NONE
+		if success:
+			_fetch_pickup()
+		else:
+			_fetch_fail_release()
+		return
+	if _task_phase == TaskPhase.FETCH_TO_GHOST:
+		_task_phase = TaskPhase.NONE
+		if success:
+			_task_phase = TaskPhase.FETCH_WORKING
+			_exec_timer = _furniture_time("build_time_s")
+		else:
+			_fetch_fail_release()
+		return
+	if _task_phase == TaskPhase.UNINSTALL_MOVING:
+		_task_phase = TaskPhase.NONE
+		if success:
+			_task_phase = TaskPhase.UNINSTALL_WORKING
+			_exec_timer = _furniture_time("uninstall_time_s")
+		else:
+			_finish_uninstall_state()
+			current_task_id = -1
+			TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		return
 	if _task_phase != TaskPhase.MOVING:
 		return
 	if success:
@@ -281,6 +336,8 @@ func _begin_sleep() -> void:
 	var had_task := current_task_id >= 0
 	_finish_zone_state()
 	_finish_haul_state()
+	_finish_fetch_state()
+	_finish_uninstall_state()
 	_task_phase = TaskPhase.NONE
 	current_task_id = -1
 	_exec_timer = 0.0
@@ -340,6 +397,8 @@ func dev_force_interrupt() -> bool:
 		return false
 	_finish_zone_state()
 	_finish_haul_state()
+	_finish_fetch_state()
+	_finish_uninstall_state()
 	_task_phase = TaskPhase.NONE
 	current_task_id = -1
 	_exec_timer = 0.0
@@ -702,6 +761,183 @@ func _finish_haul_state() -> void:
 	_haul_failures = 0
 	_haul_exclude.clear()
 	if _task_phase == TaskPhase.HAUL_TO_ITEM or _task_phase == TaskPhase.HAUL_TO_ZONE:
+		_task_phase = TaskPhase.NONE
+
+
+# ── FETCH_BUILD / UNINSTALL executors (doc 19 §3.3/§3.4) ─────────────────────
+
+func _furniture_time(key: String) -> float:
+	var config: Dictionary = TaskManager.get_config_section("furniture")
+	return float(config.get(key, 2.0))
+
+
+func _fetch_source() -> RefCounted:
+	if _fetch_source_id < 0:
+		return null
+	return TaskManager.get_work_source(_fetch_source_id) as RefCounted
+
+
+func _uninstall_source() -> RefCounted:
+	if _uninstall_source_id < 0:
+		return null
+	return TaskManager.get_work_source(_uninstall_source_id) as RefCounted
+
+
+## FETCH step 1: claim an item (loose first, else a storage withdraw).
+## Nothing available -> the lease completes early and re-posts on the next
+## item wake (the haul precedent).
+func _fetch_begin() -> void:
+	var source := _fetch_source()
+	if source == null:
+		_finish_fetch_state()
+		current_task_id = -1
+		TaskManager.fail_dwarf_task(dwarf_id, "furniture ghost gone")
+		return
+	var pull: Dictionary = source.call("reserve_fetch", dwarf_id, current_cell())
+	if pull.is_empty():
+		_finish_fetch_state()
+		current_task_id = -1
+		TaskManager.complete_dwarf_task(dwarf_id)
+		return
+	_fetch_item = pull["item"]
+	_fetch_picked_up = false
+	_fetch_heavy = bool(pull.get("heavy", false))
+	if _fetch_item == null or not is_instance_valid(_fetch_item):
+		_fetch_fail_release()
+		return
+	var stand := _item_stand_cell(_fetch_item)
+	if stand == current_cell():
+		_fetch_pickup()
+	elif walk_to(stand):
+		_task_phase = TaskPhase.FETCH_TO_ITEM
+	else:
+		_fetch_fail_release()
+
+
+## FETCH step 2: pocket the item and head for the ghost.
+func _fetch_pickup() -> void:
+	var source := _fetch_source()
+	if source == null or _fetch_item == null or not is_instance_valid(_fetch_item):
+		_fetch_fail_release()
+		return
+	var manager := get_tree().get_first_node_in_group("item_drop_manager")
+	if manager == null:
+		_fetch_fail_release()
+		return
+	var key := String(manager.call("take", _fetch_item))
+	if key.is_empty():
+		_fetch_fail_release()   # vanished / raced
+		return
+	_fetch_picked_up = true
+	source.call("notify_picked_up", dwarf_id)
+	if _fetch_heavy:
+		var hauling: Dictionary = TaskManager.get_config_section("hauling")
+		_carry_speed_mult = float(hauling.get("carry_speed_mult_heavy", 0.7))
+	_carried_entries.append([_fetch_item, key])
+	add_child(_fetch_item)
+	_fetch_item.position = CARRY_OFFSET
+	_fetch_item.rotation = Vector3.ZERO
+	var target: Vector3i = source.call("nearest_stand_target", current_cell())
+	if target.x >= 0 and walk_to(target):
+		_task_phase = TaskPhase.FETCH_TO_GHOST
+	else:
+		_fetch_fail_release()
+
+
+## FETCH step 4: the build swing finished — the carried item BECOMES the
+## installed piece (node freed, controller instances the solid form).
+func _fetch_complete() -> void:
+	_task_phase = TaskPhase.NONE
+	var source := _fetch_source()
+	if source == null:
+		_fetch_fail_release()
+		return
+	# Consume the carried item: it is the furniture now, not a drop.
+	if _fetch_item != null and is_instance_valid(_fetch_item):
+		_carried_entries = _carried_entries.filter(
+			func(entry: Array) -> bool: return entry[0] != _fetch_item)
+		_fetch_item.queue_free()
+	_fetch_item = null
+	_carry_speed_mult = 1.0
+	source.call("complete_build", dwarf_id)
+	_fetch_source_id = -1
+	_fetch_picked_up = false
+	var finished_id := current_task_id
+	current_task_id = -1
+	if finished_id >= 0:
+		TaskManager.complete_dwarf_task(dwarf_id)
+
+
+## Any fetch failure: Rule 12 teardown + release with backoff.
+func _fetch_fail_release() -> void:
+	_finish_fetch_state()
+	if current_task_id < 0:
+		return
+	current_task_id = -1
+	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+
+
+## Interrupt/abort teardown: a carried item drops at the feet (it re-enters
+## the loose index); a merely-reserved item is unreserved via the source.
+func _finish_fetch_state() -> void:
+	if _fetch_source_id < 0 and _fetch_item == null:
+		return
+	var source := _fetch_source()
+	if source != null:
+		source.call("cancel_fetch", dwarf_id)
+	_drop_carried_at_feet()   # covers the picked-up case; no-op otherwise
+	_fetch_item = null
+	_fetch_picked_up = false
+	_fetch_source_id = -1
+	_carry_speed_mult = 1.0
+	if _task_phase == TaskPhase.FETCH_TO_ITEM or _task_phase == TaskPhase.FETCH_TO_GHOST \
+			or _task_phase == TaskPhase.FETCH_WORKING:
+		_task_phase = TaskPhase.NONE
+
+
+## UNINSTALL step 1: walk to the piece's stand cell.
+func _uninstall_begin() -> void:
+	var source := _uninstall_source()
+	if source == null:
+		_finish_uninstall_state()
+		current_task_id = -1
+		TaskManager.fail_dwarf_task(dwarf_id, "installed furniture gone")
+		return
+	var target: Vector3i = source.call("nearest_stand_target", current_cell())
+	if target.x < 0:
+		_finish_uninstall_state()
+		current_task_id = -1
+		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		return
+	if target == current_cell():
+		_task_phase = TaskPhase.UNINSTALL_WORKING
+		_exec_timer = _furniture_time("uninstall_time_s")
+	elif walk_to(target):
+		_task_phase = TaskPhase.UNINSTALL_MOVING
+	else:
+		_finish_uninstall_state()
+		current_task_id = -1
+		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+
+
+## UNINSTALL step 2: teardown swing finished.
+func _uninstall_complete() -> void:
+	_task_phase = TaskPhase.NONE
+	var source := _uninstall_source()
+	_uninstall_source_id = -1
+	if source != null:
+		source.call("complete_uninstall", dwarf_id)
+	var finished_id := current_task_id
+	current_task_id = -1
+	if finished_id >= 0:
+		TaskManager.complete_dwarf_task(dwarf_id)
+
+
+## Interrupt teardown: the piece stays installed, the 📤 flag stays set —
+## the lease returns to PENDING and another dwarf finishes the job.
+func _finish_uninstall_state() -> void:
+	_uninstall_source_id = -1
+	if _task_phase == TaskPhase.UNINSTALL_MOVING or _task_phase == TaskPhase.UNINSTALL_WORKING:
 		_task_phase = TaskPhase.NONE
 
 

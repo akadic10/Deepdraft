@@ -119,6 +119,32 @@ func get_stats() -> Dictionary:
 	return { "zones": _zones.size(), "cells": cells, "stored": stored }
 
 
+## Fetch withdraw (doc 19 §3.3): pull one stored unit of `item_key` out of
+## the zone nearest `near`, reserved for `dwarf_id`. Null if no zone holds
+## the item. Containers join this lookup in Phase 4 via the same surface.
+func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D:
+	var best_zone: StockpileZoneComponent = null
+	var best_dist: int = 0x7FFFFFFF
+	for source_id: int in _zones:
+		var zone: StockpileZoneComponent = _zones[source_id]
+		var has_it := false
+		for cell: Vector3i in zone.cell_stacks:
+			if String((zone.cell_stacks[cell] as Dictionary).get("item", "")) == item_key:
+				has_it = true
+				break
+		if not has_it:
+			continue
+		var target := zone.nearest_stand_target(near)
+		var d := target - near
+		var dist := absi(d.x) + absi(d.y) + absi(d.z)
+		if dist < best_dist:
+			best_zone = zone
+			best_dist = dist
+	if best_zone == null:
+		return null
+	return best_zone.withdraw_nearest(item_key, near, dwarf_id)
+
+
 # ── Wake plumbing ─────────────────────────────────────────────────────────────
 
 func _mark_dirty() -> void:

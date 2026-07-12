@@ -44,7 +44,9 @@
     "BREW": 30,
     "BUILD": 45,
     "IDLE": 1,
-    "PATROL": 60
+    "PATROL": 60,
+    "FETCH_BUILD": 45,
+    "UNINSTALL": 40
   },
 
   "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers — the zone posts this many MINE leases.",
@@ -53,6 +55,12 @@
   },
 
   "__comment_hauling": "Stockpile hauling (doc 18 Phase 3 + pouch). max_haulers_per_zone: HAUL leases a zone may post — raised 2 -> 4 (2026-07-06, Alen playtest: 3 of 5 dwarves idled beside a busy zone; Stonehearth caps errands per COLONY scaled to workforce, not per storage — the worker-scaled model is the doc 18 follow-on). carry_speed_mult_heavy: walk-speed multiplier while ANY weight_class 'heavy' item is in the pouch (the pouch carries anything, stone included — SH parity, Alen 2026-07-06). pouch_capacity: max items per haul trip (Stonehearth backpack = 4: main item + up to 3 extras). pouch_bundle_radius: extras must lie within this many blocks of the MAIN item (SH nearby-item search equivalent).",
+  "__comment_furniture": "Furniture pipeline (doc 19 Phase 3). FETCH_BUILD 45 > HAUL 40: SH-verified - the placement task group's priority band TOPS restock's (0.93 vs 0.8), installing furniture outranks putting things away. build/uninstall_time_s: the work-swing duration at the ghost / installed piece.",
+  "furniture": {
+    "build_time_s": 2.0,
+    "uninstall_time_s": 2.0
+  },
+
   "hauling": {
     "max_haulers_per_zone": 4,
     "carry_speed_mult_heavy": 0.7,

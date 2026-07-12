@@ -126,6 +126,35 @@ func deposit(cell: Vector3i, item_key: String) -> void:
 		cell_stacks[cell] = { "item": item_key, "count": 1 }
 
 
+## Withdraw one stored unit of `item_key` (doc 19 §3.3 fetch path): the
+## stored node nearest `near` re-enters the loose index reserved by the
+## fetching dwarf; the cell empties and aggregates decrement. Null if this
+## zone holds none.
+func withdraw_nearest(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D:
+	if drop_manager == null or not is_instance_valid(drop_manager):
+		return null
+	var best := Vector3i(-1, -1, -1)
+	var best_dist: int = 0x7FFFFFFF
+	for cell: Vector3i in cell_stacks:
+		if String((cell_stacks[cell] as Dictionary).get("item", "")) != item_key:
+			continue
+		var d := cell - near
+		var dist := absi(d.x) + absi(d.y) + absi(d.z)
+		if dist < best_dist:
+			best = cell
+			best_dist = dist
+	if best == Vector3i(-1, -1, -1):
+		return null
+	var node: Node3D = drop_manager.call("stored_node_at", best)
+	if node == null:
+		return null
+	cell_stacks.erase(best)
+	drop_manager.call("withdraw_stored", node, dwarf_id)
+	if changed_callback.is_valid():
+		changed_callback.call(item_key, -1)
+	return node
+
+
 # ── Work source: scheduler hooks (doc 18 Phase 3) ─────────────────────────────
 
 ## Dwarf-relative probe target for the scheduler (the generalised

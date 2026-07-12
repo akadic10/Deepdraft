@@ -188,6 +188,19 @@ func fail_dwarf_task(dwarf_id: int, reason: String) -> void:
 
 # ── Public API — work sources (doc 16 §2.7) ──────────────────────────────────
 
+## Source-id allocator (doc 19 §3.6 — the doc 18 tech debt, due with the
+## third/fourth work-source families). Monotonic, starting above every
+## existing keyspace (mining raw ids, stockpile zones at 1M). New families
+## allocate here; migrating the old keyspaces is optional cleanup.
+var _next_source_id: int = 10_000_000
+
+
+func allocate_source_id() -> int:
+	var id := _next_source_id
+	_next_source_id += 1
+	return id
+
+
 func register_work_source(source_id: int, source: Object) -> void:
 	_work_sources[source_id] = source
 
@@ -387,7 +400,8 @@ func _apply_backoff(task: Task, now: int) -> void:
 ## (doc 31: off-profession work runs at x0.7 speed — applied at execution in
 ## step 6). Profession-gated types (FORGE etc., doc 44) refine this later.
 func _types_for(_agent: DwarfAgent) -> Array[int]:
-	return [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM, Task.Type.BREW]
+	return [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
+			Task.Type.BREW, Task.Type.FETCH_BUILD, Task.Type.UNINSTALL]
 
 
 func _bucket_priority(type: int, bonus: Dictionary) -> int:
