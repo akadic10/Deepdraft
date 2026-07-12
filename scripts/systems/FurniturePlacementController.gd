@@ -602,6 +602,14 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int) -> void:
 	component.source_id = TaskManager.allocate_source_id()
 	component.uninstall_callback = Callable(self, "_on_uninstall_complete")
 	TaskManager.register_work_source(component.source_id, component)
+	# Storage pieces get a container (doc 19 Phase 4): its OWN work source —
+	# the piece has two: UNINSTALL (this component) + HAUL (the container).
+	if def.has("storage"):
+		var container := ContainerStorageComponent.new()
+		container.setup_container(def, component.cells)
+		container.source_id = TaskManager.allocate_source_id()
+		StockpileManager.register_container(container)
+		component.storage = container
 	_source_to_installed[component.source_id] = component.installed_id
 	_installed[component.installed_id] = component
 	for cell: Vector3i in component.cells:
@@ -625,6 +633,12 @@ func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
 	if not _installed.has(installed_id):
 		return
 	var component: InstalledFurnitureComponent = _installed[installed_id]
+	if component.storage != null:
+		# Contents dump first (doc 19 §3.4 step 2) — every stored item
+		# re-enters the world loose, then the container's slots are freed.
+		component.storage.dump_contents(component.origin_cell)
+		StockpileManager.deregister_container(component.storage)
+		component.storage = null
 	if component.source_id >= 0:
 		component.flagged_uninstall = false   # stop on_task_gone re-posting
 		if cancel_lease:
@@ -812,13 +826,16 @@ func _open_installed_window(installed_id: int) -> void:
 	_window_installed_id = installed_id
 	_window_ghost_id = -1
 	_window_title.text = component.display_name()
-	var storage: Dictionary = component.def.get("storage", {})
 	var status_line := "Marked for uninstall — a dwarf is coming." if component.flagged_uninstall else "Installed."
-	if storage.is_empty():
+	if component.storage == null:
 		_window_info.text = status_line
 	else:
-		_window_info.text = "%s\nStorage capacity: %d\n(container hauling lands in Phase 4)" % [
-			status_line, int(storage.get("capacity", 0))]
+		var lines := "%s\nStored: %d / %d" % [
+			status_line, component.storage.stored_count(), component.storage.capacity]
+		for item_key: String in component.storage.inventory:
+			lines += "\n  %s × %d" % [item_key.get_slice(":", item_key.get_slice_count(":") - 1),
+					int(component.storage.inventory[item_key])]
+		_window_info.text = lines
 	_window_build_btn.text = "📤 Cancel uninstall" if component.flagged_uninstall else "📤 Uninstall"
 	_window_build_btn.visible = true
 	_window_remove_btn.text = "DEV: Remove (drops item)"

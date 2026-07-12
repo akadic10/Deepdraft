@@ -277,6 +277,27 @@ func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
 	drop_spawned.emit(key)
 
 
+## Container withdraw (doc 19 Phase 4): spawn ONE item at a floor cell,
+## pre-reserved for the withdrawing dwarf — containers hold counts, not
+## nodes. No drop_spawned emit (the item is claimed the instant it exists).
+func spawn_reserved(item_key: String, floor_cell: Vector3i, dwarf_id: int) -> Node3D:
+	_ensure_defs()
+	var def: Dictionary = _defs.get(item_key, {})
+	if def.is_empty():
+		push_warning("ItemDropManager: unknown item '%s' — spawn_reserved skipped." % item_key)
+		return null
+	var node := _build_drop_node(item_key, _model_scene(String(def.get("model", ""))))
+	node.position = Vector3(float(floor_cell.x) + 0.5, float(floor_cell.y + 1), float(floor_cell.z) + 0.5)
+	node.set_meta("base_y", floor_cell.y + 1)
+	node.set_meta("item_key", item_key)
+	node.visible = floor_cell.y + 1 <= _slice_y
+	add_child(node)
+	_drop_count += 1
+	_loose[node] = item_key
+	_reserved[node] = dwarf_id
+	return node
+
+
 ## The STORED node sitting on a zone cell, or null (fetch withdraw, doc 19
 ## §3.3 — zones store one item per tile, so cell -> node is unique).
 func stored_node_at(cell: Vector3i) -> Node3D:

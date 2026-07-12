@@ -29,6 +29,8 @@ var source_id: int = -1
 var flagged_uninstall: bool = false
 var uninstall_callback: Callable = Callable()   # (component) -> controller teardown
 
+var storage: ContainerStorageComponent = null   # doc 19 Phase 4 — set for storage pieces
+
 var _lease_id: int = -1              # the ONE UNINSTALL lease, -1 = none
 
 
@@ -51,6 +53,12 @@ func set_uninstall(flag: bool) -> void:
 	if flag == flagged_uninstall:
 		return
 	flagged_uninstall = flag
+	# A flagged container stops accepting deposits and cancels live haul
+	# leases (doc 19 §3.4); un-flagging resumes.
+	if storage != null:
+		storage.suspended = flag
+		if flag and storage.source_id >= 0:
+			TaskManager.cancel_source_tasks(storage.source_id)
 	if flag:
 		if _lease_id < 0 and source_id >= 0:
 			_lease_id = int(TaskManager.add_task(

@@ -324,8 +324,13 @@ func _storage_text() -> String:
 		var d: Dictionary = drops.call("get_stats")
 		loose = int(d.get("loose", 0))
 		reserved = int(d.get("reserved", 0))
-	return "\nstorage: zones %d (cells %d)  stored %d  loose %d  reserved %d" % [
-		zones, cells, stored, loose, reserved]
+	var containers: int = 0
+	if stockpiles == null:
+		pass
+	var manager_stats: Dictionary = StockpileManager.get_stats()
+	containers = int(manager_stats.get("containers", 0))
+	return "\nstorage: zones %d (cells %d)  containers %d  stored %d  loose %d  reserved %d" % [
+		zones, cells, containers, stored, loose, reserved]
 
 
 ## Furniture instrumentation (doc 19 Phase 2). Ghosts/installed from the

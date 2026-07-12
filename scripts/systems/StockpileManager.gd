@@ -23,6 +23,7 @@ const SOURCE_ID_BASE := 1_000_000
 const LEASE_REFRESH_S := 0.25
 
 var _zones: Dictionary = {}          # source_id -> StockpileZoneComponent
+var _containers: Dictionary = {}     # source_id -> ContainerStorageComponent (doc 19 Phase 4)
 var _totals: Dictionary = {}         # item_key -> stored count (aggregate)
 var _max_haulers: int = 2
 var _carry_mult_heavy: float = 0.7
@@ -60,6 +61,8 @@ func _process(delta: float) -> void:
 			# Backfill zones registered before the scene node entered the tree.
 			for source_id: int in _zones:
 				(_zones[source_id] as StockpileZoneComponent).drop_manager = _drop_manager
+			for source_id: int in _containers:
+				(_containers[source_id] as ContainerStorageComponent).drop_manager = _drop_manager
 	if not _lease_dirty:
 		return
 	_lease_accum += delta
@@ -69,6 +72,8 @@ func _process(delta: float) -> void:
 	_lease_dirty = false
 	for source_id: int in _zones:
 		(_zones[source_id] as StockpileZoneComponent).update_leases()
+	for source_id: int in _containers:
+		(_containers[source_id] as ContainerStorageComponent).update_leases()
 
 
 # ── Zone registry (called by StockpileDesignationController) ──────────────────
@@ -83,6 +88,31 @@ func register_zone(zone: StockpileZoneComponent) -> void:
 	zone.changed_callback = _on_zone_deposit
 	_zones[zone.source_id] = zone
 	TaskManager.register_work_source(zone.source_id, zone)
+	_mark_dirty()
+
+
+## Container registered by FurniturePlacementController on install (doc 19
+## Phase 4). Source id comes from the caller (TaskManager.allocate_source_id).
+func register_container(container: ContainerStorageComponent) -> void:
+	container.max_haulers = _max_haulers
+	container.carry_speed_mult_heavy = _carry_mult_heavy
+	container.pouch_capacity = _pouch_capacity
+	container.pouch_bundle_radius = _pouch_radius
+	container.drop_manager = _drop_manager
+	container.changed_callback = _on_zone_deposit
+	_containers[container.source_id] = container
+	TaskManager.register_work_source(container.source_id, container)
+	_mark_dirty()
+
+
+## Container removed (uninstall/DEV): contents are the CALLER's to dump
+## (FurniturePlacementController tears down in order); this frees the slots.
+func deregister_container(container: ContainerStorageComponent) -> void:
+	if not _containers.has(container.source_id):
+		return
+	_containers.erase(container.source_id)
+	TaskManager.cancel_source_tasks(container.source_id)
+	TaskManager.unregister_work_source(container.source_id)
 	_mark_dirty()
 
 
@@ -116,7 +146,9 @@ func get_stats() -> Dictionary:
 		var zone: StockpileZoneComponent = _zones[source_id]
 		cells += zone.cell_count()
 		stored += zone.stored_count()
-	return { "zones": _zones.size(), "cells": cells, "stored": stored }
+	for source_id: int in _containers:
+		stored += (_containers[source_id] as ContainerStorageComponent).stored_count()
+	return { "zones": _zones.size(), "cells": cells, "stored": stored, "containers": _containers.size() }
 
 
 ## Fetch withdraw (doc 19 §3.3): pull one stored unit of `item_key` out of
@@ -140,9 +172,14 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D:
 		if dist < best_dist:
 			best_zone = zone
 			best_dist = dist
-	if best_zone == null:
-		return null
-	return best_zone.withdraw_nearest(item_key, near, dwarf_id)
+	if best_zone != null:
+		return best_zone.withdraw_nearest(item_key, near, dwarf_id)
+	# No zone holds it — try containers (doc 19 Phase 4).
+	for source_id: int in _containers:
+		var container: ContainerStorageComponent = _containers[source_id]
+		if int(container.inventory.get(item_key, 0)) > 0:
+			return container.withdraw_nearest(item_key, near, dwarf_id)
+	return null
 
 
 # ── Wake plumbing ─────────────────────────────────────────────────────────────
@@ -172,6 +209,9 @@ func _route(task: Task, dwarf_id: int) -> void:
 	var zone: StockpileZoneComponent = _zones.get(task.source_id)
 	if zone != null:
 		zone.on_task_gone(task.id, dwarf_id)
+	var container: ContainerStorageComponent = _containers.get(task.source_id)
+	if container != null:
+		container.on_task_gone(task.id, dwarf_id)
 	_mark_dirty()
 
 
@@ -189,6 +229,9 @@ func _on_task_released(task: Task, dwarf_id: int, _reason: int) -> void:
 	var zone: StockpileZoneComponent = _zones.get(task.source_id)
 	if zone != null:
 		zone.cancel_haul(dwarf_id)
+	var container: ContainerStorageComponent = _containers.get(task.source_id)
+	if container != null:
+		container.cancel_haul(dwarf_id)
 	_mark_dirty()
 
 
