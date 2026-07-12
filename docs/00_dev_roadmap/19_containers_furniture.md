@@ -253,7 +253,8 @@ uninstalling N. DEV: **Spawn Furniture Items** button (one item of each of the t
 
 `tools/generate_furniture_glbs.py` (items class: **8 vox/block, 0.125 baked**, the doc 61
 §5.7 convention): `barrel.glb`, `storage_crate.glb`, `storage_shelf.glb` per doc 61 §5.4
-specs (+ NEW shelf spec: 1×1×2, hewn stone uprights, two plank levels, iron brackets;
+specs (+ NEW shelf spec: 1×1×2, heavy wood uprights, two plank levels, iron brackets —
+material rule, Alen 2026-07-11: furniture is woodwork;
 anchors clear of uprights — add to doc 61 when the asset ships). Item-form drop GLBs
 (mini versions, same generator). `resources.json` gains the three item defs + the
 `stockpile_furniture` tag; three furniture JSONs (§3.1). Review renders to

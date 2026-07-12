@@ -14,7 +14,7 @@ Deepdraft is flat-shaded, chunky, and readable at RTS zoom. Every asset must ser
 | Pillar | What it means in practice |
 |---|---|
 | **Dwarven weight** | Forms are squat, broad, and heavy. Thin spindly geometry reads as elven or human — not here. A dwarf table is thick-legged; a dwarf barrel is stout; a dwarf tree has a trunk as wide as it is tall. |
-| **Stone and iron first** | The dominant materials underground are grey granite, dark iron, and amber torch-light. Wood, leather, and bone are surface imports — they feel warmer and more precious. Prioritise cool stone hues for underground objects, warm amber/brown for surface. |
+| **Stone and iron first** | The dominant materials of the WORLD are grey granite, dark iron, and amber torch-light — halls, industry, and monuments are stone and iron. **Furniture is woodwork (Alen, 2026-07-11):** beds, chairs, benches, tables, shelves — anything dwarves use rather than work — is wood, warm against the stone. Wood is plentiful on the surface (the map is forested); it is the natural furniture material, not a luxury. Stone/iron furniture is reserved for industrial anchors (anvil, trade counter, workshop bodies) and monuments (rune shelf, standing stones). |
 | **Mushroom magic** | The underground is alive with bioluminescence. Cave flora glows — not neon, but a soft, cold blue-violet that contrasts sharply with the warm stone environment. This is the game's primary visual signature. |
 | **Weather and age** | Everything in this world has been underground too long or outside too long. Stone is darkened at corners. Wood is grain-streaked. Iron is dull and pitted. Achieve this through colour gradient within a voxel mesh — a lighter highlight layer on top surfaces, a darker shadow layer on underside and recesses. Never flat fill an entire material with a single colour. |
 
@@ -483,23 +483,34 @@ Footprint: **2×1** (laid lengthwise, X = length). Collision: two regions —
 - Mattress body: `{min:[0,0,0], max:[2,1,1]}` — full length, 1 block tall
 - Headboard end: `{min:[0,0,0], max:[0.5,2,1]}` — head-end only, 2 blocks tall
 
-Carved stone frame — dwarves sleep in alcoves, not on raised beds. Mattress: packed hay (`cloth_undyed`) with slight colour variation. Stone headboard (the tall end): a 2-block-tall slab with a single runic notch. No footboard — the foot end is open so the dwarf can swing their legs out.
+**Wood frame (material rule, Alen 2026-07-11 — furniture is woodwork).** Heavy plank frame
+(`wood_plank`, `wood_plank_dark` grooves) with thick corner posts — dwarven-stout, not
+joinery-delicate. Mattress: packed hay (`cloth_undyed`) with slight colour variation. Wooden
+headboard (the tall end): a 2-block-tall plank slab with a single iron-inlay runic notch
+(`iron_dull`). No footboard — the foot end is open so the dwarf can swing their legs out.
+The carved stone ALCOVE the bunk sits in is the room's stonework, not the furniture's.
 
 ---
 
-#### Chair (`base:furniture:stone_chair`)
+#### Chair (`base:furniture:wooden_chair`)
 
 Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,2,1]}]` — 2 blocks tall (includes backrest).
 
-Squat stone seat with solid armrests and a straight-backed headrest. Carved from a single block. No cushion. Slightly concave seat surface (1-voxel dip at centre). The 2-block collision height matches the visible backrest and prevents dwarves from pathing through chairs.
+Squat wooden seat (`wood_plank`, `wood_oak_dark` shadow) with solid armrests and a
+straight-backed headrest — thick-legged, dwarven-heavy, no thin spindles. No cushion.
+Slightly concave seat surface (1-voxel dip at centre, worn smooth). The 2-block collision
+height matches the visible backrest and prevents dwarves from pathing through chairs.
 
 ---
 
-#### Table (`base:furniture:stone_table`)
+#### Table (`base:furniture:wooden_table`)
 
 Footprint: **2×2**. Collision: `[{min:[0,0,0], max:[2,1,2]}]` — 1 block tall (just the slab; dwarves can walk around, not through or over).
 
-Thick stone slab top on two solid pillars. Top surface `stone_highlight`. A `wood_plank` insert across the centre breaks the stone and provides a working surface feel. Legs are solid from floor to underside of slab — no gap to crawl through.
+Thick plank-slab top (`wood_plank`, `wood_plank_dark` grooves) on two solid squat wooden
+pillars. Top surface `wood_oak_light` (worn highlight). Iron corner brackets (`iron_dull`)
+break the wood and add the dwarven-iron accent. Legs are solid from floor to underside of
+slab — no gap to crawl through.
 
 ---
 
@@ -709,7 +720,13 @@ Think ancient forest clearing around a mountain fortress. Oaks are gnarled and w
 This is alien biology. The plump helmet is not a woodland mushroom — it is a subterranean crop cultivated underground for centuries. It should feel simultaneously familiar (mushroom cap shape) and otherworldly (its glow accent, its deep purple, its stout bulk). Cave plants never look fragile. They are adapted survivors.
 
 ### Furniture
-A dwarven bedroom is carved stone. A dwarven tavern has stone benches worn smooth by generations of broad backsides. Warmth comes from torchlight colour, not from soft materials. The one luxury is carved detail — rune marks, iron inlay, polished surfaces. Every piece of furniture implies function first.
+A dwarven bedroom is a carved stone alcove furnished with heavy woodwork — the hall is
+stone, the furniture is wood (material rule, Alen 2026-07-11). A dwarven tavern has thick
+wooden benches worn smooth by generations of broad backsides. Warmth comes from wood grain
+and torchlight colour, not from soft materials. The one luxury is worked detail — iron
+inlay, rune-notched headboards, polished plank surfaces. Every piece of furniture implies
+function first. Stone furniture exists only where stone is the point: the anvil's mass,
+the trade counter's permanence, the rune shelf's monument-feel.
 
 ### Workshop Props
 These are the core of the colony's economy. The Smelter should radiate industrial danger; the Forge should look like weapons are made here, not decorations. The Brewery is warm, steam-touched, slightly chaotic — copper pipes going in unexpected directions, crocks in a row, a barrel that doesn't quite fit. The Aging Cellar is cold, deliberate, and still.

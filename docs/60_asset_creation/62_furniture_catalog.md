@@ -23,8 +23,8 @@
 | Storage Shelf | `base:furniture:storage_shelf` | **v1** (spec lands in 61 §5.4 with the asset) | Contents-rendering storage, capacity 8 (doc 19) |
 | Brewing Vat | `base:furniture:brewing_vat` | SPEC (61 §5.4) | Brewery chain (doc 42) |
 | Bed (Dwarf Bunk) | `base:furniture:dwarf_bunk` | SPEC (61 §5.4) | Sleep + `slept_in_bed` thought (doc 41 — beds NOT yet implemented; sleep-lite is in-place) |
-| Stone Chair | `base:furniture:stone_chair` | SPEC (61 §5.4) | Future eating/idle comfort |
-| Stone Table | `base:furniture:stone_table` | SPEC (61 §5.4) | Future eating/idle comfort |
+| Wooden Chair | `base:furniture:wooden_chair` | SPEC (61 §5.4 — respecced wood, 2026-07-11) | Future eating/idle comfort |
+| Wooden Table | `base:furniture:wooden_table` | SPEC (61 §5.4 — respecced wood, 2026-07-11) | Future eating/idle comfort |
 | Wall Torch | `base:furniture:wall_torch` | SPEC (61 §5.4) | Light + **200 heat units** (doc 34) |
 | Brazier | `base:item:brazier` | PLAN (doc 34 — "future item") | **600 heat units**; large-room heating |
 | Anvil | `base:furniture:anvil` | SPEC (61 §5.4) | Forge visual anchor (doc 44) |
@@ -112,8 +112,12 @@ multiplier isn't materials — the natural Deepdraft multipliers are:
 
 1. **Quality tiers** tied to crafter experience levels (doc 41's level curve already
    exists; `fine`/`masterwork` variants would feed trade value, doc 51), and
-2. **The surface/underground split** doc 61 §1 already defines (warm wood surface pieces
-   vs cool stone underground pieces — e.g. wall torch vs mushroom lantern).
+2. **The function split** (material rule, Alen 2026-07-11): **furniture is woodwork** —
+   beds, chairs, benches, tables, shelves, anything dwarves USE — while stone/iron is
+   reserved for industrial anchors (anvil, trade counter, workshop bodies) and monuments
+   (rune shelf, standing stones). Wood is plentiful (forested map), so this is identity,
+   not scarcity. Lighting keeps its own split: wall torch (surface warmth) vs mushroom
+   lantern (underground glow).
 
 Recommendation: keep the archetype list tight (SH proves ~25 is enough for a full game)
 and defer any variant multiplication until crafting quality exists.
