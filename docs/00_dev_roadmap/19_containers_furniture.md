@@ -343,7 +343,8 @@ this doc's build log.
 
 ## 7. Open decisions (resolve before or during build)
 
-1. <span style="color:#d29922;">**Chest capacity**</span> — 24 vs SH's 32. Lean 24.
+1. <span style="color:#3fb950;">~~Chest capacity~~ — **DECIDED (Alen, 2026-07-11): 24.**
+   The ladder step from barrel 8 stays meaningful without obsoleting ground zones at v1.</span>
 2. <span style="color:#d29922;">**Rotation input**</span> — R key (lean) vs wheel.
 3. <span style="color:#d29922;">**Allocator migration scope**</span> — new families only
    (lean) vs migrating mining/zone keyspaces.
