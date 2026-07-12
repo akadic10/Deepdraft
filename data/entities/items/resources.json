@@ -631,12 +631,12 @@
     "material_tags": ["special", "placeable", "settlement_anchor", "stockpile_misc"]
   },
 
-  "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall; v1 source is the DEV spawner until crafting/trade produce them.",
+  "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall; v1 source is the DEV spawner until crafting/trade produce them. ONE-BOX RULE (Alen, 2026-07-11): every packed furniture item shares the same generic packed_furniture.glb box - the ghost says which piece it becomes.",
 
   "base:resources:furniture:barrel": {
     "display_name": "Barrel (packed)",
     "description": "A hooped oak barrel, packed flat and ready to set up wherever it is needed.",
-    "model": "res://assets/models/items/furniture/barrel.glb",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "weight_class": "heavy",
     "base_trade_value": 8,
@@ -646,7 +646,7 @@
   "base:resources:furniture:storage_chest": {
     "display_name": "Storage Chest (packed)",
     "description": "A heavy plank chest with its iron corner fittings bundled inside.",
-    "model": "res://assets/models/items/furniture/storage_chest.glb",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "weight_class": "heavy",
     "base_trade_value": 12,
@@ -656,7 +656,7 @@
   "base:resources:furniture:storage_shelf": {
     "display_name": "Shelf Kit",
     "description": "Plank shelving and oak uprights lashed into a carrying bundle, brackets included.",
-    "model": "res://assets/models/items/furniture/storage_shelf.glb",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "weight_class": "heavy",
     "base_trade_value": 10,

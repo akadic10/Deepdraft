@@ -2,10 +2,16 @@
 """
 Generate Deepdraft storage-furniture GLBs — doc 19 Phase 1.
 
-Three placed forms + three item forms (the doc 19 three-form model: the item
-form is the carryable drop dwarves fetch and haul; the placed form is what
-stands in the world; the GHOST is the placed form rendered translucent at
-runtime — no separate ghost asset).
+Three placed forms + ONE shared item form (the doc 19 three-form model: the
+item form is the carryable drop dwarves fetch and haul; the placed form is
+what stands in the world; the GHOST is the placed form rendered translucent
+at runtime — no separate ghost asset).
+
+ONE-BOX RULE (Alen, 2026-07-11 — the ore one-shape rule applied to
+furniture): EVERY packed furniture item uses the SAME generic box — a plank
+crate with rope lashing. At RTS zoom the box says "packed furniture"; the
+ghost you placed says which piece it becomes. All resources.json furniture
+item defs point at the single packed_furniture.glb.
 
 MATERIAL RULE (Alen, 2026-07-11 — doc 61 §1): furniture is WOODWORK. All three
 pieces are wood-bodied with iron accents; stone appears nowhere here.
@@ -27,7 +33,7 @@ DETERMINISM: fixed seed; every run regenerates byte-identical files.
 Outputs (paths must match data/furniture/*.json "model" and
 data/entities/items/resources.json "model" fields):
   assets/models/furniture/{barrel,storage_crate,storage_shelf}.glb   (placed)
-  assets/models/items/furniture/{barrel,storage_chest,storage_shelf}.glb (item)
+  assets/models/items/furniture/packed_furniture.glb                 (shared item)
 Review sheet: tmp/furniture_review/furniture_sheet.png
 """
 
@@ -166,30 +172,38 @@ def build_storage_shelf():
     return v
 
 
-# ── Item forms — mini versions (the carryable drop, ~half-block) ─────────────
+# ── Item form — ONE shared packed box (Alen, 2026-07-11) ─────────────────────
 
-def build_barrel_item():
-    return build_barrel(height=5, radii=[1.6, 1.9, 2.1, 1.9, 1.6], bands=(2,), bung=True)
-
-
-def build_chest_item():
-    return build_storage_chest(size=5, mini=True)
+ROPE = _c(0xA09060)   # doc 61 rope_natural
 
 
-def build_shelf_item():
-    """Flat bundle of shelf parts: two short posts lashed to plank slabs —
-    reads as 'shelf kit', not a shrunken shelf."""
+def build_packed_box():
+    """The generic packed-furniture crate: a stout plank box with rope
+    lashing crossing the top and sides — reads as "boxed goods in transit",
+    distinct from the iron-bracketed storage chest. ~5×4×5 voxels (well
+    inside a half-block), used by EVERY furniture item def."""
     rng = random.Random(SEED + 3)
     v = Voxels()
-    for y in (0, 1):                          # two stacked plank slabs 6×2×3
-        for x in range(-3, 3):
-            for z in range(-1, 2):
-                v.cells[(x, y, z)] = _wood_jitter(rng, PLANK if y else PLANK_DARK)
-    for x in (-2, 1):                          # two posts laid across the top
-        for z in range(-1, 2):
-            v.cells[(x, 2, z)] = _wood_jitter(rng, OAK_MID)
-    v.cells[(-3, 2, 0)] = IRON_DULL            # bracket fittings tied on
-    v.cells[(2, 2, 0)] = IRON_DULL
+    half = 2   # x/z in -2..2 (5 wide)
+    for x in range(-half, half + 1):
+        for z in range(-half, half + 1):
+            for y in range(0, 4):
+                seam = (y == 2)
+                v.cells[(x, y, z)] = _wood_jitter(rng, PLANK_DARK if seam else PLANK)
+    # Rope lashing: two crossing straps over the top and down the sides.
+    for x in range(-half, half + 1):
+        v.cells[(x, 3, 0)] = ROPE
+        v.cells[(x, 0, 0)] = _scale_c(ROPE, 0.85)
+    for z in range(-half, half + 1):
+        v.cells[(0, 3, z)] = ROPE
+        v.cells[(0, 0, z)] = _scale_c(ROPE, 0.85)
+    for y in range(0, 4):                      # straps down all four faces
+        v.cells[(-half, y, 0)] = ROPE
+        v.cells[(half, y, 0)] = ROPE
+        v.cells[(0, y, -half)] = ROPE
+        v.cells[(0, y, half)] = ROPE
+    # Knot on top where the straps cross.
+    v.cells[(0, 3, 0)] = _scale_c(ROPE, 1.12)
     return v
 
 
@@ -263,24 +277,20 @@ def main():
         ("storage_crate", build_storage_chest()),
         ("storage_shelf", build_storage_shelf()),
     ]
-    items = [
-        ("barrel", build_barrel_item()),
-        ("storage_chest", build_chest_item()),
-        ("storage_shelf", build_shelf_item()),
-    ]
+    box = build_packed_box()
 
     total = 0
     for name, vox in placed:
         size = write_glb(placed_dir / f"{name}.glb", name, mesh_from_voxels(vox), EXPORT_SCALE)
         print(f"  furniture/{name + '.glb':22s} {len(vox):4d} voxels  {size:6d} B")
         total += size
-    for name, vox in items:
-        size = write_glb(item_dir / f"{name}.glb", f"{name}_item", mesh_from_voxels(vox), EXPORT_SCALE)
-        print(f"  items/furniture/{name + '.glb':16s} {len(vox):4d} voxels  {size:6d} B")
-        total += size
+    size = write_glb(item_dir / "packed_furniture.glb", "packed_furniture",
+                     mesh_from_voxels(box), EXPORT_SCALE)
+    print(f"  items/furniture/packed_furniture.glb {len(box):4d} voxels  {size:6d} B")
+    total += size
 
     sheet = _sheet(
-        [(f"{n} (placed)", v) for n, v in placed] + [(f"{n} (item)", v) for n, v in items],
+        [(f"{n} (placed)", v) for n, v in placed] + [("packed box (item)", box)],
         root / "tmp" / "furniture_review" / "furniture_sheet.png")
     print(f"furniture set complete ({total / 1024:.1f} KB); review sheet -> {sheet}")
 

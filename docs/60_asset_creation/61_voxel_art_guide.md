@@ -494,7 +494,10 @@ shelf**: stored item GLBs sit on the 8 anchor points (4 per level, defined in
 WYSIWYG. **Model slated for hand-authoring by Alen**; the
 `tools/generate_furniture_glbs.py` version (which has a back panel) is the interim
 stand-in — remove the shelf from the generator output when the authored asset lands.
-The item form (a lashed "shelf kit" bundle) lives in `assets/models/items/furniture/`.
+**Item form: the shared packed box** (one-box rule, Alen 2026-07-11 — the §5.7 ore
+one-shape rule applied to furniture): every packed furniture item renders as the SAME
+rope-lashed plank crate, `assets/models/items/furniture/packed_furniture.glb`. The box
+says "packed furniture"; the ghost says which piece it becomes.
 
 ---
 
