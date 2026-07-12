@@ -298,7 +298,7 @@ func _agents_tasks_text() -> String:
 			s.get("probes_per_sec", 0.0),
 			s.get("worst_wake_usec", 0),
 			s.get("wake_count", 0),
-		] + mining_text + _storage_text(),
+		] + mining_text + _storage_text() + _furniture_text(),
 	])
 
 
@@ -326,6 +326,17 @@ func _storage_text() -> String:
 		reserved = int(d.get("reserved", 0))
 	return "\nstorage: zones %d (cells %d)  stored %d  loose %d  reserved %d" % [
 		zones, cells, stored, loose, reserved]
+
+
+## Furniture instrumentation (doc 19 Phase 2). Ghosts/installed from the
+## placement controller; "uninstalling" joins when the 📤 flag lands (Phase 3).
+func _furniture_text() -> String:
+	var furniture := get_tree().get_first_node_in_group("furniture_controller")
+	if furniture == null or not furniture.has_method("get_stats"):
+		return ""
+	var f: Dictionary = furniture.call("get_stats")
+	return "\nfurniture: ghosts %d  installed %d" % [
+		int(f.get("ghosts", 0)), int(f.get("installed", 0))]
 
 
 func _on_title_bar_gui_input(event: InputEvent) -> void:

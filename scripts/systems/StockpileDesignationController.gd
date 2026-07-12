@@ -338,6 +338,13 @@ func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
 	var col := Vector2i(cell.x, cell.z)
 	if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col):
 		return false
+	# Zones never overlap furniture ghosts or installed pieces (doc 19 Phase 2;
+	# installed occupancy already fails is_walkable, ghosts are non-solid so
+	# they need the explicit check).
+	var furniture := get_tree().get_first_node_in_group("furniture_controller")
+	if furniture != null and furniture.has_method("blocks_zone_cell") \
+			and bool(furniture.call("blocks_zone_cell", cell)):
+		return false
 	return NavGrid.is_walkable(cell)
 
 
@@ -376,6 +383,12 @@ func remove_zone(zone_id: int) -> void:
 	if _window_zone_id == zone_id:
 		_close_zone_window()
 	zone_removed.emit(zone_id)
+
+
+## Cross-system lookup (doc 19 Phase 2): the furniture tool must not place
+## on zone cells. Mirrored by our own _is_valid_cell rejecting furniture.
+func is_zone_cell(cell: Vector3i) -> bool:
+	return _cell_to_zone.has(cell)
 
 
 func get_zone(zone_id: int) -> StockpileZoneComponent:

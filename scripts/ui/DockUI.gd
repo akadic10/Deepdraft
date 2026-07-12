@@ -29,6 +29,15 @@ var _slice_controller: Node = null
 var _dwarf_director: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
+var _furniture_controller: Node = null
+
+## Build-panel label -> furniture def key (doc 19 Phase 2 - the three v1
+## storage pieces; future placeables append here).
+const FURNITURE_PANEL_ITEMS: Dictionary = {
+	"📥 Barrel": "base:furniture:barrel",
+	"📥 Storage Chest": "base:furniture:storage_chest",
+	"📥 Storage Shelf": "base:furniture:storage_shelf",
+}
 var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
 
@@ -260,6 +269,18 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 		_panel_container.visible = false
 		_active_panel_target = ""
 		tool_requested.emit("storage_zone")
+		_refresh_active_buttons()
+		return
+	if target == "build" and FURNITURE_PANEL_ITEMS.has(label):
+		_panel_container.visible = false
+		_active_panel_target = ""
+		# Announce first so every other click-tool deactivates (2026-07-06
+		# contract), then arm the furniture tool with the chosen def.
+		tool_requested.emit("furniture")
+		if _furniture_controller != null and _furniture_controller.has_method("activate_for"):
+			_furniture_controller.call("activate_for", String(FURNITURE_PANEL_ITEMS[label]))
+		else:
+			push_warning("DockUI: no FurniturePlacementController registered.")
 		_refresh_active_buttons()
 		return
 	if target == "storage_zone" and label == "DEV: Spawn Drops":
@@ -581,6 +602,10 @@ func register_stockpile_controller(controller: Node) -> void:
 	_stockpile_controller = controller
 
 
+func register_furniture_controller(controller: Node) -> void:
+	_furniture_controller = controller
+
+
 func _on_slice_active_changed(_active: bool) -> void:
 	_refresh_active_buttons()
 
@@ -638,7 +663,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"chop":
 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
 		"build":
-			return ["Workshop", "Furniture", "Stockpile", "Door"]
+			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "Cancel"]
 		"storage_zone":
 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
 		"farm":
