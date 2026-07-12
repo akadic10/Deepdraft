@@ -122,6 +122,36 @@ Current gait was a placeholder sine bob: cycle speed an arbitrary constant, feet
 Docs to touch when this ships: `41b_dwarf_appearance_glb.md` (part dimensions, clothes
 decision), `61_voxel_art_guide.md` §3 table if proportions change, doc 16 build log.
 
+## 4. Known defects (logged, not yet fixed)
+
+### <span style="color:#d29922;">4.1 "Drawer hair" — some hair styles render as a hollow open-topped box (Alen, 2026-07-11)</span>
+
+**Symptom:** in-engine, several dwarves' hair reads as an open drawer/crate sitting on the
+head — four raised walls around the crown with a sunken hollow interior and no top fill.
+Observed on at least two dwarves simultaneously (one red-tinted, one white/grey-tinted —
+so it is style-driven, not tint-driven), screenshot 2026-07-11 by the stockpile zone.
+
+**Suspect styles:** the big-box styles in `build_hair()` — `wild` (full-head box + interior
+shell carve + `top_extra=2` scalp) and `wild_loose` (`top_extra=1` + oversize boxes) fit the
+silhouette best. Styles that are scalp-cap-only (`shaved`, `cropped`, `short_back`…) look fine.
+
+**Root-cause hypothesis (from reading `tools/generate_dwarf_glb.py`, unverified):** a
+mismatch between the scalp map and the forbidden-set subtraction. `_head_top_map()` shrink-
+wraps the scalp over the **adult** head only, but `_subtract_forbidden()` removes cells
+occupied by **any** age tier's head (`for age in AGES: core |= build_head(age).cells`). If any
+tier's crown dome rises above the adult dome, the scalp/box cells over the crown coincide with
+that taller head's geometry and get subtracted — hollowing the cap's top fill and leaving only
+the outer walls that clear every head tier: the drawer. The `wild` style's own interior carve
+(`y < HEAD_Y1` shell trim) may compound it. Note the shaping pass (2026-07-02, banked from the
+QA sheet) audited **overlaps**, not **hollows** — a missing top is exactly the class the
+1536-combo audit would not have flagged.
+
+**Fix-session plan:** regenerate the QA sheet (`tools/render_dwarf_qa.py` →
+`tmp/dwarf_visual_qa/`) with top-down and three-quarter angles per hair style × age tier;
+confirm which styles hollow; either build the scalp per age tier or subtract only the
+wearer's own tier (the head part and hair part are paired at generation time — the all-tier
+subtraction is broader than the runtime combination ever is). Re-audit for overlaps after.
+
 ---
 
 *Prev: [16_first_dwarf_milestone.md](./16_first_dwarf_milestone.md)*
