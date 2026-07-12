@@ -838,7 +838,13 @@ func _fetch_pickup() -> void:
 	_fetch_item.position = CARRY_OFFSET
 	_fetch_item.rotation = Vector3.ZERO
 	var target: Vector3i = source.call("nearest_stand_target", current_cell())
-	if target.x >= 0 and walk_to(target):
+	if target.x < 0:
+		_fetch_fail_release()   # footprint has no walkable neighbour right now
+		return
+	if target == current_cell():
+		_task_phase = TaskPhase.FETCH_WORKING
+		_exec_timer = _furniture_time("build_time_s")
+	elif walk_to(target):
 		_task_phase = TaskPhase.FETCH_TO_GHOST
 	else:
 		_fetch_fail_release()
