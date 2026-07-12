@@ -66,6 +66,7 @@ This file is the **entry point** for any AI agent working on this codebase. Read
 | File | Read before you… |
 |---|---|
 | [`61_voxel_art_guide.md`](docs/60_asset_creation/61_voxel_art_guide.md) | Author or review any GLB asset — trees, bushes, cave flora, farm crops, furniture, workshop props, or world decoratives. Contains the master colour palette, MagicaVoxel scale rules, per-asset bounding boxes, naming conventions, and the Dwarven fantasy aesthetic brief. |
+| [`62_furniture_catalog.md`](docs/60_asset_creation/62_furniture_catalog.md) | Plan a furniture or decoration milestone, or pick the next asset batch. Full Deepdraft furniture inventory (status per piece) compared against Stonehearth's catalogue (enumerated from source 2026-07-11), with the variant strategy and archetype gap list. |
 
 
 ---
