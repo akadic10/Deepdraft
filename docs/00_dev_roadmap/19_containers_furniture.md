@@ -396,6 +396,12 @@ this doc's build log.
    swing only from a legal stand cell. Already-trapped dwarves need a fresh run (no save
    system — every run regenerates anyway). Incidentally confirmed working in the same
    screenshot: container hauling (chest at 12/24 with live per-item counts).
+   *Postscript: applying this fix uncovered that the Phase 3 commit had captured a
+   TRUNCATED FurnitureGhostComponent blob (the mount's stale-size cache cut it at the old
+   file length — parse-valid by coincidence) while the game ran the correct on-disk file.
+   Restored to git in full with the fix; a repo-wide working-tree-vs-blob audit found no
+   other damage. Session rule going forward: after any Write-tool rewrite of an EXISTING
+   .gd file, verify the git blob size matches the working tree before trusting the commit.*
 
 1. **"The dwarves aren't reacting to it" (Alen, 2026-07-11, first Phase 2 session)** —
    expected at this point, not a defect: ghosts are inert designations until Phase 3
