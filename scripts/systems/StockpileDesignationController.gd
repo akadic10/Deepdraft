@@ -115,6 +115,15 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active:
+		# Mining parity (defect, Alen 2026-07-11: a stocked zone was unremovable
+		# with the tool off): zones stay click-selectable while the tool is
+		# INACTIVE, exactly like MiningDesignationController's inactive branch —
+		# the zone window (and its Remove button) must always be reachable.
+		if event is InputEventMouseButton:
+			var mb_inactive := event as InputEventMouseButton
+			if mb_inactive.pressed and mb_inactive.button_index == MOUSE_BUTTON_LEFT \
+					and _try_select_zone_at_screen(mb_inactive.position):
+				get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and (event as InputEventKey).pressed \
 			and (event as InputEventKey).keycode == KEY_ESCAPE:
@@ -550,6 +559,20 @@ func _build_window() -> void:
 		remove_zone(_window_zone_id)
 	)
 	column.add_child(remove)
+
+
+## Zone click-select at an arbitrary screen position — usable while the tool
+## is INACTIVE (the mining controller's _try_select_zone_at_screen pattern).
+## Returns true if a zone window was opened (caller consumes the click).
+func _try_select_zone_at_screen(screen_pos: Vector2) -> bool:
+	var hit := _surface_cell_for(screen_pos)
+	if hit.is_empty():
+		return false
+	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
+	if not _cell_to_zone.has(cell):
+		return false
+	_open_zone_window(int(_cell_to_zone[cell]))
+	return true
 
 
 func _open_zone_window(zone_id: int) -> void:
