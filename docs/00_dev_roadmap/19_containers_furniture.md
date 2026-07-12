@@ -381,6 +381,13 @@ this doc's build log.
 
 ## 8. Build log
 
+### Playtest notes
+
+1. **"The dwarves aren't reacting to it" (Alen, 2026-07-11, first Phase 2 session)** —
+   expected at this point, not a defect: ghosts are inert designations until Phase 3
+   (fetch-and-build leases). The doc 18 precedent, recorded so the expectation is explicit.
+   Interim: the ghost window's DEV: Instant Build materialises the piece without a dwarf.
+
 | Date | Steps | State |
 |---|---|---|
 | 2026-07-11 | **Phase 2 (ghost placement tool).** New `FurniturePlacementController` (scene node; sole reader of `data/furniture/*.json` — defs need `placement` + `item_key`, so trade_counter correctly skips) + `FurnitureGhostComponent` (Phase 3 grows it into the FETCH_BUILD work source). Tool: Build panel 📥 entries (label→key map in DockUI; announce `tool_requested("furniture")` then `activate_for(key)`), translucent placed-form cursor ghost (SH parity: real model, alpha 0.30, validity tint cyan/red), **R** rotates 90° (footprint W/D swap for future non-square pieces), height-field-march hover, per-cell validity (bounds, bedrock, water, NavGrid walkable, no zone/ghost/installed overlap — zone tool mirrors via `blocks_zone_cell` / `is_zone_cell`), `floor_wall` probes solid blocks behind the yaw-rotated back row. Confirmed ghosts persist non-solid + slice-culled. Windows: ghost (Cancel 📥 + **DEV: Instant Build** — shares `_install()` with the future fetch executor; occupancy boxes from `collision_regions`, yaw-swapped extents) and installed (**DEV: Remove** → drops the packed item). Click-select works with the tool off (A3 lesson, day one). Overlay `furniture:` row (ghosts/installed). Scene: controller node added to `debug_world.tscn`. Gotcha logged: GDScript `\U` escapes take SIX hex digits (not Python's eight) — 📥 embedded as literal chars instead. | **Implemented — NOT yet verified in-engine.** Verify per Phase 2 acceptance: 📥 ghosts for all three pieces on flats/terraces; shelf refuses placement without a wall behind (rotate with R against a cliff face); ghosts never block dwarf pathing; ESC exits; Cancel cleans up fully; zones can't paint under ghosts/furniture and vice versa; DEV Instant Build → solid piece blocks pathing immediately; DEV Remove → packed item drops loose and gets hauled away. No new autoloads — no editor reload needed. |
