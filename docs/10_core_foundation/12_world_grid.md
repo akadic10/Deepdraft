@@ -130,6 +130,11 @@ Not everything in the world is a terrain block. **Placed entities** are objects 
 | Player-constructed | Workshops, beehives, furniture, stockpile zones |
 | Dropped items | Harvested resources waiting for pickup |
 
+> **Furniture three-form model (doc 19, 2026-07-11 — SH-verified):** player furniture is
+> ONE logical thing in three representations: a carryable ITEM (a normal resources.json
+> drop), the PLACED form (occupancy-registered via this pattern), and a non-solid GHOST
+> (a standing build request). Only the placed form ever touches `PlacedEntityRegistry`.
+
 **The terrain grid never knows about placed entities.** There are no sentinel block IDs (like `"entity_reserved"`) written into the grid to mark where a tree or workshop stands. The grid stores only block IDs. Pathfinding and interaction systems query the `PlacedEntityRegistry` separately when they need to know about entity presence.
 
 > **Verified against Stonehearth source:** Trees inherit `placed_object.json` which declares `"navgrid": { "has_physics": true }`. When a tree dies, `kill_entity()` is called — nothing in the terrain grid is touched. The mining selection filter queries `region_collision_shape` on entities directly, not the terrain grid.

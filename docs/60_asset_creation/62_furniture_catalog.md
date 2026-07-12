@@ -18,9 +18,9 @@
 | Piece | Key | Status | System it serves |
 |---|---|---|---|
 | Trade Counter | `base:furniture:trade_counter` | DATA + SPEC (61 §5.4) | Shop room anchor, automated trade (doc 51) |
-| Barrel | `base:furniture:barrel` | SPEC → **v1** | Storage container, capacity 8 (doc 19) |
-| Chest / Crate | `base:furniture:storage_crate` → `storage_chest` | SPEC → **v1** | Storage container, capacity 24 (doc 19) |
-| Storage Shelf | `base:furniture:storage_shelf` | **v1** (spec lands in 61 §5.4 with the asset) | Contents-rendering storage, capacity 8 (doc 19) |
+| Barrel | `base:furniture:barrel` | **SHIPPED (doc 19)** | Storage container, capacity 8 (doc 19) |
+| Chest / Crate | `base:furniture:storage_crate` → `storage_chest` | **SHIPPED (doc 19)** | Storage container, capacity 24 (doc 19) |
+| Storage Shelf | `base:furniture:storage_shelf` | **SHIPPED (doc 19)** — Alen's hand-authored model pending | Contents-rendering storage, capacity 8 (doc 19) |
 | Brewing Vat | `base:furniture:brewing_vat` | SPEC (61 §5.4) | Brewery chain (doc 42) |
 | Bed (Dwarf Bunk) | `base:furniture:dwarf_bunk` | SPEC (61 §5.4) | Sleep + `slept_in_bed` thought (doc 41 — beds NOT yet implemented; sleep-lite is in-place) |
 | Wooden Chair | `base:furniture:wooden_chair` | SPEC (61 §5.4 — respecced wood, 2026-07-11) | Future eating/idle comfort |

@@ -131,6 +131,7 @@ func cancel_task(task_id: int) -> void
 func complete_dwarf_task(dwarf_id: int) -> void
 func release_dwarf_task(dwarf_id: int, reason: int, requeue_dwarf := true) -> void  # §2.8: always cheap, always legal
 func fail_dwarf_task(dwarf_id: int, reason: String) -> void
+func allocate_source_id() -> int                                    # doc 19: new work-source families allocate here (10M+)
 func register_work_source(source_id: int, source: Object) -> void   # + unregister / get / cancel_source_tasks
 func register_dwarf(agent: DwarfAgent) -> void                      # + deregister
 func notify_dwarf_idle(dwarf_id: int) -> void

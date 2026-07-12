@@ -207,12 +207,12 @@ dumps its contents after a `DROP_ALL_TIMEOUT` (2 h).
 - **Haul-utility priority band:** close item + close storage should be able to outrank mining
   (SH: restock 0.2–0.7 vs mine 0.4). Touches the scheduler's colony-bonus model (doc 16 §2.2).
 
-- **Container entities** (barrel = small crate 8, chest = large crate ~24–32, shelf below) —
-  placeable storage sharing the zone's interface; needs the furniture-placement tool first.
-- **Storage Shelf** (Alen's ask, 2026-07-06): a 1×1, 2-block-tall wall-adjacent furniture
-  piece, capacity ~8–12, **contents rendered on the shelf** (micro-voxel drop GLBs already
-  exist — placing them on shelf anchor points is the same trick as ground stacks). Dwarven
-  aesthetic per doc 61 §5.4: hewn stone uprights, plank shelves, iron brackets.
+- ~~**Container entities**~~ — **SHIPPED (doc 19, 2026-07-11):** barrel 8 / chest 24 /
+  shelf 8 (contents rendered), on the extracted `StorageComponent` contract, fed by the
+  furniture placement pipeline (ghost → fetch-and-build → 📤 uninstall).
+- ~~**Storage Shelf**~~ — **SHIPPED (doc 19, 2026-07-11):** ground shelf (wall req.
+  dropped same day), capacity 8 = anchor count (WYSIWYG), contents rendered at SH's 0.5
+  anchor scale; all-wood per the material rule. Alen's hand-authored model pending.
 - **Input/output containers** land with workshops (doc 44): brewery input bin (single-filter,
   restocked at higher priority) and output box slot directly into the doc 23 workshop-lookup
   API — this is the Stonehearth-verified answer to how workshops stay fed.
