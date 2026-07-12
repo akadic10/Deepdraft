@@ -6,23 +6,25 @@
 > <span style="color:#d29922;">Yellow = decision needed or tune-in-engine</span> |
 > <span style="color:#f85149;">Red = explicitly out of scope for this milestone</span>
 
-Status: plan, drafted 2026-07-11. Nothing implemented.
+Status: plan, drafted 2026-07-11; **revised same day after the P:\stonehearth deploy/undeploy
+source review (Alen's ask — furniture placed FROM storage, 📥 place / 📤 uninstall).**
 
 **Why this milestone:** doc 18 shipped ground stockpiles with a deliberate density ceiling —
 one item per tile, WYSIWYG (Alen, 2026-07-06). Density was explicitly deferred to
 **containers**, the Stonehearth-verified upgrade path (small crate 8 → large crate 32 →
-vault 256; doc 18 §2.5). Containers need a **furniture placement tool**, which does not
-exist — and that tool is itself the gateway for every future placeable: workshop props
-(doc 44), tavern furniture (doc 51), the Armory's stands and displays (doc 52), beds,
-torches. This milestone builds the general placement pipeline and proves it on the three
-storage pieces, extracting the storage contract doc 18 deliberately kept clean for exactly
-this moment (doc 18 §6 decision 5). The doc 16 architectural bet gets its third test:
-containers are work sources posting HAUL leases, same as mining zones and ground stockpiles.
+vault 256; doc 18 §2.5). Containers need a **furniture pipeline**, which does not exist —
+and that pipeline is the gateway for every future placeable: workshop props (doc 44),
+tavern furniture (doc 51), the Armory's stands and displays (doc 52), beds, torches.
+Following the Stonehearth review (§2 below), furniture is not conjured — it is an **item**
+that dwarves fetch from storage and install, and uninstall back into storage. Both
+directions ride the doc 18 haul pipeline. The doc 16 architectural bet gets its third and
+fourth tests: containers post HAUL leases; placement ghosts post FETCH-AND-BUILD leases.
 
-Deliverable: **the player places a barrel, chest, or storage shelf from the Build panel;
-dwarves haul loose drops into them through the existing lease pipeline; shelf contents are
-visible on the shelf; removing a container returns its contents to the world as loose
-drops — with hauling interruptible at any point under the release protocol.**
+Deliverable: **the player 📥-places a barrel, chest, or storage shelf as a ghost from the
+Build panel; a dwarf fetches the furniture item and installs it; dwarves haul loose drops
+into the installed container; 📤 marks it for uninstall — a dwarf breaks it down into its
+item form (contents dumped loose) and normal hauling restocks everything — with every step
+interruptible under the release protocol.**
 
 ---
 
@@ -30,86 +32,174 @@ drops — with hauling interruptible at any point under the release protocol.**
 
 | Piece | State today | Gap |
 |---|---|---|
-| Furniture data schema | `data/furniture/trade_counter.json` — rich canonical schema (footprint, collision_regions, room_anchor…) but nothing loads it | No loader, no other furniture defs |
-| Furniture assets | **None.** `assets/models/` has flora + items only; doc 61 §5.4 has authored SPECS for barrel + storage crate | Generate GLBs (barrel, chest, shelf); shelf needs a doc 61 spec |
-| Placement tool | `FlagPlacementController` — single-entity ghost + validity tint + `PlacedEntityRegistry.register_box` (256 lines, one-shot) | No data-driven multi-item tool, no rotation, no removal |
+| Furniture data schema | `data/furniture/trade_counter.json` — rich canonical schema (footprint, collision_regions, room_anchor…) but nothing loads it | No loader, no other furniture defs, no ITEM-form defs |
+| Furniture assets | **None.** `assets/models/` has flora + items only; doc 61 §5.4 has authored SPECS for barrel + storage crate | Full-size GLBs (placed form) + item-drop GLBs (carryable form); shelf needs a doc 61 spec |
+| Placement tool | `FlagPlacementController` — single-entity ghost + validity tint + `PlacedEntityRegistry.register_box` (256 lines, one-shot) | No data-driven ghost tool, no rotation, no fulfilment leases |
 | Entity occupancy | `PlacedEntityRegistry` + `occupancy_changed` → NavGrid invalidation, proven by flag + trees | Nothing — reused as-is |
-| Storage logic | `StockpileZoneComponent` — accept/reserve/deposit surface + the full pouch haul loop, designed as the future shared contract (doc 18 §2.5) | Extract the contract; zone keeps behaviour, container implements it with slots instead of cells |
-| Haul pipeline | Leases, pouch bundles, release protocol, owner-guarded reservations — shipped + verified 2026-07-11 | Container as a third work-source family |
-| Source ids | Mining zones raw ids; stockpile zones at `1_000_000 + zone_id`; **doc 18 recorded tech debt: TaskManager-owned allocator "when a third source system appears"** | The third system is here — the debt is due |
-| UI | Dock `build` panel entry exists (`open_panel` / `build`), panel is a stub | Build panel gets the three storage pieces |
+| Item pipeline | `ItemDropManager` loose-item index + reservations + hauling, shipped + verified 2026-07-11 | Furniture item defs join `resources.json`; a new `stockpile_furniture` filter tag |
+| Storage logic | `StockpileZoneComponent` — accept/reserve/deposit + the pouch haul loop, designed as the future shared contract (doc 18 §2.5) | Extract the contract; container implements it with slots instead of cells |
+| Source ids | Mining raw; stockpile zones at 1M offset; **doc 18 tech debt: TaskManager allocator "when a third source system appears"** | Third AND fourth families arrive (containers, ghosts) — the debt is due |
+| UI | Dock `build` panel entry exists, panel is a stub | Build panel gets 📥 placement; furniture window gets 📤 |
 
 ---
 
-## 2. ARCHITECTURE
+## 2. Stonehearth reference findings (verified from `P:\stonehearth` source, 2026-07-11)
 
-### <span style="color:#3fb950;">2.0 Direction</span>
+Read directly from `components/entity_forms/entity_forms_component.lua`,
+`lib/entity_forms/entity_forms_lib.lua`, `call_handlers/place_item_call_handler.lua`,
+`ai/actions/pickup_placed_item_adjacent_action.lua`, `place_item_type_on_structure_2.lua`,
+and `data/commands/undeploy_item/`.
 
-1. **One storage contract, many faces (the SH model, doc 18 §2.5).** A shared
-   `StorageComponent` base class owns the generic haul-loop machinery (lease posting, pouch
-   `reserve_haul` / `cancel_haul` / `take_item` / `skip_item` / `commit_haul`, owner-guarded
-   reservations). Subclasses answer only: *where does a deposit go, and how much room is
-   left?* Ground zone = per-item floor cells; container = capacity slots behind one stand
-   cell. The doc 18 haul executor on `DwarfAgent` does not change at all.
-2. **The WYSIWYG split is a principle, not an accident (Alen, 2026-07-06 + SH parity):**
-   fully-visible storage (ground zones, the shelf) shows exactly what it holds; opaque
-   density containers (barrel, chest) trade visibility for capacity and show counts in
-   their window. The shelf's capacity IS its anchor count — never render fewer items than
-   it holds.
-3. **Placement is general, storage is the first client.** The placement tool reads
-   `data/furniture/*.json` and knows nothing about storage; it places, registers occupancy,
-   and emits. A furniture def with a `storage` block additionally gets a storage component
-   registered with `StockpileManager`. Workshop props and Armory furniture later reuse the
-   tool untouched.
-4. **Release stays cheap and legal (Hard Rule 12):** nothing in this milestone touches the
-   interrupt path — a hauler interrupted mid-trip to a barrel drops the pouch at its feet
-   exactly as today.
+### The three-form model
 
-### 2.1 Furniture data + the loader
+Every placeable item is ONE logical entity with three representations:
 
-Three new defs following the `trade_counter.json` schema, `furniture_category: "storage"`:
+| Form | What it is | Where it lives |
+|---|---|---|
+| **Root** | Full-size deployed object | In the world, registered with nav/collision |
+| **Iconic** | Small carryable lump | In stockpiles/containers, in a worker's hands, loose on the ground |
+| **Ghost** | Translucent placement preview | In the world as a **persistent task marker** until fulfilled |
 
-| Def | Footprint | Collision | Storage block |
+The player's inventory tracks root XOR iconic depending on which is in-world — a parent
+trace swaps them (`_on_parent_changed`). The ghost copies the root's collision shape but
+sets it to `RegionCollisionShape.NONE`: **nav is unaffected until the item is actually
+installed.**
+
+### Place = a standing request, type-matched
+
+`place_item_type_in_world` drops a ghost and asks the town for fulfilment. The AI action
+matches **any iconic of that URI** (not a specific instance) that is not itself being
+placed, leases it, and a worker carries it to the ghost and swaps ghost → root. The UI
+returns `more_items` so the tool can stay active while stock remains.
+
+### Undeploy = a restock toggle, then normal hauling
+
+`undeploy_item` sets `should_restock` on the placed item (a TOGGLE — clicking again
+cancels), shows an overlay effect, and cancels competing tasks. A worker executes
+`pickup_placed_item_adjacent`: walk adjacent, `work` effect, unparent the root, pick up
+the **iconic** — from that moment it is ordinary restockable inventory and the doc 18-style
+restock machinery stores it. Undeploying and placing are mutually cancelling
+(`_place_item` calls `set_should_restock(false)`; restocking cleans up placement tasks).
+
+### Gear worth stealing later (recorded, not v1)
+
+- **Command locking:** an item placed ON another (lamp on table) locks the base item's
+  move/undeploy commands until the child leaves (`_on_children_changed`).
+- **Placement limits:** `stonehearth:item_placement_limit` caps per-town placements by tag.
+- **Ladders:** wall placements auto-request pickup/put-down ladders — skip until walls.
+- **Move-item:** relocation = the same ghost pipeline with `moving_placed_item = true`.
+
+### <span style="color:#3fb950;">What doc 19 adopts</span>
+
+The full three-form pipeline, translated: furniture ITEM defs in `resources.json` (iconic ≙
+our existing item drops), full-size placed form registered in `PlacedEntityRegistry`, ghost
+as a work source posting a FETCH-AND-BUILD lease, 📤 as a toggle flag that posts an
+UNINSTALL lease, type-matched fetches, nav untouched by ghosts. Skipped: walls/ladders,
+placement limits, move-item (uninstall + re-place covers v1), command locking (nothing
+stacks on furniture yet).
+
+---
+
+## 3. ARCHITECTURE
+
+### <span style="color:#3fb950;">3.0 Direction</span>
+
+1. **Furniture is an item with a placed form — never conjured.** The item form is a normal
+   `resources.json` entry (drop GLB, `stockpile_furniture` tag) that mining… does not
+   produce; v1 items enter via a DEV spawner (economy fills this via crafting/trade later).
+   The placed form is the full-size GLB + occupancy + (for storage pieces) a storage
+   component.
+2. **The ghost is a work source (doc 16 §2.1, fourth family).** Placing with 📥 creates a
+   `FurnitureGhost` that posts ONE fetch-and-build lease, type-matched against the
+   loose-item index and storage aggregates. No dwarf, no fulfilment — the ghost waits
+   patiently, exactly like a mining designation.
+3. **📤 is a toggle, not a command (SH parity).** It flags the placed piece; the flag posts
+   an uninstall lease; clicking 📤 again clears flag + lease. Uninstall dumps stored
+   contents as loose drops, swaps placed form → item form at the stand cell, and the
+   ordinary doc 18 hauling puts everything away.
+4. **One storage contract, many faces (doc 18 §2.5).** `StorageComponent` base owns the
+   haul-loop machinery; ground zone = per-item floor cells; container = capacity slots
+   behind one stand cell. The `DwarfAgent` haul executor is untouched.
+5. **The WYSIWYG split is a principle:** ground zones + shelf show every item they hold
+   (shelf capacity = anchor count); barrel/chest trade visibility for density and show
+   counts in their window.
+6. **Release stays cheap and legal (Hard Rule 12):** an interrupted fetcher drops the
+   furniture item at its feet (it re-enters the index; the ghost re-leases); an
+   interrupted uninstaller leaves the piece installed with the 📤 flag still set.
+
+### 3.1 Furniture data
+
+Three defs following the `trade_counter.json` schema, `furniture_category: "storage"`, plus
+NEW shared fields: `item_key` (the resources.json item form), `placement` (`"floor"` |
+`"floor_wall"`), `yaw_steps: 4`, and a `storage` block for containers:
+
+| Def | Footprint | Storage block | Item form (resources.json) |
 |---|---|---|---|
-| `base:furniture:barrel` | 1×1 | 1 block tall (doc 61 §5.4) | `{ "capacity": 8, "render_contents": false }` |
-| `base:furniture:storage_chest` | 1×1 | 1 block tall (doc 61 §5.4 crate) | `{ "capacity": 24, "render_contents": false }` |
-| `base:furniture:storage_shelf` | 1×1, **wall-adjacent** | 2 blocks tall | `{ "capacity": 8, "render_contents": true, "anchors": [[…], ×8] }` |
+| `base:furniture:barrel` | 1×1, 1 tall | `{ "capacity": 8, "render_contents": false }` | `base:resources:furniture:barrel` |
+| `base:furniture:storage_chest` | 1×1, 1 tall | `{ "capacity": 24, "render_contents": false }` | `base:resources:furniture:storage_chest` |
+| `base:furniture:storage_shelf` | 1×1×2, **wall-adjacent** | `{ "capacity": 8, "render_contents": true, "anchors": [×8] }` | `base:resources:furniture:storage_shelf` |
 
-New shared fields: `placement` (`"floor"` \| `"floor_wall"` — shelf requires a solid block
-face behind its back side), `yaw_steps: 4` (placement rotation). `storage.anchors` are local
-float offsets (in blocks) where stored item GLBs render on the shelf.
+Item forms get `material_tags: ["stockpile_furniture"]` (new filter tag; zones' v1
+accept-everything default gains it) and `weight_class: "heavy"`. `storage.anchors` are
+local float offsets (blocks) where stored item GLBs render on the shelf.
 
-**Loader:** `FurniturePlacementController` owns `data/furniture/*.json` (the system-owns-its-
-data pattern, doc 13 — same as VisitorManager owning merchant_catalog). It hands the parsed
-def to whatever the placed piece needs (storage component, future workshop component). No
-separate registry autoload until a second consumer needs the file.
+**Loader:** `FurniturePlacementController` owns `data/furniture/*.json` (system-owns-its-
+data, doc 13). Item defs stay solely with `ItemDropManager`.
 
-### 2.2 Furniture placement tool (`FurniturePlacementController`, scene node)
+### 3.2 Placement tool — 📥 (`FurniturePlacementController`, scene node)
 
-The flag tool generalised, data-driven:
+- Build panel: one 📥 entry per placeable → `tool_requested("furniture")` + def key; joins
+  the click-tool exclusion contract (2026-07-06 fix).
+- **Ghost preview** on the cursor: the placed-form GLB, translucent, validity-tinted
+  (flag-tool language), yaw in 90° steps on <span style="color:#d29922;">**R** (lean — the
+  wheel is contractually camera/brush, doc 21)</span>.
+- **Validity:** footprint cells NavGrid-walkable at one floor Y, unoccupied
+  (`PlacedEntityRegistry`), not on stockpile-zone cells, not water; `floor_wall` probes the
+  block behind the ghost's back face for solidity.
+- **On confirm:** a `FurnitureGhostComponent` is created (translucent node stays in-world —
+  the SH persistent task marker; **no occupancy registration** — ghosts are non-solid) and
+  registered as a work source. Tool stays active while matching items remain (SH
+  `more_items`); ESC-only cancel.
+- **Click-select with the tool off** (the doc 18 A3 lesson, built in from day one): clicking
+  a ghost opens its window (item wanted, Cancel 📥); clicking an installed piece opens
+  contents summary + **📤 Uninstall** (toggle) + the container inventory list.
 
-- Build panel button per placeable → `tool_requested("furniture")` + def key. The tool joins
-  the click-tool exclusion contract (all tools deactivate on any other tool's id — the
-  2026-07-06 fix).
-- **Ghost preview** at the hovered cell: the def's GLB, validity-tinted (flag-tool language),
-  yaw-rotated in 90° steps on <span style="color:#d29922;">**R** (lean — the wheel belongs to
-  camera zoom / the mining brush, doc 21 tool contract)</span>.
-- **Validity:** every footprint cell NavGrid-walkable at one shared floor Y, unoccupied
-  (`PlacedEntityRegistry`), not on a stockpile-zone cell (a blocked deposit cell starves the
-  zone), not water/bedrock-adjacent (the doc 18 zone rules); `floor_wall` additionally probes
-  the block behind the ghost's back face for solidity.
-- **On confirm:** instance the visual (project vertex-colour material), register the
-  collision_regions box(es) with `PlacedEntityRegistry` (NavGrid invalidates via
-  `occupancy_changed` — the flag precedent), create the storage component if the def carries
-  a `storage` block, emit `furniture_placed`. Tool stays active for repeat placement (mining
-  precedent); ESC-only cancel.
-- **Click-select with the tool off** (the doc 18 A3 lesson, learned 2026-07-11 — built in
-  from day one this time): left-click on a placed piece's footprint opens its window:
-  contents summary + **Remove**.
-- **Remove:** cancel the component's leases, dump stored items as loose drops at the stand
-  cell (`drop_loose` — jittered since 2026-07-11), unregister occupancy, free the nodes.
+### 3.3 Fetch-and-build lease (the ghost work source)
 
-### 2.3 Storage contract extraction (`scripts/components/StorageComponent.gd`)
+```
+1. Ghost posts ONE lease (type-matched: item_key present loose OR in colony storage)
+2. Dwarf pulls: nearest matching item — loose (index) first, else withdraw from the
+   nearest zone cell / container holding one (storage components gain
+   withdraw(item_key, dwarf_id) -> Node3D; zone cell empties, container count drops)
+3. Carry to the ghost's stand cell (heavy carry speed) -> `work` swing timer
+4. Swap: item node freed; placed form instanced; collision_regions boxes registered with
+   PlacedEntityRegistry (NavGrid invalidates); storage component created + registered
+   with StockpileManager; ghost destroyed; lease completes
+5. Interrupt anywhere: item drops at the feet (re-enters index), ghost re-leases —
+   Hard Rule 12
+```
+
+No matching item in the colony → the lease stays PENDING under the normal backoff; the
+ghost window shows *"needs: barrel (none in colony)"*.
+
+### 3.4 Uninstall lease — 📤
+
+📤 toggles `flagged_uninstall` on the placed piece. While set: an overlay tint on the
+piece (SH's undeploy overlay, our validity-tint language), its storage component stops
+posting HAUL leases and cancels live ones, and ONE uninstall lease posts:
+
+```
+1. Dwarf walks to the stand cell -> `work` swing timer
+2. Stored contents dump as loose drops at the stand cell (jittered — 2026-07-11 fix)
+3. Placed form freed; occupancy unregistered (NavGrid); storage deregistered;
+   item-form drop spawns at the stand cell
+4. Everything on the ground is now ordinary loose inventory — existing zone/container
+   leases wake on drop_spawned and put it all away
+```
+
+📤 again before step 1 completes → flag cleared, lease cancelled, piece untouched.
+
+### 3.5 Storage contract extraction (`scripts/components/StorageComponent.gd`)
 
 The doc 18 §6.5 lean, executed: hoist from `StockpileZoneComponent` everything that is not
 cell-specific —
@@ -117,157 +207,159 @@ cell-specific —
 ```gdscript
 # StorageComponent (base, RefCounted) — the haul work-source machinery
 #   update_leases / on_task_gone / reserve_haul / cancel_haul / take_item /
-#   skip_item / commit_haul / nearest_stand_target        (doc 18 §2.2–2.3, unchanged)
+#   skip_item / commit_haul / nearest_stand_target          (doc 18 §2.2–2.3, unchanged)
 # Subclass surface (abstract):
-#   _reserve_deposit(item_key, near, dwarf_id) -> Variant  # zone: cell; container: slot token
-#   _release_deposit(token) -> void
-#   _commit_one(token, item_key) -> void                   # zone: cell_stacks; container: inventory
-#   _has_any_room() -> bool
-#   _deposit_walk_target() -> Vector3i                     # zone: first reserved cell; container: stand cell
-#   _place_visual(node, token) -> void                     # zone: place_stored(cell); container: absorb or anchor
+#   _reserve_deposit(item_key, near, dwarf_id) -> Variant   # zone: cell; container: slot token
+#   _release_deposit(token) / _commit_one(token, item_key) / _has_any_room()
+#   _deposit_walk_target() -> Vector3i                      # zone: first cell; container: stand cell
+#   _place_visual(node, token) -> void                      # zone: place_stored; container: absorb/anchor
+#   withdraw(item_key, dwarf_id) -> Node3D                  # NEW (fetch-and-build, §3.3)
 ```
 
-`StockpileZoneComponent extends StorageComponent` (behaviour identical — **the doc 18
-verification checklist re-runs as the regression gate**). New
-`ContainerStorageComponent extends StorageComponent`: flat `inventory: Dictionary`
-(item_key → count), capacity check, one **stand cell** (the walkable cell the placement
-tool validates in front of the piece), reservations as counted slots. `place_visual`:
-`render_contents` false → the carried node is freed on deposit (the barrel absorbs it —
-counts live in the window); true → the node snaps to the next free anchor at
-<span style="color:#d29922;">~0.45 scale (tune by eye)</span>, slice-culled as usual.
+`StockpileZoneComponent extends StorageComponent` — behaviour identical; **the doc 18
+verification checklist re-runs as the regression gate.** New
+`ContainerStorageComponent extends StorageComponent`: flat inventory (item_key → count),
+capacity check, one stand cell, counted-slot reservations. `render_contents` false → the
+deposited node is freed (the barrel absorbs it; window shows counts); true → the node
+snaps to the next free anchor at <span style="color:#d29922;">~0.45 scale (tune by
+eye)</span>, slice-culled. `StockpileManager` registers containers like zones; aggregates
+and `stockpile_changed` span both.
 
-`StockpileManager` registers containers exactly like zones (`register_container` /
-`deregister_container`), aggregates include container inventories, `stockpile_changed`
-fires on container deposits — the doc 23 counters stay one API.
+### 3.6 Source-id allocator (the doc 18 tech debt, now due twice)
 
-### 2.4 Source-id allocator (the doc 18 tech debt, now due)
+`TaskManager.allocate_source_id() -> int` — monotonic from 10,000,000. Containers and
+ghosts use it. <span style="color:#d29922;">Migrating mining (raw ids) and zones (1M
+offset) is optional cleanup — lean: new families only.</span>
 
-`TaskManager.allocate_source_id() -> int` — a monotonic counter starting above every
-existing keyspace (10,000,000). Containers use it. <span style="color:#d29922;">Migrating
-mining zones (raw ids) and stockpile zones (1M offset) onto the allocator is optional
-cleanup — lean: allocate for NEW families only, migrate nothing this milestone.</span>
+### <span style="color:#f85149;">3.7 Explicitly out of scope</span>
 
-### <span style="color:#f85149;">2.5 Explicitly out of scope</span>
-
-Input/output bins and restock priority bands (land with workshops, doc 44 — the SH
-input_crate model is already recorded in doc 18 §2.5). Filter panel UI (containers accept
-everything, like v1 zones). Furniture as craftable/haulable items — placement is **free**
-this milestone; costs, BUILD tasks, and undeploy-to-item arrive with the crafting economy.
-Trade counter placement (needs room detection, doc 51). Beds, tavern, Armory furniture
-(their systems don't exist). Moving placed furniture (remove + re-place covers v1).
-Save/load (whole-project gap, unchanged).
+Crafting/buying furniture items (v1 source = DEV spawner; doc 44 crafting and doc 51 trade
+fill it for real). Input/output bins + restock priority bands (doc 44). Filter panel UI.
+Move-item (uninstall + re-place). Wall/structure placement, ladders. Command locking
+(nothing stacks on furniture yet). Placement limits. Trade counter placement (needs room
+detection, doc 51). Beds, tavern, Armory furniture. Save/load (whole-project gap;
+NOTE: ghosts and 📤 flags join the growing unsaved-state list).
 
 ---
 
-## 3. Milestone phases
+## 4. Milestone phases
 
 ### Phase 0 — Instrument first (doc 07 lesson, third time)
 
-Overlay `storage:` row grows: `containers N` / container stored count folded into `stored`.
-DEV drop spawner reused unchanged.
+Overlay `storage:` row grows `containers N`; new `furniture:` row: ghosts N / installed N /
+uninstalling N. DEV: **Spawn Furniture Items** button (one item of each of the three).
 
 ### Phase 1 — Assets + data
 
-`tools/generate_furniture_glbs.py` (items class: 8 vox/block, 0.125 baked into vertices —
-the ore-drop generator convention, doc 61 §5.7): `barrel.glb`, `storage_crate.glb`,
-`storage_shelf.glb` per doc 61 §5.4 specs. The shelf spec is new — add to doc 61 when the
-asset ships: 1×1×2, hewn stone uprights, two plank shelf levels, iron brackets
-(doc 18 §2.5, Alen's ask); anchor points clear of the uprights. Three furniture JSONs
-(§2.1). Review renders to `tmp/furniture_review/`.
+`tools/generate_furniture_glbs.py` (items class: **8 vox/block, 0.125 baked**, the doc 61
+§5.7 convention): `barrel.glb`, `storage_crate.glb`, `storage_shelf.glb` per doc 61 §5.4
+specs (+ NEW shelf spec: 1×1×2, hewn stone uprights, two plank levels, iron brackets;
+anchors clear of uprights — add to doc 61 when the asset ships). Item-form drop GLBs
+(mini versions, same generator). `resources.json` gains the three item defs + the
+`stockpile_furniture` tag; three furniture JSONs (§3.1). Review renders to
+`tmp/furniture_review/`.
 
-Acceptance: GLBs load in-engine at correct scale beside a dwarf; silhouettes pass the
-doc 61 §7 checklist (64×64 silhouette test, dwarven weight).
+Acceptance: placed + item forms load in-engine at correct scale beside a dwarf; doc 61 §7
+silhouette checklist passes.
 
-### Phase 2 — Placement tool
+### Phase 2 — Ghost placement tool
 
-§2.2 complete: Build panel wiring (`dock.json` gets the three pieces under `build`;
-DockUI routes), ghost + validity + R-rotation, occupancy registration, click-select window
-with Remove (storage-less window first — Remove just deletes), tool exclusion verified
-against mining/zone/flag tools.
+§3.2 without fulfilment: Build panel 📥 wiring (`dock.json`, DockUI), ghost preview +
+validity + R-rotation, confirmed ghosts persist (non-solid, slice-culled), ghost window
+with Cancel, click-select with tool off, tool exclusion verified. DEV: **Instant Build**
+button on the ghost window (materialises without a dwarf — the DEV-mine precedent) so
+Phase 4 storage work can proceed before Phase 3 lands.
 
-Acceptance: place all three pieces on flats and terraces; shelf refuses to place without a
-wall behind and rotates to face away from it; pieces block dwarf pathing immediately
-(NavGrid); invalid cells tint red; ESC exits; placing then removing leaves the world clean;
-zones cannot be painted under furniture and vice versa.
+Acceptance: place ghosts for all three pieces on flats/terraces; shelf refuses placement
+without a wall behind; ghosts never block pathing; ESC exits; cancel cleans up; zones
+cannot be painted under ghosts/furniture and vice versa.
 
-### Phase 3 — Storage contract + container hauling
+### Phase 3 — Fetch-and-build + uninstall leases
 
-§2.3 + §2.4: extract `StorageComponent`, re-base the zone on it, add
-`ContainerStorageComponent` + StockpileManager registration + allocator. **Regression gate:
-the full doc 18 verification checklist re-runs against the re-based zone (one-item-per-tile,
-pouch interrupts, spam, tool-off select) before the container work continues.**
+§3.3 + §3.4 + allocator (§3.6). DEV-spawn items → dwarves fetch and install; 📤 →
+break-down + restock chain end to end.
 
-Acceptance: paint a zone AND place a barrel near a drop field → both fill via leases; the
-barrel absorbs items (window count climbs) and stops at 8; interrupt a hauler mid-trip to
-the barrel → pouch drops at feet, another dwarf finishes; remove a stocked barrel → 8 loose
-drops at the stand cell; overlay counts reconcile (loose + stored + carried is conserved).
+Acceptance: ghost + item in the world → a dwarf installs it (nav blocks only on install);
+ghost with NO item → lease waits, window says needs; interrupt the fetcher mid-carry →
+item drops, another dwarf finishes; 📤 a stocked barrel → contents + barrel item all end up
+back in zones; 📤 twice quickly → nothing happens; the doc 18 conservation check holds
+(loose + stored + carried + installed is constant).
 
-### Phase 4 — Shelf contents + polish
+### Phase 4 — Storage contract + container hauling
 
-Anchor rendering (§2.3 `place_visual`), slice-culling of anchored items, container window
-contents list (per-item counts), aggregates verified against the overlay, carry/deposit
-visuals checked against the walk gait.
+§3.5: extract `StorageComponent`, re-base the zone (**regression gate: full doc 18
+checklist re-run**), add `ContainerStorageComponent` + StockpileManager registration.
 
-Acceptance: haul 8 mixed drops onto a shelf → all 8 visibly sit on the shelf levels; slice
-hides shelf + contents together; removing the shelf drops all 8 loose; `get_total()` matches
-the sum of zones + containers throughout.
+Acceptance: zone AND installed barrel near a drop field → both fill via leases; barrel
+absorbs (window count climbs, stops at 8); withdraw works (a fetch lease pulls a stored
+furniture item OUT of a zone/container); interrupt mid-trip → Rule 12; overlay reconciles.
 
----
+### Phase 5 — Shelf contents + polish
 
-## 4. Hard rules honoured (checklist for review)
+Anchor rendering, slice-culling of anchored items, container window inventory list,
+aggregates verified, carry/deposit visuals against the walk gait.
 
-1. **Rule 12 (release protocol)** — untouched; containers ride the existing executor.
-2. **O(intents)** — one lease stream per container, capacity-capped; no per-item tasks.
-3. **JSON vs GDScript** — capacities, anchors, footprints, yaw in `data/furniture/*.json`;
-   behaviour in components. Tunables join `task_config.json` `hauling` only if shared.
-4. **Namespaced IDs** — `base:furniture:*` keys; inventories store item keys, never ints.
-5. **Registry pattern** — FurniturePlacementController is the sole reader of
-   `data/furniture/*.json`; item defs still only via `ItemDropManager`.
-6. **Entity decoupling (doc 12)** — the terrain grid never learns about furniture;
-   occupancy via `PlacedEntityRegistry` boxes only.
-7. **Scene decoupling** — controller is a scene node; components are RefCounted owned by
-   their controller; cross-system flow via TaskManager/StockpileManager signals.
-8. **Never touch `.tres` / `.import`** — GLBs land via the generator + editor import.
+Acceptance: 8 mixed drops onto a shelf → all 8 visibly sit on the levels; slice hides
+shelf + contents together; 📤 the shelf → 8 + the shelf item drop loose; `get_total()`
+matches zones + containers throughout.
 
 ---
 
-## 5. Build order & file touch list
+## 5. Hard rules honoured (checklist for review)
+
+1. **Rule 12** — fetcher drops the item, uninstaller leaves the piece installed; §3.3/§3.4.
+2. **O(intents)** — one lease per ghost, per uninstall flag, per container stream; no
+   per-item tasks; indexes event-maintained.
+3. **JSON vs GDScript** — capacities, anchors, footprints, yaw, item_key in
+   `data/furniture/*.json`; item defs in `resources.json`; behaviour in components.
+4. **Namespaced IDs** — `base:furniture:*` + `base:resources:furniture:*`; never ints.
+5. **Registry pattern** — FurniturePlacementController sole reader of `data/furniture/`;
+   item defs only via `ItemDropManager`.
+6. **Entity decoupling (doc 12)** — terrain grid never learns about furniture; occupancy
+   via `PlacedEntityRegistry` boxes; ghosts register nothing.
+7. **Scene decoupling** — controller is a scene node; components RefCounted; cross-system
+   flow via TaskManager/StockpileManager signals.
+8. **Never touch `.tres` / `.import`.**
+
+---
+
+## 6. Build order & file touch list
 
 | Step | Files | Depends on |
 |---|---|---|
-| 0. Overlay row | `DebugLoadingOverlay.gd` | — |
-| 1. Assets + data | new `tools/generate_furniture_glbs.py`, `assets/models/furniture/*.glb`, new `data/furniture/{barrel,storage_chest,storage_shelf}.json`, doc 61 §5.4 shelf spec | — |
-| 2. Placement tool | new `scripts/systems/FurniturePlacementController.gd`, `data/ui/dock.json`, `DockUI.gd`, `debug_world.tscn` | 1 |
-| 3. Contract extraction | new `scripts/components/StorageComponent.gd`, `StockpileZoneComponent.gd` (re-base), **doc 18 checklist re-run** | — |
-| 4. Container storage | new `scripts/components/ContainerStorageComponent.gd`, `StockpileManager.gd`, `TaskManager.gd` (allocator only) | 2, 3 |
-| 5. Shelf rendering + window | `FurniturePlacementController.gd`, `ContainerStorageComponent.gd`, `ItemDropManager.gd` (anchor place/release helpers) | 4 |
+| 0. Overlay rows | `DebugLoadingOverlay.gd` | — |
+| 1. Assets + data | new `tools/generate_furniture_glbs.py`, `assets/models/furniture/*.glb`, `assets/models/items/furniture/*.glb`, `data/entities/items/resources.json`, new `data/furniture/{barrel,storage_chest,storage_shelf}.json`, doc 61 §5.4 shelf spec | — |
+| 2. Ghost tool | new `scripts/systems/FurniturePlacementController.gd`, new `scripts/components/FurnitureGhostComponent.gd`, `data/ui/dock.json`, `DockUI.gd`, `debug_world.tscn` | 1 |
+| 3. Fetch/build + uninstall | `FurnitureGhostComponent.gd`, new `scripts/components/InstalledFurnitureComponent.gd`, `DwarfAgent.gd` (FETCH/UNINSTALL executor arms), `TaskManager.gd` (allocator + task types), `Task.gd` | 2 |
+| 4. Contract + containers | new `scripts/components/StorageComponent.gd`, `StockpileZoneComponent.gd` (re-base + withdraw), new `scripts/components/ContainerStorageComponent.gd`, `StockpileManager.gd`, **doc 18 checklist re-run** | 2 (DEV Instant Build) |
+| 5. Shelf + windows | `FurniturePlacementController.gd`, `ContainerStorageComponent.gd`, `ItemDropManager.gd` (anchor helpers) | 3, 4 |
 
-Docs to update on completion: `23_user_interface.md` (Build panel state), doc 61 §5.4
-(shelf spec + generator note), `13_architecture.md` (allocator note on TaskManager),
-doc 18 §2.5 (container follow-on shipped), this doc's build log.
+Docs to update on completion: `23_user_interface.md` (Build panel, 📥/📤), doc 61 §5.4
+(shelf spec), `13_architecture.md` (allocator), `31_task_system.md` (FETCH/UNINSTALL
+types), doc 18 §2.5 (container follow-on shipped), doc 12 (placed-entity forms note),
+this doc's build log.
 
 ---
 
-## 6. Open decisions (resolve before or during build)
+## 7. Open decisions (resolve before or during build)
 
-1. <span style="color:#d29922;">**Chest capacity**</span> — 24 vs SH's 32. Lean 24: the
-   ladder step from barrel 8 should feel meaningful but not obsolete ground zones at v1.
-2. <span style="color:#d29922;">**Rotation input**</span> — R key (lean) vs wheel. Wheel is
-   contractually camera/brush (doc 21); R is free and discoverable in the hint window.
+1. <span style="color:#d29922;">**Chest capacity**</span> — 24 vs SH's 32. Lean 24.
+2. <span style="color:#d29922;">**Rotation input**</span> — R key (lean) vs wheel.
 3. <span style="color:#d29922;">**Allocator migration scope**</span> — new families only
-   (lean) vs migrating mining/zone keyspaces now.
-4. <span style="color:#d29922;">**Hauler target preference**</span> — v1 keeps nearest-item-
-   first per source with no cross-source ranking; the SH restock-priority band arrives with
-   input bins (doc 44). Watch whether barrels starve zones in play.
-5. <span style="color:#d29922;">**Shelf anchor scale**</span> — ~0.45; tune by eye on the
-   review renders, then in-engine.
-6. <span style="color:#d29922;">**`stack_max` on containers**</span> — v1 capacity is a flat
-   item count (SH parity). Whether stack_max later modulates per-type container density
-   stays reserved (doc 18 §2.4 note) — do not wire it in v1.
+   (lean) vs migrating mining/zone keyspaces.
+4. <span style="color:#d29922;">**New Task.Type entries**</span> — FETCH_BUILD + UNINSTALL
+   as first-class types (lean — visible in the task log, doc 23) vs overloading BUILD.
+5. <span style="color:#d29922;">**Shelf anchor scale**</span> — ~0.45, tune by eye.
+6. <span style="color:#d29922;">**`stack_max` on containers**</span> — v1 flat item count
+   (SH parity); per-type density stays reserved, unwired.
+7. <span style="color:#d29922;">**Ghost visual**</span> — translucent tinted GLB (lean) vs
+   wireframe; SH uses a translucent ghost form.
+8. <span style="color:#d29922;">**Hauler target preference**</span> — v1 nearest-first per
+   source, no cross-source ranking; watch whether barrels starve zones in play.
 
 ---
 
-## 7. Build log
+## 8. Build log
 
 | Date | Steps | State |
 |---|---|---|
