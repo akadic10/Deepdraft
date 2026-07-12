@@ -134,9 +134,9 @@ def build_storage_chest(size=8, mini=False):
 
 
 # ── Storage shelf — placed form, 1×1×2 blocks (8×16×8) ───────────────────────
-# Doc 19 §4 Phase 1 spec (material rule): heavy wood uprights, two plank
-# levels, iron brackets, solid back panel (wall side, -Z), anchor surfaces
-# clear of the uprights. Items render at runtime on the anchor points.
+# GROUND shelf (Alen, 2026-07-11): open and symmetric from all four sides —
+# no back panel. Heavy wood uprights, two plank levels, iron brackets, anchor
+# surfaces clear of the uprights. INTERIM model (see SHELF NOTE above).
 
 SHELF_H = 16
 SHELF_LEVEL_Y = (0, 7)      # slab rows; items sit on top of each (y=1 and y=8)
@@ -157,12 +157,8 @@ def build_storage_shelf():
         for cz in (-half, half - 1):
             for y in range(SHELF_H):
                 v.cells[(cx, y, cz)] = _wood_jitter(rng, OAK_MID)
-    # Back panel (the wall side, -Z): solid planks between the posts.
-    for x in range(-half + 1, half - 1):
-        for y in range(SHELF_H):
-            seam = (y % 4 == 3)
-            v.cells[(x, y, -half)] = _wood_jitter(rng, PLANK_DARK if seam else OAK_DARK)
-    # Iron brackets under the mid shelf and top cap, against the posts.
+    # Iron brackets under the mid shelf and top cap, against the posts —
+    # on both Z faces (symmetric, no front/back distinction).
     for cx in (-half, half - 1):
         for y in (SHELF_LEVEL_Y[1] - 1, SHELF_H - 2):
             v.cells[(cx, y, -half + 1)] = IRON_DULL
