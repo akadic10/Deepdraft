@@ -10,6 +10,13 @@ runtime — no separate ghost asset).
 MATERIAL RULE (Alen, 2026-07-11 — doc 61 §1): furniture is WOODWORK. All three
 pieces are wood-bodied with iron accents; stone appears nowhere here.
 
+SHELF NOTE (Alen, 2026-07-11): the storage shelf is a GROUND shelf — no wall
+requirement — and its model is slated for hand-authoring by Alen (symmetric
+from all angles, no back panel). build_storage_shelf() below is the INTERIM
+stand-in; when Alen's authored asset replaces assets/models/furniture/
+storage_shelf.glb, remove the shelf from this generator's output list so a
+rerun cannot overwrite the authored file (the ore_base_shape precedent).
+
 CONVENTIONS (doc 61 §5.7 / 41b): items-class assets — 8 voxels per block, the
 0.125 scale BAKED into exported vertex positions, Godot import Root Scale
 stays 1.0. Authored centred on X=Z=0 with the base at Y=0 (the drop/dwarf

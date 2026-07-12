@@ -137,7 +137,7 @@ NEW shared fields: `item_key` (the resources.json item form), `placement` (`"flo
 |---|---|---|---|
 | `base:furniture:barrel` | 1×1, 1 tall | `{ "capacity": 8, "render_contents": false }` | `base:resources:furniture:barrel` |
 | `base:furniture:storage_chest` | 1×1, 1 tall | `{ "capacity": 24, "render_contents": false }` | `base:resources:furniture:storage_chest` |
-| `base:furniture:storage_shelf` | 1×1×2, **wall-adjacent** | `{ "capacity": 8, "render_contents": true, "anchors": [×8] }` | `base:resources:furniture:storage_shelf` |
+| `base:furniture:storage_shelf` | 1×1×2, **ground** (Alen 2026-07-11 — wall req. dropped; model to be hand-authored symmetric) | `{ "capacity": 8, "render_contents": true, "anchors": [×8] }` | `base:resources:furniture:storage_shelf` |
 
 Item forms get `material_tags: ["stockpile_furniture"]` (new filter tag; zones' v1
 accept-everything default gains it) and `weight_class: "heavy"`. `storage.anchors` are
@@ -254,7 +254,8 @@ uninstalling N. DEV: **Spawn Furniture Items** button (one item of each of the t
 `tools/generate_furniture_glbs.py` (items class: **8 vox/block, 0.125 baked**, the doc 61
 §5.7 convention): `barrel.glb`, `storage_crate.glb`, `storage_shelf.glb` per doc 61 §5.4
 specs (+ NEW shelf spec: 1×1×2, heavy wood uprights, two plank levels, iron brackets —
-material rule, Alen 2026-07-11: furniture is woodwork;
+material rule, Alen 2026-07-11: furniture is woodwork; GROUND shelf, same-day revision:
+no wall requirement, model slated for Alen's hand-authoring, symmetric from all angles;
 anchors clear of uprights — add to doc 61 when the asset ships). Item-form drop GLBs
 (mini versions, same generator). `resources.json` gains the three item defs + the
 `stockpile_furniture` tag; three furniture JSONs (§3.1). Review renders to
@@ -271,9 +272,10 @@ with Cancel, click-select with tool off, tool exclusion verified. DEV: **Instant
 button on the ghost window (materialises without a dwarf — the DEV-mine precedent) so
 Phase 4 storage work can proceed before Phase 3 lands.
 
-Acceptance: place ghosts for all three pieces on flats/terraces; shelf refuses placement
-without a wall behind; ghosts never block pathing; ESC exits; cancel cleans up; zones
-cannot be painted under ghosts/furniture and vice versa.
+Acceptance: place ghosts for all three pieces on flats/terraces (~~shelf wall
+requirement~~ — dropped, Alen 2026-07-11: ground shelf; the `floor_wall` machinery stays
+for future wall pieces — wall torch, wall display); ghosts never block pathing; ESC exits;
+cancel cleans up; zones cannot be painted under ghosts/furniture and vice versa.
 
 ### Phase 3 — Fetch-and-build + uninstall leases
 
@@ -392,6 +394,13 @@ this doc's build log.
    a permanently-red ghost with no explanation breaks the mining-ruler lesson. → **Shipped
    same day:** a billboard hint above the ghost when the wall requirement is the blocker
    ("Needs a solid wall behind — R rotates").
+3. **Ground shelf (Alen, 2026-07-11, superseding note 2's premise)** — the wall
+   requirement itself is dropped: the shelf is a plain floor piece, placeable anywhere.
+   `placement` flipped to "floor" in storage_shelf.json; the `floor_wall` validity path +
+   hint stay in the controller for genuinely wall-mounted pieces (wall torch, wall
+   display, doc 52). Alen will hand-author a replacement model, symmetric from all
+   angles (no back panel); the generated GLB is interim and the generator carries a
+   do-not-overwrite note for when the authored asset lands.
 
 | Date | Steps | State |
 |---|---|---|
