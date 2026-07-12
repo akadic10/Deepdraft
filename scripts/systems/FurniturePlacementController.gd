@@ -607,6 +607,7 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int) -> void:
 	if def.has("storage"):
 		var container := ContainerStorageComponent.new()
 		container.setup_container(def, component.cells)
+		container.display_parent = node   # shelf anchors render under the piece
 		container.source_id = TaskManager.allocate_source_id()
 		StockpileManager.register_container(container)
 		component.storage = container

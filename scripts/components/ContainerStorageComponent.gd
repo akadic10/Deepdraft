@@ -23,15 +23,24 @@ var inventory: Dictionary = {}       # item_key (String) -> count (int)
 var cells: Array[Vector3i] = []      # the installed piece's footprint floor cells
 var suspended: bool = false          # 📤 flagged — stop accepting (doc 19 §3.4)
 
+# ── Anchor rendering (doc 19 Phase 5 — SH ATTITEM parity) ─────────────────────
+var display_parent: Node3D = null    # the installed piece's visual node
+var anchors: Array = []              # local block offsets from data/furniture JSON
+var anchor_scale: float = 0.5        # SH sca [0.5,0.5,0.5] (2026-07-11 decision 5)
+
 var _reserved_slots: int = 0
+var _anchor_slots: Array = []        # per-anchor: null | [node: Node3D, item_key: String]
 
 
 func setup_container(def: Dictionary, footprint_cells: Array[Vector3i]) -> void:
 	var storage: Dictionary = def.get("storage", {})
 	capacity = int(storage.get("capacity", 8))
 	render_contents = bool(storage.get("render_contents", false))
+	anchors = storage.get("anchors", [])
+	anchor_scale = float(storage.get("anchor_scale", 0.5))
 	cells = footprint_cells
 	filter_tags = StockpileZoneComponent.DEFAULT_FILTER_TAGS.duplicate()
+	_anchor_slots.resize(anchors.size())
 
 
 func stored_count() -> int:
@@ -69,10 +78,57 @@ func _deposit_walk_target(_first_token: Variant) -> Vector3i:
 	return nearest_stand_target(Vector3i.ZERO)
 
 
-## Absorb (barrel/chest); the shelf's anchor rendering lands in Phase 5.
+## Barrel/chest ABSORB the node; the shelf snaps it onto a free anchor
+## (doc 19 Phase 5 — SH ATTITEM parity: scale 0.5, varied yaw per anchor).
+## Anchors are footprint-local block coords (origin = bottom-front-left);
+## as children of the rotated piece node they follow its yaw for free, and
+## slice culling rides the parent's visibility.
 func _place_visual(node: Node3D, _token: Variant) -> void:
-	if node != null and is_instance_valid(node):
+	if node == null or not is_instance_valid(node):
+		return
+	if not render_contents or display_parent == null or not is_instance_valid(display_parent):
 		node.queue_free()
+		return
+	var slot := _free_anchor_slot()
+	if slot < 0:
+		node.queue_free()   # capacity > anchors would land here — WYSIWYG says never
+		return
+	var key := String(node.get_meta("item_key", ""))
+	if node.get_parent() != null:
+		node.get_parent().remove_child(node)
+	display_parent.add_child(node)
+	var fp_w := 1.0
+	var fp_d := 1.0
+	var offset: Array = anchors[slot]
+	node.position = Vector3(
+		float(offset[0]) - fp_w * 0.5,
+		float(offset[1]),
+		float(offset[2]) - fp_d * 0.5)
+	node.scale = Vector3.ONE * anchor_scale
+	# Varied per-anchor yaw (SH's scattered hand-placed look) — deterministic.
+	node.rotation = Vector3(0.0, float(slot * 2654435761 % 628) / 100.0, 0.0)
+	node.visible = true
+	_anchor_slots[slot] = [node, key]
+
+
+func _free_anchor_slot() -> int:
+	for i: int in range(_anchor_slots.size()):
+		if _anchor_slots[i] == null:
+			return i
+	return -1
+
+
+## Frees one anchored node of `item_key` (shelf withdraw/dump bookkeeping).
+func _pop_anchor_node(item_key: String) -> bool:
+	for i: int in range(_anchor_slots.size()):
+		var entry: Variant = _anchor_slots[i]
+		if entry != null and String((entry as Array)[1]) == item_key:
+			var node: Node3D = (entry as Array)[0]
+			if node != null and is_instance_valid(node):
+				node.queue_free()
+			_anchor_slots[i] = null
+			return true
+	return false
 
 
 ## Nearest walkable cell bordering the footprint (the footprint itself is
@@ -108,6 +164,8 @@ func withdraw_nearest(item_key: String, _near: Vector3i, dwarf_id: int) -> Node3
 	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id)
 	if node == null:
 		return null
+	if render_contents:
+		_pop_anchor_node(item_key)   # the shelf visibly loses the piece
 	inventory[item_key] = int(inventory[item_key]) - 1
 	if int(inventory[item_key]) <= 0:
 		inventory.erase(item_key)
@@ -122,6 +180,14 @@ func withdraw_nearest(item_key: String, _near: Vector3i, dwarf_id: int) -> Node3
 func dump_contents(at_cell: Vector3i) -> int:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return 0
+	# Shelf: clear the anchored visuals first (counts respawn as drops below).
+	for i: int in range(_anchor_slots.size()):
+		var entry: Variant = _anchor_slots[i]
+		if entry != null:
+			var node: Node3D = (entry as Array)[0]
+			if node != null and is_instance_valid(node):
+				node.queue_free()
+			_anchor_slots[i] = null
 	var dumped := 0
 	for item_key: String in inventory.keys():
 		var count := int(inventory[item_key])
