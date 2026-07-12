@@ -345,7 +345,8 @@ this doc's build log.
 
 1. <span style="color:#3fb950;">~~Chest capacity~~ — **DECIDED (Alen, 2026-07-11): 24.**
    The ladder step from barrel 8 stays meaningful without obsoleting ground zones at v1.</span>
-2. <span style="color:#d29922;">**Rotation input**</span> — R key (lean) vs wheel.
+2. <span style="color:#3fb950;">~~Rotation input~~ — **DECIDED (Alen, 2026-07-11): R key.**
+   The wheel stays contractually camera/brush (doc 21); R goes in the tool's hint window.</span>
 3. <span style="color:#d29922;">**Allocator migration scope**</span> — new families only
    (lean) vs migrating mining/zone keyspaces.
 4. <span style="color:#d29922;">**New Task.Type entries**</span> — FETCH_BUILD + UNINSTALL
