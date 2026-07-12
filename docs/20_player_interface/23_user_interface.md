@@ -115,6 +115,19 @@ smoke test (a `Label` reading `⛏️🌾⚔️` on a `CanvasLayer`) before buil
 
 ## Stockpile Zone System
 
+> **IMPLEMENTED (doc 18 — Stockpiles & Hauling, banked 2026-07-11).** Ground zones shipped:
+> `StockpileZoneComponent` (work source posting HAUL leases), `StockpileDesignationController`
+> (marquee tool, per-zone overlay, zone window with Remove — zones stay click-selectable with
+> the tool off, mining parity), `StockpileManager` autoload (zone registry + aggregates), and
+> the loose-item index on `ItemDropManager`. v1 zones accept everything; the filter panel below
+> remains the design for the UI pass. Item defs are queried through `ItemDropManager`
+> (registry pattern) — there is no separate ItemRegistry autoload.
+>
+> **Capacity rule SUPERSEDED (Alen, 2026-07-06 — Stonehearth parity):** ground zones store
+> **one item per tile, no stacking** — quantity is WYSIWYG and capacity = empty cells. The
+> `tile_count × 8` rule and `stack_max` below are retired from ground zones and reserved for
+> the storage-container path (barrel/chest/shelf — doc 18 §2.5 follow-on).
+
 A **stockpile zone** is a player-designated rectangular region of floor tiles that dwarves haul items into and workshops draw inputs from. Zones are defined by their **filter** — a set of accepted `material_tags` that controls which item categories are accepted.
 
 ### Zone Designation Flow
@@ -132,7 +145,8 @@ var zone_id:      int                  # unique ID, used by HaulTask payload
 var tile_cells:   Array[Vector3i]      # all floor cells belonging to this zone
 var filter_tags:  Array[String]        # accepted material_tags; empty = accept nothing
 var inventory:    Dictionary           # { item_uri: int } — current counts per item type
-var capacity:     int                  # max total items across all cells (tile_count × 8)
+# capacity is IMPLICIT (superseded rule, see note above): one item per tile —
+# a zone is full when no empty unreserved cell remains
 ```
 
 ### Filter Tag Categories

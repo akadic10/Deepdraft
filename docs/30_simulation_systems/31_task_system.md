@@ -11,6 +11,14 @@
 > not a separate queue). Tunables live in `data/tasks/task_config.json`. Release protocol:
 > releasing a task is always cheap and always legal (doc 16 §2.8). The tables below remain the
 > design source for priorities, bonuses, and skill mapping.
+>
+> **HAUL live (doc 18 — Stockpiles & Hauling, banked 2026-07-11):** stockpile zones are the
+> second work-source family, proving the lease pattern generalises. A zone posts ≤
+> `max_haulers` HAUL leases; the `DwarfAgent` executor pulls pouch BUNDLES (up to 4 items per
+> trip, SH backpack parity) from `ItemDropManager`'s loose-item index, with owner-guarded item
+> reservations and the §2.8 release protocol (any interrupt drops the whole pouch at the
+> dwarf's feet as loose items). Stockpile source ids live at `1_000_000 + zone_id`
+> (`StockpileManager`); hauling tunables in `task_config.json` `hauling`. Workshops are next.
 
 ## Overview
 
