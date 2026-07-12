@@ -247,7 +247,9 @@ func cancel_haul(dwarf_id: int) -> void:
 	for i: int in range(int(pull["taken"]), items.size()):
 		var item: Node3D = items[i]
 		if item != null and is_instance_valid(item):
-			drop_manager.call("unreserve", item)
+			# Owner-guarded: skipped items in this range may have been
+			# re-reserved by another hauler since (spam-robustness pass).
+			drop_manager.call("unreserve", item, dwarf_id)
 
 
 ## Step 3: pick up the item at `index` in the visit order. The node is handed
@@ -282,7 +284,7 @@ func skip_item(dwarf_id: int, index: int) -> void:
 		var item: Node3D = items[index]
 		if item != null and is_instance_valid(item) \
 				and drop_manager != null and is_instance_valid(drop_manager):
-			drop_manager.call("unreserve", item)
+			drop_manager.call("unreserve", item, dwarf_id)
 	var deposits: Array = pull["deposits"]
 	if not deposits.is_empty():
 		release_deposit_cell(deposits[deposits.size() - 1])

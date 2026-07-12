@@ -204,7 +204,13 @@ func reserve(node: Node3D, dwarf_id: int) -> bool:
 	return true
 
 
-func unreserve(node: Node3D) -> void:
+## Owner-guarded (doc 18 spam-robustness pass): pass the reserving dwarf_id so
+## a stale unreserve (an interrupted hauler cancelling a bundle whose skipped
+## items were re-reserved by another hauler in the meantime) cannot clobber
+## the new owner's reservation. -1 = unconditional (trusted callers only).
+func unreserve(node: Node3D, dwarf_id: int = -1) -> void:
+	if dwarf_id >= 0 and int(_reserved.get(node, -1)) != dwarf_id:
+		return
 	_reserved.erase(node)
 
 
@@ -237,12 +243,15 @@ func place_stored(node: Node3D, cell: Vector3i) -> void:
 
 ## Release protocol (doc 18 §2.3 step 5 / Hard Rule 12): an interrupted
 ## hauler drops its carried node at its feet as a normal loose item.
+## Position jitter matches spawn_drop: a full pouch dropped on one cell must
+## read as N items, not one (the WYSIWYG rule that drove one-item-per-tile).
 func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
 	var key := String(node.get_meta("item_key", ""))
 	if node.get_parent() != null:
 		node.get_parent().remove_child(node)
 	add_child(node)
-	node.position = Vector3(float(floor_cell.x) + 0.5, float(floor_cell.y + 1), float(floor_cell.z) + 0.5)
+	var jitter := Vector3(randf_range(-0.28, 0.28), 0.0, randf_range(-0.28, 0.28))
+	node.position = Vector3(float(floor_cell.x) + 0.5, float(floor_cell.y + 1), float(floor_cell.z) + 0.5) + jitter
 	node.set_meta("base_y", floor_cell.y + 1)
 	node.set_meta("stored", false)
 	node.visible = floor_cell.y + 1 <= _slice_y
