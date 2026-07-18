@@ -90,6 +90,7 @@ var _window_installed_id: int = -1
 
 func _ready() -> void:
 	add_to_group("furniture_controller")
+	add_to_group(SaveManager.OWNER_GROUP)
 	_load_defs()
 	_dock_ui = get_node_or_null(dock_ui_path)
 	if _dock_ui != null:
@@ -364,8 +365,7 @@ func _footprint_cells(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Vect
 
 
 func _block_id(wx: int, wy: int, wz: int) -> int:
-	@warning_ignore("integer_division")
-	if WorldData.chunk_exists(wx / 16, wy / 16, wz / 16):
+	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
 		return WorldData.get_block(wx, wy, wz)
 	return WorldGenerator.get_generated_block_id(wx, wy, wz)
 
@@ -663,6 +663,92 @@ func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
 ## DEV: instant teardown, no dwarf (kept alongside the real 📤 path).
 func dev_remove_installed(installed_id: int) -> void:
 	_teardown_installed(installed_id, true)
+
+
+func save_section_key() -> String:
+	return "furniture"
+
+
+func save_restore_priority() -> int:
+	return 40
+
+
+func serialize_state() -> Dictionary:
+	var saved_ghosts: Array = []
+	var ghost_ids: Array = _ghosts.keys()
+	ghost_ids.sort()
+	for value in ghost_ids:
+		var ghost: FurnitureGhostComponent = _ghosts[int(value)]
+		saved_ghosts.append({
+			"id": ghost.ghost_id,
+			"key": ghost.furniture_key,
+			"origin": SaveManager.pack_v3i(ghost.origin_cell),
+			"yaw": ghost.yaw_steps,
+		})
+	var saved_installed: Array = []
+	var installed_ids: Array = _installed.keys()
+	installed_ids.sort()
+	for value in installed_ids:
+		var component: InstalledFurnitureComponent = _installed[int(value)]
+		var entry := {
+			"id": component.installed_id,
+			"key": component.furniture_key,
+			"origin": SaveManager.pack_v3i(component.origin_cell),
+			"yaw": component.yaw_steps,
+			"flagged_uninstall": component.flagged_uninstall,
+		}
+		if component.storage != null:
+			entry["inventory"] = component.storage.inventory.duplicate(true)
+		saved_installed.append(entry)
+	return { "ghosts": saved_ghosts, "installed": saved_installed }
+
+
+func restore_state(state: Dictionary) -> void:
+	_drop_manager = get_tree().get_first_node_in_group("item_drop_manager") as Node3D
+	for raw in state.get("ghosts", []):
+		if raw is Dictionary:
+			_restore_ghost(raw as Dictionary)
+	for raw in state.get("installed", []):
+		if not (raw is Dictionary):
+			continue
+		var entry := raw as Dictionary
+		var key := String(entry.get("key", ""))
+		if not _defs.has(key):
+			continue
+		var requested_id := maxi(int(entry.get("id", _next_installed_id)), 1)
+		var prior_next := _next_installed_id
+		_next_installed_id = requested_id
+		_install(key, _defs[key], SaveManager.unpack_v3i(entry.get("origin", [])),
+			int(entry.get("yaw", 0)))
+		var component: InstalledFurnitureComponent = _installed.get(requested_id)
+		_next_installed_id = maxi(_next_installed_id, prior_next)
+		if component == null:
+			continue
+		if component.storage != null:
+			component.storage.restore_inventory(
+				entry.get("inventory", {}) as Dictionary, _drop_manager)
+		if bool(entry.get("flagged_uninstall", false)):
+			component.set_uninstall(true)
+
+
+func _restore_ghost(entry: Dictionary) -> void:
+	var key := String(entry.get("key", ""))
+	if not _defs.has(key):
+		return
+	var requested_id := maxi(int(entry.get("id", _next_ghost_id)), 1)
+	var prior_next := _next_ghost_id
+	var prior_key := _active_key
+	var prior_cell := _hover_cell
+	var prior_yaw := _yaw
+	_next_ghost_id = requested_id
+	_active_key = key
+	_hover_cell = SaveManager.unpack_v3i(entry.get("origin", []))
+	_yaw = int(entry.get("yaw", 0))
+	_confirm_ghost()
+	_next_ghost_id = maxi(_next_ghost_id, prior_next)
+	_active_key = prior_key
+	_hover_cell = prior_cell
+	_yaw = prior_yaw
 
 
 # ── Click-select (tool on or off — the A3 lesson) ─────────────────────────────

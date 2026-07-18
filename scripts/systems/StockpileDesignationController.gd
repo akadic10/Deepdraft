@@ -98,6 +98,7 @@ var _window_info_label: Label = null
 
 func _ready() -> void:
 	add_to_group("stockpile_controller")
+	add_to_group(SaveManager.OWNER_GROUP)
 	_dock_ui = get_node_or_null(dock_ui_path)
 	if _dock_ui != null:
 		if _dock_ui.has_method("register_stockpile_controller"):
@@ -351,22 +352,28 @@ func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
 # ── Zone lifecycle ────────────────────────────────────────────────────────────
 
 func _confirm_zone(cells: Array[Vector3i]) -> void:
+	_create_zone(cells)
+
+
+func _create_zone(cells: Array[Vector3i], requested_id: int = -1) -> StockpileZoneComponent:
+	var zone_id := requested_id if requested_id > 0 else _next_zone_id
 	var zone := StockpileZoneComponent.new()
-	zone.setup(_next_zone_id, cells)
-	_zones[_next_zone_id] = zone
+	zone.setup(zone_id, cells)
+	_zones[zone_id] = zone
 	for cell: Vector3i in cells:
-		_cell_to_zone[cell] = _next_zone_id
+		_cell_to_zone[cell] = zone_id
 	var overlay := MeshInstance3D.new()
-	overlay.name = "StockpileZone_%d" % _next_zone_id
+	overlay.name = "StockpileZone_%d" % zone_id
 	add_child(overlay)
 	_draw_cells(overlay, cells, COLOR_ZONE, COLOR_ZONE_EDGE, zone.floor_y)
 	overlay.visible = zone.floor_y <= _slice_y
-	_zone_overlays[_next_zone_id] = overlay
+	_zone_overlays[zone_id] = overlay
 	StockpileManager.register_zone(zone)   # work source goes live (doc 18 Phase 3)
 	print("StockpileDesignationController: zone %d created (%d cells at Y %d)." % [
-		_next_zone_id, cells.size(), zone.floor_y])
-	zone_created.emit(_next_zone_id)
-	_next_zone_id += 1
+		zone_id, cells.size(), zone.floor_y])
+	zone_created.emit(zone_id)
+	_next_zone_id = maxi(_next_zone_id, zone_id + 1)
+	return zone
 
 
 func remove_zone(zone_id: int) -> void:
@@ -403,6 +410,68 @@ func get_stats() -> Dictionary:
 		cells += zone.cell_count()
 		stored += zone.stored_count()
 	return { "zones": _zones.size(), "cells": cells, "stored": stored }
+
+
+func save_section_key() -> String:
+	return "stockpiles"
+
+
+func save_restore_priority() -> int:
+	return 30
+
+
+func serialize_state() -> Dictionary:
+	var saved_zones: Array = []
+	var ids: Array = _zones.keys()
+	ids.sort()
+	for value in ids:
+		var zone_id := int(value)
+		var zone: StockpileZoneComponent = _zones[zone_id]
+		var cells: Array = []
+		for cell: Vector3i in zone.tile_cells:
+			cells.append(SaveManager.pack_v3i(cell))
+		var stacks: Array = []
+		for cell: Vector3i in zone.cell_stacks:
+			var stack: Dictionary = zone.cell_stacks[cell]
+			stacks.append({
+				"cell": SaveManager.pack_v3i(cell),
+				"item": String(stack.get("item", "")),
+				"count": int(stack.get("count", 0)),
+			})
+		saved_zones.append({
+			"id": zone_id,
+			"cells": cells,
+			"filter_tags": zone.filter_tags.duplicate(),
+			"stacks": stacks,
+		})
+	return { "zones": saved_zones }
+
+
+func restore_state(state: Dictionary) -> void:
+	var drop_manager := get_tree().get_first_node_in_group("item_drop_manager")
+	for raw in state.get("zones", []):
+		if not (raw is Dictionary):
+			continue
+		var entry := raw as Dictionary
+		var cells: Array[Vector3i] = []
+		for packed in entry.get("cells", []):
+			cells.append(SaveManager.unpack_v3i(packed))
+		if cells.is_empty():
+			continue
+		var zone := _create_zone(cells, int(entry.get("id", -1)))
+		zone.filter_tags.assign(entry.get("filter_tags", StockpileZoneComponent.DEFAULT_FILTER_TAGS))
+		for stack_raw in entry.get("stacks", []):
+			if not (stack_raw is Dictionary):
+				continue
+			var saved_stack := stack_raw as Dictionary
+			var cell := SaveManager.unpack_v3i(saved_stack.get("cell", []))
+			var item_key := String(saved_stack.get("item", ""))
+			var count := maxi(int(saved_stack.get("count", 0)), 0)
+			if count <= 0 or item_key.is_empty() or not zone.has_cell(cell):
+				continue
+			zone.cell_stacks[cell] = { "item": item_key, "count": count }
+			if drop_manager != null and drop_manager.has_method("restore_stored_item"):
+				drop_manager.call("restore_stored_item", item_key, cell)
 
 
 # ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────

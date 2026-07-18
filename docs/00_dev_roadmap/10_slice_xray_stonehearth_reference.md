@@ -306,7 +306,8 @@ The distilled rules a faithful port must reproduce:
   (`data/terrain/mining_config.json`, `43_mining_materials.md`) and our nav clearance is 3.
   All cell-snap math must use 4.
 - <span style="color:#f85149;">**Server/client state round-trips.**</span> Single-process game;
-  persistence is just the future save file.
+  persistence now uses `SaveManager`'s version-1 manual/autosave snapshots (doc 20), not a
+  replicated server/client state path.
 - <span style="color:#f85149;">**`INTERIOR_HEIGHT = 5`.**</span> Ours should match our own
   metrics: mining cell height 4 (one dig layer) — see plan doc for the chosen value.
 - <span style="color:#f85149;">**The world floor at y ∈ [-2, 0].**</span> Deepdraft has a 4-deep

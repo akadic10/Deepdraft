@@ -230,7 +230,9 @@ Eyebrows are visible at colony zoom and contribute meaningfully to character sil
 
 ## DwarfAppearanceData Resource
 
-Define appearance as a typed `Resource` so it serializes cleanly with the save system and can be passed around without loose dictionaries.
+Define appearance as a typed runtime `Resource` so agents can pass it around without loose
+dictionaries. `DwarfAgent.serialize_state()` explicitly copies its fields into the
+version-1 save dictionary; the save never stores a `.tres` path or Resource instance.
 
 ```gdscript
 # res://scripts/dwarves/dwarf_appearance_data.gd

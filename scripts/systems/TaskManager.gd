@@ -254,6 +254,24 @@ func notify_dwarf_unavailable(dwarf_id: int) -> void:
 	_idle_dwarves.erase(dwarf_id)
 
 
+## Clears transient scheduling state before a scene reload. Configuration and
+## signal connections remain intact because this autoload survives the reload.
+func reset_runtime_state() -> void:
+	_tasks.clear()
+	_pending.clear()
+	_active.clear()
+	_idle_dwarves.clear()
+	_agents.clear()
+	_completed_log.clear()
+	_scan_cursor.clear()
+	_work_sources.clear()
+	_next_task_id = 1
+	_next_source_id = 10_000_000
+	_blocked_count = 0
+	_wake_dirty = false
+	_heartbeat_accum = 0.0
+
+
 # ── Stats (debug overlay, doc 16 Phase 0) ────────────────────────────────────
 
 func get_scheduler_stats() -> Dictionary:

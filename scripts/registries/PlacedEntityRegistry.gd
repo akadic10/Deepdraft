@@ -92,3 +92,11 @@ func unregister(id: int) -> void:
 ## Debug/overlay helper.
 func get_stats() -> Dictionary:
 	return { "entities": _boxes.size(), "occupied_columns": _columns.size() }
+
+
+## Scene-reload boundary. Old scene entities are about to be freed, so a
+## single cache reset is preferable to emitting one invalidation per box.
+func clear_runtime_state() -> void:
+	_columns.clear()
+	_boxes.clear()
+	_next_id = 1

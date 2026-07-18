@@ -15,7 +15,7 @@ extends Node
 ##   - Clamps: slice_y in [4, 127]. Y4 keeps one mineable layer visible above
 ##     bedrock — the Bedrock Protocol stays inviolate. 127 = slice off.
 ##   - Seeding: first activation seeds from the camera's surface column (S3),
-##     once per session (no save system yet — S4 persistence deferred).
+##     once per session; SaveManager persists active/height state (S4).
 ##   - Hotkeys (H1): slice_toggle (\), slice_cell_up (]), slice_cell_down ([),
 ##     slice_single_up (Ctrl+]), slice_single_down (Ctrl+[) — registered in
 ##     project.godot [input] (ownership note: AGENT.md, approved 2026-06-05).
@@ -70,6 +70,7 @@ var _readout_label: Label
 
 
 func _ready() -> void:
+	add_to_group(SaveManager.OWNER_GROUP)
 	_renderer = get_node_or_null(renderer_path)
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_dock_ui = get_node_or_null(dock_ui_path)
@@ -116,6 +117,36 @@ func get_slice_y() -> int:
 	if _renderer == null:
 		return MAX_SLICE_Y
 	return int(_renderer.get("slice_y"))
+
+
+func save_section_key() -> String:
+	return "slice"
+
+
+func save_restore_priority() -> int:
+	return 80
+
+
+func serialize_state() -> Dictionary:
+	return {
+		"active": _active,
+		"seeded": _seeded,
+		"slice_y": get_slice_y(),
+		"last_slice_y": _last_slice_y,
+	}
+
+
+func restore_state(state: Dictionary) -> void:
+	_seeded = bool(state.get("seeded", false))
+	_last_slice_y = clampi(int(state.get("last_slice_y", MAX_SLICE_Y)), MIN_SLICE_Y, MAX_SLICE_Y)
+	_active = bool(state.get("active", false))
+	if _active:
+		_set_slice_y(int(state.get("slice_y", _last_slice_y)))
+		_palette_layer.visible = true
+	else:
+		_set_slice_y(MAX_SLICE_Y)
+		_palette_layer.visible = false
+	slice_active_changed.emit(_active)
 
 
 func toggle_active() -> void:

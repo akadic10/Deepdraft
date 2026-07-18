@@ -246,7 +246,10 @@ func _ready() -> void:
 
 	if auto_generate:
 		_startup_started_msec = Time.get_ticks_msec()
-		WorldGenerator.generate(world_seed)
+		var generation_seed := world_seed
+		if SaveManager != null:
+			generation_seed = SaveManager.generation_seed_for_new_scene(world_seed)
+		WorldGenerator.generate(generation_seed)
 		if not _block_face_overview_active():
 			_enqueue_visible_existing_chunks()
 		print("WorldRenderer: generation started (seed %d)." % WorldGenerator.world_seed)

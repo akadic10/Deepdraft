@@ -3,7 +3,7 @@ extends Resource
 
 ## One dwarf's rolled visual attributes (doc 41b §DwarfAppearanceData).
 ##
-## A typed Resource so it serializes cleanly with the future save system and
+## A typed Resource so it serializes cleanly through SaveManager and
 ## can be passed around without loose dictionaries. Values are pool ids from
 ## data/entities/dwarves/appearance.json — never display names.
 

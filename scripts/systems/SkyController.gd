@@ -124,6 +124,14 @@ func _load_settings() -> Dictionary:
 # ── Scene binding ─────────────────────────────────────────────────────────────
 
 func _bind_to_scene() -> void:
+	_ready_ok = false
+	_world_env = null
+	_env = null
+	_sky_mat = null
+	_sun = null
+	_moon = null
+	_camera = null
+	_renderer = null
 	var scene := get_tree().current_scene
 	if scene == null:
 		push_warning("SkyController: no current scene — cannot bind sky/fog.")
@@ -157,6 +165,15 @@ func _bind_to_scene() -> void:
 	_ready_ok = _env != null
 	if _env == null:
 		push_warning("SkyController: WorldEnvironment has no Environment resource.")
+
+
+## SaveManager reloads the gameplay scene while this autoload survives. Rebind
+## every scene-owned render reference before the next sky update.
+func rebind_to_current_scene() -> void:
+	_bind_to_scene()
+	_apply_static_base()
+	if _ready_ok:
+		_update(_current_hour())
 
 
 func _find_by_class(node: Node, cls: StringName) -> Node:

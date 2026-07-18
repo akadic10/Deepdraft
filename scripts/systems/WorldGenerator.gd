@@ -420,6 +420,24 @@ func generate(new_seed: int = 0) -> void:
 	_gen_thread.start(_generate_threaded)
 
 
+## Stops any in-flight generation before the current scene is replaced by a
+## loaded save. The next WorldRenderer starts a fresh deterministic run.
+func prepare_for_world_reload() -> void:
+	_abort = true
+	if _gen_thread != null and _gen_thread.is_started():
+		_gen_thread.wait_to_finish()
+	_gen_thread = null
+	_maps_ready = false
+	_grass_bands_ready = false
+	_tile_ranges_ready = false
+	_request_mutex.lock()
+	_column_queue.clear()
+	_requested_columns.clear()
+	_generated_columns.clear()
+	_column_in_flight = false
+	_request_mutex.unlock()
+
+
 func _reset_generation_state() -> void:
 	_startup_started_msec = Time.get_ticks_msec()
 	_maps_ready_msec = 0

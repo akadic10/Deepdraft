@@ -3,6 +3,11 @@ extends CanvasLayer
 
 signal dock_action_invoked(action: String, target: String)
 signal tool_requested(tool_id: String)
+## Persistence backend hooks. The dock owns presentation only; SaveManager
+## connects to these signals and owns all file/state work.
+signal save_game_requested()
+signal load_game_requested()
+signal load_autosave_requested()
 
 const DOCK_HEIGHT := 92.0
 const DOCK_BOTTOM_MARGIN := 24.0
@@ -30,6 +35,9 @@ var _dwarf_director: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
+var _persistence_toast: PanelContainer = null
+var _persistence_toast_label: Label = null
+var _persistence_toast_until_msec: int = 0
 
 ## Build-panel label -> furniture def key (doc 19 Phase 2 - the three v1
 ## storage pieces; future placeables append here).
@@ -58,12 +66,17 @@ func _ready() -> void:
 	_build_root()
 	_build_dock()
 	_build_action_panel()
+	_build_persistence_toast()
 	_set_world_info_overlay(_find_canvas_layer(get_tree().current_scene, "DebugLoadingOverlay"))
 	_set_block_inspector_overlay(_find_canvas_layer(get_tree().current_scene, "BlockInspector"))
 	_refresh_active_buttons()
+	SaveManager.register_dock(self)
 
 
 func _process(delta: float) -> void:
+	if _persistence_toast != null and _persistence_toast.visible \
+			and Time.get_ticks_msec() >= _persistence_toast_until_msec:
+		_persistence_toast.visible = false
 	# Only does work while the live Clock window is open.
 	if _clock_value_labels.is_empty():
 		return
@@ -72,6 +85,33 @@ func _process(delta: float) -> void:
 		return
 	_clock_refresh_accum = 0.0
 	_update_clock_labels()
+
+
+func _build_persistence_toast() -> void:
+	_persistence_toast = PanelContainer.new()
+	_persistence_toast.name = "PersistenceToast"
+	_persistence_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_persistence_toast.position = Vector2(-180.0, 28.0)
+	_persistence_toast.custom_minimum_size = Vector2(360.0, 44.0)
+	_persistence_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_persistence_toast.visible = false
+	_root.add_child(_persistence_toast)
+	_persistence_toast_label = Label.new()
+	_persistence_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_persistence_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_persistence_toast_label.add_theme_font_size_override("font_size", 15)
+	_persistence_toast.add_child(_persistence_toast_label)
+
+
+func show_persistence_status(message: String, is_error: bool = false) -> void:
+	if _persistence_toast == null:
+		return
+	var border := Color(0.85, 0.25, 0.20, 0.9) if is_error else Color(0.25, 0.75, 0.45, 0.9)
+	_persistence_toast.add_theme_stylebox_override(
+		"panel", _panel_style(Color(0.055, 0.060, 0.065, 0.97), border, 8))
+	_persistence_toast_label.text = message
+	_persistence_toast.visible = true
+	_persistence_toast_until_msec = Time.get_ticks_msec() + (4500 if is_error else 2500)
 
 
 func _build_styles() -> void:
@@ -259,6 +299,20 @@ func _make_panel_action_button(label: String, target: String) -> Button:
 
 
 func _dispatch_panel_action(target: String, label: String) -> void:
+	if target == "save_load":
+		match label:
+			"💾 Save Game":
+				save_game_requested.emit()
+			"📂 Load Game":
+				load_game_requested.emit()
+			"🕒 Load Autosave":
+				load_autosave_requested.emit()
+			_:
+				return
+		_panel_container.visible = false
+		_active_panel_target = ""
+		_refresh_active_buttons()
+		return
 	if target == "mine" and label == "Mine Block":
 		_panel_container.visible = false
 		_active_panel_target = ""
@@ -651,6 +705,7 @@ func _target_title(target: String) -> String:
 		"labor": return "Labor"
 		"stockpiles": return "Stockpiles"
 		"trade": return "Trade"
+		"save_load": return "Save / Load"
 		"world_info": return "World Info"
 		"block_inspector": return "Block Inspector"
 	return target.capitalize()
@@ -670,6 +725,8 @@ func _panel_actions(target: String) -> Array[String]:
 			return ["Cave Plot", "Surface Plot", "Plant Crop", "Harvest"]
 		"military":
 			return ["Patrol Route", "Guard Post", "Armory", "Enlist"]
+		"save_load":
+			return ["💾 Save Game", "📂 Load Game", "🕒 Load Autosave"]
 	return []
 
 

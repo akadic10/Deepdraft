@@ -262,7 +262,8 @@ Acceptance criteria:
    dead** by default — Stonehearth has no auto-follow and manual control proved right (ref
    §2.3). Keep the signal; add a settings flag later if AUTO is wanted.
    <span style="color:#d29922;">Decision recorded: manual-first; AUTO behind a toggle, later.</span>
-7. State persists with the future save system (S4); until then, session-only.
+7. **S4 shipped 2026-07-18 (doc 20):** active state, current height, seeded flag, and last
+   manual height persist through the version-1 quick save.
 
 Acceptance criteria:
 
@@ -298,7 +299,8 @@ guardrail 6).
 **Deviations from the plan as written:** the palette window is owned by SliceController
 itself (one CanvasLayer, like MiningDesignationController's zone window) rather than built
 inside DockUI; registration is push-style (`register_slice_controller`) from the controller's
-`dock_ui_path` export. Persistence is session-only (S4 waits for the save system). Seeding
+`dock_ui_path` export. **Postscript (2026-07-18): S4 now ships through `SaveManager`;** the
+historical Phase 2 build itself was session-only. Seeding
 from the first dig-down designation (S3's second path) waits for mining execution.
 
 **Surfaced during verification, recorded as follow-ups:** floating zone overlays above the
@@ -764,7 +766,7 @@ cave-soil visible on honestly-exposed faces); natural cliffs unchanged.
 **Known limits, recorded:** lateral cavities in the overview render via punch+shell — the
 representation is still per-column-top, so fully roofed interiors are visible only where
 punched mouths or the slice expose them (X-Ray remains the interior *vision* answer);
-exposure state is session-only until the save system; shell is one full-rebuild node
+exposure state is reconstructed from the persisted mined-block set (doc 20); shell is one full-rebuild node
 (fine at DEV scale).
 
 ### <span style="color:#3fb950;">Phase SO-2c — Slice-cut face dimming (planned 2026-06-05, Stonehearth-verified)</span>

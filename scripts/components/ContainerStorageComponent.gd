@@ -50,6 +50,27 @@ func stored_count() -> int:
 	return total
 
 
+func restore_inventory(saved: Dictionary, item_manager: Node) -> void:
+	inventory.clear()
+	_reserved_slots = 0
+	drop_manager = item_manager
+	var remaining := capacity
+	for item_key in saved:
+		var count := clampi(int(saved[item_key]), 0, remaining)
+		if count <= 0:
+			continue
+		inventory[String(item_key)] = count
+		remaining -= count
+		if render_contents and item_manager != null \
+				and item_manager.has_method("create_item_visual"):
+			for _i in range(count):
+				var node: Node3D = item_manager.call("create_item_visual", String(item_key))
+				if node != null:
+					_place_visual(node, null)
+		if remaining <= 0:
+			break
+
+
 # ── Storage contract (doc 19 §3.5 — the abstract surface) ─────────────────────
 
 func _has_any_room() -> bool:

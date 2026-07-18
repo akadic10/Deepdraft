@@ -41,6 +41,7 @@ var _name_tags: bool = false
 
 
 func _ready() -> void:
+	add_to_group(SaveManager.OWNER_GROUP)
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_dock_ui = get_node_or_null(dock_ui_path)
 	_build_window()
@@ -296,6 +297,83 @@ func get_agent_stats() -> Dictionary:
 		elif agent.current_task_id < 0:
 			idle += 1
 	return { "count": _agents.size(), "idle": idle, "sleeping": sleeping }
+
+
+func save_section_key() -> String:
+	return "dwarves"
+
+
+func save_restore_priority() -> int:
+	return 60
+
+
+func serialize_state() -> Dictionary:
+	var roster: Array = []
+	for agent in _agents:
+		if is_instance_valid(agent):
+			roster.append(agent.serialize_state())
+	return {
+		"birth_index": _birth_index,
+		"settlement_anchor": SaveManager.pack_v3i(settlement_anchor),
+		"roster": roster,
+	}
+
+
+func restore_state(state: Dictionary) -> void:
+	_birth_index = maxi(int(state.get("birth_index", 0)), 0)
+	settlement_anchor = SaveManager.unpack_v3i(state.get("settlement_anchor", [-1, -1, -1]))
+	_used_names.clear()
+	var item_manager := get_tree().get_first_node_in_group("item_drop_manager")
+	for raw in state.get("roster", []):
+		if not (raw is Dictionary):
+			continue
+		var entry := raw as Dictionary
+		var dwarf_id := int(entry.get("id", _birth_index))
+		var dwarf_name := String(entry.get("name", "Urist"))
+		var data := {
+			"name": dwarf_name,
+			"gender": String(entry.get("gender", "male")),
+			"appearance": _appearance_from_save(entry.get("appearance", {}) as Dictionary),
+			"traits": entry.get("traits", []),
+			"profession": String(entry.get("profession", "base:profession:worker")),
+			"profession_experience": entry.get("profession_experience", {}),
+		}
+		var agent := _factory.spawn(data, dwarf_id)
+		agent.position = SaveManager.unpack_v3(entry.get("position", []))
+		agent.rotation.y = float(entry.get("rotation_y", 0.0))
+		add_child(agent)
+		agent.restore_saved_runtime(entry)
+		agent.apply_slice(_slice_y)
+		agent.set_name_label_visible(_name_tags)
+		_agents.append(agent)
+		_used_names[dwarf_name] = true
+		TaskManager.register_dwarf(agent)
+		if agent.is_sleeping():
+			TaskManager.notify_dwarf_unavailable(dwarf_id)
+		var carried_index := 0
+		for item_key in entry.get("carried_items", []):
+			if item_manager == null or not item_manager.has_method("restore_loose_item"):
+				break
+			var angle := float(carried_index) * 2.399963
+			var offset := Vector3(cos(angle), 0.0, sin(angle)) * 0.22
+			item_manager.call("restore_loose_item", String(item_key), agent.position + offset)
+			carried_index += 1
+		_birth_index = maxi(_birth_index, dwarf_id + 1)
+	_refresh_window()
+
+
+func _appearance_from_save(state: Dictionary) -> DwarfAppearanceData:
+	var result := DwarfAppearanceData.new()
+	result.gender = String(state.get("gender", "male"))
+	result.age_tier = String(state.get("age_tier", "adult"))
+	result.skin_tone = String(state.get("skin_tone", "medium"))
+	result.eye_color = String(state.get("eye_color", "grey"))
+	result.hair_color = String(state.get("hair_color", "brown"))
+	result.hair_style = String(state.get("hair_style", "short_back"))
+	result.eyebrow_style = String(state.get("eyebrow_style", "thick_flat"))
+	result.beard_style = String(state.get("beard_style", ""))
+	result.scar = String(state.get("scar", "none"))
+	return result
 
 
 # ── DEV interruption (doc 16 Phase 5 — the release-protocol test hooks) ───────

@@ -131,6 +131,31 @@ func toggle_pause() -> void:
 	paused = not paused
 
 
+func serialize_state() -> Dictionary:
+	return {
+		"day": day,
+		"season": season,
+		"year": year,
+		"hour": hour,
+		"speed": speed,
+		"paused": paused,
+	}
+
+
+func restore_state(state: Dictionary) -> void:
+	day = clampi(int(state.get("day", 1)), 1, _days_per_season)
+	var restored_season := String(state.get("season", "summer"))
+	season = restored_season if _season_order.has(restored_season) else "summer"
+	year = maxi(int(state.get("year", 1)), 1)
+	hour = clampf(float(state.get("hour", 0.0)), 0.0, float(_hours_per_day) - 0.001)
+	speed = maxf(float(state.get("speed", 1.0)), 0.0)
+	paused = bool(state.get("paused", false))
+	_last_hour_int = int(floor(hour))
+	season_changed.emit(season)
+	day_changed.emit(day)
+	hour_changed.emit(_last_hour_int)
+
+
 # ── Debug / testing helpers ───────────────────────────────────────────────────
 
 ## Advance the clock by a number of in-game hours, rolling days/seasons and firing

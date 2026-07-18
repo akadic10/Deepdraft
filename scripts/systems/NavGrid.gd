@@ -162,6 +162,15 @@ func get_stats() -> Dictionary:
 	}
 
 
+func clear_runtime_state() -> void:
+	_walkable_cache.clear()
+	_path_cache.clear()
+	_paths_served = 0
+	_path_cache_hits = 0
+	_probes_run = 0
+	_nodes_expanded_total = 0
+
+
 # ── Walkability ───────────────────────────────────────────────────────────────
 
 func _compute_walkable(cell: Vector3i) -> bool:
@@ -178,8 +187,7 @@ func _compute_walkable(cell: Vector3i) -> bool:
 
 ## Real block where a chunk exists; deterministic generated block elsewhere.
 func _block_id(wx: int, wy: int, wz: int) -> int:
-	@warning_ignore("integer_division")
-	if WorldData.chunk_exists(wx / 16, wy / 16, wz / 16):
+	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
 		return WorldData.get_block(wx, wy, wz)
 	return WorldGenerator.get_generated_block_id(wx, wy, wz)
 

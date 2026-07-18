@@ -30,6 +30,7 @@ UIRegistry="*res://scripts/registries/UIRegistry.gd"
 SkyController="*res://scripts/systems/SkyController.gd"
 WeatherManager="*res://scripts/systems/WeatherManager.gd"
 DwarfAssets="*res://scripts/registries/DwarfAssets.gd"
+SaveManager="*res://scripts/systems/SaveManager.gd"
 
 [display]
 

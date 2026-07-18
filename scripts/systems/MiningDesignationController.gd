@@ -118,6 +118,7 @@ var _last_grid_radius := -1
 
 
 func _ready() -> void:
+	add_to_group(SaveManager.OWNER_GROUP)
 	_load_config()
 	_camera_rig = get_node_or_null(camera_path) as Camera
 	_dock_ui = get_node_or_null(dock_ui_path) as DockUI
@@ -822,8 +823,12 @@ func _confirm_preview() -> void:
 	if blocks.is_empty():
 		return
 
-	var zone_id := _next_zone_id
-	_next_zone_id += 1
+	_create_zone(blocks)
+
+
+func _create_zone(blocks: Array[Vector3i], requested_id: int = -1) -> int:
+	var zone_id := requested_id if requested_id > 0 else _next_zone_id
+	_next_zone_id = maxi(_next_zone_id, zone_id + 1)
 	# The component is the WORK SOURCE (doc 16 §2.7): it owns the
 	# region/completed/destination/reserved split. zone["blocks"] stays the
 	# live REMAINING list for overlay/window paths (mined blocks are erased).
@@ -845,6 +850,7 @@ func _confirm_preview() -> void:
 	_add_visual_cut_blocks(blocks)
 	# New cut blocks change the effective grid tops (Phase 2b) — re-grid now.
 	_rebuild_terrain_grid(true)
+	return zone_id
 
 
 func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
@@ -2139,6 +2145,59 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 	_remove_visual_cut_blocks(removed_blocks)
 	if _state != ToolState.INACTIVE:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
+
+
+func save_section_key() -> String:
+	return "mining"
+
+
+func save_restore_priority() -> int:
+	return 10
+
+
+func serialize_state() -> Dictionary:
+	var mined: Array = []
+	var mined_keys: Array = _mined_blocks.keys()
+	mined_keys.sort_custom(_sort_v3i)
+	for value in mined_keys:
+		mined.append(SaveManager.pack_v3i(value as Vector3i))
+	var saved_zones: Array = []
+	var ids: Array = _zones.keys()
+	ids.sort()
+	for value in ids:
+		var zone_id := int(value)
+		var zone: Dictionary = _zones[zone_id]
+		var blocks: Array = []
+		for block: Vector3i in zone.get("blocks", []):
+			blocks.append(SaveManager.pack_v3i(block))
+		saved_zones.append({ "id": zone_id, "blocks": blocks })
+	return { "mined_blocks": mined, "zones": saved_zones }
+
+
+func restore_state(state: Dictionary) -> void:
+	for packed in state.get("mined_blocks", []):
+		var block := SaveManager.unpack_v3i(packed)
+		if _in_bounds(block) and block.y > BEDROCK_MAX_Y and not _mined_blocks.has(block):
+			_mine_block_world(block)
+	for raw in state.get("zones", []):
+		if not (raw is Dictionary):
+			continue
+		var entry := raw as Dictionary
+		var blocks: Array[Vector3i] = []
+		for packed in entry.get("blocks", []):
+			var block := SaveManager.unpack_v3i(packed)
+			if _in_bounds(block) and not _mined_blocks.has(block) and not _zone_by_block.has(block):
+				blocks.append(block)
+		if not blocks.is_empty():
+			_create_zone(blocks, int(entry.get("id", -1)))
+
+
+func _sort_v3i(a: Vector3i, b: Vector3i) -> bool:
+	if a.x != b.x:
+		return a.x < b.x
+	if a.y != b.y:
+		return a.y < b.y
+	return a.z < b.z
 
 
 func _in_bounds(pos: Vector3i) -> bool:

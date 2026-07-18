@@ -47,9 +47,11 @@ var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
 var _hover_valid: bool = false
 var _flag_node: Node3D = null
 var _flag_occupancy_id: int = -1
+var _flag_cell: Vector3i = Vector3i(-1, -1, -1)
 
 
 func _ready() -> void:
+	add_to_group(SaveManager.OWNER_GROUP)
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_dock_ui = get_node_or_null(dock_ui_path)
 	_director = get_node_or_null(dwarf_director_path)
@@ -204,7 +206,8 @@ func _is_valid_cell(cell: Vector3i) -> bool:
 
 # ── Placement ─────────────────────────────────────────────────────────────────
 
-func _place_flag(cell: Vector3i) -> void:
+func _place_flag(cell: Vector3i, spawn_squad: bool = true) -> void:
+	_flag_cell = cell
 	_flag_node = Node3D.new()
 	_flag_node.name = "SettlementFlag"
 	var visual := _instance_flag_visual()
@@ -219,11 +222,32 @@ func _place_flag(cell: Vector3i) -> void:
 
 	if _director != null:
 		_director.call("set_settlement_anchor", cell)
-		_director.call("spawn_squad_at", cell.x, cell.z)
+		if spawn_squad:
+			_director.call("spawn_squad_at", cell.x, cell.z)
 
 	print("FlagPlacementController: settlement founded at %s." % str(cell))
 	flag_placed.emit(cell)
 	deactivate()
+
+
+func save_section_key() -> String:
+	return "settlement_flag"
+
+
+func save_restore_priority() -> int:
+	return 20
+
+
+func serialize_state() -> Dictionary:
+	return {
+		"placed": _flag_cell.y >= 0,
+		"cell": SaveManager.pack_v3i(_flag_cell),
+	}
+
+
+func restore_state(state: Dictionary) -> void:
+	if bool(state.get("placed", false)):
+		_place_flag(SaveManager.unpack_v3i(state.get("cell", [])), false)
 
 
 func _instance_flag_visual() -> Node3D:

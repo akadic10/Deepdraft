@@ -56,6 +56,13 @@ func take_dirty_chunks() -> Array:
 	return keys
 
 
+## Interior cells are derived from mined blocks and rebuilt during restore.
+func clear_runtime_state() -> void:
+	_interior.clear()
+	_xray_dirty.clear()
+	_cell_count = 0
+
+
 # ── Internals ─────────────────────────────────────────────────────────────────
 
 func _add_column(pos: Vector3i) -> void:
@@ -77,8 +84,7 @@ func _add_column(pos: Vector3i) -> void:
 ## World truth: WorldData where the chunk exists (mining materialises chunks
 ## before writing void), the deterministic generated block elsewhere.
 func _is_air(pos: Vector3i) -> bool:
-	@warning_ignore("integer_division")
-	if WorldData.chunk_exists(pos.x / 16, pos.y / 16, pos.z / 16):
+	if WorldData.chunk_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4):
 		return BlockRegistry.is_transparent(WorldData.get_block(pos.x, pos.y, pos.z))
 	return BlockRegistry.is_transparent(WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z))
 

@@ -164,6 +164,14 @@ func mark_chunk_dirty(cx: int, cy: int, cz: int) -> void:
 	chunk_dirtied.emit(cx, cy, cz)
 
 
+## Load boundary: discard every materialised chunk before regenerating the
+## deterministic base world. The generator thread must be stopped first.
+func clear_world() -> void:
+	_mutex.lock()
+	_chunks.clear()
+	_mutex.unlock()
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _chunk_key(wx: int, wy: int, wz: int) -> Vector3i:

@@ -150,7 +150,7 @@ func _arm() -> void:
 ## Queues every chunk-column, nearest-to-camera first so the looked-at area fills
 ## before the far corners. Used once in whole-map mode; never despawned.
 func _enqueue_all_columns() -> void:
-	var center := Vector2i(CHUNK_COUNT_X / 2, CHUNK_COUNT_Z / 2)
+	var center := Vector2i(CHUNK_COUNT_X >> 1, CHUNK_COUNT_Z >> 1)
 	if _camera != null:
 		center = Vector2i(
 			clampi(int(floor(_camera.global_position.x / CHUNK_SIZE)), 0, CHUNK_COUNT_X - 1),
@@ -261,7 +261,7 @@ func _spawn_column(cx: int, cz: int) -> void:
 func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 	var h_pos := _hash(cell_x, cell_z, 101)          # jitter within cell
 	var jx: int = h_pos % size
-	var jz: int = (h_pos / size) % size
+	var jz: int = floori(float(h_pos) / float(size)) % size
 	var wx := cell_x * size + jx
 	var wz := cell_z * size + jz
 

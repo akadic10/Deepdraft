@@ -264,7 +264,9 @@ walk gait. Heavy-item speed penalty tuned in play.
 
 Filter panel UI (v1 accepts everything; the data model carries `filter_tags` so the panel
 is purely UI later). Status-bar counters. Workshop input consumption. Stack-count badges.
-Hauling *between* zones / zone priorities. Save/load (whole-project gap).
+Hauling *between* zones / zone priorities. ~~Save/load (whole-project gap).~~ **Closed
+2026-07-18 (doc 20):** zones, filters, stored item keys/counts, and loose items persist;
+tasks, leases, and reservations rebuild.
 
 ---
 

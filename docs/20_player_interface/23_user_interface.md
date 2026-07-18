@@ -60,6 +60,35 @@ will be JSON loaded by their owning registry, never `.tres` Resources (see AGENT
 | `open_panel` | Opens a build/designation panel above the dock. Panels are **mutually exclusive** — opening one closes any other. `target` names the panel. |
 | `toggle_window` | Toggles a movable floating window (labor, stockpiles, trade). `target` names the window. |
 
+### Save / Load Menu
+
+The far-right utility button uses **💾 Save / Load** and opens the standard mutually
+exclusive action panel above the dock. Its actions are **💾 Save Game**,
+**📂 Load Game**, and **🕒 Load Autosave**. `DockUI` owns only the presentation and emits
+`save_game_requested`, `load_game_requested`, or `load_autosave_requested`; `SaveManager`
+owns the timer, file I/O, and state serialization.
+
+The manual quick save lives at `user://saves/quicksave.json`; a separate automatic save is
+written every five minutes of ready, non-generating world time to
+`user://saves/autosave.json`. Both use schema version 1, validate a temporary snapshot
+before replacement, and retain one matching backup. If a selected primary is corrupt,
+Load recovers that slot's backup and repairs its primary automatically. Autosaving shows a
+brief **Autosaved.** toast and never replaces the player's manual save.
+The save records the deterministic world seed plus authoritative deltas/state: mined
+blocks and designations, the settlement flag and dwarf roster, stockpile zones and
+contents, furniture ghosts/installed pieces and container inventories, loose items,
+calendar/weather, camera, and slice state. Load regenerates the seed-identical base
+world and reapplies those sections in dependency order. Tasks, leases, reservations,
+navigation/render caches, and interior-region tables are transient or derived and are
+rebuilt. Snapshot creation is observational: it never releases a worker, changes an
+assignment, or clears a reservation. Items currently in transit are recorded with their
+carrier and materialize loose at that dwarf's saved position on load, where rebuilt work
+sources can reclaim them. The dock shows a short success/error toast, including the
+no-save-yet and world-still-generating cases.
+
+The complete schema, ownership contract, restore lifecycle, and verification record live
+in `00_dev_roadmap/20_save_load.md`.
+
 Some `toggle_window` targets are intercepted in `DockUI._toggle_window` and routed to a real
 system instead of a generic window: `world_info` / `block_inspector` toggle their overlay
 CanvasLayers, `clock` opens the live Clock window, and `slice` toggles the **Slice tool**
@@ -80,7 +109,8 @@ state on the button). While active, a small palette window shows: **▲▲ Cell 
 
 Clamps: Y4 floor (Bedrock Protocol — one mineable layer always visible) to Y127 = off.
 First activation seeds the plane from the camera's surface column; afterwards the height is
-fully manual and remembered across toggles (session-only until the save system lands).
+fully manual and remembered across toggles. Its active state, current height, seeded flag,
+and last manual height persist in the version-1 quick save.
 Activating Slice will force the future X-Ray tool off, and vice versa — mutual exclusion
 lives in the tool layer, never the renderer.
 
@@ -89,13 +119,31 @@ lives in the tool layer, never the renderer.
 | Order | Emoji         | Label      | Action          | Target       |
 | ----- | ------------- | ---------- | --------------- | ------------ |
 | 1     | ⛏️            | Mine       | `open_panel`    | `mine`       |
-| 2     | 🧱            | Build      | `open_panel`    | `build`      |
-| 3     | 🌾            | Farm       | `open_panel`    | `farm`       |
-| 4     | ⚔️            | Military   | `open_panel`    | `military`   |
+| 2     | 🪓            | Chop       | `open_panel`    | `chop`       |
+| 3     | 🧺            | Gather     | `open_panel`    | `gather`     |
+| 4     | 🔨            | Build      | `open_panel`    | `build`      |
 | —     | *(separator)* |            |                 |              |
-| 5     | 👷            | Labor      | `toggle_window` | `labor`      |
-| 6     | 📦            | Stockpiles | `toggle_window` | `stockpiles` |
-| 7     | 💰            | Trade      | `toggle_window` | `trade`      |
+| 5     | 📦            | Storage Zone | `open_panel`  | `storage_zone` |
+| 6     | 🌾            | Farm       | `open_panel`    | `farm`       |
+| —     | *(separator)* |            |                 |              |
+| 7     | ⚔️            | Military   | `open_panel`    | `military`   |
+| —     | *(separator)* |            |                 |              |
+| 8     | 👷            | Labor      | `toggle_window` | `labor`      |
+| 9     | 📦            | Stockpiles | `toggle_window` | `stockpiles` |
+| 10    | 💰            | Trade      | `toggle_window` | `trade`      |
+| —     | *(separator)* |            |                 |              |
+| 11    | 🕒            | Clock      | `toggle_window` | `clock`      |
+| 12    | 📅            | Calendar   | `toggle_window` | `calendar`   |
+| —     | *(separator)* |            |                 |              |
+| 13    | 👀            | Slice      | `toggle_window` | `slice`      |
+| 14    | 🩻            | X-Ray      | `toggle_window` | `xray`       |
+| —     | *(separator)* |            |                 |              |
+| 15    | 🚩            | Settle     | `toggle_window` | `flag`       |
+| 16    | 🧔            | Dwarves    | `toggle_window` | `dwarves`    |
+| 17    | 📊            | World      | `toggle_window` | `world_info` |
+| 18    | 🔍            | Inspect    | `toggle_window` | `block_inspector` |
+| —     | *(separator)* |            |                 |              |
+| 19    | 💾            | Save / Load | `open_panel`   | `save_load`  |
 
 ### Panels (opened by `open_panel`)
 

@@ -101,6 +101,7 @@ signal slice_y_changed(new_slice_y: int)
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
+	add_to_group(SaveManager.OWNER_GROUP)
 	_load_settings()
 	_ensure_child_nodes()   # create arm / spring / camera if not wired in editor
 	_build_cursor_overlay()
@@ -324,6 +325,36 @@ func _handle_drag() -> void:
 ## doesn't also zoom the camera. The tool sets this true on activate, false on deactivate.
 func set_zoom_suppressed(v: bool) -> void:
 	_zoom_suppressed = v
+
+
+func save_section_key() -> String:
+	return "camera"
+
+
+func save_restore_priority() -> int:
+	return 70
+
+
+func serialize_state() -> Dictionary:
+	return {
+		"target_position": SaveManager.pack_v3(_target_pos),
+		"zoom": _target_zoom,
+		"pitch": _pitch,
+		"orbit_y": _orbit_y,
+	}
+
+
+func restore_state(state: Dictionary) -> void:
+	_target_pos = SaveManager.unpack_v3(state.get("target_position", []))
+	global_position = _target_pos
+	_target_zoom = clampf(float(state.get("zoom", _zoom_default)), _zoom_min, _zoom_max)
+	_pitch = clampf(float(state.get("pitch", _default_rot.x)), _min_pitch, _max_pitch)
+	_orbit_y = float(state.get("orbit_y", _default_rot.y))
+	if arm_node != null:
+		arm_node.rotation_degrees.y = _orbit_y
+	if spring_arm != null:
+		spring_arm.rotation_degrees.x = _pitch
+		spring_arm.spring_length = _target_zoom
 
 
 # ── Cursor overlay (emoji while orbit/drag is active) ─────────────────────────

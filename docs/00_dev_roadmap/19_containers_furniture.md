@@ -9,8 +9,9 @@
 Status: **SHIPPED — milestone complete 2026-07-11, same day as drafting.** All five phases
 built and verified in-engine (build log below). Carry-forward: Alen's hand-authored shelf
 model (drop-in, anchors are data); crafting/trade replace the DEV item spawner (docs 44/51);
-input/output bins + restock priority (doc 44); filter panel UI; save/load (project gap —
-ghosts, installed pieces, and container inventories join the unsaved-state list).
+input/output bins + restock priority (doc 44); filter panel UI. **Save/load gap closed
+2026-07-18 (doc 20):** ghosts, installed pieces, uninstall flags, and container inventories
+persist in schema version 1.
 
 **Why this milestone:** doc 18 shipped ground stockpiles with a deliberate density ceiling —
 one item per tile, WYSIWYG (Alen, 2026-07-06). Density was explicitly deferred to
@@ -241,7 +242,8 @@ fill it for real). Input/output bins + restock priority bands (doc 44). Filter p
 Move-item (uninstall + re-place). Wall/structure placement, ladders. Command locking
 (nothing stacks on furniture yet). Placement limits. Trade counter placement (needs room
 detection, doc 51). Beds, tavern, Armory furniture. Save/load (whole-project gap;
-NOTE: ghosts and 📤 flags join the growing unsaved-state list).
+NOTE at milestone time: ghosts and 📤 flags joined the unsaved-state list). **Closed later
+by doc 20 (2026-07-18).**
 
 ---
 
@@ -396,8 +398,8 @@ this doc's build log.
    the installed pieces; hauling froze mid-chest at 12/24). → **Fixed same day:** ghost
    `nearest_stand_target` returns the nearest walkable cell BESIDE the footprint (never
    inside it — the mining stand-cell model), plus a dwarf-side guard that starts the build
-   swing only from a legal stand cell. Already-trapped dwarves need a fresh run (no save
-   system — every run regenerates anyway). Incidentally confirmed working in the same
+   swing only from a legal stand cell. Already-trapped dwarves needed a fresh run at the
+   time (the save system had not landed yet; see doc 20). Incidentally confirmed working in the same
    screenshot: container hauling (chest at 12/24 with live per-item counts).
    *Postscript: applying this fix uncovered that the Phase 3 commit had captured a
    TRUNCATED FurnitureGhostComponent blob (the mount's stale-size cache cut it at the old
@@ -434,4 +436,4 @@ this doc's build log.
 
 ---
 
-*Prev: [18_stockpiles_hauling.md](./18_stockpiles_hauling.md)*
+*Prev: [18_stockpiles_hauling.md](./18_stockpiles_hauling.md) | Next: [20_save_load.md](./20_save_load.md)*

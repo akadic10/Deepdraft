@@ -6,7 +6,7 @@ The following Autoloads are registered in **Project Settings → Autoload** (`pr
 
 > **Registration:** The agent may register these autoloads directly by editing the `[autoload]` section of `project.godot` (see File Ownership Rules in `AGENT.md`). Preserve the load order exactly as listed.
 
-Load order (matches `project.godot` `[autoload]` as of 2026-07-06):
+Load order (matches `project.godot` `[autoload]` as of 2026-07-18):
 
 ```
 BlockRegistry
@@ -22,6 +22,7 @@ UIRegistry
 SkyController
 WeatherManager
 DwarfAssets
+SaveManager
 ```
 
 > **Not autoloads:** `WorldRenderer`, `Camera`, `SurfaceFloraSpawner`, `SliceController`, `ItemDropManager`, the designation/placement controllers, and `DwarfDirector` are **scene nodes** in `scenes/main/debug_world.tscn`, not singletons. Do not reference them as autoloads. `Chunk`, `ChunkMesher`, `Task`, `MiningZoneComponent`, and `DwarfFactory` are plain classes (`class_name`), not autoloads either. The dividing line (doc 16 decision): **simulation state = autoload, presentation = scene node.**
@@ -159,6 +160,42 @@ Per-season weighted weather scheduler (`data/weather/*.json`, `data/calendar/wea
 ### `DwarfAssets` *(doc 16 step 2a; spec: 41b)*
 Owner of the ~41 dwarf part GLBs (preloaded PackedScenes) and the three generation JSON pools (`names` / `appearance` / `traits`). Parts are authored in neutral palettes; head/hands are runtime-tinted, body/feet baked (doc 17 §1 tint split).
 
+### `SaveManager` *(doc 20 — save/load persistence)*
+
+Sole owner of runtime save-file I/O, the manual quick save at
+`user://saves/quicksave.json`, and the independent five-minute save at
+`user://saves/autosave.json`. It records the deterministic world seed, clock/weather, and
+authoritative scene deltas while leaving tasks, reservations, navigation data, renderer
+meshes, and other derived caches transient. The autosave timer advances only when world
+generation is complete and no load is running.
+
+Writes use a shared transactional path: `SaveManager` writes and validates a temporary
+snapshot, rotates only the selected slot's valid primary to its own backup, then promotes
+and revalidates the new primary. An invalid primary cannot displace a valid backup, and
+autosave never touches manual-save files. Loading either slot falls back to its matching
+backup when necessary and repairs its primary before replacing the world.
+
+Scene nodes opt in through the `save_state_owner` group and expose:
+
+```gdscript
+func save_section_key() -> String
+func save_restore_priority() -> int
+func serialize_state() -> Dictionary
+func restore_state(state: Dictionary) -> void
+```
+
+Section keys must be unique. Restore priorities encode dependencies: mining 10,
+settlement flag 20, stockpiles 30, furniture 40, loose items 50, dwarves 60, camera 70,
+and slice 80. Adding a new authoritative scene system requires adding this contract and
+documenting whether its data is authoritative, seed-derived, or transient.
+
+Saving is observational: `serialize_state()` must not pause the simulation, release a
+task, clear a reservation, move an entity, or otherwise change gameplay. Loading is a
+world-replacement boundary: `SaveManager` validates the snapshot, resets transient
+autoload state, reloads the current scene with the saved seed, waits for deterministic
+generation to finish, restores owners in priority order, rebuilds stockpile totals, and
+finally restores clock/weather. Full schema and lifecycle: `00_dev_roadmap/20_save_load.md`.
+
 > **Planned (not yet implemented):** an `AudioManager` autoload (procedural spatial audio, ambient loops, combat cues) is referenced as forward-looking infrastructure by `24_world_rendering.md` and `52_combat_military.md`. It does **not** exist in the project yet and is not a registered autoload. Add it to the load order here when it ships.
 
 ---
@@ -171,9 +208,9 @@ On application startup, autoloads run their `_ready()` in registration order, be
 2. **`WorldClock._ready()`** — loads `data/calendar/calendar.json` and starts the live clock (`_process` advances `hour`/`day`/`season`, honouring `speed` and `paused`).
 3. **`WorldData._ready()`** — allocates its `Mutex`. Chunks are **not** pre-allocated; they are created lazily on first write or handed over by the generator via `submit_chunk()`.
 4. **`WorldGenerator._ready()`** — allocates its request mutex and waits. Generation is **not** kicked off at boot; the renderer in the main scene calls `generate(seed)` explicitly, after which the generator builds the 2D maps and then services `request_chunk_column()` calls.
-5. **The remaining autoloads** (`PlacedEntityRegistry` → `DwarfAssets`) follow in registration order. Each loads only its own JSON (registry pattern); `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load.
+5. **The remaining autoloads** (`PlacedEntityRegistry` → `SaveManager`) follow in registration order. Each loads only its owned configuration where applicable; `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load. `SaveManager` performs no save-file read at boot—the file is opened only when the player requests Load.
 
-No game data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`).
+No static game-data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`). Runtime user-save JSON is the separate responsibility of `SaveManager`; no other script opens it.
 
 ---
 

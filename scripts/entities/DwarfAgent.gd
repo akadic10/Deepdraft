@@ -370,6 +370,51 @@ func is_sleeping() -> bool:
 	return _sleeping
 
 
+func serialize_state() -> Dictionary:
+	var appearance_state: Dictionary = {}
+	var carried_items: Array[String] = []
+	for entry in _carried_entries:
+		if entry is Array and (entry as Array).size() >= 2:
+			carried_items.append(String((entry as Array)[1]))
+	if appearance != null:
+		appearance_state = {
+			"gender": appearance.gender,
+			"age_tier": appearance.age_tier,
+			"skin_tone": appearance.skin_tone,
+			"eye_color": appearance.eye_color,
+			"hair_color": appearance.hair_color,
+			"hair_style": appearance.hair_style,
+			"eyebrow_style": appearance.eyebrow_style,
+			"beard_style": appearance.beard_style,
+			"scar": appearance.scar,
+		}
+	return {
+		"id": dwarf_id,
+		"name": dwarf_name,
+		"gender": gender,
+		"appearance": appearance_state,
+		"traits": traits.duplicate(),
+		"profession": profession,
+		"profession_experience": profession_experience.duplicate(true),
+		"position": SaveManager.pack_v3(position),
+		"rotation_y": rotation.y,
+		"sleep": sleep,
+		"sleeping": _sleeping,
+		"sleep_hours_left": _sleep_hours_left,
+		"carried_items": carried_items,
+	}
+
+
+func restore_saved_runtime(state: Dictionary) -> void:
+	sleep = clampf(float(state.get("sleep", 1.0)), 0.0, 1.0)
+	_sleeping = bool(state.get("sleeping", false))
+	_sleep_hours_left = maxf(float(state.get("sleep_hours_left", 0.0)), 0.0)
+	current_task_id = -1
+	_task_phase = TaskPhase.NONE
+	stop_walking()
+	_reset_part_offsets()
+
+
 ## Slow, deep breathing with a drooped head — read as asleep at RTS zoom.
 ## Transform offsets only (doc 41: no AnimationPlayer).
 func _sleep_bob() -> void:

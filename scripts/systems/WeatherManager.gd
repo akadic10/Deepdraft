@@ -163,6 +163,21 @@ func current_weather_id() -> String:
 	return _current_id
 
 
+func serialize_state() -> Dictionary:
+	return {
+		"current_id": _current_id,
+		"rng_state": _rng.state,
+	}
+
+
+func restore_state(state: Dictionary) -> void:
+	var id := String(state.get("current_id", ""))
+	if _weather_by_id.has(id):
+		_apply(id)
+	if state.has("rng_state"):
+		_rng.state = int(state["rng_state"])
+
+
 func current_weather_name() -> String:
 	if _weather_by_id.has(_current_id):
 		return String(_weather_by_id[_current_id].get("display_name", _current_id))

@@ -52,6 +52,7 @@ var _reserved: Dictionary = {}      # Node3D -> dwarf_id (int)
 
 func _ready() -> void:
 	add_to_group("item_drop_manager")
+	add_to_group(SaveManager.OWNER_GROUP)
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
@@ -96,6 +97,83 @@ func spawn_drop(item_key: String, count: int, block: Vector3i) -> void:
 
 func get_stats() -> Dictionary:
 	return { "drops": _drop_count, "loose": _loose.size(), "reserved": _reserved.size() }
+
+
+func save_section_key() -> String:
+	return "items"
+
+
+func save_restore_priority() -> int:
+	return 50
+
+
+func serialize_state() -> Dictionary:
+	var entries: Array = []
+	for node: Node3D in _loose:
+		if not is_instance_valid(node):
+			continue
+		entries.append({
+			"item_key": String(_loose[node]),
+			"position": SaveManager.pack_v3(node.position),
+			"rotation_y": node.rotation.y,
+		})
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var ak := "%s:%s" % [String(a["item_key"]), str(a["position"])]
+		var bk := "%s:%s" % [String(b["item_key"]), str(b["position"])]
+		return ak < bk)
+	return { "loose": entries }
+
+
+func restore_state(state: Dictionary) -> void:
+	for raw in state.get("loose", []):
+		if not (raw is Dictionary):
+			continue
+		var entry := raw as Dictionary
+		var key := String(entry.get("item_key", ""))
+		restore_loose_item(
+			key,
+			SaveManager.unpack_v3(entry.get("position", [])),
+			float(entry.get("rotation_y", 0.0)))
+
+
+## Builds one unindexed item visual for save restoration consumers (shelf
+## anchors and ground-stockpile stored nodes).
+func create_item_visual(item_key: String) -> Node3D:
+	_ensure_defs()
+	var def: Dictionary = _defs.get(item_key, {})
+	if def.is_empty():
+		push_warning("ItemDropManager: unknown restored item '%s'." % item_key)
+		return null
+	var node := _build_drop_node(item_key, _model_scene(String(def.get("model", ""))))
+	node.set_meta("item_key", item_key)
+	_drop_count += 1
+	return node
+
+
+func restore_stored_item(item_key: String, cell: Vector3i) -> void:
+	var node := create_item_visual(item_key)
+	if node == null:
+		return
+	add_child(node)
+	place_stored(node, cell)
+
+
+## Restores an exact loose item without rest-scanning or random jitter. Also
+## used for items that were in transit at snapshot time: tasks are transient,
+## so those materialize safely at their saved carrier's feet on load.
+func restore_loose_item(item_key: String, restored_position: Vector3,
+		rotation_y: float = 0.0) -> void:
+	var node := create_item_visual(item_key)
+	if node == null:
+		return
+	node.position = restored_position
+	node.rotation.y = rotation_y
+	node.set_meta("base_y", restored_position.y)
+	node.set_meta("stored", false)
+	node.visible = floori(restored_position.y) <= _slice_y
+	add_child(node)
+	_loose[node] = item_key
+	drop_spawned.emit(item_key)
 
 
 # ── Loose-item index API (doc 18 §2.1) ────────────────────────────────────────
@@ -378,8 +456,7 @@ func _rest_y(block: Vector3i) -> int:
 
 
 func _block_id(wx: int, wy: int, wz: int) -> int:
-	@warning_ignore("integer_division")
-	if WorldData.chunk_exists(wx / 16, wy / 16, wz / 16):
+	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
 		return WorldData.get_block(wx, wy, wz)
 	return WorldGenerator.get_generated_block_id(wx, wy, wz)
 

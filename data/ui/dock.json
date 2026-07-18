@@ -152,6 +152,15 @@
       "tooltip": "Block inspector",
       "action": "toggle_window",
       "target": "block_inspector"
+    },
+    { "type": "separator" },
+    {
+      "id": "save_load",
+      "emoji": "💾",
+      "label": "Save / Load",
+      "tooltip": "Save the current colony or load a manual save or autosave",
+      "action": "open_panel",
+      "target": "save_load"
     }
   ]
 }

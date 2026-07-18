@@ -151,6 +151,42 @@ func get_stats() -> Dictionary:
 	return { "zones": _zones.size(), "cells": cells, "stored": stored, "containers": _containers.size() }
 
 
+## Scene-reload boundary. Work-source state is transient and TaskManager is
+## reset separately; restored zones/containers register themselves afresh.
+func reset_runtime_state() -> void:
+	if _drop_manager_connected and _drop_manager != null \
+			and is_instance_valid(_drop_manager) \
+			and _drop_manager.is_connected("drop_spawned", _on_drop_spawned):
+		_drop_manager.disconnect("drop_spawned", _on_drop_spawned)
+	_zones.clear()
+	_containers.clear()
+	_totals.clear()
+	_drop_manager = null
+	_drop_manager_connected = false
+	_lease_dirty = false
+	_lease_accum = 0.0
+
+
+## Recomputes aggregate counts after all restored storage owners are present.
+func rebuild_totals() -> void:
+	_totals.clear()
+	for source_id: int in _zones:
+		var zone: StockpileZoneComponent = _zones[source_id]
+		for cell: Vector3i in zone.cell_stacks:
+			var stack: Dictionary = zone.cell_stacks[cell]
+			var key := String(stack.get("item", ""))
+			var count := int(stack.get("count", 0))
+			if not key.is_empty() and count > 0:
+				_totals[key] = int(_totals.get(key, 0)) + count
+	for source_id: int in _containers:
+		var container: ContainerStorageComponent = _containers[source_id]
+		for key: String in container.inventory:
+			var count := int(container.inventory[key])
+			if count > 0:
+				_totals[key] = int(_totals.get(key, 0)) + count
+	_mark_dirty()
+
+
 ## Fetch withdraw (doc 19 §3.3): pull one stored unit of `item_key` out of
 ## the zone nearest `near`, reserved for `dwarf_id`. Null if no zone holds
 ## the item. Containers join this lookup in Phase 4 via the same surface.

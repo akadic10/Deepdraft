@@ -98,7 +98,17 @@ Keys use the `base:terrain:` namespace. Each definition carries `kind`, `hex_col
 > **Item drops** are no longer declared inline on the block (there is no `drops_item_entity` / `selectable_kinds` field). What a mined block yields is defined separately in `data/terrain/block_resources.json` and `data/entities/items/resources.json`.
 
 ### Save File Serialization
-*   When saving a game state, the grid matrix translates runtime integers back into their permanent namespaced text strings. Save configurations remain forward and backward compatible.
+
+The version-1 save does **not** dump materialised chunks or their session-local integer
+block IDs. The deterministic `world_seed` regenerates the untouched world, and the mining
+section stores only authoritative removal deltas as integer grid coordinates. Restoring a
+save regenerates the same base terrain and reapplies those mined coordinates as void.
+
+If a future construction system persists a non-void terrain block, it must store the
+block's permanent namespaced key and resolve that key through `BlockRegistry` on load.
+Runtime integer IDs must never cross the save boundary. `schema_version` provides a
+migration boundary; it does not by itself guarantee compatibility with every future
+schema. See `00_dev_roadmap/20_save_load.md` for the shipped persistence contract.
 
 ---
 
@@ -168,23 +178,45 @@ Entity meshes are authored at **1 unit = 1 block** (same as the terrain block si
 - **Damage**: `entity.take_damage(amount)` — reduces the entity's health value.
 - **Death**: When health reaches 0: (1) loot items spawn at the entity's grid position, (2) the node is freed, (3) PlacedEntityRegistry removes the entry. **Nothing in the terrain grid is modified.**
 
-### Save Format
+### Save Format (schema version 1)
 
-The save file has two independent top-level sections:
+`SaveManager` owns the manual JSON at `user://saves/quicksave.json` and the independent
+five-minute JSON at `user://saves/autosave.json`. They use the same versioned schema, but
+separate primary/backup/temp files so autosave never replaces the player's manual save.
+Each top level separates deterministic world identity, autoload state, and scene-owned
+state:
 
 ```json
 {
-  "chunks": {
-    "0,0,0": { "blocks": [...] }
-  },
-  "placed_entities": [
-    { "type": "deepdraft:tree:oak",       "pos": [10, 5, 3], "stage": "medium", "health": 4 },
-    { "type": "deepdraft:workshop:brewery","pos": [20, 5, 8], "state": {} }
-  ]
+  "schema_version": 1,
+  "project": "Deepdraft",
+  "saved_at_utc": "2026-07-18T12:00:00Z",
+  "world_seed": 123456789,
+  "clock": { "year": 1, "season": "summer", "day": 1, "hour": 8.0 },
+  "weather": { "current_id": "base:weather:clear", "rng_state": 1234 },
+  "scene": {
+    "mining": { "mined_blocks": [[10, 40, 12]], "zones": [] },
+    "settlement_flag": { "placed": true, "cell": [512, 28, 512] },
+    "stockpiles": { "zones": [] },
+    "furniture": { "ghosts": [], "installed": [] },
+    "items": { "loose": [] },
+    "dwarves": { "birth_index": 5, "roster": [] },
+    "camera": {},
+    "slice": {}
+  }
 }
 ```
 
-`chunks` contains only block IDs. `placed_entities` contains only entity instances. They load independently. Entity positions are stored as integer grid coordinates, not world-space floats.
+Player-created scene entities are serialised by the scene node that owns their gameplay
+state, not by `PlacedEntityRegistry`. The registry is a derived occupancy index and is
+rebuilt as the settlement flag and installed furniture are restored. Seed-derived flora
+is regenerated and is not duplicated in the save. Grid-aligned entities use integer
+coordinates; continuously positioned entities such as dwarves, loose items, and the
+camera use three-number world-position arrays.
+
+Both slots use validated transactional replacement and retain one previous valid
+generation. Full slot paths, ownership rules, and recovery behavior are specified in
+`00_dev_roadmap/20_save_load.md`.
 
 ### Walkability Interaction
 
