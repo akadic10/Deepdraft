@@ -128,6 +128,22 @@ var _mined_blocks: Dictionary = {}
 # _ovt_cut): the cut-floor colour rule (defects 3/4) reads it on worker threads.
 var _ovt_mined: Dictionary = {}
 var _cavity_shell_node: MeshInstance3D = null
+## Coalesced-rebuild flag: every shell-shaping event (cut/mined block changes,
+## slice moves, season turns, grass bands) marks dirty; _process drains it into
+## at most ONE _rebuild_cavity_shell() per frame. Real mining commits one block
+## per swing — rebuilding synchronously per commit made block N cost O(N) (and
+## save-restore O(N²)); coalescing caps it at one rebuild per frame no matter
+## the batch size.
+var _cavity_shell_dirty: bool = false
+## Memoised WorldGenerator id lookups for shell neighbour blocks. Generated ids
+## are deterministic and immutable for the lifetime of a world (the seed never
+## changes within a scene; a load reloads the scene and this node with it), so
+## entries never go stale — with one exception: ids sampled during the
+## grass-band gate window may hold fallback grass, so _on_grass_bands_ready
+## clears both caches. Turns steady-state shell rebuilds from 3D-noise sampling
+## per face into dictionary hits.
+var _shell_exact_ids: Dictionary = {}    # Vector3i -> int (exact generated id)
+var _shell_strata_ids: Dictionary = {}   # Vector3i -> int (authored strata id)
 ## Chunk coords (Vector3i) → count of visual-cut blocks inside. Lets the
 ## buried-skip exempt chunks that mining has carved into (their cavity faces
 ## must mesh even though the chunk data itself is all-solid).
@@ -263,7 +279,14 @@ func _process(_delta: float) -> void:
 	if _visible_volume_dirty:
 		_visible_volume_dirty = false
 		visible_volume_changed.emit()
-		_rebuild_cavity_shell()   # re-clip cavity faces against the new plane (SO-2b)
+		_cavity_shell_dirty = true   # re-clip cavity faces against the new plane (SO-2b)
+
+	# Drain the coalesced shell flag BEFORE the overview early-return so both
+	# render branches get the rebuild; any number of same-frame shell mutations
+	# (mining commits, slice moves, restore batches) collapse to one build.
+	if _cavity_shell_dirty:
+		_cavity_shell_dirty = false
+		_rebuild_cavity_shell()
 
 	if _block_face_overview_active():
 		# Stamp unconditionally — timing can begin between frames, and a zero
@@ -767,11 +790,25 @@ func _rebuild_cavity_shell() -> void:
 					or n.y < 0 or n.y >= WORLD_SIZE_Y \
 					or n.z < 0 or n.z >= WORLD_SIZE_Z:
 				continue   # world edge
-			var exact_id := WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
+			# Memoised: generated ids are deterministic per world (see the
+			# _shell_exact_ids declaration), so repeat rebuilds hit the dict
+			# instead of re-sampling 3D noise per face.
+			var exact_id: int
+			if _shell_exact_ids.has(n):
+				exact_id = _shell_exact_ids[n]
+			else:
+				exact_id = WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
+				_shell_exact_ids[n] = exact_id
 			if BlockRegistry.is_transparent(exact_id):
 				continue   # natural air/cave — nothing to show (yet)
-			var display_id := exact_id if mined \
-					else WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
+			var display_id: int
+			if mined:
+				display_id = exact_id
+			elif _shell_strata_ids.has(n):
+				display_id = _shell_strata_ids[n]
+			else:
+				display_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
+				_shell_strata_ids[n] = display_id
 			_add_shell_face(n, dir, BlockRegistry.get_color(display_id, season), verts, norms, cols, indices)
 
 	if verts.is_empty():
@@ -889,7 +926,7 @@ func _track_cut_chunk(block: Vector3i, delta: int) -> void:
 func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	if blocks.is_empty():
 		return
-	_rebuild_cavity_shell()   # designations and mined holes both shape the shell (SO-2b A)
+	_cavity_shell_dirty = true   # designations and mined holes both shape the shell (SO-2b A)
 	if _block_face_overview_active():
 		_enqueue_overview_tiles_for_blocks(blocks)
 		return
@@ -897,7 +934,7 @@ func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 
 
 func _invalidate_visual_cut_meshes_global() -> void:
-	_rebuild_cavity_shell()
+	_cavity_shell_dirty = true
 	_invalidate_overview_global()
 	if _block_face_overview_active():
 		return
@@ -1514,6 +1551,11 @@ func _invalidate_overview_global() -> void:
 ## chunks are not handled here: at this point startup is in overview mode, and
 ## any later streamed chunk builds after the gate is already open.
 func _on_grass_bands_ready() -> void:
+	# Shell ids memoised during the gate window may hold fallback grass — drop
+	# them and re-bake the shell with the final band variants.
+	_shell_exact_ids.clear()
+	_shell_strata_ids.clear()
+	_cavity_shell_dirty = true
 	# SO-2: the far field exists in both modes now — refresh it regardless.
 	if _overview_tile_nodes.is_empty():
 		return
@@ -1539,7 +1581,7 @@ func _on_season_changed(_new_season: String) -> void:
 	for ckey: Vector3i in _chunk_nodes.keys():
 		_enqueue_chunk(ckey)
 	# Cavity shell bakes seasonal colours too (SO-2b).
-	_rebuild_cavity_shell()
+	_cavity_shell_dirty = true
 
 
 ## Slice-change invalidation for the far field (doc 11 Phase SO): only tiles

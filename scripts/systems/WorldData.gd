@@ -100,8 +100,26 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 		push_warning("WorldData.set_block: out-of-bounds (%d, %d, %d)" % [wx, wy, wz])
 		return
 
+	# Bedrock Protocol (Hard Rule 1, 12_world_grid.md): the bedrock rows
+	# (Y 0..BEDROCK_MAX_Y) are never modified by any gameplay action. Mining
+	# already re-validates at its own write sites; enforcing it here too
+	# closes the rule permanently for every other present and future
+	# set_block caller (furniture, item drops, interior carving, …).
+	if wy <= WorldGenerator.BEDROCK_MAX_Y:
+		push_error("WorldData.set_block: bedrock write rejected at (%d, %d, %d) — Y <= %d is protected." % [
+			wx, wy, wz, WorldGenerator.BEDROCK_MAX_Y])
+		return
+
 	var chunk := _get_or_create_chunk(wx, wy, wz)
 	chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)] = id
+	# Keep the buried-chunk optimisation honest: has_void is baked at
+	# generation time and was never updated afterwards, so carving air into a
+	# previously all-solid chunk left it flagged void-free and eligible for
+	# mesh skipping (WorldRenderer._is_buried). Setting the flag on any air
+	# write keeps it conservative-correct; solid writes leave it alone (a
+	# stale true only costs a skipped optimisation, never a wrong skip).
+	if id == BlockRegistry.AIR_ID:
+		chunk.has_void = true
 	mark_chunk_dirty(wx / CHUNK_SIZE, wy / CHUNK_SIZE, wz / CHUNK_SIZE)
 
 

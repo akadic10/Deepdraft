@@ -330,6 +330,25 @@ this doc's build log.
 
 ## 7. Build log
 
+### Playtest note — logged 2026-07-31 (Alen, post-milestone session)
+
+- **Open observation: dwarves freeze beside a full stockpile.** After the mining zone
+  finished (mined out → destroyed) and the 64-cell stone stockpile filled completely, all
+  dwarves stand motionless at the stockpile edge. Not yet investigated. Hypotheses, in
+  likelihood order:
+  1. *Benign* — no idle/wander behaviour exists in this milestone; dwarves halt wherever
+     their last task ended, and "zone full → hauling stops without churn" is the designed
+     outcome. Confirm leases actually stop posting when `_has_any_room` is false.
+  2. *Pull-fail-release cycling* — HAUL leases still posted against the zero-capacity zone,
+     dwarves cycling pull → fail → release on backoff.
+  3. The **full-pouch interrupt-spam robustness pass** deferred in the 2026-07-06 pouch row
+     below.
+  4. `TaskManager._blocked_count` only drifts upward (project review 2026-07-31), keeping
+     the chunk-dirtied re-arm scanning hot after a burst of unassignable tasks.
+
+  Triage: reproduce with the debug overlay open and read the task stats row
+  (pending/blocked/active) — each hypothesis leaves a different signature.
+
 ### Playtest notes — logged 2026-07-06 (Alen, first Phase 1 session)
 
 1. **"Free workers are not carrying things to the zone"** — expected at this point, not a

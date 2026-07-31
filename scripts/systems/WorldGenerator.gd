@@ -3029,6 +3029,14 @@ func _column_chunk_max_y(cx: int, cz: int) -> int:
 			var h: int = heightmap[wx * WORLD_SIZE_Z + wz]
 			if h > max_y:
 				max_y = h
+			# Tarn columns carry heightmap = TARN_FLOOR_Y (47) but hold water
+			# up to tarn_waterline (54) via _generate_block_id — above-surface
+			# water is invisible to the heightmap. Without this clamp, the
+			# chunk row that holds the tarn's entire water body (cy = 3) is
+			# skipped by _fill_chunk_column, so WorldData.get_block, streamed
+			# rendering, and the future water CA would all see an empty pit.
+			if max_y < tarn_waterline and tarn_columns.has(Vector2i(wx, wz)):
+				max_y = tarn_waterline
 	return max_y
 
 

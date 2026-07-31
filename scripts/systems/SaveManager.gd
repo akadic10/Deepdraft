@@ -30,6 +30,12 @@ var _loading_from_backup: bool = false
 var _loading_autosave: bool = false
 var _clock_was_paused_before_load: bool = false
 var _autosave_elapsed_seconds: float = 0.0
+# ── LoadPerformance stamps ────────────────────────────────────────────────────
+# Times the load pipeline: request → read/validate → scene reload + regen wait
+# → per-owner restore. Printed by _print_load_performance at restore end. The
+# post-restore overview tile rebuild is timed separately by SliceTiming.
+var _load_request_msec: int = 0
+var _load_validated_msec: int = 0
 
 var _save_directory_path: String = SAVE_DIRECTORY
 var _save_path: String = SAVE_PATH
@@ -149,6 +155,7 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 	if _loading:
 		return _fail_load("A save is already loading.")
 
+	_load_request_msec = Time.get_ticks_msec()
 	var primary_path := String(paths.get("primary", ""))
 	var backup_path := String(paths.get("backup", ""))
 	var slot_name := "autosave" if is_autosave else "quick save"
@@ -177,6 +184,7 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 				% [slot_name, repair_error])
 
 	var snapshot: Dictionary = selected_result.get("snapshot", {})
+	_load_validated_msec = Time.get_ticks_msec()
 	_pending_restore = snapshot
 	_loading = true
 	_ready_frames = 0
@@ -267,6 +275,8 @@ func _collect_scene_state() -> Dictionary:
 
 
 func _restore_pending_snapshot() -> void:
+	var t_restore_start := Time.get_ticks_msec()
+	var owner_lines: Array[String] = []
 	var scene_state: Dictionary = _pending_restore.get("scene", {})
 	var owners: Array = get_tree().get_nodes_in_group(OWNER_GROUP)
 	owners.sort_custom(func(a: Node, b: Node) -> bool:
@@ -278,11 +288,15 @@ func _restore_pending_snapshot() -> void:
 			continue
 		var key := String(state_owner.call("save_section_key"))
 		if scene_state.has(key):
+			var t_owner := Time.get_ticks_msec()
 			state_owner.call("restore_state", scene_state[key] as Dictionary)
+			owner_lines.append("    %s: %d ms" % [key, Time.get_ticks_msec() - t_owner])
 
+	var t_owners_end := Time.get_ticks_msec()
 	StockpileManager.rebuild_totals()
 	WorldClock.restore_state(_pending_restore.get("clock", {}) as Dictionary)
 	WeatherManager.restore_state(_pending_restore.get("weather", {}) as Dictionary)
+	_print_load_performance(t_restore_start, t_owners_end, owner_lines)
 	var restored_from_backup := _loading_from_backup
 	var restored_autosave := _loading_autosave
 	_pending_restore.clear()
@@ -298,6 +312,27 @@ func _restore_pending_snapshot() -> void:
 	var slot_name := "autosave" if restored_autosave else "quick save"
 	print("SaveManager: %s%s restored." % ["backup " if restored_from_backup else "", slot_name])
 	load_finished.emit(true, restored_from_backup)
+
+
+## Where did load time go? request→validate is disk + JSON parse; validate→
+## restore-start is the scene reload plus the FULL deterministic regen (map
+## precompute dominates — the same ~10 s StartupPerformance reports on a cold
+## boot) plus the two quiet frames; then each owner's restore_state is timed
+## individually so growth in one section (e.g. mined_blocks) shows up by name.
+## The overview tile rebuild the restored slice triggers AFTER this point is
+## reported by SliceTiming when its queue drains.
+func _print_load_performance(t_restore_start: int, t_owners_end: int, owner_lines: Array[String]) -> void:
+	var t_end := Time.get_ticks_msec()
+	print("LoadPerformance:")
+	print("  total_request_to_restored: %.3f s" % (float(t_end - _load_request_msec) / 1000.0))
+	print("  read_validate: %d ms" % (_load_validated_msec - _load_request_msec))
+	print("  reload_regen_wait: %.3f s (map precompute + quiet frames — see StartupPerformance)" \
+		% (float(t_restore_start - _load_validated_msec) / 1000.0))
+	print("  restore_owners: %d ms" % (t_owners_end - t_restore_start))
+	for line in owner_lines:
+		print(line)
+	print("  totals_clock_weather: %d ms" % (t_end - t_owners_end))
+	print("  note: post-restore overview tile rebuild reported by SliceTiming.")
 
 
 func _quick_save_paths() -> Dictionary:

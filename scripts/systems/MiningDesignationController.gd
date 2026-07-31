@@ -1936,16 +1936,28 @@ func _refresh_zone_lease_targets(zone_id: int) -> void:
 ## closes the step-3b DEV wart), promote to MINED in the renderer (exposure
 ## pipeline, SO-2b), feed X0, update controller raycast/grid bookkeeping.
 func _mine_block_world(block: Vector3i) -> void:
-	_ensure_chunk_real(block)
-	WorldData.set_block(block.x, block.y, block.z, BlockRegistry.AIR_ID)
-	_mined_blocks[block] = true
-	if _zone_by_block.has(block):
-		_zone_by_block.erase(block)
+	var blocks: Array[Vector3i] = [block]
+	_mine_blocks_world(blocks)
+
+
+## Batched core of the void write. All per-block state lands first, then the
+## renderer, InteriorTracker, and grid flags are notified ONCE with the whole
+## batch. Save-restore previously routed thousands of blocks through the
+## single-block path — one add_mined_blocks call (and thus one coalesced
+## cavity-shell rebuild) per block, O(n²) over the save. One batch call keeps
+## the load boundary O(n).
+func _mine_blocks_world(blocks: Array[Vector3i]) -> void:
+	if blocks.is_empty():
+		return
+	for block: Vector3i in blocks:
+		_ensure_chunk_real(block)
+		WorldData.set_block(block.x, block.y, block.z, BlockRegistry.AIR_ID)
+		_mined_blocks[block] = true
+		if _zone_by_block.has(block):
+			_zone_by_block.erase(block)
 	if _renderer != null and _renderer.has_method("add_mined_blocks"):
-		var mined: Array[Vector3i] = [block]
-		_renderer.call("add_mined_blocks", mined)
-	var x0_blocks: Array[Vector3i] = [block]
-	InteriorTracker.on_blocks_mined(x0_blocks)
+		_renderer.call("add_mined_blocks", blocks)
+	InteriorTracker.on_blocks_mined(blocks)
 	_grid_dirty = true
 
 
@@ -2175,10 +2187,15 @@ func serialize_state() -> Dictionary:
 
 
 func restore_state(state: Dictionary) -> void:
+	# Collect every valid mined block first, then commit them as ONE batch —
+	# per-block _mine_block_world calls here made loading O(n²) in mined
+	# blocks (each call notified the renderer/InteriorTracker individually).
+	var restored: Array[Vector3i] = []
 	for packed in state.get("mined_blocks", []):
 		var block := SaveManager.unpack_v3i(packed)
 		if _in_bounds(block) and block.y > BEDROCK_MAX_Y and not _mined_blocks.has(block):
-			_mine_block_world(block)
+			restored.append(block)
+	_mine_blocks_world(restored)
 	for raw in state.get("zones", []):
 		if not (raw is Dictionary):
 			continue

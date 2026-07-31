@@ -37,9 +37,15 @@ func _ready() -> void:
 	_load_schedule()
 	_clock = get_node_or_null("/root/WorldClock")
 	_sky = get_node_or_null("/root/SkyController")
-	_seed_rng()
 	# Wait one frame so SkyController has bound to the scene, then set initial weather.
 	await get_tree().process_frame
+	# Seed AFTER the await: WorldGenerator.world_seed is 0 during autoload
+	# _ready and only gets set when WorldRenderer._ready (scene node, runs
+	# after all autoloads but before the first process frame) calls
+	# WorldGenerator.generate(). Seeding before the await always found 0 and
+	# silently fell back to randomize(), breaking the same-seed-same-weather
+	# contract documented in the header.
+	_seed_rng()
 	if _clock != null:
 		if not _clock.is_connected("day_changed", _on_day_changed):
 			_clock.connect("day_changed", _on_day_changed)
@@ -93,6 +99,9 @@ func _seed_rng() -> void:
 	if wg != null:
 		seed_val = int(wg.get("world_seed"))
 	if seed_val == 0:
+		# Should not happen in the normal boot path (see _ready ordering note);
+		# warn loudly so a silent determinism break can't sneak back in.
+		push_warning("WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).")
 		_rng.randomize()
 	else:
 		_rng.seed = seed_val
