@@ -134,9 +134,16 @@ func cancel_task(task_id: int) -> void:
 			agent.abort_task()
 		_mark_idle(dwarf_id)
 	task.status = Task.Status.CANCELLED
-	task.assigned_to = -1
 	_tasks.erase(task_id)
+	# Emit while assigned_to is still intact: source-side cancel cleanup
+	# (StorageComponent.cancel_haul, FurnitureGhostComponent.cancel_fetch,
+	# MiningZoneComponent.release_worker) routes by the cancelled dwarf's id.
+	# Clearing it before the emit made every cancel route receive -1 and skip
+	# cleanup — leaking reservations whenever the agent-side abort_task above
+	# couldn't run (agent freed/invalid). abort_task and the source-side paths
+	# are all owner-guarded and idempotent, so both running is safe.
 	task_cancelled.emit(task)
+	task.assigned_to = -1
 
 
 ## The dwarf finished its task. Logs it, frees the dwarf back into the pool.

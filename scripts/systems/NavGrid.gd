@@ -346,6 +346,17 @@ func _heap_less(a: Array, b: Array) -> bool:
 
 func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 	_invalidate_chunk(Vector3i(cx, cy, cz))
+	# A floor cell's walkability depends on CLEARANCE air blocks *above* it,
+	# which can live in the chunk above the floor's own chunk. The worldgen
+	# path (WorldData.submit_chunk) dirties all six neighbours, but the
+	# gameplay path (WorldData.set_block → mark_chunk_dirty) dirties only the
+	# edited chunk — so a block mined in this chunk's bottom rows must also
+	# refresh cached walkability for floors in the chunk below (mirrors the
+	# downward CLEARANCE extension in _on_occupancy_changed). Without this,
+	# floors exposed near vertical chunk boundaries (y = 15/31/47…) stayed
+	# cached unwalkable until an unrelated invalidation.
+	if cy > 0:
+		_invalidate_chunk(Vector3i(cx, cy - 1, cz))
 
 
 func _on_occupancy_changed(box_min: Vector3i, box_size: Vector3i) -> void:
