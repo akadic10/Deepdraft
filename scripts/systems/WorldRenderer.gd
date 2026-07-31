@@ -1559,9 +1559,20 @@ func _on_grass_bands_ready() -> void:
 	# SO-2: the far field exists in both modes now — refresh it regardless.
 	if _overview_tile_nodes.is_empty():
 		return
+	# Selective requeue: only tiles containing band-override columns change
+	# when the gate flips — band-0 columns hash to the same variant before and
+	# after (see WorldGenerator.tile_has_grass_band). Requeueing every built
+	# tile made each one built pre-bands build twice (the bulk of the ~800
+	# double-builds measured on a 1024-tile load, 2026-07-31).
+	var requeued := 0
 	for key: Vector2i in _overview_tile_nodes.keys():
-		_enqueue_overview_tile(key)
-	_overview_built = false
+		if WorldGenerator.tile_has_grass_band(key.x, key.y, OVERVIEW_TILE_SIZE):
+			_enqueue_overview_tile(key)
+			requeued += 1
+	if requeued > 0:
+		_overview_built = false
+	print("WorldRenderer: grass bands ready — requeued %d/%d built tiles (band columns only)." % [
+		requeued, _overview_tile_nodes.size()])
 
 
 ## Re-bake seasonal surface colours when the season turns. Every mesh path reads
@@ -1590,6 +1601,23 @@ func _on_season_changed(_new_season: String) -> void:
 ## their 4-neighbours (boundary walls read neighbour tops) are re-enqueued
 ## through the normal threaded/budgeted tile queue. Lowland tiles never rebuild
 ## for mountain-depth slices. ~1k Vector2i range reads; trivial.
+## Load fast-path: when a save is mid-restore, adopt its slice height BEFORE
+## the first overview tiles are queued, so every tile builds cut correctly the
+## first time. Without this, the startup tiles built at the default plane
+## (127); the slice restore (priority 80) then re-queued and re-built them —
+## the most visible tiles (the startup radius around the camera) built twice,
+## popping uncut before re-cutting. Called at the moment the tile queue is
+## still empty, so the setter's slice-change enqueue early-outs; when
+## SliceController.restore_state later applies the same value, old_y == v
+## skips the requeue again.
+func _apply_pending_restore_slice() -> void:
+	if SaveManager == null or not SaveManager.has_method("pending_slice_for_new_scene"):
+		return
+	var target := int(SaveManager.call("pending_slice_for_new_scene", slice_y))
+	if target != slice_y:
+		slice_y = target
+
+
 func _enqueue_overview_tiles_for_slice_change(old_y: int, new_y: int) -> void:
 	if _overview_tile_nodes.is_empty() and not _overview_rebuild_queued:
 		return   # far field not built (or already torn down) — nothing to refresh
@@ -1709,6 +1737,7 @@ func _update_block_face_overview() -> void:
 	if not stats.get("maps_ready", false):
 		return
 	if not _overview_built and not _overview_rebuild_queued and _dirty_overview_tiles.is_empty():
+		_apply_pending_restore_slice()
 		_queue_full_overview_rebuild()
 	_drain_overview_tile_queue()
 	if _initial_load and _overview_startup_tile_goal > 0 and _overview_tile_nodes.size() >= _overview_startup_tile_goal:
@@ -1763,12 +1792,28 @@ func _queue_full_overview_rebuild() -> void:
 	var tile_count_z := ceili(float(WORLD_SIZE_Z) / float(OVERVIEW_TILE_SIZE))
 	var center := _overview_startup_center_tile(tile_count_x, tile_count_z)
 	_overview_startup_center = center
+	# Drain order: startup radius first (the visible area, band-capable or
+	# not), then the far field with band-capable tiles LAST. The grass-band
+	# passes are still running on the generator thread when this queue seeds;
+	# any band tile built before they finish is rebuilt at grass_bands_ready
+	# (551–604 double-builds measured on 2026-07-31). Giving the band passes
+	# the never-band window means band tiles build once, post-bands. Both
+	# partitions preserve center-first ordering. tile_may_have_grass_band is
+	# the heightmap-only proxy — safe now, unlike the band maps themselves.
+	var never_band: Array[Vector2i] = []
+	var may_band: Array[Vector2i] = []
 	for key in _overview_tiles_center_first(center, tile_count_x, tile_count_z):
+		if _overview_tile_distance(key, center) <= overview_startup_radius_tiles:
+			_enqueue_overview_tile(key)
+		elif WorldGenerator.tile_may_have_grass_band(key.x, key.y, OVERVIEW_TILE_SIZE):
+			may_band.append(key)
+		else:
+			never_band.append(key)
+	_overview_startup_tile_goal = _dirty_overview_tiles.size()
+	for key: Vector2i in never_band:
 		_enqueue_overview_tile(key)
-		if _overview_startup_tile_goal == 0 and _overview_tile_distance(key, center) > overview_startup_radius_tiles:
-			_overview_startup_tile_goal = _dirty_overview_tiles.size() - 1
-	if _overview_startup_tile_goal == 0:
-		_overview_startup_tile_goal = _dirty_overview_tiles.size()
+	for key: Vector2i in may_band:
+		_enqueue_overview_tile(key)
 	_overview_rebuild_queued = true
 
 

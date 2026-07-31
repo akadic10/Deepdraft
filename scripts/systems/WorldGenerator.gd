@@ -285,6 +285,8 @@ func _deferred_emit_maps_ready() -> void:
 ## listeners re-mesh surfaces that were built with fallback grass.
 func _deferred_finalize_grass_bands() -> void:
 	_grass_bands_ready = true
+	print("WorldGenerator: grass bands finalized %.3f s after maps_ready." % (
+		float(Time.get_ticks_msec() - _maps_ready_msec) / 1000.0))
 	grass_bands_ready.emit()
 
 
@@ -820,8 +822,7 @@ func _generate_threaded() -> void:
 	# arrays, so the main-thread overview build (which renders fallback grass)
 	# never reads them concurrently. _deferred_finalize_grass_bands flips the
 	# gate and asks listeners to refresh once the arrays are fully written.
-	_run_timed_map_phase("lowland_grass_band", Callable(self, "_build_lowland_cap_grass_band_map"))
-	_run_timed_map_phase("foothill_grass_band", Callable(self, "_build_foothill_cap_grass_band_map"))
+	_run_timed_map_phase("grass_bands", Callable(self, "_build_cap_grass_band_maps"))
 	call_deferred("_deferred_finalize_grass_bands")
 	_run_timed_map_phase("tile_ranges", Callable(self, "_build_tile_visible_ranges"))
 
@@ -1061,6 +1062,7 @@ func _is_macro_lowland_anchor(mx: int, mz: int, macro_count_x: int, macro_count_
 # -- Phase 3 - Surface heightmap (2D) -----------------------------------------
 
 func _compute_heightmap() -> void:
+	var t_start := Time.get_ticks_msec()
 	heightmap.resize(WORLD_SIZE_X * WORLD_SIZE_Z)
 
 	var macro_count_x := (WORLD_SIZE_X + TERRAIN_MACRO_CELL_SIZE - 1) / TERRAIN_MACRO_CELL_SIZE
@@ -1071,6 +1073,7 @@ func _compute_heightmap() -> void:
 	for mx in range(macro_count_x):
 		for mz in range(macro_count_z):
 			macro_heights[mx * macro_count_z + mz] = _macro_height_for_cell(mx, mz)
+	var t_macro := Time.get_ticks_msec()
 
 	# Parallel per-column fill. Each X column writes its own disjoint Z slice of
 	# heightmap and records its debug tallies into its own slot of the per-column
@@ -1085,6 +1088,7 @@ func _compute_heightmap() -> void:
 	var task_id := WorkerThreadPool.add_group_task(
 		Callable(self, "_heightmap_column"), WORLD_SIZE_X, -1, false, "heightmap")
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
+	var t_fill := Time.get_ticks_msec()
 
 	var corridor_count := 0
 	var corridor_height_sum := 0
@@ -1106,9 +1110,22 @@ func _compute_heightmap() -> void:
 	print("WorldGenerator: macro expansion -> local offsets on %d columns." % terraced_count)
 	_terraced_columns = terraced_count
 	_apply_plateau_smoothing()
+	var t_plateau := Time.get_ticks_msec()
 	_apply_mountain_foothill_transition()
+	var t_mountain := Time.get_ticks_msec()
 	_apply_lowland_foothill_transition()
+	var t_lowland := Time.get_ticks_msec()
 	_apply_macro_shelf_step_limit()
+	# Sub-phase breakdown for the heaviest map phase (the StartupPerformance
+	# report only times the phase as a whole). Reads as: where do the ~3.8 s go?
+	print("WorldGenerator: heightmap sub-phases -> macro_cells %d ms, column_fill %d ms, plateau %d ms, mountain_foothill %d ms, lowland_foothill %d ms, shelf_step_limit %d ms." % [
+		t_macro - t_start,
+		t_fill - t_macro,
+		t_plateau - t_fill,
+		t_mountain - t_plateau,
+		t_lowland - t_mountain,
+		Time.get_ticks_msec() - t_lowland,
+	])
 
 
 ## WorkerThreadPool group-task body: fills one X column of the heightmap and
@@ -2340,56 +2357,241 @@ func get_tile_visible_range(tx: int, tz: int) -> Vector2i:
 	return Vector2i(_tile_min_visible_y[tx * tiles_z + tz], _tile_max_visible_y[tx * tiles_z + tz])
 
 
-func _build_lowland_cap_grass_band_map() -> void:
+## Shared 8-neighbour offsets for the cap grass-band passes. A const, NOT a
+## function returning a fresh array: the old _lowland_cap_neighbor_offsets()
+## allocated a typed 8-element array per call — once per BFS dequeue and per
+## seed candidate across two 1M-column passes, the single largest cost of the
+## band phase (which gates the overview tiles' final grass colours).
+const CAP_GRASS_NEIGHBOR_OFFSETS: Array[Vector2i] = [
+	Vector2i(1, 0),
+	Vector2i(-1, 0),
+	Vector2i(0, 1),
+	Vector2i(0, -1),
+	Vector2i(1, 1),
+	Vector2i(1, -1),
+	Vector2i(-1, 1),
+	Vector2i(-1, -1),
+]
+
+
+## Fused builder for BOTH cap grass-band maps. One 1M-column seed scan feeds
+## the lowland and foothill maps together — their cap heights are disjoint
+## (lowland cap is exactly LOWLAND_SHELF_MAX_Y = 19; foothill shelves span
+## 20–43), so each column is at most one kind of cap and one `elif` chain
+## replaces what used to be two full scans. The two BFS floods stay inline and
+## verbatim (packed arrays are copy-on-write across function boundaries, so a
+## shared helper mutating them via parameters would silently write to copies).
+## Output is byte-identical to the former two-pass build: seeds enqueue in the
+## same x,z order, and each BFS is unchanged. The bands gate the overview
+## tiles' final grass colours — every second saved here is a second less of
+## band tiles building twice at startup.
+func _build_cap_grass_band_maps() -> void:
 	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
 	lowland_cap_grass_band_map.resize(total_columns)
 	lowland_cap_grass_band_map.fill(0)
 	lowland_cap_grass_distance_map.resize(total_columns)
 	lowland_cap_grass_distance_map.fill(-1)
+	foothill_cap_grass_band_map.resize(total_columns)
+	foothill_cap_grass_band_map.fill(0)
+	foothill_cap_grass_distance_map.resize(total_columns)
+	foothill_cap_grass_distance_map.fill(-1)
 
-	var distances := PackedInt32Array()
-	distances.resize(total_columns)
-	distances.fill(-1)
+	var lowland_distances := PackedInt32Array()
+	lowland_distances.resize(total_columns)
+	lowland_distances.fill(-1)
+	var foothill_distances := PackedInt32Array()
+	foothill_distances.resize(total_columns)
+	foothill_distances.fill(-1)
 
-	var queue: Array[int] = []
-	var head := 0
+	var lowland_queue: Array[int] = []
+	var foothill_queue: Array[int] = []
 
 	for x in range(WORLD_SIZE_X):
+		var row := x * WORLD_SIZE_Z
 		for z in range(WORLD_SIZE_Z):
-			var idx := x * WORLD_SIZE_Z + z
-			if not _is_lowland_cap_grass_band_column(x, z, idx):
-				continue
-			lowland_cap_grass_band_map[idx] = 4
-			if _is_lowland_cap_grass_band_seed(x, z):
-				lowland_cap_grass_band_map[idx] = 1
-				distances[idx] = 0
-				lowland_cap_grass_distance_map[idx] = 0
-				queue.append(idx)
+			var idx := row + z
+			var h: int = heightmap[idx]
+			if h == LOWLAND_SHELF_MAX_Y:
+				if not _is_lowland_cap_grass_band_column(x, z, idx):
+					continue
+				lowland_cap_grass_band_map[idx] = 4
+				if _is_lowland_cap_grass_band_seed(x, z):
+					lowland_cap_grass_band_map[idx] = 1
+					lowland_distances[idx] = 0
+					lowland_cap_grass_distance_map[idx] = 0
+					lowland_queue.append(idx)
+			elif h >= FOOTHILL_SHELF_MIN_Y and h <= FOOTHILL_SHELF_MAX_Y:
+				if not _is_foothill_cap_grass_band_column(x, z):
+					continue
+				foothill_cap_grass_band_map[idx] = 4
+				if _is_foothill_cap_grass_band_seed(x, z, idx):
+					foothill_cap_grass_band_map[idx] = 1
+					foothill_distances[idx] = 0
+					foothill_cap_grass_distance_map[idx] = 0
+					foothill_queue.append(idx)
 
-	while head < queue.size():
-		var idx := queue[head]
+	# BFS floods. The neighbour loop is UNROLLED into pure integer index deltas
+	# (±1 = z, ±stride = x, and the four diagonal sums) with boolean edge
+	# guards — measured 2026-07-31: with the offsets const and the fused scan
+	# in place, these floods were the entire remaining ~4.2 s of the band
+	# phase, and per-node Vector2i iteration was the cost. Output is identical
+	# to the offsets-loop version: BFS level order doesn't depend on
+	# intra-level neighbour order, and the band value is a function of
+	# distance alone (precomputed once per dequeued node — every accepted
+	# neighbour shares the same next_distance).
+	var stride := WORLD_SIZE_Z
+
+	# Lowland flood.
+	var head := 0
+	while head < lowland_queue.size():
+		var idx := lowland_queue[head]
 		head += 1
 
-		var distance := distances[idx]
+		var distance := lowland_distances[idx]
 		if distance >= LOWLAND_CAP_GRASS_EDGE_TOTAL_DISTANCE - 1:
 			continue
 
-		var x := idx / WORLD_SIZE_Z
-		var z := idx % WORLD_SIZE_Z
-		for offset: Vector2i in _lowland_cap_neighbor_offsets():
-			var nx := x + offset.x
-			var nz := z + offset.y
-			if nx < 0 or nx >= WORLD_SIZE_X or nz < 0 or nz >= WORLD_SIZE_Z:
-				continue
-			var nidx := nx * WORLD_SIZE_Z + nz
-			if lowland_cap_grass_band_map[nidx] == 0 or distances[nidx] != -1:
-				continue
+		var x := idx / stride
+		var z := idx % stride
+		var next_distance := distance + 1
+		var band := _lowland_cap_grass_band_for_distance(next_distance)
+		var x_hi := x < WORLD_SIZE_X - 1
+		var x_lo := x > 0
+		var z_hi := z < WORLD_SIZE_Z - 1
+		var z_lo := z > 0
 
-			var next_distance := distance + 1
-			distances[nidx] = next_distance
-			lowland_cap_grass_distance_map[nidx] = next_distance
-			lowland_cap_grass_band_map[nidx] = _lowland_cap_grass_band_for_distance(next_distance)
-			queue.append(nidx)
+		if x_hi:
+			var nidx := idx + stride
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if x_lo:
+			var nidx := idx - stride
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if z_hi:
+			var nidx := idx + 1
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if z_lo:
+			var nidx := idx - 1
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if x_hi and z_hi:
+			var nidx := idx + stride + 1
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if x_hi and z_lo:
+			var nidx := idx + stride - 1
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if x_lo and z_hi:
+			var nidx := idx - stride + 1
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+		if x_lo and z_lo:
+			var nidx := idx - stride - 1
+			if lowland_cap_grass_band_map[nidx] != 0 and lowland_distances[nidx] == -1:
+				lowland_distances[nidx] = next_distance
+				lowland_cap_grass_distance_map[nidx] = next_distance
+				lowland_cap_grass_band_map[nidx] = band
+				lowland_queue.append(nidx)
+
+	# Foothill flood — same unrolled shape.
+	head = 0
+	while head < foothill_queue.size():
+		var idx := foothill_queue[head]
+		head += 1
+
+		var distance := foothill_distances[idx]
+		if distance >= FOOTHILL_CAP_GRASS_EDGE_TOTAL_DISTANCE - 1:
+			continue
+
+		var x := idx / stride
+		var z := idx % stride
+		var next_distance := distance + 1
+		var band := _foothill_cap_grass_band_for_distance(next_distance)
+		var x_hi := x < WORLD_SIZE_X - 1
+		var x_lo := x > 0
+		var z_hi := z < WORLD_SIZE_Z - 1
+		var z_lo := z > 0
+
+		if x_hi:
+			var nidx := idx + stride
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if x_lo:
+			var nidx := idx - stride
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if z_hi:
+			var nidx := idx + 1
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if z_lo:
+			var nidx := idx - 1
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if x_hi and z_hi:
+			var nidx := idx + stride + 1
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if x_hi and z_lo:
+			var nidx := idx + stride - 1
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if x_lo and z_hi:
+			var nidx := idx - stride + 1
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
+		if x_lo and z_lo:
+			var nidx := idx - stride - 1
+			if foothill_cap_grass_band_map[nidx] != 0 and foothill_distances[nidx] == -1:
+				foothill_distances[nidx] = next_distance
+				foothill_cap_grass_distance_map[nidx] = next_distance
+				foothill_cap_grass_band_map[nidx] = band
+				foothill_queue.append(nidx)
 
 
 func _is_lowland_cap_grass_band_column(x: int, z: int, idx: int) -> bool:
@@ -2400,7 +2602,7 @@ func _is_lowland_cap_grass_band_column(x: int, z: int, idx: int) -> bool:
 
 
 func _is_lowland_cap_grass_band_seed(x: int, z: int) -> bool:
-	for offset: Vector2i in _lowland_cap_neighbor_offsets():
+	for offset: Vector2i in CAP_GRASS_NEIGHBOR_OFFSETS:
 		var nx := x + offset.x
 		var nz := z + offset.y
 		if nx < 0 or nx >= WORLD_SIZE_X or nz < 0 or nz >= WORLD_SIZE_Z:
@@ -2415,19 +2617,6 @@ func _is_lowland_cap_grass_band_seed(x: int, z: int) -> bool:
 			return true
 
 	return false
-
-
-func _lowland_cap_neighbor_offsets() -> Array[Vector2i]:
-	return [
-		Vector2i(1, 0),
-		Vector2i(-1, 0),
-		Vector2i(0, 1),
-		Vector2i(0, -1),
-		Vector2i(1, 1),
-		Vector2i(1, -1),
-		Vector2i(-1, 1),
-		Vector2i(-1, -1),
-	]
 
 
 func _is_lowland_cap_grass_edge_source(idx: int) -> bool:
@@ -2455,58 +2644,6 @@ func _foothill_cap_grass_band_for_distance(distance: int) -> int:
 	return 4
 
 
-func _build_foothill_cap_grass_band_map() -> void:
-	var total_columns := WORLD_SIZE_X * WORLD_SIZE_Z
-	foothill_cap_grass_band_map.resize(total_columns)
-	foothill_cap_grass_band_map.fill(0)
-	foothill_cap_grass_distance_map.resize(total_columns)
-	foothill_cap_grass_distance_map.fill(-1)
-
-	var distances := PackedInt32Array()
-	distances.resize(total_columns)
-	distances.fill(-1)
-
-	var queue: Array[int] = []
-	var head := 0
-
-	for x in range(WORLD_SIZE_X):
-		for z in range(WORLD_SIZE_Z):
-			var idx := x * WORLD_SIZE_Z + z
-			if not _is_foothill_cap_grass_band_column(x, z):
-				continue
-			foothill_cap_grass_band_map[idx] = 4
-			if _is_foothill_cap_grass_band_seed(x, z, idx):
-				foothill_cap_grass_band_map[idx] = 1
-				distances[idx] = 0
-				foothill_cap_grass_distance_map[idx] = 0
-				queue.append(idx)
-
-	while head < queue.size():
-		var idx := queue[head]
-		head += 1
-
-		var distance := distances[idx]
-		if distance >= FOOTHILL_CAP_GRASS_EDGE_TOTAL_DISTANCE - 1:
-			continue
-
-		var x := idx / WORLD_SIZE_Z
-		var z := idx % WORLD_SIZE_Z
-		for offset: Vector2i in _lowland_cap_neighbor_offsets():
-			var nx := x + offset.x
-			var nz := z + offset.y
-			if nx < 0 or nx >= WORLD_SIZE_X or nz < 0 or nz >= WORLD_SIZE_Z:
-				continue
-			var nidx := nx * WORLD_SIZE_Z + nz
-			if foothill_cap_grass_band_map[nidx] == 0 or distances[nidx] != -1:
-				continue
-
-			var next_distance := distance + 1
-			distances[nidx] = next_distance
-			foothill_cap_grass_distance_map[nidx] = next_distance
-			foothill_cap_grass_band_map[nidx] = _foothill_cap_grass_band_for_distance(next_distance)
-			queue.append(nidx)
-
-
 func _is_foothill_cap_grass_band_column(x: int, z: int) -> bool:
 	if not _is_foothill_shelf_column(x, z):
 		return false
@@ -2516,7 +2653,7 @@ func _is_foothill_cap_grass_band_column(x: int, z: int) -> bool:
 
 func _is_foothill_cap_grass_band_seed(x: int, z: int, idx: int) -> bool:
 	var center_height := heightmap[idx]
-	for offset: Vector2i in _lowland_cap_neighbor_offsets():
+	for offset: Vector2i in CAP_GRASS_NEIGHBOR_OFFSETS:
 		var nx := x + offset.x
 		var nz := z + offset.y
 		if nx < 0 or nx >= WORLD_SIZE_X or nz < 0 or nz >= WORLD_SIZE_Z:
@@ -3186,6 +3323,58 @@ func _surface_region_value(x: int, z: int, salt: int) -> float:
 	var macro_hash := float(abs(hash(macro)) % 1000) / 999.0
 	var field := (noise_domain.get_noise_2d(float(x) * 0.12 + float(salt * 997), float(z) * 0.12 - float(salt * 541)) + 1.0) * 0.5
 	return clampf((macro_hash * 0.62) + (field * 0.38), 0.0, 1.0)
+
+
+## True when any column of the tile rect carries a nonzero cap grass-band
+## override. Band-0 columns resolve identically before and after the
+## _grass_bands_ready gate (_grass_variant falls through to the pure position
+## hash), so a tile with no band columns meshes the same either way —
+## WorldRenderer._on_grass_bands_ready uses this to requeue ONLY tiles whose
+## meshes actually change when the bands finalize, instead of every built tile.
+## Main-thread only, after the gate has flipped (the maps are complete then).
+## Heightmap-only PREDICTION of tile_has_grass_band, safe to call the moment
+## maps_ready flips — the band maps themselves may still be mid-build on the
+## generator thread then, but band-capable columns are exactly the cap-height
+## columns (lowland: h == LOWLAND_SHELF_MAX_Y; foothill: h in shelf range),
+## and the heightmap is final at maps_ready. Samples a stride-4 grid rather
+## than every column: cap plateaus are large contiguous regions, so a missed
+## sliver (< 4 columns wide) merely falls back to today's behaviour for that
+## tile (built early, requeued at bands-ready) — never a correctness issue.
+## WorldRenderer uses this to order band-capable tiles LAST in the full
+## overview build, so the band passes finish before those tiles build.
+func tile_may_have_grass_band(tx: int, tz: int, tile_size: int) -> bool:
+	var x0 := tx * tile_size
+	var z0 := tz * tile_size
+	var x1 := mini(x0 + tile_size, WORLD_SIZE_X)
+	var z1 := mini(z0 + tile_size, WORLD_SIZE_Z)
+	for x in range(x0, x1, 4):
+		var row := x * WORLD_SIZE_Z
+		for z in range(z0, z1, 4):
+			var h: int = heightmap[row + z]
+			if h == LOWLAND_SHELF_MAX_Y \
+					or (h >= FOOTHILL_SHELF_MIN_Y and h <= FOOTHILL_SHELF_MAX_Y):
+				return true
+	return false
+
+
+func tile_has_grass_band(tx: int, tz: int, tile_size: int) -> bool:
+	var check_lowland := not lowland_cap_grass_band_map.is_empty()
+	var check_foothill := not foothill_cap_grass_band_map.is_empty()
+	if not check_lowland and not check_foothill:
+		return false
+	var x0 := tx * tile_size
+	var z0 := tz * tile_size
+	var x1 := mini(x0 + tile_size, WORLD_SIZE_X)
+	var z1 := mini(z0 + tile_size, WORLD_SIZE_Z)
+	for x in range(x0, x1):
+		var row := x * WORLD_SIZE_Z
+		for z in range(z0, z1):
+			var idx := row + z
+			if check_lowland and lowland_cap_grass_band_map[idx] != 0:
+				return true
+			if check_foothill and foothill_cap_grass_band_map[idx] != 0:
+				return true
+	return false
 
 
 func _grass_variant(x: int, z: int) -> int:

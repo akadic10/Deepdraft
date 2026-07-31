@@ -35,6 +35,7 @@ var _dwarf_director: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
+var _mining_controller: Node = null
 var _persistence_toast: PanelContainer = null
 var _persistence_toast_label: Label = null
 var _persistence_toast_until_msec: int = 0
@@ -115,9 +116,16 @@ func show_persistence_status(message: String, is_error: bool = false) -> void:
 
 
 func _build_styles() -> void:
-	_normal_button_style = StyleBoxEmpty.new()
-	_hover_button_style = StyleBoxEmpty.new()
-	_active_button_style = StyleBoxEmpty.new()
+	# Real styleboxes, not StyleBoxEmpty: with all three states empty, the
+	# pressed state was literally invisible — button_pressed toggled correctly
+	# but every state drew the same nothing, so an active tool never read as
+	# lit on the dock (playtest catch 2026-07-31, found while wiring the
+	# tool_active_changed push-refresh). Normal stays fully transparent (the
+	# dock look is unchanged at rest); hover is a subtle wash; active/pressed
+	# is an unmistakable blue-cyan highlight matching the zone overlay accent.
+	_normal_button_style = _style(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 0, 8)
+	_hover_button_style = _style(Color(1, 1, 1, 0.10), Color(1, 1, 1, 0.14), 1, 8)
+	_active_button_style = _style(Color(0.45, 0.72, 1.0, 0.25), Color(0.55, 0.80, 1.0, 0.9), 2, 8)
 
 
 func _build_root() -> void:
@@ -615,6 +623,12 @@ func _target_canvas_visible(target: String) -> bool:
 			return _slice_controller != null and bool(_slice_controller.call("is_active"))
 		"storage_zone":
 			return _stockpile_controller != null and bool(_stockpile_controller.call("is_active"))
+		"flag":
+			return _flag_controller != null and _flag_controller.has_method("is_active") \
+				and bool(_flag_controller.call("is_active"))
+		"mine":
+			return _mining_controller != null and _mining_controller.has_method("is_active") \
+				and bool(_mining_controller.call("is_active"))
 	return false
 
 
@@ -648,16 +662,42 @@ func register_dwarf_director(director: Node) -> void:
 ## toggles the settlement-flag placement tool.
 func register_flag_controller(controller: Node) -> void:
 	_flag_controller = controller
+	_connect_tool_active(controller)
 
 
 ## Push-registration from StockpileDesignationController (doc 18 Phase 1) —
 ## the Storage Zone panel's actions route here.
 func register_stockpile_controller(controller: Node) -> void:
 	_stockpile_controller = controller
+	_connect_tool_active(controller)
 
 
 func register_furniture_controller(controller: Node) -> void:
 	_furniture_controller = controller
+
+
+## Push-registration from MiningDesignationController — gives the dock's
+## 'mine' entry live pressed-state (the tool previously had none at all).
+func register_mining_controller(controller: Node) -> void:
+	_mining_controller = controller
+	_connect_tool_active(controller)
+
+
+## Shared hookup for the slice pattern generalised to every click-tool: the
+## controller emits tool_active_changed on activate/deactivate (Esc included)
+## and the dock re-derives every button's pressed state. Before this, only the
+## slice tool pushed refreshes — Esc-cancelling any other tool left its button
+## lit until the next dock interaction.
+func _connect_tool_active(controller: Node) -> void:
+	if not controller.has_signal("tool_active_changed"):
+		return
+	var refresh := Callable(self, "_on_tool_active_changed")
+	if not controller.is_connected("tool_active_changed", refresh):
+		controller.connect("tool_active_changed", refresh)
+
+
+func _on_tool_active_changed(_active: bool) -> void:
+	_refresh_active_buttons()
 
 
 func _on_slice_active_changed(_active: bool) -> void:

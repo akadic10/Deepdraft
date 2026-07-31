@@ -27,6 +27,11 @@ const FALLBACK_SWING_BASE_TIME := 2.0
 
 enum ToolState { INACTIVE, HOVER, DRAGGING }
 
+## Fired on every activate/deactivate — DockUI refreshes button pressed-state
+## from it, so the ⛏️ button lights while the tool is active and clears on Esc
+## (previously the mine target had no dock state at all).
+signal tool_active_changed(active: bool)
+
 var _state: ToolState = ToolState.INACTIVE
 var _camera_rig: Camera
 var _dock_ui: DockUI
@@ -129,6 +134,8 @@ func _ready() -> void:
 
 	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
 		_dock_ui.tool_requested.connect(_on_tool_requested)
+	if _dock_ui != null and _dock_ui.has_method("register_mining_controller"):
+		_dock_ui.call("register_mining_controller", self)
 
 	# VisibleVolume contract (doc 11 Phase 3): all overlay rebuilds triggered by
 	# visibility changes go through this one signal — never per-consumer polling.
@@ -245,6 +252,12 @@ func _on_tool_requested(tool_id: String) -> void:
 		if _state != ToolState.INACTIVE:
 			_deactivate_tool()
 		return
+	# TOGGLE, matching every other click-tool: a second press of the dock
+	# button turns the tool off. (Previously the only exit was Esc, and the
+	# button re-activated a tool that was already active.)
+	if _state != ToolState.INACTIVE:
+		_deactivate_tool()
+		return
 	_state = ToolState.HOVER
 	_terrain_grid_node.visible = true
 	_preview_node.visible = true
@@ -255,7 +268,12 @@ func _on_tool_requested(tool_id: String) -> void:
 	# The wheel now resizes the brush, so stop the camera zooming on it while active.
 	if _camera_rig != null and _camera_rig.has_method("set_zoom_suppressed"):
 		_camera_rig.set_zoom_suppressed(true)
+	tool_active_changed.emit(true)
 	print("MiningDesignationController: precision mining active.")
+
+
+func is_active() -> bool:
+	return _state != ToolState.INACTIVE
 
 
 func _deactivate_tool() -> void:
@@ -280,6 +298,7 @@ func _deactivate_tool() -> void:
 	_last_grid_center = Vector2i(-999999, -999999)
 	_last_grid_slice = -999999
 	_last_grid_radius = -1
+	tool_active_changed.emit(false)
 
 
 func _load_config() -> void:

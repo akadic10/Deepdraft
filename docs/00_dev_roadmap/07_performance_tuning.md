@@ -298,6 +298,52 @@ the GPU fewer, larger faces.**
 
 ---
 
+## Addendum — Load/boot pass, 2026-07-31 (post-close follow-up)
+
+A save-load "feels slow" report reopened this file's territory for one session. Measured and
+fixed (editor-debug numbers, same machine class as the worklog above):
+
+| Metric | Before session | After |
+|---|---:|---:|
+| Full overview build (wall) | 21.6 s | **17.9 s** |
+| Tiles built for 1024 nodes | 1856 | **1277** |
+| Grass bands finalized after maps_ready | ~16 s (unmeasured then) | **3.9 s** |
+| Load: tiles double-built by restore | ~800 | **253** |
+| Load: restore_owners (new `LoadPerformance` block) | unmeasured | **2–315 ms** |
+
+What changed (all in `WorldGenerator.gd` / `WorldRenderer.gd` / `SaveManager.gd`):
+
+1. **`LoadPerformance` instrumentation** (SaveManager): times request → read/validate → reload +
+   regen wait → per-owner `restore_state`, printed on every load. `heightmap sub-phases` line
+   added likewise (macro_cells 190 ms, column_fill 2.1 s parallel, plateau 270 ms,
+   mountain/lowland foothill 210 ms, shelf_step_limit ~950 ms).
+2. **Restored slice pre-applied** before the first overview tiles queue
+   (`SaveManager.pending_slice_for_new_scene` + `WorldRenderer._apply_pending_restore_slice`) —
+   a load now builds every tile cut correctly the first time; the slice restore no-ops.
+3. **Selective grass-bands requeue** (`tile_has_grass_band`): only tiles containing band-override
+   columns re-mesh when the gate flips; band-0 columns hash identically pre/post gate.
+4. **Band-capable tiles build last** (`tile_may_have_grass_band`, heightmap-only proxy, safe at
+   maps_ready) so the band passes get the never-band window to finish.
+5. **Band-phase cost cut 16 s → 3.9 s**: neighbour-offsets const (was a fresh typed array per BFS
+   node and per seed candidate — the dominant cost), fused single seed scan for both cap maps,
+   inline height prechecks, floods unrolled to integer index deltas.
+
+**Finding — contention floor.** After the offsets fix, further band micro-optimisation (scan
+fusion, flood unrolling: each a real 2×+ CPU cut) moved wall time < 0.3 s. The band phase runs
+single-threaded on the generator thread while the WorkerThreadPool saturates every core with tile
+builds, so its wall time is set by CPU *scheduling share*, not its own efficiency. ~250 residual
+double-built tiles (~1.5 s) are the accepted floor for this approach.
+
+**Remaining structural levers (not taken this session):**
+
+- **Cache the precomputed maps in the save file** — a load still pays the full 9.7 s map regen
+  (`reload_regen_wait` is ~99% of `LoadPerformance` total). Biggest available load win, but it is
+  save **schema v2**: doc `20_save_load.md` §9 requires explicit migration functions first.
+- **Release export** — all numbers above are editor-debug; this file's own Outcome table showed
+  release ≈ 2× faster across the board. Re-measure there before optimising further.
+
+---
+
 ## <span style="color:#3fb950;">KEEP - Constraints (do not regress)</span>
 
 - The whole 1024 x 1024 map must remain navigable; do not silently shrink the world or gate the

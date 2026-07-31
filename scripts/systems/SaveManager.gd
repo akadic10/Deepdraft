@@ -102,6 +102,21 @@ func generation_seed_for_new_scene(fallback: int) -> int:
 	return fallback
 
 
+## Slice height stored in the pending restore snapshot, or `fallback` when no
+## load is in flight. WorldRenderer polls this right before queueing the first
+## overview tiles, so a load builds every tile cut at the restored plane the
+## FIRST time — previously the startup tiles built at the default plane (127)
+## and the slice restore (priority 80) re-queued and re-built them.
+## SliceController's own restore then applies the same value and its setter
+## no-ops the requeue (old_y == v).
+func pending_slice_for_new_scene(fallback: int) -> int:
+	if not _loading or _pending_restore.is_empty():
+		return fallback
+	var scene_state: Dictionary = _pending_restore.get("scene", {})
+	var slice_state: Dictionary = scene_state.get("slice", {})
+	return int(slice_state.get("slice_y", fallback))
+
+
 func request_save() -> bool:
 	if _loading:
 		return _fail_save("A save is currently loading.")

@@ -40,6 +40,11 @@ var _camera_rig: Node3D = null
 var _dock_ui: Node = null
 var _director: Node = null
 
+## Fired on every activate/deactivate — DockUI refreshes button pressed-state
+## from it, so the 🚩 button reflects the tool while it is placing and clears
+## on Esc-cancel (previously the flag target had no dock state at all).
+signal tool_active_changed(active: bool)
+
 var _active: bool = false
 var _ghost: Node3D = null
 var _ghost_material: StandardMaterial3D = null
@@ -114,6 +119,7 @@ func activate() -> void:
 	_active = true
 	_ensure_ghost()
 	_ghost.visible = false   # shown on first valid hover update
+	tool_active_changed.emit(true)
 
 
 func deactivate() -> void:
@@ -122,6 +128,7 @@ func deactivate() -> void:
 	_active = false
 	if _ghost != null:
 		_ghost.visible = false
+	tool_active_changed.emit(false)
 
 
 # ── Hover ghost ───────────────────────────────────────────────────────────────

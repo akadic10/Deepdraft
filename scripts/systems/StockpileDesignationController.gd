@@ -70,6 +70,11 @@ const DEV_FURNITURE_MIX: Dictionary = {
 signal zone_created(zone_id: int)
 signal zone_removed(zone_id: int)
 
+## Fired on every activate/deactivate — DockUI refreshes button pressed-state
+## from it (the SliceController slice_active_changed pattern), so Esc-cancel
+## no longer leaves the 📦 button lit until the next dock interaction.
+signal tool_active_changed(active: bool)
+
 var _dock_ui: Node = null
 
 var _active: bool = false
@@ -172,6 +177,7 @@ func activate() -> void:
 		return
 	_active = true
 	_ensure_preview_mesh()
+	tool_active_changed.emit(true)
 
 
 func deactivate() -> void:
@@ -184,6 +190,7 @@ func deactivate() -> void:
 		_preview_mesh.visible = false
 	if _size_label != null:
 		_size_label.visible = false
+	tool_active_changed.emit(false)
 
 
 func _on_tool_requested(tool_id: String) -> void:

@@ -118,8 +118,42 @@ func _process(delta: float) -> void:
 	_update_cursor_overlay()
 
 
+## Presses and wheel notches route through _unhandled_input so the GUI and the
+## click-tools see them FIRST: scrolling over a dock window no longer zooms the
+## world behind it, and an RMB press on a panel no longer arms an orbit. (The
+## old _input hook saw every event before Control GUI processing — the defect
+## behind the set_zoom_suppressed workaround's siblings.)
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+		_handle_mouse_press(event as InputEventMouseButton)
+
+
+## Releases and orbit motion stay on the raw _input path deliberately: once a
+## world drag is active, the camera must keep receiving events even while the
+## pointer crosses a Control (which would consume them before _unhandled_input)
+## — otherwise an orbit stalls over any window, and a button released over a
+## panel would leave the camera orbiting/panning forever. Both handlers no-op
+## unless the corresponding drag is already active, so this path can never
+## START an interaction over UI.
 func _input(event: InputEvent) -> void:
-	_handle_orbit_and_zoom(event)
+	if event is InputEventMouseButton and not (event as InputEventMouseButton).pressed:
+		_handle_mouse_release(event as InputEventMouseButton)
+	elif event is InputEventMouseMotion and _orbiting:
+		_handle_orbit_motion(event as InputEventMouseMotion)
+
+
+## Alt-tab mid-orbit means the release event never arrives — end any drag and
+## restore the OS cursor so it can't stay hidden outside the game. Same on
+## teardown (SaveManager scene reload mid-drag).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_orbiting = false
+		_orbit_active = false
+		_orbit_accum = 0.0
+		_dragging = false
+		_set_os_cursor_hidden(false)
+	elif what == NOTIFICATION_EXIT_TREE:
+		_set_os_cursor_hidden(false)
 
 
 # ── Child-node bootstrap ─────────────────────────────────────────────────────
@@ -409,60 +443,67 @@ func _set_os_cursor_hidden(hide_it: bool) -> void:
 
 # ── Orbit (RMB drag, dead-zoned), grab-drag pan (MMB) and zoom (wheel) ────────
 
-func _handle_orbit_and_zoom(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		var mbe := event as InputEventMouseButton
+## Press-side half (called from _unhandled_input — UI-hovered events never
+## arrive here, which is the whole point).
+func _handle_mouse_press(mbe: InputEventMouseButton) -> void:
+	# Orbit: armed while the rotate button (RMB) is held. Rotation only begins
+	# once the mouse moves past _orbit_dead_zone, so a click-wobble (e.g. a
+	# context click) doesn't spin the view. (Stonehearth dead zone.)
+	if mbe.button_index == _btn_rotate:
+		_orbiting = true
+		_orbit_accum  = 0.0      # reset the dead-zone accumulator on press
+		_orbit_active = false
 
-		# Orbit: armed while the rotate button (RMB) is held. Rotation only begins
-		# once the mouse moves past _orbit_dead_zone, so a click-wobble (e.g. a
-		# context click) doesn't spin the view. (Stonehearth dead zone.)
-		if mbe.button_index == _btn_rotate:
-			_orbiting = mbe.pressed
-			_orbit_accum  = 0.0      # reset the dead-zone accumulator on press AND release
-			_orbit_active = false    # …so the 🔄 cursor clears the moment RMB is let go
+	# Grab-the-ground pan: start on the drag button (MMB) press.
+	if mbe.button_index == _btn_drag:
+		_start_drag()
 
-		# Grab-the-ground pan: start on the drag button (MMB) press, stop on release.
-		if mbe.button_index == _btn_drag:
-			if mbe.pressed:
-				_start_drag()
-			else:
-				_dragging = false
+	# Scroll wheel: zoom in/out. Dispatches to _apply_zoom → cursor-targeted zoom
+	# (zoom toward the point under the mouse, clamped at that surface) or the
+	# spring_fraction fallback. Both use a geometric per-notch step. (21_camera.md)
+	if (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN) \
+			and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_ALT)):
+		return
+	# An active tool (e.g. the mining brush) claims the wheel for its own resize.
+	# Kept even now that the wheel routes through _unhandled_input: the relative
+	# order of _unhandled_input between this rig (runtime-instanced) and the
+	# tools is scene-order-fragile, so the explicit claim stays as the guarantee.
+	if _zoom_suppressed and (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		return
+	if mbe.button_index == MOUSE_BUTTON_WHEEL_UP:
+		_apply_zoom(true)
+	elif mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		_apply_zoom(false)
 
-		# Scroll wheel: zoom in/out. Dispatches to _apply_zoom → cursor-targeted zoom
-		# (zoom toward the point under the mouse, clamped at that surface) or the
-		# spring_fraction fallback. Both use a geometric per-notch step. (21_camera.md)
-		if mbe.pressed:
-			if (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN) \
-					and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_ALT)):
-				return
-			# An active tool (e.g. the mining brush) claims the wheel for its own resize.
-			if _zoom_suppressed and (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN):
-				return
-			if mbe.button_index == MOUSE_BUTTON_WHEEL_UP:
-				_apply_zoom(true)
-			elif mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				_apply_zoom(false)
 
-	elif event is InputEventMouseMotion and _orbiting:
-		var mme := event as InputEventMouseMotion
+## Release-side half (called from _input so a release over UI still lands).
+func _handle_mouse_release(mbe: InputEventMouseButton) -> void:
+	if mbe.button_index == _btn_rotate:
+		_orbiting = false
+		_orbit_accum  = 0.0
+		_orbit_active = false    # …so the 🔄 cursor clears the moment RMB is let go
+	if mbe.button_index == _btn_drag:
+		_dragging = false
 
-		# Dead zone: accumulate motion until it passes the threshold, then orbit.
-		if not _orbit_active:
-			_orbit_accum += absf(mme.relative.x) + absf(mme.relative.y)
-			if _orbit_accum < _orbit_dead_zone:
-				return
-			_orbit_active = true
-			if _orbit_dynamic_pivot:
-				_reanchor_orbit_pivot()   # spin around what you're looking at
 
-		# Horizontal drag → orbit around Y axis (snap — rotation is not smoothed).
-		# Negative sign: dragging right rotates clockwise (natural feel).
-		var dx := mme.relative.x * _rot_speed * (1.0 if _invert_x else -1.0)
-		_orbit_y += dx
+func _handle_orbit_motion(mme: InputEventMouseMotion) -> void:
+	# Dead zone: accumulate motion until it passes the threshold, then orbit.
+	if not _orbit_active:
+		_orbit_accum += absf(mme.relative.x) + absf(mme.relative.y)
+		if _orbit_accum < _orbit_dead_zone:
+			return
+		_orbit_active = true
+		if _orbit_dynamic_pivot:
+			_reanchor_orbit_pivot()   # spin around what you're looking at
 
-		# Vertical drag → pitch up/down, clamped to safe range.
-		var dy := mme.relative.y * _rot_speed * (-1.0 if _invert_y else 1.0)
-		_pitch  = clampf(_pitch + dy, _min_pitch, _max_pitch)
+	# Horizontal drag → orbit around Y axis (snap — rotation is not smoothed).
+	# Negative sign: dragging right rotates clockwise (natural feel).
+	var dx := mme.relative.x * _rot_speed * (1.0 if _invert_x else -1.0)
+	_orbit_y += dx
+
+	# Vertical drag → pitch up/down, clamped to safe range.
+	var dy := mme.relative.y * _rot_speed * (-1.0 if _invert_y else 1.0)
+	_pitch  = clampf(_pitch + dy, _min_pitch, _max_pitch)
 
 
 # ── Zoom (cursor-targeted, with spring-fraction fallback) ─────────────────────
