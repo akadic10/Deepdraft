@@ -24,6 +24,10 @@ var _load_used_backup := false
 var _save_manager: Node = null
 var _world_generator: Node = null
 var _world_clock: Node = null
+## Full scene-owner snapshot captured right after the colony state is built.
+## Every load is deep-diffed against it (content equality, not section sizes —
+## a chest losing its inventory or a ghost losing its yaw used to pass).
+var _content_reference: Dictionary = {}
 
 
 func _init() -> void:
@@ -57,6 +61,7 @@ func _run() -> void:
 	if not setup_error.is_empty():
 		_fail(setup_error)
 		return
+	_content_reference = _collect_scene_state()
 
 	# Advancing the timer by one interval must write only the independent
 	# autosave slot and must not mutate authoritative scene state.
@@ -124,6 +129,10 @@ func _run() -> void:
 	if not autosave_verification_error.is_empty():
 		_fail("autosave: %s" % autosave_verification_error)
 		return
+	var autosave_content_diff := _deep_diff(_content_reference, _collect_scene_state(), "scene")
+	if not autosave_content_diff.is_empty():
+		_fail("autosave content did not round-trip — %s" % autosave_content_diff)
+		return
 
 	# Fault injection stays inside SaveManager, the sole save-file I/O owner.
 	var corrupt_error := String(_save_manager.call("_write_text_file", TEST_PRIMARY, "{invalid json"))
@@ -149,10 +158,19 @@ func _run() -> void:
 	if not verification_error.is_empty():
 		_fail(verification_error)
 		return
+	var backup_content_diff := _deep_diff(_content_reference, _collect_scene_state(), "scene")
+	if not backup_content_diff.is_empty():
+		_fail("backup-load content did not round-trip — %s" % backup_content_diff)
+		return
 
 	var repaired_primary: Dictionary = _save_manager.call("_read_snapshot", TEST_PRIMARY)
 	if not bool(repaired_primary.get("ok", false)):
 		_fail("backup load did not repair the primary slot")
+		return
+
+	var inflight_error := _run_inflight_carried_case()
+	if not inflight_error.is_empty():
+		_fail(inflight_error)
 		return
 
 	print("SAVE_MANAGER_ROUND_TRIP_OK")
@@ -196,7 +214,7 @@ func _build_nonempty_colony_state() -> String:
 			"stacks": [{
 				"cell": _pack_v3i(stockpile_cell),
 				"item": "base:resources:stone:rough_stone",
-				"count": 1,
+				"count": 2,
 			}],
 		}],
 	})
@@ -205,7 +223,7 @@ func _build_nonempty_colony_state() -> String:
 			"id": 301,
 			"key": "base:furniture:storage_shelf",
 			"origin": _pack_v3i(ghost_cell),
-			"yaw": 0,
+			"yaw": 1,
 		}],
 		"installed": [{
 			"id": 401,
@@ -329,6 +347,107 @@ func _collect_scene_state() -> Dictionary:
 		if state_owner.has_method("save_section_key") and state_owner.has_method("serialize_state"):
 			result[String(state_owner.call("save_section_key"))] = state_owner.call("serialize_state")
 	return result
+
+
+## Recursive content-equality diff. Floats compare with a small tolerance —
+## JSON round-trips numbers through text and node transforms through 32-bit
+## Vector3 components, so exact bit equality is not the contract. Returns ""
+## when equal, otherwise a "path: detail" description of the FIRST difference,
+## so a regression names the exact field it ate (e.g. a container inventory
+## clamped on load, a ghost yaw reset, a stack count collapsing to 1).
+func _deep_diff(expected: Variant, actual: Variant, path: String) -> String:
+	if expected is Dictionary and actual is Dictionary:
+		var exp_dict := expected as Dictionary
+		var act_dict := actual as Dictionary
+		for key in exp_dict:
+			if not act_dict.has(key):
+				return "%s: missing key '%s'" % [path, str(key)]
+			var child := _deep_diff(exp_dict[key], act_dict[key], "%s.%s" % [path, str(key)])
+			if not child.is_empty():
+				return child
+		for key in act_dict:
+			if not exp_dict.has(key):
+				return "%s: unexpected key '%s'" % [path, str(key)]
+		return ""
+	if expected is Array and actual is Array:
+		var exp_arr := expected as Array
+		var act_arr := actual as Array
+		if exp_arr.size() != act_arr.size():
+			return "%s: array size %d != %d" % [path, exp_arr.size(), act_arr.size()]
+		for i in range(exp_arr.size()):
+			var child := _deep_diff(exp_arr[i], act_arr[i], "%s[%d]" % [path, i])
+			if not child.is_empty():
+				return child
+		return ""
+	if (expected is float or expected is int) and (actual is float or actual is int):
+		if absf(float(expected) - float(actual)) > 0.002:
+			return "%s: %s != %s" % [path, str(expected), str(actual)]
+		return ""
+	if typeof(expected) != typeof(actual) or expected != actual:
+		return "%s: %s != %s" % [path, str(expected), str(actual)]
+	return ""
+
+
+## In-flight case: a save written mid-haul stores carried item KEYS on the
+## dwarf (DwarfAgent.serialize_state). The load contract is Hard Rule 12
+## shaped: carried items are re-dropped as loose at the dwarf's feet — never
+## destroyed, never left on the freed agent. restore_state is invoked here
+## exactly as SaveManager invokes it for the dwarves section, so this is the
+## same code path a real load takes.
+func _run_inflight_carried_case() -> String:
+	var dwarves := _owner("dwarves")
+	var items := _owner("items")
+	if dwarves == null or items == null:
+		return "in-flight case: save-state owners missing after reload"
+	var loose_before := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
+	var carrier_cell := _surface_cell(16, 0)
+	dwarves.call("restore_state", {
+		"birth_index": 5,
+		"settlement_anchor": _pack_v3i(_surface_cell(0, 0)),
+		"roster": [{
+			"id": 4,
+			"name": "Carrier",
+			"gender": "male",
+			"appearance": {
+				"gender": "male",
+				"age_tier": "adult",
+				"skin_tone": "medium",
+				"eye_color": "grey",
+				"hair_color": "brown",
+				"hair_style": "short_back",
+				"eyebrow_style": "thick_flat",
+				"beard_style": "",
+				"scar": "none",
+			},
+			"traits": [],
+			"profession": "base:profession:worker",
+			"profession_experience": {},
+			"position": _pack_v3(Vector3(
+				float(carrier_cell.x) + 0.5, float(carrier_cell.y) + 1.0, float(carrier_cell.z) + 0.5)),
+			"rotation_y": 0.0,
+			"sleep": 0.9,
+			"sleeping": true,
+			"sleep_hours_left": 5.0,
+			"carried_items": [
+				"base:resources:stone:rough_stone",
+				"base:resources:stone:rough_stone",
+			],
+		}],
+	})
+	var loose_after := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
+	if loose_after != loose_before + 2:
+		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +2)" \
+			% [loose_before, loose_after]
+	var roster: Array = (dwarves.call("serialize_state") as Dictionary).get("roster", [])
+	for raw in roster:
+		if not (raw is Dictionary):
+			continue
+		var entry := raw as Dictionary
+		if int(entry.get("id", -1)) == 4:
+			if not ((entry.get("carried_items", []) as Array).is_empty()):
+				return "in-flight case: restored dwarf still reports carried items"
+			return ""
+	return "in-flight case: carrier dwarf missing from the roster after restore"
 
 
 func _owner(section_key: String) -> Node:
