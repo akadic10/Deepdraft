@@ -1,0 +1,313 @@
+# 22 — Doors & Sealed-Room Temperature
+
+> **Document review legend for Obsidian**
+>
+> <span style="color:#3fb950;">Green = decided / ready to build</span> |
+> <span style="color:#d29922;">Yellow = decision needed or tune-in-engine</span> |
+> <span style="color:#f85149;">Red = explicitly out of scope for this milestone</span>
+
+Status: **BUILT, PARTIALLY PLAYTESTED — 2026-08-03, updated 2026-08-06.** Doors (new
+furniture piece) and doc 34's sealed-room + temperature engine (`RoomManager`, new
+autoload) are both fully coded and wired together. Alen's first underground playtest
+(2026-08-06, Addenda 2 and 3 below) confirmed the door places, is walkable, and can be
+built into a real mined room — but also surfaced that the World Info Rooms/Doors readout
+was silently dead code the whole time (now fixed), so the room-count verification items
+in section 4 below were never actually checkable until today and still need a fresh pass.
+**This is the first milestone since doc 19 to register a new autoload — an editor Reload
+Current Project is required before playtesting** (`AGENT.md` Playtest Handoff Note).
+
+**Why this milestone:** doc 21 shipped a Hearth with an inert `heat_source.heat_units`
+field and a Tavern Bar with inert `room_anchor` fields — both waiting on a temperature/
+room-detection system that didn't exist. Picking up doc 34 directly hit a hard blocker:
+its sealed-room algorithm flood-fills from door blocks, and doors didn't exist anywhere in
+the codebase — no placeable door, and no player-facing "build a wall" mechanic at all
+(`WorldData.set_block` had never been called with anything but `AIR_ID`). Alen chose to
+build a minimal door first, in the same pass, rather than defer doc 34 again.
+
+---
+
+## 1. Scope decisions made during planning
+
+**Doors don't need a new terrain block, and don't need `WorldData` writes at all.**
+Investigating `NavGrid.is_walkable()` and `FurniturePlacementController._install()` showed
+that a door only needs to stay *walkable* — the cell's actual block ID (air) never has to
+change. `FurniturePlacementController` already skips occupancy registration entirely for
+any def whose `collision_regions` array is empty (it's a straight loop, `[]` → zero boxes
+registered). So `base:furniture:door` ships as ordinary furniture through the existing
+doc 19 pipeline, with an empty `collision_regions` array — zero new placement code needed.
+This was the single biggest scope reduction in this milestone.
+
+**RoomManager doesn't subscribe to furniture signals — it's called directly.**
+`FurniturePlacementController` is a scene node (per doc 13, "presentation = scene node"),
+not an autoload, so it isn't guaranteed to exist when an autoload's own `_ready()` runs.
+Every other cross-system link in this codebase runs the other direction (scene nodes call
+INTO autoloads: `TaskManager.register_work_source(...)`, `StockpileManager.register_container(...)`,
+etc.), so `RoomManager` follows the same pattern: `FurniturePlacementController` calls
+`RoomManager.on_furniture_changed(key, cell, def, installed)` directly at both its install
+and uninstall sites, instead of `RoomManager` subscribing to `furniture_installed`.
+
+**Rooms are DERIVED state, never saved** — the exact `InteriorTracker` (doc 11 X0)
+precedent. `RoomManager` has no `save_section_key()`/`serialize_state()`. On load,
+`SaveManager` restores furniture (including doors) through the same `_install()` call path
+used at runtime, which calls `on_furniture_changed()` exactly as it would live — rooms
+rebuild themselves automatically, no special load-order hook required.
+
+**Full rebuild on every geometry trigger, throttled — not incremental per-room diffing.**
+Doc 34 specifies recomputing only rooms whose *perimeter* an edit touches. `RoomManager`
+instead re-flood-fills from every known door cell on any relevant trigger (door add/remove,
+any `WorldData.chunk_dirtied`), throttled to at most once per 0.5s. Simpler, and correct at
+the door counts a colony will realistically have; flagged in doc 34 as something that would
+need real per-room diffing at much larger scale.
+
+**`MAX_ROOM_CELLS` (4096) approximates doc 34's "leaked to unbounded space" check.**
+Doc 34's abort condition ("expansion reaches a block that is neither solid nor a door") is,
+read literally, only checkable by flood-filling the *entire* reachable open world to prove
+a negative — infeasible on every trigger. A cell-count cap is the same kind of tuning call
+as `NavGrid`'s 1200-node reachability cap (doc 32): a fill that hasn't terminated by 4096
+cells is presumed to have escaped into open space. Correct for any realistically-sized
+room; approximate at the boundary. Full reasoning in `RoomManager.gd`'s file header and in
+doc 34's new "Implementation notes" section.
+
+---
+
+## 2. What was built
+
+### Door (furniture)
+
+`data/furniture/door.json` — 1×1 footprint, `placement: "floor"`, `item_key` +
+`yaw_steps` (the doc 19 fields, so it rides the existing Build-panel/fetch-and-build
+pipeline unmodified) — but **`collision_regions: []`**, the one deliberate deviation from
+every other furniture def in the project. No doorway validation in v1 (no check that the
+piece sits between two walls) — just the standard `NavGrid.is_walkable(cell)` check every
+floor piece gets. `tools/generate_furniture_glbs.py` gained `build_door()`: a thin
+(2-voxel-deep) plank plane with iron hinges and a handle, ~2 blocks tall. Registered in
+`FURNITURE_PANEL_ITEMS` (DockUI) and `DEV_FURNITURE_MIX` (StockpileDesignationController),
+same mechanical pattern as doc 21.
+
+```
+furniture/door.glb   240 voxels   62156 B
+```
+
+### RoomManager (new autoload)
+
+`scripts/systems/RoomManager.gd`, registered in `project.godot` `[autoload]` after
+`InteriorTracker`. Implements, faithfully ported from doc 34:
+
+- **Sealed-room flood-fill** from every known door cell, through air only, stopped by
+  `BlockRegistry.is_solid()` or another door cell (Sealing Rules 1–3).
+- **The full temperature formula** — depth gradient, heat bonus, seasonal offset (solstice
+  cosine curve), daily offset (sine, peaks 14:00) — ported verbatim from the GDScript block
+  already in doc 34.
+- **`mean_floor_y`** computed the doc-specified way: average of the *lowest* air cell per
+  `(x, z)` column, not the geometric centre.
+- **Heat aggregation** from any installed furniture whose def carries a `heat_source` key
+  (currently only the Hearth, doc 21) — summed per room, divided by room volume.
+- **Frozen Vault flag** (`temp_c <= 0.0`).
+- **Recalculation triggers**: door install/uninstall (direct call), any block edit
+  (`WorldData.chunk_dirtied`, throttled), `WorldClock.hour_changed` (cheap, formula-only,
+  skips rooms with zero seasonal influence — exactly doc 34's own optimisation).
+
+### FurniturePlacementController (small, additive changes)
+
+- New `signal furniture_uninstalled(furniture_key, origin_cell)` — didn't exist before;
+  needed so door removal can be tracked as precisely as door installation.
+- Two new one-line calls into `RoomManager.on_furniture_changed(...)`, at the existing
+  install site and the existing `_teardown_installed()` site. No other logic touched.
+
+### Visibility (stopgap, not a real UI)
+
+`DockUI._world_info_rows()` gained two lines (door count, room count + frozen-vault count)
+behind a `get_node_or_null("/root/RoomManager")` guard. This is **not** the doc 34 inspect
+panel (Section "UI — Room Temperature Display") — just enough to confirm the system is
+doing something without reading engine logs. See *Deferred*.
+
+---
+
+## 3. Deferred (explicitly out of scope)
+
+<span style="color:#f85149;">Doorway validation</span> — no check that a door is placed
+between two solid walls. A door placed in open space is harmless (no room will ever form
+around it) but nothing stops the player from trying.
+
+<span style="color:#f85149;">Door open/close animation</span> — every installed door is
+permanently "closed" for sealing purposes. Doc 34 explicitly allows this (a strict superset
+of its own rule), but there's no visual swing, no dwarf-passing-through state.
+
+<span style="color:#f85149;">Room inspect panel</span> — doc 34's "Room: Sealed /
+Frozen Vault / Temperature / Volume / Heat sources / Seasonal influence" panel does not
+exist. `RoomManager.get_room_at(cell)` returns everything that panel would need; only the
+UI is missing.
+
+<span style="color:#f85149;">Aging Cellar / Food Preservation hooks</span> — both
+consuming systems (doc 42) don't exist in code yet, so there's nothing to pause/resume or
+spoil. `get_room_at(cell).temp_c` is the hook point whenever they land.
+
+<span style="color:#f85149;">Dwarf comfort / `biting_cold` thought</span> — depends on
+doc 41's needs/mood system, not yet implemented.
+
+<span style="color:#f85149;">Per-room incremental recomputation</span> — see scope
+decisions above. Full-rebuild-on-dirty is the v1 approach.
+
+## 4. Verification (partially done — see Addenda 2 and 3 for what's confirmed)
+
+Per `AGENT.md`'s Playtest Handoff Note, **a new autoload was registered this session — a
+Godot editor Reload Current Project is required before any of this will work**, not just a
+normal play test. After reloading:
+
+> **2026-08-06 note:** the door-placement and walkability items below are now confirmed —
+> Alen mined a corridor, built a 4×4 room, and placed a door in it. The Rooms-count item is
+> still unconfirmed as written: the World Info overlay never actually showed a Rooms/Doors
+> line before today (dead code, see Addendum 3), so no one has yet seen it increment for a
+> real sealed room — that's the next concrete thing to check now that the display is fixed.
+
+- [ ] `RoomManager: ready (doc 34/22).` prints on boot with no errors.
+- [ ] Build panel: `📥 Door` appears, places, and is walkable (a dwarf or the DEV cursor
+      can cross the tile without detouring).
+- [ ] Dig out a small room with exactly one door-sized gap; place a Door in the gap; the
+      World Info overlay's Rooms count increments by 1.
+- [ ] Place a Hearth inside that room; reopen World Info — no direct temp readout yet
+      (see Deferred), but nothing should error; a print/log check that `heat_units`
+      contributed to the room's `temp_c` is the practical verification until the UI exists.
+- [ ] Mine out the door (uninstall it): the room count should drop back — the seal breaks.
+- [ ] Save, reload the game: door(s) restore, room count matches pre-save state (confirms
+      the DERIVABLE-state assumption holds).
+- [ ] Dig a very large, open cavern (no doors) — confirm no false-positive "sealed" rooms
+      and no performance stall (the throttle should keep chunk_dirtied spam from hitching).
+
+## 5. Addendum (doc 22b, 2026-08-06): door resized after first playtest
+
+Alen's first in-engine pass flagged the door as visually out-of-proportion — a
+single 1×1 tile, ~2 blocks tall, next to 3-tall dwarves and 1-wide corridors. Resized
+to **2×1 footprint, 2 blocks wide x ~4 blocks tall**, rebuilt as a proper double-leaf
+door (two plank leaves, dark centre seam, hinges on each outer edge, handles near the
+seam) rather than one slab stretched to fit.
+
+**This was not purely a visual change.** `RoomManager.on_furniture_changed()` only
+ever tracked the door's *origin* cell as a sealing boundary — fine at 1×1, where
+origin was the whole footprint, but wrong at 2×1: the second cell would have read as
+plain open air, and the sealed-room flood-fill would leak straight through it. Fixed
+by changing the call signature from `on_furniture_changed(key, cell, def, installed)`
+to `on_furniture_changed(key, cells, def, installed)` — `FurniturePlacementController`
+now passes `component.cells` (the already-computed full footprint) instead of just
+`origin`, and `RoomManager` registers every cell of a door's footprint into
+`_door_cells`. No change was needed in `_flood_fill_from_door()` itself: it already
+treats each `_door_cells` entry as an independent boundary cell and dedupes
+physically-adjacent cells of the same door via its `claimed_doors` set, so a 2-cell
+door "just works" once both cells are registered. Heat-source tracking (currently
+only the 1×1 Hearth) deliberately stays keyed to the origin cell only — summing
+`heat_units` at every footprint cell of a future multi-cell heat source would
+double-count it in `_sum_heat()`.
+
+Files touched: `data/furniture/door.json` (footprint), `tools/generate_furniture_glbs.py`
+(`build_door()` rebuilt for the new envelope), `scripts/systems/RoomManager.gd`
+(`on_furniture_changed` signature), `scripts/systems/FurniturePlacementController.gd`
+(both call sites). No autoload registration changed — a plain script edit, no editor
+Reload Current Project required, just a re-run/hot-reload.
+
+## 6. Addendum 2 (2026-08-06): first underground playtest — three bugs found
+
+Alen's first attempt to actually place a door in a mined, sliced-open tunnel surfaced three
+separate pre-existing bugs, none specific to doors:
+
+**Floating drop items.** `ItemDropManager._rest_y()` only scanned 8 blocks straight down
+looking for a floor to rest a dropped item on (`REST_SCAN_DEPTH`), falling back to the mined
+block's own height — floating in place — if it scanned out. Fine for shallow pits; wrong for a
+wall/ceiling block mined out of a deep or diagonal tunnel, where the real floor is well below
+but not straight under the mined cell within 8 tiles. Now scans all the way to bedrock.
+
+**Furniture couldn't be placed underground at all.** `FurniturePlacementController._surface_cell_for()`
+(the click-to-place raycast) marched against `WorldGenerator.get_visible_surface_y()` — the
+STATIC world-gen heightmap, frozen at generation and never updated by mining. Every placement
+click resolved to the *original, unmined* ground height for that column, no matter what the
+slice tool had cut away or what mining had exposed below — so a door (or any furniture) could
+only ever be placed at the natural outdoor surface, never inside a dug room. Replaced with a
+proper slice-aware voxel DDA raycast against the live block grid, porting the same technique
+`MiningDesignationController._raycast_voxel()` already used correctly.
+
+**Stockpile zones had the identical bug** (`StockpileDesignationController._surface_cell_for()`),
+and its header comment even documented the limitation as deliberate ("zones are SURFACE
+designations"). Fixed the same way. This was flagged to Alen before fixing, since it was a
+documented design decision, not an obvious accident — confirmed to fix.
+
+Both raycast fixes are drop-in: the return contract (`{x, y, z}`, `y` = the walkable cell above
+the hit floor) is unchanged, so no downstream validity/placement code needed to change. Above-
+ground behaviour is unaffected in both cases.
+
+**Drop rates retuned.** Separately, Alen reported dirt and stone piling up too fast. Rock/stone
+(`base:terrain:rock:*`) was already at 0.25 (halved once before, 2026-06-10); cut again to 0.12.
+Soil/dirt/grass (`base:terrain:surface:grass_*`, `dirt_*`, `soil:cave/light/dark`) had been a
+guaranteed 1.00 the whole time — the real asymmetry, since it out-paced even the already-tuned-
+down stone. Cut to 0.30. Ore and gem drop chances were left untouched (not reported as a
+problem). All in `data/terrain/block_resources.json`, easy to re-tune further — see doc 43.
+
+Files touched: `scripts/systems/ItemDropManager.gd` (`_rest_y`, `REST_SCAN_DEPTH` removed),
+`scripts/systems/FurniturePlacementController.gd` (`_surface_cell_for`, `RAY_STEP` removed),
+`scripts/systems/StockpileDesignationController.gd` (same), `data/terrain/block_resources.json`
+(drop chances), `docs/40_economy_colony/43_mining_materials.md` (kept in sync). No autoload
+registration changed — normal script hot-reload/re-run, no editor Reload Current Project needed.
+
+## 7. Addendum 3 (2026-08-06, same day): regression fix, dead-code panel fix, drop rates cut again, stray floating item explained
+
+Four small follow-ups from the same playtest session, after Addendum 2 above:
+
+**Self-introduced off-by-one regression, fixed same day.** The two `_surface_cell_for()` DDA
+rewrites in Addendum 2 initially returned `y = pos.y + 1` (one cell above the hit solid block)
+instead of `y = pos.y` (the solid block's own cell). This broke furniture placement AND
+stockpile zone drawing completely — every cell failed `NavGrid.is_walkable(cell)`, since
+`NavGrid._compute_walkable()` requires `cell.y` itself to be solid (clearance is checked
+*above* it separately). Alen reported this as "I lost the ability to draw storage zones
+now." Root-caused against `NavGrid._compute_walkable()` and fixed in both files by returning
+`pos.y` directly. Purely a same-day regression in the Addendum 2 fix, not a new or
+pre-existing bug.
+
+**Doors/Rooms debug display was dead code.** The doc 22 addition of Doors/Rooms lines to
+`DockUI._world_info_rows()` never rendered anywhere: `DockUI._toggle_window()` short-circuits
+`target == "world_info"` straight to `_toggle_world_info_overlay()` and returns, so
+`_window_rows()`/`_make_window()` (and therefore `_world_info_rows()`) is never reached for
+that target. Alen built a real 4×4 sealed room with a door and saw no Doors/Rooms line in the
+"World Build" panel, which is `DebugLoadingOverlay` — a different script entirely. Fixed by
+adding a new `_rooms_text()` to `DebugLoadingOverlay.gd` (the actual live panel) and leaving a
+`DEAD CODE` doc comment on the unreachable `DockUI._world_info_rows()` explaining why. The
+room detection itself (`RoomManager`'s door-seeded flood-fill) was never confirmed broken —
+there was simply no visibility into its result until this fix.
+
+**Drop rates cut again, to a flat 5%.** Rock/stone and soil/dirt/grass (already retuned to
+0.12 / 0.30 in Addendum 2) were cut further to 0.05 / 0.05 — Alen's testing-convenience
+request, explicitly not a final-balance number. `data/terrain/block_resources.json` and
+doc 43 kept in sync.
+
+**Stray floating item over a lake, explained (no code bug found).** Alen spotted a light-grey
+loose item hovering above a lake/tarn's water surface with a visible gap beneath it, in the
+same "World Build" screenshot. Traced every current path that can place a loose item:
+
+- Mining (`MiningDesignationController._spawn_block_drops()` → `ItemDropManager.spawn_drop()`)
+  passes the real mined block, and `_rest_y()` (fixed in Addendum 2) scans straight down
+  through water — confirmed non-solid via `BlockRegistry.is_solid()` — to the true lakebed.
+  A freshly-mined drop cannot rest above a lake's water surface with today's code.
+- The DEV-spawn buttons (`StockpileDesignationController.dev_spawn_drops/_dev_spawn_mix`)
+  route through `_screen_center_surface_cell()` → the same (also since-fixed) DDA
+  `_surface_cell_for()`, so a fresh DEV spawn today also resolves to the lakebed, not the
+  water's static surface height.
+
+Conclusion: this item is very likely a stray survivor from *before* those fixes landed
+earlier in this same session — either a mined drop that used the old capped 8-block
+`_rest_y()` scan, or a DEV-spawned item placed via the old static-heightmap raycast, which for
+a lake/tarn column returns `LAKE_WATERLINE`/`tarn_waterline` (the water's surface Y) instead
+of the real lakebed — exactly the "floating at the waterline with a gap underneath" look in
+the screenshot. No live bug was found in the current code path, so no fix was applied here;
+picking the stray item up in-game clears it, since nothing will re-spawn it in that state
+going forward. Note a save/reload would NOT have fixed it on its own —
+`ItemDropManager.restore_loose_item()` restores a loose item's exact saved position rather
+than recomputing a rest height, so a bad pre-fix position persists across saves until the
+item is picked up or otherwise removed.
+
+Files touched: `scripts/systems/FurniturePlacementController.gd`,
+`scripts/systems/StockpileDesignationController.gd` (off-by-one fix, both),
+`scripts/ui/DebugLoadingOverlay.gd` (`_rooms_text()` added),
+`scripts/ui/DockUI.gd` (`_world_info_rows()` dead-code doc comment, no behaviour change),
+`data/terrain/block_resources.json` + `docs/40_economy_colony/43_mining_materials.md`
+(5%/5% drop rates). No code changed for the floating-item item — investigation only.
+
+---
+
+*Prev: [21_tavern_furniture.md](./21_tavern_furniture.md)*

@@ -245,4 +245,4 @@ policy remain separate UI/product decisions.
 
 ---
 
-*Prev: [19_containers_furniture.md](./19_containers_furniture.md)*
+*Prev: [19_containers_furniture.md](./19_containers_furniture.md) | Next: [21_tavern_furniture.md](./21_tavern_furniture.md)*

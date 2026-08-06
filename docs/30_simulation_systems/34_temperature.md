@@ -1,5 +1,16 @@
 # 34 — Temperature System
 
+> **STATUS (updated 2026-08-03, doc 22): sealed-room detection + the temperature formula
+> are IMPLEMENTED**, in `scripts/systems/RoomManager.gd` (new autoload). Flood-fill from
+> door cells, the depth/heat/seasonal/daily formula below (ported verbatim), heat-source
+> aggregation from installed furniture (`hearth.json`'s `heat_source.heat_units`), and the
+> recalculation triggers in this doc are all live. **Not yet verified in-engine** — see
+> doc 22 for the checklist. **Still NOT implemented:** the Aging Cellar and Food
+> Preservation hooks below (neither consuming system exists in code yet — `RoomManager`
+> exposes `get_room_at(cell) -> Dictionary` with `temp_c` for whenever they land), the
+> inspect-panel UI (World Info overlay shows a room/door count only, not per-room detail),
+> and everything in *Forward Compatibility Notes* at the end of this doc.
+
 ## Overview
 
 Underground temperature is a passive environmental property derived from depth. The colony is situated in a **high, cold mountain range** — even shallow caves are cool, and deep excavations reach well below freezing without any special biome conditions. Temperature stays broadly stable across seasons underground, but shallow rooms feel a gentle seasonal and daily breathing that fades to nothing by mid-depth.
@@ -135,6 +146,15 @@ Dwarves always close doors behind them. Door blocks are always treated as sealed
 - A door in the perimeter is removed or added.
 - A heat source inside the room is placed or removed.
 - `WorldClock.hour` ticks (shallow rooms only — skip recomputation if `seasonal_influence == 0.0`).
+
+### Implementation notes (doc 22, 2026-08-03)
+
+`RoomManager` implements the rules above with two pragmatic approximations, both documented in the script's file header:
+
+- **No true door-block type.** `base:furniture:door` (doc 22) is ordinary furniture with an empty `collision_regions` array — it stays walkable and carries no terrain identity of its own. `RoomManager` tracks installed door cells via a direct call from `FurniturePlacementController` (not a terrain-block query) and treats them as a fill-stopping boundary, same as solid rock.
+- **`MAX_ROOM_CELLS` cap (4096) stands in for "reaches a block that is neither solid nor a door."** Flood-filling the *entire* open world to positively prove a leak is computationally infeasible on every trigger; a fill that exceeds the cap without terminating is treated as unsealed. This is the same kind of tuning call as `NavGrid`'s 1200-node reachability cap (doc 32) — correct for any realistically-sized room, approximate at the boundary.
+- **No per-room dirty tracking yet.** Any geometry-affecting trigger (mine, build, door add/remove) marks the whole system dirty and a full rebuild re-runs flood-fill from every known door, throttled to at most once per 0.5s. Simple and correct at real-world door counts; would need real per-room diffing if a colony ever has hundreds of doors.
+- **No open/close animation.** Every installed door is permanently "closed" for sealing purposes — a strict superset of the rule above (a dwarf mid-walk-through would, per the letter of this doc, temporarily break the seal; v1 never does).
 
 ---
 

@@ -1,0 +1,56 @@
+{
+  "__comment": [
+    "Tavern Bar - the room-anchor for a Tavern room (doc 21, doc 51, doc 62).",
+    "Follows the trade_counter.json room-anchor pattern PLUS the doc 19 placement",
+    "fields (item_key/placement/yaw_steps), so unlike trade_counter this piece is",
+    "actually placeable via the Build panel today.",
+    "",
+    "STATUS (doc 21, 2026-08-03): room_anchor / room_type / room_compatible_categories /",
+    "room_invalidating_categories / max_per_room are DATA ONLY right now, exactly like",
+    "trade_counter's copy of these fields - no script reads them yet (verified: no",
+    "'room_type' or 'RoomData' reference anywhere in scripts/ as of this doc). Tavern",
+    "room detection, traveler serving, and ale consumption (doc 51) are a separate,",
+    "unbuilt system. Placing this piece today gets you a real, fetchable, installable",
+    "counter with no gameplay behaviour attached - the room-anchor fields simply mean",
+    "the future room-detection system (whenever it lands, likely alongside doc 34's",
+    "sealed-room flood-fill) does not need this file touched again.",
+    "",
+    "MATERIAL: wood, not stone - unlike trade_counter (grandfathered pre-material-rule,",
+    "doc 62 categorises it as an industrial anchor). The bar is a piece dwarves USE",
+    "socially, so it follows the 2026-07-11 furniture-is-woodwork rule. This also keeps",
+    "it visually distinct from the stone Trade Counter at a glance."
+  ],
+  "furniture_key": "base:furniture:tavern_bar",
+  "furniture_category": "tavern",
+  "display_name": "Tavern Bar",
+  "description": "A long oak counter with iron tap fittings. The heart of the tavern hall.",
+  "model": "res://assets/models/furniture/tavern_bar.glb",
+  "item_key": "base:resources:furniture:tavern_bar",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [2, 2, 1] }
+  ],
+
+  "room_anchor": true,
+  "room_type": "tavern",
+  "max_per_room": 1,
+
+  "room_compatible_categories": [
+    "tavern",
+    "seating",
+    "storage",
+    "decorative"
+  ],
+
+  "room_invalidating_categories": [
+    "bed",
+    "workshop",
+    "production"
+  ]
+}

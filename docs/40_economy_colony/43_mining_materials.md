@@ -8,25 +8,33 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 
 | Block Key | Category | Hardness | Yield | Notes |
 |---|---|---|---|---|
-| `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | 1× Rough Stone (50%) | Authored mountain shelves |
-| `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | 1× Rough Stone (50%) | Valley/foothill body bands |
-| `base:terrain:rock:rock11` | Foundation rock | 3 | 1× Rough Stone (50%) | Stable band above bedrock |
+| `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | 1× Rough Stone (5%) | Authored mountain shelves |
+| `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | 1× Rough Stone (5%) | Valley/foothill body bands |
+| `base:terrain:rock:rock11` | Foundation rock | 3 | 1× Rough Stone (5%) | Stable band above bedrock |
 | `base:terrain:ore:iron`       | Ore        | 4 | 2× Iron Ore           | Common ore |
 | `base:terrain:ore:copper`     | Ore        | 3 | 2× Copper Ore         | Shallow, early-game |
 | `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore           | Deep, rare |
 | `base:terrain:gem:ruby`       | Gem        | 5 | 1× Ruby               | Very rare, high trade value |
-| `base:terrain:soil:cave`      | Soil       | 1 | 1× Soil               | Farmable (see `42_farming_brewing.md`) |
+| `base:terrain:soil:cave`      | Soil       | 1 | 1× Soil (5%)          | Farmable (see `42_farming_brewing.md`) |
 | `base:terrain:bedrock`        | Bedrock    | ∞ | None                  | **Unmovable — Y=0..3 protocol** |
 
 **Hardness** determines mining time: `mine_time = base_time × hardness / dwarf_mining_skill`.
 
 `base_time = 2.0` seconds at skill 1 on hardness 1.
 
-> **Rough Stone (added 2026-06-10):** all 11 rock bands drop `base:resources:stone:rough_stone`
-> at 50% chance (tunable — `data/terrain/block_resources.json`). Its purpose is **void fill**:
-> the player will use stocked rough stone to wall up and backfill unwanted openings via a future
-> BUILD designation (mechanic not yet designed — the item and drop exist now so mining
-> execution, `16_first_dwarf_milestone.md` Phase 4, yields it from day one).
+> **Rough Stone (added 2026-06-10, retuned 2026-08-06 twice):** all 11 rock bands drop
+> `base:resources:stone:rough_stone` at 5% chance (tunable — `data/terrain/block_resources.json`;
+> was 50% at launch, cut to 25% on 2026-06-10, then 12% then 5% both on 2026-08-06 — the last cut
+> was explicitly for testing convenience, less stockpile clutter while iterating, not a final
+> economy number). Its purpose is **void fill**: the player will use stocked rough stone to wall
+> up and backfill unwanted openings via a future BUILD designation (mechanic not yet designed —
+> the item and drop exist now so mining execution, `16_first_dwarf_milestone.md` Phase 4, yields
+> it from day one). May need to come back up once backfill is actually playtestable.
+>
+> **Soil (retuned 2026-08-06 twice):** every soil/dirt/grass block (surface grass/dirt variants and
+> `soil:cave`/`soil:light`/`soil:dark`) dropped its soil item at a guaranteed 100% until 2026-08-06,
+> cut to 30%, then to 5% later the same day (same testing-convenience reasoning as stone, now
+> matching it) — tunable in the same file.
 
 ## Mining Tools
 

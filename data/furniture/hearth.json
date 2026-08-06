@@ -1,0 +1,43 @@
+{
+  "__comment": [
+    "Hearth - the tavern's social anchor and first heat-bearing furniture piece",
+    "(doc 21, doc 34, doc 62 candidate list: 'a tavern hearth = heat source (doc 34)",
+    "+ warm_tavern thought (doc 41) in one piece').",
+    "",
+    "STATUS (doc 21, 2026-08-03): heat_source.heat_units is DATA ONLY. Doc 34's",
+    "temperature system (sealed-room detection, heat_bonus_c = total_heat_units /",
+    "room_volume) is not yet implemented in scripts/ - verified no 'RoomData' or heat",
+    "accumulation code exists anywhere in the codebase as of this doc. This field is",
+    "here so the hearth needs no schema change the day doc 34 lands; nothing reads it",
+    "yet. 400 units sits between doc 34's Torch (200) and future Brazier (600) -",
+    "a hearth is a bigger, more central heat source than a single torch.",
+    "",
+    "MATERIAL: stone ring with iron grate and glowing embers - a deliberate exception",
+    "to the furniture-is-woodwork rule (2026-07-11), same category as the Trade",
+    "Counter and workshop bodies: an industrial/utilitarian anchor, and stone is the",
+    "only sane material to build an open fire on. Ember glow reuses the smelter/forge",
+    "ember_glow convention (doc 61 §5.5)."
+  ],
+  "furniture_key": "base:furniture:hearth",
+  "furniture_category": "hearth",
+  "display_name": "Hearth",
+  "description": "A ring of fitted stone with an iron grate, embers glowing at its heart.",
+  "model": "res://assets/models/furniture/hearth.glb",
+  "item_key": "base:resources:furniture:hearth",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [1, 1, 1] }
+  ],
+
+  "room_anchor": false,
+
+  "heat_source": {
+    "heat_units": 400
+  }
+}

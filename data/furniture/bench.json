@@ -1,0 +1,28 @@
+{
+  "__comment": [
+    "Bench - cheap mass seating for the tavern hall (doc 21, doc 62 candidate list).",
+    "Follows the doc 19 placement schema (item_key/placement/yaw_steps). Plain",
+    "placeable furniture, no room_anchor, no storage. Seating/sit-down behaviour",
+    "depends on the dwarf needs/mood system (doc 41), which is not yet implemented -",
+    "this piece is scenery for now, exactly like the shelf and chest were scenery",
+    "before doc 19 Phase 3 wired up hauling."
+  ],
+  "furniture_key": "base:furniture:bench",
+  "furniture_category": "seating",
+  "display_name": "Bench",
+  "description": "A long dwarven bench, thick-legged and built to outlast whoever sits on it.",
+  "model": "res://assets/models/furniture/bench.glb",
+  "item_key": "base:resources:furniture:bench",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [2, 1, 1] }
+  ],
+
+  "room_anchor": false
+}

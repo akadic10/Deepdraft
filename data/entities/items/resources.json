@@ -663,6 +663,46 @@
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
   },
 
+  "base:resources:furniture:tavern_bar": {
+    "display_name": "Tavern Bar (packed)",
+    "description": "A long oak counter and its iron tap fittings, broken down for hauling.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 16,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:bench": {
+    "display_name": "Bench (packed)",
+    "description": "A dwarven long-bench, legs and planks bundled and lashed.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 6,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:hearth": {
+    "display_name": "Hearth (packed)",
+    "description": "Fitted ring-stones and an iron grate, packed flat and ready to set.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 14,
+    "material_tags": ["stone", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:door": {
+    "display_name": "Door (packed)",
+    "description": "A plank door and its iron hinges, bundled flat for hauling.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 9,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
 
   "base:resources:currency:gold_coin": {

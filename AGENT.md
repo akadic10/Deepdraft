@@ -138,9 +138,10 @@ DwarfVoxel/
 │   ├── registries/           ← registry autoloads (BlockRegistry, PlacedEntityRegistry,
 │   │                            DwarfAssets, UIRegistry)
 │   ├── systems/              ← simulation autoloads (WorldClock, WorldData, WorldGenerator,
-│   │                            NavGrid, TaskManager, InteriorTracker, SkyController,
-│   │                            WeatherManager) + scene-node systems (WorldRenderer, Camera,
-│   │                            SliceController, MiningDesignationController,
+│   │                            NavGrid, TaskManager, InteriorTracker, RoomManager,
+│   │                            SkyController, WeatherManager) + scene-node systems
+│   │                            (WorldRenderer, Camera, SliceController,
+│   │                            MiningDesignationController, FurniturePlacementController,
 │   │                            FlagPlacementController, SurfaceFloraSpawner, ItemDropManager…)
 │   │                            — authoritative autoload list + load order: docs/10_core_foundation/13_architecture.md
 │   ├── components/           ← reusable logic components, no autoload (MiningZoneComponent)

@@ -41,11 +41,16 @@ var _persistence_toast_label: Label = null
 var _persistence_toast_until_msec: int = 0
 
 ## Build-panel label -> furniture def key (doc 19 Phase 2 - the three v1
-## storage pieces; future placeables append here).
+## storage pieces; doc 21 adds the tavern set; doc 22 adds the door; future
+## placeables append here).
 const FURNITURE_PANEL_ITEMS: Dictionary = {
 	"📥 Barrel": "base:furniture:barrel",
 	"📥 Storage Chest": "base:furniture:storage_chest",
 	"📥 Storage Shelf": "base:furniture:storage_shelf",
+	"📥 Tavern Bar": "base:furniture:tavern_bar",
+	"📥 Bench": "base:furniture:bench",
+	"📥 Hearth": "base:furniture:hearth",
+	"📥 Door": "base:furniture:door",
 }
 var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
@@ -758,7 +763,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"chop":
 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
 		"build":
-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "Cancel"]
+			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "Cancel"]
 		"storage_zone":
 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
 		"farm":
@@ -785,6 +790,17 @@ func _window_rows(target: String) -> Array[String]:
 	return []
 
 
+## DEAD CODE, kept only because _window_rows("world_info") still calls it
+## (2026-08-06 note): _toggle_window() below short-circuits target ==
+## "world_info" straight into _toggle_world_info_overlay() and RETURNS —
+## it never reaches _make_window()/_window_rows(), so this function's return
+## value is never rendered anywhere. The doc 22 "Doors"/"Rooms" lines added
+## here were dead on arrival because of that; real room/temperature stats now
+## live in DebugLoadingOverlay._rooms_text() — the actual panel the 👀 button
+## opens. Left this function's original (also-dead) Season/Year/Day/Time
+## content alone rather than deleting it outright, in case a future "real"
+## world_info window ever gets wired up to replace the DebugLoadingOverlay
+## toggle — but do not add anything else here expecting it to be visible.
 func _world_info_rows() -> Array[String]:
 	if _world_clock == null:
 		return ["Season      Unknown", "Year        Unknown", "Day         Unknown", "Time        Unknown"]

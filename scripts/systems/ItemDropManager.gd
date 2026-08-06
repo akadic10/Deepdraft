@@ -31,7 +31,6 @@ extends Node3D
 
 const RESOURCES_PATH := "res://data/entities/items/resources.json"
 const SLICE_OFF_Y := 127
-const REST_SCAN_DEPTH := 8   # blocks scanned downward for a resting floor
 
 ## A new loose item entered the world (spawned or dropped by an interrupted
 ## hauler). StockpileManager wakes zone lease posting on this (doc 18 §2.2).
@@ -445,14 +444,27 @@ func _apply_material(node: Node) -> void:
 
 
 ## Top face of the first solid block at or below the drop position.
+## Scans all the way down to bedrock (2026-08-06 bugfix): the old fixed
+## REST_SCAN_DEPTH=8 cap silently gave up on any column whose straight-down
+## air ran deeper than 8 blocks before hitting a floor — common when mining
+## a wall/ceiling block of a deep or diagonal tunnel, where the actual floor
+## is well below the mined block but not directly beneath it within 8 cells.
+## Past that cap the function fell back to `return block.y`, leaving the
+## drop hovering at its original mined height with nothing under it —
+## reported as "floating blocks that were recently mined". A plain downward
+## scan to bedrock is still O(~100) dictionary/array lookups worst case, and
+## only runs on a drop spawn (already probability-gated), so the extra range
+## costs nothing measurable.
 func _rest_y(block: Vector3i) -> int:
-	for k in range(1, REST_SCAN_DEPTH + 1):
-		var y := block.y - k
-		if y < 0:
-			break
+	var y := block.y - 1
+	while y > WorldGenerator.BEDROCK_MAX_Y:
 		if BlockRegistry.is_solid(_block_id(block.x, y, block.z)):
 			return y + 1
-	return block.y
+		y -= 1
+	# Nothing solid found all the way to bedrock (should not happen — Hard
+	# Rule 1 forbids mining bedrock itself) — rest one cell above it as a
+	# guaranteed-solid last resort rather than floating.
+	return WorldGenerator.BEDROCK_MAX_Y + 1
 
 
 func _block_id(wx: int, wy: int, wz: int) -> int:

@@ -27,12 +27,29 @@ CONVENTIONS (doc 61 §5.7 / 41b): items-class assets — 8 voxels per block, the
 0.125 scale BAKED into exported vertex positions, Godot import Root Scale
 stays 1.0. Authored centred on X=Z=0 with the base at Y=0 (the drop/dwarf
 convention; the placement controller positions the node at the cell centre).
+Multi-block footprints (2×1) are centred the same way — the footprint's own
+centre sits at X=0, so a 2-wide piece spans X -8..7 (16 voxels), not 0..15.
 
 DETERMINISM: fixed seed; every run regenerates byte-identical files.
 
+DOC 21 ADDITION (2026-08-03, tavern furniture): tavern_bar (2×1, wood — a
+deliberate break from trade_counter's stone, per the furniture-is-woodwork
+rule), bench (2×1, wood, no backrest), and hearth (1×1, stone ring + iron
+grate + embers — the material-rule exception applied to industrial/utility
+anchors, same bucket as trade_counter and workshop bodies). All three use the
+same packed_furniture.glb item form (one-box rule still applies).
+
+DOC 22 ADDITION (2026-08-03, doors — the sealed-room/temperature prerequisite):
+door (originally 1×1, thin plank plane, EMPTY collision_regions in door.json —
+must stay walkable). Also uses packed_furniture.glb for its item form. RESIZED
+2026-08-06 (doc 22b) to 2×1, ~4 blocks tall, as a double-leaf plank door — the
+original single tile read too small next to 3-tall dwarves.
+
 Outputs (paths must match data/furniture/*.json "model" and
 data/entities/items/resources.json "model" fields):
-  assets/models/furniture/{barrel,storage_crate,storage_shelf}.glb   (placed)
+  assets/models/furniture/{barrel,storage_crate,storage_shelf}.glb   (placed, doc 19)
+  assets/models/furniture/{tavern_bar,bench,hearth}.glb              (placed, doc 21)
+  assets/models/furniture/door.glb                                   (placed, doc 22)
   assets/models/items/furniture/packed_furniture.glb                 (shared item)
 Review sheet: tmp/furniture_review/furniture_sheet.png
 """
@@ -64,6 +81,14 @@ PLANK_DARK  = _c(0x5A3E20)
 IRON_DULL   = _c(0x6A6868)
 IRON_HI     = _c(0x9A9898)
 IRON_DARK   = _c(0x3A3838)
+
+# Doc 21 additions — stone + ember tones for the hearth (the material-rule
+# exception; everything else in this file stays wood per the 2026-07-11 rule).
+STONE_HI    = _c(0xC4BEB4)
+STONE_MID   = _c(0x9B9088)
+STONE_DARK  = _c(0x6B6260)
+EMBER_GLOW  = _c(0x882200)
+FLAME_CORE  = _c(0xFFDD44)
 
 
 def _wood_jitter(rng, base):
@@ -172,6 +197,140 @@ def build_storage_shelf():
     return v
 
 
+# ── Tavern Bar — placed form, 2×1 blocks (16×12×8 voxel envelope) ────────────
+# Doc 61 §5.4 / doc 21: oak-panelled counter body, overhanging plank
+# countertop, iron rail + tap fittings. WOOD, not stone — deliberately
+# distinct from the stone Trade Counter (material rule, 2026-07-11: the bar
+# is furniture dwarves use, not an industrial anchor).
+
+def build_tavern_bar():
+    rng = random.Random(SEED + 4)
+    v = Voxels()
+    x0, x1 = -8, 8      # 16 voxels wide (2 blocks), footprint centred on X=0
+    z0, z1 = -4, 4       # 8 voxels deep (1 block)
+    body_h = 12           # counter body height; leaves headroom for the slab
+    # Body: plank panel, horizontal seam every 3 rows (chest convention).
+    for x in range(x0, x1):
+        for z in range(z0, z1):
+            for y in range(0, body_h):
+                seam = (y % 3 == 2)
+                v.cells[(x, y, z)] = _wood_jitter(rng, PLANK_DARK if seam else PLANK)
+    # Squat oak leg posts at both ends, full depth.
+    for x in list(range(x0, x0 + 2)) + list(range(x1 - 2, x1)):
+        for z in range(z0, z1):
+            for y in range(0, 2):
+                v.cells[(x, y, z)] = _wood_jitter(rng, OAK_DARK)
+    # Iron rail along the front top edge of the body.
+    for x in range(x0, x1):
+        v.cells[(x, body_h - 1, z0)] = IRON_DULL
+    # Countertop slab, overhangs the body by 1 voxel on every side.
+    for x in range(x0 - 1, x1 + 1):
+        for z in range(z0 - 1, z1 + 1):
+            for y in (body_h, body_h + 1):
+                edge = x in (x0 - 1, x1) or z in (z0 - 1, z1)
+                v.cells[(x, y, z)] = _wood_jitter(rng, OAK_MID if edge else OAK_LIGHT)
+    # Tap fittings: two iron knobs on the countertop.
+    for tx in (x0 + 4, x1 - 5):
+        v.cells[(tx, body_h + 2, 0)] = IRON_HI
+    return v
+
+
+# ── Bench — placed form, 2×1 blocks (16×8×8 voxel envelope) ──────────────────
+# Doc 61 §5.4 / doc 21: long dwarven bench, thick-legged, no backrest (the
+# feature that distinguishes it from wooden_chair).
+
+def build_bench():
+    rng = random.Random(SEED + 5)
+    v = Voxels()
+    x0, x1 = -8, 8
+    z0, z1 = -4, 4
+    leg_h = 5
+    # Four 2×2 leg posts, one at each corner.
+    for lx in (x0, x0 + 1, x1 - 2, x1 - 1):
+        for lz in (z0, z0 + 1, z1 - 2, z1 - 1):
+            for y in range(0, leg_h):
+                v.cells[(lx, y, lz)] = _wood_jitter(rng, OAK_MID)
+    # Seat slab, two plank rows thick, dark seam down the centre length.
+    for x in range(x0, x1):
+        for z in range(z0, z1):
+            for y in (leg_h, leg_h + 1):
+                seam = (z == 0)
+                v.cells[(x, y, z)] = _wood_jitter(rng, PLANK_DARK if seam else PLANK)
+    return v
+
+
+# ── Hearth — placed form, 1×1 block (8×8×8 voxel envelope) ───────────────────
+# Doc 61 §5.4 / doc 21: stone fire-ring, iron grate, glowing embers. STONE is
+# a deliberate material-rule exception (industrial/utility anchor, same
+# bucket as the Trade Counter and workshop bodies — open fire belongs on
+# stone). heat_source.heat_units in hearth.json is data-only until doc 34
+# lands; this model carries no light-emitting node (mesh only, same
+# convention as the wall torch — the scene builder adds the light).
+
+HEARTH_OUTER_R = 3.6
+HEARTH_INNER_R = 2.0
+
+
+def build_hearth():
+    v = Voxels()
+    half = 4
+    for x in range(-half, half):
+        for z in range(-half, half):
+            d = math.hypot(x + 0.5, z + 0.5)
+            if d > HEARTH_OUTER_R:
+                continue
+            if d > HEARTH_INNER_R:
+                v.cells[(x, 0, z)] = STONE_MID
+                v.cells[(x, 1, z)] = STONE_HI
+            else:
+                v.cells[(x, 0, z)] = EMBER_GLOW if (x + z) % 2 == 0 else FLAME_CORE
+    # Iron grate bars crossing over the embers.
+    for x in range(-1, 2):
+        v.cells[(x, 1, 0)] = IRON_DULL
+    for z in range(-1, 2):
+        v.cells[(0, 1, z)] = IRON_DULL
+    return v
+
+
+# ── Door — placed form, 2×1 block (16×31×2 voxel envelope) ──────────────
+# Doc 61 §5.4 / doc 22 / doc 22b (RESIZED 2026-08-06, Alen playtest feedback):
+# a double-leaf plank door, 2 blocks wide x ~4 blocks tall, centred in the cell
+# depth. COLLISION_REGIONS IS EMPTY in door.json — this piece must stay
+# walkable, so the model is deliberately thin (2 voxels) rather than filling
+# the block. Two leaves split by a dark centre seam column, hinges on each
+# leaf's outer edge, handles near the centre seam — reads as a proper double
+# door at 2-wide instead of one slab stretched to fit.
+
+DOOR_W = 16   # 2 blocks wide (8 voxels/block); spans X -8..7
+DOOR_H = 31   # just under 4 blocks — leaves a frame gap at the top
+DOOR_SEAM = _c(0x3A2810)   # dark gap colour between the two leaves
+
+
+def build_door():
+    rng = random.Random(SEED + 7)
+    v = Voxels()
+    x0, x1 = -DOOR_W // 2, DOOR_W // 2   # -8..7
+    for x in range(x0, x1):
+        if x in (-1, 0):
+            # Centre seam: the visible gap between the two door leaves.
+            for y in range(0, DOOR_H):
+                for z in (-1, 0):
+                    v.cells[(x, y, z)] = DOOR_SEAM
+            continue
+        for y in range(0, DOOR_H):
+            seam = (y % 4 == 3)
+            for z in (-1, 0):
+                v.cells[(x, y, z)] = _wood_jitter(rng, PLANK_DARK if seam else PLANK)
+    # Iron hinges down each leaf's outer edge (3 per leaf, evenly spread).
+    for y in (3, 15, 27):
+        v.cells[(x0, y, -1)] = IRON_DULL
+        v.cells[(x1 - 1, y, -1)] = IRON_DULL
+    # Handles near the centre seam, one per leaf, standing-height.
+    v.cells[(-2, 12, -1)] = IRON_HI
+    v.cells[(1, 12, -1)] = IRON_HI
+    return v
+
+
 # ── Item form — ONE shared packed box (Alen, 2026-07-11) ─────────────────────
 
 ROPE = _c(0xA09060)   # doc 61 rope_natural
@@ -276,6 +435,10 @@ def main():
         ("barrel", build_barrel()),
         ("storage_crate", build_storage_chest()),
         ("storage_shelf", build_storage_shelf()),
+        ("tavern_bar", build_tavern_bar()),
+        ("bench", build_bench()),
+        ("hearth", build_hearth()),
+        ("door", build_door()),
     ]
     box = build_packed_box()
 
@@ -297,4 +460,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-                                                                                                                                                                                                  

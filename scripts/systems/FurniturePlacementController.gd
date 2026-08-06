@@ -24,6 +24,12 @@ extends Node3D
 ## GHOSTS ARE NON-SOLID (SH parity): no occupancy, no nav impact. Installed
 ## pieces register their collision_regions boxes with PlacedEntityRegistry —
 ## NavGrid invalidates via occupancy_changed (the flag/tree precedent).
+##
+## DOC 22 (doors + sealed rooms): base:furniture:door ships with EMPTY
+## collision_regions on purpose — it must stay walkable, only NavGrid-blocking
+## furniture uses collision boxes. Every install/uninstall calls
+## RoomManager.on_furniture_changed() directly (see that autoload's header for
+## why this isn't a signal subscription).
 
 @export var dock_ui_path: NodePath
 @export var slice_controller_path: NodePath
@@ -32,7 +38,6 @@ const TOOL_ID := "furniture"
 const FURNITURE_DIR := "res://data/furniture"
 const SLICE_OFF_Y := 127
 const RAY_MAX := 600.0
-const RAY_STEP := 0.25
 const WORLD_EDGE_MARGIN := 2
 
 ## Ghost material: the real model, translucent (SH ghost_item parity —
@@ -45,6 +50,7 @@ const TINT_PLACED := Color(0.8, 0.95, 1.0)
 signal ghost_placed(ghost_id: int)
 signal ghost_cancelled(ghost_id: int)
 signal furniture_installed(furniture_key: String, origin_cell: Vector3i)
+signal furniture_uninstalled(furniture_key: String, origin_cell: Vector3i)
 
 var _defs: Dictionary = {}            # furniture_key -> def Dictionary
 var _dock_ui: Node = null
@@ -617,6 +623,10 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int) -> void:
 		_cell_to_installed[cell] = component.installed_id
 	print("FurniturePlacementController: installed %s at %s." % [key, str(origin)])
 	furniture_installed.emit(key, origin)
+	# doc 22: RoomManager tracks door/heat-source cells by direct call, not by
+	# subscribing to this signal — it's an autoload and this is a scene node,
+	# so the call has to go this direction (see RoomManager's file header).
+	RoomManager.on_furniture_changed(key, component.cells, def, true)
 	_next_installed_id += 1
 
 
@@ -653,6 +663,8 @@ func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
 	if component.node != null and is_instance_valid(component.node):
 		component.node.queue_free()
 	_installed.erase(installed_id)
+	furniture_uninstalled.emit(component.furniture_key, component.origin_cell)
+	RoomManager.on_furniture_changed(component.furniture_key, component.cells, component.def, false)
 	if _drop_manager != null and is_instance_valid(_drop_manager) and not component.item_key.is_empty():
 		var cell := component.origin_cell
 		_drop_manager.call("spawn_drop", component.item_key, 1, Vector3i(cell.x, cell.y + 1, cell.z))
@@ -767,28 +779,93 @@ func _try_select_at_screen(screen_pos: Vector2) -> bool:
 	return false
 
 
-# ── Raycasting (the flag-tool height-field march) ─────────────────────────────
+# ── Raycasting (slice-aware voxel DDA, 2026-08-06) ─────────────────────────────
 
+## Voxel DDA raycast from the camera through the mouse, returning the first
+## SLICE-VISIBLE solid block the ray hits (the floor cell itself -- NavGrid's
+## convention; see the off-by-one note below).
+##
+## 2026-08-06 bugfix: this used to march the ray against
+## WorldGenerator.get_visible_surface_y() — the STATIC world-gen heightmap,
+## set once at generation and never updated by mining. That made every
+## placement resolve to the original, unmined ground height for the column
+## under the cursor no matter what the slice tool had cut away or what
+## mining had exposed underground, so furniture could only ever be placed at
+## the natural surface — reported as "can't place the door on a sliced
+## part". This ports MiningDesignationController._raycast_voxel()'s proven
+## DDA + slice-visibility gate (pos.y <= _slice_y is "culled, keep marching
+## through it", the same rule DwarfAgent/ItemDropManager use for slice
+## visibility elsewhere) but resolves against the REAL, live block grid
+## (_block_id — WorldData first, WorldGenerator fallback for unmaterialised
+## chunks) instead of the heightmap, so it correctly finds a mined tunnel's
+## floor once the slice plane exposes it. Above-ground placement is
+## unaffected: the first solid cell hit for an untouched column is still the
+## natural terrain surface.
+##
+## OFF-BY-ONE FOLLOW-UP FIX (2026-08-06, same day): this first shipped
+## returning `pos.y + 1` ("one above the hit block"), on the wrong
+## assumption that cell.y meant the walkable AIR cell. It doesn't --
+## NavGrid._compute_walkable(cell) requires cell.y ITSELF to be solid, with
+## clearance checked at cell.y+1..+CLEARANCE. WorldGenerator.get_visible_
+## surface_y() (the old raycast's source) returns that same solid-floor
+## convention -- confirmed via get_visible_surface_block_id(), which
+## generates the SURFACE block at exactly that Y. Returning pos.y + 1 meant
+## every returned cell was air, so is_walkable() rejected literally
+## everything and placement broke outright -- reported as "lost the ability
+## to draw storage zones". Fixed to return pos.y (the solid block itself).
 func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return {}
 	var origin := camera.project_ray_origin(screen_pos)
-	var dir := camera.project_ray_normal(screen_pos)
-	var t := 0.0
-	while t < RAY_MAX:
-		var p := origin + dir * t
-		var wx := floori(p.x)
-		var wz := floori(p.z)
-		if wx >= 0 and wx < WorldGenerator.WORLD_SIZE_X \
-				and wz >= 0 and wz < WorldGenerator.WORLD_SIZE_Z:
-			var sy := int(WorldGenerator.get_visible_surface_y(wx, wz))
-			if sy >= 0 and p.y <= float(sy + 1):
-				return { "x": wx, "y": sy, "z": wz }
-		elif p.y < 0.0:
+	var direction := camera.project_ray_normal(screen_pos).normalized()
+
+	var pos := Vector3i(floori(origin.x), floori(origin.y), floori(origin.z))
+	var step := Vector3i(
+		1 if direction.x > 0.0 else -1,
+		1 if direction.y > 0.0 else -1,
+		1 if direction.z > 0.0 else -1)
+	var t_delta := Vector3(
+		abs(1.0 / direction.x) if not is_zero_approx(direction.x) else INF,
+		abs(1.0 / direction.y) if not is_zero_approx(direction.y) else INF,
+		abs(1.0 / direction.z) if not is_zero_approx(direction.z) else INF)
+	var t_max := Vector3(
+		_axis_t_max(origin.x, direction.x, pos.x),
+		_axis_t_max(origin.y, direction.y, pos.y),
+		_axis_t_max(origin.z, direction.z, pos.z))
+	var travelled := 0.0
+
+	while travelled <= RAY_MAX:
+		if pos.x >= 0 and pos.x < WorldGenerator.WORLD_SIZE_X \
+				and pos.z >= 0 and pos.z < WorldGenerator.WORLD_SIZE_Z:
+			if pos.y >= 0 and pos.y <= _slice_y:
+				var block_id := _block_id(pos.x, pos.y, pos.z)
+				if BlockRegistry.is_solid(block_id):
+					return { "x": pos.x, "y": pos.y, "z": pos.z }
+		elif pos.y < 0:
 			return {}
-		t += RAY_STEP
+
+		if t_max.x <= t_max.y and t_max.x <= t_max.z:
+			pos.x += step.x
+			travelled = t_max.x
+			t_max.x += t_delta.x
+		elif t_max.y <= t_max.z:
+			pos.y += step.y
+			travelled = t_max.y
+			t_max.y += t_delta.y
+		else:
+			pos.z += step.z
+			travelled = t_max.z
+			t_max.z += t_delta.z
+
 	return {}
+
+
+func _axis_t_max(origin_axis: float, direction_axis: float, pos_axis: int) -> float:
+	if is_zero_approx(direction_axis):
+		return INF
+	var boundary := float(pos_axis + 1) if direction_axis > 0.0 else float(pos_axis)
+	return (boundary - origin_axis) / direction_axis
 
 
 # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────

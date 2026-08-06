@@ -32,7 +32,10 @@
 | Stockpile Marker | `base:furniture:stockpile_marker` | SPEC (61 §5.4) | Zone decoration only |
 | Wall Display | `base:furniture:wall_display` | PLAN (doc 52) | Armory — holds one weapon/shield |
 | Armor Stand | `base:furniture:armor_stand` | PLAN (doc 52) | Armory — holds one armour set |
-| Tavern Bar | `base:furniture:tavern_bar` | PLAN (doc 51 — "not yet implemented") | Tavern room anchor; traveler income |
+| Tavern Bar | `base:furniture:tavern_bar` | **SHIPPED (doc 21, 2026-08-03)** — room_anchor/room_type fields are data-only, no room-detection code exists yet | Tavern room anchor (future); traveler income (doc 51, still unbuilt) |
+| Bench | `base:furniture:bench` | **SHIPPED (doc 21, 2026-08-03)** | Tavern seating; sit-down behaviour depends on doc 41 (not yet implemented) |
+| Hearth | `base:furniture:hearth` | **SHIPPED (doc 21, 2026-08-03)** — `heat_source.heat_units` is now read by `RoomManager` (doc 22, same day) | Tavern social anchor; real heat source (doc 34, live); `warm_tavern` thought still depends on doc 41 |
+| Door | `base:furniture:door` | **SHIPPED (doc 22, 2026-08-03)** — empty collision_regions, walkable | Sealed-room boundary for `RoomManager` (doc 34) |
 
 ### Workshops (placeable, but a separate category — doc 61 §5.5)
 
@@ -44,8 +47,8 @@ Forge (1×1×2). These will ride the doc 19 placement pipeline when doc 44 lands
 Stone Boulder · Mining Cart · Water Barrel · Fence Post / Palisade · Runic Standing Stone ·
 Mushroom Lantern (the underground torch alternative — `glow_blue` palette).
 
-**Totals: 16 furniture pieces (3 in the doc 19 build, ~10 specced, 4 plan-only),
-5 workshops, 6 decoratives.**
+**Totals: 20 furniture pieces (7 shipped — 3 from doc 19, 3 from doc 21, 1 from doc 22 —
+~9 specced, 2 plan-only), 5 workshops, 6 decoratives.**
 
 ---
 
@@ -95,8 +98,8 @@ SH reaches its volume by multiplying a small archetype set by **material**
 
 | SH archetype | Why it would earn its place in Deepdraft | Natural home |
 |---|---|---|
-| **Firepit / hearth** | SH's social anchor. A tavern hearth = heat source (doc 34) + `warm_tavern` thought (doc 41) in one piece — highest synergy per asset | Tavern milestone (doc 51) |
-| **Bench** | Cheap mass seating for the tavern hall; dwarven long-bench fits the aesthetic brief perfectly | Tavern milestone |
+| **Firepit / hearth** — **built, doc 21** | SH's social anchor. A tavern hearth = heat source (doc 34) + `warm_tavern` thought (doc 41) in one piece — highest synergy per asset | Tavern milestone (doc 51) |
+| **Bench** — **built, doc 21** | Cheap mass seating for the tavern hall; dwarven long-bench fits the aesthetic brief perfectly | Tavern milestone |
 | **Tombstone** | Doc 52 already forward-notes burial + `honored_dead` thought — the asset is the easy half | Combat/burial follow-on |
 | **Resource piles** (log/stone piles) | Bulk visual storage for exactly the rough-stone flood doc 18 flagged; reads as industry | Storage follow-on (doc 19+) |
 | **Input bins / output boxes** | Already adopted — doc 44's workshop feeding model (doc 18 §2.5) | Workshops (doc 44) |
@@ -126,8 +129,10 @@ and defer any variant multiplication until crafting quality exists.
 
 The doc 19 batch (barrel, chest, shelf + item forms) plus the already-specced doc 61 set
 covers Deepdraft's equivalent of SH's starter town. The first post-19 asset batch with
-real system pull is **tavern furniture** (bar, bench, hearth) — it activates docs 34, 41,
-and 51 simultaneously.
+real system pull was **tavern furniture** (bar, bench, hearth) — **built 2026-08-03,
+see doc 21**. Placing these three pieces today gets working, fetchable, installable
+furniture with no attached gameplay yet; they activate docs 34, 41, and 51 the moment
+those systems are actually implemented, not before.
 
 ---
 

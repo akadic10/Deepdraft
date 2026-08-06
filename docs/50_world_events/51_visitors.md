@@ -165,7 +165,7 @@ Travelers are individual wanderers passing through the mountain region. They car
 | Tavern | `base:furniture:tavern_bar` in a sealed room | Traveler turns around and leaves |
 | Traveler bed | Any bed flagged `traveler_bed = true` | Traveler drinks but does not stay overnight |
 
-> **Note:** `base:furniture:tavern_bar` is not yet implemented. It will function as the room anchor for a Tavern room, where dwarves serve drinks to paying visitors.
+> **Note (updated 2026-08-03, doc 21):** `base:furniture:tavern_bar` now exists as a placeable furniture piece — data-driven, fetchable, installable via the Build panel, same pipeline as the doc 19 storage set. It carries `room_anchor`/`room_type: "tavern"` fields, but **no code reads them yet**: there is no sealed-room detection, no Tavern room designation, and no traveler AI in the codebase as of this note. Placing a bar today changes nothing about traveler behaviour — this section still documents intent only until the room-detection system (doc 34's sealed-room flood-fill is the natural place for it to land) and traveler AI are actually built.
 
 ### Traveler Behaviour
 

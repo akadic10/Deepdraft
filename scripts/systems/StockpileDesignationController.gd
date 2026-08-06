@@ -20,9 +20,11 @@ extends Node3D
 ##     of the preview; confirm designates exactly the valid subset (WYSIWYG).
 ##   - No grid snapping; max extent per drag is MAX_ZONE_EXTENT.
 ##
-## Raycasting: zones are SURFACE designations, so hover marches the camera
-## ray against the height field (get_visible_surface_y) — the flag-tool
-## approach, map-wide, no streamed chunks required.
+## Raycasting: a slice-aware voxel DDA against the live block grid (doc 22b,
+## 2026-08-06 — previously a STATIC height-field march, the flag-tool
+## approach, which meant zones could only ever be drawn on the untouched
+## world-gen surface, never inside a mined interior). See
+## _surface_cell_for()'s header for the full story.
 ##
 ## Slice rule (doc 11 Phase 5): zone overlays hide when their floor is above
 ## the cut, same hook as flora/dwarves/drops.
@@ -34,7 +36,6 @@ extends Node3D
 const TOOL_ID := "storage_zone"
 const MAX_ZONE_EXTENT := 16          # max cells per axis in one drag
 const WORLD_EDGE_MARGIN := 2
-const RAY_STEP := 0.5
 const RAY_MAX := 700.0
 const SLICE_OFF_Y := 127
 const OVERLAY_LIFT := 1.04           # overlay quad height above the floor top
@@ -60,11 +61,16 @@ const DEV_DROP_MIX: Dictionary = {
 }
 
 ## DEV: one packed furniture item of each kind (doc 19 Phase 0 - the v1 item
-## source until crafting/trade produce furniture for real).
+## source until crafting/trade produce furniture for real; doc 21 adds the
+## tavern set; doc 22 adds the door).
 const DEV_FURNITURE_MIX: Dictionary = {
 	"base:resources:furniture:barrel": 1,
 	"base:resources:furniture:storage_chest": 1,
 	"base:resources:furniture:storage_shelf": 1,
+	"base:resources:furniture:tavern_bar": 1,
+	"base:resources:furniture:bench": 1,
+	"base:resources:furniture:hearth": 1,
+	"base:resources:furniture:door": 1,
 }
 
 signal zone_created(zone_id: int)
@@ -575,26 +581,94 @@ func _screen_center_surface_cell() -> Vector3i:
 	return Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
 
 
+## Voxel DDA raycast from the camera through the mouse, returning the cell
+## (the floor cell itself -- NavGrid's convention; see the off-by-one note
+## below).
+##
+## 2026-08-06 bugfix (doc 22b follow-on): this used to march the ray against
+## WorldGenerator.get_visible_surface_y() — the STATIC world-gen heightmap,
+## set once at generation and never updated by mining. Zones were
+## deliberately documented as "surface designations" for that reason, but
+## that meant a stockpile zone could never be drawn inside a mined-out
+## interior room — a hard blocker for the doc 22 door/sealed-room work this
+## zones can never reach the storage rooms doors are built to protect.
+## Ported from FurniturePlacementController._surface_cell_for()'s fix (same
+## day): a real voxel DDA against the live block grid (_block_id — WorldData
+## first, WorldGenerator fallback), gated by _slice_y exactly like
+## MiningDesignationController._raycast_voxel(). Above-ground zone drawing is
+## unaffected — the first solid cell hit for an untouched column is still
+## the natural terrain surface.
+##
+## OFF-BY-ONE FOLLOW-UP FIX (2026-08-06, same day): this first shipped
+## returning `pos.y + 1` ("one above the hit block"), on the wrong
+## assumption that cell.y meant the walkable AIR cell. It doesn't --
+## NavGrid._compute_walkable(cell) requires cell.y ITSELF to be solid, with
+## clearance checked at cell.y+1..+CLEARANCE. WorldGenerator.get_visible_
+## surface_y() (the old raycast's source) returns that same solid-floor
+## convention -- confirmed via get_visible_surface_block_id(), which
+## generates the SURFACE block at exactly that Y. Returning pos.y + 1 meant
+## every returned cell was air, so is_walkable() rejected literally
+## everything and placement broke outright -- reported as "lost the ability
+## to draw storage zones". Fixed to return pos.y (the solid block itself).
 func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return {}
 	var origin := camera.project_ray_origin(screen_pos)
-	var dir := camera.project_ray_normal(screen_pos)
-	var t := 0.0
-	while t < RAY_MAX:
-		var p := origin + dir * t
-		var wx := floori(p.x)
-		var wz := floori(p.z)
-		if wx >= 0 and wx < WorldGenerator.WORLD_SIZE_X \
-				and wz >= 0 and wz < WorldGenerator.WORLD_SIZE_Z:
-			var sy := int(WorldGenerator.get_visible_surface_y(wx, wz))
-			if sy >= 0 and p.y <= float(sy + 1):
-				return { "x": wx, "y": sy, "z": wz }
-		elif p.y < 0.0:
+	var direction := camera.project_ray_normal(screen_pos).normalized()
+
+	var pos := Vector3i(floori(origin.x), floori(origin.y), floori(origin.z))
+	var step := Vector3i(
+		1 if direction.x > 0.0 else -1,
+		1 if direction.y > 0.0 else -1,
+		1 if direction.z > 0.0 else -1)
+	var t_delta := Vector3(
+		abs(1.0 / direction.x) if not is_zero_approx(direction.x) else INF,
+		abs(1.0 / direction.y) if not is_zero_approx(direction.y) else INF,
+		abs(1.0 / direction.z) if not is_zero_approx(direction.z) else INF)
+	var t_max := Vector3(
+		_axis_t_max(origin.x, direction.x, pos.x),
+		_axis_t_max(origin.y, direction.y, pos.y),
+		_axis_t_max(origin.z, direction.z, pos.z))
+	var travelled := 0.0
+
+	while travelled <= RAY_MAX:
+		if pos.x >= 0 and pos.x < WorldGenerator.WORLD_SIZE_X \
+				and pos.z >= 0 and pos.z < WorldGenerator.WORLD_SIZE_Z:
+			if pos.y >= 0 and pos.y <= _slice_y:
+				var block_id := _block_id(pos.x, pos.y, pos.z)
+				if BlockRegistry.is_solid(block_id):
+					return { "x": pos.x, "y": pos.y, "z": pos.z }
+		elif pos.y < 0:
 			return {}
-		t += RAY_STEP
+
+		if t_max.x <= t_max.y and t_max.x <= t_max.z:
+			pos.x += step.x
+			travelled = t_max.x
+			t_max.x += t_delta.x
+		elif t_max.y <= t_max.z:
+			pos.y += step.y
+			travelled = t_max.y
+			t_max.y += t_delta.y
+		else:
+			pos.z += step.z
+			travelled = t_max.z
+			t_max.z += t_delta.z
+
 	return {}
+
+
+func _axis_t_max(origin_axis: float, direction_axis: float, pos_axis: int) -> float:
+	if is_zero_approx(direction_axis):
+		return INF
+	var boundary := float(pos_axis + 1) if direction_axis > 0.0 else float(pos_axis)
+	return (boundary - origin_axis) / direction_axis
+
+
+func _block_id(wx: int, wy: int, wz: int) -> int:
+	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
+		return WorldData.get_block(wx, wy, wz)
+	return WorldGenerator.get_generated_block_id(wx, wy, wz)
 
 
 # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────

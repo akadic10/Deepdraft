@@ -298,7 +298,7 @@ func _agents_tasks_text() -> String:
 			s.get("probes_per_sec", 0.0),
 			s.get("worst_wake_usec", 0),
 			s.get("wake_count", 0),
-		] + mining_text + _storage_text() + _furniture_text(),
+		] + mining_text + _storage_text() + _furniture_text() + _rooms_text(),
 	])
 
 
@@ -342,6 +342,26 @@ func _furniture_text() -> String:
 	var f: Dictionary = furniture.call("get_stats")
 	return "\nfurniture: ghosts %d  installed %d  uninstalling %d" % [
 		int(f.get("ghosts", 0)), int(f.get("installed", 0)), int(f.get("uninstalling", 0))]
+
+
+## Room/temperature instrumentation (doc 22/34, 2026-08-06 bugfix). This is
+## the actual live "world info" panel (DebugLoadingOverlay, toggled by the
+## dock's 👀 button via DockUI._toggle_world_info_overlay()) — the Doors/Rooms
+## lines added to DockUI._world_info_rows() during doc 22 were DEAD CODE:
+## _toggle_window() short-circuits target=="world_info" straight into
+## _toggle_world_info_overlay() and never calls _make_window()/_window_rows(),
+## so that function's return value was never rendered anywhere. Reported by
+## Alen as "I have a door and a sealed room but nothing shows it" — the room
+## detection itself may have been working the whole time; there was simply no
+## way to see it. RoomManager is an autoload, unlike furniture/stockpiles
+## above which are scene-node groups, so this reads it directly.
+func _rooms_text() -> String:
+	var rooms := get_node_or_null("/root/RoomManager")
+	if rooms == null or not rooms.has_method("get_stats"):
+		return ""
+	var r: Dictionary = rooms.call("get_stats")
+	return "\nrooms: doors %d  sealed %d  frozen %d" % [
+		int(r.get("doors", 0)), int(r.get("rooms", 0)), int(r.get("frozen_vaults", 0))]
 
 
 func _on_title_bar_gui_input(event: InputEvent) -> void:
