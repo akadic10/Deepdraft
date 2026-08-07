@@ -138,7 +138,7 @@ A single-block tool for surgical work: finishing a room corner, punching a doorw
 | Shift + MouseWheel up/down | Expand/shrink horizontal extent (X and Z), 1–8 blocks |
 | Alt + MouseWheel up/down | Expand/shrink vertical extent (Y), 1–8 blocks |
 | Ctrl held while confirming | Subtract existing mining zones under the selected region |
-| Right-click / Escape | Cancel / exit mining mode |
+| Escape | Cancel / exit mining mode (ESC-only — right-mouse is reserved for camera orbit, `21_camera.md` tool input contract) |
 
 The selection is anchored at the clicked face normal — the region grows away from the face the player pointed at. There is no grid snapping. The region is always exactly the size shown.
 
@@ -657,10 +657,13 @@ the *same* noise channel and the first window matching `(y in band, noise > thre
 wins. Rarest-first ordering therefore gives the rarest resource the top noise slice — which
 only works as intended while thresholds *descend* monotonically down each list. A
 late-listed entry whose threshold is higher than an earlier entry's gets shadowed wherever
-their bands overlap. Coal currently suffers exactly this (threshold 0.72,
-evaluated after iron 0.70 / copper 0.66 / tin 0.66 → effectively spawns only at Y12–19
-despite its declared Y12–90 window) — open calibration item in
-`00_dev_roadmap/12_worldgen_second_milestone.md`.
+their bands overlap. Coal suffered exactly this (threshold 0.72, evaluated after iron
+0.70 / copper 0.66 / tin 0.66 → effectively spawned only at Y12–19 despite its declared
+Y12–90 window). **Fixed 2026-08-07 (doc 22 close-out pass): coal's threshold lowered to
+0.62** — below every earlier metal, restoring monotonic descent. Coal is now the most
+common metal across its whole band, matching its role as the bulk smelting fuel (doc 44:
+every smelting recipe consumes coal). Density not yet eyeballed in-engine — verify during
+the doc 44 milestone. The doc 12 calibration item is closed.
 
 ### Authored Rock Selection
 

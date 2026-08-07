@@ -533,6 +533,10 @@ func cancel_ghost(ghost_id: int) -> void:
 		TaskManager.cancel_source_tasks(ghost.source_id)
 		TaskManager.unregister_work_source(ghost.source_id)
 		_source_to_ghost.erase(ghost.source_id)
+	# After cancel_source_tasks: task-gone routing may have re-claimed the
+	# fetch item for the ghost — release it back to ordinary hauling now
+	# that the request is gone (2026-08-07 item-claim pass).
+	ghost.release_claim()
 	for cell: Vector3i in ghost.footprint_cells():
 		_cell_to_ghost.erase(cell)
 	if ghost.node != null and is_instance_valid(ghost.node):
@@ -552,6 +556,9 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 	if ghost.source_id >= 0:
 		TaskManager.unregister_work_source(ghost.source_id)
 		_source_to_ghost.erase(ghost.source_id)
+	# Defensive: the claim was normally handed to the builder at reserve_fetch
+	# time, but release any stale one (2026-08-07 item-claim pass).
+	ghost.release_claim()
 	for cell: Vector3i in ghost.footprint_cells():
 		_cell_to_ghost.erase(cell)
 	if ghost.node != null and is_instance_valid(ghost.node):

@@ -8,16 +8,23 @@ extends Node
 ## because furniture restore re-installs every door through the normal _install()
 ## path, which calls on_furniture_changed() below exactly as it would live.
 ##
-## ALGORITHM (doc 34 "Sealing Rules"): flood-fill outward from every door cell
-## through AIR ONLY. A cell that is BlockRegistry.is_solid() OR itself a door
-## stops the fill (doors act as walls for sealing purposes, "regardless of
-## animation state" — doc 34). If the fill terminates as a finite, bounded set
-## of air cells, the room is sealed. If it exceeds MAX_ROOM_CELLS before
-## terminating, the fill is presumed to have escaped into open/ungenerated
-## space and the room is treated as UNSEALED — this is a deliberate approximation
-## (the NavGrid 1200-node reachability cap is the same kind of tuning call):
-## flood-filling the entire open world to *prove* a leak is computationally
-## infeasible, but any leak grows past a generously-sized real room quickly.
+## ALGORITHM (doc 34 "Sealing Rules", corrected 2026-08-07): every door tile
+## seals a vertical COLUMN (its floor cell + DOOR_SEAL_HEIGHT air cells — the
+## doorway gap its model visually fills; the door piece is walkable air with
+## no terrain identity, so without the column the fill walked straight over
+## the door and no room could ever seal). Each air cell ADJACENT to a door
+## column starts its own flood-fill through AIR ONLY — per SIDE, because a
+## door separates two spaces and seeding from the door itself would merge
+## room and corridor into one leaked region. A cell that is
+## BlockRegistry.is_solid() OR inside any door column stops the fill (doors
+## act as walls, "regardless of animation state" — doc 34). A fill that
+## terminates as a finite set of air cells is a sealed room. A fill that
+## exceeds MAX_ROOM_CELLS is presumed to have escaped into open/ungenerated
+## space and its cells are memoised as open for the rest of the rebuild —
+## this is a deliberate approximation (the NavGrid 1200-node reachability
+## cap is the same kind of tuning call): flood-filling the entire open world
+## to *prove* a leak is computationally infeasible, but any leak grows past
+## a generously-sized real room quickly.
 ##
 ## DOOR / HEAT-SOURCE TRACKING: this script does NOT listen to
 ## FurniturePlacementController signals (that controller is a scene node, not
@@ -36,6 +43,8 @@ extends Node
 ## directly against already-tracked rooms.
 
 const MAX_ROOM_CELLS := 4096          # ~ a generous 16x16x16 hall; tuning constant
+const DOOR_SEAL_HEIGHT := 4           # air cells above a door's floor cell that seal
+									  # (the doc 22b double door stands ~4 blocks tall)
 const REBUILD_THROTTLE_S := 0.5
 const NEIGHBOR_OFFSETS: Array[Vector3i] = [
 	Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
@@ -100,7 +109,11 @@ func on_furniture_changed(key: String, cells: Array[Vector3i], def: Dictionary, 
 		for cell: Vector3i in cells:
 			if installed:
 				if not _door_cells.has(cell):
-					_door_cells[cell] = true
+					# Value = the piece's ORIGIN cell (cells[0]) — the door's
+					# identity. Lets every consumer count door PIECES instead
+					# of door tiles (a 2-wide door is ONE door — Alen,
+					# 2026-08-07, first Rooms-tool session showed "Doors: 2").
+					_door_cells[cell] = cells[0]
 					changed = true
 			else:
 				if _door_cells.has(cell):
@@ -128,8 +141,13 @@ func get_stats() -> Dictionary:
 		sealed += 1
 		if float(room.get("temp_c", 99.0)) <= 0.0:
 			frozen += 1
+	# Count door PIECES (distinct origin cells), not footprint tiles — a
+	# 2-wide door is one door (2026-08-07).
+	var pieces: Dictionary = {}
+	for cell: Vector3i in _door_cells.keys():
+		pieces[_door_cells[cell]] = true
 	return {
-		"doors": _door_cells.size(),
+		"doors": pieces.size(),
 		"rooms": sealed,
 		"frozen_vaults": frozen,
 	}
@@ -143,6 +161,20 @@ func get_room_at(cell: Vector3i) -> Dictionary:
 	if room_id < 0:
 		return {}
 	return _rooms.get(room_id, {})
+
+
+## Room id containing `cell`, or -1. NOTE room ids are reassigned on every
+## rebuild (_rebuild_all_rooms clears and renumbers) — treat an id as valid
+## only until the next room_updated/room_removed burst; re-resolve by cell.
+func get_room_id_at(cell: Vector3i) -> int:
+	return int(_cell_to_room.get(cell, -1))
+
+
+## Read-only view of every currently-sealed room (room_id -> RoomData dict).
+## Live internal dictionary — callers must NOT mutate (the DwarfAssets pool
+## precedent). Added 2026-08-07 for the 🚪 Rooms overlay tool.
+func get_rooms() -> Dictionary:
+	return _rooms
 
 
 # ── Triggers ──────────────────────────────────────────────────────────────────
@@ -174,29 +206,53 @@ func _mark_dirty() -> void:
 
 # ── Detection ─────────────────────────────────────────────────────────────────
 
-## Full rebuild: re-flood-fills from every known door cell, skipping doors
-## already claimed by a room found earlier in this same pass (a room can have
-## more than one door). Simple and correct; see file header for the perf note.
+## Full rebuild — REWRITTEN 2026-08-07 (Alen's first Rooms-tool playtest: no
+## room ever showed, and the tool finally made the reason visible). The
+## original fill had two fatal geometry errors, live since doc 22 shipped:
+##
+## 1. Only the door's FLOOR cells were boundary. The doorway is a 2-wide,
+##    ~4-tall gap of open AIR above those cells (the door piece is walkable
+##    and has no terrain identity), so the fill walked straight up through
+##    the gap and out into the corridor and the open world — every fill hit
+##    MAX_ROOM_CELLS and NO room could ever be detected. Fix: each door
+##    footprint cell seals a vertical COLUMN (floor + DOOR_SEAL_HEIGHT air
+##    cells — the doc 22b door stands ~4 blocks tall), built per rebuild by
+##    _door_boundary_cells().
+## 2. The fill SEEDED from the door cell itself, which (once the column is
+##    boundary) discovers BOTH sides of the door — room and corridor — as
+##    one region, and the corridor side leaks. A door separates two spaces;
+##    they must be filled separately. Fix: each air cell ADJACENT to the
+##    door column starts its own fill; a fill that terminates within the
+##    cap is a sealed room, a fill that leaks marks its cells as open (the
+##    `leaked` memo) so the corridor region is probed at most once per
+##    rebuild, not once per door neighbour.
 func _rebuild_all_rooms() -> void:
 	var old_ids: Array = _rooms.keys()
 	_rooms.clear()
 	_cell_to_room.clear()
 
-	var claimed_doors: Dictionary = {}     # Vector3i -> true (already part of a found room)
-	for door_cell: Vector3i in _door_cells.keys():
-		if claimed_doors.has(door_cell):
-			continue
-		var result := _flood_fill_from_door(door_cell)
-		for d: Vector3i in result.get("door_cells", {}).keys():
-			claimed_doors[d] = true
-		if result.is_empty():
-			continue   # unsealed — leaked past MAX_ROOM_CELLS, or no interior air at all
-		var room_id := _next_room_id
-		_next_room_id += 1
-		var room := _build_room_data(result)
-		_rooms[room_id] = room
-		for cell: Vector3i in room["cells"].keys():
-			_cell_to_room[cell] = room_id
+	var boundary := _door_boundary_cells()
+	var leaked: Dictionary = {}     # Vector3i -> true: known-open cells (probed, unsealed)
+	for boundary_cell: Vector3i in boundary.keys():
+		for offset: Vector3i in NEIGHBOR_OFFSETS:
+			var start: Vector3i = boundary_cell + offset
+			if boundary.has(start) or _cell_to_room.has(start) or leaked.has(start):
+				continue
+			if BlockRegistry.is_solid(_block_id(start)):
+				continue
+			var result := _flood_fill_room(start, boundary)
+			if bool(result.get("leaked", false)):
+				for c: Vector3i in result["cells"].keys():
+					leaked[c] = true
+				continue
+			if result.get("cells", {}).is_empty():
+				continue
+			var room_id := _next_room_id
+			_next_room_id += 1
+			var room := _build_room_data(result)
+			_rooms[room_id] = room
+			for cell: Vector3i in room["cells"].keys():
+				_cell_to_room[cell] = room_id
 
 	for room_id: int in _rooms.keys():
 		room_updated.emit(room_id)
@@ -205,34 +261,47 @@ func _rebuild_all_rooms() -> void:
 			room_removed.emit(old_id)
 
 
-## Doc 34 Sealing Rules 1-3. Returns {} if unsealed (no interior, or the fill
-## exceeded MAX_ROOM_CELLS). Returns {"cells": Dictionary, "door_cells": Dictionary}
-## on success — `cells` are the interior AIR cells only (doors are boundary,
-## not interior).
-func _flood_fill_from_door(door_cell: Vector3i) -> Dictionary:
-	var visited: Dictionary = {}          # interior air cells found
-	var door_cells_found: Dictionary = { door_cell: true }
-	var queue: Array[Vector3i] = [door_cell]
+## Every cell a door seals: each registered footprint FLOOR cell plus the
+## DOOR_SEAL_HEIGHT air cells above it (the doorway gap the door visually
+## fills). Values map back to the owning door PIECE's origin cell so a room
+## reports door pieces, not tiles or boundary-column cells.
+func _door_boundary_cells() -> Dictionary:
+	var result: Dictionary = {}     # boundary cell -> door piece origin cell
+	for floor_cell: Vector3i in _door_cells.keys():
+		var piece_origin: Vector3i = _door_cells[floor_cell]
+		for dy: int in range(0, DOOR_SEAL_HEIGHT + 1):
+			result[floor_cell + Vector3i(0, dy, 0)] = piece_origin
+	return result
+
+
+## Doc 34 Sealing Rules 1-3, one side of a door at a time. `start` must be a
+## non-boundary air cell. Returns {"cells", "door_cells", "leaked"} — cells
+## are interior AIR only; door_cells are the PIECE ORIGIN cells of every
+## door whose seal column bounds this region (so .size() = door count, one
+## per piece regardless of footprint width); leaked=true means the region
+## exceeded MAX_ROOM_CELLS (open space — see file header).
+func _flood_fill_room(start: Vector3i, boundary: Dictionary) -> Dictionary:
+	var visited: Dictionary = { start: true }   # interior air cells found
+	var door_tiles: Dictionary = {}             # piece origin -> true
+	var queue: Array[Vector3i] = [start]
 	var head := 0
 	while head < queue.size():
 		var cur: Vector3i = queue[head]
 		head += 1
 		for offset: Vector3i in NEIGHBOR_OFFSETS:
 			var n := cur + offset
-			if visited.has(n) or door_cells_found.has(n):
+			if visited.has(n):
 				continue
-			if _door_cells.has(n):
-				door_cells_found[n] = true
+			if boundary.has(n):
+				door_tiles[boundary[n]] = true
 				continue
 			if BlockRegistry.is_solid(_block_id(n)):
 				continue
 			visited[n] = true
 			if visited.size() > MAX_ROOM_CELLS:
-				return {}   # presumed leak into open space — see file header
+				return { "cells": visited, "door_cells": {}, "leaked": true }
 			queue.append(n)
-	if visited.is_empty():
-		return {}
-	return { "cells": visited, "door_cells": door_cells_found }
+	return { "cells": visited, "door_cells": door_tiles, "leaked": false }
 
 
 func _block_id(pos: Vector3i) -> int:
@@ -280,10 +349,16 @@ func _mean_floor_y(cells: Dictionary) -> float:
 	return float(total) / float(lowest_by_column.size())
 
 
+## Heat sources register at their footprint FLOOR cell (a SOLID ground
+## block), but a room's `cells` are interior AIR — so the membership test
+## must look at the air cell directly ABOVE the heat source's floor cell
+## (where the piece actually stands). Testing the floor cell itself matched
+## nothing, ever: hearths silently contributed 0 heat until the 2026-08-07
+## Rooms-tool playtest made the readout visible.
 func _sum_heat(cells: Dictionary) -> int:
 	var total := 0
 	for cell: Vector3i in _heat_cells.keys():
-		if cells.has(cell):
+		if cells.has(cell + Vector3i(0, 1, 0)):
 			total += int(_heat_cells[cell])
 	return total
 

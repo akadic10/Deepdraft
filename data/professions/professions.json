@@ -413,6 +413,38 @@
       "room_assignment": null,
       "work_speed_bonus_per_level": 0.05,
       "experience_levels": []
+    },
+
+    "base:profession:weaponsmith": {
+      "display_name": "Weaponsmith",
+      "description": "A promoted Blacksmith working exclusively at the Forge, crafting weapons and crossbows for the military.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:blacksmith",
+      "status": "not_implemented",
+
+      "__comment": "Stub added 2026-08-07 (doc 22 close-out — DwarfFactory.PROFESSION_KEYS alignment). Restricted specialisation, doc 44: requires Blacksmith Level 3 (100 cumulative tasks) and an operational Forge; never assignable directly from Civilian. On promotion the experience count is set equal to the Blacksmith count (one-way carry-over, doc 44 §Experience Carry-Over). Activates with the Smelter & Forge milestone.",
+
+      "task_types":          [],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+      "experience_levels": []
+    },
+
+    "base:profession:armorsmith": {
+      "display_name": "Armorsmith",
+      "description": "A promoted Blacksmith working exclusively at the Forge, producing armour and shields for enlisted dwarves.",
+      "is_base_profession": false,
+      "promotes_from": "base:profession:blacksmith",
+      "status": "not_implemented",
+
+      "__comment": "Stub added 2026-08-07 (doc 22 close-out — DwarfFactory.PROFESSION_KEYS alignment). Restricted specialisation, doc 44: requires Blacksmith Level 3 (100 cumulative tasks) and an operational Forge; never assignable directly from Civilian. On promotion the experience count is set equal to the Blacksmith count (one-way carry-over, doc 44 §Experience Carry-Over). Activates with the Smelter & Forge milestone.",
+
+      "task_types":          [],
+      "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],
+      "room_assignment": null,
+      "work_speed_bonus_per_level": 0.05,
+      "experience_levels": []
     }
 
   }

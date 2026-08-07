@@ -120,14 +120,6 @@
       "action": "toggle_window",
       "target": "xray"
     },
-    {
-      "id": "rooms",
-      "emoji": "\ud83d\udeaa",
-      "label": "Rooms",
-      "tooltip": "Show sealed rooms \u2014 click a room for temperature and details",
-      "action": "toggle_window",
-      "target": "rooms"
-    },
     { "type": "separator" },
     {
       "id": "flag",

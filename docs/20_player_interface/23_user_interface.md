@@ -91,8 +91,9 @@ in `00_dev_roadmap/20_save_load.md`.
 
 Some `toggle_window` targets are intercepted in `DockUI._toggle_window` and routed to a real
 system instead of a generic window: `world_info` / `block_inspector` toggle their overlay
-CanvasLayers, `clock` opens the live Clock window, and `slice` toggles the **Slice tool**
-(see below). `xray` remains a stub until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
+CanvasLayers, `clock` opens the live Clock window, `slice` toggles the **Slice tool**
+(see below), and `rooms` toggles the **Rooms tool** (see below). `xray` remains a stub
+until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
 
 ### The Slice Tool (shipped 2026-06-05 — doc 11 Phase 2)
 
@@ -113,6 +114,31 @@ fully manual and remembered across toggles. Its active state, current height, se
 and last manual height persist in the version-1 quick save.
 Activating Slice will force the future X-Ray tool off, and vice versa — mutual exclusion
 lives in the tool layer, never the renderer.
+
+### The Rooms Tool (shipped 2026-08-07 — doc 22 close-out follow-up)
+
+The dock's 🚪 `rooms` entry toggles the **Rooms tool**, owned by `RoomOverlayController`
+(scene node; DockUI only announces `tool_requested("rooms")` — the controller self-toggles
+on its own id and every other click-tool deactivates, the standard one-active-tool
+contract). While active, every sealed room `RoomManager` tracks draws a translucent
+**volume shell** — every exterior face of the room's air volume, inset 0.04 to clear the
+wall faces, plus silhouette outline edges (interior coplanar edges deduped; the
+mining-zone treatment, per Alen's second Rooms session 2026-08-07): **green** for sealed
+rooms (mining owns yellow, stockpiles own blue-cyan), **icy blue** for Frozen Vaults.
+Overlays render with **no depth test** (the mining ghost-layer treatment), so a room
+reads through the mountain whether or not the slice is cut down to it; rooms above the
+slice plane hide (the flora convention).
+
+Left-click marches the mouse ray through the grid and selects the first room whose
+interior air it crosses — clicks are as x-ray as the overlays, so a room visible through
+rock is clickable through rock. Selection opens a compact info window (below the slice
+palette): sealed/Frozen-Vault state, depth-zone name, temperature (1 decimal), volume,
+heat units with computed +°C bonus, door count, seasonal influence %, and mean floor Y —
+the doc 34 "UI — Room Temperature Display" readout, refreshed at 2 Hz while open. ESC
+exits the tool; right-mouse stays camera-orbit (`21_camera.md` contract). Overlays and
+selection are derived presentation state — never saved, rebuilt from `RoomManager` on
+activation and on `room_updated`/`room_removed` (throttled 0.3 s). Selection survives
+RoomManager's id churn by re-resolving through the clicked cell.
 
 ### Default Items
 
@@ -137,13 +163,14 @@ lives in the tool layer, never the renderer.
 | —     | *(separator)* |            |                 |              |
 | 13    | 👀            | Slice      | `toggle_window` | `slice`      |
 | 14    | 🩻            | X-Ray      | `toggle_window` | `xray`       |
+| 15    | 🚪            | Rooms      | `toggle_window` | `rooms`      |
 | —     | *(separator)* |            |                 |              |
-| 15    | 🚩            | Settle     | `toggle_window` | `flag`       |
-| 16    | 🧔            | Dwarves    | `toggle_window` | `dwarves`    |
-| 17    | 📊            | World      | `toggle_window` | `world_info` |
-| 18    | 🔍            | Inspect    | `toggle_window` | `block_inspector` |
+| 16    | 🚩            | Settle     | `toggle_window` | `flag`       |
+| 17    | 🧔            | Dwarves    | `toggle_window` | `dwarves`    |
+| 18    | 📊            | World      | `toggle_window` | `world_info` |
+| 19    | 🔍            | Inspect    | `toggle_window` | `block_inspector` |
 | —     | *(separator)* |            |                 |              |
-| 19    | 💾            | Save / Load | `open_panel`   | `save_load`  |
+| 20    | 💾            | Save / Load | `open_panel`   | `save_load`  |
 
 ### Panels (opened by `open_panel`)
 

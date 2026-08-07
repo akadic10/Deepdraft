@@ -585,7 +585,7 @@ func _inspect_block_at_screen_position(screen_pos: Vector2) -> void:
 	var visible_key: String = column_info.get("visible_block_key", "")
 	var agreement: String = "yes" if generated_block_id == block_id else "NO"
 	_move_block_inspector_outline(pos)
-	_set_inspector_text("\n".join([
+	var lines: Array[String] = [
 		"Block inspector",
 		"render: %s" % _inspector_render_mode(),
 		"source: %s  face: %s" % [source, face],
@@ -616,7 +616,9 @@ func _inspect_block_at_screen_position(screen_pos: Vector2) -> void:
 		],
 		"kind: %s  color: %s" % [kind, color.to_html(false)],
 		"x: %d  y: %d  z: %d" % [pos.x, pos.y, pos.z],
-	]))
+	]
+	lines.append_array(_room_inspect_lines(hit.get("air_pos", Vector3i(-999999, -999999, -999999))))
+	_set_inspector_text("\n".join(lines))
 
 
 func _find_block_on_ray(origin: Vector3, direction: Vector3, max_distance: float) -> Dictionary:
@@ -641,6 +643,13 @@ func _find_block_on_ray(origin: Vector3, direction: Vector3, max_distance: float
 					"generated_block_id": hit_info.get("generated_block_id", block_id),
 					"source": hit_info.get("source", "unknown"),
 					"face": _hit_face_label(pos - last_empty_pos if last_empty_pos != Vector3i(-999999, -999999, -999999) else pos - prev_pos),
+					# The last AIR cell the ray crossed before this solid hit —
+					# the open cell adjacent to the hit face. The room inspect
+					# block queries RoomManager with it (a sealed room's
+					# interior is air; the hit block itself is solid and can
+					# never be inside a room). Sentinel (-999999,…) if the ray
+					# started inside solid.
+					"air_pos": last_empty_pos,
 				}
 		distance += step
 	return {}
@@ -676,6 +685,51 @@ func _inspector_render_mode() -> String:
 	if _block_face_overview_active():
 		return "block-face overview exact"
 	return "composited: streamed chunks + sliced overview"
+
+
+## Room inspect block (doc 34 "UI — Room Temperature Display"; built in the
+## doc 22 close-out pass). The Block Inspector IS the doc 34 inspect panel:
+## if the air cell the ray crossed just before the solid hit belongs to a
+## sealed room, RoomManager.get_room_at() already returns everything the
+## panel needs. Null-safe: degrades to a single "room: —" line if RoomManager
+## is somehow absent, and to "room: none" when the cell is open air.
+## EXPLICIT TYPES at every Dictionary read — the RoomManager/WorldClock
+## Variant-inference trap (see RoomManager._recompute_temp header note).
+func _room_inspect_lines(air_pos: Vector3i) -> Array[String]:
+	if air_pos.x == -999999:
+		return []
+	var room_manager := get_node_or_null("/root/RoomManager")
+	if room_manager == null:
+		return ["room: — (RoomManager absent)"]
+	var room: Dictionary = room_manager.get_room_at(air_pos)
+	if room.is_empty():
+		return ["room: none (open air)"]
+	var temp_c: float = float(room.get("temp_c", 0.0))
+	var volume: int = int(room.get("volume", 0))
+	var heat_units: int = int(room.get("heat_units", 0))
+	var mean_floor_y: float = float(room.get("mean_floor_y", 0.0))
+	var seasonal: float = float(room.get("seasonal_influence", 0.0))
+	var is_frozen: bool = bool(room.get("is_frozen_vault", false))
+	var doors: int = room.get("door_cells", {}).size()
+	var heat_bonus: float = float(heat_units) / float(max(volume, 1))
+	var label := "room: FROZEN VAULT" if is_frozen else "room: Sealed (%s)" % _room_zone_name(mean_floor_y)
+	return [
+		label,
+		"room temp: %.1f°C  volume: %d blocks" % [temp_c, volume],
+		"room heat: %d units (+%.1f°C)  doors: %d" % [heat_units, heat_bonus, doors],
+		"room seasonal influence: %d%%  mean floor y: %.1f" % [roundi(seasonal * 100.0), mean_floor_y],
+	]
+
+
+## Depth-zone label from mean floor Y (doc 34 "Depth–Temperature Gradient").
+func _room_zone_name(mean_floor_y: float) -> String:
+	if mean_floor_y >= 65.0:
+		return "Cool Cave"
+	if mean_floor_y >= 50.0:
+		return "Cold Cave"
+	if mean_floor_y >= 37.0:
+		return "Deep Cold"
+	return "Frozen Zone"
 
 
 func set_visual_cut_blocks(blocks: Dictionary) -> void:

@@ -133,13 +133,14 @@
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
   },
 
+  "__comment_coal_threshold": "0.72 -> 0.62 (2026-08-07, doc 12 calibration item): evaluation is rarest-first with first-match-wins on one shared noise channel, so thresholds must DESCEND down METAL_RESOURCE_KEYS (doc 43). Coal is evaluated LAST but its old 0.72 sat above iron 0.70 / copper 0.66 / tin 0.66, which shadowed it everywhere their bands overlap - coal effectively spawned only at Y12-19 despite the declared Y12-90 window. At 0.62 (lowest of all metals) coal is the most common metal, which is correct: it is the bulk fuel every doc 44 smelting recipe consumes.",
   "base:terrain:ore:coal": {
     "durability": 2,
     "drops": [
       { "item": "base:resources:ore:coal",   "count": 2, "chance": 1.00 }
     ],
     "depth_bias": { "min_y": 12, "max_y": 90 },
-    "noise_threshold": 0.72,
+    "noise_threshold": 0.62,
     "noise_channel": "ore",
     "material_tags": ["ore", "fuel", "stockpile_ore"]
   },

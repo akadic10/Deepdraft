@@ -17,6 +17,21 @@ extends RefCounted
 ## Ghosts are NON-SOLID (SH parity): no PlacedEntityRegistry registration,
 ## no nav impact — nav changes only when the piece is actually installed.
 ## Owned by FurniturePlacementController (the zone/mining ownership shape).
+##
+## ITEM CLAIMS (2026-08-07, Alen playtest — the HAUL/FETCH_BUILD item race):
+## task priority (FETCH_BUILD 45 > HAUL 40) orders ASSIGNMENT, but the
+## physical item had none — a stockpile hauler could pouch the last matching
+## loose item, and while it rode the pouch item_available() was false, so the
+## ghost had NO lease and idle dwarves stood around until the deposit wake
+## (then walked to the zone and all the way back). SH restock parity: an item
+## pending placement is never restocked. The ghost now CLAIMS the nearest
+## matching loose item the moment one exists (wake-driven, like the lease):
+## a claim is an ItemDropManager reservation under claim_owner_id(), so every
+## hauler scan (unreserved-only) skips it. reserve_fetch hands the claim to
+## the fetching dwarf; cancel_fetch re-claims on release; the controller
+## releases the claim on ghost teardown. Items already inside a pouch when
+## the ghost is placed remain the residual (unavoidable) delay: they become
+## claimable only after the hauler deposits or drops them.
 
 var ghost_id: int = -1
 var furniture_key: String = ""      # base:furniture:* (namespaced — Hard Rule 3)
@@ -33,6 +48,7 @@ var install_callback: Callable = Callable()   # (ghost) -> controller install pa
 
 var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
 var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
+var _claim: Node3D = null           # ghost-held item claim (see header) — runtime only, never saved
 
 
 func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: int) -> void:
@@ -67,9 +83,24 @@ func display_name() -> String:
 
 # ── Work source (doc 19 §3.3) ─────────────────────────────────────────────────
 
-## A matching item exists somewhere the fetch can reach it: loose and
-## unreserved, or stored in colony storage (aggregates).
+## Owner id for the ghost's item claim in ItemDropManager's reservation
+## table. POSITIVE and far outside the dwarf-id range, so unreserve()'s
+## owner guard stays effective (a negative id would read as "unconditional"
+## there). source_id comes from TaskManager.allocate_source_id() (>= 10M),
+## so claim owners live at >= 1_010_000_000 — no dwarf id ever collides.
+func claim_owner_id() -> int:
+	return 1_000_000_000 + source_id
+
+
+func _claim_valid() -> bool:
+	return _claim != null and is_instance_valid(_claim)
+
+
+## A matching item exists somewhere the fetch can reach it: claimed by this
+## ghost, loose and unreserved, or stored in colony storage (aggregates).
 func item_available() -> bool:
+	if _claim_valid():
+		return true
 	if StockpileManager.get_total(item_key) > 0:
 		return true
 	if drop_manager == null or not is_instance_valid(drop_manager):
@@ -77,15 +108,44 @@ func item_available() -> bool:
 	return drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}) != null
 
 
-## Posts/retires the single FETCH_BUILD lease. Called by the controller on
-## wake events (drop spawned, stockpile changed, ghost placed) — never per
-## frame (doc 16 §2.5 discipline).
+## Posts/retires the single FETCH_BUILD lease, and keeps the item claim
+## current (see header — the claim is what stops haulers pouching the item
+## out from under a pending lease). Called by the controller on wake events
+## (drop spawned, stockpile changed, ghost placed) — never per frame
+## (doc 16 §2.5 discipline).
 func update_lease() -> void:
 	if source_id < 0:
 		return
+	_ensure_claim()
 	if _lease_id < 0 and item_available():
 		_lease_id = int(TaskManager.add_task(
 			Task.Type.FETCH_BUILD, origin_cell, { "ghost_id": ghost_id }, source_id))
+
+
+## Claim the nearest matching loose item if we hold none and no fetching
+## dwarf already owns one for this ghost. Claimed = reserved under
+## claim_owner_id(), invisible to every unreserved-only scan (haul pouches,
+## other ghosts' claims and fetches).
+func _ensure_claim() -> void:
+	if not _fetches.is_empty():
+		return                        # a dwarf already holds an item for this ghost
+	if _claim_valid():
+		return
+	_claim = null
+	if drop_manager == null or not is_instance_valid(drop_manager):
+		return
+	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {})
+	if item != null and bool(drop_manager.call("reserve", item, claim_owner_id())):
+		_claim = item
+
+
+## Frees the ghost's item claim (owner-guarded). Controller calls this on
+## ghost teardown (cancel / build-complete); safe to call with no claim.
+func release_claim() -> void:
+	if _claim != null and is_instance_valid(_claim) \
+			and drop_manager != null and is_instance_valid(drop_manager):
+		drop_manager.call("unreserve", _claim, claim_owner_id())
+	_claim = null
 
 
 func has_lease() -> bool:
@@ -132,16 +192,27 @@ func _cell_in_footprint(cell: Vector3i) -> bool:
 	return false
 
 
-## Step 1 of the fetch (doc 19 §3.3): claim the nearest matching item —
-## loose first, else withdrawn from the nearest storage. {} = nothing
-## available (the lease completes early and re-posts on the next wake).
+## Step 1 of the fetch (doc 19 §3.3): hand over the ghost's claim if it
+## holds one (claimed items are reserved, so the unreserved-only scan below
+## would never find them) — else the nearest matching loose item, else a
+## storage withdraw. {} = nothing available (the lease completes early and
+## re-posts on the next wake).
 func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return {}
-	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {})
-	if item != null:
+	var item: Node3D = null
+	if _claim_valid():
+		# Transfer the claim to the fetching dwarf (owner-guarded swap).
+		item = _claim
+		_claim = null
+		drop_manager.call("unreserve", item, claim_owner_id())
 		if not bool(drop_manager.call("reserve", item, dwarf_id)):
 			item = null
+	if item == null:
+		item = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {})
+		if item != null:
+			if not bool(drop_manager.call("reserve", item, dwarf_id)):
+				item = null
 	if item == null:
 		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id)
 	if item == null:
@@ -156,7 +227,9 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 
 ## Release protocol: frees the item reservation (owner-guarded — doc 18
 ## spam-robustness pass). Safe to call twice; a carried item is the dwarf's
-## to drop at its feet (Hard Rule 12), not ours to unreserve.
+## to drop at its feet (Hard Rule 12), not ours to unreserve. The freed item
+## is immediately RE-CLAIMED for the ghost so a hauler cannot poach it in
+## the gap before the next lease wake.
 func cancel_fetch(dwarf_id: int) -> void:
 	if not _fetches.has(dwarf_id):
 		return
@@ -165,6 +238,8 @@ func cancel_fetch(dwarf_id: int) -> void:
 	if item != null and is_instance_valid(item) \
 			and drop_manager != null and is_instance_valid(drop_manager):
 		drop_manager.call("unreserve", item, dwarf_id)
+		if not _claim_valid() and bool(drop_manager.call("reserve", item, claim_owner_id())):
+			_claim = item
 
 
 ## The dwarf picked the item up — it left the loose index; our reservation

@@ -36,6 +36,7 @@ var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
 var _mining_controller: Node = null
+var _room_controller: Node = null
 var _persistence_toast: PanelContainer = null
 var _persistence_toast_label: Label = null
 var _persistence_toast_until_msec: int = 0
@@ -381,6 +382,14 @@ func _toggle_window(target: String) -> void:
 		_toggle_slice_tool()
 		return
 
+	if target == "rooms":
+		# Announce-first (2026-07-06 contract). RoomOverlayController follows
+		# the StockpileDesignationController convention: it self-toggles on
+		# its own id, and every other click-tool deactivates on the announce —
+		# so the emit alone is the whole toggle.
+		tool_requested.emit("rooms")
+		return
+
 	if target == "dwarves":
 		if _dwarf_director != null and _dwarf_director.has_method("toggle_window"):
 			_dwarf_director.call("toggle_window")
@@ -634,6 +643,9 @@ func _target_canvas_visible(target: String) -> bool:
 		"mine":
 			return _mining_controller != null and _mining_controller.has_method("is_active") \
 				and bool(_mining_controller.call("is_active"))
+		"rooms":
+			return _room_controller != null and _room_controller.has_method("is_active") \
+				and bool(_room_controller.call("is_active"))
 	return false
 
 
@@ -685,6 +697,14 @@ func register_furniture_controller(controller: Node) -> void:
 ## 'mine' entry live pressed-state (the tool previously had none at all).
 func register_mining_controller(controller: Node) -> void:
 	_mining_controller = controller
+	_connect_tool_active(controller)
+
+
+## Push-registration from RoomOverlayController (🚪 Rooms tool, 2026-08-07) —
+## the dock's 'rooms' entry announces via tool_requested; the controller
+## self-toggles. Registration exists for the pressed-state readback only.
+func register_room_controller(controller: Node) -> void:
+	_room_controller = controller
 	_connect_tool_active(controller)
 
 

@@ -97,10 +97,22 @@ var _uninstall_source_id: int = -1
 ## and sleeps IN PLACE (no beds yet) for the doc-41 minimum rest, counted in
 ## in-game hours (clock-speed aware, frozen while paused). The full needs
 ## system (hunger/thirst/mood/thoughts) is its own later milestone.
-const SLEEP_DRAIN_PER_S := 0.003    # doc 41 §Physiological Stats drain rate
+## RETUNED 2026-08-07 (Alen playtest: "the dwarves are just stuck doing
+## nothing" — the whole squad was asleep). The original 0.003/s drain (doc
+## 41's old table value) emptied full→threshold in ~250 real s ≈ 4 game
+## hours: dwarves spent 60% of their lives asleep, and since the initial
+## stagger only spreads first-sleep by ~2 min while a nap lasts 6, the
+## entire colony full-stopped for minutes at a time in every session.
+## 0.0007/s gives ~17.9 game hours awake per 6-hour nap — the 24-hour cycle
+## doc 41 §Biological Limits actually specifies (doc 41 table updated in
+## sync). Per-dwarf drain jitter (±10%, deterministic — set in setup())
+## makes the squad's schedules decohere over time instead of staying
+## phase-locked off the spawn stagger.
+const SLEEP_DRAIN_PER_S := 0.0007   # doc 41 §Physiological Stats drain rate (retuned)
 const SLEEP_THRESHOLD := 0.25       # doc 41: sleep taken autonomously below this
 const SLEEP_HOURS := 6.0            # doc 41: minimum rest per 24-hour cycle
 var sleep: float = 1.0
+var _sleep_drain: float = SLEEP_DRAIN_PER_S   # per-dwarf jittered rate (setup())
 var _sleeping: bool = false
 var _sleep_hours_left: float = 0.0
 
@@ -147,12 +159,19 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	name = "Dwarf_%d_%s" % [dwarf_id, dwarf_name]
 	_bob_phase = float(dwarf_id) * 1.7   # desynchronise the squad's idle motion
 	# Stagger initial tiredness deterministically (birth-index hash, no randf)
-	# so a squad spawned together does not collapse asleep in the same instant.
+	# so a squad spawned together does not collapse asleep in the same instant
+	# (at the retuned drain, this 0.35 spread = ~8 real minutes of first-sleep
+	# spread), and jitter each dwarf's drain rate ±10% so sleep schedules
+	# DECOHERE across days instead of staying phase-locked — identical rates
+	# preserve the initial offsets forever, and offsets smaller than a nap
+	# still produce a window where the whole colony sleeps at once.
 	sleep = 1.0 - fposmod(float(dwarf_id) * 0.191, 0.35)
+	_sleep_drain = SLEEP_DRAIN_PER_S * (0.9 + 0.2 * fposmod(float(dwarf_id) * 0.317, 1.0))
 
 	_build_parts()
 	_build_collision()
 	_build_name_label()
+	_build_sleep_indicator()
 	_apply_tints()
 	walk_finished.connect(_on_walk_finished)
 
@@ -163,7 +182,7 @@ func _process(delta: float) -> void:
 		return
 	# Sleep drains in EVERY waking state — idle, walking, working, swinging —
 	# so the threshold can interrupt any of them (doc 16 Phase 5 acceptance).
-	sleep = maxf(sleep - SLEEP_DRAIN_PER_S * delta, 0.0)
+	sleep = maxf(sleep - _sleep_drain * delta, 0.0)
 	if sleep <= SLEEP_THRESHOLD:
 		_begin_sleep()
 		return
@@ -333,6 +352,7 @@ func _on_walk_finished(success: bool) -> void:
 func _begin_sleep() -> void:
 	_sleeping = true
 	_sleep_hours_left = SLEEP_HOURS
+	_set_sleep_indicator_visible(true)
 	var had_task := current_task_id >= 0
 	_finish_zone_state()
 	_finish_haul_state()
@@ -362,6 +382,7 @@ func _wake_up() -> void:
 	_sleeping = false
 	sleep = 1.0
 	_sleep_hours_left = 0.0
+	_set_sleep_indicator_visible(false)
 	_reset_part_offsets()
 	TaskManager.notify_dwarf_idle(dwarf_id)
 
@@ -409,6 +430,7 @@ func restore_saved_runtime(state: Dictionary) -> void:
 	sleep = clampf(float(state.get("sleep", 1.0)), 0.0, 1.0)
 	_sleeping = bool(state.get("sleeping", false))
 	_sleep_hours_left = maxf(float(state.get("sleep_hours_left", 0.0)), 0.0)
+	_set_sleep_indicator_visible(_sleeping)   # a dwarf saved mid-nap restores with its 💤
 	current_task_id = -1
 	_task_phase = TaskPhase.NONE
 	stop_walking()
@@ -1219,6 +1241,33 @@ func _build_name_label() -> void:
 	label.position = Vector3(0.0, 4.0, 0.0)
 	label.visible = false   # OFF by default (Alen, 2026-06-10) — DEV toggle in the Dwarves window
 	add_child(label)
+
+
+## 💤 sleep indicator (Alen, 2026-08-07 — "the dwarves are just stuck doing
+## nothing" turned out to be the whole squad napping; make sleep readable at
+## a glance). Same billboard conventions as the name tag, but ALWAYS shown
+## while sleeping — independent of the DEV name-tag toggle, because it is
+## gameplay information, not debug info. Emoji renders via the same system
+## font fallback the dock's emoji buttons already rely on (doc 23).
+func _build_sleep_indicator() -> void:
+	var label := Label3D.new()
+	label.name = "SleepIndicator"
+	label.text = "💤"
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.fixed_size = true
+	label.pixel_size = 0.0009
+	label.font_size = 44
+	label.outline_size = 6
+	label.position = Vector3(0.35, 3.7, 0.0)   # beside the drooped head, below the name tag
+	label.visible = false
+	add_child(label)
+
+
+func _set_sleep_indicator_visible(show_indicator: bool) -> void:
+	var label := get_node_or_null("SleepIndicator")
+	if label != null:
+		(label as Label3D).visible = show_indicator
 
 
 func set_name_label_visible(show_label: bool) -> void:

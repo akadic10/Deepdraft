@@ -79,12 +79,15 @@ foundation gems confirmed (rock11 overwritable, diamond from Y4); surface dirt c
 extra protection (the replaceable set is rock01–11 only — grass, dirt, and soil are
 structurally immune).
 
-1. <span style="color:#f85149;">**Coal shadowing (bug-grade):**</span> first-match-wins on
-   the shared `noise_ore` channel means coal (threshold 0.72, listed last) is captured by
-   iron 0.70 / copper 0.66 / tin 0.66 everywhere their bands overlap — coal effectively
-   spawns only at **Y12–19** despite its declared Y12–90 window, defeating its "smelting
-   fuel, broad availability" role. Fix candidates: evaluate coal before iron/copper/tin,
-   give coal its own noise offset, or re-band it. Verify densities in-engine after.
+1. <span style="color:#3fb950;">**Coal shadowing — FIXED 2026-08-07 (doc 22 close-out
+   pass):**</span> first-match-wins on the shared `noise_ore` channel meant coal
+   (threshold 0.72, listed last) was captured by iron 0.70 / copper 0.66 / tin 0.66
+   everywhere their bands overlap — coal effectively spawned only at **Y12–19** despite
+   its declared Y12–90 window. Fixed data-only: coal's threshold lowered to **0.62**
+   (lowest of all metals, restoring the monotonic-descent rule) in
+   `data/terrain/block_resources.json`. Coal is now the most common metal, matching its
+   bulk-fuel role (doc 44). Remaining: eyeball in-engine density during the doc 44
+   milestone; retune the threshold, never the list order.
 2. <span style="color:#d29922;">**Spatial confinement vs pure depth:**</span> should gold
    and gems get horizontal bias under the NW mountain mass, or is pure depth enough?
 3. <span style="color:#d29922;">**Vein size:**</span> is `noise_ore` frequency `0.02` too

@@ -25,7 +25,21 @@ All stats are floats in the range `0.0 – 1.0` unless otherwise noted.
 |---|---|---|---|
 | `hunger` | −0.005 / s | < 0.15 | Work speed ×0.5; < 0.0 → death |
 | `thirst` | −0.008 / s | < 0.15 | Mood penalty; < 0.0 → death |
-| `sleep` | −0.003 / s | < 0.20 | Work speed ×0.6, pathfinding errors increase |
+| `sleep` | −0.0007 / s | < 0.20 | Work speed ×0.6, pathfinding errors increase |
+
+> **Sleep drain retuned 2026-08-07** (was −0.003/s; first extended sleep-lite playtest).
+> The old rate emptied full→threshold in ~4 in-game hours — a 4-hour waking day against a
+> 6-hour nap, so dwarves slept 60% of the time and, with spawn-staggered schedules only
+> ~2 minutes apart, the whole squad slept *simultaneously* for minutes in every session
+> ("the dwarves are just stuck doing nothing"). −0.0007/s yields ~18 waking hours per
+> 6-hour nap — the 24-hour cycle §Biological Limits specifies. `DwarfAgent` additionally
+> jitters each dwarf's drain ±10% (deterministic per id) so schedules decohere over days
+> rather than staying phase-locked. Sleeping dwarves additionally show a **💤 billboard
+> indicator** (same Label3D conventions as the name tag, but always on while asleep —
+> gameplay information, not a DEV toggle; added same day at Alen's request). Hunger/thirst rates above are still unimplemented
+> design values — re-derive them against a 24-hour day before building the needs system
+> (at −0.005/s, hunger would empty in ~3.3 game hours against the stated 8-hour meal
+> cadence — the same class of mis-tune this note fixes for sleep).
 | `alcohol` | +varies on drink | > 0.80 | Mood bonus but pathfinding accuracy −30% |
 | `mood` | ±event-driven | < 0.10 | Tantrum trigger; < 0.0 → berserk |
 | `health` | injury-driven | < 0.10 | Forced bed rest |

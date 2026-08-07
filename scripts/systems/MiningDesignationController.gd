@@ -561,7 +561,7 @@ func _build_hint_window() -> void:
 	column.add_child(title)
 
 	var body := Label.new()
-	body.text = "Drag: designate   ·   Ctrl: remove\nShift / Alt + wheel: width / depth   ·   Esc or right-click: exit"
+	body.text = "Drag: designate   ·   Ctrl: remove\nShift / Alt + wheel: width / depth   ·   Esc: exit"
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	body.add_theme_font_size_override("font_size", 12)
