@@ -89,6 +89,12 @@ Build multiple beehives to increase honey throughput. Honey is required for **Sw
 
 ## Brewing Recipes
 
+**Asset status, 2026-10-02:** the independently placeable `base:furniture:brewing_vat`
+now has a 2×2 model, packed item, placement and saving
+([art doc 42](../00_dev_roadmap/42_brewing_vat_asset_and_placement.md)). Its liquid
+surface is static artwork. This asset pass does not implement the brewery
+workshop, ingredient delivery, recipe queues or production described below.
+
 Brewing converts raw crops into drinks and refined goods inside a `base:workshop:brewery` block.
 
 Recipes are defined in `data/workshops/brewery.json` (see that file for the full schema). The recipes are:
@@ -127,6 +133,19 @@ Brewing tasks are issued by the Task System when a brewery workshop is idle and 
 ## Aging Cellar
 
 The Aging Cellar (`base:workshop:aging_cellar`) is an underground workshop that produces premium aged drinks from base brewed drinks and oak staves. Full schema: `data/workshops/aging_cellar.json`.
+
+**Carpentry decision (2026-10-04):** oak felling supplies raw logs and possible
+acorns. A carpenter makes oak staves from those logs, then uses the staves for
+oak aging casks. Staves never drop from trees. The planned aging recipes below
+still consume staves directly; those inputs are provisional until cask crafting
+and use are implemented. Carpentry quantities and work times remain to be defined.
+
+**Visual and placement status (2026-10-03):** the independently buildable
+**Aging Rack** (`base:furniture:aging_rack`) now supplies the 2×2×2 oak-cask model,
+packed item, ghost, hauling, uninstall and save/load integration. See
+[art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md).
+The recipes and temperature-dependent batch behavior described below remain
+planned; the placed rack currently has no storage or production behavior.
 
 For the full temperature system — sealed rooms, heat sources, the depth-temperature gradient, and the Frozen Vault — see [`34_temperature.md`](../30_simulation_systems/34_temperature.md).
 
@@ -207,6 +226,12 @@ Multi-cell plant visual meshes (e.g. a tall mushroom tree that visually spans 2�
 
 Surface trees are **world objects, not farm crops**. They are the only surface entities that carry real `StaticBody3D` + `CollisionShape3D` collision. Dwarves path *around* them; they do not walk through.
 
+**Runtime status (2026-10-04):** tree inspection and single/batch tree felling are live via
+the existing Chop → Chop Trees menu and explorer actions. Per-stage work durations,
+partial progress, designations and felled records persist; authored felling drops
+enter the normal hauling system. Growth timers, annual fruit gathering and forestry
+zones remain planned. See doc 48 for behavior and acceptance coverage.
+
 ### Collision Rule
 
 The `CollisionShape3D` XZ extents must match the visual canopy spread of the mesh. The harvestable destination region mirrors those same XZ extents at Y height = 1 (ground level, where the dwarf stands to chop). Collision runs full height from Y = 0 to the top of the mesh.
@@ -223,12 +248,12 @@ All trees share the same three-stage pattern:
 
 | Species | Sapling | Mature | Ancient | Primary yield |
 |---|---|---|---|---|
-| Oak (`base:flora:oak_tree`) | clutter | 3×3 | 5×5 (world-gen) | Oak stave |
+| Oak (`base:flora:oak_tree`) | clutter | 3×3 | 5×5 (world-gen) | Oak log |
 | Juniper (`base:flora:juniper_tree`) | clutter | 1×1 | 2×2 (world-gen) | Juniper berry |
 | Apple (`base:flora:apple_tree`) | clutter | 3×3 | 5×5 (world-gen) | Apple (fruit harvest) |
 | Pine (`base:flora:pine_tree`) | clutter | 2×2 | 3×3 (world-gen) | Pine log |
 
-**Oak** is a spreading broadleaf. Mature oaks (3×3) are the primary surface obstacle and the only source of oak staves for the aging cellar. Full schema: `data/entities/flora/oak_tree.json`.
+**Oak** is a spreading broadleaf. Mature oaks (3×3) are the primary surface obstacle and supply oak logs, which a carpenter will turn into staves for aging casks. Felling can also yield acorns, but never finished staves. Full schema: `data/entities/flora/oak_tree.json`.
 
 **Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 2×2. Full schema: `data/entities/flora/juniper_tree.json`.
 

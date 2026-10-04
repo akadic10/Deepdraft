@@ -7,6 +7,19 @@
 
 ## 1. Visual Identity
 
+**Produce-crate exception (approved 2026-10-04):** small gathered goods use
+**16 voxels per world block**, baked export scale **0.0625**, root scale 1.0.
+This preserves the one-tile gameplay footprint while giving seeds, berries,
+fruit, cones and acorns readable contents. Use one chunky wooden shell for every
+type; finer detail belongs to the contents. The shared shell is 12×10 voxels
+(0.75×0.625 blocks), grounded at Y=0 and inside a half-block horizontal radius.
+Low/half/full models cover 1–8 / 9–16 / 17–24 goods; exact quantity lives in UI.
+The same art serves loose drops, ground storage and shelf anchors. Generator:
+`tools/generate_produce_crates.py`; output: `assets/models/items/crates/`.
+Colors follow the existing linear vertex-color item material. This is a local
+authoring exception; the established terrain, timber and furniture scales stay
+in effect.
+
 Deepdraft is flat-shaded, chunky, and readable at RTS zoom. Every asset must serve those three goals before anything else.
 
 **The four aesthetic pillars:**
@@ -83,18 +96,65 @@ for the running world and is corrected below.)
 
 Generated dwarf GLBs are the exception to the import-setting column: `tools/generate_dwarf_glb.py` authors in the 8-voxels-per-block frame, then bakes the `0.125` scale into exported vertex positions. Those generated files should keep Godot import Root Scale = 1.0.
 
+Generated furniture also bakes the `0.125` scale into vertex positions and
+keeps import Root Scale = 1.0. The redesigned 2×2 hearth ([doc 30](../00_dev_roadmap/30_hearth_visual_redesign.md))
+uses a 16×16-cell base at this same resolution. The hearth and the redesigned
+tavern bar/bench ([doc 31](../00_dev_roadmap/31_tavern_visual_redesign.md)) and
+barrel ([art doc 32](../00_dev_roadmap/32_barrel_visual_redesign.md)) and
+chest ([art doc 33](../00_dev_roadmap/33_chest_visual_redesign.md)) and
+door ([art doc 34](../00_dev_roadmap/34_door_visual_redesign.md)) and
+trade counter ([art doc 37](../00_dev_roadmap/37_trade_counter_asset_and_placement.md)) and
+dining table ([art doc 38](../00_dev_roadmap/38_dining_table_asset_and_placement.md)) and
+wooden chair ([art doc 39](../00_dev_roadmap/39_chair_asset_and_placement.md)) convert
+authored sRGB colors to linear `COLOR_0` locally; keep the furniture material's
+default `vertex_color_is_srgb = false`. Other furniture color interpretation is unchanged.
+
+**Complete tree update (2026-10-01, [doc 29](../00_dev_roadmap/29_complete_tree_roster.md)):**
+all 86 tree GLBs now use the redesigned art, covering every species, growth
+stage, season and variant. Authored sRGB colors are converted to linear
+`COLOR_0` by the tree exporter; keep the runtime material's
+`vertex_color_is_srgb` at its default `false`. Dwarf color interpretation is
+unchanged. The four species generators share `generate_forest_redesign.py`;
+the registry selects matching variant counts/order in every season.
+
+**Timber drops (2026-10-04, [doc 48](../00_dev_roadmap/48_object_explorer_and_tree_felling.md)):**
+oak/pine/juniper logs and apple wood use `tools/generate_timber_logs.py`. Each is a
+single connected bark-covered voxel log with cut end grain and species-specific
+colors, inside one 1×1 tile at every yaw. Native bounds are 0.625×0.625×0.75 units;
+eight voxels/block, baked 0.125 export scale, centered X/Z and ground at Y=0.
+Colors are linear `COLOR_0`, matching the unchanged `ItemDropManager` material.
+Godot import Root Scale stays 1.0. `tools/TimberLogPreview.gd` validates and renders
+the actual imported items on stockpile cells. Staves remain processed carpentry,
+not a raw tree drop.
+
+**Dwarf felling axe (2026-10-04):** `tools/generate_dwarf_axe.py` builds
+`assets/dwarves/tools/felling_axe.glb` at eight voxels/block with baked 0.125 scale,
+linear `COLOR_0` and import Root Scale 1.0. The wooden haft, wrapped lower grip
+and broad stepped iron blade use a grip-local origin: +Y along the handle, +Z
+toward the cutting edge. It is an implicit work tool, with its own untinted lit
+material. `DwarfAssets` owns the preload; `DwarfFellingPose.gd` maintains the
+two-handed grip. Render the imported asset with `tools/DwarfFellingPreview.gd`.
+
+**Mining pick (2026-10-04):** `tools/generate_dwarf_pickaxe.py` builds
+`assets/dwarves/tools/mining_pickaxe.glb` with the same scale and palette. Its
+longer haft supports the existing mining reach; the curved +Z iron point has an
+opposing short chisel. The grip-local point is `(0,1.375,0.9375)` in world units.
+`DwarfMiningPose.gd` directs it to the target block. Both work tools share
+`DwarfWorkToolPose.gd` for attachment/material/reset. Native height/heading
+review: `tools/DwarfMiningPreview.gd`.
+
 So a character voxel is 1/8 block (fine, for facial detail); a tree voxel is a full 1×1×1 block
 (chunky, simple — the "Voxel Trees" / Stonehearth look). This is deliberate: Stonehearth does the
 same split (characters at 10 vox/block scale 0.1; **trees at scale 1.0, ~1 voxel per block**).
 
 | Game concept | Class | MV voxels | Godot units |
 |---|---|---|---|
-| Dwarf height, visual (3.3 blocks) | character (8/blk) | ~26 | 3.3 |
+| Dwarf height, visual (doc 25 redesign) | character (8/blk) | 25–27 | 3.125–3.375 |
 | Ancient pine (27 blocks tall) | tree (1/blk) | 27 | 27 |
 | Mature pine (20 blocks) | tree (1/blk) | 20 | 20 |
 
-> **Practical check:** a 1×1×1 block of stone is a 1.0-unit cube in Godot. A dwarf (~26 voxels,
-> imported at 0.125) stands ~3.3 units. A pine leaf-cube (1 voxel, scale 1.0) is exactly one
+> **Practical check:** a 1×1×1 block of stone is a 1.0-unit cube in Godot. A dwarf (25–27 voxels,
+> with 0.125 baked export scale) stands about 3.3 units. A pine leaf-cube (1 voxel, scale 1.0) is exactly one
 > terrain block. Trees are NOT imported at the character root scale — their `.import` keeps
 > root_scale 1.0 and the spawner applies scale 1.0 at runtime.
 
@@ -108,9 +168,9 @@ people). Deepdraft mirrors this: characters at 8 vox/block, trees at 1 vox/block
 |---|---|---|
 | Character voxels per block | 10 | **8** |
 | Tree voxels per block | ~1 (scale 1.0) | **1 (scale 1.0)** |
-| Character height (voxels) | 44 visual / 35 collision | ~26 visual / 24 logical |
+| Character height (voxels) | 44 visual / 35 collision | 25–27 visual / 24 logical |
 | Character scale value | 0.1 wu/vox | **0.125 Godot/vox** |
-| Seasonal tree variants | 3 random per season | up to 3 (oak/pine), 2 (juniper) |
+| Seasonal tree variants | 3 random per season | 3 (oak/pine/apple), 2 (juniper); 1 for saplings |
 
 Stonehearth ships **3 randomly selected variants per season per tree stage**. Deepdraft uses the same approach: season keys in a tree stage's `models` block accept either a string (single model, backward-compatible) or an array of strings (one picked at spawn time via world-position hash). See `42_farming_brewing.md § Model Variant Resolution` for the GDScript pattern. The table above is now updated — variants are fully specced, not parked.
 
@@ -253,7 +313,7 @@ Path convention: `res://assets/models/flora/trees/{species}/{species}_{stage}_{s
 
 Seasons with defined variants: `spring`, `summer`, `autumn`, `winter`. Summer is the canonical base and the fallback if a season key is missing.
 
-Collision rule (from `42_farming_brewing.md`): trees are the **only** surface entities with `CollisionShape3D`. The XZ extents of the collision box must match the trunk footprint (1/2/3 blocks); the wider canopy is visual overhang only.
+Collision rule (from `42_farming_brewing.md`): trees are the **only** surface entities with `CollisionShape3D`. The XZ extents of the collision box must match the trunk footprint (1/2/3/5 blocks); the wider canopy is visual overhang only.
 
 > **Tree resolution moved to 1:1 (2026-06-06).** All trees are now authored at **1 voxel = 1
 > block, scale 1.0** (§3), one generator per species: `tools/generate_pine_glbs.py`,
@@ -261,82 +321,82 @@ Collision rule (from `42_farming_brewing.md`): trees are the **only** surface en
 > `generate_tree_glbs.py` (8 vox/block oak) is retired. Box dimensions below are in voxels =
 > blocks.
 
-#### Oak (`base:flora:oak_tree`) — converted to 1:1
+#### Oak (`base:flora:oak_tree`)
 
-Oak is **1:1, scale 1.0** (§3), generated by `tools/generate_oak_glbs.py`. The largest broadleaf:
-a big **irregular multi-lobe** canopy (gnarled, ancient-feeling) on a dark grey-brown flared
-trunk. No fruit/blossom. Box dimensions in voxels = blocks.
+A rooted, forked broadleaf with coherent irregular canopy lobes. Ancient
+forms have heavy spreading branches and root flares; saplings have a small
+forked crown. Dimensions below are baseline summer X × Y × Z in blocks.
 
-| Stage | Box (voxels = blocks) | Trunk footprint | Notes |
+| Stage | Bounds | Trunk footprint | Notes |
 |---|---|---|---|
-| Sapling | ~6×6×7 | 1 | Small lumpy blob on a thin trunk |
-| Mature | ~13×13×17 | 3 | Broad spreading canopy, flared trunk |
-| Ancient | ~23×23×25 | 5 | Massive irregular canopy, heavy root-flared trunk |
+| Sapling | 5×7×5 | 1 | Compact forked crown; nonblocking clutter |
+| Mature | 15×17×13 | 3 | Approved spreading canopy and exposed fork |
+| Ancient | 23×24×21 | 5 | Heavy roots and eleven joined canopy lobes |
 
-Seasons (per-voxel in the generator): spring fresh light green, summer two-tone green, autumn
-gold/rust, winter bare gnarled branches (no leaves). Variants: summer ×3, autumn ×2, spring/winter ×1.
+Four seasons: fresh spring greens, summer greens, gold/rust autumn and
+bare winter branches. Mature/ancient have three matching structural variants
+in every season; saplings have one. Total: 28 GLBs.
 
-#### Pine (`base:flora:pine_tree`) — converted to 1:1
+#### Pine (`base:flora:pine_tree`)
 
-Pine is **1:1 — 1 voxel = 1 block, scale 1.0** (§3), generated by `tools/generate_pine_glbs.py`.
-Box dimensions in voxels therefore *equal* block dimensions. It's a simple Stonehearth-style
-stepped conifer: bare reddish trunk, a stack of flat needle whorls narrowing to a point with
-1-block gaps the trunk peeks through, pointed apex.
+A tapering conifer with overlapping uneven boughs and a pointed apex.
+Broad connected needle masses replace the old stack of separated discs.
+Dimensions below are baseline summer X × Y × Z in blocks.
 
-| Stage | Box (voxels = blocks) | Trunk footprint | Whorls | Notes |
-|---|---|---|---|---|
-| Sapling | 5×5×8 | 1 | 3 | Small stepped cone (clutter, no collision) |
-| Mature | 9×9×20 | 2 | 6 | Stepped cone; trunk visible between whorls |
-| Ancient | 15×15×27 | 3 | 8 | Tall stepped cone, pointed apex |
-
-Two-tone greens (`PINE_TOP`/`MID`/`DARK`); reddish trunk; engine lighting (PER_PIXEL) does the
-face shading. Winter variants frost upward-facing needle voxels with snow; summer needle colour
-otherwise constant year-round. Up to 3 summer + 2 winter variants per mature/ancient stage. Whole
-set ≈ 2.3 MB. Sizing rationale and Stonehearth measurements: `13_flora_scatter_pine.md` §5.1.
-
-#### Juniper (`base:flora:juniper_tree`) — converted to 1:1
-
-Juniper is **1:1, scale 1.0** (§3), generated by `tools/generate_juniper_glbs.py`. A narrow
-**columnar** evergreen: a tall, dense, dark blue-green column with a rounded top, dotted with
-dusty blue-grey berries. Much narrower than oak/apple. Evergreen — only summer + snow-dusted
-winter. Box dimensions in voxels = blocks.
-
-| Stage | Box (voxels = blocks) | Trunk footprint | Notes |
+| Stage | Bounds | Trunk footprint | Notes |
 |---|---|---|---|
-| Sapling | ~5×5×5 | 1 | Small dark blob |
-| Mature | ~7×7×12 | 1 | Dense column, berries on the surface |
-| Ancient | ~9×9×16 | 2 | Broader column, more berries |
+| Sapling | 4×8×5 | 1 | Compact overlapping boughs; nonblocking clutter |
+| Mature | 10×20×11 | 2 | Approved asymmetric bough structure |
+| Ancient | 13×27×13 | 3 | Heavy base and six irregular bough levels |
 
-Berry voxels: dusty blue-grey (`#556488`), placed as distinct 1-voxel dots on the surface so a
-dwarf harvest task reads visually. Variants: summer ×2, winter ×1 (matches `juniper_tree.json`).
+Summer and winter have identical occupied geometry. Winter adds connected
+snow patches; spring/autumn fall back to summer. Mature/ancient have three
+matching variants per season, saplings one. Total: 14 GLBs.
 
-#### Apple (`base:flora:apple_tree`) — converted to 1:1
+#### Juniper (`base:flora:juniper_tree`)
 
-Apple is **1:1 — 1 voxel = 1 block, scale 1.0** (§3), generated by `tools/generate_apple_glbs.py`.
-Chunky deciduous orchard tree: a lower, wider, slightly asymmetric canopy of big cubes with a
-bobbly (protruding-cube) surface, a red-brown crooked/flared trunk, and warmer/yellower leaves
-than oak. It must read as a fruit tree, not a small oak. Box dimensions in voxels equal block
-dimensions.
+Crooked exposed woody stems support uneven upright blue-green sprays and
+slate-blue berry accents. It remains smaller and narrower than oak/apple.
+Dimensions below are baseline summer X × Y × Z in blocks.
 
-| Stage | Box (voxels = blocks) | Trunk footprint | Notes |
+| Stage | Bounds | Trunk footprint | Notes |
 |---|---|---|---|
-| Sapling | ~8×7×~7 | 1 (clutter) | Low orchard blob on a thin trunk |
-| Mature | ~13×12×~12 | 3 | Low wide canopy, crooked/flared trunk |
-| Ancient | ~20×15×~18 | 5 | Broad orchard canopy, root-flared trunk |
+| Sapling | 4×5×3 | 1 | Compact cool foliage; nonblocking clutter |
+| Mature | 9×12×6 | 1 | Approved forked stem, four sprays, six berry accents |
+| Ancient | 12×16×8 | 2 | Several crooked forks, six sprays, ten berry accents |
 
-Seasonal handling (per-voxel, all in the generator):
-- Spring: lighter `SPR_TOP`/`SPR_MID` greens with white/pink blossom flecks on the upper surface.
-- Summer: two-tone `LEAF_TOP`/`MID`/`DARK` greens (shared with pine).
-- Autumn: gold (`AU_GOLD`) + rust (`AU_RUST`) mix.
-- Autumn-fruiting: autumn canopy plus obvious red apple clusters on the lower/outer surface — a **separate
-  model key** (`apple_{stage}_autumn_fruiting.glb`) used only during the `fruit_harvest` FRUITING
-  state, additional to the seasonal set.
-- Winter: no leaves — bare red-brown branch structure fanning from the trunk.
+Winter adds joined snow patches while preserving occupied geometry and
+wood/berry colors. Spring/autumn use summer. Mature/ancient have two matching
+variants per season, saplings one. Total: 10 GLBs.
 
-Variants: summer ×3, autumn ×2, spring/winter/fruiting ×1 (matches `apple_tree.json`). Whole set
-≈ 2.9 MB.
+#### Apple (`base:flora:apple_tree`)
 
----
+A low, spreading orchard tree with warm leaves and crooked branch arms.
+Ancient trees develop heavy rooted trunks and broad crowns; saplings retain
+the orchard shape and a few spring blossoms. Dimensions below are baseline
+summer X × Y × Z in blocks.
+
+| Stage | Bounds | Trunk footprint | Notes |
+|---|---|---|---|
+| Sapling | 6×6×4 | 1 | Compact orchard crown; nonblocking clutter |
+| Mature | 15×12×11 | 3 | Approved six-lobed crown; fruiting bounds 15×12×13 |
+| Ancient | 23×18×19 | 5 | Broad low crown and heavy crooked scaffold |
+
+Spring has cream/pink blossom patches; summer is warm green; autumn is
+ochre/gold; winter exposes the same bare branch structure. The separate
+`autumn_fruiting` models add attached red cubes (14 on mature baseline, 24
+on ancient baseline) without changing existing leaves or branches.
+The spawner selects this state throughout autumn; individual harvested-state
+persistence is separate work.
+
+Mature/ancient have three matching variants for all five season/fruit states.
+Saplings have one per season and no fruiting state. Total: 34 GLBs.
+
+All four species use one voxel per block and scale 1.0. Mature/ancient
+foliage and branch overhangs start at Y=4 outside the trunk footprint, and
+have no collision or occupancy. Existing trunk clearance heights, placement,
+growth and harvest data are unchanged. Exact variant bounds, mesh counts,
+export rules and integration checks: [doc 29](../00_dev_roadmap/29_complete_tree_roster.md).
 
 ### 5.2 Surface Shrubs & Bushes
 
@@ -439,17 +499,26 @@ All furniture is single-file, no seasonal variants. Colours are baked in.
 
 **Aesthetic rule:** dwarven furniture is built to last centuries underground. Hewn, not joinery-crafted. Comfort is implied by worn surfaces, not cushioning.
 
-**Collision region schema:** every furniture JSON carries a `collision_regions` array. Coordinates are in game blocks (0.5 m each), local to the piece. Origin `(0, 0, 0)` = bottom-front-left corner of the footprint. Y is up. The furniture placement system reads these at runtime to create `CollisionShape3D` nodes — the agent never writes collision into `.tscn` files. See `data/furniture/trade_counter.json` for the canonical example.
+**Collision region schema:** every furniture JSON carries a `collision_regions` array. Coordinates are in game blocks (0.5 m each), local to the piece. Origin `(0, 0, 0)` = bottom-front-left corner of the footprint. Y is up. The furniture placement system registers these boxes with `PlacedEntityRegistry` for navigation occupancy; it does not write terrain blocks or require scene-authored collision. See `data/furniture/trade_counter.json` for the canonical example. Offset regions rotate with the model around its footprint. All axes are then rounded outward to whole grid cells during registration, preserving thin headboards and fractional bedding heights. A 1.5-block-high table occupies both touched layers while retaining its exact visual height in the definition.
 
 **Rule: collision height = visual height.** If the backrest of a chair is visually 2 blocks tall, the collision region is 2 blocks tall. Do not collapse everything to a 1-block flat slab.
 
 ---
 
-#### Trade Counter (`base:furniture:trade_counter`) — Existing
+#### Trade Counter (`base:furniture:trade_counter`) — built 2026-10-01
 
 Footprint: **2×1**. Collision: `[{min:[0,0,0], max:[2,2,1]}]` — full footprint, 2 blocks tall (counter surface sits at dwarf chest height).
 
-Heavy stone slab on two squat legs. Iron band across the top edge. Shallow recess on the shopkeeper's side (1-voxel indent). `stone_mid` body, `stone_highlight` top, `iron_dull` bands.
+Built and made placeable in [art doc 37](../00_dev_roadmap/37_trade_counter_asset_and_placement.md):
+a thick dressed-stone slab on two stout piers and stepped plinths. The pale
+beveled top sits above a dark iron belt with rivets. A recessed angular carving
+faces the customer (+Z); a shallow work recess faces the shopkeeper (-Z).
+The 16×16×8-cell envelope uses the hearth's stone palette and the tavern's
+iron palette, with scale 0.125 baked into positions and linear `COLOR_0`.
+The generator is `tools/generate_trade_counter.py`; the canonical furniture
+export delegates to it. Build-panel placement, four rotations, packed-item
+fetch/build, uninstall and save restoration use the existing furniture pipeline.
+Shop designation, merchant visits and trading remain future integration work.
 
 ---
 
@@ -457,15 +526,38 @@ Heavy stone slab on two squat legs. Iron band across the top edge. Shallow reces
 
 Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,1,1]}]` — 1 block tall.
 
-Classic fat barrel: `wood_oak_mid` staves, `iron_dull` bands. Visible bung hole (1-voxel dark indent) on top and bottom face. Primary food/drink storage vessel.
+Redesigned 2026-10-01 ([art doc 32](../00_dev_roadmap/32_barrel_visual_redesign.md)):
+a full oak belly with broad vertical staves, narrower ends and two dark iron
+hoops. A raised wooden rim surrounds the recessed plank lid and inset bung.
+Oak and iron colors match the upgraded tavern bar and bench. The 8×8×8-cell
+envelope retains eight voxels per block. Storage capacity remains 8 items,
+with opaque contents. `tools/generate_furniture_glbs.py` delegates the placed
+model to `tools/generate_barrel_redesign.py`; the packed item stays the shared box.
 
 ---
 
-#### Brewing Vat (`base:furniture:brewing_vat`)
+#### Brewing Vat (`base:furniture:brewing_vat`) — built 2026-10-02
 
-Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,2,1]}]` — 2 blocks tall.
+Footprint: **2×2**, revised from the original narrow 1×1 specification with
+Alen's approval. Collision: `[{min:[0,0,0], max:[2,2,2]}]` — **2 blocks tall**.
 
-Larger open-topped vessel. Dark liquid surface (`#2A1808`) visible from above. `copper_body` tap fitting at base. Slightly dented sides.
+Built in [art doc 42](../00_dev_roadmap/42_brewing_vat_asset_and_placement.md):
+a broad open oak vessel on reinforced timber skids, wrapped in two heavy
+iron hoops. The deep rim exposes a dark liquid surface three voxels below
+the lip. A copper mounting plate, short draw-off nozzle and T-handle face +Z;
+the vessel sits one voxel toward -Z so all fittings stay inside the footprint.
+Broad stave tones and sparse grain repeat the upgraded barrel's oak palette.
+Copper uses `copper_body` with derived shadow/highlight tones and a restrained
+`copper_patina` accent; liquid uses the specified `#2A1808` with quiet reflections.
+
+The **16×16×16-cell** envelope uses eight voxels/block: **1,200 occupied
+voxels**, **4,300 triangles**, one connected component. Local bounds are
+X/Z [-1,1], Y [0,2]. `tools/generate_brewing_vat.py` owns geometry and linear
+`COLOR_0` export; the canonical furniture generator delegates to it.
+**Build → Brewing Vat** places an independent piece using its own packed-item
+identity and the shared crate mesh. Rotation, removal and saving are live.
+The liquid is static artwork; drink storage, ingredient delivery, production
+queues and brewery workshop behavior remain future work.
 
 ---
 
@@ -473,10 +565,17 @@ Larger open-topped vessel. Dark liquid surface (`#2A1808`) visible from above. `
 
 Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,1,1]}]` — 1 block tall.
 
-Rectangular crate with visible plank seams. Iron corner brackets. Lid slightly ajar (1–2 voxels offset). `wood_plank_mid` body, `iron_dull` fittings.
+Redesigned 2026-10-01 ([art doc 33](../00_dev_roadmap/33_chest_visual_redesign.md)):
+stout oak body on four feet, iron corner straps, a thick crowned lid with
+two bands, rear hinges and a prominent front clasp. A recessed opening seam
+separates the static lid from the body. Broad plank colors and restrained
+grain match the upgraded barrel and tavern furniture at eight voxels per block.
+The full 8×8×8-cell model fits the existing collision. No opening animation
+or visible contents are added.
 
 > **Functional container since doc 19** (`base:furniture:storage_chest`, capacity 24). The
-> placed-form GLB is generated by `tools/generate_furniture_glbs.py`.
+> placed-form GLB keeps the historical `storage_crate.glb` filename. The canonical
+> `tools/generate_furniture_glbs.py` delegates it to `tools/generate_chest_redesign.py`.
 
 ---
 
@@ -485,64 +584,163 @@ Rectangular crate with visible plank seams. Iron corner brackets. Lid slightly a
 Footprint: **1×1**, 2 blocks tall, **ground piece** (Alen, 2026-07-11 — no wall
 requirement). Collision: `[{min:[0,0,0], max:[1,2,1]}]`.
 
-Heavy oak corner uprights (`wood_oak_mid`), base plinth + mid shelf + top cap in planks
-(`wood_plank`, `wood_plank_dark` edges), iron brackets (`iron_dull`) under each level
-against the posts — **open and symmetric from all four sides, no back panel** (readable
-from any camera angle). Wood per the 2026-07-11 material rule. **Contents render on the
-shelf**: stored item GLBs sit on the 8 anchor points (4 per level, defined in
-`data/furniture/storage_shelf.json`) at ~0.5 scale — capacity equals anchor count,
-WYSIWYG. **Model slated for hand-authoring by Alen**; the
-`tools/generate_furniture_glbs.py` version (which has a back panel) is the interim
-stand-in — remove the shelf from the generator output when the authored asset lands.
+Redesigned 2026-10-01 ([art doc 41](../00_dev_roadmap/41_storage_shelf_visual_redesign.md)):
+open oak uprights, two plank decks, dark iron shoes/collars and short corner
+brackets. A deep **open top frame** replaces the solid cap so upper contents
+remain readable from the RTS camera. All four sides stay open, with no back
+panel or wall requirement. Broad oak tones match the chest, barrel and tavern
+furniture. The **8×16×8-cell** model has **264 occupied voxels**, **1,456 triangles**
+and one connected component; its existing 1×1×2 collision stays unchanged.
+
+**Visible storage:** eight slots, four per level. Shelf tops remain at Y 0.125
+and 1.0; X/Z anchor centers are 0.3125 and 0.6875. `anchor_scale: 0.5` is the
+maximum display scale. `anchor_max_size: [0.3125,0.625,0.3125]` fits the rotated
+mesh bounds within each slot, centered horizontally and bottom-aligned.
+This prevents ores, tall flags and asymmetric crates from overlapping the
+frame or neighboring contents. Withdrawn/dropped items retain native size.
+Capacity equals anchor count; contents are actual stored item models.
+
+`tools/generate_shelf_redesign.py` owns the geometry and linear `COLOR_0`
+export, delegated by the canonical furniture generator. Alen's request to
+replace this shelf supersedes the earlier hand-authoring reservation.
 **Item form: the shared packed box** (one-box rule, Alen 2026-07-11 — the §5.7 ore
 one-shape rule applied to furniture): every packed furniture item renders as the SAME
 rope-lashed plank crate, `assets/models/items/furniture/packed_furniture.glb`. The box
 says "packed furniture"; the ghost says which piece it becomes.
 
----
-
-#### Bed (Dwarf Bunk) (`base:furniture:dwarf_bunk`)
-
-Footprint: **2×1** (laid lengthwise, X = length). Collision: two regions —
-- Mattress body: `{min:[0,0,0], max:[2,1,1]}` — full length, 1 block tall
-- Headboard end: `{min:[0,0,0], max:[0.5,2,1]}` — head-end only, 2 blocks tall
-
-**Wood frame (material rule, Alen 2026-07-11 — furniture is woodwork).** Heavy plank frame
-(`wood_plank`, `wood_plank_dark` grooves) with thick corner posts — dwarven-stout, not
-joinery-delicate. Mattress: packed hay (`cloth_undyed`) with slight colour variation. Wooden
-headboard (the tall end): a 2-block-tall plank slab with a single iron-inlay runic notch
-(`iron_dull`). No footboard — the foot end is open so the dwarf can swing their legs out.
-The carved stone ALCOVE the bunk sits in is the room's stonework, not the furniture's.
+Redesigned 2026-10-01 ([art doc 36](../00_dev_roadmap/36_packed_furniture_visual_redesign.md)):
+framed oak panels, four reinforced wooden corners, two crossing rope loops
+and a raised knot. The original **5×4×5-cell envelope** is preserved at eight
+voxels/block: 0.625 wide/deep and 0.5 high, including the knot. It keeps the
+original local bounds (X/Z −0.25 to +0.375, Y 0 to 0.5) and native carry scale.
+Shelf display size now fits the slot as described above. All thirteen packed
+furniture types share one model. `tools/generate_packed_furniture_redesign.py` owns the geometry and
+local linear `COLOR_0` export; the canonical furniture generator delegates
+its packed item to this builder. The trade counter, dining table, wooden chair, bed
+and brewing vat joined this shared item family in art docs 37–40 and 42; the wall
+torch joins in art doc 43. Existing
+carry behavior is unchanged.
 
 ---
 
-#### Chair (`base:furniture:wooden_chair`)
+#### Bed (Dwarf Bunk) (`base:furniture:dwarf_bunk`) — built 2026-10-01
+
+Footprint: **4×2**, length on X, headboard at -X. The original 2×1 spec was
+revised with Alen's approval to fit the 3.375-block visual dwarf at native scale.
+The mattress top is **1 block high**, the pillow and folded blanket **1.25**,
+and the headboard **2**. Four footprint-local collision regions match the model:
+
+- Body: `{min:[0,0,0], max:[4,1,2]}`
+- Upper headboard: `{min:[0,1,0], max:[0.25,2,2]}`
+- Pillow: `{min:[0.375,1,0.125], max:[1.5,1.25,1.875]}`
+- Folded blanket: `{min:[3,1,0.125], max:[3.75,1.25,1.875]}`
+
+Built in [art doc 40](../00_dev_roadmap/40_bed_asset_and_placement.md):
+a heavy oak frame with stout posts, iron shoes and corner brackets, slatted
+support, linen-covered straw mattress, broad pillow and a folded wool blanket.
+The framed headboard has recessed panels and a small iron rune; the foot end
+stays open. Oak and iron repeat the furniture palette. Linen shades derive
+from `cloth_undyed`; the blanket's muted teal repeats the existing dwarf tunic.
+The carved stone alcove is room architecture, separate from the wooden bed.
+
+The **32×16×16-cell** envelope uses eight voxels/block, **2,572 occupied voxels**
+and **4,936 triangles**, with one connected component. Local bounds are
+X [-2,2], Y [0,2], Z [-1,1]. `tools/generate_bed.py` owns the geometry and linear
+`COLOR_0` export; the canonical furniture generator delegates to it.
+**Build → Dwarven Bed** uses its own packed item and independent placement,
+rotation, removal and saving. Bed assignment, walking to bed, sleep animation
+and the `slept_in_bed` thought remain future gameplay work. A static reclining
+fit study uses full-size shipping dwarf parts without altering those assets.
+
+---
+
+#### Wooden Chair (`base:furniture:wooden_chair`) — built 2026-10-01
 
 Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,2,1]}]` — 2 blocks tall (includes backrest).
 
-Squat wooden seat (`wood_plank`, `wood_oak_dark` shadow) with solid armrests and a
-straight-backed headrest — thick-legged, dwarven-heavy, no thin spindles. No cushion.
-Slightly concave seat surface (1-voxel dip at centre, worn smooth). The 2-block collision
-height matches the visible backrest and prevents dwarves from pathing through chairs.
+Built in [art doc 39](../00_dev_roadmap/39_chair_asset_and_placement.md):
+a squat oak armchair with stout legs and low stretchers, continuous rear posts,
+a broad recessed back panel and a clipped top cap. Solid arm rails and a thick
+seat use worn highlights; the seat rim is 1 block high with a one-voxel-deep
+central hollow. Dark iron shoes and short back/arm fittings match the table
+and bench. There is no cushion. The 8×16×8-cell model stays entirely inside
+its 1×1 footprint at eight voxels/block, with a full 2-block collision height.
+`tools/generate_chair.py` owns the model and linear `COLOR_0` export; the
+canonical furniture generator delegates to it. Each chair is its own packed
+item and Build-menu entry. Placement, rotation, uninstall and saving are live;
+sitting animations, seat assignments and dining behavior remain future work.
 
 ---
 
-#### Table (`base:furniture:wooden_table`)
+#### Dining Table (`base:furniture:wooden_table`) — built 2026-10-01
 
-Footprint: **2×2**. Collision: `[{min:[0,0,0], max:[2,1,2]}]` — 1 block tall (just the slab; dwarves can walk around, not through or over).
+Footprint: **2×2**. Collision: `[{min:[0,0,0], max:[2,1.5,2]}]` — **1.5 blocks tall**, raised from the original 1-block specification to sit above the existing 1-block bench seats. Whole-cell occupancy covers two vertical layers; dwarves walk around the table.
 
-Thick plank-slab top (`wood_plank`, `wood_plank_dark` grooves) on two solid squat wooden
-pillars. Top surface `wood_oak_light` (worn highlight). Iron corner brackets (`iron_dull`)
-break the wood and add the dwarven-iron accent. Legs are solid from floor to underside of
-slab — no gap to crawl through.
+Built in [art doc 38](../00_dev_roadmap/38_dining_table_asset_and_placement.md):
+four broad oak planks form a thick slab with clipped corners, sparse grain and
+worn edge highlights. Two stout braced trestles and a through-tenoned stretcher
+support it; dark iron L brackets clasp the corners and short shoes reinforce
+the feet. The underside has visible gaps, but the full footprint blocks movement.
+The 16×12×16-cell model uses the tavern's oak/iron palette at eight voxels/block.
+`tools/generate_dining_table.py` owns the geometry and local linear `COLOR_0`
+export; the canonical furniture generator delegates to it. Packed-item
+placement, four rotations, uninstall and saving are live. Dining and seating
+behavior remain future gameplay work.
+
+**Separate seating (Alen, 2026-10-01):** the table model and build item contain
+only the table. Players build and place benches and chairs independently;
+never bundle seating into the table asset or spawn it automatically. Benches
+in dining-set review images are separately instantiated context assets.
 
 ---
 
-#### Torch Wall Mount (`base:furniture:wall_torch`)
+#### Torch Wall Mount (`base:furniture:wall_torch`) — built 2026-10-02
 
 Footprint: **wall-placed** (no floor footprint, no floor collision region).
 
-Iron bracket (`torch_bracket`) holding a stick torch (`torch_handle`) with a 3-voxel flame cap: `flame_core` → `flame_mid` → `flame_tip`. Mesh only — the Godot `OmniLight3D` is a separate child node added by the scene builder, not part of the GLB.
+Riveted, stepped iron bracket (`torch_bracket`) with a projecting cradle, charred
+wooden handle (`torch_handle`), open basket prongs and an asymmetric amber flame
+with a pale hot core. The **1.5-block-high** model uses **122 voxels** at eight
+voxels/block. Local bounds: X [-0.375,0.25], Y [0,1.5], Z [0,0.75]; rear plane
+Z=0 touches the wall. `torch_body` and `torch_flame` are separate named meshes
+in one GLB, enabling selective flame emission. Linear `COLOR_0`, scale 0.125 baked.
+
+Installed torches mount **2.5 blocks above the floor surface**, requiring four
+blocks of room height. They add warm shadowed `OmniLight3D` lighting (a runtime
+child, absent from the GLB/ghost/packed item) and **200 heat units**. The floor
+remains walkable and can hold a zone or low furniture. Aim at a wall face for
+automatic orientation, or the adjoining floor and press R. Loss of the supporting
+wall cancels the ghost or refunds the installed piece. No fuel/ignition system yet.
+
+**Animated fire (2026-10-02 follow-up):** eight sculpted voxel flame frames rise,
+split and collapse, with a drifting hot core and gentle light/emission flicker.
+Hardware stays static; each torch gets an independent timing offset. Frames remain
+inside the original bounds. The separate `animations/wall_torch_flame.glb` library
+is shared at runtime; only one flame mesh is drawn per torch. Hidden slices suspend
+animation, and ghosts/packed items stay static and unlit. The effect is cosmetic
+and does not pulse the 200-unit heat output.
+
+`tools/generate_wall_torch.py` owns the art and isolated review; the canonical
+generator delegates its multi-mesh export. See [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md).
+
+---
+
+#### Brazier (`base:furniture:brazier`)
+
+**Installed 2026-10-03 ([art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md)).**
+1×1 footprint, 2 blocks tall including flame. A beveled dressed-stone foot and
+short pedestal support a faceted iron bowl, thick riveted rim and four corner
+prongs. The basin contains dark charcoal and a glowing ember bed. Eight voxel
+flame frames rise, lean and split within the 8×16×8-cell envelope. Stone and iron
+remain static; only the named `brazier_flame` mesh emits light-colored surfaces.
+
+Eight voxels per block, .125 baked scale and linear `COLOR_0`. The installed piece
+adds warm shadowed light and a steady **600 heat units**. Independent flame timing
+and bounded light/emission flicker use the shared furniture fire component; hidden
+slices suspend updates. Ghosts and packed items are static and unlit, with no heat.
+**Build → Brazier** uses normal floor placement, crate hauling and uninstall.
+`tools/generate_brazier.py` owns the art and clip; the canonical generator delegates
+both exports. Fuel and ignition remain future systems.
 
 ---
 
@@ -556,9 +754,20 @@ Stone upright slab, carved surface on the front face: alternating `stone_mid` / 
 
 #### Anvil (`base:furniture:anvil`)
 
-Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,1,1]}]` — 1 block tall.
+**Installed 2026-10-02 ([art doc 44](../00_dev_roadmap/44_anvil_asset_and_placement.md)).**
+Footprint: **2×1**. Collision: `[{min:[0,0,0], max:[2,1.5,1]}]`.
+The approved stone-mounted design supersedes the earlier 1×1 bare-anvil spec.
 
-Classic anvil silhouette: heavy iron block narrowing at the waist, flaring to a horn. `iron_dull` body, `iron_highlight` working surface (worn smooth), `iron_dark` underside. Silhouette must be unmistakable at colony zoom.
+Heavy iron head with a stepped tapered horn, worn steel face, recessed square
+hardy hole, narrow waist and flared feet. Bolted hold-downs secure it to a
+beveled dressed-stone pedestal. The 1.5-block working height is checked beside
+the full-size 3.375-block dwarf. Cool iron values contrast with the hearth's
+warmer stone palette; the 16×12×8-cell model uses scale .125 and linear `COLOR_0`.
+
+`tools/generate_anvil.py` owns the model and review; the canonical furniture
+generator delegates to it. **Build → Anvil** places an independent piece using
+the shared packed crate. Placement, hauling, build/uninstall and saving are
+live. Metalworking recipes, smith animations and forge integration remain future work.
 
 ---
 
@@ -574,7 +783,14 @@ Stack of 2–3 mismatched crates and sacks. `wood_plank_mid` crates, `cloth_undy
 
 Footprint: **2×1**. Collision: `[{min:[0,0,0], max:[2,2,1]}]` — full footprint, 2 blocks tall.
 
-Long oak counter body (`wood_plank`, `wood_plank_dark` seams) on squat oak leg posts (`wood_oak_dark`) at both ends. Iron rail (`iron_dull`) along the front top edge. Overhanging plank countertop (`wood_oak_mid` edge, `wood_oak_light` worn-highlight top) with two iron tap fittings (`iron_highlight`). **Wood, not stone** — a deliberate break from the Trade Counter's material (material rule, 2026-07-11: this is furniture dwarves use socially, not an industrial anchor), which also keeps the two counters visually distinct at colony zoom. **Functional container: none yet.** Generated by `tools/generate_furniture_glbs.py`.
+Redesigned 2026-10-01 ([doc 31](../00_dev_roadmap/31_tavern_visual_redesign.md)):
+recessed oak front panels between stout posts, a thick chamfered countertop,
+dark iron shoes and front footrail, and two shaped taps with oak handles.
+The body is inset so the countertop overhang stays inside the 2×1 footprint.
+Countertop height is 1.5 blocks; tap tips reach 2. Broad oak tones and sparse
+grain replace the old striped-box treatment. The +Z face is the customer
+side; the rear has framed serving recesses. **Functional container: none yet.**
+The canonical furniture generator uses `tools/generate_tavern_redesign.py`.
 
 ---
 
@@ -582,23 +798,61 @@ Long oak counter body (`wood_plank`, `wood_plank_dark` seams) on squat oak leg p
 
 Footprint: **2×1**. Collision: `[{min:[0,0,0], max:[2,1,1]}]` — 1 block tall (no backrest — the feature that distinguishes it from `wooden_chair`).
 
-Four thick oak leg posts (`wood_oak_mid`), plank seat slab (`wood_plank`, `wood_plank_dark` centre seam). Cheap mass seating for the tavern hall; dwarven long-bench proportions, no thin spindles. Generated by `tools/generate_furniture_glbs.py`.
+Redesigned with the tavern bar (doc 31): a thick chamfered plank seat over
+four heavy legs, end trestles and a longitudinal brace, with short iron
+brackets and exposed tenon ends. Seat height is 1 block. Oak colors and
+sparse grain match the bar at eight voxels per block. The canonical furniture
+generator uses `tools/generate_tavern_redesign.py` for this model.
 
 ---
 
 #### Hearth (`base:furniture:hearth`) — added 2026-08-03 (doc 21)
 
-Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,1,1]}]` — 1 block tall.
+Footprint: **2×2**. Collision: `[{min:[0,0,0], max:[2,2,2]}]` — 2 blocks tall.
 
-A ring of fitted stone (`stone_mid` body, `stone_highlight` top) around a bed of glowing embers (`ember_glow` / `flame_core`), with two iron grate bars (`iron_dull`) crossing over the coals. **Stone, not wood** — a deliberate material-rule exception, same bucket as the Trade Counter and workshop bodies (open fire belongs on stone, not planks). Mesh only, same convention as the wall torch — light emission is a separate scene node, not part of the GLB. `heat_source.heat_units` in `hearth.json` is read by `RoomManager` (doc 34/22) as of 2026-08-03. Generated by `tools/generate_furniture_glbs.py`.
+Redesigned 2026-10-01 ([doc 30](../00_dev_roadmap/30_hearth_visual_redesign.md)):
+a cut-corner plinth, staggered dressed-stone bowl and broad capstones, with
+iron shoulder clamps, recessed grate rails, charred logs, embers and a curved
+flame plume. Stone rim height is 1 block; the flame reaches 2 blocks. The
+16×16-voxel base retains eight voxels per block. Stone and iron use the
+existing palette with intermediate masonry and flame tones. This remains
+the open-fire exception to the furniture woodwork rule.
+
+**Animated fire (2026-10-02):** ten voxel frames give the three flame tongues
+separate curling/rising motion on a slower 1.38-second cycle than the torch.
+The bowl, ironwork, logs and broad fire base stay fixed. Named body/flame meshes
+allow bright fire with a warm, gently flickering local light; masonry retains
+its shadows. Frames use a shared `animations/hearth_flame.glb` library and stay
+inside the existing 2×2×2 envelope. Hidden slices suspend updates; ghosts and
+packed items remain static and unlit. Restoring a saved hearth recreates the effect.
+`RoomManager` reads `heat_source.heat_units: 400` once per hearth, independent
+of its four-cell footprint. The canonical `tools/generate_furniture_glbs.py`
+uses the builder and local linear-color export in `tools/generate_hearth_redesign.py`.
 
 ---
 
 #### Door (`base:furniture:door`) — added 2026-08-03 (doc 22), resized 2026-08-06 (doc 22b)
 
-Footprint: **2×1**, but **no collision region** — see the note below. Visually a double-leaf plank door, 2 blocks wide x ~4 blocks tall, centred in the cell depth (2 voxels thick). Originally shipped 1×1 / ~2 blocks tall (doc 22); Alen's first playtest pass called it out as out-of-proportion next to 3-tall dwarves, so it was rebuilt as a proper double door.
+Footprint: **2×1**, with **no collision region**. Height is 31 voxels / 3.875
+blocks, leaving a small gap under a four-block lintel. The two-voxel core,
+four-voxel framing and projecting ironwork span six voxels / 0.75 blocks in
+depth, centred on the footprint. Originally shipped 1×1 / ~2 blocks tall
+(doc 22), it was widened and raised after Alen's scale review (doc 22b).
 
-Two plank leaves (`wood_plank`, `wood_plank_dark` horizontal seam every 4th row) split by a dark centre-seam column, with three iron hinges (`iron_dull`) down each leaf's outer edge and a handle (`iron_highlight`) on each leaf near the centre seam. **This is the one furniture piece with a genuinely empty `collision_regions` array** — it must stay walkable (dwarves pass through it freely), so it registers no NavGrid occupancy at all. It is tracked only as data: `RoomManager` treats every cell of an installed door's footprint as a sealed-room boundary (doc 34's flood-fill stops at each one, same as a solid wall) via a direct call from `FurniturePlacementController` — as of doc 22b this is the full 2-cell footprint, not just the origin cell, since a 2-wide gap only seals if both tiles block the fill. No open/close animation in v1 — every installed door is permanently "closed" for sealing purposes, which doc 34 explicitly allows ("regardless of animation state"). Generated by `tools/generate_furniture_glbs.py`.
+Redesigned 2026-10-01 ([art doc 34](../00_dev_roadmap/34_door_visual_redesign.md)):
+heavy oak stiles and rails surround recessed panels, with a dark meeting
+seam, three tapered iron strap hinges per leaf, projecting hinge knuckles
+and paired ring pulls. Both faces receive the same detailing. Colors match
+the upgraded tavern and storage furniture. The canonical furniture generator
+delegates to `tools/generate_door_redesign.py` and its local linear-color export.
+
+The empty `collision_regions` array and `blocks_movement: false` stay intact:
+dwarves pass through freely, with no NavGrid occupancy. `RoomManager`
+registers both footprint cells through `FurniturePlacementController` and
+seals each floor cell plus four air cells above it. Both columns share one
+door identity, so each adjoining room counts one door. This preserves the
+temperature system's sealed-room boundary independently of pathfinding.
+The model remains static; no open/close animation is added.
 
 ---
 
@@ -612,17 +866,43 @@ Workshop props may have a footprint larger than 1×1 — the JSON defines the fo
 
 1×1×2 footprint (1 wide, 1 deep, 2 tall). Mounted brewing vat (same as furniture vat but fixed to the wall). An iron pipe running from the base to the floor. Copper `copper_body` fittings. A small gauge dial on the side (round `ceramic_grey` face with `iron_dark` needle) — decorative only.
 
-#### Aging Cellar (`base:workshop:aging_cellar`)
+#### Aging Rack (`base:furniture:aging_rack`; future `base:workshop:aging_cellar`)
 
-2×2×2 footprint. A recessed oak cask rack. Two large barrels on their sides in an X-frame cradle. `wood_oak_mid` barrels with iron bands. The front face has a small chalkboard (`stone_dark` surface with `stone_highlight` streak marks) implying batch records. Temperature matters in lore — so frost-rime voxels (`#D0E8F0`) on the barrel faces indicate a correctly cold cellar in the inspect UI icon (not the world model).
+**Visual and placement installed 2026-10-03 ([art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md)).**
+2×2 footprint, 2 blocks tall. Two horizontal oak casks rest in a stout timber
+cradle with long runners, diagonal braces and wooden wedges. Full iron hoops
+wrap tapered staves; raised chimes frame recessed plank heads. Small draw-off
+taps face +Z. A dark batch plaque beneath them has two restrained chalk marks.
+All details stay inside the 16×16×16-cell envelope at eight voxels per block,
+with .125 baked scale and linear `COLOR_0`.
+
+`tools/generate_aging_rack.py` owns the model and native review; the canonical
+furniture generator delegates to it. **Build → Aging Rack** uses the common
+packed crate and floor-furniture pipeline. Aging recipes, temperature gating,
+storage, batch records and the future inspect icon remain workshop work. No
+frost is baked into the world model.
 
 #### Beehive (`base:workshop:beehive`)
 
 1×1×1 footprint. Woven-wicker dome shape, placed on a small wooden base. Wicker: alternating `wood_oak_dark` and `rope_natural` voxel rows to imply weave texture. Top is slightly domed. A small entrance hole (1-voxel dark gap) at the base front. A single `honey_gold` drip voxel below the entrance. Must read immediately as a beehive — the silhouette is the tell.
 
-#### Smelter (`base:workshop:smelter`)
+#### Smelter (`base:furniture:smelter`; future `base:workshop:smelter`)
 
-2×1×2 footprint (the largest workshop). A stone furnace body with a domed iron top and a chimney stack rising 2 blocks high. Front face: iron door (`iron_dull`) with a small `ember_glow` visible through a 2×2 voxel grate (simulated by a recessed dark area with glow-coloured voxels behind). Chimney: `stone_mid` column tapering slightly at the top. Overall shape reads as industrial and dangerous. The 2×2 footprint means the operating dwarf stands at the front 1×2 face — keep that face clear of geometry overhangs.
+**Visual and placement installed 2026-10-03 ([art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)).**
+The approved design is a **2×2 footprint, 3 blocks tall**, superseding the earlier
+2×1×2 sketch. A cut-corner stone foundation supports a thick arched firebox,
+bolted iron belt, faceted iron hood and hollow, soot-darkened chimney. A low
+iron grate projects toward the working side (+Z), entirely inside the footprint.
+The firebox is real recessed geometry with bright coals and eight animated
+voxel flame frames. Furnace walls cast shadows, containing the warm local
+light and directing it through the opening. Stone and hardware remain static.
+
+The 16×24×16-cell envelope retains eight voxels per block with .125 baked scale
+and linear `COLOR_0`. `tools/generate_smelter.py` owns the art, library and review;
+the canonical furniture generator delegates to it. **Build → Smelter** uses the
+shared packed crate and existing floor-furniture pipeline. Ghosts/packed items
+are static and unlit. Ore conversion, fuel, smith jobs and the planned 800 heat
+units while operating await the workshop system; this visual pass has no heat output.
 
 #### Forge (`base:workshop:forge`)
 
@@ -707,6 +987,29 @@ apart. This is the one family that does NOT get its own shape — it reuses the 
 Review renders: `tmp/ore_drop_review/*.png`. **Future drop families** (gems = crystal cluster,
 flora = produce) get their own shapes via the same generator pattern; the one-shape-per-family
 + colour-coding rule applies to each family.
+
+---
+
+### 5.8 Settlement Flag (redesigned 2026-10-01)
+
+Path: `res://assets/models/items/misc/settlement_flag.glb`; item key
+`base:items:special:settlement_flag`.
+
+The [art doc 35](../00_dev_roadmap/35_settlement_flag_visual_redesign.md)
+redesign uses a crimson hanging banner with stepped folds, gold hem and a
+geometric emblem on both faces. An iron-bound oak mast and crossbar stand
+on a dressed-stone footing. The model remains static, at **8 voxels/block**,
+within its existing **1×1 footprint and three-block height**.
+
+`tools/generate_flag_redesign.py` bakes scale 0.125 into positions and
+converts authored sRGB colors to linear `COLOR_0`. Keep import/runtime scale
+1.0 and the existing lit, double-sided vertex-color material. The original
+model's material-only colors were lost under the controller's material
+override; the replacement's vertex colors remain visible.
+
+`FlagPlacementController` continues to register a 1×3×1 occupied box,
+set the settlement anchor, spawn the initial squad and restore the saved
+flag without respawning that squad. No gameplay or save-format change.
 
 ---
 

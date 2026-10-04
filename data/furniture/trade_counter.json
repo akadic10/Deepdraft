@@ -1,5 +1,10 @@
 {
   "__comment": [
+	"STATUS (2026-10-01, art doc 37): model, floor placement, packed item, fetch/build",
+	"and uninstall are live. Shop designation, merchant visits, buy/sell orders and",
+	"reputation fields below remain future design data; no trading behavior is enabled.",
+	"The following room/trade rules describe that future system, not current behavior.",
+	"",
 	"Trade Counter — the room-anchor furniture piece that designates a sealed room as a Shop.",
 	"This is the first furniture definition in the game. Its schema establishes the pattern",
 	"for all future furniture items.",
@@ -63,8 +68,11 @@
   "furniture_key": "base:furniture:trade_counter",
   "furniture_category": "trade",
   "display_name": "Trade Counter",
-  "description": "A heavy stone slab counter. Marks the room as an active shop and manages all trade with visiting merchants.",
+  "description": "A dressed-stone counter with iron edging and a carved front panel.",
   "model": "res://assets/models/furniture/trade_counter.glb",
+  "item_key": "base:resources:furniture:trade_counter",
+  "placement": "floor",
+  "yaw_steps": 4,
   "footprint": { "width": 2, "depth": 1 },
   "blocks_movement": true,
 

@@ -28,6 +28,13 @@
 > paid). The zone re-based onto the shared `StorageComponent` contract with containers as
 > the second face; five work-source families now ride one scheduler unchanged.
 
+> **FELL_TREE live (doc 48, 2026-10-04):** each designated tree posts one lease at
+> priority 50. `SurfaceFloraSpawner` owns persistent work and felled records;
+> `TreeFellingComponent` owns the transient lease/reservation and trunk-side stand
+> candidates. `DwarfAgent` tries one full route per frame, works only from a valid
+> adjacent floor cell, and releases safely on interruption. Saved work survives
+> cancellation, sleep, seasonal model changes and reload; task IDs do not.
+
 ## Overview
 
 The Task System is a **global asynchronous job queue** that decouples player designations from dwarf agent execution. Players issue high-level orders (mine this zone, haul these goods); the Task System assigns work to available dwarves. Orders are represented as **intent-sized tasks** (zone leases, future item-batch hauls) — the atomic block-level unit of work never exists as a queued Task object (doc 16 §2.1).
@@ -38,7 +45,7 @@ The Task System is a **global asynchronous job queue** that decouples player des
 # scripts/systems/Task.gd — as shipped (doc 16 §2.2)
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 var id:            int           # unique auto-incremented ID
@@ -76,6 +83,7 @@ Default priority values — these may be overridden by the player via the Labor 
 | Task Type | Default Priority | Rationale |
 |---|---|---|
 | `MINE` | 50 | Core progression, moderate urgency |
+| `FELL_TREE` | 50 | Player-designated raw timber supply |
 | `HAUL` | 40 | Keeps workshops fed; slightly less urgent than mining |
 | `FARM` | 35 | Seasonal; deprioritised when food stores are high |
 | `BREW` | 30 | Comfort; deprioritised when drink stocks are sufficient |

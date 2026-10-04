@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deepdraft — UI Window System v1 Mockup</title>
+<style>
+  :root {
+    /* UITheme.gd values, translated from the codebase's Color() constants */
+    --win-bg: rgba(17, 18, 19, 0.94);          /* 0.065 0.070 0.075 0.94 */
+    --win-border: rgba(255, 255, 255, 0.14);
+    --titlebar-bg: rgba(31, 33, 36, 0.98);      /* 0.12 0.13 0.14 */
+    --dock-bg: rgba(14, 15, 17, 0.82);          /* 0.055 0.060 0.065 0.82 */
+    --accent: rgba(115, 184, 255, 0.9);         /* active blue-cyan */
+    --accent-fill: rgba(115, 184, 255, 0.25);
+    --text: #e8e6e0;
+    --text-dim: #b9b5ab;
+    --dev-orange: #ff9e42;
+    --close-red: rgba(148, 20, 20, 0.95);
+    --close-red-hover: rgba(199, 26, 26, 1.0);
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
+    color: var(--text);
+    background: #10161c;
+    user-select: none;
+  }
+  #terrain { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* ── Shared window chrome (UIWindow.gd) ─────────────────────────────── */
+  .window {
+    position: absolute;
+    min-width: 210px;
+    background: var(--win-bg);
+    border: 1px solid var(--win-border);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 34px rgba(0,0,0,0.45);
+    overflow: hidden;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 8px;
+    height: 34px; padding: 0 8px 0 10px;
+    background: var(--titlebar-bg);
+    cursor: move;
+  }
+  .titlebar .title { flex: 1; font-size: 14px; font-weight: 600; letter-spacing: 0.2px; white-space: nowrap; }
+  .titlebar .title .emoji { margin-right: 6px; }
+  .closebtn {
+    width: 28px; height: 22px; border-radius: 5px;
+    border: 1px solid rgba(255, 115, 115, 0.5);
+    background: var(--close-red); color: #fff;
+    font-size: 12px; font-weight: 700; line-height: 20px; text-align: center;
+    cursor: pointer;
+  }
+  .closebtn:hover { background: var(--close-red-hover); }
+  .winbody { padding: 10px 14px 12px; font-size: 13px; }
+  .winbody .rows { display: grid; gap: 5px; margin-bottom: 8px; }
+  .row { display: flex; justify-content: space-between; gap: 18px; font-size: 13px; }
+  .row .k { color: var(--text-dim); }
+  .row .v { font-variant-numeric: tabular-nums; }
+  .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+
+  /* Standard in-window buttons (UITheme button trio) */
+  .btnrow { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .btn {
+    padding: 6px 12px; font-size: 12.5px; color: var(--text);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 6px; cursor: pointer;
+  }
+  .btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
+  .btn:active { background: rgba(255,255,255,0.20); }
+  .btn.dev { color: var(--dev-orange); }
+  .btn.danger { color: #ff7b6e; }
+  .btn.wide { width: 100%; text-align: center; }
+
+  .note { font-size: 11.5px; color: var(--text-dim); line-height: 1.45; }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
+    padding: 1px 6px; border-radius: 4px; vertical-align: 1px;
+  }
+  .tag.persistent { color: #8fd0ff; background: rgba(115,184,255,0.14); border: 1px solid rgba(115,184,255,0.35); }
+  .tag.context { color: #ffd08a; background: rgba(255,180,80,0.12); border: 1px solid rgba(255,180,80,0.35); }
+
+  /* ── Top-center HUD (hint callout + toast — layer 24, mouse-ignoring) ── */
+  .hud-center {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    pointer-events: none; z-index: 5000;
+  }
+  .hint {
+    background: var(--win-bg); border: 1px solid var(--win-border); border-radius: var(--radius);
+    padding: 7px 16px 8px; text-align: center;
+  }
+  .hint .h { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .hint .b { font-size: 11.5px; color: var(--text-dim); }
+  .toast {
+    background: var(--win-bg); border: 1px solid rgba(64, 191, 115, 0.9); border-radius: var(--radius);
+    padding: 8px 22px; font-size: 13px; opacity: 0; transition: opacity 0.4s;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Dock (unchanged concept, shared theme) ─────────────────────────── */
+  .dock {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 6px;
+    background: var(--dock-bg); border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 10px; padding: 8px 10px; z-index: 6000;
+  }
+  .dockbtn {
+    width: 54px; height: 54px; border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 28px; cursor: pointer; border: 2px solid transparent;
+  }
+  .dockbtn:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.14); }
+  .dockbtn.pressed { background: var(--accent-fill); border-color: var(--accent); }
+  .docksep { width: 1px; height: 44px; background: rgba(255,255,255,0.18); margin: 0 4px; }
+
+  .caption {
+    position: fixed; left: 16px; bottom: 20px; z-index: 6000;
+    font-size: 11px; color: rgba(233,230,224,0.55); line-height: 1.5; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="terrain"></canvas>
+
+<!-- HUD: standardized tool hint + save toast -->
+<div class="hud-center">
+  <div class="hint">
+    <div class="h">Mining Tool</div>
+    <div class="b">Drag: designate &nbsp;·&nbsp; Ctrl: remove &nbsp;·&nbsp; Shift / Alt + wheel: width / depth &nbsp;·&nbsp; Esc: exit</div>
+  </div>
+  <div class="toast" id="toast">Game saved ✓</div>
+</div>
+
+<!-- ── Windows (all share one chrome) ─────────────────────────────────── -->
+
+<div class="window" id="w-about" style="left:40px; top:78px; width:330px;">
+  <div class="titlebar"><div class="title"><span class="emoji">📐</span>UI Windows v1 — this mockup</div><div class="closebtn" data-close>X</div></div>
+  <div class="winbody">
+    <div class="note" style="font-size:12.5px; color:var(--text);">
+      Every window on this page uses the <b>one shared chrome</b>:
+      title bar with emoji + name, one close button, one dark style.
+    </div>
+    <div class="rows" style="margin-top:8px;">
+      <div class="row"><span class="k">Drag any title bar</span><span class="v">→ move</span></div>
+      <div class="row"><span class="k">Click any window</span><span class="v">→ comes to front</span></div>
+      <div class="row"><span class="k">Close (X)</span><span class="v">→ hides, position kept</span></div>
+      <div class="row"><span class="k">Dock button</span><span class="v">→ reopens where it was</span></div>
+    </div>
+    <div class="note">
+      <span class="tag persistent">PERSISTENT</span> windows (Clock, Inspector…) restore
+      open across sessions. <span class="tag context">CONTEXT</span> windows (Mining Zone,
+      Storage Zone…) live with their subject and close when it disappears.
+    </div>
+  </div>
+</div>
+
+<div class="window" id="w-clock" style="width:230px;">
+  <div class="titlebar"><div class="title"><span class="emoji">🕒</span>Clock &nbsp;<span class="tag persistent">PERSISTENT</span></div><div class="closebtn" data-close>X</div></div>
+  <div class="winbody">
+    <div class="rows">
+      <div class="row"><span class="k">Season</span><span class="v">Summer</span></div>
+      <div class="row"><span class="k">Day</span><span class="v">14</span></div>
+      <div class="row"><span class="k">Time</span><span class="v" id="clocktime">08:30</span></div>
+      <div class="row"><span class="k">Weather</span><span class="v">Clear</span></div>
+    </div>
+    <div class="btnrow">
+      <div class="btn" id="plus-hour">+1 Hour</div>
+      <div class="btn">+1 Season</div>
+    </div>
+    <div class="btnrow"><div class="btn">Weather →</div></div>
+  </div>
+</div>
+
+<div class="window" id="w-mine" style="width:250px;">
+  <div class="titlebar"><div class="title"><span class="emoji">⛏️</span>Mining Zone &nbsp;<span class="tag context">CONTEXT</span></div><div class="closebtn" data-close>X</div></div>
+  <div class="winbody">
+    <div class="rows">
+      <div class="row"><span class="k">Blocks</span><span class="v">124</span></div>
+      <div class="row"><span class="k">Assigned</span><span class="v">2 dwarves</span></div>
+    </div>
+    <div class="btnrow">
+      <div class="btn danger">Remove</div>
+      <div class="btn dev">DEV Mine (no drops)</div>
+    </div>
+    <div class="note" style="margin-top:8px;">Normalized to the shared dark theme —
+    the old brown chrome is gone; DEV actions keep their orange text.</div>
+  </div>
+</div>
+
+<div class="window" id="w-storage" style="width:235px;">
+  <div class="titlebar"><div class="title"><span class="emoji">📦</span>Storage Zone &nbsp;<span class="tag context">CONTEXT</span></div><div class="closebtn" data-close>X</div></div>
+  <div class="winbody">
+    <div class="rows">
+      <div class="row"><span class="k">Cells</span><span class="v">36</span></div>
+      <div class="row"><span class="k">Stored</span><span class="v">12</span></div>
+      <div class="row"><span class="k">Filter</span><span class="v">all goods</span></div>
+    </div>
+    <div class="btnrow"><div class="btn danger wide">Remove zone</div></div>
+  </div>
+</div>
+
+<div class="window" id="w-inspect" style="width:300px;">
+  <div class="titlebar"><div class="title"><span class="emoji">🔍</span>Block Inspector &nbsp;<span class="tag persistent">PERSISTENT</span></div><div class="closebtn" data-close>X</div></div>
+  <div class="winbody mono">
+    <div class="rows" style="gap:3px;">
+      <div class="row"><span class="k">render</span><span class="v">block-face overview exact</span></div>
+      <div class="row"><span class="k">hit</span><span class="v">base:terrain:grass:grass02</span></div>
+      <div class="row"><span class="k">face</span><span class="v">top</span></div>
+      <div class="row"><span class="k">domain</span><span class="v">valley 0.412 &nbsp;y 19</span></div>
+      <div class="row"><span class="k">band</span><span class="v">lowland cap · band 2</span></div>
+      <div class="row"><span class="k">room</span><span class="v">Sealed (Cool Cave) 11.2°C</span></div>
+      <div class="row"><span class="k">xyz</span><span class="v">512 · 19 · 498</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="window" id="w-dwarves" style="width:215px;">
+  <div class="titlebar"><div class="title"><span class="emoji">🧔</span>Dwarves &nbsp;<span class="tag persistent">PERSISTENT</span></div><div class="closebtn" data-close>X</div></div>
+  <div class="winbody">
+    <div class="rows"><div class="row"><span class="k">Roster</span><span class="v">6</span></div></div>
+    <div class="btnrow"><div class="btn wide">Name tags: OFF</div></div>
+    <div class="btnrow"><div class="btn dev wide">DEV: +50 tasks here</div></div>
+    <div class="btnrow"><div class="btn dev wide">DEV: Spawn 6 at camera</div></div>
+  </div>
+</div>
+
+<!-- ── Dock ───────────────────────────────────────────────────────────── -->
+<div class="dock" id="dock">
+  <div class="dockbtn pressed" title="Mine">⛏️</div>
+  <div class="dockbtn" title="Chop">🪓</div>
+  <div class="dockbtn" title="Build">🔨</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" data-win="w-storage" title="Storage Zone">📦</div>
+  <div class="dockbtn" title="Farm">🌾</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" title="Military">⚔️</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" title="Labor">👷</div>
+  <div class="dockbtn" title="Stockpiles">🗃️</div>
+  <div class="dockbtn" title="Trade">💰</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" data-win="w-clock" title="Clock">🕒</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" title="Slice">👀</div>
+  <div class="dockbtn" title="Rooms">🚪</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" title="Settle">🚩</div>
+  <div class="dockbtn" data-win="w-dwarves" title="Dwarves">🧔</div>
+  <div class="dockbtn" data-win="w-about" title="World">📊</div>
+  <div class="dockbtn" data-win="w-inspect" title="Inspect">🔍</div>
+  <div class="docksep"></div>
+  <div class="dockbtn" id="savebtn" title="Save / Load">💾</div>
+</div>
+
+<div class="caption">
+  Deepdraft — doc 24 UI mockup · not a real screenshot; terrain is a stand-in.<br>
+  Try it: drag title bars, click windows to raise them, close and reopen from the dock.
+</div>
+
+<script>
+  // ── Stand-in voxel terrain backdrop ─────────────────────────────────
+  const cv = document.getElementById('terrain');
+  const cx = cv.getContext('2d');
+  function hash(x, z) {                       // deterministic value noise
+    let h = (x * 374761393 + z * 668265263) ^ 0x5bf03635;
+    h = (h ^ (h >> 13)) * 1274126177;
+    return ((h ^ (h >> 16)) >>> 0) / 4294967295;
+  }
+  function smooth(x, z) {
+    const xi = Math.floor(x), zi = Math.floor(z), xf = x - xi, zf = z - zi;
+    const s = t => t * t * (3 - 2 * t);
+    const a = hash(xi, zi), b = hash(xi + 1, zi), c = hash(xi, zi + 1), d = hash(xi + 1, zi + 1);
+    return a + (b - a) * s(xf) + (c - a) * s(zf) + (a - b - c + d) * s(xf) * s(zf);
+  }
+  function heightAt(gx, gz) {
+    let n = 0.62 * smooth(gx / 26, gz / 26) + 0.28 * smooth(gx / 9, gz / 9) + 0.10 * smooth(gx / 4, gz / 4);
+    n += 0.34 * Math.max(0, 1 - Math.hypot(gx - 12, gz - 8) / 34);   // NW mountain
+    n -= 0.30 * Math.max(0, 1 - Math.hypot(gx - 30, gz - 46) / 22);  // S lake basin
+    return n;
+  }
+  function drawTerrain() {
+    cv.width = innerWidth; cv.height = innerHeight;
+    const B = 18;
+    const grasses = ['#5c8f3f', '#6da24a', '#659a44', '#77ad51'];
+    const dirts = ['#8a7a52', '#7d6d47'];
+    const rocks = ['#7c858c', '#8b949b', '#9aa3aa'];
+    for (let px = 0, gx = 0; px < cv.width; px += B, gx++) {
+      for (let py = 0, gz = 0; py < cv.height; py += B, gz++) {
+        const h = heightAt(gx, gz);
+        let col;
+        if (h < 0.34) col = (hash(gx, gz + 999) < 0.85) ? '#3d6d96' : '#447aa6'; // water
+        else if (h < 0.38) col = dirts[Math.floor(hash(gx, gz) * 2)];            // bank
+        else if (h < 0.62) col = grasses[Math.floor(hash(gx, gz) * 4)];          // lowland grass
+        else if (h < 0.70) col = dirts[Math.floor(hash(gx, gz) * 2)];            // foothill dirt
+        else col = rocks[Math.min(2, Math.floor((h - 0.70) * 9))];               // rock shelves
+        cx.fillStyle = col;
+        cx.fillRect(px, py, B, B);
+        // cliff shading: darken when the neighbour below is lower (shelf edge)
+        const shelf = q => Math.floor(q * 7);
+        if (shelf(heightAt(gx, gz + 1)) < shelf(h) && h >= 0.34) {
+          cx.fillStyle = 'rgba(0,0,0,0.30)';
+          cx.fillRect(px, py + B - 5, B, 5);
+        }
+        if (hash(gx + 500, gz) < 0.03 && h >= 0.40 && h < 0.62) {                // trees
+          cx.fillStyle = '#33691e';
+          cx.fillRect(px + 4, py + 3, B - 8, B - 8);
+        }
+      }
+    }
+    cx.fillStyle = 'rgba(6, 10, 14, 0.28)';        // gentle vignette so UI pops
+    cx.fillRect(0, 0, cv.width, cv.height);
+  }
+  drawTerrain();
+  addEventListener('resize', () => { drawTerrain(); layoutDefaults(false); });
+
+  // ── UIWindowManager behaviour: z-order, drag, clamp, hide/reopen ────
+  let ztop = 100;
+  const windows = [...document.querySelectorAll('.window')];
+  const dockFor = {};
+  document.querySelectorAll('.dockbtn[data-win]').forEach(b => dockFor[b.dataset.win] = b);
+
+  function raise(w) { w.style.zIndex = ++ztop; }
+  function clamp(w) {
+    const r = w.getBoundingClientRect();
+    let x = Math.min(Math.max(parseFloat(w.style.left), 4), innerWidth - r.width - 4);
+    let y = Math.min(Math.max(parseFloat(w.style.top), 4), innerHeight - 40);
+    w.style.left = x + 'px'; w.style.top = y + 'px';
+  }
+  windows.forEach(w => {
+    w.addEventListener('pointerdown', () => raise(w));
+    const bar = w.querySelector('.titlebar');
+    bar.addEventListener('pointerdown', e => {
+      if (e.target.dataset.close !== undefined) return;
+      const sx = e.clientX - w.offsetLeft, sy = e.clientY - w.offsetTop;
+      const move = ev => { w.style.left = (ev.clientX - sx) + 'px'; w.style.top = (ev.clientY - sy) + 'px'; clamp(w); };
+      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+      addEventListener('pointermove', move); addEventListener('pointerup', up);
+    });
+    w.querySelector('[data-close]').addEventListener('click', () => {
+      w.style.display = 'none';
+      if (dockFor[w.id]) dockFor[w.id].classList.remove('pressed');
+    });
+  });
+  document.querySelectorAll('.dockbtn[data-win]').forEach(b => {
+    b.addEventListener('click', () => {
+      const w = document.getElementById(b.dataset.win);
+      const open = w.style.display !== 'none';
+      w.style.display = open ? 'none' : '';
+      b.classList.toggle('pressed', !open);
+      if (!open) raise(w);
+    });
+  });
+
+  // default layout: spread windows so the arrangement reads instantly
+  function layoutDefaults(first) {
+    const pos = {
+      'w-clock':   [innerWidth - 264, 78],
+      'w-inspect': [innerWidth - 340, 330],
+      'w-mine':    [64, 388],
+      'w-storage': [348, 470],
+      'w-dwarves': [innerWidth - 252, innerHeight - 330],
+    };
+    for (const id in pos) {
+      const w = document.getElementById(id);
+      if (first || w.style.display !== 'none') { w.style.left = pos[id][0] + 'px'; w.style.top = pos[id][1] + 'px'; clamp(w); }
+    }
+    clamp(document.getElementById('w-about'));
+  }
+  layoutDefaults(true);
+  windows.forEach(w => { if (dockFor[w.id]) dockFor[w.id].classList.add('pressed'); });
+
+  // little bits of life
+  let hour = 8, min = 30;
+  document.getElementById('plus-hour').addEventListener('click', () => {
+    hour = (hour + 1) % 24;
+    document.getElementById('clocktime').textContent = String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+  });
+  const toast = document.getElementById('toast');
+  document.getElementById('savebtn').addEventListener('click', () => {
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  });
+</script>
+</body>
+</html>

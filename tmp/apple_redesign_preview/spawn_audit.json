@@ -1,0 +1,2887 @@
+{
+  "apple_candidate_gates": {
+    "in_grove": 655,
+    "low_enough": 2727,
+    "wet_enough": 1815
+  },
+  "apples": [
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 31.1849327087402,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_531_534",
+      "position": [
+        532.5,
+        28.0,
+        535.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 39.6547584533691,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_500_548",
+      "position": [
+        502.5,
+        28.0,
+        550.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 42.7141647338867,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_544_537",
+      "position": [
+        545.5,
+        28.0,
+        538.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 47.6707458496094,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_558_522",
+      "position": [
+        558.5,
+        28.0,
+        522.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 48.9948959350586,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_556_532",
+      "position": [
+        556.5,
+        28.0,
+        532.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 83.1775207519531,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_581_552",
+      "position": [
+        583.5,
+        20.0,
+        554.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 89.6799850463867,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_590_552",
+      "position": [
+        591.5,
+        20.0,
+        553.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 103.385200500488,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_612_496",
+      "position": [
+        614.5,
+        28.0,
+        498.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 109.281745910645,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_616_485",
+      "position": [
+        618.5,
+        28.0,
+        487.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 112.864967346191,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_596_437",
+      "position": [
+        598.5,
+        28.0,
+        439.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 116.088325500488,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_613_456",
+      "position": [
+        614.5,
+        28.0,
+        457.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 120.093711853027,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_629_491",
+      "position": [
+        630.5,
+        28.0,
+        492.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 120.251815795898,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_615_570",
+      "position": [
+        616.5,
+        20.0,
+        571.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 120.484436035156,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_626_474",
+      "position": [
+        626.5,
+        28.0,
+        474.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 124.73371887207,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_612_583",
+      "position": [
+        613.5,
+        20.0,
+        584.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 129.052322387695,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_633_468",
+      "position": [
+        633.5,
+        28.0,
+        468.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 135.906219482422,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_647_522",
+      "position": [
+        647.5,
+        20.0,
+        522.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 148.318908691406,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_654_473",
+      "position": [
+        655.5,
+        28.0,
+        474.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 149.380386352539,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_654_552",
+      "position": [
+        655.5,
+        20.0,
+        553.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 152.900299072266,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_634_420",
+      "position": [
+        634.5,
+        28.0,
+        420.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 155.01774597168,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_650_444",
+      "position": [
+        652.5,
+        28.0,
+        446.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 156.660461425781,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_658_456",
+      "position": [
+        658.5,
+        28.0,
+        456.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 158.147079467773,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_436_650",
+      "position": [
+        437.5,
+        20.0,
+        651.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 160.407287597656,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_454_660",
+      "position": [
+        456.5,
+        20.0,
+        662.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 160.425994873047,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_667_540",
+      "position": [
+        669.5,
+        20.0,
+        542.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 162.04475402832,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_568_662",
+      "position": [
+        569.5,
+        20.0,
+        663.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 189.300033569336,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_668_613",
+      "position": [
+        670.5,
+        20.0,
+        615.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 190.127593994141,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_404_668",
+      "position": [
+        405.5,
+        20.0,
+        669.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 191.077209472656,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_576_690",
+      "position": [
+        577.5,
+        20.0,
+        691.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 196.500640869141,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_565_698",
+      "position": [
+        567.5,
+        20.0,
+        700.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 203.476043701172,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_582_701",
+      "position": [
+        583.5,
+        20.0,
+        702.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 207.119537353516,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_713_467",
+      "position": [
+        714.5,
+        20.0,
+        468.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 213.664459228516,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_568_715",
+      "position": [
+        570.5,
+        20.0,
+        717.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 216.989624023438,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_559_722",
+      "position": [
+        560.5,
+        20.0,
+        723.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 234.364028930664,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_540_743",
+      "position": [
+        541.5,
+        20.0,
+        744.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 235.011703491211,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_735_441",
+      "position": [
+        736.5,
+        28.0,
+        442.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 241.098526000977,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_551_747",
+      "position": [
+        553.5,
+        20.0,
+        749.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 246.986846923828,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_715_649",
+      "position": [
+        716.5,
+        20.0,
+        650.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 251.738952636719,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_335_691",
+      "position": [
+        335.5,
+        20.0,
+        691.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 255.316467285156,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_666_713",
+      "position": [
+        667.5,
+        20.0,
+        714.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 255.504409790039,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_665_714",
+      "position": [
+        666.5,
+        20.0,
+        715.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 255.875946044922,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_379_730",
+      "position": [
+        380.5,
+        20.0,
+        731.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 259.716186523438,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_357_720",
+      "position": [
+        358.5,
+        20.0,
+        721.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 264.6025390625,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_308_681",
+      "position": [
+        310.5,
+        20.0,
+        683.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 271.920013427734,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_670_729",
+      "position": [
+        672.5,
+        20.0,
+        731.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 273.730712890625,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_677_726",
+      "position": [
+        679.5,
+        20.0,
+        728.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 277.648162841797,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_688_724",
+      "position": [
+        689.5,
+        20.0,
+        725.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 285.09033203125,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_303_706",
+      "position": [
+        304.5,
+        20.0,
+        707.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 285.871459960938,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_675_746",
+      "position": [
+        675.5,
+        20.0,
+        746.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 290.603668212891,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_265_666",
+      "position": [
+        266.5,
+        20.0,
+        667.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 290.861663818359,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_790_591",
+      "position": [
+        791.5,
+        20.0,
+        592.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 293.718414306641,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_615_785",
+      "position": [
+        616.5,
+        20.0,
+        786.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 299.744049072266,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_802_575",
+      "position": [
+        804.5,
+        20.0,
+        577.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 300.753234863281,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_800_592",
+      "position": [
+        801.5,
+        20.0,
+        593.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 302.361541748047,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_265_687",
+      "position": [
+        266.5,
+        20.0,
+        688.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 303.582763671875,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_798_608",
+      "position": [
+        799.5,
+        20.0,
+        609.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 312.301940917969,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_242_670",
+      "position": [
+        243.5,
+        20.0,
+        671.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 312.5419921875,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_535_821",
+      "position": [
+        537.5,
+        20.0,
+        823.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 317.358642578125,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_825_468",
+      "position": [
+        826.5,
+        20.0,
+        469.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 317.541320800781,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_577_821",
+      "position": [
+        578.5,
+        20.0,
+        822.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 328.652557373047,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_483_838",
+      "position": [
+        484.5,
+        20.0,
+        839.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 332.819030761719,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_239_703",
+      "position": [
+        240.5,
+        20.0,
+        704.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 350.517486572266,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_228_718",
+      "position": [
+        229.5,
+        20.0,
+        719.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 363.285705566406,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_239_752",
+      "position": [
+        241.5,
+        20.0,
+        754.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 364.160003662109,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_253_768",
+      "position": [
+        254.5,
+        20.0,
+        769.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 375.116638183594,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_302_822",
+      "position": [
+        304.5,
+        20.0,
+        824.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 375.396453857422,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_387_865",
+      "position": [
+        388.5,
+        20.0,
+        866.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 377.404968261719,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_277_807",
+      "position": [
+        278.5,
+        20.0,
+        808.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 382.732940673828,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_221_761",
+      "position": [
+        223.5,
+        20.0,
+        763.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 390.162139892578,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_830_287",
+      "position": [
+        832.5,
+        20.0,
+        289.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 390.5771484375,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_810_260",
+      "position": [
+        812.5,
+        20.0,
+        262.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 394.135131835938,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_902_556",
+      "position": [
+        903.5,
+        20.0,
+        557.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 395.962738037109,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_255_813",
+      "position": [
+        256.5,
+        20.0,
+        814.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 396.95654296875,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_823_266",
+      "position": [
+        825.5,
+        20.0,
+        268.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 397.145446777344,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_811_251",
+      "position": [
+        813.5,
+        20.0,
+        253.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 406.204986572266,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_372_893",
+      "position": [
+        372.5,
+        20.0,
+        893.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 407.043609619141,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_852_289",
+      "position": [
+        853.5,
+        20.0,
+        290.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 411.541625976563,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_848_275",
+      "position": [
+        849.5,
+        20.0,
+        276.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 411.706817626953,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_922_543",
+      "position": [
+        922.5,
+        20.0,
+        543.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 412.633605957031,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_521_923",
+      "position": [
+        522.5,
+        20.0,
+        924.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 417.495513916016,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_319_881",
+      "position": [
+        321.5,
+        20.0,
+        883.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 418.060394287109,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_304_874",
+      "position": [
+        305.5,
+        20.0,
+        875.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 418.471618652344,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_928_539",
+      "position": [
+        929.5,
+        20.0,
+        540.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 420.122009277344,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_178_767",
+      "position": [
+        178.5,
+        20.0,
+        767.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 422.457702636719,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_186_781",
+      "position": [
+        187.5,
+        20.0,
+        782.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 425.185241699219,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_894_691",
+      "position": [
+        896.5,
+        28.0,
+        693.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 427.575134277344,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_307_887",
+      "position": [
+        307.5,
+        20.0,
+        887.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 431.108459472656,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_857_254",
+      "position": [
+        858.5,
+        20.0,
+        255.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 433.643280029297,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_151_753",
+      "position": [
+        152.5,
+        20.0,
+        754.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 435.383178710938,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_868_262",
+      "position": [
+        869.5,
+        20.0,
+        263.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 437.074951171875,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_787_172",
+      "position": [
+        788.5,
+        28.0,
+        173.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 442.701354980469,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_912_697",
+      "position": [
+        913.5,
+        28.0,
+        698.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 443.299560546875,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_233_856",
+      "position": [
+        235.5,
+        20.0,
+        858.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 443.923980712891,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_787_163",
+      "position": [
+        789.5,
+        28.0,
+        165.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 444.002807617188,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_173_799",
+      "position": [
+        174.5,
+        20.0,
+        800.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 444.016326904297,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_366_931",
+      "position": [
+        366.5,
+        20.0,
+        931.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 444.110900878906,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_167_792",
+      "position": [
+        168.5,
+        20.0,
+        793.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 445.318420410156,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_884_268",
+      "position": [
+        885.5,
+        20.0,
+        269.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 445.502532958984,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_156_780",
+      "position": [
+        156.5,
+        20.0,
+        780.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 445.762817382813,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_449_952",
+      "position": [
+        450.5,
+        20.0,
+        953.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 448.678619384766,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_957_542",
+      "position": [
+        959.5,
+        20.0,
+        544.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 449.513610839844,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_515_961",
+      "position": [
+        515.5,
+        20.0,
+        961.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 453.963104248047,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_159_798",
+      "position": [
+        161.5,
+        20.0,
+        800.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 455.370727539063,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_368_943",
+      "position": [
+        369.5,
+        20.0,
+        944.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 458.179534912109,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_387_951",
+      "position": [
+        389.5,
+        20.0,
+        953.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 458.692169189453,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_216_862",
+      "position": [
+        218.5,
+        20.0,
+        864.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 459.411041259766,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_387_953",
+      "position": [
+        388.5,
+        20.0,
+        954.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 461.099243164063,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_567_967",
+      "position": [
+        569.5,
+        20.0,
+        969.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 465.300445556641,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_894_247",
+      "position": [
+        895.5,
+        20.0,
+        248.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 465.334838867188,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_927_715",
+      "position": [
+        929.5,
+        28.0,
+        717.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 466.197906494141,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_977_537",
+      "position": [
+        977.5,
+        20.0,
+        537.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 469.559906005859,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_941_323",
+      "position": [
+        942.5,
+        20.0,
+        324.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 469.947326660156,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_312_937",
+      "position": [
+        312.5,
+        20.0,
+        937.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 473.14111328125,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_111_764",
+      "position": [
+        112.5,
+        20.0,
+        765.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 473.225646972656,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_314_941",
+      "position": [
+        315.5,
+        20.0,
+        942.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 476.506561279297,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_987_513",
+      "position": [
+        988.5,
+        20.0,
+        514.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 476.773010253906,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_635_972",
+      "position": [
+        635.5,
+        20.0,
+        972.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 477.079132080078,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_943_308",
+      "position": [
+        943.5,
+        20.0,
+        308.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 478.951446533203,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_402_977",
+      "position": [
+        403.5,
+        20.0,
+        978.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 482.939422607422,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_656_971",
+      "position": [
+        657.5,
+        20.0,
+        972.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 483.359588623047,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_305_948",
+      "position": [
+        306.5,
+        20.0,
+        949.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 483.593322753906,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_105_774",
+      "position": [
+        106.5,
+        20.0,
+        775.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 485.073699951172,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_948_301",
+      "position": [
+        949.5,
+        20.0,
+        302.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 489.073089599609,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_686_967",
+      "position": [
+        687.5,
+        20.0,
+        968.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 490.304504394531,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_603_992",
+      "position": [
+        604.5,
+        20.0,
+        993.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 490.365692138672,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_639_985",
+      "position": [
+        639.5,
+        20.0,
+        985.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 491.490081787109,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_938_268",
+      "position": [
+        939.5,
+        20.0,
+        269.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 492.481964111328,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_97_778",
+      "position": [
+        98.5,
+        20.0,
+        779.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 495.120697021484,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_86_766",
+      "position": [
+        88.5,
+        20.0,
+        768.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 495.157043457031,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_715_960",
+      "position": [
+        717.5,
+        20.0,
+        962.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 495.391265869141,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_646_987",
+      "position": [
+        647.5,
+        20.0,
+        988.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 501.739471435547,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_971_310",
+      "position": [
+        971.5,
+        20.0,
+        310.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 502.458465576172,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_89_784",
+      "position": [
+        90.5,
+        20.0,
+        785.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 506.506164550781,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_703_979",
+      "position": [
+        704.5,
+        20.0,
+        980.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 511.040618896484,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_272_962",
+      "position": [
+        274.5,
+        20.0,
+        964.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 514.692626953125,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_86_802",
+      "position": [
+        88.5,
+        20.0,
+        804.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 514.82666015625,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_997_675",
+      "position": [
+        999.5,
+        20.0,
+        677.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 515.430419921875,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_958_254",
+      "position": [
+        958.5,
+        20.0,
+        254.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 516.525390625,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_293_979",
+      "position": [
+        294.5,
+        20.0,
+        980.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 520.238891601563,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_717_988",
+      "position": [
+        718.5,
+        20.0,
+        989.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 522.121154785156,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_376_1015",
+      "position": [
+        377.5,
+        20.0,
+        1016.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 524.359130859375,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_979_276",
+      "position": [
+        981.5,
+        20.0,
+        278.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 527.267028808594,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_761_976",
+      "position": [
+        761.5,
+        28.0,
+        976.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 528.840698242188,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_749_981",
+      "position": [
+        751.5,
+        28.0,
+        983.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 530.935485839844,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_923_176",
+      "position": [
+        923.5,
+        20.0,
+        176.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 531.906494140625,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_1015_683",
+      "position": [
+        1015.5,
+        20.0,
+        683.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 534.283142089844,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_912_158",
+      "position": [
+        913.5,
+        20.0,
+        159.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 550.538391113281,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_846_74",
+      "position": [
+        847.5,
+        20.0,
+        75.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 553.733215332031,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_860_81",
+      "position": [
+        861.5,
+        20.0,
+        82.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 553.771179199219,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_930_149",
+      "position": [
+        931.5,
+        20.0,
+        150.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 561.90966796875,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_845_59",
+      "position": [
+        846.5,
+        20.0,
+        60.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 563.425659179688,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_858_67",
+      "position": [
+        859.5,
+        20.0,
+        68.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 569.020629882813,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_868_68",
+      "position": [
+        868.5,
+        20.0,
+        68.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 570.738586425781,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_934_128",
+      "position": [
+        936.5,
+        20.0,
+        130.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 572.150756835938,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_23_810",
+      "position": [
+        24.5,
+        20.0,
+        811.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 572.510681152344,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_7_783",
+      "position": [
+        8.5,
+        20.0,
+        784.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 572.968139648438,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_944_136",
+      "position": [
+        946.5,
+        20.0,
+        138.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 573.517639160156,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_972_170",
+      "position": [
+        973.5,
+        20.0,
+        171.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 573.726867675781,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_823_29",
+      "position": [
+        825.5,
+        28.0,
+        31.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 578.387817382813,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_20_817",
+      "position": [
+        21.5,
+        20.0,
+        818.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 579.210266113281,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_867_54",
+      "position": [
+        868.5,
+        20.0,
+        55.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "distance_to_start": 582.407531738281,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient.glb",
+      "name": "apple_ancient_3_797",
+      "position": [
+        5.5,
+        20.0,
+        799.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 583.18994140625,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_840_29",
+      "position": [
+        842.5,
+        20.0,
+        31.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "distance_to_start": 583.587585449219,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
+      "name": "apple_ancient_1003_198",
+      "position": [
+        1005.5,
+        20.0,
+        200.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 585.194396972656,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_962_138",
+      "position": [
+        962.5,
+        20.0,
+        138.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 585.927062988281,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_841_27",
+      "position": [
+        841.5,
+        20.0,
+        27.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 587.956176757813,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_16_828",
+      "position": [
+        16.5,
+        20.0,
+        828.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 592.074768066406,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_906_70",
+      "position": [
+        906.5,
+        20.0,
+        70.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 595.207946777344,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_964_125",
+      "position": [
+        965.5,
+        20.0,
+        126.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 601.465270996094,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_860_21",
+      "position": [
+        861.5,
+        20.0,
+        22.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "distance_to_start": 606.788696289063,
+      "model": "res://assets/models/flora/trees/apple/apple_ancient_3.glb",
+      "name": "apple_ancient_960_103",
+      "position": [
+        962.5,
+        20.0,
+        105.5
+      ],
+      "stage": "ancient"
+    },
+    {
+      "bounds": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "distance_to_start": 616.654296875,
+      "model": "res://assets/models/flora/trees/apple/apple_sapling.glb",
+      "name": "apple_sapling_992_125",
+      "position": [
+        992.5,
+        20.0,
+        125.5
+      ],
+      "stage": "sapling"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 623.885009765625,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_975_94",
+      "position": [
+        976.5,
+        20.0,
+        95.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 623.942687988281,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_1014_142",
+      "position": [
+        1015.5,
+        20.0,
+        143.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 630.160705566406,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_965_74",
+      "position": [
+        966.5,
+        20.0,
+        75.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 649.210693359375,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_977_59",
+      "position": [
+        978.5,
+        20.0,
+        60.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 654.811828613281,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_969_43",
+      "position": [
+        970.5,
+        20.0,
+        44.5
+      ],
+      "stage": "mature"
+    },
+    {
+      "bounds": [
+        15.0,
+        12.0,
+        11.0
+      ],
+      "distance_to_start": 662.26318359375,
+      "model": "res://assets/models/flora/trees/apple/apple_mature.glb",
+      "name": "apple_mature_962_26",
+      "position": [
+        963.5,
+        20.0,
+        27.5
+      ],
+      "stage": "mature"
+    }
+  ],
+  "counts": {
+    "apple_ancient": 48,
+    "apple_mature": 98,
+    "apple_sapling": 32,
+    "juniper_ancient": 197,
+    "juniper_mature": 462,
+    "juniper_sapling": 179,
+    "oak_ancient": 352,
+    "oak_mature": 645,
+    "oak_sapling": 174,
+    "pine_ancient": 154,
+    "pine_mature": 390,
+    "pine_sapling": 107
+  },
+  "near_start_300_square": {
+    "apple_ancient": 6,
+    "apple_mature": 10,
+    "apple_sapling": 7,
+    "juniper_ancient": 19,
+    "juniper_mature": 37,
+    "juniper_sapling": 15,
+    "oak_ancient": 39,
+    "oak_mature": 72,
+    "oak_sapling": 15,
+    "pine_ancient": 26,
+    "pine_mature": 44,
+    "pine_sapling": 15
+  },
+  "season": "summer",
+  "seed": 1388941899
+}

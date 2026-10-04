@@ -1,0 +1,11 @@
+{
+  "all_share_same_imported_mesh": true,
+  "existing_carry_attachment_scale": true,
+  "in_memory_loose_item_save_restore": true,
+  "lit_linear_vertex_material": true,
+  "original_bounds_and_scale_preserved": true,
+  "packed_types_checked": 7,
+  "player_saves_touched": false,
+  "shelf_anchor_half_scale": true,
+  "spawn_reserve_pickup_store_withdraw_drop": true
+}

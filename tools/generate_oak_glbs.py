@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""
-Generate Deepdraft oak GLBs — big gnarled 1:1 deciduous hardwood.
+"""Generate the complete redesigned oak roster at one voxel per block.
 
-Tree convention: 1:1 (1 voxel = 1 block, scale 1.0; doc 61). Oak is the largest
-broadleaf — taller and broader than apple, with an irregular multi-lobe canopy
-(gnarled, ancient-feeling), dark grey-brown bark, NO blossom or fruit. Four
-seasons: spring (fresh light green), summer, autumn (gold/rust), winter (bare
-gnarled branches). Centred on trunk at X=Z=0, base at Y=0.
+All live stages, seasons and variants use generate_forest_redesign. Legacy
+builders below remain only for historical before/after preview reproduction.
+Existing mature baseline designs and gameplay footprints are preserved.
 """
 
 import math
@@ -14,6 +11,7 @@ import random
 from pathlib import Path
 
 from generate_dwarf_glb import Voxels, mesh_from_voxels, write_glb
+from generate_forest_redesign import build_model, mesh_model, manifest as forest_manifest
 
 VOX_PER_BLOCK = 1
 
@@ -140,7 +138,7 @@ STAGES = {
 VMUL = {1: 1.00, 2: 0.90, 3: 1.08}
 
 
-def build_oak(stage, season="summer", variant=1):
+def build_legacy_oak(stage, season="summer", variant=1):
     p = STAGES[stage]
     rng = random.Random(f"oak1:{stage}:{season}:{variant}")
     v = Voxels()
@@ -155,18 +153,16 @@ def build_oak(stage, season="summer", variant=1):
     return v
 
 
+def build_oak(stage, season="summer", variant=1):
+    return build_model("oak", stage, season, variant)
+
+
+def mesh_oak(vox, stage, season="summer", variant=1):
+    return mesh_model(vox, "oak", stage)
+
+
 def manifest():
-    out = []
-    for s in ("sapling", "mature", "ancient"):
-        if s == "sapling":
-            out += [("oak_sapling_spring", s, "spring", 1), ("oak_sapling", s, "summer", 1),
-                    ("oak_sapling_autumn", s, "autumn", 1), ("oak_sapling_winter", s, "winter", 1)]
-        else:
-            out += [(f"oak_{s}_spring", s, "spring", 1),
-                    (f"oak_{s}", s, "summer", 1), (f"oak_{s}_2", s, "summer", 2), (f"oak_{s}_3", s, "summer", 3),
-                    (f"oak_{s}_autumn", s, "autumn", 1), (f"oak_{s}_autumn_2", s, "autumn", 2),
-                    (f"oak_{s}_winter", s, "winter", 1)]
-    return out
+    return forest_manifest("oak")
 
 
 def main():
@@ -176,7 +172,7 @@ def main():
     total = 0
     for name, stage, season, variant in manifest():
         vox = build_oak(stage, season, variant)
-        mesh = mesh_from_voxels(vox)
+        mesh = mesh_oak(vox, stage, season, variant)
         size = write_glb(out_dir / f"{name}.glb", name, mesh)
         total += size
         h = max(y for _, y, _ in vox.cells) + 1

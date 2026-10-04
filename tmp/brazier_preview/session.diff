@@ -1,0 +1,194 @@
+--- before/data/entities/items/resources.json
++++ after/data/entities/items/resources.json
+@@ -793,6 +793,16 @@
+     "material_tags": ["wood", "metal", "furniture", "stockpile_furniture"]
+   },
+ 
++  "base:resources:furniture:brazier": {
++    "display_name": "Brazier (packed)",
++    "description": "An iron fire bowl and stone pedestal packed for installation.",
++    "model": "res://assets/models/items/furniture/packed_furniture.glb",
++    "stack_max": 5,
++    "weight_class": "heavy",
++    "base_trade_value": 20,
++    "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
++  },
++
+   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+ 
+   "base:resources:currency:gold_coin": {
+--- before/scripts/components/FurnitureLighting.gd
++++ after/scripts/components/FurnitureLighting.gd
+@@ -10,6 +10,9 @@
+ 	light.name = "FurnitureLight"
+ 	light.light_color = Color(String(light_def.get("color", "#FFFFFF")))
+ 	light.light_energy = float(light_def.get("energy", 1.0))
++	# A finite fire source softens the bowl's shadow; older definitions keep
++	# the engine's point-source default unless they opt in.
++	light.light_size = maxf(0.0, float(light_def.get("size", 0.0)))
+ 	light.omni_range = float(light_def.get("range", 5.0))
+ 	light.omni_attenuation = float(light_def.get("attenuation", 1.0))
+ 	light.shadow_enabled = bool(light_def.get("shadows", true))
+--- before/scripts/systems/StockpileDesignationController.gd
++++ after/scripts/systems/StockpileDesignationController.gd
+@@ -81,6 +81,7 @@
+ 	"base:resources:furniture:anvil": 1,
+ 	"base:resources:furniture:smelter": 1,
+ 	"base:resources:furniture:aging_rack": 1,
++	"base:resources:furniture:brazier": 1,
+ }
+ 
+ signal zone_created(zone_id: int)
+--- before/scripts/ui/DockUI.gd
++++ after/scripts/ui/DockUI.gd
+@@ -63,6 +63,7 @@
+ 	"📥 Anvil": "base:furniture:anvil",
+ 	"📥 Smelter": "base:furniture:smelter",
+ 	"📥 Aging Rack": "base:furniture:aging_rack",
++	"📥 Brazier": "base:furniture:brazier",
+ }
+ 
+ ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
+@@ -732,7 +733,7 @@
+ 		"chop":
+ 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
+ 		"build":
+-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "Cancel"]
++			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "📥 Brazier", "Cancel"]
+ 		"storage_zone":
+ 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
+ 		"farm":
+--- before/docs/20_player_interface/23_user_interface.md
++++ after/docs/20_player_interface/23_user_interface.md
+@@ -177,7 +177,7 @@
+ | Panel | Contents |
+ |---|---|
+ | Mine | Designate mining zones, clear rubble, channel floors |
+-| Build | **Sixteen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil, Smelter and Aging Rack. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
++| Build | **Seventeen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil, Smelter, Aging Rack and Brazier. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
+ | Farm | Designate soil plots, assign crops |
+ | Military | Set patrol routes, guard posts (future) |
+ 
+--- before/docs/30_simulation_systems/34_temperature.md
++++ after/docs/30_simulation_systems/34_temperature.md
+@@ -183,7 +183,14 @@
+ | Heat Source | Item Key | Heat Units | Notes |
+ |---|---|---|---|
+ | Wall Torch | `base:furniture:wall_torch` (packed: `base:resources:furniture:wall_torch`) | 200 | Shipped wall mount; no floor reservation, four-block room height; always lit in v1 |
+-| Brazier | `base:item:brazier` | 600 | Future item — more efficient for large rooms |
++| Hearth | `base:furniture:hearth` (packed: `base:resources:furniture:hearth`) | 400 | Shipped 2×2 floor fire bowl; contributes once at its origin |
++| Brazier | `base:furniture:brazier` (packed: `base:resources:furniture:brazier`) | 600 | Shipped 1×1 floor piece, 2 blocks tall including flames; always lit in v1 |
++
++The brazier's light and flame flicker are cosmetic; its heat stays at 600 units.
++Only installed pieces contribute. Ghosts and packed items have no heat, uninstall
++removes the contribution, and save reconstruction restores it once. In a sealed
++100-block room, one brazier adds 6°C and two add 12°C. Fuel consumption and ignition
++remain future work. See [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md).
+ 
+ ### Worked Examples (cold mountain gradient)
+ 
+--- before/docs/60_asset_creation/61_voxel_art_guide.md
++++ after/docs/60_asset_creation/61_voxel_art_guide.md
+@@ -686,6 +686,25 @@
+ 
+ ---
+ 
++#### Brazier (`base:furniture:brazier`)
++
++**Installed 2026-10-03 ([art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md)).**
++1×1 footprint, 2 blocks tall including flame. A beveled dressed-stone foot and
++short pedestal support a faceted iron bowl, thick riveted rim and four corner
++prongs. The basin contains dark charcoal and a glowing ember bed. Eight voxel
++flame frames rise, lean and split within the 8×16×8-cell envelope. Stone and iron
++remain static; only the named `brazier_flame` mesh emits light-colored surfaces.
++
++Eight voxels per block, .125 baked scale and linear `COLOR_0`. The installed piece
++adds warm shadowed light and a steady **600 heat units**. Independent flame timing
++and bounded light/emission flicker use the shared furniture fire component; hidden
++slices suspend updates. Ghosts and packed items are static and unlit, with no heat.
++**Build → Brazier** uses normal floor placement, crate hauling and uninstall.
++`tools/generate_brazier.py` owns the art and clip; the canonical generator delegates
++both exports. Fuel and ignition remain future systems.
++
++---
++
+ #### Bookshelf / Rune Shelf (`base:furniture:rune_shelf`)
+ 
+ Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,2,1]}]` — 2 blocks tall (full visual height).
+--- before/docs/60_asset_creation/62_furniture_catalog.md
++++ after/docs/60_asset_creation/62_furniture_catalog.md
+@@ -26,7 +26,7 @@
+ | Wooden Chair | `base:furniture:wooden_chair` | **SHIPPED (2026-10-01, [art doc 39](../00_dev_roadmap/39_chair_asset_and_placement.md))** — independent 1×1 oak/iron armchair, 2-block back and 1-block seat rim | Placeable seating; sitting, seat assignments and dining/comfort effects remain future work |
+ | Dining Table | `base:furniture:wooden_table` | **SHIPPED (2026-10-01, [art doc 38](../00_dev_roadmap/38_dining_table_asset_and_placement.md))** — 2×2 oak/iron table, 1.5 blocks tall; packed item and placement live | Dining-hall furniture; eating/seating/comfort behavior remains future work |
+ | Wall Torch | `base:furniture:wall_torch` | **SHIPPED (2026-10-02, [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md))** — iron/wood mount, 1.5 blocks tall; wall placement with a walkable floor | Warm local light and **200 heat units**, real room-temperature contribution; no fuel consumption yet |
+-| Brazier | `base:item:brazier` | PLAN (doc 34 — "future item") | **600 heat units**; large-room heating |
++| Brazier | `base:furniture:brazier` | **SHIPPED (2026-10-03, [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md))** — 1×1 iron fire bowl on a stone pedestal, 2 blocks tall with animated flames | Warm local light and **600 heat units**, real room heating; fuel and ignition remain future work |
+ | Anvil | `base:furniture:anvil` | **SHIPPED (2026-10-02, [art doc 44](../00_dev_roadmap/44_anvil_asset_and_placement.md))** — 2×1 iron anvil on a stone pedestal, 1.5-block working height | Independent placement live; smithing recipes, operator animations and forge integration remain future work |
+ | Rune Shelf | `base:furniture:rune_shelf` | SPEC (61 §5.4) | Decorative / future room appeal |
+ | Stockpile Marker | `base:furniture:stockpile_marker` | SPEC (61 §5.4) | Zone decoration only |
+@@ -59,10 +59,10 @@
+ Stone Boulder · Mining Cart · Water Barrel · Fence Post / Palisade · Runic Standing Stone ·
+ Mushroom Lantern (the underground torch alternative — `glow_blue` palette).
+ 
+-**Totals: 20 furniture pieces (14 shipped — 3 from doc 19, 3 from doc 21,
+-1 from doc 22, 1 each from art docs 37–40 and 42–44; remaining pieces specced or planned),
++**Totals: 20 furniture pieces (15 shipped — 3 from doc 19, 3 from doc 21,
++1 from doc 22, 1 each from art docs 37–40, 42–44 and 47; remaining pieces specced or planned),
+ 5 workshops (Smelter and Aging Cellar have placeable visuals; production is pending), 6 decoratives.
+-The Build menu has 16 entries including the Smelter and Aging Rack.**
++The Build menu has 17 entries including the Smelter, Aging Rack and Brazier.**
+ 
+ ---
+ 
+--- before/tools/generate_furniture_glbs.py
++++ after/tools/generate_furniture_glbs.py
+@@ -101,6 +101,7 @@
+   assets/models/furniture/dwarf_bunk.glb                              (placed, art doc 40)
+   assets/models/furniture/brewing_vat.glb                             (placed, art doc 42)
+   assets/models/furniture/aging_rack.glb                              (placed, art doc 46)
++  assets/models/furniture/brazier.glb                                 (placed, art doc 47)
+   assets/models/items/furniture/packed_furniture.glb                 (shared item)
+ Review sheet: tmp/furniture_review/furniture_sheet.png
+ """
+@@ -125,6 +126,7 @@
+ import generate_anvil as anvil_art
+ import generate_smelter as smelter_art
+ import generate_aging_rack as aging_art
++import generate_brazier as brazier_art
+ 
+ EXPORT_SCALE = 0.125
+ SEED = 1919
+@@ -422,6 +424,10 @@
+     return aging_art.aging_rack()
+ 
+ 
++def build_brazier():
++    return brazier_art.brazier()
++
++
+ def mesh_furniture(name,vox):
+     if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil','aging_rack'):
+         return tavern_art.export_mesh(vox)
+@@ -583,6 +589,7 @@
+         ("anvil", build_anvil()),
+         ("smelter", build_smelter()),
+         ("aging_rack", build_aging_rack()),
++        ("brazier", build_brazier()),
+     ]
+     box = build_packed_box()
+ 
+@@ -597,6 +604,14 @@
+             write_hearth_flames(flame_path,root / 'tmp' / 'furniture_review')
+             total += flame_path.stat().st_size
+             print('  furniture/animations/hearth_flame.glb  10 animation frames')
++        elif name == 'brazier':
++            path = placed_dir / 'brazier.glb'
++            brazier_art.write_brazier(path,root / 'tmp' / 'furniture_review')
++            size = path.stat().st_size
++            flame_path = placed_dir / 'animations' / 'brazier_flame.glb'
++            brazier_art.write_flames(flame_path,root / 'tmp' / 'furniture_review')
++            total += flame_path.stat().st_size
++            print('  furniture/animations/brazier_flame.glb  8 animation frames')
+         elif name == 'smelter':
+             path = placed_dir / 'smelter.glb'
+             smelter_art.write_smelter(path,root / 'tmp' / 'furniture_review')

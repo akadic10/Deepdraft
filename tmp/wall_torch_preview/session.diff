@@ -1,0 +1,917 @@
+--- before/data/entities/items/resources.json
++++ after/data/entities/items/resources.json
+@@ -753,6 +753,16 @@
+     "material_tags": ["wood", "furniture", "stockpile_furniture"]
+   },
+ 
++  "base:resources:furniture:wall_torch": {
++    "display_name": "Wall Torch (packed)",
++    "description": "An iron bracket and unlit wooden torch packed for installation on a wall.",
++    "model": "res://assets/models/items/furniture/packed_furniture.glb",
++    "stack_max": 5,
++    "weight_class": "heavy",
++    "base_trade_value": 4,
++    "material_tags": ["wood", "furniture", "stockpile_furniture"]
++  },
++
+   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+ 
+   "base:resources:currency:gold_coin": {
+--- before/scripts/components/FurnitureGhostComponent.gd
++++ after/scripts/components/FurnitureGhostComponent.gd
+@@ -45,6 +45,7 @@
+ var source_id: int = -1             # TaskManager.allocate_source_id()
+ var drop_manager: Node3D = null     # ItemDropManager (guard is_instance_valid)
+ var install_callback: Callable = Callable()   # (ghost) -> controller install path
++var build_valid_callback: Callable = Callable() # support check before consuming item
+ 
+ var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
+ var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
+@@ -63,6 +64,8 @@
+ ## Floor cells covered by the footprint (v1 pieces are all 1×1; width/depth
+ ## swap under odd yaw steps so the math stays correct for future 2×1 pieces).
+ func footprint_cells() -> Array[Vector3i]:
++	if String(def.get("placement", "floor")) == "wall":
++		return []
+ 	var fp: Dictionary = def.get("footprint", {})
+ 	var w := int(fp.get("width", 1))
+ 	var d := int(fp.get("depth", 1))
+@@ -168,6 +171,8 @@
+ ## subsequent probe failed — each install silently ate a worker until the
+ ## whole crew stood frozen inside furniture. Build from beside, like mining.
+ func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
++	if String(def.get("placement", "floor")) == "wall":
++		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(origin_cell, dwarf_cell)
+ 	var best := Vector3i(-1, -1, -1)
+ 	var best_dist: int = 0x7FFFFFFF
+ 	for cell: Vector3i in footprint_cells():
+@@ -253,3 +258,7 @@
+ func complete_build(_dwarf_id: int) -> void:
+ 	if install_callback.is_valid():
+ 		install_callback.call(self)
++
++
++func can_complete_build() -> bool:
++	return not build_valid_callback.is_valid() or bool(build_valid_callback.call(self))
+--- before/scripts/components/InstalledFurnitureComponent.gd
++++ after/scripts/components/InstalledFurnitureComponent.gd
+@@ -82,6 +82,8 @@
+ ## Scheduler probe target / dwarf walk target: the nearest walkable cell
+ ## bordering the footprint (the footprint itself is occupied once installed).
+ func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
++	if String(def.get("placement", "floor")) == "wall":
++		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(origin_cell, dwarf_cell)
+ 	var best := Vector3i(-1, -1, -1)
+ 	var best_dist: int = 0x7FFFFFFF
+ 	for cell: Vector3i in cells:
+--- before/scripts/entities/DwarfAgent.gd
++++ after/scripts/entities/DwarfAgent.gd
+@@ -927,6 +927,11 @@
+ 	if source == null:
+ 		_fetch_fail_release()
+ 		return
++	# A wall can be mined during the work swing. Release the intact item if
++	# the mount lost its support before the deferred terrain check cancelled it.
++	if source.has_method("can_complete_build") and not bool(source.call("can_complete_build")):
++		_fetch_fail_release()
++		return
+ 	# Consume the carried item: it is the furniture now, not a drop.
+ 	if _fetch_item != null and is_instance_valid(_fetch_item):
+ 		_carried_entries = _carried_entries.filter(
+--- before/scripts/systems/FurniturePlacementController.gd
++++ after/scripts/systems/FurniturePlacementController.gd
+@@ -39,6 +39,8 @@
+ const SLICE_OFF_Y := 127
+ const RAY_MAX := 600.0
+ const WORLD_EDGE_MARGIN := 2
++const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
++const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
+ 
+ ## Ghost material: the real model, translucent (SH ghost_item parity —
+ ## alpha 0.3, doc 19 decision 7). Validity modulates the tint.
+@@ -53,6 +55,7 @@
+ signal furniture_uninstalled(furniture_key: String, origin_cell: Vector3i)
+ 
+ var _defs: Dictionary = {}            # furniture_key -> def Dictionary
++var _model_bounds: Dictionary = {}    # model path -> cached root-local visual AABB
+ var _dock_ui: Node = null
+ var _slice_y: int = SLICE_OFF_Y
+ 
+@@ -62,7 +65,7 @@
+ var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
+ var _hover_valid: bool = false
+ var _invalid_reason: String = ""     # "" | "cell" | "wall" (hint label text)
+-var _hint_label: Label3D = null
++var _hint_label: Label = null
+ 
+ var _preview: Node3D = null           # cursor ghost (one per activation)
+ var _preview_material: StandardMaterial3D = null
+@@ -74,6 +77,9 @@
+ var _next_installed_id: int = 1
+ var _installed: Dictionary = {}       # id -> InstalledFurnitureComponent
+ var _cell_to_installed: Dictionary = {}   # Vector3i -> installed id
++var _wall_to_ghost: Dictionary = {}      # Vector4i(floor x,y,z,yaw) -> ghost id
++var _wall_to_installed: Dictionary = {}  # separate from floor reservations
++var _wall_dirty: bool = false
+ 
+ # ── Work-source plumbing (doc 19 Phase 3) ─────────────────────────────────────
+ const LEASE_REFRESH_S := 0.25         # the StockpileManager throttle pattern
+@@ -113,6 +119,7 @@
+ 	TaskManager.task_failed.connect(func(task: Task, _reason: String) -> void: _route_task_gone(task, task.assigned_to))
+ 	TaskManager.task_released.connect(_on_task_released)
+ 	StockpileManager.stockpile_changed.connect(func(_k: String, _d: int) -> void: _mark_lease_dirty())
++	WorldData.chunk_dirtied.connect(_on_terrain_changed, CONNECT_DEFERRED)
+ 	_build_window()
+ 
+ 
+@@ -213,6 +220,9 @@
+ 			_wakes_connected = true
+ 			for ghost_id: int in _ghosts:
+ 				(_ghosts[ghost_id] as FurnitureGhostComponent).drop_manager = _drop_manager
++	if _wall_dirty:
++		_wall_dirty = false
++		_revalidate_wall_mounts()
+ 	if _lease_dirty:
+ 		_lease_accum += delta
+ 		if _lease_accum >= LEASE_REFRESH_S:
+@@ -288,11 +298,17 @@
+ 
+ func _update_hover(force: bool = false) -> void:
+ 	var hit := _surface_cell_for(get_viewport().get_mouse_position())
++	if WallMount.is_wall(_defs.get(_active_key, {})):
++		var prior_yaw := _yaw
++		hit = _wall_floor_hit(hit)
++		force = force or _yaw != prior_yaw
+ 	if hit.is_empty():
+ 		_hover_cell = Vector3i(-1, -1, -1)
+ 		_hover_valid = false
+ 		if _preview != null:
+ 			_preview.visible = false
++		if _hint_label != null:
++			_hint_label.visible = false
+ 		return
+ 	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
+ 	if cell == _hover_cell and not force:
+@@ -305,6 +321,8 @@
+ func _placement_valid(origin: Vector3i) -> bool:
+ 	_invalid_reason = ""
+ 	var def: Dictionary = _defs.get(_active_key, {})
++	if WallMount.is_wall(def):
++		return _wall_placement_valid(def, origin, _yaw)
+ 	for cell: Vector3i in _footprint_cells(def, origin, _yaw):
+ 		if not _is_valid_cell(cell):
+ 			_invalid_reason = "cell"
+@@ -312,7 +330,153 @@
+ 	if String(def.get("placement", "floor")) == "floor_wall" and not _has_wall_behind(def, origin):
+ 		_invalid_reason = "wall"
+ 		return false
++	# Low furniture may stand below a torch; tall furniture must not intersect it.
++	if (not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty()) \
++			and _intersects_wall_piece(_visual_bounds(def, origin, _yaw)):
++		_invalid_reason = "overlap"
++		return false
+ 	return true
++
++
++func _wall_key(origin: Vector3i, yaw: int) -> Vector4i:
++	return Vector4i(origin.x, origin.y, origin.z, posmod(yaw, 4))
++
++
++func _bounds_cells(bounds: AABB) -> Array[Vector3i]:
++	var result: Array[Vector3i] = []
++	var low := bounds.position + Vector3.ONE * .0001
++	var high := bounds.end - Vector3.ONE * .0001
++	for x in range(floori(low.x), ceili(high.x)):
++		for y in range(floori(low.y), ceili(high.y)):
++			for z in range(floori(low.z), ceili(high.z)):
++				result.append(Vector3i(x, y, z))
++	return result
++
++
++func _wall_structure_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
++	if origin.x < WORLD_EDGE_MARGIN or origin.x >= WorldGenerator.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
++			or origin.z < WORLD_EDGE_MARGIN or origin.z >= WorldGenerator.WORLD_SIZE_Z - WORLD_EDGE_MARGIN \
++			or origin.y <= 3:
++		return false
++	if not BlockRegistry.is_solid(_block_id(origin.x, origin.y, origin.z)):
++		return false
++	for support: Vector3i in WallMount.supports(def, origin, yaw):
++		if not BlockRegistry.is_solid(_block_id(support.x, support.y, support.z)):
++			return false
++	for cell: Vector3i in _bounds_cells(WallMount.bounds_for(def, origin, yaw)):
++		if cell.y >= WorldData.WORLD_SIZE_Y or _block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID:
++			return false
++	return true
++
++
++func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
++	if not _wall_structure_valid(def, origin, yaw):
++		_invalid_reason = "wall"
++		return false
++	if not _piece_visible(def, origin, yaw):
++		_invalid_reason = "slice"
++		return false
++	var key := _wall_key(origin, yaw)
++	var bounds: AABB = WallMount.bounds_for(def, origin, yaw)
++	if _wall_to_ghost.has(key) or _wall_to_installed.has(key) or _intersects_wall_piece(bounds):
++		_invalid_reason = "overlap"
++		return false
++	for cell: Vector3i in _bounds_cells(bounds):
++		if PlacedEntityRegistry.occupies(cell):
++			_invalid_reason = "overlap"
++			return false
++	for ghost: FurnitureGhostComponent in _ghosts.values():
++		if WallMount.is_wall(ghost.def):
++			continue
++		if bounds.intersects(_visual_bounds(ghost.def, ghost.origin_cell, ghost.yaw_steps)):
++			_invalid_reason = "overlap"
++			return false
++	for piece: InstalledFurnitureComponent in _installed.values():
++		if not WallMount.is_wall(piece.def) and bounds.intersects(_visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps)):
++			_invalid_reason = "overlap"
++			return false
++	if WallMount.nearest_stand(origin, origin).x < 0:
++		_invalid_reason = "access"
++		return false
++	return true
++
++
++## Visual overlap is separate from NavGrid occupancy: a four-high door is
++## walkable but still cannot pass through an elevated torch. Cache per asset.
++func _visual_bounds(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
++	var path := String(def.get("model", ""))
++	if not _model_bounds.has(path):
++		var packed := load(path) as PackedScene
++		if packed == null:
++			return AABB()
++		var model := packed.instantiate() as Node3D
++		var boxes: Array[AABB] = []
++		_collect_mesh_bounds(model, Transform3D.IDENTITY, boxes)
++		model.free()
++		var combined := AABB()
++		for i in range(boxes.size()):
++			combined = boxes[i] if i == 0 else combined.merge(boxes[i])
++		_model_bounds[path] = combined
++	return Transform3D(Basis(Vector3.UP, float(yaw)*PI*.5), _world_pos(def, origin, yaw)) * (_model_bounds[path] as AABB)
++
++
++func _collect_mesh_bounds(node: Node, parent_transform: Transform3D, boxes: Array[AABB]) -> void:
++	var transform := parent_transform
++	if node is Node3D:
++		transform = parent_transform * (node as Node3D).transform
++	if node is MeshInstance3D:
++		boxes.append(transform * (node as MeshInstance3D).get_aabb())
++	for child in node.get_children():
++		_collect_mesh_bounds(child, transform, boxes)
++
++
++func _intersects_wall_piece(bounds: AABB) -> bool:
++	for id: int in _wall_to_ghost.values():
++		var ghost: FurnitureGhostComponent = _ghosts[id]
++		if bounds.intersects(WallMount.bounds_for(ghost.def, ghost.origin_cell, ghost.yaw_steps).grow(-.0001)):
++			return true
++	for id: int in _wall_to_installed.values():
++		var piece: InstalledFurnitureComponent = _installed[id]
++		if bounds.intersects(WallMount.bounds_for(piece.def, piece.origin_cell, piece.yaw_steps).grow(-.0001)):
++			return true
++	return false
++
++
++func _on_terrain_changed(_cx: int, _cy: int, _cz: int) -> void:
++	if not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty():
++		_wall_dirty = true
++	if _active:
++		_hover_cell = Vector3i(-1, -1, -1) # refresh stationary cursor after mining
++
++
++func _revalidate_wall_mounts() -> void:
++	for id: int in _wall_to_ghost.values():
++		var ghost: FurnitureGhostComponent = _ghosts[id]
++		if not _wall_structure_valid(ghost.def, ghost.origin_cell, ghost.yaw_steps):
++			cancel_ghost(id)
++	for id: int in _wall_to_installed.values():
++		var piece: InstalledFurnitureComponent = _installed[id]
++		if not _wall_structure_valid(piece.def, piece.origin_cell, piece.yaw_steps):
++			_teardown_installed(id, true)
++
++
++## Aim at a vertical terrain face to choose its orientation automatically.
++## Floor aiming still supports R, including slice views that cut the wall away.
++func _wall_floor_hit(hit: Dictionary) -> Dictionary:
++	if hit.is_empty():
++		return {}
++	var normal: Vector3i = hit.get("normal", Vector3i.ZERO)
++	if normal.y != 0 or normal == Vector3i.ZERO:
++		return hit
++	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z)) + normal
++	for yaw in range(4):
++		if WallMount.back(yaw) == -normal:
++			_yaw = yaw
++			break
++	for y in range(cell.y, 3, -1):
++		if BlockRegistry.is_solid(_block_id(cell.x, y, cell.z)):
++			return {"x":cell.x, "y":y, "z":cell.z}
++	return {}
+ 
+ 
+ func _is_valid_cell(cell: Vector3i) -> bool:
+@@ -349,13 +513,15 @@
+ 
+ func _yaw_dir(local: Vector3i) -> Vector3i:
+ 	match _yaw % 4:
+-		1: return Vector3i(-local.z, local.y, local.x)
++		1: return Vector3i(local.z, local.y, -local.x)
+ 		2: return Vector3i(-local.x, local.y, -local.z)
+-		3: return Vector3i(local.z, local.y, -local.x)
++		3: return Vector3i(-local.z, local.y, local.x)
+ 	return local
+ 
+ 
+ func _footprint_cells(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Vector3i]:
++	if WallMount.is_wall(def):
++		return []
+ 	var fp: Dictionary = def.get("footprint", {})
+ 	var w := int(fp.get("width", 1))
+ 	var d := int(fp.get("depth", 1))
+@@ -401,7 +567,7 @@
+ func _position_preview(origin: Vector3i) -> void:
+ 	if _preview == null:
+ 		return
+-	_preview.visible = origin.x >= 0
++	_preview.visible = origin.x >= 0 and _piece_visible(_defs.get(_active_key, {}), origin, _yaw)
+ 	_preview.position = _world_pos(_defs.get(_active_key, {}), origin, _yaw)
+ 	_preview.rotation = Vector3(0.0, float(_yaw) * PI * 0.5, 0.0)
+ 	var tint := TINT_VALID if _hover_valid else TINT_INVALID
+@@ -411,30 +577,33 @@
+ 
+ ## Why-invalid hint (the mining-ruler lesson: never make the player guess).
+ ## Shown only for the wall requirement — plain cell blockage is self-evident.
+-func _update_hint(origin: Vector3i) -> void:
++func _update_hint(_origin: Vector3i) -> void:
+ 	if _hint_label == null:
+-		_hint_label = Label3D.new()
++		var layer := CanvasLayer.new()
++		layer.layer = 21
++		add_child(layer)
++		_hint_label = Label.new()
+ 		_hint_label.name = "PlacementHint"
+-		_hint_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+-		_hint_label.fixed_size = true
+-		_hint_label.pixel_size = 0.0008
+-		_hint_label.font_size = 84
+-		_hint_label.outline_size = 22
+-		_hint_label.modulate = Color(1.0, 0.75, 0.6)
+-		_hint_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+-		_hint_label.no_depth_test = true
+-		add_child(_hint_label)
+-	if _invalid_reason == "wall":
+-		_hint_label.text = "Needs a solid wall behind — R rotates"
+-		_hint_label.position = Vector3(float(origin.x) + 0.5, float(origin.y) + 3.4, float(origin.z) + 0.5)
+-		_hint_label.visible = true
+-	else:
+-		_hint_label.visible = false
++		_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
++		_hint_label.add_theme_font_size_override("font_size", 16)
++		_hint_label.add_theme_color_override("font_color", Color(1.0, .85, .65))
++		_hint_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, .9))
++		_hint_label.add_theme_constant_override("outline_size", 6)
++		layer.add_child(_hint_label)
++	var wall := WallMount.is_wall(_defs.get(_active_key, {}))
++	var hints := {"wall":"Needs a solid wall and four blocks of room height — R rotates",
++		"overlap":"Another piece occupies this space", "access":"A dwarf needs room to reach this wall",
++		"slice":"Raise the slice to show the torch"}
++	_hint_label.text = String(hints.get(_invalid_reason, "Point at a wall, or aim beside it and press R" if wall else ""))
++	_hint_label.visible = not _hint_label.text.is_empty()
++	_hint_label.position = Vector2(20, get_viewport().get_visible_rect().size.y - 180)
+ 
+ 
+ ## Node position for a footprint: the footprint centre on the floor top
+ ## (models are authored centred on X=Z=0 with base at Y=0).
+ func _world_pos(def: Dictionary, origin: Vector3i, yaw: int) -> Vector3:
++	if WallMount.is_wall(def):
++		return WallMount.position_for(def, origin, yaw)
+ 	var fp: Dictionary = def.get("footprint", {})
+ 	var w := int(fp.get("width", 1))
+ 	var d := int(fp.get("depth", 1))
+@@ -506,17 +675,21 @@
+ 		add_child(node)
+ 		node.position = _world_pos(def, _hover_cell, _yaw)
+ 		node.rotation = Vector3(0.0, float(_yaw) * PI * 0.5, 0.0)
+-		node.visible = _hover_cell.y + 1 <= _slice_y
++		node.visible = _piece_visible(def, _hover_cell, _yaw)
+ 	ghost.node = node
+ 	# Work source (doc 19 §3.3): allocator id, ONE fetch-and-build lease.
+ 	ghost.source_id = TaskManager.allocate_source_id()
+ 	ghost.drop_manager = _drop_manager
+ 	ghost.install_callback = Callable(self, "_on_ghost_build_complete")
++	ghost.build_valid_callback = Callable(self, "_can_build_ghost")
+ 	TaskManager.register_work_source(ghost.source_id, ghost)
+ 	_source_to_ghost[ghost.source_id] = ghost.ghost_id
+ 	_ghosts[ghost.ghost_id] = ghost
+ 	for cell: Vector3i in ghost.footprint_cells():
+ 		_cell_to_ghost[cell] = ghost.ghost_id
++	if WallMount.is_wall(def):
++		_wall_to_ghost[_wall_key(ghost.origin_cell, ghost.yaw_steps)] = ghost.ghost_id
++		_wall_dirty = true
+ 	_mark_lease_dirty()
+ 	print("FurniturePlacementController: ghost %d (%s) at %s yaw %d." % [
+ 		ghost.ghost_id, _active_key, str(_hover_cell), _yaw])
+@@ -539,6 +712,8 @@
+ 	ghost.release_claim()
+ 	for cell: Vector3i in ghost.footprint_cells():
+ 		_cell_to_ghost.erase(cell)
++	if WallMount.is_wall(ghost.def):
++		_wall_to_ghost.erase(_wall_key(ghost.origin_cell, ghost.yaw_steps))
+ 	if ghost.node != null and is_instance_valid(ghost.node):
+ 		ghost.node.queue_free()
+ 	_ghosts.erase(ghost_id)
+@@ -561,6 +736,8 @@
+ 	ghost.release_claim()
+ 	for cell: Vector3i in ghost.footprint_cells():
+ 		_cell_to_ghost.erase(cell)
++	if WallMount.is_wall(ghost.def):
++		_wall_to_ghost.erase(_wall_key(ghost.origin_cell, ghost.yaw_steps))
+ 	if ghost.node != null and is_instance_valid(ghost.node):
+ 		ghost.node.queue_free()
+ 	_ghosts.erase(ghost.ghost_id)
+@@ -569,12 +746,30 @@
+ 	_install(ghost.furniture_key, ghost.def, ghost.origin_cell, ghost.yaw_steps)
+ 
+ 
++## Checked by the dwarf before consuming its carried item, including the frame
++## between a support edit and the controller's deferred terrain notification.
++func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
++	if not _ghosts.has(ghost.ghost_id):
++		return false
++	if not WallMount.is_wall(ghost.def):
++		return true
++	if not _wall_structure_valid(ghost.def, ghost.origin_cell, ghost.yaw_steps):
++		return false
++	for cell: Vector3i in _bounds_cells(WallMount.bounds_for(ghost.def, ghost.origin_cell, ghost.yaw_steps)):
++		if PlacedEntityRegistry.occupies(cell):
++			return false
++	return true
++
++
+ ## DEV: materialise a ghost without a dwarf (the DEV-mine precedent) —
+ ## unblocks Phase 4 storage work before the Phase 3 fetch pipeline lands.
+ func dev_instant_build(ghost_id: int) -> void:
+ 	if not _ghosts.has(ghost_id):
+ 		return
+ 	var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
++	if not _can_build_ghost(ghost):
++		cancel_ghost(ghost_id)
++		return
+ 	var key := ghost.furniture_key
+ 	var def := ghost.def
+ 	var origin := ghost.origin_cell
+@@ -620,7 +815,8 @@
+ 		add_child(node)
+ 		node.position = _world_pos(def, origin, yaw)
+ 		node.rotation = Vector3(0.0, float(yaw) * PI * 0.5, 0.0)
+-		node.visible = origin.y + 1 <= _slice_y
++		Lighting.attach(node, def)
++		node.visible = _piece_visible(def, origin, yaw)
+ 	# Occupancy: one box per collision region (footprint-local block coords;
+ 	# origin (0,0,0) = bottom-front-left at floor+1). NavGrid invalidates on
+ 	# occupancy_changed (the flag precedent). Offset regions rotate with the model.
+@@ -649,13 +845,23 @@
+ 	_installed[component.installed_id] = component
+ 	for cell: Vector3i in component.cells:
+ 		_cell_to_installed[cell] = component.installed_id
++	if WallMount.is_wall(def):
++		_wall_to_installed[_wall_key(origin, yaw)] = component.installed_id
++		_wall_dirty = true
+ 	print("FurniturePlacementController: installed %s at %s." % [key, str(origin)])
+ 	furniture_installed.emit(key, origin)
+ 	# doc 22: RoomManager tracks door/heat-source cells by direct call, not by
+ 	# subscribing to this signal — it's an autoload and this is a scene node,
+ 	# so the call has to go this direction (see RoomManager's file header).
+-	RoomManager.on_furniture_changed(key, component.cells, def, true)
++	RoomManager.on_furniture_changed(key, _room_cells(component), def, true)
+ 	_next_installed_id += 1
++
++
++func _room_cells(component: InstalledFurnitureComponent) -> Array[Vector3i]:
++	# A wall light contributes heat at its service-floor anchor, reserving no floor.
++	if WallMount.is_wall(component.def):
++		return [component.origin_cell]
++	return component.cells
+ 
+ 
+ ## The real uninstall path (doc 19 §3.4): the dwarf finished the teardown
+@@ -688,11 +894,14 @@
+ 		PlacedEntityRegistry.unregister(occupancy_id)
+ 	for cell: Vector3i in component.cells:
+ 		_cell_to_installed.erase(cell)
++	if WallMount.is_wall(component.def):
++		_wall_to_installed.erase(_wall_key(component.origin_cell, component.yaw_steps))
+ 	if component.node != null and is_instance_valid(component.node):
++		component.node.visible = false # switch light off immediately, before queue_free
+ 		component.node.queue_free()
+ 	_installed.erase(installed_id)
+ 	furniture_uninstalled.emit(component.furniture_key, component.origin_cell)
+-	RoomManager.on_furniture_changed(component.furniture_key, component.cells, component.def, false)
++	RoomManager.on_furniture_changed(component.furniture_key, _room_cells(component), component.def, false)
+ 	if _drop_manager != null and is_instance_valid(_drop_manager) and not component.item_key.is_empty():
+ 		var cell := component.origin_cell
+ 		_drop_manager.call("spawn_drop", component.item_key, 1, Vector3i(cell.x, cell.y + 1, cell.z))
+@@ -795,6 +1004,8 @@
+ 
+ func _try_select_at_screen(screen_pos: Vector2) -> bool:
+ 	var hit := _surface_cell_for(screen_pos)
++	if _try_select_wall(screen_pos, hit):
++		return true
+ 	if hit.is_empty():
+ 		return false
+ 	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
+@@ -805,6 +1016,40 @@
+ 		_open_installed_window(int(_cell_to_installed[cell]))
+ 		return true
+ 	return false
++
++
++func _try_select_wall(screen_pos: Vector2, terrain_hit: Dictionary) -> bool:
++	var camera := get_viewport().get_camera_3d()
++	if camera == null:
++		return false
++	var start := camera.project_ray_origin(screen_pos)
++	var direction := camera.project_ray_normal(screen_pos).normalized()
++	var nearest := float(terrain_hit.get("distance", RAY_MAX)) + .001
++	var selected_id := -1
++	var selected_ghost := false
++	for ghost_pass: bool in [true, false]:
++		var pieces: Dictionary = _ghosts if ghost_pass else _installed
++		var ids: Array = _wall_to_ghost.values() if ghost_pass else _wall_to_installed.values()
++		for id: int in ids:
++			var piece = pieces[id]
++			if piece.node == null or not piece.node.is_visible_in_tree():
++				continue
++			var bounds: AABB = WallMount.bounds_for(piece.def, piece.origin_cell, piece.yaw_steps)
++			var intersection: Variant = bounds.intersects_segment(start, start + direction * RAY_MAX)
++			if intersection == null:
++				continue
++			var distance := start.distance_to(intersection as Vector3)
++			if distance < nearest:
++				nearest = distance
++				selected_id = id
++				selected_ghost = ghost_pass
++	if selected_id < 0:
++		return false
++	if selected_ghost:
++		_open_ghost_window(selected_id)
++	else:
++		_open_installed_window(selected_id)
++	return true
+ 
+ 
+ # ── Raycasting (slice-aware voxel DDA, 2026-08-06) ─────────────────────────────
+@@ -862,6 +1107,7 @@
+ 		_axis_t_max(origin.y, direction.y, pos.y),
+ 		_axis_t_max(origin.z, direction.z, pos.z))
+ 	var travelled := 0.0
++	var normal := Vector3i.ZERO
+ 
+ 	while travelled <= RAY_MAX:
+ 		if pos.x >= 0 and pos.x < WorldGenerator.WORLD_SIZE_X \
+@@ -869,7 +1115,7 @@
+ 			if pos.y >= 0 and pos.y <= _slice_y:
+ 				var block_id := _block_id(pos.x, pos.y, pos.z)
+ 				if BlockRegistry.is_solid(block_id):
+-					return { "x": pos.x, "y": pos.y, "z": pos.z }
++					return { "x": pos.x, "y": pos.y, "z": pos.z, "normal":normal, "distance":travelled }
+ 		elif pos.y < 0:
+ 			return {}
+ 
+@@ -877,14 +1123,17 @@
+ 			pos.x += step.x
+ 			travelled = t_max.x
+ 			t_max.x += t_delta.x
++			normal = Vector3i(-step.x, 0, 0)
+ 		elif t_max.y <= t_max.z:
+ 			pos.y += step.y
+ 			travelled = t_max.y
+ 			t_max.y += t_delta.y
++			normal = Vector3i(0, -step.y, 0)
+ 		else:
+ 			pos.z += step.z
+ 			travelled = t_max.z
+ 			t_max.z += t_delta.z
++			normal = Vector3i(0, 0, -step.z)
+ 
+ 	return {}
+ 
+@@ -898,6 +1147,13 @@
+ 
+ # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────
+ 
++func _piece_visible(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
++	# Keep the local emitter below the cut plane, where the visible terrain
++	# still encloses it. Otherwise it would shine over a sliced-away wall.
++	if WallMount.is_wall(def):
++		return ceili(WallMount.bounds_for(def, origin, yaw).end.y - .0001) - 1 <= _slice_y
++	return floori(_world_pos(def, origin, yaw).y + .0001) <= _slice_y
++
+ func _on_slice_changed(new_slice_y: int) -> void:
+ 	if new_slice_y == _slice_y:
+ 		return
+@@ -905,11 +1161,13 @@
+ 	for ghost_id: int in _ghosts:
+ 		var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
+ 		if ghost.node != null and is_instance_valid(ghost.node):
+-			ghost.node.visible = ghost.origin_cell.y + 1 <= _slice_y
++			ghost.node.visible = _piece_visible(ghost.def, ghost.origin_cell, ghost.yaw_steps)
+ 	for installed_id: int in _installed:
+ 		var component: InstalledFurnitureComponent = _installed[installed_id]
+ 		if component.node != null and is_instance_valid(component.node):
+-			component.node.visible = component.origin_cell.y + 1 <= _slice_y
++			component.node.visible = _piece_visible(component.def, component.origin_cell, component.yaw_steps)
++	if _active:
++		_update_hover(true)
+ 
+ 
+ # ── Windows (compact — the stockpile zone window pattern) ─────────────────────
+--- before/scripts/systems/RoomManager.gd
++++ after/scripts/systems/RoomManager.gd
+@@ -122,13 +122,15 @@
+ 	var heat: Dictionary = def.get("heat_source", {})
+ 	if not heat.is_empty() and not cells.is_empty():
+ 		var origin_cell: Vector3i = cells[0]
+-		if installed:
+-			_heat_cells[origin_cell] = int(heat.get("heat_units", 0))
+-			changed = true
++		# Wall mounts can share a floor anchor with another heat source.
++		# Add/remove only this piece's contribution, never overwrite its neighbor.
++		var units := int(heat.get("heat_units", 0))
++		var remaining := maxi(0, int(_heat_cells.get(origin_cell, 0)) + (units if installed else -units))
++		if remaining > 0:
++			_heat_cells[origin_cell] = remaining
+ 		else:
+-			if _heat_cells.has(origin_cell):
+-				_heat_cells.erase(origin_cell)
+-				changed = true
++			_heat_cells.erase(origin_cell)
++		changed = true
+ 	if changed:
+ 		_mark_dirty()
+ 
+--- before/scripts/systems/SkyController.gd
++++ after/scripts/systems/SkyController.gd
+@@ -150,6 +150,7 @@
+ 			_sky_mat = _env.sky.sky_material as ProceduralSkyMaterial
+ 
+ 	if _sun != null:
++		preload("res://scripts/components/TerrainLighting.gd").configure_sun(_sun)
+ 		_sun_yaw = _sun.rotation_degrees.y
+ 		_moon_yaw = _sun_yaw + 180.0
+ 
+--- before/scripts/systems/StockpileDesignationController.gd
++++ after/scripts/systems/StockpileDesignationController.gd
+@@ -77,6 +77,7 @@
+ 	"base:resources:furniture:wooden_chair": 1,
+ 	"base:resources:furniture:dwarf_bunk": 1,
+ 	"base:resources:furniture:brewing_vat": 1,
++	"base:resources:furniture:wall_torch": 4,
+ }
+ 
+ signal zone_created(zone_id: int)
+--- before/scripts/systems/WorldRenderer.gd
++++ after/scripts/systems/WorldRenderer.gd
+@@ -814,7 +814,7 @@
+ 		_cavity_shell_node = MeshInstance3D.new()
+ 		_cavity_shell_node.name = "CavityShell"
+ 		_cavity_shell_node.material_override = _material
+-		_cavity_shell_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
++		preload("res://scripts/components/TerrainLighting.gd").configure_mesh(_cavity_shell_node)
+ 		add_child(_cavity_shell_node)
+ 
+ 	if _visual_cut_blocks.is_empty():
+@@ -1109,7 +1109,7 @@
+ 	var mi := MeshInstance3D.new()
+ 	mi.position          = Vector3(cx * CHUNK_SIZE, cy * CHUNK_SIZE, cz * CHUNK_SIZE)
+ 	mi.material_override = _material
+-	mi.cast_shadow       = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
++	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(mi)
+ 	add_child(mi)
+ 	_chunk_nodes[key] = mi
+ 	return mi
+@@ -1551,7 +1551,7 @@
+ 	var mi := MeshInstance3D.new()
+ 	mi.name = "Region_%d_%d" % [key.x, key.y]
+ 	mi.material_override = _material
+-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
++	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(mi)
+ 	add_child(mi)
+ 	_region_nodes[key] = mi
+ 	return mi
+@@ -1738,7 +1738,7 @@
+ 	var mi := MeshInstance3D.new()
+ 	mi.name = "BlockFaceOverview_%d_%d" % [key.x, key.y]
+ 	mi.material_override = _material
+-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
++	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(mi)
+ 	add_child(mi)
+ 	_overview_tile_nodes[key] = mi
+ 	return mi
+--- before/scripts/ui/DockUI.gd
++++ after/scripts/ui/DockUI.gd
+@@ -59,6 +59,7 @@
+ 	"📥 Wooden Chair": "base:furniture:wooden_chair",
+ 	"📥 Dwarven Bed": "base:furniture:dwarf_bunk",
+ 	"📥 Brewing Vat": "base:furniture:brewing_vat",
++	"📥 Wall Torch": "base:furniture:wall_torch",
+ }
+ 
+ ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
+@@ -728,7 +729,7 @@
+ 		"chop":
+ 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
+ 		"build":
+-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "Cancel"]
++			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "Cancel"]
+ 		"storage_zone":
+ 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
+ 		"farm":
+--- before/docs/20_player_interface/23_user_interface.md
++++ after/docs/20_player_interface/23_user_interface.md
+@@ -177,14 +177,20 @@
+ | Panel | Contents |
+ |---|---|
+ | Mine | Designate mining zones, clear rubble, channel floors |
+-| Build | **Twelve furniture entries live (2026-10-02):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed and Brewing Vat. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshops remain future work. |
++| Build | **Thirteen furniture entries live (2026-10-02):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat and Wall Torch. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshops remain future work. |
+ | Farm | Designate soil plots, assign crops |
+ | Military | Set patrol routes, guard posts (future) |
+ 
+-Action-panel buttons use a six-column grid. The twelve furniture entries occupy
+-two rows, with Cancel on a third row. The panel stays centered above the dock
+-and grows upward as needed ([art doc 42](../00_dev_roadmap/42_brewing_vat_asset_and_placement.md)).
++Action-panel buttons use a six-column grid. Thirteen furniture entries and Cancel
++occupy three rows. The panel stays centered above the dock and grows upward as
++needed ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
+ Smaller menus remain on one row. The Build panel is verified at 1280×800 and 2560×1440.
++
++Wall Torch aims at vertical terrain faces and chooses their orientation automatically;
++aiming at the adjoining floor keeps R rotation available. It needs four blocks of room
++height. The wall-mount hint is a screen-space `Label` on a `CanvasLayer`, replacing the
++old placement `Label3D`. Installed torches are selected directly by their visible model
++bounds, with terrain occlusion and slice visibility respected.
+ 
+ ### Emoji Rendering Requirement
+ 
+--- before/docs/20_player_interface/24_world_rendering.md
++++ after/docs/20_player_interface/24_world_rendering.md
+@@ -76,6 +76,20 @@
+ When the player is working inside a carved underground chamber and the slice removes geometry above them, the black void is not perceived as a missing sky — it reads as the solid mountain above. This effect is free and correct. Do not add ambient fill light or particle effects to the overhead void.
+ 
+ ### Underground Lighting Model
++
++**Wall torch lighting shipped 2026-10-02** ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
++Installed torches add bounded warm omni lights and 200 heat units. All four terrain
++mesh paths (chunk, region, overview and cavity shell) now cast local-light shadows,
++so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain;
++the sun excludes that layer from its **shadow-caster** mask while retaining its
++normal light mask. Thus terrain still receives daylight and the existing sun-shadow
++behavior is preserved. Camera cull masks include layer 20. A torch is hidden with
++its light when the slice cuts below its flame, preventing illumination over a
++sliced-away wall. Terrain identity, material colors and discovery rules are unchanged.
++
++The GPU occlusion check measured zero illumination behind a test wall, versus
++0.574 luminance with its local-light shadows disabled. The broader underground
++ambient-light decisions below remain open.
+ 
+ Stonehearth's slice view works on a surface world where ambient sunlight exists at all depths. **DwarfVoxel is primarily underground — the sunlight model does not reach deep slices.**
+ 
+--- before/docs/30_simulation_systems/34_temperature.md
++++ after/docs/30_simulation_systems/34_temperature.md
+@@ -5,6 +5,9 @@
+ > from door cells, the depth/heat/seasonal/daily formula below (ported verbatim),
+ > heat-source aggregation from installed furniture (`hearth.json`'s
+ > `heat_source.heat_units`), and the recalculation triggers in this doc are all live.
++> **2026-10-02:** wall torches now supply 200 heat units and warm local lighting
++> ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)). Sources sharing
++> a floor anchor sum their heat; removing one preserves the others.
+ > **The inspect-panel UI shipped 2026-08-07 (v1):** the **Block Inspector** (🔍) is the
+ > doc 34 inspect panel — hovering any block adjacent to a sealed room's interior appends
+ > the room block (Sealed/Frozen Vault + zone name, temp °C, volume, heat units + bonus °C,
+@@ -179,7 +182,7 @@
+ 
+ | Heat Source | Item Key | Heat Units | Notes |
+ |---|---|---|---|
+-| Torch | `base:item:torch` | 200 | Placeable on any wall or floor block |
++| Wall Torch | `base:furniture:wall_torch` (packed: `base:resources:furniture:wall_torch`) | 200 | Shipped wall mount; no floor reservation, four-block room height; always lit in v1 |
+ | Brazier | `base:item:brazier` | 600 | Future item — more efficient for large rooms |
+ 
+ ### Worked Examples (cold mountain gradient)
+--- before/docs/60_asset_creation/61_voxel_art_guide.md
++++ after/docs/60_asset_creation/61_voxel_art_guide.md
+@@ -574,11 +574,12 @@
+ and a raised knot. The original **5×4×5-cell envelope** is preserved at eight
+ voxels/block: 0.625 wide/deep and 0.5 high, including the knot. It keeps the
+ original local bounds (X/Z −0.25 to +0.375, Y 0 to 0.5) and native carry scale.
+-Shelf display size now fits the slot as described above. All twelve packed
++Shelf display size now fits the slot as described above. All thirteen packed
+ furniture types share one model. `tools/generate_packed_furniture_redesign.py` owns the geometry and
+ local linear `COLOR_0` export; the canonical furniture generator delegates
+ its packed item to this builder. The trade counter, dining table, wooden chair, bed
+-and brewing vat joined this shared item family in art docs 37–40 and 42; existing
++and brewing vat joined this shared item family in art docs 37–40 and 42; the wall
++torch joins in art doc 43. Existing
+ carry behavior is unchanged.
+ 
+ ---
+@@ -654,11 +655,34 @@
+ 
+ ---
+ 
+-#### Torch Wall Mount (`base:furniture:wall_torch`)
++#### Torch Wall Mount (`base:furniture:wall_torch`) — built 2026-10-02
+ 
+ Footprint: **wall-placed** (no floor footprint, no floor collision region).
+ 
+-Iron bracket (`torch_bracket`) holding a stick torch (`torch_handle`) with a 3-voxel flame cap: `flame_core` → `flame_mid` → `flame_tip`. Mesh only — the Godot `OmniLight3D` is a separate child node added by the scene builder, not part of the GLB.
++Riveted, stepped iron bracket (`torch_bracket`) with a projecting cradle, charred
++wooden handle (`torch_handle`), open basket prongs and an asymmetric amber flame
++with a pale hot core. The **1.5-block-high** model uses **122 voxels** at eight
++voxels/block. Local bounds: X [-0.375,0.25], Y [0,1.5], Z [0,0.75]; rear plane
++Z=0 touches the wall. `torch_body` and `torch_flame` are separate named meshes
++in one GLB, enabling selective flame emission. Linear `COLOR_0`, scale 0.125 baked.
++
++Installed torches mount **2.5 blocks above the floor surface**, requiring four
++blocks of room height. They add warm shadowed `OmniLight3D` lighting (a runtime
++child, absent from the GLB/ghost/packed item) and **200 heat units**. The floor
++remains walkable and can hold a zone or low furniture. Aim at a wall face for
++automatic orientation, or the adjoining floor and press R. Loss of the supporting
++wall cancels the ghost or refunds the installed piece. No fuel/ignition system yet.
++
++**Animated fire (2026-10-02 follow-up):** eight sculpted voxel flame frames rise,
++split and collapse, with a drifting hot core and gentle light/emission flicker.
++Hardware stays static; each torch gets an independent timing offset. Frames remain
++inside the original bounds. The separate `animations/wall_torch_flame.glb` library
++is shared at runtime; only one flame mesh is drawn per torch. Hidden slices suspend
++animation, and ghosts/packed items stay static and unlit. The effect is cosmetic
++and does not pulse the 200-unit heat output.
++
++`tools/generate_wall_torch.py` owns the art and isolated review; the canonical
++generator delegates its multi-mesh export. See [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md).
+ 
+ ---
+ 
+--- before/docs/60_asset_creation/62_furniture_catalog.md
++++ after/docs/60_asset_creation/62_furniture_catalog.md
+@@ -25,7 +25,7 @@
+ | Dwarven Bed | `base:furniture:dwarf_bunk` | **SHIPPED (2026-10-01, [art doc 40](../00_dev_roadmap/40_bed_asset_and_placement.md))** — independent 4×2 oak/iron bed, 1-block mattress and 2-block headboard | Placement live; bed assignment, walking to bed, sleep animation and `slept_in_bed` thought remain future work (doc 41; sleep-lite remains in-place) |
+ | Wooden Chair | `base:furniture:wooden_chair` | **SHIPPED (2026-10-01, [art doc 39](../00_dev_roadmap/39_chair_asset_and_placement.md))** — independent 1×1 oak/iron armchair, 2-block back and 1-block seat rim | Placeable seating; sitting, seat assignments and dining/comfort effects remain future work |
+ | Dining Table | `base:furniture:wooden_table` | **SHIPPED (2026-10-01, [art doc 38](../00_dev_roadmap/38_dining_table_asset_and_placement.md))** — 2×2 oak/iron table, 1.5 blocks tall; packed item and placement live | Dining-hall furniture; eating/seating/comfort behavior remains future work |
+-| Wall Torch | `base:furniture:wall_torch` | SPEC (61 §5.4) | Light + **200 heat units** (doc 34) |
++| Wall Torch | `base:furniture:wall_torch` | **SHIPPED (2026-10-02, [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md))** — iron/wood mount, 1.5 blocks tall; wall placement with a walkable floor | Warm local light and **200 heat units**, real room-temperature contribution; no fuel consumption yet |
+ | Brazier | `base:item:brazier` | PLAN (doc 34 — "future item") | **600 heat units**; large-room heating |
+ | Anvil | `base:furniture:anvil` | SPEC (61 §5.4) | Forge visual anchor (doc 44) |
+ | Rune Shelf | `base:furniture:rune_shelf` | SPEC (61 §5.4) | Decorative / future room appeal |
+@@ -47,8 +47,8 @@
+ Stone Boulder · Mining Cart · Water Barrel · Fence Post / Palisade · Runic Standing Stone ·
+ Mushroom Lantern (the underground torch alternative — `glow_blue` palette).
+ 
+-**Totals: 20 furniture pieces (12 shipped — 3 from doc 19, 3 from doc 21,
+-1 from doc 22, 1 each from art docs 37–40 and 42; remaining pieces specced or planned),
++**Totals: 20 furniture pieces (13 shipped — 3 from doc 19, 3 from doc 21,
++1 from doc 22, 1 each from art docs 37–40 and 42–43; remaining pieces specced or planned),
+ 5 workshops, 6 decoratives.**
+ 
+ ---
+--- before/tools/generate_furniture_glbs.py
++++ after/tools/generate_furniture_glbs.py
+@@ -77,6 +77,10 @@
+ 
+ DOC 42 ART ADDITION (2026-10-02): the 2x2 brewing vat has an open oak rim,
+ recessed liquid, iron hoops and copper tap, within a 2-block height.
++
++DOC 43 ART ADDITION (2026-10-02): wall_torch has separate body/flame meshes,
++1.5-block height and a wall-facing rear plane at Z=0. Its emitter is a
++runtime child, not part of the GLB. Thirteen placed forms + one packed item.
+ 
+ DOC 22 ADDITION (2026-08-03, doors — the sealed-room/temperature prerequisite):
+ door (originally 1×1, thin plank plane, EMPTY collision_regions in door.json —
+@@ -571,6 +575,22 @@
+     print(f"  items/furniture/packed_furniture.glb {len(box):4d} voxels  {size:6d} B")
+     total += size
+ 
++    # This placed piece needs named body/flame meshes for selective emission.
++    from generate_wall_torch import torch, write_parts, write_flames
++    torch_body, torch_flame = torch()
++    torch_path = placed_dir / "wall_torch.glb"
++    write_parts(torch_path, [("torch_body", torch_body), ("torch_flame", torch_flame)],
++                root / "tmp" / "furniture_review")
++    size = torch_path.stat().st_size
++    total += size
++    torch_body.update(torch_flame)
++    placed.append(("wall_torch", torch_body))
++    print(f"  furniture/wall_torch.glb     {len(torch_body):4d} voxels  {size:6d} B")
++    flame_path = placed_dir / "animations" / "wall_torch_flame.glb"
++    write_flames(flame_path, root / "tmp" / "furniture_review")
++    total += flame_path.stat().st_size
++    print(f"  furniture/animations/wall_torch_flame.glb  8 animation frames")
++
+     sheet = _sheet(
+         [(f"{n} (placed)", v) for n, v in placed] + [("packed box (item)", box)],
+         root / "tmp" / "furniture_review" / "furniture_sheet.png")

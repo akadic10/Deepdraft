@@ -1,0 +1,1670 @@
+{
+  "asset_hashes": {
+    "assets/models/flora/trees/apple/apple_ancient.glb": "a7b9a96915335c31914230d401d1084d9f1351be991eb34c2313303077380233",
+    "assets/models/flora/trees/apple/apple_ancient_2.glb": "bd7e82d8bc0ef27c53b7d1d5c1be702dd40870a64a091728cb1823ac0b4586fa",
+    "assets/models/flora/trees/apple/apple_ancient_3.glb": "fa6fc34b1c3719adec4edfb698f316c4c5ee57348080a64bda0098b503e232fe",
+    "assets/models/flora/trees/apple/apple_ancient_autumn.glb": "903598aa1436cdbac59cbf1da67869a95a75ba3f0237e40e95707e94d369669c",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_2.glb": "e95fcbac84781921b5aca6a8a55453c02a54a05c0d46cc383d50c6780b9504ec",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_3.glb": "f47ccd7371d8cd94a708c4305419cab207832d4b79c4255efa2cf50ec33d6a0d",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting.glb": "5efb5087165b3bac4ab86518af1776b58eef22afa7e2d7465b91cdd1d1eaf31f",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting_2.glb": "3a364d664af72a5a4798e95ef3640a7f99dae5fead5578aab4527340add310e8",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting_3.glb": "90e5cba789c105b674959de4b3eedfb7bf41a4e2b0008d4061113b34857a0059",
+    "assets/models/flora/trees/apple/apple_ancient_spring.glb": "9a2f68cad508de3b250c6099f15ed9c37191a5a991726203f862769c9f91b163",
+    "assets/models/flora/trees/apple/apple_ancient_spring_2.glb": "5b775877adcc214c240b14fa71328deb02127e4de00d1b61901f0c1c7aebcdcb",
+    "assets/models/flora/trees/apple/apple_ancient_spring_3.glb": "478c78e7335665edfe55d06b94035c73c39bbe462a91f2ad1c96292d46a2b669",
+    "assets/models/flora/trees/apple/apple_ancient_winter.glb": "5d522911fcab33ab4065ecbb6aa36bea82223d756c9918b84be0f8a74903f596",
+    "assets/models/flora/trees/apple/apple_ancient_winter_2.glb": "97e9f70e638c2c4d1391a9c3b332d0488dd2b44cfd15c4d04c77bb6c28e808a8",
+    "assets/models/flora/trees/apple/apple_ancient_winter_3.glb": "7caf0555d433c89b6a7610f4f95d614f54367c969d4cd010437d4b54d2effcd2",
+    "assets/models/flora/trees/apple/apple_mature.glb": "a66933e1d8be601a6437ab6e7143fe55659b9ea0402ae9a479a4bb2dd2ac35cb",
+    "assets/models/flora/trees/apple/apple_mature_2.glb": "7ac146a133ce731c976881b5a46aabe51fe03f1c7da312e4ebd6f5be0b0c7f92",
+    "assets/models/flora/trees/apple/apple_mature_3.glb": "288605ab39d5ffb830a633c9541793de28cc7118cc29e96fada2b560966dadfc",
+    "assets/models/flora/trees/apple/apple_mature_autumn.glb": "93911e71cdd05baf3f5a239ec7f9e08526209f961a132170b0a38e60a61f3eda",
+    "assets/models/flora/trees/apple/apple_mature_autumn_2.glb": "e551467479ec578c1da1c8ae6af94b0fea646b880c7118e36d6af0eb8d7c5b81",
+    "assets/models/flora/trees/apple/apple_mature_autumn_3.glb": "45ea507f536c0aae910febc79e60e0959d8afb109f7dc5fafdae59a1452b2032",
+    "assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb": "7575f53971e565f5c74f7bedf7447fa7a8c55ec225035f5393b6de25bb061e79",
+    "assets/models/flora/trees/apple/apple_mature_autumn_fruiting_2.glb": "16a447f1fdedd4e116a140f036d3060ac9993c6ea6ff6c224a4077723feb4bf7",
+    "assets/models/flora/trees/apple/apple_mature_autumn_fruiting_3.glb": "e58937b14c9f65a83dfc217a5097e86bddea455572209da48d274997806fe374",
+    "assets/models/flora/trees/apple/apple_mature_spring.glb": "b6f3ebc6ae4957631571ef37c8a547ddf1d83a0cfa2494e3dfa8c3da2402ed3b",
+    "assets/models/flora/trees/apple/apple_mature_spring_2.glb": "1e0fb3dd603d2f444dbc93d367959202c4ddaa35f95d02d6ae7fc9897a0022b4",
+    "assets/models/flora/trees/apple/apple_mature_spring_3.glb": "32e3016ab57782ddad95956b23a5d068e1ac38d982fe6c402c1ff5f719b33892",
+    "assets/models/flora/trees/apple/apple_mature_winter.glb": "5d41d3575ba45abc7679084d36e8a74805a10b14e3dc8dd20a9f7ab7a1afd096",
+    "assets/models/flora/trees/apple/apple_mature_winter_2.glb": "ba6aaa3731cf6eb116d464498f0053db55d181e2b2feb3edb1704b1b71b08ff0",
+    "assets/models/flora/trees/apple/apple_mature_winter_3.glb": "a89fc6b85e7cf43cb9cefda8118c7547cc633ff2b9358b6b60a4ba67421d1ef9",
+    "assets/models/flora/trees/apple/apple_sapling.glb": "2c59488b51fca350011726ffae111ecfb381b02996eca5d202bdad9bbf5eb589",
+    "assets/models/flora/trees/apple/apple_sapling_autumn.glb": "1443ebcaff596713eb3d64b45c0deefa1fca7f632e05e0d1b8b8b5629d6e32f9",
+    "assets/models/flora/trees/apple/apple_sapling_spring.glb": "0b5b4593871313fb07a51f2429eb9213722c7fa24f248ea8a880e138621e5049",
+    "assets/models/flora/trees/apple/apple_sapling_winter.glb": "0f3b95c1ea1294d503f4bb3893508dfeb993a67373201a78339ef9773c985df8",
+    "assets/models/flora/trees/juniper/juniper_ancient.glb": "dad6ea3818998475e033120c785e90f33e10d7ffa9ce3999170aab779e9fb5d6",
+    "assets/models/flora/trees/juniper/juniper_ancient_2.glb": "71dba06ef172168372a0560397085e0ebbe32676f4f18a587c32eacaed07984f",
+    "assets/models/flora/trees/juniper/juniper_ancient_winter.glb": "8a3b8075e4b90e8aee08a6f4022f75eedcf171113f8c8e1ebbe2662bba8868b0",
+    "assets/models/flora/trees/juniper/juniper_ancient_winter_2.glb": "5af8a44938a8ca8329fff6a54402efb51ca9732ccef5e598bb7920ea65e26633",
+    "assets/models/flora/trees/juniper/juniper_mature.glb": "ed5d740c3705c1985ef3a0dbd142711d5a0d79178cbfeed2f605a2b0985a908e",
+    "assets/models/flora/trees/juniper/juniper_mature_2.glb": "e8f4adf40c869731ed7cf09b7b25c550acbff3fd39b786fcb25035c76fe6e123",
+    "assets/models/flora/trees/juniper/juniper_mature_winter.glb": "42e8bf55d2f2fd2b3617d28b1fb3be10a37bca94183b2e169c746db596ce3ac4",
+    "assets/models/flora/trees/juniper/juniper_mature_winter_2.glb": "88216ee01c32235566f4885ad9c404893b3a45bd24474ad40635e23a2cd39c17",
+    "assets/models/flora/trees/juniper/juniper_sapling.glb": "3ef1a0b6f71bffa0278b3ebf27fcad60dd7c0f92997851ed993bccae3a9ec86f",
+    "assets/models/flora/trees/juniper/juniper_sapling_winter.glb": "c05672d16e122153310fcd5de47c07aaf4ab8cc126e46dabe2d50133736596c0",
+    "assets/models/flora/trees/oak/oak_ancient.glb": "1db3206d407db0840536a3c5f0ecdff1cc66047603543fe8349b31b2deb563db",
+    "assets/models/flora/trees/oak/oak_ancient_2.glb": "2517b6296f748f3556e256ab595131ceda1cd9b67f7d781ae03899e276f1569a",
+    "assets/models/flora/trees/oak/oak_ancient_3.glb": "a470acf6d23b70168459b02271a7b1af70a15267ef59fed6e5c132b6d5ecc416",
+    "assets/models/flora/trees/oak/oak_ancient_autumn.glb": "f5552a085c46e714f8b10f5f800a57352bc1e084b96a44475d1ea32ec71d7031",
+    "assets/models/flora/trees/oak/oak_ancient_autumn_2.glb": "f40455471e98530dd87dc82364de07efe5fb627aabaedef6325682b54341c208",
+    "assets/models/flora/trees/oak/oak_ancient_autumn_3.glb": "d700bdca43c1a432c77019b75d5bba097c66ed5e470d1d1378af74c09cfeb4cf",
+    "assets/models/flora/trees/oak/oak_ancient_spring.glb": "44a81617a7bb51bbd96ba3e68db4597f0325547693f7b36f5db8900a150c997d",
+    "assets/models/flora/trees/oak/oak_ancient_spring_2.glb": "9ea391cd6f4249170efc874c16b7d66bdbdb8661bc088f302b5469d88c59282e",
+    "assets/models/flora/trees/oak/oak_ancient_spring_3.glb": "5c33be971d45f38ece50f97a3bfa0d88bc505651ef4f3f75b91891a37a8e6d78",
+    "assets/models/flora/trees/oak/oak_ancient_winter.glb": "1dc68dbb11edf662e3bcd937eff52c461c2501279ee4ba2472fea2be73cf7d14",
+    "assets/models/flora/trees/oak/oak_ancient_winter_2.glb": "00bccbade460d6dd5e227c82df725c2189876ca1c06d5bd29386a1dec2b7b151",
+    "assets/models/flora/trees/oak/oak_ancient_winter_3.glb": "f8976e6b46ca3fca4878efb088df1633d28d76e46abc9d7b12fe0cd2da5e1111",
+    "assets/models/flora/trees/oak/oak_mature.glb": "63930d838a043a8ddafb4c86464d6b9f18c08b5f0f19561ce77d44db71b2dbc3",
+    "assets/models/flora/trees/oak/oak_mature_2.glb": "a17ccc33ac9e5ffb56824a7c893e9291b1eea974cdc85a82ee8fca26d26aa22d",
+    "assets/models/flora/trees/oak/oak_mature_3.glb": "29e3b5b3ce8c814dbf0dc0274f7b0802c062c68883e63a1d75ef3fcbbf050703",
+    "assets/models/flora/trees/oak/oak_mature_autumn.glb": "8ca199220b01215b424b256c2a592f7ae18db295ec8dcffab2a9919506fbfffc",
+    "assets/models/flora/trees/oak/oak_mature_autumn_2.glb": "ebc80603855af8d240166cca0a029031fce7540e055b72bc6248fb853c0647b4",
+    "assets/models/flora/trees/oak/oak_mature_autumn_3.glb": "9c2c9ac93ea27ff97fa8cbc7a6c105f454dc186bbd7af2eeb106538a1b3ffcc7",
+    "assets/models/flora/trees/oak/oak_mature_spring.glb": "8d7edc0499ab283ecb1fa44ded55df4cb4ca34cae32e703bb5f7fd8cd1f1e2ce",
+    "assets/models/flora/trees/oak/oak_mature_spring_2.glb": "bd488ea43776e289e23128b2071c722c3b6888032abd5f535d884dbec16128a8",
+    "assets/models/flora/trees/oak/oak_mature_spring_3.glb": "02575b066557bb729169c6b3743ce90f1e28f4d5049166fe7a7e54abe6f4c432",
+    "assets/models/flora/trees/oak/oak_mature_winter.glb": "0cf5d8cb5546d6174d5caf858f36d9d4c1df376486117c1ee5a1fd4d9cfd2595",
+    "assets/models/flora/trees/oak/oak_mature_winter_2.glb": "3b09c38bfc2386429381d75488964e515ececfbc5046cf2e6b822770c95ae285",
+    "assets/models/flora/trees/oak/oak_mature_winter_3.glb": "d6114386beeeeb02a6226eb45045cf8467a7a782a0a72ccab6f43138312caf7a",
+    "assets/models/flora/trees/oak/oak_sapling.glb": "0de900b1252f555ea8804694b0aaf6a809558a80a1a48e61163b678c48cb981c",
+    "assets/models/flora/trees/oak/oak_sapling_autumn.glb": "7ebbba642c6a3463bbd2f840e15d7842a617f3e58a65013400041aca5baacade",
+    "assets/models/flora/trees/oak/oak_sapling_spring.glb": "1b1148d2eab79e9010b1143813a1126d00dee687681bb377738585bf3b303c32",
+    "assets/models/flora/trees/oak/oak_sapling_winter.glb": "63821f41168668821ef8121ffac8c91f6b8e7f637bbee58c85d78c1cf8751873",
+    "assets/models/flora/trees/pine/pine_ancient.glb": "ecbeb1017d426445d52f99d461c4b1fad025daec049abd470ec47cd7bf90a2b8",
+    "assets/models/flora/trees/pine/pine_ancient_2.glb": "678d59e9297093e62db7a195fc110ffd8fe1984844486f67621a90eb3f6fd878",
+    "assets/models/flora/trees/pine/pine_ancient_3.glb": "4fe5f35471833934fa5ccf1a0a0f178e5e71ed196407c1ef28805865ccc0b41e",
+    "assets/models/flora/trees/pine/pine_ancient_winter.glb": "b005062dc35dae5fc80988e622f0939c42644e4c54c301591aa7fdbc39adba1d",
+    "assets/models/flora/trees/pine/pine_ancient_winter_2.glb": "1a12114dc19b1c42ce1226447d80a0bab72857cd54b9bce07b5282740835478c",
+    "assets/models/flora/trees/pine/pine_ancient_winter_3.glb": "c96b585d176a26801ae3506abf643c2ec0cfde3f21a88d956c9bfbfdce188528",
+    "assets/models/flora/trees/pine/pine_mature.glb": "0b95cd27bb552e595a4025e708035285973f8df1b16ab189cbab694df764e64e",
+    "assets/models/flora/trees/pine/pine_mature_2.glb": "77d54898e06087ad3cfe009648f5af26e8265b3d34d92525f62e88b3c6d40afc",
+    "assets/models/flora/trees/pine/pine_mature_3.glb": "1b4e0da84a5dd0aa4a17b58b663a2dd8ec7ce7069fca7877141813bc4ce5a39d",
+    "assets/models/flora/trees/pine/pine_mature_winter.glb": "8d7db368818ca7ac168a67815500ce52bf4c580727919bd9c9cd080eb37b5dfd",
+    "assets/models/flora/trees/pine/pine_mature_winter_2.glb": "88c7dfef1531f81be8a8ec2bca6a5d6368aa69732507d78f6d83d9aa64dc8a96",
+    "assets/models/flora/trees/pine/pine_mature_winter_3.glb": "ee8f63534dc15e0d72ff2d2d8836ed0f901e5fbcff1d9fe2433e407f4120d2cd",
+    "assets/models/flora/trees/pine/pine_sapling.glb": "bef8c6af48bc13f810e4eea6e3106a7405801a73ec11054f9d721d73d1d24129",
+    "assets/models/flora/trees/pine/pine_sapling_winter.glb": "a6860c6f15e9eb0ab12e742241d244e871675533a9cf1c77383ddf859e9ad073",
+    "assets/models/furniture/barrel.glb": "12d1ec43bf462d56066a31f08fcecafa3d49bff27363f14034cebf5fa2868972",
+    "assets/models/furniture/bench.glb": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "assets/models/furniture/door.glb": "32e724fe278f619b293cdb8615cf212266280f80574ad7a04ff74a7c214094d1",
+    "assets/models/furniture/hearth.glb": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8",
+    "assets/models/furniture/storage_crate.glb": "a0e107970c3c1b85d5ef25cdf5c43398415c50ba8be589b12261487537496f59",
+    "assets/models/furniture/storage_shelf.glb": "b2c849bf312b03b5bea036856312810eb78a320f446d87c7b6d777ee0358b8cf",
+    "assets/models/furniture/tavern_bar.glb": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763",
+    "assets/models/items/furniture/packed_furniture.glb": "2512d08376ac4fe4135c76393cdd5ef625ee7d8b999f61cf1b833f50a361ef6f",
+    "assets/models/items/misc/settlement_flag.glb": "8a9cebee57c771c1cb55ee0d8ce9438ededf019392c29679032f07d9902aa152",
+    "assets/models/items/ore/coal.glb": "e839218adcff44600f96db765d6660b28085469fe970a58c58d5ec4ad366eefd",
+    "assets/models/items/ore/copper_ore.glb": "992098da34b0df523b7839bf0b67c9b26deeb5a6730ec038e6e8a04cee2a2f2a",
+    "assets/models/items/ore/gold_ore.glb": "212d788ad9144bc9303bda6261b8dbb2e771d6ba70c91c0885fb7224f4fdc1c6",
+    "assets/models/items/ore/iron_ore.glb": "3e21ef9441a403b409612b5473b52e1979064405e6584c0dc332b163a7e3907d",
+    "assets/models/items/ore/silver_ore.glb": "db1ad1e19181efddaccb8d9999a81d5d186d2527352d65d72120750e1240b635",
+    "assets/models/items/ore/tin_ore.glb": "f275b22887c8b88a4520313a08aac5164164815fb4bd5c2b33e9e55fc11d318e",
+    "assets/models/items/soil/cave_soil.glb": "bdd45d677f2d06c37711dc84fafd119c1b30d428cc4c0ac5996a59ef50aeccd5",
+    "assets/models/items/soil/dark_soil.glb": "10b592f314248ace1b4540e8c7ec9874395971be682b6e5e67b22c2ecf2b5d92",
+    "assets/models/items/soil/light_soil.glb": "a17c4bd9479bd60ba43cd2203d7f8de04fdfcf8eb049abf5d76119c23bec6f81",
+    "assets/models/items/stone/rough_stone.glb": "514cfa70a1518bafbe49fadd5d6f1b44f157bec968ffe6b22f48f51d9728998d"
+  },
+  "trade_definition": {
+    "__comment": [
+      "Trade Counter \u00e2\u20ac\u201d the room-anchor furniture piece that designates a sealed room as a Shop.",
+      "This is the first furniture definition in the game. Its schema establishes the pattern",
+      "for all future furniture items.",
+      "",
+      "ROOM DESIGNATION:",
+      "  A sealed room (enclosed walls + one or more doors) containing a Trade Counter",
+      "  is automatically designated as a 'shop' room. The room type is re-evaluated",
+      "  whenever any furniture is added to or removed from the room.",
+      "  Only one Trade Counter per room is valid. A second counter invalidates the room",
+      "  designation until one is removed.",
+      "",
+      "ROOM VALIDATION:",
+      "  A shop room may only contain items whose furniture_category is listed in",
+      "  room_compatible_categories. If any item with a category in",
+      "  room_invalidating_categories is placed inside the room, the Shop designation",
+      "  is immediately removed. The room reverts to an undesignated room until the",
+      "  offending item is removed.",
+      "  See furniture_category field on each furniture item for its category string.",
+      "",
+      "SELL SIDE (automated):",
+      "  All items stored in room_compatible storage units inside the shop room are",
+      "  automatically available for sale when a merchant visits. The merchant checks",
+      "  each item against their want list and buys matching stock at",
+      "  base_trade_value \u00c2\u00b1 demand_modifier. The colony receives gold coins equal to",
+      "  the transaction total. Sold items are removed from shop storage immediately.",
+      "",
+      "BUY ORDERS (player-configured, automated):",
+      "  The player configures buy orders on the Trade Counter via the UI.",
+      "  Schema per order: { item_id, max_count, max_price_per_unit }",
+      "  When a merchant carries an item matching a buy order:",
+      "    - The colony buys as many units as available up to max_count.",
+      "    - If gold coin balance is insufficient for the full order, partial fill applies:",
+      "      buy as many units as coins allow at the stated price.",
+      "    - Purchased goods are placed in available shop room storage first.",
+      "      If shop storage is full, goods are dropped on the shop floor.",
+      "    - Dwarves then haul floor goods to appropriate colony stockpiles.",
+      "  Buy orders persist indefinitely and re-evaluate on every merchant visit.",
+      "  Default: empty array (no buy orders). Configured per save, not in this file.",
+      "",
+      "COIN FLOW:",
+      "  Net coins = coins received from sales \u00e2\u02c6\u2019 coins spent on buy orders.",
+      "  If net is positive, gold coins are added to the nearest stockpile_currency stockpile",
+      "  or dropped at the Trade Counter if none exists.",
+      "  If net is negative (buy orders exceed sale revenue in a single visit),",
+      "  the deficit is drawn from the colony's existing coin stockpile.",
+      "  If the colony cannot cover the deficit, buy orders are partially filled",
+      "  until coins run out.",
+      "",
+      "MERCHANT VISIT CONDITION:",
+      "  Merchants will only stop at the colony if a valid shop room exists AND the",
+      "  shop has at least one item in storage OR at least one active buy order.",
+      "  A shop room with a Trade Counter but no stock and no buy orders is treated",
+      "  as inactive \u00e2\u20ac\u201d caravans pass by without stopping.",
+      "",
+      "TRADE NOTIFICATION:",
+      "  On trade completion a summary toast is posted:",
+      "    'Trade complete \u00e2\u20ac\u201d sold X items, bought Y items, net +Z coins.'",
+      "  Full transaction log is accessible from the Trade Counter inspect panel."
+    ],
+    "furniture_key": "base:furniture:trade_counter",
+    "furniture_category": "trade",
+    "display_name": "Trade Counter",
+    "description": "A heavy stone slab counter. Marks the room as an active shop and manages all trade with visiting merchants.",
+    "model": "res://assets/models/furniture/trade_counter.glb",
+    "footprint": {
+      "width": 2,
+      "depth": 1
+    },
+    "blocks_movement": true,
+    "__comment_collision": [
+      "collision_regions defines one or more axis-aligned boxes in furniture-local block coordinates.",
+      "Origin (0,0,0) = bottom-front-left corner of the footprint. Y is up. Units are game blocks (0.5 m).",
+      "Each region is read by the furniture placement system to create CollisionShape3D nodes at runtime.",
+      "Multi-region is used when different parts of the piece have different heights (e.g. beds).",
+      "A single region covering the full footprint at the correct visual height is the common case."
+    ],
+    "collision_regions": [
+      {
+        "min": [
+          0,
+          0,
+          0
+        ],
+        "max": [
+          2,
+          2,
+          1
+        ]
+      }
+    ],
+    "room_anchor": true,
+    "room_type": "shop",
+    "max_per_room": 1,
+    "room_compatible_categories": [
+      "trade",
+      "storage",
+      "decorative"
+    ],
+    "room_invalidating_categories": [
+      "bed",
+      "workshop",
+      "production"
+    ],
+    "sell_source": "room_storage",
+    "purchased_goods_destination": "room_storage_or_floor",
+    "buy_orders_schema": {
+      "__comment": "Runtime schema \u00e2\u20ac\u201d buy orders are saved per-colony, not defined here.",
+      "fields": {
+        "item_id": "Namespaced item key, e.g. 'base:resources:ore:iron'",
+        "max_count": "Maximum units to buy per merchant visit (integer \u00e2\u2030\u00a5 1)",
+        "max_price_per_unit": "Colony will not pay more than this in gold coins per unit (integer \u00e2\u2030\u00a5 1)"
+      },
+      "default": []
+    },
+    "trade_reputation_effects": {
+      "visit_with_sale": 5,
+      "visit_no_stock": 0,
+      "visit_skipped": -5
+    }
+  },
+  "resources": {
+    "__comment": [
+      "Item entity definitions for all dropped / harvested resources.",
+      "Loaded on demand when an item is spawned \u00e2\u20ac\u201d NOT held in memory at boot.",
+      "",
+      "Fields:",
+      "  display_name  \u00e2\u20ac\u201d human-readable name shown in UI and tooltips",
+      "  description   \u00e2\u20ac\u201d one-sentence flavour text shown in the inspect panel",
+      "  model         \u00e2\u20ac\u201d path to the MagicaVoxel .glb micro-voxel model (res:// path)",
+      "  stack_max     \u00e2\u20ac\u201d container capacity unit (integer \u00e2\u2030\u00a5 1). Ground stockpile zones store",
+      "                  ONE item per tile (SH parity, Alen 2026-07-06); stack_max applies to",
+      "                  the future container path (barrel/chest/shelf).",
+      "  weight_class  \u00e2\u20ac\u201d 'light' | 'heavy' \u00e2\u20ac\u201d affects dwarf haul speed",
+      "                  light: full haul speed; heavy: \u00c3\u20140.7 haul speed while any heavy item",
+      "                  is in the pouch (the pouch carries anything \u00e2\u20ac\u201d SH parity, Alen 2026-07-06)",
+      "  base_trade_value \u00e2\u20ac\u201d base Trade Point (TP) value used by the trade session UI",
+      "                     actual price fluctuates \u00c2\u00b120% based on caravan demand model",
+      "  material_tags \u00e2\u20ac\u201d flat string array; must include at least one 'stockpile_*' tag",
+      "                  used by stockpile zone filters and crafting ingredient queries"
+    ],
+    "__comment_stone": "Raw stone blocks \u00e2\u20ac\u201d heavy, common, used for construction",
+    "base:resources:stone:granite": {
+      "display_name": "Granite",
+      "description": "A rough block of dense igneous stone, useful for construction.",
+      "model": "res://assets/models/items/stone/granite_block.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 2,
+      "material_tags": [
+        "stone",
+        "igneous",
+        "building_material",
+        "stockpile_stone"
+      ]
+    },
+    "base:resources:stone:basalt": {
+      "display_name": "Basalt",
+      "description": "A dark volcanic stone, harder than granite.",
+      "model": "res://assets/models/items/stone/basalt_block.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 2,
+      "material_tags": [
+        "stone",
+        "igneous",
+        "building_material",
+        "stockpile_stone"
+      ]
+    },
+    "base:resources:stone:limestone": {
+      "display_name": "Limestone",
+      "description": "A pale sedimentary stone, easy to cut and shape.",
+      "model": "res://assets/models/items/stone/limestone_block.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 2,
+      "material_tags": [
+        "stone",
+        "sedimentary",
+        "building_material",
+        "stockpile_stone"
+      ]
+    },
+    "base:resources:stone:marble": {
+      "display_name": "Marble",
+      "description": "A lustrous metamorphic stone prized for its elegance.",
+      "model": "res://assets/models/items/stone/marble_block.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 8,
+      "material_tags": [
+        "stone",
+        "metamorphic",
+        "building_material",
+        "luxury",
+        "stockpile_stone"
+      ]
+    },
+    "base:resources:stone:rough_stone": {
+      "display_name": "Rough Stone",
+      "description": "A rough-hewn chunk of mountain stone. Dwarves use it to wall up and backfill unwanted openings.",
+      "model": "res://assets/models/items/stone/rough_stone.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 1,
+      "material_tags": [
+        "stone",
+        "building_material",
+        "void_fill",
+        "stockpile_stone"
+      ]
+    },
+    "__comment_soil": "Soft earth \u00e2\u20ac\u201d farmable cave soil is the most valuable",
+    "base:resources:soil:cave_soil": {
+      "display_name": "Cave Soil",
+      "description": "Rich subterranean earth, ideal for underground farming.",
+      "model": "res://assets/models/items/soil/cave_soil.glb",
+      "stack_max": 20,
+      "weight_class": "heavy",
+      "base_trade_value": 1,
+      "material_tags": [
+        "dirt",
+        "soil",
+        "farmable",
+        "stockpile_soil"
+      ]
+    },
+    "base:resources:soil:light_soil": {
+      "display_name": "Light Soil",
+      "description": "Sandy pale earth, too dry for farming but useful as fill.",
+      "model": "res://assets/models/items/soil/light_soil.glb",
+      "stack_max": 20,
+      "weight_class": "heavy",
+      "base_trade_value": 1,
+      "material_tags": [
+        "dirt",
+        "soil",
+        "stockpile_soil"
+      ]
+    },
+    "base:resources:soil:dark_soil": {
+      "display_name": "Dark Soil",
+      "description": "Dense clay-rich earth with a damp, earthy smell.",
+      "model": "res://assets/models/items/soil/dark_soil.glb",
+      "stack_max": 20,
+      "weight_class": "heavy",
+      "base_trade_value": 1,
+      "material_tags": [
+        "dirt",
+        "soil",
+        "stockpile_soil"
+      ]
+    },
+    "__comment_ore": "Metal ore chunks \u00e2\u20ac\u201d heavy, moderate trade value",
+    "base:resources:ore:copper": {
+      "display_name": "Copper Ore",
+      "description": "A green-tinged ore chunk, the first metal dwarves learn to smelt.",
+      "model": "res://assets/models/items/ore/copper_ore.glb",
+      "stack_max": 15,
+      "weight_class": "heavy",
+      "base_trade_value": 3,
+      "material_tags": [
+        "ore",
+        "metal",
+        "stockpile_ore"
+      ]
+    },
+    "base:resources:ore:tin": {
+      "display_name": "Tin Ore",
+      "description": "A soft grey ore found near the surface. Easy to smelt, useful for early tools.",
+      "model": "res://assets/models/items/ore/tin_ore.glb",
+      "stack_max": 15,
+      "weight_class": "heavy",
+      "base_trade_value": 2,
+      "material_tags": [
+        "ore",
+        "metal",
+        "stockpile_ore"
+      ]
+    },
+    "base:resources:ore:iron": {
+      "display_name": "Iron Ore",
+      "description": "A heavy reddish ore, the backbone of dwarven industry.",
+      "model": "res://assets/models/items/ore/iron_ore.glb",
+      "stack_max": 15,
+      "weight_class": "heavy",
+      "base_trade_value": 4,
+      "material_tags": [
+        "ore",
+        "metal",
+        "stockpile_ore"
+      ]
+    },
+    "base:resources:ore:silver": {
+      "display_name": "Silver Ore",
+      "description": "A pale lustrous ore found in mid-depth veins. Valuable for jewellery and trade.",
+      "model": "res://assets/models/items/ore/silver_ore.glb",
+      "stack_max": 15,
+      "weight_class": "heavy",
+      "base_trade_value": 10,
+      "material_tags": [
+        "ore",
+        "metal",
+        "precious",
+        "stockpile_ore"
+      ]
+    },
+    "base:resources:ore:coal": {
+      "display_name": "Coal",
+      "description": "A brittle black rock that burns long and hot.",
+      "model": "res://assets/models/items/ore/coal.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 2,
+      "material_tags": [
+        "ore",
+        "fuel",
+        "stockpile_ore"
+      ]
+    },
+    "base:resources:ore:gold": {
+      "display_name": "Gold Ore",
+      "description": "A gleaming heavy ore. Even raw it catches every torch.",
+      "model": "res://assets/models/items/ore/gold_ore.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 12,
+      "material_tags": [
+        "ore",
+        "metal",
+        "precious",
+        "stockpile_ore"
+      ]
+    },
+    "__comment_gem": "Raw gem crystals \u00e2\u20ac\u201d light, very high trade value",
+    "base:resources:gem:jade_raw": {
+      "display_name": "Raw Jade",
+      "description": "A dense green stone, prized for carving. Cooler to the touch than you'd expect.",
+      "model": "res://assets/models/items/gem/jade_raw.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 22,
+      "material_tags": [
+        "gem",
+        "precious",
+        "stockpile_gem"
+      ]
+    },
+    "base:resources:gem:amethyst_raw": {
+      "display_name": "Raw Amethyst",
+      "description": "A translucent purple crystal that catches torchlight beautifully.",
+      "model": "res://assets/models/items/gem/amethyst_raw.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 25,
+      "material_tags": [
+        "gem",
+        "precious",
+        "stockpile_gem"
+      ]
+    },
+    "base:resources:gem:ruby_raw": {
+      "display_name": "Raw Ruby",
+      "description": "An uncut crimson crystal pulled from deep volcanic stone.",
+      "model": "res://assets/models/items/gem/ruby_raw.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 40,
+      "material_tags": [
+        "gem",
+        "precious",
+        "luxury",
+        "stockpile_gem"
+      ]
+    },
+    "base:resources:gem:sapphire_raw": {
+      "display_name": "Raw Sapphire",
+      "description": "A deep blue crystal that seems to hold starlight within.",
+      "model": "res://assets/models/items/gem/sapphire_raw.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 40,
+      "material_tags": [
+        "gem",
+        "precious",
+        "luxury",
+        "stockpile_gem"
+      ]
+    },
+    "base:resources:gem:emerald_raw": {
+      "display_name": "Raw Emerald",
+      "description": "A vivid green crystal found only in the deepest rock seams.",
+      "model": "res://assets/models/items/gem/emerald_raw.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 45,
+      "material_tags": [
+        "gem",
+        "precious",
+        "luxury",
+        "stockpile_gem"
+      ]
+    },
+    "base:resources:gem:diamond_raw": {
+      "display_name": "Raw Diamond",
+      "description": "An uncut diamond pulled from the uttermost dark. Merchants go silent when they see one.",
+      "model": "res://assets/models/items/gem/diamond_raw.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 80,
+      "material_tags": [
+        "gem",
+        "precious",
+        "luxury",
+        "stockpile_gem"
+      ]
+    },
+    "__comment_misc": "Miscellaneous finds \u00e2\u20ac\u201d fossils, unique drops",
+    "base:resources:misc:fossil_fragment": {
+      "display_name": "Fossil Fragment",
+      "description": "A stone impression of an ancient creature. Scholars pay handsomely.",
+      "model": "res://assets/models/items/misc/fossil_fragment.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 10,
+      "material_tags": [
+        "misc",
+        "luxury",
+        "stockpile_misc"
+      ]
+    },
+    "__comment_wood": "Timber \u00e2\u20ac\u201d harvested from flora",
+    "base:resources:wood:pine_log": {
+      "display_name": "Pine Log",
+      "description": "A straight-grained softwood log, light and easy to work. The backbone of early construction.",
+      "model": "res://assets/models/items/wood/pine_log.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 2,
+      "material_tags": [
+        "wood",
+        "timber",
+        "building_material",
+        "fuel",
+        "stockpile_wood"
+      ]
+    },
+    "base:resources:wood:oak_log": {
+      "display_name": "Oak Log",
+      "description": "A dense hardwood log with a tight grain. Prized for furniture and barrel staves.",
+      "model": "res://assets/models/items/wood/oak_log.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 5,
+      "material_tags": [
+        "wood",
+        "timber",
+        "hardwood",
+        "building_material",
+        "stockpile_wood"
+      ]
+    },
+    "base:resources:wood:oak_stave": {
+      "display_name": "Oak Stave",
+      "description": "A split plank of seasoned oak shaped for cooperage. Essential for crafting aging casks.",
+      "model": "res://assets/models/items/wood/oak_stave.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 8,
+      "material_tags": [
+        "wood",
+        "hardwood",
+        "cooperage",
+        "crafting_component",
+        "stockpile_wood"
+      ]
+    },
+    "base:resources:wood:apple_wood": {
+      "display_name": "Apple Wood",
+      "description": "A fine-grained pinkish wood. Burns slowly with a sweet scent, useful for smoking and light carpentry.",
+      "model": "res://assets/models/items/wood/apple_wood.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 3,
+      "material_tags": [
+        "wood",
+        "timber",
+        "fuel",
+        "stockpile_wood"
+      ]
+    },
+    "base:resources:wood:juniper_log": {
+      "display_name": "Juniper Log",
+      "description": "A fragrant hardwood log with dense, knotted grain.",
+      "model": "res://assets/models/items/wood/juniper_log.glb",
+      "stack_max": 10,
+      "weight_class": "heavy",
+      "base_trade_value": 3,
+      "material_tags": [
+        "wood",
+        "timber",
+        "building_material",
+        "fuel",
+        "stockpile_wood"
+      ]
+    },
+    "__comment_flora": "Harvested plant matter \u00e2\u20ac\u201d crops, berries, seeds",
+    "base:resources:flora:elderberry": {
+      "display_name": "Elderberry",
+      "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
+      "model": "res://assets/models/items/flora/elderberry.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:blueberry": {
+      "display_name": "Blueberry",
+      "description": "Sweet high-altitude berries with a clean finish. Prized for mead and summer ales.",
+      "model": "res://assets/models/items/flora/blueberry.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 4,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:wild_strawberry": {
+      "display_name": "Wild Strawberry",
+      "description": "Tiny and intensely sweet. Merchants go quiet when they see a basket of these.",
+      "model": "res://assets/models/items/flora/wild_strawberry.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 6,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "luxury",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:juniper_berry": {
+      "display_name": "Juniper Berry",
+      "description": "Tart blue-black berries with a resinous bite. Prized for gin-style brewing.",
+      "model": "res://assets/models/items/flora/juniper_berry.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 4,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:plump_helmet": {
+      "display_name": "Plump Helmet",
+      "description": "A bulbous purple mushroom that grows fast in moist cave soil.",
+      "model": "res://assets/models/items/flora/plump_helmet.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 2,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:pig_tail": {
+      "display_name": "Pig Tail",
+      "description": "A curling fibrous plant that can be spun into rough cloth.",
+      "model": "res://assets/models/items/flora/pig_tail.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 2,
+      "material_tags": [
+        "flora",
+        "fiber",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:apple": {
+      "display_name": "Apple",
+      "description": "A crisp mountain apple. Sweet enough to eat raw, better pressed into cider.",
+      "model": "res://assets/models/items/flora/apple.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 3,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "__comment_seed": "Seeds \u00e2\u20ac\u201d planted by dwarves to start new crop growth",
+    "base:resources:seed:pine_cone": {
+      "display_name": "Pine Cone",
+      "description": "A seed-bearing cone from a mature pine. Plant it and wait a few seasons.",
+      "model": "res://assets/models/items/seed/pine_cone.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 2,
+      "material_tags": [
+        "seed",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:oak_acorn": {
+      "display_name": "Oak Acorn",
+      "description": "A small but promising acorn. Oaks are slow to grow and worth every year of the wait.",
+      "model": "res://assets/models/items/seed/oak_acorn.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 4,
+      "material_tags": [
+        "seed",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:apple_seed": {
+      "display_name": "Apple Seed",
+      "description": "A seed pressed from a mountain apple. Give it good soil and a few seasons.",
+      "model": "res://assets/models/items/seed/apple_seed.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 3,
+      "material_tags": [
+        "seed",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:elderberry_cutting": {
+      "display_name": "Elderberry Cutting",
+      "description": "A fresh stem cutting from an elderberry bush. Root it in surface soil to grow a new bush.",
+      "model": "res://assets/models/items/seed/elderberry_cutting.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 4,
+      "material_tags": [
+        "seed",
+        "cutting",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:blueberry_cutting": {
+      "display_name": "Blueberry Cutting",
+      "description": "A small blueberry stem. Plant it on rocky high-ground soil for best results.",
+      "model": "res://assets/models/items/seed/blueberry_cutting.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 3,
+      "material_tags": [
+        "seed",
+        "cutting",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:strawberry_cutting": {
+      "display_name": "Strawberry Cutting",
+      "description": "A runner cutting from a wild strawberry plant. Grows quickly in good surface soil.",
+      "model": "res://assets/models/items/seed/strawberry_cutting.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "seed",
+        "cutting",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:pig_tail_seed": {
+      "display_name": "Pig Tail Seed",
+      "description": "A small hard seed from a pig tail plant. Sow in surface dirt before summer for a full season's fiber harvest.",
+      "model": "res://assets/models/items/seed/pig_tail_seed.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 2,
+      "material_tags": [
+        "seed",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:juniper_seed": {
+      "display_name": "Juniper Seed",
+      "description": "A hard dark seed that takes root slowly but grows into a towering tree.",
+      "model": "res://assets/models/items/seed/juniper_seed.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "seed",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "__comment_drink": "Finished brewed drinks \u00e2\u20ac\u201d colony morale and trade goods",
+    "base:resources:drink:ale": {
+      "display_name": "Dwarven Ale",
+      "description": "A dark, malty ale brewed from cave wheat or plump helmets.",
+      "model": "res://assets/models/items/drink/ale_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 3,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "stockpile_drink"
+      ]
+    },
+    "base:resources:drink:mead": {
+      "display_name": "Sweet Mead",
+      "description": "A golden honey-wine brewed from sweet pods. Light, complex, and expensive.",
+      "model": "res://assets/models/items/drink/mead_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "luxury",
+        "stockpile_drink"
+      ]
+    },
+    "__comment_misc2": "Processed goods \u00e2\u20ac\u201d outputs from non-brewing workshops",
+    "base:resources:misc:cloth": {
+      "display_name": "Pig Tail Cloth",
+      "description": "A coarse woven fabric spun from pig tail fibers.",
+      "model": "res://assets/models/items/misc/cloth_bolt.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 6,
+      "material_tags": [
+        "cloth",
+        "fiber",
+        "building_material",
+        "stockpile_misc"
+      ]
+    },
+    "base:resources:misc:water_bucket": {
+      "display_name": "Water Bucket",
+      "description": "A wooden bucket filled from a well or underground stream.",
+      "model": "res://assets/models/items/misc/water_bucket.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 1,
+      "material_tags": [
+        "liquid",
+        "brewing_ingredient",
+        "stockpile_misc"
+      ]
+    },
+    "__comment_new_flora": "New brewing crops \u00e2\u20ac\u201d hops and grapes",
+    "base:resources:flora:hops": {
+      "display_name": "Hops",
+      "description": "Papery green cones with a sharp, resinous bite. The bitter backbone of any proper ale.",
+      "model": "res://assets/models/items/flora/hops.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 3,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "base:resources:flora:grape": {
+      "display_name": "Grapes",
+      "description": "Heavy purple clusters from the mountain vine terraces. Sweet, complex, and worth the wait.",
+      "model": "res://assets/models/items/flora/grape.glb",
+      "stack_max": 30,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "flora",
+        "food",
+        "brewing_ingredient",
+        "stockpile_food"
+      ]
+    },
+    "__comment_honey": "Honey \u00e2\u20ac\u201d produced by beehives, used in mead and cider",
+    "base:resources:misc:honey": {
+      "display_name": "Honey",
+      "description": "Thick golden honey from mountain beehives. Adds body and sweetness to brewed drinks.",
+      "model": "res://assets/models/items/misc/honey_jar.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 6,
+      "material_tags": [
+        "misc",
+        "food",
+        "brewing_ingredient",
+        "luxury",
+        "stockpile_misc"
+      ]
+    },
+    "__comment_new_seeds": "New plant propagation items \u00e2\u20ac\u201d hops and grape cuttings",
+    "base:resources:seed:hops_cutting": {
+      "display_name": "Hops Cutting",
+      "description": "A rooted stem cutting from a mature hops bine. Plant it on surface soil before summer.",
+      "model": "res://assets/models/items/seed/hops_cutting.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 4,
+      "material_tags": [
+        "seed",
+        "cutting",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "base:resources:seed:grape_cutting": {
+      "display_name": "Grape Cutting",
+      "description": "A short cane cutting from a fruiting grape vine. Takes a season to establish but lasts for years.",
+      "model": "res://assets/models/items/seed/grape_cutting.glb",
+      "stack_max": 50,
+      "weight_class": "light",
+      "base_trade_value": 6,
+      "material_tags": [
+        "seed",
+        "cutting",
+        "flora",
+        "stockpile_seed"
+      ]
+    },
+    "__comment_new_drinks": "New brewed drinks \u00e2\u20ac\u201d stout, cider, wine, gin, and their aged variants",
+    "base:resources:drink:stout": {
+      "display_name": "Dark Stout",
+      "description": "A thick, near-black ale with a roasted bitterness. Dwarves call it 'proper drinking'.",
+      "model": "res://assets/models/items/drink/stout_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "stockpile_drink"
+      ]
+    },
+    "base:resources:drink:cider": {
+      "display_name": "Mountain Cider",
+      "description": "A crisp, lightly honeyed apple cider. Brisk and refreshing after a long shift in the mines.",
+      "model": "res://assets/models/items/drink/cider_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 5,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "stockpile_drink"
+      ]
+    },
+    "base:resources:drink:wine": {
+      "display_name": "Grape Wine",
+      "description": "A deep, tannic wine pressed from mountain grapes. Not a dwarf's first choice, but the merchants love it.",
+      "model": "res://assets/models/items/drink/wine_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 7,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "stockpile_drink"
+      ]
+    },
+    "base:resources:drink:gin": {
+      "display_name": "Juniper Gin",
+      "description": "A sharp, resinous spirit distilled from juniper berries. An acquired taste \u00e2\u20ac\u201d and a profitable one.",
+      "model": "res://assets/models/items/drink/gin_cask.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 8,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "stockpile_drink"
+      ]
+    },
+    "__comment_aged_drinks": "Aged premium variants \u00e2\u20ac\u201d produced in the aging cellar, high trade value",
+    "base:resources:drink:aged_stout": {
+      "display_name": "Aged Dark Stout",
+      "description": "A stout that has sat in oak for a month of cold stone silence. Smooth, complex, and deeply satisfying.",
+      "model": "res://assets/models/items/drink/aged_stout_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 10,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "luxury",
+        "aged",
+        "stockpile_drink"
+      ]
+    },
+    "base:resources:drink:vintage_wine": {
+      "display_name": "Vintage Wine",
+      "description": "An oak-aged mountain wine that has mellowed into something extraordinary. Caravans will pay dearly.",
+      "model": "res://assets/models/items/drink/vintage_wine_barrel.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 15,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "luxury",
+        "aged",
+        "stockpile_drink"
+      ]
+    },
+    "base:resources:drink:reserve_gin": {
+      "display_name": "Reserve Gin",
+      "description": "Juniper gin rested in oak until the harsh edge softens to something almost elegant.",
+      "model": "res://assets/models/items/drink/reserve_gin_cask.glb",
+      "stack_max": 20,
+      "weight_class": "light",
+      "base_trade_value": 12,
+      "material_tags": [
+        "drink",
+        "alcohol",
+        "morale_item",
+        "luxury",
+        "aged",
+        "stockpile_drink"
+      ]
+    },
+    "__comment_special": "Special items \u00e2\u20ac\u201d unique or limited-use objects that anchor major game flows",
+    "base:items:special:settlement_flag": {
+      "display_name": "Settlement Flag",
+      "description": "A folded banner and stout marker pole used to choose where the first settlement will take root.",
+      "model": "res://assets/models/items/misc/settlement_flag.glb",
+      "stack_max": 1,
+      "weight_class": "light",
+      "base_trade_value": 0,
+      "material_tags": [
+        "special",
+        "placeable",
+        "settlement_anchor",
+        "stockpile_misc"
+      ]
+    },
+    "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall; v1 source is the DEV spawner until crafting/trade produce them. ONE-BOX RULE (Alen, 2026-07-11): every packed furniture item shares the same generic packed_furniture.glb box - the ghost says which piece it becomes.",
+    "base:resources:furniture:barrel": {
+      "display_name": "Barrel (packed)",
+      "description": "A hooped oak barrel, packed flat and ready to set up wherever it is needed.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 8,
+      "material_tags": [
+        "wood",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "base:resources:furniture:storage_chest": {
+      "display_name": "Storage Chest (packed)",
+      "description": "A heavy plank chest with its iron corner fittings bundled inside.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 12,
+      "material_tags": [
+        "wood",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "base:resources:furniture:storage_shelf": {
+      "display_name": "Shelf Kit",
+      "description": "Plank shelving and oak uprights lashed into a carrying bundle, brackets included.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 10,
+      "material_tags": [
+        "wood",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "base:resources:furniture:tavern_bar": {
+      "display_name": "Tavern Bar (packed)",
+      "description": "A long oak counter and its iron tap fittings, broken down for hauling.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 16,
+      "material_tags": [
+        "wood",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "base:resources:furniture:bench": {
+      "display_name": "Bench (packed)",
+      "description": "A dwarven long-bench, legs and planks bundled and lashed.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 6,
+      "material_tags": [
+        "wood",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "base:resources:furniture:hearth": {
+      "display_name": "Hearth (packed)",
+      "description": "Fitted ring-stones and an iron grate, packed flat and ready to set.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 14,
+      "material_tags": [
+        "stone",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "base:resources:furniture:door": {
+      "display_name": "Door (packed)",
+      "description": "A plank door and its iron hinges, bundled flat for hauling.",
+      "model": "res://assets/models/items/furniture/packed_furniture.glb",
+      "stack_max": 5,
+      "weight_class": "heavy",
+      "base_trade_value": 9,
+      "material_tags": [
+        "wood",
+        "furniture",
+        "stockpile_furniture"
+      ]
+    },
+    "__comment_currency": "Currency \u00e2\u20ac\u201d gold coins earned through trade with merchants and travelers",
+    "base:resources:currency:gold_coin": {
+      "display_name": "Gold Coin",
+      "description": "A minted coin accepted by every merchant on the mountain road. Spend it or hoard it.",
+      "model": "res://assets/models/items/currency/gold_coin.glb",
+      "stack_max": 100,
+      "weight_class": "light",
+      "base_trade_value": 1,
+      "material_tags": [
+        "currency",
+        "stockpile_currency"
+      ]
+    }
+  },
+  "furniture_definitions": {
+    "barrel.json": {
+      "__comment": [
+        "Storage Barrel - the first functional storage container (doc 19).",
+        "Follows the trade_counter.json schema. NEW fields established by doc 19:",
+        "  item_key   - the resources.json ITEM form a dwarf fetches to install this piece",
+        "  placement  - 'floor' | 'floor_wall' (floor_wall = needs a solid block behind the back face)",
+        "  yaw_steps  - placement-ghost rotation steps (R key, 90 degrees each)",
+        "  storage    - marks this piece as a storage container (capacity in ITEMS, flat count -",
+        "               SH parity 2026-07-11; render_contents false = opaque density container)"
+      ],
+      "furniture_key": "base:furniture:barrel",
+      "furniture_category": "storage",
+      "display_name": "Barrel",
+      "description": "A stout oak barrel bound in iron. Holds a small stock of whatever the colony hauls into it.",
+      "model": "res://assets/models/furniture/barrel.glb",
+      "item_key": "base:resources:furniture:barrel",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 1,
+        "depth": 1
+      },
+      "blocks_movement": true,
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "room_anchor": false,
+      "storage": {
+        "capacity": 8,
+        "render_contents": false
+      }
+    },
+    "bench.json": {
+      "__comment": [
+        "Bench - cheap mass seating for the tavern hall (doc 21, doc 62 candidate list).",
+        "Follows the doc 19 placement schema (item_key/placement/yaw_steps). Plain",
+        "placeable furniture, no room_anchor, no storage. Seating/sit-down behaviour",
+        "depends on the dwarf needs/mood system (doc 41), which is not yet implemented -",
+        "this piece is scenery for now, exactly like the shelf and chest were scenery",
+        "before doc 19 Phase 3 wired up hauling."
+      ],
+      "furniture_key": "base:furniture:bench",
+      "furniture_category": "seating",
+      "display_name": "Bench",
+      "description": "A long dwarven bench, thick-legged and built to outlast whoever sits on it.",
+      "model": "res://assets/models/furniture/bench.glb",
+      "item_key": "base:resources:furniture:bench",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 2,
+        "depth": 1
+      },
+      "blocks_movement": true,
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            2,
+            1,
+            1
+          ]
+        }
+      ],
+      "room_anchor": false
+    },
+    "door.json": {
+      "__comment": [
+        "Door - the doc 22 prerequisite for doc 34's sealed-room detection.",
+        "",
+        "RESIZED 2026-08-06 (Alen playtest feedback): footprint is 2x1 (was 1x1),",
+        "visually 2 blocks wide x 4 blocks tall - the original single-tile slab",
+        "read as out-of-proportion next to 3-tall dwarves and 1-wide corridors.",
+        "Both footprint cells matter for sealing: RoomManager now registers EVERY",
+        "footprint cell a door occupies as a sealing boundary (not just the",
+        "origin cell), so a 2-wide door only seals a room if BOTH tiles stop the",
+        "flood-fill - see FurniturePlacementController._install/_teardown_installed",
+        "passing component.cells (the full footprint) to on_furniture_changed(),",
+        "and RoomManager.on_furniture_changed()'s updated 'cells: Array[Vector3i]'",
+        "signature.",
+        "",
+        "COLLISION_REGIONS IS DELIBERATELY EMPTY. Every other furniture piece uses",
+        "collision_regions to register NavGrid-blocking occupancy (see",
+        "FurniturePlacementController._install). A door must stay walkable, so it",
+        "carries no occupancy boxes at all - placing one changes nothing about",
+        "pathing. It IS still footprint-tracked (blocks a stockpile zone from being",
+        "drawn on the same tile, which you wouldn't want anyway) and IS tracked by",
+        "RoomManager as a sealing boundary via the direct on_furniture_changed()",
+        "call FurniturePlacementController makes on install/uninstall.",
+        "",
+        "Per doc 34: 'Dwarves always close doors behind them. Door blocks are",
+        "always treated as sealed for temperature calculation purposes regardless",
+        "of animation state.' v1 has no open/close animation at all - every",
+        "installed door is permanently 'closed' for sealing purposes, which is a",
+        "strict superset of that rule (always-sealed is always at least as sealed",
+        "as 'sealed except when a dwarf is mid-walk-through').",
+        "",
+        "PLACEMENT: v1 has no doorway validation (no check that the door sits",
+        "between two solid walls) - only the standard NavGrid.is_walkable(cell)",
+        "check every floor piece gets. Place doors sensibly; a door in the open",
+        "does nothing (RoomManager's flood-fill will simply fail to find a",
+        "bounded interior on either side of it)."
+      ],
+      "furniture_key": "base:furniture:door",
+      "furniture_category": "door",
+      "display_name": "Door",
+      "description": "A stout double plank door on iron hinges. Dwarves pass through freely; it seals the room for warmth.",
+      "model": "res://assets/models/furniture/door.glb",
+      "item_key": "base:resources:furniture:door",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 2,
+        "depth": 1
+      },
+      "blocks_movement": false,
+      "collision_regions": [],
+      "room_anchor": false
+    },
+    "hearth.json": {
+      "__comment": [
+        "Hearth \u00e2\u20ac\u201d redesigned 2x2 stone fire bowl (doc 30, 2026-10-01).",
+        "Authored at 8 voxels per block, 0.125 export scale baked into the GLB.",
+        "Stone rim is 1 block high; tallest flame is 2 blocks. Placement and collision cover 2x2x2.",
+        "RoomManager reads heat_source.heat_units. A multi-cell hearth contributes 400 units once, at its origin.",
+        "The mesh has static flame geometry; light emission and animation are separate features.",
+        "The shared packed-furniture item and floor-placement behavior are unchanged."
+      ],
+      "furniture_key": "base:furniture:hearth",
+      "furniture_category": "hearth",
+      "display_name": "Hearth",
+      "description": "A broad bowl of dressed stone with an iron grate, glowing coals and rising flames.",
+      "model": "res://assets/models/furniture/hearth.glb",
+      "item_key": "base:resources:furniture:hearth",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 2,
+        "depth": 2
+      },
+      "blocks_movement": true,
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            2,
+            2,
+            2
+          ]
+        }
+      ],
+      "room_anchor": false,
+      "heat_source": {
+        "heat_units": 400
+      }
+    },
+    "storage_chest.json": {
+      "__comment": [
+        "Storage Chest - the density step up from the barrel (doc 19 container ladder:",
+        "barrel 8 -> chest 24 -> future vault-class). Schema notes: see barrel.json."
+      ],
+      "furniture_key": "base:furniture:storage_chest",
+      "furniture_category": "storage",
+      "display_name": "Storage Chest",
+      "description": "A heavy plank chest with iron-bound corners. Densest storage the colony can build today.",
+      "model": "res://assets/models/furniture/storage_crate.glb",
+      "item_key": "base:resources:furniture:storage_chest",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 1,
+        "depth": 1
+      },
+      "blocks_movement": true,
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "room_anchor": false,
+      "storage": {
+        "capacity": 24,
+        "render_contents": false
+      }
+    },
+    "storage_shelf.json": {
+      "__comment": [
+        "Storage Shelf - the WYSIWYG container (doc 19): contents render ON the shelf at the",
+        "anchor points below, capacity == anchor count (never hold more than is visible).",
+        "GROUND SHELF (Alen, 2026-07-11): placement is plain 'floor' - no wall requirement.",
+        "The model is slated for hand-authoring by Alen (symmetric from all angles, no back",
+        "panel); the generator's version is interim. anchors are furniture-local block coords",
+        "(origin = bottom-front-left, same convention as collision_regions); anchor_scale is",
+        "the stored item render scale - 0.5 per SH ATTITEM parity (2026-07-11), tune-by-eye dial."
+      ],
+      "furniture_key": "base:furniture:storage_shelf",
+      "furniture_category": "storage",
+      "display_name": "Storage Shelf",
+      "description": "Two stout plank shelves on heavy oak uprights. Everything stored on it stays in plain sight.",
+      "model": "res://assets/models/furniture/storage_shelf.glb",
+      "item_key": "base:resources:furniture:storage_shelf",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 1,
+        "depth": 1
+      },
+      "blocks_movement": true,
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            1,
+            2,
+            1
+          ]
+        }
+      ],
+      "room_anchor": false,
+      "storage": {
+        "capacity": 8,
+        "render_contents": true,
+        "anchor_scale": 0.5,
+        "anchors": [
+          [
+            0.32,
+            0.125,
+            0.35
+          ],
+          [
+            0.68,
+            0.125,
+            0.35
+          ],
+          [
+            0.32,
+            0.125,
+            0.65
+          ],
+          [
+            0.68,
+            0.125,
+            0.65
+          ],
+          [
+            0.32,
+            1.0,
+            0.35
+          ],
+          [
+            0.68,
+            1.0,
+            0.35
+          ],
+          [
+            0.32,
+            1.0,
+            0.65
+          ],
+          [
+            0.68,
+            1.0,
+            0.65
+          ]
+        ]
+      }
+    },
+    "tavern_bar.json": {
+      "__comment": [
+        "Tavern Bar - the room-anchor for a Tavern room (doc 21, doc 51, doc 62).",
+        "Follows the trade_counter.json room-anchor pattern PLUS the doc 19 placement",
+        "fields (item_key/placement/yaw_steps), so unlike trade_counter this piece is",
+        "actually placeable via the Build panel today.",
+        "",
+        "STATUS (doc 21, 2026-08-03): room_anchor / room_type / room_compatible_categories /",
+        "room_invalidating_categories / max_per_room are DATA ONLY right now, exactly like",
+        "trade_counter's copy of these fields - no script reads them yet (verified: no",
+        "'room_type' or 'RoomData' reference anywhere in scripts/ as of this doc). Tavern",
+        "room detection, traveler serving, and ale consumption (doc 51) are a separate,",
+        "unbuilt system. Placing this piece today gets you a real, fetchable, installable",
+        "counter with no gameplay behaviour attached - the room-anchor fields simply mean",
+        "the future room-detection system (whenever it lands, likely alongside doc 34's",
+        "sealed-room flood-fill) does not need this file touched again.",
+        "",
+        "MATERIAL: wood, not stone - unlike trade_counter (grandfathered pre-material-rule,",
+        "doc 62 categorises it as an industrial anchor). The bar is a piece dwarves USE",
+        "socially, so it follows the 2026-07-11 furniture-is-woodwork rule. This also keeps",
+        "it visually distinct from the stone Trade Counter at a glance."
+      ],
+      "furniture_key": "base:furniture:tavern_bar",
+      "furniture_category": "tavern",
+      "display_name": "Tavern Bar",
+      "description": "A long oak counter with iron tap fittings. The heart of the tavern hall.",
+      "model": "res://assets/models/furniture/tavern_bar.glb",
+      "item_key": "base:resources:furniture:tavern_bar",
+      "placement": "floor",
+      "yaw_steps": 4,
+      "footprint": {
+        "width": 2,
+        "depth": 1
+      },
+      "blocks_movement": true,
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            2,
+            2,
+            1
+          ]
+        }
+      ],
+      "room_anchor": true,
+      "room_type": "tavern",
+      "max_per_room": 1,
+      "room_compatible_categories": [
+        "tavern",
+        "seating",
+        "storage",
+        "decorative"
+      ],
+      "room_invalidating_categories": [
+        "bed",
+        "workshop",
+        "production"
+      ]
+    },
+    "trade_counter.json": {
+      "__comment": [
+        "Trade Counter \u00e2\u20ac\u201d the room-anchor furniture piece that designates a sealed room as a Shop.",
+        "This is the first furniture definition in the game. Its schema establishes the pattern",
+        "for all future furniture items.",
+        "",
+        "ROOM DESIGNATION:",
+        "  A sealed room (enclosed walls + one or more doors) containing a Trade Counter",
+        "  is automatically designated as a 'shop' room. The room type is re-evaluated",
+        "  whenever any furniture is added to or removed from the room.",
+        "  Only one Trade Counter per room is valid. A second counter invalidates the room",
+        "  designation until one is removed.",
+        "",
+        "ROOM VALIDATION:",
+        "  A shop room may only contain items whose furniture_category is listed in",
+        "  room_compatible_categories. If any item with a category in",
+        "  room_invalidating_categories is placed inside the room, the Shop designation",
+        "  is immediately removed. The room reverts to an undesignated room until the",
+        "  offending item is removed.",
+        "  See furniture_category field on each furniture item for its category string.",
+        "",
+        "SELL SIDE (automated):",
+        "  All items stored in room_compatible storage units inside the shop room are",
+        "  automatically available for sale when a merchant visits. The merchant checks",
+        "  each item against their want list and buys matching stock at",
+        "  base_trade_value \u00c2\u00b1 demand_modifier. The colony receives gold coins equal to",
+        "  the transaction total. Sold items are removed from shop storage immediately.",
+        "",
+        "BUY ORDERS (player-configured, automated):",
+        "  The player configures buy orders on the Trade Counter via the UI.",
+        "  Schema per order: { item_id, max_count, max_price_per_unit }",
+        "  When a merchant carries an item matching a buy order:",
+        "    - The colony buys as many units as available up to max_count.",
+        "    - If gold coin balance is insufficient for the full order, partial fill applies:",
+        "      buy as many units as coins allow at the stated price.",
+        "    - Purchased goods are placed in available shop room storage first.",
+        "      If shop storage is full, goods are dropped on the shop floor.",
+        "    - Dwarves then haul floor goods to appropriate colony stockpiles.",
+        "  Buy orders persist indefinitely and re-evaluate on every merchant visit.",
+        "  Default: empty array (no buy orders). Configured per save, not in this file.",
+        "",
+        "COIN FLOW:",
+        "  Net coins = coins received from sales \u00e2\u02c6\u2019 coins spent on buy orders.",
+        "  If net is positive, gold coins are added to the nearest stockpile_currency stockpile",
+        "  or dropped at the Trade Counter if none exists.",
+        "  If net is negative (buy orders exceed sale revenue in a single visit),",
+        "  the deficit is drawn from the colony's existing coin stockpile.",
+        "  If the colony cannot cover the deficit, buy orders are partially filled",
+        "  until coins run out.",
+        "",
+        "MERCHANT VISIT CONDITION:",
+        "  Merchants will only stop at the colony if a valid shop room exists AND the",
+        "  shop has at least one item in storage OR at least one active buy order.",
+        "  A shop room with a Trade Counter but no stock and no buy orders is treated",
+        "  as inactive \u00e2\u20ac\u201d caravans pass by without stopping.",
+        "",
+        "TRADE NOTIFICATION:",
+        "  On trade completion a summary toast is posted:",
+        "    'Trade complete \u00e2\u20ac\u201d sold X items, bought Y items, net +Z coins.'",
+        "  Full transaction log is accessible from the Trade Counter inspect panel."
+      ],
+      "furniture_key": "base:furniture:trade_counter",
+      "furniture_category": "trade",
+      "display_name": "Trade Counter",
+      "description": "A heavy stone slab counter. Marks the room as an active shop and manages all trade with visiting merchants.",
+      "model": "res://assets/models/furniture/trade_counter.glb",
+      "footprint": {
+        "width": 2,
+        "depth": 1
+      },
+      "blocks_movement": true,
+      "__comment_collision": [
+        "collision_regions defines one or more axis-aligned boxes in furniture-local block coordinates.",
+        "Origin (0,0,0) = bottom-front-left corner of the footprint. Y is up. Units are game blocks (0.5 m).",
+        "Each region is read by the furniture placement system to create CollisionShape3D nodes at runtime.",
+        "Multi-region is used when different parts of the piece have different heights (e.g. beds).",
+        "A single region covering the full footprint at the correct visual height is the common case."
+      ],
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            2,
+            2,
+            1
+          ]
+        }
+      ],
+      "room_anchor": true,
+      "room_type": "shop",
+      "max_per_room": 1,
+      "room_compatible_categories": [
+        "trade",
+        "storage",
+        "decorative"
+      ],
+      "room_invalidating_categories": [
+        "bed",
+        "workshop",
+        "production"
+      ],
+      "sell_source": "room_storage",
+      "purchased_goods_destination": "room_storage_or_floor",
+      "buy_orders_schema": {
+        "__comment": "Runtime schema \u00e2\u20ac\u201d buy orders are saved per-colony, not defined here.",
+        "fields": {
+          "item_id": "Namespaced item key, e.g. 'base:resources:ore:iron'",
+          "max_count": "Maximum units to buy per merchant visit (integer \u00e2\u2030\u00a5 1)",
+          "max_price_per_unit": "Colony will not pay more than this in gold coins per unit (integer \u00e2\u2030\u00a5 1)"
+        },
+        "default": []
+      },
+      "trade_reputation_effects": {
+        "visit_with_sale": 5,
+        "visit_no_stock": 0,
+        "visit_skipped": -5
+      }
+    }
+  }
+}

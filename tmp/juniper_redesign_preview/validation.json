@@ -1,0 +1,46 @@
+{
+  "voxels_per_block": 1,
+  "color_encoding": "linear COLOR_0 from authored sRGB",
+  "live_assets_changed": false,
+  "wood_cells_visible": 15,
+  "berry_cells": 6,
+  "snow_cells": 36,
+  "models": {
+    "juniper_mature": {
+      "voxels": 129,
+      "bounds": [
+        [
+          -4.5,
+          0,
+          -3.5
+        ],
+        [
+          4.5,
+          12,
+          2.5
+        ]
+      ],
+      "triangles": 568,
+      "face_connected_components": 1,
+      "sha256": "ed5d740c3705c1985ef3a0dbd142711d5a0d79178cbfeed2f605a2b0985a908e"
+    },
+    "juniper_mature_winter": {
+      "voxels": 129,
+      "bounds": [
+        [
+          -4.5,
+          0,
+          -3.5
+        ],
+        [
+          4.5,
+          12,
+          2.5
+        ]
+      ],
+      "triangles": 568,
+      "face_connected_components": 1,
+      "sha256": "42e8bf55d2f2fd2b3617d28b1fb3be10a37bca94183b2e169c746db596ce3ac4"
+    }
+  }
+}

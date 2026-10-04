@@ -15,6 +15,19 @@
 
 ## Overview
 
+2026-10-04 work tools: tree felling and mining have distinct two-handed procedural
+swings and visible implicit axe/pick models. Both use shared grip and mirrored-part
+reset handling; mining aims across its full existing vertical reach and underfoot.
+Work poses stow on task transitions. Mining honors WorldClock pause/speed while
+preserving authored hardness/durability work totals. Axe/pick contact crossings
+trigger procedural positional sounds through `WorkFeedback`; mining also emits
+small contact chips. Successful tree/block removal triggers completion dust from
+the owning world system. Sounds follow camera focus/zoom; particles follow
+simulation pause/speed. Dwarves implicitly carry both tools with no equipment
+inventory or durability requirement. Player testing accepted this work on
+2026-10-04. Details and regression coverage:
+[doc 48](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
+
 Each dwarf is an autonomous agent (`DwarfAgent`, extends `CharacterBody3D`) driven by the Task System. Dwarves have physiological stats that degrade over time and must be replenished through colony resources.
 
 ## Physiological Stats

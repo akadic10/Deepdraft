@@ -13,6 +13,9 @@
 [ext_resource type="Script" path="res://scripts/systems/StockpileDesignationController.gd" id="11_stockpile"]
 [ext_resource type="Script" path="res://scripts/systems/FurniturePlacementController.gd" id="12_furniture"]
 [ext_resource type="Script" path="res://scripts/systems/RoomOverlayController.gd" id="13_rooms"]
+[ext_resource type="Script" path="res://scripts/ui/UIWindowManager.gd" id="14_winmgr"]
+[ext_resource type="Script" path="res://scripts/ui/ObjectExplorerController.gd" id="15_explorer"]
+[ext_resource type="Script" path="res://scripts/systems/TreeFellingController.gd" id="16_felling"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -52,6 +55,9 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 512, 70, 512)
 script = ExtResource("1_camera")
 
+[node name="UIWindowManager" type="CanvasLayer" parent="."]
+script = ExtResource("14_winmgr")
+
 [node name="Renderer" type="Node3D" parent="." unique_id=1162811613]
 script = ExtResource("2_renderer")
 overview_profile = false
@@ -68,12 +74,14 @@ renderer_path = NodePath("../Renderer")
 
 [node name="DockUI" type="CanvasLayer" parent="." unique_id=312546778]
 script = ExtResource("4_dock")
+window_manager_path = NodePath("../UIWindowManager")
 
 [node name="SliceController" type="Node" parent="."]
 script = ExtResource("6_slice")
 renderer_path = NodePath("../Renderer")
 camera_path = NodePath("../CameraRig")
 dock_ui_path = NodePath("../DockUI")
+window_manager_path = NodePath("../UIWindowManager")
 
 [node name="SurfaceFloraSpawner" type="Node3D" parent="."]
 script = ExtResource("7_flora")
@@ -83,7 +91,7 @@ slice_controller_path = NodePath("../SliceController")
 script = ExtResource("8_dwarves")
 camera_path = NodePath("../CameraRig")
 slice_controller_path = NodePath("../SliceController")
-dock_ui_path = NodePath("../DockUI")
+window_manager_path = NodePath("../UIWindowManager")
 
 [node name="FlagPlacementController" type="Node3D" parent="."]
 script = ExtResource("9_flag")
@@ -110,3 +118,16 @@ slice_controller_path = NodePath("../SliceController")
 script = ExtResource("13_rooms")
 dock_ui_path = NodePath("../DockUI")
 slice_controller_path = NodePath("../SliceController")
+
+[node name="ObjectExplorerController" type="Node3D" parent="."]
+script = ExtResource("15_explorer")
+window_manager_path = NodePath("../UIWindowManager")
+slice_controller_path = NodePath("../SliceController")
+click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController")])
+dwarf_director_path = NodePath("../DwarfDirector")
+
+[node name="TreeFellingController" type="Node3D" parent="."]
+script = ExtResource("16_felling")
+dock_ui_path = NodePath("../DockUI")
+flora_path = NodePath("../SurfaceFloraSpawner")
+explorer_path = NodePath("../ObjectExplorerController")

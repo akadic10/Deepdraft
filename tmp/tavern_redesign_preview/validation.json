@@ -1,0 +1,46 @@
+{
+  "status": "installed",
+  "voxels_per_block": 8,
+  "export_scale": 0.125,
+  "color_encoding": "linear COLOR_0",
+  "models": {
+    "tavern_bar": {
+      "voxels": 1016,
+      "triangles": 1756,
+      "bounds": [
+        [
+          -1,
+          0,
+          -0.5
+        ],
+        [
+          1,
+          2.0,
+          0.5
+        ]
+      ],
+      "connected_components": 1,
+      "fits_existing_collision": true,
+      "sha256": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763"
+    },
+    "bench": {
+      "voxels": 472,
+      "triangles": 1248,
+      "bounds": [
+        [
+          -1,
+          0,
+          -0.5
+        ],
+        [
+          1,
+          1.0,
+          0.5
+        ]
+      ],
+      "connected_components": 1,
+      "fits_existing_collision": true,
+      "sha256": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e"
+    }
+  }
+}

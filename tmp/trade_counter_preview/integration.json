@@ -1,0 +1,74 @@
+{
+  "status": "passed",
+  "pre_existing_models_preserved": 105,
+  "canonical_exports": {
+    "barrel": "12d1ec43bf462d56066a31f08fcecafa3d49bff27363f14034cebf5fa2868972",
+    "storage_crate": "a0e107970c3c1b85d5ef25cdf5c43398415c50ba8be589b12261487537496f59",
+    "storage_shelf": "b2c849bf312b03b5bea036856312810eb78a320f446d87c7b6d777ee0358b8cf",
+    "tavern_bar": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763",
+    "bench": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "hearth": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8",
+    "door": "32e724fe278f619b293cdb8615cf212266280f80574ad7a04ff74a7c214094d1",
+    "trade_counter": "c41ad638232f8acc91c6c7b7f538a5734914893695caa3bbfda716a4656d9108",
+    "packed_furniture": "2512d08376ac4fe4135c76393cdd5ef625ee7d8b999f61cf1b833f50a361ef6f"
+  },
+  "trade_definition_changed_fields": [
+    "__comment",
+    "description",
+    "item_key",
+    "placement",
+    "yaw_steps"
+  ],
+  "existing_item_definitions_preserved": true,
+  "other_furniture_definitions_preserved_except_tavern_status_comment": true,
+  "packed_item_types": 8,
+  "snapshot_source_json_decoding": "cp1252 (matches original snapshot; production JSON remains UTF-8)",
+  "renders": [
+    "counter.png",
+    "counter_rear.png",
+    "counter_rts.png",
+    "dwarf_scale.png",
+    "dwarf_scale_rts.png",
+    "storage_context.png",
+    "tavern_comparison.png"
+  ],
+  "logs": {
+    "review-import": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-trade-review-import.log",
+      "errors": false,
+      "warnings": []
+    },
+    "review-capture": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-trade-review-capture.log",
+      "errors": false,
+      "warnings": []
+    },
+    "live-import": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-trade-live-import.log",
+      "errors": false,
+      "warnings": []
+    },
+    "live-check": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-trade-live-check.log",
+      "errors": false,
+      "warnings": [
+        "WARNING: SkyController: WorldEnvironment has no Environment resource.",
+        "WARNING: WeatherManager: world_seed unavailable \u2014 weather RNG randomized (non-deterministic)."
+      ]
+    }
+  },
+  "runtime": {
+    "build_menu_mapping": true,
+    "dev_spawner_entry": true,
+    "dwarf_pickup_and_build_consumes_crate": true,
+    "fetch_reservation_release_and_reclaim": true,
+    "four_rotations": true,
+    "ghost_nonblocking": true,
+    "in_memory_installed_save_restore": true,
+    "no_room_heat_or_door_side_effects": true,
+    "placeable_definitions": 8,
+    "player_saves_touched": false,
+    "rotated_bounds_match_collision": true,
+    "uninstall_refunds_same_item": true
+  }
+}

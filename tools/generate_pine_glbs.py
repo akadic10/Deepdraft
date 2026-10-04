@@ -1,21 +1,9 @@
 #!/usr/bin/env python3
-"""
-Generate Deepdraft pine GLBs — simple Stonehearth-style stepped conifer.
+"""Generate the complete redesigned pine roster at one voxel per block.
 
-ART CONVENTION (2026-06-06): trees are authored 1:1 — 1 voxel = 1 game block
-(VOX_PER_BLOCK = 1), rendered at scale 1.0. This matches Stonehearth's tree
-pipeline (their trees render at scale 1.0, one model voxel per terrain block) and
-the chunky "Voxel Trees" look. Characters/items stay at 8 voxels/block (their own
-import scale). See docs/60_asset_creation/61_voxel_art_guide.md.
-
-A pine is a stepped cone: a bare reddish trunk at the base, a stack of flat needle
-whorls (widest at the bottom, narrowing in steps) with 1-block gaps that let the
-trunk peek through, and a pointed apex. Engine lighting (PER_PIXEL) does the
-face shading, so colours stay to a few simple greens.
-
-Models are authored centred on the trunk at X=Z=0, base at Y=0 (matches
-SurfaceFloraSpawner._instance_tree). Sizes: ancient 27 / mature 20 / sapling 8
-blocks tall (docs/00_dev_roadmap/13_flora_scatter_pine.md §5.1).
+All live stages, seasons and variants use generate_forest_redesign. Legacy
+builders below remain only for historical before/after preview reproduction.
+Existing mature baseline designs and gameplay footprints are preserved.
 """
 
 import math
@@ -23,6 +11,7 @@ import random
 from pathlib import Path
 
 from generate_dwarf_glb import Voxels, mesh_from_voxels, write_glb
+from generate_forest_redesign import build_model, mesh_model, manifest as forest_manifest
 
 VOX_PER_BLOCK = 1  # keep SurfaceFloraSpawner.voxels_per_block in sync
 
@@ -127,7 +116,7 @@ VARIANTS = {
 }
 
 
-def build_pine(stage, season="summer", variant=1):
+def build_legacy_pine(stage, season="summer", variant=1):
     p = STAGES[stage]
     vt = VARIANTS[variant]
     rng = random.Random(f"pine1:{stage}:{season}:{variant}")
@@ -158,14 +147,16 @@ def build_pine(stage, season="summer", variant=1):
     return v
 
 
+def build_pine(stage, season="summer", variant=1):
+    return build_model("pine", stage, season, variant)
+
+
+def mesh_pine(vox, stage, season="summer", variant=1):
+    return mesh_model(vox, "pine", stage)
+
+
 def manifest():
-    out = []
-    for stage in ("sapling", "mature", "ancient"):
-        for var in range(1, (1 if stage == "sapling" else 3) + 1):
-            out.append((f"pine_{stage}{'' if var == 1 else '_%d' % var}", stage, "summer", var))
-        for var in range(1, (1 if stage == "sapling" else 2) + 1):
-            out.append((f"pine_{stage}_winter{'' if var == 1 else '_%d' % var}", stage, "winter", var))
-    return out
+    return forest_manifest("pine")
 
 
 def main():
@@ -175,7 +166,7 @@ def main():
     total = 0
     for name, stage, season, variant in manifest():
         vox = build_pine(stage, season, variant)
-        mesh = mesh_from_voxels(vox)
+        mesh = mesh_pine(vox, stage, season, variant)
         size = write_glb(out_dir / f"{name}.glb", name, mesh)
         total += size
         h = max(y for _, y, _ in vox.cells) + 1

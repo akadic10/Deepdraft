@@ -1,0 +1,190 @@
+{
+  "tree_hashes": {
+    "assets/models/flora/trees/apple/apple_ancient.glb": "351e03311817de72057272b416edd5b1955fa0b23b62a0f9183830fd7633acf0",
+    "assets/models/flora/trees/apple/apple_ancient_2.glb": "82a2e85016df94ac286fbba8a17da5dcff0f77e9e85b33729e746efd23dea7e7",
+    "assets/models/flora/trees/apple/apple_ancient_3.glb": "0c176a6f473706eafa691ebe4183c67bd6f6f2fec7ea06322d45b42f144ff1c9",
+    "assets/models/flora/trees/apple/apple_ancient_autumn.glb": "7a05a2f6a451b17ae300d71d906c025a7ac731452fac7b8517bc96b9a6a28b8a",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_2.glb": "8ac16812e1c0ef36b589614f0224170a5d2ed3718914b8b93b23aebacb1d08be",
+    "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting.glb": "660729fd103ea2c6b3798edccb0f155ed7eade2516aafde05e79e7cabd09ce6f",
+    "assets/models/flora/trees/apple/apple_ancient_spring.glb": "e1e3a6e8922227a56793670076ee21513a23d4d5bec7061f37f3499bcf06a6da",
+    "assets/models/flora/trees/apple/apple_ancient_winter.glb": "b2a94fc89a6c6ae278abb2e038d5b13535d6253b79558aa17d9608e2ded7826f",
+    "assets/models/flora/trees/apple/apple_mature.glb": "a66933e1d8be601a6437ab6e7143fe55659b9ea0402ae9a479a4bb2dd2ac35cb",
+    "assets/models/flora/trees/apple/apple_mature_2.glb": "52ee62ec9821822eea088288ab8036755f30e9b0357115c01c16e2e120909e39",
+    "assets/models/flora/trees/apple/apple_mature_3.glb": "77c63e4fe138c0773d08792e9691ef0d1949db7db357b1927334da60b6c6bd7a",
+    "assets/models/flora/trees/apple/apple_mature_autumn.glb": "93911e71cdd05baf3f5a239ec7f9e08526209f961a132170b0a38e60a61f3eda",
+    "assets/models/flora/trees/apple/apple_mature_autumn_2.glb": "692a372c8ff56240937a9660afe079d628e56444e746ca640914042fd7abdf5c",
+    "assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb": "7575f53971e565f5c74f7bedf7447fa7a8c55ec225035f5393b6de25bb061e79",
+    "assets/models/flora/trees/apple/apple_mature_spring.glb": "b6f3ebc6ae4957631571ef37c8a547ddf1d83a0cfa2494e3dfa8c3da2402ed3b",
+    "assets/models/flora/trees/apple/apple_mature_winter.glb": "5d41d3575ba45abc7679084d36e8a74805a10b14e3dc8dd20a9f7ab7a1afd096",
+    "assets/models/flora/trees/apple/apple_sapling.glb": "0094d62f4816707a79823b1a53fcadf0bb43e81c9557ab4730ef32c09cc0645b",
+    "assets/models/flora/trees/apple/apple_sapling_autumn.glb": "892c1bc74c619be79fe64e207a050715c6e60077329e6bb74dd145ff8d3e1b81",
+    "assets/models/flora/trees/apple/apple_sapling_spring.glb": "a95f1e24347bfe41711037d9c7a642df98e29d580b90a74920d29e2a346bc840",
+    "assets/models/flora/trees/apple/apple_sapling_winter.glb": "0216643b3d59ff5f69e82da6a6ce29b9133aebcade07030fece10236b1185145",
+    "assets/models/flora/trees/juniper/juniper_ancient.glb": "e6033019b965631928b78c9f55242ec629d16997dde76c0f124ef442cc159d71",
+    "assets/models/flora/trees/juniper/juniper_ancient_2.glb": "86b5282ab60a8b99540b57c5fe83b5d91b27618bf2f33f84c065402cb62cebff",
+    "assets/models/flora/trees/juniper/juniper_ancient_winter.glb": "458068b7b1d76a0c42efde156ab44df282158af96b46560c05eeea2e6ec047c2",
+    "assets/models/flora/trees/juniper/juniper_mature.glb": "28824a3b13be9719156714a386ee8fe08138fdf1e281b3efa2c54b3b780bb23a",
+    "assets/models/flora/trees/juniper/juniper_mature_2.glb": "2a69dea5f5d373529da22b73a5a45caa65d2e1f1f19ff34141b958089e31fc35",
+    "assets/models/flora/trees/juniper/juniper_mature_winter.glb": "7485d496ad9aa63222b88711f796e8838d310d44fb98e8bc588fe4f3b497e7d2",
+    "assets/models/flora/trees/juniper/juniper_sapling.glb": "8092302f356e036a4a1a1550bdcb2409a5e113147b1a7889af1b8e431f4c316f",
+    "assets/models/flora/trees/juniper/juniper_sapling_winter.glb": "9172db5dbb44f67e6fffad27a46d49c9ca81ea85222a9dfa025ef9bdb1f18010",
+    "assets/models/flora/trees/oak/oak_ancient.glb": "9d8fd65d7819ed958de899683c59d688621f429dc3a287949e1a4a99dc26f138",
+    "assets/models/flora/trees/oak/oak_ancient_2.glb": "418e6ded8fdda5c62160c7b59fc0411090ef07948851eb10cddb186011399a9e",
+    "assets/models/flora/trees/oak/oak_ancient_3.glb": "3884d2670573da11d63abd8cebf260c0ae56462cf3e4921326cd5a3a47cadc38",
+    "assets/models/flora/trees/oak/oak_ancient_autumn.glb": "a1fa12229681673cd6a3448a03cb6b379fad99405260edf48668f64c74351f1c",
+    "assets/models/flora/trees/oak/oak_ancient_autumn_2.glb": "fb8d4553554a64ca0814209fc86739f781c548cfe42f64315269dc84db2f5234",
+    "assets/models/flora/trees/oak/oak_ancient_spring.glb": "b9050d3385993a56531794e4d5161f84aae654078b2a8d2266a38be535bbbdb2",
+    "assets/models/flora/trees/oak/oak_ancient_winter.glb": "af67973d38a733cb5390426531951166ed9f8d25e1b483988ff82f7bb738838e",
+    "assets/models/flora/trees/oak/oak_mature.glb": "63930d838a043a8ddafb4c86464d6b9f18c08b5f0f19561ce77d44db71b2dbc3",
+    "assets/models/flora/trees/oak/oak_mature_2.glb": "04854bf1942473f6389b452d14aef52f4f4d26b0617a7092ab0e2af8bdcc302c",
+    "assets/models/flora/trees/oak/oak_mature_3.glb": "74692d9f3c1ae0105fd540469c5f8273ab132579e88706bc77639672c83677df",
+    "assets/models/flora/trees/oak/oak_mature_autumn.glb": "124948b25607849f4a74404c5a79bb9b32ed4176bc20fcca41824201183e7f68",
+    "assets/models/flora/trees/oak/oak_mature_autumn_2.glb": "ff6f235ecdb282a43e6e7754249e7fe7b86e5e820aa470f15053d263cd35e538",
+    "assets/models/flora/trees/oak/oak_mature_spring.glb": "c542dbb4f2c28636b558bc46a7d20348578d6be6e1d56cfbde462b85a69bc4f8",
+    "assets/models/flora/trees/oak/oak_mature_winter.glb": "0cf5d8cb5546d6174d5caf858f36d9d4c1df376486117c1ee5a1fd4d9cfd2595",
+    "assets/models/flora/trees/oak/oak_sapling.glb": "4d179eba9b91d58c1e7bf1d0b79b0b678663de984060936525a6476598475a59",
+    "assets/models/flora/trees/oak/oak_sapling_autumn.glb": "5b090bd12361456fb5b026e251c4e0cd91aed3956b863b6d54724465af317bf3",
+    "assets/models/flora/trees/oak/oak_sapling_spring.glb": "64b77d8edeeca07bb6caae782621ca6ec2be5a7b11284c0ec6ddc35918fe9a89",
+    "assets/models/flora/trees/oak/oak_sapling_winter.glb": "4c3ae81cbe68cada6bf44d892fdb026855e741777bf05b7214be080744777b28",
+    "assets/models/flora/trees/pine/pine_ancient.glb": "d70474618e58ce963612c1bed0ba887c47d20bb256022f09f5ed1f75add2bbd4",
+    "assets/models/flora/trees/pine/pine_ancient_2.glb": "8fd7b7bfeda6e56a85a31ea5193870251a90c828c40003d81ae66a8be430acf5",
+    "assets/models/flora/trees/pine/pine_ancient_3.glb": "db4514fd694e7d1127c3299111055e35f1bdf77164cefe0490f316091a81510f",
+    "assets/models/flora/trees/pine/pine_ancient_winter.glb": "f98c9775f0bdab92dba8a6630d4eef2a48af05249bf3ee381f6d42cfdcfa2dfe",
+    "assets/models/flora/trees/pine/pine_ancient_winter_2.glb": "f9e3f448317a463338f1497f4f96216d85c4b5eb877d54ca114147cf4f10bb6a",
+    "assets/models/flora/trees/pine/pine_mature.glb": "0b95cd27bb552e595a4025e708035285973f8df1b16ab189cbab694df764e64e",
+    "assets/models/flora/trees/pine/pine_mature_2.glb": "f2a52c7efb2819843a5eddaec1ccb43e5c193e1d33d3575639495de82f2aca50",
+    "assets/models/flora/trees/pine/pine_mature_3.glb": "671d148816a3f6a7a3238a68bff3d14030b89dbe45dd6f606015ec472f105178",
+    "assets/models/flora/trees/pine/pine_mature_winter.glb": "8d7db368818ca7ac168a67815500ce52bf4c580727919bd9c9cd080eb37b5dfd",
+    "assets/models/flora/trees/pine/pine_mature_winter_2.glb": "efe6972100f7668a549a0b41fbfa2e3bf1df5ec7f6150137c16054bd510d295d",
+    "assets/models/flora/trees/pine/pine_sapling.glb": "8703e2e182fb49d9cd46ce4075104a8665cbaf61b52708dd8a2c36be77ad184c",
+    "assets/models/flora/trees/pine/pine_sapling_winter.glb": "77065c0bec5b8c77cb7bad96a834b49d914f8c7304f5f799b9085699c5cd1137"
+  },
+  "juniper_registry": {
+    "__comment": [
+      "Juniper tree \u00e2\u20ac\u201d evergreen surface tree valued for its berries.",
+      "Berries are the primary botanical for gin-style spirits (future brewing tier).",
+      "Evergreen: only two season keys (summer baseline, winter snow-dusted).",
+      "Missing season keys fall back to 'summer' at runtime.",
+      "Three growth stages: sapling \u00e2\u2020\u2019 mature \u00e2\u2020\u2019 ancient.",
+      "",
+      "MODEL VARIANTS (mature and ancient only):",
+      "  summer x2, winter x1. Juniper is columnar \u00e2\u20ac\u201d less shape variance possible than oak/pine.",
+      "  Variants differ in: crown tightness, slight lean, berry cluster density.",
+      "  All variants must share the 1\u00c3\u20141 block (mature) or 2\u00c3\u20142 block (ancient) XZ footprint."
+    ],
+    "base:flora:juniper_tree": {
+      "harvest_resource": "base:resources:wood:juniper_log",
+      "material_tags": [
+        "wood",
+        "tree",
+        "flora",
+        "evergreen",
+        "stockpile_wood"
+      ],
+      "appeal": 2,
+      "__placement_comment": "Mixed-forest niche, doc 14: hardy DRY-loving evergreen on rocky/exposed ground (lowland rock through mountain, extends above the pine treeline). Read by SurfaceFloraSpawner.",
+      "placement": {
+        "domains": [
+          "lowland",
+          "foothill",
+          "mountain"
+        ],
+        "exclude_water": true,
+        "min_surface_y": 12,
+        "max_surface_y": 95,
+        "moisture_min": 0.0,
+        "moisture_max": 0.4,
+        "base_density": 0.35,
+        "max_surface_slope": 1,
+        "edge_margin": 2,
+        "edge_dropoff_max": 3,
+        "footprint": {
+          "sapling": 1,
+          "mature": 1,
+          "ancient": 2
+        },
+        "stage_weights": {
+          "sapling": 0.2,
+          "mature": 0.55,
+          "ancient": 0.25
+        }
+      },
+      "stages": {
+        "sapling": {
+          "clearance_height": 2,
+          "growth_duration_days": 4,
+          "next_stage": "mature",
+          "models": {
+            "summer": "res://assets/models/flora/trees/juniper/juniper_sapling.glb",
+            "winter": "res://assets/models/flora/trees/juniper/juniper_sapling_winter.glb"
+          },
+          "harvest": {
+            "yields": []
+          }
+        },
+        "mature": {
+          "clearance_height": 6,
+          "growth_duration_days": 8,
+          "next_stage": "ancient",
+          "models": {
+            "summer": [
+              "res://assets/models/flora/trees/juniper/juniper_mature.glb",
+              "res://assets/models/flora/trees/juniper/juniper_mature_2.glb"
+            ],
+            "winter": "res://assets/models/flora/trees/juniper/juniper_mature_winter.glb"
+          },
+          "harvest": {
+            "yields": [
+              {
+                "item": "base:resources:wood:juniper_log",
+                "count": 4,
+                "chance": 1.0
+              },
+              {
+                "item": "base:resources:flora:juniper_berry",
+                "count": 2,
+                "chance": 0.4
+              },
+              {
+                "item": "base:resources:seed:juniper_seed",
+                "count": 1,
+                "chance": 0.3
+              }
+            ]
+          }
+        },
+        "ancient": {
+          "clearance_height": 10,
+          "growth_duration_days": null,
+          "next_stage": null,
+          "models": {
+            "summer": [
+              "res://assets/models/flora/trees/juniper/juniper_ancient.glb",
+              "res://assets/models/flora/trees/juniper/juniper_ancient_2.glb"
+            ],
+            "winter": "res://assets/models/flora/trees/juniper/juniper_ancient_winter.glb"
+          },
+          "harvest": {
+            "yields": [
+              {
+                "item": "base:resources:wood:juniper_log",
+                "count": 8,
+                "chance": 1.0
+              },
+              {
+                "item": "base:resources:flora:juniper_berry",
+                "count": 4,
+                "chance": 0.6
+              },
+              {
+                "item": "base:resources:seed:juniper_seed",
+                "count": 2,
+                "chance": 0.5
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

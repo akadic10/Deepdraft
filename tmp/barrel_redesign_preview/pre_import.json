@@ -1,0 +1,55 @@
+{
+  "furniture_hashes": {
+    "assets/models/furniture/barrel.glb": "5ebdaebfdc06dd1423024a67b0df682af6454f7e1d8c6de8f5e7bffa2e59bc26",
+    "assets/models/furniture/bench.glb": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "assets/models/furniture/door.glb": "5a19dba337c8b8583858e08b0e385fb3d698c09db98f4b42393a7aa569f832b6",
+    "assets/models/furniture/hearth.glb": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8",
+    "assets/models/furniture/storage_crate.glb": "600fc486ba9abefc8373d57911046d091a1a0b1055a34279394534778eb6353f",
+    "assets/models/furniture/storage_shelf.glb": "b2c849bf312b03b5bea036856312810eb78a320f446d87c7b6d777ee0358b8cf",
+    "assets/models/furniture/tavern_bar.glb": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763"
+  },
+  "packed_hash": "72cddfb005bf0ce697b814030f60e205639ccaf954f8f20b0cfc3c1003a8cefa",
+  "definition": {
+    "__comment": [
+      "Storage Barrel - the first functional storage container (doc 19).",
+      "Follows the trade_counter.json schema. NEW fields established by doc 19:",
+      "  item_key   - the resources.json ITEM form a dwarf fetches to install this piece",
+      "  placement  - 'floor' | 'floor_wall' (floor_wall = needs a solid block behind the back face)",
+      "  yaw_steps  - placement-ghost rotation steps (R key, 90 degrees each)",
+      "  storage    - marks this piece as a storage container (capacity in ITEMS, flat count -",
+      "               SH parity 2026-07-11; render_contents false = opaque density container)"
+    ],
+    "furniture_key": "base:furniture:barrel",
+    "furniture_category": "storage",
+    "display_name": "Barrel",
+    "description": "A stout oak barrel bound in iron. Holds a small stock of whatever the colony hauls into it.",
+    "model": "res://assets/models/furniture/barrel.glb",
+    "item_key": "base:resources:furniture:barrel",
+    "placement": "floor",
+    "yaw_steps": 4,
+    "footprint": {
+      "width": 1,
+      "depth": 1
+    },
+    "blocks_movement": true,
+    "collision_regions": [
+      {
+        "min": [
+          0,
+          0,
+          0
+        ],
+        "max": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "room_anchor": false,
+    "storage": {
+      "capacity": 8,
+      "render_contents": false
+    }
+  }
+}

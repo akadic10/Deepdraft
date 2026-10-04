@@ -1,0 +1,43 @@
+{
+  "status": "installed_and_verified",
+  "deterministic_export_matches_live": true,
+  "other_models_unchanged": 104,
+  "item_definitions_unchanged": true,
+  "placement_controller_unchanged": true,
+  "review_matches_live": true,
+  "renders": 7,
+  "logs": {
+    "review-import": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-flag-review-import.log"
+    },
+    "review-capture": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-flag-review-capture.log"
+    },
+    "live-import": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-flag-live-import.log"
+    },
+    "live-check": {
+      "errors": 0,
+      "warnings": 2,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-flag-live-check.log"
+    }
+  },
+  "runtime_checks": {
+    "ghost_material_and_no_occupancy": true,
+    "imported_bounds_fit_1x3x1": true,
+    "in_memory_save_restore": true,
+    "initial_squad_spawn_hook_once": true,
+    "linear_vertex_colors_and_lit_material": true,
+    "model_checked": true,
+    "placement_blocks_only_flag_column": true,
+    "player_saves_touched": false,
+    "restore_does_not_respawn_squad": true,
+    "settlement_anchor_hook": true
+  }
+}

@@ -62,7 +62,8 @@ const DEV_DROP_MIX: Dictionary = {
 
 ## DEV: one packed furniture item of each kind (doc 19 Phase 0 - the v1 item
 ## source until crafting/trade produce furniture for real; doc 21 adds the
-## tavern set; doc 22 adds the door).
+## tavern set; doc 22 adds the door; art docs 37–40 add counter/table/chair/bed;
+## art doc 42 adds the brewing vat).
 const DEV_FURNITURE_MIX: Dictionary = {
 	"base:resources:furniture:barrel": 1,
 	"base:resources:furniture:storage_chest": 1,
@@ -71,6 +72,16 @@ const DEV_FURNITURE_MIX: Dictionary = {
 	"base:resources:furniture:bench": 1,
 	"base:resources:furniture:hearth": 1,
 	"base:resources:furniture:door": 1,
+	"base:resources:furniture:trade_counter": 1,
+	"base:resources:furniture:wooden_table": 1,
+	"base:resources:furniture:wooden_chair": 1,
+	"base:resources:furniture:dwarf_bunk": 1,
+	"base:resources:furniture:brewing_vat": 1,
+	"base:resources:furniture:wall_torch": 4,
+	"base:resources:furniture:anvil": 1,
+	"base:resources:furniture:smelter": 1,
+	"base:resources:furniture:aging_rack": 1,
+	"base:resources:furniture:brazier": 1,
 }
 
 signal zone_created(zone_id: int)
@@ -482,9 +493,14 @@ func restore_state(state: Dictionary) -> void:
 			var count := maxi(int(saved_stack.get("count", 0)), 0)
 			if count <= 0 or item_key.is_empty() or not zone.has_cell(cell):
 				continue
+			if drop_manager != null:
+				var kept := mini(count, int(drop_manager.call("item_capacity", item_key)))
+				if count > kept:
+					drop_manager.call("spawn_drop", item_key, count - kept, cell + Vector3i.UP)
+				count = kept
 			zone.cell_stacks[cell] = { "item": item_key, "count": count }
 			if drop_manager != null and drop_manager.has_method("restore_stored_item"):
-				drop_manager.call("restore_stored_item", item_key, cell)
+				drop_manager.call("restore_stored_item", item_key, cell, count)
 
 
 # ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────
@@ -761,8 +777,8 @@ func _open_zone_window(zone_id: int) -> void:
 	if zone == null:
 		return
 	_window_zone_id = zone_id
-	_window_info_label.text = "Cells: %d\nStored: %d\nFilter: all goods" % [
-		zone.cell_count(), zone.stored_count()]
+	_window_info_label.text = "Cells used: %d / %d\nGoods stored: %d\nFilter: all goods" % [
+		zone.cell_stacks.size(), zone.cell_count(), zone.stored_count()]
 	_window_layer.visible = true
 
 

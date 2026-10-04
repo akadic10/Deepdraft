@@ -1,0 +1,33 @@
+{
+  "actual_anvil_button_dispatch": true,
+  "build_menu_mapping": true,
+  "build_panel_layouts": [
+    {
+      "buttons": 15,
+      "panel": "[P: (205.5, 458.0), S: (869.0, 224.0)]",
+      "rows": 3,
+      "viewport": "(1280, 800)"
+    },
+    {
+      "buttons": 15,
+      "panel": "[P: (845.5, 1098.0), S: (869.0, 224.0)]",
+      "rows": 3,
+      "viewport": "(2560, 1440)"
+    }
+  ],
+  "dev_spawner_entry": true,
+  "dwarf_pickup_and_build_consumes_crate": true,
+  "fetch_reservation_release_and_reclaim": true,
+  "four_rotations": true,
+  "ghost_nonblocking": true,
+  "ghost_save_restore": true,
+  "in_memory_installed_save_restore": true,
+  "missing_floor_rejections": 8,
+  "no_room_heat_or_door_side_effects": true,
+  "placeable_definitions": 14,
+  "player_saves_touched": false,
+  "rotated_bounds_match_collision": true,
+  "terrain_unchanged": true,
+  "two_vertical_layers_occupied": true,
+  "uninstall_refunds_same_item": true
+}

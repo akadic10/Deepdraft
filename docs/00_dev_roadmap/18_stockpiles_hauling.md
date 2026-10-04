@@ -1,5 +1,21 @@
 # 18 - Stockpiles & Hauling (Second Colony Milestone)
 
+> **2026-10-04 update — produce crates:** the historical one-unit-per-tile rule
+> below now has an explicit exception. Seeds, cones, acorns, cuttings, fruit and
+> berries use automatic crates holding up to **24 units of one item type**.
+> A crate occupies one ground cell or furniture slot; logs remain individual.
+> Loose drops use the same crate as stored goods. Existing partial crates refill
+> before empty slots, including concurrent deliveries. Haulers reserve exact
+> quantities and split pickups when only part fits. Colony totals count goods;
+> UI separately reports occupied cells/slots. No empty-crate production or costs.
+>
+> `StorageStackSlots.gd` shares capacity/reservation rules between zones and
+> furniture. Pickup tokens stay paired with their sources and cargo through
+> sorting, skipped paths and cancellation. Node `quantity` survives carrying,
+> interruption and save/load; old uncounted loose/carried records mean one unit.
+> Removing a zone releases its existing crates without replaying their contents.
+> `ProduceCrateTest.gd` covers these cases, including actual dwarf hauling.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = decided / ready to build</span> |

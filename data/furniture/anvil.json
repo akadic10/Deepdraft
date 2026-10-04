@@ -1,0 +1,21 @@
+{
+  "__comment": [
+    "Stone-mounted iron anvil, art doc 44 (2026-10-02).",
+    "Authored at 8 voxels per block; 0.125 scale is baked into the GLB.",
+    "Independent floor furniture: 2x1 footprint, 1.5-block working height.",
+    "Placement, packed-item hauling, build/uninstall and persistence are live.",
+    "Metalworking recipes, operator animations and forge integration remain future work."
+  ],
+  "furniture_key": "base:furniture:anvil",
+  "furniture_category": "workshop",
+  "display_name": "Anvil",
+  "description": "A heavy horned iron anvil clamped to a dressed-stone pedestal.",
+  "model": "res://assets/models/furniture/anvil.glb",
+  "item_key": "base:resources:furniture:anvil",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {"width": 2, "depth": 1},
+  "blocks_movement": true,
+  "collision_regions": [{"min": [0, 0, 0], "max": [2, 1.5, 1]}],
+  "room_anchor": false
+}

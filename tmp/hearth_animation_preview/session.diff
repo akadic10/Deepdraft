@@ -1,0 +1,418 @@
+--- before/data/furniture/hearth.json
++++ after/data/furniture/hearth.json
+@@ -4,7 +4,8 @@
+     "Authored at 8 voxels per block, 0.125 export scale baked into the GLB.",
+     "Stone rim is 1 block high; tallest flame is 2 blocks. Placement and collision cover 2x2x2.",
+     "RoomManager reads heat_source.heat_units. A multi-cell hearth contributes 400 units once, at its origin.",
+-    "The mesh has static flame geometry; light emission and animation are separate features.",
++    "Named body/flame meshes preserve the stonework while ten voxel fire frames animate above the bowl.",
++    "Installed hearths emit warm, gently flickering light. Ghosts and packed items remain unlit.",
+     "The shared packed-furniture item and floor-placement behavior are unchanged."
+   ],
+   "furniture_key": "base:furniture:hearth",
+@@ -35,6 +36,28 @@
+     }
+   ],
+   "room_anchor": false,
++  "light_source": {
++    "color": "#FFC078",
++    "energy": 2.0,
++    "range": 8.0,
++    "attenuation": 1.2,
++    "position": [0, 1.375, 0],
++    "shadows": true,
++    "body_shadows": true,
++    "emissive_mesh": "hearth_flame",
++    "unshaded_flame": true,
++    "emission_energy": 0.85,
++    "flame_animation": {
++      "model": "res://assets/models/furniture/animations/hearth_flame.glb",
++      "frames": ["flame_00", "flame_01", "flame_02", "flame_03", "flame_04", "flame_05", "flame_06", "flame_07", "flame_08", "flame_09"],
++      "frame_durations": [0.14, 0.12, 0.15, 0.13, 0.14, 0.12, 0.16, 0.13, 0.15, 0.14],
++      "speed_variation": 0.10,
++      "light_variation": 0.08,
++      "emission_variation": 0.07,
++      "flicker_frequency_hz": 2.0,
++      "update_hz": 30
++    }
++  },
+   "heat_source": {
+     "heat_units": 400
+   }
+--- before/scripts/components/FurnitureFlameAnimation.gd
++++ after/scripts/components/FurnitureFlameAnimation.gd
+@@ -1,7 +1,7 @@
+ extends Node
+ 
+ ## Cosmetic voxel flipbook, independent of calendar speed/heat. Only installed
+-## lights create this node. Meshes are shared; each torch owns its emission material.
++## lights create this node. Meshes are shared; each fire owns its emission material.
+ ## Visibility changes suspend the update loop when the slice hides the parent.
+ static var _clip_cache: Dictionary = {} # resource path -> named Mesh resources
+ 
+--- before/scripts/components/FurnitureLighting.gd
++++ after/scripts/components/FurnitureLighting.gd
+@@ -18,15 +18,18 @@
+ 	node.add_child(light)
+ 	var mesh_name := String(light_def.get("emissive_mesh", ""))
+ 	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+-		# A point approximation inside a small lamp creates an oversized black
+-		# fan from its own bracket. The mount receives light but does not shadow
+-		# itself; terrain, dwarves and other furniture still cast real shadows.
+-		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
++		# Small lamp brackets suppress their own point-light shadow fan. A broad
++		# hearth can retain masonry shadows; the fire itself never casts shadows.
++		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (
++			String(mesh.name) != mesh_name and bool(light_def.get("body_shadows", false))
++		) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ 		if String(mesh.name) != mesh_name:
+ 			continue
+ 		var material := StandardMaterial3D.new()
+ 		material.vertex_color_use_as_albedo = true
+ 		material.roughness = 1.0
++		if bool(light_def.get("unshaded_flame", false)):
++			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+ 		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+ 		material.emission_enabled = true
+ 		material.emission = Color.WHITE
+--- before/docs/00_dev_roadmap/30_hearth_visual_redesign.md
++++ after/docs/00_dev_roadmap/30_hearth_visual_redesign.md
+@@ -1,8 +1,10 @@
+ # 30 — Hearth visual redesign
+ 
+-**Status (2026-10-01): installed at 2×2.** The shipping GLB, furniture definition
+-and canonical furniture generator now use the larger hearth. Review project:
+-`tmp/hearth_redesign_preview/project.godot`.
++**Status (2026-10-02): installed at 2×2 with animated fire.** The shipping GLB,
++furniture definition and canonical generator use separate body/flame meshes
++and a ten-frame fire library. Current review project:
++`tmp/hearth_animation_preview/project.godot`. The original size review remains
++under `tmp/hearth_redesign_preview/`.
+ 
+ ## Design
+ 
+@@ -29,7 +31,7 @@
+ | Export scale | 0.125, baked into positions; import/root scale 1 |
+ | World bounds | X/Z −1 to +1; Y 0 to 2 |
+ | Occupied voxels | 1,431 |
+-| Triangles | 2,496 |
++| Triangles | 2,888 in static body/flame model; 6,816 across ten library frames |
+ | Connected occupied-cell components | 1 |
+ | Placement footprint | 2×2 floor cells |
+ | Collision region | min [0,0,0], max [2,2,2] |
+@@ -39,9 +41,21 @@
+ Authored sRGB palette colors convert to linear `COLOR_0`, matching the existing
+ furniture material's default `vertex_color_is_srgb = false`. This conversion
+ is local to the hearth; other furniture exports retain their existing colors.
+-The existing lit, double-sided material is used without runtime changes.
+-Flames are static geometry; no light, animation, particles or emission shader
+-were added.
++The body retains its lit, double-sided material and masonry shadows. The
++named `hearth_flame` mesh uses an unshaded emissive material so fire stays
++bright from every direction in a dark room. A warm point light sits above the
++rim, with range 8, energy 2 and at most 8% brightness variation. The hearth
++opts into body shadows; the wall torch retains its existing lighting settings.
++
++Ten connected voxel frames curl and vary the height of the three flame tongues
++above the rim, with a fixed broad base and untouched masonry, grate and logs.
++Their 1.38-second cycle is slower than the wall torch's 0.8-second cycle.
++`FurnitureFlameAnimation` shares mesh resources and gives each hearth a
++position-derived phase and small speed variation. Only one flame frame is drawn
++at a time; all frames fit the original 2×2×2 bounds. The effect runs in cosmetic
++real time, independent of calendar speed, without changing the 400-unit heat
++output. Hidden slices suspend updates. Build ghosts and packed items are unlit;
++save restoration rebuilds the light and animation without new save fields.
+ 
+ The model is centered on the full footprint. All four floor cells must be
+ valid for placement. Built hearths block those cells through the existing
+@@ -59,7 +73,7 @@
+ ## Review and verification
+ 
+ `tools/generate_hearth_redesign.py` creates the isolated review and, with
+-`--install`, copies the model into the game and updates its definition.
++`--install`, copies the model and flame library into the game.
+ `tools/generate_furniture_glbs.py` delegates the hearth builder and color
+ conversion to it, preserving the design when the full furniture set is rebuilt.
+ 
+@@ -87,16 +101,35 @@
+ small prototype and its original captures are in `reference/prototype_1x1/`.
+ `pre_import.json` records pre-install hashes and the original definition.
+ 
++## Animated-fire verification (2026-10-02)
++
++`tools/HearthAnimationPreview.gd` shows the live fire close up, beside a dwarf
++and in a dark tavern with the approved furniture. The native Godot movie is
++`tmp/hearth_animation_preview/renders/hearth_animation.mp4`.
++
++`tools/VerifyHearthAnimation.gd` checks all ten imported frames, static body,
++bounded light/emission flicker, shared clips with independent timing, hidden
++slice suspension, four placement rotations, collision/navigation, unlit
++ghosts, teardown, and installed/ghost save restoration. A sealed 64-cell room
++still receives exactly 400 heat units and 6.25°C. `tools/VerifyWallTorch.gd`
++also passes with both light sources present. Fixtures never read/write player saves.
++
++`tools/audit_hearth_animation.py` compares with the pre-animation snapshot,
++checks that every original hearth voxel and color is preserved in the split
++static model, validates the frame library, and reproduces the full canonical
++furniture export in isolation. The other 152 existing GLBs remain unchanged.
++Reports and the scoped source diff live under `tmp/hearth_animation_preview/`.
++
+ ## Reproduction
+ 
+ ```powershell
+ python -B tools/generate_hearth_redesign.py --install
+ $hearthEngine = 'S:\STEAM\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe'
+-Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--editor', '--path', 'P:\Deepdraft\tmp\hearth_redesign_preview', '--import') -WindowStyle Hidden -Wait
+-Start-Process -FilePath $hearthEngine -ArgumentList @('--path', 'P:\Deepdraft\tmp\hearth_redesign_preview', '--resolution', '1600x1000', '--', '--capture') -WindowStyle Hidden -Wait
++Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--editor', '--path', 'P:\Deepdraft\tmp\hearth_animation_preview', '--import') -WindowStyle Hidden -Wait
++Start-Process -FilePath $hearthEngine -ArgumentList @('--path', 'P:\Deepdraft\tmp\hearth_animation_preview', '--resolution', '1600x1000', '--', '--capture') -WindowStyle Hidden -Wait
+ Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--editor', '--path', 'P:\Deepdraft', '--import') -WindowStyle Hidden -Wait
+-Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--path', 'P:\Deepdraft', '--script', 'res://tmp/hearth_redesign_preview/LiveHearthCheck.gd') -WindowStyle Hidden -Wait
+-python -B tmp/hearth_redesign_preview/check_exports.py
++Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--path', 'P:\Deepdraft', '--script', 'res://tools/VerifyHearthAnimation.gd') -WindowStyle Hidden -Wait
++python -B tools/audit_hearth_animation.py
+ ```
+ 
+ Omit `--install` to export only the review. Omit `-- --capture` to use the
+--- before/docs/60_asset_creation/61_voxel_art_guide.md
++++ after/docs/60_asset_creation/61_voxel_art_guide.md
+@@ -749,7 +749,13 @@
+ existing palette with intermediate masonry and flame tones. This remains
+ the open-fire exception to the furniture woodwork rule.
+ 
+-Flames are static mesh geometry; lighting and animation are separate features.
++**Animated fire (2026-10-02):** ten voxel frames give the three flame tongues
++separate curling/rising motion on a slower 1.38-second cycle than the torch.
++The bowl, ironwork, logs and broad fire base stay fixed. Named body/flame meshes
++allow bright fire with a warm, gently flickering local light; masonry retains
++its shadows. Frames use a shared `animations/hearth_flame.glb` library and stay
++inside the existing 2×2×2 envelope. Hidden slices suspend updates; ghosts and
++packed items remain static and unlit. Restoring a saved hearth recreates the effect.
+ `RoomManager` reads `heat_source.heat_units: 400` once per hearth, independent
+ of its four-cell footprint. The canonical `tools/generate_furniture_glbs.py`
+ uses the builder and local linear-color export in `tools/generate_hearth_redesign.py`.
+--- before/tools/generate_furniture_glbs.py
++++ after/tools/generate_furniture_glbs.py
+@@ -40,6 +40,8 @@
+ DOC 30 UPDATE (2026-10-01): the hearth is now a 2x2 stone bowl, with a
+ 1-block rim and 2-block flame tip at the same 8 voxels/block. Its authored
+ colors are converted to linear COLOR_0 locally; other furniture is unchanged.
++The 2026-10-02 fire follow-up exports named body/flame meshes and a separate
++ten-frame flame library, shared by installed hearths at runtime.
+ 
+ DOC 31 UPDATE (2026-10-01): tavern_bar and bench use the matching oak/iron
+ redesign in generate_tavern_redesign, with local linear COLOR_0 conversion.
+@@ -567,7 +569,17 @@
+ 
+     total = 0
+     for name, vox in placed:
+-        size = write_glb(placed_dir / f"{name}.glb", name, mesh_furniture(name,vox), EXPORT_SCALE)
++        if name == 'hearth':
++            from generate_hearth_redesign import write_hearth, write_flames as write_hearth_flames
++            path = placed_dir / 'hearth.glb'
++            write_hearth(path,root / 'tmp' / 'furniture_review')
++            size = path.stat().st_size
++            flame_path = placed_dir / 'animations' / 'hearth_flame.glb'
++            write_hearth_flames(flame_path,root / 'tmp' / 'furniture_review')
++            total += flame_path.stat().st_size
++            print('  furniture/animations/hearth_flame.glb  10 animation frames')
++        else:
++            size = write_glb(placed_dir / f"{name}.glb", name, mesh_furniture(name,vox), EXPORT_SCALE)
+         print(f"  furniture/{name + '.glb':22s} {len(vox):4d} voxels  {size:6d} B")
+         total += size
+     size = write_glb(item_dir / "packed_furniture.glb", "packed_furniture",
+--- before/tools/generate_hearth_redesign.py
++++ after/tools/generate_hearth_redesign.py
+@@ -1,8 +1,8 @@
+ #!/usr/bin/env python3
+ """Build the 2x2 hearth and its isolated, 8-voxels-per-block art review.
+ 
+-Exports a review under tmp/hearth_redesign_preview. --install also replaces
+-the shipping GLB and updates its placement/collision definition to 2x2x2.
++Exports a review under tmp/hearth_animation_preview. --install replaces
++the shipping body/flame GLB and its ten-frame fire library.
+ """
+ import argparse
+ import hashlib
+@@ -96,7 +96,7 @@
+     return v
+ 
+ 
+-def hearth():
++def hearth(phase=None):
+     """Author a 16x16-cell hearth with a 1-block rim and 2-block flame tip."""
+     v = Voxels()
+     for x in range(-8,8):
+@@ -122,8 +122,8 @@
+             for y in range(2,7):
+                 sector = lower if y<5 else upper
+                 color = STONE[2+(sector%3==1)]
+-                phase = (angle+(0 if y<5 else math.pi/12))%(math.tau/12)
+-                if radius>6.2 and phase < .085:
++                joint_phase = (angle+(0 if y<5 else math.pi/12))%(math.tau/12)
++                if radius>6.2 and joint_phase < .085:
+                     color = STONE[1]
+                 if y==4 and radius>6.6:
+                     color = STONE[1] if lower%3==0 else STONE[2]
+@@ -173,6 +173,31 @@
+             (6,2,1.5,1.6,1.5),(7,2.2,1.8,1.5,1.4),
+             (8,2.4,2,1.3,1.2),(9,2.7,2,1.1,1),
+             (10,3,2,.9,.9),(11,3,1.7,.8,.8),(12,3,1,.51,.51)]
++    if phase is not None:
++        # The wide burning base stays seated in the original bowl. Above the
++        # rim, three independently curling tongues rise and settle by a cell.
++        animated = [row for row in rows if row[0] <= 7]
++        for group, offset in ((rows[:11],0), (rows[11:17],1.9), (rows[17:],4.2)):
++            top = group[-1][0]
++            tip = top - (1 if offset == 0 else 0) + round(math.sin(phase+offset))
++            for y in range(8,tip+1):
++                source_y = 7 + (y-7)*(top-7)/(tip-7)
++                a = max((row for row in group if row[0]<=source_y),key=lambda r:r[0])
++                b = min((row for row in group if row[0]>=source_y),key=lambda r:r[0])
++                t = (source_y-a[0])/max(1,b[0]-a[0])
++                cx,cz,rx,rz = (a[k]+(b[k]-a[k])*t for k in range(1,5))
++                bend = (y-7)/(tip-7)
++                cx += bend*.9*math.sin(phase+offset-bend*.6)
++                cz += bend*.65*math.sin(phase+offset+1.2)
++                # Snap the final tip to a cell, retaining a face-connected taper.
++                if y==tip:
++                    _,px,pz,prx,prz = animated[-1]
++                    support = [(x,z) for x in range(-5,5) for z in range(-4,5)
++                               if ((x-px)/prx)**2+((z-pz)/prz)**2 <= 1]
++                    cx,cz = min(support,key=lambda p:(p[0]-cx)**2+(p[1]-cz)**2)
++                    rx,rz = .51,.51
++                animated.append((y,cx,cz,rx,rz))
++        rows = animated
+     for y,cx,cz,rx,rz in rows:
+         for x in range(-5,5):
+             for z in range(-4,5):
+@@ -190,6 +215,40 @@
+     return v
+ 
+ 
++def hearth_parts(phase=None):
++    body, flame = Voxels(), Voxels()
++    for cell,color in hearth(phase).cells.items():
++        (flame if color in FIRE else body).cells[cell] = color
++    return body,flame
++
++
++def flame_frames():
++    original_body,_ = hearth_parts()
++    frames = []
++    for i in range(10):
++        body,flame = hearth_parts(i*math.tau/10)
++        assert body.cells == original_body.cells, 'Animation changed the bowl or grate'
++        assert not set(body.cells)&set(flame.cells)
++        combined = Voxels();combined.cells = body.cells | flame.cells
++        validate(combined)
++        frames.append((f'flame_{i:02}',flame))
++    assert len({tuple(sorted(v.cells)) for _,v in frames})==10
++    return frames
++
++
++def write_hearth(path,out):
++    from generate_wall_torch import write_parts
++    body,flame = hearth_parts()
++    path.parent.mkdir(parents=True,exist_ok=True)
++    return write_parts(path,[('hearth_body',body),('hearth_flame',flame)],out,'hearth')
++
++
++def write_flames(path,out):
++    from generate_wall_torch import write_parts
++    path.parent.mkdir(parents=True,exist_ok=True)
++    return write_parts(path,flame_frames(),out,'hearth_flame')
++
++
+ def export_mesh(vox):
+     positions,normals,colors,indices = mesh_from_voxels(vox)
+     def linear(c):
+@@ -223,28 +282,24 @@
+         shutil.copyfile(ROOT/f'assets/models/furniture/{name}.glb',out/f'context/{name}.glb')
+     for rel in ('body/head_adult','body/body_base','body/eyes','body/hand','body/foot','eyebrows/brows_m_arched','hair/hair_m_short_back','beards/beard_short_trimmed'):
+         shutil.copyfile(ROOT/'assets/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
+-    for name in ('TreeRedesignPreview.gd','HearthRedesignPreview.gd'):
++    for name in ('TreeRedesignPreview.gd','TavernRedesignPreview.gd','HearthRedesignPreview.gd','HearthAnimationPreview.gd'):
+         shutil.copyfile(ROOT/'tools'/name,out/name)
++    for name in ('FurnitureLighting.gd','FurnitureFlameAnimation.gd'):
++        shutil.copyfile(ROOT/'scripts/components'/name,out/name)
+     vox = hearth();validate(vox)
+     mesh = export_mesh(vox)
+     path = out/'models/hearth.glb'
+-    write_glb(path,'hearth',mesh,export_scale=SCALE)
++    triangles = write_hearth(path,out)
++    flame_path = out/'models/hearth_flame.glb'
++    flame_triangles = write_flames(flame_path,out)
+     if install:
+         shutil.copyfile(path,live)
+-        definition_path = ROOT/'data/furniture/hearth.json'
+-        definition = json.loads(definition_path.read_text(encoding='utf-8'))
+-        definition['__comment'] = [
+-            'Hearth — redesigned 2x2 stone fire bowl (doc 30, 2026-10-01).',
+-            'Authored at 8 voxels per block, 0.125 export scale baked into the GLB.',
+-            'Stone rim is 1 block high; tallest flame is 2 blocks. Placement and collision cover 2x2x2.',
+-            'RoomManager reads heat_source.heat_units. A multi-cell hearth contributes 400 units once, at its origin.',
+-            'The mesh has static flame geometry; light emission and animation are separate features.',
+-            'The shared packed-furniture item and floor-placement behavior are unchanged.'
+-        ]
+-        definition['description'] = 'A broad bowl of dressed stone with an iron grate, glowing coals and rising flames.'
+-        definition['footprint'] = {'width':2,'depth':2}
+-        definition['collision_regions'] = [{'min':[0,0,0],'max':[2,2,2]}]
+-        definition_path.write_text(json.dumps(definition,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
++        destination = ROOT/'assets/models/furniture/animations/hearth_flame.glb'
++        destination.parent.mkdir(parents=True,exist_ok=True)
++        shutil.copyfile(flame_path,destination)
++    definition = json.loads((ROOT/'data/furniture/hearth.json').read_text(encoding='utf-8'))
++    definition['light_source']['flame_animation']['model'] = 'res://models/hearth_flame.glb'
++    (out/'hearth.json').write_text(json.dumps(definition,indent=2)+'\n',encoding='utf-8')
+     (out/'project.godot').write_text('''config_version=5
+ [application]
+ config/name="Deepdraft hearth art review"
+@@ -260,15 +315,18 @@
+ anti_aliasing/quality/msaa_3d=2
+ ''',encoding='utf-8')
+     (out/'review.tscn').write_text('''[gd_scene load_steps=2 format=3]
+-[ext_resource type="Script" path="res://HearthRedesignPreview.gd" id="1"]
+-[node name="HearthRedesignPreview" type="Node3D"]
++[ext_resource type="Script" path="res://HearthAnimationPreview.gd" id="1"]
++[node name="HearthAnimationPreview" type="Node3D"]
+ script = ExtResource("1")
+ ''',encoding='utf-8')
+     (out/'.gitignore').write_text('.godot/\n*.import\n*.uid\n',encoding='utf-8')
+     bounds = [[min(p[a] for p in mesh[0])*SCALE for a in range(3)],
+               [max(p[a] for p in mesh[0])*SCALE for a in range(3)]]
+     report = {'status':'installed' if install else 'review_export','voxels_per_block':8,'bounds':bounds,
+-              'voxels':len(vox.cells),'triangles':len(mesh[3])//3,
++              'voxels':len(vox.cells),'triangles':triangles,
++              'named_meshes':['hearth_body','hearth_flame'],
++              'animation_frames':10,'animation_triangles':flame_triangles,
++              'animation_sha256':hashlib.sha256(flame_path.read_bytes()).hexdigest(),
+               'color_encoding':'linear COLOR_0','connected_components':1,
+               'footprint':{'width':2,'depth':2},'collision_regions':[{'min':[0,0,0],'max':[2,2,2]}],
+               'fits_proposed_collision':True,'stone_rim_height':1.0,'heat_units':400,
+@@ -280,7 +338,7 @@
+ 
+ if __name__ == '__main__':
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument('--out',type=Path,default=ROOT/'tmp/hearth_redesign_preview')
++    parser.add_argument('--out',type=Path,default=ROOT/'tmp/hearth_animation_preview')
+     parser.add_argument('--install',action='store_true')
+     args = parser.parse_args();out = args.out.resolve()
+     if out == ROOT or out.is_relative_to(ROOT/'assets'):
+--- before/tools/generate_wall_torch.py
++++ after/tools/generate_wall_torch.py
+@@ -127,11 +127,11 @@
+     return write_parts(path,flame_frames(),out)
+ 
+ 
+-def write_parts(path, parts, out):
++def write_parts(path, parts, out, root_name='wall_torch'):
+     """Merge the existing writer's meshes, retaining named body/flame nodes."""
+-    doc = {'asset':{'version':'2.0','generator':'Deepdraft wall torch generator'},
++    doc = {'asset':{'version':'2.0','generator':f'Deepdraft {root_name.replace("_", " ")} generator'},
+            'scene':0,'scenes':[{'nodes':[0]}],
+-           'nodes':[{'name':'wall_torch','children':[]}],
++           'nodes':[{'name':root_name,'children':[]}],
+            'meshes':[],'materials':[],'accessors':[],'bufferViews':[]}
+     blob = b''
+     triangles = 0

@@ -7,20 +7,27 @@
     "Four seasonal models: spring (blossom), summer (leafy), autumn (gold/rust), winter (bare).",
     "Footprint follows the spreading-tree rule — see 42_farming_brewing.md § Surface Trees.",
     "",
-    "MODEL VARIANTS (mature and ancient only — same rule as oak):",
-    "  summer x3, autumn x2, spring x1, winter x1.",
-    "  The autumn_fruiting model is a SEPARATE key used only during the fruit_harvest FRUITING state.",
-    "  It is always single — no variants for the fruiting overlay state."
+    "MODEL VARIANTS — complete visual roster (doc 29):",
+    "All stages use redesigned 1:1 models. Season arrays have matching variant counts/order.",
+    "World-position hashing preserves each tree variant across seasonal changes.",
+    "Placement, growth, collision and harvest values are unchanged."
   ],
-
   "base:flora:apple_tree": {
     "harvest_resource": "base:resources:wood:apple_wood",
-    "material_tags": ["wood", "tree", "flora", "fruit_tree", "stockpile_wood"],
+    "material_tags": [
+      "wood",
+      "tree",
+      "flora",
+      "fruit_tree",
+      "stockpile_wood"
+    ],
     "appeal": 4,
-
     "__placement_comment": "Mixed-forest niche, doc 14: wild fruit tree in sheltered wet low ground (lowland + low foothill), CLUMPED into groves. Also player-plantable. Read by SurfaceFloraSpawner.",
     "placement": {
-      "domains": ["lowland", "foothill"],
+      "domains": [
+        "lowland",
+        "foothill"
+      ],
       "exclude_water": true,
       "min_surface_y": 12,
       "max_surface_y": 30,
@@ -30,14 +37,25 @@
       "max_surface_slope": 1,
       "edge_margin": 2,
       "edge_dropoff_max": 3,
-      "footprint": { "sapling": 1, "mature": 3, "ancient": 5 },
-      "stage_weights": { "sapling": 0.2, "mature": 0.55, "ancient": 0.25 },
-      "grove": { "enabled": true, "cell_size": 30, "threshold": 0.35 }
+      "footprint": {
+        "sapling": 1,
+        "mature": 3,
+        "ancient": 5
+      },
+      "stage_weights": {
+        "sapling": 0.2,
+        "mature": 0.55,
+        "ancient": 0.25
+      },
+      "grove": {
+        "enabled": true,
+        "cell_size": 30,
+        "threshold": 0.35
+      }
     },
-
     "stages": {
-
       "sapling": {
+        "felling": { "work_seconds": 2.0 },
         "collision": "clutter",
         "clearance_height": 2,
         "growth_duration_days": 5,
@@ -52,14 +70,18 @@
           "yields": []
         }
       },
-
       "mature": {
+        "felling": { "work_seconds": 8.0 },
         "footprint_tiles": 3,
         "clearance_height": 5,
         "growth_duration_days": 10,
         "next_stage": "ancient",
         "models": {
-          "spring": "res://assets/models/flora/trees/apple/apple_mature_spring.glb",
+          "spring": [
+            "res://assets/models/flora/trees/apple/apple_mature_spring.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_spring_2.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_spring_3.glb"
+          ],
           "summer": [
             "res://assets/models/flora/trees/apple/apple_mature.glb",
             "res://assets/models/flora/trees/apple/apple_mature_2.glb",
@@ -67,10 +89,19 @@
           ],
           "autumn": [
             "res://assets/models/flora/trees/apple/apple_mature_autumn.glb",
-            "res://assets/models/flora/trees/apple/apple_mature_autumn_2.glb"
+            "res://assets/models/flora/trees/apple/apple_mature_autumn_2.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_autumn_3.glb"
           ],
-          "autumn_fruiting": "res://assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb",
-          "winter": "res://assets/models/flora/trees/apple/apple_mature_winter.glb"
+          "autumn_fruiting": [
+            "res://assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_autumn_fruiting_2.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_autumn_fruiting_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/apple/apple_mature_winter.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_winter_2.glb",
+            "res://assets/models/flora/trees/apple/apple_mature_winter_3.glb"
+          ]
         },
         "fruit_harvest": {
           "harvest_season": "autumn",
@@ -81,20 +112,32 @@
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:apple_wood",    "count": 2, "chance": 1.00 },
-            { "item": "base:resources:seed:apple_seed",    "count": 1, "chance": 0.25 }
+            {
+              "item": "base:resources:wood:apple_wood",
+              "count": 2,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:seed:apple_seed",
+              "count": 1,
+              "chance": 0.25
+            }
           ]
         }
       },
-
       "ancient": {
+        "felling": { "work_seconds": 16.0 },
         "footprint_tiles": 5,
         "world_gen_only": true,
         "clearance_height": 7,
         "growth_duration_days": null,
         "next_stage": null,
         "models": {
-          "spring": "res://assets/models/flora/trees/apple/apple_ancient_spring.glb",
+          "spring": [
+            "res://assets/models/flora/trees/apple/apple_ancient_spring.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_spring_2.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_spring_3.glb"
+          ],
           "summer": [
             "res://assets/models/flora/trees/apple/apple_ancient.glb",
             "res://assets/models/flora/trees/apple/apple_ancient_2.glb",
@@ -102,10 +145,19 @@
           ],
           "autumn": [
             "res://assets/models/flora/trees/apple/apple_ancient_autumn.glb",
-            "res://assets/models/flora/trees/apple/apple_ancient_autumn_2.glb"
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn_2.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn_3.glb"
           ],
-          "autumn_fruiting": "res://assets/models/flora/trees/apple/apple_ancient_autumn_fruiting.glb",
-          "winter": "res://assets/models/flora/trees/apple/apple_ancient_winter.glb"
+          "autumn_fruiting": [
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn_fruiting.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn_fruiting_2.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_autumn_fruiting_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/apple/apple_ancient_winter.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_winter_2.glb",
+            "res://assets/models/flora/trees/apple/apple_ancient_winter_3.glb"
+          ]
         },
         "fruit_harvest": {
           "harvest_season": "autumn",
@@ -116,12 +168,19 @@
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:apple_wood",    "count": 3, "chance": 1.00 },
-            { "item": "base:resources:seed:apple_seed",    "count": 2, "chance": 0.40 }
+            {
+              "item": "base:resources:wood:apple_wood",
+              "count": 3,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:seed:apple_seed",
+              "count": 2,
+              "chance": 0.4
+            }
           ]
         }
       }
-
     }
   }
 }

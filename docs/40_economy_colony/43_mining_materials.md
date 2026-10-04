@@ -11,9 +11,9 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 | `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | 1× Rough Stone (5%) | Authored mountain shelves |
 | `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | 1× Rough Stone (5%) | Valley/foothill body bands |
 | `base:terrain:rock:rock11` | Foundation rock | 3 | 1× Rough Stone (5%) | Stable band above bedrock |
-| `base:terrain:ore:iron`       | Ore        | 4 | 2× Iron Ore           | Common ore |
-| `base:terrain:ore:copper`     | Ore        | 3 | 2× Copper Ore         | Shallow, early-game |
-| `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore           | Deep, rare |
+| `base:terrain:ore:iron`       | Ore        | 4 | 2× Iron Ore (10%)     | Common ore |
+| `base:terrain:ore:copper`     | Ore        | 3 | 2× Copper Ore (10%)   | Shallow, early-game |
+| `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore (10%)     | Deep, rare |
 | `base:terrain:gem:ruby`       | Gem        | 5 | 1× Ruby               | Very rare, high trade value |
 | `base:terrain:soil:cave`      | Soil       | 1 | 1× Soil (5%)          | Farmable (see `42_farming_brewing.md`) |
 | `base:terrain:bedrock`        | Bedrock    | ∞ | None                  | **Unmovable — Y=0..3 protocol** |
@@ -35,6 +35,35 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 > `soil:cave`/`soil:light`/`soil:dark`) dropped its soil item at a guaranteed 100% until 2026-08-06,
 > cut to 30%, then to 5% later the same day (same testing-convenience reasoning as stone, now
 > matching it) — tunable in the same file.
+>
+> **Ore (retuned 2026-08-14):** all six ores (copper, tin, iron, silver, coal, gold) cut from a
+> guaranteed 100% to **10%** — Alen: drop volume was flooding manual playtests (chests filling
+> with silver/iron faster than they could be placed). Same testing-convenience class as the
+> stone/soil cuts above, explicitly not a balance number; revisit in the economy pass. Gem
+> chances remain untouched (0.65–0.90).
+
+## Mining animation and feedback — implemented and accepted 2026-10-04
+
+Dwarves show an implicit pickaxe held by both floating hands, with recovery,
+wind-up, strike and contact hold. The point reaches the target voxel face across
+the existing vertical reach, including underfoot mining. No tool inventory,
+crafting or durability requirement is introduced. Work honors WorldClock
+pause/speed and retains the authored hardness/durability totals.
+
+Contact triggers a procedural stone strike or softer soil impact and six small
+outward chips. Grass/dirt use the soil sound family; rock, ores and gems use stone.
+The struck face's chip color follows the renderer's concealment rule: authored
+strata until the facing neighbour is mined open, then the exposed material.
+Effects never reveal hidden neighbouring resources or sliced-out targets.
+
+A successful block-removal commit produces one brief material-colored dust puff.
+Restore, DEV edits and generic terrain writes produce no mining feedback. Drops
+remain immediately available. The shared `WorkFeedback` service supplies camera
+focus/zoom attenuation, stereo panning, bounded simultaneous sounds/effects,
+pause/speed handling and scene cleanup. It adds no saved simulation state.
+
+Implementation, tuning, generators, test coverage and native previews:
+[doc 48 §6](../00_dev_roadmap/48_object_explorer_and_tree_felling.md#6-mining-tool-sound-and-effects).
 
 ## Mining Tools
 

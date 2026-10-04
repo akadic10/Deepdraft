@@ -150,6 +150,7 @@ func _bind_to_scene() -> void:
 			_sky_mat = _env.sky.sky_material as ProceduralSkyMaterial
 
 	if _sun != null:
+		preload("res://scripts/components/TerrainLighting.gd").configure_sun(_sun)
 		_sun_yaw = _sun.rotation_degrees.y
 		_moon_yaw = _sun_yaw + 180.0
 

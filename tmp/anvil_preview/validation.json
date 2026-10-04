@@ -1,0 +1,27 @@
+{
+  "status": "installed",
+  "voxels_per_block": 8,
+  "export_scale": 0.125,
+  "color_encoding": "linear COLOR_0",
+  "bounds": [
+    [
+      -1.0,
+      0.0,
+      -0.5
+    ],
+    [
+      1.0,
+      1.5,
+      0.5
+    ]
+  ],
+  "voxels": 638,
+  "triangles": 1376,
+  "connected_components": 1,
+  "collision_size": [
+    2,
+    1.5,
+    1
+  ],
+  "sha256": "f5d2a5b5e5ea42f1f8c807c4ec771b667a734c783bcb8c7702228ecaea9b197f"
+}

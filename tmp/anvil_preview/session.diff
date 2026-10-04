@@ -1,0 +1,144 @@
+--- before/data/entities/items/resources.json
++++ after/data/entities/items/resources.json
+@@ -763,6 +763,16 @@
+     "material_tags": ["wood", "furniture", "stockpile_furniture"]
+   },
+ 
++  "base:resources:furniture:anvil": {
++    "display_name": "Anvil (packed)",
++    "description": "An iron anvil, stone pedestal and hold-down clamps secured for hauling.",
++    "model": "res://assets/models/items/furniture/packed_furniture.glb",
++    "stack_max": 5,
++    "weight_class": "heavy",
++    "base_trade_value": 24,
++    "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
++  },
++
+   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+ 
+   "base:resources:currency:gold_coin": {
+--- before/scripts/systems/StockpileDesignationController.gd
++++ after/scripts/systems/StockpileDesignationController.gd
+@@ -78,6 +78,7 @@
+ 	"base:resources:furniture:dwarf_bunk": 1,
+ 	"base:resources:furniture:brewing_vat": 1,
+ 	"base:resources:furniture:wall_torch": 4,
++	"base:resources:furniture:anvil": 1,
+ }
+ 
+ signal zone_created(zone_id: int)
+--- before/scripts/ui/DockUI.gd
++++ after/scripts/ui/DockUI.gd
+@@ -60,6 +60,7 @@
+ 	"📥 Dwarven Bed": "base:furniture:dwarf_bunk",
+ 	"📥 Brewing Vat": "base:furniture:brewing_vat",
+ 	"📥 Wall Torch": "base:furniture:wall_torch",
++	"📥 Anvil": "base:furniture:anvil",
+ }
+ 
+ ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
+@@ -729,7 +730,7 @@
+ 		"chop":
+ 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
+ 		"build":
+-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "Cancel"]
++			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "Cancel"]
+ 		"storage_zone":
+ 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
+ 		"farm":
+--- before/docs/20_player_interface/23_user_interface.md
++++ after/docs/20_player_interface/23_user_interface.md
+@@ -177,11 +177,11 @@
+ | Panel | Contents |
+ |---|---|
+ | Mine | Designate mining zones, clear rubble, channel floors |
+-| Build | **Thirteen furniture entries live (2026-10-02):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat and Wall Torch. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshops remain future work. |
++| Build | **Fourteen furniture entries live (2026-10-02):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch and Anvil. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
+ | Farm | Designate soil plots, assign crops |
+ | Military | Set patrol routes, guard posts (future) |
+ 
+-Action-panel buttons use a six-column grid. Thirteen furniture entries and Cancel
++Action-panel buttons use a six-column grid. Fourteen furniture entries and Cancel
+ occupy three rows. The panel stays centered above the dock and grows upward as
+ needed ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
+ Smaller menus remain on one row. The Build panel is verified at 1280×800 and 2560×1440.
+--- before/docs/60_asset_creation/61_voxel_art_guide.md
++++ after/docs/60_asset_creation/61_voxel_art_guide.md
+@@ -696,9 +696,20 @@
+ 
+ #### Anvil (`base:furniture:anvil`)
+ 
+-Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,1,1]}]` — 1 block tall.
+-
+-Classic anvil silhouette: heavy iron block narrowing at the waist, flaring to a horn. `iron_dull` body, `iron_highlight` working surface (worn smooth), `iron_dark` underside. Silhouette must be unmistakable at colony zoom.
++**Installed 2026-10-02 ([art doc 44](../00_dev_roadmap/44_anvil_asset_and_placement.md)).**
++Footprint: **2×1**. Collision: `[{min:[0,0,0], max:[2,1.5,1]}]`.
++The approved stone-mounted design supersedes the earlier 1×1 bare-anvil spec.
++
++Heavy iron head with a stepped tapered horn, worn steel face, recessed square
++hardy hole, narrow waist and flared feet. Bolted hold-downs secure it to a
++beveled dressed-stone pedestal. The 1.5-block working height is checked beside
++the full-size 3.375-block dwarf. Cool iron values contrast with the hearth's
++warmer stone palette; the 16×12×8-cell model uses scale .125 and linear `COLOR_0`.
++
++`tools/generate_anvil.py` owns the model and review; the canonical furniture
++generator delegates to it. **Build → Anvil** places an independent piece using
++the shared packed crate. Placement, hauling, build/uninstall and saving are
++live. Metalworking recipes, smith animations and forge integration remain future work.
+ 
+ ---
+ 
+--- before/docs/60_asset_creation/62_furniture_catalog.md
++++ after/docs/60_asset_creation/62_furniture_catalog.md
+@@ -27,7 +27,7 @@
+ | Dining Table | `base:furniture:wooden_table` | **SHIPPED (2026-10-01, [art doc 38](../00_dev_roadmap/38_dining_table_asset_and_placement.md))** — 2×2 oak/iron table, 1.5 blocks tall; packed item and placement live | Dining-hall furniture; eating/seating/comfort behavior remains future work |
+ | Wall Torch | `base:furniture:wall_torch` | **SHIPPED (2026-10-02, [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md))** — iron/wood mount, 1.5 blocks tall; wall placement with a walkable floor | Warm local light and **200 heat units**, real room-temperature contribution; no fuel consumption yet |
+ | Brazier | `base:item:brazier` | PLAN (doc 34 — "future item") | **600 heat units**; large-room heating |
+-| Anvil | `base:furniture:anvil` | SPEC (61 §5.4) | Forge visual anchor (doc 44) |
++| Anvil | `base:furniture:anvil` | **SHIPPED (2026-10-02, [art doc 44](../00_dev_roadmap/44_anvil_asset_and_placement.md))** — 2×1 iron anvil on a stone pedestal, 1.5-block working height | Independent placement live; smithing recipes, operator animations and forge integration remain future work |
+ | Rune Shelf | `base:furniture:rune_shelf` | SPEC (61 §5.4) | Decorative / future room appeal |
+ | Stockpile Marker | `base:furniture:stockpile_marker` | SPEC (61 §5.4) | Zone decoration only |
+ | Wall Display | `base:furniture:wall_display` | PLAN (doc 52) | Armory — holds one weapon/shield |
+@@ -47,8 +47,8 @@
+ Stone Boulder · Mining Cart · Water Barrel · Fence Post / Palisade · Runic Standing Stone ·
+ Mushroom Lantern (the underground torch alternative — `glow_blue` palette).
+ 
+-**Totals: 20 furniture pieces (13 shipped — 3 from doc 19, 3 from doc 21,
+-1 from doc 22, 1 each from art docs 37–40 and 42–43; remaining pieces specced or planned),
++**Totals: 20 furniture pieces (14 shipped — 3 from doc 19, 3 from doc 21,
++1 from doc 22, 1 each from art docs 37–40 and 42–44; remaining pieces specced or planned),
+ 5 workshops, 6 decoratives.**
+ 
+ ---
+--- before/tools/generate_furniture_glbs.py
++++ after/tools/generate_furniture_glbs.py
+@@ -121,6 +121,7 @@
+ import generate_bed as bed_art
+ import generate_shelf_redesign as shelf_art
+ import generate_brewing_vat as vat_art
++import generate_anvil as anvil_art
+ 
+ EXPORT_SCALE = 0.125
+ SEED = 1919
+@@ -406,8 +407,12 @@
+     return vat_art.brewing_vat()
+ 
+ 
++def build_anvil():
++    return anvil_art.anvil()
++
++
+ def mesh_furniture(name,vox):
+-    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat'):
++    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil'):
+         return tavern_art.export_mesh(vox)
+     return hearth_art.export_mesh(vox) if name == 'hearth' else mesh_from_voxels(vox)
+ 
+@@ -564,6 +569,7 @@
+         ("wooden_chair", build_wooden_chair()),
+         ("dwarf_bunk", build_dwarf_bunk()),
+         ("brewing_vat", build_brewing_vat()),
++        ("anvil", build_anvil()),
+     ]
+     box = build_packed_box()
+ 

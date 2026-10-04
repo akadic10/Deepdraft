@@ -1,0 +1,100 @@
+{
+  "voxels_per_block": 1,
+  "color_encoding": "linear COLOR_0 from authored sRGB",
+  "output_scope": "isolated apple prototype",
+  "wood_cells": 113,
+  "blossom_cells": 46,
+  "fruit_cells": 14,
+  "models": {
+    "apple_mature_spring": {
+      "voxels": 519,
+      "bounds": [
+        [
+          -7.5,
+          0,
+          -5.5
+        ],
+        [
+          7.5,
+          12,
+          5.5
+        ]
+      ],
+      "triangles": 1324,
+      "face_connected_components": 1,
+      "sha256": "b6f3ebc6ae4957631571ef37c8a547ddf1d83a0cfa2494e3dfa8c3da2402ed3b"
+    },
+    "apple_mature": {
+      "voxels": 519,
+      "bounds": [
+        [
+          -7.5,
+          0,
+          -5.5
+        ],
+        [
+          7.5,
+          12,
+          5.5
+        ]
+      ],
+      "triangles": 1324,
+      "face_connected_components": 1,
+      "sha256": "a66933e1d8be601a6437ab6e7143fe55659b9ea0402ae9a479a4bb2dd2ac35cb"
+    },
+    "apple_mature_autumn": {
+      "voxels": 519,
+      "bounds": [
+        [
+          -7.5,
+          0,
+          -5.5
+        ],
+        [
+          7.5,
+          12,
+          5.5
+        ]
+      ],
+      "triangles": 1324,
+      "face_connected_components": 1,
+      "sha256": "93911e71cdd05baf3f5a239ec7f9e08526209f961a132170b0a38e60a61f3eda"
+    },
+    "apple_mature_autumn_fruiting": {
+      "voxels": 533,
+      "bounds": [
+        [
+          -7.5,
+          0,
+          -6.5
+        ],
+        [
+          7.5,
+          12,
+          6.5
+        ]
+      ],
+      "triangles": 1396,
+      "face_connected_components": 1,
+      "sha256": "7575f53971e565f5c74f7bedf7447fa7a8c55ec225035f5393b6de25bb061e79"
+    },
+    "apple_mature_winter": {
+      "voxels": 113,
+      "bounds": [
+        [
+          -6.5,
+          0,
+          -4.5
+        ],
+        [
+          5.5,
+          10,
+          4.5
+        ]
+      ],
+      "triangles": 776,
+      "face_connected_components": 1,
+      "sha256": "5d41d3575ba45abc7679084d36e8a74805a10b14e3dc8dd20a9f7ab7a1afd096"
+    }
+  }
+}

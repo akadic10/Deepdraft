@@ -1,0 +1,14 @@
+{
+  "approved_models_imported": {
+    "assets/models/flora/trees/oak/oak_mature.glb": "63930d838a043a8ddafb4c86464d6b9f18c08b5f0f19561ce77d44db71b2dbc3",
+    "assets/models/flora/trees/oak/oak_mature_winter.glb": "0cf5d8cb5546d6174d5caf858f36d9d4c1df376486117c1ee5a1fd4d9cfd2595",
+    "assets/models/flora/trees/pine/pine_mature.glb": "0b95cd27bb552e595a4025e708035285973f8df1b16ab189cbab694df764e64e",
+    "assets/models/flora/trees/pine/pine_mature_winter.glb": "8d7db368818ca7ac168a67815500ce52bf4c580727919bd9c9cd080eb37b5dfd"
+  },
+  "other_tree_glbs_unchanged": 54,
+  "canonical_oak_pine_exports_reproduced": 30,
+  "seasonal_resolutions_checked": 3072,
+  "runtime_marker": "LIVE_TREE_IMPORT_OK",
+  "world_render_marker": "LIVE_TREE_WORLD_ART_OK",
+  "world_render": "renders/live_world.png"
+}

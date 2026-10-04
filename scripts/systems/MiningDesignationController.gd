@@ -1894,6 +1894,17 @@ func get_zone_block_work(block: Vector3i) -> Dictionary:
 ## world. Called by MiningZoneComponent.commit_mined (real mining); the DEV
 ## instant-mine button runs the same world-mutation steps minus dwarf/drops.
 ## Returns false (and writes nothing) on any guard failure.
+## Match the struck face's concealment rule: only mined-open neighbours
+## expose the real resource. A natural/slice/designation face shows strata.
+func play_zone_mining_impact(block: Vector3i, position: Vector3, normal: Vector3) -> void:
+	var block_id := _block_id_at(block)
+	if not BlockRegistry.is_solid(block_id):
+		return
+	if not _mined_blocks.has(block+Vector3i(normal)):
+		block_id = WorldGenerator.get_overview_strata_block_id(block.x,block.y,block.z)
+	WorkFeedback.mining_impact(position,block,block_id,normal)
+
+
 func execute_zone_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> bool:
 	var zone: Dictionary = _zones.get(zone_id, {})
 	if zone.is_empty():
@@ -1909,8 +1920,10 @@ func execute_zone_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> b
 	var was_solid := BlockRegistry.is_solid(pre_id)
 
 	_mine_block_world(block)
+	NavGrid.refresh_mined_block(block)
 	if was_solid:
 		_spawn_block_drops(pre_id, block)
+		WorkFeedback.block_mined(block,pre_id)
 
 	# Zone bookkeeping.
 	var component: MiningZoneComponent = zone.get("component")

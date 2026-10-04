@@ -12,31 +12,34 @@ signal load_autosave_requested()
 const DOCK_HEIGHT := 92.0
 const DOCK_BOTTOM_MARGIN := 24.0
 const PANEL_BOTTOM_MARGIN := 118.0
-const WINDOW_START := Vector2(32.0, 130.0)
 const DOCK_BUTTON_SIZE := Vector2(64.0, 64.0)
 const DOCK_ICON_FONT_SIZE := 40
+
+## Window chrome and placement live in UIWindowManager (doc 24) — the dock
+## only toggles windows by id and reflects their open state on its buttons.
+@export var window_manager_path: NodePath
 
 var _root: Control
 var _dock_panel: PanelContainer
 var _button_by_target: Dictionary = {}
 var _active_panel_target: String = ""
-var _open_windows: Dictionary = {}
 var _panel_container: PanelContainer
 var _panel_title: Label
-var _panel_body: HBoxContainer
-var _window_offset: int = 0
+var _panel_body: GridContainer
 var _ui_registry: Node
 var _world_clock: Node
 var _weather_mgr: Node
+var _window_manager: UIWindowManager = null
 var _world_info_overlay: CanvasLayer
 var _block_inspector_overlay: CanvasLayer
 var _slice_controller: Node = null
-var _dwarf_director: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
 var _mining_controller: Node = null
 var _room_controller: Node = null
+var _chop_controller: Node = null
+var _toast_layer: CanvasLayer = null
 var _persistence_toast: PanelContainer = null
 var _persistence_toast_label: Label = null
 var _persistence_toast_until_msec: int = 0
@@ -52,7 +55,27 @@ const FURNITURE_PANEL_ITEMS: Dictionary = {
 	"📥 Bench": "base:furniture:bench",
 	"📥 Hearth": "base:furniture:hearth",
 	"📥 Door": "base:furniture:door",
+	"📥 Trade Counter": "base:furniture:trade_counter",
+	"📥 Dining Table": "base:furniture:wooden_table",
+	"📥 Wooden Chair": "base:furniture:wooden_chair",
+	"📥 Dwarven Bed": "base:furniture:dwarf_bunk",
+	"📥 Brewing Vat": "base:furniture:brewing_vat",
+	"📥 Wall Torch": "base:furniture:wall_torch",
+	"📥 Anvil": "base:furniture:anvil",
+	"📥 Smelter": "base:furniture:smelter",
+	"📥 Aging Rack": "base:furniture:aging_rack",
+	"📥 Brazier": "base:furniture:brazier",
 }
+
+## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
+## Other manager windows (e.g. "dwarves") are registered by their own systems.
+const DOCK_WINDOW_EMOJI: Dictionary = {
+	"clock": "🕒",
+	"labor": "👷",
+	"stockpiles": "🗃️",
+	"trade": "💰",
+}
+
 var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
 
@@ -69,11 +92,18 @@ func _ready() -> void:
 		return
 	_world_clock = get_node_or_null("/root/WorldClock")
 	_weather_mgr = get_node_or_null("/root/WeatherManager")
+	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
+	if _window_manager == null:
+		push_error("DockUI: UIWindowManager not found at '%s' — windows disabled." % window_manager_path)
+	else:
+		_window_manager.window_state_changed.connect(_on_window_state_changed)
 	_build_styles()
 	_build_root()
 	_build_dock()
 	_build_action_panel()
 	_build_persistence_toast()
+	if _window_manager != null:
+		_register_dock_windows()
 	_set_world_info_overlay(_find_canvas_layer(get_tree().current_scene, "DebugLoadingOverlay"))
 	_set_block_inspector_overlay(_find_canvas_layer(get_tree().current_scene, "BlockInspector"))
 	_refresh_active_buttons()
@@ -84,8 +114,8 @@ func _process(delta: float) -> void:
 	if _persistence_toast != null and _persistence_toast.visible \
 			and Time.get_ticks_msec() >= _persistence_toast_until_msec:
 		_persistence_toast.visible = false
-	# Only does work while the live Clock window is open.
-	if _clock_value_labels.is_empty():
+	# Only does work while the Clock window is open.
+	if _window_manager == null or not _window_manager.is_open("clock"):
 		return
 	_clock_refresh_accum += delta
 	if _clock_refresh_accum < 0.1:
@@ -94,7 +124,21 @@ func _process(delta: float) -> void:
 	_update_clock_labels()
 
 
+## Persistence toast lives on its own always-on-top HUD layer (doc 24 layer
+## plan: dock 20, windows 22, mouse-ignoring HUD 24) so a dragged window can
+## never cover a save/load result.
 func _build_persistence_toast() -> void:
+	_toast_layer = CanvasLayer.new()
+	_toast_layer.name = "ToastLayer"
+	_toast_layer.layer = 24
+	add_child(_toast_layer)
+
+	var toast_root := Control.new()
+	toast_root.name = "ToastRoot"
+	toast_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	toast_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toast_layer.add_child(toast_root)
+
 	_persistence_toast = PanelContainer.new()
 	_persistence_toast.name = "PersistenceToast"
 	_persistence_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -102,7 +146,7 @@ func _build_persistence_toast() -> void:
 	_persistence_toast.custom_minimum_size = Vector2(360.0, 44.0)
 	_persistence_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_persistence_toast.visible = false
-	_root.add_child(_persistence_toast)
+	toast_root.add_child(_persistence_toast)
 	_persistence_toast_label = Label.new()
 	_persistence_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_persistence_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -115,23 +159,19 @@ func show_persistence_status(message: String, is_error: bool = false) -> void:
 		return
 	var border := Color(0.85, 0.25, 0.20, 0.9) if is_error else Color(0.25, 0.75, 0.45, 0.9)
 	_persistence_toast.add_theme_stylebox_override(
-		"panel", _panel_style(Color(0.055, 0.060, 0.065, 0.97), border, 8))
+		"panel", UITheme.style(Color(0.055, 0.060, 0.065, 0.97), border, 1, 8))
 	_persistence_toast_label.text = message
 	_persistence_toast.visible = true
 	_persistence_toast_until_msec = Time.get_ticks_msec() + (4500 if is_error else 2500)
 
 
 func _build_styles() -> void:
-	# Real styleboxes, not StyleBoxEmpty: with all three states empty, the
-	# pressed state was literally invisible — button_pressed toggled correctly
-	# but every state drew the same nothing, so an active tool never read as
-	# lit on the dock (playtest catch 2026-07-31, found while wiring the
-	# tool_active_changed push-refresh). Normal stays fully transparent (the
-	# dock look is unchanged at rest); hover is a subtle wash; active/pressed
-	# is an unmistakable blue-cyan highlight matching the zone overlay accent.
-	_normal_button_style = _style(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 0, 8)
-	_hover_button_style = _style(Color(1, 1, 1, 0.10), Color(1, 1, 1, 0.14), 1, 8)
-	_active_button_style = _style(Color(0.45, 0.72, 1.0, 0.25), Color(0.55, 0.80, 1.0, 0.9), 2, 8)
+	# Canonical dock button trio from UITheme (doc 24): normal fully
+	# transparent, hover a subtle wash, active/pressed the blue-cyan highlight
+	# matching the zone overlay accent (the 2026-07-31 playtest fix, kept).
+	_normal_button_style = UITheme.dock_button_normal_style()
+	_hover_button_style = UITheme.dock_button_hover_style()
+	_active_button_style = UITheme.dock_button_active_style()
 
 
 func _build_root() -> void:
@@ -162,7 +202,7 @@ func _build_dock() -> void:
 
 	_dock_panel = PanelContainer.new()
 	_dock_panel.name = "FloatingDock"
-	_dock_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.055, 0.060, 0.065, 0.82), Color(1, 1, 1, 0.13), 8))
+	_dock_panel.add_theme_stylebox_override("panel", UITheme.dock_panel_style())
 	center.add_child(_dock_panel)
 
 	var margin := MarginContainer.new()
@@ -238,8 +278,10 @@ func _build_action_panel() -> void:
 	_panel_container.offset_right = 300.0
 	_panel_container.offset_top = -(PANEL_BOTTOM_MARGIN + 136.0)
 	_panel_container.offset_bottom = -PANEL_BOTTOM_MARGIN
+	_panel_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_panel_container.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_panel_container.visible = false
-	_panel_container.add_theme_stylebox_override("panel", _panel_style(Color(0.070, 0.075, 0.080, 0.92), Color(1, 1, 1, 0.12), 8))
+	_panel_container.add_theme_stylebox_override("panel", UITheme.hud_panel_style())
 	_root.add_child(_panel_container)
 
 	var margin := MarginContainer.new()
@@ -257,8 +299,11 @@ func _build_action_panel() -> void:
 	_panel_title.add_theme_font_size_override("font_size", 17)
 	column.add_child(_panel_title)
 
-	_panel_body = HBoxContainer.new()
-	_panel_body.add_theme_constant_override("separation", 8)
+	# The furniture roster exceeds one row; keep every action on screen.
+	_panel_body = GridContainer.new()
+	_panel_body.columns = 6
+	_panel_body.add_theme_constant_override("h_separation", 8)
+	_panel_body.add_theme_constant_override("v_separation", 8)
 	column.add_child(_panel_body)
 
 
@@ -302,6 +347,9 @@ func _make_panel_action_button(label: String, target: String) -> Button:
 	button.focus_mode = Control.FOCUS_NONE
 	button.text = label
 	button.tooltip_text = label
+	if target == "chop" and label in ["Forestry Zone", "Clear Stumps"]:
+		button.disabled = true
+		button.tooltip_text = "Coming later"
 	button.add_theme_font_size_override("font_size", 14)
 	button.add_theme_stylebox_override("normal", _normal_button_style)
 	button.add_theme_stylebox_override("hover", _hover_button_style)
@@ -313,6 +361,19 @@ func _make_panel_action_button(label: String, target: String) -> Button:
 
 
 func _dispatch_panel_action(target: String, label: String) -> void:
+	if target == "chop":
+		if label == "Chop Trees":
+			_panel_container.visible = false
+			_active_panel_target = ""
+			tool_requested.emit("chop")
+			_refresh_active_buttons()
+		elif label == "Cancel":
+			if _chop_controller != null:
+				_chop_controller.call("deactivate")
+			_panel_container.visible = false
+			_active_panel_target = ""
+			_refresh_active_buttons()
+		return
 	if target == "save_load":
 		match label:
 			"💾 Save Game":
@@ -367,6 +428,10 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 		_refresh_active_buttons()
 
 
+## Window toggles route through UIWindowManager (doc 24). The remaining
+## branches are click-TOOLS and overlays, not windows: slice/rooms/flag follow
+## the announce-first contract; world_info and block_inspector stay
+## overlay-toggles until their doc 24 Phase U2 migrations land.
 func _toggle_window(target: String) -> void:
 	if target == "world_info":
 		_toggle_world_info_overlay()
@@ -374,27 +439,15 @@ func _toggle_window(target: String) -> void:
 	if target == "block_inspector":
 		_toggle_block_inspector_overlay()
 		return
-	if target == "clock":
-		_toggle_clock_window()
-		return
-
 	if target == "slice":
 		_toggle_slice_tool()
 		return
-
 	if target == "rooms":
-		# Announce-first (2026-07-06 contract). RoomOverlayController follows
-		# the StockpileDesignationController convention: it self-toggles on
-		# its own id, and every other click-tool deactivates on the announce —
-		# so the emit alone is the whole toggle.
+		# Announce-first (2026-07-06 contract). RoomOverlayController
+		# self-toggles on its own id; every other click-tool deactivates on
+		# the announce — the emit alone is the whole toggle.
 		tool_requested.emit("rooms")
 		return
-
-	if target == "dwarves":
-		if _dwarf_director != null and _dwarf_director.has_method("toggle_window"):
-			_dwarf_director.call("toggle_window")
-		return
-
 	if target == "flag":
 		# Announce so other click-tools (mining, storage zone) deactivate —
 		# two active tools eating the same click caused the 2026-07-06 crash.
@@ -403,137 +456,36 @@ func _toggle_window(target: String) -> void:
 			_flag_controller.call("toggle_active")
 		return
 
-	if _open_windows.has(target):
-		var existing := _open_windows[target] as Control
-		existing.queue_free()
-		_open_windows.erase(target)
+	if _window_manager == null:
+		push_warning("DockUI: no UIWindowManager — cannot toggle window '%s'." % target)
 		return
-
-	var window := _make_window(target)
-	_root.add_child(window)
-	_open_windows[target] = window
-
-
-func _make_window(target: String) -> PanelContainer:
-	var window := PanelContainer.new()
-	window.name = "%sWindow" % _node_suffix(target)
-	window.position = WINDOW_START + Vector2(28.0 * _window_offset, 28.0 * _window_offset)
-	window.size = Vector2(360.0, 260.0)
-	window.custom_minimum_size = Vector2(320.0, 220.0)
-	window.add_theme_stylebox_override("panel", _panel_style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 8))
-	_window_offset = (_window_offset + 1) % 5
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	window.add_child(margin)
-
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 10)
-	margin.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	var title := Label.new()
-	title.text = _target_title(target)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 17)
-	header.add_child(title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(32.0, 28.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.tooltip_text = "Close"
-	close.add_theme_stylebox_override("normal", _normal_button_style)
-	close.add_theme_stylebox_override("hover", _hover_button_style)
-	close.add_theme_stylebox_override("pressed", _active_button_style)
-	close.pressed.connect(func() -> void:
-		if _open_windows.has(target):
-			_open_windows.erase(target)
-		window.queue_free()
-		_refresh_active_buttons()
-	)
-	header.add_child(close)
-
-	for row_text in _window_rows(target):
-		var row := Label.new()
-		row.text = row_text
-		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		row.add_theme_font_size_override("font_size", 14)
-		column.add_child(row)
-
-	return window
-
-
-func _toggle_clock_window() -> void:
-	if _open_windows.has("clock"):
-		var existing := _open_windows["clock"] as Control
-		_open_windows.erase("clock")
-		_clock_value_labels.clear()
-		existing.queue_free()
-		_refresh_active_buttons()
+	if not _window_manager.has_window(target):
+		push_warning("DockUI: no window registered for dock target '%s'." % target)
 		return
+	_window_manager.toggle(target)
 
-	var window := _make_clock_window()
-	_root.add_child(window)
-	_open_windows["clock"] = window
+
+# ── Dock-owned windows (doc 24 Phase U2a) ─────────────────────────────────────
+
+func _register_dock_windows() -> void:
+	_window_manager.register_window("clock", _target_title("clock"),
+		String(DOCK_WINDOW_EMOJI["clock"]), _build_clock_content(),
+		{"persistent": true, "default_pos": Vector2(32.0, 130.0)})
 	_update_clock_labels()
-	_refresh_active_buttons()
+
+	var placeholder_targets: Array[String] = ["labor", "stockpiles", "trade"]
+	for target: String in placeholder_targets:
+		_window_manager.register_window(target, _target_title(target),
+			String(DOCK_WINDOW_EMOJI[target]), _build_placeholder_content(target),
+			{"persistent": true, "min_size": Vector2(300.0, 0.0)})
 
 
-func _make_clock_window() -> PanelContainer:
-	var window := PanelContainer.new()
-	window.name = "ClockWindow"
-	window.position = WINDOW_START + Vector2(28.0 * _window_offset, 28.0 * _window_offset)
-	window.size = Vector2(220.0, 0.0)
-	window.custom_minimum_size = Vector2(200.0, 0.0)
-	window.add_theme_stylebox_override("panel", _panel_style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 8))
-	_window_offset = (_window_offset + 1) % 5
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	window.add_child(margin)
-
+func _build_clock_content() -> Control:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
-	margin.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	var title := Label.new()
-	title.text = "Clock"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 17)
-	header.add_child(title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(32.0, 28.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.tooltip_text = "Close"
-	close.add_theme_stylebox_override("normal", _normal_button_style)
-	close.add_theme_stylebox_override("hover", _hover_button_style)
-	close.add_theme_stylebox_override("pressed", _active_button_style)
-	close.pressed.connect(func() -> void:
-		_open_windows.erase("clock")
-		_clock_value_labels.clear()
-		window.queue_free()
-		_refresh_active_buttons()
-	)
-	header.add_child(close)
 
 	_clock_value_labels = {}
-	for field in ["season", "day", "time", "weather"]:
+	for field: String in ["season", "day", "time", "weather"]:
 		var row := Label.new()
 		row.add_theme_font_size_override("font_size", 15)
 		column.add_child(row)
@@ -543,28 +495,41 @@ func _make_clock_window() -> PanelContainer:
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 8)
 	column.add_child(buttons)
-	buttons.add_child(_make_clock_button("+1 Hour", Callable(self, "_advance_clock").bind("advance_hours", 1.0)))
-	buttons.add_child(_make_clock_button("+1 Season", Callable(self, "_advance_clock").bind("advance_season")))
+	var plus_hour := UITheme.make_button("+1 Hour")
+	plus_hour.pressed.connect(Callable(self, "_advance_clock").bind("advance_hours", 1.0))
+	buttons.add_child(plus_hour)
+	var plus_season := UITheme.make_button("+1 Season")
+	plus_season.pressed.connect(Callable(self, "_advance_clock").bind("advance_season"))
+	buttons.add_child(plus_season)
 
 	var buttons2 := HBoxContainer.new()
 	buttons2.add_theme_constant_override("separation", 8)
 	column.add_child(buttons2)
-	buttons2.add_child(_make_clock_button("Weather →", Callable(self, "_cycle_weather")))
+	var weather := UITheme.make_button("Weather →")
+	weather.pressed.connect(Callable(self, "_cycle_weather"))
+	buttons2.add_child(weather)
 
-	return window
+	return column
 
 
-func _make_clock_button(text: String, on_press: Callable) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(100.0, 30.0)
-	button.add_theme_font_size_override("font_size", 13)
-	button.add_theme_stylebox_override("normal",  _style(Color(1, 1, 1, 0.07), Color(1, 1, 1, 0.16), 1, 6))
-	button.add_theme_stylebox_override("hover",   _style(Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.22), 1, 6))
-	button.add_theme_stylebox_override("pressed", _style(Color(1, 1, 1, 0.20), Color(1, 1, 1, 0.28), 1, 6))
-	button.pressed.connect(on_press)
-	return button
+## Placeholder bodies for systems that are not built yet (doc 24 decision:
+## Labor/Stockpiles/Trade stay on the dock with placeholder content and real
+## movable chrome).
+func _build_placeholder_content(target: String) -> Control:
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	for row_text: String in _window_rows(target):
+		var row := Label.new()
+		row.text = row_text
+		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		column.add_child(row)
+	var note := Label.new()
+	note.text = "(placeholder — live data arrives with this system)"
+	note.add_theme_font_size_override("font_size", 11)
+	note.add_theme_color_override("font_color", UITheme.TEXT_DIM)
+	column.add_child(note)
+	return column
 
 
 func _advance_clock(method: String, arg = null) -> void:
@@ -606,7 +571,14 @@ func _update_clock_labels() -> void:
 func _refresh_active_buttons() -> void:
 	for target in _button_by_target:
 		var button := _button_by_target[target] as Button
-		button.button_pressed = target == _active_panel_target or _open_windows.has(target) or _target_canvas_visible(target)
+		var target_id := String(target)
+		var window_open := _window_manager != null and _window_manager.is_open(target_id)
+		button.button_pressed = target_id == _active_panel_target \
+			or window_open or _target_canvas_visible(target_id)
+
+
+func _on_window_state_changed(_id: String, _open: bool) -> void:
+	_refresh_active_buttons()
 
 
 func _toggle_world_info_overlay() -> void:
@@ -629,6 +601,10 @@ func _toggle_block_inspector_overlay() -> void:
 
 func _target_canvas_visible(target: String) -> bool:
 	match target:
+		# Chop's axe opens a menu. Its highlight follows that menu; the tool's
+		# on-screen hint communicates ongoing tree selection after the menu closes.
+		"chop":
+			return false
 		"world_info":
 			return _world_info_overlay != null and _world_info_overlay.visible
 		"block_inspector":
@@ -669,12 +645,6 @@ func _toggle_slice_tool() -> void:
 	_slice_controller.call("toggle_active")
 
 
-## Push-registration from DwarfDirector (the SliceController pattern) — the
-## dock's 'dwarves' entry routes its toggle to the director's DEV window.
-func register_dwarf_director(director: Node) -> void:
-	_dwarf_director = director
-
-
 ## Push-registration from FlagPlacementController — the dock's 'flag' entry
 ## toggles the settlement-flag placement tool.
 func register_flag_controller(controller: Node) -> void:
@@ -705,6 +675,11 @@ func register_mining_controller(controller: Node) -> void:
 ## self-toggles. Registration exists for the pressed-state readback only.
 func register_room_controller(controller: Node) -> void:
 	_room_controller = controller
+	_connect_tool_active(controller)
+
+
+func register_chop_controller(controller: Node) -> void:
+	_chop_controller = controller
 	_connect_tool_active(controller)
 
 
@@ -770,6 +745,7 @@ func _target_title(target: String) -> String:
 		"labor": return "Labor"
 		"stockpiles": return "Stockpiles"
 		"trade": return "Trade"
+		"clock": return "Clock"
 		"save_load": return "Save / Load"
 		"world_info": return "World Info"
 		"block_inspector": return "Block Inspector"
@@ -783,7 +759,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"chop":
 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
 		"build":
-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "Cancel"]
+			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "📥 Brazier", "Cancel"]
 		"storage_zone":
 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
 		"farm":
@@ -795,6 +771,8 @@ func _panel_actions(target: String) -> Array[String]:
 	return []
 
 
+## Placeholder row content for the not-yet-built systems (doc 24: kept until
+## Labor/Stockpiles/Trade land for real).
 func _window_rows(target: String) -> Array[String]:
 	match target:
 		"labor":
@@ -803,33 +781,7 @@ func _window_rows(target: String) -> Array[String]:
 			return ["Stone       0", "Ore         0", "Food        0", "Drink       0", "Trade Goods 0"]
 		"trade":
 			return ["Counter     None", "Buy Orders  0", "Reputation  0", "Caravan     Away"]
-		"world_info":
-			return _world_info_rows()
-		"block_inspector":
-			return ["Mode        Ready", "Target      None", "Click a visible block to inspect it."]
 	return []
-
-
-## DEAD CODE, kept only because _window_rows("world_info") still calls it
-## (2026-08-06 note): _toggle_window() below short-circuits target ==
-## "world_info" straight into _toggle_world_info_overlay() and RETURNS —
-## it never reaches _make_window()/_window_rows(), so this function's return
-## value is never rendered anywhere. The doc 22 "Doors"/"Rooms" lines added
-## here were dead on arrival because of that; real room/temperature stats now
-## live in DebugLoadingOverlay._rooms_text() — the actual panel the 👀 button
-## opens. Left this function's original (also-dead) Season/Year/Day/Time
-## content alone rather than deleting it outright, in case a future "real"
-## world_info window ever gets wired up to replace the DebugLoadingOverlay
-## toggle — but do not add anything else here expecting it to be visible.
-func _world_info_rows() -> Array[String]:
-	if _world_clock == null:
-		return ["Season      Unknown", "Year        Unknown", "Day         Unknown", "Time        Unknown"]
-	return [
-		"Season      %s" % String(_world_clock.get("season")).capitalize(),
-		"Year        %d" % int(_world_clock.get("year")),
-		"Day         %d" % int(_world_clock.get("day")),
-		"Time        %s" % String(_world_clock.call("time_string")),
-	]
 
 
 func _clear_children(node: Node) -> void:
@@ -843,26 +795,3 @@ func _node_suffix(value: String) -> String:
 	for part in value.split("_", false):
 		result += part.capitalize().replace(" ", "")
 	return result
-
-
-func _style(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.border_width_left = border_width
-	style.border_width_right = border_width
-	style.border_width_top = border_width
-	style.border_width_bottom = border_width
-	style.corner_radius_top_left = radius
-	style.corner_radius_top_right = radius
-	style.corner_radius_bottom_left = radius
-	style.corner_radius_bottom_right = radius
-	style.content_margin_left = 8.0
-	style.content_margin_right = 8.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	return style
-
-
-func _panel_style(bg: Color, border: Color, radius: int) -> StyleBoxFlat:
-	return _style(bg, border, 1, radius)

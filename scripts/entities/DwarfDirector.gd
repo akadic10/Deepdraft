@@ -14,7 +14,7 @@ extends Node3D
 
 @export var camera_path: NodePath
 @export var slice_controller_path: NodePath
-@export var dock_ui_path: NodePath
+@export var window_manager_path: NodePath
 
 ## Dwarves per DEV spawn press.
 @export_range(1, 20, 1) var squad_size: int = 5
@@ -22,14 +22,13 @@ extends Node3D
 const SLICE_OFF_Y: int = 127
 
 var _camera_rig: Node3D = null
-var _dock_ui: Node = null
 var _factory := DwarfFactory.new()
 var _agents: Array[DwarfAgent] = []
 var _birth_index: int = 0
 var _used_names: Dictionary = {}
 var _slice_y: int = SLICE_OFF_Y
 
-var _window_layer: CanvasLayer
+var _window_manager: UIWindowManager = null
 var _count_label: Label
 var _walk_button: Button
 
@@ -43,15 +42,16 @@ var _name_tags: bool = false
 func _ready() -> void:
 	add_to_group(SaveManager.OWNER_GROUP)
 	_camera_rig = get_node_or_null(camera_path) as Node3D
-	_dock_ui = get_node_or_null(dock_ui_path)
-	_build_window()
-
-	if _dock_ui != null and _dock_ui.has_method("register_dwarf_director"):
-		_dock_ui.call("register_dwarf_director", self)
+	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
+	_register_window()
 
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
+
+
+func is_walk_test_active() -> bool:
+	return _walk_test
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -351,12 +351,14 @@ func restore_state(state: Dictionary) -> void:
 		if agent.is_sleeping():
 			TaskManager.notify_dwarf_unavailable(dwarf_id)
 		var carried_index := 0
-		for item_key in entry.get("carried_items", []):
+		for saved_cargo in entry.get("carried_items", []):
 			if item_manager == null or not item_manager.has_method("restore_loose_item"):
 				break
 			var angle := float(carried_index) * 2.399963
 			var offset := Vector3(cos(angle), 0.0, sin(angle)) * 0.22
-			item_manager.call("restore_loose_item", String(item_key), agent.position + offset)
+			var item_key := String(saved_cargo.get("item_key", "")) if saved_cargo is Dictionary else String(saved_cargo)
+			var count := int(saved_cargo.get("count", 1)) if saved_cargo is Dictionary else 1
+			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count)
 			carried_index += 1
 		_birth_index = maxi(_birth_index, dwarf_id + 1)
 	_refresh_window()
@@ -408,69 +410,36 @@ func _dev_tire_worker() -> void:
 	print("DwarfDirector: DEV tire — no awake dwarf available.")
 
 
-# ── DEV window (dock 'dwarves' entry; SliceController window language) ────────
+# ── DEV window (doc 24: content only — chrome lives in UIWindowManager) ───────
 
 func toggle_window() -> void:
-	_window_layer.visible = not _window_layer.visible
+	if _window_manager == null:
+		return
+	_window_manager.toggle("dwarves")
 	_refresh_window()
 
 
 func is_window_visible() -> bool:
-	return _window_layer.visible
+	return _window_manager != null and _window_manager.is_open("dwarves")
 
 
-func _build_window() -> void:
-	_window_layer = CanvasLayer.new()
-	_window_layer.name = "DwarvesWindow"
-	_window_layer.layer = 22
-	_window_layer.visible = false
-	add_child(_window_layer)
-
-	var panel := PanelContainer.new()
-	panel.position = Vector2(18.0, 420.0)
-	panel.custom_minimum_size = Vector2(190.0, 0.0)
-	panel.add_theme_stylebox_override("panel", _style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 1, 8))
-	_window_layer.add_child(panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	panel.add_child(margin)
+func _register_window() -> void:
+	if _window_manager == null:
+		push_warning("DwarfDirector: UIWindowManager not found at '%s' — DEV window disabled." % window_manager_path)
+		return
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
-	margin.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	var title := Label.new()
-	title.text = "Dwarves"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 16)
-	header.add_child(title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(30.0, 26.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.pressed.connect(toggle_window)
-	header.add_child(close)
 
 	_count_label = Label.new()
 	_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_count_label.add_theme_font_size_override("font_size", 14)
+	_count_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	column.add_child(_count_label)
 
-	var tags := Button.new()
-	tags.text = "Name tags: OFF"
-	tags.tooltip_text = "DEV: show floating name labels above dwarves."
-	tags.focus_mode = Control.FOCUS_NONE
-	tags.custom_minimum_size = Vector2(166.0, 30.0)
-	tags.add_theme_font_size_override("font_size", 13)
+	var button_size := Vector2(166.0, 30.0)
+
+	var tags := UITheme.make_button("Name tags: OFF",
+		"DEV: show floating name labels above dwarves.", button_size, "dev")
 	tags.pressed.connect(func() -> void:
 		_name_tags = not _name_tags
 		tags.text = "Name tags: %s" % ("ON" if _name_tags else "OFF")
@@ -480,90 +449,65 @@ func _build_window() -> void:
 	)
 	column.add_child(tags)
 
-	_walk_button = Button.new()
-	_walk_button.text = "Walk test: OFF"
-	_walk_button.tooltip_text = "While ON, left-click terrain to send the squad there (ESC exits). NavGrid verification."
-	_walk_button.focus_mode = Control.FOCUS_NONE
-	_walk_button.custom_minimum_size = Vector2(166.0, 30.0)
-	_walk_button.add_theme_font_size_override("font_size", 13)
+	_walk_button = UITheme.make_button("Walk test: OFF",
+		"While ON, left-click terrain to send the squad there (ESC exits). NavGrid verification.",
+		button_size, "dev")
 	_walk_button.pressed.connect(func() -> void:
 		_set_walk_test(not _walk_test)
 	)
 	column.add_child(_walk_button)
 
-	var tasks_near := Button.new()
-	tasks_near.text = "DEV: +50 tasks here"
-	tasks_near.tooltip_text = "Queues 50 synthetic tasks on walkable cells within 30 blocks of the camera. Dwarves walk to each and 'work' 1 s — scheduler loop verification."
-	tasks_near.focus_mode = Control.FOCUS_NONE
-	tasks_near.custom_minimum_size = Vector2(166.0, 30.0)
-	tasks_near.add_theme_font_size_override("font_size", 13)
+	var tasks_near := UITheme.make_button("DEV: +50 tasks here",
+		"Queues 50 synthetic tasks on walkable cells within 30 blocks of the camera. Dwarves walk to each and 'work' 1 s — scheduler loop verification.",
+		button_size, "dev")
 	tasks_near.pressed.connect(func() -> void:
 		_dev_add_tasks(50, 30, true)
 	)
 	column.add_child(tasks_near)
 
-	var stress := Button.new()
-	stress.text = "DEV: stress +500 random"
-	stress.tooltip_text = "Queues 500 synthetic tasks at random map cells (many unreachable). Frame time must stay flat — the doc 16 §2.5 no-hang test."
-	stress.focus_mode = Control.FOCUS_NONE
-	stress.custom_minimum_size = Vector2(166.0, 30.0)
-	stress.add_theme_font_size_override("font_size", 13)
+	var stress := UITheme.make_button("DEV: stress +500 random",
+		"Queues 500 synthetic tasks at random map cells (many unreachable). Frame time must stay flat — the doc 16 §2.5 no-hang test.",
+		button_size, "dev")
 	stress.pressed.connect(func() -> void:
 		_dev_add_tasks(500, 0, false)
 	)
 	column.add_child(stress)
 
-	var interrupt := Button.new()
-	interrupt.text = "DEV: interrupt worker"
-	interrupt.tooltip_text = "Force-releases a working dwarf's task (reason PLAYER). The task returns to PENDING; another idle dwarf should pick it up within one heartbeat — doc 16 §2.8 release-protocol test."
-	interrupt.focus_mode = Control.FOCUS_NONE
-	interrupt.custom_minimum_size = Vector2(166.0, 30.0)
-	interrupt.add_theme_font_size_override("font_size", 13)
+	var interrupt := UITheme.make_button("DEV: interrupt worker",
+		"Force-releases a working dwarf's task (reason PLAYER). The task returns to PENDING; another idle dwarf should pick it up within one heartbeat — doc 16 §2.8 release-protocol test.",
+		button_size, "dev")
 	interrupt.pressed.connect(_dev_interrupt_worker)
 	column.add_child(interrupt)
 
-	var tire := Button.new()
-	tire.text = "DEV: tire a worker"
-	tire.tooltip_text = "Drops one dwarf's sleep stat to the threshold — they release their task, sleep in place for 6 in-game hours, then resume work. The organic interrupt path (sleep-lite)."
-	tire.focus_mode = Control.FOCUS_NONE
-	tire.custom_minimum_size = Vector2(166.0, 30.0)
-	tire.add_theme_font_size_override("font_size", 13)
+	var tire := UITheme.make_button("DEV: tire a worker",
+		"Drops one dwarf's sleep stat to the threshold — they release their task, sleep in place for 6 in-game hours, then resume work. The organic interrupt path (sleep-lite).",
+		button_size, "dev")
 	tire.pressed.connect(_dev_tire_worker)
 	column.add_child(tire)
 
-	var spawn := Button.new()
-	spawn.text = "DEV: Spawn %d at camera" % squad_size
-	spawn.tooltip_text = "Generates the next %d roster dwarves on walkable ground around the camera. Deterministic per world seed." % squad_size
-	spawn.focus_mode = Control.FOCUS_NONE
-	spawn.custom_minimum_size = Vector2(166.0, 30.0)
-	spawn.add_theme_font_size_override("font_size", 13)
+	var spawn := UITheme.make_button("DEV: Spawn %d at camera" % squad_size,
+		"Generates the next %d roster dwarves on walkable ground around the camera. Deterministic per world seed." % squad_size,
+		button_size, "dev")
 	spawn.pressed.connect(func() -> void:
 		spawn_squad_at_camera()
 	)
 	column.add_child(spawn)
+
+	_window_manager.register_window("dwarves", "Dwarves", "🧔", column,
+		{"persistent": true, "default_pos": Vector2(18.0, 420.0)})
+	_window_manager.window_state_changed.connect(_on_window_state_changed)
 	_refresh_window()
+
+
+## Roster label can go stale while the window is closed (spawns, loads) —
+## refresh on every open. The manager's one signal replaces the old
+## toggle_window-side refresh.
+func _on_window_state_changed(id: String, open: bool) -> void:
+	if id == "dwarves" and open:
+		_refresh_window()
 
 
 func _refresh_window() -> void:
 	if _count_label == null:
 		return
 	_count_label.text = "Roster: %d" % _agents.size()
-
-
-func _style(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.border_width_left = border_width
-	style.border_width_right = border_width
-	style.border_width_top = border_width
-	style.border_width_bottom = border_width
-	style.corner_radius_top_left = radius
-	style.corner_radius_top_right = radius
-	style.corner_radius_bottom_left = radius
-	style.corner_radius_bottom_right = radius
-	style.content_margin_left = 8.0
-	style.content_margin_right = 8.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	return style

@@ -20,9 +20,9 @@ extends Node3D
 ## load lazily on first spawn (the file's own contract: "loaded on demand, NOT
 ## held in memory at boot").
 ##
-## VISUALS (doc 61 §5.7): item GLBs are authored at 8 vox/block with the 0.125
-## scale baked into vertex positions — instanced at scale 1.0 with the
-## project-standard vertex-colour material (lit per-pixel, double-sided).
+## VISUALS (doc 61): ordinary drops use 8 vox/block, produce crates use 16.
+## Both bake scale into vertices and instance at 1.0 with the project vertex
+## material. A stable root owns quantity and swaps its child at fill thresholds.
 ##
 ## SLICE RULE (doc 11 Phase 5): drops obey the slice like flora and dwarves —
 ## hidden when their block is above the cut.
@@ -31,6 +31,8 @@ extends Node3D
 
 const RESOURCES_PATH := "res://data/entities/items/resources.json"
 const SLICE_OFF_Y := 127
+const Picking = preload("res://scripts/components/ObjectPicking.gd")
+var _picking = Picking.new()
 
 ## A new loose item entered the world (spawned or dropped by an interrupted
 ## hauler). StockpileManager wakes zone lease posting on this (doc 18 §2.2).
@@ -51,6 +53,7 @@ var _reserved: Dictionary = {}      # Node3D -> dwarf_id (int)
 
 func _ready() -> void:
 	add_to_group("item_drop_manager")
+	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
@@ -77,21 +80,34 @@ func spawn_drop(item_key: String, count: int, block: Vector3i) -> void:
 	if def.is_empty():
 		push_warning("ItemDropManager: unknown item '%s' — drop skipped." % item_key)
 		return
-	var scene := _model_scene(String(def.get("model", "")))
 	var rest_y := _rest_y(block)
-	for i in range(count):
-		var node := _build_drop_node(item_key, scene)
+	var remaining := count
+	# Only unclaimed nearby crates can be topped up. A worker's reservation is
+	# an exact quantity and must never change underneath that worker.
+	if item_capacity(item_key) > 1:
+		for existing: Node3D in _loose:
+			if _reserved.has(existing) or String(_loose[existing]) != item_key:
+				continue
+			if item_floor_cell(existing) != Vector3i(block.x, rest_y - 1, block.z):
+				continue
+			var added := mini(remaining, item_capacity(item_key) - quantity_of(existing))
+			if added > 0:
+				set_quantity(existing, quantity_of(existing) + added)
+				remaining -= added
+	while remaining > 0:
+		var amount := mini(remaining, item_capacity(item_key))
+		var node := create_item_visual(item_key, amount)
+		remaining -= amount
 		var jitter := Vector3(randf_range(-0.28, 0.28), 0.0, randf_range(-0.28, 0.28))
 		node.position = Vector3(float(block.x) + 0.5, float(rest_y), float(block.z) + 0.5) + jitter
-		node.rotation.y = randf_range(0.0, TAU)
+		node.rotation.y = float(randi_range(0, 3)) * PI / 2.0 if item_capacity(item_key) > 1 else randf_range(0.0, TAU)
 		node.set_meta("base_y", rest_y)
 		node.set_meta("item_key", item_key)
 		# Same rule as DwarfAgent.apply_slice: floor(position.y) <= slice_y.
 		node.visible = rest_y <= _slice_y
 		add_child(node)
-		_drop_count += 1
 		_loose[node] = item_key
-		drop_spawned.emit(item_key)
+	drop_spawned.emit(item_key)
 
 
 func get_stats() -> Dictionary:
@@ -115,6 +131,7 @@ func serialize_state() -> Dictionary:
 			"item_key": String(_loose[node]),
 			"position": SaveManager.pack_v3(node.position),
 			"rotation_y": node.rotation.y,
+			"count": quantity_of(node),
 		})
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		var ak := "%s:%s" % [String(a["item_key"]), str(a["position"])]
@@ -132,25 +149,27 @@ func restore_state(state: Dictionary) -> void:
 		restore_loose_item(
 			key,
 			SaveManager.unpack_v3(entry.get("position", [])),
-			float(entry.get("rotation_y", 0.0)))
+			float(entry.get("rotation_y", 0.0)), int(entry.get("count", 1)))
 
 
 ## Builds one unindexed item visual for save restoration consumers (shelf
 ## anchors and ground-stockpile stored nodes).
-func create_item_visual(item_key: String) -> Node3D:
+func create_item_visual(item_key: String, count: int = 1) -> Node3D:
 	_ensure_defs()
 	var def: Dictionary = _defs.get(item_key, {})
 	if def.is_empty():
 		push_warning("ItemDropManager: unknown restored item '%s'." % item_key)
 		return null
-	var node := _build_drop_node(item_key, _model_scene(String(def.get("model", ""))))
+	var node := Node3D.new()
+	node.name = "Drop_%s_%d" % [item_key.get_slice(":", item_key.get_slice_count(":") - 1), _drop_count]
 	node.set_meta("item_key", item_key)
+	set_quantity(node, count)
 	_drop_count += 1
 	return node
 
 
-func restore_stored_item(item_key: String, cell: Vector3i) -> void:
-	var node := create_item_visual(item_key)
+func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1) -> void:
+	var node := create_item_visual(item_key, count)
 	if node == null:
 		return
 	add_child(node)
@@ -161,8 +180,11 @@ func restore_stored_item(item_key: String, cell: Vector3i) -> void:
 ## used for items that were in transit at snapshot time: tasks are transient,
 ## so those materialize safely at their saved carrier's feet on load.
 func restore_loose_item(item_key: String, restored_position: Vector3,
-		rotation_y: float = 0.0) -> void:
-	var node := create_item_visual(item_key)
+		rotation_y: float = 0.0, count: int = 1) -> void:
+	if count <= 0:
+		return
+	var amount := mini(count, item_capacity(item_key))
+	var node := create_item_visual(item_key, amount)
 	if node == null:
 		return
 	node.position = restored_position
@@ -173,6 +195,8 @@ func restore_loose_item(item_key: String, restored_position: Vector3,
 	add_child(node)
 	_loose[node] = item_key
 	drop_spawned.emit(item_key)
+	if count > amount:
+		restore_loose_item(item_key, restored_position, rotation_y, count - amount)
 
 
 # ── Loose-item index API (doc 18 §2.1) ────────────────────────────────────────
@@ -187,7 +211,7 @@ func get_item_def(item_key: String) -> Dictionary:
 ## Nearest unreserved loose item whose material_tags overlap accepted_tags,
 ## by flat Manhattan distance from `from`. `exclude` is a per-dwarf blacklist
 ## (Node -> true) of items that failed pathing this round. Null if none.
-func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {}) -> Node3D:
+func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {}, can_store: Callable = Callable()) -> Node3D:
 	_ensure_defs()
 	var best: Node3D = null
 	var best_dist: int = 0x7FFFFFFF
@@ -195,6 +219,8 @@ func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {
 		if _reserved.has(node) or exclude.has(node) or not is_instance_valid(node):
 			continue
 		var def: Dictionary = _defs.get(_loose[node], {})
+		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
+			continue
 		var tags: Array = def.get("material_tags", [])
 		var accepted := false
 		for tag: String in accepted_tags:
@@ -232,11 +258,13 @@ func nearest_loose_of_key(item_key: String, from: Vector3i, exclude: Dictionary 
 ## Unreserved loose accepted items within `radius` blocks (flat Chebyshev) of
 ## `center`, nearest first, capped at `limit`. The pouch bundle search (doc 18
 ## pouch — SH NearbyItemSearch equivalent). `exclude` = blacklist + main item.
-func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int, exclude: Dictionary = {}) -> Array[Node3D]:
+func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int, exclude: Dictionary = {}, can_store: Callable = Callable()) -> Array[Node3D]:
 	_ensure_defs()
 	var found: Array = []   # [dist, node] pairs
 	for node: Node3D in _loose:
 		if _reserved.has(node) or exclude.has(node) or not is_instance_valid(node):
+			continue
+		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
 			continue
 		var cell := item_floor_cell(node)
 		var dx := absi(cell.x - center.x)
@@ -263,11 +291,13 @@ func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int,
 
 ## Unreserved loose items whose tags overlap accepted_tags, capped at `cap`
 ## (lease posting only needs "are there at least N?", doc 18 §2.2).
-func count_loose(accepted_tags: Array, cap: int) -> int:
+func count_loose(accepted_tags: Array, cap: int, can_store: Callable = Callable()) -> int:
 	_ensure_defs()
 	var found: int = 0
 	for node: Node3D in _loose:
 		if _reserved.has(node) or not is_instance_valid(node):
+			continue
+		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
 			continue
 		var tags: Array = (_defs.get(_loose[node], {}) as Dictionary).get("material_tags", [])
 		for tag: String in accepted_tags:
@@ -290,6 +320,46 @@ func item_floor_cell(node: Node3D) -> Vector3i:
 
 func item_key_of(node: Node3D) -> String:
 	return String(_loose.get(node, node.get_meta("item_key", "")))
+
+
+func item_capacity(item_key: String) -> int:
+	return maxi(int(get_item_def(item_key).get("crate_capacity", 1)), 1)
+
+
+func quantity_of(node: Node3D) -> int:
+	return int(node.get_meta("quantity", 1))
+
+
+func set_quantity(node: Node3D, count: int) -> void:
+	var key := String(node.get_meta("item_key", ""))
+	assert(count > 0 and count <= item_capacity(key))
+	node.set_meta("quantity", count)
+	var def := get_item_def(key)
+	var models: Array = def.get("crate_models", [])
+	var path := String(def.get("model", ""))
+	if models.size() == 3:
+		path = String(models[mini((count - 1) / 8, 2)])
+	if String(node.get_meta("visual_path", "")) == path and node.get_child_count() > 0:
+		return
+	for child in node.get_children():
+		node.remove_child(child)
+		child.queue_free()
+	node.add_child(_build_drop_node(key, _model_scene(path)))
+	node.set_meta("visual_path", path)
+
+
+## Take just the reserved quantity. The remainder is still a loose crate.
+func take_quantity(node: Node3D, count: int, dwarf_id: int) -> Node3D:
+	if not _loose.has(node) or int(_reserved.get(node, -1)) != dwarf_id or count <= 0 or count > quantity_of(node):
+		return null
+	if count == quantity_of(node):
+		take(node)
+		return node
+	var cargo := create_item_visual(item_key_of(node), count)
+	set_quantity(node, quantity_of(node) - count)
+	unreserve(node, dwarf_id)
+	drop_spawned.emit(item_key_of(node))
+	return cargo
 
 
 func reserve(node: Node3D, dwarf_id: int) -> bool:
@@ -326,11 +396,14 @@ func take(node: Node3D) -> String:
 ## floor cell. Stored nodes are NOT in the loose index — the zone's
 ## cell_stacks own the counts (doc 18 §2.4: storage is physical).
 func place_stored(node: Node3D, cell: Vector3i) -> void:
+	_loose.erase(node)
+	_reserved.erase(node)
 	if node.get_parent() != null:
 		node.get_parent().remove_child(node)
 	add_child(node)
 	node.position = Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
 	node.rotation = Vector3.ZERO
+	node.scale = Vector3.ONE
 	node.set_meta("base_y", cell.y + 1)
 	node.set_meta("stored", true)
 	node.visible = cell.y + 1 <= _slice_y
@@ -349,6 +422,7 @@ func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
 	node.position = Vector3(float(floor_cell.x) + 0.5, float(floor_cell.y + 1), float(floor_cell.z) + 0.5) + jitter
 	node.set_meta("base_y", floor_cell.y + 1)
 	node.set_meta("stored", false)
+	node.scale = Vector3.ONE
 	node.visible = floor_cell.y + 1 <= _slice_y
 	_loose[node] = key
 	drop_spawned.emit(key)
@@ -363,13 +437,12 @@ func spawn_reserved(item_key: String, floor_cell: Vector3i, dwarf_id: int) -> No
 	if def.is_empty():
 		push_warning("ItemDropManager: unknown item '%s' — spawn_reserved skipped." % item_key)
 		return null
-	var node := _build_drop_node(item_key, _model_scene(String(def.get("model", ""))))
+	var node := create_item_visual(item_key)
 	node.position = Vector3(float(floor_cell.x) + 0.5, float(floor_cell.y + 1), float(floor_cell.z) + 0.5)
 	node.set_meta("base_y", floor_cell.y + 1)
 	node.set_meta("item_key", item_key)
 	node.visible = floor_cell.y + 1 <= _slice_y
 	add_child(node)
-	_drop_count += 1
 	_loose[node] = item_key
 	_reserved[node] = dwarf_id
 	return node
@@ -396,8 +469,8 @@ func withdraw_stored(node: Node3D, dwarf_id: int) -> void:
 
 
 ## Zone removal: stored nodes on the given cells become loose again, and
-## stacked counts beyond the one visible node respawn as fresh drops so no
-## items are lost (doc 18 §2.4 one-node-per-stack rule).
+## Each visible node already represents its full stack quantity. Only legacy
+## counts beyond that node respawn, so removing a zone never duplicates goods.
 func release_stored_cells(stacks: Dictionary) -> void:
 	var by_cell: Dictionary = {}
 	for child in get_children():
@@ -413,12 +486,52 @@ func release_stored_cells(stacks: Dictionary) -> void:
 			node.set_meta("stored", false)
 			_loose[node] = key
 			drop_spawned.emit(key)
-			count -= 1
+			count -= quantity_of(node)
 		if count > 0:
 			spawn_drop(key, count, Vector3i(cell.x, cell.y + 1, cell.z))
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────
+
+func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
+	var result: Dictionary = {}
+	var nearest := INF
+	for child in get_children():
+		if not (child is Node3D) or not child.has_meta("item_key") or child.is_queued_for_deletion():
+			continue
+		var distance: float = _picking.hit_distance(child, start, end)
+		if distance < nearest:
+			nearest = distance
+			result = {"id": child, "distance": distance}
+	return result
+
+
+func get_explorer_bounds(id: Variant) -> AABB:
+	return Picking.world_bounds(id) if _inspectable(id) else AABB()
+
+
+func _inspectable(id: Variant) -> bool:
+	return is_instance_valid(id) and id is Node3D and id.get_parent() == self \
+		and id.is_visible_in_tree() and not id.is_queued_for_deletion()
+
+
+func get_explorer_data(id: Variant) -> Dictionary:
+	if not _inspectable(id):
+		return {}
+	var key := item_key_of(id)
+	var def := get_item_def(key)
+	var crated := item_capacity(key) > 1
+	return {
+		"title": String(def.get("display_name", key)),
+		"kind": "Produce crate" if crated else "Resource",
+		"rows": [
+			["Contents", String(def.get("display_name", key))],
+			["Quantity", "%d / %d" % [quantity_of(id), item_capacity(key)] if crated else str(quantity_of(id))],
+			["Location", "In storage" if bool(id.get_meta("stored", false)) else "Awaiting collection"],
+		],
+		"details": String(def.get("description", "")),
+		"actions": [],
+	}
 
 func _build_drop_node(item_key: String, scene: PackedScene) -> Node3D:
 	var node: Node3D = null

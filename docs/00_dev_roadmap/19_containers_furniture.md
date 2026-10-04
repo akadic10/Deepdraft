@@ -1,5 +1,16 @@
 # 19 - Storage Containers & Furniture Placement (Third Colony Milestone)
 
+> **2026-10-04 update — physical crate slots:** capacity now counts visible
+> objects/packages. One automatic produce crate holds up to 24 goods of one
+> type and occupies one slot (including one shelf anchor). Ordinary items and
+> logs still occupy one slot each. Compatible partial crates refill first.
+> The inventory/save format continues to count individual goods by namespaced
+> key; shelves reconstruct crates from those totals. Withdrawals remove one
+> unit and update the remaining crate. Uninstall returns every unit as loose
+> crates. The explorer shows slots used and exact contents separately.
+> This supersedes the original flat-unit capacity wording below for opted-in
+> produce. Empty crates require no crafting, hauling or material management.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = decided / ready to build</span> |
@@ -7,11 +18,17 @@
 > <span style="color:#f85149;">Red = explicitly out of scope for this milestone</span>
 
 Status: **SHIPPED — milestone complete 2026-07-11, same day as drafting.** All five phases
-built and verified in-engine (build log below). Carry-forward: Alen's hand-authored shelf
-model (drop-in, anchors are data); crafting/trade replace the DEV item spawner (docs 44/51);
+built and verified in-engine (build log below). Carry-forward: crafting/trade replace
+the DEV item spawner (docs 44/51);
 input/output bins + restock priority (doc 44); filter panel UI. **Save/load gap closed
 2026-07-18 (doc 20):** ghosts, installed pieces, uninstall flags, and container inventories
 persist in schema version 1.
+
+**Shelf update, 2026-10-01:** [art doc 41](41_storage_shelf_visual_redesign.md)
+ships Alen's requested oak/iron replacement, superseding the earlier hand-authoring
+reservation below. Capacity remains eight. The 0.5 anchor scale is now a maximum;
+optional per-slot bounds fit and center rotated items to prevent clipping. Existing
+inventory saves restore into the updated display layout without a schema change.
 
 **Why this milestone:** doc 18 shipped ground stockpiles with a deliberate density ceiling —
 one item per tile, WYSIWYG (Alen, 2026-07-06). Density was explicitly deferred to

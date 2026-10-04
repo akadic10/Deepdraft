@@ -1,0 +1,61 @@
+{
+  "status": "installed_and_verified",
+  "canonical_exports_match_live": {
+    "barrel": "12d1ec43bf462d56066a31f08fcecafa3d49bff27363f14034cebf5fa2868972",
+    "storage_crate": "a0e107970c3c1b85d5ef25cdf5c43398415c50ba8be589b12261487537496f59",
+    "storage_shelf": "b2c849bf312b03b5bea036856312810eb78a320f446d87c7b6d777ee0358b8cf",
+    "tavern_bar": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763",
+    "bench": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "door": "32e724fe278f619b293cdb8615cf212266280f80574ad7a04ff74a7c214094d1",
+    "hearth": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8",
+    "packed_furniture": "2512d08376ac4fe4135c76393cdd5ef625ee7d8b999f61cf1b833f50a361ef6f"
+  },
+  "packed_item_keys": [
+    "base:resources:furniture:barrel",
+    "base:resources:furniture:storage_chest",
+    "base:resources:furniture:storage_shelf",
+    "base:resources:furniture:tavern_bar",
+    "base:resources:furniture:bench",
+    "base:resources:furniture:hearth",
+    "base:resources:furniture:door"
+  ],
+  "other_models_unchanged": 104,
+  "definitions_and_runtime_unchanged": true,
+  "legacy_builder_matches_reference": true,
+  "deterministic_export": true,
+  "review_matches_live": true,
+  "renders": 7,
+  "logs": {
+    "review-import": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-packed-review-import.log"
+    },
+    "review-capture": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-packed-review-capture.log"
+    },
+    "live-import": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-packed-live-import.log"
+    },
+    "live-check": {
+      "errors": 0,
+      "warnings": 2,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-packed-live-check.log"
+    }
+  },
+  "runtime_checks": {
+    "all_share_same_imported_mesh": true,
+    "existing_carry_attachment_scale": true,
+    "in_memory_loose_item_save_restore": true,
+    "lit_linear_vertex_material": true,
+    "original_bounds_and_scale_preserved": true,
+    "packed_types_checked": 7,
+    "player_saves_touched": false,
+    "shelf_anchor_half_scale": true,
+    "spawn_reserve_pickup_store_withdraw_drop": true
+  }
+}

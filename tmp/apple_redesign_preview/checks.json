@@ -1,0 +1,16 @@
+{
+  "deterministic_byte_for_byte": true,
+  "exported_arrays_match": true,
+  "unit_voxels_and_flat_normals": true,
+  "shared_leafy_geometry": true,
+  "stable_wood_cells": 113,
+  "blossom_cells": 46,
+  "attached_fruit_cells": 14,
+  "fruit_removal_preserves_leaf_and_wood_cells": true,
+  "centered_root_footprint": [
+    3,
+    3
+  ],
+  "minimum_overhang_height": 4,
+  "live_tree_glbs_unchanged": 58
+}

@@ -1,0 +1,171 @@
+--- before/data/entities/items/resources.json
++++ after/data/entities/items/resources.json
+@@ -783,6 +783,16 @@
+     "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
+   },
+ 
++  "base:resources:furniture:aging_rack": {
++    "display_name": "Aging Rack (packed)",
++    "description": "Two oak casks, iron hoops and a timber cradle packed for installation.",
++    "model": "res://assets/models/items/furniture/packed_furniture.glb",
++    "stack_max": 5,
++    "weight_class": "heavy",
++    "base_trade_value": 28,
++    "material_tags": ["wood", "metal", "furniture", "stockpile_furniture"]
++  },
++
+   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+ 
+   "base:resources:currency:gold_coin": {
+--- before/scripts/systems/StockpileDesignationController.gd
++++ after/scripts/systems/StockpileDesignationController.gd
+@@ -80,6 +80,7 @@
+ 	"base:resources:furniture:wall_torch": 4,
+ 	"base:resources:furniture:anvil": 1,
+ 	"base:resources:furniture:smelter": 1,
++	"base:resources:furniture:aging_rack": 1,
+ }
+ 
+ signal zone_created(zone_id: int)
+--- before/scripts/ui/DockUI.gd
++++ after/scripts/ui/DockUI.gd
+@@ -62,6 +62,7 @@
+ 	"📥 Wall Torch": "base:furniture:wall_torch",
+ 	"📥 Anvil": "base:furniture:anvil",
+ 	"📥 Smelter": "base:furniture:smelter",
++	"📥 Aging Rack": "base:furniture:aging_rack",
+ }
+ 
+ ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
+@@ -731,7 +732,7 @@
+ 		"chop":
+ 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
+ 		"build":
+-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "Cancel"]
++			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "Cancel"]
+ 		"storage_zone":
+ 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
+ 		"farm":
+--- before/docs/20_player_interface/23_user_interface.md
++++ after/docs/20_player_interface/23_user_interface.md
+@@ -177,7 +177,7 @@
+ | Panel | Contents |
+ |---|---|
+ | Mine | Designate mining zones, clear rubble, channel floors |
+-| Build | **Fifteen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil and Smelter. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
++| Build | **Sixteen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil, Smelter and Aging Rack. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
+ | Farm | Designate soil plots, assign crops |
+ | Military | Set patrol routes, guard posts (future) |
+ 
+--- before/docs/40_economy_colony/42_farming_brewing.md
++++ after/docs/40_economy_colony/42_farming_brewing.md
+@@ -133,6 +133,13 @@
+ ## Aging Cellar
+ 
+ The Aging Cellar (`base:workshop:aging_cellar`) is an underground workshop that produces premium aged drinks from base brewed drinks and oak staves. Full schema: `data/workshops/aging_cellar.json`.
++
++**Visual and placement status (2026-10-03):** the independently buildable
++**Aging Rack** (`base:furniture:aging_rack`) now supplies the 2×2×2 oak-cask model,
++packed item, ghost, hauling, uninstall and save/load integration. See
++[art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md).
++The recipes and temperature-dependent batch behavior described below remain
++planned; the placed rack currently has no storage or production behavior.
+ 
+ For the full temperature system — sealed rooms, heat sources, the depth-temperature gradient, and the Frozen Vault — see [`34_temperature.md`](../30_simulation_systems/34_temperature.md).
+ 
+--- before/docs/60_asset_creation/61_voxel_art_guide.md
++++ after/docs/60_asset_creation/61_voxel_art_guide.md
+@@ -808,9 +808,21 @@
+ 
+ 1×1×2 footprint (1 wide, 1 deep, 2 tall). Mounted brewing vat (same as furniture vat but fixed to the wall). An iron pipe running from the base to the floor. Copper `copper_body` fittings. A small gauge dial on the side (round `ceramic_grey` face with `iron_dark` needle) — decorative only.
+ 
+-#### Aging Cellar (`base:workshop:aging_cellar`)
+-
+-2×2×2 footprint. A recessed oak cask rack. Two large barrels on their sides in an X-frame cradle. `wood_oak_mid` barrels with iron bands. The front face has a small chalkboard (`stone_dark` surface with `stone_highlight` streak marks) implying batch records. Temperature matters in lore — so frost-rime voxels (`#D0E8F0`) on the barrel faces indicate a correctly cold cellar in the inspect UI icon (not the world model).
++#### Aging Rack (`base:furniture:aging_rack`; future `base:workshop:aging_cellar`)
++
++**Visual and placement installed 2026-10-03 ([art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md)).**
++2×2 footprint, 2 blocks tall. Two horizontal oak casks rest in a stout timber
++cradle with long runners, diagonal braces and wooden wedges. Full iron hoops
++wrap tapered staves; raised chimes frame recessed plank heads. Small draw-off
++taps face +Z. A dark batch plaque beneath them has two restrained chalk marks.
++All details stay inside the 16×16×16-cell envelope at eight voxels per block,
++with .125 baked scale and linear `COLOR_0`.
++
++`tools/generate_aging_rack.py` owns the model and native review; the canonical
++furniture generator delegates to it. **Build → Aging Rack** uses the common
++packed crate and floor-furniture pipeline. Aging recipes, temperature gating,
++storage, batch records and the future inspect icon remain workshop work. No
++frost is baked into the world model.
+ 
+ #### Beehive (`base:workshop:beehive`)
+ 
+--- before/docs/60_asset_creation/62_furniture_catalog.md
++++ after/docs/60_asset_creation/62_furniture_catalog.md
+@@ -39,8 +39,14 @@
+ 
+ ### Workshops (placeable, but a separate category — doc 61 §5.5)
+ 
+-Brewery (1×1×2) · Aging Cellar (2×2×2) · Beehive (1×1×1) · Forge (1×1×2):
++Brewery (1×1×2) · Beehive (1×1×1) · Forge (1×1×2):
+ workshop production remains planned under doc 44.
++
++**Aging Rack / Aging Cellar: visual and placement shipped, 2026-10-03 ([art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md)).**
++2×2 footprint, 2 blocks tall; twin horizontal oak casks, iron hoops, recessed
++heads, taps, batch plaque and braced timber cradle. `base:furniture:aging_rack`
++uses packed-item/build/uninstall/save handling. Recipes, batch progress,
++storage and temperature gating remain future Aging Cellar integration (doc 42).
+ 
+ **Smelter: visual and placement shipped, 2026-10-03 ([art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)).**
+ 2×2 footprint, 3 blocks tall; dressed-stone firebox, iron hood/grate, hollow
+@@ -55,8 +61,8 @@
+ 
+ **Totals: 20 furniture pieces (14 shipped — 3 from doc 19, 3 from doc 21,
+ 1 from doc 22, 1 each from art docs 37–40 and 42–44; remaining pieces specced or planned),
+-5 workshops (Smelter has a placeable visual; production is pending), 6 decoratives.
+-The Build menu has 15 entries including the Smelter.**
++5 workshops (Smelter and Aging Cellar have placeable visuals; production is pending), 6 decoratives.
++The Build menu has 16 entries including the Smelter and Aging Rack.**
+ 
+ ---
+ 
+--- before/tools/generate_furniture_glbs.py
++++ after/tools/generate_furniture_glbs.py
+@@ -100,6 +100,7 @@
+   assets/models/furniture/wooden_chair.glb                            (placed, art doc 39)
+   assets/models/furniture/dwarf_bunk.glb                              (placed, art doc 40)
+   assets/models/furniture/brewing_vat.glb                             (placed, art doc 42)
++  assets/models/furniture/aging_rack.glb                              (placed, art doc 46)
+   assets/models/items/furniture/packed_furniture.glb                 (shared item)
+ Review sheet: tmp/furniture_review/furniture_sheet.png
+ """
+@@ -123,6 +124,7 @@
+ import generate_brewing_vat as vat_art
+ import generate_anvil as anvil_art
+ import generate_smelter as smelter_art
++import generate_aging_rack as aging_art
+ 
+ EXPORT_SCALE = 0.125
+ SEED = 1919
+@@ -416,8 +418,12 @@
+     return smelter_art.smelter()
+ 
+ 
++def build_aging_rack():
++    return aging_art.aging_rack()
++
++
+ def mesh_furniture(name,vox):
+-    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil'):
++    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil','aging_rack'):
+         return tavern_art.export_mesh(vox)
+     return hearth_art.export_mesh(vox) if name == 'hearth' else mesh_from_voxels(vox)
+ 
+@@ -576,6 +582,7 @@
+         ("brewing_vat", build_brewing_vat()),
+         ("anvil", build_anvil()),
+         ("smelter", build_smelter()),
++        ("aging_rack", build_aging_rack()),
+     ]
+     box = build_packed_box()
+ 

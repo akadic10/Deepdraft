@@ -814,7 +814,7 @@ func _rebuild_cavity_shell() -> void:
 		_cavity_shell_node = MeshInstance3D.new()
 		_cavity_shell_node.name = "CavityShell"
 		_cavity_shell_node.material_override = _material
-		_cavity_shell_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		preload("res://scripts/components/TerrainLighting.gd").configure_mesh(_cavity_shell_node)
 		add_child(_cavity_shell_node)
 
 	if _visual_cut_blocks.is_empty():
@@ -1109,7 +1109,7 @@ func _get_or_create_node(key: Vector3i, cx: int, cy: int, cz: int) -> MeshInstan
 	var mi := MeshInstance3D.new()
 	mi.position          = Vector3(cx * CHUNK_SIZE, cy * CHUNK_SIZE, cz * CHUNK_SIZE)
 	mi.material_override = _material
-	mi.cast_shadow       = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(mi)
 	add_child(mi)
 	_chunk_nodes[key] = mi
 	return mi
@@ -1551,7 +1551,7 @@ func _get_or_create_region_node(key: Vector2i) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.name = "Region_%d_%d" % [key.x, key.y]
 	mi.material_override = _material
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(mi)
 	add_child(mi)
 	_region_nodes[key] = mi
 	return mi
@@ -1738,7 +1738,7 @@ func _get_or_create_overview_tile_node(key: Vector2i) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.name = "BlockFaceOverview_%d_%d" % [key.x, key.y]
 	mi.material_override = _material
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(mi)
 	add_child(mi)
 	_overview_tile_nodes[key] = mi
 	return mi

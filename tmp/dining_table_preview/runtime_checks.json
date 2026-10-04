@@ -1,0 +1,17 @@
+{
+  "build_menu_mapping": true,
+  "dev_spawner_entry": true,
+  "dwarf_pickup_and_build_consumes_crate": true,
+  "eight_existing_pieces_at_four_rotations": true,
+  "fetch_reservation_release_and_reclaim": true,
+  "four_rotations": true,
+  "fractional_top_layer_occupied": true,
+  "ghost_nonblocking": true,
+  "in_memory_installed_save_restore": true,
+  "no_room_heat_or_door_side_effects": true,
+  "placeable_definitions": 11,
+  "player_saves_touched": false,
+  "rotated_bounds_match_collision": true,
+  "terrain_unchanged": true,
+  "uninstall_refunds_same_item": true
+}

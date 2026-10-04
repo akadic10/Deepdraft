@@ -77,6 +77,20 @@ When the player is working inside a carved underground chamber and the slice rem
 
 ### Underground Lighting Model
 
+**Wall torch lighting shipped 2026-10-02** ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
+Installed torches add bounded warm omni lights and 200 heat units. All four terrain
+mesh paths (chunk, region, overview and cavity shell) now cast local-light shadows,
+so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain;
+the sun excludes that layer from its **shadow-caster** mask while retaining its
+normal light mask. Thus terrain still receives daylight and the existing sun-shadow
+behavior is preserved. Camera cull masks include layer 20. A torch is hidden with
+its light when the slice cuts below its flame, preventing illumination over a
+sliced-away wall. Terrain identity, material colors and discovery rules are unchanged.
+
+The GPU occlusion check measured zero illumination behind a test wall, versus
+0.574 luminance with its local-light shadows disabled. The broader underground
+ambient-light decisions below remain open.
+
 Stonehearth's slice view works on a surface world where ambient sunlight exists at all depths. **DwarfVoxel is primarily underground — the sunlight model does not reach deep slices.**
 
 At depth, the current `slice_y` floor needs its own ambient illumination. Options (to be decided when implementing lighting):

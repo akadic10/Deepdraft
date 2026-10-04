@@ -1,0 +1,50 @@
+{
+  "status": "installed",
+  "voxels_per_block": 8,
+  "bounds": [
+    [
+      -1.0,
+      0.0,
+      -1.0
+    ],
+    [
+      1.0,
+      2.0,
+      1.0
+    ]
+  ],
+  "voxels": 1431,
+  "triangles": 2888,
+  "named_meshes": [
+    "hearth_body",
+    "hearth_flame"
+  ],
+  "animation_frames": 10,
+  "animation_triangles": 6816,
+  "animation_sha256": "adb09c57a7fe2cb46cd218eb251fdd01d258db855ed70f4aa5c53a279328bd96",
+  "color_encoding": "linear COLOR_0",
+  "connected_components": 1,
+  "footprint": {
+    "width": 2,
+    "depth": 2
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        2,
+        2,
+        2
+      ]
+    }
+  ],
+  "fits_proposed_collision": true,
+  "stone_rim_height": 1.0,
+  "heat_units": 400,
+  "prototype_sha256": "9d9421c61e7b64984c8f0a020522b173ce3c9ac5841fd88c6633e61fe92342ee",
+  "live_reference_sha256": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8"
+}

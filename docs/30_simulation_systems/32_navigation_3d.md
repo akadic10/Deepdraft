@@ -17,6 +17,14 @@ Dwarves navigate using a **custom 3D A\* (A-Star) grid** tailored to the block w
 
 ## Walkability Rules
 
+**2026-10-04 mining commit timing:** WorldData's `chunk_dirtied` subscription is
+deferred for thread safety. After a main-thread mining void write,
+`MiningDesignationController` also calls `NavGrid.refresh_mined_block(block)` to
+invalidate that chunk and the chunk below (clearance dependency) immediately.
+This lets the worker snap to the new floor and choose its next block in the same
+frame without stale floor/path caches. Rebuilds remain lazy; the general deferred
+invalidation path is unchanged.
+
 A navigation node at `(x, y, z)` is **walkable** if and only if:
 
 1. The block at `(x, y, z)` is **solid** (the floor to stand on).

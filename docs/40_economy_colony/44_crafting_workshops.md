@@ -13,6 +13,14 @@ This system closes the two open placeholders in prior design docs:
 
 ## Professions
 
+### Planned carpentry chain (2026-10-04)
+
+Oak trees yield raw logs and possible acorns. The carpenter will process **oak
+logs → oak staves → oak aging casks**; finished staves are not felling drops.
+Keep the existing oak-stave item definition for this future crafting output.
+Recipe quantities, work times and workshop behavior are not implemented yet.
+This carpentry work is separate from the tree-felling milestone.
+
 ### Blacksmith — `base:profession:blacksmith`
 
 The Blacksmith is a permanent, long-term colony role — not a stepping stone. They are the only profession that operates the Smelter, and they produce the basic metal goods the colony consumes continuously: pickaxe heads, torch brackets, door hardware, and nails. Every colony that wants to expand militarily needs at least one Blacksmith keeping the Smelter running even after specialists take over the Forge.
@@ -91,10 +99,16 @@ The Smelter converts raw ore into metal ingots. It is a standalone workshop bloc
 
 Full schema: `data/workshops/smelter.json` *(to be created)*.
 
+**Visual milestone (2026-10-03, [art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)):**
+the smelter model, independent placement, hauling/build/uninstall and cosmetic
+firelight are live under `data/furniture/smelter.json` / `base:furniture:smelter`.
+The production behavior described in this section is still planned. The visual
+piece consumes no fuel, produces no ingots and contributes no operating heat yet.
+
 ### Placement
 
-- Footprint: **2×1×2 blocks** (the largest workshop in the game — it is a substantial structure).
-- Requires **no ceiling constraint** — it can be placed in low tunnels as long as there are 3 clear air blocks above the operator's standing position adjacent to the block (standard dwarf clearance, see `32_navigation_3d.md`).
+- Footprint: **2×2 floor cells, 3 blocks tall**, including the chimney (approved art design, 2026-10-03).
+- Requires three clear air blocks above each of its four floor cells. The adjacent operator position also needs the standard 3-block dwarf clearance (see `32_navigation_3d.md`); no outdoor chimney/exhaust rule is implemented.
 - Produces heat: a Smelter in operation counts as **800 heat units** for the temperature system in its enclosing room (see `34_temperature.md`). A Smelter left running in a shallow aging cellar will ruin the temperature balance — keep it in a dedicated room.
 
 ### Smelting Recipes

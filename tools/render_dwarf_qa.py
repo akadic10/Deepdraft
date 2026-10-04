@@ -15,6 +15,8 @@ generator, doc 13).
 Run:  python3 tools/render_dwarf_qa.py [--out PNG]   (default: tmp/dwarf_regen_preview/qa_sheet.png)
 """
 
+import sys
+sys.dont_write_bytecode = True
 import argparse
 from pathlib import Path
 
@@ -57,7 +59,7 @@ def tinted(vox: "gen.Voxels", tint) -> "gen.Voxels":
 
 def mirrored(vox: "gen.Voxels") -> "gen.Voxels":
     out = gen.Voxels()
-    vox.mirror_x_into(out)
+    out.cells = {(-x,y,z): c for (x,y,z),c in vox.cells.items()}
     return out
 
 

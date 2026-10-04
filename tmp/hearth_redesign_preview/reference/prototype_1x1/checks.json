@@ -1,0 +1,20 @@
+{
+  "export_arrays_valid": true,
+  "deterministic_export": true,
+  "connected": true,
+  "fits_existing_footprint_collision": true,
+  "live_model_unchanged": true,
+  "godot_import_exit": 0,
+  "godot_capture_exit": 0,
+  "script_errors": 0,
+  "captures": [
+    "comparison.png",
+    "comparison_rts.png",
+    "dwarf_scale.png",
+    "dwarf_scale_rts.png",
+    "prototype.png",
+    "prototype_rear.png",
+    "prototype_rts.png",
+    "tavern_context.png"
+  ]
+}

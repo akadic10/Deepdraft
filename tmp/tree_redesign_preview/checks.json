@@ -1,0 +1,28 @@
+{
+  "deterministic_byte_for_byte": true,
+  "live_tree_glbs_unchanged": 58,
+  "pine_seasons_identical_geometry": true,
+  "root_footprints_centered": true,
+  "exports": {
+    "oak_mature": {
+      "export_arrays_match": true,
+      "unit_voxels": true,
+      "triangles": 1660
+    },
+    "oak_mature_winter": {
+      "export_arrays_match": true,
+      "unit_voxels": true,
+      "triangles": 1000
+    },
+    "pine_mature": {
+      "export_arrays_match": true,
+      "unit_voxels": true,
+      "triangles": 960
+    },
+    "pine_mature_winter": {
+      "export_arrays_match": true,
+      "unit_voxels": true,
+      "triangles": 960
+    }
+  }
+}

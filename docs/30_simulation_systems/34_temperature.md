@@ -5,12 +5,19 @@
 > from door cells, the depth/heat/seasonal/daily formula below (ported verbatim),
 > heat-source aggregation from installed furniture (`hearth.json`'s
 > `heat_source.heat_units`), and the recalculation triggers in this doc are all live.
+> **2026-10-02:** wall torches now supply 200 heat units and warm local lighting
+> ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)). Sources sharing
+> a floor anchor sum their heat; removing one preserves the others.
 > **The inspect-panel UI shipped 2026-08-07 (v1):** the **Block Inspector** (🔍) is the
 > doc 34 inspect panel — hovering any block adjacent to a sealed room's interior appends
 > the room block (Sealed/Frozen Vault + zone name, temp °C, volume, heat units + bonus °C,
 > door count, seasonal influence %) via `WorldRenderer._room_inspect_lines()` querying
-> `RoomManager.get_room_at()`. **Not yet verified in-engine** — see doc 22 §4 for the
-> remaining checklist. **Still NOT implemented:** the Aging Cellar and Food Preservation
+> `RoomManager.get_room_at()`. **Verified in-engine 2026-08-14** (doc 22 Addendum 8):
+> detection, overlay, room readout, and hearth heat all confirmed on a real mined room —
+> the observed 9.2°C matched this doc's formula (base ≈2.5°C at mean floor Y 44, +6.25°C
+> from 400 heat units / 64 blocks, seasonal 31%). A short remainder (seal-break,
+> save/reload, large-cavern false-positive checks) is listed in doc 22 Addendum 8.
+> **Still NOT implemented:** the Aging Cellar and Food Preservation
 > hooks below (neither consuming system exists in code yet — `RoomManager` exposes
 > `get_room_at(cell) -> Dictionary` with `temp_c` for whenever they land), the aging-recipe
 > gray-out strings in the UI section (no aging cellar exists), and everything in *Forward
@@ -175,8 +182,15 @@ heat_bonus_c = total_heat_units / room_volume_in_blocks
 
 | Heat Source | Item Key | Heat Units | Notes |
 |---|---|---|---|
-| Torch | `base:item:torch` | 200 | Placeable on any wall or floor block |
-| Brazier | `base:item:brazier` | 600 | Future item — more efficient for large rooms |
+| Wall Torch | `base:furniture:wall_torch` (packed: `base:resources:furniture:wall_torch`) | 200 | Shipped wall mount; no floor reservation, four-block room height; always lit in v1 |
+| Hearth | `base:furniture:hearth` (packed: `base:resources:furniture:hearth`) | 400 | Shipped 2×2 floor fire bowl; contributes once at its origin |
+| Brazier | `base:furniture:brazier` (packed: `base:resources:furniture:brazier`) | 600 | Shipped 1×1 floor piece, 2 blocks tall including flames; always lit in v1 |
+
+The brazier's light and flame flicker are cosmetic; its heat stays at 600 units.
+Only installed pieces contribute. Ghosts and packed items have no heat, uninstall
+removes the contribution, and save reconstruction restores it once. In a sealed
+100-block room, one brazier adds 6°C and two add 12°C. Fuel consumption and ignition
+remain future work. See [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md).
 
 ### Worked Examples (cold mountain gradient)
 

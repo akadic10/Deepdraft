@@ -1,0 +1,13 @@
+{
+  "both_door_tiles_remain_walkable": true,
+  "ghosts_and_build_completion": true,
+  "imported_bounds_fit_footprint": true,
+  "materials_valid": true,
+  "models_checked": 1,
+  "paths_cross_both_tiles": true,
+  "player_saves_touched": false,
+  "rotations": 4,
+  "two_seal_columns_one_door_identity": true,
+  "two_separate_rooms_of_64_air_cells": true,
+  "uninstall_removes_seal": true
+}

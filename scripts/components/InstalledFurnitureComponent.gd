@@ -82,6 +82,8 @@ func on_task_gone(task_id: int, _dwarf_id: int) -> void:
 ## Scheduler probe target / dwarf walk target: the nearest walkable cell
 ## bordering the footprint (the footprint itself is occupied once installed).
 func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
+	if String(def.get("placement", "floor")) == "wall":
+		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(origin_cell, dwarf_cell)
 	var best := Vector3i(-1, -1, -1)
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in cells:

@@ -426,7 +426,7 @@ func _apply_backoff(task: Task, now: int) -> void:
 ## step 6). Profession-gated types (FORGE etc., doc 44) refine this later.
 func _types_for(_agent: DwarfAgent) -> Array[int]:
 	return [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
-			Task.Type.BREW, Task.Type.FETCH_BUILD, Task.Type.UNINSTALL]
+			Task.Type.BREW, Task.Type.FETCH_BUILD, Task.Type.UNINSTALL, Task.Type.FELL_TREE]
 
 
 func _bucket_priority(type: int, bonus: Dictionary) -> int:

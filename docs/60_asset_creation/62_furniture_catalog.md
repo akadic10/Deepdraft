@@ -17,38 +17,52 @@
 
 | Piece | Key | Status | System it serves |
 |---|---|---|---|
-| Trade Counter | `base:furniture:trade_counter` | DATA + SPEC (61 §5.4) | Shop room anchor, automated trade (doc 51) |
-| Barrel | `base:furniture:barrel` | **SHIPPED (doc 19)** | Storage container, capacity 8 (doc 19) |
-| Chest / Crate | `base:furniture:storage_crate` → `storage_chest` | **SHIPPED (doc 19)** | Storage container, capacity 24 (doc 19) |
-| Storage Shelf | `base:furniture:storage_shelf` | **SHIPPED (doc 19)** — Alen's hand-authored model pending | Contents-rendering storage, capacity 8 (doc 19) |
-| Brewing Vat | `base:furniture:brewing_vat` | SPEC (61 §5.4) | Brewery chain (doc 42) |
-| Bed (Dwarf Bunk) | `base:furniture:dwarf_bunk` | SPEC (61 §5.4) | Sleep + `slept_in_bed` thought (doc 41 — beds NOT yet implemented; sleep-lite is in-place) |
-| Wooden Chair | `base:furniture:wooden_chair` | SPEC (61 §5.4 — respecced wood, 2026-07-11) | Future eating/idle comfort |
-| Wooden Table | `base:furniture:wooden_table` | SPEC (61 §5.4 — respecced wood, 2026-07-11) | Future eating/idle comfort |
-| Wall Torch | `base:furniture:wall_torch` | SPEC (61 §5.4) | Light + **200 heat units** (doc 34) |
-| Brazier | `base:item:brazier` | PLAN (doc 34 — "future item") | **600 heat units**; large-room heating |
-| Anvil | `base:furniture:anvil` | SPEC (61 §5.4) | Forge visual anchor (doc 44) |
+| Trade Counter | `base:furniture:trade_counter` | **SHIPPED (2026-10-01, [art doc 37](../00_dev_roadmap/37_trade_counter_asset_and_placement.md))** — 2×1 stone/iron counter, 2 blocks tall; packed item and placement live | Shop room anchor and automated trade remain future work (doc 51) |
+| Barrel | `base:furniture:barrel` | **SHIPPED; oak/iron redesign (art doc 32, 2026-10-01)** — 1×1×1 envelope, recessed lid and dark hoops | Storage container, capacity 8 (doc 19) |
+| Chest / Crate | `base:furniture:storage_chest` (model: `storage_crate.glb`) | **SHIPPED; oak/iron redesign (art doc 33, 2026-10-01)** — 1×1×1 envelope, strapped lid and front clasp | Storage container, capacity 24 (doc 19) |
+| Storage Shelf | `base:furniture:storage_shelf` | **REDESIGNED (2026-10-01, [art doc 41](../00_dev_roadmap/41_storage_shelf_visual_redesign.md))** — open oak/iron frame, 1×1 footprint, 2 blocks tall | Eight visible item slots, fitted to avoid overlap (doc 19; art doc 41) |
+| Brewing Vat | `base:furniture:brewing_vat` | **SHIPPED (2026-10-02, [art doc 42](../00_dev_roadmap/42_brewing_vat_asset_and_placement.md))** — 2×2 oak/iron vessel, 2 blocks tall, open rim and copper tap | Placement live; ingredient handling, brewing queues and workshop integration remain future work |
+| Dwarven Bed | `base:furniture:dwarf_bunk` | **SHIPPED (2026-10-01, [art doc 40](../00_dev_roadmap/40_bed_asset_and_placement.md))** — independent 4×2 oak/iron bed, 1-block mattress and 2-block headboard | Placement live; bed assignment, walking to bed, sleep animation and `slept_in_bed` thought remain future work (doc 41; sleep-lite remains in-place) |
+| Wooden Chair | `base:furniture:wooden_chair` | **SHIPPED (2026-10-01, [art doc 39](../00_dev_roadmap/39_chair_asset_and_placement.md))** — independent 1×1 oak/iron armchair, 2-block back and 1-block seat rim | Placeable seating; sitting, seat assignments and dining/comfort effects remain future work |
+| Dining Table | `base:furniture:wooden_table` | **SHIPPED (2026-10-01, [art doc 38](../00_dev_roadmap/38_dining_table_asset_and_placement.md))** — 2×2 oak/iron table, 1.5 blocks tall; packed item and placement live | Dining-hall furniture; eating/seating/comfort behavior remains future work |
+| Wall Torch | `base:furniture:wall_torch` | **SHIPPED (2026-10-02, [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md))** — iron/wood mount, 1.5 blocks tall; wall placement with a walkable floor | Warm local light and **200 heat units**, real room-temperature contribution; no fuel consumption yet |
+| Brazier | `base:furniture:brazier` | **SHIPPED (2026-10-03, [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md))** — 1×1 iron fire bowl on a stone pedestal, 2 blocks tall with animated flames | Warm local light and **600 heat units**, real room heating; fuel and ignition remain future work |
+| Anvil | `base:furniture:anvil` | **SHIPPED (2026-10-02, [art doc 44](../00_dev_roadmap/44_anvil_asset_and_placement.md))** — 2×1 iron anvil on a stone pedestal, 1.5-block working height | Independent placement live; smithing recipes, operator animations and forge integration remain future work |
 | Rune Shelf | `base:furniture:rune_shelf` | SPEC (61 §5.4) | Decorative / future room appeal |
 | Stockpile Marker | `base:furniture:stockpile_marker` | SPEC (61 §5.4) | Zone decoration only |
 | Wall Display | `base:furniture:wall_display` | PLAN (doc 52) | Armory — holds one weapon/shield |
 | Armor Stand | `base:furniture:armor_stand` | PLAN (doc 52) | Armory — holds one armour set |
-| Tavern Bar | `base:furniture:tavern_bar` | **SHIPPED (doc 21, 2026-08-03)** — room_anchor/room_type fields are data-only, no room-detection code exists yet | Tavern room anchor (future); traveler income (doc 51, still unbuilt) |
-| Bench | `base:furniture:bench` | **SHIPPED (doc 21, 2026-08-03)** | Tavern seating; sit-down behaviour depends on doc 41 (not yet implemented) |
-| Hearth | `base:furniture:hearth` | **SHIPPED (doc 21, 2026-08-03)** — `heat_source.heat_units` is now read by `RoomManager` (doc 22, same day) | Tavern social anchor; real heat source (doc 34, live); `warm_tavern` thought still depends on doc 41 |
-| Door | `base:furniture:door` | **SHIPPED (doc 22, 2026-08-03)** — empty collision_regions, walkable | Sealed-room boundary for `RoomManager` (doc 34) |
+| Tavern Bar | `base:furniture:tavern_bar` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 2-block height including taps; room_anchor/room_type remain future integration data | Tavern room anchor (future); traveler income (doc 51, still unbuilt) |
+| Bench | `base:furniture:bench` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 1-block seat height | Tavern seating; sit-down behaviour depends on doc 41 (not yet implemented) |
+| Hearth | `base:furniture:hearth` | **SHIPPED; redesigned 2×2 (doc 30, 2026-10-01)** — 1-block stone rim, 2-block flame height; 400 heat units read once by `RoomManager` | Tavern social anchor; real heat source (doc 34, live); `warm_tavern` thought still depends on doc 41 |
+| Door | `base:furniture:door` | **REDESIGNED (2026-10-01, [art doc 34](../00_dev_roadmap/34_door_visual_redesign.md))** — 2×1 framed oak double door, iron straps and ring pulls | Walkable; both tiles seal rooms for `RoomManager` (temperature doc 34) |
 
 ### Workshops (placeable, but a separate category — doc 61 §5.5)
 
-Brewery (1×1×2) · Aging Cellar (2×2×2) · Beehive (1×1×1) · Smelter (2×1×2, 800 heat) ·
-Forge (1×1×2). These will ride the doc 19 placement pipeline when doc 44 lands.
+Brewery (1×1×2) · Beehive (1×1×1) · Forge (1×1×2):
+workshop production remains planned under doc 44.
+
+**Aging Rack / Aging Cellar: visual and placement shipped, 2026-10-03 ([art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md)).**
+2×2 footprint, 2 blocks tall; twin horizontal oak casks, iron hoops, recessed
+heads, taps, batch plaque and braced timber cradle. `base:furniture:aging_rack`
+uses packed-item/build/uninstall/save handling. Recipes, batch progress,
+storage and temperature gating remain future Aging Cellar integration (doc 42).
+
+**Smelter: visual and placement shipped, 2026-10-03 ([art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)).**
+2×2 footprint, 3 blocks tall; dressed-stone firebox, iron hood/grate, hollow
+chimney and animated firelight. `base:furniture:smelter` uses the existing
+packed-item/build/uninstall/save pipeline. Ore processing, fuel, jobs and
+800 heat units while operating remain future workshop integration.
 
 ### Decoratives / world objects (doc 61 §5.6 — world-gen scatter, not player furniture yet)
 
 Stone Boulder · Mining Cart · Water Barrel · Fence Post / Palisade · Runic Standing Stone ·
 Mushroom Lantern (the underground torch alternative — `glow_blue` palette).
 
-**Totals: 20 furniture pieces (7 shipped — 3 from doc 19, 3 from doc 21, 1 from doc 22 —
-~9 specced, 2 plan-only), 5 workshops, 6 decoratives.**
+**Totals: 20 furniture pieces (15 shipped — 3 from doc 19, 3 from doc 21,
+1 from doc 22, 1 each from art docs 37–40, 42–44 and 47; remaining pieces specced or planned),
+5 workshops (Smelter and Aging Cellar have placeable visuals; production is pending), 6 decoratives.
+The Build menu has 17 entries including the Smelter, Aging Rack and Brazier.**
 
 ---
 
@@ -88,7 +102,7 @@ SH reaches its volume by multiplying a small archetype set by **material**
 
 - **The storage ladder** — barrel 8 → chest 24 → (future vault-class): doc 19 tracks SH's
   crate 8 → 32 → vault 256 deliberately.
-- **Contents-rendering shelf** — direct SH parity (ATTITEM anchors, sca 0.5).
+- **Contents-rendering shelf** — ATTITEM-style anchors; maximum scale 0.5, with rotated bounds fitted to each slot (art doc 41).
 - **Room-anchor furniture** — Trade Counter ≙ SH market/stall function; Tavern Bar,
   Armor Stand, Wall Display follow the same "furniture defines the room" pattern SH uses.
 - **Heat-bearing furniture** — torch/brazier feed doc 34; SH lighting is cosmetic-first,

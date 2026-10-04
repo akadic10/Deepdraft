@@ -1,0 +1,13 @@
+config_version=5
+[application]
+config/name="Deepdraft complete forest review"
+run/main_scene="res://review.tscn"
+[display]
+window/size/viewport_width=1800
+window/size/viewport_height=1100
+window/size/window_width_override=1440
+window/size/window_height_override=880
+[rendering]
+renderer/rendering_method="forward_plus"
+rendering_device/driver.windows="d3d12"
+anti_aliasing/quality/msaa_3d=2

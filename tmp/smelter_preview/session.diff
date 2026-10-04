@@ -1,0 +1,187 @@
+--- before/data/entities/items/resources.json
++++ after/data/entities/items/resources.json
+@@ -773,6 +773,16 @@
+     "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
+   },
+ 
++  "base:resources:furniture:smelter": {
++    "display_name": "Smelter (packed)",
++    "description": "Dressed furnace stones, iron fittings and a grate packed for installation.",
++    "model": "res://assets/models/items/furniture/packed_furniture.glb",
++    "stack_max": 5,
++    "weight_class": "heavy",
++    "base_trade_value": 32,
++    "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
++  },
++
+   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+ 
+   "base:resources:currency:gold_coin": {
+--- before/scripts/systems/StockpileDesignationController.gd
++++ after/scripts/systems/StockpileDesignationController.gd
+@@ -79,6 +79,7 @@
+ 	"base:resources:furniture:brewing_vat": 1,
+ 	"base:resources:furniture:wall_torch": 4,
+ 	"base:resources:furniture:anvil": 1,
++	"base:resources:furniture:smelter": 1,
+ }
+ 
+ signal zone_created(zone_id: int)
+--- before/scripts/ui/DockUI.gd
++++ after/scripts/ui/DockUI.gd
+@@ -61,6 +61,7 @@
+ 	"📥 Brewing Vat": "base:furniture:brewing_vat",
+ 	"📥 Wall Torch": "base:furniture:wall_torch",
+ 	"📥 Anvil": "base:furniture:anvil",
++	"📥 Smelter": "base:furniture:smelter",
+ }
+ 
+ ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
+@@ -730,7 +731,7 @@
+ 		"chop":
+ 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
+ 		"build":
+-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "Cancel"]
++			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "Cancel"]
+ 		"storage_zone":
+ 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
+ 		"farm":
+--- before/docs/20_player_interface/23_user_interface.md
++++ after/docs/20_player_interface/23_user_interface.md
+@@ -177,11 +177,11 @@
+ | Panel | Contents |
+ |---|---|
+ | Mine | Designate mining zones, clear rubble, channel floors |
+-| Build | **Fourteen furniture entries live (2026-10-02):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch and Anvil. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
++| Build | **Fifteen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil and Smelter. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
+ | Farm | Designate soil plots, assign crops |
+ | Military | Set patrol routes, guard posts (future) |
+ 
+-Action-panel buttons use a six-column grid. Fourteen furniture entries and Cancel
++Action-panel buttons use a six-column grid. Fifteen placeable entries and Cancel
+ occupy three rows. The panel stays centered above the dock and grows upward as
+ needed ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
+ Smaller menus remain on one row. The Build panel is verified at 1280×800 and 2560×1440.
+--- before/docs/40_economy_colony/44_crafting_workshops.md
++++ after/docs/40_economy_colony/44_crafting_workshops.md
+@@ -91,10 +91,16 @@
+ 
+ Full schema: `data/workshops/smelter.json` *(to be created)*.
+ 
++**Visual milestone (2026-10-03, [art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)):**
++the smelter model, independent placement, hauling/build/uninstall and cosmetic
++firelight are live under `data/furniture/smelter.json` / `base:furniture:smelter`.
++The production behavior described in this section is still planned. The visual
++piece consumes no fuel, produces no ingots and contributes no operating heat yet.
++
+ ### Placement
+ 
+-- Footprint: **2×1×2 blocks** (the largest workshop in the game — it is a substantial structure).
+-- Requires **no ceiling constraint** — it can be placed in low tunnels as long as there are 3 clear air blocks above the operator's standing position adjacent to the block (standard dwarf clearance, see `32_navigation_3d.md`).
++- Footprint: **2×2 floor cells, 3 blocks tall**, including the chimney (approved art design, 2026-10-03).
++- Requires three clear air blocks above each of its four floor cells. The adjacent operator position also needs the standard 3-block dwarf clearance (see `32_navigation_3d.md`); no outdoor chimney/exhaust rule is implemented.
+ - Produces heat: a Smelter in operation counts as **800 heat units** for the temperature system in its enclosing room (see `34_temperature.md`). A Smelter left running in a shallow aging cellar will ruin the temperature balance — keep it in a dedicated room.
+ 
+ ### Smelting Recipes
+--- before/docs/60_asset_creation/61_voxel_art_guide.md
++++ after/docs/60_asset_creation/61_voxel_art_guide.md
+@@ -816,9 +816,23 @@
+ 
+ 1×1×1 footprint. Woven-wicker dome shape, placed on a small wooden base. Wicker: alternating `wood_oak_dark` and `rope_natural` voxel rows to imply weave texture. Top is slightly domed. A small entrance hole (1-voxel dark gap) at the base front. A single `honey_gold` drip voxel below the entrance. Must read immediately as a beehive — the silhouette is the tell.
+ 
+-#### Smelter (`base:workshop:smelter`)
+-
+-2×1×2 footprint (the largest workshop). A stone furnace body with a domed iron top and a chimney stack rising 2 blocks high. Front face: iron door (`iron_dull`) with a small `ember_glow` visible through a 2×2 voxel grate (simulated by a recessed dark area with glow-coloured voxels behind). Chimney: `stone_mid` column tapering slightly at the top. Overall shape reads as industrial and dangerous. The 2×2 footprint means the operating dwarf stands at the front 1×2 face — keep that face clear of geometry overhangs.
++#### Smelter (`base:furniture:smelter`; future `base:workshop:smelter`)
++
++**Visual and placement installed 2026-10-03 ([art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)).**
++The approved design is a **2×2 footprint, 3 blocks tall**, superseding the earlier
++2×1×2 sketch. A cut-corner stone foundation supports a thick arched firebox,
++bolted iron belt, faceted iron hood and hollow, soot-darkened chimney. A low
++iron grate projects toward the working side (+Z), entirely inside the footprint.
++The firebox is real recessed geometry with bright coals and eight animated
++voxel flame frames. Furnace walls cast shadows, containing the warm local
++light and directing it through the opening. Stone and hardware remain static.
++
++The 16×24×16-cell envelope retains eight voxels per block with .125 baked scale
++and linear `COLOR_0`. `tools/generate_smelter.py` owns the art, library and review;
++the canonical furniture generator delegates to it. **Build → Smelter** uses the
++shared packed crate and existing floor-furniture pipeline. Ghosts/packed items
++are static and unlit. Ore conversion, fuel, smith jobs and the planned 800 heat
++units while operating await the workshop system; this visual pass has no heat output.
+ 
+ #### Forge (`base:workshop:forge`)
+ 
+--- before/docs/60_asset_creation/62_furniture_catalog.md
++++ after/docs/60_asset_creation/62_furniture_catalog.md
+@@ -39,8 +39,14 @@
+ 
+ ### Workshops (placeable, but a separate category — doc 61 §5.5)
+ 
+-Brewery (1×1×2) · Aging Cellar (2×2×2) · Beehive (1×1×1) · Smelter (2×1×2, 800 heat) ·
+-Forge (1×1×2). These will ride the doc 19 placement pipeline when doc 44 lands.
++Brewery (1×1×2) · Aging Cellar (2×2×2) · Beehive (1×1×1) · Forge (1×1×2):
++workshop production remains planned under doc 44.
++
++**Smelter: visual and placement shipped, 2026-10-03 ([art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)).**
++2×2 footprint, 3 blocks tall; dressed-stone firebox, iron hood/grate, hollow
++chimney and animated firelight. `base:furniture:smelter` uses the existing
++packed-item/build/uninstall/save pipeline. Ore processing, fuel, jobs and
++800 heat units while operating remain future workshop integration.
+ 
+ ### Decoratives / world objects (doc 61 §5.6 — world-gen scatter, not player furniture yet)
+ 
+@@ -49,7 +55,8 @@
+ 
+ **Totals: 20 furniture pieces (14 shipped — 3 from doc 19, 3 from doc 21,
+ 1 from doc 22, 1 each from art docs 37–40 and 42–44; remaining pieces specced or planned),
+-5 workshops, 6 decoratives.**
++5 workshops (Smelter has a placeable visual; production is pending), 6 decoratives.
++The Build menu has 15 entries including the Smelter.**
+ 
+ ---
+ 
+--- before/tools/generate_furniture_glbs.py
++++ after/tools/generate_furniture_glbs.py
+@@ -122,6 +122,7 @@
+ import generate_shelf_redesign as shelf_art
+ import generate_brewing_vat as vat_art
+ import generate_anvil as anvil_art
++import generate_smelter as smelter_art
+ 
+ EXPORT_SCALE = 0.125
+ SEED = 1919
+@@ -411,6 +412,10 @@
+     return anvil_art.anvil()
+ 
+ 
++def build_smelter():
++    return smelter_art.smelter()
++
++
+ def mesh_furniture(name,vox):
+     if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil'):
+         return tavern_art.export_mesh(vox)
+@@ -570,6 +575,7 @@
+         ("dwarf_bunk", build_dwarf_bunk()),
+         ("brewing_vat", build_brewing_vat()),
+         ("anvil", build_anvil()),
++        ("smelter", build_smelter()),
+     ]
+     box = build_packed_box()
+ 
+@@ -584,6 +590,14 @@
+             write_hearth_flames(flame_path,root / 'tmp' / 'furniture_review')
+             total += flame_path.stat().st_size
+             print('  furniture/animations/hearth_flame.glb  10 animation frames')
++        elif name == 'smelter':
++            path = placed_dir / 'smelter.glb'
++            smelter_art.write_smelter(path,root / 'tmp' / 'furniture_review')
++            size = path.stat().st_size
++            flame_path = placed_dir / 'animations' / 'smelter_flame.glb'
++            smelter_art.write_flames(flame_path,root / 'tmp' / 'furniture_review')
++            total += flame_path.stat().st_size
++            print('  furniture/animations/smelter_flame.glb  8 animation frames')
+         else:
+             size = write_glb(placed_dir / f"{name}.glb", name, mesh_furniture(name,vox), EXPORT_SCALE)
+         print(f"  furniture/{name + '.glb':22s} {len(vox):4d} voxels  {size:6d} B")

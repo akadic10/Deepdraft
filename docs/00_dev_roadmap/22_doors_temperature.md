@@ -6,8 +6,9 @@
 > <span style="color:#d29922;">Yellow = decision needed or tune-in-engine</span> |
 > <span style="color:#f85149;">Red = explicitly out of scope for this milestone</span>
 
-Status: **BUILT, PARTIALLY PLAYTESTED — 2026-08-03, updated 2026-08-07 (Addendum 4:
-close-out + polish pass; room inspect panel shipped).** Doors (new
+Status: **BUILT, ROOM DETECTION VERIFIED IN-ENGINE — 2026-08-03, updated 2026-08-14
+(Addendum 8: Alen's verification pass banked the core room items; a short §4 remainder
+is listed there).** Doors (new
 furniture piece) and doc 34's sealed-room + temperature engine (`RoomManager`, new
 autoload) are both fully coded and wired together. Alen's first underground playtest
 (2026-08-06, Addenda 2 and 3 below) confirmed the door places, is walkable, and can be
@@ -453,6 +454,33 @@ sealed room) produced two refinements:
 
 Both plain script edits (`RoomOverlayController.gd`, `RoomManager.gd`) — hot-reload, no
 editor reload.
+
+## 12. Addendum 8 (2026-08-14): room verification pass — BANKED
+
+Alen's playtest banked the core §4 / Addendum 5 room items ("the room related things are
+a pass"), with screenshot evidence of a real mined 4×4 room, door and Hearth installed:
+
+- **Sealed-room detection works live** — 🚪 Rooms tool draws the green volume shell on
+  the room, through terrain, correctly bounded by the door.
+- **Room window readout correct** — `Room 2 · Sealed (Deep Cold) · 9.2°C · 64 blocks ·
+  400 units (+6.3°C) · Doors: 1 · seasonal 31% · mean floor Y 44.0`.
+- **Hearth heat contributes** (the Addendum 6 Bug-3 fix confirmed): 400 / 64 = +6.25°C,
+  matching the displayed +6.3. The absolute temperature corroborates the full doc 34
+  formula: base ≈ 2.5°C at mean floor Y 44 + 6.25 heat + seasonal/daily ≈ 9.2°C. Zone
+  label correct (Y 44 → Deep Cold), seasonal influence 31% ≈ inverse_lerp(30, 75, 44).
+- **Doors count pieces, not tiles** (Addendum 7): the 2×1 door reads `Doors: 1`.
+- Tool UX confirmed in passing: overlay + click-to-select + window refresh all behave.
+
+**Banked same day (Alen, follow-up):** door uninstall/mine → seal breaks and the Rooms
+count drops ✓; save → reload → the room survives intact (the DERIVABLE-state check —
+furniture restore rebuilding rooms through the normal install path works) ✓.
+
+**§4 remainder, still open:** large doorless cavern → no false-positive rooms, no
+hitching (untested, low risk); coal at mid-depths — not yet encountered in normal
+mining, will bank organically when a vein turns up (full density eyeball stays with the
+doc 44 milestone either way).
+
+*(Also fixed this pass: a stray `w` typo that had crept onto this doc's title line.)*
 
 ---
 

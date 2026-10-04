@@ -1,16 +1,17 @@
 class_name ContainerStorageComponent
 extends StorageComponent
 
+const ITEM_LAYOUT = preload("res://scripts/components/StorageItemLayout.gd")
+
 ## Container storage (doc 19 §3.5) — the density face of the storage
 ## contract: capacity SLOTS behind one piece of installed furniture (barrel
-## 8, chest 24, shelf 8). Deposit tokens are int slot tickets; counts live
-## in a flat inventory Dictionary (item_key -> count, flat item count — SH
-## parity, decision 6).
+## 8, chest 24, shelf 8). A produce crate occupies one slot; ordinary items
+## remain individual. The saved inventory still records unit totals by key;
+## physical stacks and anchors are rebuilt from these counts on restore.
 ##
 ## VISUALS (the WYSIWYG split, doc 19 §3.0.5): render_contents false (barrel,
 ## chest) ABSORBS the deposited node — the window shows counts; true (shelf)
-## renders items on the def's anchor points — Phase 5 (v1 absorbs with a
-## build-log note so hauling works today).
+## renders items on the def's anchor points, fitted to optional slot bounds.
 ##
 ## Owned by FurniturePlacementController (attached to the piece's
 ## InstalledFurnitureComponent); registered with StockpileManager like a
@@ -26,18 +27,26 @@ var suspended: bool = false          # 📤 flagged — stop accepting (doc 19 �
 # ── Anchor rendering (doc 19 Phase 5 — SH ATTITEM parity) ─────────────────────
 var display_parent: Node3D = null    # the installed piece's visual node
 var anchors: Array = []              # local block offsets from data/furniture JSON
-var anchor_scale: float = 0.5        # SH sca [0.5,0.5,0.5] (2026-07-11 decision 5)
+var anchor_scale: float = 0.5        # maximum display scale; optional slot bounds may shrink an item
+var anchor_max_size := Vector3.ZERO # optional per-slot envelope; zero keeps legacy sizing
 
-var _reserved_slots: int = 0
+var _slots = preload("res://scripts/components/StorageStackSlots.gd").new()
+var _reserved_slots: int:
+	get:
+		return _slots.reservations.size()
 var _anchor_slots: Array = []        # per-anchor: null | [node: Node3D, item_key: String]
 
 
 func setup_container(def: Dictionary, footprint_cells: Array[Vector3i]) -> void:
 	var storage: Dictionary = def.get("storage", {})
 	capacity = int(storage.get("capacity", 8))
+	_slots.slots = range(capacity)
+	_slots.capacity_for = _item_capacity
 	render_contents = bool(storage.get("render_contents", false))
 	anchors = storage.get("anchors", [])
 	anchor_scale = float(storage.get("anchor_scale", 0.5))
+	var size: Array = storage.get("anchor_max_size", [])
+	anchor_max_size = Vector3(float(size[0]), float(size[1]), float(size[2])) if size.size() == 3 else Vector3.ZERO
 	cells = footprint_cells
 	filter_tags = StockpileZoneComponent.DEFAULT_FILTER_TAGS.duplicate()
 	_anchor_slots.resize(anchors.size())
@@ -52,23 +61,28 @@ func stored_count() -> int:
 
 func restore_inventory(saved: Dictionary, item_manager: Node) -> void:
 	inventory.clear()
-	_reserved_slots = 0
+	_slots.entries.clear()
+	_slots.reservations.clear()
 	drop_manager = item_manager
-	var remaining := capacity
 	for item_key in saved:
-		var count := clampi(int(saved[item_key]), 0, remaining)
-		if count <= 0:
-			continue
-		inventory[String(item_key)] = count
-		remaining -= count
-		if render_contents and item_manager != null \
-				and item_manager.has_method("create_item_visual"):
-			for _i in range(count):
-				var node: Node3D = item_manager.call("create_item_visual", String(item_key))
+		var remaining := maxi(int(saved[item_key]), 0)
+		while remaining > 0:
+			var token: Variant = _slots.reserve(String(item_key), remaining, -1, Vector3i.ZERO)
+			if token == null:
+				# Preserve excess goods from an older or changed furniture capacity.
+				if item_manager != null and not cells.is_empty():
+					item_manager.call("spawn_drop", String(item_key), remaining, cells[0] + Vector3i.UP)
+				break
+			_commit_one(token, String(item_key))
+			remaining -= int(token.count)
+			if render_contents and item_manager != null:
+				var node: Node3D = item_manager.call("create_item_visual", String(item_key), int(token.count))
 				if node != null:
-					_place_visual(node, null)
-		if remaining <= 0:
-			break
+					_place_visual(node, token)
+
+
+func occupied_slots() -> int:
+	return _slots.entries.size()
 
 
 # ── Storage contract (doc 19 §3.5 — the abstract surface) ─────────────────────
@@ -76,23 +90,26 @@ func restore_inventory(saved: Dictionary, item_manager: Node) -> void:
 func _has_any_room() -> bool:
 	if suspended:
 		return false
-	return stored_count() + _reserved_slots < capacity
+	return _slots.has_any_room()
 
 
-func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int) -> Variant:
-	if not _has_any_room():
+func _has_room_for_key(key: String) -> bool:
+	return not suspended and _slots.has_room(key)
+
+
+func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1) -> Variant:
+	if suspended:
 		return null
-	_reserved_slots += 1
-	return _reserved_slots   # int ticket (never null; value is opaque)
+	return _slots.reserve(item_key, amount, dwarf_id, near)
 
 
-func _release_deposit(_token: Variant) -> void:
-	_reserved_slots = maxi(_reserved_slots - 1, 0)
+func _release_deposit(token: Variant) -> void:
+	_slots.release(token)
 
 
-func _commit_one(_token: Variant, item_key: String) -> void:
-	_reserved_slots = maxi(_reserved_slots - 1, 0)
-	inventory[item_key] = int(inventory.get(item_key, 0)) + 1
+func _commit_one(token: Variant, item_key: String) -> void:
+	_slots.commit(token, item_key)
+	inventory[item_key] = int(inventory.get(item_key, 0)) + int(token.count)
 
 
 func _deposit_walk_target(_first_token: Variant) -> Vector3i:
@@ -100,19 +117,25 @@ func _deposit_walk_target(_first_token: Variant) -> Vector3i:
 
 
 ## Barrel/chest ABSORB the node; the shelf snaps it onto a free anchor
-## (doc 19 Phase 5 — SH ATTITEM parity: scale 0.5, varied yaw per anchor).
+## (doc 19 Phase 5, art doc 41: scale up to 0.5, varied yaw, fitted slot bounds).
 ## Anchors are footprint-local block coords (origin = bottom-front-left);
 ## as children of the rotated piece node they follow its yaw for free, and
 ## slice culling rides the parent's visibility.
-func _place_visual(node: Node3D, _token: Variant) -> void:
+func _place_visual(node: Node3D, token: Variant) -> void:
 	if node == null or not is_instance_valid(node):
 		return
 	if not render_contents or display_parent == null or not is_instance_valid(display_parent):
 		node.queue_free()
 		return
-	var slot := _free_anchor_slot()
-	if slot < 0:
+	var slot := int(token.slot)
+	if slot < 0 or slot >= _anchor_slots.size():
 		node.queue_free()   # capacity > anchors would land here — WYSIWYG says never
+		return
+	if _anchor_slots[slot] != null:
+		var existing: Node3D = _anchor_slots[slot][0]
+		drop_manager.call("set_quantity", existing, int(_slots.entries[slot].count))
+		ITEM_LAYOUT.fit(existing, anchor_max_size, anchor_scale)
+		node.queue_free()
 		return
 	var key := String(node.get_meta("item_key", ""))
 	if node.get_parent() != null:
@@ -128,28 +151,10 @@ func _place_visual(node: Node3D, _token: Variant) -> void:
 	node.scale = Vector3.ONE * anchor_scale
 	# Varied per-anchor yaw (SH's scattered hand-placed look) — deterministic.
 	node.rotation = Vector3(0.0, float(slot * 2654435761 % 628) / 100.0, 0.0)
+	ITEM_LAYOUT.fit(node, anchor_max_size, anchor_scale)
 	node.visible = true
+	node.set_meta("stored", true)
 	_anchor_slots[slot] = [node, key]
-
-
-func _free_anchor_slot() -> int:
-	for i: int in range(_anchor_slots.size()):
-		if _anchor_slots[i] == null:
-			return i
-	return -1
-
-
-## Frees one anchored node of `item_key` (shelf withdraw/dump bookkeeping).
-func _pop_anchor_node(item_key: String) -> bool:
-	for i: int in range(_anchor_slots.size()):
-		var entry: Variant = _anchor_slots[i]
-		if entry != null and String((entry as Array)[1]) == item_key:
-			var node: Node3D = (entry as Array)[0]
-			if node != null and is_instance_valid(node):
-				node.queue_free()
-			_anchor_slots[i] = null
-			return true
-	return false
 
 
 ## Nearest walkable cell bordering the footprint (the footprint itself is
@@ -185,8 +190,22 @@ func withdraw_nearest(item_key: String, _near: Vector3i, dwarf_id: int) -> Node3
 	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id)
 	if node == null:
 		return null
-	if render_contents:
-		_pop_anchor_node(item_key)   # the shelf visibly loses the piece
+	for slot in _slots.entries:
+		var stack: Dictionary = _slots.entries[slot]
+		if String(stack.item) != item_key:
+			continue
+		stack.count = int(stack.count) - 1
+		if render_contents and int(slot) < _anchor_slots.size() and _anchor_slots[slot] != null:
+			var visual: Node3D = _anchor_slots[slot][0]
+			if int(stack.count) > 0:
+				drop_manager.call("set_quantity", visual, int(stack.count))
+				ITEM_LAYOUT.fit(visual, anchor_max_size, anchor_scale)
+			else:
+				visual.queue_free()
+				_anchor_slots[slot] = null
+		if int(stack.count) <= 0:
+			_slots.entries.erase(slot)
+		break
 	inventory[item_key] = int(inventory[item_key]) - 1
 	if int(inventory[item_key]) <= 0:
 		inventory.erase(item_key)
@@ -218,4 +237,5 @@ func dump_contents(at_cell: Vector3i) -> int:
 				changed_callback.call(item_key, -count)
 			dumped += count
 	inventory.clear()
+	_slots.entries.clear()
 	return dumped

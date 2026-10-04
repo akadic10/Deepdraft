@@ -1,17 +1,17 @@
 {
   "__comment": [
-    "Storage Shelf - the WYSIWYG container (doc 19): contents render ON the shelf at the",
-    "anchor points below, capacity == anchor count (never hold more than is visible).",
-    "GROUND SHELF (Alen, 2026-07-11): placement is plain 'floor' - no wall requirement.",
-    "The model is slated for hand-authoring by Alen (symmetric from all angles, no back",
-    "panel); the generator's version is interim. anchors are furniture-local block coords",
-    "(origin = bottom-front-left, same convention as collision_regions); anchor_scale is",
-    "the stored item render scale - 0.5 per SH ATTITEM parity (2026-07-11), tune-by-eye dial."
+    "Storage Shelf - eight visible item slots, four per level; capacity equals anchor count.",
+    "Ground shelf, open on all sides. Oak/iron redesign authorized by Alen (art doc 41, 2026-10-01).",
+    "The new authored generator replaces the previous hand-authoring reservation.",
+    "Anchors use footprint-local block coordinates, origin bottom-front-left.",
+    "Shelf surfaces stay at Y 0.125 and 1.0; 1x1 footprint and 2-block collision are unchanged.",
+    "anchor_scale 0.5 is the maximum. anchor_max_size fits each rotated item into its clear slot;",
+    "visible bounds are centered horizontally and bottom-aligned to prevent overlap or floating."
   ],
   "furniture_key": "base:furniture:storage_shelf",
   "furniture_category": "storage",
   "display_name": "Storage Shelf",
-  "description": "Two stout plank shelves on heavy oak uprights. Everything stored on it stays in plain sight.",
+  "description": "An open oak rack with iron corner fittings and two plank shelves. Eight stored items remain visible.",
   "model": "res://assets/models/furniture/storage_shelf.glb",
   "item_key": "base:resources:furniture:storage_shelf",
   "placement": "floor",
@@ -42,45 +42,50 @@
     "anchor_scale": 0.5,
     "anchors": [
       [
-        0.32,
+        0.3125,
         0.125,
-        0.35
+        0.3125
       ],
       [
-        0.68,
+        0.6875,
         0.125,
-        0.35
+        0.3125
       ],
       [
-        0.32,
+        0.3125,
         0.125,
-        0.65
+        0.6875
       ],
       [
-        0.68,
+        0.6875,
         0.125,
-        0.65
+        0.6875
       ],
       [
-        0.32,
+        0.3125,
         1.0,
-        0.35
+        0.3125
       ],
       [
-        0.68,
+        0.6875,
         1.0,
-        0.35
+        0.3125
       ],
       [
-        0.32,
+        0.3125,
         1.0,
-        0.65
+        0.6875
       ],
       [
-        0.68,
+        0.6875,
         1.0,
-        0.65
+        0.6875
       ]
+    ],
+    "anchor_max_size": [
+      0.3125,
+      0.625,
+      0.3125
     ]
   }
 }

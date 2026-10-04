@@ -1,0 +1,95 @@
+{
+  "hair_cropped_bare": {
+    "height_voxels": 27,
+    "height_blocks": 3.375,
+    "occupied_voxels": 2419,
+    "assembly_components": [
+      2121,
+      99,
+      99,
+      50,
+      50
+    ]
+  },
+  "hair_cropped_beard": {
+    "height_voxels": 27,
+    "height_blocks": 3.375,
+    "occupied_voxels": 2496,
+    "assembly_components": [
+      2198,
+      99,
+      99,
+      50,
+      50
+    ]
+  },
+  "hair_swept_braid_bare": {
+    "height_voxels": 27,
+    "height_blocks": 3.375,
+    "occupied_voxels": 2538,
+    "assembly_components": [
+      2240,
+      99,
+      99,
+      50,
+      50
+    ]
+  },
+  "hair_swept_braid_beard": {
+    "height_voxels": 27,
+    "height_blocks": 3.375,
+    "occupied_voxels": 2615,
+    "assembly_components": [
+      2317,
+      99,
+      99,
+      50,
+      50
+    ]
+  },
+  "head_adult": {
+    "voxels": 1094,
+    "triangles": 1560,
+    "sha256": "460549093794b9c36cb50c31c7c348314c11662158a8aace4abf57fe06066110"
+  },
+  "body_base": {
+    "voxels": 623,
+    "triangles": 1112,
+    "sha256": "064136fca48f50a653e9a918736d52500e505c31f5c3496846b83a685c628a5f"
+  },
+  "hand": {
+    "voxels": 50,
+    "triangles": 196,
+    "sha256": "08d7ff721fae0c3fd6281991c9fd0d98b24df36a40d87579b583dd9b0f2bac23"
+  },
+  "foot": {
+    "voxels": 99,
+    "triangles": 288,
+    "sha256": "20f6c518261ada98345c16e1d9ba5a37ebe999b17dbe6afedebd94377d12b1e7"
+  },
+  "eyes": {
+    "voxels": 4,
+    "triangles": 40,
+    "sha256": "62d9a95397c8779c6085a5d21562c31e8200b616dedaa87352837619ecf326fc"
+  },
+  "brows": {
+    "voxels": 8,
+    "triangles": 72,
+    "sha256": "ab187d60d292d66fe375eec154f22146021b63ad155bbf325be5b96e4f14724b"
+  },
+  "hair_cropped": {
+    "voxels": 392,
+    "triangles": 1668,
+    "sha256": "9fca45f82e382d9d2196d8d318026bc2785637e6205da414bf2d1a88e0affe3f"
+  },
+  "hair_swept_braid": {
+    "voxels": 511,
+    "triangles": 2088,
+    "sha256": "f16620e0329582b30bd9bd0c239941d04a6be169ecf71ba0545c314f06f40976"
+  },
+  "beard_short": {
+    "voxels": 77,
+    "triangles": 388,
+    "sha256": "57aa5b397dbab3b554785e0e0b4c34c734ea172e0cd068fabb57cbfde630ed80"
+  }
+}

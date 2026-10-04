@@ -179,6 +179,7 @@ func _run() -> void:
 
 func _build_nonempty_colony_state() -> String:
 	var mining := _owner("mining")
+	var flora := _owner("flora")
 	var flag := _owner("settlement_flag")
 	var stockpiles := _owner("stockpiles")
 	var furniture := _owner("furniture")
@@ -186,7 +187,7 @@ func _build_nonempty_colony_state() -> String:
 	var dwarves := _owner("dwarves")
 	var camera := _owner("camera")
 	var slice := _owner("slice")
-	if [mining, flag, stockpiles, furniture, items, dwarves, camera, slice].has(null):
+	if [mining, flora, flag, stockpiles, furniture, items, dwarves, camera, slice].has(null):
 		return "one or more save-state owners are missing"
 
 	var flag_cell := _surface_cell(0, 0)
@@ -197,6 +198,16 @@ func _build_nonempty_colony_state() -> String:
 	var item_cell := _surface_cell(10, 0)
 	var mined_cell := _surface_cell(12, 0)
 	var designated_cell := _surface_cell(14, 0)
+	# Three authoritative forestry states. The focused felling test covers real
+	# workers/visuals; this regression verifies the actual save/reload pipeline.
+	flora.call("restore_state", {"trees": [
+		{"species": "base:flora:oak_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(20, 0)),
+			"work_seconds": 1.25, "designated": true, "felled": false},
+		{"species": "base:flora:pine_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(24, 0)),
+			"work_seconds": .75, "designated": false, "felled": false},
+		{"species": "base:flora:apple_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(28, 0)),
+			"work_seconds": 8.0, "designated": false, "felled": true},
+	]})
 
 	mining.call("restore_state", {
 		"mined_blocks": [_pack_v3i(mined_cell)],
@@ -210,11 +221,11 @@ func _build_nonempty_colony_state() -> String:
 		"zones": [{
 			"id": 201,
 			"cells": [_pack_v3i(stockpile_cell)],
-			"filter_tags": ["stockpile_stone"],
+			"filter_tags": ["stockpile_seed"],
 			"stacks": [{
 				"cell": _pack_v3i(stockpile_cell),
-				"item": "base:resources:stone:rough_stone",
-				"count": 2,
+				"item": "base:resources:seed:oak_acorn",
+				"count": 21,
 			}],
 		}],
 	})
@@ -231,12 +242,13 @@ func _build_nonempty_colony_state() -> String:
 			"origin": _pack_v3i(furniture_cell),
 			"yaw": 0,
 			"flagged_uninstall": false,
-			"inventory": { "base:resources:stone:rough_stone": 2 },
+			"inventory": { "base:resources:stone:rough_stone": 2, "base:resources:flora:apple": 27 },
 		}],
 	})
 	items.call("restore_state", {
 		"loose": [{
-			"item_key": "base:resources:stone:rough_stone",
+			"item_key": "base:resources:flora:juniper_berry",
+			"count": 17,
 			"position": _pack_v3(Vector3(
 				float(item_cell.x) + 0.5, float(item_cell.y) + 1.05, float(item_cell.z) + 0.5)),
 			"rotation_y": 0.25,
@@ -310,7 +322,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 
 	var scene_state := _collect_scene_state()
 	var expected_keys := [
-		"mining", "settlement_flag", "stockpiles", "furniture",
+		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
 		"items", "dwarves", "camera", "slice",
 	]
 	for key in expected_keys:
@@ -318,6 +330,8 @@ func _verify_restored_state(expected_seed: int) -> String:
 			return "restored scene is missing section %s" % key
 	if (scene_state["mining"] as Dictionary).get("mined_blocks", []).size() != 1:
 		return "mined blocks did not round-trip"
+	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 3:
+		return "forestry progress/designations/removals did not round-trip"
 	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 1:
 		return "mining zones did not round-trip"
 	if not bool((scene_state["settlement_flag"] as Dictionary).get("placed", false)):
@@ -430,7 +444,7 @@ func _run_inflight_carried_case() -> String:
 			"sleep_hours_left": 5.0,
 			"carried_items": [
 				"base:resources:stone:rough_stone",
-				"base:resources:stone:rough_stone",
+				{"item_key": "base:resources:seed:pine_cone", "count": 24},
 			],
 		}],
 	})
@@ -438,6 +452,12 @@ func _run_inflight_carried_case() -> String:
 	if loose_after != loose_before + 2:
 		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +2)" \
 			% [loose_before, loose_after]
+	var carried_cones := 0
+	for drop in (items.call("serialize_state") as Dictionary).get("loose", []):
+		if String(drop.item_key) == "base:resources:seed:pine_cone":
+			carried_cones += int(drop.count)
+	if carried_cones != 24:
+		return "in-flight case: crate contents were not conserved"
 	var roster: Array = (dwarves.call("serialize_state") as Dictionary).get("roster", [])
 	for raw in roster:
 		if not (raw is Dictionary):

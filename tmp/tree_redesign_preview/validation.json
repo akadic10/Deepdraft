@@ -1,0 +1,83 @@
+{
+  "voxels_per_block": 1,
+  "color_encoding": "linear COLOR_0 from authored sRGB",
+  "live_assets_changed": false,
+  "models": {
+    "oak_mature": {
+      "voxels": 674,
+      "bounds": [
+        [
+          -7.5,
+          0,
+          -6.5
+        ],
+        [
+          7.5,
+          17,
+          6.5
+        ]
+      ],
+      "triangles": 1660,
+      "face_connected_components": 1,
+      "wood_cells_stable_across_seasons": 153,
+      "sha256": "63930d838a043a8ddafb4c86464d6b9f18c08b5f0f19561ce77d44db71b2dbc3"
+    },
+    "oak_mature_winter": {
+      "voxels": 153,
+      "bounds": [
+        [
+          -5.5,
+          0,
+          -5.5
+        ],
+        [
+          6.5,
+          16,
+          5.5
+        ]
+      ],
+      "triangles": 1000,
+      "face_connected_components": 1,
+      "wood_cells_stable_across_seasons": 153,
+      "sha256": "0cf5d8cb5546d6174d5caf858f36d9d4c1df376486117c1ee5a1fd4d9cfd2595"
+    },
+    "pine_mature": {
+      "voxels": 287,
+      "bounds": [
+        [
+          -4,
+          0,
+          -5
+        ],
+        [
+          6,
+          20,
+          6
+        ]
+      ],
+      "triangles": 960,
+      "face_connected_components": 1,
+      "wood_cells_stable_across_seasons": 20,
+      "sha256": "0b95cd27bb552e595a4025e708035285973f8df1b16ab189cbab694df764e64e"
+    },
+    "pine_mature_winter": {
+      "voxels": 287,
+      "bounds": [
+        [
+          -4,
+          0,
+          -5
+        ],
+        [
+          6,
+          20,
+          6
+        ]
+      ],
+      "triangles": 960,
+      "face_connected_components": 1,
+      "wood_cells_stable_across_seasons": 20,
+      "sha256": "8d7db368818ca7ac168a67815500ce52bf4c580727919bd9c9cd080eb37b5dfd"
+    }
+  }
+}

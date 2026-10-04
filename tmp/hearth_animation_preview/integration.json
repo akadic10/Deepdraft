@@ -1,0 +1,63 @@
+{
+  "other_glbs_preserved": 152,
+  "original_hearth_cells_and_colors_preserved": true,
+  "fixed_flame_base_preserved": true,
+  "gameplay_definition_unchanged": true,
+  "canonical_exports_match": 16,
+  "canonical_hashes": {
+    "assets/models/furniture/barrel.glb": "12d1ec43bf462d56066a31f08fcecafa3d49bff27363f14034cebf5fa2868972",
+    "assets/models/furniture/bench.glb": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "assets/models/furniture/brewing_vat.glb": "b65cab06b905acf0b5835f58539dbc71cbdafa427758888defdc0a1c509d8951",
+    "assets/models/furniture/door.glb": "32e724fe278f619b293cdb8615cf212266280f80574ad7a04ff74a7c214094d1",
+    "assets/models/furniture/dwarf_bunk.glb": "8c9987fe9c7b9dc1343083e011e4342e6b6843f6d56fa437498c759a9155c987",
+    "assets/models/furniture/hearth.glb": "9d9421c61e7b64984c8f0a020522b173ce3c9ac5841fd88c6633e61fe92342ee",
+    "assets/models/furniture/storage_crate.glb": "a0e107970c3c1b85d5ef25cdf5c43398415c50ba8be589b12261487537496f59",
+    "assets/models/furniture/storage_shelf.glb": "dac2000f4d408adb091ed6f32cd62468d53485bd572f043d205fef6a8a07e347",
+    "assets/models/furniture/tavern_bar.glb": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763",
+    "assets/models/furniture/trade_counter.glb": "c41ad638232f8acc91c6c7b7f538a5734914893695caa3bbfda716a4656d9108",
+    "assets/models/furniture/wall_torch.glb": "ccc8131d035caa24d0cd62657c10c0dc5922121770bc745edcd72c26dc33604e",
+    "assets/models/furniture/wooden_chair.glb": "a1d835d20d8010e2d0601f5904cbf158a0a3781679001331b4dc1b0d1e3ec376",
+    "assets/models/furniture/wooden_table.glb": "7aee96923d0fb18797d494ec7c2f522399700b317b67a4ab6b2649a12cbdac34",
+    "assets/models/furniture/animations/hearth_flame.glb": "adb09c57a7fe2cb46cd218eb251fdd01d258db855ed70f4aa5c53a279328bd96",
+    "assets/models/furniture/animations/wall_torch_flame.glb": "dd7baef58691badf63a280043bbf09a61d709d8f2cb670b532a73da890720672",
+    "assets/models/items/furniture/packed_furniture.glb": "2512d08376ac4fe4135c76393cdd5ef625ee7d8b999f61cf1b833f50a361ef6f"
+  },
+  "modified_existing_source_files": [
+    "data/furniture/hearth.json",
+    "scripts/components/FurnitureFlameAnimation.gd",
+    "scripts/components/FurnitureLighting.gd",
+    "docs/00_dev_roadmap/30_hearth_visual_redesign.md",
+    "docs/60_asset_creation/61_voxel_art_guide.md",
+    "tools/generate_furniture_glbs.py",
+    "tools/generate_hearth_redesign.py",
+    "tools/generate_wall_torch.py"
+  ],
+  "runtime_checks": {
+    "collision_size": [
+      2,
+      2,
+      2
+    ],
+    "flame_animation": {
+      "distinct_emission_samples": 141,
+      "distinct_light_samples": 147,
+      "heat_and_saved_state_unchanged": true,
+      "hidden_slice_suspends_updates": true,
+      "original_bounds_respected": true,
+      "shared_clip_independent_phases": true,
+      "stone_grate_logs_static": true,
+      "visible_frames": 10
+    },
+    "four_cell_placement_and_navigation_valid": true,
+    "ghost_nonblocking": true,
+    "heat_delta_c": 6.25,
+    "heat_units": 400,
+    "installed_and_ghost_save_round_trip": true,
+    "missing_floor_rejections": 16,
+    "model_scale_bounds_material_valid": true,
+    "player_saves_touched": false,
+    "room_volume": 64,
+    "rotations_checked": 4
+  },
+  "wall_torch_regression_passed": true
+}

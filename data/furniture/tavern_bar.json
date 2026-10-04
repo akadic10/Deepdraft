@@ -2,8 +2,8 @@
   "__comment": [
     "Tavern Bar - the room-anchor for a Tavern room (doc 21, doc 51, doc 62).",
     "Follows the trade_counter.json room-anchor pattern PLUS the doc 19 placement",
-    "fields (item_key/placement/yaw_steps), so unlike trade_counter this piece is",
-    "actually placeable via the Build panel today.",
+    "fields (item_key/placement/yaw_steps). Both counters are now placeable via",
+    "the Build panel; trade_counter joined the pipeline in art doc 37 (2026-10-01).",
     "",
     "STATUS (doc 21, 2026-08-03): room_anchor / room_type / room_compatible_categories /",
     "room_invalidating_categories / max_per_room are DATA ONLY right now, exactly like",

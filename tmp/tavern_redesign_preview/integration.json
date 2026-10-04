@@ -1,0 +1,85 @@
+{
+  "status": "installed_and_verified",
+  "models": {
+    "tavern_bar": {
+      "voxels": 1016,
+      "triangles": 1756,
+      "bounds": [
+        [
+          -1,
+          0,
+          -0.5
+        ],
+        [
+          1,
+          2.0,
+          0.5
+        ]
+      ],
+      "connected_components": 1,
+      "fits_existing_collision": true,
+      "sha256": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763"
+    },
+    "bench": {
+      "voxels": 472,
+      "triangles": 1248,
+      "bounds": [
+        [
+          -1,
+          0,
+          -0.5
+        ],
+        [
+          1,
+          1.0,
+          0.5
+        ]
+      ],
+      "connected_components": 1,
+      "fits_existing_collision": true,
+      "sha256": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e"
+    }
+  },
+  "canonical_exports_match_all_seven_models": true,
+  "other_five_models_and_packed_item_unchanged": true,
+  "both_furniture_definitions_unchanged": true,
+  "captured_images": [
+    "bar.png",
+    "bar_comparison.png",
+    "bar_rear.png",
+    "bar_rts.png",
+    "bench.png",
+    "bench_comparison.png",
+    "bench_rear.png",
+    "dwarf_scale.png",
+    "dwarf_scale_rts.png",
+    "tavern_context.png"
+  ],
+  "logs": {
+    "review-import": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "review-capture": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "live-import": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "live-check": {
+      "errors": 0,
+      "warnings": 2
+    }
+  },
+  "runtime": {
+    "ghosts_and_build_completion": true,
+    "imported_bounds_fit_rotated_collision": true,
+    "materials_valid": true,
+    "models_checked": 2,
+    "placement_and_navigation": true,
+    "player_saves_touched": false,
+    "rotations_each": 4
+  }
+}

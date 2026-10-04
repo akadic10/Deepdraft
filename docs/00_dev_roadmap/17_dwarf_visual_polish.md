@@ -126,6 +126,14 @@ decision), `61_voxel_art_guide.md` §3 table if proportions change, doc 16 build
 
 ### <span style="color:#d29922;">4.1 "Drawer hair" — some hair styles render as a hollow open-topped box (Alen, 2026-07-11)</span>
 
+**Resolved by the approved 2026-10-01 asset replacement (doc 25).** All 14 hair
+GLBs now use continuous, filled outer crowns with shaped napes/locks. The old
+four head crowns were identical: the age-height hypothesis below was not the
+cause in the reviewed files. The replacement was reviewed from front, side,
+rear, and elevated RTS angles; all 800 current pool combinations passed both
+voxel assembly and actual DwarfAgent instantiation. The notes below preserve
+the original report and investigation plan.
+
 **Symptom:** in-engine, several dwarves' hair reads as an open drawer/crate sitting on the
 head — four raised walls around the crown with a sunken hollow interior and no top fill.
 Observed on at least two dwarves simultaneously (one red-tinted, one white/grey-tinted —

@@ -1,0 +1,23 @@
+{
+  "__comment": [
+    "Aging Rack - placeable asset (art doc 46, 2026-10-03).",
+    "Approved footprint 2x2, 2 blocks tall, at eight voxels per block.",
+    "Two horizontal casks on a braced timber cradle; taps face +Z within the footprint.",
+    "Casks and batch marks are static artwork, with no storage or drink contents.",
+    "Aging recipes, batch progress and temperature gating await Aging Cellar workshop integration."
+  ],
+  "furniture_key": "base:furniture:aging_rack",
+  "furniture_category": "production",
+  "display_name": "Aging Rack",
+  "description": "Twin oak casks with iron hoops and draw-off taps, resting in a stout timber cradle.",
+  "model": "res://assets/models/furniture/aging_rack.glb",
+  "item_key": "base:resources:furniture:aging_rack",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": { "width": 2, "depth": 2 },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [2, 2, 2] }
+  ],
+  "room_anchor": false
+}

@@ -1,0 +1,26 @@
+{
+  "status": "installed",
+  "voxels_per_block": 8,
+  "export_scale": 0.125,
+  "color_encoding": "linear COLOR_0",
+  "bounds": [
+    [
+      -0.5,
+      0.0,
+      -0.5
+    ],
+    [
+      0.5,
+      2.0,
+      0.5
+    ]
+  ],
+  "voxels": 324,
+  "triangles": 1128,
+  "connected_components": 1,
+  "animation_frames": 8,
+  "animation_triangles": 2080,
+  "heat_units": 600,
+  "sha256": "9b75d594b4f7d904ea5d2d54f3264190f91e23a68c6872186020f5e9928881b9",
+  "clip_sha256": "a9d0adef217ed8ef317be2c8fa7fe2c6c6138e55f22285cb386712855a8dbe1c"
+}

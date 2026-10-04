@@ -1,0 +1,1202 @@
+{
+  "models": {
+    "pine_sapling": {
+      "species": "pine",
+      "stage": "sapling",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        5.0,
+        8.0,
+        5.0
+      ],
+      "voxels": 37,
+      "triangles": 248,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 37,
+      "bytes": 23888,
+      "sha256": "8703e2e182fb49d9cd46ce4075104a8665cbaf61b52708dd8a2c36be77ad184c"
+    },
+    "pine_sapling_winter": {
+      "species": "pine",
+      "stage": "sapling",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        5.0,
+        8.0,
+        5.0
+      ],
+      "voxels": 32,
+      "triangles": 240,
+      "hidden_cavity_triangles": 0,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 32,
+      "bytes": 23164,
+      "sha256": "77065c0bec5b8c77cb7bad96a834b49d914f8c7304f5f799b9085699c5cd1137"
+    },
+    "pine_mature": {
+      "species": "pine",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        9.0,
+        20.0,
+        9.0
+      ],
+      "voxels": 279,
+      "triangles": 1368,
+      "hidden_cavity_triangles": 64,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 279,
+      "bytes": 126936,
+      "sha256": "87cb03e39c3b0eb81160fec30c2429c96f42d3f21601c95038ea295abbdc9252"
+    },
+    "pine_mature_2": {
+      "species": "pine",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        9.0,
+        20.0,
+        9.0
+      ],
+      "voxels": 258,
+      "triangles": 1256,
+      "hidden_cavity_triangles": 0,
+      "components_6": 3,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 258,
+      "bytes": 116636,
+      "sha256": "f2a52c7efb2819843a5eddaec1ccb43e5c193e1d33d3575639495de82f2aca50"
+    },
+    "pine_mature_3": {
+      "species": "pine",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 3,
+      "dims_xyz": [
+        9.0,
+        20.0,
+        9.0
+      ],
+      "voxels": 343,
+      "triangles": 1492,
+      "hidden_cavity_triangles": 0,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 343,
+      "bytes": 138348,
+      "sha256": "671d148816a3f6a7a3238a68bff3d14030b89dbe45dd6f606015ec472f105178"
+    },
+    "pine_mature_winter": {
+      "species": "pine",
+      "stage": "mature",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        9.0,
+        20.0,
+        9.0
+      ],
+      "voxels": 294,
+      "triangles": 1448,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 294,
+      "bytes": 134312,
+      "sha256": "c7048a8c4764735babe6f7d323a34504f17fd5b9fc6baa557fbd206c7de882a9"
+    },
+    "pine_mature_winter_2": {
+      "species": "pine",
+      "stage": "mature",
+      "season": "winter",
+      "variant": 2,
+      "dims_xyz": [
+        9.0,
+        20.0,
+        9.0
+      ],
+      "voxels": 255,
+      "triangles": 1308,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 255,
+      "bytes": 121436,
+      "sha256": "efe6972100f7668a549a0b41fbfa2e3bf1df5ec7f6150137c16054bd510d295d"
+    },
+    "pine_ancient": {
+      "species": "pine",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        15.0,
+        27.0,
+        15.0
+      ],
+      "voxels": 908,
+      "triangles": 3824,
+      "hidden_cavity_triangles": 208,
+      "components_6": 5,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 908,
+      "bytes": 352892,
+      "sha256": "d70474618e58ce963612c1bed0ba887c47d20bb256022f09f5ed1f75add2bbd4"
+    },
+    "pine_ancient_2": {
+      "species": "pine",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        13.0,
+        27.0,
+        13.0
+      ],
+      "voxels": 771,
+      "triangles": 3488,
+      "hidden_cavity_triangles": 0,
+      "components_6": 5,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 771,
+      "bytes": 321984,
+      "sha256": "8fd7b7bfeda6e56a85a31ea5193870251a90c828c40003d81ae66a8be430acf5"
+    },
+    "pine_ancient_3": {
+      "species": "pine",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 3,
+      "dims_xyz": [
+        15.0,
+        27.0,
+        15.0
+      ],
+      "voxels": 1130,
+      "triangles": 4548,
+      "hidden_cavity_triangles": 156,
+      "components_6": 9,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1130,
+      "bytes": 419508,
+      "sha256": "db4514fd694e7d1127c3299111055e35f1bdf77164cefe0490f316091a81510f"
+    },
+    "pine_ancient_winter": {
+      "species": "pine",
+      "stage": "ancient",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        15.0,
+        27.0,
+        15.0
+      ],
+      "voxels": 888,
+      "triangles": 3776,
+      "hidden_cavity_triangles": 208,
+      "components_6": 4,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 888,
+      "bytes": 348492,
+      "sha256": "f98c9775f0bdab92dba8a6630d4eef2a48af05249bf3ee381f6d42cfdcfa2dfe"
+    },
+    "pine_ancient_winter_2": {
+      "species": "pine",
+      "stage": "ancient",
+      "season": "winter",
+      "variant": 2,
+      "dims_xyz": [
+        13.0,
+        27.0,
+        13.0
+      ],
+      "voxels": 777,
+      "triangles": 3480,
+      "hidden_cavity_triangles": 0,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 777,
+      "bytes": 321264,
+      "sha256": "f9e3f448317a463338f1497f4f96216d85c4b5eb877d54ca114147cf4f10bb6a"
+    },
+    "oak_sapling_spring": {
+      "species": "oak",
+      "stage": "sapling",
+      "season": "spring",
+      "variant": 1,
+      "dims_xyz": [
+        6.0,
+        6.0,
+        5.0
+      ],
+      "voxels": 37,
+      "triangles": 180,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 37,
+      "bytes": 17640,
+      "sha256": "64b77d8edeeca07bb6caae782621ca6ec2be5a7b11284c0ec6ddc35918fe9a89"
+    },
+    "oak_sapling": {
+      "species": "oak",
+      "stage": "sapling",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        6.0,
+        7.0,
+        6.0
+      ],
+      "voxels": 41,
+      "triangles": 228,
+      "hidden_cavity_triangles": 12,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 41,
+      "bytes": 22044,
+      "sha256": "4d179eba9b91d58c1e7bf1d0b79b0b678663de984060936525a6476598475a59"
+    },
+    "oak_sapling_autumn": {
+      "species": "oak",
+      "stage": "sapling",
+      "season": "autumn",
+      "variant": 1,
+      "dims_xyz": [
+        5.0,
+        7.0,
+        5.0
+      ],
+      "voxels": 41,
+      "triangles": 196,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 41,
+      "bytes": 19112,
+      "sha256": "5b090bd12361456fb5b026e251c4e0cd91aed3956b863b6d54724465af317bf3"
+    },
+    "oak_sapling_winter": {
+      "species": "oak",
+      "stage": "sapling",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        6.0,
+        7.0,
+        5.0
+      ],
+      "voxels": 22,
+      "triangles": 196,
+      "hidden_cavity_triangles": 0,
+      "components_6": 6,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 22,
+      "bytes": 19112,
+      "sha256": "4c3ae81cbe68cada6bf44d892fdb026855e741777bf05b7214be080744777b28"
+    },
+    "oak_mature_spring": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "spring",
+      "variant": 1,
+      "dims_xyz": [
+        13.0,
+        17.0,
+        14.0
+      ],
+      "voxels": 852,
+      "triangles": 1768,
+      "hidden_cavity_triangles": 112,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 852,
+      "bytes": 163748,
+      "sha256": "c542dbb4f2c28636b558bc46a7d20348578d6be6e1d56cfbde462b85a69bc4f8"
+    },
+    "oak_mature": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        13.0,
+        17.0,
+        14.0
+      ],
+      "voxels": 797,
+      "triangles": 1648,
+      "hidden_cavity_triangles": 104,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 797,
+      "bytes": 152696,
+      "sha256": "8990b48cdd3afc76770bd9c90049b3784e981e3ddd54e3b66f2306dcf1cbdb81"
+    },
+    "oak_mature_2": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        12.0,
+        16.0,
+        11.0
+      ],
+      "voxels": 492,
+      "triangles": 1256,
+      "hidden_cavity_triangles": 68,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 492,
+      "bytes": 116636,
+      "sha256": "04854bf1942473f6389b452d14aef52f4f4d26b0617a7092ab0e2af8bdcc302c"
+    },
+    "oak_mature_3": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 3,
+      "dims_xyz": [
+        15.0,
+        17.0,
+        14.0
+      ],
+      "voxels": 840,
+      "triangles": 1792,
+      "hidden_cavity_triangles": 152,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 840,
+      "bytes": 165948,
+      "sha256": "74692d9f3c1ae0105fd540469c5f8273ab132579e88706bc77639672c83677df"
+    },
+    "oak_mature_autumn": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "autumn",
+      "variant": 1,
+      "dims_xyz": [
+        14.0,
+        17.0,
+        14.0
+      ],
+      "voxels": 826,
+      "triangles": 1840,
+      "hidden_cavity_triangles": 248,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 826,
+      "bytes": 170372,
+      "sha256": "124948b25607849f4a74404c5a79bb9b32ed4176bc20fcca41824201183e7f68"
+    },
+    "oak_mature_autumn_2": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "autumn",
+      "variant": 2,
+      "dims_xyz": [
+        11.0,
+        17.0,
+        11.0
+      ],
+      "voxels": 472,
+      "triangles": 1220,
+      "hidden_cavity_triangles": 96,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 472,
+      "bytes": 113336,
+      "sha256": "ff6f235ecdb282a43e6e7754249e7fe7b86e5e820aa470f15053d263cd35e538"
+    },
+    "oak_mature_winter": {
+      "species": "oak",
+      "stage": "mature",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        16.0,
+        17.0,
+        16.0
+      ],
+      "voxels": 100,
+      "triangles": 780,
+      "hidden_cavity_triangles": 0,
+      "components_6": 25,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 100,
+      "bytes": 72848,
+      "sha256": "1edf933dc0fdca50976e6771b7394c8249a3823d9779e9fa98c3fe2a9d4e8710"
+    },
+    "oak_ancient_spring": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "spring",
+      "variant": 1,
+      "dims_xyz": [
+        21.0,
+        25.0,
+        21.0
+      ],
+      "voxels": 3597,
+      "triangles": 5148,
+      "hidden_cavity_triangles": 728,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 3597,
+      "bytes": 474724,
+      "sha256": "b9050d3385993a56531794e4d5161f84aae654078b2a8d2266a38be535bbbdb2"
+    },
+    "oak_ancient": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        23.0,
+        25.0,
+        23.0
+      ],
+      "voxels": 3673,
+      "triangles": 5072,
+      "hidden_cavity_triangles": 632,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 3673,
+      "bytes": 467716,
+      "sha256": "9d8fd65d7819ed958de899683c59d688621f429dc3a287949e1a4a99dc26f138"
+    },
+    "oak_ancient_2": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        20.0,
+        25.0,
+        21.0
+      ],
+      "voxels": 2843,
+      "triangles": 4352,
+      "hidden_cavity_triangles": 540,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 2843,
+      "bytes": 401476,
+      "sha256": "418e6ded8fdda5c62160c7b59fc0411090ef07948851eb10cddb186011399a9e"
+    },
+    "oak_ancient_3": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 3,
+      "dims_xyz": [
+        25.0,
+        26.0,
+        25.0
+      ],
+      "voxels": 4891,
+      "triangles": 6356,
+      "hidden_cavity_triangles": 880,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 4891,
+      "bytes": 585848,
+      "sha256": "3884d2670573da11d63abd8cebf260c0ae56462cf3e4921326cd5a3a47cadc38"
+    },
+    "oak_ancient_autumn": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "autumn",
+      "variant": 1,
+      "dims_xyz": [
+        23.0,
+        26.0,
+        23.0
+      ],
+      "voxels": 3725,
+      "triangles": 5704,
+      "hidden_cavity_triangles": 1048,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 3725,
+      "bytes": 525876,
+      "sha256": "a1fa12229681673cd6a3448a03cb6b379fad99405260edf48668f64c74351f1c"
+    },
+    "oak_ancient_autumn_2": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "autumn",
+      "variant": 2,
+      "dims_xyz": [
+        19.0,
+        25.0,
+        20.0
+      ],
+      "voxels": 2629,
+      "triangles": 4252,
+      "hidden_cavity_triangles": 624,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 2629,
+      "bytes": 392292,
+      "sha256": "fb8d4553554a64ca0814209fc86739f781c548cfe42f64315269dc84db2f5234"
+    },
+    "oak_ancient_winter": {
+      "species": "oak",
+      "stage": "ancient",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        26.0,
+        25.0,
+        26.0
+      ],
+      "voxels": 226,
+      "triangles": 1580,
+      "hidden_cavity_triangles": 0,
+      "components_6": 58,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 226,
+      "bytes": 146460,
+      "sha256": "af67973d38a733cb5390426531951166ed9f8d25e1b483988ff82f7bb738838e"
+    },
+    "apple_sapling_spring": {
+      "species": "apple",
+      "stage": "sapling",
+      "season": "spring",
+      "variant": 1,
+      "dims_xyz": [
+        7.0,
+        7.0,
+        5.0
+      ],
+      "voxels": 58,
+      "triangles": 276,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 58,
+      "bytes": 26480,
+      "sha256": "a95f1e24347bfe41711037d9c7a642df98e29d580b90a74920d29e2a346bc840"
+    },
+    "apple_sapling": {
+      "species": "apple",
+      "stage": "sapling",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        8.0,
+        7.0,
+        6.0
+      ],
+      "voxels": 63,
+      "triangles": 324,
+      "hidden_cavity_triangles": 12,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 63,
+      "bytes": 30880,
+      "sha256": "0094d62f4816707a79823b1a53fcadf0bb43e81c9557ab4730ef32c09cc0645b"
+    },
+    "apple_sapling_autumn": {
+      "species": "apple",
+      "stage": "sapling",
+      "season": "autumn",
+      "variant": 1,
+      "dims_xyz": [
+        7.0,
+        7.0,
+        6.0
+      ],
+      "voxels": 62,
+      "triangles": 308,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 62,
+      "bytes": 29424,
+      "sha256": "892c1bc74c619be79fe64e207a050715c6e60077329e6bb74dd145ff8d3e1b81"
+    },
+    "apple_sapling_winter": {
+      "species": "apple",
+      "stage": "sapling",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        8.0,
+        8.0,
+        6.0
+      ],
+      "voxels": 25,
+      "triangles": 228,
+      "hidden_cavity_triangles": 0,
+      "components_6": 7,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 25,
+      "bytes": 22064,
+      "sha256": "0216643b3d59ff5f69e82da6a6ce29b9133aebcade07030fece10236b1185145"
+    },
+    "apple_mature_spring": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "spring",
+      "variant": 1,
+      "dims_xyz": [
+        13.0,
+        12.0,
+        12.0
+      ],
+      "voxels": 434,
+      "triangles": 1336,
+      "hidden_cavity_triangles": 108,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 430,
+      "bytes": 124008,
+      "sha256": "86f5018a3b842ee17aebf17aeb84086e224b7a7b8316358152d05664814ae988"
+    },
+    "apple_mature": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        13.0,
+        12.0,
+        11.0
+      ],
+      "voxels": 432,
+      "triangles": 1320,
+      "hidden_cavity_triangles": 64,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 432,
+      "bytes": 122524,
+      "sha256": "d5cc6864f9ccdec03c05185b4019abc1aacb34548f3246cc1b02ea938a05d92d"
+    },
+    "apple_mature_2": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        13.0,
+        12.0,
+        10.0
+      ],
+      "voxels": 294,
+      "triangles": 928,
+      "hidden_cavity_triangles": 24,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 294,
+      "bytes": 86460,
+      "sha256": "52ee62ec9821822eea088288ab8036755f30e9b0357115c01c16e2e120909e39"
+    },
+    "apple_mature_3": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 3,
+      "dims_xyz": [
+        14.0,
+        13.0,
+        11.0
+      ],
+      "voxels": 432,
+      "triangles": 1300,
+      "hidden_cavity_triangles": 64,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 432,
+      "bytes": 120688,
+      "sha256": "77c63e4fe138c0773d08792e9691ef0d1949db7db357b1927334da60b6c6bd7a"
+    },
+    "apple_mature_autumn": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "autumn",
+      "variant": 1,
+      "dims_xyz": [
+        14.0,
+        12.0,
+        12.0
+      ],
+      "voxels": 420,
+      "triangles": 1228,
+      "hidden_cavity_triangles": 68,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 420,
+      "bytes": 114072,
+      "sha256": "0b56a7a54bc852084984fad4a83449327eeb1bc00a922d01915a18aac68d67f8"
+    },
+    "apple_mature_autumn_2": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "autumn",
+      "variant": 2,
+      "dims_xyz": [
+        12.0,
+        12.0,
+        9.0
+      ],
+      "voxels": 288,
+      "triangles": 900,
+      "hidden_cavity_triangles": 36,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 288,
+      "bytes": 83900,
+      "sha256": "692a372c8ff56240937a9660afe079d628e56444e746ca640914042fd7abdf5c"
+    },
+    "apple_mature_autumn_fruiting": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "autumn_fruiting",
+      "variant": 1,
+      "dims_xyz": [
+        13.0,
+        12.0,
+        12.0
+      ],
+      "voxels": 421,
+      "triangles": 1212,
+      "hidden_cavity_triangles": 12,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 410,
+      "bytes": 112616,
+      "sha256": "2b82bb93712ae7233598eb6f1888f7d6471d11c68915604bbe145e9c57f7f35b"
+    },
+    "apple_mature_winter": {
+      "species": "apple",
+      "stage": "mature",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        14.0,
+        13.0,
+        11.0
+      ],
+      "voxels": 65,
+      "triangles": 496,
+      "hidden_cavity_triangles": 0,
+      "components_6": 15,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 65,
+      "bytes": 46724,
+      "sha256": "a5adfa45f837d53af11574fe48d0cc7e19e753569f0b8642bcdc55da8811e733"
+    },
+    "apple_ancient_spring": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "spring",
+      "variant": 1,
+      "dims_xyz": [
+        21.0,
+        18.0,
+        15.0
+      ],
+      "voxels": 1455,
+      "triangles": 2932,
+      "hidden_cavity_triangles": 296,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1449,
+      "bytes": 270844,
+      "sha256": "e1e3a6e8922227a56793670076ee21513a23d4d5bec7061f37f3499bcf06a6da"
+    },
+    "apple_ancient": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        19.0,
+        18.0,
+        15.0
+      ],
+      "voxels": 1464,
+      "triangles": 2784,
+      "hidden_cavity_triangles": 220,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1464,
+      "bytes": 257216,
+      "sha256": "351e03311817de72057272b416edd5b1955fa0b23b62a0f9183830fd7633acf0"
+    },
+    "apple_ancient_2": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "voxels": 1300,
+      "triangles": 2572,
+      "hidden_cavity_triangles": 172,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1300,
+      "bytes": 237712,
+      "sha256": "82a2e85016df94ac286fbba8a17da5dcff0f77e9e85b33729e746efd23dea7e7"
+    },
+    "apple_ancient_3": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 3,
+      "dims_xyz": [
+        22.0,
+        18.0,
+        18.0
+      ],
+      "voxels": 1835,
+      "triangles": 3476,
+      "hidden_cavity_triangles": 280,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1835,
+      "bytes": 320888,
+      "sha256": "0c176a6f473706eafa691ebe4183c67bd6f6f2fec7ea06322d45b42f144ff1c9"
+    },
+    "apple_ancient_autumn": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "autumn",
+      "variant": 1,
+      "dims_xyz": [
+        20.0,
+        17.0,
+        15.0
+      ],
+      "voxels": 1471,
+      "triangles": 2776,
+      "hidden_cavity_triangles": 200,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1471,
+      "bytes": 256492,
+      "sha256": "7a05a2f6a451b17ae300d71d906c025a7ac731452fac7b8517bc96b9a6a28b8a"
+    },
+    "apple_ancient_autumn_2": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "autumn",
+      "variant": 2,
+      "dims_xyz": [
+        18.0,
+        17.0,
+        16.0
+      ],
+      "voxels": 1315,
+      "triangles": 2664,
+      "hidden_cavity_triangles": 192,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1315,
+      "bytes": 246192,
+      "sha256": "8ac16812e1c0ef36b589614f0224170a5d2ed3718914b8b93b23aebacb1d08be"
+    },
+    "apple_ancient_autumn_fruiting": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "autumn_fruiting",
+      "variant": 1,
+      "dims_xyz": [
+        20.0,
+        18.0,
+        15.0
+      ],
+      "voxels": 1492,
+      "triangles": 3052,
+      "hidden_cavity_triangles": 276,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 1469,
+      "bytes": 281904,
+      "sha256": "660729fd103ea2c6b3798edccb0f155ed7eade2516aafde05e79e7cabd09ce6f"
+    },
+    "apple_ancient_winter": {
+      "species": "apple",
+      "stage": "ancient",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        23.0,
+        17.0,
+        22.0
+      ],
+      "voxels": 153,
+      "triangles": 1044,
+      "hidden_cavity_triangles": 0,
+      "components_6": 49,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 153,
+      "bytes": 97148,
+      "sha256": "b2a94fc89a6c6ae278abb2e038d5b13535d6253b79558aa17d9608e2ded7826f"
+    },
+    "juniper_sapling": {
+      "species": "juniper",
+      "stage": "sapling",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        5.0,
+        5.0,
+        4.0
+      ],
+      "voxels": 37,
+      "triangles": 192,
+      "hidden_cavity_triangles": 0,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 37,
+      "bytes": 18740,
+      "sha256": "8092302f356e036a4a1a1550bdcb2409a5e113147b1a7889af1b8e431f4c316f"
+    },
+    "juniper_sapling_winter": {
+      "species": "juniper",
+      "stage": "sapling",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        5.0,
+        5.0,
+        4.0
+      ],
+      "voxels": 33,
+      "triangles": 192,
+      "hidden_cavity_triangles": 0,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 33,
+      "bytes": 18752,
+      "sha256": "9172db5dbb44f67e6fffad27a46d49c9ca81ea85222a9dfa025ef9bdb1f18010"
+    },
+    "juniper_mature": {
+      "species": "juniper",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        7.0,
+        12.0,
+        7.0
+      ],
+      "voxels": 203,
+      "triangles": 620,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 203,
+      "bytes": 58124,
+      "sha256": "28824a3b13be9719156714a386ee8fe08138fdf1e281b3efa2c54b3b780bb23a"
+    },
+    "juniper_mature_2": {
+      "species": "juniper",
+      "stage": "mature",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        5.0,
+        12.0,
+        5.0
+      ],
+      "voxels": 160,
+      "triangles": 564,
+      "hidden_cavity_triangles": 0,
+      "components_6": 1,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 160,
+      "bytes": 52976,
+      "sha256": "2a69dea5f5d373529da22b73a5a45caa65d2e1f1f19ff34141b958089e31fc35"
+    },
+    "juniper_mature_winter": {
+      "species": "juniper",
+      "stage": "mature",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        7.0,
+        12.0,
+        7.0
+      ],
+      "voxels": 220,
+      "triangles": 664,
+      "hidden_cavity_triangles": 0,
+      "components_6": 2,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 220,
+      "bytes": 62184,
+      "sha256": "7485d496ad9aa63222b88711f796e8838d310d44fb98e8bc588fe4f3b497e7d2"
+    },
+    "juniper_ancient": {
+      "species": "juniper",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 1,
+      "dims_xyz": [
+        9.0,
+        16.0,
+        9.0
+      ],
+      "voxels": 541,
+      "triangles": 1256,
+      "hidden_cavity_triangles": 32,
+      "components_6": 5,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 541,
+      "bytes": 116640,
+      "sha256": "e6033019b965631928b78c9f55242ec629d16997dde76c0f124ef442cc159d71"
+    },
+    "juniper_ancient_2": {
+      "species": "juniper",
+      "stage": "ancient",
+      "season": "summer",
+      "variant": 2,
+      "dims_xyz": [
+        7.0,
+        16.0,
+        7.0
+      ],
+      "voxels": 409,
+      "triangles": 1080,
+      "hidden_cavity_triangles": 24,
+      "components_6": 4,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 409,
+      "bytes": 100452,
+      "sha256": "86b5282ab60a8b99540b57c5fe83b5d91b27618bf2f33f84c065402cb62cebff"
+    },
+    "juniper_ancient_winter": {
+      "species": "juniper",
+      "stage": "ancient",
+      "season": "winter",
+      "variant": 1,
+      "dims_xyz": [
+        9.0,
+        16.0,
+        9.0
+      ],
+      "voxels": 525,
+      "triangles": 1260,
+      "hidden_cavity_triangles": 60,
+      "components_6": 5,
+      "components_26": 1,
+      "detached_voxels_26": 0,
+      "colors": 525,
+      "bytes": 117024,
+      "sha256": "458068b7b1d76a0c42efde156ab44df282158af96b46560c05eeea2e6ec047c2"
+    }
+  },
+  "season_changes": {
+    "pine summer/winter": {
+      "changed_cells": 93,
+      "intersection_over_union": 0.721
+    },
+    "oak summer/spring": {
+      "changed_cells": 177,
+      "intersection_over_union": 0.806
+    },
+    "oak summer/autumn": {
+      "changed_cells": 183,
+      "intersection_over_union": 0.797
+    },
+    "oak summer/winter": {
+      "changed_cells": 743,
+      "intersection_over_union": 0.094
+    },
+    "apple summer/spring": {
+      "changed_cells": 150,
+      "intersection_over_union": 0.705
+    },
+    "apple summer/autumn": {
+      "changed_cells": 154,
+      "intersection_over_union": 0.694
+    },
+    "apple summer/winter": {
+      "changed_cells": 421,
+      "intersection_over_union": 0.083
+    },
+    "apple summer/autumn_fruiting": {
+      "changed_cells": 141,
+      "intersection_over_union": 0.716
+    },
+    "juniper summer/winter": {
+      "changed_cells": 55,
+      "intersection_over_union": 0.77
+    }
+  }
+}

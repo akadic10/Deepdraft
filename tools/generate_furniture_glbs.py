@@ -16,12 +16,10 @@ item defs point at the single packed_furniture.glb.
 MATERIAL RULE (Alen, 2026-07-11 — doc 61 §1): furniture is WOODWORK. All three
 pieces are wood-bodied with iron accents; stone appears nowhere here.
 
-SHELF NOTE (Alen, 2026-07-11): the storage shelf is a GROUND shelf — no wall
-requirement — and its model is slated for hand-authoring by Alen (symmetric
-from all angles, no back panel). build_storage_shelf() below is the INTERIM
-stand-in; when Alen's authored asset replaces assets/models/furniture/
-storage_shelf.glb, remove the shelf from this generator's output list so a
-rerun cannot overwrite the authored file (the ore_base_shape precedent).
+SHELF REDESIGN (art doc 41, Alen 2026-10-01): the ground shelf now delegates
+its open oak/iron frame to generate_shelf_redesign.py. The earlier reservation
+for Alen to hand-author it is superseded by this requested replacement.
+Its 1x1 footprint, 2-block height and eight visible storage slots are retained.
 
 CONVENTIONS (doc 61 §5.7 / 41b): items-class assets — 8 voxels per block, the
 0.125 scale BAKED into exported vertex positions, Godot import Root Scale
@@ -39,6 +37,53 @@ grate + embers — the material-rule exception applied to industrial/utility
 anchors, same bucket as trade_counter and workshop bodies). All three use the
 same packed_furniture.glb item form (one-box rule still applies).
 
+DOC 30 UPDATE (2026-10-01): the hearth is now a 2x2 stone bowl, with a
+1-block rim and 2-block flame tip at the same 8 voxels/block. Its authored
+colors are converted to linear COLOR_0 locally; other furniture is unchanged.
+The 2026-10-02 fire follow-up exports named body/flame meshes and a separate
+ten-frame flame library, shared by installed hearths at runtime.
+
+DOC 31 UPDATE (2026-10-01): tavern_bar and bench use the matching oak/iron
+redesign in generate_tavern_redesign, with local linear COLOR_0 conversion.
+Both fit their existing 2x1 footprints; bar height is 2, bench height is 1.
+
+DOC 32 ART UPDATE (2026-10-01): the storage barrel uses the tavern oak/iron
+palette and linear COLOR_0 export, with a recessed head and two dark hoops.
+Its 1x1x1 envelope and eight-item storage definition are unchanged.
+
+DOC 33 ART UPDATE (2026-10-01): storage_crate.glb is the redesigned oak
+chest, with a crowned strapped lid, hinges and front clasp. It retains the
+1x1x1 envelope and 24-item capacity and uses the same local linear colors.
+
+DOC 34 ART UPDATE (2026-10-01): the double door uses framed oak panels,
+strap hinges and ring pulls on both faces, with local linear COLOR_0.
+Its 2x1 footprint and 31-cell height are unchanged; hardware spans six cells
+in depth. Empty collision regions preserve passage and room sealing.
+
+DOC 36 ART UPDATE (2026-10-01): the shared packed crate uses framed oak,
+recessed panels and rope loops with a raised knot. Its original 5x4x5-cell
+envelope is unchanged. It now uses the same local linear COLOR_0 export.
+
+DOC 37 ART ADDITION (2026-10-01): the trade counter is a 2x1 stone/iron
+industrial anchor, 2 blocks tall. It uses local linear COLOR_0 and the
+same packed crate. Its shop/trading fields remain future integration data.
+
+DOC 38 ART ADDITION (2026-10-01): the dining table is a 2x2 oak/iron piece,
+1.5 blocks tall, using the tavern palette and local linear COLOR_0.
+
+DOC 39 ART ADDITION (2026-10-01): the standalone wooden chair has a 1x1
+footprint, 2-block backrest and 1-block seat rim, in matching oak/iron.
+
+DOC 40 ART ADDITION (2026-10-01): the 4x2 dwarven bed has a 1-block mattress,
+2-block headboard and raised linen pillow/folded blanket, in the same scale.
+
+DOC 42 ART ADDITION (2026-10-02): the 2x2 brewing vat has an open oak rim,
+recessed liquid, iron hoops and copper tap, within a 2-block height.
+
+DOC 43 ART ADDITION (2026-10-02): wall_torch has separate body/flame meshes,
+1.5-block height and a wall-facing rear plane at Z=0. Its emitter is a
+runtime child, not part of the GLB. Thirteen placed forms + one packed item.
+
 DOC 22 ADDITION (2026-08-03, doors — the sealed-room/temperature prerequisite):
 door (originally 1×1, thin plank plane, EMPTY collision_regions in door.json —
 must stay walkable). Also uses packed_furniture.glb for its item form. RESIZED
@@ -50,6 +95,13 @@ data/entities/items/resources.json "model" fields):
   assets/models/furniture/{barrel,storage_crate,storage_shelf}.glb   (placed, doc 19)
   assets/models/furniture/{tavern_bar,bench,hearth}.glb              (placed, doc 21)
   assets/models/furniture/door.glb                                   (placed, doc 22)
+  assets/models/furniture/trade_counter.glb                           (placed, art doc 37)
+  assets/models/furniture/wooden_table.glb                            (placed, art doc 38)
+  assets/models/furniture/wooden_chair.glb                            (placed, art doc 39)
+  assets/models/furniture/dwarf_bunk.glb                              (placed, art doc 40)
+  assets/models/furniture/brewing_vat.glb                             (placed, art doc 42)
+  assets/models/furniture/aging_rack.glb                              (placed, art doc 46)
+  assets/models/furniture/brazier.glb                                 (placed, art doc 47)
   assets/models/items/furniture/packed_furniture.glb                 (shared item)
 Review sheet: tmp/furniture_review/furniture_sheet.png
 """
@@ -59,6 +111,22 @@ import random
 from pathlib import Path
 
 from generate_dwarf_glb import Voxels, mesh_from_voxels, write_glb
+import generate_hearth_redesign as hearth_art
+import generate_tavern_redesign as tavern_art
+import generate_barrel_redesign as barrel_art
+import generate_chest_redesign as chest_art
+import generate_door_redesign as door_art
+import generate_packed_furniture_redesign as packed_art
+import generate_trade_counter as trade_art
+import generate_dining_table as table_art
+import generate_chair as chair_art
+import generate_bed as bed_art
+import generate_shelf_redesign as shelf_art
+import generate_brewing_vat as vat_art
+import generate_anvil as anvil_art
+import generate_smelter as smelter_art
+import generate_aging_rack as aging_art
+import generate_brazier as brazier_art
 
 EXPORT_SCALE = 0.125
 SEED = 1919
@@ -103,7 +171,7 @@ BARREL_RADII = [2.9, 3.4, 3.8, 4.0, 4.0, 3.8, 3.4, 2.9]   # bulge profile
 BARREL_BANDS = (1, 6)                                       # iron band rows
 
 
-def build_barrel(height=8, radii=None, bands=None, bung=True):
+def build_legacy_barrel(height=8, radii=None, bands=None, bung=True):
     rng = random.Random(SEED)
     radii = radii or BARREL_RADII
     bands = bands if bands is not None else BARREL_BANDS
@@ -132,7 +200,7 @@ def build_barrel(height=8, radii=None, bands=None, bung=True):
 # ── Chest / crate — placed form, 1×1×1 block (8×7×8 body + ajar lid) ─────────
 # Doc 61 §5.4: plank seams, iron corner brackets, lid slightly ajar.
 
-def build_storage_chest(size=8, mini=False):
+def build_legacy_storage_chest(size=8, mini=False):
     rng = random.Random(SEED + 1)
     v = Voxels()
     half = size // 2
@@ -167,13 +235,13 @@ def build_storage_chest(size=8, mini=False):
 # ── Storage shelf — placed form, 1×1×2 blocks (8×16×8) ───────────────────────
 # GROUND shelf (Alen, 2026-07-11): open and symmetric from all four sides —
 # no back panel. Heavy wood uprights, two plank levels, iron brackets, anchor
-# surfaces clear of the uprights. INTERIM model (see SHELF NOTE above).
+# surfaces clear of the uprights. Legacy model retained for reference (replaced in art doc 41).
 
 SHELF_H = 16
 SHELF_LEVEL_Y = (0, 7)      # slab rows; items sit on top of each (y=1 and y=8)
 
 
-def build_storage_shelf():
+def build_legacy_storage_shelf():
     rng = random.Random(SEED + 2)
     v = Voxels()
     half = 4
@@ -203,7 +271,7 @@ def build_storage_shelf():
 # distinct from the stone Trade Counter (material rule, 2026-07-11: the bar
 # is furniture dwarves use, not an industrial anchor).
 
-def build_tavern_bar():
+def build_legacy_tavern_bar():
     rng = random.Random(SEED + 4)
     v = Voxels()
     x0, x1 = -8, 8      # 16 voxels wide (2 blocks), footprint centred on X=0
@@ -239,7 +307,7 @@ def build_tavern_bar():
 # Doc 61 §5.4 / doc 21: long dwarven bench, thick-legged, no backrest (the
 # feature that distinguishes it from wooden_chair).
 
-def build_bench():
+def build_legacy_bench():
     rng = random.Random(SEED + 5)
     v = Voxels()
     x0, x1 = -8, 8
@@ -271,7 +339,7 @@ HEARTH_OUTER_R = 3.6
 HEARTH_INNER_R = 2.0
 
 
-def build_hearth():
+def build_legacy_hearth():
     v = Voxels()
     half = 4
     for x in range(-half, half):
@@ -292,7 +360,81 @@ def build_hearth():
     return v
 
 
-# ── Door — placed form, 2×1 block (16×31×2 voxel envelope) ──────────────
+def build_barrel():
+    return barrel_art.barrel()
+
+
+def build_storage_chest():
+    return chest_art.chest()
+
+
+def build_tavern_bar():
+    return tavern_art.tavern_bar()
+
+
+def build_bench():
+    return tavern_art.bench()
+
+
+def build_hearth():
+    return hearth_art.hearth()
+
+
+def build_door():
+    return door_art.door()
+
+
+def build_packed_box():
+    return packed_art.packed_box()
+
+
+def build_trade_counter():
+    return trade_art.trade_counter()
+
+
+def build_wooden_table():
+    return table_art.wooden_table()
+
+
+def build_wooden_chair():
+    return chair_art.wooden_chair()
+
+
+def build_dwarf_bunk():
+    return bed_art.dwarf_bunk()
+
+
+def build_storage_shelf():
+    return shelf_art.shelf()
+
+
+def build_brewing_vat():
+    return vat_art.brewing_vat()
+
+
+def build_anvil():
+    return anvil_art.anvil()
+
+
+def build_smelter():
+    return smelter_art.smelter()
+
+
+def build_aging_rack():
+    return aging_art.aging_rack()
+
+
+def build_brazier():
+    return brazier_art.brazier()
+
+
+def mesh_furniture(name,vox):
+    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil','aging_rack'):
+        return tavern_art.export_mesh(vox)
+    return hearth_art.export_mesh(vox) if name == 'hearth' else mesh_from_voxels(vox)
+
+
+# ── Legacy door — placed form, 2×1 block (16×31×2 voxel envelope) ───────
 # Doc 61 §5.4 / doc 22 / doc 22b (RESIZED 2026-08-06, Alen playtest feedback):
 # a double-leaf plank door, 2 blocks wide x ~4 blocks tall, centred in the cell
 # depth. COLLISION_REGIONS IS EMPTY in door.json — this piece must stay
@@ -306,7 +448,7 @@ DOOR_H = 31   # just under 4 blocks — leaves a frame gap at the top
 DOOR_SEAM = _c(0x3A2810)   # dark gap colour between the two leaves
 
 
-def build_door():
+def build_legacy_door():
     rng = random.Random(SEED + 7)
     v = Voxels()
     x0, x1 = -DOOR_W // 2, DOOR_W // 2   # -8..7
@@ -336,7 +478,7 @@ def build_door():
 ROPE = _c(0xA09060)   # doc 61 rope_natural
 
 
-def build_packed_box():
+def build_legacy_packed_box():
     """The generic packed-furniture crate: a stout plank box with rope
     lashing crossing the top and sides — reads as "boxed goods in transit",
     distinct from the iron-bracketed storage chest. ~5×4×5 voxels (well
@@ -439,18 +581,69 @@ def main():
         ("bench", build_bench()),
         ("hearth", build_hearth()),
         ("door", build_door()),
+        ("trade_counter", build_trade_counter()),
+        ("wooden_table", build_wooden_table()),
+        ("wooden_chair", build_wooden_chair()),
+        ("dwarf_bunk", build_dwarf_bunk()),
+        ("brewing_vat", build_brewing_vat()),
+        ("anvil", build_anvil()),
+        ("smelter", build_smelter()),
+        ("aging_rack", build_aging_rack()),
+        ("brazier", build_brazier()),
     ]
     box = build_packed_box()
 
     total = 0
     for name, vox in placed:
-        size = write_glb(placed_dir / f"{name}.glb", name, mesh_from_voxels(vox), EXPORT_SCALE)
+        if name == 'hearth':
+            from generate_hearth_redesign import write_hearth, write_flames as write_hearth_flames
+            path = placed_dir / 'hearth.glb'
+            write_hearth(path,root / 'tmp' / 'furniture_review')
+            size = path.stat().st_size
+            flame_path = placed_dir / 'animations' / 'hearth_flame.glb'
+            write_hearth_flames(flame_path,root / 'tmp' / 'furniture_review')
+            total += flame_path.stat().st_size
+            print('  furniture/animations/hearth_flame.glb  10 animation frames')
+        elif name == 'brazier':
+            path = placed_dir / 'brazier.glb'
+            brazier_art.write_brazier(path,root / 'tmp' / 'furniture_review')
+            size = path.stat().st_size
+            flame_path = placed_dir / 'animations' / 'brazier_flame.glb'
+            brazier_art.write_flames(flame_path,root / 'tmp' / 'furniture_review')
+            total += flame_path.stat().st_size
+            print('  furniture/animations/brazier_flame.glb  8 animation frames')
+        elif name == 'smelter':
+            path = placed_dir / 'smelter.glb'
+            smelter_art.write_smelter(path,root / 'tmp' / 'furniture_review')
+            size = path.stat().st_size
+            flame_path = placed_dir / 'animations' / 'smelter_flame.glb'
+            smelter_art.write_flames(flame_path,root / 'tmp' / 'furniture_review')
+            total += flame_path.stat().st_size
+            print('  furniture/animations/smelter_flame.glb  8 animation frames')
+        else:
+            size = write_glb(placed_dir / f"{name}.glb", name, mesh_furniture(name,vox), EXPORT_SCALE)
         print(f"  furniture/{name + '.glb':22s} {len(vox):4d} voxels  {size:6d} B")
         total += size
     size = write_glb(item_dir / "packed_furniture.glb", "packed_furniture",
-                     mesh_from_voxels(box), EXPORT_SCALE)
+                     mesh_furniture('packed_furniture',box), EXPORT_SCALE)
     print(f"  items/furniture/packed_furniture.glb {len(box):4d} voxels  {size:6d} B")
     total += size
+
+    # This placed piece needs named body/flame meshes for selective emission.
+    from generate_wall_torch import torch, write_parts, write_flames
+    torch_body, torch_flame = torch()
+    torch_path = placed_dir / "wall_torch.glb"
+    write_parts(torch_path, [("torch_body", torch_body), ("torch_flame", torch_flame)],
+                root / "tmp" / "furniture_review")
+    size = torch_path.stat().st_size
+    total += size
+    torch_body.update(torch_flame)
+    placed.append(("wall_torch", torch_body))
+    print(f"  furniture/wall_torch.glb     {len(torch_body):4d} voxels  {size:6d} B")
+    flame_path = placed_dir / "animations" / "wall_torch_flame.glb"
+    write_flames(flame_path, root / "tmp" / "furniture_review")
+    total += flame_path.stat().st_size
+    print(f"  furniture/animations/wall_torch_flame.glb  8 animation frames")
 
     sheet = _sheet(
         [(f"{n} (placed)", v) for n, v in placed] + [("packed box (item)", box)],

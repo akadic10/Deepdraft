@@ -1,0 +1,38 @@
+{
+  "export_arrays_valid": true,
+  "deterministic_export": true,
+  "connected": true,
+  "fits_live_footprint_collision": true,
+  "canonical_exports_match_all_seven_models": true,
+  "other_six_models_and_shared_packed_item_unchanged": true,
+  "live_model_matches_review": true,
+  "logs": {
+    "review-import": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "review-capture": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "live-import": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "live-check": {
+      "errors": 0,
+      "warnings": 2
+    }
+  },
+  "captures": [
+    "comparison.png",
+    "comparison_rts.png",
+    "dwarf_scale.png",
+    "dwarf_scale_rts.png",
+    "original_comparison.png",
+    "prototype.png",
+    "prototype_rear.png",
+    "prototype_rts.png",
+    "tavern_context.png"
+  ]
+}

@@ -4,6 +4,24 @@
 
 All UI is implemented as Godot `Control` nodes on a `CanvasLayer`. No 3D world-space UI elements. The interface is divided into four zones: **Status Bar** (top), **Side Panel** (right), **Dock** (bottom — a floating command bar), and **Notification Layer** (overlay).
 
+## Object explorers (implemented 2026-10-04)
+
+Trees and furniture in the main scene share a movable context window through
+`ObjectExplorerController` and `UIWindowManager`. All trees keep Growth stage,
+Fruit, Fruit season, Felling yield, and Felling status in fixed rows, including N/A values.
+The existing **Chop → Chop Trees** menu supports single clicks and ground rectangles
+with a live tree count. Release commits the rectangle; Escape cancels the gesture
+and exits the tool. The rectangle redraws every frame after camera movement, with
+the tree count refreshed separately. The dock axe highlights the open menu;
+the on-screen hint indicates active selection after the menu closes.
+Marked trees retain a mouse-transparent 🪓 above their canopy,
+projected on a CanvasLayer and hidden with sliced-out trees.
+The explorer offers Fell tree / Cancel felling. Forestry Zone
+and Clear Stumps remain disabled until their systems are implemented.
+Furniture retains its own status, storage information and actions in the same
+window. See [48 — Object explorers and tree felling](../00_dev_roadmap/48_object_explorer_and_tree_felling.md)
+for input behavior, provider ownership, validation, and the next tool-animation milestone.
+
 ## Stockpile Display Readouts
 
 The top status bar shows live colony resource counters.
@@ -177,9 +195,20 @@ RoomManager's id churn by re-resolving through the clicked cell.
 | Panel | Contents |
 |---|---|
 | Mine | Designate mining zones, clear rubble, channel floors |
-| Build | Place workshops, doors, furniture, stockpile zones — **LIVE for storage furniture (doc 19, 2026-07-11):** 📥 entries (Barrel / Storage Chest / Storage Shelf) activate the furniture ghost tool; a dwarf fetches the packed item and installs it. Installed pieces' windows carry the **📤 Uninstall** toggle (SH parity). Workshops/doors join as their systems land. |
+| Build | **Seventeen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil, Smelter, Aging Rack and Brazier. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
 | Farm | Designate soil plots, assign crops |
 | Military | Set patrol routes, guard posts (future) |
+
+Action-panel buttons use a six-column grid. Fifteen placeable entries and Cancel
+occupy three rows. The panel stays centered above the dock and grows upward as
+needed ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
+Smaller menus remain on one row. The Build panel is verified at 1280×800 and 2560×1440.
+
+Wall Torch aims at vertical terrain faces and chooses their orientation automatically;
+aiming at the adjoining floor keeps R rotation available. It needs four blocks of room
+height. The wall-mount hint is a screen-space `Label` on a `CanvasLayer`, replacing the
+old placement `Label3D`. Installed torches are selected directly by their visible model
+bounds, with terrain occlusion and slice visibility respected.
 
 ### Emoji Rendering Requirement
 
@@ -234,7 +263,7 @@ These are the top-level tag groups shown in the filter panel UI:
 | Ore | `stockpile_ore` | Copper, tin, iron, silver, coal, gold |
 | Gems | `stockpile_gem` | Raw ruby, raw sapphire |
 | Soil | `stockpile_soil` | Cave soil, light soil, dark soil |
-| Wood | `stockpile_wood` | Juniper logs (and future timber) |
+| Wood | `stockpile_wood` | Pine, oak, juniper logs, apple wood, and crafted staves |
 | Food | `stockpile_food` | Mushrooms, grains, berries, seeds |
 | Drink | `stockpile_drink` | Ale, mead (finished brews) |
 | Seeds | `stockpile_seed` | Planting seeds of all species |

@@ -1,30 +1,33 @@
 {
   "__comment": [
     "Oak tree — slow-growing deciduous hardwood, the cornerstone of the brewing economy.",
-    "oak_stave drops are required for crafting barrels and casks used in wine and spirit aging.",
+    "Felling yields oak logs and possible acorns. A carpenter will turn logs into oak staves for aging casks.",
     "Also the premium furniture material for high-end colony builds.",
     "Deciduous: four seasonal models (spring fresh green, summer deep, autumn gold, winter bare).",
     "Slowest-growing tree; planting oaks is a long-term investment.",
     "Three growth stages: sapling → mature → ancient.",
     "",
-    "MODEL VARIANTS (mature and ancient only):",
-    "  Season values may be a single string OR an array of strings.",
-    "  If an array, the tree system picks one entry at spawn time via a world-position hash.",
-    "  The same tree always shows the same variant — no runtime flickering.",
-    "  Variant counts: summer x3, autumn x2, spring x1, winter x1.",
-    "  Art brief: all variants share the same trunk position and XZ footprint.",
-    "  Only the canopy shape, branch layout, and silhouette differ between variants.",
-    "  Naming: oak_mature_summer.glb → base (variant 1), oak_mature_summer_2.glb, oak_mature_summer_3.glb."
+    "MODEL VARIANTS — complete visual roster (doc 29):",
+    "All stages use redesigned 1:1 models. Season arrays have matching variant counts/order.",
+    "World-position hashing preserves each tree variant across seasonal changes.",
+    "Placement, growth and collision values are unchanged."
   ],
-
   "base:flora:oak_tree": {
     "harvest_resource": "base:resources:wood:oak_log",
-    "material_tags": ["wood", "tree", "flora", "hardwood", "stockpile_wood"],
+    "material_tags": [
+      "wood",
+      "tree",
+      "flora",
+      "hardwood",
+      "stockpile_wood"
+    ],
     "appeal": 3,
-
     "__placement_comment": "Mixed-forest niche, doc 14: low/wet broadleaf (lowland + foothill, mid-wet moisture). Read by SurfaceFloraSpawner's unified selector.",
     "placement": {
-      "domains": ["lowland", "foothill"],
+      "domains": [
+        "lowland",
+        "foothill"
+      ],
       "exclude_water": true,
       "min_surface_y": 12,
       "max_surface_y": 43,
@@ -34,13 +37,20 @@
       "max_surface_slope": 1,
       "edge_margin": 2,
       "edge_dropoff_max": 3,
-      "footprint": { "sapling": 1, "mature": 3, "ancient": 5 },
-      "stage_weights": { "sapling": 0.15, "mature": 0.55, "ancient": 0.30 }
+      "footprint": {
+        "sapling": 1,
+        "mature": 3,
+        "ancient": 5
+      },
+      "stage_weights": {
+        "sapling": 0.15,
+        "mature": 0.55,
+        "ancient": 0.3
+      }
     },
-
     "stages": {
-
       "sapling": {
+        "felling": { "work_seconds": 2.0 },
         "clearance_height": 2,
         "growth_duration_days": 8,
         "next_stage": "mature",
@@ -54,13 +64,17 @@
           "yields": []
         }
       },
-
       "mature": {
+        "felling": { "work_seconds": 10.0 },
         "clearance_height": 7,
         "growth_duration_days": 16,
         "next_stage": "ancient",
         "models": {
-          "spring": "res://assets/models/flora/trees/oak/oak_mature_spring.glb",
+          "spring": [
+            "res://assets/models/flora/trees/oak/oak_mature_spring.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_spring_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_spring_3.glb"
+          ],
           "summer": [
             "res://assets/models/flora/trees/oak/oak_mature.glb",
             "res://assets/models/flora/trees/oak/oak_mature_2.glb",
@@ -68,25 +82,41 @@
           ],
           "autumn": [
             "res://assets/models/flora/trees/oak/oak_mature_autumn.glb",
-            "res://assets/models/flora/trees/oak/oak_mature_autumn_2.glb"
+            "res://assets/models/flora/trees/oak/oak_mature_autumn_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_autumn_3.glb"
           ],
-          "winter": "res://assets/models/flora/trees/oak/oak_mature_winter.glb"
+          "winter": [
+            "res://assets/models/flora/trees/oak/oak_mature_winter.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_winter_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_winter_3.glb"
+          ]
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:oak_log",       "count": 4, "chance": 1.00 },
-            { "item": "base:resources:wood:oak_stave",     "count": 2, "chance": 0.40 },
-            { "item": "base:resources:seed:oak_acorn",     "count": 1, "chance": 0.20 }
+            {
+              "item": "base:resources:wood:oak_log",
+              "count": 4,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:seed:oak_acorn",
+              "count": 1,
+              "chance": 0.2
+            }
           ]
         }
       },
-
       "ancient": {
+        "felling": { "work_seconds": 20.0 },
         "clearance_height": 10,
         "growth_duration_days": null,
         "next_stage": null,
         "models": {
-          "spring": "res://assets/models/flora/trees/oak/oak_ancient_spring.glb",
+          "spring": [
+            "res://assets/models/flora/trees/oak/oak_ancient_spring.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_spring_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_spring_3.glb"
+          ],
           "summer": [
             "res://assets/models/flora/trees/oak/oak_ancient.glb",
             "res://assets/models/flora/trees/oak/oak_ancient_2.glb",
@@ -94,19 +124,30 @@
           ],
           "autumn": [
             "res://assets/models/flora/trees/oak/oak_ancient_autumn.glb",
-            "res://assets/models/flora/trees/oak/oak_ancient_autumn_2.glb"
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn_3.glb"
           ],
-          "winter": "res://assets/models/flora/trees/oak/oak_ancient_winter.glb"
+          "winter": [
+            "res://assets/models/flora/trees/oak/oak_ancient_winter.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_winter_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_winter_3.glb"
+          ]
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:oak_log",       "count": 8, "chance": 1.00 },
-            { "item": "base:resources:wood:oak_stave",     "count": 4, "chance": 0.60 },
-            { "item": "base:resources:seed:oak_acorn",     "count": 2, "chance": 0.35 }
+            {
+              "item": "base:resources:wood:oak_log",
+              "count": 8,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:seed:oak_acorn",
+              "count": 2,
+              "chance": 0.35
+            }
           ]
         }
       }
-
     }
   }
 }

@@ -1,18 +1,9 @@
 #!/usr/bin/env python3
-"""
-Generate Deepdraft apple GLBs — chunky 1:1 deciduous fruit tree.
+"""Generate the complete redesigned apple roster at one voxel per block.
 
-Same tree convention as pine: authored 1:1 (1 voxel = 1 block, scale 1.0; see
-docs/60_asset_creation/61_voxel_art_guide.md). Style target: the chunky "Voxel
-Trees" look — a broad rounded canopy of big cubes with a bobbly/protruding-cube
-surface, a red-brown flared trunk, two-tone greens. Apples are shorter and
-broader than the conifers.
-
-Seasons: spring (blossom), summer (leafy), autumn (gold/rust), autumn_fruiting
-(autumn + red apples, fruit-harvest overlay), winter (bare branches, no leaves).
-
-Centred on the trunk at X=Z=0, base at Y=0. Sizes (blocks): ancient ~19 tall /
-~17 wide, mature ~13 / ~11, sapling ~6 / ~5.
+All live stages, seasons and variants use generate_forest_redesign. Legacy
+builders below remain only for historical before/after preview reproduction.
+Existing mature baseline designs and gameplay footprints are preserved.
 """
 
 import math
@@ -20,6 +11,7 @@ import random
 from pathlib import Path
 
 from generate_dwarf_glb import Voxels, mesh_from_voxels, write_glb
+from generate_forest_redesign import build_model, mesh_model, manifest as forest_manifest
 
 VOX_PER_BLOCK = 1
 
@@ -171,7 +163,7 @@ STAGES = {
 VMUL = {1: 1.00, 2: 0.90, 3: 1.07}
 
 
-def build_apple(stage, season="summer", variant=1):
+def build_legacy_apple(stage, season="summer", variant=1):
     p = STAGES[stage]
     rng = random.Random(f"apple1:{stage}:{season}:{variant}")
     v = Voxels()
@@ -189,25 +181,16 @@ def build_apple(stage, season="summer", variant=1):
     return v
 
 
+def build_apple(stage, season="summer", variant=1):
+    return build_model("apple", stage, season, variant)
+
+
+def mesh_apple(vox, stage, season="summer", variant=1):
+    return mesh_model(vox, "apple", stage)
+
+
 def manifest():
-    out = []
-    for stage in ("sapling", "mature", "ancient"):
-        if stage == "sapling":
-            out += [("apple_sapling_spring", stage, "spring", 1),
-                    ("apple_sapling", stage, "summer", 1),
-                    ("apple_sapling_autumn", stage, "autumn", 1),
-                    ("apple_sapling_winter", stage, "winter", 1)]
-        else:
-            s = stage
-            out += [(f"apple_{s}_spring", s, "spring", 1),
-                    (f"apple_{s}", s, "summer", 1),
-                    (f"apple_{s}_2", s, "summer", 2),
-                    (f"apple_{s}_3", s, "summer", 3),
-                    (f"apple_{s}_autumn", s, "autumn", 1),
-                    (f"apple_{s}_autumn_2", s, "autumn", 2),
-                    (f"apple_{s}_autumn_fruiting", s, "autumn_fruiting", 1),
-                    (f"apple_{s}_winter", s, "winter", 1)]
-    return out
+    return forest_manifest("apple")
 
 
 def main():
@@ -217,7 +200,7 @@ def main():
     total = 0
     for name, stage, season, variant in manifest():
         vox = build_apple(stage, season, variant)
-        mesh = mesh_from_voxels(vox)
+        mesh = mesh_apple(vox, stage, season, variant)
         size = write_glb(out_dir / f"{name}.glb", name, mesh)
         total += size
         h = max(y for _, y, _ in vox.cells) + 1

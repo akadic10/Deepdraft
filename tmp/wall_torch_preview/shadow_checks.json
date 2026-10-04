@@ -1,0 +1,9 @@
+{
+  "behind_wall_luminance": 0.0,
+  "renderer": "AMD Radeon RX 9070 XT",
+  "sun_light_mask_preserved": true,
+  "sun_omits_terrain_shadows": true,
+  "terrain_excluded_luminance": 0.574229717254639,
+  "terrain_shadows_off_luminance": 0.574229717254639,
+  "wall_blocks_local_light": true
+}

@@ -1,0 +1,48 @@
+{
+  "__comment": [
+    "Wall torch - art doc 43. Eight voxels/block, 1.5-block model height.",
+    "Origin is the service FLOOR cell; the rear plane touches the wall behind it.",
+    "Base mounts 2.5 blocks above the floor surface; requires four blocks of room height.",
+    "No floor reservation or navigation occupancy. Light and heat exist only when installed.",
+    "Always lit in v1; fuel, ignition and burn-out are future systems."
+  ],
+  "furniture_key": "base:furniture:wall_torch",
+  "furniture_category": "lighting",
+  "display_name": "Wall Torch",
+  "description": "A charred wooden torch in a riveted iron wall bracket, casting warm light and heat.",
+  "model": "res://assets/models/furniture/wall_torch.glb",
+  "item_key": "base:resources:furniture:wall_torch",
+  "placement": "wall",
+  "yaw_steps": 4,
+  "footprint": { "width": 0, "depth": 0 },
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false,
+  "wall_mount": {
+    "height_above_floor": 2.5,
+    "bracket_height": 0.875,
+    "bounds_min": [-0.375, 0, 0],
+    "bounds_max": [0.25, 1.5, 0.75]
+  },
+  "light_source": {
+    "color": "#FFC078",
+    "energy": 1.6,
+    "range": 7.0,
+    "attenuation": 1.2,
+    "position": [0, 1.1875, 0.8125],
+    "shadows": true,
+    "emissive_mesh": "torch_flame",
+    "emission_energy": 1.0,
+    "flame_animation": {
+      "model": "res://assets/models/furniture/animations/wall_torch_flame.glb",
+      "frames": ["flame_00", "flame_01", "flame_02", "flame_03", "flame_04", "flame_05", "flame_06", "flame_07"],
+      "frame_durations": [0.12, 0.09, 0.10, 0.08, 0.11, 0.09, 0.10, 0.11],
+      "speed_variation": 0.12,
+      "light_variation": 0.10,
+      "emission_variation": 0.08,
+      "flicker_frequency_hz": 3.2,
+      "update_hz": 30
+    }
+  },
+  "heat_source": { "heat_units": 200 }
+}

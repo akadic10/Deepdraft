@@ -1,5 +1,22 @@
 # 21 — Tavern Furniture (Bar, Bench, Hearth)
 
+**Trade-counter follow-up (2026-10-01):** [art doc 37](37_trade_counter_asset_and_placement.md)
+adds the separate stone trade counter to the Build panel and packed-item
+placement pipeline. References below to its missing model or placement wiring
+are historical. Shop designation and merchant trading remain future work.
+
+**Hearth follow-up (2026-10-01):** [doc 30](30_hearth_visual_redesign.md)
+supersedes the historical hearth art and sizing below. The live hearth is
+now a 2×2 stone bowl with 2×2×2 collision, a 1-block rim and a 2-block flame.
+Heat remains 400 units per hearth; placement, rotation, occupancy, room heat
+and save restoration are covered by the doc 30 runtime check.
+
+**Bar/bench follow-up (2026-10-01):** [doc 31](31_tavern_visual_redesign.md)
+replaces their historical art below with a matching oak-and-iron set. Both
+retain the 2×1 footprint and existing collision; the bar's entire overhang
+now fits its footprint. The new bar and bench were verified through the
+placement controller at all four rotations.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = decided / ready to build</span> |

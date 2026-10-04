@@ -1,0 +1,30 @@
+{
+  "status": "installed",
+  "voxels_per_block": 8,
+  "export_scale": 0.125,
+  "color_encoding": "linear COLOR_0",
+  "bounds": [
+    [
+      -0.375,
+      0.0,
+      0.0
+    ],
+    [
+      0.25,
+      1.5,
+      0.75
+    ]
+  ],
+  "voxels": 122,
+  "triangles": 604,
+  "connected_components": 1,
+  "named_meshes": [
+    "torch_body",
+    "torch_flame"
+  ],
+  "sha256": "ccc8131d035caa24d0cd62657c10c0dc5922121770bc745edcd72c26dc33604e",
+  "animation_frames": 8,
+  "animation_triangles": 1152,
+  "animation_sha256": "dd7baef58691badf63a280043bbf09a61d709d8f2cb670b532a73da890720672",
+  "animation_within_original_bounds": true
+}

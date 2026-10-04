@@ -1,0 +1,27 @@
+{
+  "collision_size": [
+    2,
+    2,
+    2
+  ],
+  "flame_animation": {
+    "distinct_emission_samples": 141,
+    "distinct_light_samples": 147,
+    "heat_and_saved_state_unchanged": true,
+    "hidden_slice_suspends_updates": true,
+    "original_bounds_respected": true,
+    "shared_clip_independent_phases": true,
+    "stone_grate_logs_static": true,
+    "visible_frames": 10
+  },
+  "four_cell_placement_and_navigation_valid": true,
+  "ghost_nonblocking": true,
+  "heat_delta_c": 6.25,
+  "heat_units": 400,
+  "installed_and_ghost_save_round_trip": true,
+  "missing_floor_rejections": 16,
+  "model_scale_bounds_material_valid": true,
+  "player_saves_touched": false,
+  "room_volume": 64,
+  "rotations_checked": 4
+}

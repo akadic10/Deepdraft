@@ -1,0 +1,30 @@
+{
+  "approved_models_imported": {
+    "assets/models/flora/trees/apple/apple_mature_spring.glb": "b6f3ebc6ae4957631571ef37c8a547ddf1d83a0cfa2494e3dfa8c3da2402ed3b",
+    "assets/models/flora/trees/apple/apple_mature.glb": "a66933e1d8be601a6437ab6e7143fe55659b9ea0402ae9a479a4bb2dd2ac35cb",
+    "assets/models/flora/trees/apple/apple_mature_autumn.glb": "93911e71cdd05baf3f5a239ec7f9e08526209f961a132170b0a38e60a61f3eda",
+    "assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb": "7575f53971e565f5c74f7bedf7447fa7a8c55ec225035f5393b6de25bb061e79",
+    "assets/models/flora/trees/apple/apple_mature_winter.glb": "5d41d3575ba45abc7679084d36e8a74805a10b14e3dc8dd20a9f7ab7a1afd096"
+  },
+  "canonical_apple_exports_reproduced": 20,
+  "other_tree_glbs_unchanged": 53,
+  "non_visual_registry_data_unchanged": true,
+  "godot_version": "4.7.2.stable.steam.ed1daf0bf",
+  "godot_import_exit": 0,
+  "runtime_exit": 0,
+  "seasonal_model_resolutions": 832,
+  "live_instances_checked": 5,
+  "scale_material_grounding_collision_occupancy_valid": true,
+  "world_capture": "renders/live_world.png",
+  "world_capture_lighting": "debug_world at noon via SkyController",
+  "review_generator_after_import": "passed, historical references regenerated from legacy builder",
+  "runtime_markers": [
+    "LIVE_APPLE_IMPORT_OK",
+    "LIVE_APPLE_WORLD_ART_OK"
+  ],
+  "script_errors": 0,
+  "startup_warnings": [
+    "SkyController: no current scene before world creation",
+    "WeatherManager: world_seed unavailable before world creation"
+  ]
+}

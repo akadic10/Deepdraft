@@ -45,6 +45,7 @@ var node: Node3D = null             # translucent in-world marker (controller-ow
 var source_id: int = -1             # TaskManager.allocate_source_id()
 var drop_manager: Node3D = null     # ItemDropManager (guard is_instance_valid)
 var install_callback: Callable = Callable()   # (ghost) -> controller install path
+var build_valid_callback: Callable = Callable() # support check before consuming item
 
 var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
 var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
@@ -63,6 +64,8 @@ func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: in
 ## Floor cells covered by the footprint (v1 pieces are all 1×1; width/depth
 ## swap under odd yaw steps so the math stays correct for future 2×1 pieces).
 func footprint_cells() -> Array[Vector3i]:
+	if String(def.get("placement", "floor")) == "wall":
+		return []
 	var fp: Dictionary = def.get("footprint", {})
 	var w := int(fp.get("width", 1))
 	var d := int(fp.get("depth", 1))
@@ -168,6 +171,8 @@ func on_task_gone(task_id: int, dwarf_id: int) -> void:
 ## subsequent probe failed — each install silently ate a worker until the
 ## whole crew stood frozen inside furniture. Build from beside, like mining.
 func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
+	if String(def.get("placement", "floor")) == "wall":
+		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(origin_cell, dwarf_cell)
 	var best := Vector3i(-1, -1, -1)
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in footprint_cells():
@@ -253,3 +258,7 @@ func notify_picked_up(dwarf_id: int) -> void:
 func complete_build(_dwarf_id: int) -> void:
 	if install_callback.is_valid():
 		install_callback.call(self)
+
+
+func can_complete_build() -> bool:
+	return not build_valid_callback.is_valid() or bool(build_valid_callback.call(self))

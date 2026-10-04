@@ -1,6 +1,7 @@
 {
   "__comment": "Floating bottom dock layout (macOS-dark-mode style). Array order = on-screen order, left to right. Loaded by the UIRegistry autoload (res://scripts/registries/UIRegistry.gd) — no other script should read this file. Scope: dock LAYOUT only (order, emoji, label, tooltip, action binding). The action *logic* lives in GDScript (the dock node's dispatch map), never here. Buildable-entry catalogs (costs, action_type, requires_floor) are a separate concern and are not part of this file.",
   "__emoji_note": "Emoji icons require an emoji-capable fallback font in the project theme (e.g. Noto Color Emoji). Godot's default theme font will NOT render them. Godot 4 supports color-glyph fonts (COLR/CPAL, CBDT/CBLC, sbix) once one is loaded.",
+  "__hidden_note": "Calendar, X-Ray, and Gather were removed 2026-08-20 (doc 24 decision: unbuilt dock entries are hidden until their features exist). Restore their entries when those systems land.",
   "schema_version": 1,
   "items": [
     {
@@ -18,14 +19,6 @@
       "tooltip": "Designate trees for chopping and forestry zones",
       "action": "open_panel",
       "target": "chop"
-    },
-    {
-      "id": "gather",
-      "emoji": "🧺",
-      "label": "Gather",
-      "tooltip": "Designate things for gathering",
-      "action": "open_panel",
-      "target": "gather"
     },
     {
       "id": "build",
@@ -72,7 +65,7 @@
     },
     {
       "id": "stockpiles",
-      "emoji": "📦",
+      "emoji": "🗃️",
       "label": "Stockpiles",
       "tooltip": "View and filter colony stockpiles",
       "action": "toggle_window",
@@ -95,14 +88,6 @@
       "action": "toggle_window",
       "target": "clock"
     },
-    {
-      "id": "calendar",
-      "emoji": "📅",
-      "label": "Calendar",
-      "tooltip": "Season calendar and upcoming events",
-      "action": "toggle_window",
-      "target": "calendar"
-    },
     { "type": "separator" },
     {
       "id": "slice",
@@ -111,14 +96,6 @@
       "tooltip": "Toggle the slice view ( \\ ) — step the cut plane with ] [ and Ctrl+] Ctrl+[",
       "action": "toggle_window",
       "target": "slice"
-    },
-    {
-      "id": "xray",
-      "emoji": "🩻",
-      "label": "X-Ray",
-      "tooltip": "xray view",
-      "action": "toggle_window",
-      "target": "xray"
     },
     {
       "id": "rooms",

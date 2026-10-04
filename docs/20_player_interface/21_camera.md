@@ -25,6 +25,19 @@ clean pitch/zoom pivot. Terrain has **no physics colliders** (picking is a heigh
 data-ray, not physics), so the spring arm cannot push the camera out of rock — the **surface floor**
 below does that job instead.
 
+## Work sound perspective (2026-10-04)
+
+The camera publishes its smoothed pivot and actual camera-to-pivot distance to
+`WorkFeedback`. Nearby chopping and mining are strongest around the looked-at X/Z area,
+fades smoothly between 6 and 65 blocks from it, and becomes quieter when zooming
+out beyond 24 units. Camera altitude alone does not suppress nearby work.
+Native positional playback supplies restrained left/right panning. Active sound
+tails also update while panning; distant hits are discarded rather than queued.
+Both work families share the same attenuation and voice budget. Tuning lives in
+`data/audio/work_feedback.json`; camera controls are unchanged. This behavior was
+accepted in player testing on 2026-10-04; see
+[doc 48](../00_dev_roadmap/48_object_explorer_and_tree_felling.md) for validation.
+
 ## Controls
 
 | Input | Action |

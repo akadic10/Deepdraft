@@ -6,11 +6,12 @@ The following Autoloads are registered in **Project Settings → Autoload** (`pr
 
 > **Registration:** The agent may register these autoloads directly by editing the `[autoload]` section of `project.godot` (see File Ownership Rules in `AGENT.md`). Preserve the load order exactly as listed.
 
-Load order (matches `project.godot` `[autoload]` as of 2026-08-03):
+Load order (matches `project.godot` `[autoload]` as of 2026-10-04):
 
 ```
 BlockRegistry
 WorldClock
+WorkFeedback
 WorldData
 WorldGenerator
 PlacedEntityRegistry
@@ -189,7 +190,7 @@ func restore_state(state: Dictionary) -> void
 ```
 
 Section keys must be unique. Restore priorities encode dependencies: mining 10,
-settlement flag 20, stockpiles 30, furniture 40, loose items 50, dwarves 60, camera 70,
+flora 15, settlement flag 20, stockpiles 30, furniture 40, loose items 50, dwarves 60, camera 70,
 and slice 80. Adding a new authoritative scene system requires adding this contract and
 documenting whether its data is authoritative, seed-derived, or transient.
 
@@ -200,7 +201,39 @@ autoload state, reloads the current scene with the saved seed, waits for determi
 generation to finish, restores owners in priority order, rebuilds stockpile totals, and
 finally restores clock/weather. Full schema and lifecycle: `00_dev_roadmap/20_save_load.md`.
 
-> **Planned (not yet implemented):** an `AudioManager` autoload (procedural spatial audio, ambient loops, combat cues) is referenced as forward-looking infrastructure by `24_world_rendering.md` and `52_combat_military.md`. It does **not** exist in the project yet and is not a registered autoload. Add it to the load order here when it ships.
+`SurfaceFloraSpawner` saves only changed trees in the optional `flora` section:
+species/stage identity, floor origin, partial felling work, designation and felled
+records. Seeded visuals remain derived; felled records prevent regeneration and
+never replay item drops. Missing flora sections remain compatible with older saves.
+
+### `WorkFeedback` (doc 48 — chopping/mining sound and dust, 2026-10-04)
+
+Owns `data/audio/work_feedback.json`, cached generated work WAVs, the runtime
+`Work` audio bus, a capped eight-voice pool, and up to twelve transient dust
+bursts. This shared presentation service is a deliberate exception to the usual
+scene-node presentation split: work executors and world owners can emit short
+feedback without depending on a particular scene hierarchy. It has no simulation
+state or save section. Scene exit/replacement stops sounds and frees all effects;
+the shared asset bank and volume/mute setting remain available.
+
+`Camera` provides the smoothed focus position and actual camera-to-pivot zoom
+through `get_work_audio_context()` and the `work_audio_view` group. Horizontal
+focus distance supplies attenuation, zoom reduces gain, and native positional
+audio supplies subtle stereo panning. The `work_feedback_slice` group exposes
+the current slice height. No world or yield RNG is consumed. `set_volume_db()`
+and `set_muted()` control the work bus; a general audio settings UI is future work.
+
+Chop and pick events originate at the dwarf's animation contact crossing.
+Mining reservations route impacts through their controller, which supplies the
+struck face's visible material without revealing concealed resources. Completion
+effects originate only from committed felling/mining paths, with material and
+position captured before removal; restoration and streaming never replay them.
+Particles use simulation time; brief audio tails finish in real time. Headless
+simulations still exercise event/pool logic but do not start mixer playback.
+
+> **Still planned:** the broader `AudioManager` for ambient loops and combat cues
+> referenced by `52_combat_military.md` is not implemented. Reuse/extend the work
+> playback ownership when that scope arrives instead of duplicating its bus/pool.
 
 ---
 

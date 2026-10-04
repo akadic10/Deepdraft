@@ -1,0 +1,23 @@
+{
+  "__comment": [
+    "Brewing Vat - placeable asset (art doc 42, 2026-10-02).",
+    "Approved footprint 2x2, 2 blocks tall, at eight voxels per block.",
+    "The copper tap faces +Z and stays inside the footprint.",
+    "The recessed liquid is static artwork; this does not enable brewing or store drinks.",
+    "Recipe queues, ingredients, production and brewery workshop integration remain future work."
+  ],
+  "furniture_key": "base:furniture:brewing_vat",
+  "furniture_category": "production",
+  "display_name": "Brewing Vat",
+  "description": "A stout oak brewing vessel held by iron hoops, with a copper draw-off tap.",
+  "model": "res://assets/models/furniture/brewing_vat.glb",
+  "item_key": "base:resources:furniture:brewing_vat",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": { "width": 2, "depth": 2 },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [2, 2, 2] }
+  ],
+  "room_anchor": false
+}

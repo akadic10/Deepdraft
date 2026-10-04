@@ -1,0 +1,43 @@
+{
+  "actual_smelter_button_dispatch": true,
+  "build_menu_mapping": true,
+  "build_panel_layouts": [
+    {
+      "buttons": 16,
+      "panel": "[P: (205.5, 458.0), S: (869.0, 224.0)]",
+      "rows": 3,
+      "viewport": "(1280, 800)"
+    },
+    {
+      "buttons": 16,
+      "panel": "[P: (845.5, 1098.0), S: (869.0, 224.0)]",
+      "rows": 3,
+      "viewport": "(2560, 1440)"
+    }
+  ],
+  "dev_spawner_entry": true,
+  "dwarf_pickup_and_build_consumes_crate": true,
+  "fetch_reservation_release_and_reclaim": true,
+  "flame_animation": {
+    "body_and_grate_static": true,
+    "distinct_emission_samples": 140,
+    "distinct_light_samples": 145,
+    "heat_and_saved_state_unchanged": true,
+    "hidden_slice_suspends_updates": true,
+    "shared_clip_independent_phases": true,
+    "visible_frames": 8
+  },
+  "four_rotations": true,
+  "ghost_nonblocking": true,
+  "ghost_save_restore": true,
+  "in_memory_installed_save_restore": true,
+  "missing_floor_rejections": 16,
+  "no_room_heat_or_door_side_effects": true,
+  "placeable_definitions": 15,
+  "player_saves_touched": false,
+  "rotated_bounds_match_collision": true,
+  "terrain_unchanged": true,
+  "three_block_clearance_checked": true,
+  "three_vertical_layers_occupied": true,
+  "uninstall_refunds_same_item": true
+}

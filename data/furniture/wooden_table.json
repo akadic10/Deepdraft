@@ -1,0 +1,23 @@
+{
+  "__comment": [
+    "Dining Table - oak dining-hall furniture (art doc 38, 2026-10-01).",
+    "The approved 2x2 footprint has a 1.5-block tabletop above 1-block bench seats.",
+    "Floor placement, packed-item fetch/build, uninstall and saving use the existing pipeline.",
+    "The fractional collision height is rounded outward only for whole-cell occupancy.",
+    "Dining, seating assignments and comfort effects remain future gameplay work."
+  ],
+  "furniture_key": "base:furniture:wooden_table",
+  "furniture_category": "dining",
+  "display_name": "Dining Table",
+  "description": "A broad oak table on stout trestles, with worn planks and iron corner fittings.",
+  "model": "res://assets/models/furniture/wooden_table.glb",
+  "item_key": "base:resources:furniture:wooden_table",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": { "width": 2, "depth": 2 },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [2, 1.5, 2] }
+  ],
+  "room_anchor": false
+}

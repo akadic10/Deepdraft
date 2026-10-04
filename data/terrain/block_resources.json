@@ -87,12 +87,12 @@
   },
 
 
-  "__comment_ore": "Ore veins - depth-biased; deeper = rarer",
+  "__comment_ore": "Ore veins - depth-biased; deeper = rarer. Drop chance 0.10 for ALL ores (2026-08-14, Alen: testing convenience - drop volume was flooding manual playtests; was a guaranteed 1.00 since launch). Same class of temporary cut as rock/soil 0.05 (2026-08-06) - NOT a balance number, revisit in the economy pass. Gem chances untouched.",
 
   "base:terrain:ore:copper": {
     "durability": 3,
     "drops": [
-      { "item": "base:resources:ore:copper", "count": 2, "chance": 1.00 }
+      { "item": "base:resources:ore:copper", "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 45, "max_y": 88 },
     "noise_threshold": 0.66,
@@ -103,7 +103,7 @@
   "base:terrain:ore:tin": {
     "durability": 2,
     "drops": [
-      { "item": "base:resources:ore:tin", "count": 2, "chance": 1.00 }
+      { "item": "base:resources:ore:tin", "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 55, "max_y": 95 },
     "noise_threshold": 0.66,
@@ -114,7 +114,7 @@
   "base:terrain:ore:iron": {
     "durability": 4,
     "drops": [
-      { "item": "base:resources:ore:iron",   "count": 2, "chance": 1.00 }
+      { "item": "base:resources:ore:iron",   "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 20, "max_y": 72 },
     "noise_threshold": 0.70,
@@ -125,7 +125,7 @@
   "base:terrain:ore:silver": {
     "durability": 4,
     "drops": [
-      { "item": "base:resources:ore:silver", "count": 1, "chance": 1.00 }
+      { "item": "base:resources:ore:silver", "count": 1, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 16, "max_y": 52 },
     "noise_threshold": 0.80,
@@ -137,7 +137,7 @@
   "base:terrain:ore:coal": {
     "durability": 2,
     "drops": [
-      { "item": "base:resources:ore:coal",   "count": 2, "chance": 1.00 }
+      { "item": "base:resources:ore:coal",   "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 12, "max_y": 90 },
     "noise_threshold": 0.62,
@@ -148,7 +148,7 @@
   "base:terrain:ore:gold": {
     "durability": 5,
     "drops": [
-      { "item": "base:resources:ore:gold",        "count": 1, "chance": 1.00 }
+      { "item": "base:resources:ore:gold",        "count": 1, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 8, "max_y": 36 },
     "noise_threshold": 0.84,

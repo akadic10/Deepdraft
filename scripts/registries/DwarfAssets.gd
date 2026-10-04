@@ -58,6 +58,9 @@ var eyes: PackedScene = preload("res://assets/dwarves/body/eyes.glb")
 var body: PackedScene = preload("res://assets/dwarves/body/body_base.glb")
 var hand: PackedScene = preload("res://assets/dwarves/body/hand.glb")
 var foot: PackedScene = preload("res://assets/dwarves/body/foot.glb")
+## Implicit work equipment: presentation only, with no inventory requirement.
+var felling_axe: PackedScene = preload("res://assets/dwarves/tools/felling_axe.glb")
+var mining_pickaxe: PackedScene = preload("res://assets/dwarves/tools/mining_pickaxe.glb")
 
 var hair_male: Dictionary = {
 	"short_back":   preload("res://assets/dwarves/hair/hair_m_short_back.glb"),

@@ -7,17 +7,21 @@
     "Fastest-growing tree in the roster; early-game wood supply.",
     "Three growth stages: sapling → mature → ancient.",
     "",
-    "MODEL VARIANTS (mature and ancient only):",
-    "  summer x3, winter x2. Sapling stays single.",
-    "  Variants differ in: silhouette taper angle, branch length, trunk lean (subtle).",
-    "  All variants must have the same XZ footprint and trunk base position."
+    "MODEL VARIANTS — complete visual roster (doc 29):",
+    "All stages use redesigned 1:1 models. Season arrays have matching variant counts/order.",
+    "World-position hashing preserves each tree variant across seasonal changes.",
+    "Placement, growth, collision and harvest values are unchanged."
   ],
-
   "base:flora:pine_tree": {
     "harvest_resource": "base:resources:wood:pine_log",
-    "material_tags": ["wood", "tree", "flora", "evergreen", "stockpile_wood"],
+    "material_tags": [
+      "wood",
+      "tree",
+      "flora",
+      "evergreen",
+      "stockpile_wood"
+    ],
     "appeal": 1,
-
     "__placement_comment": [
       "World-gen scatter rules read by SurfaceFloraSpawner (data, not logic).",
       "Pine is the elevation tree: foothill + mountain domains only, never lowland.",
@@ -34,10 +38,14 @@
       "edge_margin = ring (blocks) around the footprint checked for drops; 0 disables.",
       "edge_dropoff_max = reject if a ring column is off-world or drops more than this below the trunk (keeps canopies off cliff lips / the world edge)."
     ],
-
     "placement": {
-      "domains": ["foothill", "mountain"],
-      "exclude_domains": ["lowland"],
+      "domains": [
+        "foothill",
+        "mountain"
+      ],
+      "exclude_domains": [
+        "lowland"
+      ],
       "exclude_water": true,
       "min_surface_y": 20,
       "full_density_max_y": 75,
@@ -47,13 +55,20 @@
       "max_surface_slope": 1,
       "edge_margin": 2,
       "edge_dropoff_max": 3,
-      "footprint": { "sapling": 1, "mature": 2, "ancient": 3 },
-      "stage_weights": { "sapling": 0.15, "mature": 0.60, "ancient": 0.25 }
+      "footprint": {
+        "sapling": 1,
+        "mature": 2,
+        "ancient": 3
+      },
+      "stage_weights": {
+        "sapling": 0.15,
+        "mature": 0.6,
+        "ancient": 0.25
+      }
     },
-
     "stages": {
-
       "sapling": {
+        "felling": { "work_seconds": 2.0 },
         "clearance_height": 6,
         "growth_duration_days": 3,
         "next_stage": "mature",
@@ -65,8 +80,8 @@
           "yields": []
         }
       },
-
       "mature": {
+        "felling": { "work_seconds": 6.0 },
         "clearance_height": 16,
         "growth_duration_days": 6,
         "next_stage": "ancient",
@@ -78,18 +93,27 @@
           ],
           "winter": [
             "res://assets/models/flora/trees/pine/pine_mature_winter.glb",
-            "res://assets/models/flora/trees/pine/pine_mature_winter_2.glb"
+            "res://assets/models/flora/trees/pine/pine_mature_winter_2.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_winter_3.glb"
           ]
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:pine_log",      "count": 4, "chance": 1.00 },
-            { "item": "base:resources:seed:pine_cone",     "count": 1, "chance": 0.25 }
+            {
+              "item": "base:resources:wood:pine_log",
+              "count": 4,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:seed:pine_cone",
+              "count": 1,
+              "chance": 0.25
+            }
           ]
         }
       },
-
       "ancient": {
+        "felling": { "work_seconds": 12.0 },
         "clearance_height": 22,
         "growth_duration_days": null,
         "next_stage": null,
@@ -101,17 +125,25 @@
           ],
           "winter": [
             "res://assets/models/flora/trees/pine/pine_ancient_winter.glb",
-            "res://assets/models/flora/trees/pine/pine_ancient_winter_2.glb"
+            "res://assets/models/flora/trees/pine/pine_ancient_winter_2.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_winter_3.glb"
           ]
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:pine_log",      "count": 8, "chance": 1.00 },
-            { "item": "base:resources:seed:pine_cone",     "count": 2, "chance": 0.40 }
+            {
+              "item": "base:resources:wood:pine_log",
+              "count": 8,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:seed:pine_cone",
+              "count": 2,
+              "chance": 0.4
+            }
           ]
         }
       }
-
     }
   }
 }

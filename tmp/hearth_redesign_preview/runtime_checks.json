@@ -1,0 +1,17 @@
+{
+  "collision_size": [
+    2,
+    2,
+    2
+  ],
+  "four_cell_placement_and_navigation_valid": true,
+  "ghost_nonblocking": true,
+  "heat_delta_c": 6.25,
+  "heat_units": 400,
+  "installed_and_ghost_save_round_trip": true,
+  "missing_floor_rejections": 16,
+  "model_scale_bounds_material_valid": true,
+  "player_saves_touched": false,
+  "room_volume": 64,
+  "rotations_checked": 4
+}

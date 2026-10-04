@@ -1,0 +1,15 @@
+{
+  "models_checked": 2,
+  "one_face_connected_component_each": true,
+  "identical_seasonal_geometry": true,
+  "wood_and_berries_unchanged_in_winter": true,
+  "root_centered_in_one_block": true,
+  "outside_footprint_clearance_min_y": 4,
+  "exported_arrays_match_source": true,
+  "deterministic_exports": true,
+  "live_tree_hashes_matched": 58,
+  "live_tree_hash_mismatches": [],
+  "current_references_match_live": true,
+  "godot_capture_count": 8,
+  "godot_marker": "JUNIPER_REDESIGN_REVIEW_OK"
+}

@@ -7,9 +7,11 @@
     "  display_name  — human-readable name shown in UI and tooltips",
     "  description   — one-sentence flavour text shown in the inspect panel",
     "  model         — path to the MagicaVoxel .glb micro-voxel model (res:// path)",
-    "  stack_max     — container capacity unit (integer ≥ 1). Ground stockpile zones store",
-    "                  ONE item per tile (SH parity, Alen 2026-07-06); stack_max applies to",
-    "                  the future container path (barrel/chest/shelf).",
+    "  stack_max     — legacy balancing hint; not used for physical storage capacity",
+    "  crate_capacity — opted-in produce packaging capacity (24); absent means one unit",
+    "  crate_models  — low / half / full models for counts 1-8 / 9-16 / 17-24",
+    "                  One crate occupies one ground cell or furniture slot. Loose drops",
+    "                  use the same crate; packaging is automatic and costs no resources.",
     "  weight_class  — 'light' | 'heavy' — affects dwarf haul speed",
     "                  light: full haul speed; heavy: ×0.7 haul speed while any heavy item",
     "                  is in the pouch (the pouch carries anything — SH parity, Alen 2026-07-06)",
@@ -296,7 +298,9 @@
   "base:resources:flora:elderberry": {
     "display_name": "Elderberry",
     "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
-    "model": "res://assets/models/items/flora/elderberry.glb",
+    "model": "res://assets/models/items/crates/elderberry_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/elderberry_low.glb", "res://assets/models/items/crates/elderberry_half.glb", "res://assets/models/items/crates/elderberry_full.glb"],
     "stack_max": 30,
     "weight_class": "light",
     "base_trade_value": 5,
@@ -306,7 +310,9 @@
   "base:resources:flora:blueberry": {
     "display_name": "Blueberry",
     "description": "Sweet high-altitude berries with a clean finish. Prized for mead and summer ales.",
-    "model": "res://assets/models/items/flora/blueberry.glb",
+    "model": "res://assets/models/items/crates/blueberry_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/blueberry_low.glb", "res://assets/models/items/crates/blueberry_half.glb", "res://assets/models/items/crates/blueberry_full.glb"],
     "stack_max": 30,
     "weight_class": "light",
     "base_trade_value": 4,
@@ -316,7 +322,9 @@
   "base:resources:flora:wild_strawberry": {
     "display_name": "Wild Strawberry",
     "description": "Tiny and intensely sweet. Merchants go quiet when they see a basket of these.",
-    "model": "res://assets/models/items/flora/wild_strawberry.glb",
+    "model": "res://assets/models/items/crates/wild_strawberry_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/wild_strawberry_low.glb", "res://assets/models/items/crates/wild_strawberry_half.glb", "res://assets/models/items/crates/wild_strawberry_full.glb"],
     "stack_max": 30,
     "weight_class": "light",
     "base_trade_value": 6,
@@ -326,7 +334,9 @@
   "base:resources:flora:juniper_berry": {
     "display_name": "Juniper Berry",
     "description": "Tart blue-black berries with a resinous bite. Prized for gin-style brewing.",
-    "model": "res://assets/models/items/flora/juniper_berry.glb",
+    "model": "res://assets/models/items/crates/juniper_berry_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/juniper_berry_low.glb", "res://assets/models/items/crates/juniper_berry_half.glb", "res://assets/models/items/crates/juniper_berry_full.glb"],
     "stack_max": 30,
     "weight_class": "light",
     "base_trade_value": 4,
@@ -356,7 +366,9 @@
   "base:resources:flora:apple": {
     "display_name": "Apple",
     "description": "A crisp mountain apple. Sweet enough to eat raw, better pressed into cider.",
-    "model": "res://assets/models/items/flora/apple.glb",
+    "model": "res://assets/models/items/crates/apple_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/apple_low.glb", "res://assets/models/items/crates/apple_half.glb", "res://assets/models/items/crates/apple_full.glb"],
     "stack_max": 30,
     "weight_class": "light",
     "base_trade_value": 3,
@@ -368,7 +380,9 @@
   "base:resources:seed:pine_cone": {
     "display_name": "Pine Cone",
     "description": "A seed-bearing cone from a mature pine. Plant it and wait a few seasons.",
-    "model": "res://assets/models/items/seed/pine_cone.glb",
+    "model": "res://assets/models/items/crates/pine_cone_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/pine_cone_low.glb", "res://assets/models/items/crates/pine_cone_half.glb", "res://assets/models/items/crates/pine_cone_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 2,
@@ -378,7 +392,9 @@
   "base:resources:seed:oak_acorn": {
     "display_name": "Oak Acorn",
     "description": "A small but promising acorn. Oaks are slow to grow and worth every year of the wait.",
-    "model": "res://assets/models/items/seed/oak_acorn.glb",
+    "model": "res://assets/models/items/crates/oak_acorn_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/oak_acorn_low.glb", "res://assets/models/items/crates/oak_acorn_half.glb", "res://assets/models/items/crates/oak_acorn_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 4,
@@ -388,7 +404,9 @@
   "base:resources:seed:apple_seed": {
     "display_name": "Apple Seed",
     "description": "A seed pressed from a mountain apple. Give it good soil and a few seasons.",
-    "model": "res://assets/models/items/seed/apple_seed.glb",
+    "model": "res://assets/models/items/crates/apple_seed_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/apple_seed_low.glb", "res://assets/models/items/crates/apple_seed_half.glb", "res://assets/models/items/crates/apple_seed_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 3,
@@ -398,7 +416,9 @@
   "base:resources:seed:elderberry_cutting": {
     "display_name": "Elderberry Cutting",
     "description": "A fresh stem cutting from an elderberry bush. Root it in surface soil to grow a new bush.",
-    "model": "res://assets/models/items/seed/elderberry_cutting.glb",
+    "model": "res://assets/models/items/crates/elderberry_cutting_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/elderberry_cutting_low.glb", "res://assets/models/items/crates/elderberry_cutting_half.glb", "res://assets/models/items/crates/elderberry_cutting_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 4,
@@ -408,7 +428,9 @@
   "base:resources:seed:blueberry_cutting": {
     "display_name": "Blueberry Cutting",
     "description": "A small blueberry stem. Plant it on rocky high-ground soil for best results.",
-    "model": "res://assets/models/items/seed/blueberry_cutting.glb",
+    "model": "res://assets/models/items/crates/blueberry_cutting_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/blueberry_cutting_low.glb", "res://assets/models/items/crates/blueberry_cutting_half.glb", "res://assets/models/items/crates/blueberry_cutting_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 3,
@@ -418,7 +440,9 @@
   "base:resources:seed:strawberry_cutting": {
     "display_name": "Strawberry Cutting",
     "description": "A runner cutting from a wild strawberry plant. Grows quickly in good surface soil.",
-    "model": "res://assets/models/items/seed/strawberry_cutting.glb",
+    "model": "res://assets/models/items/crates/strawberry_cutting_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/strawberry_cutting_low.glb", "res://assets/models/items/crates/strawberry_cutting_half.glb", "res://assets/models/items/crates/strawberry_cutting_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 5,
@@ -428,7 +452,9 @@
   "base:resources:seed:pig_tail_seed": {
     "display_name": "Pig Tail Seed",
     "description": "A small hard seed from a pig tail plant. Sow in surface dirt before summer for a full season's fiber harvest.",
-    "model": "res://assets/models/items/seed/pig_tail_seed.glb",
+    "model": "res://assets/models/items/crates/pig_tail_seed_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/pig_tail_seed_low.glb", "res://assets/models/items/crates/pig_tail_seed_half.glb", "res://assets/models/items/crates/pig_tail_seed_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 2,
@@ -438,7 +464,9 @@
   "base:resources:seed:juniper_seed": {
     "display_name": "Juniper Seed",
     "description": "A hard dark seed that takes root slowly but grows into a towering tree.",
-    "model": "res://assets/models/items/seed/juniper_seed.glb",
+    "model": "res://assets/models/items/crates/juniper_seed_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/juniper_seed_low.glb", "res://assets/models/items/crates/juniper_seed_half.glb", "res://assets/models/items/crates/juniper_seed_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 5,
@@ -528,7 +556,9 @@
   "base:resources:seed:hops_cutting": {
     "display_name": "Hops Cutting",
     "description": "A rooted stem cutting from a mature hops bine. Plant it on surface soil before summer.",
-    "model": "res://assets/models/items/seed/hops_cutting.glb",
+    "model": "res://assets/models/items/crates/hops_cutting_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/hops_cutting_low.glb", "res://assets/models/items/crates/hops_cutting_half.glb", "res://assets/models/items/crates/hops_cutting_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 4,
@@ -538,7 +568,9 @@
   "base:resources:seed:grape_cutting": {
     "display_name": "Grape Cutting",
     "description": "A short cane cutting from a fruiting grape vine. Takes a season to establish but lasts for years.",
-    "model": "res://assets/models/items/seed/grape_cutting.glb",
+    "model": "res://assets/models/items/crates/grape_cutting_low.glb",
+    "crate_capacity": 24,
+    "crate_models": ["res://assets/models/items/crates/grape_cutting_low.glb", "res://assets/models/items/crates/grape_cutting_half.glb", "res://assets/models/items/crates/grape_cutting_full.glb"],
     "stack_max": 50,
     "weight_class": "light",
     "base_trade_value": 6,
@@ -701,6 +733,106 @@
     "weight_class": "heavy",
     "base_trade_value": 9,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:trade_counter": {
+    "display_name": "Trade Counter (packed)",
+    "description": "Dressed counter stones and iron fittings secured in a carrying crate.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 20,
+    "material_tags": ["stone", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:wooden_table": {
+    "display_name": "Dining Table (packed)",
+    "description": "Broad oak planks, trestles and iron corner fittings secured for hauling.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 12,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:wooden_chair": {
+    "display_name": "Wooden Chair (packed)",
+    "description": "One oak chair, disassembled and secured in a carrying crate.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 8,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:dwarf_bunk": {
+    "display_name": "Dwarven Bed (packed)",
+    "description": "Oak bed timbers, linen bedding and iron fittings packed for hauling.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 18,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:brewing_vat": {
+    "display_name": "Brewing Vat (packed)",
+    "description": "Oak vat staves, iron hoops and a copper tap secured in a carrying crate.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 24,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:wall_torch": {
+    "display_name": "Wall Torch (packed)",
+    "description": "An iron bracket and unlit wooden torch packed for installation on a wall.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
+    "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:anvil": {
+    "display_name": "Anvil (packed)",
+    "description": "An iron anvil, stone pedestal and hold-down clamps secured for hauling.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 24,
+    "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:smelter": {
+    "display_name": "Smelter (packed)",
+    "description": "Dressed furnace stones, iron fittings and a grate packed for installation.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 32,
+    "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:aging_rack": {
+    "display_name": "Aging Rack (packed)",
+    "description": "Two oak casks, iron hoops and a timber cradle packed for installation.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 28,
+    "material_tags": ["wood", "metal", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:brazier": {
+    "display_name": "Brazier (packed)",
+    "description": "An iron fire bowl and stone pedestal packed for installation.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "weight_class": "heavy",
+    "base_trade_value": 20,
+    "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
   },
 
   "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",

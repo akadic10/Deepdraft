@@ -122,13 +122,15 @@ func on_furniture_changed(key: String, cells: Array[Vector3i], def: Dictionary, 
 	var heat: Dictionary = def.get("heat_source", {})
 	if not heat.is_empty() and not cells.is_empty():
 		var origin_cell: Vector3i = cells[0]
-		if installed:
-			_heat_cells[origin_cell] = int(heat.get("heat_units", 0))
-			changed = true
+		# Wall mounts can share a floor anchor with another heat source.
+		# Add/remove only this piece's contribution, never overwrite its neighbor.
+		var units := int(heat.get("heat_units", 0))
+		var remaining := maxi(0, int(_heat_cells.get(origin_cell, 0)) + (units if installed else -units))
+		if remaining > 0:
+			_heat_cells[origin_cell] = remaining
 		else:
-			if _heat_cells.has(origin_cell):
-				_heat_cells.erase(origin_cell)
-				changed = true
+			_heat_cells.erase(origin_cell)
+		changed = true
 	if changed:
 		_mark_dirty()
 

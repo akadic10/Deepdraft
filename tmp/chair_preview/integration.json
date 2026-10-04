@@ -1,0 +1,97 @@
+{
+  "status": "passed",
+  "pre_existing_models_preserved": 148,
+  "canonical_exports": {
+    "barrel": "12d1ec43bf462d56066a31f08fcecafa3d49bff27363f14034cebf5fa2868972",
+    "storage_crate": "a0e107970c3c1b85d5ef25cdf5c43398415c50ba8be589b12261487537496f59",
+    "storage_shelf": "b2c849bf312b03b5bea036856312810eb78a320f446d87c7b6d777ee0358b8cf",
+    "tavern_bar": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763",
+    "bench": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "hearth": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8",
+    "door": "32e724fe278f619b293cdb8615cf212266280f80574ad7a04ff74a7c214094d1",
+    "trade_counter": "c41ad638232f8acc91c6c7b7f538a5734914893695caa3bbfda716a4656d9108",
+    "wooden_table": "7aee96923d0fb18797d494ec7c2f522399700b317b67a4ab6b2649a12cbdac34",
+    "wooden_chair": "a1d835d20d8010e2d0601f5904cbf158a0a3781679001331b4dc1b0d1e3ec376",
+    "packed_furniture": "2512d08376ac4fe4135c76393cdd5ef625ee7d8b999f61cf1b833f50a361ef6f"
+  },
+  "nine_previous_furniture_definitions_preserved": true,
+  "previous_item_definitions_preserved": true,
+  "furniture_controller_unchanged": true,
+  "packed_item_types": 10,
+  "renders": [
+    "chair.png",
+    "chair_front.png",
+    "chair_rear.png",
+    "chair_rts.png",
+    "dining_arrangement.png",
+    "dwarf_scale.png",
+    "table_comparison.png"
+  ],
+  "logs": {
+    "review-import": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-chair-review-import.log",
+      "errors": false,
+      "warnings": []
+    },
+    "review-capture": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-chair-review-capture.log",
+      "errors": false,
+      "warnings": []
+    },
+    "live-import": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-chair-live-import.log",
+      "errors": false,
+      "warnings": []
+    },
+    "live-check": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-chair-live-check.log",
+      "errors": false,
+      "warnings": [
+        "WARNING: SkyController: WorldEnvironment has no Environment resource.",
+        "WARNING: WeatherManager: world_seed unavailable \u2014 weather RNG randomized (non-deterministic)."
+      ]
+    },
+    "table-regression": {
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-chair-table-regression.log",
+      "errors": false,
+      "warnings": [
+        "WARNING: SkyController: WorldEnvironment has no Environment resource.",
+        "WARNING: WeatherManager: world_seed unavailable \u2014 weather RNG randomized (non-deterministic)."
+      ]
+    }
+  },
+  "runtime": {
+    "build_menu_mapping": true,
+    "chair_and_table_independent": true,
+    "dev_spawner_entry": true,
+    "dwarf_pickup_and_build_consumes_crate": true,
+    "fetch_reservation_release_and_reclaim": true,
+    "four_rotations": true,
+    "ghost_nonblocking": true,
+    "in_memory_installed_save_restore": true,
+    "no_room_heat_or_door_side_effects": true,
+    "placeable_definitions": 10,
+    "player_saves_touched": false,
+    "rotated_bounds_match_collision": true,
+    "terrain_unchanged": true,
+    "two_layers_occupied": true,
+    "uninstall_refunds_same_item": true
+  },
+  "table_regression": {
+    "build_menu_mapping": true,
+    "dev_spawner_entry": true,
+    "dwarf_pickup_and_build_consumes_crate": true,
+    "eight_existing_pieces_at_four_rotations": true,
+    "fetch_reservation_release_and_reclaim": true,
+    "four_rotations": true,
+    "fractional_top_layer_occupied": true,
+    "ghost_nonblocking": true,
+    "in_memory_installed_save_restore": true,
+    "no_room_heat_or_door_side_effects": true,
+    "placeable_definitions": 10,
+    "player_saves_touched": false,
+    "rotated_bounds_match_collision": true,
+    "terrain_unchanged": true,
+    "uninstall_refunds_same_item": true
+  }
+}

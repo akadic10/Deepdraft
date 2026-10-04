@@ -10,6 +10,15 @@ This document catalogues every visual attribute a dwarf can have and defines the
 
 Scale contract: dwarf parts are authored in an 8-voxels-per-block frame, but `tools/generate_dwarf_glb.py` exports positions in Godot/world units by baking the `0.125` scale into the GLB. Keep Godot import `Root Scale = 1.0` for generated dwarf GLBs.
 
+**2026-10-01 approved redesign shipped:** all 41 GLBs now use a 15-cell skull
+(17 including ears), 11-cell chest, 5×4×7 boots, filled sculpted hair caps, and
+rounded beard volumes. Height is 25–27 cells (3.125–3.375 blocks), with the
+logical 1×1×3 footprint unchanged. X/Z cell centres align on integers before
+the half-cell mesh shift; the shared origin and runtime mirroring still apply.
+All appearance IDs, filenames, pools, and save fields are preserved. The
+canonical generator now builds this roster; implementation and QA commands:
+[25_dwarf_visual_redesign.md](../00_dev_roadmap/25_dwarf_visual_redesign.md).
+
 ---
 
 ## Attribute Catalogue
@@ -20,7 +29,7 @@ All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall
 
 | Attribute | Values | Notes |
 |---|---|---|
-| `skin_tone` | pale · medium · tan · dark | Applied to `head_[age].glb`, `body_base.glb`, `hand.glb`, and `foot.glb` |
+| `skin_tone` | pale · medium · tan · dark | Applied to `head_[age].glb` and `hand.glb`; body/boots retain baked colors |
 | `eye_color` | grey · blue · green · brown · amber · red | Applied to `eyes.glb` — separate node, not embedded in head |
 | `hair_color` | black · dark_brown · brown · auburn · red · blonde · grey · white | Applied to all hair/beard/brow shape meshes |
 
@@ -28,14 +37,14 @@ All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall
 
 | Attribute | Values | Representation |
 |---|---|---|
-| `age_tier` | young · adult · middle · elder | 4 head base GLBs — geometry differs (wrinkle depth) |
+| `age_tier` | young · adult · middle · elder | 4 head GLBs — tonal cheek/temple creases, common crown and facial slots |
 | `scar` | none · cheek_slash · brow_notch · nose_bridge · chin_split | Portrait-only overlay child; "none" = no node added |
 
 ### Shape Attributes — Male
 
 | Attribute | Values | GLB files |
 |---|---|---|
-| `hair_style` | short_back · shaved · wild_loose · braided_back · bald | 5 GLBs (`hair_m_[id].glb`); bald = no node added |
+| `hair_style` | short_back · shaved · wild_loose · braided_back · bald | 4 GLBs (`hair_m_[id].glb`); bald = no node added |
 | `beard` | full_long · full_braided · short_trimmed · forked · mutton_chops · goatee · braided_long · *(none)* | 7 GLBs (`beard_[id].glb`); no beard = no node added |
 | `eyebrow_style` | thick_flat · bushy · arched · unibrow | 4 GLBs (`brows_m_[id].glb`) |
 
@@ -50,7 +59,8 @@ All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall
 
 ## GLB File Inventory
 
-All files live under `assets/dwarves/`. Total: **~45 GLB files**.
+All appearance parts live under `assets/dwarves/`. Total: **41 appearance GLB files**.
+Work tools are additional assets, described below.
 
 ```
 assets/dwarves/
@@ -376,6 +386,38 @@ func _attach(parent: Node3D, node_name: String, mesh: Mesh) -> void:
     node.mesh = mesh
     parent.add_child(node)
 ```
+
+---
+
+## Work tools — felling axe and mining pick (2026-10-04)
+
+`assets/dwarves/tools/felling_axe.glb` is separate from the 41 appearance parts.
+`DwarfAssets` owns its preload; `DwarfFellingPose.gd` instantiates it under the
+right hand when felling starts and hides it when work stops. Dwarves implicitly
+carry their work tools, with no inventory, delivery or durability requirement.
+
+The axe uses eight voxels/block with baked 0.125 scale and linear vertex colors.
+Unlike the shared-frame body parts, its origin is the lower hand grip, with the
+haft along +Y and blade facing +Z. Both hands rotate around their authored palm
+centres and stay on the handle throughout the swing. The tool attachment cancels
+the right hand's reflection; pose cleanup explicitly restores the original signed
+scales so subsequent walking cannot flip the mirrored hand or boot. The axe uses
+its own lit vertex-color material and is never skin-tinted. Navigation and
+collision retain their existing logical footprint.
+
+Generator: `tools/generate_dwarf_axe.py`. Native preview:
+`tools/DwarfFellingPreview.gd`. Behavior and validation:
+[48_object_explorer_and_tree_felling.md](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
+`assets/dwarves/tools/mining_pickaxe.glb` adds a longer haft, curved iron point
+and opposing chisel, using the same scale/material/grip convention. Generator:
+`tools/generate_dwarf_pickaxe.py`; native pose studies:
+`tools/DwarfMiningPreview.gd`. `DwarfMiningPose.gd` aims at the target voxel face
+for wall, overhead, low and underfoot mining. Both rigs now inherit attachment,
+material and mirrored-part reset behavior from `DwarfWorkToolPose.gd`. No body
+parts or appearance IDs changed. Phase-0.92 pick contact now emits material-aware
+sound and small chips through `WorkFeedback`; successful removal adds a brief
+dust puff (doc 48 §6.2). Feedback is separate from pose evaluation, so previews,
+contact holds and visibility changes do not replay sounds.
 
 ---
 

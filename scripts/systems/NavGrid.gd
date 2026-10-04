@@ -344,6 +344,12 @@ func _heap_less(a: Array, b: Array) -> bool:
 
 # ── Invalidation (doc 32: rebuild lazily on change) ──────────────────────────
 
+## Main-thread mining commits need fresh floors before the worker snaps or
+## pulls its next block. The deferred chunk signal remains the general path.
+func refresh_mined_block(block: Vector3i) -> void:
+	_on_chunk_dirtied(block.x >> 4,block.y >> 4,block.z >> 4)
+
+
 func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 	_invalidate_chunk(Vector3i(cx, cy, cz))
 	# A floor cell's walkability depends on CLEARANCE air blocks *above* it,

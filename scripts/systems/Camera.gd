@@ -101,12 +101,18 @@ signal slice_y_changed(new_slice_y: int)
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
+	add_to_group("work_audio_view")
 	add_to_group(SaveManager.OWNER_GROUP)
 	_load_settings()
 	_ensure_child_nodes()   # create arm / spring / camera if not wired in editor
 	_build_cursor_overlay()
 	_apply_initial_transform()
 	print("Camera: ready (FOV %d°, zoom %.0f–%.0f m)." % [int(_fov), _zoom_min, _zoom_max])
+
+
+func get_work_audio_context() -> Dictionary:
+	var zoom := global_position.distance_to(camera_node.global_position) if camera_node != null else _target_zoom
+	return {"focus":global_position,"zoom":zoom}
 
 
 func _process(delta: float) -> void:

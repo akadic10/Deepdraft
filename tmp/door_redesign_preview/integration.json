@@ -1,0 +1,52 @@
+{
+  "status": "installed_and_verified",
+  "canonical_exports_match_live": {
+    "barrel": "12d1ec43bf462d56066a31f08fcecafa3d49bff27363f14034cebf5fa2868972",
+    "storage_crate": "a0e107970c3c1b85d5ef25cdf5c43398415c50ba8be589b12261487537496f59",
+    "storage_shelf": "b2c849bf312b03b5bea036856312810eb78a320f446d87c7b6d777ee0358b8cf",
+    "tavern_bar": "fcf66653a1dbee743bdd55691100e9770e349fb6d8cf390689dfca3f1c0f6763",
+    "bench": "e3542b0025c82beac25bf5367fe7689f478fdf85a427f84e3283f1a8251ad17e",
+    "door": "32e724fe278f619b293cdb8615cf212266280f80574ad7a04ff74a7c214094d1",
+    "hearth": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8"
+  },
+  "other_six_models_unchanged": true,
+  "packed_item_unchanged": true,
+  "door_definition_unchanged": true,
+  "review_matches_live": true,
+  "renders": 7,
+  "logs": {
+    "review-import": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-door-review-import.log"
+    },
+    "review-capture": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-door-review-capture.log"
+    },
+    "live-import": {
+      "errors": 0,
+      "warnings": 0,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-door-live-import.log"
+    },
+    "live-check": {
+      "errors": 0,
+      "warnings": 2,
+      "path": "C:\\Users\\akadi\\AppData\\Local\\Temp\\deepdraft-door-live-check.log"
+    }
+  },
+  "runtime_checks": {
+    "both_door_tiles_remain_walkable": true,
+    "ghosts_and_build_completion": true,
+    "imported_bounds_fit_footprint": true,
+    "materials_valid": true,
+    "models_checked": 1,
+    "paths_cross_both_tiles": true,
+    "player_saves_touched": false,
+    "rotations": 4,
+    "two_seal_columns_one_door_identity": true,
+    "two_separate_rooms_of_64_air_cells": true,
+    "uninstall_removes_seal": true
+  }
+}

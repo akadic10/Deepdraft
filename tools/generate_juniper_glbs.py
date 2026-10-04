@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""
-Generate Deepdraft juniper GLBs — narrow columnar 1:1 evergreen.
+"""Generate the complete redesigned juniper roster at one voxel per block.
 
-Tree convention: 1:1 (1 voxel = 1 block, scale 1.0; doc 61). Juniper is a tall,
-narrow columnar evergreen shrub-tree: a dense dark blue-green column with a
-rounded top, much narrower than oak/apple, dotted with dusty blue-grey berries.
-Two seasons only (evergreen): summer baseline, winter snow-dusted. Footprint
-1×1 (mature) / 2×2 (ancient). Centred on trunk at X=Z=0, base at Y=0.
+All live stages, seasons and variants use generate_forest_redesign. Legacy
+builders below remain only for historical before/after preview reproduction.
+Existing mature baseline designs and gameplay footprints are preserved.
 """
 
 import math
@@ -14,6 +11,7 @@ import random
 from pathlib import Path
 
 from generate_dwarf_glb import Voxels, mesh_from_voxels, write_glb
+from generate_forest_redesign import build_model, mesh_model, manifest as forest_manifest
 
 VOX_PER_BLOCK = 1
 
@@ -53,7 +51,7 @@ def radius_at(y, H, rmid, base_taper):
     return rmid
 
 
-def build_juniper(stage, season="summer", variant=1):
+def build_legacy_juniper(stage, season="summer", variant=1):
     cfg = {
         "sapling": dict(H=5,  rmid=1, base=1),
         "mature":  dict(H=12, rmid=2, base=3),
@@ -106,15 +104,16 @@ def build_juniper(stage, season="summer", variant=1):
     return v
 
 
+def build_juniper(stage, season="summer", variant=1):
+    return build_model("juniper", stage, season, variant)
+
+
+def mesh_juniper(vox, stage, season="summer", variant=1):
+    return mesh_model(vox, "juniper", stage)
+
+
 def manifest():
-    out = []
-    for s in ("sapling", "mature", "ancient"):
-        if s == "sapling":
-            out += [("juniper_sapling", s, "summer", 1), ("juniper_sapling_winter", s, "winter", 1)]
-        else:
-            out += [(f"juniper_{s}", s, "summer", 1), (f"juniper_{s}_2", s, "summer", 2),
-                    (f"juniper_{s}_winter", s, "winter", 1)]
-    return out
+    return forest_manifest("juniper")
 
 
 def main():
@@ -124,7 +123,7 @@ def main():
     total = 0
     for name, stage, season, variant in manifest():
         vox = build_juniper(stage, season, variant)
-        mesh = mesh_from_voxels(vox)
+        mesh = mesh_juniper(vox, stage, season, variant)
         size = write_glb(out_dir / f"{name}.glb", name, mesh)
         total += size
         h = max(y for _, y, _ in vox.cells) + 1

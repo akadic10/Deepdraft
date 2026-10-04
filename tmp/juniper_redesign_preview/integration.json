@@ -1,0 +1,30 @@
+{
+  "approved_models_imported": {
+    "assets/models/flora/trees/juniper/juniper_mature.glb": "ed5d740c3705c1985ef3a0dbd142711d5a0d79178cbfeed2f605a2b0985a908e",
+    "assets/models/flora/trees/juniper/juniper_mature_winter.glb": "42e8bf55d2f2fd2b3617d28b1fb3be10a37bca94183b2e169c746db596ce3ac4"
+  },
+  "canonical_juniper_exports_reproduced": 8,
+  "other_tree_glbs_unchanged": 56,
+  "non_visual_registry_data_unchanged": true,
+  "godot_version": "4.7.2.stable.steam.ed1daf0bf",
+  "godot_import_exit": 0,
+  "runtime_exit": 0,
+  "seasonal_model_resolutions": 768,
+  "live_instances_checked": 2,
+  "scale_material_grounding_collision_occupancy_valid": true,
+  "natural_spawn_seed": 1388941899,
+  "natural_mature_junipers_verified": 462,
+  "world_capture": "renders/live_world.png",
+  "world_capture_lighting": "debug_world at noon via SkyController",
+  "historical_references_preserved": true,
+  "script_errors": 0,
+  "runtime_markers": [
+    "LIVE_JUNIPER_IMPORT_OK",
+    "LIVE_JUNIPER_NATURAL_SPAWN_OK",
+    "LIVE_JUNIPER_WORLD_ART_OK"
+  ],
+  "startup_warnings": [
+    "SkyController: no current scene before world creation",
+    "WeatherManager: world_seed unavailable before world creation"
+  ]
+}

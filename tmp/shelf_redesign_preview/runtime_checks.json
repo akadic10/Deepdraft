@@ -1,0 +1,18 @@
+{
+  "all_slots_fit_rotated_ores_crates_and_flag": true,
+  "barrel_and_chest_unchanged": true,
+  "dwarf_pickup_and_build_consumes_crate": true,
+  "fetch_release_and_reclaim": true,
+  "four_rotations": true,
+  "full_shelf_rejects_ninth_item": true,
+  "ghost_nonblocking": true,
+  "haul_reserve_take_and_deposit": true,
+  "native_model_bounds_and_material": true,
+  "player_saves_touched": false,
+  "stocked_save_restore": true,
+  "storage_capacity": 8,
+  "terrain_unchanged": true,
+  "uninstall_refunds_shelf_and_all_eight_contents": true,
+  "visible_anchors": 8,
+  "withdraw_returns_native_scale": true
+}

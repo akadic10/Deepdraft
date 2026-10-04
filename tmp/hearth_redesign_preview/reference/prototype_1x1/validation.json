@@ -1,0 +1,24 @@
+{
+  "status": "prototype_only",
+  "voxels_per_block": 8,
+  "bounds": [
+    [
+      -0.5,
+      0.0,
+      -0.5
+    ],
+    [
+      0.5,
+      1.0,
+      0.5
+    ]
+  ],
+  "voxels": 196,
+  "triangles": 628,
+  "color_encoding": "linear COLOR_0",
+  "connected_components": 1,
+  "fits_existing_collision": true,
+  "heat_units": 400,
+  "prototype_sha256": "82ae46d3ebcd38779ccf7323ec73f5d8ae4afd3ebaf711ff2072d2b3cc8278af",
+  "live_reference_sha256": "0dec8f8c2107f3551d7e8ddaa43a15abec7ea8dd8e8d0de28b5b73b1bf0e1d3e"
+}

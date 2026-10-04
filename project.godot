@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 BlockRegistry="*uid://darckb4wfswr6"
 WorldClock="*uid://cntlqitntp144"
+WorkFeedback="*res://scripts/systems/WorkFeedback.gd"
 WorldData="*uid://cbq0ixpilwd48"
 WorldGenerator="*uid://bl38ocrtbuj8s"
 PlacedEntityRegistry="*res://scripts/registries/PlacedEntityRegistry.gd"

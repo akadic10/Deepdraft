@@ -1,0 +1,26 @@
+{
+  "__comment": [
+    "Dwarven Bed - independently buildable single bed (art doc 40, 2026-10-01).",
+    "Approved footprint: 4 blocks long on X, 2 wide on Z; headboard at local -X.",
+    "Mattress top is 1 block high, pillow/folded blanket 1.25, headboard 2.",
+    "Collision regions use footprint-local coordinates; offset boxes rotate with the model.",
+    "Bed assignment, walking to bed and sleep animation remain future gameplay work."
+  ],
+  "furniture_key": "base:furniture:dwarf_bunk",
+  "furniture_category": "bed",
+  "display_name": "Dwarven Bed",
+  "description": "A heavy oak bed with a linen-covered straw mattress, broad pillow and folded blanket.",
+  "model": "res://assets/models/furniture/dwarf_bunk.glb",
+  "item_key": "base:resources:furniture:dwarf_bunk",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": { "width": 4, "depth": 2 },
+  "blocks_movement": true,
+  "collision_regions": [
+    { "min": [0, 0, 0], "max": [4, 1, 2] },
+    { "min": [0, 1, 0], "max": [0.25, 2, 2] },
+    { "min": [0.375, 1, 0.125], "max": [1.5, 1.25, 1.875] },
+    { "min": [3, 1, 0.125], "max": [3.75, 1.25, 1.875] }
+  ],
+  "room_anchor": false
+}

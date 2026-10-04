@@ -189,6 +189,13 @@ func get_block_work(dwarf_id: int) -> Dictionary:
 	return _controller.call("get_zone_block_work", block)
 
 
+## Cosmetic contact remains tied to a valid reservation and visible material.
+func play_mining_impact(dwarf_id: int, position: Vector3, normal: Vector3) -> void:
+	var block := reserved_block_of(dwarf_id)
+	if block.y >= 0 and region.has(block) and not completed.has(block):
+		_controller.call("play_zone_mining_impact",block,position,normal)
+
+
 ## Finalises a mined block: validates the reservation, then hands the WORLD
 ## mutation to the controller (WorldData void write, renderer promotion,
 ## drops, interior tracking, zone bookkeeping). Returns false if the

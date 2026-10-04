@@ -32,6 +32,7 @@ extends Node
 @export var renderer_path: NodePath
 @export var camera_path: NodePath
 @export var dock_ui_path: NodePath
+@export var window_manager_path: NodePath
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -64,16 +65,22 @@ var _active: bool = false
 var _seeded: bool = false          # S3: seed exactly once per session
 var _last_slice_y: int = MAX_SLICE_Y   # restored on re-activation
 
-var _palette_layer: CanvasLayer
-var _palette_panel: PanelContainer
+var _window_manager: UIWindowManager = null
 var _readout_label: Label
+
+## Manager window id for the palette. Tool state — not a persistent window:
+## visibility follows the tool's active flag (which round-trips through the
+## save file, doc 20); the layout file remembers only its position (doc 24 §2).
+const PALETTE_WINDOW_ID := "slice_palette"
 
 
 func _ready() -> void:
+	add_to_group("work_feedback_slice")
 	add_to_group(SaveManager.OWNER_GROUP)
 	_renderer = get_node_or_null(renderer_path)
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_dock_ui = get_node_or_null(dock_ui_path)
+	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
 	_build_palette()
 
 	if _renderer == null:
@@ -142,10 +149,10 @@ func restore_state(state: Dictionary) -> void:
 	_active = bool(state.get("active", false))
 	if _active:
 		_set_slice_y(int(state.get("slice_y", _last_slice_y)))
-		_palette_layer.visible = true
+		_set_palette_visible(true)
 	else:
 		_set_slice_y(MAX_SLICE_Y)
-		_palette_layer.visible = false
+		_set_palette_visible(false)
 	slice_active_changed.emit(_active)
 
 
@@ -173,7 +180,7 @@ func activate() -> void:
 		# visible cut, harmless).
 
 	_set_slice_y(_last_slice_y)
-	_palette_layer.visible = true
+	_set_palette_visible(true)
 	slice_active_changed.emit(true)
 
 
@@ -185,7 +192,7 @@ func deactivate() -> void:
 	_active = false
 	_last_slice_y = get_slice_y()
 	_set_slice_y(MAX_SLICE_Y)
-	_palette_layer.visible = false
+	_set_palette_visible(false)
 	slice_active_changed.emit(false)
 
 
@@ -247,50 +254,15 @@ func _seed_from_camera() -> int:
 	return clampi(cell_top, MIN_SLICE_Y, MAX_SLICE_Y)
 
 
-# ── Palette window (H2 — Clock-window visual language) ───────────────────────
+# ── Palette window (H2; doc 24: content only — chrome in UIWindowManager) ─────
 
 func _build_palette() -> void:
-	_palette_layer = CanvasLayer.new()
-	_palette_layer.name = "SlicePalette"
-	_palette_layer.layer = 22
-	_palette_layer.visible = false
-	add_child(_palette_layer)
-
-	_palette_panel = PanelContainer.new()
-	_palette_panel.name = "Panel"
-	_palette_panel.position = Vector2(18.0, 130.0)
-	_palette_panel.custom_minimum_size = Vector2(150.0, 0.0)
-	_palette_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 8))
-	_palette_layer.add_child(_palette_panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	_palette_panel.add_child(margin)
+	if _window_manager == null:
+		push_warning("SliceController: UIWindowManager not found at '%s' — palette disabled." % window_manager_path)
+		return
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
-	margin.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	var title := Label.new()
-	title.text = "Slice"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 16)
-	header.add_child(title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(30.0, 26.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.tooltip_text = "Turn slice off"
-	close.pressed.connect(deactivate)
-	header.add_child(close)
 
 	column.add_child(_make_step_button("▲▲  Cell up", "Raise the slice one 4-block cell  ( ] )", step_cell_up))
 	column.add_child(_make_step_button("▲  Block up", "Raise the slice one block  (Ctrl+])", step_single_up))
@@ -303,19 +275,30 @@ func _build_palette() -> void:
 	column.add_child(_make_step_button("▼  Block down", "Lower the slice one block  (Ctrl+[)", step_single_down))
 	column.add_child(_make_step_button("▼▼  Cell down", "Lower the slice one 4-block cell  ( [ )", step_cell_down))
 
+	_window_manager.register_window(PALETTE_WINDOW_ID, "Slice", "👀", column,
+		{"default_pos": Vector2(18.0, 130.0)})
+	# Closing the palette with its X IS turning the slice tool off — the
+	# window has no meaning without the tool.
+	_window_manager.window_state_changed.connect(_on_window_state_changed)
 	_update_readout()
 
 
+func _on_window_state_changed(id: String, open: bool) -> void:
+	if id == PALETTE_WINDOW_ID and not open and _active:
+		deactivate()
+
+
+func _set_palette_visible(shown: bool) -> void:
+	if _window_manager == null:
+		return
+	if shown:
+		_window_manager.open(PALETTE_WINDOW_ID)
+	else:
+		_window_manager.close(PALETTE_WINDOW_ID)
+
+
 func _make_step_button(text: String, tooltip: String, on_press: Callable) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.tooltip_text = tooltip
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(126.0, 30.0)
-	button.add_theme_font_size_override("font_size", 13)
-	button.add_theme_stylebox_override("normal",  _style(Color(1, 1, 1, 0.07), Color(1, 1, 1, 0.16), 1, 6))
-	button.add_theme_stylebox_override("hover",   _style(Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.22), 1, 6))
-	button.add_theme_stylebox_override("pressed", _style(Color(1, 1, 1, 0.20), Color(1, 1, 1, 0.28), 1, 6))
+	var button := UITheme.make_button(text, tooltip, Vector2(126.0, 30.0))
 	button.pressed.connect(on_press)
 	return button
 
@@ -325,26 +308,3 @@ func _update_readout() -> void:
 		return
 	var y := get_slice_y()
 	_readout_label.text = "Y = %d" % y if y < MAX_SLICE_Y else "Off"
-
-
-func _style(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.border_width_left = border_width
-	style.border_width_right = border_width
-	style.border_width_top = border_width
-	style.border_width_bottom = border_width
-	style.corner_radius_top_left = radius
-	style.corner_radius_top_right = radius
-	style.corner_radius_bottom_left = radius
-	style.corner_radius_bottom_right = radius
-	style.content_margin_left = 8.0
-	style.content_margin_right = 8.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	return style
-
-
-func _panel_style(bg: Color, border: Color, radius: int) -> StyleBoxFlat:
-	return _style(bg, border, 1, radius)

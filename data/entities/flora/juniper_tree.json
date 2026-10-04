@@ -6,20 +6,28 @@
     "Missing season keys fall back to 'summer' at runtime.",
     "Three growth stages: sapling → mature → ancient.",
     "",
-    "MODEL VARIANTS (mature and ancient only):",
-    "  summer x2, winter x1. Juniper is columnar — less shape variance possible than oak/pine.",
-    "  Variants differ in: crown tightness, slight lean, berry cluster density.",
-    "  All variants must share the 1×1 block (mature) or 2×2 block (ancient) XZ footprint."
+    "MODEL VARIANTS — complete visual roster (doc 29):",
+    "All stages use redesigned 1:1 models. Season arrays have matching variant counts/order.",
+    "World-position hashing preserves each tree variant across seasonal changes.",
+    "Placement, growth, collision and harvest values are unchanged."
   ],
-
   "base:flora:juniper_tree": {
     "harvest_resource": "base:resources:wood:juniper_log",
-    "material_tags": ["wood", "tree", "flora", "evergreen", "stockpile_wood"],
+    "material_tags": [
+      "wood",
+      "tree",
+      "flora",
+      "evergreen",
+      "stockpile_wood"
+    ],
     "appeal": 2,
-
     "__placement_comment": "Mixed-forest niche, doc 14: hardy DRY-loving evergreen on rocky/exposed ground (lowland rock through mountain, extends above the pine treeline). Read by SurfaceFloraSpawner.",
     "placement": {
-      "domains": ["lowland", "foothill", "mountain"],
+      "domains": [
+        "lowland",
+        "foothill",
+        "mountain"
+      ],
       "exclude_water": true,
       "min_surface_y": 12,
       "max_surface_y": 95,
@@ -29,13 +37,20 @@
       "max_surface_slope": 1,
       "edge_margin": 2,
       "edge_dropoff_max": 3,
-      "footprint": { "sapling": 1, "mature": 1, "ancient": 2 },
-      "stage_weights": { "sapling": 0.2, "mature": 0.55, "ancient": 0.25 }
+      "footprint": {
+        "sapling": 1,
+        "mature": 1,
+        "ancient": 2
+      },
+      "stage_weights": {
+        "sapling": 0.2,
+        "mature": 0.55,
+        "ancient": 0.25
+      }
     },
-
     "stages": {
-
       "sapling": {
+        "felling": { "work_seconds": 2.0 },
         "clearance_height": 2,
         "growth_duration_days": 4,
         "next_stage": "mature",
@@ -47,8 +62,8 @@
           "yields": []
         }
       },
-
       "mature": {
+        "felling": { "work_seconds": 6.0 },
         "clearance_height": 6,
         "growth_duration_days": 8,
         "next_stage": "ancient",
@@ -57,18 +72,33 @@
             "res://assets/models/flora/trees/juniper/juniper_mature.glb",
             "res://assets/models/flora/trees/juniper/juniper_mature_2.glb"
           ],
-          "winter": "res://assets/models/flora/trees/juniper/juniper_mature_winter.glb"
+          "winter": [
+            "res://assets/models/flora/trees/juniper/juniper_mature_winter.glb",
+            "res://assets/models/flora/trees/juniper/juniper_mature_winter_2.glb"
+          ]
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:juniper_log",    "count": 4, "chance": 1.00 },
-            { "item": "base:resources:flora:juniper_berry", "count": 2, "chance": 0.40 },
-            { "item": "base:resources:seed:juniper_seed",   "count": 1, "chance": 0.30 }
+            {
+              "item": "base:resources:wood:juniper_log",
+              "count": 4,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:flora:juniper_berry",
+              "count": 2,
+              "chance": 0.4
+            },
+            {
+              "item": "base:resources:seed:juniper_seed",
+              "count": 1,
+              "chance": 0.3
+            }
           ]
         }
       },
-
       "ancient": {
+        "felling": { "work_seconds": 12.0 },
         "clearance_height": 10,
         "growth_duration_days": null,
         "next_stage": null,
@@ -77,17 +107,31 @@
             "res://assets/models/flora/trees/juniper/juniper_ancient.glb",
             "res://assets/models/flora/trees/juniper/juniper_ancient_2.glb"
           ],
-          "winter": "res://assets/models/flora/trees/juniper/juniper_ancient_winter.glb"
+          "winter": [
+            "res://assets/models/flora/trees/juniper/juniper_ancient_winter.glb",
+            "res://assets/models/flora/trees/juniper/juniper_ancient_winter_2.glb"
+          ]
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:wood:juniper_log",    "count": 8, "chance": 1.00 },
-            { "item": "base:resources:flora:juniper_berry", "count": 4, "chance": 0.60 },
-            { "item": "base:resources:seed:juniper_seed",   "count": 2, "chance": 0.50 }
+            {
+              "item": "base:resources:wood:juniper_log",
+              "count": 8,
+              "chance": 1.0
+            },
+            {
+              "item": "base:resources:flora:juniper_berry",
+              "count": 4,
+              "chance": 0.6
+            },
+            {
+              "item": "base:resources:seed:juniper_seed",
+              "count": 2,
+              "chance": 0.5
+            }
           ]
         }
       }
-
     }
   }
 }

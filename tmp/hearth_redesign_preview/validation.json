@@ -1,0 +1,43 @@
+{
+  "status": "installed",
+  "voxels_per_block": 8,
+  "bounds": [
+    [
+      -1.0,
+      0.0,
+      -1.0
+    ],
+    [
+      1.0,
+      2.0,
+      1.0
+    ]
+  ],
+  "voxels": 1431,
+  "triangles": 2496,
+  "color_encoding": "linear COLOR_0",
+  "connected_components": 1,
+  "footprint": {
+    "width": 2,
+    "depth": 2
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        2,
+        2,
+        2
+      ]
+    }
+  ],
+  "fits_proposed_collision": true,
+  "stone_rim_height": 1.0,
+  "heat_units": 400,
+  "prototype_sha256": "cc3e98b007eb937978b358edf735c3a4cfdaa6dec87c5e80ebe5926a0dab24d8",
+  "live_reference_sha256": "0dec8f8c2107f3551d7e8ddaa43a15abec7ea8dd8e8d0de28b5b73b1bf0e1d3e"
+}

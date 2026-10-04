@@ -1,0 +1,43 @@
+{
+  "__comment": [
+    "Stone smelter visual and placement, art doc 45 (2026-10-03).",
+    "Authored at 8 voxels per block; 0.125 scale is baked into the GLB.",
+    "2x2 floor footprint, 3 blocks tall including the chimney; opening faces +Z.",
+    "Installed pieces show cosmetic fire and local light. Ghosts and packed items are unlit.",
+    "Ore processing, fuel, jobs and the planned 800 operating heat units await workshop integration."
+  ],
+  "furniture_key": "base:furniture:smelter",
+  "furniture_category": "workshop",
+  "display_name": "Smelter",
+  "description": "A heavy stone furnace with an iron grate, glowing firebox and soot-darkened chimney.",
+  "model": "res://assets/models/furniture/smelter.glb",
+  "item_key": "base:resources:furniture:smelter",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {"width": 2, "depth": 2},
+  "blocks_movement": true,
+  "collision_regions": [{"min": [0, 0, 0], "max": [2, 3, 2]}],
+  "room_anchor": false,
+  "light_source": {
+    "color": "#FFBB70",
+    "energy": 1.9,
+    "range": 6.5,
+    "attenuation": 1.2,
+    "position": [0, 1.125, 0.5],
+    "shadows": true,
+    "body_shadows": true,
+    "emissive_mesh": "smelter_flame",
+    "unshaded_flame": true,
+    "emission_energy": 0.9,
+    "flame_animation": {
+      "model": "res://assets/models/furniture/animations/smelter_flame.glb",
+      "frames": ["flame_00", "flame_01", "flame_02", "flame_03", "flame_04", "flame_05", "flame_06", "flame_07"],
+      "frame_durations": [0.12, 0.14, 0.11, 0.13, 0.12, 0.13, 0.11, 0.14],
+      "speed_variation": 0.10,
+      "light_variation": 0.09,
+      "emission_variation": 0.07,
+      "flicker_frequency_hz": 2.6,
+      "update_hz": 30
+    }
+  }
+}
