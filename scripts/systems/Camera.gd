@@ -90,8 +90,8 @@ var _drag_grab:    Vector3 = Vector3.ZERO   # world point grabbed under the curs
 var _cursor_layer: CanvasLayer = null
 var _cursor_label: Label       = null
 var _cursor_os_hidden: bool    = false
-var _zoom_suppressed: bool = false   # an active tool (e.g. mining brush resize) owns the wheel
 var _last_slice_y: int     = -9999
+var _follow_subject: Node3D
 
 ## Fires when the AUTO-slice Y changes. Connect to WorldRenderer to drive the
 ## horizontal layer cut-plane (see 21_camera.md §Horizontal Layer Slicing).
@@ -116,6 +116,7 @@ func get_work_audio_context() -> Dictionary:
 
 
 func _process(delta: float) -> void:
+	_update_follow()
 	_handle_pan(delta)
 	_handle_drag()
 	_smooth_transforms(delta)
@@ -124,11 +125,45 @@ func _process(delta: float) -> void:
 	_update_cursor_overlay()
 
 
-## Presses and wheel notches route through _unhandled_input so the GUI and the
-## click-tools see them FIRST: scrolling over a dock window no longer zooms the
+## Inspection is camera-only: keeps the player's zoom/orbit and never orders
+## the subject to move. Manual world navigation always takes back control.
+func locate_subject(subject: Node3D) -> void:
+	stop_following()
+	if is_instance_valid(subject):
+		_target_pos = subject.global_position + Vector3(0, 1.5, 0)
+
+
+func locate_position(world_position: Vector3) -> void:
+	stop_following()
+	_target_pos = world_position + Vector3(0, 1.5, 0)
+
+
+func follow_subject(subject: Node3D) -> void:
+	_follow_subject = subject
+	_update_follow()
+
+
+func stop_following() -> void:
+	_follow_subject = null
+
+
+func is_following(subject: Variant) -> bool:
+	return is_instance_valid(_follow_subject) and _follow_subject == subject
+
+
+func _update_follow() -> void:
+	if not is_instance_valid(_follow_subject) or _follow_subject.is_queued_for_deletion() \
+			or not _follow_subject.is_visible_in_tree():
+		stop_following()
+		return
+	_target_pos = _follow_subject.global_position + Vector3(0, 1.5, 0)
+
+
+## Presses and wheel notches route through _unhandled_input so the GUI sees
+## them first: scrolling over a dock window no longer zooms the
 ## world behind it, and an RMB press on a panel no longer arms an orbit. (The
-## old _input hook saw every event before Control GUI processing — the defect
-## behind the set_zoom_suppressed workaround's siblings.)
+## old _input hook saw every event before Control GUI processing.) Tool modifier
+## checks below are independent of the nodes' unhandled-input order.
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
 		_handle_mouse_press(event as InputEventMouseButton)
@@ -288,6 +323,10 @@ func _apply_initial_transform() -> void:
 # ── Pan (WASD / arrows / edge scroll) ────────────────────────────────────────
 
 func _handle_pan(delta: float) -> void:
+	# Text entry owns movement keys and caret arrows while a search field is focused.
+	var focus := get_viewport().gui_get_focus_owner()
+	if focus is LineEdit or focus is TextEdit:
+		return
 	var dir := Vector2.ZERO
 
 	if _any_key(_keys_forward):  dir.y -= 1.0
@@ -301,6 +340,7 @@ func _handle_pan(delta: float) -> void:
 	if dir == Vector2.ZERO:
 		return
 
+	stop_following()
 	dir         = dir.normalized()
 	# Fast by default; Shift is a PRECISION (slow) modifier — shift_multiplier < 1.0.
 	var speed   := _move_speed * (_shift_mult if Input.is_key_pressed(KEY_SHIFT) else 1.0)
@@ -328,6 +368,7 @@ func _handle_pan(delta: float) -> void:
 
 ## On drag-button press: remember the world point under the cursor.
 func _start_drag() -> void:
+	stop_following()
 	var hit := _zoom_target_point()
 	if hit.get("hit", false):
 		_drag_grab = hit["point"]
@@ -361,12 +402,6 @@ func _handle_drag() -> void:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-## Let an active tool claim the mouse wheel (e.g. the mining brush resize) so it
-## doesn't also zoom the camera. The tool sets this true on activate, false on deactivate.
-func set_zoom_suppressed(v: bool) -> void:
-	_zoom_suppressed = v
-
-
 func save_section_key() -> String:
 	return "camera"
 
@@ -385,6 +420,7 @@ func serialize_state() -> Dictionary:
 
 
 func restore_state(state: Dictionary) -> void:
+	stop_following()
 	_target_pos = SaveManager.unpack_v3(state.get("target_position", []))
 	global_position = _target_pos
 	_target_zoom = clampf(float(state.get("zoom", _zoom_default)), _zoom_min, _zoom_max)
@@ -467,14 +503,10 @@ func _handle_mouse_press(mbe: InputEventMouseButton) -> void:
 	# Scroll wheel: zoom in/out. Dispatches to _apply_zoom → cursor-targeted zoom
 	# (zoom toward the point under the mouse, clamped at that surface) or the
 	# spring_fraction fallback. Both use a geometric per-notch step. (21_camera.md)
+	# Shift/Alt wheel are reserved for brush dimensions. Plain wheel remains
+	# available throughout mining, including while a designation drag is active.
 	if (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN) \
 			and (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_ALT)):
-		return
-	# An active tool (e.g. the mining brush) claims the wheel for its own resize.
-	# Kept even now that the wheel routes through _unhandled_input: the relative
-	# order of _unhandled_input between this rig (runtime-instanced) and the
-	# tools is scene-order-fragile, so the explicit claim stays as the guarantee.
-	if _zoom_suppressed and (mbe.button_index == MOUSE_BUTTON_WHEEL_UP or mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 		return
 	if mbe.button_index == MOUSE_BUTTON_WHEEL_UP:
 		_apply_zoom(true)
@@ -499,6 +531,7 @@ func _handle_orbit_motion(mme: InputEventMouseMotion) -> void:
 		if _orbit_accum < _orbit_dead_zone:
 			return
 		_orbit_active = true
+		stop_following()
 		if _orbit_dynamic_pivot:
 			_reanchor_orbit_pivot()   # spin around what you're looking at
 
@@ -517,6 +550,7 @@ func _handle_orbit_motion(mme: InputEventMouseMotion) -> void:
 ## One wheel notch. Tries cursor-targeted zoom (toward the point under the mouse);
 ## falls back to the spring_fraction step if disabled or the ray hits nothing.
 func _apply_zoom(zoom_in: bool) -> void:
+	stop_following()
 	if _zoom_mode == "cursor_target" and camera_node != null:
 		if _zoom_cursor(zoom_in):
 			return

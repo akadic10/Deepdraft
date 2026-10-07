@@ -14,8 +14,9 @@
 >
 > **HAUL live (doc 18 — Stockpiles & Hauling, banked 2026-07-11):** stockpile zones are the
 > second work-source family, proving the lease pattern generalises. A zone posts ≤
-> `max_haulers` HAUL leases; the `DwarfAgent` executor pulls pouch BUNDLES (up to 4 items per
-> trip, SH backpack parity) from `ItemDropManager`'s loose-item index, with owner-guarded item
+> `max_haulers` HAUL leases; the `DwarfAgent` executor pulls bundles within the JSON
+> `hauling.carry_capacity` budget (4 points: rock/ore 1, raw log 2, crate 4; doc 49)
+> from `ItemDropManager`'s loose-item index, with owner-guarded item
 > reservations and the §2.8 release protocol (any interrupt drops the whole pouch at the
 > dwarf's feet as loose items). Stockpile source ids live at `1_000_000 + zone_id`
 > (`StockpileManager`); hauling tunables in `task_config.json` `hauling`. Workshops are next.
@@ -101,6 +102,19 @@ Priority is **additive** — bonuses are applied based on colony state:
 
 ## Scheduler — Event-Driven with a Heartbeat
 
+**2026-10-06 — proximity when assigning HAUL:** previously the idle queue's
+first reachable dwarf claimed a storage lease. A cutter finishing a tree was
+appended behind older idle dwarves, so distant workers could reserve all the
+lumber first. New assignments compare available dwarves by distance to an actual
+accepted pickup, after each dwarf has considered higher-priority work. Pickup and
+storage reachability are checked before assignment. Failed nearby workers or
+piles do not hide reachable alternatives. Existing assignments are preserved.
+Successful bundle delivery completes the HAUL lease and returns the worker to
+matching. Returning haulers cannot pull their next load directly, bypassing nearby
+idle workers or higher-priority jobs. Storage replenishes its bounded intake leases
+through the normal coalesced wake; no per-item task queue is introduced.
+See [60 — Hauling worker selection](../00_dev_roadmap/60_hauling_worker_selection.md).
+
 > **As implemented (doc 16 §2.4–2.6 — supersedes the original pure-polling engine).** The
 > scheduler runs on **wake events** (task added, dwarf idle, zone destination changed, chunk
 > dirtied near a blocked target), flushed at most once per frame; the `POLL_INTERVAL = 0.5 s`
@@ -108,7 +122,7 @@ Priority is **additive** — bonuses are applied based on colony state:
 > by `scheduler_budget_usec` (1 ms) and `max_probes_per_wake` (8); the loop stops mid-scan and
 > resumes from the per-type cursor on the next wake.
 
-Matching loop per wake, for each idle dwarf (skill match descending):
+Matching loop per wake for non-hauling work (the HAUL comparison is described below):
 
 ```
 1. Order the dwarf's compatible type buckets by (static + colony_bonus(type)) desc
@@ -122,6 +136,21 @@ Matching loop per wake, for each idle dwarf (skill match descending):
 ```
 
 `backoff(n) = min(2^n, 30)` seconds. After 3 consecutive blocked probes → `task_unreachable(task)` fires for the UI; the task keeps retrying on its backoff schedule, re-armed early when `chunk_dirtied` touches terrain near its target.
+
+When HAUL leases are pending, matching uses three passes: compatible types above
+HAUL's current bucket priority, the HAUL comparison, then remaining types. Other
+types retain their existing bucket order and cursors. HAUL compares read-only
+pickup quotes for every eligible idle dwarf, ranked by Manhattan distance to the
+pickup; queue order breaks equal-distance ties. It is a proximity heuristic with
+reachability checks, not a global shortest-route optimizer.
+
+Quotes scan incrementally under the wake deadline. The comparison, quote cursor,
+and separate pickup/delivery probe stages survive a budget yield. Goods and slot
+reservations only occur through the chosen dwarf's normal hauling executor.
+Changed inventory/claims/rules, newly idle dwarves, and changed navigation
+invalidate stale comparisons. A failed pickup is excluded for that dwarf's
+comparison; the executor receives those exclusions for its initial pull. A task
+backs off only after its worker/pickup alternatives are exhausted.
 
 ### Skill Compatibility
 

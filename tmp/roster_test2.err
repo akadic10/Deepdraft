@@ -1,0 +1,50 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+ERROR: portrait is reused and contains only rendering nodes
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: roster row opens shared inspector and retains overview
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: selected row is highlighted
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: Locate moves camera while preserving zoom
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: Locate button does not also select its row
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: Resting filter uses sleep state
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: deposit clears carried thumbnail and preserves stock
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: scrolling roster never zooms the world
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)
+ERROR: roster title bar drags
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:210)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:226)

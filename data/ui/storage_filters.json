@@ -1,0 +1,16 @@
+{
+  "__comment": "Storage browsing categories. Item identity and tags belong to ItemDropManager; saved acceptance rules belong to each storage component.",
+  "categories": [
+    {"tag": "stockpile_stone", "label": "Stone"},
+    {"tag": "stockpile_wood", "label": "Wood"},
+    {"tag": "stockpile_ore", "label": "Ores"},
+    {"tag": "stockpile_gem", "label": "Gems"},
+    {"tag": "stockpile_soil", "label": "Soil"},
+    {"tag": "stockpile_food", "label": "Food"},
+    {"tag": "stockpile_drink", "label": "Drink"},
+    {"tag": "stockpile_seed", "label": "Seeds & cuttings"},
+    {"tag": "stockpile_furniture", "label": "Furniture"},
+    {"tag": "stockpile_currency", "label": "Currency"},
+    {"tag": "stockpile_misc", "label": "Other goods"}
+  ]
+}

@@ -270,7 +270,7 @@
 
     "base:trait:light_sleeper": {
       "display_name": "Light Sleeper",
-      "description": "Needs seven hours of sleep instead of six. Always slightly behind on rest, never quite at full capacity.",
+      "description": "Needs seven in-game hours of sleep instead of the usual six.",
       "polarity": "negative",
       "rarity_weight": 70,
       "exclusion_group": "sleep_pattern",

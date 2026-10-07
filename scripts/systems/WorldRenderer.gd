@@ -102,7 +102,8 @@ const SLICE_CUT_DIM: float = 0.5
 ## Vertical sampling stride for cliff-side coloring. The side walk samples one
 ## block in this many to find color bands; at navigation zoom per-block vertical
 ## banding is not resolvable, so >1 cuts side-face generation calls proportionally.
-var _material: StandardMaterial3D
+var _material: Material
+var underground_lighting: Node
 var _overview_node: MeshInstance3D = null
 var _overview_built: bool = false
 var _overview_rebuild_queued: bool = false
@@ -234,7 +235,10 @@ func _ready() -> void:
 	global_rotation = Vector3.ZERO
 	scale           = Vector3.ONE
 
-	_material = _create_material()
+	underground_lighting = preload("res://scripts/components/UndergroundLighting.gd").new()
+	underground_lighting.name = "UndergroundLighting"
+	add_child(underground_lighting)
+	_material = underground_lighting.make_material(_create_material())
 	_build_block_inspector_ui()
 
 	# No CONNECT_DEFERRED — signal is already emitted on the main thread
@@ -384,10 +388,11 @@ func _build_block_inspector_ui() -> void:
 	_inspector_layer.visibility_changed.connect(_on_inspector_visibility_changed)
 
 	_inspector_panel = PanelContainer.new()
+	UITheme.apply_surface(_inspector_panel)
 	_inspector_panel.name = "Panel"
 	_inspector_panel.position = Vector2(48.0, 128.0)
 	_inspector_panel.custom_minimum_size = Vector2(420.0, 270.0)
-	_inspector_panel.add_theme_stylebox_override("panel", _inspector_window_style())
+	_inspector_panel.add_theme_stylebox_override("panel", UITheme.window_style())
 	_inspector_layer.add_child(_inspector_panel)
 
 	var margin := MarginContainer.new()
@@ -405,7 +410,7 @@ func _build_block_inspector_ui() -> void:
 	title_bar.name = "TitleBar"
 	title_bar.custom_minimum_size = Vector2(0.0, 34.0)
 	title_bar.mouse_default_cursor_shape = Control.CURSOR_MOVE
-	title_bar.add_theme_stylebox_override("panel", _inspector_title_bar_style())
+	title_bar.add_theme_stylebox_override("panel", UITheme.titlebar_style())
 	title_bar.gui_input.connect(_on_inspector_title_bar_gui_input)
 	column.add_child(title_bar)
 
@@ -424,19 +429,12 @@ func _build_block_inspector_ui() -> void:
 	title.text = "Block Inspector"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 15)
+	UITheme.apply_title(title)
 	header.add_child(title)
 
 	var close := Button.new()
 	close.name = "CloseButton"
-	close.text = "X"
-	close.custom_minimum_size = Vector2(28.0, 24.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.tooltip_text = "Close"
-	close.add_theme_font_size_override("font_size", 13)
-	close.add_theme_stylebox_override("normal", _inspector_close_button_style(Color(0.58, 0.08, 0.08, 0.95)))
-	close.add_theme_stylebox_override("hover", _inspector_close_button_style(Color(0.78, 0.10, 0.10, 1.0)))
-	close.add_theme_stylebox_override("pressed", _inspector_close_button_style(Color(0.42, 0.04, 0.04, 1.0)))
+	UITheme.apply_close_button(close)
 	close.pressed.connect(func() -> void:
 		_inspector_layer.visible = false
 		if _inspector_outline != null:
@@ -472,46 +470,6 @@ func _on_inspector_title_bar_gui_input(event: InputEvent) -> void:
 func _on_inspector_visibility_changed() -> void:
 	if _inspector_layer != null and not _inspector_layer.visible and _inspector_outline != null:
 		_inspector_outline.visible = false
-
-
-func _inspector_window_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.070, 0.075, 0.080, 0.92)
-	style.border_color = Color(1, 1, 1, 0.16)
-	style.border_width_left = 1
-	style.border_width_right = 1
-	style.border_width_top = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 7
-	style.corner_radius_top_right = 7
-	style.corner_radius_bottom_left = 7
-	style.corner_radius_bottom_right = 7
-	return style
-
-
-func _inspector_title_bar_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.13, 0.14, 0.98)
-	style.corner_radius_top_left = 7
-	style.corner_radius_top_right = 7
-	return style
-
-
-func _inspector_close_button_style(bg: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = Color(1.0, 0.45, 0.45, 0.50)
-	style.border_width_left = 1
-	style.border_width_right = 1
-	style.border_width_top = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_left = 5
-	style.corner_radius_bottom_right = 5
-	style.content_margin_left = 6.0
-	style.content_margin_right = 6.0
-	return style
 
 
 func _build_block_inspector_outline() -> void:

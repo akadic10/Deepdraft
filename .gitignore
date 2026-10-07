@@ -11,3 +11,8 @@
 
 # Python bytecode (tool scripts)
 __pycache__/
+
+# Isolated Godot test profiles (runtime saves, settings and shader caches)
+/tmp/**/appdata/
+/tmp/**/localappdata/
+/tmp/**/shader_cache/

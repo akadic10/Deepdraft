@@ -1,0 +1,70 @@
+ERROR: plain wheel zooms in with mining selected
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: plain wheel zooms out with mining selected
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: Shift wheel resizes width without zoom
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: Alt wheel resizes depth without zoom
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: plain wheel zooms in with mining selected
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: plain wheel zooms out with mining selected
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: Shift wheel resizes width without zoom
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: Alt wheel resizes depth without zoom
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: zoom remains available after mining ends
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: one click on tree starts real felling work
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: repeat mark does not add undo entries
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: cancel tool removes tree job and preserves work
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: mixed cancellation releases felling source
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)
+ERROR: cancellation retires scheduler lease
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:219)
+       [1] _check_layouts (res://scripts/tests/OrdersShelfTest.gd:259)

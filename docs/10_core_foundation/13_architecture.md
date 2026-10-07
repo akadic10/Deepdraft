@@ -81,7 +81,14 @@ func chunk_exists(cx: int, cy: int, cz: int) -> bool
 func mark_chunk_dirty(cx: int, cy: int, cz: int) -> void
 
 signal chunk_dirtied(cx: int, cy: int, cz: int)   # connect with CONNECT_DEFERRED — may fire from the generator thread
+signal block_changed(position: Vector3i, old_id: int, new_id: int) # exact main-thread terrain edit
 ```
+
+`WorldRenderer` owns an `UndergroundLighting` presentation child (2026-10-06).
+It listens to exact block edits, incrementally derives roof/skylight exposure,
+and supplies the shared world-space material to terrain and live entity visuals.
+It is neither an autoload nor a save owner. Its tuning comes from SkyController's
+existing sky-settings registry; see `24_world_rendering.md` for the lighting contract.
 
 ### `WorldGenerator`
 Procedural world generation. Builds the 2D terrain maps on a background thread, then streams 3D chunk columns on demand as the renderer requests them. Full pipeline: `43_mining_materials.md`.
@@ -150,11 +157,27 @@ Data-only interior-column bookkeeping for the future X-Ray mode. Mining (real an
 ### `RoomManager` *(doc 34 temperature system, doc 22 doors — 2026-08-03)*
 Sealed-room detection and temperature. Not fed by a signal subscription — `FurniturePlacementController` (a scene node, not an autoload, so the dependency has to run this direction) calls `on_furniture_changed(key, cells, def, installed)` directly on every door/heat-source furniture install and uninstall — `cells` is the piece's full footprint (doc 22b, 2026-08-06: doors widened to 2×1, so every occupied cell, not just the origin, is registered as a sealing boundary). Also listens to `WorldData.chunk_dirtied` (any block edit — throttled, full-rebuild-on-dirty, see the script header) and `WorldClock.hour_changed` (cheap per-room formula recompute, no flood-fill). Public read API: `get_room_at(cell) -> Dictionary` (empty if not sealed), `get_stats()`. Never serialised — same DERIVABLE-state precedent as `InteriorTracker`; furniture restore re-installing every door through the normal path rebuilds rooms automatically on load.
 
+Room lighting also reads `get_door_boundaries()` and listens to the exact
+`door_boundaries_changed(cells)` signal, separate from throttled room/temperature
+updates. `count_room_lights(cells)` counts installed sources independently of
+heating. `SaveManager` calls `clear_runtime_state()` before world reload so old
+doors, heat and light counts cannot survive or duplicate during furniture restore.
+
 ### `StockpileManager` *(doc 18 Phase 3)*
 Colony storage coordinator: registry of stockpile zone work sources (source ids at `1_000_000 + zone_id` — offset from mining's key space), throttled HAUL-lease wake plumbing (drop spawned / task events), and the aggregate view (`get_total(item_key)`, `signal stockpile_changed`) that the doc 23 status-bar counters will consume. Reads its `hauling` config through `TaskManager.get_config_section()` (single-owner rule on `task_config.json`).
 
 ### `UIRegistry`
-Owner of UI-layout JSON (`data/ui/dock.json`). `get_dock_items()` returns the validated dock list (23_user_interface.md).
+Owner of UI-layout JSON: `data/ui/dock.json`, `place_catalog.json`,
+`inventory_catalog.json` and `dwarf_roster.json`. `get_dock_items()` returns the
+five validated navigation groups; `get_menu(target)` returns menu titles, parent
+links and command bindings; `get_place_catalog()` returns furniture categories,
+short captions and order; `get_inventory_catalog()` returns inventory categories
+and tag rules; `get_roster_filters()` returns workforce filter labels and order.
+These files describe presentation, not simulation state. Furniture definitions
+remain with FurniturePlacementController; stock with item/storage owners;
+dwarf state with DwarfDirector and its agents; trait definitions with DwarfAssets.
+Behavior remains in DockUI and the existing system controllers (23_user_interface.md,
+roadmaps 54, 56 and 57).
 
 ### `SkyController` *(doc 08 — day/night live)*
 Drives the scene `WorldEnvironment` sky/fog and Sun/Moon from keyframed curves in `data/sky/sky_settings.json`, animated against `WorldClock`. Fog colour tracks the sky horizon (24_world_rendering.md core principle). Blends weather overrides from `WeatherManager`.

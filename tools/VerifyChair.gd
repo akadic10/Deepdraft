@@ -17,8 +17,8 @@ func _run() -> void:
 	scene.add_child(controller)
 	controller.set_process(false)
 	controller._process(0) # normal lazy hookup to ItemDropManager
-	var dwarf = load("res://scripts/entities/DwarfAgent.gd").new()
-	dwarf.dwarf_id = 100
+	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
+	var dwarf = factory.spawn(factory.generate(100, {}), 100)
 	scene.add_child(dwarf)
 	dwarf.set_process(false)
 	var key := "base:furniture:wooden_chair"
@@ -26,8 +26,8 @@ func _run() -> void:
 	assert(controller.get_defs().size()>=10 and controller.get_defs().has(key))
 	var def: Dictionary = controller.get_defs()[key]
 	assert(def.item_key==item_key and def.placement=="floor" and def.yaw_steps==4)
-	assert(def.footprint.width==1 and def.footprint.depth==1)
-	assert(is_equal_approx(float(def.collision_regions[0].max[1]),2.0))
+	assert(def.footprint.width==2 and def.footprint.depth==2)
+	assert(is_equal_approx(float(def.collision_regions[0].max[1]),1.375))
 	assert(not def.room_anchor and not def.has("heat_source") and not def.has("storage"))
 	var item_def: Dictionary = manager.get_item_def(item_key)
 	assert(item_def.model=="res://assets/models/items/furniture/packed_furniture.glb")
@@ -63,7 +63,7 @@ func _run() -> void:
 		var ghost_id: int = controller._next_ghost_id
 		controller._confirm_ghost()
 		var ghost = controller._ghosts[ghost_id]
-		assert(ghost.footprint_cells().size()==1)
+		assert(ghost.footprint_cells().size()==4)
 		assert(not controller._placement_valid(origin)) # no overlapping ghosts
 		for cell in ghost.footprint_cells():
 			assert(nav.is_walkable(cell))
@@ -82,11 +82,13 @@ func _run() -> void:
 		dwarf._fetch_item = pull.item
 		dwarf._fetch_heavy = pull.heavy
 		dwarf._fetch_pickup()
+		dwarf._process_item_handling(dwarf._handling_duration * .5)
 		assert(dwarf._fetch_picked_up and manager.get_stats().loose==0)
-		assert(dwarf._fetch_item.get_parent()==dwarf and dwarf._fetch_item.scale==Vector3.ONE)
+		assert(dwarf._fetch_item.get_parent()==dwarf and dwarf._fetch_item.scale.is_equal_approx(Vector3.ONE))
 		var carried: Node3D = dwarf._fetch_item
 		var installed_id: int = controller._next_installed_id
-		dwarf._fetch_complete()
+		dwarf._begin_fetch_deposit()
+		dwarf._process_item_handling(dwarf._handling_duration)
 		assert(carried.is_queued_for_deletion() and dwarf._carried_entries.is_empty())
 		assert(controller._ghosts.is_empty() and controller._installed.size()==1)
 		var component = controller._installed[installed_id]
@@ -117,7 +119,7 @@ func _run() -> void:
 	# A table on the neighboring cells remains independent through save/restore and removal.
 	var chair_id: int = controller._installed.keys()[0]
 	var table_key := "base:furniture:wooden_table"
-	var table_origin := origin+Vector3i(1,0,0)
+	var table_origin := origin+Vector3i(3,0,0)
 	var table_id: int = controller._next_installed_id
 	controller._install(table_key,controller.get_defs()[table_key],table_origin,0)
 	assert(controller._installed.size()==2)
@@ -161,17 +163,17 @@ func _run() -> void:
 	quit(0)
 
 func _check_installed(component,origin: Vector3i,yaw: int,nav,registry) -> void:
-	assert(component.node.scale==Vector3.ONE and component.cells.size()==1)
+	assert(component.node.scale==Vector3.ONE and component.cells.size()==4)
 	assert(is_equal_approx(component.node.rotation.y,float(yaw)*PI*.5))
 	assert(component.storage==null and component.occupancy_ids.size()==1)
 	var meshes: Array = component.node.find_children("*","MeshInstance3D",true,false)
 	assert(meshes.size()==1)
 	var local: AABB = meshes[0].get_aabb()
-	assert(local.position.is_equal_approx(Vector3(-.5,0,-.5)))
-	assert(local.size.is_equal_approx(Vector3(1,2,1)))
+	assert(local.position.is_equal_approx(Vector3(-1,0,-1)))
+	assert(local.size.is_equal_approx(Vector3(2,1.375,2)))
 	var bounds: AABB = meshes[0].global_transform*local
 	assert(bounds.position.is_equal_approx(Vector3(origin)+Vector3.UP))
-	assert(bounds.size.is_equal_approx(Vector3(1,2,1)))
+	assert(bounds.size.is_equal_approx(Vector3(2,1.375,2)))
 	var mat: StandardMaterial3D = meshes[0].material_override
 	assert(mat.vertex_color_use_as_albedo and not mat.vertex_color_is_srgb)
 	assert(mat.cull_mode==BaseMaterial3D.CULL_DISABLED and mat.shading_mode==BaseMaterial3D.SHADING_MODE_PER_PIXEL)

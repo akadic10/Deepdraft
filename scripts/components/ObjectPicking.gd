@@ -39,6 +39,22 @@ static func world_bounds(node: Node3D) -> AABB:
 	return result
 
 
+## Animated actors can retain hidden tools. Only visible geometry belongs in
+## their selection bounds; collision and navigation boxes remain unchanged.
+static func visible_world_bounds(node: Node3D) -> AABB:
+	if not node.is_visible_in_tree():
+		return AABB()
+	var result := AABB()
+	if node is MeshInstance3D and node.mesh != null:
+		result = node.global_transform * node.get_aabb()
+	for child in node.get_children():
+		if child is Node3D:
+			var box := visible_world_bounds(child)
+			if box.size.length_squared() > 0.0:
+				result = box if result.size == Vector3.ZERO else result.merge(box)
+	return result
+
+
 static func _collect_bounds(node: Node, boxes: Array[AABB]) -> void:
 	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
 		var visual := node as MeshInstance3D

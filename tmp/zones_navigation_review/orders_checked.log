@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 6 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+UIWindowManager: ready (0 remembered window positions).
+Camera: ready (FOV 45°, zoom 2–180 m).
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+MiningDesignationController: precision mining active.
+MiningDesignationController: precision mining active.
+MiningDesignationController: precision mining active.
+ItemDropManager: loaded 77 item definitions.
+StockpileDesignationController: zone 1 created (1 cells at Y 20).
+StockpileDesignationController: zone 1 created (1 cells at Y 20).
+MiningDesignationController: precision mining active.
+MiningDesignationController: precision mining active.
+MiningDesignationController: precision mining active.
+ORDERS_SHELF_OK: real input, mining zoom and modifier resize in either input order, UI wheel isolation, mine/chop/storage, tool exclusivity, mixed cancel, source leases/progress, safe undo, UI release, native responsive layouts

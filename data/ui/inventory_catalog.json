@@ -1,0 +1,14 @@
+{
+  "__comment": "Inventory presentation only. Counts and item definitions stay with their existing owners. The first matching tag rule wins; unmatched resources use Other. Furniture uses Place catalog captions and thumbnails.",
+  "categories": [
+    {"id": "all", "label": "All"},
+    {"id": "materials", "label": "Materials", "tags": ["stockpile_stone", "stockpile_ore", "stockpile_wood", "stockpile_soil", "stockpile_metal", "stockpile_gem"]},
+    {"id": "furniture", "label": "Furniture"},
+    {"id": "storage", "label": "Storage"},
+    {"id": "lighting", "label": "Lighting"},
+    {"id": "food", "label": "Food & seeds", "tags": ["stockpile_food", "stockpile_seed"]},
+    {"id": "drink", "label": "Drink", "tags": ["stockpile_drink"]},
+    {"id": "other", "label": "Other"}
+  ],
+  "furniture_categories": {"storage": "storage", "lighting": "lighting"}
+}

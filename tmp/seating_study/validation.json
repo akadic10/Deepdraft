@@ -1,0 +1,126 @@
+{
+  "status": "preview_only",
+  "models": {
+    "personal_table": {
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          1.75,
+          1.0
+        ]
+      ],
+      "voxels": 1088,
+      "sha256": "02578a313a0202da731974a019dd8469e91a542bd256bf858688e86c19b43d58"
+    },
+    "communal_table": {
+      "bounds": [
+        [
+          -4.0,
+          0.0,
+          -1.0
+        ],
+        [
+          4.0,
+          1.75,
+          1.0
+        ]
+      ],
+      "voxels": 2816,
+      "sha256": "8d40cd63da69c3a4d3edabc89e89927a1ec978fcb019c388d27cdf4b2f67fe45"
+    },
+    "communal_table_8x3": {
+      "bounds": [
+        [
+          -4.0,
+          0.0,
+          -1.5
+        ],
+        [
+          4.0,
+          1.75,
+          1.5
+        ]
+      ],
+      "voxels": 4032,
+      "sha256": "cd1a4cc52071a3b416a8370cc3bc2331ba8580c6379d9f3298f0a1e6243ed831"
+    },
+    "communal_table_8x4": {
+      "bounds": [
+        [
+          -4.0,
+          0.0,
+          -2.0
+        ],
+        [
+          4.0,
+          1.75,
+          2.0
+        ]
+      ],
+      "voxels": 5248,
+      "sha256": "ccffd24d98f0dbbc4d6848e13c95260a35e032f5bc097b4b2b37b014aed29425"
+    },
+    "wide_chair": {
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          1.375,
+          1.0
+        ]
+      ],
+      "voxels": 792,
+      "sha256": "c66974f4cfa005ef09dd913c0f74ee2383f0d0cad77ce16bc394889aae92a7a8"
+    }
+  },
+  "source_hashes": {
+    "assets\\dwarves\\beards\\beard_braided_long.glb": "7ba56f5ff24de4835910798c35b79465ae57c654b6e23204a8a25d87aeb6ca32",
+    "assets\\dwarves\\beards\\beard_forked.glb": "27591698edc810c8db4f378c1d022d97674eba76447785618a8f04d41ca1e555",
+    "assets\\dwarves\\beards\\beard_full_braided.glb": "391e2e4ae32093c8b1f6cb1fcbc440f506bf989a4fb532f4473e15139e1977f4",
+    "assets\\dwarves\\beards\\beard_full_long.glb": "c6fe4d4afa0c81b48b27751bfa72c6b97b250c9ab2d9cd906092d5ed282cf677",
+    "assets\\dwarves\\beards\\beard_goatee.glb": "71a2fedfff0b1a902f5e1577bbcdf43e27bba1ce3c1dff7b478dc0617eed9e17",
+    "assets\\dwarves\\beards\\beard_mutton_chops.glb": "f53f7865ae3591993f7d5030ee3fb73968bf9e7a002cb64bace33991d292f5b9",
+    "assets\\dwarves\\beards\\beard_short_trimmed.glb": "2d9151edb76e9e1a57a4d60af5cac680b47056d0d0b8df7caeba1d79625370d2",
+    "assets\\dwarves\\body\\body_base.glb": "064136fca48f50a653e9a918736d52500e505c31f5c3496846b83a685c628a5f",
+    "assets\\dwarves\\body\\eyes.glb": "62d9a95397c8779c6085a5d21562c31e8200b616dedaa87352837619ecf326fc",
+    "assets\\dwarves\\body\\foot.glb": "20f6c518261ada98345c16e1d9ba5a37ebe999b17dbe6afedebd94377d12b1e7",
+    "assets\\dwarves\\body\\hand.glb": "08d7ff721fae0c3fd6281991c9fd0d98b24df36a40d87579b583dd9b0f2bac23",
+    "assets\\dwarves\\body\\head_adult.glb": "460549093794b9c36cb50c31c7c348314c11662158a8aace4abf57fe06066110",
+    "assets\\dwarves\\body\\head_elder.glb": "8bf15b038992a825d2a933c3b6bfae17e455ed4cb95a656e27993341705b7a19",
+    "assets\\dwarves\\body\\head_middle.glb": "e6afd5af25b6dc01df940eb02e1f9e178a06b4e0b461f518d7a9c40319c35cf3",
+    "assets\\dwarves\\body\\head_young.glb": "eb3bd49d51a5b9ec3eddc252d7f3e1ba23380d76b6ef93a97dc08a0702c4d387",
+    "assets\\dwarves\\eyebrows\\brows_f_bushy.glb": "ab1a4758608cb7bba34910828dab25c9c82ffd15ee79ef806f39cc30fff9ad10",
+    "assets\\dwarves\\eyebrows\\brows_f_sharp_angled.glb": "d2bc75f7d8e99fe77c9f0774a19fd6cfb3be325453180f0705c2e8056c5fe1ac",
+    "assets\\dwarves\\eyebrows\\brows_f_thick_flat.glb": "73b9a30be88d3db361f587e4f3bd2fee8417b29d7cb0e070d49bb0ca87cbc9ab",
+    "assets\\dwarves\\eyebrows\\brows_f_thin_arched.glb": "d779e6b5fd49ca426150d233632dfc051f453318f59a59160ec9182648636d3b",
+    "assets\\dwarves\\eyebrows\\brows_m_arched.glb": "560e8f152945d8ba3b3a8ed10e1893f25737b53629a034375fc22af1f08a62a7",
+    "assets\\dwarves\\eyebrows\\brows_m_bushy.glb": "1fa43dc0bfdc6b1d93a522cb25cec138e14b158fae537bc234f06d1101ca0037",
+    "assets\\dwarves\\eyebrows\\brows_m_thick_flat.glb": "d241d82e56633291c9b9302b2b493c4582fd2b3037dac03013b244a9f987f54f",
+    "assets\\dwarves\\eyebrows\\brows_m_unibrow.glb": "72cfd40f830f8fb78a8ba5ded032c5ccefe931348ffaaa52471b2ff4def16dfe",
+    "assets\\dwarves\\hair\\hair_f_braid_long.glb": "d3ffa261c3010b7865ef9c8f0df310b0918192d0950ecf1840c25e94360b7d70",
+    "assets\\dwarves\\hair\\hair_f_braid_side.glb": "28f6d72d77e697c55f56df460a7ec9314b2ca7d10f481380ee5038407926d9c3",
+    "assets\\dwarves\\hair\\hair_f_bun.glb": "2ca90f7b2a2bf731140a4018d99d38cd456f3a51befafa65f8edd3cf4cb23292",
+    "assets\\dwarves\\hair\\hair_f_cropped.glb": "1d5a9d40a1156e80574f795a0b4d1115278de545a167963799faa388ef6acaa7",
+    "assets\\dwarves\\hair\\hair_f_half_up.glb": "17c689175fab6c3e5e43ee5d477c8e8a5ea97085effe280c247621709bdfb692",
+    "assets\\dwarves\\hair\\hair_f_loose_long.glb": "8a805fee7848a4694bbfef8cdfdac871be6f31f1644cf05e277d7dc7e23a2d07",
+    "assets\\dwarves\\hair\\hair_f_shaved_sides.glb": "bc4f9d80d987e3dea31b7a32e7f5a25a31e1e8aa7dd645e104d94757da8b29fb",
+    "assets\\dwarves\\hair\\hair_f_short_practical.glb": "2c265af1f7946b9bee1040e02a39ee59252eab7436d8bc29dfa9682996a76bd3",
+    "assets\\dwarves\\hair\\hair_f_twin_braids.glb": "2648a10863148c25f52ce9597c379634b5b7e39c5f8e9d159a7281b6ec73fd1c",
+    "assets\\dwarves\\hair\\hair_f_wild.glb": "db2790bb0e286363190dfeb91daed22701e2ef26f8c258524eb5197c6c110b86",
+    "assets\\dwarves\\hair\\hair_m_braided_back.glb": "4f8761f0ac0c80f0bc0da77deed6f848ec89946beffbc343da9fa4510c1a3ddd",
+    "assets\\dwarves\\hair\\hair_m_shaved.glb": "32afb1c3da39599b00c4c61ade5cdabefd60a164864d39c2f05fe76009e894a4",
+    "assets\\dwarves\\hair\\hair_m_short_back.glb": "bf5b5e0ae90e2a211b877f20a8ea77fb31865f3d0fb7a44a84ec70a0bab7602b",
+    "assets\\dwarves\\hair\\hair_m_wild_loose.glb": "4fbd208801a28e883b4086d4c70228e094494ea5d860c75d8f42aa451e40e762",
+    "assets\\models\\furniture\\wooden_chair.glb": "a1d835d20d8010e2d0601f5904cbf158a0a3781679001331b4dc1b0d1e3ec376",
+    "assets\\models\\furniture\\wooden_table.glb": "7aee96923d0fb18797d494ec7c2f522399700b317b67a4ab6b2649a12cbdac34"
+  }
+}

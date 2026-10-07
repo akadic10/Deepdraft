@@ -1,9 +1,9 @@
 class_name UIWindow
 extends PanelContainer
 
-## The one shared window chrome (doc 24, Phase U1) — macOS model.
+## The shared Hearth & iron window chrome (docs 24/51).
 ##
-## Structure: title bar (emoji + title, drag surface) + red close button +
+## Structure: title bar (emoji + title, drag surface) + close button +
 ## a content slot the owning system fills. Behaviour: drag by the title bar
 ## (viewport-clamped so the bar can never leave the screen), click anywhere to
 ## request focus (front-most), close hides — never frees — so content state and
@@ -40,9 +40,13 @@ var _body_slot: MarginContainer = null
 var _content: Control = null
 var _pending_title: String = ""
 var _dragging: bool = false
+var keep_body_on_screen := false
+var _title_bar: PanelContainer
+var _close_button: Button
 
 
 func _ready() -> void:
+	UITheme.apply_surface(self)
 	add_theme_stylebox_override("panel", UITheme.window_style())
 
 	# 1px inset so the body never paints over the border (the World Build
@@ -59,6 +63,7 @@ func _ready() -> void:
 	outer.add_child(column)
 
 	var title_bar := PanelContainer.new()
+	_title_bar = title_bar
 	title_bar.name = "TitleBar"
 	title_bar.custom_minimum_size = Vector2(0.0, TITLEBAR_HEIGHT)
 	title_bar.mouse_default_cursor_shape = Control.CURSOR_MOVE
@@ -81,10 +86,11 @@ func _ready() -> void:
 	_title_label.text = _pending_title
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE)
+	UITheme.apply_title(_title_label)
 	header.add_child(_title_label)
 
 	var close := Button.new()
+	_close_button = close
 	close.name = "CloseButton"
 	close.text = "X"
 	UITheme.apply_close_button(close)
@@ -139,7 +145,7 @@ func clamp_to_viewport() -> void:
 	position.x = clampf(position.x, VIEWPORT_MARGIN,
 			maxf(VIEWPORT_MARGIN, vp.x - window_size.x - VIEWPORT_MARGIN))
 	position.y = clampf(position.y, VIEWPORT_MARGIN,
-			maxf(VIEWPORT_MARGIN, vp.y - TITLEBAR_HEIGHT - VIEWPORT_MARGIN))
+			maxf(VIEWPORT_MARGIN, vp.y - (window_size.y if keep_body_on_screen else TITLEBAR_HEIGHT) - VIEWPORT_MARGIN))
 
 
 # ── Input ─────────────────────────────────────────────────────────────────────

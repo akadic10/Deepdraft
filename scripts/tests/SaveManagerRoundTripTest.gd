@@ -112,6 +112,11 @@ func _run() -> void:
 
 	# The autosave must be independently loadable and must not use the manual
 	# primary or backup created above.
+	# Furniture added after the save must leave no stale light-blocking doors
+	# or heat/light registrations when an earlier world is restored.
+	var later_furniture := _owner("furniture")
+	for pair in [["base:furniture:door", 36], ["base:furniture:brazier", 38]]:
+		later_furniture.call("_install", pair[0], later_furniture.call("get_defs")[pair[0]], _surface_cell(pair[1], 0), 0)
 	_load_completed = false
 	_load_succeeded = false
 	_load_used_backup = false
@@ -222,6 +227,8 @@ func _build_nonempty_colony_state() -> String:
 			"id": 201,
 			"cells": [_pack_v3i(stockpile_cell)],
 			"filter_tags": ["stockpile_seed"],
+			"storage_filter": {"tags": ["stockpile_seed"], "items": ["base:resources:wood:oak_log"],
+				"excluded_items": ["base:resources:seed:oak_acorn"]},
 			"stacks": [{
 				"cell": _pack_v3i(stockpile_cell),
 				"item": "base:resources:seed:oak_acorn",
@@ -242,7 +249,14 @@ func _build_nonempty_colony_state() -> String:
 			"origin": _pack_v3i(furniture_cell),
 			"yaw": 0,
 			"flagged_uninstall": false,
+			"storage_filter": {"tags": ["stockpile_stone"], "items": ["base:resources:wood:oak_log"], "excluded_items": []},
 			"inventory": { "base:resources:stone:rough_stone": 2, "base:resources:flora:apple": 27 },
+		}, {
+			"id": 402, "key": "base:furniture:door",
+			"origin": _pack_v3i(_surface_cell(32, 0)), "yaw": 0,
+		}, {
+			"id": 403, "key": "base:furniture:brazier",
+			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0,
 		}],
 	})
 	items.call("restore_state", {
@@ -339,8 +353,14 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 1:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
-	if furniture_state.get("ghosts", []).size() != 1 or furniture_state.get("installed", []).size() != 1:
+	if furniture_state.get("ghosts", []).size() != 1 or furniture_state.get("installed", []).size() != 3:
 		return "furniture state did not round-trip"
+	var rooms := root.get_node("RoomManager")
+	if rooms.get_door_boundaries().size() != 10 or int(rooms.get_stats().doors) != 1:
+		return "door light boundaries did not rebuild from saved furniture"
+	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
+	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 600:
+		return "installed light/heat duplicated across world reload"
 	if (scene_state["items"] as Dictionary).get("loose", []).size() != 1:
 		return "loose items did not round-trip"
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])

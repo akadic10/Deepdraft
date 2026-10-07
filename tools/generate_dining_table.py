@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 import shutil
 
-from voxel_glb import Voxels, write_glb
-from generate_tavern_redesign import OAK, IRON, box, export_mesh, sha
+from voxel_glb import write_glb
+from generate_tavern_redesign import export_mesh, sha
 
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = .125
@@ -14,66 +14,12 @@ MODEL = 'assets/models/furniture/wooden_table.glb'
 
 
 def wooden_table():
-    """16x12x16 cells: broad X-running planks on two stout Z-running trestles."""
-    v = Voxels()
-    for x0,x1 in ((-6,-3),(3,6)):
-        # Wide feet and paired uprights leave readable gaps beneath the slab.
-        box(v,x0,x1,0,2,-6,6,OAK[2])
-        box(v,x0,x1,0,1,-6,6,OAK[1])
-        for z0,z1 in ((-4,-1),(1,4)):
-            box(v,x0,x1,2,8,z0,z1,OAK[3])
-            box(v,x0,x0+1,2,8,z0,z1,OAK[2])
-        box(v,x0,x1,8,10,-6,6,OAK[2])
-        # Stepped shoulders spread load into the tabletop.
-        for y,r in ((5,2),(6,3),(7,4)):
-            box(v,x0,x1,y,y+1,-r,r,OAK[3])
-        for z in (-6,5):
-            box(v,x0,x1,1,2,z,z+1,IRON[1])
-            v.cells[x0+1,1,z] = IRON[2]
-    # A through-tenoned stretcher joins both trestles without filling the underside.
-    box(v,-7,7,3,5,-1,1,OAK[2])
-    for x in (-7,6):
-        box(v,x,x+1,3,5,-1,1,OAK[4])
-        v.cells[x,4,0] = OAK[1]
-    # Two-cell slab, four wide planks and clipped corners. No random color noise.
-    for x in range(-8,8):
-        for z in range(-8,8):
-            if abs(x+.5)==7.5 and abs(z+.5)==7.5:
-                continue
-            edge = x in (-8,7) or z in (-8,7)
-            v.cells[x,10,z] = OAK[2] if edge else OAK[3]
-            if abs(x+.5)+abs(z+.5)>14:
-                continue
-            plank = (z+8)//4
-            v.cells[x,11,z] = OAK[(5,4,5,4)[plank]]
-            if z in (-4,0,4) and -7<x<7:
-                v.cells[x,11,z] = OAK[3]
-            elif edge:
-                v.cells[x,11,z] = OAK[5]
-    # Long, sparse grain and a handful of worn end-grain highlights.
-    for z,x0,x1,col in ((-6,-4,3,4),(-2,-2,5,5),(2,-5,1,4),(6,-1,4,5)):
-        box(v,x0,x1,11,12,z,z+1,OAK[col])
-    for x in (-8,7):
-        for z in (-5,2,5):
-            v.cells[x,11,z] = OAK[6]
-    # Four short L brackets clasp the corners instead of banding the whole slab.
-    for sx in (-1,1):
-        for sz in (-1,1):
-            cx = -7 if sx<0 else 6
-            cz = -7 if sz<0 else 6
-            for step in range(3):
-                v.cells[cx-sx*step,11,cz] = IRON[1]
-                v.cells[cx,11,cz-sz*step] = IRON[1]
-            v.cells[cx,11,cz] = IRON[2]
-            ex = -8 if sx<0 else 7
-            ez = -8 if sz<0 else 7
-            v.cells[ex,10,cz] = IRON[1]
-            v.cells[cx,10,ez] = IRON[1]
-    return v
+    from generate_seating_study import chair, table
+    return table(2, 2)
 
 
 def validate(vox):
-    assert all(-8<=x<8 and 0<=y<12 and -8<=z<8 for x,y,z in vox.cells)
+    assert all(-8<=x<8 and 0<=y<14 and -8<=z<8 for x,y,z in vox.cells)
     pending = {next(iter(vox.cells))}
     visited = set()
     while pending:
@@ -126,7 +72,7 @@ script = ExtResource("1")
     (out/'.gitignore').write_text('.godot/\n*.import\n*.uid\n',encoding='utf-8')
     bounds = [[min(p[a] for p in mesh[0])*SCALE for a in range(3)],
               [max(p[a] for p in mesh[0])*SCALE for a in range(3)]]
-    assert bounds==[[-1,0,-1],[1,1.5,1]]
+    assert bounds==[[-1,0,-1],[1,1.75,1]]
     report = {'status':'installed' if install else 'review_export',
               'voxels_per_block':8,'export_scale':SCALE,'color_encoding':'linear COLOR_0',
               'voxels':len(vox),'triangles':len(mesh[3])//3,'bounds':bounds,

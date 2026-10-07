@@ -17,8 +17,8 @@ func _run() -> void:
 	scene.add_child(controller)
 	controller.set_process(false)
 	controller._process(0) # normal lazy hookup to ItemDropManager
-	var dwarf = load("res://scripts/entities/DwarfAgent.gd").new()
-	dwarf.dwarf_id = 100
+	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
+	var dwarf = factory.spawn(factory.generate(100, {}), 100)
 	scene.add_child(dwarf)
 	dwarf.set_process(false)
 	var key := "base:furniture:storage_shelf"
@@ -82,11 +82,14 @@ func _run() -> void:
 		dwarf._fetch_item = pull.item
 		dwarf._fetch_heavy = pull.heavy
 		dwarf._fetch_pickup()
+		assert(not dwarf._fetch_picked_up and manager.get_stats().loose==1)
+		dwarf._process_item_handling(dwarf._handling_duration * .5)
 		assert(dwarf._fetch_picked_up and manager.get_stats().loose==0)
-		assert(dwarf._fetch_item.get_parent()==dwarf and dwarf._fetch_item.scale==Vector3.ONE)
+		assert(dwarf._fetch_item.get_parent()==dwarf and dwarf._fetch_item.scale.is_equal_approx(Vector3.ONE))
 		var carried: Node3D = dwarf._fetch_item
 		var installed_id: int = controller._next_installed_id
-		dwarf._fetch_complete()
+		dwarf._begin_fetch_deposit()
+		dwarf._process_item_handling(dwarf._handling_duration)
 		assert(carried.is_queued_for_deletion() and dwarf._carried_entries.is_empty())
 		assert(controller._ghosts.is_empty() and controller._installed.size()==1)
 		var component = controller._installed[installed_id]

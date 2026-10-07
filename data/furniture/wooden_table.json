@@ -1,23 +1,74 @@
 {
   "__comment": [
-    "Dining Table - oak dining-hall furniture (art doc 38, 2026-10-01).",
-    "The approved 2x2 footprint has a 1.5-block tabletop above 1-block bench seats.",
-    "Floor placement, packed-item fetch/build, uninstall and saving use the existing pipeline.",
-    "The fractional collision height is rounded outward only for whole-cell occupancy.",
-    "Dining, seating assignments and comfort effects remain future gameplay work."
+    "Approved seated dining design: 2x2, 1.75-block tabletop. Chairs are separate build items.",
+    "Seat slots use footprint-local chair origins and quarter-turn yaw; see doc 50.",
+    "Four alternative sides share one chair capacity; planned and installed chairs count."
   ],
   "furniture_key": "base:furniture:wooden_table",
   "furniture_category": "dining",
-  "display_name": "Dining Table",
-  "description": "A broad oak table on stout trestles, with worn planks and iron corner fittings.",
+  "display_name": "Personal Dining Table",
+  "description": "A compact oak dining table for one dwarf’s room.",
   "model": "res://assets/models/furniture/wooden_table.glb",
   "item_key": "base:resources:furniture:wooden_table",
   "placement": "floor",
   "yaw_steps": 4,
-  "footprint": { "width": 2, "depth": 2 },
+  "footprint": {
+    "width": 2,
+    "depth": 2
+  },
   "blocks_movement": true,
   "collision_regions": [
-    { "min": [0, 0, 0], "max": [2, 1.5, 2] }
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        2,
+        1.75,
+        2
+      ]
+    }
   ],
-  "room_anchor": false
+  "room_anchor": false,
+  "seating": {
+    "chair_key": "base:furniture:wooden_chair",
+    "snap_radius": 1.5,
+    "slots": [
+      {
+        "id": "personal",
+        "chair_origin": [
+          0,
+          2
+        ],
+        "yaw": 2
+      },
+      {
+        "id": "north",
+        "chair_origin": [
+          0,
+          -2
+        ],
+        "yaw": 0
+      },
+      {
+        "id": "west",
+        "chair_origin": [
+          -2,
+          0
+        ],
+        "yaw": 1
+      },
+      {
+        "id": "east",
+        "chair_origin": [
+          2,
+          0
+        ],
+        "yaw": 3
+      }
+    ],
+    "max_chairs": 1
+  }
 }

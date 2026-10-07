@@ -98,7 +98,7 @@ func _has_room_for_key(key: String) -> bool:
 
 
 func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1) -> Variant:
-	if suspended:
+	if suspended or not accepts_key(item_key):
 		return null
 	return _slots.reserve(item_key, amount, dwarf_id, near)
 
@@ -114,6 +114,15 @@ func _commit_one(token: Variant, item_key: String) -> void:
 
 func _deposit_walk_target(_first_token: Variant) -> Vector3i:
 	return nearest_stand_target(Vector3i.ZERO)
+
+
+func delivery_contact(stand: Vector3i) -> Vector3:
+	if cells.is_empty():
+		return super.delivery_contact(stand)
+	var center := Vector3.ZERO
+	for cell in cells:
+		center += Vector3(cell.x + .5, cell.y + 1.8, cell.z + .5)
+	return center / float(cells.size())
 
 
 ## Barrel/chest ABSORB the node; the shelf snaps it onto a free anchor
@@ -184,33 +193,65 @@ func withdraw_nearest(item_key: String, _near: Vector3i, dwarf_id: int) -> Node3
 		return null
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return null
+	for slot in _slots.entries:
+		if int(_slots.entries[slot].count) > int(_outgoing.get(slot, {}).get("count", 0)) and String(_slots.entries[slot].item) == item_key:
+			return withdraw_stack(slot, 1, dwarf_id)
+	return null
+
+
+func stored_entries() -> Dictionary:
+	return _slots.entries
+
+
+func storage_capacity() -> int:
+	return capacity
+
+
+func slot_cell(_slot: Variant) -> Vector3i:
+	return cells[0] if not cells.is_empty() else Vector3i(-1, -1, -1)
+
+
+func withdrawal_stands(_slot: Variant) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	for cell in cells:
+		for stand in ground_access_cells(cell):
+			if stand not in cells and stand not in result: result.append(stand)
+	return result
+
+
+func withdrawal_contact(_slot: Variant) -> Vector3:
+	return delivery_contact(nearest_stand_target(Vector3i.ZERO))
+
+
+func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
+	if suspended or not _slots.entries.has(slot): return null
+	var stack: Dictionary = _slots.entries[slot]
+	var item_key := String(stack.item)
+	if amount <= 0 or amount > int(stack.count): return null
 	var stand := nearest_stand_target(Vector3i.ZERO)
 	if stand.x < 0:
 		return null
 	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id)
 	if node == null:
 		return null
-	for slot in _slots.entries:
-		var stack: Dictionary = _slots.entries[slot]
-		if String(stack.item) != item_key:
-			continue
-		stack.count = int(stack.count) - 1
-		if render_contents and int(slot) < _anchor_slots.size() and _anchor_slots[slot] != null:
-			var visual: Node3D = _anchor_slots[slot][0]
-			if int(stack.count) > 0:
-				drop_manager.call("set_quantity", visual, int(stack.count))
-				ITEM_LAYOUT.fit(visual, anchor_max_size, anchor_scale)
-			else:
-				visual.queue_free()
-				_anchor_slots[slot] = null
-		if int(stack.count) <= 0:
-			_slots.entries.erase(slot)
-		break
-	inventory[item_key] = int(inventory[item_key]) - 1
+	drop_manager.set_quantity(node, amount)
+	stack.count = int(stack.count) - amount
+	if render_contents and int(slot) < _anchor_slots.size() and _anchor_slots[slot] != null:
+		var visual: Node3D = _anchor_slots[slot][0]
+		if int(stack.count) > 0:
+			drop_manager.call("set_quantity", visual, int(stack.count))
+			ITEM_LAYOUT.fit(visual, anchor_max_size, anchor_scale)
+		else:
+			visual.queue_free()
+			_anchor_slots[slot] = null
+	if int(stack.count) <= 0:
+		_slots.entries.erase(slot)
+	inventory[item_key] = int(inventory[item_key]) - amount
 	if int(inventory[item_key]) <= 0:
 		inventory.erase(item_key)
 	if changed_callback.is_valid():
-		changed_callback.call(item_key, -1)
+		changed_callback.call(item_key, -amount)
+	changed.emit()
 	return node
 
 

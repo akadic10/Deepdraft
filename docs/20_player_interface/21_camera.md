@@ -11,6 +11,10 @@ the permanent reference. All tuning values live in `data/camera/camera_settings.
 truth) and are hot-editable without touching GDScript. Logic is in `Camera.gd`, attached to the
 `CameraRig` root.
 
+Keyboard pan and edge scrolling pause while a LineEdit or TextEdit has focus,
+so typing in the Colony roster search or moving its caret cannot move the world.
+Normal camera movement resumes when text entry loses focus.
+
 ## Camera Rig Structure
 
 ```
@@ -50,6 +54,16 @@ accepted in player testing on 2026-10-04; see
 | Screen edge | Optional edge-scroll (off by default) |
 
 While dragging, an emoji cursor shows the mode (✋ grab-pan, 🔄 orbit) and the OS cursor hides.
+
+### Dwarf inspection: Locate and Follow (2026-10-05)
+
+The dwarf inspector can center the camera on a dwarf or follow their position,
+preserving zoom, pitch and orbit. This changes only the camera, never the dwarf's
+orders. Keyboard/edge pan, middle-mouse pan, orbit past its dead zone, and world
+zoom return control to the player. UI-consumed wheel events retain follow.
+Closing or clearing selection, switching objects, slice concealment and actor
+removal also end follow. Following is transient and is cleared on camera restore;
+the existing saved camera framing is unchanged.
 
 ## Navigation Parameters
 
@@ -143,10 +157,19 @@ Right-mouse and the wheel are shared with tools; the resolved contract (see `Min
 
 - **Tool cancel is ESC-only.** Right-mouse is reserved for camera orbit (Stonehearth model: RMB =
   orbit, ESC = cancel mode). Tools must **not** consume RMB.
-- **An active tool may claim the wheel.** The camera exposes `Camera.set_zoom_suppressed(bool)`; a
-  tool calls it `true` on activate and `false` on deactivate. While suppressed the camera ignores the
-  wheel (e.g. the mining brush resize wins); orbit and pan still work.
+- **Plain wheel always zooms over the world**, including with Mine blocks selected
+  or during a designation drag. **Shift + wheel** adjusts mining width and
+  **Alt + wheel** adjusts mining depth, without also zooming. The camera checks
+  these modifiers itself so scene input order cannot cause both actions.
+- Wheel input over UI panels is consumed by the GUI before reaching either tool
+  or camera; scrolling a panel must not resize the brush or zoom the world.
 - Middle-mouse (grab-pan) is camera-only — tools should avoid it.
+
+**2026-10-06 fix:** removed the old tool-wide zoom-suppression flag/API. Mining
+was setting it throughout activation even though brush resizing already required
+Shift/Alt, which unintentionally blocked plain-wheel zoom. `OrdersShelfTest`
+reproduces the original failure and verifies both zoom directions, modifier
+resizing, UI isolation, zoom during a drag and after exit, in both node input orders.
 
 ## Horizontal Layer Slicing
 

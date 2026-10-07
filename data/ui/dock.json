@@ -1,151 +1,222 @@
 {
-  "__comment": "Floating bottom dock layout (macOS-dark-mode style). Array order = on-screen order, left to right. Loaded by the UIRegistry autoload (res://scripts/registries/UIRegistry.gd) — no other script should read this file. Scope: dock LAYOUT only (order, emoji, label, tooltip, action binding). The action *logic* lives in GDScript (the dock node's dispatch map), never here. Buildable-entry catalogs (costs, action_type, requires_floor) are a separate concern and are not part of this file.",
-  "__emoji_note": "Emoji icons require an emoji-capable fallback font in the project theme (e.g. Noto Color Emoji). Godot's default theme font will NOT render them. Godot 4 supports color-glyph fonts (COLR/CPAL, CBDT/CBLC, sbix) once one is loaded.",
-  "__hidden_note": "Calendar, X-Ray, and Gather were removed 2026-08-20 (doc 24 decision: unbuilt dock entries are hidden until their features exist). Restore their entries when those systems land.",
-  "schema_version": 1,
+  "__comment": "Hearth & iron command navigation. UIRegistry owns this layout; action behavior lives in DockUI. Group order, labels and menu bindings are data.",
+  "schema_version": 2,
   "items": [
     {
-      "id": "mine",
-      "emoji": "⛏️",
-      "label": "Mine",
-      "tooltip": "Designate mining zones, clear rubble, channel floors",
+      "id": "orders",
+      "label": "Orders",
+      "icon": "res://assets/ui/icons/orders.svg",
+      "tooltip": "Mining, chopping and cancelling work orders",
       "action": "open_panel",
-      "target": "mine"
+      "target": "orders"
     },
     {
-      "id": "chop",
-      "emoji": "🪓",
-      "label": "Chop",
-      "tooltip": "Designate trees for chopping and forestry zones",
+      "id": "zones",
+      "label": "Zones",
+      "icon": "res://assets/ui/icons/zones.svg",
+      "tooltip": "Designate storage areas",
       "action": "open_panel",
-      "target": "chop"
-    },
-    {
-      "id": "build",
-      "emoji": "🔨",
-      "label": "Build",
-      "tooltip": "Place workshops, doors, furniture, and stockpile zones",
-      "action": "open_panel",
-      "target": "build"
-    },
-    { "type": "separator" },
-    {
-      "id": "storage_zone",
-      "emoji": "📦",
-      "label": "Storage Zone",
-      "tooltip": "Draw a rectangle to designate ground storage areas",
-      "action": "open_panel",
-      "target": "storage_zone"
-    },
-    {
-      "id": "farm",
-      "emoji": "🌾",
-      "label": "Farm",
-      "tooltip": "Designate soil plots and assign crops",
-      "action": "open_panel",
-      "target": "farm"
-    },
-    { "type": "separator" },
-    {
-      "id": "military",
-      "emoji": "⚔️",
-      "label": "Military",
-      "tooltip": "Set patrol routes, guard posts, and enlistment",
-      "action": "open_panel",
-      "target": "military"
-    },
-    { "type": "separator" },
-    {
-      "id": "labor",
-      "emoji": "👷",
-      "label": "Labor",
-      "tooltip": "Assign professions and job priorities",
-      "action": "toggle_window",
-      "target": "labor"
-    },
-    {
-      "id": "stockpiles",
-      "emoji": "🗃️",
-      "label": "Stockpiles",
-      "tooltip": "View and filter colony stockpiles",
-      "action": "toggle_window",
-      "target": "stockpiles"
-    },
-    {
-      "id": "trade",
-      "emoji": "💰",
-      "label": "Trade",
-      "tooltip": "Trade Counter, buy orders, and caravan log",
-      "action": "toggle_window",
-      "target": "trade"
-    },
-    { "type": "separator" },
-    {
-      "id": "clock",
-      "emoji": "🕒",
-      "label": "Clock",
-      "tooltip": "Shows the clock",
-      "action": "toggle_window",
-      "target": "clock"
-    },
-    { "type": "separator" },
-    {
-      "id": "slice",
-      "emoji": "👀",
-      "label": "Slice",
-      "tooltip": "Toggle the slice view ( \\ ) — step the cut plane with ] [ and Ctrl+] Ctrl+[",
-      "action": "toggle_window",
-      "target": "slice"
+      "target": "zones"
     },
     {
       "id": "rooms",
-      "emoji": "\ud83d\udeaa",
       "label": "Rooms",
-      "tooltip": "Show sealed rooms \u2014 click a room for temperature and details",
+      "icon": "res://assets/ui/icons/rooms.svg",
+      "tooltip": "Inspect enclosed rooms, temperature and lighting",
       "action": "toggle_window",
       "target": "rooms"
     },
-    { "type": "separator" },
     {
-      "id": "flag",
-      "emoji": "🚩",
-      "label": "Settle",
-      "tooltip": "Place the Settlement Flag — your dwarves arrive at it (ESC cancels)",
-      "action": "toggle_window",
-      "target": "flag"
-    },
-    {
-      "id": "dwarves",
-      "emoji": "🧔",
-      "label": "Dwarves",
-      "tooltip": "DEV: spawn and inspect dwarves (First Dwarf Milestone)",
-      "action": "toggle_window",
-      "target": "dwarves"
-    },
-    {
-      "id": "world_info",
-      "emoji": "📊",
-      "label": "World",
-      "tooltip": "World information and colony overview",
-      "action": "toggle_window",
-      "target": "world_info"
-    },
-    {
-      "id": "block_inspector",
-      "emoji": "🔍",
-      "label": "Inspect",
-      "tooltip": "Block inspector",
-      "action": "toggle_window",
-      "target": "block_inspector"
-    },
-    { "type": "separator" },
-    {
-      "id": "save_load",
-      "emoji": "💾",
-      "label": "Save / Load",
-      "tooltip": "Save the current colony or load a manual save or autosave",
+      "id": "place",
+      "label": "Place",
+      "icon": "res://assets/ui/icons/place.svg",
+      "tooltip": "Place finished furniture from colony stores",
       "action": "open_panel",
-      "target": "save_load"
+      "target": "place"
+    },
+    {
+      "id": "colony",
+      "label": "Colony",
+      "icon": "res://assets/ui/icons/colony.svg",
+      "tooltip": "Dwarves and settlement",
+      "action": "open_panel",
+      "target": "colony"
+    },
+    {
+      "id": "stocks",
+      "label": "Inventory",
+      "icon": "res://assets/ui/icons/stocks.svg",
+      "tooltip": "Browse colony supplies, check quantities and find items",
+      "action": "open_panel",
+      "target": "stocks"
+    },
+    {
+      "id": "system",
+      "label": "Menu",
+      "icon": "res://assets/ui/icons/menu.svg",
+      "tooltip": "Save, load and utilities",
+      "action": "open_panel",
+      "target": "system"
     }
-  ]
+  ],
+  "menus": {
+    "orders": {
+      "title": "Orders",
+      "items": [
+        {
+          "id": "mine",
+          "label": "Mine blocks",
+          "icon": "res://assets/ui/icons/orders.svg",
+          "tooltip": "Drag to mark blocks. Shift + wheel changes width; Alt + wheel changes depth. Ctrl removes marks.",
+          "action": "activate_tool",
+          "target": "mine_precision"
+        },
+        {
+          "id": "chop",
+          "label": "Chop trees",
+          "icon": "res://assets/ui/icons/chop.svg",
+          "tooltip": "Click a tree or drag around several to mark them for felling.",
+          "action": "activate_tool",
+          "target": "chop"
+        },
+        {
+          "id": "cancel",
+          "label": "Cancel orders",
+          "icon": "res://assets/ui/icons/cancel_orders.svg",
+          "tooltip": "Click or drag across marked blocks and trees to cancel unfinished work.",
+          "action": "activate_tool",
+          "target": "cancel_orders"
+        }
+      ]
+    },
+    "zones": {
+      "title": "Zones",
+      "items": [
+        {
+          "id": "storage_zone",
+          "label": "Stockpile",
+          "icon": "res://assets/ui/icons/stocks.svg",
+          "tooltip": "Drag over clear, walkable ground to create a storage zone. Select a finished zone to choose accepted goods.",
+          "action": "activate_tool",
+          "target": "storage_zone"
+        }
+      ]
+    },
+    "colony": {
+      "title": "Colony",
+      "items": [
+        {
+          "id": "dwarves",
+          "label": "Dwarves",
+          "action": "toggle_window",
+          "target": "dwarves",
+          "tooltip": "Your dwarves, their current work and rest"
+        },
+        {
+          "id": "flag",
+          "label": "Settlement flag",
+          "action": "toggle_window",
+          "target": "flag"
+        },
+        {
+          "id": "labor",
+          "label": "Labor",
+          "action": "toggle_window",
+          "target": "labor",
+          "tooltip": "Labor window — currently a preview"
+        },
+        {
+          "id": "trade",
+          "label": "Trade",
+          "action": "toggle_window",
+          "target": "trade",
+          "tooltip": "Trade window — currently a preview"
+        }
+      ]
+    },
+    "stocks": {
+      "title": "Colony Inventory"
+    },
+    "system": {
+      "title": "Colony menu",
+      "items": [
+        {
+          "id": "save_load",
+          "label": "Save / Load",
+          "action": "open_panel",
+          "target": "save_load"
+        },
+        {
+          "id": "clock",
+          "label": "Clock & weather",
+          "action": "toggle_window",
+          "target": "clock"
+        },
+        {
+          "id": "slice",
+          "label": "Slice view",
+          "action": "toggle_window",
+          "target": "slice"
+        },
+        {
+          "id": "world_info",
+          "label": "World Build",
+          "action": "toggle_window",
+          "target": "world_info"
+        },
+        {
+          "id": "block_inspector",
+          "label": "Block Inspector",
+          "action": "toggle_window",
+          "target": "block_inspector"
+        },
+        {
+          "id": "development",
+          "label": "Development",
+          "action": "open_panel",
+          "target": "development"
+        }
+      ]
+    },
+    "place": {
+      "title": "Place an item"
+    },
+    "farm": {
+      "title": "Farming",
+      "parent": "zones"
+    },
+    "military": {
+      "title": "Military",
+      "parent": "orders"
+    },
+    "save_load": {
+      "title": "Save / Load",
+      "parent": "system"
+    },
+    "development": {
+      "title": "Development",
+      "parent": "system",
+      "items": [
+        {
+          "id": "spawn_drops",
+          "label": "DEV: Spawn Drops",
+          "action": "panel_action",
+          "target": "storage_zone"
+        },
+        {
+          "id": "spawn_furniture",
+          "label": "DEV: Spawn Furniture",
+          "action": "panel_action",
+          "target": "storage_zone"
+        },
+        {
+          "id": "dwarf_development",
+          "label": "DEV: Dwarf tools",
+          "action": "toggle_window",
+          "target": "dwarves_dev",
+          "tooltip": "Spawn dwarves, test walking and exercise work/rest behavior"
+        }
+      ]
+    }
+  }
 }

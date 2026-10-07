@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+ItemDropManager: loaded 77 item definitions.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+HAULING_SELECTION_OK: real felling handoff, pickup proximity, limited capacity, filters, higher priorities, sleeping/claimed workers, blocked nearest, resumable probes and quotes, new idle workers, relocation

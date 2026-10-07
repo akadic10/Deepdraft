@@ -4,21 +4,20 @@ extends Node3D
 ## The Rooms tool (🚪 dock entry, Alen's ask 2026-08-07) — makes sealed rooms
 ## visible and clickable instead of hunting them with the Block Inspector.
 ##
-## While active, every sealed room `RoomManager` tracks gets a translucent
-## floor overlay (fill + exterior outline, drawn at the room's floor cells —
-## the lowest air cell per column). Overlays render with NO depth test (the
+## While active, every sealed room gets a volume outline and a faint floor
+## tint. No filled walls or ceiling: unshaded fills hid the actual darkness.
+## Overlays render with NO depth test (the
 ## mining ghost-layer treatment): a room reads through the mountain whether
-## or not the slice is cut down to it — that IS the point of the tool. Amber
+## or not the slice is cut down to it — that IS the point of the tool. Green
 ## = sealed; icy blue = Frozen Vault.
 ##
 ## Clicking marches the mouse ray through the world and selects the first
 ## room whose interior air it crosses (cells above the slice plane are
 ## skipped; solid rock does NOT stop the march — clicks are as x-ray as the
 ## overlays, so a room visible through rock is also clickable through rock).
-## Selection opens a compact info window: sealed/frozen state, depth-zone
-## name, temperature, volume, heat units (+computed bonus), door count,
-## seasonal influence — everything doc 34's "UI — Room Temperature Display"
-## specifies, fed by RoomManager.get_room_at()/get_rooms().
+## Selection opens the shared movable Hearth & iron room inspector. Overview
+## shows temperature, installed light count, volume and doors; Details retains
+## heating, seasonal influence and floor level, all fed by RoomManager.
 ##
 ## Tool conventions (the StockpileDesignationController shape): dock announce
 ## via tool_requested — this controller self-toggles on its own id and
@@ -45,17 +44,18 @@ const WINDOW_REFRESH_S := 0.5        # temp drifts hourly at most — 2 Hz is pl
 ## Green — deliberately distinct from every other overlay family: mining
 ## zones own yellow, stockpile zones own blue-cyan, furniture ghosts own
 ## cyan/red validity tints. Frozen Vaults stay icy blue.
-const SEALED_FILL := Color(0.30, 0.80, 0.45, 0.14)
+const SEALED_FILL := Color(0.30, 0.80, 0.45, 0.003)
 const SEALED_LINE := Color(0.45, 1.00, 0.60, 0.95)
-const FROZEN_FILL := Color(0.42, 0.68, 0.95, 0.14)
+const FROZEN_FILL := Color(0.42, 0.68, 0.95, 0.003)
 const FROZEN_LINE := Color(0.62, 0.86, 1.00, 0.95)
-const SELECTED_FILL_ALPHA := 0.28    # fill alpha bump on the selected room
+const SELECTED_FILL_ALPHA := 0.006  # floor only; never brighten the whole volume
 const SHELL_INSET := 0.04            # pull shell faces inside the cell boundary
                                      # (they'd otherwise sit exactly on the wall
                                      # faces and z-fight where depth applies)
 
 @export var dock_ui_path: NodePath
 @export var slice_controller_path: NodePath
+@export var window_manager_path: NodePath
 
 var _active: bool = false
 var _slice_y: int = SLICE_OFF_Y
@@ -68,10 +68,10 @@ var _material: StandardMaterial3D = null
 var _selected_room_id: int = -1
 var _selected_cell: Vector3i = Vector3i(-1, -1, -1)   # re-resolves the id across RoomManager rebuilds
 
-var _window_layer: CanvasLayer = null
-var _window_panel: PanelContainer = null
-var _window_title: Label = null
-var _window_info: Label = null
+const WINDOW_ID := "room_inspector"
+var _window_manager: UIWindowManager
+var _window_panel: UIWindow
+var _window_content: Control
 var _window_accum: float = 0.0
 
 
@@ -212,13 +212,9 @@ func _rebuild_overlays() -> void:
 	_refresh_window()
 
 
-## Volume shell (Alen, 2026-08-07 second Rooms session — "make the volume of
-## the room more obvious, draw it similar to a mining zone"): instead of a
-## flat floor quad, emit every EXTERIOR face of the room's air-cell volume
-## (a face whose neighbour cell is outside the room), inset by SHELL_INSET,
-## plus outline edges. Interior edges shared by two coplanar emitted faces
-## are deduped away so the outline traces the volume's silhouette, not a
-## per-block grid (the mining-zone exterior-lines lesson).
+## Retain the room-volume silhouette requested in the original Rooms pass.
+## Count all exterior faces for outline deduplication, but fill only the floor.
+## The near-transparent floor wash identifies the footprint without lighting it.
 func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 	var cells: Dictionary = room.get("cells", {})
 	var is_frozen: bool = bool(room.get("is_frozen_vault", false))
@@ -239,13 +235,15 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 			var normal: Vector3i = _FACE_NORMALS[face]
 			if cells.has(cell + normal):
 				continue   # interior face — the volume continues
-			var corners := _face_corners(cell, face, SHELL_INSET)
-			var i0 := fill_verts.size()
-			for corner: Vector3 in corners:
-				fill_verts.append(corner)
-				fill_colors.append(fill_color)
-			# Winding both ways is irrelevant — material is CULL_DISABLED.
-			fill_indices.append_array(PackedInt32Array([i0, i0 + 1, i0 + 2, i0, i0 + 2, i0 + 3]))
+			# A faint floor wash locates the footprint. Keep the volume's outline,
+			# but never stack unlit green wall/ceiling faces over a dark room.
+			if face == 3:
+				var corners := _face_corners(cell, face, SHELL_INSET)
+				var i0 := fill_verts.size()
+				for corner: Vector3 in corners:
+					fill_verts.append(corner)
+					fill_colors.append(fill_color)
+				fill_indices.append_array(PackedInt32Array([i0, i0 + 1, i0 + 2, i0, i0 + 2, i0 + 3]))
 			# Outline edges are counted at the TRUE cell boundary (inset 0),
 			# so the two perpendicular faces meeting at a corner contribute
 			# IDENTICAL endpoints and merge into ONE drawn line (Alen,
@@ -285,6 +283,7 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 		var fill_node := MeshInstance3D.new()
 		fill_node.mesh = fill_mesh
 		fill_node.material_override = _material
+		fill_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(fill_node)
 	if not line_verts.is_empty():
 		var line_mesh := ArrayMesh.new()
@@ -296,6 +295,7 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 		var line_node := MeshInstance3D.new()
 		line_node.mesh = line_mesh
 		line_node.material_override = _material
+		line_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(line_node)
 	return { "root": root, "base_y": base_y }
 
@@ -397,58 +397,38 @@ func _select_room(room_id: int, cell: Vector3i) -> void:
 # ── Info window (doc 34 "UI — Room Temperature Display") ─────────────────────
 
 func _build_window() -> void:
-	_window_layer = CanvasLayer.new()
-	_window_layer.name = "RoomInfoWindow"
-	_window_layer.layer = 22
-	add_child(_window_layer)
+	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
+	if _window_manager == null:
+		return
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 12)
+	_window_content = preload("res://scripts/ui/RoomInspectorPanel.gd").new()
+	margin.add_child(_window_content)
+	_window_panel = _window_manager.register_window(WINDOW_ID, "Room", "", margin,
+		{"default_pos": Vector2(maxf(24, get_viewport().get_visible_rect().size.x - 388), 24)})
+	UITheme.apply_catalog_window(_window_panel)
+	_window_panel.keep_body_on_screen = true
+	_window_content.window = _window_panel
+	_window_manager.window_state_changed.connect(_on_window_state_changed)
 
-	_window_panel = PanelContainer.new()
-	_window_panel.position = Vector2(24.0, 432.0)   # below the slice palette
-	_window_panel.visible = false
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.065, 0.070, 0.075, 0.94)
-	style.border_color = Color(1, 1, 1, 0.12)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(10.0)
-	_window_panel.add_theme_stylebox_override("panel", style)
-	_window_layer.add_child(_window_panel)
 
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 6)
-	_window_panel.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	_window_title = Label.new()
-	_window_title.text = "🚪 Room"
-	_window_title.add_theme_font_size_override("font_size", 14)
-	_window_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(_window_title)
-
-	var close := Button.new()
-	close.text = "✕"
-	close.flat = true
-	close.pressed.connect(func() -> void: _close_window())
-	header.add_child(close)
-
-	_window_info = Label.new()
-	_window_info.add_theme_font_size_override("font_size", 13)
-	_window_info.text = ""
-	column.add_child(_window_info)
+func _on_window_state_changed(id: String, open: bool) -> void:
+	if id == WINDOW_ID and not open:
+		_selected_room_id = -1
+		_selected_cell = Vector3i(-1, -1, -1)
+		_overlays_dirty = true
 
 
 func _open_window() -> void:
 	_window_accum = 0.0
 	if _window_panel != null:
-		_window_panel.visible = true
+		_window_manager.open(WINDOW_ID)
 
 
 func _close_window() -> void:
 	if _window_panel != null:
-		_window_panel.visible = false
+		_window_manager.close(WINDOW_ID)
 
 
 ## EXPLICIT TYPES at every Dictionary read — the RoomManager/WorldClock
@@ -461,36 +441,7 @@ func _refresh_window() -> void:
 		return
 	var room: Dictionary = RoomManager.get_rooms().get(_selected_room_id, {})
 	if room.is_empty():
-		_window_title.text = "🚪 Room %d" % _selected_room_id
-		_window_info.text = "No longer sealed —\nthe seal was broken."
+		_close_window()
 		return
-	var temp_c: float = float(room.get("temp_c", 0.0))
-	var volume: int = int(room.get("volume", 0))
-	var heat_units: int = int(room.get("heat_units", 0))
-	var mean_floor_y: float = float(room.get("mean_floor_y", 0.0))
-	var seasonal: float = float(room.get("seasonal_influence", 0.0))
-	var is_frozen: bool = bool(room.get("is_frozen_vault", false))
-	var doors: int = room.get("door_cells", {}).size()
-	var heat_bonus: float = float(heat_units) / float(max(volume, 1))
-	_window_title.text = "🚪 Room %d" % _selected_room_id
-	var status := "FROZEN VAULT ❄" if is_frozen else "Sealed (%s)" % _zone_name(mean_floor_y)
-	_window_info.text = "\n".join([
-		status,
-		"Temperature: %.1f°C" % temp_c,
-		"Volume: %d blocks" % volume,
-		"Heat sources: %d units (+%.1f°C)" % [heat_units, heat_bonus],
-		"Doors: %d" % doors,
-		"Seasonal influence: %d%%" % roundi(seasonal * 100.0),
-		"Mean floor Y: %.1f" % mean_floor_y,
-	])
-
-
-## Depth-zone label from mean floor Y (doc 34 "Depth–Temperature Gradient").
-func _zone_name(mean_floor_y: float) -> String:
-	if mean_floor_y >= 65.0:
-		return "Cool Cave"
-	if mean_floor_y >= 50.0:
-		return "Cold Cave"
-	if mean_floor_y >= 37.0:
-		return "Deep Cold"
-	return "Frozen Zone"
+	_window_panel.set_window_title("Room %d" % _selected_room_id)
+	_window_content.show_room(room)

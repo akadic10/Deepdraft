@@ -34,6 +34,8 @@ const WORLD_SIZE_Z: int = 1024
 ## Emitted whenever a chunk's contents change and its mesh needs rebuilding.
 ## May fire from the generator thread — connect with CONNECT_DEFERRED.
 signal chunk_dirtied(cx: int, cy: int, cz: int)
+## Exact main-thread edits, separate from generation/mesh streaming dirtiness.
+signal block_changed(position: Vector3i, old_id: int, new_id: int)
 
 var _chunks: Dictionary = {}   # Vector3i(cx, cy, cz)  →  Chunk
 var _mutex:  Mutex
@@ -111,6 +113,7 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 		return
 
 	var chunk := _get_or_create_chunk(wx, wy, wz)
+	var old_id: int = chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)]
 	chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)] = id
 	# Keep the buried-chunk optimisation honest: has_void is baked at
 	# generation time and was never updated afterwards, so carving air into a
@@ -121,6 +124,8 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 	if id == BlockRegistry.AIR_ID:
 		chunk.has_void = true
 	mark_chunk_dirty(wx / CHUNK_SIZE, wy / CHUNK_SIZE, wz / CHUNK_SIZE)
+	if old_id != id:
+		block_changed.emit(Vector3i(wx,wy,wz),old_id,id)
 
 
 ## Returns the Chunk at chunk coordinates, lazy-creating an empty one if absent.

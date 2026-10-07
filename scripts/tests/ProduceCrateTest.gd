@@ -72,13 +72,15 @@ func _run() -> void:
 
 	_fresh_drops()
 	zone = _zone([Vector3i(20,20,20)])
+	# Larger test-only budget stresses identical tokens within one pull.
+	zone.carry_capacity = 16
 	for x in range(4):
 		drops.restore_loose_item(ACORN,Vector3(10.5+x,21,10.5))
 	_deliver(zone,20)
 	_expect(zone.stored_count() == 4 and zone.cell_stacks.size() == 1, "identical one-unit tokens stay paired with four distinct pickups")
 	drops.restore_loose_item(ACORN,Vector3(11.5,21,12.5),0,5)
 	drops.restore_loose_item(ACORN,Vector3(13.5,21,12.5),0,6)
-	zone.pouch_capacity = 1
+	zone.carry_capacity = 4
 	var pull_a: Dictionary = zone.reserve_haul(21,Vector3i(11,20,12),{})
 	var pull_b: Dictionary = zone.reserve_haul(22,Vector3i(13,20,12),{})
 	_expect(not pull_a.is_empty() and not pull_b.is_empty(), "two haulers share remaining crate capacity")
@@ -91,6 +93,8 @@ func _run() -> void:
 	# own deposit/quantity rather than consuming the next arbitrary token.
 	_fresh_drops()
 	zone = _zone([Vector3i(30,20,30),Vector3i(31,20,30),Vector3i(32,20,30),Vector3i(33,20,30)])
+	# Test token pairing with three crates and a log in a custom-capacity load.
+	zone.carry_capacity = 14
 	drops.restore_loose_item(ACORN, Vector3(10.5,21,10.5),0,5)
 	drops.restore_loose_item(BERRY, Vector3(12.5,21,10.5),0,9)
 	drops.restore_loose_item(LOG, Vector3(7.5,21,10.5))
@@ -193,15 +197,16 @@ func _units(key: String) -> int:
 
 
 func _deliver(storage, owner: int) -> void:
-	var pull: Dictionary = storage.reserve_haul(owner,Vector3i(10,20,10),{})
-	_expect(not pull.is_empty(), "haul reserves available crates")
-	if pull.is_empty():
-		return
-	var carried: Array = []
-	for i in range(pull.items.size()):
-		var node: Node3D = storage.take_item(owner,i)
-		carried.append([node,drops.item_key_of(node)])
-	_expect(storage.commit_haul(owner,carried), "reserved crates commit")
+	for trip in range(32):
+		var pull: Dictionary = storage.reserve_haul(owner,Vector3i(10,20,10),{})
+		if trip == 0: _expect(not pull.is_empty(), "haul reserves available crates")
+		if pull.is_empty(): return
+		var carried: Array = []
+		for i in range(pull.items.size()):
+			var node: Node3D = storage.take_item(owner,i)
+			carried.append([node,drops.item_key_of(node)])
+		_expect(storage.commit_haul(owner,carried), "reserved crates commit")
+	_expect(false, "crate delivery finishes within 32 trips")
 
 
 func _worker_haul() -> void:

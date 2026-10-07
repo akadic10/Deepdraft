@@ -1,0 +1,128 @@
+[
+  {
+    "diners": 1,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Personal room",
+    "min_axis_gap": null,
+    "rotations": 4
+  },
+  {
+    "diners": 1,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Personal room",
+    "min_axis_gap": null,
+    "rotations": 4
+  },
+  {
+    "diners": 1,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Personal room",
+    "min_axis_gap": null,
+    "rotations": 4
+  },
+  {
+    "diners": 6,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal table",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 6,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal table",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 6,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal table",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 6,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal 8x3",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 6,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal 8x3",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 8,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal 8x4",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 8,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal 8x4",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 8,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Communal 8x4",
+    "min_axis_gap": 0.562,
+    "rotations": 4
+  },
+  {
+    "diners": 0,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Seat guides",
+    "min_axis_gap": null,
+    "rotations": 4
+  },
+  {
+    "diners": 4,
+    "head_overlap_samples": 1440,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Current spacing",
+    "min_axis_gap": -1.438,
+    "rotations": 4
+  },
+  {
+    "diners": 2,
+    "head_overlap_samples": 0,
+    "head_table_overlap_samples": 0,
+    "idle_samples_per_rotation": 180,
+    "layout": "Chair fit",
+    "min_axis_gap": 1.562,
+    "rotations": 4
+  }
+]

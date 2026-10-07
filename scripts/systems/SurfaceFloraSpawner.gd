@@ -967,6 +967,23 @@ func get_slice_y() -> int:
 	return _slice_y
 
 
+## Opaque identity for a designation; a new mark after cancellation gets a new
+## source. UI undo cannot accidentally cancel a later order or a loaded save.
+func get_felling_order_token(tree_id: Vector2i) -> RefCounted:
+	return _felling_sources.get(tree_id)
+
+
+func marked_trees_in_screen_rect(rect: Rect2, camera: Camera3D) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for id: Vector2i in _felling_sources:
+		var bounds := get_explorer_bounds(id)
+		if bounds.size == Vector3.ZERO: continue
+		var centre := bounds.get_center()
+		if not camera.is_position_behind(centre) and rect.has_point(camera.unproject_position(centre)):
+			result.append(id)
+	return result
+
+
 ## Rectangle membership uses the trunk's centre, not its overhanging canopy.
 ## Hidden/streamed-out/felled trees cannot receive an invisible designation.
 func trees_in_felling_rect(rect: Rect2i) -> Array[Vector2i]:

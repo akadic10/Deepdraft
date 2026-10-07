@@ -1,0 +1,30 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+ERROR: offscreen portraits are not rendered eagerly
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:244)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:260)
+ERROR: roster clears bottom dock (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:244)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:260)
+ERROR: Escape closes the complete overview and clears selection
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:244)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:260)
+ERROR: world inspection returns to its normal window after overview closes
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:244)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:260)
+ERROR: opening overview transfers existing selected dwarf into its detail column
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:244)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:260)

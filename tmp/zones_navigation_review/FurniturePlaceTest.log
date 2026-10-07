@@ -1,0 +1,28 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 6 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+UIWindowManager: ready (0 remembered window positions).
+FurniturePlacementController: 18 placeable defs loaded.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: ghost 1 (base:furniture:wooden_table) at (37, 20, 38) yaw 0.
+FurniturePlacementController: ghost 2 (base:furniture:wooden_table) at (41, 20, 38) yaw 0.
+FurniturePlacementController: ghost 3 (base:furniture:wooden_table) at (45, 20, 38) yaw 0.
+FurniturePlacementController: ghost 4 (base:furniture:wooden_table) at (37, 20, 38) yaw 0.
+FurniturePlacementController: ghost 5 (base:furniture:barrel) at (45, 20, 43) yaw 0.
+FurniturePlacementController: ghost 5 (base:furniture:barrel) at (45, 20, 43) yaw 0.
+FurniturePlacementController: installed base:furniture:barrel at (45, 20, 43).
+FURNITURE_PLACE_OK: live loose/stored counts, stable browsing through hauling/new stock, claims/pickup/release, rapid-click guard, continuous placement, undo, real thumbnails, drag, keyboard, responsive native UI

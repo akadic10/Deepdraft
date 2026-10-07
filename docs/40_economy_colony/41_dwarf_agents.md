@@ -10,10 +10,18 @@
 > (`16_first_dwarf_milestone.md` step 7). Procedural generation (names/appearance/traits,
 > seed-deterministic per `world_seed + birth_index`) runs through `DwarfFactory` +
 > `DwarfAssets`; dwarves spawn at the player-placed Settlement Flag. NOT yet implemented:
-> hunger/thirst/alcohol/mood/health, thoughts, beds, professions at runtime, portraits, the
+> hunger/thirst/alcohol/mood/health, thoughts, bed use, professions at runtime, the
 > full needs-interrupt priority ladder — the tables below remain their design source.
 
 ## Overview
+
+2026-10-05 inspection and roster: visible dwarves have a portrait, live work/rest
+and cargo readouts in the shared inspector. **Colony → Dwarves** adds a stable
+overview with name search, work/rest filters and Locate; selecting a row opens
+that same inspector. Static portraits use existing visual parts and never create
+simulation agents. Developer controls moved to Menu → Development. See
+[doc 51](../00_dev_roadmap/51_hearth_iron_dwarf_inspector.md) and
+[doc 57](../00_dev_roadmap/57_colony_dwarf_roster.md).
 
 2026-10-04 work tools: tree felling and mining have distinct two-handed procedural
 swings and visible implicit axe/pick models. Both use shared grip and mirrored-part
@@ -137,6 +145,18 @@ Equipment meshes (helmets, chest armour, boots, weapons) are **child nodes** of 
 
 ## Agent State Machine
 
+**2026-10-05 hauling animation:** stockpile hauling and furniture fetches now
+stand beside an item, turn toward it, acquire it at fist contact, lift it, carry it with both
+floating fists, and lower/release it in front of their planted feet at delivery. Item bounds drive the grip;
+loads form a compact two-column bundle at native scale. The JSON carry budget is
+4 points: rock/ore costs 1, raw timber 2, and produce/packed furniture crates 4.
+Mixed loads share that budget; crate cost is independent of fill, while
+`weight_class` separately controls walking speed. Pickup and
+deposit take 0.75 s and 0.65 s at normal clock speed (task JSON tunables).
+Reservations, carried-item saves and interruption drops remain authoritative;
+animation state is transient. Implementation and review evidence:
+[49_dwarf_hauling_animation.md](../00_dev_roadmap/49_dwarf_hauling_animation.md).
+
 ```
 IDLE
 MOVING_TO_TASK   ← following A* path
@@ -223,9 +243,18 @@ All dwarves share the same logical height (**3 blocks / 1.5 m**) for collision a
 Two visual representations are maintained per dwarf:
 
 - **Map mesh** — the in-world character model. Only broad features render at game scale: skin tone, hair colour, and hair/beard silhouette.
-- **Portrait** — detailed close-up rendered in the labour UI and dwarf inspect panel. All appearance components are visible here.
+- **Portrait** — a static copy of the actual head/body visual parts in the Colony
+  roster and dwarf inspector. Portraits do not register or animate another agent.
 
 ### Trait Assignment
+
+**Runtime status (2026-10-05):** generation, storage and inspection of trait IDs
+are implemented; applying their `effects` is not. The inspector's Details tab
+shows names/descriptions from DwarfAssets with an explicit inactive-effects note.
+Light Sleeper is authored as +1 sleep hour (seven instead of six), and Deep
+Sleeper as −1 (five instead of six), but all dwarves currently use the same
+six-hour sleep-lite duration. The descriptions below and in JSON must not be
+treated as evidence of active modifiers. See [doc 51](../00_dev_roadmap/51_hearth_iron_dwarf_inspector.md).
 
 The generator rolls a **trait slot distribution** from `generation_config` in `traits.json`, then fills each slot from the positive or negative pool independently:
 

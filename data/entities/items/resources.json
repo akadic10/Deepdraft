@@ -12,9 +12,11 @@
     "  crate_models  — low / half / full models for counts 1-8 / 9-16 / 17-24",
     "                  One crate occupies one ground cell or furniture slot. Loose drops",
     "                  use the same crate; packaging is automatic and costs no resources.",
+    "  carry_cost    — positive points per physical item against hauling.carry_capacity",
+    "                  A crate pays once regardless of fill; missing costs default to 1.",
     "  weight_class  — 'light' | 'heavy' — affects dwarf haul speed",
     "                  light: full haul speed; heavy: ×0.7 haul speed while any heavy item",
-    "                  is in the pouch (the pouch carries anything — SH parity, Alen 2026-07-06)",
+    "                  is in the load; independent of carry_cost",
     "  base_trade_value — base Trade Point (TP) value used by the trade session UI",
     "                     actual price fluctuates ±20% based on caravan demand model",
     "  material_tags — flat string array; must include at least one 'stockpile_*' tag",
@@ -28,6 +30,7 @@
     "description": "A rough block of dense igneous stone, useful for construction.",
     "model": "res://assets/models/items/stone/granite_block.glb",
     "stack_max": 10,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 2,
     "material_tags": ["stone", "igneous", "building_material", "stockpile_stone"]
@@ -38,6 +41,7 @@
     "description": "A dark volcanic stone, harder than granite.",
     "model": "res://assets/models/items/stone/basalt_block.glb",
     "stack_max": 10,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 2,
     "material_tags": ["stone", "igneous", "building_material", "stockpile_stone"]
@@ -48,6 +52,7 @@
     "description": "A pale sedimentary stone, easy to cut and shape.",
     "model": "res://assets/models/items/stone/limestone_block.glb",
     "stack_max": 10,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 2,
     "material_tags": ["stone", "sedimentary", "building_material", "stockpile_stone"]
@@ -58,6 +63,7 @@
     "description": "A lustrous metamorphic stone prized for its elegance.",
     "model": "res://assets/models/items/stone/marble_block.glb",
     "stack_max": 10,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 8,
     "material_tags": ["stone", "metamorphic", "building_material", "luxury", "stockpile_stone"]
@@ -68,6 +74,7 @@
     "description": "A rough-hewn chunk of mountain stone. Dwarves use it to wall up and backfill unwanted openings.",
     "model": "res://assets/models/items/stone/rough_stone.glb",
     "stack_max": 10,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 1,
     "material_tags": ["stone", "building_material", "void_fill", "stockpile_stone"]
@@ -80,6 +87,7 @@
     "description": "Rich subterranean earth, ideal for underground farming.",
     "model": "res://assets/models/items/soil/cave_soil.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 1,
     "material_tags": ["dirt", "soil", "farmable", "stockpile_soil"]
@@ -90,6 +98,7 @@
     "description": "Sandy pale earth, too dry for farming but useful as fill.",
     "model": "res://assets/models/items/soil/light_soil.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 1,
     "material_tags": ["dirt", "soil", "stockpile_soil"]
@@ -100,6 +109,7 @@
     "description": "Dense clay-rich earth with a damp, earthy smell.",
     "model": "res://assets/models/items/soil/dark_soil.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 1,
     "material_tags": ["dirt", "soil", "stockpile_soil"]
@@ -112,6 +122,7 @@
     "description": "A green-tinged ore chunk, the first metal dwarves learn to smelt.",
     "model": "res://assets/models/items/ore/copper_ore.glb",
     "stack_max": 15,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 3,
     "material_tags": ["ore", "metal", "stockpile_ore"]
@@ -122,6 +133,7 @@
     "description": "A soft grey ore found near the surface. Easy to smelt, useful for early tools.",
     "model": "res://assets/models/items/ore/tin_ore.glb",
     "stack_max": 15,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 2,
     "material_tags": ["ore", "metal", "stockpile_ore"]
@@ -132,6 +144,7 @@
     "description": "A heavy reddish ore, the backbone of dwarven industry.",
     "model": "res://assets/models/items/ore/iron_ore.glb",
     "stack_max": 15,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 4,
     "material_tags": ["ore", "metal", "stockpile_ore"]
@@ -142,6 +155,7 @@
     "description": "A pale lustrous ore found in mid-depth veins. Valuable for jewellery and trade.",
     "model": "res://assets/models/items/ore/silver_ore.glb",
     "stack_max": 15,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 10,
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
@@ -152,6 +166,7 @@
     "description": "A brittle black rock that burns long and hot.",
     "model": "res://assets/models/items/ore/coal.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 2,
     "material_tags": ["ore", "fuel", "stockpile_ore"]
@@ -162,6 +177,7 @@
     "description": "A gleaming heavy ore. Even raw it catches every torch.",
     "model": "res://assets/models/items/ore/gold_ore.glb",
     "stack_max": 10,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 12,
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
@@ -174,6 +190,7 @@
     "description": "A dense green stone, prized for carving. Cooler to the touch than you'd expect.",
     "model": "res://assets/models/items/gem/jade_raw.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 22,
     "material_tags": ["gem", "precious", "stockpile_gem"]
@@ -184,6 +201,7 @@
     "description": "A translucent purple crystal that catches torchlight beautifully.",
     "model": "res://assets/models/items/gem/amethyst_raw.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 25,
     "material_tags": ["gem", "precious", "stockpile_gem"]
@@ -194,6 +212,7 @@
     "description": "An uncut crimson crystal pulled from deep volcanic stone.",
     "model": "res://assets/models/items/gem/ruby_raw.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 40,
     "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
@@ -204,6 +223,7 @@
     "description": "A deep blue crystal that seems to hold starlight within.",
     "model": "res://assets/models/items/gem/sapphire_raw.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 40,
     "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
@@ -214,6 +234,7 @@
     "description": "A vivid green crystal found only in the deepest rock seams.",
     "model": "res://assets/models/items/gem/emerald_raw.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 45,
     "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
@@ -224,6 +245,7 @@
     "description": "An uncut diamond pulled from the uttermost dark. Merchants go silent when they see one.",
     "model": "res://assets/models/items/gem/diamond_raw.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 80,
     "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
@@ -236,6 +258,7 @@
     "description": "A stone impression of an ancient creature. Scholars pay handsomely.",
     "model": "res://assets/models/items/misc/fossil_fragment.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 10,
     "material_tags": ["misc", "luxury", "stockpile_misc"]
@@ -248,6 +271,7 @@
     "description": "A straight-grained softwood log, light and easy to work. The backbone of early construction.",
     "model": "res://assets/models/items/wood/pine_log.glb",
     "stack_max": 10,
+    "carry_cost": 2,
     "weight_class": "heavy",
     "base_trade_value": 2,
     "material_tags": ["wood", "timber", "building_material", "fuel", "stockpile_wood"]
@@ -258,6 +282,7 @@
     "description": "A dense hardwood log with a tight grain. Prized for furniture and barrel staves.",
     "model": "res://assets/models/items/wood/oak_log.glb",
     "stack_max": 10,
+    "carry_cost": 2,
     "weight_class": "heavy",
     "base_trade_value": 5,
     "material_tags": ["wood", "timber", "hardwood", "building_material", "stockpile_wood"]
@@ -268,6 +293,7 @@
     "description": "A split plank of seasoned oak shaped for cooperage. Essential for crafting aging casks.",
     "model": "res://assets/models/items/wood/oak_stave.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 8,
     "material_tags": ["wood", "hardwood", "cooperage", "crafting_component", "stockpile_wood"]
@@ -278,6 +304,7 @@
     "description": "A fine-grained pinkish wood. Burns slowly with a sweet scent, useful for smoking and light carpentry.",
     "model": "res://assets/models/items/wood/apple_wood.glb",
     "stack_max": 10,
+    "carry_cost": 2,
     "weight_class": "heavy",
     "base_trade_value": 3,
     "material_tags": ["wood", "timber", "fuel", "stockpile_wood"]
@@ -288,6 +315,7 @@
     "description": "A fragrant hardwood log with dense, knotted grain.",
     "model": "res://assets/models/items/wood/juniper_log.glb",
     "stack_max": 10,
+    "carry_cost": 2,
     "weight_class": "heavy",
     "base_trade_value": 3,
     "material_tags": ["wood", "timber", "building_material", "fuel", "stockpile_wood"]
@@ -302,6 +330,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/elderberry_low.glb", "res://assets/models/items/crates/elderberry_half.glb", "res://assets/models/items/crates/elderberry_full.glb"],
     "stack_max": 30,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -314,6 +343,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/blueberry_low.glb", "res://assets/models/items/crates/blueberry_half.glb", "res://assets/models/items/crates/blueberry_full.glb"],
     "stack_max": 30,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 4,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -326,6 +356,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/wild_strawberry_low.glb", "res://assets/models/items/crates/wild_strawberry_half.glb", "res://assets/models/items/crates/wild_strawberry_full.glb"],
     "stack_max": 30,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 6,
     "material_tags": ["flora", "food", "brewing_ingredient", "luxury", "stockpile_food"]
@@ -338,6 +369,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/juniper_berry_low.glb", "res://assets/models/items/crates/juniper_berry_half.glb", "res://assets/models/items/crates/juniper_berry_full.glb"],
     "stack_max": 30,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 4,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -348,6 +380,7 @@
     "description": "A bulbous purple mushroom that grows fast in moist cave soil.",
     "model": "res://assets/models/items/flora/plump_helmet.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 2,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -358,6 +391,7 @@
     "description": "A curling fibrous plant that can be spun into rough cloth.",
     "model": "res://assets/models/items/flora/pig_tail.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 2,
     "material_tags": ["flora", "fiber", "stockpile_food"]
@@ -370,6 +404,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/apple_low.glb", "res://assets/models/items/crates/apple_half.glb", "res://assets/models/items/crates/apple_full.glb"],
     "stack_max": 30,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 3,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -384,6 +419,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/pine_cone_low.glb", "res://assets/models/items/crates/pine_cone_half.glb", "res://assets/models/items/crates/pine_cone_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 2,
     "material_tags": ["seed", "flora", "stockpile_seed"]
@@ -396,6 +432,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/oak_acorn_low.glb", "res://assets/models/items/crates/oak_acorn_half.glb", "res://assets/models/items/crates/oak_acorn_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 4,
     "material_tags": ["seed", "flora", "stockpile_seed"]
@@ -408,6 +445,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/apple_seed_low.glb", "res://assets/models/items/crates/apple_seed_half.glb", "res://assets/models/items/crates/apple_seed_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 3,
     "material_tags": ["seed", "flora", "stockpile_seed"]
@@ -420,6 +458,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/elderberry_cutting_low.glb", "res://assets/models/items/crates/elderberry_cutting_half.glb", "res://assets/models/items/crates/elderberry_cutting_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 4,
     "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
@@ -432,6 +471,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/blueberry_cutting_low.glb", "res://assets/models/items/crates/blueberry_cutting_half.glb", "res://assets/models/items/crates/blueberry_cutting_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 3,
     "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
@@ -444,6 +484,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/strawberry_cutting_low.glb", "res://assets/models/items/crates/strawberry_cutting_half.glb", "res://assets/models/items/crates/strawberry_cutting_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
@@ -456,6 +497,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/pig_tail_seed_low.glb", "res://assets/models/items/crates/pig_tail_seed_half.glb", "res://assets/models/items/crates/pig_tail_seed_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 2,
     "material_tags": ["seed", "flora", "stockpile_seed"]
@@ -468,6 +510,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/juniper_seed_low.glb", "res://assets/models/items/crates/juniper_seed_half.glb", "res://assets/models/items/crates/juniper_seed_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["seed", "flora", "stockpile_seed"]
@@ -480,6 +523,7 @@
     "description": "A dark, malty ale brewed from cave wheat or plump helmets.",
     "model": "res://assets/models/items/drink/ale_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 3,
     "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
@@ -490,6 +534,7 @@
     "description": "A golden honey-wine brewed from sweet pods. Light, complex, and expensive.",
     "model": "res://assets/models/items/drink/mead_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["drink", "alcohol", "morale_item", "luxury", "stockpile_drink"]
@@ -502,6 +547,7 @@
     "description": "A coarse woven fabric spun from pig tail fibers.",
     "model": "res://assets/models/items/misc/cloth_bolt.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 6,
     "material_tags": ["cloth", "fiber", "building_material", "stockpile_misc"]
@@ -512,6 +558,7 @@
     "description": "A wooden bucket filled from a well or underground stream.",
     "model": "res://assets/models/items/misc/water_bucket.glb",
     "stack_max": 5,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "base_trade_value": 1,
     "material_tags": ["liquid", "brewing_ingredient", "stockpile_misc"]
@@ -524,6 +571,7 @@
     "description": "Papery green cones with a sharp, resinous bite. The bitter backbone of any proper ale.",
     "model": "res://assets/models/items/flora/hops.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 3,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -534,6 +582,7 @@
     "description": "Heavy purple clusters from the mountain vine terraces. Sweet, complex, and worth the wait.",
     "model": "res://assets/models/items/flora/grape.glb",
     "stack_max": 30,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
@@ -546,6 +595,7 @@
     "description": "Thick golden honey from mountain beehives. Adds body and sweetness to brewed drinks.",
     "model": "res://assets/models/items/misc/honey_jar.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 6,
     "material_tags": ["misc", "food", "brewing_ingredient", "luxury", "stockpile_misc"]
@@ -560,6 +610,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/hops_cutting_low.glb", "res://assets/models/items/crates/hops_cutting_half.glb", "res://assets/models/items/crates/hops_cutting_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 4,
     "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
@@ -572,6 +623,7 @@
     "crate_capacity": 24,
     "crate_models": ["res://assets/models/items/crates/grape_cutting_low.glb", "res://assets/models/items/crates/grape_cutting_half.glb", "res://assets/models/items/crates/grape_cutting_full.glb"],
     "stack_max": 50,
+    "carry_cost": 4,
     "weight_class": "light",
     "base_trade_value": 6,
     "material_tags": ["seed", "cutting", "flora", "stockpile_seed"]
@@ -584,6 +636,7 @@
     "description": "A thick, near-black ale with a roasted bitterness. Dwarves call it 'proper drinking'.",
     "model": "res://assets/models/items/drink/stout_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
@@ -594,6 +647,7 @@
     "description": "A crisp, lightly honeyed apple cider. Brisk and refreshing after a long shift in the mines.",
     "model": "res://assets/models/items/drink/cider_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 5,
     "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
@@ -604,6 +658,7 @@
     "description": "A deep, tannic wine pressed from mountain grapes. Not a dwarf's first choice, but the merchants love it.",
     "model": "res://assets/models/items/drink/wine_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 7,
     "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
@@ -614,6 +669,7 @@
     "description": "A sharp, resinous spirit distilled from juniper berries. An acquired taste — and a profitable one.",
     "model": "res://assets/models/items/drink/gin_cask.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 8,
     "material_tags": ["drink", "alcohol", "morale_item", "stockpile_drink"]
@@ -626,6 +682,7 @@
     "description": "A stout that has sat in oak for a month of cold stone silence. Smooth, complex, and deeply satisfying.",
     "model": "res://assets/models/items/drink/aged_stout_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 10,
     "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
@@ -636,6 +693,7 @@
     "description": "An oak-aged mountain wine that has mellowed into something extraordinary. Caravans will pay dearly.",
     "model": "res://assets/models/items/drink/vintage_wine_barrel.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 15,
     "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
@@ -646,6 +704,7 @@
     "description": "Juniper gin rested in oak until the harsh edge softens to something almost elegant.",
     "model": "res://assets/models/items/drink/reserve_gin_cask.glb",
     "stack_max": 20,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 12,
     "material_tags": ["drink", "alcohol", "morale_item", "luxury", "aged", "stockpile_drink"]
@@ -658,6 +717,7 @@
     "description": "A folded banner and stout marker pole used to choose where the first settlement will take root.",
     "model": "res://assets/models/items/misc/settlement_flag.glb",
     "stack_max": 1,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 0,
     "material_tags": ["special", "placeable", "settlement_anchor", "stockpile_misc"]
@@ -670,6 +730,7 @@
     "description": "A hooped oak barrel, packed flat and ready to set up wherever it is needed.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 8,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -680,6 +741,7 @@
     "description": "A heavy plank chest with its iron corner fittings bundled inside.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 12,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -690,6 +752,7 @@
     "description": "Plank shelving and oak uprights lashed into a carrying bundle, brackets included.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 10,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -700,6 +763,7 @@
     "description": "A long oak counter and its iron tap fittings, broken down for hauling.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 16,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -710,6 +774,7 @@
     "description": "A dwarven long-bench, legs and planks bundled and lashed.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 6,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -720,6 +785,7 @@
     "description": "Fitted ring-stones and an iron grate, packed flat and ready to set.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 14,
     "material_tags": ["stone", "furniture", "stockpile_furniture"]
@@ -730,6 +796,7 @@
     "description": "A plank door and its iron hinges, bundled flat for hauling.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 9,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -740,19 +807,36 @@
     "description": "Dressed counter stones and iron fittings secured in a carrying crate.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 20,
     "material_tags": ["stone", "furniture", "stockpile_furniture"]
   },
 
   "base:resources:furniture:wooden_table": {
-    "display_name": "Dining Table (packed)",
+    "display_name": "Personal Dining Table (packed)",
     "description": "Broad oak planks, trestles and iron corner fittings secured for hauling.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 12,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
+  },
+
+  "base:resources:furniture:communal_table": {
+    "display_name": "Communal Dining Table (packed)",
+    "description": "Long oak planks and trestles for an eight-place tavern table, secured for hauling.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 32,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ]
   },
 
   "base:resources:furniture:wooden_chair": {
@@ -760,6 +844,7 @@
     "description": "One oak chair, disassembled and secured in a carrying crate.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 8,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -770,6 +855,7 @@
     "description": "Oak bed timbers, linen bedding and iron fittings packed for hauling.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 18,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -780,6 +866,7 @@
     "description": "Oak vat staves, iron hoops and a copper tap secured in a carrying crate.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 24,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -790,6 +877,7 @@
     "description": "An iron bracket and unlit wooden torch packed for installation on a wall.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 4,
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
@@ -800,6 +888,7 @@
     "description": "An iron anvil, stone pedestal and hold-down clamps secured for hauling.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 24,
     "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
@@ -810,6 +899,7 @@
     "description": "Dressed furnace stones, iron fittings and a grate packed for installation.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 32,
     "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
@@ -820,6 +910,7 @@
     "description": "Two oak casks, iron hoops and a timber cradle packed for installation.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 28,
     "material_tags": ["wood", "metal", "furniture", "stockpile_furniture"]
@@ -830,6 +921,7 @@
     "description": "An iron fire bowl and stone pedestal packed for installation.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
+    "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 20,
     "material_tags": ["stone", "metal", "furniture", "stockpile_furniture"]
@@ -842,6 +934,7 @@
     "description": "A minted coin accepted by every merchant on the mountain road. Spend it or hoard it.",
     "model": "res://assets/models/items/currency/gold_coin.glb",
     "stack_max": 100,
+    "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 1,
     "material_tags": ["currency", "stockpile_currency"]

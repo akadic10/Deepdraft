@@ -1,5 +1,11 @@
 # 19 - Storage Containers & Furniture Placement (Third Colony Milestone)
 
+> **2026-10-06 update — filters shipped:** chests, barrels and shelves use the
+> same Filters/Contents inspector as ground zones. Categories, exact item choices,
+> exceptions and rejected contents survive save/load. Dwarves relocate rejected
+> goods when an accepting destination has room; uninstall retains its existing
+> stop-deliveries and drop-contents behavior. See [59 — Storage filters](59_storage_filters.md).
+
 > **2026-10-04 update — physical crate slots:** capacity now counts visible
 > objects/packages. One automatic produce crate holds up to 24 goods of one
 > type and occupies one slot (including one shelf anchor). Ordinary items and
@@ -20,7 +26,7 @@
 Status: **SHIPPED — milestone complete 2026-07-11, same day as drafting.** All five phases
 built and verified in-engine (build log below). Carry-forward: crafting/trade replace
 the DEV item spawner (docs 44/51);
-input/output bins + restock priority (doc 44); filter panel UI. **Save/load gap closed
+input/output bins + restock priority (doc 44). **Save/load gap closed
 2026-07-18 (doc 20):** ghosts, installed pieces, uninstall flags, and container inventories
 persist in schema version 1.
 

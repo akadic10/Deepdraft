@@ -104,8 +104,17 @@ with the sky's visual horizon.
 3. One variable per change, screenshot per change — in-engine; headless maths can't validate looks.
 4. Calibrate the sky to clean blue first; a grey horizon band makes every fade read as murk.
 
-Current state: `SkyController.MANAGE_FOG = false`; `WorldRenderer` uses the original
-`StandardMaterial3D`; fog = the scene's authored Environment. Safe.
+State at that checkpoint: `SkyController.MANAGE_FOG = false`; `WorldRenderer`
+used the original `StandardMaterial3D`; fog came from the authored Environment.
+
+**2026-10-06 update:** the scene-owned `UndergroundLighting` material now suppresses
+daylight and atmospheric fog according to physical roof/door cover. It reads the
+authored Environment and evaluates the procedural sky gradient analytically;
+`MANAGE_FOG` remains false. Native checks include scene fog enabled and near/far
+day/night comparisons. This fixes room washout without completing the separate
+world-edge fog redesign. Current behavior and limitations are recorded in
+[24 — World rendering](../20_player_interface/24_world_rendering.md) and
+[62 — Session handoff](62_session_handoff_2026_10_06.md).
 
 ## 5. <span style="color:#d29922;">Open items / next steps</span>
 

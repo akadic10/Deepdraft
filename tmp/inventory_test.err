@@ -1,0 +1,36 @@
+SCRIPT ERROR: Compile Error: Identifier not found: StockpileManager
+   at: GDScript::reload (res://scripts/components/ColonyInventory.gd:8)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://scripts/tests/ColonyInventoryTest.gd:0)
+ERROR: Failed to load script "res://scripts/tests/ColonyInventoryTest.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+SCRIPT ERROR: Invalid call. Nonexistent function 'snapshot' in base 'GDScript'.
+   at: refresh (res://scripts/ui/ColonyInventoryPanel.gd:176)
+   GDScript backtrace (most recent call first):
+       [0] refresh (res://scripts/ui/ColonyInventoryPanel.gd:176)
+       [1] begin_browsing (res://scripts/ui/ColonyInventoryPanel.gd:163)
+       [2] _on_window_state_changed (res://scripts/ui/DockUI.gd:768)
+       [3] open (res://scripts/ui/UIWindowManager.gd:124)
+       [4] _open_inventory (res://scripts/ui/DockUI.gd:902)
+       [5] _open_action_panel (res://scripts/ui/DockUI.gd:460)
+       [6] _dispatch (res://scripts/ui/DockUI.gd:449)
+       [7] _click (res://scripts/tests/ObjectExplorerTest.gd:229)
+       [8] _run (res://scripts/tests/ColonyInventoryTest.gd:69)
+       [9] _settle (res://scripts/tests/FurniturePlaceTest.gd:327)
+SCRIPT ERROR: Invalid call. Nonexistent function 'snapshot' in base 'GDScript'.
+   at: refresh (res://scripts/ui/ColonyInventoryPanel.gd:176)
+   GDScript backtrace (most recent call first):
+       [0] refresh (res://scripts/ui/ColonyInventoryPanel.gd:176)
+SCRIPT ERROR: Invalid call. Nonexistent function 'snapshot' in base 'GDScript'.
+   at: refresh (res://scripts/ui/ColonyInventoryPanel.gd:176)
+   GDScript backtrace (most recent call first):
+       [0] refresh (res://scripts/ui/ColonyInventoryPanel.gd:176)
+SCRIPT ERROR: Invalid access to property or key 'base:resources:stone:rough_stone' on a base object of type 'Dictionary'.
+   at: _run (res://scripts/tests/ColonyInventoryTest.gd:78)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/ColonyInventoryTest.gd:78)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:327)
+ERROR: Inventory test timed out
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] <anonymous lambda> (res://scripts/tests/ColonyInventoryTest.gd:12)

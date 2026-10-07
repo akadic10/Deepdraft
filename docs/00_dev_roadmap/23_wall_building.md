@@ -159,7 +159,7 @@ reuses the slice-aware voxel DDA (the doc 22 Addendum 2 port) but anchors on the
 cell adjacent to the clicked face** (`place_pos`, doc 22 §Hit Result) — the precision
 mining tool inverted: click a floor and drag a footprint along it, then extend
 **vertical extent 1–8 via Alt+wheel and horizontal via Shift+wheel** (mining's exact
-modifier contract; the tool claims the wheel through `Camera.set_zoom_suppressed`).
+modifier contract; plain wheel remains camera zoom, and only modified wheel is consumed by the tool).
 Drag-height locking to the anchor plane keeps wall footprints flat across terrain
 steps. Selection filter: buildable air cells only (§1 occupancy rules); a selection with
 zero buildable cells confirms to nothing. Designation is clipped to the visible volume

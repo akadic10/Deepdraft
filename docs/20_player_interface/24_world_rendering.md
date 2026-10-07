@@ -26,7 +26,11 @@ These values are derived from Stonehearth's `sky_settings.json` `height_fog` par
 
 Use Godot's `WorldEnvironment` with a `ProceduralSkyMaterial` or a gradient sky texture. The horizon color must match the daytime fog color. Even a simple two-stop gradient (sky blue top → hazy blue-grey horizon) is sufficient.
 
-> **Note:** Full day/night sky cycling is not yet implemented. See `11_overview.md` § 5 for the planned cosine-curve day length system. Do not implement dynamic sky color until that section is marked complete. Use a static daytime sky in the interim.
+> **Current implementation:** `SkyController` drives the sky gradient and Sun/Moon
+> lights from calendar-keyed data. The scene's authored Environment still supplies
+> fog settings; the separate world-edge fog redesign remains deferred. See
+> [08 — Sky plan](../00_dev_roadmap/08_sky_plan.md) and the live underground-lighting
+> section below for the current division of responsibilities.
 
 ### Atmospheric Depth (Scattering)
 
@@ -88,18 +92,139 @@ its light when the slice cuts below its flame, preventing illumination over a
 sliced-away wall. Terrain identity, material colors and discovery rules are unchanged.
 
 The GPU occlusion check measured zero illumination behind a test wall, versus
-0.574 luminance with its local-light shadows disabled. The broader underground
-ambient-light decisions below remain open.
+0.574 luminance with its local-light shadows disabled. Roof-aware ambient and
+directional lighting was added on 2026-10-06, as recorded below.
 
 Stonehearth's slice view works on a surface world where ambient sunlight exists at all depths. **DwarfVoxel is primarily underground — the sunlight model does not reach deep slices.**
 
-At depth, the current `slice_y` floor needs its own ambient illumination. Options (to be decided when implementing lighting):
+The approved model uses entrance skylight, installed local lights, and a small
+readability floor. It affects visibility only; tasks, movement, work speed and
+dwarf needs do not depend on illumination. Camera slicing never removes a roof
+from the lighting calculation.
 
-- A "game camera light" — a weak ambient directional light that always points straight down and follows the camera, illuminating only the current slice floor.
-- Torchlight / room-scoped light sources placed by dwarves.
-- A flat ambient intensity floor so rooms never go completely black, even unlit.
+#### Tunnel lighting study — 2026-10-06 (historical prototype)
 
-> **Implementation note:** Do not implement underground lighting until the task system and room-carving loop are functional. Placeholder flat ambient is acceptable during early development.
+The player chose **visibility first** for the next lighting pass: darkness should
+make placed lights useful without restricting dwarf work or changing task priority.
+The current bright tunnel has two confirmed causes: terrain is excluded from the
+sun's shadow-caster mask, and `SkyController` applies sky ambient light without
+checking physical roof cover. Dimming the slice cut plates does not shade mined
+air spaces, and enabling sun shadows alone would not remove ambient sky fill.
+
+`tools/TunnelLightingStudy.gd` renders a representative covered passage with current
+daylight fill, proposed unlit shading, and two existing wall torches. It uses actual
+registry stone colours, dwarf models, and controller-owned torch definitions.
+The proposed view keeps outside daylight, fades entrance light over seven blocks,
+retains a small readability floor, and shades indoor props and dwarves too. Local
+torch lights and shadows use their existing authored settings. These values are
+study tuning, not accepted production settings.
+
+The fixture's sky access follows a bounded flood through authored 2D air cells;
+the hidden roof is treated as intact. Its shader and field are **not connected to
+the live world renderer**. Native captures and GPU sample checks are written to
+`tmp/tunnel_lighting_review/`; the final run passed with no script errors. Outdoor
+luminance stayed identical, and sampled torchlit floor patches were more than 50%
+brighter than their unlit equivalents.
+
+A production implementation still needs incremental 3D sky access derived from
+physical blocks and executed mining, independent of camera slicing. It must retain
+local mining invalidation, undiscovered-resource concealment, outdoor day/night
+behaviour, and consistent shading for terrain, dwarves and installed furniture.
+Runtime roof removal, slice changes, save/load and mining performance have not
+been validated by this study.
+
+#### Live tunnel lighting — shipped 2026-10-06
+
+`WorldRenderer` creates a scene-owned `UndergroundLighting` child. It consumes
+`WorldData.block_changed` (exact edits, not mesh streaming signals) and derives
+skylight from physical air and roof columns. Mining a skylight updates the air
+column below it; closing a passage removes its daylight. Light propagates through
+six-connected air with seven-block falloff, independently on stacked floors.
+The affected air region includes a second reach of cells to supply correct
+boundary conditions. CPU work drains on a 2.5 ms frame budget; no terrain meshes
+are invalidated by lighting updates.
+
+The field stores sparse 32-cubed tiles in four lazily populated texture-array
+pages, covering all 4096 possible tiles in the world. A small indirection texture
+lets the shared shader sample in world coordinates. Only changed layers upload;
+ordinary movement and slice changes require no field rebuild. Untracked/solid
+cells retain normal illumination, preserving cut plates and designation previews.
+Tracked air attenuates sky ambient and directional light. Installed omni lights
+retain their existing range, colour and shadow settings. Air-only interpolation
+prevents solid rock from blending daylight into tunnel edges. SkyController owns
+the tuning in `data/sky/sky_settings.json`: `entrance_reach_blocks: 7` and
+`readability_floor: 0.008` (reduced after the room-darkness follow-up below).
+
+The same shader shades live dwarves, their subsequently attached tool meshes,
+installed furniture and loose/carried items. Emissive flames and transparent
+placement ghosts retain their own materials. Dwarf portraits explicitly restore
+the original tint material and use their separate studio lighting. Lighting data
+is derived on scene load from replayed mining; nothing is added to save files.
+
+**Door/room follow-up (2026-10-06):** installed doors now stop the skylight flood
+using `RoomManager.get_door_boundaries()`, the same four-block doorway columns
+used for room sealing. `door_boundaries_changed` queues local updates on install
+and uninstall, including changes during an in-progress lighting update. Doors
+remain walkable air in navigation. Existing door meshes already block nearby
+omni lights through their shadows. The room selection keeps a volume outline
+and barely tinted floor rather than a bright unshaded shell. The Room inspector
+counts actual installed `light_source` definitions separately from heat units.
+SaveManager clears old room/door/heat/light registrations before furniture restore.
+
+**Room darkness / fog follow-up (2026-10-06):** scene fog was still blending sky
+colour into sealed rooms after the lighting shader ran. The earlier native room
+fixture disabled fog, so its passing lighting checks did not cover the actual
+gameplay appearance. With fog enabled, an unlit room measured 0.150 luminance;
+even with the readability glow set to zero, fog alone contributed 0.131.
+
+The shared lighting shader now supplies `FOG` explicitly and scales its opacity
+by physical sky access. It reads the active scene (or camera override)
+Environment at 20 Hz, updating only changed material parameters. Depth / density
+and height falloff, the ProceduralSky gradient in the view direction, and sun
+scattering remain available outdoors. The gradient is evaluated analytically;
+this does not reproduce the engine's blurred sky-radiance sampling or volumetric
+fog. The current scene uses depth fog and a ProceduralSky. No additional render
+pass, terrain rebuild, atmosphere JSON owner or simulation dependency is added.
+The visibility glow is reduced from 0.05 to 0.008 so closed unlit spaces read as
+near-black, with only a faint shape remaining.
+
+Validation:
+
+- `UndergroundLightingTest.gd`: native GPU comparison, entrance falloff, blocked
+  passages/reopening, roof removal/replacement during an update, stacked floors,
+  and replaying mined terrain into a fresh lighting field. Sampled deep floor
+  luminance fell from 0.628 to 0.027 with the current tuning; the existing torch
+  raised it to approximately 0.17.
+- `tools/UndergroundWorldReview.gd`: full generated world, actual renderer and
+  mining pipeline, slice invariance, installed torch visibility, dwarf/portrait
+  material separation, and loose-item materials. The 272-block tunnel rebuilt
+  two terrain tiles; lighting frame work peaked at 2.60 ms in that run.
+- `SaveManagerRoundTripTest`, `MiningAnimationTest`, and `FurniturePlaceTest`
+  passed. Native captures, reports and logs are in
+  `tmp/underground_lighting_review/`.
+- Door follow-up: `UndergroundLightingTest` also covers door installation,
+  removal, replacement during an update, and a new field reading existing doors.
+  `RoomLightingTest` uses the native renderer, mined 64-block room, real door and
+  corridor torch, then an interior brazier. Closed-room floor luminance remains
+  unchanged with the corridor torch; selection adds only a faint tint, and an
+  interior brazier visibly raises illumination. Both panels fit 960×540 and
+  1280×720; room dragging and Slice bounds/height memory pass. Captures are in
+  `tmp/room_lighting_review/`. The save round-trip includes saved and unsaved doors
+  and braziers to verify stale boundaries and duplicate light/heat are removed.
+- Fog follow-up: `RoomLightingTest` keeps the native scene fog enabled and checks
+  that the lighting materials receive it. The sealed floor measures 0.010, versus
+  0.150 using the previous automatic fog and visibility glow. Doubling camera
+  distance leaves the dark floor unchanged; an interior brazier raises it to
+  0.154. Exposed terrain is compared against native automatic fog, at near/far
+  camera distances and during day/night. `UndergroundLightingTest` retains the
+  door, skylight, stacked-floor, torch and mining-replay regressions. Logs for
+  this pass are under each review directory's `darkness_fix/` folder.
+
+This is a bounded skylight approximation, not bounced global illumination or
+sun-angle ray tracing. The normal slice still controls local-light shadow
+geometry and torch visibility. Natural-cave discovery and constructed room roofs
+remain governed by their existing world/geometry systems; this pass does not add
+either system or lighting-related work restrictions.
 
 ### Exposed Wall Faces Are the Core Visual Language
 

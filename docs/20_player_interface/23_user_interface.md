@@ -4,16 +4,26 @@
 
 All UI is implemented as Godot `Control` nodes on a `CanvasLayer`. No 3D world-space UI elements. The interface is divided into four zones: **Status Bar** (top), **Side Panel** (right), **Dock** (bottom — a floating command bar), and **Notification Layer** (overlay).
 
+**Storage inspection (2026-10-06):** clicking a ground zone, chest, barrel or
+shelf opens the shared Hearth & iron storage panel. Filters and Contents share
+a persistent capacity readout: occupied physical cells/slots and total goods.
+Players can select whole categories, individual items, or mixtures; partial
+categories show a dash. Accept all goods and Clear all filters act immediately.
+Actual contents remain listed when disallowed and show Awaiting relocation;
+dwarves move them only after reserving accepting storage with room. Zone removal,
+container uninstall, native window dragging and world-input isolation remain.
+See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).
+
 ## Object explorers (implemented 2026-10-04)
 
 Trees and furniture in the main scene share a movable context window through
 `ObjectExplorerController` and `UIWindowManager`. All trees keep Growth stage,
 Fruit, Fruit season, Felling yield, and Felling status in fixed rows, including N/A values.
-The existing **Chop → Chop Trees** menu supports single clicks and ground rectangles
+The **Orders → Chop trees** command supports single clicks and ground rectangles
 with a live tree count. Release commits the rectangle; Escape cancels the gesture
 and exits the tool. The rectangle redraws every frame after camera movement, with
-the tree count refreshed separately. The dock axe highlights the open menu;
-the on-screen hint indicates active selection after the menu closes.
+the tree count refreshed separately. The Orders group highlights its open menu;
+the active tile and shared tool banner indicate the selected mode.
 Marked trees retain a mouse-transparent 🪓 above their canopy,
 projected on a CanvasLayer and hidden with sliced-out trees.
 The explorer offers Fell tree / Cancel felling. Forestry Zone
@@ -22,9 +32,84 @@ Furniture retains its own status, storage information and actions in the same
 window. See [48 — Object explorers and tree felling](../00_dev_roadmap/48_object_explorer_and_tree_felling.md)
 for input behavior, provider ownership, validation, and the next tool-animation milestone.
 
-## Stockpile Display Readouts
+**Dwarf inspection (2026-10-05):** visible dwarves now use the same selection
+system. Their inspector is the first **Hearth & iron** surface: a portrait of the
+actual dwarf, live activity/destination, rest, exact cargo and carry load, plus
+Locate and Follow. Details shows location, current work explanation and each
+trait's name and description. It explicitly labels trait effects as inactive;
+Light Sleeper's authored seven-hour sleep duration is not yet a runtime modifier.
+The body scrolls at smaller resolutions while actions remain visible. See
+[51 — Dwarf inspection](../00_dev_roadmap/51_hearth_iron_dwarf_inspector.md).
 
-The top status bar shows live colony resource counters.
+**Shared Hearth & iron theme (2026-10-05, stage 2):** all current UI surfaces now
+use `UITheme`: charcoal panels, copper accents, warm text, serif titles and compact
+corners. Standard windows, object explorers, dock menus, independent storage/mining/
+room/furniture panels, debug windows, tooltips and toasts share these definitions.
+Danger actions retain red text; developer actions use warm orange. See
+[52 — Shared UI theme](../00_dev_roadmap/52_hearth_iron_shared_theme.md) for ownership
+and verification.
+
+**Grouped navigation (updated 2026-10-06):** seven labeled entries with copper line
+icons replace the emoji-only command row. Orders, Zones, Rooms, Place, Colony, Inventory and Menu
+sit at bottom-center, with live calendar, speed and Slice controls at top-left. Menus stay
+beside the default right-hand inspector and scroll at smaller resolutions. All
+object inspectors now start on the right; existing saved or dragged positions take
+precedence. See [53 — Navigation and layout](../00_dev_roadmap/53_hearth_iron_navigation.md).
+
+**Place catalog (2026-10-05 follow-up):** the furniture Build list is now a movable
+cabinet with model thumbnails, categories and a paper detail area. It lists finished
+furniture with live Available/Reserved counts; Show all designs also reveals unavailable
+items. Crafting is explicitly future work. The catalog stays open while placing,
+and clicking an available tile immediately starts its placement preview. It
+supports Undo of unfinished requests and stops when stock runs out. Inventory
+updates preserve tile positions and scroll while browsing; zero-count tiles stay
+visible until reopen, and newly available designs append at the end. See
+[54 — Place catalog](../00_dev_roadmap/54_place_catalog.md).
+
+**Zone window movement (2026-10-05 follow-up):** Mining Zone and Storage Zone now
+register context windows with `UIWindowManager`. Drag their title bars to move them;
+positions are remembered in `user://ui_layout.json` across reopening and game
+restarts. They stay closed on startup until a zone is selected. Live mining counts
+refresh without bringing the panel to the front. Closing clears the inspected zone,
+and removing a selected zone also closes its window. Mining's instruction callout
+uses the shared Orders banner when a dock is present.
+
+**Tool shelves (updated 2026-10-06):** Orders opens Mine blocks, Chop trees and
+Cancel orders; Zones opens Stockpile. Unimplemented Farm plot is omitted.
+Selecting a tool starts it directly and keeps its shelf open. Switching groups
+ends the active tool; closing its shelf retains the tool and its group highlight.
+The shared banner sits above the shelf (or dock when closed), showing live
+selection feedback, Done / Esc and Undo last order. Feedback
+offers View order through the existing inspectors. Cancel clicks or drags over
+unfinished mining/chopping; Undo cancels the last designation's remaining work
+without recreating completed terrain. See
+[55 — Orders shelf](../00_dev_roadmap/55_orders_shelf.md).
+
+**Colony Inventory (2026-10-05 follow-up):** Inventory opens directly from the
+bottom dock into a movable cabinet with real model thumbnails, categories and
+parchment details. Total is Stored + Loose + Carried; Reserved is a subset,
+and Available excludes goods assigned to hauling or placement. Crates count
+contents. Locate and Inspect storage resolve current owners. Furniture remains
+counted here; furnishing happens through the separate Place dock entry.
+Tiles stay fixed through hauling. Developer spawn
+controls now live in Menu → Development. See
+[56 — Colony Inventory](../00_dev_roadmap/56_colony_inventory.md).
+
+**Colony Dwarves (updated 2026-10-06):** Colony → Dwarves opens a wider movable
+overview with a compact roster on the right and the shared dwarf details on the
+left. Actual portraits, activity/cargo, rest, live workforce filters and name
+search remain; rows keep their positions during updates. Selection uses the same
+world controller and embeds Overview/Details, traits, Locate and Follow without
+opening another window. The two columns scroll independently. Escape closes the
+combined overview; ordinary world inspection resumes after closing. This pass
+adds no labor controls. Developer tools remain in Menu → Development → DEV: Dwarf
+tools. See [57 — Roster](../00_dev_roadmap/57_colony_dwarf_roster.md) and
+[61 — Colony overview](../00_dev_roadmap/61_colony_overview.md).
+
+## Stockpile Display Readouts (planned)
+
+Resource counters below are a future design. The implemented status strip shows
+the live calendar, pause/speed controls and Slice; it does not show sample totals.
 
 ### Layout
 
@@ -41,47 +126,63 @@ The top status bar shows live colony resource counters.
 
 ## Floating Dock (Bottom Command Bar)
 
-The bottom zone is a **floating dock** — a centered, rounded, semi-transparent bar
-(macOS-dark-mode style) that sits above the 3D viewport on the `CanvasLayer`. It is the
-single bottom UI surface and **replaces** the older tabbed build bar. Icons are **emoji
-glyphs** rather than an authored texture atlas.
+The bottom-centered **floating dock** is a Hearth & iron bar on a `CanvasLayer`.
+Seven labeled entries use small SVG line icons from `assets/ui/icons/`, tinted by
+the shared theme. An open group stays highlighted, including while a submenu is
+open. Only one action menu opens at a time; a second click or Escape closes it,
+and submenus have a Back button. Active tools retain their existing Escape handling.
 
 ### Data-Driven Layout
 
-Dock order, icons, and action bindings live in `data/ui/dock.json` and are loaded by the
+Dock order, icons, menu labels and action bindings live in `data/ui/dock.json` and are loaded by the
 `UIRegistry` autoload (Registry Pattern — no other script reads the file directly). The
-data file's scope is **layout only**: order, emoji, label, tooltip, and an action *id*.
+data file's scope is **layout only**: order, icon, label, tooltip, disabled state and action bindings.
 The action *logic* lives in GDScript — the dock node maps each `action` string to a handler
 via a dispatch table — per the JSON-vs-GDScript rule (*JSON = what things are, GDScript =
 what things do*). Buildable-entry catalogs (costs, `action_type`, `requires_floor`) are a
 separate concern and are **not** part of `dock.json`. When those catalogs are specced they
 will be JSON loaded by their owning registry, never `.tres` Resources (see AGENT.md).
 
+`data/ui/place_catalog.json`, also owned by UIRegistry, holds furniture categories,
+short captions and display order. Physical definitions stay with
+FurniturePlacementController; Available and Reserved are derived from actual items
+and pending placement requests, not UI data.
+
 ```json
 {
+  "schema_version": 2,
   "items": [
-    { "id": "mine",  "emoji": "⛏️", "label": "Mine",  "action": "open_panel",    "target": "mine" },
-    { "type": "separator" },
-    { "id": "labor", "emoji": "👷", "label": "Labor", "action": "toggle_window", "target": "labor" }
-  ]
+    { "id": "orders", "icon": "res://assets/ui/icons/orders.svg", "label": "Orders", "action": "open_panel", "target": "orders" }
+  ],
+  "menus": {
+    "orders": {
+      "title": "Give an order",
+      "items": [
+        { "id": "mine", "label": "Mine blocks", "action": "activate_tool", "target": "mine_precision" }
+      ]
+    }
+  }
 }
 ```
 
-`UIRegistry.get_dock_items()` returns the ordered, validated list. Separator entries are
-`{ "type": "separator" }`; button entries carry `id`, `emoji`, `label`, `tooltip`,
-`action`, and `target`. Malformed entries are skipped with a warning at load.
+`UIRegistry.get_dock_items()` returns the ordered navigation buttons;
+`get_menu(target)` returns a title, optional parent group and validated command
+entries. Buttons require `id`, `label`, `action` and `target`; `icon`, `tooltip`
+and `disabled` are optional. Malformed entries are skipped with a warning at load.
 
 ### Action Types
 
 | `action` | Effect |
 |---|---|
 | `open_panel` | Opens a build/designation panel above the dock. Panels are **mutually exclusive** — opening one closes any other. `target` names the panel. |
-| `toggle_window` | Toggles a movable floating window (labor, stockpiles, trade). `target` names the window. |
+| `toggle_window` | Toggles a movable floating window (labor, inventory, trade). `target` names the window. |
+| `activate_tool` | Emits the existing `tool_requested` signal. Orders keeps its shelf open; other command menus close. Controllers retain the one-active-tool contract. |
+| `panel_action` | Dispatches an existing named action, including the DEV stockpile spawners. |
 
 ### Save / Load Menu
 
-The far-right utility button uses **💾 Save / Load** and opens the standard mutually
-exclusive action panel above the dock. Its actions are **💾 Save Game**,
+**Menu → Save / Load** opens the standard mutually exclusive action panel above
+the dock. Its actions are **💾 Save Game**,
 **📂 Load Game**, and **🕒 Load Autosave**. `DockUI` owns only the presentation and emits
 `save_game_requested`, `load_game_requested`, or `load_autosave_requested`; `SaveManager`
 owns the timer, file I/O, and state serialization.
@@ -115,10 +216,14 @@ until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
 
 ### The Slice Tool (shipped 2026-06-05 — doc 11 Phase 2)
 
-The dock's `slice` entry toggles the slice view rather than opening a window. The tool is
+The status strip's **Slice** button (also **Menu → Slice view**) toggles the slice view. The tool is
 owned by `SliceController` (scene node; DockUI only routes the toggle and mirrors active
-state on the button). While active, a small palette window shows: **▲▲ Cell up**,
-**▲ Block up**, a live `Y = N` readout (`Off` at Y127), **▼ Block down**, **▼▼ Cell down**.
+state on the button). The movable **Slice view** panel now uses the Hearth & iron
+cabinet chrome, a large **Level N** readout, paired Cell down/up and −/+ Block
+controls, keyboard hints and **Show full world**. Y127 reads **Full world**;
+buttons disable at their respective bounds. Closing restores the full view while
+remembering the last level. The initial position is below the time strip; a saved
+or dragged position takes precedence. Updated 2026-10-06.
 
 | Input | Effect |
 |---|---|
@@ -135,74 +240,72 @@ lives in the tool layer, never the renderer.
 
 ### The Rooms Tool (shipped 2026-08-07 — doc 22 close-out follow-up)
 
-The dock's 🚪 `rooms` entry toggles the **Rooms tool**, owned by `RoomOverlayController`
+The dedicated **Rooms** toolbar button toggles the **Rooms tool**, owned by `RoomOverlayController`
 (scene node; DockUI only announces `tool_requested("rooms")` — the controller self-toggles
 on its own id and every other click-tool deactivates, the standard one-active-tool
-contract). While active, every sealed room `RoomManager` tracks draws a translucent
-**volume shell** — every exterior face of the room's air volume, inset 0.04 to clear the
-wall faces, plus silhouette outline edges (interior coplanar edges deduped; the
-mining-zone treatment, per Alen's second Rooms session 2026-08-07): **green** for sealed
-rooms (mining owns yellow, stockpiles own blue-cyan), **icy blue** for Frozen Vaults.
+contract). While active, every sealed room draws a **volume outline** with a faint
+floor tint: **green** for sealed rooms, **icy blue** for Frozen Vaults. Coplanar
+interior edges are deduped. The 2026-10-06 follow-up removed filled walls and ceilings:
+their stacked, unshaded green faces made unlit rooms appear bright. Floor opacity
+is only 0.3%, or 0.6% when selected, so the actual room lighting remains legible.
 Overlays render with **no depth test** (the mining ghost-layer treatment), so a room
 reads through the mountain whether or not the slice is cut down to it; rooms above the
 slice plane hide (the flora convention).
 
 Left-click marches the mouse ray through the grid and selects the first room whose
 interior air it crosses — clicks are as x-ray as the overlays, so a room visible through
-rock is clickable through rock. Selection opens a compact info window (below the slice
-palette): sealed/Frozen-Vault state, depth-zone name, temperature (1 decimal), volume,
-heat units with computed +°C bonus, door count, seasonal influence %, and mean floor Y —
-the doc 34 "UI — Room Temperature Display" readout, refreshed at 2 Hz while open. ESC
+rock is clickable through rock. Selection opens a movable **Room** inspector using
+the shared cabinet chrome and remembered window position. **Overview** shows sealed/
+Frozen-Vault state, temperature, depth zone, installed light count, volume and doors.
+A room with no installed light says **No light sources** and suggests a torch or
+brazier. **Details** retains heat units and +°C bonus, seasonal influence and average
+floor level. The body scrolls on short displays. Readouts refresh at 2 Hz without
+raising the window; closing clears selection. ESC
 exits the tool; right-mouse stays camera-orbit (`21_camera.md` contract). Overlays and
 selection are derived presentation state — never saved, rebuilt from `RoomManager` on
 activation and on `room_updated`/`room_removed` (throttled 0.3 s). Selection survives
 RoomManager's id churn by re-resolving through the clicked cell.
 
-### Default Items
+### Navigation Groups
 
-| Order | Emoji         | Label      | Action          | Target       |
-| ----- | ------------- | ---------- | --------------- | ------------ |
-| 1     | ⛏️            | Mine       | `open_panel`    | `mine`       |
-| 2     | 🪓            | Chop       | `open_panel`    | `chop`       |
-| 3     | 🧺            | Gather     | `open_panel`    | `gather`     |
-| 4     | 🔨            | Build      | `open_panel`    | `build`      |
-| —     | *(separator)* |            |                 |              |
-| 5     | 📦            | Storage Zone | `open_panel`  | `storage_zone` |
-| 6     | 🌾            | Farm       | `open_panel`    | `farm`       |
-| —     | *(separator)* |            |                 |              |
-| 7     | ⚔️            | Military   | `open_panel`    | `military`   |
-| —     | *(separator)* |            |                 |              |
-| 8     | 👷            | Labor      | `toggle_window` | `labor`      |
-| 9     | 📦            | Stockpiles | `toggle_window` | `stockpiles` |
-| 10    | 💰            | Trade      | `toggle_window` | `trade`      |
-| —     | *(separator)* |            |                 |              |
-| 11    | 🕒            | Clock      | `toggle_window` | `clock`      |
-| 12    | 📅            | Calendar   | `toggle_window` | `calendar`   |
-| —     | *(separator)* |            |                 |              |
-| 13    | 👀            | Slice      | `toggle_window` | `slice`      |
-| 14    | 🩻            | X-Ray      | `toggle_window` | `xray`       |
-| 15    | 🚪            | Rooms      | `toggle_window` | `rooms`      |
-| —     | *(separator)* |            |                 |              |
-| 16    | 🚩            | Settle     | `toggle_window` | `flag`       |
-| 17    | 🧔            | Dwarves    | `toggle_window` | `dwarves`    |
-| 18    | 📊            | World      | `toggle_window` | `world_info` |
-| 19    | 🔍            | Inspect    | `toggle_window` | `block_inspector` |
-| —     | *(separator)* |            |                 |              |
-| 20    | 💾            | Save / Load | `open_panel`   | `save_load`  |
+| Group | Commands |
+|---|---|
+| Orders | Mine blocks, Chop trees, Cancel orders |
+| Zones | Stockpile |
+| Rooms | Direct room inspection toggle; active highlight, second click or Escape to exit |
+| Place | Finished furniture catalog: thumbnails, categories, live availability, repeated placement and Undo |
+| Colony | Dwarves, Settlement flag, Labor and Trade |
+| Inventory | Colony supplies with real thumbnails, live physical counts, Locate and Inspect storage |
+| Menu | Save / Load, Clock & weather, Slice view, World Build, Block Inspector and Development |
+
+Farming controls are omitted pending implementation. Labor and Trade retain their
+existing preview contents and say so in their menu tooltips. Inventory uses live
+supplies. Development contains DEV: Spawn Drops and DEV: Spawn Furniture.
+
+### Live Status Strip
+
+The upper-left strip reads `WorldClock`: season, day and time, with the year in
+the tooltip. Clicking the date opens the existing Clock and weather window.
+Pause toggles pause/resume; 1× and 2× resume at that speed. Slice reflects the
+existing controller state. These controls remain available with any menu open.
 
 ### Panels (opened by `open_panel`)
 
 | Panel | Contents |
 |---|---|
-| Mine | Designate mining zones, clear rubble, channel floors |
-| Build | **Seventeen placeable entries live (2026-10-03):** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil, Smelter, Aging Rack and Brazier. Each 📥 entry activates its furniture ghost; a dwarf fetches the packed item and installs it. Installed pieces have an independent **📤 Uninstall** toggle. Workshop production remains future work. |
-| Farm | Designate soil plots, assign crops |
-| Military | Set patrol routes, guard posts (future) |
+| Place | **Eighteen furniture designs:** Barrel, Storage Chest, Storage Shelf, Tavern Bar, Bench, Hearth, Door, Trade Counter, Personal Dining Table, Communal Dining Table, Wooden Chair, Dwarven Bed, Brewing Vat, Wall Torch, Anvil, Smelter, Aging Rack and Brazier. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
+| Farming | Disabled future plot and crop commands |
+| Military | Disabled future military commands |
 
-Action-panel buttons use a six-column grid. Fifteen placeable entries and Cancel
-occupy three rows. The panel stays centered above the dock and grows upward as
-needed ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
-Smaller menus remain on one row. The Build panel is verified at 1280×800 and 2560×1440.
+Action menus center above the dock with an 8 px gap. If an open inspector would
+overlap, they shift to the nearest side with enough room. Closing the inspector
+recenters the open menu. These command menus use two columns. The Place cabinet
+instead opens below the time strip on the left, with a three-column scrolling list,
+fixed details/actions and a compact category dropdown on short viewports. It uses
+the shared movable-window system. Long command menus scroll while their
+header stays visible, and reopen at the top. At desktop widths the layout reserves
+space for the default inspector on the right. Verified at 960×540, 1280×720 and
+2560×1440; saved or dragged floating-window positions are still player-controlled.
 
 Wall Torch aims at vertical terrain faces and chooses their orientation automatically;
 aiming at the adjoining floor keeps R rotation available. It needs four blocks of room
@@ -236,7 +339,7 @@ A **stockpile zone** is a player-designated rectangular region of floor tiles th
 
 ### Zone Designation Flow
 
-1. Player selects **Build → Stockpile Zone** from the build menu and drag-paints floor tiles.
+1. Player selects **Orders → Stockpile** and drag-paints floor tiles.
 2. A `StockpileZone` node is created covering those tiles. Its default filter accepts `["stockpile_stone", "stockpile_ore", "stockpile_gem", "stockpile_soil", "stockpile_wood", "stockpile_food", "stockpile_drink", "stockpile_seed", "stockpile_misc"]` — i.e., everything.
 3. The player can open the zone's filter panel (click the zone) to toggle individual tag categories on or off.
 
@@ -327,9 +430,10 @@ Short-lived overlay messages alerting the player to critical colony events.
 ToastManager.push("Ale stockpile is low", ToastManager.WARN)
 ```
 
-## Labor Assignment Window
+## Labor Assignment Window (planned)
 
-Opened via the right-side panel. Shows all dwarves and their current job assignments.
+The implemented **Colony → Dwarves** roster shows current work and rest, with
+selection and Locate actions. The assignment controls below remain future design.
 
 ### Columns
 

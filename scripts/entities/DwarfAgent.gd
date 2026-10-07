@@ -19,6 +19,7 @@ extends CharacterBody3D
 const LOGICAL_HEIGHT := 3.0    # blocks — collision + future nav clearance
 const FellingPose = preload("res://scripts/components/DwarfFellingPose.gd")
 const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
+const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
 const COLLISION_LAYER_DWARF := 4   # layer bit 3. NOT layer 1 (camera spring arm
 								   # collides mask 1, terrain only) and NOT
 								   # layer 2 (trees) — see doc 13 §7 gotcha.
@@ -45,7 +46,8 @@ var current_task_id: int = -1
 ## pick it up, carry it to the stockpile, deposit, pull the next.
 enum TaskPhase { NONE, MOVING, EXECUTING, ZONE_MOVING, ZONE_SWINGING, HAUL_TO_ITEM, HAUL_TO_ZONE,
 		FETCH_TO_ITEM, FETCH_TO_GHOST, FETCH_WORKING, UNINSTALL_MOVING, UNINSTALL_WORKING,
-		FELL_FINDING, FELL_MOVING, FELL_WORKING }
+		FELL_FINDING, FELL_MOVING, FELL_WORKING,
+		HAUL_PICKUP, HAUL_DEPOSIT, FETCH_PICKUP, FETCH_DEPOSIT }
 const GENERIC_WORK_TIME := 1.0   # seconds — generic executor only
 var _task_phase: int = TaskPhase.NONE
 var _task_target: Vector3i = Vector3i.ZERO
@@ -69,13 +71,21 @@ var _pull_exclude: Dictionary = {}   # Vector3i -> true; this-round path blackli
 ## HAUL-lease execution state (doc 18 §2.3 + pouch). Mirrors the zone-lease
 ## shape: 3 failed rounds release the lease with backoff; EVERYTHING carried
 ## is dropped at the feet on ANY interruption (Hard Rule 12). The pouch (SH
-## backpack parity): a pull is a BUNDLE of up to pouch_capacity items visited
-## in order, carried as a stack, deposited in one trip.
+## backpack parity): a pull is a BUNDLE whose JSON carry_cost sum fits the
+## carry_capacity budget, visited in order and deposited in one trip.
 const HAUL_PULL_FAILURE_LIMIT := 3
-## Item GLBs are sole-anchored, ~1 block high/deep. Keep their back face beyond
-## the redesigned beard (Z=0.9375), including the forward walking lean.
-const CARRY_OFFSET := Vector3(0.0, 1.05, 1.55)  # held below the face; local +Z = facing
-const CARRY_STACK_STEP := 0.95                  # vertical spacing of pouch items
+## Pickup keeps the source reserved until fist contact. After that the normal
+## carried-items save/drop contract applies, even while the lift is incomplete.
+var _carry_pose: RefCounted
+var _handling_item: Node3D
+var _handling_start := Transform3D.IDENTITY
+var _handling_world_start := Transform3D.IDENTITY
+var _handling_target := Vector3.ZERO
+var _handling_yaw_from := 0.0
+var _handling_yaw_to := 0.0
+var _handling_elapsed := 0.0
+var _handling_duration := 0.75
+var _handling_lifted := false
 var _haul_source_id: int = -1
 var _haul_items: Array[Node3D] = []  # this round's bundle, visit order
 var _haul_index: int = 0             # next bundle item to fetch
@@ -189,6 +199,8 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_felling_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
 	_mining_pose = MiningPose.new()
 	_mining_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
+	_carry_pose = CarryPose.new()
+	_carry_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
 	walk_finished.connect(_on_walk_finished)
 
 
@@ -197,7 +209,10 @@ func _process(delta: float) -> void:
 		_process_sleeping(delta)
 		return
 	if _task_phase in [TaskPhase.FELL_FINDING, TaskPhase.FELL_MOVING, TaskPhase.FELL_WORKING,
-			TaskPhase.ZONE_MOVING, TaskPhase.ZONE_SWINGING] \
+			TaskPhase.ZONE_MOVING, TaskPhase.ZONE_SWINGING,
+			TaskPhase.HAUL_TO_ITEM, TaskPhase.HAUL_TO_ZONE, TaskPhase.HAUL_PICKUP, TaskPhase.HAUL_DEPOSIT,
+			TaskPhase.FETCH_TO_ITEM, TaskPhase.FETCH_TO_GHOST, TaskPhase.FETCH_WORKING,
+			TaskPhase.FETCH_PICKUP, TaskPhase.FETCH_DEPOSIT] \
 			and (WorldClock.paused or WorldClock.speed <= 0.0):
 		return
 	# Sleep drains in EVERY waking state — idle, walking, working, swinging —
@@ -205,6 +220,9 @@ func _process(delta: float) -> void:
 	sleep = maxf(sleep - _sleep_drain * delta, 0.0)
 	if sleep <= SLEEP_THRESHOLD:
 		_begin_sleep()
+		return
+	if _task_phase in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP, TaskPhase.HAUL_DEPOSIT, TaskPhase.FETCH_DEPOSIT]:
+		_process_item_handling(delta * WorldClock.speed)
 		return
 	if _task_phase == TaskPhase.FELL_FINDING:
 		_fell_try_stand()
@@ -229,9 +247,10 @@ func _process(delta: float) -> void:
 		_process_swinging(delta * WorldClock.speed)
 		return   # swing bob owns the part offsets this frame
 	elif _task_phase == TaskPhase.FETCH_WORKING:
-		_exec_timer -= delta
+		_exec_timer -= delta * WorldClock.speed
 		if _exec_timer <= 0.0:
-			_fetch_complete()
+			_begin_fetch_deposit()
+			return
 	elif _task_phase == TaskPhase.UNINSTALL_WORKING:
 		_exec_timer -= delta
 		if _exec_timer <= 0.0:
@@ -240,6 +259,9 @@ func _process(delta: float) -> void:
 		_idle_bob()
 	else:
 		_follow_path(delta)
+	if not _carried_entries.is_empty() and _task_phase not in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP,
+			TaskPhase.HAUL_DEPOSIT, TaskPhase.FETCH_DEPOSIT]:
+		_carry_pose.hold(_carried_entries, _body.position.y if is_instance_valid(_body) else 0.0)
 
 
 # ── Task execution (doc 16 step 4 — generic v1 executor) ─────────────────────
@@ -269,6 +291,9 @@ func receive_task(task_id: int, target_pos: Vector3i) -> void:
 		_haul_source_id = int(task.payload["zone_id"])
 		_haul_failures = 0
 		_haul_exclude.clear()
+		for cell: Vector3i in task.payload.get("haul_excluded_cells", []):
+			_haul_exclude[cell] = true
+		task.payload.erase("haul_excluded_cells") # one assignment's probe results only
 		_haul_pull_next()
 		return
 	if task != null and task.type == Task.Type.FETCH_BUILD:
@@ -338,7 +363,7 @@ func _on_walk_finished(success: bool) -> void:
 	if _task_phase == TaskPhase.HAUL_TO_ZONE:
 		_task_phase = TaskPhase.NONE
 		if success:
-			_haul_deposit_now()
+			_begin_haul_deposit()
 		else:
 			# Carrying and the path died — drop everything at the feet
 			# (Hard Rule 12); the items re-enter the loose index.
@@ -740,47 +765,48 @@ func _haul_walk_current() -> void:
 		if _carried_entries.is_empty():
 			_haul_cancel_pull()
 			_haul_count_failure()
-		elif walk_to(_haul_deposit):
-			_task_phase = TaskPhase.HAUL_TO_ZONE
 		else:
-			_drop_carried_at_feet()
-			_haul_cancel_pull()
-			_haul_count_failure()
+			var source := _haul_source()
+			if source == null or not _walk_to_handling_stand(source.call("delivery_stand_cells", _haul_deposit, dwarf_id), TaskPhase.HAUL_TO_ZONE):
+				_drop_carried_at_feet()
+				_haul_cancel_pull()
+				_haul_count_failure()
 		return
 	var item := _haul_items[_haul_index]
 	if item == null or not is_instance_valid(item):
 		_haul_skip_current()
 		return
-	var stand := _item_stand_cell(item)
-	if stand == current_cell():
-		_haul_pickup_current()
-		return
-	if walk_to(stand):
-		_task_phase = TaskPhase.HAUL_TO_ITEM
-	else:
+	var source := _haul_source()
+	if source == null or not _walk_to_handling_stand(source.call("pickup_stand_cells", dwarf_id, _haul_index), TaskPhase.HAUL_TO_ITEM):
 		_haul_skip_current()
 
 
-## Step 3: pocket the current bundle item — the node joins the carried stack
-## at chest height. Then on to the next item (or the zone).
+## Step 3: reach first; the source hands over the cargo at fist contact.
 func _haul_pickup_current() -> void:
+	if _haul_index >= _haul_items.size() or not is_instance_valid(_haul_items[_haul_index]):
+		_haul_skip_current()
+		return
+	_begin_item_pickup(_haul_items[_haul_index], TaskPhase.HAUL_PICKUP)
+
+
+func _haul_take_current() -> bool:
 	var source := _haul_source()
 	if source == null:
 		_finish_haul_state()
 		current_task_id = -1
 		TaskManager.fail_dwarf_task(dwarf_id, "stockpile zone gone")
-		return
+		return false
 	var node: Node3D = source.call("take_item", dwarf_id, _haul_index)
 	if node == null:
+		_clear_item_handling()
 		_haul_skip_current()   # item vanished / raced — bundle continues
-		return
+		return false
 	var key := String(node.get_meta("item_key", ""))
 	_carried_entries.append([node, key])
 	add_child(node)
-	node.position = CARRY_OFFSET + Vector3(0.0, CARRY_STACK_STEP * float(_carried_entries.size() - 1), 0.0)
-	node.rotation = Vector3.ZERO
-	_haul_index += 1
-	_haul_walk_current()
+	node.transform = _handling_start
+	_handling_item = node # A partial produce-crate pickup can return a new node.
+	return true
 
 
 ## An unreachable/vanished bundle item: blacklist it, free its reservations,
@@ -792,10 +818,20 @@ func _haul_skip_current() -> void:
 		var item := _haul_items[_haul_index]
 		if item != null and is_instance_valid(item):
 			_haul_exclude[item] = true
+			if item.has_meta("relocation_id"):
+				_haul_exclude[item.get_meta("relocation_id")] = true
 		if source != null:
 			source.call("skip_item", dwarf_id, _haul_index)
 	_haul_index += 1
 	_haul_walk_current()
+
+
+func _begin_haul_deposit() -> void:
+	var source := _haul_source()
+	if source == null or _carried_entries.is_empty():
+		_haul_deposit_now()
+		return
+	_begin_item_lower(source.call("delivery_contact", _haul_deposit), TaskPhase.HAUL_DEPOSIT)
 
 
 ## Step 4: multi-deposit — every pouch item lands on its own reserved cell.
@@ -806,10 +842,15 @@ func _haul_deposit_now() -> void:
 		committed = bool(source.call("commit_haul", dwarf_id, _carried_entries))
 	if committed:
 		_carried_entries = []   # the zone/drop manager owns the nodes now
+		_carry_pose.clear_items()
+		_reset_part_offsets()
 		_carry_speed_mult = 1.0
-		_haul_failures = 0
-		_haul_exclude.clear()
-		_haul_pull_next()
+		# A completed load returns to worker selection. Pulling again here
+		# bypasses nearby idle workers (including the dwarf who cut the tree)
+		# and prevents higher-priority work from being considered between trips.
+		_finish_haul_state()
+		current_task_id = -1
+		TaskManager.complete_dwarf_task(dwarf_id)
 	else:
 		_drop_carried_at_feet()
 		_haul_cancel_pull()
@@ -828,9 +869,8 @@ func _haul_cancel_pull() -> void:
 	_carry_speed_mult = 1.0
 
 
-## The FLOOR cell a dwarf stands on to pick up a drop (mirrors
-## ItemDropManager.item_floor_cell — drops rest on their floor's top face).
-func _item_stand_cell(node: Node3D) -> Vector3i:
+## The item's floor cell, distinct from the adjacent worker's stand cell.
+func _item_floor_cell(node: Node3D) -> Vector3i:
 	return Vector3i(
 		floori(node.position.x),
 		int(round(node.position.y)) - 1,
@@ -852,7 +892,10 @@ func _haul_count_failure() -> void:
 ## Hard Rule 12: everything carried goes back to the world as loose drops at
 ## the dwarf's feet — never destroyed, never stuck on the agent.
 func _drop_carried_at_feet() -> void:
+	_clear_item_handling()
 	if _carried_entries.is_empty():
+		if _carry_pose != null:
+			_carry_pose.clear_items()
 		return
 	var manager := get_tree().get_first_node_in_group("item_drop_manager")
 	for entry: Array in _carried_entries:
@@ -865,6 +908,8 @@ func _drop_carried_at_feet() -> void:
 			node.queue_free()   # last resort — should never happen in a live scene
 	_carried_entries = []
 	_carry_speed_mult = 1.0
+	_carry_pose.clear_items()
+	_carry_pose.reset()
 
 
 ## Interrupt/abort teardown (mirrors _finish_zone_state): drop the pouch,
@@ -877,8 +922,117 @@ func _finish_haul_state() -> void:
 	_haul_source_id = -1
 	_haul_failures = 0
 	_haul_exclude.clear()
-	if _task_phase == TaskPhase.HAUL_TO_ITEM or _task_phase == TaskPhase.HAUL_TO_ZONE:
+	if _task_phase in [TaskPhase.HAUL_TO_ITEM, TaskPhase.HAUL_TO_ZONE, TaskPhase.HAUL_PICKUP, TaskPhase.HAUL_DEPOSIT]:
 		_task_phase = TaskPhase.NONE
+
+
+# ── Shared pickup / carry / set-down presentation ─────────────────────────
+
+func _begin_item_pickup(item: Node3D, phase: int) -> void:
+	_reset_part_offsets()
+	_handling_item = item
+	_handling_world_start = item.global_transform
+	_handling_start = global_transform.affine_inverse() * _handling_world_start
+	_handling_yaw_from = rotation.y
+	var toward := item.global_position - global_position
+	_handling_yaw_to = atan2(toward.x, toward.z)
+	_handling_elapsed = 0.0
+	_handling_lifted = false
+	_handling_duration = maxf(.05, float(TaskManager.get_config_section("hauling").get("pickup_time_s", .75)))
+	_task_phase = phase
+	_carry_pose.pickup(0.0, item, _handling_start, _carried_entries, false)
+
+
+## Choose a reachable side, never the cell under the goods. A blocked nearest
+## side must not prevent a valid approach from another side. Test paths without
+## emitting walk_finished(false) for every rejected candidate.
+func _walk_to_handling_stand(candidates: Array[Vector3i], phase: int) -> bool:
+	var here := current_cell()
+	candidates.sort_custom(func(a: Vector3i, b: Vector3i) -> bool:
+		return Vector3(a - here).length_squared() < Vector3(b - here).length_squared())
+	for stand in candidates:
+		if not NavGrid.is_walkable(stand):
+			continue
+		if stand == here:
+			_task_phase = phase
+			_on_walk_finished(true)
+			return true
+		if NavGrid.find_path(here, stand).is_empty():
+			continue
+		_task_phase = TaskPhase.NONE
+		if walk_to(stand): # Uses the path just cached by the reachability check.
+			_task_phase = phase
+			return true
+	return false
+
+
+func _begin_item_lower(contact: Vector3, phase: int) -> void:
+	_reset_part_offsets()
+	_handling_target = contact
+	_handling_yaw_from = rotation.y
+	var toward := Vector2(contact.x - global_position.x, contact.z - global_position.z)
+	_handling_yaw_to = atan2(toward.x, toward.y) if toward.length() > .25 else rotation.y
+	_handling_elapsed = 0.0
+	_handling_duration = maxf(.05, float(TaskManager.get_config_section("hauling").get("deposit_time_s", .65)))
+	_task_phase = phase
+	_carry_pose.lower(0.0, _carried_entries, to_local(_handling_target))
+
+
+func _begin_fetch_deposit() -> void:
+	# Construction consumes the packed item only after the set-down. Until
+	# then cancellation or a save still sees ordinary carried cargo.
+	_begin_item_lower(to_global(Vector3(0, 0, 1.25)), TaskPhase.FETCH_DEPOSIT)
+
+
+func _process_item_handling(delta: float) -> void:
+	_handling_elapsed = minf(_handling_duration, _handling_elapsed + delta)
+	var phase := _handling_elapsed / _handling_duration
+	var action := _task_phase
+	if action in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP]:
+		if not is_instance_valid(_handling_item):
+			_clear_item_handling()
+			if action == TaskPhase.HAUL_PICKUP:
+				_haul_skip_current()
+			else:
+				_fetch_fail_release()
+			return
+		# Finish facing the item before contact, keeping its untouched world
+		# transform fixed while the worker turns underneath the local pose.
+		rotation.y = lerp_angle(_handling_yaw_from, _handling_yaw_to, smoothstep(0.0, .28, phase))
+		_handling_start = global_transform.affine_inverse() * _handling_world_start
+		if not _handling_lifted and phase >= CarryPose.CONTACT_PHASE:
+			var took := _haul_take_current() if action == TaskPhase.HAUL_PICKUP else _fetch_take_item()
+			if not took:
+				return
+			_handling_lifted = true
+		_carry_pose.pickup(phase, _handling_item, _handling_start, _carried_entries, _handling_lifted)
+	else:
+		rotation.y = lerp_angle(_handling_yaw_from, _handling_yaw_to, smoothstep(0.0, .35, phase))
+		_carry_pose.lower(phase, _carried_entries, to_local(_handling_target))
+	if phase < 1.0:
+		return
+	_clear_item_handling()
+	_task_phase = TaskPhase.NONE
+	if action in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP]:
+		_carry_pose.hold(_carried_entries)
+	match action:
+		TaskPhase.HAUL_PICKUP:
+			_haul_index += 1
+			_haul_walk_current()
+		TaskPhase.FETCH_PICKUP:
+			_fetch_travel_to_ghost()
+		TaskPhase.HAUL_DEPOSIT:
+			_haul_deposit_now()
+		TaskPhase.FETCH_DEPOSIT:
+			_fetch_complete()
+
+
+func _clear_item_handling() -> void:
+	_handling_item = null
+	_handling_elapsed = 0.0
+	_handling_lifted = false
+	if _carry_pose != null:
+		_carry_pose.reset()
 
 
 # ── FETCH_BUILD / UNINSTALL executors (doc 19 §3.3/§3.4) ─────────────────────
@@ -922,29 +1076,32 @@ func _fetch_begin() -> void:
 	if _fetch_item == null or not is_instance_valid(_fetch_item):
 		_fetch_fail_release()
 		return
-	var stand := _item_stand_cell(_fetch_item)
-	if stand == current_cell():
-		_fetch_pickup()
-	elif walk_to(stand):
-		_task_phase = TaskPhase.FETCH_TO_ITEM
-	else:
+	if not _walk_to_handling_stand(StorageComponent.ground_access_cells(_item_floor_cell(_fetch_item)), TaskPhase.FETCH_TO_ITEM):
 		_fetch_fail_release()
 
 
-## FETCH step 2: pocket the item and head for the ghost.
+## FETCH step 2: the same reach/lift used for stockpile hauling, including
+## furniture withdrawn from a ground stockpile or a storage container.
 func _fetch_pickup() -> void:
+	if not is_instance_valid(_fetch_item):
+		_fetch_fail_release()
+		return
+	_begin_item_pickup(_fetch_item, TaskPhase.FETCH_PICKUP)
+
+
+func _fetch_take_item() -> bool:
 	var source := _fetch_source()
 	if source == null or _fetch_item == null or not is_instance_valid(_fetch_item):
 		_fetch_fail_release()
-		return
+		return false
 	var manager := get_tree().get_first_node_in_group("item_drop_manager")
 	if manager == null:
 		_fetch_fail_release()
-		return
+		return false
 	var key := String(manager.call("take", _fetch_item))
 	if key.is_empty():
 		_fetch_fail_release()   # vanished / raced
-		return
+		return false
 	_fetch_picked_up = true
 	source.call("notify_picked_up", dwarf_id)
 	if _fetch_heavy:
@@ -952,8 +1109,15 @@ func _fetch_pickup() -> void:
 		_carry_speed_mult = float(hauling.get("carry_speed_mult_heavy", 0.7))
 	_carried_entries.append([_fetch_item, key])
 	add_child(_fetch_item)
-	_fetch_item.position = CARRY_OFFSET
-	_fetch_item.rotation = Vector3.ZERO
+	_fetch_item.transform = _handling_start
+	return true
+
+
+func _fetch_travel_to_ghost() -> void:
+	var source := _fetch_source()
+	if source == null:
+		_fetch_fail_release()
+		return
 	var target: Vector3i = source.call("nearest_stand_target", current_cell())
 	if target.x < 0:
 		_fetch_fail_release()   # footprint has no walkable neighbour right now
@@ -987,6 +1151,8 @@ func _fetch_complete() -> void:
 		_fetch_item.queue_free()
 	_fetch_item = null
 	_carry_speed_mult = 1.0
+	_carry_pose.clear_items()
+	_reset_part_offsets()
 	source.call("complete_build", dwarf_id)
 	_fetch_source_id = -1
 	_fetch_picked_up = false
@@ -1018,8 +1184,8 @@ func _finish_fetch_state() -> void:
 	_fetch_picked_up = false
 	_fetch_source_id = -1
 	_carry_speed_mult = 1.0
-	if _task_phase == TaskPhase.FETCH_TO_ITEM or _task_phase == TaskPhase.FETCH_TO_GHOST \
-			or _task_phase == TaskPhase.FETCH_WORKING:
+	if _task_phase in [TaskPhase.FETCH_TO_ITEM, TaskPhase.FETCH_TO_GHOST, TaskPhase.FETCH_WORKING,
+			TaskPhase.FETCH_PICKUP, TaskPhase.FETCH_DEPOSIT]:
 		_task_phase = TaskPhase.NONE
 
 
@@ -1313,10 +1479,14 @@ func _reset_part_offsets() -> void:
 		_felling_pose.reset()
 	if _mining_pose != null:
 		_mining_pose.reset()
+	if _carry_pose != null:
+		_carry_pose.reset()
 	for part in [_body, _head, _hand_l, _hand_r, _foot_l, _foot_r]:
 		if part != null:
 			part.position = Vector3.ZERO
 			part.rotation = Vector3.ZERO
+	if _carry_pose != null and not _carried_entries.is_empty():
+		_carry_pose.hold(_carried_entries)
 
 
 # ── Assembly (doc 41b scene hierarchy) ────────────────────────────────────────

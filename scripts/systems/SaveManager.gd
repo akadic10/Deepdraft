@@ -214,6 +214,7 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 	TaskManager.reset_runtime_state()
 	StockpileManager.reset_runtime_state()
 	InteriorTracker.clear_runtime_state()
+	RoomManager.clear_runtime_state()
 	NavGrid.clear_runtime_state()
 	PlacedEntityRegistry.clear_runtime_state()
 	WorldGenerator.prepare_for_world_reload()

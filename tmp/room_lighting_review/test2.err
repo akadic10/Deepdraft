@@ -1,0 +1,20 @@
+WARNING: SkyController: no current scene — cannot bind sky/fog.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:141)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WARNING: WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _seed_rng (res://scripts/systems/WeatherManager.gd:104)
+       [1] _ready (res://scripts/systems/WeatherManager.gd:48)
+ERROR: selection keeps darkness readable
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/RoomLightingTest.gd:138)
+       [1] _review_capture (res://scripts/tests/RoomLightingTest.gd:171)
+ERROR: removing door admits corridor light
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/RoomLightingTest.gd:138)
+       [1] _review_capture (res://scripts/tests/RoomLightingTest.gd:171)

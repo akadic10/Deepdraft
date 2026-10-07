@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+ItemDropManager: loaded 77 item definitions.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+UIWindowManager: ready (0 remembered window positions).
+Camera: ready (FOV 45°, zoom 2–180 m).
+OVERVIEW_LAZY 7/19 scroll=[P: (377.0, 150.0), S: (836.0, 407.0)] body=[P: (37.0, 121.0), S: (1176.0, 436.0)]
+OVERVIEW_LAYOUT (960, 540) roster=[P: (24.0, 32.0), S: (912.0, 384.0)] dock=(224.0, 428.0) body=[P: (37.0, 121.0), S: (886.0, 256.0)] details_min=(272.0, 233.0)
+OVERVIEW_LAYOUT (1280, 720) roster=[P: (24.0, 32.0), S: (1202.0, 564.0)] dock=(329.0, 608.0) body=[P: (37.0, 121.0), S: (1176.0, 436.0)] details_min=(272.0, 233.0)
+OVERVIEW_LAYOUT (2560, 1440) roster=[P: (24.0, 76.0), S: (1202.0, 780.0)] dock=(969.0, 1328.0) body=[P: (37.0, 165.0), S: (1176.0, 652.0)] details_min=(272.0, 233.0)
+DWARF_ROSTER_OK: native menu, compact table, embedded shared details and Follow, real haul/sleep, live filters/search, stable rows, selection handoff, Locate, slice/removal guards, lazy rendering, drag, scroll, Escape and 960/1280/2560 layouts

@@ -39,8 +39,8 @@ func _run() -> void:
 	scene.add_child(controller)
 	controller.set_process(false)
 	controller._process(0)
-	dwarf = load("res://scripts/entities/DwarfAgent.gd").new()
-	dwarf.dwarf_id = 100
+	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
+	dwarf = factory.spawn(factory.generate(100, {}), 100)
 	scene.add_child(dwarf)
 	dwarf.set_process(false)
 	def = controller.get_defs()[KEY]
@@ -83,7 +83,8 @@ func _run() -> void:
 		assert(controller.serialize_state()==ghost_save)
 		ghost = controller._ghosts.values()[0]
 		_pick_up(ghost)
-		dwarf._fetch_complete()
+		dwarf._begin_fetch_deposit()
+		dwarf._process_item_handling(dwarf._handling_duration)
 		assert(controller._ghosts.is_empty() and manager.get_stats().loose==0)
 		var piece = controller._installed.values()[0]
 		_check_installed(piece,yaw)
@@ -229,6 +230,7 @@ func _pick_up(ghost) -> void:
 	dwarf._fetch_item = pull.item
 	dwarf._fetch_heavy = pull.heavy
 	dwarf._fetch_pickup()
+	dwarf._process_item_handling(dwarf._handling_duration * .5)
 	assert(dwarf._fetch_picked_up and dwarf._fetch_item.get_parent()==dwarf)
 	assert(ghost.can_complete_build())
 
@@ -359,8 +361,9 @@ func _check_menu(scene: Node) -> Array:
 			await process_frame
 		var panel: Rect2 = dock._panel_container.get_global_rect()
 		assert(panel.position.x>=0 and panel.end.x<=viewport_size.x)
-		assert(panel.position.y>=0 and panel.end.y<=viewport_size.y-dock.PANEL_BOTTOM_MARGIN+.1)
-		assert(dock._panel_body.get_child_count()==14)
+		assert(panel.position.y>=0 and panel.end.y<=dock._dock_panel.position.y-dock.PANEL_DOCK_GAP+.1)
+		var expected_buttons: int = controller.get_defs().size()+1 # one per piece plus Cancel
+		assert(dock._panel_body.get_child_count()==expected_buttons)
 		var torch_button: Button
 		var rows := {}
 		for button: Button in dock._panel_body.get_children():
@@ -369,11 +372,11 @@ func _check_menu(scene: Node) -> Array:
 			rows[rect.position.y] = true
 			if button.text=="📥 Wall Torch":
 				torch_button = button
-		assert(rows.size()==3 and torch_button!=null)
+		assert(rows.size()==ceili(float(expected_buttons)/dock._panel_body.columns) and torch_button!=null)
 		torch_button.pressed.emit()
 		assert(controller._active and controller._active_key==KEY)
 		controller.deactivate()
-		layouts.append({"viewport":str(viewport_size),"panel":str(panel),"buttons":14,"rows":3})
+		layouts.append({"viewport":str(viewport_size),"panel":str(panel),"buttons":expected_buttons,"rows":rows.size()})
 	dock.queue_free()
 	return layouts
 

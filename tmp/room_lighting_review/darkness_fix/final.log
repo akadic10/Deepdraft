@@ -1,0 +1,87 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 7 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (2 remembered window positions).
+WorldGenerator: starting generation (seed 1234).
+WorldRenderer: generation started (seed 1234).
+FurniturePlacementController: 18 placeable defs loaded.
+WorldGenerator: domain layout northwest mountain -> mountain 283648, valley 365568, lowland 399360.
+WorldGenerator: valley corridor -> columns 78576, average height 39.7.
+WorldGenerator: macro heightmap -> 1024 cells expanded at 32 columns per cell.
+WorldGenerator: macro expansion -> local offsets on 0 columns.
+WorldGenerator: plateau smoothing -> adjusted 0 columns across 0 macro cells.
+WorldGenerator: mountain foothill transition -> raised 3072 columns into approach shelves.
+WorldGenerator: lowland foothill transition -> capped 3072 columns to one-shelf steps.
+WorldGenerator: macro shelf step limit -> capped 180224 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: heightmap sub-phases -> macro_cells 140 ms, column_fill 1324 ms, plateau 169 ms, mountain_foothill 114 ms, lowland_foothill 24 ms, shelf_step_limit 661 ms.
+WorldGenerator: lowland lake uses 38 macro cells; southern anchor (4, 31); water Y12-Y18.
+WorldGenerator: macro shelf step limit -> capped 0 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: mountain shelf-1 tarn uses 1 macro cell; anchor (11, 11); water Y48-Y54.
+WorldGenerator: edge detail -> pushed 25008 foothill/mountain edge columns.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldRenderer: first visible overview tile after 6.665 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=1234, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 7.276 s
+  first_visible_terrain: 6.665 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=6.628 s  ready_at=6.628 s
+  map_phases:
+    noise_instances: 0.000 s
+    domain_map: 1.238 s
+    heightmap: 2.433 s
+    lakes: 1.231 s
+    edge_detail: 1.726 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.005 s  avg=0.04 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=7.266 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator: grass bands finalized 1.968 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 116/416 built tiles (band columns only).
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->14539, sides 97755, validation mismatches 0/0) in 11.49 s since startup.
+WorldRenderer: first chunk_dirtied received (24,3,22).
+SliceTiming: slice 127 -> 51 — 0 regions + 329 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 127 -> 51 DONE — 329 regions+tiles rebuilt (329 queued at start) over 42 frames, 1.351 s total, worst frame 49 ms.
+FurniturePlacementController: installed base:furniture:door at (394, 47, 356).
+FurniturePlacementController: installed base:furniture:wall_torch at (393, 47, 355).
+WorldGenerator metrics:
+  domains: mountain 26.7%, valley 35.3%, lowland 38.1%
+  height: min 11, max 115, avg 39.8
+  surface: grass 34.0%, dirt 30.4%, rock 31.8%, water 3.8%
+  surface domains: mountain rock 99.2%; valley grass 41.5% dirt 46.4% rock 12.0%
+  shaping: terraced 0, plateau-adjusted 0 across 0 chunk columns
+  water: lake (144, 949) r40 y18 floor 11-11 depth 7 columns 38912; tarn (368, 368) r15 y54 floor 47-47 depth 7 columns 1024; banks 2914
+  macro: basin 146524, southeast foothill 131583, edge belt 111552 columns
+  settlement candidates: 974 sampled 20x20 flats
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: installed base:furniture:door at (394, 47, 356).
+FurniturePlacementController: installed base:furniture:brazier at (393, 47, 358).
+SliceTiming: slice 51 -> 59 — 0 regions + 329 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 59 -> 55 — 0 regions + 329 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 55 -> 56 — 0 regions + 329 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 56 -> 59 — 0 regions + 329 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 59 -> 4 — 0 regions + 1024 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 4 -> 127 — 0 regions + 1024 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 127 -> 51 — 0 regions + 1024 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 51 -> 127 — 0 regions + 1024 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 127 -> 51 — 0 regions + 1024 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 127 -> 51 DONE — 1024 regions+tiles rebuilt (1024 queued at start) over 128 frames, 4.100 s total, worst frame 49 ms.
+ROOM_LIGHTING_TEST: {"entrance":"(383, 47, 352)","failures":[],"luminance":{"closed_corridor_torch":0.00954666640609503,"closed_unlit":0.00954666640609503,"closed_unlit_far_camera":0.00954666640609503,"far_day_outdoor_delta":0.00308781862258911,"far_night_outdoor_delta":0.00308781862258911,"legacy_fog_room":0.149941191077232,"lit_room":0.154153392314911,"open_corridor_torch":0.016198808029294,"outdoor_fog_current":0.428167849779129,"outdoor_fog_legacy":0.428167849779129,"selected_room":0.0395396091043949}}
+WorldGenerator: stopped in 20.2 s.

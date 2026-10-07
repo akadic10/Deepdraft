@@ -37,11 +37,13 @@ var _picking = Picking.new()
 ## A new loose item entered the world (spawned or dropped by an interrupted
 ## hauler). StockpileManager wakes zone lease posting on this (doc 18 §2.2).
 signal drop_spawned(item_key: String)
+## Presentation wake for availability changes, including reservations and pickup.
+signal loose_items_changed()
 
 var _defs: Dictionary = {}          # item key (String) -> def Dictionary
 var _defs_loaded: bool = false
 var _scene_cache: Dictionary = {}   # model path -> PackedScene (null cached as absent)
-var _material: StandardMaterial3D = null
+var _material: Material = null
 var _slice_y: int = SLICE_OFF_Y
 var _drop_count: int = 0
 var _missing_models: Dictionary = {}   # path -> true (warn once per model)
@@ -49,21 +51,27 @@ var _missing_models: Dictionary = {}   # path -> true (warn once per model)
 # ── Loose-item index (doc 18 Phase 2) ─────────────────────────────────────────
 var _loose: Dictionary = {}         # Node3D -> item_key (String)
 var _reserved: Dictionary = {}      # Node3D -> dwarf_id (int)
+## Read-only inventory accounting for objects between pickup and deposit.
+## Weak references never own cargo; dwarves/storage keep lifecycle authority.
+var _inventory_transit: Dictionary = {} # instance_id -> WeakRef
 
 
 func _ready() -> void:
+	drop_spawned.connect(func(_key: String): loose_items_changed.emit())
 	add_to_group("item_drop_manager")
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
-	_material = StandardMaterial3D.new()
-	_material.vertex_color_use_as_albedo = true
-	_material.roughness = 1.0
-	_material.metallic = 0.0
-	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	var source := StandardMaterial3D.new()
+	source.vertex_color_use_as_albedo = true
+	source.roughness = 1.0
+	source.metallic = 0.0
+	source.cull_mode = BaseMaterial3D.CULL_DISABLED
+	source.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	var lighting := get_tree().get_first_node_in_group("underground_lighting")
+	_material = lighting.make_material(source) if lighting != null else source
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -208,6 +216,47 @@ func get_item_def(item_key: String) -> Dictionary:
 	return _defs.get(item_key, {})
 
 
+func get_item_defs() -> Dictionary:
+	_ensure_defs()
+	return _defs.duplicate(true)
+
+
+## Presentation snapshot of non-stored goods. Counts are contents, not crates.
+## Ground/container storage is counted exclusively by StockpileManager.
+func get_inventory_items() -> Dictionary:
+	var result := {"loose": [], "carried": []}
+	for node in _loose:
+		if is_instance_valid(node) and not node.is_queued_for_deletion():
+			result.loose.append({"node": node, "key": String(_loose[node]),
+				"count": quantity_of(node), "reserved": _reserved.has(node)})
+	for id: int in _inventory_transit.keys():
+		var node = (_inventory_transit[id] as WeakRef).get_ref()
+		if not is_instance_valid(node) or node.is_queued_for_deletion() or bool(node.get_meta("stored", false)):
+			_inventory_transit.erase(id)
+			continue
+		result.carried.append({"node": node, "key": item_key_of(node), "count": quantity_of(node)})
+	return result
+
+
+func _track_inventory_transit(node: Node3D) -> void:
+	var id := node.get_instance_id()
+	_inventory_transit[id] = weakref(node)
+	var changed := _inventory_node_exited.bind(id)
+	if not node.tree_exited.is_connected(changed): node.tree_exited.connect(changed)
+
+
+func _inventory_node_exited(id: int) -> void:
+	_prune_inventory_transit.call_deferred(id)
+
+
+func _prune_inventory_transit(id: int) -> void:
+	if not _inventory_transit.has(id): return
+	var node = (_inventory_transit[id] as WeakRef).get_ref()
+	if not is_instance_valid(node) or node.is_queued_for_deletion() or bool(node.get_meta("stored", false)):
+		_inventory_transit.erase(id)
+		loose_items_changed.emit()
+
+
 ## Nearest unreserved loose item whose material_tags overlap accepted_tags,
 ## by flat Manhattan distance from `from`. `exclude` is a per-dwarf blacklist
 ## (Node -> true) of items that failed pathing this round. Null if none.
@@ -230,11 +279,32 @@ func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {
 		if not accepted:
 			continue
 		var cell := item_floor_cell(node)
+		if exclude.has(cell): continue
 		var dist := absi(cell.x - from.x) + absi(cell.y - from.y) + absi(cell.z - from.z)
 		if dist < best_dist:
 			best = node
 			best_dist = dist
 	return best
+
+
+## Read-only scheduler query. Unlike a hauling reservation, this can span
+## wakes without claiming anything. The scheduler invalidates it on item changes.
+func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Dictionary, deadline_usec: int, exclude_cells: Dictionary = {}) -> bool:
+	if query.is_empty():
+		query.merge({"nodes": _loose.keys(), "index": 0, "best": null, "distance": 0x7FFFFFFF})
+	while int(query.index) < query.nodes.size():
+		if Time.get_ticks_usec() >= deadline_usec: return false
+		var node = query.nodes[query.index]
+		query.index += 1
+		if not is_instance_valid(node) or not _loose.has(node) or _reserved.has(node): continue
+		if not bool(accepts_key.call(String(_loose[node]))): continue
+		var cell := item_floor_cell(node)
+		if exclude_cells.has(cell): continue
+		var distance := absi(cell.x - from.x) + absi(cell.y - from.y) + absi(cell.z - from.z)
+		if distance < int(query.distance):
+			query.best = node
+			query.distance = distance
+	return true
 
 
 ## Nearest unreserved loose item of EXACTLY this key (type-matched fetch,
@@ -256,7 +326,9 @@ func nearest_loose_of_key(item_key: String, from: Vector3i, exclude: Dictionary 
 
 
 ## Unreserved loose accepted items within `radius` blocks (flat Chebyshev) of
-## `center`, nearest first, capped at `limit`. The pouch bundle search (doc 18
+## `center`, nearest first, capped at `limit` (0 returns all nearby candidates).
+## The carry-cost selector needs all candidates to skip bulky nearby objects
+## and still find smaller ones that fit. The pouch bundle search (doc 18
 ## pouch — SH NearbyItemSearch equivalent). `exclude` = blacklist + main item.
 func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int, exclude: Dictionary = {}, can_store: Callable = Callable()) -> Array[Node3D]:
 	_ensure_defs()
@@ -267,6 +339,7 @@ func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int,
 		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
 			continue
 		var cell := item_floor_cell(node)
+		if exclude.has(cell): continue
 		var dx := absi(cell.x - center.x)
 		var dz := absi(cell.z - center.z)
 		if maxi(dx, dz) > radius or absi(cell.y - center.y) > 2:
@@ -284,7 +357,7 @@ func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int,
 	var result: Array[Node3D] = []
 	for pair: Array in found:
 		result.append(pair[1] as Node3D)
-		if result.size() >= limit:
+		if limit > 0 and result.size() >= limit:
 			break
 	return result
 
@@ -322,6 +395,18 @@ func item_key_of(node: Node3D) -> String:
 	return String(_loose.get(node, node.get_meta("item_key", "")))
 
 
+## Stored counts belong to StockpileManager. Carried/claimed items are not ready
+## for a new placement. Called on catalog wakes, never by a per-frame UI scan.
+func get_unreserved_counts() -> Dictionary:
+	var counts := {}
+	for node: Node3D in _loose:
+		if not is_instance_valid(node) or node.is_queued_for_deletion() or _reserved.has(node):
+			continue
+		var key: String = _loose[node]
+		counts[key] = int(counts.get(key, 0)) + quantity_of(node)
+	return counts
+
+
 func item_capacity(item_key: String) -> int:
 	return maxi(int(get_item_def(item_key).get("crate_capacity", 1)), 1)
 
@@ -334,6 +419,7 @@ func set_quantity(node: Node3D, count: int) -> void:
 	var key := String(node.get_meta("item_key", ""))
 	assert(count > 0 and count <= item_capacity(key))
 	node.set_meta("quantity", count)
+	if _loose.has(node): loose_items_changed.emit()
 	var def := get_item_def(key)
 	var models: Array = def.get("crate_models", [])
 	var path := String(def.get("model", ""))
@@ -356,6 +442,7 @@ func take_quantity(node: Node3D, count: int, dwarf_id: int) -> Node3D:
 		take(node)
 		return node
 	var cargo := create_item_visual(item_key_of(node), count)
+	_track_inventory_transit(cargo)
 	set_quantity(node, quantity_of(node) - count)
 	unreserve(node, dwarf_id)
 	drop_spawned.emit(item_key_of(node))
@@ -366,6 +453,7 @@ func reserve(node: Node3D, dwarf_id: int) -> bool:
 	if not _loose.has(node) or _reserved.has(node):
 		return false
 	_reserved[node] = dwarf_id
+	loose_items_changed.emit()
 	return true
 
 
@@ -377,6 +465,7 @@ func unreserve(node: Node3D, dwarf_id: int = -1) -> void:
 	if dwarf_id >= 0 and int(_reserved.get(node, -1)) != dwarf_id:
 		return
 	_reserved.erase(node)
+	loose_items_changed.emit()
 
 
 ## Pickup: removes the node from the index and this manager; the caller
@@ -389,6 +478,8 @@ func take(node: Node3D) -> String:
 	_loose.erase(node)
 	_reserved.erase(node)
 	remove_child(node)
+	_track_inventory_transit(node)
+	loose_items_changed.emit()
 	return key
 
 
@@ -396,6 +487,7 @@ func take(node: Node3D) -> String:
 ## floor cell. Stored nodes are NOT in the loose index — the zone's
 ## cell_stacks own the counts (doc 18 §2.4: storage is physical).
 func place_stored(node: Node3D, cell: Vector3i) -> void:
+	_inventory_transit.erase(node.get_instance_id())
 	_loose.erase(node)
 	_reserved.erase(node)
 	if node.get_parent() != null:
@@ -407,6 +499,7 @@ func place_stored(node: Node3D, cell: Vector3i) -> void:
 	node.set_meta("base_y", cell.y + 1)
 	node.set_meta("stored", true)
 	node.visible = cell.y + 1 <= _slice_y
+	loose_items_changed.emit()
 
 
 ## Release protocol (doc 18 §2.3 step 5 / Hard Rule 12): an interrupted
@@ -414,6 +507,7 @@ func place_stored(node: Node3D, cell: Vector3i) -> void:
 ## Position jitter matches spawn_drop: a full pouch dropped on one cell must
 ## read as N items, not one (the WYSIWYG rule that drove one-item-per-tile).
 func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
+	_inventory_transit.erase(node.get_instance_id())
 	var key := String(node.get_meta("item_key", ""))
 	if node.get_parent() != null:
 		node.get_parent().remove_child(node)
@@ -445,6 +539,7 @@ func spawn_reserved(item_key: String, floor_cell: Vector3i, dwarf_id: int) -> No
 	add_child(node)
 	_loose[node] = item_key
 	_reserved[node] = dwarf_id
+	loose_items_changed.emit()
 	return node
 
 
@@ -466,6 +561,7 @@ func withdraw_stored(node: Node3D, dwarf_id: int) -> void:
 	var key := String(node.get_meta("item_key", ""))
 	_loose[node] = key
 	_reserved[node] = dwarf_id
+	loose_items_changed.emit()
 
 
 ## Zone removal: stored nodes on the given cells become loose again, and

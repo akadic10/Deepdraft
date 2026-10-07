@@ -3,13 +3,14 @@ extends Node3D
 
 ## Furniture placement tool — doc 19 §3.2 (Phase 2 scope).
 ##
-## The FlagPlacementController generalised and made data-driven: the Build
-## panel's 📥 entries activate this tool for one furniture def; the player
+## The FlagPlacementController generalised and made data-driven: the Place
+## catalog activates this tool for one furniture def with available stock; the player
 ## aims a translucent placed-form ghost (validity-tinted, R rotates 90°),
 ## and confirming plants a persistent FurnitureGhostComponent — the SH
-## "ghost form as standing task marker". Fulfilment (FETCH_BUILD leases) and
-## 📤 uninstall are Phase 3; the ghost window's DEV: Instant Build stands in
-## until then (the DEV-mine precedent) so storage work can proceed.
+## "ghost form as standing task marker". FETCH_BUILD leases fetch the finished
+## item and install it. Uninstall and the legacy DEV build path remain separate.
+## The catalog is presentation only; this controller owns inventory availability
+## and the final-click stock guard (doc 54).
 ##
 ## REGISTRY PATTERN: this node is the ONE owner of data/furniture/*.json.
 ## Defs are placeable iff they carry both `placement` and `item_key`
@@ -43,6 +44,8 @@ const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
 const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _picking := Picking.new()
+const Seating = preload("res://scripts/components/FurnitureSeating.gd")
+var _seating := Seating.new(self)
 
 ## Ghost material: the real model, translucent (SH ghost_item parity —
 ## alpha 0.3, doc 19 decision 7). Validity modulates the tint.
@@ -55,6 +58,10 @@ signal ghost_placed(ghost_id: int)
 signal ghost_cancelled(ghost_id: int)
 signal furniture_installed(furniture_key: String, origin_cell: Vector3i)
 signal furniture_uninstalled(furniture_key: String, origin_cell: Vector3i)
+signal catalog_changed()
+signal tool_active_changed(active: bool)
+var _catalog_pending := false
+var _require_stock := false
 
 var _defs: Dictionary = {}            # furniture_key -> def Dictionary
 var _model_bounds: Dictionary = {}    # model path -> cached root-local visual AABB
@@ -103,6 +110,10 @@ var _window_installed_id: int = -1
 
 
 func _ready() -> void:
+	ghost_placed.connect(func(_id: int): _mark_catalog_dirty())
+	ghost_cancelled.connect(func(_id: int): _mark_catalog_dirty())
+	furniture_installed.connect(func(_key: String, _cell: Vector3i): _mark_catalog_dirty())
+	furniture_uninstalled.connect(func(_key: String, _cell: Vector3i): _mark_catalog_dirty())
 	add_to_group("furniture_controller")
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
@@ -123,6 +134,7 @@ func _ready() -> void:
 	TaskManager.task_released.connect(_on_task_released)
 	StockpileManager.stockpile_changed.connect(func(_k: String, _d: int) -> void: _mark_lease_dirty())
 	WorldData.chunk_dirtied.connect(_on_terrain_changed, CONNECT_DEFERRED)
+	PlacedEntityRegistry.occupancy_changed.connect(func(_lo: Vector3i, _size: Vector3i): _seating.dirty = true)
 	_build_window()
 
 
@@ -160,6 +172,47 @@ func get_defs() -> Dictionary:
 	return _defs
 
 
+## Requests without a committed item reserve shared loose/storage availability
+## by item_key, including older saved plans. Claimed/fetched/carrying plans have
+## already removed their unit from that pool and must not subtract it again.
+func get_catalog_stock() -> Dictionary:
+	var loose: Dictionary = _drop_manager.get_unreserved_counts() if is_instance_valid(_drop_manager) else {}
+	var outgoing := StockpileManager.get_outgoing_totals()
+	var pending := {}
+	var requested := {}
+	for ghost: FurnitureGhostComponent in _ghosts.values():
+		requested[ghost.furniture_key] = int(requested.get(ghost.furniture_key, 0)) + 1
+		if not ghost.has_committed_item():
+			pending[ghost.item_key] = int(pending.get(ghost.item_key, 0)) + 1
+	var result := {}
+	for key: String in _defs:
+		var item_key := String(_defs[key].item_key)
+		result[key] = {"available": maxi(0, int(loose.get(item_key, 0)) + StockpileManager.get_total(item_key)
+			- int(outgoing.get(item_key, 0)) - int(pending.get(item_key, 0))), "reserved": int(requested.get(key, 0))}
+	return result
+
+
+func active_furniture_key() -> String:
+	return _active_key if _active else ""
+
+
+func has_pending_placement(ghost_id: int) -> bool:
+	return _ghosts.has(ghost_id)
+
+
+func _mark_catalog_dirty() -> void:
+	if _catalog_pending: return
+	_catalog_pending = true
+	_emit_catalog_changed.call_deferred()
+
+
+func _emit_catalog_changed() -> void:
+	_catalog_pending = false
+	if _active and _require_stock and int(get_catalog_stock().get(_active_key, {}).get("available", 0)) <= 0:
+		deactivate()
+	catalog_changed.emit()
+
+
 func get_stats() -> Dictionary:
 	var uninstalling := 0
 	for installed_id: int in _installed:
@@ -180,18 +233,22 @@ func is_active() -> bool:
 	return _active
 
 
-func activate_for(furniture_key: String) -> void:
+func activate_for(furniture_key: String, require_stock: bool = false) -> void:
 	if not _defs.has(furniture_key):
 		push_warning("FurniturePlacementController: unknown def '%s'." % furniture_key)
 		return
 	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
 		push_warning("FurniturePlacementController: maps not ready.")
 		return
+	if require_stock and int(get_catalog_stock().get(furniture_key, {}).get("available", 0)) <= 0:
+		return
 	deactivate()   # clean swap if a different def was active
+	_require_stock = require_stock
 	_active = true
 	_active_key = furniture_key
 	_yaw = 0
 	_ensure_preview()
+	tool_active_changed.emit(true)
 
 
 func deactivate() -> void:
@@ -200,6 +257,8 @@ func deactivate() -> void:
 	_active = false
 	_active_key = ""
 	_free_preview()
+	_require_stock = false
+	tool_active_changed.emit(false)
 
 
 func _on_tool_requested(tool_id: String) -> void:
@@ -220,6 +279,8 @@ func _process(delta: float) -> void:
 		_drop_manager = get_tree().get_first_node_in_group("item_drop_manager") as Node3D
 		if _drop_manager != null:
 			_drop_manager.connect("drop_spawned", func(_key: String) -> void: _mark_lease_dirty())
+			_drop_manager.connect("loose_items_changed", _mark_catalog_dirty)
+			_mark_catalog_dirty()
 			_wakes_connected = true
 			for ghost_id: int in _ghosts:
 				(_ghosts[ghost_id] as FurnitureGhostComponent).drop_manager = _drop_manager
@@ -240,6 +301,7 @@ func _process(delta: float) -> void:
 
 func _mark_lease_dirty() -> void:
 	_lease_dirty = true
+	_mark_catalog_dirty()
 
 
 # ── Task-event routing (doc 19 Phase 3 — the StockpileManager shape) ──────────
@@ -257,6 +319,7 @@ func _route_task_gone(task: Task, dwarf_id: int) -> void:
 
 
 func _on_task_released(task: Task, dwarf_id: int, _reason: int) -> void:
+	_mark_catalog_dirty()
 	# Released leases return to PENDING — only the dwarf's reservations free.
 	if _source_to_ghost.has(task.source_id):
 		var ghost: FurnitureGhostComponent = _ghosts.get(int(_source_to_ghost[task.source_id]))
@@ -293,7 +356,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mb := event as InputEventMouseButton
 		if not mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
 			return
-		if _try_select_at_screen(mb.position):
+		_update_hover(true, mb.position) # Recheck obstruction at the actual click.
+		if _seating.snap.is_empty() and _try_select_at_screen(mb.position):
 			get_viewport().set_input_as_handled()
 			return
 		if _hover_valid:
@@ -303,13 +367,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # ── Hover / validity ──────────────────────────────────────────────────────────
 
-func _update_hover(force: bool = false) -> void:
-	var hit := _surface_cell_for(get_viewport().get_mouse_position())
+func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> void:
+	var pointer := get_viewport().get_mouse_position() if screen_pos == Vector2.INF else screen_pos
+	var hit := _surface_cell_for(pointer)
 	if WallMount.is_wall(_defs.get(_active_key, {})):
 		var prior_yaw := _yaw
 		hit = _wall_floor_hit(hit)
 		force = force or _yaw != prior_yaw
 	if hit.is_empty():
+		_seating.reset()
 		_hover_cell = Vector3i(-1, -1, -1)
 		_hover_valid = false
 		if _preview != null:
@@ -318,8 +384,12 @@ func _update_hover(force: bool = false) -> void:
 			_hint_label.visible = false
 		return
 	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
-	if cell == _hover_cell and not force:
+	if cell == _seating.aim and not force and not _seating.dirty:
 		return
+	_seating.resolve(cell)
+	if not _seating.snap.is_empty():
+		cell = _seating.snap.origin
+		_yaw = _seating.snap.yaw
 	_hover_cell = cell
 	_hover_valid = _placement_valid(cell)
 	_position_preview(cell)
@@ -330,19 +400,26 @@ func _placement_valid(origin: Vector3i) -> bool:
 	var def: Dictionary = _defs.get(_active_key, {})
 	if WallMount.is_wall(def):
 		return _wall_placement_valid(def, origin, _yaw)
-	for cell: Vector3i in _footprint_cells(def, origin, _yaw):
+	_invalid_reason = _floor_placement_reason(def, origin, _yaw)
+	return _invalid_reason.is_empty()
+
+
+func _floor_placement_reason(def: Dictionary, origin: Vector3i, yaw: int) -> String:
+	if not _piece_visible(def, origin, yaw):
+		return "slice"
+	for cell: Vector3i in _footprint_cells(def, origin, yaw):
 		if not _is_valid_cell(cell):
-			_invalid_reason = "cell"
-			return false
-	if String(def.get("placement", "floor")) == "floor_wall" and not _has_wall_behind(def, origin):
-		_invalid_reason = "wall"
-		return false
-	# Low furniture may stand below a torch; tall furniture must not intersect it.
+			return "cell"
+	if String(def.get("placement", "floor")) == "floor_wall" and not _has_wall_behind(def, origin, yaw):
+		return "wall"
 	if (not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty()) \
-			and _intersects_wall_piece(_visual_bounds(def, origin, _yaw)):
-		_invalid_reason = "overlap"
-		return false
-	return true
+			and _intersects_wall_piece(_visual_bounds(def, origin, yaw)):
+		return "overlap"
+	return _seating.placement_reason(def, origin, yaw)
+
+
+func get_dining_seats(table_id: int) -> Array[Dictionary]:
+	return _seating.installed_seats(table_id)
 
 
 func _wall_key(origin: Vector3i, yaw: int) -> Vector4i:
@@ -402,6 +479,10 @@ func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 		if not WallMount.is_wall(piece.def) and bounds.intersects(_visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps)):
 			_invalid_reason = "overlap"
 			return false
+	var seat_reason := _seating.placement_reason(def, origin, yaw)
+	if not seat_reason.is_empty():
+		_invalid_reason = seat_reason
+		return false
 	if WallMount.nearest_stand(origin, origin).x < 0:
 		_invalid_reason = "access"
 		return false
@@ -450,6 +531,7 @@ func _intersects_wall_piece(bounds: AABB) -> bool:
 
 
 func _on_terrain_changed(_cx: int, _cy: int, _cz: int) -> void:
+	_seating.dirty = true
 	if not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty():
 		_wall_dirty = true
 	if _active:
@@ -509,9 +591,9 @@ func _is_valid_cell(cell: Vector3i) -> bool:
 ## floor_wall pieces (the shelf): every BACK-row cell needs a solid block
 ## directly behind the back face at standing height. Back = local -Z rotated
 ## by yaw (yaw 0 backs onto north/-Z).
-func _has_wall_behind(def: Dictionary, origin: Vector3i) -> bool:
-	var back := _yaw_dir(Vector3i(0, 0, -1))
-	for cell: Vector3i in _footprint_cells(def, origin, _yaw):
+func _has_wall_behind(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
+	var back: Vector3i = [Vector3i(0,0,-1), Vector3i(-1,0,0), Vector3i(0,0,1), Vector3i(1,0,0)][posmod(yaw,4)]
+	for cell: Vector3i in _footprint_cells(def, origin, yaw):
 		var wall := cell + back
 		if not BlockRegistry.is_solid(_block_id(wall.x, wall.y + 1, wall.z)):
 			return false
@@ -562,6 +644,7 @@ func _ensure_preview() -> void:
 
 
 func _free_preview() -> void:
+	_seating.reset()
 	if _preview != null:
 		_preview.queue_free()
 		_preview = null
@@ -593,15 +676,22 @@ func _update_hint(_origin: Vector3i) -> void:
 		_hint_label.name = "PlacementHint"
 		_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_hint_label.add_theme_font_size_override("font_size", 16)
-		_hint_label.add_theme_color_override("font_color", Color(1.0, .85, .65))
+		UITheme.apply_surface(_hint_label)
+		_hint_label.add_theme_color_override("font_color", UITheme.HEARTH_TEXT)
 		_hint_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, .9))
 		_hint_label.add_theme_constant_override("outline_size", 6)
 		layer.add_child(_hint_label)
 	var wall := WallMount.is_wall(_defs.get(_active_key, {}))
 	var hints := {"wall":"Needs a solid wall and four blocks of room height — R rotates",
 		"overlap":"Another piece occupies this space", "access":"A dwarf needs room to reach this wall",
-		"slice":"Raise the slice to show the torch"}
+		"slice":"Raise the slice to show this furniture",
+		"seat_clearance":"Leave room for a seated dwarf’s head",
+		"seat_access":"Leave an open tile beside or behind the chair",
+		"seat_capacity":"Table chair limit reached — cancel or remove a chair to choose another side",
+		"cell":"This position is occupied or has no clear floor"}
 	_hint_label.text = String(hints.get(_invalid_reason, "Point at a wall, or aim beside it and press R" if wall else ""))
+	if _hover_valid and not _seating.snap.is_empty():
+		_hint_label.text = "Table seat — chair faces inward. Click to place; Esc to finish."
 	_hint_label.visible = not _hint_label.text.is_empty()
 	_hint_label.position = Vector2(20, get_viewport().get_visible_rect().size.y - 180)
 
@@ -648,8 +738,8 @@ func _make_solid_material() -> StandardMaterial3D:
 	return mat
 
 
-func _instance_model(furniture_key: String, override: Material) -> Node3D:
-	var def: Dictionary = _defs.get(furniture_key, {})
+func _instance_model(furniture_key: String, override: Material, definition: Dictionary = {}) -> Node3D:
+	var def: Dictionary = _defs.get(furniture_key, {}) if definition.is_empty() else definition
 	var path := String(def.get("model", ""))
 	if path.is_empty() or not ResourceLoader.exists(path):
 		push_error("FurniturePlacementController: missing model '%s' for %s." % [path, furniture_key])
@@ -671,13 +761,19 @@ func _apply_material(node: Node, mat: Material) -> void:
 
 # ── Ghost lifecycle ───────────────────────────────────────────────────────────
 
-func _confirm_ghost() -> void:
-	var def: Dictionary = _defs.get(_active_key, {})
+func _confirm_ghost(definition: Dictionary = {}) -> void:
+	# Enforce the catalog contract at the actual click too. Restore/legacy art
+	# fixtures still create standing requests through the unrestricted path.
+	if _require_stock and definition.is_empty() and int(get_catalog_stock().get(_active_key, {}).get("available", 0)) <= 0:
+		deactivate()
+		return
+	_seating.dirty = true
+	var def: Dictionary = _defs.get(_active_key, {}) if definition.is_empty() else definition
 	var ghost := FurnitureGhostComponent.new()
 	ghost.setup(_next_ghost_id, _active_key, def, _hover_cell, _yaw)
 	var mat := _make_ghost_material()
 	mat.albedo_color = Color(TINT_PLACED.r, TINT_PLACED.g, TINT_PLACED.b, GHOST_ALPHA)
-	var node := _instance_model(_active_key, mat)
+	var node := _instance_model(_active_key, mat, def)
 	if node != null:
 		add_child(node)
 		node.position = _world_pos(def, _hover_cell, _yaw)
@@ -706,6 +802,7 @@ func _confirm_ghost() -> void:
 
 
 func cancel_ghost(ghost_id: int) -> void:
+	_seating.dirty = true
 	if not _ghosts.has(ghost_id):
 		return
 	var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
@@ -758,7 +855,13 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if not _ghosts.has(ghost.ghost_id):
 		return false
+	if not _seating.placement_reason(ghost.def, ghost.origin_cell, ghost.yaw_steps, ghost).is_empty():
+		return false
 	if not WallMount.is_wall(ghost.def):
+		if Seating.is_chair(ghost.def):
+			for cell: Vector3i in ghost.footprint_cells():
+				if not NavGrid.is_walkable(cell):
+					return false
 		return true
 	if not _wall_structure_valid(ghost.def, ghost.origin_cell, ghost.yaw_steps):
 		return false
@@ -817,12 +920,14 @@ func _region_occupancy_box(def: Dictionary, region: Dictionary, origin: Vector3i
 ## Installation proper — Phase 3's fetch executor lands here too, so the
 ## DEV path and the real path share one implementation.
 func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int) -> void:
-	var node := _instance_model(key, _make_solid_material())
+	_seating.dirty = true
+	var node := _instance_model(key, _make_solid_material(), def)
 	if node != null:
 		add_child(node)
 		node.position = _world_pos(def, origin, yaw)
 		node.rotation = Vector3(0.0, float(yaw) * PI * 0.5, 0.0)
 		Lighting.attach(node, def)
+		preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(node)
 		node.visible = _piece_visible(def, origin, yaw)
 	# Occupancy: one box per collision region (footprint-local block coords;
 	# origin (0,0,0) = bottom-front-left at floor+1). NavGrid invalidates on
@@ -882,6 +987,7 @@ func _on_uninstall_complete(component: InstalledFurnitureComponent) -> void:
 ## exist); false when the uninstalling dwarf itself is finishing (its lease
 ## completes normally).
 func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
+	_seating.dirty = true
 	if not _installed.has(installed_id):
 		return
 	var component: InstalledFurnitureComponent = _installed[installed_id]
@@ -940,6 +1046,7 @@ func serialize_state() -> Dictionary:
 			"key": ghost.furniture_key,
 			"origin": SaveManager.pack_v3i(ghost.origin_cell),
 			"yaw": ghost.yaw_steps,
+			"layout_version": int(ghost.def.get("layout_version", 1)),
 		})
 	var saved_installed: Array = []
 	var installed_ids: Array = _installed.keys()
@@ -951,10 +1058,12 @@ func serialize_state() -> Dictionary:
 			"key": component.furniture_key,
 			"origin": SaveManager.pack_v3i(component.origin_cell),
 			"yaw": component.yaw_steps,
+			"layout_version": int(component.def.get("layout_version", 1)),
 			"flagged_uninstall": component.flagged_uninstall,
 		}
 		if component.storage != null:
 			entry["inventory"] = component.storage.inventory.duplicate(true)
+			entry["storage_filter"] = component.storage.serialize_filter()
 		saved_installed.append(entry)
 	return { "ghosts": saved_ghosts, "installed": saved_installed }
 
@@ -974,17 +1083,31 @@ func restore_state(state: Dictionary) -> void:
 		var requested_id := maxi(int(entry.get("id", _next_installed_id)), 1)
 		var prior_next := _next_installed_id
 		_next_installed_id = requested_id
-		_install(key, _defs[key], SaveManager.unpack_v3i(entry.get("origin", [])),
+		_install(key, _definition_for_saved(key, entry), SaveManager.unpack_v3i(entry.get("origin", [])),
 			int(entry.get("yaw", 0)))
 		var component: InstalledFurnitureComponent = _installed.get(requested_id)
 		_next_installed_id = maxi(_next_installed_id, prior_next)
 		if component == null:
 			continue
 		if component.storage != null:
+			component.storage.restore_filter(entry.get("storage_filter", {}))
 			component.storage.restore_inventory(
 				entry.get("inventory", {}) as Dictionary, _drop_manager)
 		if bool(entry.get("flagged_uninstall", false)):
 			component.set_uninstall(true)
+
+
+## Unversioned saves predate wide chairs. Preserve their model and footprint;
+## rebuilding their refunded item uses the current definition.
+func _definition_for_saved(key: String, entry: Dictionary) -> Dictionary:
+	var def: Dictionary = _defs[key]
+	var version := int(entry.get("layout_version", 1))
+	var legacy: Dictionary = def.get("legacy_layouts", {})
+	if version != int(def.get("layout_version", 1)) and legacy.has(str(version)):
+		def = def.duplicate(true)
+		def.merge(legacy[str(version)], true)
+		def["layout_version"] = version
+	return def
 
 
 func _restore_ghost(entry: Dictionary) -> void:
@@ -1000,7 +1123,7 @@ func _restore_ghost(entry: Dictionary) -> void:
 	_active_key = key
 	_hover_cell = SaveManager.unpack_v3i(entry.get("origin", []))
 	_yaw = int(entry.get("yaw", 0))
-	_confirm_ghost()
+	_confirm_ghost(_definition_for_saved(key, entry))
 	_next_ghost_id = maxi(_next_ghost_id, prior_next)
 	_active_key = prior_key
 	_hover_cell = prior_cell
@@ -1187,9 +1310,10 @@ func _build_window() -> void:
 	add_child(_window_layer)
 
 	_window_panel = PanelContainer.new()
+	UITheme.apply_surface(_window_panel)
 	_window_panel.position = Vector2(18.0, 470.0)
 	_window_panel.custom_minimum_size = Vector2(220.0, 0.0)
-	_window_panel.add_theme_stylebox_override("panel", _style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 1, 8))
+	_window_panel.add_theme_stylebox_override("panel", UITheme.window_style())
 	_window_layer.add_child(_window_panel)
 
 	var margin := MarginContainer.new()
@@ -1209,13 +1333,11 @@ func _build_window() -> void:
 
 	_window_title = Label.new()
 	_window_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_window_title.add_theme_font_size_override("font_size", 16)
+	UITheme.apply_title(_window_title)
 	header.add_child(_window_title)
 
 	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(30.0, 26.0)
-	close.focus_mode = Control.FOCUS_NONE
+	UITheme.apply_close_button(close)
 	close.pressed.connect(_close_window)
 	header.add_child(close)
 
@@ -1225,6 +1347,7 @@ func _build_window() -> void:
 
 	_window_build_btn = Button.new()
 	_window_build_btn.text = "DEV: Instant Build"
+	UITheme.apply_button_variant(_window_build_btn, "dev")
 	_window_build_btn.focus_mode = Control.FOCUS_NONE
 	_window_build_btn.custom_minimum_size = Vector2(186.0, 30.0)
 	_window_build_btn.add_theme_font_size_override("font_size", 13)
@@ -1271,8 +1394,10 @@ func _open_ghost_window(ghost_id: int) -> void:
 	else:
 		_window_info.text = "Needs: %s\n(none in the colony)" % ghost.item_key
 	_window_build_btn.text = "DEV: Instant Build"
+	UITheme.apply_button_variant(_window_build_btn, "dev")
 	_window_build_btn.visible = true
 	_window_remove_btn.text = "Cancel 📥"
+	UITheme.apply_button_variant(_window_remove_btn, "danger")
 	_window_layer.visible = true
 
 
@@ -1294,8 +1419,10 @@ func _open_installed_window(installed_id: int) -> void:
 					int(component.storage.inventory[item_key])]
 		_window_info.text = lines
 	_window_build_btn.text = "📤 Cancel uninstall" if component.flagged_uninstall else "📤 Uninstall"
+	UITheme.apply_button_variant(_window_build_btn)
 	_window_build_btn.visible = true
 	_window_remove_btn.text = "DEV: Remove (drops item)"
+	UITheme.apply_button_variant(_window_remove_btn, "dev")
 	_window_layer.visible = true
 
 
@@ -1303,21 +1430,6 @@ func _close_window() -> void:
 	_window_ghost_id = -1
 	_window_installed_id = -1
 	_window_layer.visible = false
-
-
-func _style(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.border_width_left = border_width
-	style.border_width_right = border_width
-	style.border_width_top = border_width
-	style.border_width_bottom = border_width
-	style.corner_radius_top_left = radius
-	style.corner_radius_top_right = radius
-	style.corner_radius_bottom_left = radius
-	style.corner_radius_bottom_right = radius
-	return style
 
 
 # ── Object explorer provider ──────────────────────────────────────────────────
@@ -1347,6 +1459,15 @@ func _explorer_piece(object_id: Variant) -> Variant:
 	if id.begins_with("installed:"):
 		return _installed.get(int(id.get_slice(":", 1)))
 	return null
+
+
+func inspect_storage(storage: ContainerStorageComponent) -> bool:
+	var explorer := get_tree().get_first_node_in_group("object_explorer")
+	if explorer == null: return false
+	for id: int in _installed:
+		if _installed[id].storage == storage:
+			return explorer.select_object(self, "installed:%d" % id)
+	return false
 
 
 func get_explorer_bounds(object_id: Variant) -> AABB:
@@ -1383,6 +1504,8 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			{"id": "uninstall", "text": "Cancel uninstall" if piece.flagged_uninstall else "Uninstall"},
 			{"id": "remove", "text": "DEV: Remove (drops item)", "variant": "dev"},
 		]
+	if piece is InstalledFurnitureComponent and piece.storage != null:
+		return {"title": piece.display_name(), "presentation": "storage", "storage": piece.storage, "actions": actions}
 	return {"title": piece.display_name(), "kind": "Furniture plan" if piece is FurnitureGhostComponent else "Furniture",
 		"rows": rows, "details": details, "actions": actions}
 

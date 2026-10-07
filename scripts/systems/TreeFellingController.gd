@@ -10,6 +10,12 @@ const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const SelectionOverlay = preload("res://scripts/ui/TreeFellingOverlay.gd")
 const DRAG_THRESHOLD_PX := 6.0
 signal tool_active_changed(active: bool)
+signal order_created(receipt: Dictionary)
+signal order_feedback(message: String)
+var _shared_order_ui := false
+var _cancel_mode := false
+var _mining: Node
+var _preview_mining: Array[Vector3i] = []
 var _active := false
 var _flora: SurfaceFloraSpawner
 var _explorer: ObjectExplorerController
@@ -49,12 +55,14 @@ func _ready() -> void:
 	_selection.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint_layer.add_child(_selection)
 	_hint = Label.new()
+	UITheme.apply_surface(_hint)
 	_hint.text = HINT
 	_hint.position = Vector2(24, 100)
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	_hint.add_theme_stylebox_override("normal", UITheme.hud_panel_style())
 	_hint_layer.add_child(_hint)
+	_hint.visible = not _shared_order_ui
 
 
 func is_active() -> bool:
@@ -62,7 +70,13 @@ func is_active() -> bool:
 
 
 func _on_tool_requested(tool_id: String) -> void:
-	if tool_id == "chop" and bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
+	if tool_id in ["chop", "cancel_orders"] and bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
+		_cancel_drag()
+		_cancel_mode = tool_id == "cancel_orders"
+		_hover_bounds = AABB()
+		_hover.hide()
+		_selection.fill_color = Color(.85, .35, .25, .16) if _cancel_mode else Color(1.0, .65, .2, .16)
+		_selection.edge_color = UITheme.DANGER_RED if _cancel_mode else Color(1.0, .73, .3, .95)
 		_active = true
 		_hint_layer.visible = true
 		tool_active_changed.emit(true)
@@ -124,6 +138,7 @@ func _begin_drag(screen_pos: Vector2) -> void:
 	_box_select = false
 	_drag_start = screen_pos
 	_drag_screen = screen_pos
+	if _cancel_mode: return
 	_anchor = Vector3i(-1, -1, -1)
 	var camera := get_viewport().get_camera_3d()
 	if camera != null and _flora != null:
@@ -137,6 +152,7 @@ func _cancel_drag() -> void:
 	_dragging = false
 	_box_select = false
 	_preview_trees.clear()
+	_preview_mining.clear()
 	_selection.set_polygon(PackedVector2Array())
 	_hint.text = HINT
 
@@ -144,16 +160,33 @@ func _cancel_drag() -> void:
 func _finish_drag(screen_pos: Vector2) -> void:
 	_drag_screen = screen_pos
 	_box_select = _box_select or _drag_start.distance_to(screen_pos) >= DRAG_THRESHOLD_PX
+	if _cancel_mode:
+		_update_cancel_preview()
+		var tree_count := _preview_trees.size()
+		var block_count := 0
+		if _mining != null: block_count = _mining.cancel_order_blocks(_preview_mining)
+		for id: Vector2i in _preview_trees: _flora.cancel_felling(id)
+		_cancel_drag()
+		order_feedback.emit("Cancelled · %d blocks, %d trees" % [block_count, tree_count]
+			if block_count + tree_count > 0 else "No marked work in this area")
+		return
 	if _box_select:
 		_update_drag_preview()
+		var added: Array[Dictionary] = []
 		for id: Vector2i in _preview_trees:
-			_flora.designate_felling(id)
+			var previous := _flora.get_felling_order_token(id)
+			if _flora.designate_felling(id) and previous == null:
+				added.append({"id": id, "source": _flora.get_felling_order_token(id)})
+		_emit_order(added)
 	else:
 		designate_at_screen(screen_pos)
 	_cancel_drag()
 
 
 func _update_drag_preview(refresh_trees: bool = true) -> void:
+	if _cancel_mode:
+		_update_cancel_preview(refresh_trees)
+		return
 	_selection.set_polygon(PackedVector2Array())
 	if not _box_select or _anchor.y < 0:
 		_preview_trees.clear()
@@ -197,8 +230,10 @@ func designate_at_screen(screen_pos: Vector2) -> bool:
 	var hit := _explorer.pick_at_screen(screen_pos)
 	if hit.is_empty() or hit["provider"] != _flora:
 		return false
+	var previous := _flora.get_felling_order_token(hit["id"])
 	if not _flora.designate_felling(hit["id"]):
 		return false
+	if previous == null: _emit_order([{"id": hit["id"], "source": _flora.get_felling_order_token(hit["id"])}])
 	_explorer.select_object(_flora, hit["id"])
 	return true
 
@@ -220,6 +255,17 @@ func _process(delta: float) -> void:
 	if not get_viewport().get_visible_rect().has_point(mouse) or get_viewport().gui_get_hovered_control() != null:
 		_hover.visible = false
 		return
+	if _cancel_mode:
+		_drag_screen = mouse
+		_update_cancel_preview()
+		_hover.visible = false
+		var bounds := AABB()
+		if not _preview_trees.is_empty(): bounds = _flora.get_explorer_bounds(_preview_trees[0])
+		elif not _preview_mining.is_empty(): bounds = AABB(Vector3(_preview_mining[0]), Vector3.ONE)
+		if bounds.size != Vector3.ZERO:
+			_hover.visible = true
+			_hover.mesh = Picking.outline_mesh(bounds.grow(.12), UITheme.DANGER_RED)
+		return
 	var hit := _explorer.pick_at_screen(mouse)
 	if hit.is_empty() or hit["provider"] != _flora:
 		_hover.visible = false
@@ -229,3 +275,69 @@ func _process(delta: float) -> void:
 	if _hover.visible and bounds != _hover_bounds:
 		_hover_bounds = bounds
 		_hover.mesh = Picking.outline_mesh(bounds.grow(.12), Color(1.0, .85, .40))
+
+
+func set_mining_controller(controller: Node) -> void:
+	_mining = controller
+
+
+func set_shared_order_ui(enabled: bool) -> void:
+	_shared_order_ui = enabled
+	if _hint != null: _hint.visible = not enabled
+
+
+func get_order_tool_id() -> String:
+	return "cancel_orders" if _cancel_mode else "chop"
+
+
+func get_order_hint() -> String:
+	if _cancel_mode:
+		if _dragging: return "%d blocks · %d trees · Release to cancel.\nOnly marked work is removed." % [_preview_mining.size(), _preview_trees.size()]
+		return "Click a marked block or tree, or drag across work.\nStockpiles and placed furniture are kept."
+	if _dragging and _box_select: return "%d trees in area · Release to mark.\nEsc cancels the selection." % _preview_trees.size()
+	return "Click a tree, or drag around several.\nMarked trees stay queued after you finish."
+
+
+func _update_cancel_preview(refresh_candidates: bool = true) -> void:
+	var camera := get_viewport().get_camera_3d()
+	if camera == null or _flora == null: return
+	if _dragging and _box_select:
+		var rect := Rect2(_drag_start, _drag_screen - _drag_start).abs()
+		_selection.set_polygon(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]))
+		if not refresh_candidates: return
+		_preview_trees = _flora.marked_trees_in_screen_rect(rect, camera)
+		if _mining != null: _preview_mining = _mining.marked_blocks_in_screen_rect(rect, camera)
+	else:
+		_preview_trees.clear()
+		_preview_mining.clear()
+		var hit := _explorer.pick_at_screen(_drag_screen)
+		if not hit.is_empty() and hit.provider == _flora:
+			if _flora.get_felling_order_token(hit.id) != null: _preview_trees.append(hit.id)
+		elif _mining != null:
+			_preview_mining = _mining.marked_block_at_screen(_drag_screen)
+
+
+func _emit_order(trees: Array[Dictionary]) -> void:
+	if not trees.is_empty(): order_created.emit({"trees": trees, "message": "%d trees marked for chopping" % trees.size()})
+
+
+func order_is_pending(receipt: Dictionary) -> bool:
+	for tree: Dictionary in receipt.trees:
+		if _flora.get_felling_order_token(tree.id) == tree.source: return true
+	return false
+
+
+func undo_order(receipt: Dictionary) -> int:
+	var count := 0
+	for tree: Dictionary in receipt.trees:
+		if _flora.get_felling_order_token(tree.id) == tree.source:
+			_flora.cancel_felling(tree.id)
+			count += 1
+	return count
+
+
+func inspect_order(receipt: Dictionary) -> void:
+	for tree: Dictionary in receipt.trees:
+		if _flora.get_felling_order_token(tree.id) == tree.source:
+			_explorer.select_object(_flora, tree.id)
+			return

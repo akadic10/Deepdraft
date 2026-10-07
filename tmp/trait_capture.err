@@ -1,0 +1,5 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)

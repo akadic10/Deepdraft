@@ -2,6 +2,30 @@
 
 This file is the **entry point** for any AI agent working on this codebase. Read it first. It maps every design document to its purpose and tells you which file to consult before touching any system.
 
+**Latest session handoff:** [62 — 2026-10-06](docs/00_dev_roadmap/62_session_handoff_2026_10_06.md)
+records storage filters, hauling fixes, colony/navigation UX, room darkness, final verification, and
+remaining work. Read it alongside the system documents when resuming.
+
+**Storage follow-up (2026-10-06):** [59 — Storage filters](docs/00_dev_roadmap/59_storage_filters.md)
+records the shared storage inspector, exact/category rules, relocation ownership,
+save compatibility, and runtime/native UI verification.
+
+**Hauling follow-up (2026-10-06):** [60 — Hauling worker selection](docs/00_dev_roadmap/60_hauling_worker_selection.md)
+fixes newly idle cutters losing nearby lumber to older idle entries or returning
+haulers that bypassed worker selection after depositing.
+
+**Colony overview follow-up (2026-10-06):** [61 — Colony overview](docs/00_dev_roadmap/61_colony_overview.md)
+combines the compact dwarf roster and shared personal details in one window.
+
+**Separate zones navigation (2026-10-06):** [53 — Navigation](docs/00_dev_roadmap/53_hearth_iron_navigation.md)
+records the seven-entry dock, dedicated Rooms button, Orders/Zones split and
+lower active-tool banner.
+
+**Tunnel lighting (2026-10-06):** [24 — World rendering](docs/20_player_interface/24_world_rendering.md)
+records live roof-aware skylight, placed lights, entity shading, slice invariance,
+door occlusion and the accepted fog/darkness correction, with native/save-load
+verification. Visibility only; dwarf work is unchanged.
+
 ---
 
 ## Project Identity
@@ -31,7 +55,7 @@ This file is the **entry point** for any AI agent working on this codebase. Read
 
 | File | Read before you… |
 |---|---|
-| [`21_rts_camera.md`](docs/20_player_interface/21_rts_camera.md) | Work on the camera rig, orbital controls, or layer slicing. |
+| [`21_camera.md`](docs/20_player_interface/21_camera.md) | Work on the camera rig, orbital controls, or layer slicing. |
 | [`22_mouse_input.md`](docs/20_player_interface/22_mouse_input.md) | Implement raycasting, voxel selection, or drag-to-select. |
 | [`23_user_interface.md`](docs/20_player_interface/23_user_interface.md) | Build or modify any UI panel, counter, toast, or labor window. |
 | [`24_world_rendering.md`](docs/20_player_interface/24_world_rendering.md) | Work on fog, sky, atmosphere, world-edge treatment, or the slice view's visual behaviour. |
@@ -107,7 +131,7 @@ DwarfVoxel/
 │   │   ├── 12_world_grid.md
 │   │   └── 13_architecture.md
 │   ├── 20_player_interface/
-│   │   ├── 21_rts_camera.md
+│   │   ├── 21_camera.md
 │   │   ├── 22_mouse_input.md
 │   │   ├── 23_user_interface.md
 │   │   └── 24_world_rendering.md

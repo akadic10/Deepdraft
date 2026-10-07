@@ -1,0 +1,10 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+ERROR: roster title bar drags
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/DwarfRosterTest.gd:212)
+       [1] _settle (res://scripts/tests/DwarfRosterTest.gd:228)

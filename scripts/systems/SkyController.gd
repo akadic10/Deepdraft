@@ -105,6 +105,10 @@ func _process(delta: float) -> void:
 	_update(_current_hour())
 
 
+func underground_settings() -> Dictionary:
+	return _settings.get("underground", {}).duplicate(true)
+
+
 # ── Settings loader ───────────────────────────────────────────────────────────
 
 func _load_settings() -> Dictionary:

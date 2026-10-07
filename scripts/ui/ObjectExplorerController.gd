@@ -11,9 +11,12 @@ extends Node3D
 @export var dwarf_director_path: NodePath
 
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
+const DwarfPanel = preload("res://scripts/ui/DwarfInspectorPanel.gd")
+const StoragePanel = preload("res://scripts/ui/StorageInspectorPanel.gd")
 const WINDOW_ID := "object_explorer"
 const RAY_MAX := 600.0
 const REFRESH_SECONDS := 0.15
+signal selection_changed
 
 var _manager: UIWindowManager
 var _window: UIWindow
@@ -33,6 +36,15 @@ var _actions: VBoxContainer
 var _action_data: Array = []
 var _outline: MeshInstance3D
 var _outline_bounds := AABB()
+var _standard_content: Control
+var _standard_details_scroll: ScrollContainer
+var _dwarf_panel: VBoxContainer
+var _storage_panel: VBoxContainer
+var _inspector_positioned := false
+var _outline_subject: Node3D
+var _outline_offset := Vector3.ZERO
+var _dwarf_host: Control
+var _moving_dwarf_presentation := false
 
 
 func _ready() -> void:
@@ -52,6 +64,8 @@ func _ready() -> void:
 	if slice != null:
 		slice.connect("slice_changed", _on_slice_changed)
 	_build_window()
+	_inspector_positioned = _manager.has_saved_position(WINDOW_ID)
+	_window.drag_ended.connect(func(_window_ref): _inspector_positioned = true)
 	_manager.window_state_changed.connect(_on_window_state_changed)
 	_outline = MeshInstance3D.new()
 	_outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -62,6 +76,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _click_tool_active():
 		return
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		# The overview owns its close action while it hosts the selected dwarf.
+		if is_instance_valid(_dwarf_host) and _object_id is DwarfAgent: return
 		if _provider != null:
 			clear_selection()
 			get_viewport().set_input_as_handled()
@@ -117,26 +133,82 @@ func select_object(provider: Node, object_id: Variant) -> bool:
 	var data: Dictionary = provider.call("get_explorer_data", object_id)
 	if data.is_empty():
 		return false
+	if _provider != provider or _object_id != object_id:
+		_release_selection()
 	_provider = provider
 	_object_id = object_id
 	_refresh(data)
-	_manager.open(WINDOW_ID)
+	if String(data.get("presentation", "")) == "dwarf" and is_instance_valid(_dwarf_host):
+		_hide_detached_inspector()
+	else:
+		_manager.open(WINDOW_ID)
+	selection_changed.emit()
 	return true
 
 
+## The overview borrows presentation only; this controller still owns the
+## selected actor, outline, slice guards and camera actions.
+func set_dwarf_inspector_host(panel: Control) -> void:
+	if panel == _dwarf_host: return
+	if is_instance_valid(_dwarf_host):
+		if _object_id is DwarfAgent: clear_selection()
+		_dwarf_host.action_requested.disconnect(_perform_dwarf_action)
+		_dwarf_host.clear_subject()
+		_dwarf_host.hide()
+	_dwarf_host = panel
+	if is_instance_valid(_dwarf_host):
+		_dwarf_host.action_requested.connect(_perform_dwarf_action)
+		if _object_id is DwarfAgent:
+			_dwarf_panel.clear_subject()
+			_refresh_selected()
+			_hide_detached_inspector()
+
+
+func selected_dwarf(provider: Node) -> DwarfAgent:
+	return _object_id if _provider == provider and is_instance_valid(_object_id) and _object_id is DwarfAgent else null
+
+
+func _hide_detached_inspector() -> void:
+	_moving_dwarf_presentation = true
+	_manager.close(WINDOW_ID)
+	_moving_dwarf_presentation = false
+
+
+func is_object_selected(provider: Node, object_id: Variant) -> bool:
+	return _provider == provider and _object_id == object_id
+
+
 func clear_selection() -> void:
+	_release_selection()
 	_provider = null
 	_object_id = null
 	if is_instance_valid(_outline):
 		_outline.visible = false
 	_manager.close(WINDOW_ID)
+	selection_changed.emit()
 
 
 func _on_window_state_changed(id: String, opened: bool) -> void:
-	if id == WINDOW_ID and not opened:
+	if id == WINDOW_ID and not opened and not _moving_dwarf_presentation:
+		_release_selection()
 		_provider = null
 		_object_id = null
 		_outline.visible = false
+		selection_changed.emit()
+
+
+func _release_selection() -> void:
+	if is_instance_valid(_provider) and _provider.has_method("clear_explorer_selection"):
+		_provider.call("clear_explorer_selection", _object_id)
+	_outline_subject = null
+	_outline_bounds = AABB()
+	if is_instance_valid(_dwarf_panel):
+		_dwarf_panel.clear_subject()
+	if is_instance_valid(_dwarf_host):
+		_dwarf_host.clear_subject()
+		_dwarf_host.hide()
+	if is_instance_valid(_storage_panel):
+		_storage_panel.clear_subject()
 
 
 func _on_slice_changed(slice_y: int) -> void:
@@ -145,6 +217,9 @@ func _on_slice_changed(slice_y: int) -> void:
 
 
 func _process(delta: float) -> void:
+	# Moving actors keep a smooth outline without rebuilding its mesh every frame.
+	if is_instance_valid(_outline_subject):
+		_outline.global_position = _outline_subject.global_position + _outline_offset
 	_refresh_elapsed += delta
 	if _refresh_elapsed >= REFRESH_SECONDS:
 		_refresh_elapsed = 0.0
@@ -165,11 +240,15 @@ func _refresh_selected() -> void:
 
 
 func _build_window() -> void:
+	var root_content := VBoxContainer.new()
+	root_content.add_theme_constant_override("separation", 0)
 	var content := VBoxContainer.new()
+	_standard_content = content
+	root_content.add_child(content)
 	content.custom_minimum_size.x = 352.0
 	content.add_theme_constant_override("separation", 10)
 	_name_label = Label.new()
-	_name_label.add_theme_font_size_override("font_size", 19)
+	UITheme.apply_title(_name_label, 19)
 	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	content.add_child(_name_label)
 	_kind_label = Label.new()
@@ -181,6 +260,7 @@ func _build_window() -> void:
 	_rows.add_theme_constant_override("separation", 0)
 	content.add_child(_rows)
 	var scroll := ScrollContainer.new()
+	_standard_details_scroll = scroll
 	scroll.custom_minimum_size.y = 112.0
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content.add_child(scroll)
@@ -192,11 +272,48 @@ func _build_window() -> void:
 	scroll.add_child(_details)
 	_actions = VBoxContainer.new()
 	content.add_child(_actions)
-	_window = _manager.register_window(WINDOW_ID, "Object explorer", "", content,
+	_dwarf_panel = DwarfPanel.new()
+	_dwarf_panel.visible = false
+	_dwarf_panel.action_requested.connect(_perform_dwarf_action)
+	root_content.add_child(_dwarf_panel)
+	_storage_panel = StoragePanel.new()
+	_storage_panel.visible = false
+	_storage_panel.action_requested.connect(_perform_action)
+	root_content.add_child(_storage_panel)
+	_window = _manager.register_window(WINDOW_ID, "Object explorer", "", root_content,
 		{"persistent": false, "default_pos": Vector2(24, 150), "min_size": Vector2(380, 0)})
+	_storage_panel.window = _window
 
 
 func _refresh(data: Dictionary) -> void:
+	var is_dwarf := String(data.get("presentation", "")) == "dwarf"
+	var is_storage := String(data.get("presentation", "")) == "storage"
+	_standard_content.visible = not is_dwarf and not is_storage
+	_dwarf_panel.visible = is_dwarf and not is_instance_valid(_dwarf_host)
+	_storage_panel.visible = is_storage
+	_window.keep_body_on_screen = is_dwarf or is_storage
+	_window.custom_minimum_size.x = 380
+	_window.set_window_title("DWARF INSPECTOR" if is_dwarf else "Object explorer")
+	if is_storage:
+		_outline_subject = null
+		_window.set_window_title(String(data.title))
+		_storage_panel.show_storage(data.storage, data.get("actions", []))
+		_update_outline(_provider.call("get_explorer_bounds", _object_id))
+		_storage_panel._fit()
+		_position_inspector()
+		return
+	if is_dwarf:
+		var panel := _dwarf_host if is_instance_valid(_dwarf_host) else _dwarf_panel
+		panel.show()
+		panel.show_data(data, bool(_provider.call("is_following", _object_id)))
+		_outline_subject = data.agent
+		_update_outline(_provider.call("get_explorer_bounds", _object_id))
+		_outline_offset = _outline.global_position - _outline_subject.global_position
+		if is_instance_valid(_dwarf_host): return
+		_window.reset_size()
+		_position_inspector()
+		return
+	_outline_subject = null
 	_name_label.text = String(data.get("title", "Object"))
 	_kind_label.text = String(data.get("kind", ""))
 	var rows: Array = data.get("rows", [])
@@ -241,7 +358,20 @@ func _refresh(data: Dictionary) -> void:
 			button.pressed.connect(_perform_action.bind(String(action["id"])))
 			_actions.add_child(button)
 	_update_outline(_provider.call("get_explorer_bounds", _object_id))
+	# Keep the default compact inspector above the centered command dock. Only
+	# the supplemental description scrolls; stable tree rows and actions remain.
+	var fixed_height := _window.get_combined_minimum_size().y - _standard_details_scroll.get_combined_minimum_size().y
+	_standard_details_scroll.custom_minimum_size.y = clampf(get_viewport().get_visible_rect().size.y - 152 - fixed_height, 32, 112)
 	_window.reset_size()
+	_position_inspector()
+
+
+## Every object starts in the same right-hand inspection column. An existing
+## saved position or a player drag takes precedence for every subject type.
+func _position_inspector() -> void:
+	if not _inspector_positioned:
+		_window.position = Vector2(get_viewport().get_visible_rect().size.x - _window.size.x - 24, 32)
+		_inspector_positioned = true
 	_window.clamp_to_viewport()
 
 
@@ -251,9 +381,21 @@ func _perform_action(action_id: String) -> void:
 		_refresh_selected()
 
 
+func _perform_dwarf_action(action_id: String) -> void:
+	if not is_instance_valid(_provider):
+		return
+	if action_id == "follow" and bool(_provider.call("is_following", _object_id)):
+		action_id = "stop_follow"
+	_perform_action(action_id)
+
+
 func _update_outline(bounds: AABB) -> void:
 	_outline.visible = bounds.size.length_squared() > 0.0
-	if not _outline.visible or bounds == _outline_bounds:
+	if not _outline.visible:
 		return
-	_outline_bounds = bounds
-	_outline.mesh = Picking.outline_mesh(bounds.grow(.05), Color(.65, .85, 1.0))
+	_outline.global_position = bounds.get_center()
+	var local_bounds := AABB(-bounds.size * .5, bounds.size)
+	if local_bounds == _outline_bounds:
+		return
+	_outline_bounds = local_bounds
+	_outline.mesh = Picking.outline_mesh(local_bounds.grow(.05), UITheme.HEARTH_COPPER if is_instance_valid(_outline_subject) else Color(.65, .85, 1.0))

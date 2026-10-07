@@ -1,4 +1,8 @@
 {
+  "underground": {
+    "entrance_reach_blocks": 7,
+    "readability_floor": 0.008
+  },
   "__comment": [
     "Default / clear-day sky master. Loaded by the SkyController autoload.",
     "Trimmed Forward+ equivalent of Stonehearth's data/calendar/sky_settings.json; colour and",

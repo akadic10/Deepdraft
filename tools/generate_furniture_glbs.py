@@ -74,6 +74,10 @@ DOC 38 ART ADDITION (2026-10-01): the dining table is a 2x2 oak/iron piece,
 DOC 39 ART ADDITION (2026-10-01): the standalone wooden chair has a 1x1
 footprint, 2-block backrest and 1-block seat rim, in matching oak/iron.
 
+DOC 50 DINING REVISION (2026-10-05): personal table 2x2x1.75, communal
+table 8x4x1.75 with eight optional chair positions, chair 2x2x1.375 with a
+.875 seat. Supersedes docs 38/39 geometry; old saved chairs retain a legacy GLB.
+
 DOC 40 ART ADDITION (2026-10-01): the 4x2 dwarven bed has a 1-block mattress,
 2-block headboard and raised linen pillow/folded blanket, in the same scale.
 
@@ -120,6 +124,7 @@ import generate_packed_furniture_redesign as packed_art
 import generate_trade_counter as trade_art
 import generate_dining_table as table_art
 import generate_chair as chair_art
+import generate_seating_study as dining_art
 import generate_bed as bed_art
 import generate_shelf_redesign as shelf_art
 import generate_brewing_vat as vat_art
@@ -396,6 +401,10 @@ def build_wooden_table():
     return table_art.wooden_table()
 
 
+def build_communal_table():
+    return dining_art.table(8, 4)
+
+
 def build_wooden_chair():
     return chair_art.wooden_chair()
 
@@ -429,7 +438,7 @@ def build_brazier():
 
 
 def mesh_furniture(name,vox):
-    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','wooden_chair','dwarf_bunk','brewing_vat','anvil','aging_rack'):
+    if name in ('barrel','storage_crate','storage_shelf','tavern_bar','bench','door','packed_furniture','trade_counter','wooden_table','communal_table','wooden_chair','dwarf_bunk','brewing_vat','anvil','aging_rack'):
         return tavern_art.export_mesh(vox)
     return hearth_art.export_mesh(vox) if name == 'hearth' else mesh_from_voxels(vox)
 
@@ -583,6 +592,7 @@ def main():
         ("door", build_door()),
         ("trade_counter", build_trade_counter()),
         ("wooden_table", build_wooden_table()),
+        ("communal_table", build_communal_table()),
         ("wooden_chair", build_wooden_chair()),
         ("dwarf_bunk", build_dwarf_bunk()),
         ("brewing_vat", build_brewing_vat()),

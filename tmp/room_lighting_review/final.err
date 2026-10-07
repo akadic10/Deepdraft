@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Could not find type "WorldRenderer" in the current scope.
+   at: GDScript::reload (res://scripts/tests/RoomLightingTest.gd:22)
+ERROR: Failed to load script "res://scripts/tests/RoomLightingTest.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

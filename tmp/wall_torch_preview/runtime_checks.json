@@ -2,15 +2,15 @@
   "all_four_live_terrain_shadow_paths": true,
   "build_panel_layouts": [
     {
-      "buttons": 14,
-      "panel": "[P: (205.5, 458.0), S: (869.0, 224.0)]",
-      "rows": 3,
+      "buttons": 19,
+      "panel": "[P: (140.0, 404.0), S: (1000.0, 278.0)]",
+      "rows": 4,
       "viewport": "(1280, 800)"
     },
     {
-      "buttons": 14,
-      "panel": "[P: (845.5, 1098.0), S: (869.0, 224.0)]",
-      "rows": 3,
+      "buttons": 19,
+      "panel": "[P: (780.0, 1044.0), S: (1000.0, 278.0)]",
+      "rows": 4,
       "viewport": "(2560, 1440)"
     }
   ],
@@ -30,7 +30,7 @@
   "low_furniture_coexistence": true,
   "no_floor_reservation_or_nav_occupancy": true,
   "occlusion_and_slice_gate": true,
-  "placeable_definitions": 13,
+  "placeable_definitions": 18,
   "player_saves_touched": false,
   "real_camera_wall_hits_and_selection": true,
   "real_dwarf_fetch_and_build": true,

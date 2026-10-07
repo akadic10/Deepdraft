@@ -1,0 +1,9 @@
+{
+  "__comment": "Roster filter captions and order. Classification and current activity come from DwarfInspection; no sample dwarves or simulated needs.",
+  "filters": [
+    {"id": "all", "label": "All"},
+    {"id": "working", "label": "Working"},
+    {"id": "resting", "label": "Resting"},
+    {"id": "idle", "label": "Idle"}
+  ]
+}

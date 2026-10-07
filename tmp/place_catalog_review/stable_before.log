@@ -1,0 +1,377 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+UIWindowManager: ready (7 remembered window positions).
+FurniturePlacementController: 18 placeable defs loaded.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: ghost 1 (base:furniture:wooden_table) at (37, 20, 38) yaw 0.
+FurniturePlacementController: ghost 2 (base:furniture:wooden_table) at (41, 20, 38) yaw 0.
+FurniturePlacementController: ghost 3 (base:furniture:wooden_table) at (45, 20, 38) yaw 0.
+FurniturePlacementController: ghost 4 (base:furniture:wooden_table) at (37, 20, 38) yaw 0.
+FurniturePlacementController: ghost 5 (base:furniture:barrel) at (45, 20, 43) yaw 0.
+FurniturePlacementController: ghost 5 (base:furniture:barrel) at (45, 20, 43) yaw 0.
+FurniturePlacementController: installed base:furniture:barrel at (45, 20, 43).
+ERROR: tile stays put: base:furniture:wooden_chair / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / reserve (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wooden_chair / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / pickup (960, 540)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / new design arrives
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: stock changes retain keyboard focus
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: same screen point selects the same item after hauling
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wooden_chair / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:communal_table / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / reserve (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wooden_chair / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:communal_table / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / pickup (1280, 720)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: stock changes retain keyboard focus
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wooden_chair / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:communal_table / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / reserve (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wooden_chair / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:communal_table / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:bench / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:barrel / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_chest / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:storage_shelf / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:wall_torch / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:brazier / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:door / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: tile stays put: base:furniture:dwarf_bunk / pickup (2560, 1440)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)
+ERROR: stock changes retain keyboard focus
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:219)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:318)

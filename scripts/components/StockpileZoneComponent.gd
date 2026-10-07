@@ -10,8 +10,8 @@ extends StorageComponent
 ## Cells are FLOOR block coordinates; zones are flat by designation rule.
 ## Item identity is the namespaced String key, never a runtime int.
 
-## v1 default filter: accept every stockpile_* category (doc 18 Phase 1 —
-## the filter panel UI is out of scope; the data model carries the tags).
+## New storage and older saves accept every existing stockpile category.
+## StorageComponent adds exact item choices and per-category exceptions.
 const DEFAULT_FILTER_TAGS: Array[String] = [
 	"stockpile_stone", "stockpile_ore", "stockpile_gem", "stockpile_soil",
 	"stockpile_wood", "stockpile_food", "stockpile_drink", "stockpile_seed",
@@ -62,7 +62,7 @@ func stored_count() -> int:
 
 
 func has_room_for(item_key: String, _stack_max: int = 1) -> bool:
-	return _has_room_for_key(item_key)
+	return accepts_key(item_key) and _has_room_for_key(item_key)
 
 
 func _has_room_for_key(key: String) -> bool:
@@ -77,6 +77,7 @@ func _has_any_room() -> bool:
 
 
 func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1) -> Variant:
+	if not accepts_key(item_key): return null
 	return _slots.reserve(item_key, amount, dwarf_id, near)
 
 
@@ -90,6 +91,16 @@ func _commit_one(token: Variant, item_key: String) -> void:
 
 func _deposit_walk_target(first_token: Variant) -> Vector3i:
 	return first_token.slot as Vector3i
+
+
+func delivery_stand_cells(target: Vector3i, dwarf_id: int = -1) -> Array[Vector3i]:
+	var stands := ground_access_cells(target)
+	# A bundle may fill several neighbouring cells. None of those deliveries
+	# may appear under the worker's boots when the atomic commit spreads them.
+	if _pulls.has(dwarf_id):
+		for token: Dictionary in _pulls[dwarf_id].cargo.values():
+			stands.erase(token.slot)
+	return stands
 
 
 ## WYSIWYG: the deposited node stays visible, snapped to its cell.
@@ -129,6 +140,7 @@ func withdraw_nearest(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D
 	var best := Vector3i(-1, -1, -1)
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in cell_stacks:
+		if int(cell_stacks[cell].count) <= int(_outgoing.get(cell, {}).get("count", 0)): continue
 		if String((cell_stacks[cell] as Dictionary).get("item", "")) != item_key:
 			continue
 		var d := cell - near
@@ -138,20 +150,42 @@ func withdraw_nearest(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D
 			best_dist = dist
 	if best == Vector3i(-1, -1, -1):
 		return null
+	return withdraw_stack(best, 1, dwarf_id)
+
+
+func stored_entries() -> Dictionary:
+	return cell_stacks
+
+
+func storage_capacity() -> int:
+	return tile_cells.size()
+
+
+func slot_cell(slot: Variant) -> Vector3i:
+	return slot as Vector3i
+
+
+func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
+	var best: Vector3i = slot
+	if not cell_stacks.has(best): return null
+	var item_key := String(cell_stacks[best].item)
 	var node: Node3D = drop_manager.call("stored_node_at", best)
 	if node == null:
 		return null
 	var count := int(cell_stacks[best].count)
-	if count > 1:
+	if amount <= 0 or amount > count: return null
+	if count > amount:
 		var single: Node3D = drop_manager.call("spawn_reserved", item_key, best, dwarf_id)
 		if single == null:
 			return null
-		cell_stacks[best].count = count - 1
-		drop_manager.call("set_quantity", node, count - 1)
+		drop_manager.set_quantity(single, amount)
+		cell_stacks[best].count = count - amount
+		drop_manager.call("set_quantity", node, count - amount)
 		node = single
 	else:
 		cell_stacks.erase(best)
 		drop_manager.call("withdraw_stored", node, dwarf_id)
 	if changed_callback.is_valid():
-		changed_callback.call(item_key, -1)
+		changed_callback.call(item_key, -amount)
+	changed.emit()
 	return node

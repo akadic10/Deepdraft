@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 24 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+FurniturePlacementController: 18 placeable defs loaded.
+ItemDropManager: loaded 77 item definitions.
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WARNING: WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _seed_rng (res://scripts/systems/WeatherManager.gd:104)
+       [1] _ready (res://scripts/systems/WeatherManager.gd:48)
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+FurniturePlacementController: ghost 1 (base:furniture:wall_torch) at (10, 20, 10) yaw 0.
+FurniturePlacementController: ghost 1 (base:furniture:wall_torch) at (10, 20, 10) yaw 0.
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: ghost 2 (base:furniture:wall_torch) at (10, 20, 10) yaw 1.
+FurniturePlacementController: ghost 2 (base:furniture:wall_torch) at (10, 20, 10) yaw 1.
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: ghost 3 (base:furniture:wall_torch) at (10, 20, 10) yaw 2.
+FurniturePlacementController: ghost 3 (base:furniture:wall_torch) at (10, 20, 10) yaw 2.
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: ghost 4 (base:furniture:wall_torch) at (10, 20, 10) yaw 3.
+FurniturePlacementController: ghost 4 (base:furniture:wall_torch) at (10, 20, 10) yaw 3.
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_chest at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:wall_torch at (10, 20, 10).
+FurniturePlacementController: ghost 5 (base:furniture:door) at (10, 20, 10) yaw 0.
+FurniturePlacementController: ghost 6 (base:furniture:wall_torch) at (10, 20, 10) yaw 0.
+FurniturePlacementController: installed base:furniture:door at (29, 20, 33).
+FurniturePlacementController: installed base:furniture:wall_torch at (28, 20, 28).
+FurniturePlacementController: installed base:furniture:hearth at (28, 20, 28).
+FurniturePlacementController: installed base:furniture:wall_torch at (32, 20, 28).
+LIVE_WALL_TORCH_OK: {"all_four_live_terrain_shadow_paths":true,"build_panel_layouts":[{"buttons":19,"panel":"[P: (140.0, 404.0), S: (1000.0, 278.0)]","rows":4,"viewport":"(1280, 800)"},{"buttons":19,"panel":"[P: (780.0, 1044.0), S: (1000.0, 278.0)]","rows":4,"viewport":"(2560, 1440)"}],"flame_animation":{"bracket_and_handle_static":true,"distinct_emission_samples":115,"distinct_light_samples":120,"heat_and_saved_state_unchanged":true,"hidden_slice_suspends_updates":true,"original_bounds_respected":true,"shared_clip_independent_phases":true,"visible_frames":8},"four_wall_orientations":true,"ghost_and_installed_save_restore":true,"ghosts_have_no_light_or_heat":true,"low_furniture_coexistence":true,"no_floor_reservation_or_nav_occupancy":true,"occlusion_and_slice_gate":true,"placeable_definitions":18,"player_saves_touched":false,"real_camera_wall_hits_and_selection":true,"real_dwarf_fetch_and_build":true,"release_and_reclaim":true,"sealed_room_heat":{"one_torch_removed":600,"remaining_bonus_c":6,"shared_anchor_heat_preserved":true,"temperature_bonus_c":8,"two_torches_and_hearth":800,"volume":100},"support_loss_during_completion_preserves_crate":true,"support_mining_refunds_once":true,"tall_furniture_overlap_rejected_both_orders":true,"uninstall_flag_restore":true}

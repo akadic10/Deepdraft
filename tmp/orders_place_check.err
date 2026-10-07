@@ -1,0 +1,5 @@
+ERROR: opening another menu closes Place
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/FurniturePlaceTest.gd:228)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:327)

@@ -1,5 +1,27 @@
 # 18 - Stockpiles & Hauling (Second Colony Milestone)
 
+> **2026-10-06 update — selection between deliveries:** the historical direct
+> deposit-to-next-pull loop below is superseded. Each successful bundle delivery
+> completes its lease and returns the dwarf to matching; the next load compares
+> all eligible idle workers by pickup proximity after higher-priority work.
+> This prevents returning haulers from privately claiming newly cut timber ahead
+> of its nearby cutter. Storage still posts bounded intake leases, and assigned
+> trips retain their claims. See [60 — Hauling worker selection](60_hauling_worker_selection.md).
+
+> **2026-10-06 update — storage filters:** ground zones and containers now share
+> an immediate Filters/Contents inspector. Category rules combine with exact
+> item choices and exclusions. Incoming reservations, pickups and commits enforce
+> acceptance. Rejected stored goods remain in place until a dwarf can relocate
+> them to accepting storage with room. See [59 — Storage filters](59_storage_filters.md)
+> for ownership, interruption, persistence and validation details.
+
+> **2026-10-05 update — carry budget:** the historical four-object pouch below
+> is superseded by `hauling.carry_capacity: 4` in task JSON and per-item
+> `carry_cost` in resources JSON. Rocks/ore cost 1, raw logs 2, produce and packed
+> furniture crates 4; other items cost 1. Mixed loads are supported and crate
+> cost is per physical crate, regardless of fill. Weight class still separately
+> controls walking speed. See [doc 49](49_dwarf_hauling_animation.md).
+
 > **2026-10-04 update — produce crates:** the historical one-unit-per-tile rule
 > below now has an explicit exception. Seeds, cones, acorns, cuttings, fruit and
 > berries use automatic crates holding up to **24 units of one item type**.

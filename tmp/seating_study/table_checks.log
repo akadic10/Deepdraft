@@ -1,0 +1,69 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 24 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+FurniturePlacementController: 18 placeable defs loaded.
+ItemDropManager: loaded 77 item definitions.
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WARNING: WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _seed_rng (res://scripts/systems/WeatherManager.gd:104)
+       [1] _ready (res://scripts/systems/WeatherManager.gd:48)
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+FurniturePlacementController: ghost 1 (base:furniture:wooden_table) at (10, 20, 10) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_table at (10, 20, 10).
+FurniturePlacementController: ghost 2 (base:furniture:wooden_table) at (10, 20, 10) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_table at (10, 20, 10).
+FurniturePlacementController: ghost 3 (base:furniture:wooden_table) at (10, 20, 10) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_table at (10, 20, 10).
+FurniturePlacementController: ghost 4 (base:furniture:wooden_table) at (10, 20, 10) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_table at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:wooden_table at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:barrel at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:barrel at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:barrel at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:barrel at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_chest at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_chest at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_chest at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_chest at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_shelf at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_shelf at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_shelf at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:storage_shelf at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:bench at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:bench at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:bench at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:bench at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:tavern_bar at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:tavern_bar at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:tavern_bar at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:tavern_bar at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:hearth at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:hearth at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:hearth at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:hearth at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:trade_counter at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:trade_counter at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:trade_counter at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:trade_counter at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:door at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:door at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:door at (10, 20, 10).
+FurniturePlacementController: installed base:furniture:door at (10, 20, 10).
+LIVE_DINING_TABLE_OK: {"build_menu_mapping":true,"dev_spawner_entry":true,"dwarf_pickup_and_build_consumes_crate":true,"eight_existing_pieces_at_four_rotations":true,"fetch_reservation_release_and_reclaim":true,"four_rotations":true,"fractional_top_layer_occupied":true,"ghost_nonblocking":true,"in_memory_installed_save_restore":true,"no_room_heat_or_door_side_effects":true,"placeable_definitions":18,"player_saves_touched":false,"rotated_bounds_match_collision":true,"terrain_unchanged":true,"uninstall_refunds_same_item":true}

@@ -151,6 +151,12 @@ Any terrain block (`base:terrain:*`) and any constructed wall block qualifies as
 
 Dwarves always close doors behind them. Door blocks are always treated as sealed for temperature calculation purposes regardless of animation state. A door that is mined or removed breaks the room seal immediately — `RoomData` is invalidated and temperature becomes unstable until the gap is repaired.
 
+The 2026-10-06 lighting pass shares these installed-door boundaries with the
+skylight field. Doors stop daylight while remaining walkable. RoomManager also
+tracks installed `light_source` counts separately from heat: the Room inspector
+must not infer lighting from heat units. All door, light, heat and room caches
+are cleared at world reload, then rebuilt through ordinary furniture installation.
+
 ### Recalculation Triggers
 
 `RoomData.temp_c` is recomputed whenever:

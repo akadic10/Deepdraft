@@ -67,6 +67,9 @@ var _last_slice_y: int = MAX_SLICE_Y   # restored on re-activation
 
 var _window_manager: UIWindowManager = null
 var _readout_label: Label
+var _readout_hint: Label
+var _up_buttons: Array[Button] = []
+var _down_buttons: Array[Button] = []
 
 ## Manager window id for the palette. Tool state — not a persistent window:
 ## visibility follows the tool's active flag (which round-trips through the
@@ -261,22 +264,47 @@ func _build_palette() -> void:
 		push_warning("SliceController: UIWindowManager not found at '%s' — palette disabled." % window_manager_path)
 		return
 
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 12)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
-
-	column.add_child(_make_step_button("▲▲  Cell up", "Raise the slice one 4-block cell  ( ] )", step_cell_up))
-	column.add_child(_make_step_button("▲  Block up", "Raise the slice one block  (Ctrl+])", step_single_up))
-
-	_readout_label = Label.new()
-	_readout_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_readout_label.add_theme_font_size_override("font_size", 17)
-	column.add_child(_readout_label)
-
-	column.add_child(_make_step_button("▼  Block down", "Lower the slice one block  (Ctrl+[)", step_single_down))
-	column.add_child(_make_step_button("▼▼  Cell down", "Lower the slice one 4-block cell  ( [ )", step_cell_down))
-
-	_window_manager.register_window(PALETTE_WINDOW_ID, "Slice", "👀", column,
-		{"default_pos": Vector2(18.0, 130.0)})
+	column.custom_minimum_size.x = 254
+	column.add_theme_constant_override("separation", 10)
+	margin.add_child(column)
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
+	column.add_child(card)
+	var readout := VBoxContainer.new()
+	card.add_child(readout)
+	_slice_label(readout, "VIEWING LEVEL", 11, UITheme.HEARTH_COPPER)
+	_readout_label = _slice_label(readout, "", 28)
+	UITheme.apply_title(_readout_label, 28)
+	_readout_hint = _slice_label(readout, "", 13, UITheme.HEARTH_MUTED)
+	var coarse := HBoxContainer.new()
+	coarse.add_theme_constant_override("separation", 6)
+	column.add_child(coarse)
+	var down := _make_step_button("▼  Cell down", "Lower one 4-block cell · [", step_cell_down)
+	var up := _make_step_button("▲  Cell up", "Raise one 4-block cell · ]", step_cell_up)
+	coarse.add_child(down)
+	coarse.add_child(up)
+	_down_buttons.append(down)
+	_up_buttons.append(up)
+	var fine := HBoxContainer.new()
+	fine.add_theme_constant_override("separation", 6)
+	column.add_child(fine)
+	down = _make_step_button("−  Block", "Lower one block · Ctrl+[", step_single_down)
+	up = _make_step_button("+  Block", "Raise one block · Ctrl+]", step_single_up)
+	fine.add_child(down)
+	fine.add_child(up)
+	_down_buttons.append(down)
+	_up_buttons.append(up)
+	_slice_label(column, "[ / ]  Cell    ·    Ctrl + [ / ]  Block", 12, UITheme.HEARTH_MUTED)
+	var done := _make_step_button("Show full world", "Turn off Slice; your level is remembered.", deactivate)
+	column.add_child(done)
+	var window := _window_manager.register_window(PALETTE_WINDOW_ID, "Slice view", "", margin,
+		{"default_pos": Vector2(24.0, 84.0)})
+	UITheme.apply_catalog_window(window)
+	window.keep_body_on_screen = true
 	# Closing the palette with its X IS turning the slice tool off — the
 	# window has no meaning without the tool.
 	_window_manager.window_state_changed.connect(_on_window_state_changed)
@@ -298,13 +326,27 @@ func _set_palette_visible(shown: bool) -> void:
 
 
 func _make_step_button(text: String, tooltip: String, on_press: Callable) -> Button:
-	var button := UITheme.make_button(text, tooltip, Vector2(126.0, 30.0))
+	var button := UITheme.make_button(text, tooltip, Vector2(0.0, 34.0))
+	UITheme.apply_hearth_button(button)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.pressed.connect(on_press)
 	return button
+
+
+func _slice_label(parent: Node, text: String, font_size: int, color: Color = UITheme.HEARTH_TEXT) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	parent.add_child(label)
+	return label
 
 
 func _update_readout() -> void:
 	if _readout_label == null:
 		return
 	var y := get_slice_y()
-	_readout_label.text = "Y = %d" % y if y < MAX_SLICE_Y else "Off"
+	_readout_label.text = "Level %d" % y if y < MAX_SLICE_Y else "Full world"
+	_readout_hint.text = "Terrain above this level is hidden." if y < MAX_SLICE_Y else "All terrain is visible."
+	for button in _up_buttons: button.disabled = y >= MAX_SLICE_Y
+	for button in _down_buttons: button.disabled = y <= MIN_SLICE_Y

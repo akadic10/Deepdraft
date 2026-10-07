@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (6 remembered window positions).
+WorldGenerator: starting generation (seed 1231920042).
+WorldRenderer: generation started (seed 1231920042).
+FurniturePlacementController: 18 placeable defs loaded.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+WorldGenerator: domain layout northwest mountain -> mountain 297984, valley 389120, lowland 361472.
+WorldGenerator: valley corridor -> columns 78620, average height 40.1.
+WorldGenerator: macro heightmap -> 1024 cells expanded at 32 columns per cell.
+WorldGenerator: macro expansion -> local offsets on 0 columns.
+WorldGenerator: plateau smoothing -> adjusted 0 columns across 0 macro cells.
+WorldGenerator: mountain foothill transition -> raised 7168 columns into approach shelves.
+WorldGenerator: lowland foothill transition -> capped 4096 columns to one-shelf steps.
+WorldGenerator: macro shelf step limit -> capped 169984 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: heightmap sub-phases -> macro_cells 139 ms, column_fill 1380 ms, plateau 164 ms, mountain_foothill 138 ms, lowland_foothill 25 ms, shelf_step_limit 715 ms.
+WorldGenerator: lowland lake uses 36 macro cells; southern anchor (4, 31); water Y12-Y18.
+WorldGenerator: macro shelf step limit -> capped 0 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: mountain shelf-1 tarn uses 1 macro cell; anchor (11, 11); water Y48-Y54.
+WorldGenerator: edge detail -> pushed 26644 foothill/mountain edge columns.
+WorldGenerator: stopped in 13.7 s.

@@ -656,6 +656,10 @@ fit study uses full-size shipping dwarf parts without altering those assets.
 
 #### Wooden Chair (`base:furniture:wooden_chair`) — built 2026-10-01
 
+**2026-10-05 supersession:** New builds use the approved 2×2 chair with a .875
+seat and 1.375 low back/arms; JSON seated clearance and table snapping are live.
+The earlier dimensions below describe only legacy saved chairs. See [doc 50](../00_dev_roadmap/50_seated_dining_study.md).
+
 Footprint: **1×1**. Collision: `[{min:[0,0,0], max:[1,2,1]}]` — 2 blocks tall (includes backrest).
 
 Built in [art doc 39](../00_dev_roadmap/39_chair_asset_and_placement.md):
@@ -673,6 +677,12 @@ sitting animations, seat assignments and dining behavior remain future work.
 ---
 
 #### Dining Table (`base:furniture:wooden_table`) — built 2026-10-01
+
+**2026-10-05 supersession:** This key now builds the Personal Dining Table, 2×2
+with a 1.75 tabletop and one optional snapped chair. The new `base:furniture:communal_table`
+is 8×4 with the same height and eight optional chairs (three per side, one per
+end). Both retain separate chair items. See [doc 50](../00_dev_roadmap/50_seated_dining_study.md);
+the following description records the original 1.5-high art.
 
 Footprint: **2×2**. Collision: `[{min:[0,0,0], max:[2,1.5,2]}]` — **1.5 blocks tall**, raised from the original 1-block specification to sit above the existing 1-block bench seats. Whole-cell occupancy covers two vertical layers; dwarves walk around the table.
 

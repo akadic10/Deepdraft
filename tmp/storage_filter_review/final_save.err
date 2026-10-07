@@ -1,0 +1,77 @@
+SCRIPT ERROR: Parse Error: Cannot infer the type of "max_scroll" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/ui/StorageInspectorPanel.gd:298)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/SaveManagerRoundTripTest.gd:49)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://scripts/systems/StockpileDesignationController.gd:0)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/SaveManagerRoundTripTest.gd:49)
+ERROR: Failed to load script "res://scripts/systems/StockpileDesignationController.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/SaveManagerRoundTripTest.gd:49)
+WARNING: SkyController: no current scene — cannot bind sky/fog.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:137)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WARNING: WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _seed_rng (res://scripts/systems/WeatherManager.gd:104)
+       [1] _ready (res://scripts/systems/WeatherManager.gd:48)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: StockpileDesignationController._build_window (res://scripts/systems/StockpileDesignationController.gd:769)
+   GDScript backtrace (most recent call first):
+       [0] _build_window (res://scripts/systems/StockpileDesignationController.gd:769)
+       [1] _ready (res://scripts/systems/StockpileDesignationController.gd:145)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: ObjectExplorerController._build_window (res://scripts/ui/ObjectExplorerController.gd:237)
+   GDScript backtrace (most recent call first):
+       [0] _build_window (res://scripts/ui/ObjectExplorerController.gd:237)
+       [1] _ready (res://scripts/ui/ObjectExplorerController.gd:63)
+SCRIPT ERROR: Invalid access to property or key 'drag_ended' on a base object of type 'Nil'.
+   at: ObjectExplorerController._ready (res://scripts/ui/ObjectExplorerController.gd:65)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://scripts/ui/ObjectExplorerController.gd:65)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: StockpileDesignationController._build_window (res://scripts/systems/StockpileDesignationController.gd:769)
+   GDScript backtrace (most recent call first):
+       [0] _build_window (res://scripts/systems/StockpileDesignationController.gd:769)
+       [1] _ready (res://scripts/systems/StockpileDesignationController.gd:145)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: ObjectExplorerController._build_window (res://scripts/ui/ObjectExplorerController.gd:237)
+   GDScript backtrace (most recent call first):
+       [0] _build_window (res://scripts/ui/ObjectExplorerController.gd:237)
+       [1] _ready (res://scripts/ui/ObjectExplorerController.gd:63)
+SCRIPT ERROR: Invalid access to property or key 'drag_ended' on a base object of type 'Nil'.
+   at: ObjectExplorerController._ready (res://scripts/ui/ObjectExplorerController.gd:65)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://scripts/ui/ObjectExplorerController.gd:65)
+WARNING: SaveManager: primary quick save unavailable (contains invalid JSON); using backup.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _request_load_slot (res://scripts/systems/SaveManager.gd:194)
+       [1] request_load (res://scripts/systems/SaveManager.gd:162)
+       [2] _run (res://scripts/tests/SaveManagerRoundTripTest.gd:147)
+       [3] _wait_for_load (res://scripts/tests/SaveManagerRoundTripTest.gd:504)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: StockpileDesignationController._build_window (res://scripts/systems/StockpileDesignationController.gd:769)
+   GDScript backtrace (most recent call first):
+       [0] _build_window (res://scripts/systems/StockpileDesignationController.gd:769)
+       [1] _ready (res://scripts/systems/StockpileDesignationController.gd:145)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: ObjectExplorerController._build_window (res://scripts/ui/ObjectExplorerController.gd:237)
+   GDScript backtrace (most recent call first):
+       [0] _build_window (res://scripts/ui/ObjectExplorerController.gd:237)
+       [1] _ready (res://scripts/ui/ObjectExplorerController.gd:63)
+SCRIPT ERROR: Invalid access to property or key 'drag_ended' on a base object of type 'Nil'.
+   at: ObjectExplorerController._ready (res://scripts/ui/ObjectExplorerController.gd:65)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://scripts/ui/ObjectExplorerController.gd:65)
+WARNING: 45 RIDs of type "CanvasItem" were leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2735)
+WARNING: 134 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

@@ -17,8 +17,8 @@ func _run() -> void:
 	scene.add_child(controller)
 	controller.set_process(false)
 	controller._process(0) # normal lazy hookup to ItemDropManager
-	var dwarf = load("res://scripts/entities/DwarfAgent.gd").new()
-	dwarf.dwarf_id = 100
+	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
+	var dwarf = factory.spawn(factory.generate(100, {}), 100)
 	scene.add_child(dwarf)
 	dwarf.set_process(false)
 	var key := "base:furniture:wooden_table"
@@ -27,14 +27,14 @@ func _run() -> void:
 	var def: Dictionary = controller.get_defs()[key]
 	assert(def.item_key==item_key and def.placement=="floor" and def.yaw_steps==4)
 	assert(def.footprint.width==2 and def.footprint.depth==2)
-	assert(is_equal_approx(float(def.collision_regions[0].max[1]),1.5))
+	assert(is_equal_approx(float(def.collision_regions[0].max[1]),1.75))
 	assert(not def.room_anchor and not def.has("heat_source") and not def.has("storage"))
 	var item_def: Dictionary = manager.get_item_def(item_key)
 	assert(item_def.model=="res://assets/models/items/furniture/packed_furniture.glb")
 	assert(item_def.weight_class=="heavy" and item_def.stack_max==5)
 	var dock = load("res://scripts/ui/DockUI.gd").new()
-	assert(dock.FURNITURE_PANEL_ITEMS["📥 Dining Table"]==key)
-	assert("📥 Dining Table" in dock._panel_actions("build"))
+	assert(dock.FURNITURE_PANEL_ITEMS["📥 Personal Dining Table"]==key)
+	assert("📥 Personal Dining Table" in dock._panel_actions("build"))
 	for label in dock.FURNITURE_PANEL_ITEMS:
 		assert(label in dock._panel_actions("build"))
 		assert(controller.get_defs().has(dock.FURNITURE_PANEL_ITEMS[label]))
@@ -82,11 +82,13 @@ func _run() -> void:
 		dwarf._fetch_item = pull.item
 		dwarf._fetch_heavy = pull.heavy
 		dwarf._fetch_pickup()
+		dwarf._process_item_handling(dwarf._handling_duration * .5)
 		assert(dwarf._fetch_picked_up and manager.get_stats().loose==0)
-		assert(dwarf._fetch_item.get_parent()==dwarf and dwarf._fetch_item.scale==Vector3.ONE)
+		assert(dwarf._fetch_item.get_parent()==dwarf and dwarf._fetch_item.scale.is_equal_approx(Vector3.ONE))
 		var carried: Node3D = dwarf._fetch_item
 		var installed_id: int = controller._next_installed_id
-		dwarf._fetch_complete()
+		dwarf._begin_fetch_deposit()
+		dwarf._process_item_handling(dwarf._handling_duration)
 		assert(carried.is_queued_for_deletion() and dwarf._carried_entries.is_empty())
 		assert(controller._ghosts.is_empty() and controller._installed.size()==1)
 		var component = controller._installed[installed_id]
@@ -138,10 +140,10 @@ func _check_installed(component,origin: Vector3i,yaw: int,nav,registry) -> void:
 	assert(meshes.size()==1)
 	var local: AABB = meshes[0].get_aabb()
 	assert(local.position.is_equal_approx(Vector3(-1,0,-1)))
-	assert(local.size.is_equal_approx(Vector3(2,1.5,2)))
+	assert(local.size.is_equal_approx(Vector3(2,1.75,2)))
 	var bounds: AABB = meshes[0].global_transform*local
 	assert(bounds.position.is_equal_approx(Vector3(origin)+Vector3.UP))
-	assert(bounds.size.is_equal_approx(Vector3(2,1.5,2)))
+	assert(bounds.size.is_equal_approx(Vector3(2,1.75,2)))
 	var mat: StandardMaterial3D = meshes[0].material_override
 	assert(mat.vertex_color_use_as_albedo and not mat.vertex_color_is_srgb)
 	assert(mat.cull_mode==BaseMaterial3D.CULL_DISABLED and mat.shading_mode==BaseMaterial3D.SHADING_MODE_PER_PIXEL)

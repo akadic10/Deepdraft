@@ -10,6 +10,12 @@
 
 ## Issue 001 — Dwarf idles beside available work; unstuck by an unrelated zone completion · **OPEN** · reported 2026-08-14 (Alen, playtest, two screenshots)
 
+**2026-10-06 follow-up:** [60 — Hauling worker selection](60_hauling_worker_selection.md)
+fixes idle-queue ordering after tree felling and a returning hauler bypassing
+matching after deposit. Those defects have targeted reproductions and passing
+regressions. They do not establish the cause of this older mining-face stall;
+Issue 001 remains open with the original diagnostic plan below.
+
 **Observed.** Slice at Y = 47, mountain dig-in face. Multiple mining zones designated
 (yellow); a ground stockpile zone (cyan) on the settlement plain with plenty of empty
 tiles; a dozen-plus packed-furniture crates loose *outside* the zone; more loose drops

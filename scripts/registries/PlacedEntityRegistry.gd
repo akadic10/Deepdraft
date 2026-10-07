@@ -42,11 +42,11 @@ func _ready() -> void:
 
 ## True if any registered entity's footprint contains the cell. The nav
 ## walkability check (doc 32) is: WorldData air AND NOT occupies().
-func occupies(pos: Vector3i) -> bool:
+func occupies(pos: Vector3i, excluded_handles: Array[int] = []) -> bool:
 	var ranges: Array = _columns.get(Vector2i(pos.x, pos.z), [])
 	for r in ranges:
 		var rv := r as Vector3i
-		if pos.y >= rv.x and pos.y <= rv.y:
+		if rv.z not in excluded_handles and pos.y >= rv.x and pos.y <= rv.y:
 			return true
 	return false
 

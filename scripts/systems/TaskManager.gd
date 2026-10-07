@@ -35,6 +35,7 @@ signal task_cancelled(task: Task)
 signal task_unreachable(task: Task)
 
 const CONFIG_PATH := "res://data/tasks/task_config.json"
+enum AssignmentPhase { ALL, BEFORE_HAUL, AFTER_HAUL }
 
 # ── Config (fallbacks mirror task_config.json) ───────────────────────────────
 var _config_raw: Dictionary = {}          # full parsed task_config.json (see get_config_section)
@@ -55,6 +56,8 @@ var _idle_dwarves: Array[int] = []     # event-maintained
 var _agents: Dictionary = {}           # dwarf_id -> DwarfAgent (weak by validity checks)
 var _completed_log: Array = []         # ring buffer of dicts, last 200
 var _scan_cursor: Dictionary = {}      # Task.Type -> int (resumable scan position)
+var _haul_match: Dictionary = {}       # one resumable, read-only worker comparison
+var _idle_version := 0                # a newly idle dwarf must join that comparison
 
 var _next_task_id: int = 1
 var _blocked_count: int = 0            # PENDING tasks currently in backoff (fast gate)
@@ -271,6 +274,8 @@ func reset_runtime_state() -> void:
 	_agents.clear()
 	_completed_log.clear()
 	_scan_cursor.clear()
+	_haul_match.clear()
+	_idle_version += 1
 	_work_sources.clear()
 	_next_task_id = 1
 	_next_source_id = 10_000_000
@@ -333,28 +338,46 @@ func _run_scheduler() -> void:
 	for type in _pending:
 		bonus[type] = _colony_bonus(int(type))
 
-	# Iterate a snapshot of the idle pool; dwarves that get work are removed
-	# from the live list inside _try_assign.
-	var idle_snapshot := _idle_dwarves.duplicate()
-	for dwarf_id in idle_snapshot:
-		if Time.get_ticks_usec() - t_start >= _budget_usec or probes_left <= 0:
-			_wake_dirty = true   # resume next frame from the cursors
-			break
-		var agent: DwarfAgent = _agents.get(dwarf_id)
-		if agent == null or not is_instance_valid(agent):
-			_idle_dwarves.erase(dwarf_id)
-			_agents.erase(dwarf_id)
-			continue
-		probes_left = _try_assign(agent, bonus, probes_left, t_start)
+	# Let every available dwarf consider higher-priority work before comparing
+	# haulers. Queue order must not reserve lumber before its nearby cutter gets
+	# considered. Existing assigned work is never stolen or reprioritized.
+	if not (_pending.get(Task.Type.HAUL, []) as Array).is_empty():
+		probes_left = _assign_idle_pass(bonus, probes_left, t_start, AssignmentPhase.BEFORE_HAUL)
+		if _within_budget(t_start, probes_left):
+			probes_left = _try_assign_hauls(probes_left, t_start)
+		if _within_budget(t_start, probes_left):
+			_assign_idle_pass(bonus, probes_left, t_start, AssignmentPhase.AFTER_HAUL)
+	else:
+		_haul_match.clear()
+		_assign_idle_pass(bonus, probes_left, t_start)
 
 	var wake_usec := int(Time.get_ticks_usec() - t_start)
 	if wake_usec > _worst_wake_usec:
 		_worst_wake_usec = wake_usec
 
 
+func _within_budget(t_start: int, probes_left: int) -> bool:
+	if Time.get_ticks_usec() - t_start < _budget_usec and probes_left > 0: return true
+	_wake_dirty = true
+	return false
+
+
+func _assign_idle_pass(bonus: Dictionary, probes_left: int, t_start: int, phase: int = AssignmentPhase.ALL) -> int:
+	var idle_snapshot := _idle_dwarves.duplicate()
+	for dwarf_id in idle_snapshot:
+		if not _within_budget(t_start, probes_left): return 0
+		var agent: DwarfAgent = _agents.get(dwarf_id)
+		if agent == null or not is_instance_valid(agent):
+			_idle_dwarves.erase(dwarf_id)
+			_agents.erase(dwarf_id)
+			continue
+		probes_left = _try_assign(agent, bonus, probes_left, t_start, phase)
+	return probes_left
+
+
 ## Scans this dwarf's compatible type buckets in bonus-adjusted priority order.
 ## Returns the remaining probe allowance.
-func _try_assign(agent: DwarfAgent, bonus: Dictionary, probes_left: int, t_start: int) -> int:
+func _try_assign(agent: DwarfAgent, bonus: Dictionary, probes_left: int, t_start: int, phase: int = AssignmentPhase.ALL) -> int:
 	var types := _types_for(agent)
 	types.sort_custom(func(a: int, b: int) -> bool:
 		return _bucket_priority(a, bonus) > _bucket_priority(b, bonus))
@@ -363,6 +386,10 @@ func _try_assign(agent: DwarfAgent, bonus: Dictionary, probes_left: int, t_start
 	var dwarf_cell := agent.current_cell()
 
 	for type in types:
+		if phase != AssignmentPhase.ALL:
+			if type == Task.Type.HAUL: continue
+			var higher := _bucket_priority(type, bonus) > _bucket_priority(Task.Type.HAUL, bonus)
+			if (phase == AssignmentPhase.BEFORE_HAUL) != higher: continue
 		var ids: Array = _pending.get(type, [])
 		if ids.is_empty():
 			continue
@@ -400,6 +427,138 @@ func _try_assign(agent: DwarfAgent, bonus: Dictionary, probes_left: int, t_start
 			_apply_backoff(task, now)
 		_scan_cursor[type] = 0
 	return probes_left
+
+
+## HAUL leases belong to destinations, but their worker should be near the
+## first pickup. Compare every eligible idle dwarf before claiming any goods.
+## Ranking and both route probes resume across wakes; a failed near worker
+## does not back off the task until the other candidates have been tried.
+func _try_assign_hauls(probes_left: int, t_start: int) -> int:
+	var deadline := t_start + _budget_usec
+	while not _idle_dwarves.is_empty():
+		if not _within_budget(t_start, probes_left): return 0
+		var task: Task = _tasks.get(int(_haul_match.get("task_id", -1)))
+		var now := Time.get_ticks_msec()
+		if task == null or not task.is_available(now):
+			_haul_match.clear()
+			var ids: Array = _pending.get(Task.Type.HAUL, [])
+			var cursor := int(_scan_cursor.get(Task.Type.HAUL, 0))
+			for scanned in range(ids.size()):
+				if not _within_budget(t_start, probes_left):
+					_scan_cursor[Task.Type.HAUL] = cursor + scanned
+					return 0
+				var next: Task = _tasks.get(ids[(cursor + scanned) % ids.size()])
+				if next != null and next.is_available(now):
+					task = next
+					_scan_cursor[Task.Type.HAUL] = cursor + scanned
+					break
+		if task == null or not task.is_available(now): return probes_left
+		var source: Object = _work_sources.get(task.source_id)
+		var revision := int(source.scheduling_revision()) if is_instance_valid(source) and source.has_method("scheduling_revision") else 0
+		if _haul_match.is_empty() or int(_haul_match.idle_version) != _idle_version or int(_haul_match.revision) != revision:
+			_haul_match = {"task_id": task.id, "idle_version": _idle_version, "revision": revision,
+				"idle": _idle_dwarves.duplicate(), "index": 0, "query": {}, "candidates": [],
+				"ranked": false, "probe_index": 0, "pickup_ok": false, "eligible": 0,
+				"excluded": {}, "blocked_workers": {}, "failed": false}
+		while int(_haul_match.index) < _haul_match.idle.size():
+			if not _within_budget(t_start, probes_left): return 0
+			var dwarf_id: int = _haul_match.idle[_haul_match.index]
+			var agent: DwarfAgent = _agents.get(dwarf_id)
+			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not Task.Type.HAUL in _types_for(agent) or _haul_match.blocked_workers.has(dwarf_id):
+				_haul_match.index += 1
+				_haul_match.query = {}
+				continue
+			var from := agent.current_cell()
+			var query: Dictionary = _haul_match.query
+			if query.has("from") and query.from != from: query.clear()
+			query.from = from
+			query.exclude = _haul_match.excluded.get(dwarf_id, {})
+			if is_instance_valid(source) and source.has_method("advance_haul_quote"):
+				if not bool(source.advance_haul_quote(from, query, deadline)):
+					_wake_dirty = true
+					return 0
+			else:
+				query.cell = task.target_pos
+			_haul_match.eligible += 1
+			var cell: Vector3i = query.cell
+			if cell.x >= 0:
+				var distance := absi(cell.x - from.x) + absi(cell.y - from.y) + absi(cell.z - from.z)
+				_haul_match.candidates.append({"dwarf_id": dwarf_id, "cell": cell, "from": from,
+					"distance": distance, "tie": int(_haul_match.index)})
+			_haul_match.index += 1
+			_haul_match.query = {}
+		if not bool(_haul_match.ranked):
+			_haul_match.candidates.sort_custom(func(a: Dictionary, b: Dictionary):
+				return a.distance < b.distance if a.distance != b.distance else a.tie < b.tie)
+			_haul_match.ranked = true
+		var assigned := false
+		var rerank := false
+		while int(_haul_match.probe_index) < _haul_match.candidates.size():
+			if not _within_budget(t_start, probes_left): return 0
+			var candidate: Dictionary = _haul_match.candidates[_haul_match.probe_index]
+			var agent: DwarfAgent = _agents.get(int(candidate.dwarf_id))
+			if not is_instance_valid(agent) or not int(candidate.dwarf_id) in _idle_dwarves:
+				_haul_match.probe_index += 1
+				_haul_match.pickup_ok = false
+				continue
+			if agent.current_cell() != candidate.from:
+				_haul_match.clear() # e.g. a developer walk order moved an idle actor
+				_wake_dirty = true
+				return 0
+			if not bool(_haul_match.pickup_ok):
+				probes_left -= 1
+				_probes_total += 1
+				if not NavGrid.probe_reachable(candidate.from, candidate.cell, _probe_node_cap):
+					_haul_match.failed = true
+					if is_instance_valid(source) and source.has_method("advance_haul_quote"):
+						var excluded: Dictionary = _haul_match.excluded.get(int(candidate.dwarf_id), {})
+						excluded[candidate.cell] = true
+						_haul_match.excluded[int(candidate.dwarf_id)] = excluded
+						_restart_haul_ranking()
+						rerank = true
+						break
+					_haul_match.probe_index += 1
+					continue
+				_haul_match.pickup_ok = true
+			if not _within_budget(t_start, probes_left): return 0
+			var destination := task.target_pos
+			if is_instance_valid(source) and source.has_method("nearest_stand_target"):
+				destination = source.nearest_stand_target(candidate.from)
+			probes_left -= 1
+			_probes_total += 1
+			if destination.x >= 0 and NavGrid.probe_reachable(candidate.from, destination, _probe_node_cap):
+				task.blocked_count = 0
+				task.payload["haul_excluded_cells"] = (_haul_match.excluded.get(agent.dwarf_id, {}) as Dictionary).keys()
+				_haul_match.clear()
+				_assign(task, agent)
+				assigned = true
+				break
+			_haul_match.probe_index += 1
+			_haul_match.pickup_ok = false
+			_haul_match.blocked_workers[int(candidate.dwarf_id)] = true
+			_haul_match.failed = true
+		if assigned: continue # claims changed; rank the next lease against remaining goods
+		if rerank: continue
+		if int(_haul_match.eligible) == 0 and not bool(_haul_match.failed):
+			_haul_match.clear()
+			return probes_left
+		if _haul_match.candidates.is_empty() and not bool(_haul_match.failed):
+			cancel_task(task.id) # stale lease: no compatible unreserved goods/room
+		else:
+			_apply_backoff(task, now)
+		_scan_cursor[Task.Type.HAUL] = int(_scan_cursor.get(Task.Type.HAUL, 0)) + 1
+		_haul_match.clear()
+	return probes_left
+
+
+func _restart_haul_ranking() -> void:
+	_haul_match.index = 0
+	_haul_match.query = {}
+	_haul_match.candidates = []
+	_haul_match.ranked = false
+	_haul_match.probe_index = 0
+	_haul_match.pickup_ok = false
+	_haul_match.eligible = 0
 
 
 func _assign(task: Task, agent: DwarfAgent) -> void:
@@ -478,6 +637,7 @@ func _mark_idle(dwarf_id: int) -> void:
 		return
 	if not _idle_dwarves.has(dwarf_id):
 		_idle_dwarves.append(dwarf_id)
+		_idle_version += 1
 	_wake_dirty = true
 
 
@@ -500,6 +660,7 @@ func get_config_section(section: String) -> Dictionary:
 # ── Early re-arm: terrain changed near a blocked target (doc 16 §2.4) ────────
 
 func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
+	_haul_match.clear() # topology may have changed a route rejected during ranking
 	if _blocked_count <= 0:
 		return   # fast gate — streaming fires this constantly during worldgen
 	var now := Time.get_ticks_msec()

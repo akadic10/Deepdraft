@@ -1,0 +1,23 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+ERROR: delivery finishes its lease without privately claiming another load
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/HaulingSelectionTest.gd:22)
+       [1] _relocation_distance (res://scripts/tests/HaulingSelectionTest.gd:265)
+       [2] _dispatch (res://scripts/tests/HaulingSelectionTest.gd:65)
+ERROR: nearby cutter wins the next load instead of the returning distant hauler
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/HaulingSelectionTest.gd:22)
+       [1] _relocation_distance (res://scripts/tests/HaulingSelectionTest.gd:265)
+       [2] _dispatch (res://scripts/tests/HaulingSelectionTest.gd:65)
+ERROR: handoff retains bounded leases and correct item ownership
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/HaulingSelectionTest.gd:22)
+       [1] _relocation_distance (res://scripts/tests/HaulingSelectionTest.gd:265)
+       [2] _dispatch (res://scripts/tests/HaulingSelectionTest.gd:65)

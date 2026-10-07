@@ -153,7 +153,7 @@ func _capture_all() -> void:
 	for actor in _actors:
 		var drop := item.instantiate() as Node3D
 		actor.add_child(drop)
-		drop.position = DwarfAgent.CARRY_OFFSET
+		actor._carry_pose.hold([[drop, ""]])
 		_tint(drop, Color.WHITE)
 	await _snapshot("live_carry")
 	_set_view("Side")

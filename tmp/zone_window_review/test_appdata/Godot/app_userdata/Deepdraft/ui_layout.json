@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "windows": {
+    "mining_zone_info": {
+      "open": true,
+      "x": 160.0,
+      "y": 110.0
+    },
+    "storage_zone_info": {
+      "open": true,
+      "x": 600.0,
+      "y": 140.0
+    }
+  }
+}

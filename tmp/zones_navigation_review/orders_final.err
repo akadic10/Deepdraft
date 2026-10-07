@@ -1,0 +1,9 @@
+SCRIPT ERROR: Invalid access to property or key 'receipt' on a base object of type 'Dictionary'.
+   at: _run (res://scripts/tests/OrdersShelfTest.gd:190)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/OrdersShelfTest.gd:190)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:336)
+ERROR: Orders test timed out
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] <anonymous lambda> (res://scripts/tests/OrdersShelfTest.gd:11)

@@ -1,0 +1,29 @@
+{
+  "dwarves_and_props_share_indoor_shading": true,
+  "entrance_falloff_blocks": 7,
+  "failures": [],
+  "readability_floor": 0.05,
+  "reference_dwarves": 3,
+  "renderer": "AMD Radeon RX 9070 XT",
+  "samples": {
+    "current": {
+      "chamber": 0.628718435764313,
+      "deep": 0.627884745597839,
+      "entrance": 0.627884745597839,
+      "outside": 0.826898813247681
+    },
+    "torches": {
+      "chamber": 0.202446975708008,
+      "deep": 0.210125966668129,
+      "entrance": 0.522501130104065,
+      "outside": 0.826898813247681
+    },
+    "unlit": {
+      "chamber": 0.123555295169353,
+      "deep": 0.123555295169353,
+      "entrance": 0.522501130104065,
+      "outside": 0.826898813247681
+    }
+  },
+  "scope": "native visual study only; no gameplay renderer changes"
+}

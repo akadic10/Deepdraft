@@ -1,0 +1,268 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 24 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+FurniturePlacementController: 18 placeable defs loaded.
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: ghost 1 (base:furniture:wooden_chair) at (24, 20, 90) yaw 2.
+FurniturePlacementController: ghost 2 (base:furniture:wooden_chair) at (24, 20, 90) yaw 2.
+FurniturePlacementController: ghost 2 (base:furniture:wooden_chair) at (24, 20, 90) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 90).
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 90).
+FurniturePlacementController: ghost 3 (base:furniture:wooden_chair) at (24, 20, 86) yaw 0.
+FurniturePlacementController: ghost 4 (base:furniture:wooden_chair) at (24, 20, 86) yaw 0.
+FurniturePlacementController: ghost 4 (base:furniture:wooden_chair) at (24, 20, 86) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 86).
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 86).
+FurniturePlacementController: ghost 5 (base:furniture:wooden_chair) at (22, 20, 88) yaw 1.
+FurniturePlacementController: ghost 6 (base:furniture:wooden_chair) at (22, 20, 88) yaw 1.
+FurniturePlacementController: ghost 6 (base:furniture:wooden_chair) at (22, 20, 88) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (22, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (22, 20, 88).
+FurniturePlacementController: ghost 7 (base:furniture:wooden_chair) at (26, 20, 88) yaw 3.
+FurniturePlacementController: ghost 8 (base:furniture:wooden_chair) at (26, 20, 88) yaw 3.
+FurniturePlacementController: ghost 8 (base:furniture:wooden_chair) at (26, 20, 88) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (26, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (24, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (26, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: ghost 9 (base:furniture:wooden_chair) at (46, 20, 88) yaw 3.
+FurniturePlacementController: ghost 10 (base:furniture:wooden_chair) at (46, 20, 88) yaw 3.
+FurniturePlacementController: ghost 10 (base:furniture:wooden_chair) at (46, 20, 88) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (46, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (46, 20, 88).
+FurniturePlacementController: ghost 11 (base:furniture:wooden_chair) at (42, 20, 88) yaw 1.
+FurniturePlacementController: ghost 12 (base:furniture:wooden_chair) at (42, 20, 88) yaw 1.
+FurniturePlacementController: ghost 12 (base:furniture:wooden_chair) at (42, 20, 88) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (42, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (42, 20, 88).
+FurniturePlacementController: ghost 13 (base:furniture:wooden_chair) at (44, 20, 90) yaw 2.
+FurniturePlacementController: ghost 14 (base:furniture:wooden_chair) at (44, 20, 90) yaw 2.
+FurniturePlacementController: ghost 14 (base:furniture:wooden_chair) at (44, 20, 90) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 90).
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 90).
+FurniturePlacementController: ghost 15 (base:furniture:wooden_chair) at (44, 20, 86) yaw 0.
+FurniturePlacementController: ghost 16 (base:furniture:wooden_chair) at (44, 20, 86) yaw 0.
+FurniturePlacementController: ghost 16 (base:furniture:wooden_chair) at (44, 20, 86) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 86).
+FurniturePlacementController: installed base:furniture:wooden_table at (44, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 86).
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: ghost 17 (base:furniture:wooden_chair) at (64, 20, 86) yaw 0.
+FurniturePlacementController: ghost 18 (base:furniture:wooden_chair) at (64, 20, 86) yaw 0.
+FurniturePlacementController: ghost 18 (base:furniture:wooden_chair) at (64, 20, 86) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (64, 20, 86).
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (64, 20, 86).
+FurniturePlacementController: ghost 19 (base:furniture:wooden_chair) at (64, 20, 90) yaw 2.
+FurniturePlacementController: ghost 20 (base:furniture:wooden_chair) at (64, 20, 90) yaw 2.
+FurniturePlacementController: ghost 20 (base:furniture:wooden_chair) at (64, 20, 90) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (64, 20, 90).
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (64, 20, 90).
+FurniturePlacementController: ghost 21 (base:furniture:wooden_chair) at (66, 20, 88) yaw 3.
+FurniturePlacementController: ghost 22 (base:furniture:wooden_chair) at (66, 20, 88) yaw 3.
+FurniturePlacementController: ghost 22 (base:furniture:wooden_chair) at (66, 20, 88) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (66, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (66, 20, 88).
+FurniturePlacementController: ghost 23 (base:furniture:wooden_chair) at (62, 20, 88) yaw 1.
+FurniturePlacementController: ghost 24 (base:furniture:wooden_chair) at (62, 20, 88) yaw 1.
+FurniturePlacementController: ghost 24 (base:furniture:wooden_chair) at (62, 20, 88) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (62, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (64, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (62, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: ghost 25 (base:furniture:wooden_chair) at (82, 20, 88) yaw 1.
+FurniturePlacementController: ghost 26 (base:furniture:wooden_chair) at (82, 20, 88) yaw 1.
+FurniturePlacementController: ghost 26 (base:furniture:wooden_chair) at (82, 20, 88) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (82, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (82, 20, 88).
+FurniturePlacementController: ghost 27 (base:furniture:wooden_chair) at (86, 20, 88) yaw 3.
+FurniturePlacementController: ghost 28 (base:furniture:wooden_chair) at (86, 20, 88) yaw 3.
+FurniturePlacementController: ghost 28 (base:furniture:wooden_chair) at (86, 20, 88) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (86, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (86, 20, 88).
+FurniturePlacementController: ghost 29 (base:furniture:wooden_chair) at (84, 20, 86) yaw 0.
+FurniturePlacementController: ghost 30 (base:furniture:wooden_chair) at (84, 20, 86) yaw 0.
+FurniturePlacementController: ghost 30 (base:furniture:wooden_chair) at (84, 20, 86) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (84, 20, 86).
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (84, 20, 86).
+FurniturePlacementController: ghost 31 (base:furniture:wooden_chair) at (84, 20, 90) yaw 2.
+FurniturePlacementController: ghost 32 (base:furniture:wooden_chair) at (84, 20, 90) yaw 2.
+FurniturePlacementController: ghost 32 (base:furniture:wooden_chair) at (84, 20, 90) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (84, 20, 90).
+FurniturePlacementController: installed base:furniture:wooden_table at (84, 20, 88).
+FurniturePlacementController: installed base:furniture:wooden_chair at (84, 20, 90).
+FurniturePlacementController: ghost 33 (base:furniture:wooden_table) at (40, 20, 108) yaw 0.
+FurniturePlacementController: ghost 34 (base:furniture:wooden_chair) at (38, 20, 108) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_table at (40, 20, 108).
+FurniturePlacementController: installed base:furniture:wooden_chair at (38, 20, 108).
+FurniturePlacementController: installed base:furniture:wooden_chair at (40, 20, 110).
+FurniturePlacementController: installed base:furniture:wooden_chair at (40, 20, 106).
+FurniturePlacementController: installed base:furniture:wooden_table at (40, 20, 108).
+FurniturePlacementController: ghost 35 (base:furniture:wooden_chair) at (40, 20, 110) yaw 2.
+FurniturePlacementController: ghost 36 (base:furniture:wooden_chair) at (40, 20, 106) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (40, 20, 110).
+FurniturePlacementController: installed base:furniture:communal_table at (24, 20, 24).
+FurniturePlacementController: ghost 37 (base:furniture:wooden_chair) at (24, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 22).
+FurniturePlacementController: ghost 38 (base:furniture:wooden_chair) at (27, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (27, 20, 22).
+FurniturePlacementController: ghost 39 (base:furniture:wooden_chair) at (30, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (30, 20, 22).
+FurniturePlacementController: ghost 40 (base:furniture:wooden_chair) at (24, 20, 28) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 28).
+FurniturePlacementController: ghost 41 (base:furniture:wooden_chair) at (27, 20, 28) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (27, 20, 28).
+FurniturePlacementController: ghost 42 (base:furniture:wooden_chair) at (30, 20, 28) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (30, 20, 28).
+FurniturePlacementController: ghost 43 (base:furniture:wooden_chair) at (22, 20, 25) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (22, 20, 25).
+FurniturePlacementController: ghost 44 (base:furniture:wooden_chair) at (32, 20, 25) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (32, 20, 25).
+FurniturePlacementController: installed base:furniture:communal_table at (46, 20, 24).
+FurniturePlacementController: ghost 45 (base:furniture:wooden_chair) at (44, 20, 30) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 30).
+FurniturePlacementController: ghost 46 (base:furniture:wooden_chair) at (44, 20, 27) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 27).
+FurniturePlacementController: ghost 47 (base:furniture:wooden_chair) at (44, 20, 24) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 24).
+FurniturePlacementController: ghost 48 (base:furniture:wooden_chair) at (50, 20, 30) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (50, 20, 30).
+FurniturePlacementController: ghost 49 (base:furniture:wooden_chair) at (50, 20, 27) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (50, 20, 27).
+FurniturePlacementController: ghost 50 (base:furniture:wooden_chair) at (50, 20, 24) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (50, 20, 24).
+FurniturePlacementController: ghost 51 (base:furniture:wooden_chair) at (47, 20, 32) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (47, 20, 32).
+FurniturePlacementController: ghost 52 (base:furniture:wooden_chair) at (47, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (47, 20, 22).
+FurniturePlacementController: installed base:furniture:communal_table at (68, 20, 24).
+FurniturePlacementController: ghost 53 (base:furniture:wooden_chair) at (74, 20, 28) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (74, 20, 28).
+FurniturePlacementController: ghost 54 (base:furniture:wooden_chair) at (71, 20, 28) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (71, 20, 28).
+FurniturePlacementController: ghost 55 (base:furniture:wooden_chair) at (68, 20, 28) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (68, 20, 28).
+FurniturePlacementController: ghost 56 (base:furniture:wooden_chair) at (74, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (74, 20, 22).
+FurniturePlacementController: ghost 57 (base:furniture:wooden_chair) at (71, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (71, 20, 22).
+FurniturePlacementController: ghost 58 (base:furniture:wooden_chair) at (68, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (68, 20, 22).
+FurniturePlacementController: ghost 59 (base:furniture:wooden_chair) at (76, 20, 25) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (76, 20, 25).
+FurniturePlacementController: ghost 60 (base:furniture:wooden_chair) at (66, 20, 25) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (66, 20, 25).
+FurniturePlacementController: installed base:furniture:communal_table at (90, 20, 24).
+FurniturePlacementController: ghost 61 (base:furniture:wooden_chair) at (94, 20, 24) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (94, 20, 24).
+FurniturePlacementController: ghost 62 (base:furniture:wooden_chair) at (94, 20, 27) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (94, 20, 27).
+FurniturePlacementController: ghost 63 (base:furniture:wooden_chair) at (94, 20, 30) yaw 3.
+FurniturePlacementController: installed base:furniture:wooden_chair at (94, 20, 30).
+FurniturePlacementController: ghost 64 (base:furniture:wooden_chair) at (88, 20, 24) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (88, 20, 24).
+FurniturePlacementController: ghost 65 (base:furniture:wooden_chair) at (88, 20, 27) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (88, 20, 27).
+FurniturePlacementController: ghost 66 (base:furniture:wooden_chair) at (88, 20, 30) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (88, 20, 30).
+FurniturePlacementController: ghost 67 (base:furniture:wooden_chair) at (91, 20, 22) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (91, 20, 22).
+FurniturePlacementController: ghost 68 (base:furniture:wooden_chair) at (91, 20, 32) yaw 2.
+FurniturePlacementController: installed base:furniture:wooden_chair at (91, 20, 32).
+FurniturePlacementController: installed base:furniture:communal_table at (24, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (27, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (30, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (24, 20, 28).
+FurniturePlacementController: installed base:furniture:wooden_chair at (27, 20, 28).
+FurniturePlacementController: installed base:furniture:wooden_chair at (30, 20, 28).
+FurniturePlacementController: installed base:furniture:wooden_chair at (22, 20, 25).
+FurniturePlacementController: installed base:furniture:wooden_chair at (32, 20, 25).
+FurniturePlacementController: installed base:furniture:communal_table at (46, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 30).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 27).
+FurniturePlacementController: installed base:furniture:wooden_chair at (44, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (50, 20, 30).
+FurniturePlacementController: installed base:furniture:wooden_chair at (50, 20, 27).
+FurniturePlacementController: installed base:furniture:wooden_chair at (50, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (47, 20, 32).
+FurniturePlacementController: installed base:furniture:wooden_chair at (47, 20, 22).
+FurniturePlacementController: installed base:furniture:communal_table at (68, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (74, 20, 28).
+FurniturePlacementController: installed base:furniture:wooden_chair at (71, 20, 28).
+FurniturePlacementController: installed base:furniture:wooden_chair at (68, 20, 28).
+FurniturePlacementController: installed base:furniture:wooden_chair at (74, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (71, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (68, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (76, 20, 25).
+FurniturePlacementController: installed base:furniture:wooden_chair at (66, 20, 25).
+FurniturePlacementController: installed base:furniture:communal_table at (90, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (94, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (94, 20, 27).
+FurniturePlacementController: installed base:furniture:wooden_chair at (94, 20, 30).
+FurniturePlacementController: installed base:furniture:wooden_chair at (88, 20, 24).
+FurniturePlacementController: installed base:furniture:wooden_chair at (88, 20, 27).
+FurniturePlacementController: installed base:furniture:wooden_chair at (88, 20, 30).
+FurniturePlacementController: installed base:furniture:wooden_chair at (91, 20, 22).
+FurniturePlacementController: installed base:furniture:wooden_chair at (91, 20, 32).
+FurniturePlacementController: installed base:furniture:wooden_chair at (25, 20, 60).
+FurniturePlacementController: installed base:furniture:wooden_chair at (25, 20, 60).
+FurniturePlacementController: ghost 200 (base:furniture:wooden_chair) at (25, 20, 60) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (25, 20, 60).
+FurniturePlacementController: ghost 200 (base:furniture:wooden_chair) at (25, 20, 60) yaw 1.
+FurniturePlacementController: ghost 200 (base:furniture:wooden_chair) at (25, 20, 60) yaw 1.
+FurniturePlacementController: installed base:furniture:wooden_chair at (40, 20, 60).
+FurniturePlacementController: ghost 201 (base:furniture:communal_table) at (40, 20, 60) yaw 0.
+FurniturePlacementController: installed base:furniture:barrel at (43, 20, 58).
+FurniturePlacementController: installed base:furniture:communal_table at (40, 20, 60).
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+FurniturePlacementController: ghost 202 (base:furniture:wooden_chair) at (40, 20, 58) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (40, 20, 58).
+FurniturePlacementController: installed base:furniture:wooden_table at (55, 20, 60).
+FurniturePlacementController: ghost 203 (base:furniture:communal_table) at (70, 20, 60) yaw 1.
+FurniturePlacementController: installed base:furniture:communal_table at (70, 20, 60).
+DINING_PLACEMENT_OK: 4 rotations, 32 seats, snap/input, clearance/access, old/new saves, independent removal

@@ -1,5 +1,15 @@
 # 24 — UI Window System v1 (Movable Windows)
 
+**2026-10-05 update:** the approved Hearth & iron migration has delivered dwarf
+inspection and the shared visual theme. All current UI uses `UITheme`; the manager,
+position persistence and CanvasLayers remain. Mining Zone and Storage Zone have
+also migrated to movable manager windows, including saved positions and context
+selection cleanup. The remaining independent legacy panels share the style but
+still await the manager migration.
+See [51 — Dwarf inspection](51_hearth_iron_dwarf_inspector.md) and
+[52 — Shared UI theme](52_hearth_iron_shared_theme.md). The original v1 design below
+is retained as historical context; its old palette, font sizes and radii are superseded.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = decided / ready to build</span> |
@@ -11,6 +21,17 @@ same day (look-and-feel mockup: `24_ui_windows_mockup.html`).** This is the desi
 for unifying every in-game window under one movable-window system — the macOS model: any
 window can be dragged by its title bar, clicked to the front, and left open while the
 player keeps working.
+
+**Current presentation (2026-10-05):** [stage 2](52_hearth_iron_shared_theme.md)
+shares Hearth & iron styling across the existing surfaces and migrates Mining Zone
+and Storage Zone to movable manager windows. [Stage 3](53_hearth_iron_navigation.md)
+replaces the icon row with five labeled navigation groups, adds live clock controls
+and uses right-hand defaults for object inspectors. Saved window preferences still
+take precedence. [Place](54_place_catalog.md), [Colony Inventory](56_colony_inventory.md)
+and the [Colony roster](57_colony_dwarf_roster.md) now use manager windows too.
+`dwarves` is the player roster; developer controls use `dwarves_dev` under Menu →
+Development. Both remember position but start closed rather than restoring open
+state. The inventory and findings below describe the original review.
 
 > **Build log — checkpoint A (2026-08-20):** Phase U1 is built (`UITheme.gd`,
 > `UIWindow.gd`, `UIWindowManager.gd`, scene node wired, `user://ui_layout.json`

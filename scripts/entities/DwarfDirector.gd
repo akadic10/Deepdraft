@@ -6,11 +6,9 @@ extends Node3D
 ## coordinates (the SurfaceFloraSpawner pattern).
 ##
 ## Phase 1 scope: deterministic roster generation (birth-index ordered),
-## DEV spawn window (dock 'dwarves' entry routes here, the SliceController
-## push-registration pattern), slice culling for agents, and stats for the
-## debug overlay. The Settlement Flag flow (Phase 2b of the build order)
-## replaces the DEV spawn as the player-facing entry point; the DEV window
-## stays as a testing tool.
+## The Colony roster presents real agents through the shared inspector.
+## Developer spawning/walk controls live separately under Menu → Development.
+## The Settlement Flag remains the player-facing arrival flow.
 
 @export var camera_path: NodePath
 @export var slice_controller_path: NodePath
@@ -20,6 +18,9 @@ extends Node3D
 @export_range(1, 20, 1) var squad_size: int = 5
 
 const SLICE_OFF_Y: int = 127
+const Inspection = preload("res://scripts/components/DwarfInspection.gd")
+const Picking = preload("res://scripts/components/ObjectPicking.gd")
+var _picking := Picking.new()
 
 var _camera_rig: Node3D = null
 var _factory := DwarfFactory.new()
@@ -31,6 +32,8 @@ var _slice_y: int = SLICE_OFF_Y
 var _window_manager: UIWindowManager = null
 var _count_label: Label
 var _walk_button: Button
+var _roster_panel: Control
+var _roster_window: UIWindow
 
 ## DEV walk test (step 3b): while ON, left-click terrain orders the whole
 ## squad to path there — the visual verification for NavGrid (around trees,
@@ -41,6 +44,8 @@ var _name_tags: bool = false
 
 func _ready() -> void:
 	add_to_group(SaveManager.OWNER_GROUP)
+	add_to_group("object_explorer_provider")
+	add_to_group("dwarf_director")
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
 	_register_window()
@@ -52,6 +57,80 @@ func _ready() -> void:
 
 func is_walk_test_active() -> bool:
 	return _walk_test
+
+
+## Stable birth order and live node identity, excluding removed actors.
+func get_roster() -> Array[DwarfAgent]:
+	var result: Array[DwarfAgent] = []
+	for agent in _agents:
+		if is_instance_valid(agent) and not agent.is_queued_for_deletion(): result.append(agent)
+	return result
+
+
+func can_inspect_dwarf(agent: Variant) -> bool:
+	return _inspectable(agent)
+
+
+func inspect_dwarf(agent: Variant) -> bool:
+	if not _inspectable(agent): return false
+	var explorer := get_tree().get_first_node_in_group("object_explorer")
+	if explorer == null: return false
+	var dock := get_tree().get_first_node_in_group("command_dock")
+	if dock != null: dock.tool_requested.emit("")
+	_set_walk_test(false)
+	return explorer.select_object(self, agent)
+
+
+# Node identity prevents a selected dwarf being silently replaced by a newly
+# loaded roster member with the same numeric ID.
+func _inspectable(id: Variant) -> bool:
+	return is_instance_valid(id) and id is DwarfAgent and not id.is_queued_for_deletion() \
+		and id in _agents and id.is_visible_in_tree() and floori(id.global_position.y) <= _slice_y
+
+
+func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
+	var nearest := INF
+	var selected: DwarfAgent
+	for agent: DwarfAgent in _agents:
+		if not _inspectable(agent):
+			continue
+		if Picking.visible_world_bounds(agent).intersects_segment(start, end) == null:
+			continue
+		var distance := _picking.hit_distance(agent, start, end)
+		if distance < nearest:
+			nearest = distance
+			selected = agent
+	return {"id": selected, "distance": nearest} if selected != null else {}
+
+
+func get_explorer_data(id: Variant) -> Dictionary:
+	return Inspection.describe(id) if _inspectable(id) else {}
+
+
+func get_explorer_bounds(id: Variant) -> AABB:
+	return Picking.visible_world_bounds(id) if _inspectable(id) else AABB()
+
+
+func perform_explorer_action(id: Variant, action: String) -> void:
+	if not _inspectable(id) or not is_instance_valid(_camera_rig):
+		return
+	if action == "locate" and _camera_rig.has_method("locate_subject"):
+		_camera_rig.call("locate_subject", id)
+	elif action == "follow" and _camera_rig.has_method("follow_subject"):
+		_camera_rig.call("follow_subject", id)
+	elif action == "stop_follow" and _camera_rig.has_method("stop_following"):
+		_camera_rig.call("stop_following")
+
+
+func is_following(id: Variant) -> bool:
+	return _inspectable(id) and is_instance_valid(_camera_rig) \
+		and _camera_rig.has_method("is_following") and bool(_camera_rig.call("is_following", id))
+
+
+func clear_explorer_selection(id: Variant) -> void:
+	if is_instance_valid(_camera_rig) and _camera_rig.has_method("is_following") \
+			and bool(_camera_rig.call("is_following", id)):
+		_camera_rig.call("stop_following")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -189,6 +268,7 @@ func _spawn_one(wx: int, wz: int) -> bool:
 	# Stand on the TOP face of the surface block, centred on the cell.
 	agent.position = Vector3(float(wx) + 0.5, float(ground_y + 1), float(wz) + 0.5)
 	add_child(agent)
+	preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(agent)
 	agent.apply_slice(_slice_y)
 	agent.set_name_label_visible(_name_tags)
 	_agents.append(agent)
@@ -342,6 +422,7 @@ func restore_state(state: Dictionary) -> void:
 		agent.position = SaveManager.unpack_v3(entry.get("position", []))
 		agent.rotation.y = float(entry.get("rotation_y", 0.0))
 		add_child(agent)
+		preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(agent)
 		agent.restore_saved_runtime(entry)
 		agent.apply_slice(_slice_y)
 		agent.set_name_label_visible(_name_tags)
@@ -410,7 +491,7 @@ func _dev_tire_worker() -> void:
 	print("DwarfDirector: DEV tire — no awake dwarf available.")
 
 
-# ── DEV window (doc 24: content only — chrome lives in UIWindowManager) ───────
+# ── Roster and development windows ──────────────────────────────────────────
 
 func toggle_window() -> void:
 	if _window_manager == null:
@@ -424,6 +505,22 @@ func is_window_visible() -> bool:
 
 
 func _register_window() -> void:
+	if _window_manager == null:
+		push_warning("DwarfDirector: UIWindowManager not found at '%s' — roster disabled." % window_manager_path)
+		return
+	_roster_panel = preload("res://scripts/ui/DwarfRosterPanel.gd").new()
+	_roster_panel.director = self
+	_roster_window = _window_manager.register_window("dwarves", "Colony Dwarves", "", _roster_panel,
+		{"persistent": false, "default_pos": Vector2(24, 76)})
+	_roster_window.keep_body_on_screen = true
+	UITheme.apply_catalog_window(_roster_window)
+	_roster_panel.window = _roster_window
+	_roster_panel._fit.call_deferred()
+	_register_dev_window()
+	_window_manager.window_state_changed.connect(_on_window_state_changed)
+
+
+func _register_dev_window() -> void:
 	if _window_manager == null:
 		push_warning("DwarfDirector: UIWindowManager not found at '%s' — DEV window disabled." % window_manager_path)
 		return
@@ -493,9 +590,8 @@ func _register_window() -> void:
 	)
 	column.add_child(spawn)
 
-	_window_manager.register_window("dwarves", "Dwarves", "🧔", column,
-		{"persistent": true, "default_pos": Vector2(18.0, 420.0)})
-	_window_manager.window_state_changed.connect(_on_window_state_changed)
+	_window_manager.register_window("dwarves_dev", "Dwarf development", "", column,
+		{"persistent": false, "default_pos": Vector2(24, 130)})
 	_refresh_window()
 
 
@@ -503,11 +599,16 @@ func _register_window() -> void:
 ## refresh on every open. The manager's one signal replaces the old
 ## toggle_window-side refresh.
 func _on_window_state_changed(id: String, open: bool) -> void:
-	if id == "dwarves" and open:
-		_refresh_window()
+	if id == "dwarves":
+		if open:
+			_set_walk_test(false)
+			_roster_panel.begin_browsing()
+		else: _roster_panel.end_browsing()
+	elif id == "dwarves_dev" and open: _refresh_window()
 
 
 func _refresh_window() -> void:
+	if _roster_panel != null: _roster_panel.refresh()
 	if _count_label == null:
 		return
 	_count_label.text = "Roster: %d" % _agents.size()

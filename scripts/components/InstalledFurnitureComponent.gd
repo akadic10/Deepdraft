@@ -59,6 +59,8 @@ func set_uninstall(flag: bool) -> void:
 		storage.suspended = flag
 		if flag and storage.source_id >= 0:
 			TaskManager.cancel_source_tasks(storage.source_id)
+		StockpileManager.storage_rules_changed()
+		storage.changed.emit()
 	if flag:
 		if _lease_id < 0 and source_id >= 0:
 			_lease_id = int(TaskManager.add_task(

@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+UIWindowManager: ready (0 remembered window positions).
+FurniturePlacementController: 18 placeable defs loaded.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+ItemDropManager: loaded 77 item definitions.
+StockpileDesignationController: zone 1 created (2 cells at Y 20).
+FurniturePlacementController: installed base:furniture:storage_shelf at (44, 20, 44).
+FurniturePlacementController: ghost 1 (base:furniture:wooden_table) at (42, 20, 40) yaw 0.
+COLONY_INVENTORY_OK: direct navigation, physical totals, reservations, hauling, crate contents, stockpile/container storage, Locate/Inspect/Place, stable browsing, drag, Escape, 960/1280/2560 layouts

@@ -4,6 +4,9 @@ extends Node3D
 @export var camera_path: NodePath
 @export var dock_ui_path: NodePath
 @export var renderer_path: NodePath
+@export var window_manager_path: NodePath
+
+const ZONE_WINDOW_ID := "mining_zone_info"
 
 const CONFIG_PATH := "res://data/terrain/mining_config.json"
 const WORLD_SIZE_X := 1024
@@ -31,6 +34,9 @@ enum ToolState { INACTIVE, HOVER, DRAGGING }
 ## from it, so the ⛏️ button lights while the tool is active and clears on Esc
 ## (previously the mine target had no dock state at all).
 signal tool_active_changed(active: bool)
+signal order_created(receipt: Dictionary)
+var _shared_order_ui := false
+var _pointer_screen := Vector2.INF
 
 var _state: ToolState = ToolState.INACTIVE
 var _camera_rig: Camera
@@ -113,8 +119,8 @@ var _preview_remove_exposed_material: StandardMaterial3D
 var _zones_fill_exposed_material: StandardMaterial3D
 var _zones_exposed_material: StandardMaterial3D
 var _ui_layer: CanvasLayer
-var _zone_window: PanelContainer
-var _zone_title: Label
+var _window_manager: UIWindowManager
+var _zone_window: UIWindow
 var _zone_body: Label
 var _hint_window: PanelContainer
 var _last_grid_center := Vector2i(-999999, -999999)
@@ -128,9 +134,11 @@ func _ready() -> void:
 	_camera_rig = get_node_or_null(camera_path) as Camera
 	_dock_ui = get_node_or_null(dock_ui_path) as DockUI
 	_renderer = get_node_or_null(renderer_path)
+	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
 	_build_materials()
 	_build_preview_nodes()
 	_build_zone_window()
+	_build_hint_window()
 
 	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
 		_dock_ui.tool_requested.connect(_on_tool_requested)
@@ -188,7 +196,7 @@ func _process(delta: float) -> void:
 		if _window_refresh_accum >= 0.5:
 			_window_refresh_accum = 0.0
 			if _zones.has(_selected_zone_id):
-				_open_zone_window(_selected_zone_id)
+				_refresh_zone_window(_selected_zone_id)
 	if _state == ToolState.INACTIVE:
 		return
 	if _grid_dirty:
@@ -229,6 +237,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if mouse.button_index == MOUSE_BUTTON_LEFT:
 			if mouse.pressed:
+				_update_hover_preview(true)
 				if _try_select_zone_at_screen(mouse.position) and not Input.is_key_pressed(KEY_CTRL):
 					get_viewport().set_input_as_handled()
 					return
@@ -243,6 +252,26 @@ func _unhandled_input(event: InputEvent) -> void:
 				_state = ToolState.HOVER
 				_update_hover_preview(true)
 				get_viewport().set_input_as_handled()
+
+
+## An already-started gesture owns its release, even when it ends over UI.
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouse: _pointer_screen = event.position
+	if _state != ToolState.DRAGGING: return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		if get_viewport().gui_get_hovered_control() == null:
+			_update_hover_preview(true)
+			_confirm_preview()
+		_anchor_hit.clear()
+		_state = ToolState.HOVER
+		_update_hover_preview(true)
+		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and _state == ToolState.DRAGGING:
+		_anchor_hit.clear()
+		_state = ToolState.HOVER
 
 
 func _on_tool_requested(tool_id: String) -> void:
@@ -263,11 +292,9 @@ func _on_tool_requested(tool_id: String) -> void:
 	_preview_node.visible = true
 	_preview_exposed_node.visible = true
 	if _hint_window != null:
-		_hint_window.visible = true
+		_hint_window.visible = not _shared_order_ui
 	_rebuild_terrain_grid(true)
-	# The wheel now resizes the brush, so stop the camera zooming on it while active.
-	if _camera_rig != null and _camera_rig.has_method("set_zoom_suppressed"):
-		_camera_rig.set_zoom_suppressed(true)
+	# Only Shift/Alt wheel belong to the brush; plain wheel stays with the camera.
 	tool_active_changed.emit(true)
 	print("MiningDesignationController: precision mining active.")
 
@@ -278,8 +305,6 @@ func is_active() -> bool:
 
 func _deactivate_tool() -> void:
 	_state = ToolState.INACTIVE
-	if _camera_rig != null and _camera_rig.has_method("set_zoom_suppressed"):
-		_camera_rig.set_zoom_suppressed(false)   # hand the wheel back to camera zoom
 	_anchor_hit.clear()
 	_hover_hit.clear()
 	_preview_raw_blocks.clear()
@@ -444,49 +469,12 @@ func _make_size_label(text: String) -> Label3D:
 
 
 func _build_zone_window() -> void:
-	_ui_layer = CanvasLayer.new()
-	_ui_layer.name = "MiningZoneUI"
-	_ui_layer.layer = 24
-	add_child(_ui_layer)
-
-	_zone_window = PanelContainer.new()
-	_zone_window.name = "MiningZoneWindow"
-	_zone_window.position = Vector2(18.0, 118.0)
-	_zone_window.custom_minimum_size = Vector2(280.0, 118.0)
-	_zone_window.visible = false
-	_zone_window.add_theme_stylebox_override("panel", _window_style())
-	_ui_layer.add_child(_zone_window)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	_zone_window.add_child(margin)
+	# Simulation fixtures may omit the presentation layer.
+	if _window_manager == null:
+		return
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
-	margin.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	_zone_title = Label.new()
-	_zone_title.text = "Mining Zone"
-	_zone_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_zone_title.add_theme_font_size_override("font_size", 16)
-	header.add_child(_zone_title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(30.0, 26.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.tooltip_text = "Close"
-	close.pressed.connect(func() -> void:
-		_close_zone_window()
-	)
-	header.add_child(close)
 
 	_zone_body = Label.new()
 	_zone_body.text = "Blocks: 0"
@@ -495,6 +483,7 @@ func _build_zone_window() -> void:
 
 	var remove := Button.new()
 	remove.text = "Remove"
+	UITheme.apply_button_variant(remove, "danger")
 	remove.custom_minimum_size = Vector2(98.0, 34.0)
 	remove.focus_mode = Control.FOCUS_NONE
 	remove.tooltip_text = "Remove mining zone"
@@ -511,25 +500,37 @@ func _build_zone_window() -> void:
 	dev_mine.custom_minimum_size = Vector2(98.0, 34.0)
 	dev_mine.focus_mode = Control.FOCUS_NONE
 	dev_mine.tooltip_text = "DEV: remove this zone's blocks from the game instantly"
-	dev_mine.add_theme_color_override("font_color", Color(1.0, 0.62, 0.26))
-	dev_mine.add_theme_color_override("font_hover_color", Color(1.0, 0.72, 0.40))
+	UITheme.apply_button_variant(dev_mine, "dev")
 	dev_mine.pressed.connect(func() -> void:
 		_dev_mine_selected_zone()
 	)
 	column.add_child(dev_mine)
 
-	_build_hint_window()
+	_zone_window = _window_manager.register_window(ZONE_WINDOW_ID, "Mining Zone", "", column,
+		{"default_pos": Vector2(18, 118), "min_size": Vector2(280, 118)})
+	_window_manager.window_state_changed.connect(_on_zone_window_state_changed)
+
+
+func _on_zone_window_state_changed(id: String, shown: bool) -> void:
+	if id == ZONE_WINDOW_ID and not shown:
+		_set_selected_zone(-1)
 
 
 ## Mining-mode instruction callout (#5): a small control-summary panel shown while
 ## the tool is active. Informational only — ignores the mouse so it never blocks
 ## clicks. Cursor assets are deferred (see doc 05).
 func _build_hint_window() -> void:
+	_ui_layer = CanvasLayer.new()
+	_ui_layer.name = "MiningHintUI"
+	_ui_layer.layer = 24
+	add_child(_ui_layer)
+
 	_hint_window = PanelContainer.new()
+	UITheme.apply_surface(_hint_window)
 	_hint_window.name = "MiningHintWindow"
 	_hint_window.visible = false
 	_hint_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hint_window.add_theme_stylebox_override("panel", _window_style())
+	_hint_window.add_theme_stylebox_override("panel", UITheme.window_style())
 	# Centred near the top of the screen, content-sized.
 	_hint_window.anchor_left = 0.5
 	_hint_window.anchor_right = 0.5
@@ -557,7 +558,7 @@ func _build_hint_window() -> void:
 	title.text = "Mining Tool"
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 15)
+	UITheme.apply_title(title, 15)
 	column.add_child(title)
 
 	var body := Label.new()
@@ -565,23 +566,8 @@ func _build_hint_window() -> void:
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	body.add_theme_font_size_override("font_size", 12)
-	body.add_theme_color_override("font_color", Color(0.86, 0.82, 0.74))
+	body.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 	column.add_child(body)
-
-
-func _window_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.085, 0.07, 0.94)
-	style.border_color = Color(0.78, 0.55, 0.34, 0.65)
-	style.border_width_left = 1
-	style.border_width_right = 1
-	style.border_width_top = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
-	return style
 
 
 func _rebuild_terrain_grid(force: bool = false) -> void:
@@ -842,7 +828,61 @@ func _confirm_preview() -> void:
 	if blocks.is_empty():
 		return
 
-	_create_zone(blocks)
+	var zone_id := _create_zone(blocks)
+	order_created.emit({"zone_id": zone_id, "source": _zones[zone_id].component,
+		"message": "%d blocks marked for mining" % blocks.size()})
+
+
+func set_shared_order_ui(enabled: bool) -> void:
+	_shared_order_ui = enabled
+	if _hint_window != null: _hint_window.visible = is_active() and not enabled
+
+
+func get_order_hint() -> String:
+	var action := "Release to mark %d blocks" % _preview_blocks.size() if _state == ToolState.DRAGGING else "Drag across blocks to mark mining."
+	if Input.is_key_pressed(KEY_CTRL): action = "Ctrl held · Drag to remove mining marks."
+	return "%s\nWheel: zoom · Shift + wheel: width %d · Alt + wheel: depth %d" % [action, _horizontal_size, _vertical_size]
+
+
+func order_is_pending(receipt: Dictionary) -> bool:
+	return _zones.get(receipt.zone_id, {}).get("component") == receipt.source
+
+
+func undo_order(receipt: Dictionary) -> int:
+	if not order_is_pending(receipt): return 0
+	var count: int = _zones[receipt.zone_id].blocks.size()
+	_remove_zone(receipt.zone_id)
+	if _selected_zone_id == receipt.zone_id: _close_zone_window()
+	return count
+
+
+func inspect_order(receipt: Dictionary) -> void:
+	if order_is_pending(receipt): _open_zone_window(receipt.zone_id)
+
+
+## Cancellation selects the same slice-visible marks the player can see.
+func marked_blocks_in_screen_rect(rect: Rect2, camera: Camera3D) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	for block: Vector3i in _zone_by_block:
+		var centre := Vector3(block) + Vector3.ONE * .5
+		if _visible_in_slice(block) and not camera.is_position_behind(centre) and rect.has_point(camera.unproject_position(centre)):
+			result.append(block)
+	return result
+
+
+func marked_block_at_screen(screen_pos: Vector2) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	var hit := _raycast_voxel(screen_pos)
+	if not hit.is_empty() and _zone_by_block.has(hit.block_pos): result.append(hit.block_pos)
+	return result
+
+
+func cancel_order_blocks(blocks: Array[Vector3i]) -> int:
+	var count := 0
+	for block in blocks:
+		if _zone_by_block.has(block): count += 1
+	_remove_blocks_from_zones(blocks)
+	return count
 
 
 func _create_zone(blocks: Array[Vector3i], requested_id: int = -1) -> int:
@@ -976,7 +1016,7 @@ func _map_precision_axis(
 func _raycast_mouse() -> Dictionary:
 	if _camera_rig == null or _camera_rig.camera_node == null:
 		return {}
-	var mouse_pos := get_viewport().get_mouse_position()
+	var mouse_pos := get_viewport().get_mouse_position() if _pointer_screen == Vector2.INF else _pointer_screen
 	return _raycast_voxel(mouse_pos)
 
 
@@ -989,7 +1029,7 @@ func _raycast_anchor_plane() -> Dictionary:
 	if _camera_rig == null or _camera_rig.camera_node == null or _anchor_hit.is_empty():
 		return {}
 	var camera := _camera_rig.camera_node
-	var mouse_pos := get_viewport().get_mouse_position()
+	var mouse_pos := get_viewport().get_mouse_position() if _pointer_screen == Vector2.INF else _pointer_screen
 	var origin := camera.project_ray_origin(mouse_pos)
 	var direction := camera.project_ray_normal(mouse_pos).normalized()
 	if is_zero_approx(direction.y):
@@ -1724,10 +1764,15 @@ func _try_select_zone_at_screen(screen_pos: Vector2) -> bool:
 
 
 func _open_zone_window(zone_id: int) -> void:
-	if not _zones.has(zone_id):
+	if _zone_window == null or not _zones.has(zone_id):
 		return
+	_set_selected_zone(zone_id)
+	_update_zone_window_text(zone_id)
+	_window_manager.open(ZONE_WINDOW_ID)
+
+
+func _update_zone_window_text(zone_id: int) -> void:
 	var zone: Dictionary = _zones[zone_id]
-	_zone_title.text = "Mining Zone"
 	var component: MiningZoneComponent = zone.get("component")
 	if component != null:
 		var text := "Blocks left: %d / %d   Workers: %d   Faces: %d" % [
@@ -1751,12 +1796,12 @@ func _open_zone_window(zone_id: int) -> void:
 		_zone_body.text = text
 	else:
 		_zone_body.text = "Blocks: %d" % (zone.get("blocks", []) as Array).size()
-	_zone_window.visible = true
 
 
 func _close_zone_window() -> void:
-	_zone_window.visible = false
 	_set_selected_zone(-1)
+	if _window_manager != null:
+		_window_manager.close(ZONE_WINDOW_ID)
 
 
 func _remove_selected_zone() -> void:
@@ -2081,7 +2126,8 @@ func _maybe_destroy_finished_zone(zone_id: int) -> void:
 func _refresh_zone_window(zone_id: int) -> void:
 	if _selected_zone_id != zone_id or _zone_window == null or not _zone_window.visible:
 		return
-	_open_zone_window(zone_id)
+	# Live worker counts must not raise this window over the player's active one.
+	_update_zone_window_text(zone_id)
 
 
 # ── DEV instant mine (testing tool — no drops) ────────────────────────────────

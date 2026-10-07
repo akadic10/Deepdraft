@@ -1,23 +1,100 @@
 {
   "__comment": [
-    "Wooden Chair - independently built seating (art doc 39, 2026-10-01).",
-    "One 1x1 footprint, a 1-block seat rim with a shallow worn hollow, and a 2-block backrest.",
-    "The model and packed item contain one chair. Tables and benches remain separate build items.",
-    "Floor placement, four rotations, fetch/build, uninstall and saving use the existing pipeline.",
-    "Sitting animations, seat assignments and dining/comfort effects remain future gameplay work."
+    "Approved wide chair: 2x2, seat .875, low back/arms 1.375; front is local +Z.",
+    "Clearance protects the seated head/hair, separate from the 1x1x3 navigation rules.",
+    "Version 1 preserves existing saved 1x1 chairs; newly built chairs use version 2."
   ],
   "furniture_key": "base:furniture:wooden_chair",
   "furniture_category": "seating",
   "display_name": "Wooden Chair",
-  "description": "A stout oak armchair with a framed back, worn seat and dark iron fittings.",
+  "description": "A broad oak chair with a low back, sized for a seated dwarf.",
   "model": "res://assets/models/furniture/wooden_chair.glb",
   "item_key": "base:resources:furniture:wooden_chair",
   "placement": "floor",
   "yaw_steps": 4,
-  "footprint": { "width": 1, "depth": 1 },
+  "footprint": {
+    "width": 2,
+    "depth": 2
+  },
   "blocks_movement": true,
   "collision_regions": [
-    { "min": [0, 0, 0], "max": [1, 2, 1] }
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        2,
+        1.375,
+        2
+      ]
+    }
   ],
-  "room_anchor": false
+  "room_anchor": false,
+  "legacy_layouts": {
+    "1": {
+      "model": "res://assets/models/furniture/wooden_chair_legacy.glb",
+      "footprint": {
+        "width": 1,
+        "depth": 1
+      },
+      "collision_regions": [
+        {
+          "min": [
+            0,
+            0,
+            0
+          ],
+          "max": [
+            1,
+            2,
+            1
+          ]
+        }
+      ],
+      "seating_chair": {}
+    }
+  },
+  "layout_version": 2,
+  "seating_chair": {
+    "clearance": {
+      "min": [
+        -0.375,
+        1.25,
+        -0.375
+      ],
+      "max": [
+        2.375,
+        3.75,
+        2
+      ]
+    },
+    "access_cells": [
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        1,
+        -1
+      ]
+    ]
+  }
 }

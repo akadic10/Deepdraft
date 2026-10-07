@@ -58,9 +58,12 @@ const DOOR_KEY := "base:furniture:door"
 ## room, or temp_c recomputed). UI (world info / future inspect panel) listens.
 signal room_updated(room_id: int)
 signal room_removed(room_id: int)
+## Physical doorway changes, independent of room rebuilds or temperature ticks.
+signal door_boundaries_changed(cells: Array[Vector3i])
 
 var _door_cells: Dictionary = {}          # Vector3i -> true
 var _heat_cells: Dictionary = {}          # Vector3i -> int (heat_units)
+var _light_cells: Dictionary = {}         # floor anchor -> installed light count
 
 var _rooms: Dictionary = {}               # room_id -> RoomData-shaped Dictionary
 var _cell_to_room: Dictionary = {}        # Vector3i (interior air cell) -> room_id
@@ -105,8 +108,10 @@ func _process(delta: float) -> void:
 ## rule).
 func on_furniture_changed(key: String, cells: Array[Vector3i], def: Dictionary, installed: bool) -> void:
 	var changed := false
+	var door_changes: Array[Vector3i] = []
 	if key == DOOR_KEY:
 		for cell: Vector3i in cells:
+			var was_installed := _door_cells.has(cell)
 			if installed:
 				if not _door_cells.has(cell):
 					# Value = the piece's ORIGIN cell (cells[0]) — the door's
@@ -119,6 +124,17 @@ func on_furniture_changed(key: String, cells: Array[Vector3i], def: Dictionary, 
 				if _door_cells.has(cell):
 					_door_cells.erase(cell)
 					changed = true
+			if was_installed != _door_cells.has(cell):
+				for dy in range(DOOR_SEAL_HEIGHT + 1):
+					door_changes.append(cell + Vector3i.UP * dy)
+	if not door_changes.is_empty():
+		door_boundaries_changed.emit(door_changes)
+	if not def.get("light_source", {}).is_empty() and not cells.is_empty():
+		var anchor := cells[0]
+		var count := maxi(0, int(_light_cells.get(anchor, 0)) + (1 if installed else -1))
+		if count > 0: _light_cells[anchor] = count
+		else: _light_cells.erase(anchor)
+		changed = true
 	var heat: Dictionary = def.get("heat_source", {})
 	if not heat.is_empty() and not cells.is_empty():
 		var origin_cell: Vector3i = cells[0]
@@ -177,6 +193,37 @@ func get_room_id_at(cell: Vector3i) -> int:
 ## precedent). Added 2026-08-07 for the 🚪 Rooms overlay tool.
 func get_rooms() -> Dictionary:
 	return _rooms
+
+
+## Furniture is restored through installation after a world reload. Discard
+## the previous world's derived registrations first, including removed doors.
+func clear_runtime_state() -> void:
+	var boundaries: Array[Vector3i] = []
+	boundaries.assign(_door_boundary_cells().keys())
+	var ids := _rooms.keys()
+	_door_cells.clear()
+	_heat_cells.clear()
+	_light_cells.clear()
+	_rooms.clear()
+	_cell_to_room.clear()
+	_next_room_id = 1
+	_rooms_dirty = false
+	_rebuild_accum = 0.0
+	if not boundaries.is_empty(): door_boundaries_changed.emit(boundaries)
+	for id: int in ids: room_removed.emit(id)
+
+
+## Snapshot of the same closed-door boundary used by room sealing. Doors stay
+## walkable; presentation systems must not infer them from navigation occupancy.
+func get_door_boundaries() -> Dictionary:
+	return _door_boundary_cells()
+
+
+func count_room_lights(cells: Dictionary) -> int:
+	var count := 0
+	for anchor: Vector3i in _light_cells:
+		if cells.has(anchor + Vector3i.UP): count += int(_light_cells[anchor])
+	return count
 
 
 # ── Triggers ──────────────────────────────────────────────────────────────────

@@ -1,0 +1,65 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+SCRIPT ERROR: Invalid call. Nonexistent 'String' constructor.
+   at: FurniturePlacementController._explorer_piece (res://scripts/systems/FurniturePlacementController.gd:1455)
+   GDScript backtrace (most recent call first):
+       [0] _explorer_piece (res://scripts/systems/FurniturePlacementController.gd:1455)
+       [1] get_explorer_data (res://scripts/systems/FurniturePlacementController.gd:1480)
+       [2] select_object (res://scripts/ui/ObjectExplorerController.gd:128)
+       [3] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:251)
+       [4] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+SCRIPT ERROR: Invalid call. Nonexistent 'String' constructor.
+   at: FurniturePlacementController._explorer_piece (res://scripts/systems/FurniturePlacementController.gd:1455)
+   GDScript backtrace (most recent call first):
+       [0] _explorer_piece (res://scripts/systems/FurniturePlacementController.gd:1455)
+       [1] get_explorer_data (res://scripts/systems/FurniturePlacementController.gd:1480)
+       [2] select_object (res://scripts/ui/ObjectExplorerController.gd:128)
+       [3] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:251)
+       [4] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+SCRIPT ERROR: Invalid call. Nonexistent 'String' constructor.
+   at: FurniturePlacementController._explorer_piece (res://scripts/systems/FurniturePlacementController.gd:1455)
+   GDScript backtrace (most recent call first):
+       [0] _explorer_piece (res://scripts/systems/FurniturePlacementController.gd:1455)
+       [1] get_explorer_data (res://scripts/systems/FurniturePlacementController.gd:1480)
+       [2] select_object (res://scripts/ui/ObjectExplorerController.gd:128)
+       [3] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:251)
+       [4] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+ERROR: installed storage is selectable: base:furniture:storage_chest
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/StorageFilterTest.gd:22)
+       [1] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:264)
+       [2] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+ERROR: same inspector binds container: base:furniture:storage_chest
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/StorageFilterTest.gd:22)
+       [1] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:264)
+       [2] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+ERROR: installed storage is selectable: base:furniture:barrel
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/StorageFilterTest.gd:22)
+       [1] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:264)
+       [2] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+ERROR: same inspector binds container: base:furniture:barrel
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/StorageFilterTest.gd:22)
+       [1] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:264)
+       [2] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+ERROR: installed storage is selectable: base:furniture:storage_shelf
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/StorageFilterTest.gd:22)
+       [1] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:264)
+       [2] _settle (res://scripts/tests/ZoneWindowTest.gd:180)
+ERROR: same inspector binds container: base:furniture:storage_shelf
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/StorageFilterTest.gd:22)
+       [1] _ui_and_persistence (res://scripts/tests/StorageFilterTest.gd:264)
+       [2] _settle (res://scripts/tests/ZoneWindowTest.gd:180)

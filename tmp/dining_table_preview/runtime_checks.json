@@ -9,7 +9,7 @@
   "ghost_nonblocking": true,
   "in_memory_installed_save_restore": true,
   "no_room_heat_or_door_side_effects": true,
-  "placeable_definitions": 11,
+  "placeable_definitions": 18,
   "player_saves_touched": false,
   "rotated_bounds_match_collision": true,
   "terrain_unchanged": true,

@@ -91,6 +91,11 @@ func has_window(id: String) -> bool:
 	return _windows.has(id)
 
 
+func has_saved_position(id: String) -> bool:
+	var entry: Dictionary = _layout.get(id, {})
+	return entry.has("x") and entry.has("y")
+
+
 ## NOT get_window(): that name is Node's native get_window() -> Window, and
 ## overriding a native method is a warning-treated-as-error in this project.
 func get_ui_window(id: String) -> UIWindow:

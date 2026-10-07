@@ -32,8 +32,10 @@ extends Node3D
 @export var camera_path: NodePath
 @export var dock_ui_path: NodePath
 @export var slice_controller_path: NodePath
+@export var window_manager_path: NodePath
 
 const TOOL_ID := "storage_zone"
+const ZONE_WINDOW_ID := "storage_zone_info"
 const MAX_ZONE_EXTENT := 16          # max cells per axis in one drag
 const WORLD_EDGE_MARGIN := 2
 const RAY_MAX := 700.0
@@ -75,6 +77,7 @@ const DEV_FURNITURE_MIX: Dictionary = {
 	"base:resources:furniture:trade_counter": 1,
 	"base:resources:furniture:wooden_table": 1,
 	"base:resources:furniture:wooden_chair": 1,
+	"base:resources:furniture:communal_table": 1,
 	"base:resources:furniture:dwarf_bunk": 1,
 	"base:resources:furniture:brewing_vat": 1,
 	"base:resources:furniture:wall_torch": 4,
@@ -91,8 +94,10 @@ signal zone_removed(zone_id: int)
 ## from it (the SliceController slice_active_changed pattern), so Esc-cancel
 ## no longer leaves the 📦 button lit until the next dock interaction.
 signal tool_active_changed(active: bool)
+signal order_created(receipt: Dictionary)
 
 var _dock_ui: Node = null
+var _pointer_screen := Vector2.INF
 
 var _active: bool = false
 var _dragging: bool = false
@@ -112,16 +117,18 @@ var _preview_mesh: MeshInstance3D = null
 var _size_label: Label3D = null
 var _overlay_material: StandardMaterial3D = null
 
-var _window_layer: CanvasLayer = null
-var _window_panel: PanelContainer = null
+var _window_manager: UIWindowManager = null
+var _window_panel: UIWindow = null
 var _window_zone_id: int = -1
 var _window_info_label: Label = null
+var _storage_panel: VBoxContainer
 
 
 func _ready() -> void:
 	add_to_group("stockpile_controller")
 	add_to_group(SaveManager.OWNER_GROUP)
 	_dock_ui = get_node_or_null(dock_ui_path)
+	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
 	if _dock_ui != null:
 		if _dock_ui.has_method("register_stockpile_controller"):
 			_dock_ui.call("register_stockpile_controller", self)
@@ -142,6 +149,29 @@ func _process(_delta: float) -> void:
 	if not _active:
 		return
 	_update_hover()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouse: _pointer_screen = event.position
+	if not _dragging: return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		if get_viewport().gui_get_hovered_control() == null:
+			_update_hover()
+			_on_left_release(event.position)
+		else:
+			_dragging = false
+			_preview_cells.clear()
+			if _preview_mesh != null: _preview_mesh.hide()
+			if _size_label != null: _size_label.hide()
+		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and _dragging:
+		_dragging = false
+		_preview_cells.clear()
+		if _preview_mesh != null: _preview_mesh.hide()
+		if _size_label != null: _size_label.hide()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -166,6 +196,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mb.button_index != MOUSE_BUTTON_LEFT:
 			return
 		if mb.pressed:
+			_update_hover()
 			_on_left_press(mb.position)
 			get_viewport().set_input_as_handled()
 		elif _dragging:
@@ -376,7 +407,35 @@ func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
 # ── Zone lifecycle ────────────────────────────────────────────────────────────
 
 func _confirm_zone(cells: Array[Vector3i]) -> void:
-	_create_zone(cells)
+	var zone := _create_zone(cells)
+	order_created.emit({"zone_id": zone.zone_id, "source": zone,
+		"message": "Stockpile created · %d cells" % cells.size()})
+
+
+func get_order_hint() -> String:
+	if _dragging: return "%d valid cells · Release to create stockpile.\nMaximum %d × %d per zone." % [_preview_cells.size(), MAX_ZONE_EXTENT, MAX_ZONE_EXTENT]
+	return "Drag over clear, walkable ground.\nClick an existing zone to inspect its supplies."
+
+
+func order_is_pending(receipt: Dictionary) -> bool:
+	return _zones.get(receipt.zone_id) == receipt.source
+
+
+func undo_order(receipt: Dictionary) -> int:
+	if not order_is_pending(receipt): return 0
+	var count: int = receipt.source.cell_count()
+	remove_zone(receipt.zone_id) # Existing removal releases haulers and stored goods.
+	return count
+
+
+func inspect_order(receipt: Dictionary) -> void:
+	if order_is_pending(receipt): _open_zone_window(receipt.zone_id)
+
+
+func inspect_storage(zone: StockpileZoneComponent) -> bool:
+	if zone == null or _zones.get(zone.zone_id) != zone or zone.floor_y > _slice_y: return false
+	_open_zone_window(zone.zone_id)
+	return true
 
 
 func _create_zone(cells: Array[Vector3i], requested_id: int = -1) -> StockpileZoneComponent:
@@ -466,6 +525,7 @@ func serialize_state() -> Dictionary:
 			"id": zone_id,
 			"cells": cells,
 			"filter_tags": zone.filter_tags.duplicate(),
+			"storage_filter": zone.serialize_filter(),
 			"stacks": stacks,
 		})
 	return { "zones": saved_zones }
@@ -483,7 +543,7 @@ func restore_state(state: Dictionary) -> void:
 		if cells.is_empty():
 			continue
 		var zone := _create_zone(cells, int(entry.get("id", -1)))
-		zone.filter_tags.assign(entry.get("filter_tags", StockpileZoneComponent.DEFAULT_FILTER_TAGS))
+		zone.restore_filter(entry.get("storage_filter", {"tags": entry.get("filter_tags", StockpileZoneComponent.DEFAULT_FILTER_TAGS)}))
 		for stack_raw in entry.get("stacks", []):
 			if not (stack_raw is Dictionary):
 				continue
@@ -587,7 +647,7 @@ func _emit_quad(mesh: ImmediateMesh, x: float, z: float, w: float, d: float, y: 
 # ── Raycasting (the flag-tool height-field march) ─────────────────────────────
 
 func _mouse_surface_cell() -> Dictionary:
-	return _surface_cell_for(get_viewport().get_mouse_position())
+	return _surface_cell_for(get_viewport().get_mouse_position() if _pointer_screen == Vector2.INF else _pointer_screen)
 
 
 func _screen_center_surface_cell() -> Vector3i:
@@ -702,60 +762,25 @@ func _on_slice_changed(new_slice_y: int) -> void:
 # ── Zone window (compact — Remove / stored count) ─────────────────────────────
 
 func _build_window() -> void:
-	_window_layer = CanvasLayer.new()
-	_window_layer.name = "StockpileZoneWindow"
-	_window_layer.layer = 22
-	_window_layer.visible = false
-	add_child(_window_layer)
+	# Simulation fixtures may omit the presentation layer.
+	if _window_manager == null:
+		return
 
-	_window_panel = PanelContainer.new()
-	_window_panel.position = Vector2(18.0, 300.0)
-	_window_panel.custom_minimum_size = Vector2(200.0, 0.0)
-	_window_panel.add_theme_stylebox_override("panel", _style(Color(0.065, 0.070, 0.075, 0.94), Color(1, 1, 1, 0.12), 1, 8))
-	_window_layer.add_child(_window_panel)
+	_storage_panel = preload("res://scripts/ui/StorageInspectorPanel.gd").new()
+	_storage_panel.action_requested.connect(func(action: String):
+		if action == "remove": remove_zone(_window_zone_id))
+	_window_panel = _window_manager.register_window(ZONE_WINDOW_ID, "Storage Zone", "", _storage_panel,
+		{"default_pos": Vector2(18, 48), "min_size": Vector2(420, 0)})
+	_storage_panel.window = _window_panel
+	_window_info_label = _storage_panel.info_label
+	_window_panel.keep_body_on_screen = true
+	_window_manager.window_state_changed.connect(_on_zone_window_state_changed)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	_window_panel.add_child(margin)
 
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
-	margin.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	column.add_child(header)
-
-	var title := Label.new()
-	title.text = "Storage Zone"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 16)
-	header.add_child(title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(30.0, 26.0)
-	close.focus_mode = Control.FOCUS_NONE
-	close.pressed.connect(_close_zone_window)
-	header.add_child(close)
-
-	_window_info_label = Label.new()
-	_window_info_label.add_theme_font_size_override("font_size", 14)
-	column.add_child(_window_info_label)
-
-	var remove := Button.new()
-	remove.text = "Remove zone"
-	remove.tooltip_text = "Deletes this storage zone. Stored items stay where they are as loose drops."
-	remove.focus_mode = Control.FOCUS_NONE
-	remove.custom_minimum_size = Vector2(166.0, 30.0)
-	remove.add_theme_font_size_override("font_size", 13)
-	remove.pressed.connect(func() -> void:
-		remove_zone(_window_zone_id)
-	)
-	column.add_child(remove)
+func _on_zone_window_state_changed(id: String, shown: bool) -> void:
+	if id == ZONE_WINDOW_ID and not shown:
+		_window_zone_id = -1
+		_storage_panel.clear_subject()
 
 
 ## Zone click-select at an arbitrary screen position — usable while the tool
@@ -774,29 +799,15 @@ func _try_select_zone_at_screen(screen_pos: Vector2) -> bool:
 
 func _open_zone_window(zone_id: int) -> void:
 	var zone: StockpileZoneComponent = _zones.get(zone_id)
-	if zone == null:
+	if zone == null or _window_panel == null:
 		return
 	_window_zone_id = zone_id
-	_window_info_label.text = "Cells used: %d / %d\nGoods stored: %d\nFilter: all goods" % [
-		zone.cell_stacks.size(), zone.cell_count(), zone.stored_count()]
-	_window_layer.visible = true
+	_window_panel.set_window_title("Storage Zone %d" % zone_id)
+	_storage_panel.show_storage(zone, [{"id": "remove", "text": "Remove zone", "variant": "danger"}])
+	_window_manager.open(ZONE_WINDOW_ID)
 
 
 func _close_zone_window() -> void:
 	_window_zone_id = -1
-	_window_layer.visible = false
-
-
-func _style(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.border_width_left = border_width
-	style.border_width_right = border_width
-	style.border_width_top = border_width
-	style.border_width_bottom = border_width
-	style.corner_radius_top_left = radius
-	style.corner_radius_top_right = radius
-	style.corner_radius_bottom_left = radius
-	style.corner_radius_bottom_right = radius
-	return style
+	if _window_manager != null:
+		_window_manager.close(ZONE_WINDOW_ID)

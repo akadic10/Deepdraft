@@ -1,0 +1,5 @@
+SCRIPT ERROR: Invalid assignment of property or key 'filter_tags' with value of type 'Array' on a base object of type 'RefCounted (ContainerStorageComponent)'.
+   at: _run (res://scripts/tests/ColonyInventoryTest.gd:133)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/ColonyInventoryTest.gd:133)
+       [1] _settle (res://scripts/tests/FurniturePlaceTest.gd:327)

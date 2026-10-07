@@ -61,19 +61,14 @@ func _run() -> void:
 	_aim_above(oak.position)
 	await process_frame
 	await process_frame
-	# The pre-existing axe menu opens and activates the new tool.
-	dock._dispatch("open_panel", "chop")
-	_expect(dock._button_by_target["chop"].button_pressed, "axe highlights while Chop menu is open")
-	var buttons: Array = dock._panel_body.get_children()
-	_expect(buttons[0].text == "Chop Trees" and not buttons[0].disabled, "existing Chop Trees menu is enabled")
-	_expect(buttons[1].disabled and buttons[2].disabled, "future forestry/stump actions are disabled")
-	buttons[0].pressed.emit()
-	_expect(chop.is_active() and not dock._panel_container.visible, "existing menu activates chop tool and closes")
-	_expect(not dock._button_by_target["chop"].button_pressed, "axe clears its highlight when menu closes")
-	dock._dispatch("open_panel", "chop")
-	_expect(dock._button_by_target["chop"].button_pressed, "reopened Chop menu highlights axe")
-	dock._dispatch("open_panel", "chop")
-	_expect(not dock._button_by_target["chop"].button_pressed and chop.is_active(), "closing menu clears highlight without cancelling Chop mode")
+	# The Orders shelf routes to the existing felling owner and stays available.
+	dock._dispatch("open_panel", "orders")
+	_expect(dock._button_by_target.orders.button_pressed, "Orders highlights while its shelf is open")
+	_expect(not dock._orders._buttons.chop.disabled and not dock._orders._buttons.has("farm"), "chop enabled, future farming omitted")
+	dock._orders._buttons.chop.pressed.emit()
+	_expect(chop.is_active() and dock._orders.is_open(), "Chop starts directly and keeps shelf open")
+	dock._dispatch("open_panel", "orders")
+	_expect(not dock._orders.is_open() and chop.is_active(), "closing shelf keeps the active chop tool")
 	var screen := camera.unproject_position(oak.position + Vector3.UP)
 	_click(screen)
 	_expect(flora._tree_changes.has(oak_id), "normal viewport click designates tree")

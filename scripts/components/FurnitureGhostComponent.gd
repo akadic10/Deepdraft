@@ -50,6 +50,7 @@ var build_valid_callback: Callable = Callable() # support check before consuming
 var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
 var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
 var _claim: Node3D = null           # ghost-held item claim (see header) — runtime only, never saved
+var _carried_by: Dictionary = {}    # picked up for this plan; not a loose/store unit anymore
 
 
 func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: int) -> void:
@@ -130,7 +131,7 @@ func update_lease() -> void:
 ## claim_owner_id(), invisible to every unreserved-only scan (haul pouches,
 ## other ghosts' claims and fetches).
 func _ensure_claim() -> void:
-	if not _fetches.is_empty():
+	if not _fetches.is_empty() or not _carried_by.is_empty():
 		return                        # a dwarf already holds an item for this ghost
 	if _claim_valid():
 		return
@@ -153,6 +154,16 @@ func release_claim() -> void:
 
 func has_lease() -> bool:
 	return _lease_id >= 0
+
+
+## Prevent the catalog subtracting a plan twice after its item was claimed,
+## withdrawn, or picked up. Runtime only: save restores cargo as loose items.
+func has_committed_item() -> bool:
+	if _claim_valid() or not _carried_by.is_empty():
+		return true
+	for item in _fetches.values():
+		if is_instance_valid(item): return true
+	return false
 
 
 ## The lease left the system FOR GOOD (completed / cancelled / failed) —
@@ -236,6 +247,7 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 ## is immediately RE-CLAIMED for the ghost so a hauler cannot poach it in
 ## the gap before the next lease wake.
 func cancel_fetch(dwarf_id: int) -> void:
+	_carried_by.erase(dwarf_id)
 	if not _fetches.has(dwarf_id):
 		return
 	var item: Node3D = _fetches[dwarf_id]
@@ -251,6 +263,7 @@ func cancel_fetch(dwarf_id: int) -> void:
 ## bookkeeping for it is done.
 func notify_picked_up(dwarf_id: int) -> void:
 	_fetches.erase(dwarf_id)
+	_carried_by[dwarf_id] = true
 
 
 ## Step 4: the build swing finished — hand off to the controller's shared

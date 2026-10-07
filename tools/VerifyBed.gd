@@ -181,7 +181,7 @@ func _check_build_menu(scene: Node,controller) -> Array:
 			await process_frame
 		var panel: Rect2 = dock._panel_container.get_global_rect()
 		assert(panel.position.x>=0 and panel.end.x<=viewport_size.x)
-		assert(panel.position.y>=0 and panel.end.y<=viewport_size.y-dock.PANEL_BOTTOM_MARGIN+.1)
+		assert(panel.position.y>=0 and panel.end.y<=dock._dock_panel.position.y-dock.PANEL_DOCK_GAP+.1)
 		assert(is_equal_approx(panel.get_center().x,viewport_size.x*.5))
 		var expected_buttons: int = dock._panel_actions("build").size()
 		var expected_rows := ceili(float(expected_buttons)/dock._panel_body.columns)

@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 Core Profile Context 26.8.1.260810 - Compatibility - Using Device: ATI Technologies Inc. - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+ItemDropManager: loaded 77 item definitions.
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:168)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+UIWindowManager: ready (4 remembered window positions).
+Camera: ready (FOV 45°, zoom 2–180 m).
+FurniturePlacementController: 18 placeable defs loaded.
+FurniturePlacementController: installed base:furniture:wooden_table at (48, 20, 42).
+ItemDropManager: loaded 77 item definitions.
+ItemDropManager: loaded 77 item definitions.
+HEARTH_THEME_OK: native menus at 1280/2560, build activation, disabled actions, close/dock state, wheel isolation
+MiningDesignationController: precision mining active.
+NAVIGATION_OK: grouped commands, tool exclusivity, submenu Back/Escape, all save signals, live clock, inspector placement, 960/1280/2560 layouts
+DWARF_INSPECTOR_OK: visual selection, terrain/slice/tool guards, live cargo/sleep, camera controls, cleanup, responsive UI

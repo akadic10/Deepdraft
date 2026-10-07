@@ -1,0 +1,105 @@
+{
+  "__comment": [
+    "Approved 8x4 table: three chairs per long side and one at each end, eight total.",
+    "Chairs are optional separate furniture, never spawned with the table."
+  ],
+  "furniture_key": "base:furniture:communal_table",
+  "furniture_category": "dining",
+  "display_name": "Communal Dining Table",
+  "description": "An eight-place oak tavern table. Build chairs separately at the suggested positions.",
+  "model": "res://assets/models/furniture/communal_table.glb",
+  "item_key": "base:resources:furniture:communal_table",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 8,
+    "depth": 4
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        8,
+        1.75,
+        4
+      ]
+    }
+  ],
+  "room_anchor": false,
+  "seating": {
+    "chair_key": "base:furniture:wooden_chair",
+    "snap_radius": 1.5,
+    "slots": [
+      {
+        "id": "north_1",
+        "chair_origin": [
+          0,
+          -2
+        ],
+        "yaw": 0
+      },
+      {
+        "id": "north_2",
+        "chair_origin": [
+          3,
+          -2
+        ],
+        "yaw": 0
+      },
+      {
+        "id": "north_3",
+        "chair_origin": [
+          6,
+          -2
+        ],
+        "yaw": 0
+      },
+      {
+        "id": "south_1",
+        "chair_origin": [
+          0,
+          4
+        ],
+        "yaw": 2
+      },
+      {
+        "id": "south_2",
+        "chair_origin": [
+          3,
+          4
+        ],
+        "yaw": 2
+      },
+      {
+        "id": "south_3",
+        "chair_origin": [
+          6,
+          4
+        ],
+        "yaw": 2
+      },
+      {
+        "id": "west",
+        "chair_origin": [
+          -2,
+          1
+        ],
+        "yaw": 1
+      },
+      {
+        "id": "east",
+        "chair_origin": [
+          8,
+          1
+        ],
+        "yaw": 3
+      }
+    ],
+    "max_chairs": 8
+  }
+}

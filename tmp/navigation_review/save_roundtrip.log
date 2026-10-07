@@ -1,0 +1,179 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 5 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WARNING: SkyController: no current scene — cannot bind sky/fog.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:137)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+WARNING: WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _seed_rng (res://scripts/systems/WeatherManager.gd:104)
+       [1] _ready (res://scripts/systems/WeatherManager.gd:48)
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 4270326003).
+WorldRenderer: generation started (seed 4270326003).
+FurniturePlacementController: 18 placeable defs loaded.
+WorldGenerator: domain layout northwest mountain -> mountain 294912, valley 365568, lowland 388096.
+WorldGenerator: valley corridor -> columns 78649, average height 39.2.
+WorldGenerator: macro heightmap -> 1024 cells expanded at 32 columns per cell.
+WorldGenerator: macro expansion -> local offsets on 0 columns.
+WorldGenerator: plateau smoothing -> adjusted 0 columns across 0 macro cells.
+WorldGenerator: mountain foothill transition -> raised 9216 columns into approach shelves.
+WorldGenerator: lowland foothill transition -> capped 3072 columns to one-shelf steps.
+WorldGenerator: macro shelf step limit -> capped 206848 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: heightmap sub-phases -> macro_cells 153 ms, column_fill 1383 ms, plateau 172 ms, mountain_foothill 127 ms, lowland_foothill 26 ms, shelf_step_limit 757 ms.
+WorldGenerator: lowland lake uses 36 macro cells; southern anchor (4, 31); water Y12-Y18.
+WorldGenerator: macro shelf step limit -> capped 0 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: mountain shelf-1 tarn uses 1 macro cell; anchor (10, 12); water Y48-Y54.
+WorldGenerator: edge detail -> pushed 26540 foothill/mountain edge columns.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldRenderer: first chunk_dirtied received (32,1,30).
+FlagPlacementController: settlement founded at (512, 27, 491).
+StockpileDesignationController: zone 201 created (1 cells at Y 27).
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (520, 27, 491) yaw 1.
+FurniturePlacementController: installed base:furniture:barrel at (518, 27, 491).
+SliceTiming: slice 127 -> 25 — 0 regions + 1 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+SaveManager: validated autosave written to user://save_manager_round_trip_test/autosave.json.
+SaveManager: validated autosave written to user://save_manager_round_trip_test/autosave.json.
+SaveManager: validated quick save written to user://save_manager_round_trip_test/quicksave.json.
+SaveManager: validated quick save written to user://save_manager_round_trip_test/quicksave.json.
+WorldGenerator: stopped in 13.9 s.
+WorldGenerator: grass bands finalized 6.728 s after maps_ready.
+WorldGenerator metrics:
+  domains: mountain 27.4%, valley 35.5%, lowland 37.0%
+  height: min 11, max 115, avg 40.6
+  surface: grass 33.3%, dirt 30.2%, rock 32.9%, water 3.6%
+  surface domains: mountain rock 99.6%; valley grass 39.2% dirt 48.4% rock 12.4%
+  shaping: terraced 0, plateau-adjusted 0 across 0 chunk columns
+  water: lake (144, 948) r40 y18 floor 11-11 depth 7 columns 36864; tarn (336, 400) r15 y54 floor 47-47 depth 7 columns 1024; banks 3042
+  macro: basin 146524, southeast foothill 131583, edge belt 111552 columns
+  settlement candidates: 1192 sampled 20x20 flats
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (1 remembered window positions).
+WorldGenerator: starting generation (seed 4270326003).
+WorldRenderer: generation started (seed 4270326003).
+FurniturePlacementController: 18 placeable defs loaded.
+WorldGenerator: domain layout northwest mountain -> mountain 294912, valley 365568, lowland 388096.
+WorldGenerator: valley corridor -> columns 78649, average height 39.2.
+WorldGenerator: macro heightmap -> 1024 cells expanded at 32 columns per cell.
+WorldGenerator: macro expansion -> local offsets on 0 columns.
+WorldGenerator: plateau smoothing -> adjusted 0 columns across 0 macro cells.
+WorldGenerator: mountain foothill transition -> raised 9216 columns into approach shelves.
+WorldGenerator: lowland foothill transition -> capped 3072 columns to one-shelf steps.
+WorldGenerator: macro shelf step limit -> capped 206848 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: heightmap sub-phases -> macro_cells 152 ms, column_fill 1422 ms, plateau 174 ms, mountain_foothill 125 ms, lowland_foothill 25 ms, shelf_step_limit 754 ms.
+WorldGenerator: lowland lake uses 36 macro cells; southern anchor (4, 31); water Y12-Y18.
+WorldGenerator: macro shelf step limit -> capped 0 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: mountain shelf-1 tarn uses 1 macro cell; anchor (10, 12); water Y48-Y54.
+WorldGenerator: edge detail -> pushed 26540 foothill/mountain edge columns.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 25 — 0 regions + 0 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 7.260 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=4270326003, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+WorldRenderer: first chunk_dirtied received (32,1,30).
+FlagPlacementController: settlement founded at (512, 27, 491).
+StockpileDesignationController: zone 201 created (1 cells at Y 27).
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (520, 27, 491) yaw 1.
+FurniturePlacementController: installed base:furniture:barrel at (518, 27, 491).
+LoadPerformance:
+  total_request_to_restored: 14.006 s
+  read_validate: 0 ms
+  reload_regen_wait: 13.825 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 168 ms
+    mining: 160 ms
+    flora: 0 ms
+    settlement_flag: 1 ms
+    stockpiles: 2 ms
+    furniture: 3 ms
+    items: 1 ms
+    dwarves: 0 ms
+    camera: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 13 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: autosave restored.
+WARNING: SaveManager: primary quick save unavailable (contains invalid JSON); using backup.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _request_load_slot (res://scripts/systems/SaveManager.gd:194)
+       [1] request_load (res://scripts/systems/SaveManager.gd:162)
+       [2] _run (res://scripts/tests/SaveManagerRoundTripTest.gd:147)
+       [3] _wait_for_load (res://scripts/tests/SaveManagerRoundTripTest.gd:501)
+WorldGenerator: stopped in 14.1 s.
+WorldGenerator: grass bands finalized 6.905 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 16/16 built tiles (band columns only).
+WorldGenerator metrics:
+  domains: mountain 27.4%, valley 35.5%, lowland 37.0%
+  height: min 11, max 115, avg 40.6
+  surface: grass 33.3%, dirt 30.2%, rock 32.9%, water 3.6%
+  surface domains: mountain rock 99.6%; valley grass 39.2% dirt 48.4% rock 12.4%
+  shaping: terraced 0, plateau-adjusted 0 across 0 chunk columns
+  water: lake (144, 948) r40 y18 floor 11-11 depth 7 columns 36864; tarn (336, 400) r15 y54 floor 47-47 depth 7 columns 1024; banks 3042
+  macro: basin 146524, southeast foothill 131583, edge belt 111552 columns
+  settlement candidates: 1192 sampled 20x20 flats
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (1 remembered window positions).
+WorldGenerator: starting generation (seed 4270326003).
+WorldRenderer: generation started (seed 4270326003).
+FurniturePlacementController: 18 placeable defs loaded.
+WorldGenerator: domain layout northwest mountain -> mountain 294912, valley 365568, lowland 388096.
+WorldGenerator: valley corridor -> columns 78649, average height 39.2.
+WorldGenerator: macro heightmap -> 1024 cells expanded at 32 columns per cell.
+WorldGenerator: macro expansion -> local offsets on 0 columns.
+WorldGenerator: plateau smoothing -> adjusted 0 columns across 0 macro cells.
+WorldGenerator: mountain foothill transition -> raised 9216 columns into approach shelves.
+WorldGenerator: lowland foothill transition -> capped 3072 columns to one-shelf steps.
+WorldGenerator: macro shelf step limit -> capped 206848 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: heightmap sub-phases -> macro_cells 159 ms, column_fill 1391 ms, plateau 189 ms, mountain_foothill 125 ms, lowland_foothill 28 ms, shelf_step_limit 744 ms.
+WorldGenerator: lowland lake uses 36 macro cells; southern anchor (4, 31); water Y12-Y18.
+WorldGenerator: macro shelf step limit -> capped 0 columns to adjacent one-shelf steps, including corners.
+WorldGenerator: mountain shelf-1 tarn uses 1 macro cell; anchor (10, 12); water Y48-Y54.
+WorldGenerator: edge detail -> pushed 26540 foothill/mountain edge columns.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 25 — 0 regions + 0 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 7.239 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=4270326003, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+WorldRenderer: first chunk_dirtied received (32,1,30).
+FlagPlacementController: settlement founded at (512, 27, 491).
+StockpileDesignationController: zone 201 created (1 cells at Y 27).
+ItemDropManager: loaded 77 item definitions.
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (520, 27, 491) yaw 1.
+FurniturePlacementController: installed base:furniture:barrel at (518, 27, 491).
+LoadPerformance:
+  total_request_to_restored: 14.036 s
+  read_validate: 1 ms
+  reload_regen_wait: 13.873 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 161 ms
+    mining: 154 ms
+    flora: 0 ms
+    settlement_flag: 1 ms
+    stockpiles: 2 ms
+    furniture: 3 ms
+    items: 0 ms
+    dwarves: 1 ms
+    camera: 0 ms
+    slice: 0 ms
+  totals_clock_weather: 1 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: backup quick save restored.
+SAVE_MANAGER_ROUND_TRIP_OK
+WorldGenerator: stopped in 14.0 s.
