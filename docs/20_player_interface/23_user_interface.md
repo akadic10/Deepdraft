@@ -16,6 +16,15 @@ See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).
 
 ## Object explorers (implemented 2026-10-04)
 
+**Cabinet follow-up (2026-10-07):** the shared Object explorer now uses the same
+gold border, wood-toned title bar and serif heading as Slice and Rooms. Generic
+tree, furniture and resource inspection has an inset identity card, copper kind
+label, and a scrolling facts/description body with actions kept outside it. The
+whole window stays inside the viewport; saved/dragged positions are preserved.
+Selection outlines use the shared copper accent. Dwarf and storage inspection
+retain their specialized content within the same cabinet chrome. See
+[63 — Loose item support and explorer](../00_dev_roadmap/63_loose_item_support_and_explorer.md).
+
 Trees and furniture in the main scene share a movable context window through
 `ObjectExplorerController` and `UIWindowManager`. All trees keep Growth stage,
 Fruit, Fruit season, Felling yield, and Felling status in fixed rows, including N/A values.
@@ -49,8 +58,16 @@ Danger actions retain red text; developer actions use warm orange. See
 [52 — Shared UI theme](../00_dev_roadmap/52_hearth_iron_shared_theme.md) for ownership
 and verification.
 
-**Grouped navigation (updated 2026-10-06):** seven labeled entries with copper line
-icons replace the emoji-only command row. Orders, Zones, Rooms, Place, Colony, Inventory and Menu
+**Worker crafting (2026-10-07):** the Craft cabinet presents Worker recipes,
+live timber/finished stock and a stable make/maintain order queue. Allowed-wood
+checklists default to Pine and can be changed per recipe draft or existing order;
+empty choices never mean all wood. The cabinet also opens from the installed
+crafting stump's explorer action. Dwarf inspection shows the actual crafting
+spot or stump stand, not the scheduler's placeholder coordinates. See
+[64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
+
+**Grouped navigation (updated 2026-10-07):** eight labeled entries with copper line
+icons replace the emoji-only command row. Orders, Zones, Rooms, Place, Craft, Colony, Inventory and Menu
 sit at bottom-center, with live calendar, speed and Slice controls at top-left. Menus stay
 beside the default right-hand inspector and scroll at smaller resolutions. All
 object inspectors now start on the right; existing saved or dragged positions take
@@ -59,7 +76,8 @@ precedence. See [53 — Navigation and layout](../00_dev_roadmap/53_hearth_iron_
 **Place catalog (2026-10-05 follow-up):** the furniture Build list is now a movable
 cabinet with model thumbnails, categories and a paper detail area. It lists finished
 furniture with live Available/Reserved counts; Show all designs also reveals unavailable
-items. Crafting is explicitly future work. The catalog stays open while placing,
+items. Starter production now lives in Craft; Place displays the real queued
+output count and installs its finished items. The catalog stays open while placing,
 and clicking an available tile immediately starts its placement preview. It
 supports Undo of unfinished requests and stops when stock runs out. Inventory
 updates preserve tile positions and scroll while browsing; zero-count tiles stay

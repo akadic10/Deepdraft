@@ -192,8 +192,14 @@ func _build_nonempty_colony_state() -> String:
 	var dwarves := _owner("dwarves")
 	var camera := _owner("camera")
 	var slice := _owner("slice")
-	if [mining, flora, flag, stockpiles, furniture, items, dwarves, camera, slice].has(null):
+	var crafting := _owner("worker_crafting")
+	if [mining, flora, flag, stockpiles, furniture, items, dwarves, camera, slice, crafting].has(null):
 		return "one or more save-state owners are missing"
+	crafting.restore_state({"orders":[
+		{"recipe":"base:recipe:worker:crude_workbench","quantity":2,"maintain":false,"paused":true,"progress":2.25,
+			"allowed_ingredients":["base:resources:wood:pine_log","base:resources:wood:juniper_log"]},
+		{"recipe":"base:recipe:worker:wooden_torch","quantity":8,"maintain":true,"paused":false,"progress":0.0,
+			"allowed_ingredients":["base:resources:wood:apple_wood"]}]})
 
 	var flag_cell := _surface_cell(0, 0)
 	var dwarf_cell := _surface_cell(2, 0)
@@ -337,7 +343,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var scene_state := _collect_scene_state()
 	var expected_keys := [
 		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
-		"items", "dwarves", "camera", "slice",
+		"items", "dwarves", "camera", "slice", "worker_crafting",
 	]
 	for key in expected_keys:
 		if not scene_state.has(key):

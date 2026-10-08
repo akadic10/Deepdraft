@@ -137,7 +137,7 @@ func _ready() -> void:
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.add_theme_color_override("font_color", UITheme.CATALOG_MUTED)
 		column.add_child(caption)
-		if state == "Crafting": column.tooltip_text = "Furniture crafting is not available yet."
+		if state == "Crafting": column.tooltip_text = "Items requested in the Worker crafting queue."
 	_note = _label("", 12)
 	_note.add_theme_color_override("font_color", UITheme.CATALOG_MUTED)
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -305,10 +305,12 @@ func refresh() -> void:
 	elif String(definition.placement) == "wall": _spec.text += " · Wall mounted"
 	_values.Available.text = str(stock.available)
 	_values.Reserved.text = str(stock.reserved)
+	var crafting := get_tree().get_first_node_in_group("crafting_manager")
+	_values.Crafting.text = str(crafting.crafting_count(String(definition.item_key))) if crafting != null else "0"
 	_place.disabled = stock.available <= 0
 	var placing := controller.active_furniture_key() == selected_key
 	_place.text = "Placing · %d available" % stock.available if placing else "Place item" if stock.available > 0 else "None available"
-	_note.text = "Reserved items are awaiting delivery." if stock.reserved > 0 else "Finished furniture, ready for a home." if stock.available > 0 else "No finished items available. Crafting comes later."
+	_note.text = "Reserved items are awaiting delivery." if stock.reserved > 0 else "Finished furniture, ready for a home." if stock.available > 0 else "No finished items available."
 	_hint.text = "Click to place repeatedly · R rotates · Esc finishes" if placing else "Click an available item to start placing."
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Inventory wakes change counts/availability only. Refitting here resets

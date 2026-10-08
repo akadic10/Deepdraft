@@ -2,9 +2,24 @@
 
 This file is the **entry point** for any AI agent working on this codebase. Read it first. It maps every design document to its purpose and tells you which file to consult before touching any system.
 
-**Latest session handoff:** [62 — 2026-10-06](docs/00_dev_roadmap/62_session_handoff_2026_10_06.md)
-records storage filters, hauling fixes, colony/navigation UX, room darkness, final verification, and
-remaining work. Read it alongside the system documents when resuming.
+**Latest session handoff:** [65 — 2026-10-07](docs/00_dev_roadmap/65_session_handoff_2026_10_07.md)
+records loose-item/explorer repairs, accepted entrance lighting, playable Worker
+crafting, wood choices, stump art/access, axe sounds, the pickup-site correction,
+verification and remaining issues. Read it alongside the system docs when resuming.
+
+**Worker crafting (2026-10-07):** [64 — Worker crafting](docs/00_dev_roadmap/64_worker_crafting.md)
+records the timber → crude workbench/stump → wooden torch loop, Craft menu,
+batch/maintain orders, Pine-default wood choices, four-side access and axe sounds.
+First benches are crafted at the timber pickup spot; inspector destinations use
+the actual work position. Physical cargo and partial work survive interruptions/load.
+
+**Loose items and explorer correction (2026-10-07):** [63 — Loose item support and explorer](docs/00_dev_roadmap/63_loose_item_support_and_explorer.md)
+records settling after mining removes support, repair of hovering loose goods on
+load, safe pickup interruption, and the shared cabinet styling for Object explorer.
+
+**Entrance lighting follow-up (2026-10-07):** [24 — World rendering](docs/20_player_interface/24_world_rendering.md)
+records the longer entrance fade and actor lighting across solid cells. Movement
+clipping is separately parked as [Issue 002](docs/00_dev_roadmap/00_open_issues.md).
 
 **Storage follow-up (2026-10-06):** [59 — Storage filters](docs/00_dev_roadmap/59_storage_filters.md)
 records the shared storage inspector, exact/category rules, relocation ownership,
@@ -18,7 +33,7 @@ haulers that bypassed worker selection after depositing.
 combines the compact dwarf roster and shared personal details in one window.
 
 **Separate zones navigation (2026-10-06):** [53 — Navigation](docs/00_dev_roadmap/53_hearth_iron_navigation.md)
-records the seven-entry dock, dedicated Rooms button, Orders/Zones split and
+records the navigation foundation, dedicated Rooms button, Orders/Zones split and
 lower active-tool banner.
 
 **Tunnel lighting (2026-10-06):** [24 — World rendering](docs/20_player_interface/24_world_rendering.md)

@@ -16,6 +16,8 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 			data.summary = "Hauling"
 		Phase.FETCH_TO_ITEM, Phase.FETCH_PICKUP, Phase.FETCH_TO_GHOST, Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT:
 			data.summary = "Placing furniture"
+			var task := TaskManager.get_task(agent.current_task_id)
+			if task != null and task.type == Task.Type.CRAFT: data.summary = "Crafting"
 		Phase.UNINSTALL_MOVING, Phase.UNINSTALL_WORKING:
 			data.summary = "Removing furniture"
 		Phase.ZONE_MOVING, Phase.ZONE_SWINGING:
@@ -85,6 +87,15 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		activity = "Walking"
 		explanation = "Moving to the requested position."
 		destination = location(agent._move_path.back())
+	if task != null and task.type == Task.Type.CRAFT:
+		var source = TaskManager.get_work_source(task.source_id)
+		if source != null:
+			if phase == Phase.FETCH_TO_GHOST:
+				activity = "Carrying crafting timber"
+				explanation = "Bringing timber to the work position."
+			elif phase in [Phase.FETCH_WORKING,Phase.FETCH_DEPOSIT]:
+				activity = "Crafting " + String(source.recipe.name).to_lower()
+				explanation = "Shaping timber into finished goods."
 	var items := _cargo(agent)
 	var load_used := 0
 	for entry: Dictionary in items:
@@ -135,6 +146,10 @@ static func _destination(agent: DwarfAgent, task: Task) -> String:
 		return "%s\n%s" % [label, location(agent._haul_deposit)]
 	if task != null:
 		var source: Object = TaskManager.get_work_source(task.source_id)
+		if task.type == Task.Type.CRAFT and is_instance_valid(source):
+			# Craft leases use a placeholder target; the order owns the live
+			# pickup-selected ground spot or the claimed workshop's stand cell.
+			return "%s\n%s" % [String(source.call("display_name")), location(source.get("work_cell"))]
 		var label := "Work site"
 		if is_instance_valid(source) and source.has_method("display_name"):
 			label = String(source.call("display_name"))

@@ -2,7 +2,7 @@ extends "res://tools/UndergroundWorldReview.gd"
 
 ## Native generated-world regression: a 4x4x4 room off a lit corridor,
 ## installed walkable door, real slice/room windows and local-light shadows.
-const REVIEW := "res://tmp/room_lighting_review/"
+const REVIEW := "res://tmp/room_lighting_review/entrance_fix/"
 var camera: Camera3D
 var room_tool
 var furniture

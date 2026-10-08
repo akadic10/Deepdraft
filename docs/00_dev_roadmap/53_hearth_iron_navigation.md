@@ -1,5 +1,9 @@
 # 53 — Hearth & iron: navigation and layout
 
+**Current follow-up (2026-10-07):** [64 — Worker crafting](64_worker_crafting.md)
+adds Craft between Place and Colony, making eight dock entries. The dated
+navigation milestones below describe the earlier layouts.
+
 ## Dedicated Rooms entry — 2026-10-06
 
 Rooms now has its own bottom-toolbar entry beside Zones:

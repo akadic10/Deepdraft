@@ -1,0 +1,37 @@
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:172)
+       [1] _ready (res://scripts/systems/SkyController.gd:88)
+ERROR: removing support settles an existing drop to the pit floor
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: slice visibility follows the new floor
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: old hovering saves settle without changing crate quantity or horizontal position
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: deep columns settle above protected bedrock
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: unrelated column remains unchanged
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: claimed item also settles
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: stale pickup is released before it can reach to the old height
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)
+ERROR: both pickup and delivery claims are freed
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/LooseItemSupportTest.gd:58)

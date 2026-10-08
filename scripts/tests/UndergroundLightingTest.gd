@@ -2,7 +2,7 @@ extends "res://tools/TunnelLightingStudy.gd"
 
 ## Native regression using real WorldData edits and the shipped lighting field.
 ## The study supplies only geometry/assets/camera; its fake light map is unused.
-const REVIEW := "res://tmp/underground_lighting_review/"
+const REVIEW := "res://tmp/underground_lighting_review/entrance_fix/"
 const ORIGIN := Vector3(32,21,32)
 var field
 var world
@@ -57,7 +57,7 @@ func _run() -> void:
 			world.set_block(pos.x,pos.y,pos.z,blocks.AIR_ID)
 	await _drain()
 	_expect(field.sky_at(Vector3i(40,22,52)) > .5,"entrance receives sky light")
-	_expect(field.sky_at(Vector3i(40,22,44)) == 0,"roofed deep tunnel has no daylight")
+	_expect(field.sky_at(Vector3i(40,22,40)) == 0,"roofed deep tunnel beyond entrance reach has no daylight")
 	_expect(field.sky_at(Vector3i(40,22,48)) < field.sky_at(Vector3i(40,22,51)),"entrance falloff follows air distance")
 	var entrance_before: float = field.sky_at(Vector3i(40,22,49))
 	for x in range(39,43):
@@ -97,19 +97,19 @@ func _run() -> void:
 	await process_frame
 	world.set_block(skylight.x,skylight.y,skylight.z,stone)
 	await _drain()
-	_expect(field.sky_at(Vector3i(40,22,44)) == 0,"a replacement roof removes daylight, including during an update")
+	_expect(field.sky_at(Vector3i(40,22,44)) < .04,"a replacement roof removes direct skylight, including during an update")
 	world.set_block(skylight.x,skylight.y,skylight.z,blocks.AIR_ID)
 	await _drain()
 	_expect(field.sky_at(Vector3i(40,22,44)) == 1,"mining a skylight lights the air column below")
 	world.set_block(skylight.x,skylight.y,skylight.z,stone)
 	await _drain()
-	_expect(field.sky_at(Vector3i(40,22,44)) == 0,"closing skylight restores deep darkness")
+	_expect(field.sky_at(Vector3i(40,22,44)) < .04,"closing skylight restores the weak entrance light")
 	# Restore the original solid roof for the visual reference.
 	for y in range(25,31): world.set_block(40,y,44,stone)
 	# An upper open gallery must not light the covered tunnel underneath it.
 	for y in range(27,31): world.set_block(40,y,44,blocks.AIR_ID)
 	await _drain()
-	_expect(field.sky_at(Vector3i(40,28,44)) == 1 and field.sky_at(Vector3i(40,22,44)) == 0,"stacked floors have independent roof cover")
+	_expect(field.sky_at(Vector3i(40,28,44)) == 1 and field.sky_at(Vector3i(40,22,44)) < .04,"stacked floors have independent roof cover")
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = 36
@@ -135,7 +135,7 @@ func _run() -> void:
 		capture.save_png(REVIEW+mode+".png")
 		measurements[mode] = {
 			"outside":_luminance(capture,ORIGIN+Vector3(4.5,.02,25.5)),
-			"deep":_luminance(capture,ORIGIN+Vector3(8,.02,11.5)),
+			"deep":_luminance(capture,ORIGIN+Vector3(8,.02,8.5)),
 			"chamber":_luminance(capture,ORIGIN+Vector3(9,.02,3.5)),
 		}
 	_expect(absf(measurements.current.outside-measurements.unlit.outside) < .025,"outdoor lighting retained")

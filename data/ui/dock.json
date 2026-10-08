@@ -35,6 +35,14 @@
       "target": "place"
     },
     {
+      "id": "craft",
+      "label": "Craft",
+      "icon": "res://assets/ui/icons/craft.svg",
+      "tooltip": "Worker recipes and crafting orders",
+      "action": "open_panel",
+      "target": "craft"
+    },
+    {
       "id": "colony",
       "label": "Colony",
       "icon": "res://assets/ui/icons/colony.svg",

@@ -14,7 +14,13 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	var registry = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	registry._load_defs()
+	var only := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="): only = arg.trim_prefix("--only=")
+	var count := 0
 	for definition: Dictionary in registry.get_defs().values():
+		if not only.is_empty() and not String(definition.furniture_key).get_slice(":",2) in only.split(","): continue
+		count += 1
 		var viewport := SubViewport.new()
 		viewport.size = Vector2i(216, 180)
 		viewport.transparent_bg = true
@@ -68,5 +74,5 @@ func _run() -> void:
 		if result != OK: push_error("Could not save " + output); quit(1); return
 		viewport.queue_free()
 	registry.free()
-	print("FURNITURE_THUMBNAILS_OK: 18 placed-form models")
+	print("FURNITURE_THUMBNAILS_OK: %d placed-form models" % count)
 	quit()

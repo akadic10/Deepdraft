@@ -1,0 +1,17 @@
+{
+  "entrance": "(383, 47, 352)",
+  "failures": [],
+  "luminance": {
+    "closed_corridor_torch": 0.00954666640609503,
+    "closed_unlit": 0.00954666640609503,
+    "closed_unlit_far_camera": 0.00954666640609503,
+    "far_day_outdoor_delta": 0.00308781862258911,
+    "far_night_outdoor_delta": 0.00308781862258911,
+    "legacy_fog_room": 0.149941191077232,
+    "lit_room": 0.154153392314911,
+    "open_corridor_torch": 0.016198808029294,
+    "outdoor_fog_current": 0.428167849779129,
+    "outdoor_fog_legacy": 0.428167849779129,
+    "selected_room": 0.0395396091043949
+  }
+}

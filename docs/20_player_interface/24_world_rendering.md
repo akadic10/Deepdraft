@@ -139,7 +139,8 @@ been validated by this study.
 `WorldData.block_changed` (exact edits, not mesh streaming signals) and derives
 skylight from physical air and roof columns. Mining a skylight updates the air
 column below it; closing a passage removes its daylight. Light propagates through
-six-connected air with seven-block falloff, independently on stacked floors.
+six-connected air with twelve-block falloff, independently on stacked floors
+(extended from seven on 2026-10-07).
 The affected air region includes a second reach of cells to supply correct
 boundary conditions. CPU work drains on a 2.5 ms frame budget; no terrain meshes
 are invalidated by lighting updates.
@@ -152,7 +153,7 @@ cells retain normal illumination, preserving cut plates and designation previews
 Tracked air attenuates sky ambient and directional light. Installed omni lights
 retain their existing range, colour and shadow settings. Air-only interpolation
 prevents solid rock from blending daylight into tunnel edges. SkyController owns
-the tuning in `data/sky/sky_settings.json`: `entrance_reach_blocks: 7` and
+the tuning in `data/sky/sky_settings.json`: `entrance_reach_blocks: 12` and
 `readability_floor: 0.008` (reduced after the room-darkness follow-up below).
 
 The same shader shades live dwarves, their subsequently attached tool meshes,
@@ -219,6 +220,56 @@ Validation:
   camera distances and during day/night. `UndergroundLightingTest` retains the
   door, skylight, stacked-floor, torch and mining-replay regressions. Logs for
   this pass are under each review directory's `darkness_fix/` folder.
+
+**Entrance and dwarf overlap follow-up (2026-10-07):** shallow mining became too
+dark after the fog correction. Entrance reach is now twelve individual voxel
+blocks (three four-block mining cells), with the existing squared falloff. At
+four blocks from open sky the field retains 44% skylight instead of 18%; at
+eight blocks it retains 11% instead of zero. These are field strengths, not
+display luminance. Closed doors still stop the flood; the `0.008` readability
+floor and the previous sealed-room darkness are unchanged.
+
+The bright dwarf inside unmined terrain was a separate presentation defect:
+solid/untracked texture cells intentionally return full daylight for slice cut
+plates. Sampling each head/hand fragment used that same fallback when the mesh
+overlapped rock. Bound dwarf meshes now share a body-center sky sample via a
+per-instance shader parameter. A physical solid at that position returns zero
+sky access; air uses the same interpolation as the terrain shader. Existing
+local lights retain their normal attenuation and shadows. Late-attached tools
+and carried goods inherit the actor sample, released goods revert to world
+sampling, and portraits keep their studio materials. The lighting component
+owns weak references and updates only changed instance values; it does not
+change dwarf movement, tasks, material identity, saves, or terrain meshes.
+
+The navigation symptom is **not fixed by shading**. The current path follower
+moves positions directly with collision mask zero. Its smoothing checks from
+cell centers and uses a smaller margin than the logical footprint. These are
+plausible contributors, not a reproduced root cause of the player's route.
+[Issue 002](../00_dev_roadmap/00_open_issues.md) records the parked investigation.
+
+Validation for this follow-up:
+
+- `TunnelEntranceTest`: native generated terrain and scene fog, previous/new
+  reach at the same camera. Sampled floor luminance at four blocks increased
+  from 0.109 to 0.175; at eight blocks, from 0.015 to 0.083. Deep floor (0.015)
+  and the outdoor sample (0.856) were unchanged. The test also covers a dwarf
+  deliberately inside a still-solid designation, smooth actor entrance fade,
+  late mesh attachment, cargo detachment, portrait materials, freed references,
+  slice invariance and no terrain rebuild for a light-only update.
+- `UndergroundLightingTest`: passed entrance propagation, barriers and doors,
+  opening/closing skylights during updates, stacked floors, existing torches
+  and mining replay into a fresh lighting field. Its deep-floor sample now sits
+  beyond the longer entrance reach.
+- `RoomLightingTest`: passed with native fog; sealed-room floor remains 0.010,
+  unchanged by the exterior torch or camera distance, and rises to 0.154 with
+  an interior brazier. Outdoor day/night fog and room/slice controls still pass.
+
+Reports, native captures and the named test logs are under
+`tmp/underground_lighting_review/entrance_fix/` and
+`tmp/room_lighting_review/entrance_fix/`. Test profiles are isolated. The generated
+world tests retain the known autoload-before-scene sky/weather startup warnings;
+there are no script/shader errors in the final runs. Restart play mode for the
+new tuning and shader; no project reload or save migration is required.
 
 This is a bounded skylight approximation, not bounced global illumination or
 sun-angle ray tracing. The normal slice still controls local-light shadow

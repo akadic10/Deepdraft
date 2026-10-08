@@ -8,7 +8,7 @@ building are separate systems; this screen does not create items from resources.
 
 - The bottom dock opens a movable **Place an item** cabinet. Drag its title bar;
   UIWindowManager remembers its position. Opening another command menu closes it.
-- Eighteen actual furniture models have rendered thumbnails, organized into
+- Twenty actual furniture models have rendered thumbnails, organized into
   Dining, Storage, Lighting, Rooms and Workshops. All combines the categories.
   The default list starts with available or reserved designs. Those tiles stay
   in place for the current browsing session even if their count reaches zero
@@ -22,8 +22,10 @@ building are separate systems; this screen does not create items from resources.
   placement preview. This fixes the empty-stock Personal Dining Table label
   reported on 2026-10-06.
 - Select an item to see its footprint, chair capacity or mounting hint, plus
-  live Available and Reserved counts. **Crafting —** means crafting is not
-  implemented; it is not an illustrative queue or a zero-stock claim.
+  live Available, Reserved and Crafting counts. Since 2026-10-07, Crafting is the
+  real requested output of Worker orders: finite batches plus batches needed for
+  maintain targets. The new stump and wooden torch are produced through
+  [Craft](64_worker_crafting.md); this catalog installs finished items.
 - Clicking an available item tile immediately starts its world preview; there
   is no extra confirmation. Clicking a different available tile switches designs;
   re-clicking the active tile preserves rotation. Unavailable tiles show details
@@ -44,7 +46,8 @@ categories use a dropdown and details compact to keep a full item row, actions
 and the bottom dock accessible. Saved or dragged positions remain player-owned.
 
 For the current development build, **Menu → Development → DEV: Spawn Furniture** supplies
-packed furniture for testing. A carpenter production screen is future work.
+packed furniture for testing. Workers now produce the crude workbench/stump and
+wooden torch through Craft. A carpenter production screen remains future work.
 
 ## Ownership and stock rules
 

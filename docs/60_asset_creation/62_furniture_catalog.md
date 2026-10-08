@@ -40,6 +40,11 @@
 
 ### Workshops (placeable, but a separate category — doc 61 §5.5)
 
+**Crude Workbench (2026-10-07):** playable Worker crafting, now represented by
+a rough 1×1 chopping stump usable from all four sides. Workers make it without
+a workshop and use it to craft wooden torches. See
+[doc 64](../00_dev_roadmap/64_worker_crafting.md).
+
 Brewery (1×1×2) · Beehive (1×1×1) · Forge (1×1×2):
 workshop production remains planned under doc 44.
 

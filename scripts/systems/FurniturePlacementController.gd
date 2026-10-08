@@ -1504,6 +1504,9 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			{"id": "uninstall", "text": "Cancel uninstall" if piece.flagged_uninstall else "Uninstall"},
 			{"id": "remove", "text": "DEV: Remove (drops item)", "variant": "dev"},
 		]
+	if piece is InstalledFurnitureComponent and piece.furniture_key == "base:furniture:crude_workbench" and not piece.flagged_uninstall:
+		actions.push_front({"id":"craft", "text":"Craft items"})
+		rows.append(["Crafter", "Any Worker"])
 	if piece is InstalledFurnitureComponent and piece.storage != null:
 		return {"title": piece.display_name(), "presentation": "storage", "storage": piece.storage, "actions": actions}
 	return {"title": piece.display_name(), "kind": "Furniture plan" if piece is FurnitureGhostComponent else "Furniture",
@@ -1519,6 +1522,9 @@ func perform_explorer_action(object_id: Variant, action_id: String) -> void:
 			cancel_ghost(piece.ghost_id)
 		elif action_id == "build":
 			dev_instant_build(piece.ghost_id)
+	elif action_id == "craft" and piece.furniture_key == "base:furniture:crude_workbench" and not piece.flagged_uninstall:
+		var dock := get_tree().get_first_node_in_group("command_dock")
+		if dock != null: dock.open_crafting("base:recipe:worker:wooden_torch")
 	elif action_id == "uninstall":
 		piece.set_uninstall(not piece.flagged_uninstall)
 	elif action_id == "remove":

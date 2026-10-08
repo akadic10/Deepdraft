@@ -1,0 +1,15 @@
+{
+  "furniture_key": "base:furniture:crude_workbench",
+  "furniture_category": "workshops",
+  "display_name": "Crude Workbench",
+  "description": "A bark-covered stump with an axe-hewn top. Any Worker can craft here from any open side.",
+  "model": "res://assets/models/furniture/crude_workbench.glb",
+  "item_key": "base:resources:furniture:crude_workbench",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "crafting_surface_height": 0.875,
+  "footprint": {"width": 1, "depth": 1},
+  "blocks_movement": true,
+  "collision_regions": [{"min": [0,0,0], "max": [1,1,1]}],
+  "room_anchor": false
+}

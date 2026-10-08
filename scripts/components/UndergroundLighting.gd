@@ -9,7 +9,7 @@ const DIRECTIONS := [Vector3i.LEFT, Vector3i.RIGHT, Vector3i.UP, Vector3i.DOWN, 
 const TILE := 32
 const PAGE_LAYERS := 1024
 const FRAME_BUDGET_USEC := 2500
-var reach := 7
+var reach := 12
 var readability := 0.008
 var _fog_parameters: Dictionary = {}
 var _fog_elapsed := 0.0
@@ -25,6 +25,7 @@ var _table_texture: ImageTexture
 var _dirty_layers: Dictionary = {}
 var _table_dirty := false
 var _material_cache: Dictionary = {}
+var _actor_meshes: Dictionary = {} # weak mesh/actor pairs; no ownership of live agents
 var _phase := "idle"
 var _edits: Array = []
 var _columns: Dictionary = {}
@@ -44,7 +45,7 @@ var max_step_usec := 0
 func _ready() -> void:
 	add_to_group("underground_lighting")
 	var tuning: Dictionary = SkyController.underground_settings()
-	reach = clampi(int(tuning.get("entrance_reach_blocks", 7)), 1, 16)
+	reach = clampi(int(tuning.get("entrance_reach_blocks", 12)), 1, 16)
 	readability = clampf(float(tuning.get("readability_floor", 0.008)), 0, 0.2)
 	_table = Image.create(32,128,false,Image.FORMAT_RF)
 	_table.fill(Color.BLACK)
@@ -92,6 +93,66 @@ func _process(delta: float) -> void:
 		_step()
 	_upload()
 	max_step_usec = maxi(max_step_usec, Time.get_ticks_usec() - start)
+	_sync_actors()
+
+
+## Actors sample one body position, not separate head/hand fragments that can
+## overlap the deliberately daylight-coloured solid slice plates. Check actual
+## terrain first: a clipped body inside rock must never inherit that daylight.
+func actor_sky_at(position: Vector3) -> float:
+	var cell := Vector3i(position.floor())
+	if not _inside(cell): return 1.0
+	var id: int
+	if WorldData.chunk_exists(cell.x>>4,cell.y>>4,cell.z>>4):
+		id = WorldData.get_block(cell.x,cell.y,cell.z)
+	else:
+		id = WorldGenerator.get_generated_block_id(cell.x,cell.y,cell.z)
+	if not BlockRegistry.is_transparent(id): return 0.0
+	var centre := sky_at(cell)
+	if not _samples.has(cell) or centre == 0.0: return centre
+	# Match the shader's air-only interpolation for a smooth entrance transition.
+	var coord := position - Vector3.ONE * .5
+	var base := Vector3i(coord.floor())
+	var fraction := coord - Vector3(base)
+	var total := 0.0
+	var weights := 0.0
+	for x in range(2):
+		for y in range(2):
+			for z in range(2):
+				var neighbor := base + Vector3i(x,y,z)
+				if not _samples.has(neighbor): continue
+				var weight := (fraction.x if x else 1.0-fraction.x) * (fraction.y if y else 1.0-fraction.y) * (fraction.z if z else 1.0-fraction.z)
+				total += sky_at(neighbor) * weight
+				weights += weight
+	return total / weights if weights > .0001 else centre
+
+
+func _bind_actor(mesh: MeshInstance3D) -> void:
+	var material := mesh.get_active_material(0) as ShaderMaterial
+	if material == null or material.shader != SHADER: return
+	var parent := mesh.get_parent()
+	while parent != null and not parent is DwarfAgent: parent = parent.get_parent()
+	if parent == null or mesh.get_viewport() != get_viewport(): return
+	_actor_meshes[mesh.get_instance_id()] = {"mesh":weakref(mesh), "actor":weakref(parent), "last":-2.0}
+
+
+func _sync_actors() -> void:
+	var values: Dictionary = {}
+	for key in _actor_meshes.keys():
+		var entry: Dictionary = _actor_meshes[key]
+		var mesh := entry.mesh.get_ref() as MeshInstance3D
+		var actor := entry.actor.get_ref() as DwarfAgent
+		if mesh == null or actor == null or not actor.is_ancestor_of(mesh) or mesh.get_viewport() != get_viewport():
+			if mesh != null: mesh.set_instance_shader_parameter("actor_sky_access", -1.0)
+			_actor_meshes.erase(key)
+			continue
+		var actor_id := actor.get_instance_id()
+		if not values.has(actor_id):
+			values[actor_id] = actor_sky_at(actor.global_position + Vector3.UP * DwarfAgent.LOGICAL_HEIGHT * .5)
+		var amount: float = values[actor_id]
+		if not is_equal_approx(float(entry.last), amount):
+			mesh.set_instance_shader_parameter("actor_sky_access", amount)
+			entry.last = amount
 
 
 func _sync_fog() -> void:
@@ -347,6 +408,7 @@ func _bind_mesh(mesh: MeshInstance3D) -> void:
 			mesh.material_override = make_material(source)
 			break
 		mesh.set_surface_override_material(surface,make_material(source))
+	_bind_actor(mesh)
 
 
 func _on_node_added(node: Node) -> void:

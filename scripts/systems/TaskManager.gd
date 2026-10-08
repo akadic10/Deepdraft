@@ -185,6 +185,14 @@ func release_dwarf_task(dwarf_id: int, reason: int, requeue_dwarf: bool = true) 
 	_wake_dirty = true
 
 
+## External terrain changes invalidate the agent's current pickup/path as well
+## as its lease. Abort first so carried goods and source reservations are safe.
+func invalidate_dwarf_task(dwarf_id: int) -> void:
+	var agent: DwarfAgent = _agents.get(dwarf_id)
+	if is_instance_valid(agent): agent.abort_task()
+	release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+
+
 ## Permanent failure (target gone, invalid state). Task is removed, not retried.
 func fail_dwarf_task(dwarf_id: int, reason: String) -> void:
 	var task := _take_active(dwarf_id)
@@ -583,9 +591,11 @@ func _apply_backoff(task: Task, now: int) -> void:
 ## Compatible task types for a dwarf. v1: every dwarf takes any economic type
 ## (doc 31: off-profession work runs at x0.7 speed — applied at execution in
 ## step 6). Profession-gated types (FORGE etc., doc 44) refine this later.
-func _types_for(_agent: DwarfAgent) -> Array[int]:
-	return [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
+func _types_for(agent: DwarfAgent) -> Array[int]:
+	var types: Array[int] = [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
 			Task.Type.BREW, Task.Type.FETCH_BUILD, Task.Type.UNINSTALL, Task.Type.FELL_TREE]
+	if agent.profession == "base:profession:worker": types.append(Task.Type.CRAFT)
+	return types
 
 
 func _bucket_priority(type: int, bonus: Dictionary) -> int:

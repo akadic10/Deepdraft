@@ -66,7 +66,7 @@ func _run() -> void:
 	await _settle()
 	_click(catalog._all_toggle.get_global_rect().get_center())
 	await _settle()
-	_expect(catalog._tiles.size() == furniture.get_defs().size(), "all 18 furniture definitions represented")
+	_expect(catalog._tiles.size() == furniture.get_defs().size(), "all furniture definitions represented")
 	for tile: Dictionary in catalog._tiles.values():
 		_expect(tile.image.texture != null, "real model thumbnail exists")
 	_click(catalog._tabs.storage.get_global_rect().get_center())

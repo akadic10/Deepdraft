@@ -54,10 +54,12 @@ var _reserved: Dictionary = {}      # Node3D -> dwarf_id (int)
 ## Read-only inventory accounting for objects between pickup and deposit.
 ## Weak references never own cargo; dwarves/storage keep lifecycle authority.
 var _inventory_transit: Dictionary = {} # instance_id -> WeakRef
+var _unsupported_columns: Dictionary = {} # coalesced terrain edits, never a per-frame scan
 
 
 func _ready() -> void:
 	drop_spawned.connect(func(_key: String): loose_items_changed.emit())
+	WorldData.block_changed.connect(_on_support_changed)
 	add_to_group("item_drop_manager")
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
@@ -184,7 +186,8 @@ func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1) -> vo
 	place_stored(node, cell)
 
 
-## Restores an exact loose item without rest-scanning or random jitter. Also
+## Restores loose goods without random jitter. Old unsupported positions settle
+## onto the current terrain after mining has been restored. Also
 ## used for items that were in transit at snapshot time: tasks are transient,
 ## so those materialize safely at their saved carrier's feet on load.
 func restore_loose_item(item_key: String, restored_position: Vector3,
@@ -197,9 +200,10 @@ func restore_loose_item(item_key: String, restored_position: Vector3,
 		return
 	node.position = restored_position
 	node.rotation.y = rotation_y
-	node.set_meta("base_y", restored_position.y)
+	_settle_item(node)
+	node.set_meta("base_y", node.position.y)
 	node.set_meta("stored", false)
-	node.visible = floori(restored_position.y) <= _slice_y
+	node.visible = floori(node.position.y) <= _slice_y
 	add_child(node)
 	_loose[node] = item_key
 	drop_spawned.emit(item_key)
@@ -514,10 +518,11 @@ func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
 	add_child(node)
 	var jitter := Vector3(randf_range(-0.28, 0.28), 0.0, randf_range(-0.28, 0.28))
 	node.position = Vector3(float(floor_cell.x) + 0.5, float(floor_cell.y + 1), float(floor_cell.z) + 0.5) + jitter
-	node.set_meta("base_y", floor_cell.y + 1)
+	_settle_item(node)
+	node.set_meta("base_y", node.position.y)
 	node.set_meta("stored", false)
 	node.scale = Vector3.ONE
-	node.visible = floor_cell.y + 1 <= _slice_y
+	node.visible = floori(node.position.y) <= _slice_y
 	_loose[node] = key
 	drop_spawned.emit(key)
 
@@ -588,6 +593,40 @@ func release_stored_cells(stacks: Dictionary) -> void:
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────
+
+## A drop can outlive the ledge it originally landed on. Coalesce mining edits
+## and only rest-scan loose items in affected columns; stored/carried goods
+## retain their respective owners. Slicing and streamed mesh changes do nothing.
+func _on_support_changed(pos: Vector3i, old_id: int, new_id: int) -> void:
+	if not BlockRegistry.is_solid(old_id) or BlockRegistry.is_solid(new_id): return
+	if _unsupported_columns.is_empty(): _settle_changed_columns.call_deferred()
+	_unsupported_columns[Vector2i(pos.x, pos.z)] = true
+
+
+func _settle_changed_columns() -> void:
+	var columns := _unsupported_columns
+	_unsupported_columns = {}
+	var moved := false
+	# Releasing a pickup may drop other cargo and mutate the loose index.
+	for node in _loose.keys():
+		if not is_instance_valid(node) or not _loose.has(node): continue
+		if not columns.has(Vector2i(floori(node.position.x), floori(node.position.z))): continue
+		moved = _settle_item(node) or moved
+	if moved: loose_items_changed.emit()
+
+
+func _settle_item(node: Node3D) -> bool:
+	var rest_y := _rest_y(Vector3i(floori(node.position.x), ceili(node.position.y - .001), floori(node.position.z)))
+	if float(rest_y) >= node.position.y - .001: return false
+	# A worker must not complete a reach against the old world transform.
+	if _reserved.has(node):
+		TaskManager.invalidate_dwarf_task(int(_reserved[node]))
+		_reserved.erase(node) # also covers an orphaned claim without a live task
+	node.position.y = rest_y
+	node.set_meta("base_y", rest_y)
+	node.visible = rest_y <= _slice_y
+	return true
+
 
 func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
 	var result: Dictionary = {}
@@ -662,8 +701,7 @@ func _apply_material(node: Node) -> void:
 ## drop hovering at its original mined height with nothing under it —
 ## reported as "floating blocks that were recently mined". A plain downward
 ## scan to bedrock is still O(~100) dictionary/array lookups worst case, and
-## only runs on a drop spawn (already probability-gated), so the extra range
-## costs nothing measurable.
+## runs on spawn/restore or a relevant support change, never every frame.
 func _rest_y(block: Vector3i) -> int:
 	var y := block.y - 1
 	while y > WorldGenerator.BEDROCK_MAX_Y:

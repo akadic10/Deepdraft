@@ -36,6 +36,15 @@
 > adjacent floor cell, and releases safely on interruption. Saved work survives
 > cancellation, sleep, seasonal model changes and reload; task IDs do not.
 
+> **CRAFT live (doc 64, 2026-10-07):** scene-owned `CraftingManager` posts one
+> lease per runnable Worker order at priority 46. `WorkerCraftOrder` owns recipe,
+> quantity, allowed wood and partial progress; it reuses physical fetch/work/
+> set-down and cheap release. Only current Workers receive these starter jobs.
+> First benches are made at the ingredient pickup spot; workshop recipes use
+> any open side of a claimed stump, reconsidered after pickup. The lease's
+> placeholder `target_pos` is not the worksite: routing and inspection use the
+> order's actual `work_cell`. See [64 — Crafting](../00_dev_roadmap/64_worker_crafting.md).
+
 ## Overview
 
 The Task System is a **global asynchronous job queue** that decouples player designations from dwarf agent execution. Players issue high-level orders (mine this zone, haul these goods); the Task System assigns work to available dwarves. Orders are represented as **intent-sized tasks** (zone leases, future item-batch hauls) — the atomic block-level unit of work never exists as a queued Task object (doc 16 §2.1).
@@ -46,7 +55,7 @@ The Task System is a **global asynchronous job queue** that decouples player des
 # scripts/systems/Task.gd — as shipped (doc 16 §2.2)
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 var id:            int           # unique auto-incremented ID
@@ -79,12 +88,16 @@ var _scan_cursor: Dictionary      # Task.Type -> int          (resumable scan po
 
 ## Action Weight Priorities
 
-Default priority values — these may be overridden by the player via the Labor window.
+Static priority values come from `data/tasks/task_config.json`. Player overrides
+through a Labor window remain planned.
 
 | Task Type | Default Priority | Rationale |
 |---|---|---|
 | `MINE` | 50 | Core progression, moderate urgency |
 | `FELL_TREE` | 50 | Player-designated raw timber supply |
+| `CRAFT` | 46 | Worker bench/torch orders; after mining/felling, before placement/hauling |
+| `FETCH_BUILD` | 45 | Install finished furniture |
+| `UNINSTALL` | 40 | Pack marked furniture for storage |
 | `HAUL` | 40 | Keeps workshops fed; slightly less urgent than mining |
 | `FARM` | 35 | Seasonal; deprioritised when food stores are high |
 | `BREW` | 30 | Comfort; deprioritised when drink stocks are sufficient |

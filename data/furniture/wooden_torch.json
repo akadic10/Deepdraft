@@ -1,0 +1,80 @@
+{
+  "__comment": [
+    "Worker-made wooden torch. Lower wooden mount fits a three-block-high starter tunnel.",
+    "Always lit when installed; packed torches are unlit. No profession promotion or fuel system required."
+  ],
+  "furniture_key": "base:furniture:wooden_torch",
+  "furniture_category": "lighting",
+  "display_name": "Wooden Torch",
+  "description": "A split-timber torch in a simple wooden fork. Warm light for the first mining tunnels.",
+  "model": "res://assets/models/furniture/wooden_torch.glb",
+  "item_key": "base:resources:furniture:wooden_torch",
+  "placement": "wall",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 0,
+    "depth": 0
+  },
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false,
+  "wall_mount": {
+    "height_above_floor": 1.5,
+    "bracket_height": 0.875,
+    "bounds_min": [
+      -0.375,
+      0,
+      0
+    ],
+    "bounds_max": [
+      0.25,
+      1.5,
+      0.75
+    ]
+  },
+  "light_source": {
+    "color": "#FFC078",
+    "energy": 1.3,
+    "range": 6.0,
+    "attenuation": 1.2,
+    "position": [
+      0,
+      1.1875,
+      0.8125
+    ],
+    "shadows": true,
+    "emissive_mesh": "torch_flame",
+    "emission_energy": 1.0,
+    "flame_animation": {
+      "model": "res://assets/models/furniture/animations/wall_torch_flame.glb",
+      "frames": [
+        "flame_00",
+        "flame_01",
+        "flame_02",
+        "flame_03",
+        "flame_04",
+        "flame_05",
+        "flame_06",
+        "flame_07"
+      ],
+      "frame_durations": [
+        0.12,
+        0.09,
+        0.1,
+        0.08,
+        0.11,
+        0.09,
+        0.1,
+        0.11
+      ],
+      "speed_variation": 0.12,
+      "light_variation": 0.1,
+      "emission_variation": 0.08,
+      "flicker_frequency_hz": 3.2,
+      "update_hz": 30
+    }
+  },
+  "heat_source": {
+    "heat_units": 150
+  }
+}

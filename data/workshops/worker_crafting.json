@@ -1,0 +1,36 @@
+{
+  "__comment": "Starter Worker recipes. CraftingManager is the single data owner. One raw timber unit per batch; output_count is finished units. Finite order quantities are batches; maintain quantities are spare units. No prior workshop is required to make the first bench.",
+  "max_orders": 64,
+  "recipes": [
+    {
+      "id": "base:recipe:worker:crude_workbench",
+      "name": "Crude workbench",
+      "output_plural": "workbenches",
+      "description": "A rough stump with an axe-hewn top for the colony's first crafts. Workers can make it on clear ground, then haul and install it through Place.",
+      "category": "Workshops",
+      "ingredient_tag": "timber",
+      "default_ingredients": ["base:resources:wood:pine_log"],
+      "ingredient_count": 1,
+      "work_seconds": 8.0,
+      "workshop": "",
+      "output": "base:resources:furniture:crude_workbench",
+      "output_count": 1,
+      "furniture": "base:furniture:crude_workbench"
+    },
+    {
+      "id": "base:recipe:worker:wooden_torch",
+      "name": "Wooden torch",
+      "output_plural": "torches",
+      "description": "Split, charred timber held by a rough wooden wall peg. A simple warm light for the first tunnels; no iron bracket required.",
+      "category": "Lighting",
+      "ingredient_tag": "timber",
+      "default_ingredients": ["base:resources:wood:pine_log"],
+      "ingredient_count": 1,
+      "work_seconds": 6.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:wooden_torch",
+      "output_count": 4,
+      "furniture": "base:furniture:wooden_torch"
+    }
+  ]
+}

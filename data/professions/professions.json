@@ -64,7 +64,7 @@
       "promotes_from": null,
       "status": "active",
 
-      "task_types":          ["HAUL", "CLEAR_RUBBLE", "COLLECT_FLOOR_ITEMS"],
+      "task_types":          ["HAUL", "CLEAR_RUBBLE", "COLLECT_FLOOR_ITEMS", "CRAFT"],
       "fallback_task_types": [],
 
       "room_assignment": null,
@@ -73,7 +73,7 @@
       "experience_levels": [
         {
           "level": 1,
-          "description": "Can haul any item and clear rubble. The backbone of the colony before specialists are trained."
+          "description": "Can haul goods, clear rubble and craft basic benches and wooden torches. No promotion needed."
         },
         {
           "level": 2,

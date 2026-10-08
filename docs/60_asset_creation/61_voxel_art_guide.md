@@ -868,6 +868,15 @@ The model remains static; no open/close animation is added.
 
 ### 5.5 Workshop Props
 
+**Crude Workbench / crafting stump (2026-10-07):** the starter Worker workshop
+is a rough bark-covered stump with visible end grain, axe scars and uneven rim.
+No carpentry joints or metal fittings. `base:furniture:crude_workbench` now uses
+a 1×1 footprint, 0.875-block working top and 1-block maximum height. The 338-voxel
+model uses the existing timber colors, linear vertex colors and baked 0.125
+scale. Packed form remains the shared furniture crate. Workers can craft from
+any open cardinal side. Generator: `tools/generate_worker_crafting.py --only bench`;
+gameplay and validation: [doc 64](../00_dev_roadmap/64_worker_crafting.md).
+
 These are the visual representations of workshop blocks. Path: `res://assets/models/workshops/{workshop_id}.glb`
 
 Workshop props may have a footprint larger than 1×1 — the JSON defines the footprint. All workshop models must fit exactly within their declared footprint.

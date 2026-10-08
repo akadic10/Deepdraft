@@ -872,6 +872,35 @@
     "material_tags": ["wood", "furniture", "stockpile_furniture"]
   },
 
+  "base:resources:furniture:crude_workbench": {
+    "display_name": "Crude Workbench (packed)",
+    "description": "A rough crafting stump packed for installation. Workers can use it from any open side.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 8,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
+  "base:resources:furniture:wooden_torch": {
+    "display_name": "Wooden Torch (packed)",
+    "description": "A wooden torch and fork packed for mounting on a tunnel wall.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 2,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
+
   "base:resources:furniture:wall_torch": {
     "display_name": "Wall Torch (packed)",
     "description": "An iron bracket and unlit wooden torch packed for installation on a wall.",

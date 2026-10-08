@@ -144,8 +144,10 @@ func _run() -> void:
 	piece.storage.restore_inventory({"base:resources:wood:oak_log":3,
 		"base:resources:seed:oak_acorn":27}, items)
 	explorer._refresh_selected()
-	_expect(explorer._row_values[1].text == "5 / 8 slots", "live physical capacity includes two produce crates")
-	_expect("27 × Oak Acorn" in explorer._details.text, "container contents report exact goods")
+	explorer._storage_panel.refresh()
+	_expect("5 / 8 slots" in explorer._storage_panel.info_label.text, "live physical capacity includes two produce crates")
+	_expect(explorer._storage_panel.storage == piece.storage and piece.storage.inventory.get("base:resources:seed:oak_acorn", 0) == 27,
+		"container inspection uses its authoritative contents")
 	explorer._perform_action("uninstall")
 	_expect(piece.flagged_uninstall, "uninstall action preserved")
 	explorer._perform_action("uninstall")
@@ -184,7 +186,8 @@ func _run() -> void:
 	explorer._refresh_selected()
 	_expect(explorer._outline.visible, "outline follows replacement model")
 	if "--capture" in OS.get_cmdline_user_args():
-		await _capture(replacement)
+		await _capture(replacement, "res://tmp/object_explorer_review/cabinet_fix/apple_explorer.png")
+	await _check_cabinet(items, replacement)
 	manager.close("object_explorer")
 	_expect(explorer._provider == null and not explorer._outline.visible, "close clears selection")
 	if failures.is_empty():
@@ -208,6 +211,49 @@ func _build_floor() -> void:
 							for lx in range(16):
 								chunk.blocks[lx + 16 * lz + 256 * ly] = stone
 				world.submit_chunk(cx, cy, cz, chunk)
+
+
+func _check_cabinet(items: Node3D, tree: Node3D) -> void:
+	var panel: StyleBoxFlat = explorer._window.get_theme_stylebox("panel")
+	_expect(panel.border_color == UITheme.CATALOG_GOLD, "all explorer subjects share cabinet chrome")
+	var stone := "base:resources:stone:rough_stone"
+	items.spawn_drop(stone, 1, Vector3i(20, 21, 30))
+	var item: Node3D = items._loose.keys()[-1]
+	for viewport: Vector2i in [Vector2i(960,540), Vector2i(1280,720), Vector2i(2560,1440)]:
+		root.size = viewport
+		_expect(explorer.select_object(items, item), "resource selection uses cabinet")
+		for i in range(6): await process_frame
+		# Refresh after text wrapping has resolved its minimum height.
+		explorer._refresh_selected()
+		for i in range(3): await process_frame
+		var window: UIWindow = explorer._window
+		_expect(window.get_global_rect().end.x <= viewport.x and window.get_global_rect().end.y <= viewport.y,
+			"resource cabinet fits %s" % viewport)
+		_expect(explorer._name_label.text == "Rough Stone" and explorer._row_values[1].text == "1", "live resource facts remain")
+		_expect(explorer._details.is_visible_in_tree(), "resource description remains visible")
+		if "--capture" in OS.get_cmdline_user_args():
+			camera.position = item.position + Vector3(12,14,16)
+			camera.look_at(item.position)
+			await _save_cabinet_capture("rough_stone_%dx%d" % [viewport.x,viewport.y])
+		_expect(explorer.select_object(flora, tree.get_meta("tree_id")), "tree selection uses the same cabinet")
+		for i in range(6): await process_frame
+		explorer._refresh_selected()
+		for i in range(3): await process_frame
+		_expect(window.get_global_rect().end.y <= viewport.y, "tree facts and actions fit %s" % viewport)
+		_expect(explorer._actions.is_visible_in_tree(), "tree actions remain outside the scroll body")
+		if "--capture" in OS.get_cmdline_user_args():
+			var center: Vector3 = flora.get_explorer_bounds(tree.get_meta("tree_id")).get_center()
+			camera.position = center + Vector3(18,13,23)
+			camera.look_at(center)
+			await _save_cabinet_capture("tree_%dx%d" % [viewport.x,viewport.y])
+
+
+func _save_cabinet_capture(label: String) -> void:
+	for i in range(4): await process_frame
+	await RenderingServer.frame_post_draw
+	var folder := "res://tmp/object_explorer_review/cabinet_fix"
+	DirAccess.make_dir_recursive_absolute(folder)
+	root.get_texture().get_image().save_png(folder.path_join(label + ".png"))
 
 
 func _aim_above(position: Vector3) -> void:

@@ -47,7 +47,8 @@
     "PATROL": 60,
     "FETCH_BUILD": 45,
     "UNINSTALL": 40,
-    "FELL_TREE": 50
+    "FELL_TREE": 50,
+    "CRAFT": 46
   },
 
   "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers — the zone posts this many MINE leases.",

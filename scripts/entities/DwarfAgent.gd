@@ -247,6 +247,22 @@ func _process(delta: float) -> void:
 		_process_swinging(delta * WorldClock.speed)
 		return   # swing bob owns the part offsets this frame
 	elif _task_phase == TaskPhase.FETCH_WORKING:
+		var craft := _fetch_source()
+		if craft != null and craft.has_method("advance_craft"):
+			if not bool(craft.call("can_complete_build")):
+				_fetch_fail_release()
+				return
+			var before := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
+			_exec_timer = float(craft.call("advance_craft", delta * WorldClock.speed))
+			var after := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
+			var contact := _craft_pose(craft)
+			# Follow actual axe contact and clamped work progress. A stalled frame
+			# emits at most one hit; resumed work never replays earlier strikes.
+			if floori(after-FellingPose.CONTACT_PHASE) > floori(before-FellingPose.CONTACT_PHASE) \
+					and is_visible_in_tree():
+				WorkFeedback.play_chop(contact,int(craft.get("work_cell").y))
+			if _exec_timer <= 0.0: _begin_fetch_deposit()
+			return
 		_exec_timer -= delta * WorldClock.speed
 		if _exec_timer <= 0.0:
 			_begin_fetch_deposit()
@@ -296,7 +312,7 @@ func receive_task(task_id: int, target_pos: Vector3i) -> void:
 		task.payload.erase("haul_excluded_cells") # one assignment's probe results only
 		_haul_pull_next()
 		return
-	if task != null and task.type == Task.Type.FETCH_BUILD:
+	if task != null and task.type in [Task.Type.FETCH_BUILD, Task.Type.CRAFT]:
 		_fetch_source_id = task.source_id
 		_fetch_begin()
 		return
@@ -382,7 +398,7 @@ func _on_walk_finished(success: bool) -> void:
 		_task_phase = TaskPhase.NONE
 		if success:
 			_task_phase = TaskPhase.FETCH_WORKING
-			_exec_timer = _furniture_time("build_time_s")
+			_exec_timer = _fetch_work_time()
 		else:
 			_fetch_fail_release()
 		return
@@ -1124,7 +1140,7 @@ func _fetch_travel_to_ghost() -> void:
 		return
 	if target == current_cell():
 		_task_phase = TaskPhase.FETCH_WORKING
-		_exec_timer = _furniture_time("build_time_s")
+		_exec_timer = _fetch_work_time()
 	elif walk_to(target):
 		_task_phase = TaskPhase.FETCH_TO_GHOST
 	else:
@@ -1160,6 +1176,25 @@ func _fetch_complete() -> void:
 	current_task_id = -1
 	if finished_id >= 0:
 		TaskManager.complete_dwarf_task(dwarf_id)
+
+
+func _fetch_work_time() -> float:
+	var source := _fetch_source()
+	return float(source.call("remaining_work")) if source != null and source.has_method("remaining_work") else _furniture_time("build_time_s")
+
+
+func _craft_pose(source: RefCounted) -> Vector3:
+	var contact: Vector3 = source.call("work_surface")
+	var toward := contact-global_position
+	rotation.y = atan2(toward.x,toward.z)
+	if is_instance_valid(_fetch_item):
+		var bounds: AABB = _carry_pose.item_bounds(_fetch_item)
+		_fetch_item.global_position = contact-Vector3.UP*bounds.position.y
+		_fetch_item.rotation = Vector3.ZERO
+		contact += Vector3.UP*bounds.size.y
+	if _felling_pose != null:
+		_felling_pose.apply(float(source.get("progress"))/FellingPose.CYCLE_SECONDS,to_local(contact))
+	return contact
 
 
 ## Any fetch failure: Rule 12 teardown + release with backoff.

@@ -7,8 +7,8 @@ func _capture_inspector() -> void:
 	await super._capture_inspector()
 	var dock = scene.get_node("Dock")
 	dock._mining_controller._hint_window.hide()
-	_expect(dock._button_by_target.keys() == ["orders", "zones", "rooms", "place", "colony", "stocks", "system"],
-		"Rooms has its own named dock entry next to Zones")
+	_expect(dock._button_by_target.keys() == ["orders", "zones", "rooms", "place", "craft", "colony", "stocks", "system"],
+		"Rooms and Craft have dedicated named dock entries")
 	var rooms = load("res://scripts/systems/RoomOverlayController.gd").new()
 	rooms.dock_ui_path = NodePath("../Dock")
 	rooms.window_manager_path = NodePath("../Windows")
@@ -120,7 +120,7 @@ func _capture_inspector() -> void:
 		_expect(is_equal_approx(dock._dock_panel.get_global_rect().get_center().x, viewport_size.x * 0.5),
 			"bottom navigation stays centered after resizing")
 		_expect(Rect2(Vector2.ZERO, Vector2(viewport_size)).encloses(dock._dock_panel.get_global_rect()),
-			"all seven dock entries fit at " + str(viewport_size))
+			"all eight dock entries fit at " + str(viewport_size))
 		explorer.clear_selection()
 		for target in ["colony", "system"]:
 			dock._close_action_panel()

@@ -29,7 +29,12 @@ SaveManager
 
 > **Not autoloads:** `WorldRenderer`, `Camera`, `SurfaceFloraSpawner`, `SliceController`, `ItemDropManager`, the designation/placement controllers, `RoomOverlayController` (🚪 Rooms tool, 2026-08-07), and `DwarfDirector` are **scene nodes** in `scenes/main/debug_world.tscn`, not singletons. Do not reference them as autoloads. `Chunk`, `ChunkMesher`, `Task`, `MiningZoneComponent`, and `DwarfFactory` are plain classes (`class_name`), not autoloads either. The dividing line (doc 16 decision): **simulation state = autoload, presentation = scene node.**
 
+The scene also owns `CraftingManager` (2026-10-07), the recipe loader and save
+owner for Worker orders. It depends on the scene's items/furniture owners and
+registers transient work sources with TaskManager. See [Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
+
 ### `BlockRegistry`
+
 Parses and holds the data-driven block definitions and seasonal surface palettes. Provides fast `StringName` ↔ runtime-int translation and per-season block colours.
 
 ```gdscript
@@ -247,6 +252,8 @@ the current slice height. No world or yield RNG is consumed. `set_volume_db()`
 and `set_muted()` control the work bus; a general audio settings UI is future work.
 
 Chop and pick events originate at the dwarf's animation contact crossing.
+Worker crafting reuses the wood-chop bank at axe contact, with its order's
+clamped work progress driving timing across interruptions (see doc 64).
 Mining reservations route impacts through their controller, which supplies the
 struck face's visible material without revealing concealed resources. Completion
 effects originate only from committed felling/mining paths, with material and

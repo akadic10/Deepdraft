@@ -1,5 +1,16 @@
 # 44 — Crafting Workshops
 
+**Implemented starter crafting (2026-10-07):** Workers can make a crude workbench
+without an existing workshop, install it, then craft batches of wooden torches.
+The bench is a rough 1×1 stump usable from any open cardinal side. Its first
+packed form is crafted at the timber pickup spot; the settlement flag is not a
+workshop. Both recipes use axe animation and contact-timed wood sounds.
+The Craft cabinet supports finite batches, spare-stock targets and per-order
+allowed wood, defaulting to Pine without automatic substitution. See
+[64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md) for recipes,
+physical ownership, saving and verification. The specialist metalworking and
+carpentry chains below remain design specifications, not live conversion systems.
+
 ## Overview
 
 The colony's metalworking chain converts raw ore into the tools, weapons, and armour that keep the settlement alive and defended. It operates in two stages: the **Smelter** refines ore into ingots, and the **Forge** turns ingots into finished goods. Both buildings are operated by the **Blacksmith** profession and its two specialisations — **Weaponsmith** and **Armorsmith**.

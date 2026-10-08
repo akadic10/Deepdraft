@@ -47,6 +47,8 @@ var _place_catalog: FurniturePlacePanel
 var _place_window: UIWindow
 var _inventory_panel: Control
 var _inventory_window: UIWindow
+var _craft_panel: Control
+var _craft_window: UIWindow
 var _mining_controller: Node = null
 var _room_controller: Node = null
 var _chop_controller: Node = null
@@ -124,6 +126,7 @@ func _ready() -> void:
 	_orders.fit_above_dock(_dock_panel.get_global_rect())
 	_build_persistence_toast()
 	tool_requested.connect(func(id: String):
+		if _craft_window != null: _window_manager.close("craft")
 		if _inventory_window != null: _window_manager.close("inventory")
 		if id != "furniture" and _place_window != null:
 			_window_manager.close("place"))
@@ -241,6 +244,7 @@ func _position_dock() -> void:
 		viewport_size.y - DOCK_BOTTOM_MARGIN - _dock_panel.size.y)
 	if _place_catalog != null: _place_catalog.fit_above_dock(_dock_panel.position.y)
 	if _inventory_panel != null: _inventory_panel.fit_above_dock(_dock_panel.position.y)
+	if _craft_panel != null: _craft_panel.fit_above_dock(_dock_panel.position.y)
 	if _orders != null: _orders.fit_above_dock(_dock_panel.get_global_rect())
 
 
@@ -356,6 +360,11 @@ func _close_action_panel() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
+			and _craft_window != null and _craft_window.visible:
+		_window_manager.close("craft")
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
 			and _inventory_window != null and _inventory_window.visible:
 		_window_manager.close("inventory")
 		get_viewport().set_input_as_handled()
@@ -463,6 +472,11 @@ func _dispatch(action: String, target: String) -> void:
 
 
 func _open_action_panel(target: String) -> void:
+	if target == "craft":
+		if _craft_window != null and _craft_window.visible: _window_manager.close("craft")
+		else: open_crafting()
+		return
+	if _craft_window != null: _window_manager.close("craft")
 	if _target_canvas_visible("rooms"):
 		tool_requested.emit("")
 	if target == "stocks":
@@ -778,6 +792,8 @@ func _refresh_active_buttons() -> void:
 		_button_by_target.place.button_pressed = _place_window != null and _place_window.visible
 	if _button_by_target.has("stocks"):
 		_button_by_target.stocks.button_pressed = _inventory_window != null and _inventory_window.visible
+	if _button_by_target.has("craft"):
+		_button_by_target.craft.button_pressed = _craft_window != null and _craft_window.visible
 	if _button_by_target.has("rooms"):
 		_button_by_target.rooms.button_pressed = _target_canvas_visible("rooms")
 	if _orders != null:
@@ -890,6 +906,38 @@ func register_furniture_controller(controller: Node) -> void:
 	_place_catalog.bind_controller(controller)
 	_place_catalog.place_requested.connect(_start_catalog_placement)
 	_place_catalog.fit_above_dock(_dock_panel.position.y)
+
+
+func register_crafting_controller(controller: Node) -> void:
+	if _window_manager == null or _craft_panel != null: return
+	_craft_panel = preload("res://scripts/ui/WorkerCraftingPanel.gd").new()
+	_craft_window = _window_manager.register_window("craft", "Worker crafting", "", _craft_panel,
+		{"persistent":false,"default_pos":Vector2(24,76)})
+	_craft_window.keep_body_on_screen = true
+	UITheme.apply_catalog_window(_craft_window)
+	_craft_panel.window = _craft_window
+	_craft_panel.bind_controller(controller)
+	_craft_panel.place_requested.connect(func(key: String):
+		_window_manager.close("craft")
+		_window_manager.open("place")
+		_place_catalog.show_all = true
+		_place_catalog._all_toggle.set_pressed_no_signal(true)
+		_place_catalog.category = "all"
+		_place_catalog.selected_key = key
+		_start_catalog_placement(key))
+	_craft_panel.fit_above_dock(_dock_panel.position.y)
+	if _place_catalog != null: controller.changed.connect(_place_catalog.refresh)
+
+
+func open_crafting(recipe_id := "") -> void:
+	if _craft_window == null: return
+	_close_action_panel()
+	if _orders != null: _orders.set_open(false)
+	tool_requested.emit("")
+	_window_manager.open("craft")
+	if not recipe_id.is_empty(): _craft_panel.select_recipe(recipe_id)
+	_craft_panel.refresh()
+	_craft_panel.fit_above_dock(_dock_panel.position.y)
 
 
 func _open_place_catalog() -> void:

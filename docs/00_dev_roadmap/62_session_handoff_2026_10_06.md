@@ -1,5 +1,9 @@
 # 62 — Session handoff: 2026-10-06
 
+**Superseded by [65 — 2026-10-07](65_session_handoff_2026_10_07.md).** The seven-entry
+dock, seven-block entrance reach and crafting-as-future status below describe
+the end of this earlier session; use the newer handoff for current behavior.
+
 The player accepted the latest room-darkness result and ended the session.
 This is the current starting point, superseding the navigation and next steps in
 [58 — Previous handoff](58_session_handoff_2026_10_05.md). No next feature has been

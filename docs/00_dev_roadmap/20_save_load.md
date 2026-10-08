@@ -59,6 +59,7 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
     "furniture": {},
     "items": {},
     "dwarves": {},
+    "worker_crafting": {},
     "camera": {},
     "slice": {}
   }
@@ -93,11 +94,21 @@ priority so dependencies exist before consumers restore.
 | 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces, yaw, uninstall flags, and container inventories |
 | 50 | `items` | `ItemDropManager` | Loose item keys, positions, and yaw |
 | 60 | `dwarves` | `DwarfDirector` | Roster identity/appearance, profession data, position, sleep state, and carried item keys |
+| 70 | `worker_crafting` | `CraftingManager` | Ordered recipes, quantities/mode, pause state, partial work and allowed-ingredient keys |
 | 70 | `camera` | `Camera` | Target position, zoom, pitch, and orbit |
 | 80 | `slice` | `SliceController` | Active/seeded state, current plane, and last manual plane |
 
 Section keys must be unique. A new scene-owned system must document both its priority and
 why its state is authoritative rather than seed-derived or transient.
+
+**Worker crafting (2026-10-07):** `worker_crafting` restores after furniture,
+items and dwarves; it has no dependency on the same-priority camera owner.
+Tasks, item/bench claims and work positions rebuild. Carried timber remains owned
+by the dwarf snapshot until restored as loose goods. Missing crafting sections
+mean an empty queue; old orders without `allowed_ingredients` adopt Pine, while
+explicit empty/invalid lists remain empty. The smaller stump retains existing
+furniture/item keys and placement origins, so old benches release their extra
+footprint tile on load. See [64 — Worker crafting](64_worker_crafting.md).
 
 ---
 
@@ -165,7 +176,8 @@ paths.
 | Ground stockpiles and stored contents | Navigation walkability/path caches |
 | Furniture ghosts, installed pieces, uninstall flags, container inventories | `PlacedEntityRegistry` occupancy index |
 | Loose and in-transit item identity | `InteriorTracker` regions |
-| Camera and slice state | Active executor phase and partial work timers |
+| Crafting order settings and partial recipe work | Crafting worker/item/bench claims, work positions and audio |
+| Camera and slice state | Active executor phase and transient animation timers |
 
 The task assignment visible immediately after loading may differ from the moment of saving;
 that is intentional because tasks are reconstructed. The act of **saving**, however, leaves

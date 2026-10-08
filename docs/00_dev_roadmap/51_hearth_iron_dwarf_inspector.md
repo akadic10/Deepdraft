@@ -5,6 +5,14 @@ chose Hearth & iron and asked to begin with dwarf selection and inspection.
 
 ## Player experience
 
+**Crafting follow-up (2026-10-07):** current activity distinguishes crafting
+from furniture installation. Pickup names the timber and its location; carrying,
+working and set-down use the order's actual crafting spot or claimed stump stand.
+The prior `X 0 · Z 0 · Level 0` display was the scheduler's placeholder, not a
+world destination. Inspection only reads the worksite and never reroutes work.
+Coverage: `WorkerCraftingTest` and `DwarfInspectorTest` in
+`tmp/worker_crafting_review/pickup_site/`. See [64](64_worker_crafting.md).
+
 - Click a visible dwarf to open the shared context inspector. Its portrait uses
   that dwarf's head, hair, beard, skin and clothing. Name and profession are live
   identity fields, not sample values.

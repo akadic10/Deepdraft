@@ -1,6 +1,6 @@
 {
   "underground": {
-    "entrance_reach_blocks": 7,
+    "entrance_reach_blocks": 12,
     "readability_floor": 0.008
   },
   "__comment": [

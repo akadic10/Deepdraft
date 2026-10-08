@@ -253,6 +253,28 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D:
 	return null
 
 
+## Crafting may permit several species. Choose a nearby unclaimed stored unit
+## across the allowed keys instead of treating key sorting as a wood preference.
+func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) -> Node3D:
+	var candidates: Array[Dictionary] = []
+	for source: StorageComponent in _zones.values() + _containers.values():
+		if source is ContainerStorageComponent and source.suspended: continue
+		var entries := source.stored_entries()
+		for slot in entries:
+			var stack: Dictionary = entries[slot]
+			var key := String(stack.item)
+			if key not in keys or int(stack.count) <= int(source._outgoing.get(slot,{}).get("count",0)): continue
+			var delta := source.slot_cell(slot)-near
+			var distance := absi(delta.x)+absi(delta.y)+absi(delta.z)
+			candidates.append({"source":source,"slot":slot,"distance":distance})
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary): return a.distance < b.distance)
+	for candidate in candidates:
+		# An unavailable pickup location must not hide other permitted timber.
+		var item: Node3D = candidate.source.withdraw_stack(candidate.slot,1,dwarf_id)
+		if item != null: return item
+	return null
+
+
 func is_registered(storage: StorageComponent) -> bool:
 	return _zones.get(storage.source_id) == storage or _containers.get(storage.source_id) == storage
 

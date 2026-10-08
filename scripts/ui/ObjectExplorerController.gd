@@ -240,36 +240,49 @@ func _refresh_selected() -> void:
 
 
 func _build_window() -> void:
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
 	var root_content := VBoxContainer.new()
 	root_content.add_theme_constant_override("separation", 0)
+	margin.add_child(root_content)
 	var content := VBoxContainer.new()
 	_standard_content = content
 	root_content.add_child(content)
 	content.custom_minimum_size.x = 352.0
 	content.add_theme_constant_override("separation", 10)
-	_name_label = Label.new()
-	UITheme.apply_title(_name_label, 19)
-	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	content.add_child(_name_label)
+	var identity := PanelContainer.new()
+	identity.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
+	content.add_child(identity)
+	var heading := VBoxContainer.new()
+	heading.add_theme_constant_override("separation", 5)
+	identity.add_child(heading)
 	_kind_label = Label.new()
-	_kind_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
-	_kind_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
-	content.add_child(_kind_label)
-	content.add_child(HSeparator.new())
-	_rows = VBoxContainer.new()
-	_rows.add_theme_constant_override("separation", 0)
-	content.add_child(_rows)
+	_kind_label.add_theme_font_size_override("font_size", 11)
+	_kind_label.add_theme_color_override("font_color", UITheme.HEARTH_COPPER)
+	heading.add_child(_kind_label)
+	_name_label = Label.new()
+	UITheme.apply_title(_name_label, 26)
+	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	heading.add_child(_name_label)
 	var scroll := ScrollContainer.new()
 	_standard_details_scroll = scroll
-	scroll.custom_minimum_size.y = 112.0
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.mouse_force_pass_scroll_events = false
 	content.add_child(scroll)
+	var body := VBoxContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 14)
+	scroll.add_child(body)
+	_rows = VBoxContainer.new()
+	_rows.add_theme_constant_override("separation", 0)
+	body.add_child(_rows)
 	_details = Label.new()
 	_details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 	_details.add_theme_color_override("font_color", UITheme.TEXT_DIM)
-	scroll.add_child(_details)
+	body.add_child(_details)
 	_actions = VBoxContainer.new()
 	content.add_child(_actions)
 	_dwarf_panel = DwarfPanel.new()
@@ -280,9 +293,12 @@ func _build_window() -> void:
 	_storage_panel.visible = false
 	_storage_panel.action_requested.connect(_perform_action)
 	root_content.add_child(_storage_panel)
-	_window = _manager.register_window(WINDOW_ID, "Object explorer", "", root_content,
+	_window = _manager.register_window(WINDOW_ID, "Object explorer", "", margin,
 		{"persistent": false, "default_pos": Vector2(24, 150), "min_size": Vector2(380, 0)})
+	UITheme.apply_catalog_window(_window)
+	_window.keep_body_on_screen = true
 	_storage_panel.window = _window
+	get_viewport().size_changed.connect(_refresh_selected)
 
 
 func _refresh(data: Dictionary) -> void:
@@ -291,7 +307,6 @@ func _refresh(data: Dictionary) -> void:
 	_standard_content.visible = not is_dwarf and not is_storage
 	_dwarf_panel.visible = is_dwarf and not is_instance_valid(_dwarf_host)
 	_storage_panel.visible = is_storage
-	_window.keep_body_on_screen = is_dwarf or is_storage
 	_window.custom_minimum_size.x = 380
 	_window.set_window_title("DWARF INSPECTOR" if is_dwarf else "Object explorer")
 	if is_storage:
@@ -315,7 +330,7 @@ func _refresh(data: Dictionary) -> void:
 		return
 	_outline_subject = null
 	_name_label.text = String(data.get("title", "Object"))
-	_kind_label.text = String(data.get("kind", ""))
+	_kind_label.text = String(data.get("kind", "")).to_upper()
 	var rows: Array = data.get("rows", [])
 	var names: Array[String] = []
 	for row: Array in rows:
@@ -347,7 +362,9 @@ func _refresh(data: Dictionary) -> void:
 		_row_values[i].text = String(rows[i][1])
 		_row_values[i].tooltip_text = String(rows[i][1])
 	_details.text = String(data.get("details", ""))
+	_details.visible = not _details.text.is_empty()
 	var actions: Array = data.get("actions", [])
+	_actions.visible = not actions.is_empty()
 	if actions != _action_data:
 		_action_data = actions.duplicate(true)
 		for child in _actions.get_children():
@@ -358,10 +375,10 @@ func _refresh(data: Dictionary) -> void:
 			button.pressed.connect(_perform_action.bind(String(action["id"])))
 			_actions.add_child(button)
 	_update_outline(_provider.call("get_explorer_bounds", _object_id))
-	# Keep the default compact inspector above the centered command dock. Only
-	# the supplemental description scrolls; stable tree rows and actions remain.
+	# The facts and description scroll together; identity and actions stay in view.
 	var fixed_height := _window.get_combined_minimum_size().y - _standard_details_scroll.get_combined_minimum_size().y
-	_standard_details_scroll.custom_minimum_size.y = clampf(get_viewport().get_visible_rect().size.y - 152 - fixed_height, 32, 112)
+	var body_height: float = _standard_details_scroll.get_child(0).get_combined_minimum_size().y
+	_standard_details_scroll.custom_minimum_size.y = clampf(body_height, 80, maxf(80, minf(300, get_viewport().get_visible_rect().size.y - 152 - fixed_height)))
 	_window.reset_size()
 	_position_inspector()
 
@@ -398,4 +415,4 @@ func _update_outline(bounds: AABB) -> void:
 	if local_bounds == _outline_bounds:
 		return
 	_outline_bounds = local_bounds
-	_outline.mesh = Picking.outline_mesh(local_bounds.grow(.05), UITheme.HEARTH_COPPER if is_instance_valid(_outline_subject) else Color(.65, .85, 1.0))
+	_outline.mesh = Picking.outline_mesh(local_bounds.grow(.05), UITheme.HEARTH_COPPER)

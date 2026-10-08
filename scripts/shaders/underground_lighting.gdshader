@@ -4,6 +4,9 @@ render_mode cull_disabled, specular_disabled;
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool vertex_color = true;
 uniform float readability_floor = 0.008;
+// Live actors share one body sample, including attached tools/carried meshes.
+// Negative means ordinary world-space terrain/prop sampling.
+instance uniform float actor_sky_access = -1.0;
 uniform bool scene_fog_enabled = false;
 uniform float fog_density = 0.0;
 uniform bool fog_depth_mode = true;
@@ -93,7 +96,7 @@ void vertex() {
 }
 
 void fragment() {
-    sky_access = exposure(world_position+world_normal*0.04);
+    sky_access = actor_sky_access >= 0.0 ? actor_sky_access : exposure(world_position+world_normal*0.04);
     ALBEDO = tint.rgb*(vertex_color ? COLOR.rgb : vec3(1.0));
     ROUGHNESS = 1.0;
     SPECULAR = 0.0;

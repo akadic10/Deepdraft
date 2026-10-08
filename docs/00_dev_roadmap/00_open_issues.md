@@ -8,6 +8,38 @@
 
 ---
 
+## Issue 002 — Dwarves overlap unmined mining-designation cells · **PARKED** · reported 2026-10-07
+
+**Observed.** At a shallow tunnel face in slice view, a dwarf appears inside the
+still-unmined portion of a yellow mining designation. That dwarf is much brighter
+than nearby dwarves inside mined air. The screenshot alone does not establish
+whether the logical body crossed the wall or only its visual/animated parts did.
+
+**Lighting resolved separately.** The native `TunnelEntranceTest` deliberately
+places a dwarf inside a still-solid designated cell and reproduces the daylight
+fallback. Body-sampled actor lighting fixes the brightness without changing
+movement. See [24 — Rendering](../20_player_interface/24_world_rendering.md).
+
+**Navigation assessment.** This is a separate, moderate movement investigation,
+not a collision-mask toggle. `DwarfAgent._follow_path()` assigns positions
+directly; it does not call `move_and_slide()` or perform a physics sweep.
+`_advance_shortcut()` tests lines from `current_cell()`'s center even when the
+actor is between centers. `NavGrid.line_walkable_flat()` samples at 0.25-block
+intervals with a 0.3-block side margin, while the logical body is 1x1x3. Wider
+cosmetic meshes and work animation can also overlap a face from a legal stand.
+These are hypotheses from code inspection; the player's exact movement route
+has not been reproduced, and no navigation fix is claimed.
+
+**Next pass.** Capture actor position, floor cell, current waypoint, shortcut
+origin and the physical three-cell clearance while reproducing a turn at a
+partially mined face. Separate cosmetic overlap from an invalid logical body.
+If smoothing is responsible, validate the actual-position swept footprint and
+live waypoint clearance, then cover narrow passages, corners, one-block steps,
+mined floors and task interruption before changing production movement. Keep
+the three-block clearance rule and cheap task-release contract intact.
+
+---
+
 ## Issue 001 — Dwarf idles beside available work; unstuck by an unrelated zone completion · **OPEN** · reported 2026-08-14 (Alen, playtest, two screenshots)
 
 **2026-10-06 follow-up:** [60 — Hauling worker selection](60_hauling_worker_selection.md)

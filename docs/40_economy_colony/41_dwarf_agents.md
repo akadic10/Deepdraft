@@ -15,6 +15,14 @@
 
 ## Overview
 
+2026-10-07 Worker crafting: current Workers can make the first crude workbench
+beside collected timber, then craft torches at the installed stump from any open
+side. They reuse physical pickup/carry/set-down, the two-handed axe pose and
+contact-synchronized wood sounds. Partial recipe work belongs to the order;
+interruptions return the unconsumed log. Inspection reports the actual crafting
+destination. Carpenter promotion and profession progression remain future work.
+See [64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
+
 2026-10-05 inspection and roster: visible dwarves have a portrait, live work/rest
 and cargo readouts in the shared inspector. **Colony → Dwarves** adds a stable
 overview with name search, work/rest filters and Locate; selecting a row opens

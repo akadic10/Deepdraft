@@ -17,6 +17,8 @@
 [ext_resource type="Script" path="res://scripts/ui/ObjectExplorerController.gd" id="15_explorer"]
 [ext_resource type="Script" path="res://scripts/systems/TreeFellingController.gd" id="16_felling"]
 
+[ext_resource type="Script" path="res://scripts/systems/CraftingManager.gd" id="17_crafting"]
+
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
 sky_horizon_color = Color(0.62, 0.68, 0.74, 1)
@@ -115,6 +117,9 @@ window_manager_path = NodePath("../UIWindowManager")
 script = ExtResource("12_furniture")
 dock_ui_path = NodePath("../DockUI")
 slice_controller_path = NodePath("../SliceController")
+
+[node name="CraftingManager" type="Node" parent="."]
+script = ExtResource("17_crafting")
 
 [node name="RoomOverlayController" type="Node3D" parent="."]
 script = ExtResource("13_rooms")
