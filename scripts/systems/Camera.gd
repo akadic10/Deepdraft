@@ -402,6 +402,13 @@ func _handle_drag() -> void:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+func focus_world_position(world_position: Vector3, distance: float = 100.0) -> void:
+	stop_following()
+	_target_pos = world_position
+	global_position = world_position
+	_target_zoom = clampf(distance, _zoom_min, _zoom_max)
+	if spring_arm: spring_arm.spring_length = _target_zoom
+
 func save_section_key() -> String:
 	return "camera"
 

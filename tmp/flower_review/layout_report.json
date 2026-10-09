@@ -1,0 +1,245 @@
+{
+	"failures": [],
+	"seeds": [
+		{
+			"accepted": 2203,
+			"categories": {
+				"blueberry": 269,
+				"boulder": 81,
+				"elderberry": 318,
+				"flowers": 914,
+				"scree": 205,
+				"wild_strawberry": 416
+			},
+			"fingerprint": "64ef73dfc6863365af174e0f78bec5eabc36b519bbf912fb860c85b239d7060c",
+			"layout_ms": 431.027,
+			"lowland": 41,
+			"rejections": {
+				"cliff_falloff": 161,
+				"cliff_foot": 3467,
+				"density": 16649,
+				"detail_overlap": 176,
+				"edge": 859,
+				"ground": 1201,
+				"height": 6278,
+				"moisture": 3596,
+				"shelf": 400,
+				"tree": 1189,
+				"water": 103
+			},
+			"scree": 205,
+			"seed": 0,
+			"upland": 40
+		},
+		{
+			"accepted": 2185,
+			"categories": {
+				"blueberry": 281,
+				"boulder": 83,
+				"elderberry": 301,
+				"flowers": 835,
+				"scree": 183,
+				"wild_strawberry": 502
+			},
+			"fingerprint": "b28c0c7a701833f05aeed7d07ac0683c735c97dbf910dd801759741434a42877",
+			"layout_ms": 444.678,
+			"lowland": 37,
+			"rejections": {
+				"cliff_falloff": 160,
+				"cliff_foot": 3355,
+				"density": 16748,
+				"detail_overlap": 168,
+				"edge": 864,
+				"ground": 1226,
+				"height": 6507,
+				"moisture": 3375,
+				"shelf": 464,
+				"tree": 1170,
+				"water": 60
+			},
+			"scree": 183,
+			"seed": 1,
+			"upland": 46
+		},
+		{
+			"accepted": 2144,
+			"categories": {
+				"blueberry": 290,
+				"boulder": 64,
+				"elderberry": 294,
+				"flowers": 850,
+				"scree": 227,
+				"wild_strawberry": 419
+			},
+			"fingerprint": "413ebb0e14a24b38dc544a30daed208f4e1bf9a4f54171449eb10c70dfe95877",
+			"layout_ms": 466.357,
+			"lowland": 28,
+			"rejections": {
+				"cliff_falloff": 180,
+				"cliff_foot": 3379,
+				"density": 16849,
+				"detail_overlap": 144,
+				"edge": 860,
+				"ground": 1398,
+				"height": 6401,
+				"moisture": 3201,
+				"shelf": 462,
+				"tree": 1198,
+				"water": 66
+			},
+			"scree": 227,
+			"seed": 2,
+			"upland": 36
+		},
+		{
+			"accepted": 2330,
+			"categories": {
+				"blueberry": 180,
+				"boulder": 76,
+				"elderberry": 400,
+				"flowers": 974,
+				"scree": 180,
+				"wild_strawberry": 520
+			},
+			"fingerprint": "94f946324f89c5e91ba1147dacb4fa3756e7695dad894149b8a10fac83567c4a",
+			"layout_ms": 487.185,
+			"lowland": 48,
+			"rejections": {
+				"cliff_falloff": 154,
+				"cliff_foot": 3518,
+				"density": 17554,
+				"detail_overlap": 185,
+				"edge": 855,
+				"ground": 765,
+				"height": 5956,
+				"moisture": 3278,
+				"shelf": 398,
+				"tree": 1240,
+				"water": 49
+			},
+			"scree": 180,
+			"seed": 7,
+			"upland": 28
+		},
+		{
+			"accepted": 2148,
+			"categories": {
+				"blueberry": 337,
+				"boulder": 62,
+				"elderberry": 345,
+				"flowers": 793,
+				"scree": 208,
+				"wild_strawberry": 403
+			},
+			"fingerprint": "c2889b0a3bddd76c44e34df1d60fba814bf7eb49280a61e2131dae9d87c7c1ea",
+			"layout_ms": 467.154,
+			"lowland": 20,
+			"rejections": {
+				"cliff_falloff": 172,
+				"cliff_foot": 3452,
+				"density": 16626,
+				"detail_overlap": 159,
+				"edge": 858,
+				"ground": 1335,
+				"height": 6455,
+				"moisture": 3309,
+				"shelf": 507,
+				"tree": 1187,
+				"water": 74
+			},
+			"scree": 208,
+			"seed": 42,
+			"upland": 42
+		},
+		{
+			"accepted": 2127,
+			"categories": {
+				"blueberry": 275,
+				"boulder": 58,
+				"elderberry": 368,
+				"flowers": 804,
+				"scree": 192,
+				"wild_strawberry": 430
+			},
+			"fingerprint": "5065bbeb3fc63745bdf754e3946d112fde1298f9829b7896371c595463e1690b",
+			"layout_ms": 466.031,
+			"lowland": 22,
+			"rejections": {
+				"cliff_falloff": 193,
+				"cliff_foot": 3322,
+				"density": 16708,
+				"detail_overlap": 188,
+				"edge": 868,
+				"ground": 1060,
+				"height": 6426,
+				"moisture": 3566,
+				"shelf": 476,
+				"tree": 1228,
+				"water": 120
+			},
+			"scree": 192,
+			"seed": 1234,
+			"upland": 36
+		},
+		{
+			"accepted": 2284,
+			"categories": {
+				"blueberry": 247,
+				"boulder": 77,
+				"elderberry": 398,
+				"flowers": 908,
+				"scree": 140,
+				"wild_strawberry": 514
+			},
+			"fingerprint": "180c7ea49367ed3f54c6b822bee6cfe1f524503c2026d6dc62043d6beb650c4a",
+			"layout_ms": 504.827,
+			"lowland": 33,
+			"rejections": {
+				"cliff_falloff": 127,
+				"cliff_foot": 3671,
+				"density": 17227,
+				"detail_overlap": 185,
+				"edge": 868,
+				"ground": 1099,
+				"height": 6279,
+				"moisture": 2947,
+				"shelf": 321,
+				"tree": 1217,
+				"water": 57
+			},
+			"scree": 140,
+			"seed": 65535,
+			"upland": 44
+		},
+		{
+			"accepted": 2275,
+			"categories": {
+				"blueberry": 226,
+				"boulder": 51,
+				"elderberry": 385,
+				"flowers": 933,
+				"scree": 170,
+				"wild_strawberry": 510
+			},
+			"fingerprint": "40ebe3a39e83f172fbc568186cee0abd51748c64bd16375fe1922e8dfc323226",
+			"layout_ms": 493.466,
+			"lowland": 27,
+			"rejections": {
+				"cliff_falloff": 135,
+				"cliff_foot": 3584,
+				"density": 17320,
+				"detail_overlap": 190,
+				"edge": 862,
+				"ground": 996,
+				"height": 6130,
+				"moisture": 2997,
+				"shelf": 412,
+				"tree": 1314,
+				"water": 67
+			},
+			"scree": 170,
+			"seed": 20261007,
+			"upland": 24
+		}
+	]
+}

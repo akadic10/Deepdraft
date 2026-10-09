@@ -1,0 +1,35 @@
+{
+  "profile_id": "macro_layout_v1",
+  "status": "active",
+  "algorithm_version": 1,
+  "macro_size": 32,
+  "macro_count": 32,
+  "shelf_tops": [19, 27, 35, 43, 55, 67, 79, 91, 103, 115],
+  "max_attempts": 8,
+  "edge_detail": {"foothill_depth": 2, "mountain_depth": 3, "shore_depth": 3},
+  "primary": {
+    "anchor_margin": 7,
+    "ridge_length_min": 5,
+    "ridge_length_max": 11,
+    "summit_expansion_chance": 0.3,
+    "shoulders_min": 1,
+    "shoulders_max": 3,
+    "shoulder_size_min": 3,
+    "shoulder_size_max": 5
+  },
+  "secondary": {"count_min": 1, "count_max": 3, "rank_min": 2, "rank_max": 6},
+  "requirements": {
+    "min_summit_cells": 1,
+    "min_connected_mountain_cells": 128,
+    "min_cells_per_mountain_shelf": 4,
+    "min_connected_dry_lowland_cells": 205
+  },
+  "lowland_lake": {
+    "min_cells": 12,
+    "max_cells": 32,
+    "coastal_chance": 0.45,
+    "floor_y": 11,
+    "waterline_y": 18
+  },
+  "mountain_tarn": {"chance": 0.7, "floor_y": 47, "waterline_y": 54}
+}

@@ -29,9 +29,8 @@ extends RefCounted
 ## a claim is an ItemDropManager reservation under claim_owner_id(), so every
 ## hauler scan (unreserved-only) skips it. reserve_fetch hands the claim to
 ## the fetching dwarf; cancel_fetch re-claims on release; the controller
-## releases the claim on ghost teardown. Items already inside a pouch when
-## the ghost is placed remain the residual (unavoidable) delay: they become
-## claimable only after the hauler deposits or drops them.
+## releases the claim on ghost teardown. Confirmed placement may interrupt a
+## storage haul; already-carried single objects continue with their carrier.
 
 var ghost_id: int = -1
 var furniture_key: String = ""      # base:furniture:* (namespaced — Hard Rule 3)
@@ -47,6 +46,8 @@ var drop_manager: Node3D = null     # ItemDropManager (guard is_instance_valid)
 var install_callback: Callable = Callable()   # (ghost) -> controller install path
 var build_valid_callback: Callable = Callable() # support check before consuming item
 
+var required_instance_id := "" # Empty = any item of this catalog key.
+var fetched_instance_id := ""
 var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
 var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
 var _claim: Node3D = null           # ghost-held item claim (see header) — runtime only, never saved
@@ -105,11 +106,11 @@ func _claim_valid() -> bool:
 func item_available() -> bool:
 	if _claim_valid():
 		return true
-	if StockpileManager.get_total(item_key) > 0:
+	if (StockpileManager.get_total(item_key) > 0 if required_instance_id.is_empty() else StockpileManager.has_stored_instance(item_key, required_instance_id)):
 		return true
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return false
-	return drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}) != null
+	return drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id) != null
 
 
 ## Posts/retires the single FETCH_BUILD lease, and keeps the item claim
@@ -121,6 +122,20 @@ func update_lease() -> void:
 	if source_id < 0:
 		return
 	_ensure_claim()
+	if not has_committed_item():
+		var best := {}
+		var distance := INF
+		for offer: Dictionary in TaskManager.placement_haul_offers(claim_owner_id()):
+			if String(offer.key) != item_key: continue
+			if not required_instance_id.is_empty() and String(offer.instance_id) != required_instance_id: continue
+			var candidate: float = offer.item.global_position.distance_squared_to(Vector3(origin_cell))
+			if candidate < distance:
+				best = offer
+				distance = candidate
+		if not best.is_empty():
+			if _lease_id < 0:
+				_lease_id = int(TaskManager.add_task(Task.Type.FETCH_BUILD, origin_cell, {"ghost_id": ghost_id}, source_id))
+			TaskManager.redirect_haul_to_placement(_lease_id, best)
 	if _lease_id < 0 and item_available():
 		_lease_id = int(TaskManager.add_task(
 			Task.Type.FETCH_BUILD, origin_cell, { "ghost_id": ghost_id }, source_id))
@@ -131,6 +146,8 @@ func update_lease() -> void:
 ## claim_owner_id(), invisible to every unreserved-only scan (haul pouches,
 ## other ghosts' claims and fetches).
 func _ensure_claim() -> void:
+	if not required_instance_id.is_empty() and is_instance_valid(drop_manager):
+		drop_manager.promise_instance(required_instance_id, claim_owner_id())
 	if not _fetches.is_empty() or not _carried_by.is_empty():
 		return                        # a dwarf already holds an item for this ghost
 	if _claim_valid():
@@ -138,14 +155,16 @@ func _ensure_claim() -> void:
 	_claim = null
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return
-	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {})
-	if item != null and bool(drop_manager.call("reserve", item, claim_owner_id())):
+	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id, claim_owner_id())
+	if item != null and (drop_manager.reserved_by(item, claim_owner_id()) or bool(drop_manager.call("reserve", item, claim_owner_id()))):
 		_claim = item
 
 
 ## Frees the ghost's item claim (owner-guarded). Controller calls this on
 ## ghost teardown (cancel / build-complete); safe to call with no claim.
 func release_claim() -> void:
+	if not required_instance_id.is_empty() and is_instance_valid(drop_manager):
+		drop_manager.release_instance_promise(required_instance_id, claim_owner_id())
 	if _claim != null and is_instance_valid(_claim) \
 			and drop_manager != null and is_instance_valid(drop_manager):
 		drop_manager.call("unreserve", _claim, claim_owner_id())
@@ -225,15 +244,16 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 		if not bool(drop_manager.call("reserve", item, dwarf_id)):
 			item = null
 	if item == null:
-		item = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {})
+		item = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {}, required_instance_id)
 		if item != null:
 			if not bool(drop_manager.call("reserve", item, dwarf_id)):
 				item = null
 	if item == null:
-		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id)
+		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id, required_instance_id)
 	if item == null:
 		return {}
 	_fetches[dwarf_id] = item
+	fetched_instance_id = String(item.get_meta("instance_id", ""))
 	var item_def: Dictionary = drop_manager.call("get_item_def", item_key)
 	return {
 		"item": item,

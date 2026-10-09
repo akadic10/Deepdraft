@@ -59,13 +59,26 @@ func stored_count() -> int:
 	return total
 
 
-func restore_inventory(saved: Dictionary, item_manager: Node) -> void:
+func restore_inventory(saved: Dictionary, item_manager: Node, instances: Array = []) -> void:
 	inventory.clear()
 	_slots.entries.clear()
 	_slots.reservations.clear()
 	drop_manager = item_manager
-	for item_key in saved:
-		var remaining := maxi(int(saved[item_key]), 0)
+	var remaining_counts := saved.duplicate()
+	for entry: Dictionary in instances:
+		var key := String(entry.item)
+		if int(remaining_counts.get(key, 0)) <= 0: continue
+		remaining_counts[key] = int(remaining_counts[key]) - 1
+		var token = _slots.reserve(key, 1, -1, Vector3i.ZERO)
+		if token == null:
+			item_manager.restore_loose_item(key, Vector3(cells[0]) + Vector3(.5,1,.5), 0.0, 1, String(entry.instance_id))
+			continue
+		token["instance_id"] = entry.instance_id
+		_commit_one(token, key)
+		if render_contents:
+			_place_visual(item_manager.create_item_visual(key, 1, String(entry.instance_id)), token)
+	for item_key in remaining_counts:
+		var remaining := maxi(int(remaining_counts[item_key]), 0)
 		while remaining > 0:
 			var token: Variant = _slots.reserve(String(item_key), remaining, -1, Vector3i.ZERO)
 			if token == null:
@@ -158,6 +171,9 @@ func _place_visual(node: Node3D, token: Variant) -> void:
 		float(offset[1]),
 		float(offset[2]) - fp_d * 0.5)
 	node.scale = Vector3.ONE * anchor_scale
+	node.set_meta("storage_anchor_position", node.position)
+	node.set_meta("storage_anchor_scale", anchor_scale)
+	node.set_meta("storage_anchor_max_size", anchor_max_size)
 	# Varied per-anchor yaw (SH's scattered hand-placed look) — deterministic.
 	node.rotation = Vector3(0.0, float(slot * 2654435761 % 628) / 100.0, 0.0)
 	ITEM_LAYOUT.fit(node, anchor_max_size, anchor_scale)
@@ -194,6 +210,7 @@ func withdraw_nearest(item_key: String, _near: Vector3i, dwarf_id: int) -> Node3
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return null
 	for slot in _slots.entries:
+		if drop_manager.instance_promised(String(_slots.entries[slot].get("instance_id", ""))): continue
 		if int(_slots.entries[slot].count) > int(_outgoing.get(slot, {}).get("count", 0)) and String(_slots.entries[slot].item) == item_key:
 			return withdraw_stack(slot, 1, dwarf_id)
 	return null
@@ -231,7 +248,7 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	var stand := nearest_stand_target(Vector3i.ZERO)
 	if stand.x < 0:
 		return null
-	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id)
+	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id, String(stack.get("instance_id", "")))
 	if node == null:
 		return null
 	drop_manager.set_quantity(node, amount)
@@ -270,6 +287,12 @@ func dump_contents(at_cell: Vector3i) -> int:
 				node.queue_free()
 			_anchor_slots[i] = null
 	var dumped := 0
+	for stack: Dictionary in _slots.entries.values():
+		if not stack.has("instance_id"): continue
+		drop_manager.restore_loose_item(String(stack.item), Vector3(at_cell) + Vector3(.5,1,.5), 0.0, 1, String(stack.instance_id))
+		inventory[stack.item] = int(inventory[stack.item]) - 1
+		if changed_callback.is_valid(): changed_callback.call(String(stack.item), -1)
+		dumped += 1
 	for item_key: String in inventory.keys():
 		var count := int(inventory[item_key])
 		if count > 0:

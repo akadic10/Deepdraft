@@ -309,13 +309,13 @@ The Stonehearth plateau pattern comes before any visual detail:
 2. Expand each macro value into large flat terrain plates.
 3. Quantize the expanded heights into readable bands.
 
-Plains/settlement areas vary only 0–2 blocks locally; foothills step in **8-block shelves**;
+Plains vary only 0–2 blocks locally; foothills step in **8-block shelves**;
 mountains step in **12-block shelves**. If a later idea fights this rule, this rule wins.
 
 Lowland is not allowed to appear as an embedded island inside foothills. Lowland macro cells
 must connect to the true lowland basin or a map-edge lowland mass; disconnected lowland cells
-are promoted to valley/foothill before heightmap expansion. A settlement plain inside foothill
-territory stays flat, but it uses the first foothill shelf rather than cutting a lowland hole.
+are promoted to valley/foothill before heightmap expansion. Settlement location is
+chosen by the player; generation does not raise or flatten a dedicated starting area.
 
 ### Surface strata rule
 
@@ -332,22 +332,29 @@ The mountain is rock-heavy; the plains are earth-heavy.
 ### Grass palette rule
 
 Grass colour is **domain language, not random speckle**. The eight active variants split by
-domain: lower plains / settlement use `grass_01`–`grass_04`; valley / highland / foothill use
+domain: lower plains use `grass_01`–`grass_04`; valley / highland / foothill use
 `grass_05`–`grass_08`. Within a domain, a calm base grass fills the interior and lighter
 variants trace patch edges and terrace lips — region-aware outlining, never per-block noise.
 
-### Core world composition (authored macro layout)
+### Core world composition (seeded macro layout)
 
-The map uses an authored macro layout before local noise:
+The approved seeded layout is live as of 2026-10-07. There are no fixed compass
+regions or central valley. Ridges, secondary hills, foothills and water positions
+vary by seed. The increased lowland share was accepted for future development.
 
-| Region | Footprint | Height | Character |
-|---|---|---|---|
-| **Northwest mountain** | NW mass | Y44–115 (12-block shelves) | The main dig-in face and visual anchor; broad stepped shelves, strong exposed stone, sparse sheltered pockets on low ledges. |
-| **Central valley corridor** | mid-map | Y20–27, plain ~Y27 | One dominant settlement plain (≥80×80 mostly-flat, 0–2 block variation); grass/dirt/rock/road-ready soil mix. |
-| **Foothill band** | valley↔mountain | Y20–43 (8-block terraces at Y20/28/36) | Stepped, not noisy; mixed grass/dirt/rock. Where readable shelves matter most. |
-| **Southwest lake basin** | SW, south edge | ground ~Y20–27; lake floor Y11, water Y12–18 | Macro-cell lake touching the south map edge; dirt/mud/stone banks, never grass at the waterline. |
-| **Southeast highland** | SE | Y20–43 | A smaller, calmer forest plateau; broad shelves for later forest scatter. |
-| **World-edge wilderness** | outer 20–30 blocks | rises/roughens | Denser near the boundary; block identity must never depend on fog or camera distance. |
+| Region | Guarantee / shape | Elevation |
+|---|---|---|
+| Mountain region | At least 128 connected dry macro cells containing a summit | Shelf tops Y55/67/79/91/103/115 |
+| Summit | At least one intact 32×32 plateau; larger allowed | Y115 |
+| Foothills | Shelves around seeded landforms | Tops Y27/35/43 |
+| Lowland | At least 205 cells' worth of connected dry columns after detail; no embedded lowland islands | Y19 |
+| Lowland lake | One connected 12–32-cell body, inland or at any map edge | Floor Y11, water Y12–18 |
+| Mountain tarn | Optional single-cell body, full Y55/Y67 surround | Floor Y47, water Y48–54 |
+
+The player chooses where to place the flag and which trees to clear. Terrain and
+flora have no reserved start footprint. The camera uses its configured initial
+position, with the existing terrain-clearance behavior.
+Profile, implementation, checks and visual evidence: [doc 66](../00_dev_roadmap/66_seeded_world_layout.md).
 
 > **Design reference (Stonehearth).** The original plan reviewed `services/server/world_generation/`
 > and `data/biome/*_generation_data.json`. The lessons Deepdraft kept: large readable landforms
@@ -361,276 +368,106 @@ The map uses an authored macro layout before local noise:
 
 ## World Generation Pipeline
 
-### Overview
-
-The world is generated once at new-game time, driven entirely by `world_seed`. All phases are fully deterministic — the same seed always produces the same mountain silhouette, valley shape, and lake position.
-
-Generation runs in **two stages on a background thread**:
-
-**Stage A — 2D map passes (run once when `generate(seed)` is called):**
-
-1. Build the noise instances
-2. Compute terrain domain map (2D - classifies every column as mountain, valley, or lowland; then macro coherence cleanup)
-3. Compute surface heightmap (2D - macro-cell terraces, plateau smoothing, mountain/lowland transitions, shelf step limits)
-4. Carve both lake bodies into the heightmap (macro-cell lowland lake + single-cell mountain tarn)
-5. Apply final shelf edge detail, then build the cap-grass band maps and generation metrics
-6. Mark `_maps_ready = true`
-
-**Stage B — on-demand column streaming:**
-
-After the maps are ready, blocks are **not** filled all at once. The worker enters `_process_requested_columns()` and fills 3D blocks only for the 16×16 XZ chunk columns the renderer asks for, via `request_chunk_column(cx, cz)` as the camera moves. Each phase reads data produced by prior phases.
-
-> **Public API (`WorldGenerator` autoload).** `generate(seed)`, `is_generating()`, `request_chunk_column(cx, cz)`, `get_streaming_stats()`, `get_generation_metrics()`, plus surface queries `get_surface_y()`, `get_visible_surface_y()`, `get_visible_surface_block_id()`, `get_column_top_y()`, `get_generated_block_id()`, `get_column_debug_info()`.
->
-> **Signals.** `chunk_generated(cx, cy, cz)` and `world_complete()` both fire deferred from the worker thread — connect with `CONNECT_DEFERRED`. There is no `maps_ready` *signal*; the renderer polls `get_streaming_stats()` / `is_generating()` instead.
-
-> **Agent note:** Use separate `FastNoiseLite` instances per logical layer, each with its own seed offset. Never reuse or reconfigure a single instance across passes - it is error-prone and makes the code unreadable.
-
-Macro domain cleanup happens before height assignment. A 32x32 lowland macro cell now needs a real lowland majority; isolated non-anchor lowland cells with no cardinal lowland neighbor are promoted to valley. This prevents single lowland plates from appearing in the middle of foothill shelves while preserving the authored southwest basin and settlement/plain anchors.
-
-The final edge-detail pass is intentionally narrow. It applies only to foothill shelves 1-3 and mountain shelves 1-6, after lake carving and shelf cleanup. It pushes shallow blocky ledges into exactly one lower cardinal neighbor direction, skips lowland/settlement/water columns, and keeps the pushed height inside the source shelf band so existing dirt/grass and rock strata remain valid.
-
----
-
-### Terrain Domains
-
-Three terrain domains drive surface character across the map:
-
-| Domain | `domain_n` range | Surface Y range | Character |
-|---|---|---|---|
-| **Mountain** | > 0.60 | 44 – 115 | Jagged ridge shelves. The dwarves' homeland; primary dig-in faces. |
-| **Valley / Foothills** | 0.35 – 0.60 | 20 – 43 | Wide flat basin, farmland, trade road corridor, and stepped foothill shelves. |
-| **Lowland** | < 0.35 | 12 – 19 | Lowest ground. Lake basin, river mouth, open wilderness floor. |
-
-Transitions between domains are **blended** — a column near the mountain/valley border lerps between the two height targets, producing natural slopes rather than hard cliff edges. There are no abrupt vertical walls between biomes.
-
----
-
-### World Seed
-
-`world_seed` is a signed 32-bit integer stored in the save file header at new-game time. All 7 noise instances derive from it via fixed offsets (`+1` ore, `+2` cave, `+3` soil, `+4` domain, `+5` mountain, `+6` valley, `+7` gem). Two games with the same seed always produce identical worlds.
-
-```gdscript
-func _new_game_setup(player_seed: int = 0) -> void:
-    world_seed = player_seed if player_seed != 0 else randi()
-    # Write world_seed to save file header before generation begins.
-    # It must be read back and restored exactly on every subsequent load.
-```
-
-Passing `0` generates a random seed via `randi()`. Any non-zero value reproduces a specific world. Display the seed in the New Game UI and in the pause menu so players can share worlds.
-
----
-
-### Noise Instance Configuration
-
-There are **seven** noise instances — one per logical layer. There is **no `noise_stone`** layer: rock identity is chosen by authored altitude bands (see *Authored Rock Selection* below), not by noise.
-
-```gdscript
-# WorldGenerator.gd  (called once when generate() starts, before any chunk work)
-
-func _build_noise_instances() -> void:
-
-    # Layer 1 — Ore vein mask
-    # Medium frequency, fewer octaves → thin vein shapes.
-    noise_ore = FastNoiseLite.new()
-    noise_ore.noise_type        = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_ore.seed              = world_seed + 1
-    noise_ore.frequency         = 0.02
-    noise_ore.fractal_octaves   = 2
-
-    # Layer 2 — Cave void mask
-    # Medium-low frequency, more octaves → organic cave networks.
-    noise_cave = FastNoiseLite.new()
-    noise_cave.noise_type       = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_cave.seed             = world_seed + 2
-    noise_cave.frequency        = 0.015
-    noise_cave.fractal_octaves  = 4
-
-    # Layer 3 — Soil patch mask (also drives surface dirt fraction via a 2D query)
-    # Higher frequency, smooth → small irregular farmable soil pockets.
-    noise_soil = FastNoiseLite.new()
-    noise_soil.noise_type       = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_soil.seed             = world_seed + 3
-    noise_soil.frequency        = 0.03
-    noise_soil.fractal_octaves  = 2
-
-    # Layer 4 — Terrain domain map
-    # Very low frequency, large scale → broad mountain / valley / lowland zones.
-    noise_domain = FastNoiseLite.new()
-    noise_domain.noise_type      = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_domain.seed            = world_seed + 4
-    noise_domain.frequency       = 0.0015
-    noise_domain.fractal_octaves = 2
-
-    # Layer 5 — Mountain ridge detail
-    # Ridge noise (absolute value of simplex, inverted) → sharp peaks and narrow spines.
-    noise_mountain = FastNoiseLite.new()
-    noise_mountain.noise_type      = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_mountain.seed            = world_seed + 5
-    noise_mountain.frequency       = 0.006
-    noise_mountain.fractal_octaves = 5
-
-    # Layer 6 — Valley / lowland floor detail
-    # Low amplitude, gentle rolls → subtle variation in otherwise flat ground.
-    noise_valley = FastNoiseLite.new()
-    noise_valley.noise_type      = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_valley.seed            = world_seed + 6
-    noise_valley.frequency       = 0.012
-    noise_valley.fractal_octaves = 2
-
-    # Layer 7 — Gem pocket mask
-    # Higher frequency, more octaves → small isolated pockets, separate from ore veins.
-    noise_gem = FastNoiseLite.new()
-    noise_gem.noise_type       = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-    noise_gem.seed             = world_seed + 7
-    noise_gem.frequency        = 0.06
-    noise_gem.fractal_octaves  = 3
-```
-
----
-
-### Phase 1 — Domain Map (2D)
-
-Classify every column as mountain, valley, or lowland before computing any heights. Store both the integer domain and the raw float value; the float is needed for smooth blending at borders.
-
-```gdscript
-const DOMAIN_MOUNTAIN := 2
-const DOMAIN_VALLEY   := 1
-const DOMAIN_LOWLAND  := 0
-
-# domain_map:   flat Array[int],   indexed [x * WORLD_SIZE_Z + z]
-# domain_n_map: flat Array[float], stores raw noise value for blend math
-
-func _compute_domain_map() -> void:
-    for x in range(WORLD_SIZE_X):
-        for z in range(WORLD_SIZE_Z):
-            var n := (noise_domain.get_noise_2d(x, z) + 1.0) * 0.5    # remap to [0, 1]
-            domain_n_map[x * WORLD_SIZE_Z + z] = n
-            if   n > 0.60: domain_map[x * WORLD_SIZE_Z + z] = DOMAIN_MOUNTAIN
-            elif n > 0.35: domain_map[x * WORLD_SIZE_Z + z] = DOMAIN_VALLEY
-            else:          domain_map[x * WORLD_SIZE_Z + z] = DOMAIN_LOWLAND
-```
-
----
-
-### Phase 2 — Surface Heightmap (2D)
-
-Each column's surface elevation is computed from its domain, with smooth blending in border transition bands:
-
-```gdscript
-const MOUNTAIN_MIN := 44;  const MOUNTAIN_MAX := 115
-const VALLEY_MIN   := 20;  const VALLEY_MAX   := 27
-const LOWLAND_MIN  := 12;  const LOWLAND_MAX  := 15
-
-func _compute_heightmap() -> void:
-    for x in range(WORLD_SIZE_X):
-        for z in range(WORLD_SIZE_Z):
-            var idx := x * WORLD_SIZE_Z + z
-            var n   := domain_n_map[idx]
-            var height_f: float
-
-            if n > 0.60:
-                # Mountain zone — ridge noise: abs(simplex) inverted gives sharp peaks.
-                var ridge := 1.0 - abs(noise_mountain.get_noise_2d(x, z))
-                height_f  = lerp(float(MOUNTAIN_MIN), float(MOUNTAIN_MAX), ridge)
-                # Blend into valley in the 0.60–0.70 transition band.
-                if n < 0.70:
-                    var t := (n - 0.60) / 0.10    # 0 at border, 1 deep in mountains
-                    height_f = lerp(_valley_height(x, z), height_f, t)
-
-            elif n > 0.35:
-                # Valley zone — gentle detail, stays flat.
-                height_f = _valley_height(x, z)
-                # Blend into lowland in the 0.35–0.45 transition band.
-                if n < 0.45:
-                    var t := (n - 0.35) / 0.10
-                    height_f = lerp(_lowland_height(x, z), height_f, t)
-
-            else:
-                # Lowland zone.
-                height_f = _lowland_height(x, z)
-
-            heightmap[idx] = int(height_f)
-
-func _valley_height(x: int, z: int) -> float:
-    # Low amplitude — valley floors stay close to flat.
-    var detail := (noise_valley.get_noise_2d(x, z) + 1.0) * 0.5
-    return lerp(float(VALLEY_MIN), float(VALLEY_MAX), detail * 0.4)
-
-func _lowland_height(x: int, z: int) -> float:
-    # Offset z by 1000 so lowland detail doesn't mirror the valley pattern.
-    var detail := (noise_valley.get_noise_2d(x, z + 1000) + 1.0) * 0.5
-    return lerp(float(LOWLAND_MIN), float(LOWLAND_MAX), detail * 0.3)
-```
-
----
-
-### Phase 3 — Lake Bodies (Lowland Lake + Mountain Tarn)
-
-Two lake bodies are carved in this phase. Both are built from whole **32×32 macro cells**, not circular bowls — this keeps them in the same macro language as the rest of terrain generation. `_carve_lakes()` carves the lowland lake, runs the macro shelf step limiter, then writes the single-cell mountain tarn as a final macro carve. Column sets (`lake_columns`, `tarn_columns`) are stored for water placement during column fill.
-
-**Lowland lake** (`_southern_lowland_lake_macro_cell`, `_lake_macro_cell_is_eligible`, `_apply_lowland_lake_macro_cell`):
-- Selected from eligible lowland macro cells, then expanded to at least `LAKE_MIN_MACRO_CELLS` (12) cells via `_expand_lake_to_minimum_macro_cells`.
-- Forced into the lowland band: **floor Y11**, water fills **Y12–Y18** (`LAKE_WATERLINE = 18`, `LAKE_FLOOR_Y = 11`).
-- At least one full 32×32 cell is guaranteed to touch the **south map edge** so the body reads as continuing past the playable slab.
-
-**Mountain tarn** (`_mountain_tarn_anchor`, `_apply_mountain_tarn_macro_cell`):
-- Placed as exactly **one 32×32 macro cell** on mountain shelf 1.
-- Hard placement invariant: the tarn cell must have a complete **3×3 macro footprint** around it. The center cell is water on mountain shelf 1; all eight surrounding 32×32 macro cells must already be mountain shelf 1 or mountain shelf 2. If no valid 3×3 footprint exists, skip the tarn rather than carving a broken edge lake.
-- Fixed geometry: **floor Y47**, water fills **Y48–Y54** (`TARN_FLOOR_Y = 47`, `TARN_WATERLINE = 54`). The waterline is a constant, not derived.
-- It has no surround restore, no plateau ring, and no second cap pass. The tarn is intentionally simple and rectangular so it cannot fight the shelf-step cleanup.
-
-`TARN_RADIUS` / `LAKE_RADIUS` survive only as metrics labels — the macro-cell passes no longer use circular carving.
-
-> **Design note:** The tarn (water Y48–54) sits well above the lowland lake (`LAKE_WATERLINE` Y18). If a player digs a channel connecting the two bodies, water flows downhill under the (future) CA rules, producing emergent river-like behaviour. No river simulation is needed.
-
----
-
----
-
-### Phase 5 — Underground Fill (3D, per chunk)
-
-For each block position `(x, y, z)`. The underground logic is unchanged from the original design; only the water-column handling above the surface is new.
-
-```gdscript
-func generate_block(x: int, y: int, z: int) -> StringName:
-    var col       := Vector2i(x, z)
-    var surface_y := heightmap[x * WORLD_SIZE_Z + z]
-
-    # --- Absolute boundaries ---
-    if y <= 3:
-        return &"base:terrain:bedrock"
-
-    # --- Above surface ---
-    if y > surface_y:
-        # Lake columns fill from their carved floor up to their waterline.
-        if lake_columns.has(col) and y <= LAKE_WATERLINE:
-            return &"base:terrain:water:source"
-        if tarn_columns.has(col) and y <= tarn_waterline:
-            return &"base:terrain:water:source"
-        return &"base:terrain:void"
-
-    # --- Foundation band ---
-    if y <= 11:
-        return &"base:terrain:rock:rock11"   # Y4–11 hardcoded foundation
-
-    # --- Surface skin ---
-    if y == surface_y:
-        return _pick_surface_block(x, z, col)
-
-    # --- Underground volume ---
-    var n_cave := (noise_cave.get_noise_3dv(Vector3(x, y, z)) + 1.0) * 0.5
-    # No stone-type noise — rock identity comes from authored altitude bands.
-
-    # Cave void — no caves within 5 blocks of surface.
-    if n_cave > 0.65 and y < surface_y - 5:
-        return &"base:terrain:void"
-
-    # Authored rock: mountain shelves above Y44, altitude body bands below —
-    # then the resource pass may replace it (see Resource Distribution below).
-    var rock := _altitude_rock_body_id(y) if y < 44 else _mountain_shelf_block_id(y)
-    return _apply_resource_veins(x, y, z, surface_y, rock)
-```
+The world is generated from its seed and the active
+`data/world_gen/macro_layout_v1.json` profile. This is the only live geography
+path. The developer confirmed there are no existing saves to support, so no
+legacy generator or migration layer is retained.
+
+### Stage A — Geography and column maps
+
+1. `WorldGenerator` loads and validates the profile on the main thread, caches
+   block IDs, then starts its background worker.
+2. `WorldLayout` constructs seeded ridges, surrounding shelves and water
+   footprints. Independent `WorldLayoutValidator` checks the
+   complete candidate. Eight bounded attempts are followed by one of 32
+   exhaustively checked fallback variants.
+3. Expand macro heights and each water body's waterline into authoritative
+   column arrays. Domains follow final heights: lowland ≤Y19, foothill Y20–43,
+   mountain Y44+. `domain_n_map` is a height-derived terrain gradient, not the
+   old compass-influenced domain noise. `DOMAIN_VALLEY` remains the API name for
+   foothills; it no longer implies a central corridor.
+4. Add seeded ledges to every natural cliff and shore, including summit edges,
+   foothill rims and transitions into lowlands. Preserve summit interiors.
+   Shore detail fills narrow strips with rock, creating
+   irregular dry lips and submerged ledges; rebuild water membership/bank masks.
+5. Validate **every finished column** before exposing maps. Confirm no erosion,
+   no height above Y115, exact protected interiors, all six shelf areas,
+   consistent domains/waterlines, and no excessive dry shelf steps (including
+   diagonals). Check connected dry lowland area and water containment. Detail
+   remains within three-column boundary strips; wide lowland/water cores retain
+   the accepted macro connectivity. Macro validation budgets the lost flat area.
+6. Build dry connected caves from `data/world_gen/caves_v1.json`, using the final
+   detailed heights and water maps for shell/containment checks. Cache immutable
+   air spans and optional soil-floor patches; surface heights and shores are not
+   changed. See [68 — Caves and discovery](../00_dev_roadmap/68_caves_and_discovery.md).
+7. Publish `_maps_ready`. Build grass
+   bands, visible tile ranges and metrics afterward; `grass_bands_ready` refreshes
+   already rendered surfaces when those variant maps finish.
+
+### Water bodies
+
+The main lake and optional tarn each store their macro-cell footprint, floor and
+waterline. Expansion produces `waterline_map` (`-1` on dry land). Visible surface
+queries, streamed-column vertical bounds, overview tile ranges and generated
+water blocks all use this map. Existing `lake_columns` and `tarn_columns` sets
+remain available to flora, flag placement and other consumers.
+
+Main lake floor Y11 / waterline Y18 and tarn floor Y47 / waterline Y54 remain the
+current profile values. Main lakes can be inland or meet any edge; tarns require
+a full 3×3 mountain-shelf surround. The water simulation itself remains future
+work ([doc 33](../30_simulation_systems/33_water_simulation.md)).
+
+### Seed and noise
+
+`generate(0)` chooses a seed once; a supplied nonzero seed is deterministic.
+Geography uses independent seeded RNG streams for landforms and each
+water choice. Save/load regenerates the base maps from the stored seed, then
+reapplies edits. Five independent `FastNoiseLite` instances provide the existing
+resource/surface/ecology fields; old mountain/valley shaping noise and the unused
+cave-noise fallback were removed. `CaveLayout` owns separate deterministic RNG
+and roughness streams for the new chamber geometry.
+
+| Noise | Seed offset | Frequency | Octaves |
+|---|---:|---:|---:|
+| Ore | +1 | 0.02 | 2 |
+| Soil | +3 | 0.03 | 2 |
+| Surface regions (`noise_domain`) | +4 | 0.0015 | 2 |
+| Gems | +7 | 0.06 | 3 |
+| Moisture | +8 | 0.004 | 2 |
+
+### Stage B — On-demand block columns
+
+After the maps are ready, the worker fills only requested 16×16 chunk columns.
+`get_generated_block_id()` also provides the same deterministic terrain without
+materializing a chunk. Before mining first writes to an unmaterialized chunk,
+the mining controller fills its original blocks from that getter.
+
+Block evaluation keeps the existing bedrock Y0–3, foundation Y4–11, earth and
+rock shelf bands, and resource replacement rules. Above the floor, a column's
+own waterline decides water versus air. The six mountain shelves expose the
+authored `rock06` through `rock01` materials. Cave air is checked before authored
+strata in the real block getter. Concealed slice/overview queries omit both cave
+air and floor-soil patches and return authored strata. Revealed cave faces use
+the actual remaining material, including existing ore/gem veins. Optional cave
+soil replaces floor rock only after gem/metal checks, so it does not erase veins.
+
+**Review follow-up (2026-10-07):** surface diagnostics now count actual generated
+blocks, and tin's threshold is corrected below copper's. See
+[67 — World generation diagnostics](../00_dev_roadmap/67_world_generation_diagnostics.md).
+The former unreachable cave fallback is replaced by the explicit cave pass in
+[68](../00_dev_roadmap/68_caves_and_discovery.md). Integration tests check real
+blocks, all six mountain materials, cave connectivity and mining discovery.
+
+### Cave discovery
+
+Mining a block adjacent to generated cave air reveals that whole connected cave
+system. `InteriorTracker` publishes its air to rendering and lighting; this
+does not create mined-block deltas for pre-existing air. Save/load reconstructs
+discovery from the actual saved mining edits. The normal mining picker treats
+hidden cave air as concealed strata, then removes now-empty designations after
+discovery. A discovered cave provides walkable space and exposed mining leads;
+it remains dark away from real entrances and installed lights. It does not yet
+contain water, crops, creatures or loot.
 
 ### Resource Distribution (Ore, Gem, Cave Soil)
 
@@ -640,8 +477,10 @@ func generate_block(x: int, y: int, z: int) -> StringName:
 
 **Source of truth for all bands, thresholds, and channels is
 `data/terrain/block_resources.json`** (`depth_bias.min_y` / `max_y`, `noise_threshold`,
-`noise_channel`). Adding or retuning a resource never requires code changes — only the data
-file. `WorldGenerator` caches the windows at boot (`_cache_resource_windows()`); the
+`noise_channel`, and ore `noise_field.seed_offset` / `frequency` / `octaves`).
+Retuning existing resources requires only data changes; adding a resource also
+requires registering its priority key. `WorldGenerator` copies the settings on
+the main thread before building seeded noise on the generation thread; the
 rarest-first evaluation order is fixed in `METAL_RESOURCE_KEYS` / `GEM_RESOURCE_KEYS` /
 `SOIL_RESOURCE_KEYS`.
 
@@ -677,22 +516,38 @@ sub-surface rock block:
 4. Reject natural exposed wall blocks (any cardinal neighbour column with a lower surface),
    so untouched cliffs keep their authored strata.
 5. Evaluate **gems** first, rarest to most common, on `noise_gem`.
-6. Evaluate **metals** next, rarest to most common, on `noise_ore`.
-7. Evaluate **cave soil** last, on `noise_soil`.
+6. Evaluate **metals** next, rarest to most common, each on its own seeded field.
+   Skip fields outside their depth window; stop at the first qualifying metal.
+7. Evaluate an added cave-floor soil patch, then **cave soil** on `noise_soil`.
 8. Otherwise keep the authored rock.
 
-**First-match-wins semantics (important for tuning):** within a category, every entry reads
-the *same* noise channel and the first window matching `(y in band, noise > threshold)`
-wins. Rarest-first ordering therefore gives the rarest resource the top noise slice — which
-only works as intended while thresholds *descend* monotonically down each list. A
-late-listed entry whose threshold is higher than an earlier entry's gets shadowed wherever
-their bands overlap. Coal suffered exactly this (threshold 0.72, evaluated after iron
-0.70 / copper 0.66 / tin 0.66 → effectively spawned only at Y12–19 despite its declared
-Y12–90 window). **Fixed 2026-08-07 (doc 22 close-out pass): coal's threshold lowered to
-0.62** — below every earlier metal, restoring monotonic descent. Coal is now the most
-common metal across its whole band, matching its role as the bulk smelting fuel (doc 44:
-every smelting recipe consumes coal). Density not yet eyeballed in-engine — verify during
-the doc 44 milestone. The doc 12 calibration item is closed.
+**Independent metals (2026-10-08):** gold, silver, iron, copper and tin now use
+separate fields at frequencies 0.055–0.070, producing smaller, distinct patches.
+Coal keeps a broad 0.020 field. Each field uses simplex-smooth noise, two octaves
+and a distinct fixed offset added to the world seed. Settings and cutoffs live in
+the ore entries in `block_resources.json`; generation never fits them per seed.
+First-match priority resolves spatial overlaps. Cutoffs need not descend between
+independent fields, so copper no longer takes an entire interval from tin.
+Depth windows, gems, priority, terrain and temporary drops remain unchanged.
+See [71 — Independent ore fields](../00_dev_roadmap/71_independent_ore_fields.md)
+for calibration, held-out measurements and integration checks. Connected bodies
+can still contain thousands of blocks; there is no hard deposit-size cap.
+
+**Shared gem/soil semantics:** each of these categories still uses a shared field
+and the first window matching `(y in band, noise > threshold)` wins. Overlapping
+entries on the same field therefore need strictly descending cutoffs to avoid
+shadowing. Historical metal shadowing corrections (coal .62 and tin .64) are
+recorded in docs 12/67; those were shared-field rules, not the current metal cutoffs.
+
+**Gem correction (2026-10-08):** diamond and emerald both used 0.90, so diamond
+captured every emerald candidate in their shared Y5–12 range. Diamond now uses
+**0.91**, giving emerald `(0.90, 0.91]` there and reserving `>0.91` for diamond.
+The gem thresholds now strictly descend: diamond .91, emerald .90, sapphire .89,
+ruby .88, amethyst .82, jade .80. This intentionally reduces diamond abundance;
+emerald's own threshold, all depth bands, priority order and drop rates are
+unchanged. At Y4, removed diamond candidates become ordinary foundation rock.
+See [69 — Resource distribution review](../00_dev_roadmap/69_resource_distribution_review.md)
+for exact deep-gem counts and the original resource audit.
 
 ### Authored Rock Selection
 
@@ -726,21 +581,23 @@ func _mountain_shelf_block_id(y: int) -> StringName:
 
 ### Phase 5b — Surface Skin
 
-The topmost solid block in each column gets a grass or dirt variant chosen deterministically from `(x, z)`. Lake and tarn bank columns get dirt unconditionally — the ground is wet. Water columns at or below their waterline skip this pass entirely; their topmost visible block is water.
+Authored strata decide the actual blocks before the legacy surface fallback.
+Lowland and foothill shelf caps use grass; their lower earth bands and irregular
+cut ledges expose dirt. Mountain shelves expose their authored rock. Dry banks
+follow these same bands; they are not forced to dirt merely by water adjacency.
+In wet columns the top visible block is water above the solid bed.
 
-There are **8 active grass variants** (`grass_01`–`grass_08`) and **4 dirt variants** (`dirt_01`–`dirt_04`). Grass is chosen by domain, not a flat hash: lowland/settlement uses `grass_01`–`grass_04` and valley/highland/foothill uses `grass_05`–`grass_08`, with the lighter variant in each set used along patch edges and terrace lips (resolved via the cap-grass band maps). The real `_pick_surface_block(x, z, col)` delegates to `_grass_variant()` / `_dirt_variant()` / `_lowland_cap_grass_band_variant_index()` / `_foothill_cap_grass_band_variant_index()`; the simplified shape is:
+There are **8 active grass variants** (`grass_01`–`grass_08`) and **4 dirt
+variants** (`dirt_01`–`dirt_04`). Lowlands use `grass_01`–`grass_04`; foothills
+use `grass_05`–`grass_08`, with cap-band maps choosing the lighter edge variants.
+`_pick_surface_block()` remains a fallback and must not be used to describe or
+measure current authored surface coverage.
 
-```gdscript
-func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:
-    # Bank columns adjacent to water get forced dirt.
-    if lake_columns.has(col) or tarn_columns.has(col):
-        return _dirt_ids[0]   # dirt_01
-
-    var n_dirt := (noise_soil.get_noise_2d(x, z) + 1.0) * 0.5
-    if n_dirt > 0.70:
-        return _dirt_ids[_dirt_variant(x, z)]            # 1 of 4 dirt variants
-    return _grass_ids[_grass_variant(x, z)]              # 1 of 8 grass variants, domain + edge aware
-```
+`_compute_surface_metrics()` evaluates `_generate_block_id()` at
+`max(heightmap, waterline_map)` for every column, then counts material categories
+globally and within each domain. The diagnostic is **top surface coverage**:
+one visible block per column, including water, not cliff-face area or underground
+material volume. It describes the generated world before player edits.
 
 > **Agent note:** Do not use `randi()` or `randf()` for variant selection. Random calls are non-deterministic across chunk reloads and will cause visible seams when a chunk unloads and reloads with different variants. Deterministic hashing / region maps always return the same value for the same column.
 
@@ -748,27 +605,10 @@ func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:
 
 ### Generation Order Summary
 
-```
-STAGE A — 2D map passes (once, when generate() is called):
-1.  Build the 6 noise instances                          (no stone noise)
-2.  Compute domain map + macro coherence cleanup         (2D — mountain / valley / lowland)
-3.  Compute surface heightmap from domain                (2D — macro terraces, plateau smoothing,
-                                                          mountain/lowland transitions, shelf step limits)
-4.  Carve lake bodies into heightmap (macro-cell):
-      a. Lowland lake  (macro cells, floor Y11, water Y12–18, touches south edge; store lake_columns)
-      b. Mountain tarn (one macro cell on shelf 1, floor Y47, water Y48–54; store tarn_columns)
-5.  Apply edge detail, build cap-grass band maps + generation metrics, mark _maps_ready
-
-STAGE B — on-demand column fill (per requested 16×16 column, for each block):
-      a. Bedrock at Y=0..3, rock11 foundation at Y4..11
-      b. Water source above surface_y in lake_columns (≤ LAKE_WATERLINE 18) or tarn_columns (≤ TARN_WATERLINE 54)
-      c. Void above surface_y (all other columns)
-      d. Surface skin at surface_y                       (grass / dirt / bank variants, domain + edge aware)
-      e. Cave void carving                               (skip within 5 blocks of surface)
-      f. Ore vein check                                  (depth_bias + noise_threshold from data)
-      g. Soil patch check                                (Y:20–60 band)
-      h. Authored rock fill                              (altitude body bands + mountain shelves)
-```
+Seed/profile → validated macro layout → height/domain/water column maps →
+protected edge detail → final column validation → dry caves → maps ready → grass bands and
+visible tile ranges → requested block columns. See Stage A/B above for the
+actual ordering; the former noise-shaped compass layout has been removed.
 
 ## Collapse Safety Constraints
 

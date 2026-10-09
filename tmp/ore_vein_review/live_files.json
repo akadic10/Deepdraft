@@ -1,0 +1,7 @@
+{
+  "scripts/systems/WorldGenerator.gd": "fb2a77f457f9e2ca4d202f84731b346a80bcb6c37f6d6e890f7d2f651d87af26",
+  "scripts/components/CaveLayout.gd": "4430b6c42a7848f6e5fe9482582c8288a928690a411d4c83ecd800966ca86d8e",
+  "data/terrain/block_resources.json": "9eeab2adc709e2d91f109b88582d8dfe1f67660fb1519c9e1bc0f8e732a84e07",
+  "data/world_gen/macro_layout_v1.json": "683f7852784a12d61a5c6fd43da0b6b330939f639ae312dfc5f69fcaa634f895",
+  "data/world_gen/caves_v1.json": "5fe691c0e4d863f3aa92e6033d72bdaf057d39bd8a0b41c10a0c7cf06571a6b1"
+}

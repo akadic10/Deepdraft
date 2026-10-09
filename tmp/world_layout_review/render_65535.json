@@ -1,0 +1,45 @@
+{
+	"column_chunks_submitted": 0,
+	"column_fill_count": 0,
+	"column_fill_ms_max": 0,
+	"column_fill_ms_total": 0,
+	"column_in_flight": false,
+	"generated_columns": 0,
+	"map_phase_timings": [
+		{
+			"ms": 0,
+			"name": "noise_instances"
+		},
+		{
+			"ms": 380,
+			"name": "seeded_layout"
+		},
+		{
+			"ms": 158,
+			"name": "edge_detail"
+		},
+		{
+			"ms": 812,
+			"name": "layout_validation"
+		},
+		{
+			"ms": 2482,
+			"name": "grass_bands"
+		},
+		{
+			"ms": 72,
+			"name": "tile_ranges"
+		},
+		{
+			"ms": 3680,
+			"name": "generation_metrics"
+		}
+	],
+	"map_precompute_ms": 1470,
+	"maps_ready": true,
+	"maps_ready_ms": 1470,
+	"queue_size": 0,
+	"requested_columns": 0,
+	"startup_elapsed_ms": 7965,
+	"total_columns": 4096
+}

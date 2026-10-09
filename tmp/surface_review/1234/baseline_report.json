@@ -1,0 +1,297 @@
+{
+	"baseline": true,
+	"census": {
+		"blocking_cells": 232.0,
+		"blocking_percent_map": 0.022125244140625,
+		"categories": {
+			"blueberry": {
+				"count": 275.0,
+				"ground": {
+					"grass": 79.0,
+					"rock": 196.0
+				},
+				"habitats": {
+					"blueberry": 275.0
+				},
+				"max_y": 115.0,
+				"min_y": 43.0,
+				"support_cells": 275.0
+			},
+			"boulder": {
+				"count": 58.0,
+				"ground": {
+					"grass": 28.0,
+					"rock": 30.0
+				},
+				"habitats": {
+					"lowland": 22.0,
+					"upland": 36.0
+				},
+				"max_y": 103.0,
+				"min_y": 19.0,
+				"support_cells": 232.0
+			},
+			"elderberry": {
+				"count": 368.0,
+				"ground": {
+					"grass": 368.0
+				},
+				"habitats": {
+					"elderberry": 368.0
+				},
+				"max_y": 43.0,
+				"min_y": 19.0,
+				"support_cells": 368.0
+			},
+			"flowers": {
+				"count": 804.0,
+				"ground": {
+					"grass": 804.0
+				},
+				"habitats": {
+					"grassy_opening": 804.0
+				},
+				"max_y": 43.0,
+				"min_y": 19.0,
+				"support_cells": 804.0
+			},
+			"reeds": {
+				"count": 15.0,
+				"ground": {
+					"grass": 14.0,
+					"rock": 1.0
+				},
+				"habitats": {
+					"shore": 15.0
+				},
+				"max_y": 55.0,
+				"min_y": 19.0,
+				"support_cells": 15.0
+			},
+			"scree": {
+				"count": 192.0,
+				"ground": {
+					"grass": 130.0,
+					"rock": 62.0
+				},
+				"habitats": {
+					"cliff_foot": 192.0
+				},
+				"max_y": 103.0,
+				"min_y": 19.0,
+				"support_cells": 1728.0
+			},
+			"wild_strawberry": {
+				"count": 430.0,
+				"ground": {
+					"grass": 430.0
+				},
+				"habitats": {
+					"wild_strawberry": 430.0
+				},
+				"max_y": 35.0,
+				"min_y": 19.0,
+				"support_cells": 430.0
+			}
+		},
+		"regions64": {
+			"empty_regions": 2.0,
+			"max_clumps": 17.0,
+			"max_support_percent": 1.3427734375,
+			"median_clumps": 8.0,
+			"min_clumps": 0.0,
+			"p95_clumps": 14.0
+		},
+		"support_cells": 3852.0,
+		"support_percent_map": 0.367355346679688,
+		"targets": {
+			"cliff": {
+				"id": "scree:1234:51:95",
+				"position": [
+					516.5,
+					20.0,
+					955.5
+				],
+				"zoom": 70.0
+			},
+			"dense": {
+				"position": [
+					544.0,
+					22.3529411764706,
+					928.0
+				],
+				"region_categories": {
+					"elderberry": 5.0,
+					"flowers": 3.0,
+					"scree": 4.0,
+					"wild_strawberry": 5.0
+				},
+				"zoom": 100.0
+			},
+			"mountain": {
+				"id": "boulder:1234:11:20",
+				"position": [
+					269.5,
+					104.0,
+					495.5
+				],
+				"zoom": 90.0
+			},
+			"shore": {
+				"id": "reeds:1234:149:80",
+				"position": [
+					897.5,
+					20.0,
+					481.5
+				],
+				"zoom": 70.0
+			},
+			"wide": {
+				"position": [
+					512.0,
+					42.0,
+					512.0
+				],
+				"zoom": 180.0
+			}
+		}
+	},
+	"diagnostics": {
+		"accepted": 0,
+		"categories": {},
+		"layout_ms": 0.005,
+		"rejections": {},
+		"seed": 1234
+	},
+	"failures": [],
+	"godot": "4.7.2-stable (steam)",
+	"gpu": "AMD Radeon RX 9070 XT",
+	"max_fps": 0,
+	"pan_zoom": {
+		"draw_calls": 123.578947368421,
+		"elapsed_ms": 2000.561,
+		"frames": 2793,
+		"max_frame_ms": 1.614,
+		"median_frame_ms": 0.683,
+		"median_render_cpu_ms": 0.208000004291534,
+		"median_render_gpu_ms": 0.33500000834465,
+		"p95_frame_ms": 0.93,
+		"p95_render_gpu_ms": 0.451999992132187,
+		"process_frames": 2793,
+		"render_objects": 233.442892946652,
+		"scene_nodes": 13362.0,
+		"static_memory_bytes": 253291107.0,
+		"video_memory_bytes": 425635840.0
+	},
+	"ready_ms": 7931.57,
+	"season_changes": {
+		"autumn": {
+			"frames": 172,
+			"max_frame_ms": 107.111,
+			"settle_ms": 4156.413,
+			"synchronous_ms": 16.54
+		},
+		"spring": {
+			"frames": 171,
+			"max_frame_ms": 92.187,
+			"settle_ms": 4204.929,
+			"synchronous_ms": 16.093
+		},
+		"summer": {
+			"frames": 172,
+			"max_frame_ms": 105.228,
+			"settle_ms": 4231.024,
+			"synchronous_ms": 15.526
+		},
+		"winter": {
+			"frames": 172,
+			"max_frame_ms": 102.89,
+			"settle_ms": 4163.322,
+			"synchronous_ms": 14.527
+		}
+	},
+	"seed": 1234,
+	"views": {
+		"cliff": {
+			"draw_calls": 125.0,
+			"elapsed_ms": 2000.417,
+			"frames": 2964,
+			"max_frame_ms": 1.313,
+			"median_frame_ms": 0.654,
+			"median_render_cpu_ms": 0.195999994874001,
+			"median_render_gpu_ms": 0.323000013828278,
+			"p95_frame_ms": 0.824,
+			"p95_render_gpu_ms": 0.42399999499321,
+			"process_frames": 2964,
+			"render_objects": 213.0,
+			"scene_nodes": 13362.0,
+			"static_memory_bytes": 252778373.0,
+			"video_memory_bytes": 425635840.0
+		},
+		"dense": {
+			"draw_calls": 120.0,
+			"elapsed_ms": 2000.001,
+			"frames": 2977,
+			"max_frame_ms": 1.182,
+			"median_frame_ms": 0.652,
+			"median_render_cpu_ms": 0.196999996900558,
+			"median_render_gpu_ms": 0.323000013828278,
+			"p95_frame_ms": 0.808,
+			"p95_render_gpu_ms": 0.412999987602234,
+			"process_frames": 2977,
+			"render_objects": 222.0,
+			"scene_nodes": 13362.0,
+			"static_memory_bytes": 252772353.0,
+			"video_memory_bytes": 425635840.0
+		},
+		"mountain": {
+			"draw_calls": 183.0,
+			"elapsed_ms": 2000.255,
+			"frames": 2617,
+			"max_frame_ms": 17.66,
+			"median_frame_ms": 0.723,
+			"median_render_cpu_ms": 0.231000006198883,
+			"median_render_gpu_ms": 0.360000014305115,
+			"p95_frame_ms": 0.951,
+			"p95_render_gpu_ms": 0.497999995946884,
+			"process_frames": 2617,
+			"render_objects": 369.0,
+			"scene_nodes": 13362.0,
+			"static_memory_bytes": 252990785.0,
+			"video_memory_bytes": 425635840.0
+		},
+		"shore": {
+			"draw_calls": 78.0,
+			"elapsed_ms": 2000.618,
+			"frames": 2905,
+			"max_frame_ms": 20.138,
+			"median_frame_ms": 0.652,
+			"median_render_cpu_ms": 0.188999995589256,
+			"median_render_gpu_ms": 0.312000006437302,
+			"p95_frame_ms": 0.845,
+			"p95_render_gpu_ms": 0.432000011205673,
+			"process_frames": 2905,
+			"render_objects": 166.0,
+			"scene_nodes": 13362.0,
+			"static_memory_bytes": 253024921.0,
+			"video_memory_bytes": 425635840.0
+		},
+		"wide": {
+			"draw_calls": 195.0,
+			"elapsed_ms": 2000.167,
+			"frames": 2537,
+			"max_frame_ms": 2.41,
+			"median_frame_ms": 0.755,
+			"median_render_cpu_ms": 0.248999997973442,
+			"median_render_gpu_ms": 0.388999998569489,
+			"p95_frame_ms": 0.99,
+			"p95_render_gpu_ms": 0.504000008106232,
+			"process_frames": 2537,
+			"render_objects": 409.0,
+			"scene_nodes": 13362.0,
+			"static_memory_bytes": 253204319.0,
+			"video_memory_bytes": 425635840.0
+		}
+	},
+	"vsync_mode": 0
+}

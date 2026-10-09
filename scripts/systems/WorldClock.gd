@@ -182,6 +182,23 @@ func advance_season() -> void:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+## Continuous calendar days since year 1 spring. Plant ages use this clock,
+## including fractional planting days; no wall-clock/offline growth counters.
+func elapsed_days() -> float:
+	return float((year - 1) * _days_per_season * _season_order.size() + day_of_year()) + hour / float(_hours_per_day)
+
+
+## Integrate designer-provided seasonal rates across calendar boundaries.
+func seasonal_days_between(start: float, finish: float, rates: Dictionary) -> float:
+	var cursor := maxf(0.0, start)
+	var result := 0.0
+	while cursor < finish:
+		var season_index := floori(cursor / float(_days_per_season))
+		var boundary := minf(finish, float((season_index + 1) * _days_per_season))
+		result += (boundary - cursor) * maxf(0.0, float(rates.get(_season_order[season_index % _season_order.size()], 1.0)))
+		cursor = boundary
+	return result
+
 ## Current in-game time as a 24-hour "HH:MM" string (e.g. "08:30", "21:05").
 func time_string() -> String:
 	var h := int(floor(hour)) % _hours_per_day

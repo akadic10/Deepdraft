@@ -1,0 +1,15 @@
+{
+  "study_id": "ore_vein_prototypes_v1",
+  "seeds": [7, 1234, 65535, 20261007, 3381051336, 4294967295, 314159265, 2147483647],
+  "calibration_seed_count": 4,
+  "shared_frequency": 0.05,
+  "baseline_thresholds": {"gold": 0.84, "silver": 0.80, "iron": 0.70, "copper": 0.66, "tin": 0.64, "coal": 0.62},
+  "independent_fields": {
+    "gold": {"seed_offset": 101, "frequency": 0.065},
+    "silver": {"seed_offset": 211, "frequency": 0.065},
+    "iron": {"seed_offset": 307, "frequency": 0.055},
+    "copper": {"seed_offset": 401, "frequency": 0.06},
+    "tin": {"seed_offset": 503, "frequency": 0.07},
+    "coal": {"seed_offset": 1, "frequency": 0.02}
+  }
+}

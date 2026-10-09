@@ -118,6 +118,7 @@ var _overview_tile_stats: Dictionary = {}
 var _dirty_overview_tiles: Array[Vector2i] = []
 var _dirty_overview_tile_set: Dictionary = {}
 var _visual_cut_blocks: Dictionary = {}
+var _planned_cut_blocks: Dictionary = {}
 ## MINED blocks (doc 11 Phase SO-2b) — a strict subset of _visual_cut_blocks.
 ## Under Option A (defect 2, 2026-06-05) designations and mined holes BOTH punch
 ## side bands and render in the cavity shell; this set only selects the shell's
@@ -125,6 +126,9 @@ var _visual_cut_blocks: Dictionary = {}
 ## authored strata (a plan reveals nothing). Producer today: the DEV
 ## instant-mine tool; later: real mining execution.
 var _mined_blocks: Dictionary = {}
+var _discovered_cave_blocks: Dictionary = {}
+var _debug_cave_blocks: Dictionary = {} # Explicit temporary preview; never saved or discovered.
+var _debug_previous_readability := -1.0
 # Immutable mined-set snapshot for the threaded overview build (same pattern as
 # _ovt_cut): the cut-floor colour rule (defects 3/4) reads it on worker threads.
 var _ovt_mined: Dictionary = {}
@@ -244,6 +248,7 @@ func _ready() -> void:
 	# No CONNECT_DEFERRED — signal is already emitted on the main thread
 	# via WorldData._deferred_emit_chunk_dirtied, so immediate connection is safe.
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
+	InteriorTracker.caves_discovered.connect(add_discovered_cave_blocks)
 
 	# Grass bands are computed after maps_ready, so the first overview tiles are
 	# meshed with fallback grass. When the bands finish, re-mesh the already-built
@@ -691,7 +696,11 @@ func _room_zone_name(mean_floor_y: float) -> String:
 
 
 func set_visual_cut_blocks(blocks: Dictionary) -> void:
+	_planned_cut_blocks = blocks.duplicate()
 	_visual_cut_blocks = blocks.duplicate()
+	_visual_cut_blocks.merge(_mined_blocks)
+	_visual_cut_blocks.merge(_discovered_cave_blocks)
+	_visual_cut_blocks.merge(_debug_cave_blocks)
 	_cut_chunks.clear()
 	for block: Vector3i in _visual_cut_blocks.keys():
 		_track_cut_chunk(block, 1)
@@ -699,6 +708,11 @@ func set_visual_cut_blocks(blocks: Dictionary) -> void:
 
 
 func add_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	for block: Vector3i in blocks: _planned_cut_blocks[block] = true
+	_add_cut_blocks(blocks)
+
+
+func _add_cut_blocks(blocks: Array[Vector3i]) -> void:
 	var changed: Array[Vector3i] = []
 	for block: Vector3i in blocks:
 		if _visual_cut_blocks.has(block):
@@ -710,8 +724,14 @@ func add_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 
 
 func remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
+	for block: Vector3i in blocks: _planned_cut_blocks.erase(block)
+	_remove_unowned_cut_blocks(blocks)
+
+
+func _remove_unowned_cut_blocks(blocks: Array[Vector3i]) -> void:
 	var changed: Array[Vector3i] = []
 	for block: Vector3i in blocks:
+		if _planned_cut_blocks.has(block) or _mined_blocks.has(block) or _discovered_cave_blocks.has(block) or _debug_cave_blocks.has(block): continue
 		if not _visual_cut_blocks.has(block):
 			continue
 		_visual_cut_blocks.erase(block)
@@ -730,6 +750,7 @@ func remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 func add_mined_blocks(blocks: Array[Vector3i]) -> void:
 	var changed: Array[Vector3i] = []
 	for block: Vector3i in blocks:
+		_planned_cut_blocks.erase(block)
 		if _mined_blocks.has(block):
 			continue
 		_mined_blocks[block] = true
@@ -749,6 +770,42 @@ const _SHELL_DIRS: Array[Vector3i] = [
 ]
 
 
+func add_discovered_cave_blocks(blocks: Array[Vector3i]) -> void:
+	for block: Vector3i in blocks: _discovered_cave_blocks[block] = true
+	_add_cut_blocks(blocks)
+	# Preview may already have cut these cells, but discovery still changes
+	# their lasting exposure status and must survive turning the preview off.
+	_invalidate_visual_cut_blocks(blocks)
+
+
+func set_debug_cave_blocks(blocks: Array[Vector3i]) -> void:
+	if _material is ShaderMaterial:
+		if not blocks.is_empty():
+			if _debug_previous_readability < 0.0:
+				_debug_previous_readability = float(_material.get_shader_parameter("readability_floor"))
+			_material.set_shader_parameter("readability_floor", 0.35)
+		elif _debug_previous_readability >= 0.0:
+			_material.set_shader_parameter("readability_floor", _debug_previous_readability)
+			_debug_previous_readability = -1.0
+	var old: Array[Vector3i] = []
+	old.assign(_debug_cave_blocks.keys())
+	_debug_cave_blocks.clear()
+	_remove_unowned_cut_blocks(old)
+	for block: Vector3i in blocks: _debug_cave_blocks[block] = true
+	_add_cut_blocks(blocks)
+	old.append_array(blocks)
+	_invalidate_visual_cut_blocks(old)
+
+
+func clear_debug_cave_blocks() -> void:
+	var empty: Array[Vector3i] = []
+	set_debug_cave_blocks(empty)
+
+
+func is_revealed_air(block: Vector3i) -> bool:
+	return _mined_blocks.has(block) or _discovered_cave_blocks.has(block)
+
+
 ## Rebuilds the cavity-shell mesh (doc 11 SO-2b + defect fixes 2026-06-05):
 ## for every ENCLOSED cavity block — designated or mined — render the faces of
 ## adjacent SOLID blocks (floor/ceiling/back walls).
@@ -763,10 +820,10 @@ const _SHELL_DIRS: Array[Vector3i] = [
 ## authored strata id (a plan reveals nothing; reads as a ghost preview under
 ## the yellow zone overlay).
 ##
-## Skips: cavity-continuation neighbours, faces above the slice plane, world
-## edges, and naturally-void neighbours (cave adjacency — discovery rendering
-## is a future decision). Full rebuild — trivial at DEV scale; per-chunk nodes
-## are the scale path when real mining lands (X0's 3×3×3 dirty rule).
+## Skips cavity continuations, faces above the slice plane and world edges.
+## Discovered natural cave air shares the exposure rules of mined openings;
+## undiscovered cave air remains concealed behind designation faces.
+## Full rebuild; per-chunk nodes remain the scale path for larger networks.
 func _rebuild_cavity_shell() -> void:
 	if _cavity_shell_node == null:
 		_cavity_shell_node = MeshInstance3D.new()
@@ -791,7 +848,7 @@ func _rebuild_cavity_shell() -> void:
 			continue   # cavity above the plane — hidden with everything else
 		if block.y > _cavity_column_top(block.x, block.z, col_tops):
 			continue   # open-from-above — the overview's job (defect 1)
-		var mined := _mined_blocks.has(block)
+		var mined := is_revealed_air(block) or _debug_cave_blocks.has(block)
 		for dir: Vector3i in _SHELL_DIRS:
 			var n: Vector3i = block + dir
 			if _visual_cut_blocks.has(n):
@@ -812,7 +869,10 @@ func _rebuild_cavity_shell() -> void:
 				exact_id = WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
 				_shell_exact_ids[n] = exact_id
 			if BlockRegistry.is_transparent(exact_id):
-				continue   # natural air/cave — nothing to show (yet)
+				# An undiscovered cave touching a designation still looks solid.
+				# Actual mining discovers connected natural air in InteriorTracker.
+				if WorldGenerator.get_cave_id(n) < 0: continue
+				exact_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
 			var display_id: int
 			if mined:
 				display_id = exact_id
@@ -1868,6 +1928,8 @@ func _drain_overview_tile_queue() -> void:
 	_cache_overview_side_colors(WorldClock.season)
 	_ovt_cut = _visual_cut_blocks.duplicate()
 	_ovt_mined = _mined_blocks.duplicate()
+	_ovt_mined.merge(_discovered_cave_blocks)
+	_ovt_mined.merge(_debug_cave_blocks)
 	_ovt_season = WorldClock.season
 
 	# Pull this frame's batch off the dirty queue.

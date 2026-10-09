@@ -42,6 +42,14 @@ the three-block clearance rule and cheap task-release contract intact.
 
 ## Issue 001 — Dwarf idles beside available work; unstuck by an unrelated zone completion · **OPEN** · reported 2026-08-14 (Alen, playtest, two screenshots)
 
+**2026-10-09 follow-up:** [88 — Ladder task reachability](88_ladder_task_reachability.md)
+replaces the capped yes/no assignment probe with resumable searches and tests all
+valid mining stands, fixing two reproduced ladder-related failures. The player
+confirmed ladder access and staircase excavation. This addresses the older
+probe-cap hypothesis below at the system level, but the original 2026-08-14
+mining/hauling stall has not been reproduced with the new code. Keep this issue
+open. The old cap-raising experiment is historical, not the next recommended fix.
+
 **2026-10-06 follow-up:** [60 — Hauling worker selection](60_hauling_worker_selection.md)
 fixes idle-queue ordering after tree felling and a returning hauler bypassing
 matching after deposit. Those defects have targeted reproductions and passing
@@ -105,9 +113,11 @@ pulls but hauling stays dead, look separately at the HAUL lease wake plumbing
 DEV-spawned furniture mix on the plain; multiple mining zones at the face, one partially
 mined.
 
-**Next step.** Reproduce with the scheduler stats row visible; watch `blocked_count`
-movement to split hypotheses 1 vs 2; A/B the probe cap via `task_config.json`. Fix lands
-as an addendum in doc 16 §2 / doc 32 (probe) or doc 31 (heartbeat), and this entry
-closes with a pointer.
+**Next step.** Reproduce the original mining/hauling stall against the current
+resumable search implementation, with scheduler stats visible. Separate a pending
+search from proven unreachable work, an exhausted full-search bound, missing wake
+events and legitimate sleep/task eligibility. Check source claims and loose-item
+ownership as well. Record a reproducible cause and regression before closing this
+entry; the historical hypotheses and cap experiment above describe the old code.
 
 ---

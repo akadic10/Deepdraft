@@ -2,10 +2,162 @@
 
 This file is the **entry point** for any AI agent working on this codebase. Read it first. It maps every design document to its purpose and tells you which file to consult before touching any system.
 
-**Latest session handoff:** [65 — 2026-10-07](docs/00_dev_roadmap/65_session_handoff_2026_10_07.md)
-records loose-item/explorer repairs, accepted entrance lighting, playable Worker
-crafting, wood choices, stump art/access, axe sounds, the pickup-site correction,
-verification and remaining issues. Read it alongside the system docs when resuming.
+**Latest session handoff:** [89 — 2026-10-09](docs/00_dev_roadmap/89_session_handoff_2026_10_09.md)
+records seeded geography, caves/ore, seasonal surface details, plant relocation
+and growth, worker selection, crafted ladders and the successful player staircase
+test. It separates completed work from optional ladder planning, honey, cave,
+balance/performance follow-ups and older open issues. Read it alongside the
+relevant milestone and system docs when resuming.
+
+**Seeded world layout — live (2026-10-07):** [66 — Seeded world layout](docs/00_dev_roadmap/66_seeded_world_layout.md)
+replaces fixed compass geography with seeded ridges, a guaranteed ≥32×32 Y115
+summit, substantial mountains, one lowland lake and an optional tarn. Players
+choose and clear their own location: no starting plateau or tree exclusion is
+generated. All natural cliffs and shores receive rough ledges; summit interiors
+stay intact. Full column checks, gameplay,
+rendering and save/load verification are recorded there. The user confirmed no
+existing saves: no legacy generator or migration path is retained.
+
+**World diagnostics and tin (2026-10-07):** [67 — World generation diagnostics](docs/00_dev_roadmap/67_world_generation_diagnostics.md)
+records the actual-block surface census, current layout debug measurements, and
+tin's 0.66 → 0.64 threshold correction. Four-seed before/after resource samples,
+eight-seed gameplay checks and a native debug capture pass. Broader resource
+balance remains a separate decision.
+
+**Caves and discovery (2026-10-07):** [68 — Caves and discovery](docs/00_dev_roadmap/68_caves_and_discovery.md)
+adds connected dry chambers, existing exposed veins and occasional floor-soil
+patches. Mining into a cave reveals its connected system; ordinary slicing keeps
+it concealed. **Menu → Development → DEV: Cave explorer** provides outlines,
+camera/slice focus and temporary interior lighting without changing discovery.
+The document records playtest steps, verification and deferred cave content.
+
+**Resource review (2026-10-08):** [69 — Resource distribution review](docs/00_dev_roadmap/69_resource_distribution_review.md)
+records resource measurements with caves, full-resolution deep-gem counts and
+the diamond threshold correction (0.90 → 0.91) that restores emerald at Y5–12.
+Eight-seed checks pass. Large connected metal deposits motivated the subsequent
+prototype and integration passes below; this audit preserved ore noise, depth
+bands and temporary testing drop rates.
+The user deferred the additional manual cave checks to proceed with this review.
+
+**Ore shape prototypes — offline only (2026-10-08):** [70 — Ore vein prototypes](docs/00_dev_roadmap/70_ore_vein_prototypes.md)
+compares current deposits, a finer shared field, and separate metal fields with
+broader coal on the same eight seeds. Separate fields were the recommended
+direction for smaller metal patches, with gold/tin abundance flagged for review.
+Tools and measured sections are available for comparison. Live generation,
+resource rules and drops were not changed by this prototype study.
+
+**Independent ore fields — live (2026-10-08):** [71 — Independent ore fields](docs/00_dev_roadmap/71_independent_ore_fields.md)
+integrates smaller separate metal patches with broad coal. All field settings
+and fitted cutoffs live in BlockRegistry's `block_resources.json`; gem/soil
+selection, depths, drops and terrain shape remain unchanged. Eight seeds set
+the cutoffs and eight additional seeds check abundance. This supersedes the
+shared-metal-field tuning rules above; final economy balance remains open.
+
+**Surface details — stones and seasonal plants live (2026-10-08):** [72 — Surface details plan](docs/00_dev_roadmap/72_surface_details_plan.md)
+records the numbered asset, placement, clearing and verification sequence for
+boulders, scree, shrubs, flowers and lakeside reeds. [73 — Boulder pilot](docs/00_dev_roadmap/73_boulder_pilot.md)
+implements three boulder variants, deterministic placement, worker clearing and
+persistent removal. **Menu → Development → DEV: Next boulder** locates one for
+review. Eight-seed layout, clearing, forestry regression and save/load checks pass.
+**Orders → Clear stones** supports boulders and gatherable scree with click/rectangle
+designation and live counts; Cancel orders, Undo and View order keep partial work.
+[74 — Gatherable scree](docs/00_dev_roadmap/74_gatherable_scree.md) adds three low,
+walkable clumps at cliff bases. Three seconds of hand gathering yields one rough
+stone, with persistent removal and automatic construction/support displacement.
+**DEV: Next scree** locates examples. Worker, eight-seed, Orders and save checks pass.
+[75 — Seasonal wild shrubs](docs/00_dev_roadmap/75_seasonal_shrubs.md) adds blueberry,
+elderberry and wild strawberry with four-season voxel art, picked-crop variants,
+deterministic habitats and nonblocking single-tile support. **Harvest plants**
+keeps plants for one crop per eligible season; **Clear shrubs** permanently removes
+them and yields one cutting (100% for all three species, configured in JSON).
+Cutting growth subsequently shipped in milestone 80 below. Separate partial work, harvested cycles and removals persist.
+**DEV: Next blueberry / elderberry / strawberry** locates examples. Worker, native
+Orders, eight-seed and full save/load checks pass.
+[76 — Seasonal wildflowers](docs/00_dev_roadmap/76_seasonal_wildflowers.md) adds three
+small clump variants with four seasonal appearances and deterministic grassy
+habitats. **Clear plants** now covers shrubs and flowers; flower clearing takes
+1.5 seconds, yields no items and persists through seasons/load. Building and
+support loss also remove flowers. **DEV: Next flowers** locates examples.
+Worker, mixed Orders, eight-seed and full save/load checks pass.
+[77 — Seasonal reeds](docs/00_dev_roadmap/77_seasonal_reeds.md) adds short/tall clumps
+with four-season voxel art on dry lake/tarn banks near the actual local waterline.
+**Clear plants** includes reeds: 1.5-second hand clearing, no yield, persistent
+removal and partial work. **DEV: Next reeds** locates examples. Native lake/tarn,
+worker, mixed Orders, eight-seed, regression and full save/load checks pass.
+[78 — Combined surface-detail review](docs/00_dev_roadmap/78_surface_detail_review.md)
+records twelve-seed placement/persistence checks and four-seed native comparisons
+against worlds with details disabled. Current density and art scales are retained.
+Seasonal refresh enqueue work drops from about 9.8 to 3.2 ms with the same plant
+identities and pending order. Broader season-rebuild spikes, also present with
+details disabled, remain documented performance follow-up. This completes the
+five-category surface-detail plan; larger populations need a fresh review.
+[79 — Move and uproot mature shrubs](docs/00_dev_roadmap/79_shrub_transplanting.md)
+adds inspector **Move / Uproot** and **Place → Plants** for the three mature berry
+shrubs. Exact plant identity, crop state, seasonal packed art and unfinished work
+survive carrying, storage and save/load. Moving grants no fruit or cutting;
+Clear plants still yields its guaranteed cutting. Native worker/UI, storage,
+inventory and complete save/backup checks pass.
+[80 — Shrub cutting growth](docs/00_dev_roadmap/80_shrub_cutting_growth.md):
+**Place → Plants** consumes one cutting per young shrub;
+JSON defines 3/4/3 growth days and seasonal rates, with winter dormancy. Twelve
+young seasonal GLBs, saved player-created identities and **DEV: Grow to maturity**
+are live. Native worker/UI, split-crate, storage, seasonal growth and full
+save/backup checks pass. Farm plots and honey remain later milestones.
+[81 — Surface worker selection](docs/00_dev_roadmap/81_surface_worker_selection.md)
+fixes distant idle dwarves winning shrub, tree and surface-clearing jobs by queue
+order. New work compares eligible idle workers at reachable adjacent work cells,
+with resumable ranking/probes, priorities and existing assignments preserved.
+Multi-worker and hauling/planting/crafting/mining regressions pass.
+[82 — Shrub Move handoff](docs/00_dev_roadmap/82_shrub_move_handoff.md) closes the
+remaining gap between uprooting and the separate pickup/carry/replant lease.
+An available uprooter already beside the packed plant continues the Move;
+reachable nearby replacements handle interruption or unavailability. Two-worker
+full-Move, equal-distance, budget, cancellation and blocked-route checks pass.
+[83 — Shrub planting animation](docs/00_dev_roadmap/83_shrub_planting_animation.md)
+replaces stationary planting work followed by set-down with one immediate
+reach/lower/release action. Mature shrubs take 1.25 seconds, configured in JSON;
+cuttings retain three seconds with continuous animation. Native captures and
+timing, interruption, planting, hauling, furniture and crafting checks pass.
+[84 — Juniper berry harvesting](docs/00_dev_roadmap/84_juniper_berry_harvesting.md)
+adds one autumn crop from standing mature/ancient junipers (2/4 berries; three
+seconds, all in JSON). Inspector and Harvest plants support picking, with mixed
+shrub/tree rectangles, cancellation and Undo. Saved crop cycles, separate work,
+eight berry-free GLBs and nearby-worker selection pass focused/native/save tests.
+[85 — Plant habitats, spacing and flower relocation](docs/00_dev_roadmap/85_plant_habitats_spacing_flowers.md)
+restricts wild berries to soil below Y44, allows cultivation on soil at any height,
+and reserves nonoverlapping 3×3 areas for bushes, flowers and pending/cutting
+plants. Flowers now support Move/Uproot/storage/Place with exact variant and
+seasonal packed art. JSON bloom seasons and planted-clump queries prepare the
+future honey connection; native, eight-seed and full save checks are recorded.
+[86 — Rudimentary ladders](docs/00_dev_roadmap/86_rudimentary_ladders.md)
+adds Worker-crafted wooden sections at the crude workbench: one raw log per
+exactly four blocks of height, with no extra top cap. Place → Access previews
+the full route/cost; workers
+carry and install from below. Explicit rung navigation supports climbing and
+hauling, safe interruption, section recovery, and saved partial construction.
+The document records native, gameplay, storage, UI and save/backup checks.
+The player confirmed the final ladder correction and a staircase made by mining.
+
+[87 — Placement over storage hauling](docs/00_dev_roadmap/87_placement_over_storage_hauling.md)
+keeps owned furniture available in Place while reserved for storage or being
+hauled. Confirmed placement takes priority; a dwarf already carrying the packed
+item continues directly to installation. Paused UI, ownership, cancellation,
+storage relocation, plant/ladder regressions and save checks are recorded there.
+
+[88 — Ladder task reachability](docs/00_dev_roadmap/88_ladder_task_reachability.md)
+fixes tall ladder routes passing DEV Walk but failing mining assignment. Shared
+reachability searches resume within scheduler budgets; unfinished searches do
+not trigger unreachable backoff. The follow-up handles isolated natural cliff
+shelves by searching all exact mining stands and handing the proven route to
+the worker. The reported seed's 32-block zone now completes automatically.
+Native climbing/mining, route invalidation,
+worker-selection, hauling, placement and save checks are recorded there.
+
+**Required later connection:** wildflowers must support honey production through
+nearby seasonal forage; beekeeping must account for bloom state and clearing.
+The proposed design and unresolved tuning are recorded in [42 — Beehives](docs/40_economy_colony/42_farming_brewing.md#required-future-connection-wildflower-forage).
+This honey connection is not implemented yet.
+Resource placement remains depth-based for now, as agreed with the user.
 
 **Worker crafting (2026-10-07):** [64 — Worker crafting](docs/00_dev_roadmap/64_worker_crafting.md)
 records the timber → crude workbench/stump → wooden torch loop, Craft menu,
@@ -130,7 +282,7 @@ These constraints appear in individual documents but are listed here for quick r
 8. **Deterministic world generation**: Generation must be fully deterministic from `world_seed`; use position-derived hashes or seeded noise, never `randi()` / `randf()` for streamed terrain identity. (`43_mining_materials.md`)
 9. **Terrain identity lives in data**: Block identity must come from generated block data and JSON registries, not renderer tricks, fog, camera distance, or painted heightmaps. (`24_world_rendering.md`, `43_mining_materials.md`)
 10. **Scene Decoupling Contract (recommended default)**: Prefer `@export` variables for scene references and signals for cross-node communication over explicit node paths (`$Node` / `get_node()`). The agent MAY now create and edit `.tscn` files and register autoloads / set the main scene / register `[input]` actions in `project.godot` — but keep logic scene-agnostic by default and only hardcode node paths when there is a clear reason. Never edit `.tres` or `.import` files. (`13_architecture.md`, File Ownership Rules)
-11. **Slice concealment**: The slice view must never reveal undiscovered resources. Plane-cut floors render authored strata only — everywhere, at every zoom; veins, gems, and caves become visible exclusively through mining. (`24_world_rendering.md`, `43_mining_materials.md`)
+11. **Slice concealment**: The normal slice view must never reveal undiscovered resources. Plane-cut floors render authored strata only; mining into a cave reveals its connected air and facing resources. The explicitly requested DEV Cave explorer is a temporary inspection exception, never saved discovery. (`24_world_rendering.md`, `43_mining_materials.md`, roadmap `68_caves_and_discovery.md`)
 12. **Releasing a task is always cheap and always legal**: No task type may be designed such that abandoning it mid-way corrupts state. Release returns the task to PENDING, frees reservations, and never loses source-level progress; a future carried item is dropped at the dwarf's feet. (`16_first_dwarf_milestone.md` §2.8, `31_task_system.md`)
 
 ---

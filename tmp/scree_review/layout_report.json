@@ -1,0 +1,194 @@
+{
+	"failures": [],
+	"seeds": [
+		{
+			"accepted": 286,
+			"categories": {
+				"boulder": 81,
+				"scree": 205
+			},
+			"fingerprint": "1573f8c3294c095d1d48c80bc908045412c9b83dabb5a4f34cacd8d67c7b4bf9",
+			"layout_ms": 171.407,
+			"lowland": 41,
+			"rejections": {
+				"cliff_falloff": 161,
+				"cliff_foot": 3467,
+				"density": 7716,
+				"detail_overlap": 1,
+				"edge": 247,
+				"height": 25,
+				"shelf": 262,
+				"tree": 196,
+				"water": 97
+			},
+			"scree": 205,
+			"seed": 0,
+			"upland": 40
+		},
+		{
+			"accepted": 266,
+			"categories": {
+				"boulder": 83,
+				"scree": 183
+			},
+			"fingerprint": "583c62ae17157d7477410f620145fec4b892acd5c29ce567473375395986922e",
+			"layout_ms": 179.971,
+			"lowland": 37,
+			"rejections": {
+				"cliff_falloff": 160,
+				"cliff_foot": 3355,
+				"density": 7749,
+				"detail_overlap": 1,
+				"edge": 252,
+				"height": 89,
+				"shelf": 328,
+				"tree": 200,
+				"water": 58
+			},
+			"scree": 183,
+			"seed": 1,
+			"upland": 46
+		},
+		{
+			"accepted": 291,
+			"categories": {
+				"boulder": 64,
+				"scree": 227
+			},
+			"fingerprint": "8a528408977fa490076ce2b2871cbead76f4440ab5dc71dd0ce7416e873ab266",
+			"layout_ms": 197.047,
+			"lowland": 28,
+			"rejections": {
+				"cliff_falloff": 180,
+				"cliff_foot": 3379,
+				"density": 7686,
+				"edge": 248,
+				"height": 85,
+				"shelf": 297,
+				"tree": 229,
+				"water": 63
+			},
+			"scree": 227,
+			"seed": 2,
+			"upland": 36
+		},
+		{
+			"accepted": 256,
+			"categories": {
+				"boulder": 76,
+				"scree": 180
+			},
+			"fingerprint": "fa574b8d8e343c7b6dd3bc9d49584ffe460ad9107e8ba0d0abf9102be0c15232",
+			"layout_ms": 197.311,
+			"lowland": 48,
+			"rejections": {
+				"cliff_falloff": 154,
+				"cliff_foot": 3518,
+				"density": 7802,
+				"edge": 243,
+				"height": 9,
+				"shelf": 249,
+				"tree": 179,
+				"water": 48
+			},
+			"scree": 180,
+			"seed": 7,
+			"upland": 28
+		},
+		{
+			"accepted": 270,
+			"categories": {
+				"boulder": 62,
+				"scree": 208
+			},
+			"fingerprint": "441290c3b13b5ae6ea92c28c179a0b3e5649da6f7c13868362c1a4a419a357d9",
+			"layout_ms": 177.557,
+			"lowland": 20,
+			"rejections": {
+				"cliff_falloff": 172,
+				"cliff_foot": 3452,
+				"density": 7679,
+				"detail_overlap": 1,
+				"edge": 246,
+				"height": 40,
+				"shelf": 340,
+				"tree": 190,
+				"water": 68
+			},
+			"scree": 208,
+			"seed": 42,
+			"upland": 42
+		},
+		{
+			"accepted": 250,
+			"categories": {
+				"boulder": 58,
+				"scree": 192
+			},
+			"fingerprint": "a576b8cdd1738063350cfb835885d402c34604af10b216b8ad134e5422b4a88c",
+			"layout_ms": 186.53,
+			"lowland": 22,
+			"rejections": {
+				"cliff_falloff": 193,
+				"cliff_foot": 3322,
+				"density": 7701,
+				"detail_overlap": 3,
+				"edge": 256,
+				"height": 61,
+				"shelf": 320,
+				"tree": 237,
+				"water": 115
+			},
+			"scree": 192,
+			"seed": 1234,
+			"upland": 36
+		},
+		{
+			"accepted": 217,
+			"categories": {
+				"boulder": 77,
+				"scree": 140
+			},
+			"fingerprint": "eeeeba44a52852e7bd03ac2dcacde36975e54fd1e7211d955f8939fbd61c6ab8",
+			"layout_ms": 178.591,
+			"lowland": 33,
+			"rejections": {
+				"cliff_falloff": 127,
+				"cliff_foot": 3671,
+				"density": 7706,
+				"detail_overlap": 2,
+				"edge": 256,
+				"height": 30,
+				"shelf": 210,
+				"tree": 185,
+				"water": 54
+			},
+			"scree": 140,
+			"seed": 65535,
+			"upland": 44
+		},
+		{
+			"accepted": 221,
+			"categories": {
+				"boulder": 51,
+				"scree": 170
+			},
+			"fingerprint": "773e5d243d90153a386d7b52f1373d174218c4f2afb2733b9f9391d4f0dbaeec",
+			"layout_ms": 180.836,
+			"lowland": 27,
+			"rejections": {
+				"cliff_falloff": 135,
+				"cliff_foot": 3584,
+				"density": 7728,
+				"edge": 250,
+				"height": 21,
+				"shelf": 259,
+				"tree": 198,
+				"water": 62
+			},
+			"scree": 170,
+			"seed": 20261007,
+			"upland": 24
+		}
+	]
+}

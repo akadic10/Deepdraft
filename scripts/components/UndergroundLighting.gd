@@ -55,6 +55,7 @@ func _ready() -> void:
 		page.create_from_images([_blank_layer()])
 		_pages.append(page)
 	WorldData.block_changed.connect(_on_block_changed)
+	InteriorTracker.caves_discovered.connect(_on_caves_discovered)
 	RoomManager.door_boundaries_changed.connect(_on_doors_changed)
 	_on_doors_changed(RoomManager.get_door_boundaries().keys())
 	get_tree().node_added.connect(_on_node_added)
@@ -66,6 +67,16 @@ func _on_block_changed(pos: Vector3i, old_id: int, new_id: int) -> void:
 	if BlockRegistry.is_transparent(old_id) == BlockRegistry.is_transparent(new_id): return
 	# Preserve the first old value when multiple writes are coalesced.
 	if not _pending.has(pos): _pending[pos] = old_id
+
+
+## Newly revealed natural air starts underground-dark everywhere, including
+## beyond the mining edit's local light-update radius. The queued breach edits
+## then propagate real daylight into entrances by the usual bounded solver.
+func _on_caves_discovered(cells: Array[Vector3i]) -> void:
+	for cell: Vector3i in cells:
+		if _samples.has(cell): continue
+		_samples[cell] = 0.0
+		_write_cell(cell, 0.0, true)
 
 
 func _on_doors_changed(cells: Array) -> void:

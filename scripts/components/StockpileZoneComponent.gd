@@ -141,6 +141,7 @@ func withdraw_nearest(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in cell_stacks:
 		if int(cell_stacks[cell].count) <= int(_outgoing.get(cell, {}).get("count", 0)): continue
+		if drop_manager.instance_promised(String(cell_stacks[cell].get("instance_id", ""))): continue
 		if String((cell_stacks[cell] as Dictionary).get("item", "")) != item_key:
 			continue
 		var d := cell - near

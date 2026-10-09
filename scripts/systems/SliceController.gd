@@ -166,6 +166,14 @@ func toggle_active() -> void:
 		activate()
 
 
+func show_at_height(height: int, open_palette: bool = true) -> void:
+	_seeded = true
+	_active = true
+	_set_slice_y(height)
+	_set_palette_visible(open_palette)
+	slice_active_changed.emit(true)
+
+
 ## Turns the slice view on. First activation seeds the plane from the camera's
 ## surface column (S3); later activations restore the last manual height.
 func activate() -> void:

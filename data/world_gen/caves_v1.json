@@ -1,0 +1,22 @@
+{
+  "profile_id": "caves_v1",
+  "target_systems": 8,
+  "attempts": 240,
+  "min_floor_y": 16,
+  "max_floor_y": 80,
+  "roof_thickness": 6,
+  "side_thickness": 6,
+  "water_margin": 8,
+  "system_spacing": 8,
+  "rooms_min": 2,
+  "rooms_max": 3,
+  "radius_min": 6,
+  "radius_max": 12,
+  "room_spacing_min": 14,
+  "room_spacing_max": 22,
+  "min_headroom": 4,
+  "max_headroom": 8,
+  "passage_radius": 2,
+  "soil_chance": 0.45,
+  "soil_radius": 5
+}

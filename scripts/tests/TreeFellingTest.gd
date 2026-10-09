@@ -12,50 +12,7 @@ var chop
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Tree felling test timed out"); quit(1))
-	root.get_node("SaveManager").set_process(false)
-	root.get_node("RoomManager").set_process(false)
-	clock_node = root.get_node("WorldClock")
-	clock_node.set_process(false)
-	clock_node.set_paused(false)
-	clock_node.set_speed(1)
-	tasks = root.get_node("TaskManager")
-	tasks.set_process(false)
-	root.get_node("WorldGenerator").world_seed = 1234
-	world = root.get_node("WorldData")
-	blocks = root.get_node("BlockRegistry")
-	_build_floor()
-	scene = Node3D.new()
-	root.add_child(scene)
-	current_scene = scene
-	manager = load("res://scripts/ui/UIWindowManager.gd").new()
-	manager.name = "Windows"
-	scene.add_child(manager)
-	manager._layout_loaded = false
-	drops = load("res://scripts/systems/ItemDropManager.gd").new()
-	scene.add_child(drops)
-	flora = load("res://scripts/systems/SurfaceFloraSpawner.gd").new()
-	flora.name = "Flora"
-	scene.add_child(flora)
-	flora.set_process(false)
-	dock = load("res://scripts/ui/DockUI.gd").new()
-	dock.name = "Dock"
-	dock.window_manager_path = NodePath("../Windows")
-	scene.add_child(dock)
-	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
-	explorer.name = "Explorer"
-	explorer.window_manager_path = NodePath("../Windows")
-	scene.add_child(explorer)
-	chop = load("res://scripts/systems/TreeFellingController.gd").new()
-	chop.dock_ui_path = NodePath("../Dock")
-	chop.flora_path = NodePath("../Flora")
-	chop.explorer_path = NodePath("../Explorer")
-	scene.add_child(chop)
-	explorer._tools.append(chop)
-	camera = Camera3D.new()
-	scene.add_child(camera)
-	camera.current = true
-	root.size = Vector2i(1280, 800)
-	root.get_node("WorldGenerator")._maps_ready = true
+	_setup_fixture()
 	var oak_id := Vector2i(40,40)
 	var oak := _spawn_tree("oak", "mature", oak_id)
 	_aim_above(oak.position)
@@ -240,6 +197,53 @@ func _run() -> void:
 	if failures.is_empty():
 		print("TREE_FELLING_OK: click/rectangle input, axe markers, worker execution, cancel/sleep/resume, pause, season, JSON restore, timber drops/hauling, occupancy, saplings, unreachable retries")
 	quit(0 if failures.is_empty() else 1)
+
+
+func _setup_fixture() -> void:
+	root.get_node("SaveManager").set_process(false)
+	root.get_node("RoomManager").set_process(false)
+	clock_node = root.get_node("WorldClock")
+	clock_node.set_process(false)
+	clock_node.set_paused(false)
+	clock_node.set_speed(1)
+	tasks = root.get_node("TaskManager")
+	tasks.set_process(false)
+	root.get_node("WorldGenerator").world_seed = 1234
+	world = root.get_node("WorldData")
+	blocks = root.get_node("BlockRegistry")
+	_build_floor()
+	scene = Node3D.new()
+	root.add_child(scene)
+	current_scene = scene
+	manager = load("res://scripts/ui/UIWindowManager.gd").new()
+	manager.name = "Windows"
+	scene.add_child(manager)
+	manager._layout_loaded = false
+	drops = load("res://scripts/systems/ItemDropManager.gd").new()
+	scene.add_child(drops)
+	flora = load("res://scripts/systems/SurfaceFloraSpawner.gd").new()
+	flora.name = "Flora"
+	scene.add_child(flora)
+	flora.set_process(false)
+	dock = load("res://scripts/ui/DockUI.gd").new()
+	dock.name = "Dock"
+	dock.window_manager_path = NodePath("../Windows")
+	scene.add_child(dock)
+	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
+	explorer.name = "Explorer"
+	explorer.window_manager_path = NodePath("../Windows")
+	scene.add_child(explorer)
+	chop = load("res://scripts/systems/TreeFellingController.gd").new()
+	chop.dock_ui_path = NodePath("../Dock")
+	chop.flora_path = NodePath("../Flora")
+	chop.explorer_path = NodePath("../Explorer")
+	scene.add_child(chop)
+	explorer._tools.append(chop)
+	camera = Camera3D.new()
+	scene.add_child(camera)
+	camera.current = true
+	root.size = Vector2i(1280, 800)
+	root.get_node("WorldGenerator")._maps_ready = true
 
 
 func _test_rectangle_designation(oak_id: Vector2i) -> void:

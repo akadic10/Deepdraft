@@ -103,6 +103,7 @@ var _carry_speed_mult: float = 1.0
 var _fetch_source_id: int = -1
 var _fetch_item: Node3D = null       # reserved (pre-pickup) or carried (post)
 var _fetch_picked_up: bool = false
+var _plant_animation_duration := 0.0 # Remaining work at arrival; interrupted planting restarts the reach.
 var _fetch_heavy: bool = false
 var _uninstall_source_id: int = -1
 var _fell_source_id := -1
@@ -205,6 +206,10 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	if WorldClock.paused or WorldClock.speed <= 0.0: return
+	if _ladder_exiting or (current_task_id < 0 and _move_path.is_empty() and needs_ladder_exit()):
+		_process_ladder_exit(delta)
+		return
 	if _sleeping:
 		_process_sleeping(delta)
 		return
@@ -231,7 +236,7 @@ func _process(delta: float) -> void:
 		_process_felling(delta * WorldClock.speed)
 		return
 	if _task_phase == TaskPhase.FELL_MOVING and not _move_path.is_empty() \
-			and not NavGrid.is_walkable(_move_path[_move_index]):
+			and not NavGrid.is_navigable(_move_path[_move_index]):
 		_clear_path()
 		_task_phase = TaskPhase.FELL_FINDING
 		return
@@ -248,6 +253,16 @@ func _process(delta: float) -> void:
 		return   # swing bob owns the part offsets this frame
 	elif _task_phase == TaskPhase.FETCH_WORKING:
 		var craft := _fetch_source()
+		if craft != null and craft.has_method("advance_install"):
+			if not craft.can_complete_build():
+				_fetch_fail_release()
+				return
+			_exec_timer = craft.advance_install(delta * WorldClock.speed)
+			var face: Vector3i = craft.work_facing()
+			rotation.y = atan2(face.x, face.z)
+			_carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
+			if _exec_timer <= 0.0: _fetch_complete()
+			return
 		if craft != null and craft.has_method("advance_craft"):
 			if not bool(craft.call("can_complete_build")):
 				_fetch_fail_release()
@@ -263,11 +278,29 @@ func _process(delta: float) -> void:
 				WorkFeedback.play_chop(contact,int(craft.get("work_cell").y))
 			if _exec_timer <= 0.0: _begin_fetch_deposit()
 			return
-		_exec_timer -= delta * WorldClock.speed
+		if craft != null and craft.has_method("advance_plant"):
+			if not craft.can_complete_build():
+				_fetch_fail_release()
+				return
+			_exec_timer = craft.advance_plant(delta * WorldClock.speed)
+			var phase := 1.0 - _exec_timer / maxf(_plant_animation_duration, .001)
+			_plant_pose(craft, clampf(phase, 0.0, 1.0))
+			if _exec_timer <= 0.0: _fetch_complete()
+			return # Planting owns the cargo/hands; the idle hold pose must not overwrite it.
+		else:
+			_exec_timer -= delta * WorldClock.speed
 		if _exec_timer <= 0.0:
 			_begin_fetch_deposit()
 			return
 	elif _task_phase == TaskPhase.UNINSTALL_WORKING:
+		var removal := _uninstall_source()
+		if removal != null and removal.has_method("advance_removal"):
+			_exec_timer = removal.advance_removal(delta * WorldClock.speed, dwarf_id)
+			var face: Vector3i = removal.work_facing()
+			rotation.y = atan2(face.x, face.z)
+			_carry_pose.gather(fposmod(float(removal.progress), 1.0), Vector3(0, 1.7, .4))
+			if _exec_timer <= 0.0: _uninstall_complete()
+			return
 		_exec_timer -= delta
 		if _exec_timer <= 0.0:
 			_uninstall_complete()
@@ -275,7 +308,7 @@ func _process(delta: float) -> void:
 		_idle_bob()
 	else:
 		_follow_path(delta)
-	if not _carried_entries.is_empty() and _task_phase not in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP,
+	if not _climbing and not _carried_entries.is_empty() and _task_phase not in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP,
 			TaskPhase.HAUL_DEPOSIT, TaskPhase.FETCH_DEPOSIT]:
 		_carry_pose.hold(_carried_entries, _body.position.y if is_instance_valid(_body) else 0.0)
 
@@ -286,7 +319,7 @@ func _process(delta: float) -> void:
 ## run the zone executor; everything else walks to the target and works the
 ## generic timer. Failure paths use the release protocol — releasing is
 ## always cheap and legal (doc 16 §2.8).
-func receive_task(task_id: int, target_pos: Vector3i) -> void:
+func receive_task(task_id: int, target_pos: Vector3i, carried_item: Node3D = null) -> void:
 	if _sleeping:
 		# Race guard (should not happen — sleepers leave the idle pool): an
 		# assignment landing in the frame the dwarf fell asleep bounces straight
@@ -314,13 +347,24 @@ func receive_task(task_id: int, target_pos: Vector3i) -> void:
 		return
 	if task != null and task.type in [Task.Type.FETCH_BUILD, Task.Type.CRAFT]:
 		_fetch_source_id = task.source_id
-		_fetch_begin()
+		if is_instance_valid(carried_item):
+			_fetch_item = carried_item
+			_fetch_picked_up = true
+			var key := String(carried_item.get_meta("item_key", ""))
+			var manager := get_tree().get_first_node_in_group("item_drop_manager")
+			_fetch_heavy = String(manager.get_item_def(key).get("weight_class", "light")) == "heavy"
+			_carried_entries.append([carried_item, key])
+			_carry_speed_mult = float(TaskManager.get_config_section("hauling").get("carry_speed_mult_heavy", .7)) if _fetch_heavy else 1.0
+			_carry_pose.hold(_carried_entries)
+			_fetch_travel_to_ghost()
+		else:
+			_fetch_begin()
 		return
 	if task != null and task.type == Task.Type.UNINSTALL:
 		_uninstall_source_id = task.source_id
 		_uninstall_begin()
 		return
-	if task != null and task.type == Task.Type.FELL_TREE:
+	if task != null and task.type in [Task.Type.FELL_TREE, Task.Type.CLEAR_BOULDER, Task.Type.GATHER_SCREE, Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB, Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB, Task.Type.HARVEST_TREE]:
 		_fell_source_id = task.source_id
 		_fell_begin()
 		return
@@ -334,6 +378,16 @@ func receive_task(task_id: int, target_pos: Vector3i) -> void:
 		_task_phase = TaskPhase.NONE
 		current_task_id = -1
 		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+
+
+## Detach ownership, not the node: a confirmed placement retains this exact
+## cargo while normal haul cancellation safely drops any remaining bundle.
+func detach_placement_cargo(item: Node3D) -> bool:
+	for index in range(_carried_entries.size()):
+		if _carried_entries[index][0] == item:
+			_carried_entries.remove_at(index)
+			return true
+	return false
 
 
 ## Called by TaskManager when the task is cancelled out from under us.
@@ -397,8 +451,7 @@ func _on_walk_finished(success: bool) -> void:
 	if _task_phase == TaskPhase.FETCH_TO_GHOST:
 		_task_phase = TaskPhase.NONE
 		if success:
-			_task_phase = TaskPhase.FETCH_WORKING
-			_exec_timer = _fetch_work_time()
+			_begin_fetch_work()
 		else:
 			_fetch_fail_release()
 		return
@@ -433,6 +486,13 @@ func _on_walk_finished(success: bool) -> void:
 ## touched; partial swing progress is discarded — the block keeps full
 ## durability (swings only commit at zero).
 func _begin_sleep() -> void:
+	if not NavGrid.is_walkable(current_cell()) and not NavGrid.ladder_at(current_cell()).is_empty():
+		# Needs may interrupt a job immediately, but sleep begins on a real floor.
+		dev_force_interrupt()
+		_ladder_sleep_pending = true
+		_ladder_exiting = true
+		TaskManager.notify_dwarf_unavailable(dwarf_id)
+		return
 	_sleeping = true
 	_sleep_hours_left = SLEEP_HOURS
 	_set_sleep_indicator_visible(true)
@@ -483,6 +543,8 @@ func serialize_state() -> Dictionary:
 			var cargo: Node3D = (entry as Array)[0]
 			carried_items.append({"item_key": String((entry as Array)[1]),
 				"count": int(cargo.get_meta("quantity", 1)) if is_instance_valid(cargo) else 1})
+			if is_instance_valid(cargo) and cargo.has_meta("instance_id"):
+				carried_items.back()["instance_id"] = cargo.get_meta("instance_id")
 	if appearance != null:
 		appearance_state = {
 			"gender": appearance.gender,
@@ -1114,7 +1176,14 @@ func _fetch_take_item() -> bool:
 	if manager == null:
 		_fetch_fail_release()
 		return false
-	var key := String(manager.call("take", _fetch_item))
+	var key := ""
+	if source.has_method("take_planting_item"):
+		var cargo: Node3D = source.take_planting_item(_fetch_item, dwarf_id)
+		if cargo != null:
+			_fetch_item = cargo
+			key = String(cargo.get_meta("item_key", ""))
+	else:
+		key = String(manager.call("take", _fetch_item))
 	if key.is_empty():
 		_fetch_fail_release()   # vanished / raced
 		return false
@@ -1126,6 +1195,7 @@ func _fetch_take_item() -> bool:
 	_carried_entries.append([_fetch_item, key])
 	add_child(_fetch_item)
 	_fetch_item.transform = _handling_start
+	_handling_item = _fetch_item # A single cutting may be split from a larger crate.
 	return true
 
 
@@ -1139,8 +1209,7 @@ func _fetch_travel_to_ghost() -> void:
 		_fetch_fail_release()   # footprint has no walkable neighbour right now
 		return
 	if target == current_cell():
-		_task_phase = TaskPhase.FETCH_WORKING
-		_exec_timer = _fetch_work_time()
+		_begin_fetch_work()
 	elif walk_to(target):
 		_task_phase = TaskPhase.FETCH_TO_GHOST
 	else:
@@ -1176,6 +1245,28 @@ func _fetch_complete() -> void:
 	current_task_id = -1
 	if finished_id >= 0:
 		TaskManager.complete_dwarf_task(dwarf_id)
+
+
+func _begin_fetch_work() -> void:
+	var source := _fetch_source()
+	if source == null:
+		_fetch_fail_release()
+		return
+	_task_phase = TaskPhase.FETCH_WORKING
+	_exec_timer = _fetch_work_time()
+	if source.has_method("advance_plant"):
+		_plant_animation_duration = _exec_timer
+		_reset_part_offsets()
+		var toward: Vector3 = source.work_surface() - global_position
+		rotation.y = atan2(toward.x, toward.z)
+		_plant_pose(source, 0.0)
+
+
+## The configured planting work IS the reach/lower/release animation, with
+## no invisible timer before it and no second deposit afterwards. Cargo stays
+## owned by the worker until the final valid-site commit, including saves.
+func _plant_pose(source: RefCounted, phase: float) -> void:
+	_carry_pose.lower(phase, _carried_entries, to_local(source.work_surface()))
 
 
 func _fetch_work_time() -> float:
@@ -1218,6 +1309,7 @@ func _finish_fetch_state() -> void:
 	_fetch_item = null
 	_fetch_picked_up = false
 	_fetch_source_id = -1
+	_plant_animation_duration = 0.0
 	_carry_speed_mult = 1.0
 	if _task_phase in [TaskPhase.FETCH_TO_ITEM, TaskPhase.FETCH_TO_GHOST, TaskPhase.FETCH_WORKING,
 			TaskPhase.FETCH_PICKUP, TaskPhase.FETCH_DEPOSIT]:
@@ -1270,7 +1362,7 @@ func _finish_uninstall_state() -> void:
 		_task_phase = TaskPhase.NONE
 
 
-# ── Tree felling (doc 48 checkpoint 2) ────────────────────────────────────────
+# ── Adjacent clearing (trees and boulders) ────────────────────────────────────────
 
 func _fell_source() -> RefCounted:
 	return TaskManager.get_work_source(_fell_source_id) as RefCounted if _fell_source_id >= 0 else null
@@ -1315,8 +1407,22 @@ func _begin_felling_work() -> void:
 	_fell_contact = to_local(contact)
 	_swing_time = FellingPose.CYCLE_SECONDS
 	_swing_timer = _swing_time
-	if _felling_pose != null:
-		_felling_pose.apply(0.0,_fell_contact)
+	_apply_clearing_pose(0.0)
+
+
+func _clearing_uses_pick() -> bool:
+	var task := TaskManager.get_task(current_task_id)
+	return task != null and task.type == Task.Type.CLEAR_BOULDER
+
+
+func _apply_clearing_pose(phase: float) -> void:
+	var task := TaskManager.get_task(current_task_id)
+	if task != null and task.type in [Task.Type.GATHER_SCREE, Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB, Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB, Task.Type.HARVEST_TREE]:
+		_carry_pose.gather(phase, _fell_contact)
+	elif _clearing_uses_pick():
+		_mining_pose.apply(phase, _fell_contact)
+	elif _felling_pose != null:
+		_felling_pose.apply(phase, _fell_contact)
 
 
 func _process_felling(delta: float) -> void:
@@ -1330,12 +1436,16 @@ func _process_felling(delta: float) -> void:
 	var elapsed := minf(delta,remaining)
 	var before := 1.0-_swing_timer/_swing_time
 	var after := before+elapsed/_swing_time
-	if floori(after-FellingPose.CONTACT_PHASE) > floori(before-FellingPose.CONTACT_PHASE) \
+	var impact_phase := MiningPose.CONTACT_PHASE if _clearing_uses_pick() else FellingPose.CONTACT_PHASE
+	if floori(after-impact_phase) > floori(before-impact_phase) \
 			and is_visible_in_tree() and bool(source.call("feedback_visible")):
-		WorkFeedback.play_chop(to_global(_fell_contact),int(source.get("origin").y))
+		if _clearing_uses_pick():
+			WorkFeedback.mining_impact(to_global(_fell_contact), source.get("origin"),
+				BlockRegistry.get_id(String(source.get("state").get("feedback_block", "base:terrain:rock:rock01"))), -global_basis.z)
+		elif source.get("task_type") == Task.Type.FELL_TREE:
+			WorkFeedback.play_chop(to_global(_fell_contact),int(source.get("origin").y))
 	_swing_timer = fposmod(_swing_timer - elapsed, _swing_time)
-	if _felling_pose != null:
-		_felling_pose.apply(1.0-_swing_timer/_swing_time,_fell_contact)
+	_apply_clearing_pose(1.0-_swing_timer/_swing_time)
 	if bool(source.call("advance_work", dwarf_id, delta)):
 		_finish_felling_state()
 		current_task_id = -1
@@ -1373,6 +1483,48 @@ func current_cell() -> Vector3i:
 		floori(global_position.z))
 
 
+var _climbing := false
+var _ladder_exiting := false
+var _ladder_sleep_pending := false
+var _ladder_path_revision := -1
+var _ladder_fall_target := Vector3i(-1, -1, -1)
+
+func needs_ladder_exit() -> bool:
+	return _ladder_exiting or (not NavGrid.ladder_at(current_cell()).is_empty() and not NavGrid.is_walkable(current_cell()))
+
+func _process_ladder_exit(delta: float) -> void:
+	TaskManager.notify_dwarf_unavailable(dwarf_id)
+	if _ladder_fall_target.x >= 0:
+		var target := Vector3(_ladder_fall_target) + Vector3(.5, 1, .5)
+		global_position = global_position.move_toward(target, walk_speed * delta)
+		if global_position.is_equal_approx(target):
+			_ladder_fall_target = Vector3i(-1,-1,-1)
+			_clear_path()
+		return
+	if not _ladder_exiting or _move_path.is_empty():
+		var route := NavGrid.ladder_at(current_cell())
+		if route.is_empty() or NavGrid.is_walkable(current_cell()):
+			_ladder_exiting = false
+			if _ladder_sleep_pending:
+				_ladder_sleep_pending = false
+				_begin_sleep()
+			else: TaskManager.notify_dwarf_idle(dwarf_id)
+			return
+		_ladder_exiting = true
+		# If mining removed the foot support, continue down to the next real floor.
+		var base: Vector3i = route.base
+		if not NavGrid.is_walkable(base):
+			base = NavGrid.walkable_floor_at(base.x, base.z, base.y, base.y - 1)
+			if base.x >= 0:
+				# Support destruction settles the actor down its clear column;
+				# it does not create traversable rungs beneath the installed route.
+				_ladder_fall_target = base
+				_clear_path()
+				return
+		if not walk_to(base): return
+	_follow_path(delta)
+
+
 ## Orders a walk to a goal floor cell. Returns true if a path was found and
 ## the walk began; emits walk_finished(success) when it ends either way.
 func walk_to(goal_cell: Vector3i) -> bool:
@@ -1382,6 +1534,7 @@ func walk_to(goal_cell: Vector3i) -> bool:
 		walk_finished.emit(false)
 		return false
 	_move_path = path
+	_ladder_path_revision = NavGrid.ladder_revision
 	_move_index = 0
 	_walk_cycle = 0.0
 	_shortcut_timer = 0.0   # string-pull immediately on the first frame
@@ -1430,6 +1583,11 @@ func is_walking() -> bool:
 
 
 func _follow_path(delta: float) -> void:
+	if _ladder_path_revision != NavGrid.ladder_revision:
+		var goal: Vector3i = _move_path.back()
+		if not walk_to(goal):
+			_clear_path()
+			return
 	_shortcut_timer -= delta
 	if _shortcut_timer <= 0.0:
 		_advance_shortcut()
@@ -1440,12 +1598,21 @@ func _follow_path(delta: float) -> void:
 	var distance := to_target.length()
 	# Heavy carried items slow the walk (doc 18 §2.3 / resources.json contract).
 	var step := walk_speed * _carry_speed_mult * delta
+	var here := current_cell()
+	var route := NavGrid.ladder_at(here)
+	if route.is_empty(): route = NavGrid.ladder_at(cell)
+	var climbing := not route.is_empty() and (absf(to_target.y) > .01 or not NavGrid.is_walkable(here))
+	if climbing != _climbing: _reset_part_offsets()
+	_climbing = climbing
+	if _climbing:
+		step *= float(route.speed)
+		rotation.y = atan2(route.facing.x, route.facing.z)
 
 	# Face travel direction (XZ only). The dwarf part GLBs are authored with
 	# the FACE on the +Z side (dwarf_roster.py), so local +Z —
 	# not Godot's usual -Z — must point along travel. Smooth turn, no snap.
 	var flat := Vector2(to_target.x, to_target.z)
-	if flat.length_squared() > 0.0001:
+	if not _climbing and flat.length_squared() > 0.0001:
 		var target_yaw := atan2(flat.x, flat.y)
 		rotation.y = lerp_angle(rotation.y, target_yaw, minf(1.0, delta * 10.0))
 
@@ -1458,7 +1625,12 @@ func _follow_path(delta: float) -> void:
 			walk_finished.emit(true)
 		return
 	global_position += to_target / distance * step
-	_walk_bob(step)
+	if _climbing:
+		_walk_cycle = fposmod(_walk_cycle + step / 1.0, 1.0)
+		_carry_pose.climb(_carried_entries, _walk_cycle)
+		if _foot_l != null: _foot_l.position = Vector3(0, .12 + .12 * sin(_walk_cycle * TAU), .18)
+		if _foot_r != null: _foot_r.position = Vector3(0, .12 - .12 * sin(_walk_cycle * TAU), .18)
+	else: _walk_bob(step)
 
 
 ## Distance-driven gait (doc 17 §2). One full cycle = two steps (left + right),
@@ -1510,6 +1682,7 @@ func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
 
 
 func _reset_part_offsets() -> void:
+	_climbing = false
 	if _felling_pose != null:
 		_felling_pose.reset()
 	if _mining_pose != null:

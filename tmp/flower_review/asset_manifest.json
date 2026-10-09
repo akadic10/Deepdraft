@@ -1,0 +1,146 @@
+[
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_1_spring.glb",
+    "season": "spring",
+    "variant": 0,
+    "voxels": 44,
+    "size_blocks": [
+      1.375,
+      0.75,
+      1.25
+    ],
+    "asset_bytes": 34940
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_2_spring.glb",
+    "season": "spring",
+    "variant": 1,
+    "voxels": 44,
+    "size_blocks": [
+      1.25,
+      0.75,
+      1.375
+    ],
+    "asset_bytes": 34576
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_3_spring.glb",
+    "season": "spring",
+    "variant": 2,
+    "voxels": 44,
+    "size_blocks": [
+      1.375,
+      0.875,
+      1.25
+    ],
+    "asset_bytes": 34576
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_1_summer.glb",
+    "season": "summer",
+    "variant": 0,
+    "voxels": 54,
+    "size_blocks": [
+      1.375,
+      0.875,
+      1.25
+    ],
+    "asset_bytes": 41936
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_2_summer.glb",
+    "season": "summer",
+    "variant": 1,
+    "voxels": 54,
+    "size_blocks": [
+      1.25,
+      0.875,
+      1.375
+    ],
+    "asset_bytes": 41940
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_3_summer.glb",
+    "season": "summer",
+    "variant": 2,
+    "voxels": 54,
+    "size_blocks": [
+      1.375,
+      0.875,
+      1.375
+    ],
+    "asset_bytes": 41940
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_1_autumn.glb",
+    "season": "autumn",
+    "variant": 0,
+    "voxels": 34,
+    "size_blocks": [
+      1.375,
+      0.75,
+      1.125
+    ],
+    "asset_bytes": 27580
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_2_autumn.glb",
+    "season": "autumn",
+    "variant": 1,
+    "voxels": 34,
+    "size_blocks": [
+      1.25,
+      0.75,
+      1.25
+    ],
+    "asset_bytes": 27580
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_3_autumn.glb",
+    "season": "autumn",
+    "variant": 2,
+    "voxels": 34,
+    "size_blocks": [
+      1.375,
+      0.75,
+      1.25
+    ],
+    "asset_bytes": 27580
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_1_winter.glb",
+    "season": "winter",
+    "variant": 0,
+    "voxels": 8,
+    "size_blocks": [
+      1.125,
+      0.25,
+      1.0
+    ],
+    "asset_bytes": 8440
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_2_winter.glb",
+    "season": "winter",
+    "variant": 1,
+    "voxels": 8,
+    "size_blocks": [
+      1.0,
+      0.25,
+      1.125
+    ],
+    "asset_bytes": 8436
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\flowers\\flowers_3_winter.glb",
+    "season": "winter",
+    "variant": 2,
+    "voxels": 8,
+    "size_blocks": [
+      1.125,
+      0.25,
+      1.125
+    ],
+    "asset_bytes": 8440
+  }
+]

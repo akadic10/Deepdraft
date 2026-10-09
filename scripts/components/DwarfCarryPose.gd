@@ -89,6 +89,19 @@ func hold(entries: Array, bounce := 0.0) -> void:
 	_hands(_bundle_grips(entries))
 
 
+## Both hands reach rungs; carried goods ride against the dwarf's back.
+func climb(entries: Array, cycle: float) -> void:
+	var wave := sin(cycle * TAU)
+	_pose_hand(_left, Vector3(.30, 2.05 + wave * .28, .38), Quaternion.IDENTITY)
+	_pose_hand(_right, Vector3(-.30, 2.05 - wave * .28, .38), Quaternion.IDENTITY)
+	for i in range(entries.size()):
+		var item: Node3D = entries[i][0]
+		if not is_instance_valid(item): continue
+		var box := item_bounds(item)
+		item.transform = Transform3D(Basis.IDENTITY, Vector3(-box.get_center().x,
+			.65 + i * .3 - box.position.y, -.5 - box.end.z))
+
+
 func pickup(phase: float, item: Node3D, start: Transform3D, entries: Array, lifted: bool) -> void:
 	if not is_instance_valid(item):
 		return
@@ -142,6 +155,15 @@ func lower(phase: float, entries: Array, target: Vector3) -> void:
 	var home := _rest_grips()
 	_hands([grips[0].lerp(home[0], release), grips[1].lerp(home[1], release)])
 	_reach_body(down * (1.0 - release) * clampf(1.0 - target.y, 0.0, 1.0))
+
+
+## Reach into a loose-stone clump without a work tool or premature loot node.
+func gather(phase: float, contact: Vector3) -> void:
+	var reach := sin(clampf(phase, 0, 1) * PI)
+	var home := _rest_grips()
+	_hands([home[0].lerp(contact + Vector3(.28, .05, 0), reach),
+		home[1].lerp(contact + Vector3(-.28, .05, 0), reach)])
+	_reach_body(reach)
 
 
 func _reach_body(amount: float) -> void:

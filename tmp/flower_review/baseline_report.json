@@ -1,0 +1,50 @@
+{
+	"diagnostics": {
+		"accepted": 1323,
+		"categories": {
+			"blueberry": 275,
+			"boulder": 58,
+			"elderberry": 368,
+			"scree": 192,
+			"wild_strawberry": 430
+		},
+		"layout_ms": 375.585,
+		"rejections": {
+			"cliff_falloff": 193,
+			"cliff_foot": 3322,
+			"density": 12784,
+			"detail_overlap": 42,
+			"edge": 697,
+			"ground": 249,
+			"height": 5823,
+			"moisture": 3133,
+			"shelf": 424,
+			"tree": 780,
+			"water": 116
+		},
+		"seed": 1234
+	},
+	"play_zoom": {
+		"draw_calls": 174.0,
+		"median_frame_ms": 8.238,
+		"p95_frame_ms": 8.828,
+		"render_objects": 308.0,
+		"scene_nodes": 17389.0,
+		"static_memory_bytes": 272901814.0,
+		"video_memory_bytes": 434024448.0
+	},
+	"target": [
+		521.5,
+		36.0,
+		487.5
+	],
+	"wide_zoom": {
+		"draw_calls": 206.0,
+		"median_frame_ms": 8.233,
+		"p95_frame_ms": 8.992,
+		"render_objects": 449.0,
+		"scene_nodes": 17389.0,
+		"static_memory_bytes": 272977728.0,
+		"video_memory_bytes": 434024448.0
+	}
+}

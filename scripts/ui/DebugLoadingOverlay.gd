@@ -121,10 +121,10 @@ func _update_text() -> void:
 	var mountain_surface: Dictionary = surface_by_domain.get("mountain", {})
 	var valley_surface: Dictionary = surface_by_domain.get("valley", {})
 	var heights: Dictionary = metrics.get("heights", {})
-	var shaping: Dictionary = metrics.get("shaping", {})
 	var water: Dictionary = metrics.get("water", {})
 	var macro: Dictionary = metrics.get("macro", {})
-	var candidates: Dictionary = metrics.get("settlement_candidates", {})
+	var macro_counts: Dictionary = macro.get("macro", {})
+	var finished: Dictionary = macro.get("finished", {})
 	var map_phase_text := "n/a"
 	var map_phase_timings: Array = gen.get("map_phase_timings", [])
 	var slowest_map_phase_ms := -1
@@ -151,7 +151,7 @@ func _update_text() -> void:
 			render.get("overview_validation_mismatches", 0),
 			render.get("overview_validation_samples", 0),
 		],
-		"maps: %s" % maps_text,
+		"maps: %s  metrics: %s" % [maps_text, "measuring (values pending)" if metrics.is_empty() else "ready"],
 		"domain %%: M %.1f  V %.1f  L %.1f" % [
 			domains.get("mountain_pct", 0.0),
 			domains.get("valley_pct", 0.0),
@@ -162,7 +162,7 @@ func _update_text() -> void:
 			heights.get("max", 0),
 			heights.get("avg", 0.0),
 		],
-		"surface %%: grass %.1f  dirt %.1f  rock %.1f  water %.1f" % [
+		"top surface %%: grass %.1f  dirt %.1f  rock %.1f  water %.1f" % [
 			surface.get("grass_pct", 0.0),
 			surface.get("dirt_pct", 0.0),
 			surface.get("rock_pct", 0.0),
@@ -174,9 +174,9 @@ func _update_text() -> void:
 			valley_surface.get("dirt_pct", 0.0),
 			valley_surface.get("rock_pct", 0.0),
 		],
-		"shape: terrace %.1f%%  plateau %d" % [
-			shaping.get("terraced_pct", 0.0),
-			shaping.get("plateau_adjusted_columns", 0),
+		"detail: %d columns  dry shore: %d" % [
+			finished.get("detailed_columns", 0),
+			finished.get("shore_land_columns", 0),
 		],
 		"water: lake %s d%d  tarn %s d%d  bank %d" % [
 			str(water.get("lake_center", Vector2i.ZERO)),
@@ -185,12 +185,15 @@ func _update_text() -> void:
 			water.get("tarn_depth_max", 0),
 			water.get("bank_columns", 0),
 		],
-		"macro: basin %d  SE foothill %d  edge %d" % [
-			macro.get("southwest_basin_columns", 0),
-			macro.get("southeast_foothill_columns", 0),
-			macro.get("edge_belt_columns", 0),
+		"layout: %s  attempts %d  fallback %s" % [
+			macro.get("profile_id", "pending"),
+			macro.get("attempts", 0),
+			"yes" if macro.get("used_fallback", false) else "no",
 		],
-		"settlement candidates: %d" % candidates.get("count", 0),
+		"mountain: %d connected cells  summit: %d columns" % [
+			macro_counts.get("connected_summit_mountain_cells", 0),
+			finished.get("summit_columns", 0),
+		],
 		"columns: %d / %d" % [gen.get("generated_columns", 0), gen.get("total_columns", 0)],
 		"timing: maps %.2fs  columns %.2fs  region %.2fs  overview %.2fs" % [
 			float(gen.get("map_precompute_ms", 0)) / 1000.0,

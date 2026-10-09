@@ -38,9 +38,14 @@ func _ready() -> void:
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation",12)
 	body.add_child(columns)
+	var recipe_scroll := ScrollContainer.new()
+	recipe_scroll.custom_minimum_size.x = 164
+	recipe_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	recipe_scroll.mouse_force_pass_scroll_events = false
+	columns.add_child(recipe_scroll)
 	_recipes = VBoxContainer.new()
 	_recipes.custom_minimum_size.x = 148
-	columns.add_child(_recipes)
+	recipe_scroll.add_child(_recipes)
 	_recipes.add_child(_label("RECIPES",12))
 	_detail_scroll = ScrollContainer.new()
 	_detail_scroll.custom_minimum_size.x = 260

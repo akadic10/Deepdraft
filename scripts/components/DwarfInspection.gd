@@ -24,6 +24,18 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 			data.summary = "Mining"
 		Phase.FELL_FINDING, Phase.FELL_MOVING, Phase.FELL_WORKING:
 			data.summary = "Chopping"
+			var task := TaskManager.get_task(agent.current_task_id)
+			if task != null and task.type == Task.Type.CLEAR_BOULDER: data.summary = "Clearing stone"
+			if task != null and task.type == Task.Type.GATHER_SCREE: data.summary = "Gathering stone"
+	if task_is_shrub(agent): data.summary = "Harvesting" if TaskManager.get_task(agent.current_task_id).type == Task.Type.HARVEST_SHRUB else "Clearing shrubs"
+	if agent.current_task_id >= 0:
+		var plant_task := TaskManager.get_task(agent.current_task_id)
+		if plant_task != null and plant_task.type == Task.Type.CLEAR_PLANT: data.summary = "Clearing plants"
+	var live_task := TaskManager.get_task(agent.current_task_id)
+	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting berries"
+	if live_task != null and live_task.type == Task.Type.UPROOT_SHRUB: data.summary = "Uprooting shrub"
+	var fetch := agent._fetch_source()
+	if fetch != null and fetch.has_method("advance_plant"): data.summary = "Planting cutting" if bool(fetch.def.get("from_cutting", false)) else "Replanting shrub"
 	if data.group == "idle": data.summary = "Idle"
 	if data.group == "resting": data.summary = "Resting"
 	return data
@@ -35,6 +47,8 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 	var explanation := "Waiting for an available job."
 	var destination := "No destination"
 	var phase := agent._task_phase
+	var clearing_stone := task != null and task.type == Task.Type.CLEAR_BOULDER
+	var gathering_stone := task != null and task.type == Task.Type.GATHER_SCREE
 	if agent.is_sleeping():
 		activity = "Sleeping"
 		explanation = "Resting here · %.1f game hours remaining" % agent._sleep_hours_left
@@ -71,18 +85,46 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 				activity = "Mining"
 				explanation = "Working the selected block."
 			Phase.FELL_FINDING:
-				activity = "Finding a chopping position"
-				explanation = "Checking access around the tree."
+				activity = "Finding a stone-clearing position" if clearing_stone else "Finding a chopping position"
+				explanation = "Checking access around the boulder." if clearing_stone else "Checking access around the tree."
 			Phase.FELL_MOVING:
-				activity = "Going to chop"
-				explanation = "Walking to the tree."
+				activity = "Going to clear stone" if clearing_stone else "Going to chop"
+				explanation = "Walking to the boulder." if clearing_stone else "Walking to the tree."
 			Phase.FELL_WORKING:
-				activity = "Chopping a tree"
-				explanation = "Felling progress stays with the tree."
+				activity = "Breaking a boulder" if clearing_stone else "Chopping a tree"
+				explanation = "Clearing progress stays with the boulder." if clearing_stone else "Felling progress stays with the tree."
 			_:
 				activity = "Going to work" if agent.is_walking() else "Working"
 				explanation = "Completing the assigned job."
 		destination = _destination(agent, task)
+		if task.type == Task.Type.HARVEST_TREE:
+			activity = "Harvesting juniper berries" if phase == Phase.FELL_WORKING else "Going to harvest berries"
+			explanation = "Picking this season's berries; the tree stays standing."
+		if gathering_stone:
+			activity = "Gathering loose stones" if phase == Phase.FELL_WORKING else "Going to gather stones"
+			explanation = "Collecting the clump by hand. Partial work is retained." if phase == Phase.FELL_WORKING else "Walking to an accessible side of the clump."
+		if task_is_shrub(agent):
+			var harvest := task.type == Task.Type.HARVEST_SHRUB
+			activity = ("Harvesting berries" if harvest else "Clearing a shrub") if phase == Phase.FELL_WORKING else ("Going to harvest" if harvest else "Going to clear a shrub")
+			explanation = "Picking this season’s crop; the plant remains." if harvest else "Removing the plant with a chance to recover a cutting."
+		if task.type == Task.Type.UPROOT_SHRUB:
+			var plant_source := TaskManager.get_work_source(task.source_id)
+			var label := "flowers" if plant_source != null and plant_source.get("state").get("plant_kind") == "flower" else "a shrub"
+			activity = ("Uprooting " if phase == Phase.FELL_WORKING else "Going to uproot ") + label
+			explanation = "Lifting the whole plant for storage or replanting. Its seasonal state is preserved."
+		var fetch := agent._fetch_source()
+		if fetch != null and fetch.has_method("advance_plant"):
+			var label := "flowers" if fetch.def.has("plant_variant") else "a shrub"
+			activity = ("Replanting " if phase in [Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT] else "Carrying " if phase == Phase.FETCH_TO_GHOST else "Collecting ") + label
+			explanation = "Moving the existing mature plant to its reserved location."
+			if bool(fetch.def.get("from_cutting", false)):
+				activity = "Planting a cutting" if phase in [Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT] else "Carrying a cutting" if phase == Phase.FETCH_TO_GHOST else "Collecting a cutting"
+				explanation = "Planting one cutting; the young shrub will grow with the seasons."
+		if task.type == Task.Type.CLEAR_PLANT:
+			var source := TaskManager.get_work_source(task.source_id)
+			var plant_state: Dictionary = source.get("state") if is_instance_valid(source) else {}
+			activity = String(plant_state.get("clearing_activity", "Clearing plants")) if phase == Phase.FELL_WORKING else "Going to clear plants"
+			explanation = "Removing the clump by hand without a resource yield. Partial work is retained."
 	elif agent.is_walking():
 		activity = "Walking"
 		explanation = "Moving to the requested position."
@@ -96,6 +138,18 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			elif phase in [Phase.FETCH_WORKING,Phase.FETCH_DEPOSIT]:
 				activity = "Crafting " + String(source.recipe.name).to_lower()
 				explanation = "Shaping timber into finished goods."
+	var ladder_build := agent._fetch_source()
+	if ladder_build != null and ladder_build.has_method("advance_install"):
+		activity = "Installing a ladder section" if phase == Phase.FETCH_WORKING else "Carrying a ladder section" if phase == Phase.FETCH_TO_GHOST else "Collecting a ladder section"
+	var ladder_removal := agent._uninstall_source()
+	if ladder_removal != null and ladder_removal.has_method("advance_removal"):
+		activity = "Dismantling a ladder" if phase == Phase.UNINSTALL_WORKING else "Going to dismantle a ladder"
+	if agent._climbing:
+		activity = "Climbing with supplies" if not agent._carried_entries.is_empty() else "Climbing a ladder"
+		explanation = "Using the installed rungs to reach another level."
+	if agent._ladder_exiting:
+		activity = "Climbing down to safe ground"
+		explanation = "Leaving the ladder before taking another job or resting."
 	var items := _cargo(agent)
 	var load_used := 0
 	for entry: Dictionary in items:
@@ -156,7 +210,10 @@ static func _destination(agent: DwarfAgent, task: Task) -> String:
 		elif phase in [Phase.ZONE_MOVING, Phase.ZONE_SWINGING]:
 			return "Mining site\n%s" % location(agent._zone_block)
 		elif phase in [Phase.FELL_FINDING, Phase.FELL_MOVING, Phase.FELL_WORKING]:
-			label = "Marked tree"
+			label = "Marked boulder" if task.type == Task.Type.CLEAR_BOULDER else "Marked tree"
+			if task.type == Task.Type.GATHER_SCREE: label = "Loose stones"
+			if task.type in [Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB]: label = "Wild shrub"
+			if task.type in [Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB] and is_instance_valid(source): label = String(source.get("state").get("display_name", "Wild plants"))
 		return "%s\n%s" % [label, location(task.target_pos)]
 	return "Work site"
 
@@ -188,3 +245,8 @@ static func _cargo(agent: DwarfAgent) -> Array[Dictionary]:
 	for key: String in grouped:
 		result.append(grouped[key])
 	return result
+
+
+static func task_is_shrub(agent: DwarfAgent) -> bool:
+	var task := TaskManager.get_task(agent.current_task_id)
+	return task != null and task.type in [Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB]

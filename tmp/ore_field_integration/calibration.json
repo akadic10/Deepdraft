@@ -1,0 +1,63 @@
+{
+	"calibration_seeds": [
+		7.0,
+		1234.0,
+		65535.0,
+		20261007.0,
+		3381051336.0,
+		4294967295.0,
+		314159265.0,
+		2147483647.0
+	],
+	"failures": [],
+	"passed": true,
+	"profile": {
+		"calibration_seed_count": 4.0,
+		"independent_fields": {
+			"coal": {
+				"frequency": 0.02,
+				"seed_offset": 1.0
+			},
+			"copper": {
+				"frequency": 0.06,
+				"seed_offset": 401.0
+			},
+			"gold": {
+				"frequency": 0.065,
+				"seed_offset": 101.0
+			},
+			"iron": {
+				"frequency": 0.055,
+				"seed_offset": 307.0
+			},
+			"silver": {
+				"frequency": 0.065,
+				"seed_offset": 211.0
+			},
+			"tin": {
+				"frequency": 0.07,
+				"seed_offset": 503.0
+			}
+		},
+		"seeds": [
+			7.0,
+			1234.0,
+			65535.0,
+			20261007.0,
+			3381051336.0,
+			4294967295.0,
+			314159265.0,
+			2147483647.0
+		],
+		"shared_frequency": 0.05,
+		"study_id": "ore_vein_prototypes_v1"
+	},
+	"thresholds": [
+		0.83855327963829,
+		0.80578738451004,
+		0.703521609306335,
+		0.706324934959412,
+		0.735879153013229,
+		0.665185779333115
+	]
+}

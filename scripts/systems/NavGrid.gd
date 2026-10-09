@@ -37,6 +37,7 @@ const CLEARANCE := 3                  # air blocks above every floor cell
 const PATH_CACHE_TTL_MSEC := 5000     # doc 32
 const DEFAULT_MAX_NODES := 6000      # full-path expansion cap (never hangs)
 const PROBE_NODE_CAP := 200           # scheduler reachability probes (doc 32)
+const APPROACH_PROBE_NODES := 64     # cheaply reject a sealed destination pocket
 
 const COST_LATERAL := 1.0
 const COST_DIAGONAL := 1.414
@@ -49,6 +50,70 @@ var _paths_served: int = 0
 var _path_cache_hits: int = 0
 var _probes_run: int = 0
 var _nodes_expanded_total: int = 0
+signal ladder_routes_changed
+var ladder_revision := 0
+var _ladders: Dictionary = {}
+var _rungs: Dictionary = {}
+var navigation_revision := 0
+var _chunk_revisions: Dictionary = {}
+enum ProbeResult { SEARCHING, REACHABLE, UNREACHABLE }
+
+
+## Rungs are explicit traversal supports, never solid terrain/walkable floors.
+func set_ladder(id: int, base: Vector3i, height: int, facing: Vector3i, speed: float, closing := false) -> void:
+	_ladders[id] = {"base":base, "height":height, "facing":facing, "speed":speed, "closing":closing}
+	_rebuild_ladders()
+
+
+func remove_ladder(id: int) -> void:
+	_ladders.erase(id)
+	_rebuild_ladders()
+
+
+func _rebuild_ladders() -> void:
+	navigation_revision += 1
+	_rungs.clear()
+	for id: int in _ladders:
+		var ladder: Dictionary = _ladders[id]
+		for y in range(ladder.base.y, ladder.base.y + ladder.height + 1):
+			_rungs[Vector3i(ladder.base.x, y, ladder.base.z)] = id
+	_path_cache.clear()
+	ladder_revision += 1
+	ladder_routes_changed.emit()
+
+
+func ladder_at(cell: Vector3i) -> Dictionary:
+	return _ladders.get(_rungs.get(cell, -1), {})
+
+
+func clear_for_climbing(cell: Vector3i) -> bool:
+	if cell.x < 0 or cell.z < 0 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z \
+			or cell.y < 1 or cell.y + CLEARANCE >= WorldData.WORLD_SIZE_Y: return false
+	for k in range(1, CLEARANCE + 1):
+		var above := cell + Vector3i(0, k, 0)
+		if _block_id(above.x, above.y, above.z) != BlockRegistry.AIR_ID or PlacedEntityRegistry.occupies(above): return false
+	return true
+
+
+func is_navigable(cell: Vector3i) -> bool:
+	return is_walkable(cell) or (_rungs.has(cell) and clear_for_climbing(cell))
+
+
+func _ladder_neighbors(cell: Vector3i, start: Vector3i, goal: Vector3i) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	if _rungs.is_empty(): return result
+	for offset: Vector3i in [Vector3i.UP, Vector3i.DOWN, Vector3i.LEFT, Vector3i.RIGHT, Vector3i.FORWARD, Vector3i.BACK]:
+		var next := cell + offset
+		var id: int = _rungs.get(cell, _rungs.get(next, -1))
+		if id < 0: continue
+		var route: Dictionary = _ladders[id]
+		# Closing routes allow evacuation and explicit maintenance destinations.
+		if route.closing and _rungs.get(start, -1) != id and _rungs.get(goal, -1) != id: continue
+		if offset.y != 0:
+			if _rungs.get(cell, -1) != id or _rungs.get(next, -1) != id: continue
+		elif not (is_walkable(cell) or is_walkable(next)): continue
+		if is_navigable(next): result.append(next)
+	return result
 
 
 func _ready() -> void:
@@ -84,14 +149,130 @@ func find_path(start: Vector3i, goal: Vector3i, max_nodes: int = DEFAULT_MAX_NOD
 	return result
 
 
-## Capped reachability probe (doc 16 §2.6 — the scheduler's question). True if
+## Synchronous diagnostic probe. Gameplay scheduling uses advance_reachability
+## so exhausting a single wake never becomes a false unreachable result. True if
 ## `goal` or any cell laterally adjacent to it is reached within the node cap.
-## A capped failure counts as unreachable (caller applies backoff). The caller
+## A capped failure returns false. The caller
 ## may pass its configured cap (task_config.json probe_node_cap); the default
 ## is the doc-32 value.
 func probe_reachable(start: Vector3i, goal: Vector3i, node_cap: int = PROBE_NODE_CAP) -> bool:
 	_probes_run += 1
 	return not _astar(start, goal, node_cap, true).is_empty()
+
+
+## Scheduler searches retain their frontier when a wake runs out of time or
+## nodes. SEARCHING is not an unreachable result. The overall limit matches
+## ordinary walking; changed terrain, occupancy, ladders or endpoints restart.
+## exact_goals optionally supplies alternative working positions for one search.
+func advance_reachability(query: Dictionary, start: Vector3i, goal: Vector3i,
+		node_budget: int, deadline_usec: int, adjacent_ok := true, exact_goals: Dictionary = {}) -> int:
+	adjacent_ok = adjacent_ok and exact_goals.is_empty()
+	if query.is_empty() or query.start != start or query.goal != goal or query.adjacent_ok != adjacent_ok \
+			or query.get("goals", {}) != exact_goals or not search_is_current(query):
+		query.clear()
+		query.merge(_new_search(start, goal, adjacent_ok, true))
+		if not exact_goals.is_empty():
+			query["goals"] = exact_goals
+			var lo := goal
+			var hi := goal
+			for cell: Vector3i in exact_goals:
+				lo = Vector3i(mini(lo.x,cell.x),mini(lo.y,cell.y),mini(lo.z,cell.z))
+				hi = Vector3i(maxi(hi.x,cell.x),maxi(hi.y,cell.y),maxi(hi.z,cell.z))
+				_remember_search_area(query,cell)
+			query["goal_min"] = lo
+			query["goal_max"] = hi
+			if not query.heap.is_empty(): query.heap[0][0] = _search_heuristic(query,start)
+		query["approach_query"] = _new_approach_probe(start, goal, adjacent_ok, exact_goals)
+		query["approach_nodes"] = 0
+		_probes_run += 1
+	if int(query.status) != ProbeResult.SEARCHING: return int(query.status)
+	# A small reverse search catches enclosed pickup/work areas before the
+	# forward search explores a large open plateau. Only open (symmetric) ladder
+	# graphs use it; closing routes retain the ordinary forward permission check.
+	var approach: Dictionary = query.get("approach_query", {})
+	if not approach.is_empty():
+		var before: int = approach.expanded
+		_advance_search(approach, mini(maxi(node_budget, 1), APPROACH_PROBE_NODES-before), deadline_usec)
+		var used: int = int(approach.expanded)-before
+		query.chunks.merge(approach.chunks)
+		query.expanded += used
+		query.approach_nodes += used
+		node_budget -= used
+		if int(approach.status) != ProbeResult.SEARCHING:
+			query.status = approach.status
+			query.path = approach.path
+			query.path.reverse()
+			query.erase("approach_query")
+			return int(query.status)
+		if int(approach.expanded) >= APPROACH_PROBE_NODES:
+			query.erase("approach_query")
+		else:
+			return ProbeResult.SEARCHING
+	var remaining := DEFAULT_MAX_NODES - (int(query.expanded) - int(query.approach_nodes))
+	_advance_search(query, mini(maxi(node_budget, 0), remaining), deadline_usec)
+	if int(query.status) == ProbeResult.SEARCHING and int(query.expanded) - int(query.approach_nodes) >= DEFAULT_MAX_NODES:
+		query.status = ProbeResult.UNREACHABLE
+	return int(query.status)
+
+
+## Cache only a current exact proof for immediate worker execution.
+func remember_reachable_path(query: Dictionary) -> void:
+	if int(query.get("status", ProbeResult.SEARCHING)) != ProbeResult.REACHABLE \
+			or bool(query.adjacent_ok) or not search_is_current(query): return
+	var path: Array[Vector3i] = query.path
+	if path.is_empty() or path.front() != query.start: return
+	var endpoint: Vector3i = path.back()
+	if endpoint != query.goal and not query.get("goals", {}).has(endpoint): return
+	_path_cache[[query.start, endpoint]] = {"path":path,
+		"expires":Time.get_ticks_msec()+PATH_CACHE_TTL_MSEC, "chunks":query.chunks.duplicate()}
+
+
+## Streaming/mining elsewhere must not repeatedly restart a long route.
+## Record every examined cell's clearance/neighbour chunks, including walls
+## that were rejected, so opening a previously closed approach still restarts.
+func search_is_current(query: Dictionary) -> bool:
+	if query.is_empty() or int(query.ladder_revision) != ladder_revision: return false
+	if int(query.revision) == navigation_revision: return true
+	for chunk: Vector3i in query.chunks:
+		if int(query.chunks[chunk]) != int(_chunk_revisions.get(chunk, 0)): return false
+	query.revision = navigation_revision
+	return true
+
+
+func _remember_search_area(query: Dictionary, cell: Vector3i) -> void:
+	if not bool(query.track_changes): return
+	var lo := cell - Vector3i.ONE
+	var hi := cell + Vector3i(1, CLEARANCE+1, 1)
+	for cx in range(lo.x >> 4, (hi.x >> 4)+1):
+		for cy in range(lo.y >> 4, (hi.y >> 4)+1):
+			for cz in range(lo.z >> 4, (hi.z >> 4)+1):
+				var key := Vector3i(cx,cy,cz)
+				if not query.chunks.has(key): query.chunks[key] = int(_chunk_revisions.get(key,0))
+
+
+func _new_approach_probe(start: Vector3i, goal: Vector3i, adjacent_ok := true, exact_goals: Dictionary = {}) -> Dictionary:
+	for route: Dictionary in _ladders.values():
+		if bool(route.closing): return {}
+	var query := _new_search(goal, start, false, true)
+	query.heap.clear()
+	query.g.clear()
+	query.status = ProbeResult.SEARCHING
+	# Every cell that satisfies the forward probe is a reverse-search root.
+	var roots: Array[Vector3i] = [goal]
+	if not exact_goals.is_empty():
+		roots.assign(exact_goals.keys())
+	elif adjacent_ok:
+		for offset: Vector2i in _DIRS:
+			for dy in [-1,0,1]: roots.append(goal + Vector3i(offset.x,dy,offset.y))
+	for cell: Vector3i in roots:
+		if not is_navigable(cell): continue
+		query.g[cell] = 0.0
+		query.tie += 1
+		_heap_push(query.heap, [_heuristic(cell,start), query.tie, cell])
+	query["route_start"] = start
+	query["route_goal"] = goal
+	if query.heap.is_empty(): query.status = ProbeResult.UNREACHABLE
+	return query
 
 
 ## The doc-32 walkability test for one floor cell (cached).
@@ -163,6 +344,9 @@ func get_stats() -> Dictionary:
 
 
 func clear_runtime_state() -> void:
+	_chunk_revisions.clear()
+	_ladders.clear()
+	_rebuild_ladders()
 	_walkable_cache.clear()
 	_path_cache.clear()
 	_paths_served = 0
@@ -198,39 +382,70 @@ const _DIRS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1),
 const _DIAGS: Array[Vector2i] = [Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
 
 func _astar(start: Vector3i, goal: Vector3i, max_nodes: int, adjacent_ok: bool) -> Array[Vector3i]:
-	var empty: Array[Vector3i] = []
-	if not is_walkable(start):
-		return empty
-	if not adjacent_ok and not is_walkable(goal):
-		return empty
-	if start == goal:
-		var trivial: Array[Vector3i] = [start]
-		return trivial
+	var query := _new_search(start, goal, adjacent_ok)
+	_advance_search(query, max_nodes, 0)
+	var result: Array[Vector3i] = query.path
+	return result
 
+
+func _new_search(start: Vector3i, goal: Vector3i, adjacent_ok: bool, track_changes := false) -> Dictionary:
 	# Binary min-heap of [f, tie, cell]; g + came-from maps.
 	var heap: Array = []
-	var g: Dictionary = { start: 0.0 }
-	var came: Dictionary = {}
-	var closed: Dictionary = {}
-	var tie := 0
-	_heap_push(heap, [_heuristic(start, goal), tie, start])
+	var path: Array[Vector3i] = []
+	var status := ProbeResult.SEARCHING
+	if not is_navigable(start) or (not adjacent_ok and not is_navigable(goal)):
+		status = ProbeResult.UNREACHABLE
+	else:
+		_heap_push(heap, [_heuristic(start, goal), 0, start])
+	var query := {"start":start, "goal":goal, "adjacent_ok":adjacent_ok, "heap":heap,
+		"g":{start:0.0}, "came":{}, "closed":{}, "tie":0, "expanded":0,
+		"status":status, "path":path, "revision":navigation_revision,
+		"chunks":{}, "ladder_revision":ladder_revision, "track_changes":track_changes}
+	_remember_search_area(query,start)
+	_remember_search_area(query,goal)
+	return query
 
-	var expanded := 0
+
+func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) -> void:
+	if int(query.status) != ProbeResult.SEARCHING: return
+	var start: Vector3i = query.start
+	var goal: Vector3i = query.goal
+	var heap: Array = query.heap
+	var g: Dictionary = query.g
+	var came: Dictionary = query.came
+	var closed: Dictionary = query.closed
+	var goals: Dictionary = query.get("goals", {})
+	var slice_nodes := 0
 	while not heap.is_empty():
+		if slice_nodes >= node_budget or (deadline_usec > 0 and Time.get_ticks_usec() >= deadline_usec): return
 		var top: Array = _heap_pop(heap)
 		var current: Vector3i = top[2]
 		if closed.has(current):
 			continue
 		closed[current] = true
-		expanded += 1
+		_remember_search_area(query,current)
+		slice_nodes += 1
+		query.expanded += 1
 		_nodes_expanded_total += 1
 
-		if current == goal or (adjacent_ok and _lateral_adjacent(current, goal)):
-			return _reconstruct(came, current)
-		if expanded >= max_nodes:
-			return empty
+		var reached := goals.has(current) if not goals.is_empty() else \
+			(current == goal or (bool(query.adjacent_ok) and _lateral_adjacent(current, goal)))
+		if reached:
+			query.path = _reconstruct(came, current)
+			query.status = ProbeResult.REACHABLE
+			return
 
 		var g_cur: float = g[current]
+		for neighbor: Vector3i in _ladder_neighbors(current, query.get("route_start",start), query.get("route_goal",goal)):
+			if closed.has(neighbor): continue
+			var route: Dictionary = ladder_at(current) if _rungs.has(current) else ladder_at(neighbor)
+			var g_new := g_cur + (1.0 / maxf(.1, float(route.speed)) if neighbor.y != current.y else COST_LATERAL)
+			if g.has(neighbor) and g_new >= float(g[neighbor]): continue
+			g[neighbor] = g_new
+			came[neighbor] = current
+			query.tie += 1
+			_heap_push(heap, [g_new + _search_heuristic(query, neighbor), query.tie, neighbor])
+		if not is_walkable(current): continue
 		for dir: Vector2i in _DIRS:
 			var nx := current.x + dir.x
 			var nz := current.z + dir.y
@@ -250,8 +465,8 @@ func _astar(start: Vector3i, goal: Vector3i, max_nodes: int, adjacent_ok: bool) 
 					break
 				g[neighbor] = g_new
 				came[neighbor] = current
-				tie += 1
-				_heap_push(heap, [g_new + _heuristic(neighbor, goal), tie, neighbor])
+				query.tie += 1
+				_heap_push(heap, [g_new + _search_heuristic(query, neighbor), query.tie, neighbor])
 				break   # one floor per column — stop scanning dy
 
 		# Flat diagonals (no corner cutting): destination at the SAME level,
@@ -269,9 +484,20 @@ func _astar(start: Vector3i, goal: Vector3i, max_nodes: int, adjacent_ok: bool) 
 				continue
 			g[neighbor] = g_new
 			came[neighbor] = current
-			tie += 1
-			_heap_push(heap, [g_new + _heuristic(neighbor, goal), tie, neighbor])
-	return empty
+			query.tie += 1
+			_heap_push(heap, [g_new + _search_heuristic(query, neighbor), query.tie, neighbor])
+	query.status = ProbeResult.UNREACHABLE
+
+
+## Multi-position work searches use distance to the goals' bounding box: a
+## cheap distance estimate, independent of how many blocks were designated. Every
+## goal still requires an exact match; empty space in the box is not success.
+func _search_heuristic(query: Dictionary, cell: Vector3i) -> float:
+	if query.has("goal_min"):
+		var lo: Vector3i = query.goal_min
+		var hi: Vector3i = query.goal_max
+		return _heuristic(cell,Vector3i(clampi(cell.x,lo.x,hi.x),clampi(cell.y,lo.y,hi.y),clampi(cell.z,lo.z,hi.z)))
+	return _heuristic(cell,query.goal)
 
 
 ## Octile distance in XZ (diagonals allowed) + vertical Manhattan. Admissible:
@@ -377,6 +603,8 @@ func _on_occupancy_changed(box_min: Vector3i, box_size: Vector3i) -> void:
 
 
 func _invalidate_chunk(chunk_key: Vector3i) -> void:
+	navigation_revision += 1
+	_chunk_revisions[chunk_key] = int(_chunk_revisions.get(chunk_key,0)) + 1
 	_walkable_cache.erase(chunk_key)
 	if _path_cache.is_empty():
 		return

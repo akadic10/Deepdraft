@@ -44,6 +44,8 @@ const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
 const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _picking := Picking.new()
+var _ladders: Node3D
+var _ladder_preview_height := -1
 const Seating = preload("res://scripts/components/FurnitureSeating.gd")
 var _seating := Seating.new(self)
 
@@ -62,6 +64,8 @@ signal catalog_changed()
 signal tool_active_changed(active: bool)
 var _catalog_pending := false
 var _require_stock := false
+var _moving_shrub := ""
+const PlantPlan = preload("res://scripts/components/ShrubPlantingComponent.gd")
 
 var _defs: Dictionary = {}            # furniture_key -> def Dictionary
 var _model_bounds: Dictionary = {}    # model path -> cached root-local visual AABB
@@ -118,6 +122,8 @@ func _ready() -> void:
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
 	_load_defs()
+	_ladders = preload("res://scripts/systems/LadderSystem.gd").new()
+	add_child(_ladders)
 	_dock_ui = get_node_or_null(dock_ui_path)
 	if _dock_ui != null:
 		if _dock_ui.has_method("register_furniture_controller"):
@@ -134,6 +140,7 @@ func _ready() -> void:
 	TaskManager.task_released.connect(_on_task_released)
 	StockpileManager.stockpile_changed.connect(func(_k: String, _d: int) -> void: _mark_lease_dirty())
 	WorldData.chunk_dirtied.connect(_on_terrain_changed, CONNECT_DEFERRED)
+	WorldClock.season_changed.connect(_refresh_plant_models)
 	PlacedEntityRegistry.occupancy_changed.connect(func(_lo: Vector3i, _size: Vector3i): _seating.dirty = true)
 	_build_window()
 
@@ -165,6 +172,7 @@ func _load_defs() -> void:
 		if not def.has("placement") or not def.has("item_key"):
 			continue   # incomplete placement definition
 		_defs[key] = def
+	_defs.merge(SurfaceDetailRegistry.get_place_definitions())
 	print("FurniturePlacementController: %d placeable defs loaded." % _defs.size())
 
 
@@ -177,18 +185,29 @@ func get_defs() -> Dictionary:
 ## already removed their unit from that pool and must not subtract it again.
 func get_catalog_stock() -> Dictionary:
 	var loose: Dictionary = _drop_manager.get_unreserved_counts() if is_instance_valid(_drop_manager) else {}
+	# Automatic storage hauling must not hide owned stock from placement.
+	# Outgoing stored claims are added back here and subtracted below once.
+	for offer: Dictionary in TaskManager.placement_haul_offers():
+		loose[offer.key] = int(loose.get(offer.key, 0)) + int(offer.count)
 	var outgoing := StockpileManager.get_outgoing_totals()
+	var promised := StockpileManager.get_promised_totals()
 	var pending := {}
 	var requested := {}
 	for ghost: FurnitureGhostComponent in _ghosts.values():
+		if ghost.has_method("spare_claimed_units"):
+			loose[ghost.item_key] = int(loose.get(ghost.item_key, 0)) + ghost.spare_claimed_units()
 		requested[ghost.furniture_key] = int(requested.get(ghost.furniture_key, 0)) + 1
-		if not ghost.has_committed_item():
+		if not ghost.has_committed_item() and ghost.required_instance_id.is_empty():
 			pending[ghost.item_key] = int(pending.get(ghost.item_key, 0)) + 1
 	var result := {}
+	if is_instance_valid(_ladders):
+		var ladder_stock: Dictionary = _ladders.pending_sections()
+		pending[_ladders.definition.item_key] = ladder_stock.pending
+		requested[_ladders.KEY] = ladder_stock.requested
 	for key: String in _defs:
 		var item_key := String(_defs[key].item_key)
 		result[key] = {"available": maxi(0, int(loose.get(item_key, 0)) + StockpileManager.get_total(item_key)
-			- int(outgoing.get(item_key, 0)) - int(pending.get(item_key, 0))), "reserved": int(requested.get(key, 0))}
+			- int(outgoing.get(item_key, 0)) - int(promised.get(item_key, 0)) - int(pending.get(item_key, 0))), "reserved": int(requested.get(key, 0))}
 	return result
 
 
@@ -208,6 +227,7 @@ func _mark_catalog_dirty() -> void:
 
 func _emit_catalog_changed() -> void:
 	_catalog_pending = false
+	_seating.dirty = true # Refresh stock-dependent validity even when the mouse is still.
 	if _active and _require_stock and int(get_catalog_stock().get(_active_key, {}).get("available", 0)) <= 0:
 		deactivate()
 	catalog_changed.emit()
@@ -224,7 +244,8 @@ func get_stats() -> Dictionary:
 ## Zone/furniture mutual exclusion (doc 19 Phase 2 acceptance): the zone
 ## tool rejects cells covered by any ghost footprint or installed piece.
 func blocks_zone_cell(cell: Vector3i) -> bool:
-	return _cell_to_ghost.has(cell) or _cell_to_installed.has(cell)
+	return _cell_to_ghost.has(cell) or _cell_to_installed.has(cell) \
+		or (is_instance_valid(_ladders) and _ladders.reserves(AABB(Vector3(cell) + Vector3.UP, Vector3.ONE)))
 
 
 # ── Tool state ────────────────────────────────────────────────────────────────
@@ -256,6 +277,7 @@ func deactivate() -> void:
 		return
 	_active = false
 	_active_key = ""
+	_moving_shrub = ""
 	_free_preview()
 	_require_stock = false
 	tool_active_changed.emit(false)
@@ -370,6 +392,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> void:
 	var pointer := get_viewport().get_mouse_position() if screen_pos == Vector2.INF else screen_pos
 	var hit := _surface_cell_for(pointer)
+	if _active_key == _ladders.KEY:
+		var aim: Dictionary = _ladders.from_hit(hit, _yaw)
+		if not aim.is_empty():
+			_yaw = aim.yaw
+			hit = {"x":aim.base.x, "y":aim.base.y, "z":aim.base.z}
+		else: hit = {}
 	if WallMount.is_wall(_defs.get(_active_key, {})):
 		var prior_yaw := _yaw
 		hit = _wall_floor_hit(hit)
@@ -398,6 +426,9 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 func _placement_valid(origin: Vector3i) -> bool:
 	_invalid_reason = ""
 	var def: Dictionary = _defs.get(_active_key, {})
+	if _active_key == _ladders.KEY:
+		_invalid_reason = _ladders.placement_reason(origin, _yaw)
+		return _invalid_reason.is_empty()
 	if WallMount.is_wall(def):
 		return _wall_placement_valid(def, origin, _yaw)
 	_invalid_reason = _floor_placement_reason(def, origin, _yaw)
@@ -405,6 +436,8 @@ func _placement_valid(origin: Vector3i) -> bool:
 
 
 func _floor_placement_reason(def: Dictionary, origin: Vector3i, yaw: int) -> String:
+	if is_instance_valid(_ladders) and _ladders.reserves(_visual_bounds(def, origin, yaw)):
+		return "overlap"
 	if not _piece_visible(def, origin, yaw):
 		return "slice"
 	for cell: Vector3i in _footprint_cells(def, origin, yaw):
@@ -415,6 +448,9 @@ func _floor_placement_reason(def: Dictionary, origin: Vector3i, yaw: int) -> Str
 	if (not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty()) \
 			and _intersects_wall_piece(_visual_bounds(def, origin, yaw)):
 		return "overlap"
+	if bool(def.get("plant", false)):
+		var plants := get_tree().get_first_node_in_group("surface_details")
+		return plants.planting_reason(String(def.plant_definition), origin, _moving_shrub) if plants != null else "plant_soil"
 	return _seating.placement_reason(def, origin, yaw)
 
 
@@ -454,6 +490,9 @@ func _wall_structure_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 
 
 func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
+	if is_instance_valid(_ladders) and _ladders.reserves(_visual_bounds(def, origin, yaw)):
+		_invalid_reason = "overlap"
+		return false
 	if not _wall_structure_valid(def, origin, yaw):
 		_invalid_reason = "wall"
 		return false
@@ -493,6 +532,8 @@ func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 ## walkable but still cannot pass through an elevated torch. Cache per asset.
 func _visual_bounds(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
 	var path := String(def.get("model", ""))
+	if bool(def.get("plant", false)):
+		path = SurfaceDetailRegistry.place_model(def, WorldClock.season)
 	if not _model_bounds.has(path):
 		var packed := load(path) as PackedScene
 		if packed == null:
@@ -644,6 +685,7 @@ func _ensure_preview() -> void:
 
 
 func _free_preview() -> void:
+	_ladder_preview_height = -1
 	_seating.reset()
 	if _preview != null:
 		_preview.queue_free()
@@ -657,6 +699,14 @@ func _free_preview() -> void:
 func _position_preview(origin: Vector3i) -> void:
 	if _preview == null:
 		return
+	if _active_key == _ladders.KEY:
+		var spec: Dictionary = _ladders.describe(origin, _yaw)
+		var height := maxi(_ladders.section_height(), int(spec.height))
+		if height != _ladder_preview_height:
+			_preview.queue_free()
+			_preview = _ladders.make_visual(height, 0, _preview_material)
+			add_child(_preview)
+			_ladder_preview_height = height
 	_preview.visible = origin.x >= 0 and _piece_visible(_defs.get(_active_key, {}), origin, _yaw)
 	_preview.position = _world_pos(_defs.get(_active_key, {}), origin, _yaw)
 	_preview.rotation = Vector3(0.0, float(_yaw) * PI * 0.5, 0.0)
@@ -682,7 +732,10 @@ func _update_hint(_origin: Vector3i) -> void:
 		_hint_label.add_theme_constant_override("outline_size", 6)
 		layer.add_child(_hint_label)
 	var wall := WallMount.is_wall(_defs.get(_active_key, {}))
-	var hints := {"wall":"Needs a solid wall and four blocks of room height — R rotates",
+	var hints := {"plant_soil":"Needs suitable soil and a level 3 × 3 patch",
+		"plant_clearance":"Clear nearby plants, stones or structures first",
+		"plant_spacing":"Needs its own 3 × 3 area — move farther from plants or queued orders",
+		"plant_sky":"This plant needs open sky", "wall":"Needs a solid wall and four blocks of room height — R rotates",
 		"overlap":"Another piece occupies this space", "access":"A dwarf needs room to reach this wall",
 		"slice":"Raise the slice to show this furniture",
 		"seat_clearance":"Leave room for a seated dwarf’s head",
@@ -692,7 +745,13 @@ func _update_hint(_origin: Vector3i) -> void:
 	_hint_label.text = String(hints.get(_invalid_reason, "Point at a wall, or aim beside it and press R" if wall else ""))
 	if _hover_valid and not _seating.snap.is_empty():
 		_hint_label.text = "Table seat — chair faces inward. Click to place; Esc to finish."
+	if _hover_valid and bool(_defs.get(_active_key, {}).get("plant", false)):
+		_hint_label.text = "Click to choose this plant’s new home · R rotates · Esc cancels" if not _moving_shrub.is_empty() else "Click to plant here · reserves a 3 × 3 area · R rotates · Esc finishes"
 	_hint_label.visible = not _hint_label.text.is_empty()
+	if _active_key == _ladders.KEY:
+		var spec: Dictionary = _ladders.describe(_origin, _yaw)
+		_hint_label.text = "%d-block ladder · %d ladder sections · Click to build · R rotates" % [spec.height, _ladders.sections(spec.height)] if _hover_valid else _invalid_reason
+		_hint_label.visible = true
 	_hint_label.position = Vector2(20, get_viewport().get_visible_rect().size.y - 180)
 
 
@@ -741,6 +800,8 @@ func _make_solid_material() -> StandardMaterial3D:
 func _instance_model(furniture_key: String, override: Material, definition: Dictionary = {}) -> Node3D:
 	var def: Dictionary = _defs.get(furniture_key, {}) if definition.is_empty() else definition
 	var path := String(def.get("model", ""))
+	if bool(def.get("plant", false)):
+		path = SurfaceDetailRegistry.place_model(def, WorldClock.season)
 	if path.is_empty() or not ResourceLoader.exists(path):
 		push_error("FurniturePlacementController: missing model '%s' for %s." % [path, furniture_key])
 		return null
@@ -749,6 +810,19 @@ func _instance_model(furniture_key: String, override: Material, definition: Dict
 		return null
 	var node := scene.instantiate() as Node3D
 	_apply_material(node, override)
+	if bool(def.get("plant", false)):
+		var outline := MeshInstance3D.new()
+		outline.name = "PlantingArea"
+		var mesh := ImmediateMesh.new()
+		mesh.surface_begin(Mesh.PRIMITIVE_LINES, override)
+		var corners := [Vector3(-1.5,.04,-1.5), Vector3(1.5,.04,-1.5), Vector3(1.5,.04,1.5), Vector3(-1.5,.04,1.5)]
+		for i in range(4):
+			mesh.surface_add_vertex(corners[i])
+			mesh.surface_add_vertex(corners[(i+1)%4])
+		mesh.surface_end()
+		outline.mesh = mesh
+		outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		node.add_child(outline)
 	return node
 
 
@@ -762,6 +836,10 @@ func _apply_material(node: Node, mat: Material) -> void:
 # ── Ghost lifecycle ───────────────────────────────────────────────────────────
 
 func _confirm_ghost(definition: Dictionary = {}) -> void:
+	if _active_key == _ladders.KEY:
+		_ladders.place(_hover_cell, _yaw)
+		_update_hover(true)
+		return
 	# Enforce the catalog contract at the actual click too. Restore/legacy art
 	# fixtures still create standing requests through the unrestricted path.
 	if _require_stock and definition.is_empty() and int(get_catalog_stock().get(_active_key, {}).get("available", 0)) <= 0:
@@ -769,8 +847,15 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 		return
 	_seating.dirty = true
 	var def: Dictionary = _defs.get(_active_key, {}) if definition.is_empty() else definition
-	var ghost := FurnitureGhostComponent.new()
+	if definition.is_empty() and bool(def.get("plant", false)) and not _placement_valid(_hover_cell): return
+	var ghost: FurnitureGhostComponent = PlantPlan.new() if bool(def.get("plant", false)) else FurnitureGhostComponent.new()
+	ghost.required_instance_id = _moving_shrub
 	ghost.setup(_next_ghost_id, _active_key, def, _hover_cell, _yaw)
+	if definition.is_empty() and not _moving_shrub.is_empty():
+		var plants := get_tree().get_first_node_in_group("surface_details")
+		if plants == null or not plants.designate_uproot(_moving_shrub):
+			deactivate()
+			return
 	var mat := _make_ghost_material()
 	mat.albedo_color = Color(TINT_PLACED.r, TINT_PLACED.g, TINT_PLACED.b, GHOST_ALPHA)
 	var node := _instance_model(_active_key, mat, def)
@@ -788,6 +873,7 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 	TaskManager.register_work_source(ghost.source_id, ghost)
 	_source_to_ghost[ghost.source_id] = ghost.ghost_id
 	_ghosts[ghost.ghost_id] = ghost
+	ghost._ensure_claim() # Restore exact-instance promises before loose goods/cargo.
 	for cell: Vector3i in ghost.footprint_cells():
 		_cell_to_ghost[cell] = ghost.ghost_id
 	if WallMount.is_wall(def):
@@ -798,6 +884,11 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 		ghost.ghost_id, _active_key, str(_hover_cell), _yaw])
 	ghost_placed.emit(ghost.ghost_id)
 	_next_ghost_id += 1
+	if definition.is_empty():
+		ghost.update_lease() # Player intent can redirect storage hauling even while paused.
+	if definition.is_empty() and not _moving_shrub.is_empty():
+		deactivate()
+		return
 	_update_hover(true)   # own footprint now invalid — retint immediately
 
 
@@ -824,6 +915,9 @@ func cancel_ghost(ghost_id: int) -> void:
 	if _window_ghost_id == ghost_id:
 		_close_window()
 	ghost_cancelled.emit(ghost_id)
+	if not ghost.required_instance_id.is_empty():
+		var plants := get_tree().get_first_node_in_group("surface_details")
+		if plants != null: plants.cancel_clearing(ghost.required_instance_id)
 
 
 ## The real build path (doc 19 §3.3 step 4): the fetching dwarf finished the
@@ -847,7 +941,15 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 	_ghosts.erase(ghost.ghost_id)
 	if _window_ghost_id == ghost.ghost_id:
 		_close_window()
-	_install(ghost.furniture_key, ghost.def, ghost.origin_cell, ghost.yaw_steps)
+	if bool(ghost.def.get("plant", false)):
+		var plants := get_tree().get_first_node_in_group("surface_details")
+		if bool(ghost.def.get("from_cutting", false)):
+			plants.plant_cutting(String(ghost.def.plant_definition), ghost.origin_cell, ghost.yaw_steps)
+		else:
+			plants.plant_shrub(ghost.fetched_instance_id, String(ghost.def.plant_definition), ghost.origin_cell, ghost.yaw_steps)
+		furniture_installed.emit(ghost.furniture_key, ghost.origin_cell)
+	else:
+		_install(ghost.furniture_key, ghost.def, ghost.origin_cell, ghost.yaw_steps)
 
 
 ## Checked by the dwarf before consuming its carried item, including the frame
@@ -855,6 +957,11 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if not _ghosts.has(ghost.ghost_id):
 		return false
+	if bool(ghost.def.get("plant", false)):
+		var plants := get_tree().get_first_node_in_group("surface_details")
+		if plants != null and bool(ghost.def.get("from_cutting", false)):
+			return plants.planting_reason(String(ghost.def.plant_definition), ghost.origin_cell, "", ghost.ghost_id).is_empty()
+		return plants != null and plants.can_plant(ghost.fetched_instance_id, String(ghost.def.plant_definition), ghost.origin_cell, ghost.ghost_id)
 	if not _seating.placement_reason(ghost.def, ghost.origin_cell, ghost.yaw_steps, ghost).is_empty():
 		return false
 	if not WallMount.is_wall(ghost.def):
@@ -877,6 +984,7 @@ func dev_instant_build(ghost_id: int) -> void:
 	if not _ghosts.has(ghost_id):
 		return
 	var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
+	if bool(ghost.def.get("plant", false)): return # Living plants require their real physical item.
 	if not _can_build_ghost(ghost):
 		cancel_ghost(ghost_id)
 		return
@@ -1048,6 +1156,9 @@ func serialize_state() -> Dictionary:
 			"yaw": ghost.yaw_steps,
 			"layout_version": int(ghost.def.get("layout_version", 1)),
 		})
+		if bool(ghost.def.get("plant", false)):
+			saved_ghosts.back()["plant_work"] = ghost.progress
+			saved_ghosts.back()["plant_id"] = ghost.required_instance_id
 	var saved_installed: Array = []
 	var installed_ids: Array = _installed.keys()
 	installed_ids.sort()
@@ -1063,6 +1174,10 @@ func serialize_state() -> Dictionary:
 		}
 		if component.storage != null:
 			entry["inventory"] = component.storage.inventory.duplicate(true)
+			var instances: Array = []
+			for stack: Dictionary in component.storage.stored_entries().values():
+				if stack.has("instance_id"): instances.append(stack.duplicate(true))
+			if not instances.is_empty(): entry["instances"] = instances
 			entry["storage_filter"] = component.storage.serialize_filter()
 		saved_installed.append(entry)
 	return { "ghosts": saved_ghosts, "installed": saved_installed }
@@ -1092,7 +1207,7 @@ func restore_state(state: Dictionary) -> void:
 		if component.storage != null:
 			component.storage.restore_filter(entry.get("storage_filter", {}))
 			component.storage.restore_inventory(
-				entry.get("inventory", {}) as Dictionary, _drop_manager)
+				entry.get("inventory", {}) as Dictionary, _drop_manager, entry.get("instances", []))
 		if bool(entry.get("flagged_uninstall", false)):
 			component.set_uninstall(true)
 
@@ -1119,11 +1234,16 @@ func _restore_ghost(entry: Dictionary) -> void:
 	var prior_key := _active_key
 	var prior_cell := _hover_cell
 	var prior_yaw := _yaw
+	var prior_plant := _moving_shrub
+	_moving_shrub = String(entry.get("plant_id", ""))
 	_next_ghost_id = requested_id
 	_active_key = key
 	_hover_cell = SaveManager.unpack_v3i(entry.get("origin", []))
 	_yaw = int(entry.get("yaw", 0))
 	_confirm_ghost(_definition_for_saved(key, entry))
+	if _ghosts.has(requested_id) and bool(_defs[key].get("plant", false)):
+		_ghosts[requested_id].progress = clampf(float(entry.get("plant_work", 0)), 0, float(_defs[key].planting_seconds))
+	_moving_shrub = prior_plant
 	_next_ghost_id = maxi(_next_ghost_id, prior_next)
 	_active_key = prior_key
 	_hover_cell = prior_cell
@@ -1395,7 +1515,7 @@ func _open_ghost_window(ghost_id: int) -> void:
 		_window_info.text = "Needs: %s\n(none in the colony)" % ghost.item_key
 	_window_build_btn.text = "DEV: Instant Build"
 	UITheme.apply_button_variant(_window_build_btn, "dev")
-	_window_build_btn.visible = true
+	_window_build_btn.visible = not bool(ghost.def.get("plant", false))
 	_window_remove_btn.text = "Cancel 📥"
 	UITheme.apply_button_variant(_window_remove_btn, "danger")
 	_window_layer.visible = true
@@ -1509,6 +1629,18 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		rows.append(["Crafter", "Any Worker"])
 	if piece is InstalledFurnitureComponent and piece.storage != null:
 		return {"title": piece.display_name(), "presentation": "storage", "storage": piece.storage, "actions": actions}
+	if bool(piece.def.get("plant", false)):
+		var cutting := bool(piece.def.get("from_cutting", false))
+		var status := "Awaiting cutting" if cutting else "Awaiting whole plant"
+		var plants := get_tree().get_first_node_in_group("surface_details")
+		if not piece.required_instance_id.is_empty() and plants != null and not bool(plants._changes.get(piece.required_instance_id, {}).get("packed", false)):
+			status = "Awaiting uprooting"
+		elif piece.has_lease(): status = "Worker delivery / planting"
+		rows[0] = ["Status", status]
+		rows.append(["Planting", "%d%%" % floori(piece.progress / float(piece.def.planting_seconds) * 100)])
+		return {"title":piece.display_name(), "kind":"Planting", "rows":rows,
+			"details":"Uses one cutting to grow a young shrub. Cancelling before completion keeps the cutting intact." if cutting else "The existing plant keeps its seasonal state. Cancelling after uprooting leaves the whole plant available for storage or another placement.",
+			"actions":[{"id":"cancel","text":"Cancel planting"}]}
 	return {"title": piece.display_name(), "kind": "Furniture plan" if piece is FurnitureGhostComponent else "Furniture",
 		"rows": rows, "details": details, "actions": actions}
 
@@ -1537,3 +1669,55 @@ func _explorer_item_name(item_key: String) -> String:
 		if definition.has("display_name"):
 			return String(definition["display_name"])
 	return item_key.get_slice(":", item_key.get_slice_count(":") - 1).capitalize()
+
+
+func begin_shrub_move(id: String) -> void:
+	var plants := get_tree().get_first_node_in_group("surface_details")
+	if plants == null or not plants.can_uproot(id): return
+	if _dock_ui != null: _dock_ui.emit_signal("tool_requested", TOOL_ID)
+	activate_for(SurfaceDetailRegistry.place_key(String(plants._records[id].definition), int(plants._records[id].variant)))
+	_moving_shrub = id
+
+
+func cancel_shrub_moves(id: String) -> void:
+	for ghost_id: int in _ghosts.keys():
+		if _ghosts[ghost_id].required_instance_id == id: cancel_ghost(ghost_id)
+
+
+func claim_moved_shrub(id: String, dwarf_id: int = -1) -> void:
+	for ghost: FurnitureGhostComponent in _ghosts.values():
+		if ghost.required_instance_id == id:
+			if ghost.has_method("move_worker_quote"): ghost.continuation_worker = dwarf_id
+			ghost.update_lease()
+
+
+func _refresh_plant_models(_season: String) -> void:
+	for ghost: FurnitureGhostComponent in _ghosts.values():
+		if not bool(ghost.def.get("plant", false)): continue
+		if is_instance_valid(ghost.node): ghost.node.queue_free()
+		var material := _make_ghost_material()
+		material.albedo_color = Color(TINT_PLACED, GHOST_ALPHA)
+		ghost.node = _instance_model(ghost.furniture_key, material, ghost.def)
+		add_child(ghost.node)
+		ghost.node.position = _world_pos(ghost.def, ghost.origin_cell, ghost.yaw_steps)
+		ghost.node.rotation.y = ghost.yaw_steps * PI * .5
+		ghost.node.visible = _piece_visible(ghost.def, ghost.origin_cell, ghost.yaw_steps)
+	if _active and bool(_defs.get(_active_key, {}).get("plant", false)):
+		_free_preview()
+		_ensure_preview()
+		_update_hover(true)
+
+
+## Queued footprints reserve planting space immediately, without nav collision.
+## The completing plan may ignore itself; neighbours and other orders still count.
+func plant_area_reserved(area: AABB, ignore_ghost := -1) -> bool:
+	if is_instance_valid(_ladders) and _ladders.reserves(area): return true
+	for ghost: FurnitureGhostComponent in _ghosts.values():
+		if ghost.ghost_id == ignore_ghost: continue
+		if bool(ghost.def.get("plant", false)):
+			var plant := SurfaceDetailRegistry.get_definition(String(ghost.def.plant_definition))
+			if area.intersects(preload("res://scripts/components/SurfaceDetailPlacement.gd").planting_area(plant, ghost.origin_cell)): return true
+		else:
+			for cell: Vector3i in ghost.footprint_cells():
+				if area.intersects(AABB(Vector3(cell) + Vector3.UP, Vector3(1, int(ghost.def.get("footprint", {}).get("height", 1)), 1))): return true
+	return false

@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+SurfaceDetailRegistry="*res://scripts/registries/SurfaceDetailRegistry.gd"
 BlockRegistry="*uid://darckb4wfswr6"
 WorldClock="*uid://cntlqitntp144"
 WorkFeedback="*res://scripts/systems/WorkFeedback.gd"

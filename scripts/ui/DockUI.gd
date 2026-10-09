@@ -125,6 +125,7 @@ func _ready() -> void:
 	if _mining_controller != null: _orders.bind_controller("mine_precision", _mining_controller)
 	_orders.fit_above_dock(_dock_panel.get_global_rect())
 	_build_persistence_toast()
+	InteriorTracker.caves_discovered.connect(_on_caves_discovered)
 	tool_requested.connect(func(id: String):
 		if _craft_window != null: _window_manager.close("craft")
 		if _inventory_window != null: _window_manager.close("inventory")
@@ -189,6 +190,11 @@ func show_persistence_status(message: String, is_error: bool = false) -> void:
 	_persistence_toast_label.text = message
 	_persistence_toast.visible = true
 	_persistence_toast_until_msec = Time.get_ticks_msec() + (4500 if is_error else 2500)
+
+
+func _on_caves_discovered(_cells: Array[Vector3i]) -> void:
+	if SaveManager._loading: return
+	show_persistence_status("Cavern discovered. Bring light to explore it.")
 
 
 func _build_styles() -> void:
@@ -559,6 +565,10 @@ func _make_panel_action_button(label: String, target: String) -> Button:
 
 
 func _dispatch_panel_action(target: String, label: String) -> void:
+	if target == "surface_details" and label in ["DEV: Next boulder", "DEV: Next scree", "DEV: Next blueberry", "DEV: Next elderberry", "DEV: Next strawberry", "DEV: Next flowers", "DEV: Next reeds"]:
+		var details := get_tree().get_first_node_in_group("surface_details")
+		if details != null: details.call("dev_locate_next", {"DEV: Next boulder": "boulder", "DEV: Next scree": "scree", "DEV: Next blueberry": "blueberry", "DEV: Next elderberry": "elderberry", "DEV: Next strawberry": "wild_strawberry", "DEV: Next flowers": "flowers", "DEV: Next reeds": "reeds"}[label])
+		return
 	if target == "chop":
 		if label == "Chop Trees":
 			_panel_container.visible = false
@@ -631,7 +641,7 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 ## the announce-first contract; world_info and block_inspector stay
 ## overlay-toggles until their doc 24 Phase U2 migrations land.
 func _toggle_window(target: String) -> void:
-	if target == "dwarves" and _window_manager != null and not _window_manager.is_open("dwarves"):
+	if target in ["dwarves", "caves_dev"] and _window_manager != null and not _window_manager.is_open(target):
 		tool_requested.emit("")
 		if _orders != null: _orders.set_open(false)
 	if target in ["stockpiles", "inventory"]:
@@ -1027,6 +1037,9 @@ func register_chop_controller(controller: Node) -> void:
 	controller.set_mining_controller(_mining_controller)
 	if _orders != null:
 		_orders.bind_controller("chop", controller)
+		_orders.bind_controller("clear_stones", controller)
+		_orders.bind_controller("harvest_plants", controller)
+		_orders.bind_controller("clear_shrubs", controller)
 		_orders.bind_controller("cancel_orders", controller)
 
 

@@ -2,13 +2,21 @@
 
 ## Global Autoload Singletons
 
+**Ladders (2026-10-09):** FurniturePlacementController owns a scene child
+`LadderSystem` and continues to load the furniture definitions. The child owns
+section plans, installed routes, inspector actions and save section `ladders`
+(restore priority 41). Two non-global work components reuse FETCH_BUILD and
+UNINSTALL. NavGrid owns explicit rung connections; DwarfAgent owns climbing
+presentation and evacuation. No autoload or global class was added. See roadmap 86.
+
 The following Autoloads are registered in **Project Settings → Autoload** (`project.godot` `[autoload]`) and are available globally via their node names. They are loaded in the exact order below; later autoloads may depend on earlier ones.
 
 > **Registration:** The agent may register these autoloads directly by editing the `[autoload]` section of `project.godot` (see File Ownership Rules in `AGENT.md`). Preserve the load order exactly as listed.
 
-Load order (matches `project.godot` `[autoload]` as of 2026-10-04):
+Load order (matches `project.godot` `[autoload]` as of 2026-10-08):
 
 ```
+SurfaceDetailRegistry
 BlockRegistry
 WorldClock
 WorkFeedback
@@ -32,6 +40,44 @@ SaveManager
 The scene also owns `CraftingManager` (2026-10-07), the recipe loader and save
 owner for Worker orders. It depends on the scene's items/furniture owners and
 registers transient work sources with TaskManager. See [Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
+
+`SurfaceDetailRegistry` (2026-10-08) loads `data/entities/surface_details.json`
+(stones, seasonal flowers and reeds) and the three existing bush JSON definitions once,
+with no runtime world dependencies. Scene-owned `SurfaceDetailManager`
+combines immutable seeded candidates with persistent clearing/removal deltas,
+owns occupancy independently of its visuals, and registers adjacent clearing
+work sources. Its `surface_details` save section restores at priority 16.
+It also owns normalized seasonal shrub models, crop seasons/yields and wild
+placement settings. The scene owner restores shrub action/progress/crop deltas
+before WorldClock, then reconciles availability on its final season signal.
+See [73 — Boulder pilot](../00_dev_roadmap/73_boulder_pilot.md) and
+[75 — Seasonal shrubs](../00_dev_roadmap/75_seasonal_shrubs.md), plus
+[76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md) and
+[77 — Seasonal reeds](../00_dev_roadmap/77_seasonal_reeds.md).
+
+Mature shrub relocation ([79](../00_dev_roadmap/79_shrub_transplanting.md)) keeps
+generated identities stable while saving current origin/yaw and packed state.
+Optional item `instance_id` links loose/carried/stored whole shrubs to those
+records; container saves preserve identities alongside aggregate counts.
+SurfaceDetailRegistry supplies plant definitions to shared furniture placement;
+`ShrubPlantingComponent` specializes its fetch/carry source with persistent work.
+Successful planting returns the record to SurfaceDetailManager. Exact Move claims
+are transient and reconstructed before loose items and carried cargo restore.
+
+Flower relocation ([85](../00_dev_roadmap/85_plant_habitats_spacing_flowers.md))
+uses the same identity/carry/storage pipeline, with three catalog/item keys for
+exact shape variants and JSON bloom seasons. SurfaceDetailPlacement supplies
+planting-area geometry; the detail owner checks planted neighbours, and furniture
+ghosts supply pending reservations. These areas never register NavGrid collision.
+The future forage query returns only planted blooming clumps at their current
+locations, independently of rendering or streaming. No new global class/autoload.
+
+Player-created shrubs ([80](../00_dev_roadmap/80_shrub_cutting_growth.md)) save
+explicit planted descriptors, a monotonic identity allocator and planting time in
+the same section. Their IDs do not depend on generated candidates. Growth uses
+WorldClock's read-only continuous calendar and seasonal interval integration;
+only young records receive hourly maturity checks. Restore defers age reconciliation
+until the final clock signals, preserving observational saves and winter dormancy.
 
 ### `BlockRegistry`
 
@@ -233,6 +279,10 @@ finally restores clock/weather. Full schema and lifecycle: `00_dev_roadmap/20_sa
 species/stage identity, floor origin, partial felling work, designation and felled
 records. Seeded visuals remain derived; felled records prevent regeneration and
 never replay item drops. Missing flora sections remain compatible with older saves.
+Juniper picking adds an action, separate felling/harvest work, a harvest-work
+cycle and a completed crop cycle to those same changed-tree records. Worker
+leases remain transient. Crop visuals and readiness reconcile with the restored
+clock, including a different year in the same season; see roadmap 84.
 
 ### `WorkFeedback` (doc 48 — chopping/mining sound and dust, 2026-10-04)
 

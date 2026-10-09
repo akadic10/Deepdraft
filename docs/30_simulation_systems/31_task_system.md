@@ -47,6 +47,71 @@
 
 ## Overview
 
+**HARVEST_TREE live (2026-10-09):** appended priority-50 hand-picking work for
+juniper. The existing adjacent-work source respects the actual trunk footprint
+and nearest eligible worker selection. One source per marked tree prevents
+simultaneous picking/felling. Separate progress and saved crop cycles prevent
+work transfer or duplicate yields; leaving the season cancels harvest leases.
+See [84 — Juniper harvesting](../00_dev_roadmap/84_juniper_berry_harvesting.md).
+
+**CLEAR_PLANT live (2026-10-08):** appended priority-50 adjacent hand-work lease
+for decorative flower and reed clearing. JSON defines 1.5 seconds and no item yield.
+It shares cheap release and source-level partial progress with other surface
+details. Construction/support displacement retires work without rewards. See
+[76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md) and
+[77 — Seasonal reeds](../00_dev_roadmap/77_seasonal_reeds.md).
+
+**CLEAR_BOULDER live (2026-10-08):** one priority-50 lease per marked stone.
+`SurfaceDetailManager` owns removal and partial work; the adjacent work component
+shares tree felling's side routing/release protocol with a separate task type and
+tombstone key. Dwarves use the mining pick and stone feedback. Cancellation,
+sleep and reload retain progress; completion awards two Rough Stone by JSON.
+See [73 — Boulder pilot](../00_dev_roadmap/73_boulder_pilot.md).
+
+**GATHER_SCREE live (2026-10-08):** a priority-50 adjacent work lease collects one
+walkable loose-stone clump by hand in three seconds for one rough stone. It uses
+the same source-level progress/release contract; displacement cancels without
+loot. See [74 — Gatherable scree](../00_dev_roadmap/74_gatherable_scree.md).
+
+> **HARVEST_SHRUB / CLEAR_SHRUB live (doc 75, 2026-10-08):** appended priority-50
+> types use the adjacent work/release contract and hand-gathering pose. Harvest
+> retains the plant and grants one saved crop per eligible calendar season;
+> completed clearing permanently removes it and yields one cutting. Partial work is separate per
+> action. Season end cancels harvest leases safely. See
+> [75 — Seasonal shrubs](../00_dev_roadmap/75_seasonal_shrubs.md).
+
+**UPROOT_SHRUB live (doc 79, 2026-10-08):** appended priority-50 adjacent hand
+work lifts a mature shrub without fruit/cutting rewards. Partial work belongs
+to its persistent plant record. Replanting uses the existing priority-45
+`FETCH_BUILD` pipeline with a `ShrubPlantingComponent` destination plan and
+saved work progress. Move reserves one exact plant identity through interruption;
+generic Place accepts any available whole shrub of that species. Release drops
+the intact plant, and destination validity is checked before consuming it. See
+[79 — Shrub transplanting](../00_dev_roadmap/79_shrub_transplanting.md).
+
+**Move continuation (doc 82):** exact-plant Move fetches compare workers at the
+packed plant's pickup sides. The uprooter is preferred among workers already at
+a side, while higher-priority work and sleep still take precedence. Both pickup
+and destination routes are checked before claim transfer, with resumable ranking
+and probes. Interrupted Moves clear worker preference and immediately reclaim the
+dropped plant for the plan; nearby replacements can finish. Ordinary Place and
+other fetch sources retain their existing selection contract. See
+[82 — Shrub Move handoff](../00_dev_roadmap/82_shrub_move_handoff.md).
+
+**Cutting planting live (doc 80):** the same planting source uses `FETCH_BUILD`
+with one cutting as its input. Physical pickup splits one unit from a crate and
+retargets the animation to the new cargo; the remainder stays in place. Cancel
+returns the cutting, interruption retains plan work, and completion creates one
+young player plant after the final site check. Calendar-driven growth needs no
+worker lease. See [80](../00_dev_roadmap/80_shrub_cutting_growth.md).
+
+**Planting animation (doc 83):** planting work drives reach/lower/release from
+arrival, then commits directly without a second `FETCH_DEPOSIT`. Mature shrubs
+take 1.25 seconds and cuttings three seconds, both configured per species in JSON.
+Interrupted work resumes an animated reach over its remaining duration; cargo
+stays worker-owned until the final valid-site commit. See
+[83 — Shrub planting animation](../00_dev_roadmap/83_shrub_planting_animation.md).
+
 The Task System is a **global asynchronous job queue** that decouples player designations from dwarf agent execution. Players issue high-level orders (mine this zone, haul these goods); the Task System assigns work to available dwarves. Orders are represented as **intent-sized tasks** (zone leases, future item-batch hauls) — the atomic block-level unit of work never exists as a queued Task object (doc 16 §2.1).
 
 ## Task Object Schema
@@ -55,7 +120,7 @@ The Task System is a **global asynchronous job queue** that decouples player des
 # scripts/systems/Task.gd — as shipped (doc 16 §2.2)
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 var id:            int           # unique auto-incremented ID
@@ -95,6 +160,9 @@ through a Labor window remain planned.
 |---|---|---|
 | `MINE` | 50 | Core progression, moderate urgency |
 | `FELL_TREE` | 50 | Player-designated raw timber supply |
+| `HARVEST_TREE` | 50 | Pick a standing juniper's seasonal berries |
+| `CLEAR_BOULDER` | 50 | Clear a marked surface stone; modest rough-stone yield |
+| `GATHER_SCREE` | 50 | Gather a walkable loose-stone clump; one rough stone |
 | `CRAFT` | 46 | Worker bench/torch orders; after mining/felling, before placement/hauling |
 | `FETCH_BUILD` | 45 | Install finished furniture |
 | `UNINSTALL` | 40 | Pack marked furniture for storage |
@@ -135,14 +203,25 @@ See [60 — Hauling worker selection](../00_dev_roadmap/60_hauling_worker_select
 > by `scheduler_budget_usec` (1 ms) and `max_probes_per_wake` (8); the loop stops mid-scan and
 > resumes from the per-type cursor on the next wake.
 
-Matching loop per wake for non-hauling work (the HAUL comparison is described below):
+**2026-10-09 — proximity for adjacent surface work:** tree felling, stone/scree
+collection, shrub harvesting/clearing/uprooting and decorative plant clearing
+compare all eligible idle dwarves against valid adjacent work cells. Candidates
+are ranked by Manhattan distance, then idle order, and checked with bounded route
+probes. Failed sides/workers do not back off the job until alternatives have
+been exhausted. Ranking is read-only; only the successful work side is handed
+to the source before its normal reservation. Ranking and probing resume across
+wakes, and idle membership/navigation changes invalidate stale comparisons.
+See [81 — Surface worker selection](../00_dev_roadmap/81_surface_worker_selection.md).
+
+Matching loop per wake for non-hauling work:
 
 ```
-1. Order the dwarf's compatible type buckets by (static + colony_bonus(type)) desc
-2. Scan the top bucket from _scan_cursor[type]:
+1. Order pending type buckets by (static + colony_bonus(type)) desc, type ID for ties
+2. For adjacent surface types and exact-plant Move fetches, compare eligible idle workers as above.
+   For other types, visit compatible idle workers and scan from _scan_cursor[type]:
      skip if status != PENDING, or now < retry_at
      reachability probe (capped A*, node cap from task_config.json — default 1200)
-     reachable   → assign; done for this dwarf
+     reachable   → assign; remove this dwarf from the idle pool
      unreachable → blocked_count += 1; retry_at = now + backoff(blocked_count); continue
 3. Budget exhausted mid-scan → remember cursor, stop; next wake resumes there
 4. No compatible reachable task → dwarf stays idle (IDLE is agent behaviour, not a queued task)
@@ -151,8 +230,9 @@ Matching loop per wake for non-hauling work (the HAUL comparison is described be
 `backoff(n) = min(2^n, 30)` seconds. After 3 consecutive blocked probes → `task_unreachable(task)` fires for the UI; the task keeps retrying on its backoff schedule, re-armed early when `chunk_dirtied` touches terrain near its target.
 
 When HAUL leases are pending, matching uses three passes: compatible types above
-HAUL's current bucket priority, the HAUL comparison, then remaining types. Other
-types retain their existing bucket order and cursors. HAUL compares read-only
+HAUL's current bucket priority, the HAUL comparison, then remaining types.
+Priority buckets and scan cursors remain; eligible workers are considered within
+each bucket so proximity cannot bypass higher-priority work. HAUL compares read-only
 pickup quotes for every eligible idle dwarf, ranked by Manhattan distance to the
 pickup; queue order breaks equal-distance ties. It is a proximity heuristic with
 reachability checks, not a global shortest-route optimizer.

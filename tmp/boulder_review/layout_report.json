@@ -1,0 +1,125 @@
+{
+	"failures": [],
+	"seeds": [
+		{
+			"accepted": 81,
+			"fingerprint": "7521c5c386ed72a28452540eb96eb2da5558a60a5cd0387319d416e75180f817",
+			"layout_ms": 26.336,
+			"lowland": 41,
+			"rejections": {
+				"density": 1529,
+				"edge": 42,
+				"shelf": 50,
+				"tree": 142,
+				"water": 5
+			},
+			"seed": 0,
+			"upland": 40
+		},
+		{
+			"accepted": 83,
+			"fingerprint": "210cf39071277c3b9525a576bef2b29ea5b2fed4b5e85249a4839ed07cbad021",
+			"layout_ms": 31.008,
+			"lowland": 37,
+			"rejections": {
+				"density": 1507,
+				"edge": 47,
+				"shelf": 53,
+				"tree": 154,
+				"water": 5
+			},
+			"seed": 1,
+			"upland": 46
+		},
+		{
+			"accepted": 64,
+			"fingerprint": "3a086d9fd81888c7cdb236d0e72f580964db6be824526749cb16672d1e8ad6e6",
+			"layout_ms": 37.04,
+			"lowland": 28,
+			"rejections": {
+				"density": 1483,
+				"edge": 43,
+				"shelf": 75,
+				"tree": 181,
+				"water": 3
+			},
+			"seed": 2,
+			"upland": 36
+		},
+		{
+			"accepted": 76,
+			"fingerprint": "a16b1b9b89bd57f692bf405179c1c1304669e3a86e3406672803b014390b3b7b",
+			"layout_ms": 25.915,
+			"lowland": 48,
+			"rejections": {
+				"density": 1542,
+				"edge": 38,
+				"shelf": 58,
+				"tree": 134,
+				"water": 1
+			},
+			"seed": 7,
+			"upland": 28
+		},
+		{
+			"accepted": 62,
+			"fingerprint": "73651dcf84570857c8d25598472d8e9f8ca916f2787c60118c7f39a171648564",
+			"layout_ms": 24.34,
+			"lowland": 20,
+			"rejections": {
+				"density": 1531,
+				"edge": 41,
+				"shelf": 65,
+				"tree": 144,
+				"water": 6
+			},
+			"seed": 42,
+			"upland": 42
+		},
+		{
+			"accepted": 58,
+			"fingerprint": "3a6e29b17579f241e165df5e259a04c8d6b31e6f392f96bc28afbc0aa70cfb97",
+			"layout_ms": 35.5,
+			"lowland": 22,
+			"rejections": {
+				"density": 1483,
+				"edge": 51,
+				"shelf": 65,
+				"tree": 184,
+				"water": 8
+			},
+			"seed": 1234,
+			"upland": 36
+		},
+		{
+			"accepted": 77,
+			"fingerprint": "ea80e0a5c20b648681ebf7acbe9bfd347605094c4153a9e816328ec53e9ccdc3",
+			"layout_ms": 28.427,
+			"lowland": 33,
+			"rejections": {
+				"density": 1535,
+				"edge": 51,
+				"shelf": 40,
+				"tree": 143,
+				"water": 3
+			},
+			"seed": 65535,
+			"upland": 44
+		},
+		{
+			"accepted": 51,
+			"fingerprint": "e594fad2023edd0ff935eaa484a9264be83fe8663f7ae4a12a09fe67fa9d2922",
+			"layout_ms": 26.947,
+			"lowland": 27,
+			"rejections": {
+				"density": 1558,
+				"edge": 45,
+				"shelf": 45,
+				"tree": 147,
+				"water": 3
+			},
+			"seed": 20261007,
+			"upland": 24
+		}
+	]
+}

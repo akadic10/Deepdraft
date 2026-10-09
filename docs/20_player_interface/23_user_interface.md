@@ -1,5 +1,18 @@
 # 23 — User Interface
 
+**Ladder workflow (2026-10-09):** Craft offers ladder sections at the crude
+workbench. Place → Access shows the complete route, height and required section
+count; R rotates and Esc finishes. The ladder inspector pauses/resumes building
+and requests or cancels dismantling. Dwarf inspection identifies installation,
+climbing with cargo and safe descent. Craft's recipe list scrolls on small
+windows. See [86 — Rudimentary ladders](../00_dev_roadmap/86_rudimentary_ladders.md).
+
+**Plant placement update (2026-10-09):** bushes, cuttings and flowers display a
+3×3 cursor/queued outline and a specific overlap reason. Flower inspectors add
+Move/Uproot; Place → Plants lists three stored flower shapes with thumbnails.
+The dwarf inspector labels flower lifting/carrying/replanting appropriately.
+See [85 — Plant habitats and flowers](../00_dev_roadmap/85_plant_habitats_spacing_flowers.md).
+
 ## Overview
 
 All UI is implemented as Godot `Control` nodes on a `CanvasLayer`. No 3D world-space UI elements. The interface is divided into four zones: **Status Bar** (top), **Side Panel** (right), **Dock** (bottom — a floating command bar), and **Notification Layer** (overlay).
@@ -15,6 +28,24 @@ container uninstall, native window dragging and world-input isolation remain.
 See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).
 
 ## Object explorers (implemented 2026-10-04)
+
+**Juniper berries (2026-10-09):** tree Fruit/Fruit season rows now show juniper's
+autumn crop, including too young, out of season, ready, worker progress and
+picked states. **Harvest berries / Cancel harvest** keeps the tree standing.
+**Orders → Harvest plants** accepts ripe junipers and shrubs in one rectangle;
+live counts, Cancel orders, Undo and View order work across both owners. See
+[84 — Juniper harvesting](../00_dev_roadmap/84_juniper_berry_harvesting.md).
+
+**Surface stones (2026-10-08):** Object explorer exposes Clear boulder / Cancel
+clearing for boulders, Gather stones / Cancel gathering for walkable scree, plus
+work status/progress and rough-stone yield. Projected markers identify active orders.
+**Orders → Clear stones** supports single clicks and ground rectangles with a
+live count. Cancel orders includes both categories alongside blocks and trees; Undo and
+View order use the shared banner. Cancellation retains partial clearing work.
+**Menu → Development → DEV: Next boulder / DEV: Next scree** cycle through each category,
+restores full-world view and focuses/selects one without changing work state.
+Dwarf inspection and the roster distinguish hand gathering, boulder breaking
+and tree chopping. See [74 — Gatherable scree](../00_dev_roadmap/74_gatherable_scree.md).
 
 **Cabinet follow-up (2026-10-07):** the shared Object explorer now uses the same
 gold border, wood-toned title bar and serif heading as Slice and Rooms. Generic
@@ -84,6 +115,22 @@ updates preserve tile positions and scroll while browsing; zero-count tiles stay
 visible until reopen, and newly available designs append at the end. See
 [54 — Place catalog](../00_dev_roadmap/54_place_catalog.md).
 
+**Plants in Place (2026-10-08):** the Plants category lists whole uprooted
+blueberry, elderberry and wild-strawberry bushes with species thumbnails and
+real Available/Reserved counts. **Replant shrub** starts the normal ground
+preview. Cuttings cannot satisfy it. Individual shrub inspectors offer **Move**
+to choose a destination before uprooting, or **Uproot** for storage and later
+placement, alongside Harvest/Clear. Cancelling a placed Move request also cancels
+unfinished uprooting; an already lifted plant stays intact. See
+[79 — Shrub transplanting](../00_dev_roadmap/79_shrub_transplanting.md).
+
+**Cuttings in Place (2026-10-08):** Plants also has three cutting entries with
+young-model thumbnails, separate stock counts and **Plant cutting**. The detail
+area explains one-cutting cost, growth days and winter dormancy. Young shrub
+inspectors show growth percentage/remaining days and **DEV: Grow to maturity**;
+Move/Uproot and berries are enabled only at maturity. See
+[80 — Shrub cutting growth](../00_dev_roadmap/80_shrub_cutting_growth.md).
+
 **Zone window movement (2026-10-05 follow-up):** Mining Zone and Storage Zone now
 register context windows with `UIWindowManager`. Drag their title bars to move them;
 positions are remembered in `user://ui_layout.json` across reopening and game
@@ -92,14 +139,14 @@ refresh without bringing the panel to the front. Closing clears the inspected zo
 and removing a selected zone also closes its window. Mining's instruction callout
 uses the shared Orders banner when a dock is present.
 
-**Tool shelves (updated 2026-10-06):** Orders opens Mine blocks, Chop trees and
-Cancel orders; Zones opens Stockpile. Unimplemented Farm plot is omitted.
+**Tool shelves (updated 2026-10-08):** Orders opens Mine blocks, Chop trees,
+Clear stones and Cancel orders; Zones opens Stockpile. Unimplemented Farm plot is omitted.
 Selecting a tool starts it directly and keeps its shelf open. Switching groups
 ends the active tool; closing its shelf retains the tool and its group highlight.
 The shared banner sits above the shelf (or dock when closed), showing live
 selection feedback, Done / Esc and Undo last order. Feedback
 offers View order through the existing inspectors. Cancel clicks or drags over
-unfinished mining/chopping; Undo cancels the last designation's remaining work
+unfinished mining/chopping/stone clearing or gathering; Undo cancels the last designation's remaining work
 without recreating completed terrain. See
 [55 — Orders shelf](../00_dev_roadmap/55_orders_shelf.md).
 
@@ -231,6 +278,21 @@ system instead of a generic window: `world_info` / `block_inspector` toggle thei
 CanvasLayers, `clock` opens the live Clock window, `slice` toggles the **Slice tool**
 (see below), and `rooms` toggles the **Rooms tool** (see below). `xray` remains a stub
 until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
+
+### Developer cave explorer (2026-10-07)
+
+**Menu → Development → DEV: Cave explorer** opens a nonpersistent inspection
+window. Choose a cave and use **Focus + slice**; **Previous/Next** steps through
+the cave catalog. Outlines project through terrain on a CanvasLayer. **Preview
+interior with DEV lighting** temporarily exposes the selected cave with enough
+light to inspect its walls, floor, veins and soil. Counts distinguish usable
+floor area, air volume, exposed resources and soil blocks.
+
+Highlighting or previewing does not discover, excavate or save a cave. Closing
+the window restores the prior camera/slice and lighting, while preserving actual
+mining and discoveries. Normal play reveals a connected system when mining
+breaches its wall, with a short discovery toast. The real cave remains dark until
+lit. See [68](../00_dev_roadmap/68_caves_and_discovery.md) for repeatable playtesting.
 
 ### The Slice Tool (shipped 2026-06-05 — doc 11 Phase 2)
 

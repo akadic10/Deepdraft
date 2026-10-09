@@ -1,0 +1,457 @@
+{
+	"calibration_seeds": [
+		7.0,
+		1234.0,
+		65535.0,
+		20261007.0
+	],
+	"failures": [],
+	"held_out_seeds": [
+		3381051336.0,
+		4294967295.0,
+		314159265.0,
+		2147483647.0
+	],
+	"names": [
+		"gold",
+		"silver",
+		"iron",
+		"copper",
+		"tin",
+		"coal"
+	],
+	"passed": true,
+	"profile": {
+		"baseline_thresholds": {
+			"coal": 0.62,
+			"copper": 0.66,
+			"gold": 0.84,
+			"iron": 0.7,
+			"silver": 0.8,
+			"tin": 0.64
+		},
+		"calibration_seed_count": 4.0,
+		"independent_fields": {
+			"coal": {
+				"frequency": 0.02,
+				"seed_offset": 1.0
+			},
+			"copper": {
+				"frequency": 0.06,
+				"seed_offset": 401.0
+			},
+			"gold": {
+				"frequency": 0.065,
+				"seed_offset": 101.0
+			},
+			"iron": {
+				"frequency": 0.055,
+				"seed_offset": 307.0
+			},
+			"silver": {
+				"frequency": 0.065,
+				"seed_offset": 211.0
+			},
+			"tin": {
+				"frequency": 0.07,
+				"seed_offset": 503.0
+			}
+		},
+		"seeds": [
+			7.0,
+			1234.0,
+			65535.0,
+			20261007.0,
+			3381051336.0,
+			4294967295.0,
+			314159265.0,
+			2147483647.0
+		],
+		"shared_frequency": 0.05,
+		"study_id": "ore_vein_prototypes_v1"
+	},
+	"seeds": [
+		{
+			"box": {
+				"eligible_cells": 261342,
+				"origin": [
+					304,
+					12,
+					560
+				],
+				"sha256": {
+					"current": "10fb2cd7a7281212926cf2a8a24cbdbb19413e385185402b4d4c6ea9aa873809",
+					"finer_shared": "ce9a91f5f2e719290463238ef49b625d4b734e243900624bf03b611974ce6e34",
+					"separate_metals": "3f134cf6fb671928ba41761941dec73f421c45a70ced002bb058fcc5a27fecd0"
+				},
+				"size": 64
+			},
+			"eligible_cells": 307514,
+			"geography_hash": "f9b6fea04e87e4b6b2fafe1ab4ddd39a8a9f920c5d23816014ac67cdc25da612",
+			"sample": {
+				"current": [
+					586,
+					1002,
+					9342,
+					3507,
+					1243,
+					23177
+				],
+				"finer_shared": [
+					788,
+					1198,
+					9196,
+					3763,
+					1369,
+					23350
+				],
+				"separate_metals": [
+					728,
+					1292,
+					9908,
+					3858,
+					1453,
+					21121
+				]
+			},
+			"sampled_cells": 426752,
+			"seed": 7
+		},
+		{
+			"box": {
+				"eligible_cells": 261371,
+				"origin": [
+					240,
+					12,
+					560
+				],
+				"sha256": {
+					"current": "ff074e73cd3d2ce3c1d25e2f9b38697e3ce9369763d53e1b67d49960e5720e58",
+					"finer_shared": "da344ddbf94167480458f80b8c9a020c48e16388a1152c61817a86167f9f9848",
+					"separate_metals": "3344863d2dce91305835f1694d08dc39390ebd13c56c3886b8710f31e9fc0810"
+				},
+				"size": 64
+			},
+			"eligible_cells": 396009,
+			"geography_hash": "4d6f017fd4cd426b314d3a2c201e2f87dbd721be88f08084869ae91ae9c6df3b",
+			"sample": {
+				"current": [
+					1016,
+					1843,
+					15337,
+					6425,
+					2633,
+					34110
+				],
+				"finer_shared": [
+					1019,
+					1839,
+					14459,
+					6115,
+					2203,
+					32807
+				],
+				"separate_metals": [
+					1005,
+					1915,
+					15507,
+					6351,
+					2482,
+					34174
+				]
+			},
+			"sampled_cells": 506112,
+			"seed": 1234
+		},
+		{
+			"box": {
+				"eligible_cells": 261225,
+				"origin": [
+					752,
+					12,
+					176
+				],
+				"sha256": {
+					"current": "c79f2c2a1d8091e0b7d2bd49796a34d3bc0d32b3a68b22dfa70dfccbab61429a",
+					"finer_shared": "dd099abcd296d1f2f4990b3cedd4e35f22cfd7afdedcc793cc922807a1f8985f",
+					"separate_metals": "52db0951bc98c1b88d6b0e92f2ed585420dad07dd9f5160488bc3b4477c48b97"
+				},
+				"size": 64
+			},
+			"eligible_cells": 340974,
+			"geography_hash": "f56117792068aab609e63f8b06af74f9f800226142dc4f3932e56fcbd895acf8",
+			"sample": {
+				"current": [
+					757,
+					1697,
+					13146,
+					5726,
+					2109,
+					25572
+				],
+				"finer_shared": [
+					762,
+					1347,
+					11917,
+					5463,
+					1960,
+					25544
+				],
+				"separate_metals": [
+					717,
+					1669,
+					12489,
+					5620,
+					2200,
+					27559
+				]
+			},
+			"sampled_cells": 457728,
+			"seed": 65535
+		},
+		{
+			"box": {
+				"eligible_cells": 261451,
+				"origin": [
+					304,
+					12,
+					336
+				],
+				"sha256": {
+					"current": "60d58698df74d3e6f348503d00d45ebc52aab98f631692fada28ab4aa5922598",
+					"finer_shared": "b297df9b71d634a5dfe71255a51a4c3ba21543844409f255d70fe7d1ee015155",
+					"separate_metals": "8069750137c96a800f80268bc55a5235463a430ae24fc9c929e33ee3988bed2d"
+				},
+				"size": 64
+			},
+			"eligible_cells": 327363,
+			"geography_hash": "e119bbbe32ad2c63650de3bc841d55d9168b93d45872d25be2836ed990cb64fa",
+			"sample": {
+				"current": [
+					906,
+					1703,
+					11621,
+					4663,
+					1896,
+					27280
+				],
+				"finer_shared": [
+					766,
+					1206,
+					10646,
+					4463,
+					1620,
+					25358
+				],
+				"separate_metals": [
+					815,
+					1369,
+					11542,
+					4492,
+					1746,
+					27285
+				]
+			},
+			"sampled_cells": 444544,
+			"seed": 20261007
+		},
+		{
+			"box": {
+				"eligible_cells": 261354,
+				"origin": [
+					560,
+					12,
+					432
+				],
+				"sha256": {
+					"current": "486fb405779ed03512167490f2bcf406c078a091cf23b207d7842a34991485f5",
+					"finer_shared": "837f3ad17ba64b60209ea884bd0e306b38ba836981f5cd27934a54b13b93f9a5",
+					"separate_metals": "9596f4870c1fd4b4ceaee723f0cb34d04b3dc0cf24f4393852c91c8335fa607d"
+				},
+				"size": 64
+			},
+			"eligible_cells": 361045,
+			"geography_hash": "e0338ebd61a50089c70c4e466e61a5bf19dd38c294c088477af0139c7157878e",
+			"sample": {
+				"current": [
+					986,
+					1834,
+					12931,
+					4747,
+					1671,
+					31442
+				],
+				"finer_shared": [
+					895,
+					1608,
+					12429,
+					4984,
+					1576,
+					29709
+				],
+				"separate_metals": [
+					807,
+					1768,
+					13520,
+					5418,
+					1784,
+					30380
+				]
+			},
+			"sampled_cells": 473408,
+			"seed": 3381051336
+		},
+		{
+			"box": {
+				"eligible_cells": 261421,
+				"origin": [
+					208,
+					12,
+					240
+				],
+				"sha256": {
+					"current": "95463de29bd99b124b45f0bb7e347a744d058c7e8c03c09403026b5505d4b10a",
+					"finer_shared": "1aaca08fdcd4d44dccada72f5f122c6f56db6f0b54571561bb77f24d9a8aea24",
+					"separate_metals": "aff0503fe181ad4a34a02013c35b8bb9183450ef38c7576df16db46698fb8d55"
+				},
+				"size": 64
+			},
+			"eligible_cells": 345171,
+			"geography_hash": "9eaa81e6c05d12fa2afa019d8fd322553d0542f863aa043caf6386fc04461d6f",
+			"sample": {
+				"current": [
+					960,
+					2071,
+					14006,
+					5525,
+					1860,
+					29001
+				],
+				"finer_shared": [
+					886,
+					1438,
+					11650,
+					5276,
+					2004,
+					26880
+				],
+				"separate_metals": [
+					785,
+					1490,
+					12520,
+					5251,
+					2258,
+					31031
+				]
+			},
+			"sampled_cells": 461248,
+			"seed": 4294967295
+		},
+		{
+			"box": {
+				"eligible_cells": 257309,
+				"origin": [
+					400,
+					12,
+					720
+				],
+				"sha256": {
+					"current": "65c5e67832e5cc773675e25be4d441cfbd94d9d1ffcb78c00445cf30b7986acd",
+					"finer_shared": "4798f600b9a629832992a74367f09651810379d886e2b0bec730b6278561985a",
+					"separate_metals": "64b6b25a091c29bb0ed837cb7641e3c0de0093d2bd77b83297989f7d0e7b69c3"
+				},
+				"size": 64
+			},
+			"eligible_cells": 295433,
+			"geography_hash": "a24c70e35b455c49f1b1b03f486bd9db62bf4793787e1a14e62289cf32bfacfb",
+			"sample": {
+				"current": [
+					783,
+					1131,
+					8715,
+					3530,
+					1298,
+					20429
+				],
+				"finer_shared": [
+					752,
+					1156,
+					8907,
+					3599,
+					1333,
+					21149
+				],
+				"separate_metals": [
+					717,
+					1206,
+					9469,
+					3648,
+					1474,
+					20378
+				]
+			},
+			"sampled_cells": 414208,
+			"seed": 314159265
+		},
+		{
+			"box": {
+				"eligible_cells": 261455,
+				"origin": [
+					368,
+					12,
+					688
+				],
+				"sha256": {
+					"current": "ac9bc08e7e2312dc89efd68d84ee929f53071622305fe4d05a62a53a01b7ffde",
+					"finer_shared": "0133165c459612c2fc1ffff8566031bd2a3e9f3402dac7e14561fa60b2009663",
+					"separate_metals": "2191ce31ae24bd149d96f8c1cdb0c02310a6ab627cb04fa81cd11a4cd73b6d57"
+				},
+				"size": 64
+			},
+			"eligible_cells": 365513,
+			"geography_hash": "7b48fe7f99030ecc397e525508e3959330e17a5531e2b58dba9e3d31541dc97e",
+			"sample": {
+				"current": [
+					900,
+					1675,
+					13666,
+					5362,
+					1887,
+					29191
+				],
+				"finer_shared": [
+					932,
+					1523,
+					12929,
+					5981,
+					2075,
+					28732
+				],
+				"separate_metals": [
+					792,
+					1747,
+					13982,
+					5692,
+					2374,
+					29852
+				]
+			},
+			"sampled_cells": 478272,
+			"seed": 2147483647
+		}
+	],
+	"study_id": "ore_vein_prototypes_v1",
+	"thresholds": [
+		0.841096788644791,
+		0.807310372591019,
+		0.703428387641907,
+		0.704833745956421,
+		0.731389164924622,
+		0.664477437734604
+	],
+	"variants": [
+		"current",
+		"finer_shared",
+		"separate_metals"
+	]
+}

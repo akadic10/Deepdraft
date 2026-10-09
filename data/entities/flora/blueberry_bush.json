@@ -1,49 +1,127 @@
 {
   "__comment": [
-    "Blueberry bush — high-elevation wild berry bush found on rocky mountain terrain.",
-    "Placed by world gen directly in the 'fruiting' stage.",
-    "Dwarves plant cuttings which start in 'shrub' before becoming 'fruiting'.",
-    "Fruit drops are SUMMER ONLY — harvesting system must check WorldClock.season.",
-    "Two seasonal models for the fruiting stage: summer (blue berries), winter (bare).",
-    "Spring and autumn fall back to the summer model.",
-    "Two growth stages: shrub → fruiting."
+    "Wild mature plants use all four seasonal models. One crop per eligible season; harvested plants lose visible fruit.",
+    "Clearing yields one cutting (100%). Plant one cutting to grow a new shrub. Move and uproot preserve mature plants and their crops.",
+    "Young growth uses stages.shrub.growth_duration_days weighted by wild.planting.seasonal_growth; winter dormancy preserves the plant."
   ],
-
   "base:flora:blueberry_bush": {
     "harvest_resource": "base:resources:flora:blueberry",
-    "material_tags": ["flora", "bush", "fruit_bush", "wild_plant", "stockpile_food"],
+    "material_tags": [
+      "flora",
+      "bush",
+      "fruit_bush",
+      "wild_plant",
+      "stockpile_food"
+    ],
     "appeal": 1,
-
     "stages": {
-
       "shrub": {
         "clearance_height": 1,
         "growth_duration_days": 3,
         "next_stage": "fruiting",
         "models": {
-          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_shrub.glb"
+          "spring": "res://assets/models/flora/bushes/blueberry/blueberry_young_spring.glb",
+          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_young_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/blueberry/blueberry_young_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/blueberry/blueberry_young_winter.glb"
         },
         "harvest": {
           "yields": []
         }
       },
-
       "fruiting": {
-        "clearance_height": 1,
+        "clearance_height": 2,
         "growth_duration_days": null,
         "next_stage": null,
         "models": {
-          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_fruiting.glb",
-          "winter": "res://assets/models/flora/bushes/blueberry/blueberry_bare.glb"
+          "spring": "res://assets/models/flora/bushes/blueberry/blueberry_spring.glb",
+          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/blueberry/blueberry_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/blueberry/blueberry_winter.glb"
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:flora:blueberry",         "count": 3, "chance": 1.00, "season_only": "summer" },
-            { "item": "base:resources:seed:blueberry_cutting",  "count": 1, "chance": 0.20 }
-          ]
+            {
+              "item": "base:resources:flora:blueberry",
+              "count": 3,
+              "chance": 1.0,
+              "season_only": "summer"
+            }
+          ],
+          "work_seconds": 3.0
+        },
+        "picked_models": {
+          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_summer_picked.glb"
         }
       }
-
+    },
+    "wild": {
+      "display_name": "Blueberry bush",
+      "placement_priority": 20,
+      "salt": 75001,
+      "placement": {
+        "habitat": "blueberry",
+        "cell_size": 14,
+        "cell_inset": 2,
+        "min_y": 4,
+        "max_y": 43,
+        "lowland_density": 0.16,
+        "rock_density": 0.16,
+        "rock_min_y": 36,
+        "patch_frequency": 0.02,
+        "patch_floor": 0.18,
+        "clear_ring": 1,
+        "tree_margin": 2,
+        "detail_margin": 3,
+        "min_moisture": 0.1,
+        "max_moisture": 0.85,
+        "ground_kinds": [
+          "grass",
+          "dirt",
+          "soil"
+        ]
+      },
+      "clearing": {
+        "method": "gather",
+        "work_seconds": 2.0,
+        "feedback_block": "base:terrain:soil:light",
+        "yields": [
+          {
+            "item": "base:resources:seed:blueberry_cutting",
+            "count": 1,
+            "chance": 1.0
+          }
+        ]
+      },
+      "transplant": {
+        "item": "base:resources:plant:blueberry_bush",
+        "uproot_seconds": 3.0,
+        "plant_seconds": 1.25,
+        "ground_kinds": [
+          "grass",
+          "dirt",
+          "soil"
+        ],
+        "models": {
+          "spring": "res://assets/models/flora/bushes/blueberry/blueberry_packed_spring.glb",
+          "summer": "res://assets/models/flora/bushes/blueberry/blueberry_packed_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/blueberry/blueberry_packed_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/blueberry/blueberry_packed_winter.glb",
+          "summer_picked": "res://assets/models/flora/bushes/blueberry/blueberry_packed_summer_picked.glb"
+        }
+      },
+      "planting": {
+        "catalog_key": "base:flora:blueberry_cutting",
+        "item": "base:resources:seed:blueberry_cutting",
+        "work_seconds": 3.0,
+        "seasonal_growth": {
+          "spring": 1.2,
+          "summer": 1.0,
+          "autumn": 0.8,
+          "winter": 0.0
+        }
+      },
+      "planting_radius": 1
     }
   }
 }

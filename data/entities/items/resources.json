@@ -386,7 +386,7 @@
     "material_tags": ["flora", "food", "brewing_ingredient", "stockpile_food"]
   },
 
-"base:resources:flora:pig_tail": {
+  "base:resources:flora:pig_tail": {
     "display_name": "Pig Tail",
     "description": "A curling fibrous plant that can be spun into rough cloth.",
     "model": "res://assets/models/items/flora/pig_tail.glb",
@@ -394,7 +394,11 @@
     "carry_cost": 1,
     "weight_class": "light",
     "base_trade_value": 2,
-    "material_tags": ["flora", "fiber", "stockpile_food"]
+    "material_tags": [
+      "flora",
+      "fiber",
+      "stockpile_food"
+    ]
   },
 
   "base:resources:flora:apple": {
@@ -886,6 +890,7 @@
       "stockpile_furniture"
     ]
   },
+
   "base:resources:furniture:wooden_torch": {
     "display_name": "Wooden Torch (packed)",
     "description": "A wooden torch and fork packed for mounting on a tunnel wall.",
@@ -967,5 +972,110 @@
     "weight_class": "light",
     "base_trade_value": 1,
     "material_tags": ["currency", "stockpile_currency"]
+  },
+
+  "base:resources:plant:blueberry_bush": {
+    "display_name": "Uprooted blueberry bush",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "model": "res://assets/models/flora/bushes/blueberry/blueberry_packed_summer.glb",
+    "stack_max": 1,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 0,
+    "material_tags": [
+      "flora",
+      "stockpile_seed"
+    ],
+    "plant_definition": "base:flora:blueberry_bush"
+  },
+
+  "base:resources:plant:elderberry_bush": {
+    "display_name": "Uprooted elderberry bush",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "model": "res://assets/models/flora/bushes/elderberry/elderberry_packed_summer.glb",
+    "stack_max": 1,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 0,
+    "material_tags": [
+      "flora",
+      "stockpile_seed"
+    ],
+    "plant_definition": "base:flora:elderberry_bush"
+  },
+
+  "base:resources:plant:wild_strawberry_bush": {
+    "display_name": "Uprooted wild strawberry",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "model": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer.glb",
+    "stack_max": 1,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 0,
+    "material_tags": [
+      "flora",
+      "stockpile_seed"
+    ],
+    "plant_definition": "base:flora:wild_strawberry_bush"
+  },
+
+  "base:resources:plant:flowers_1": {
+    "display_name": "Uprooted cream wildflowers",
+    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "model": "res://assets/models/details/flowers/flowers_1_packed_summer.glb",
+    "stack_max": 1,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 0,
+    "material_tags": [
+      "flora",
+      "stockpile_seed"
+    ],
+    "plant_definition": "base:detail:flowers"
+  },
+
+  "base:resources:plant:flowers_2": {
+    "display_name": "Uprooted heather wildflowers",
+    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "model": "res://assets/models/details/flowers/flowers_2_packed_summer.glb",
+    "stack_max": 1,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 0,
+    "material_tags": [
+      "flora",
+      "stockpile_seed"
+    ],
+    "plant_definition": "base:detail:flowers"
+  },
+
+  "base:resources:plant:flowers_3": {
+    "display_name": "Uprooted gold wildflowers",
+    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "model": "res://assets/models/details/flowers/flowers_3_packed_summer.glb",
+    "stack_max": 1,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 0,
+    "material_tags": [
+      "flora",
+      "stockpile_seed"
+    ],
+    "plant_definition": "base:detail:flowers"
+  },
+
+  "base:resources:furniture:crude_ladder": {
+    "display_name": "Ladder section",
+    "description": "A bundle of split rails and pegged rungs. Installs four blocks of wooden ladder.",
+    "model": "res://assets/models/items/furniture/crude_ladder.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 3,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ]
   }
 }

@@ -28,6 +28,8 @@ var _world_clock: Node = null
 ## Every load is deep-diffed against it (content equality, not section sizes —
 ## a chest losing its inventory or a ghost losing its yaw used to pass).
 var _content_reference: Dictionary = {}
+var _terrain_reference: String = ""
+var _fixture_origin: Vector2i
 
 
 func _init() -> void:
@@ -57,6 +59,10 @@ func _run() -> void:
 		return
 
 	var expected_seed := int(_world_generator.get("world_seed"))
+	_terrain_reference = _terrain_fingerprint()
+	if not _choose_fixture_origin():
+		_fail("could not find natural ground for the save fixture")
+		return
 	var setup_error := _build_nonempty_colony_state()
 	if not setup_error.is_empty():
 		_fail(setup_error)
@@ -193,8 +199,44 @@ func _build_nonempty_colony_state() -> String:
 	var camera := _owner("camera")
 	var slice := _owner("slice")
 	var crafting := _owner("worker_crafting")
-	if [mining, flora, flag, stockpiles, furniture, items, dwarves, camera, slice, crafting].has(null):
+	var details := _owner("surface_details")
+	if [mining, flora, flag, stockpiles, furniture, items, dwarves, camera, slice, crafting, details].has(null):
 		return "one or more save-state owners are missing"
+	details.call("initialize_layout")
+	var detail_ids: Array = details.get("_records").keys().filter(func(id): return String(id).begins_with("boulder:"))
+	detail_ids.sort()
+	if detail_ids.size() < 3:
+		return "not enough generated boulders for save fixture"
+	var scree_ids: Array = details.get("_records").keys().filter(func(id): return String(id).begins_with("scree:"))
+	scree_ids.sort()
+	if scree_ids.size() < 3: return "not enough generated scree for save fixture"
+	var shrub_ids: Array = details.get("_records").keys().filter(func(id): return String(id).begins_with("elderberry:"))
+	shrub_ids.sort()
+	if shrub_ids.size() < 4: return "not enough generated elderberries for save fixture"
+	var flower_ids: Array = details.get("_records").keys().filter(func(id): return String(id).begins_with("flowers:"))
+	flower_ids.sort()
+	if flower_ids.size() < 3: return "not enough generated flowers for save fixture"
+	var reed_ids: Array = details.get("_records").keys().filter(func(id): return String(id).begins_with("reeds:"))
+	reed_ids.sort()
+	if reed_ids.size() < 3: return "not enough generated reeds for save fixture"
+	details.call("restore_state", {"changes": [
+		{"id": reed_ids[0], "removed": true, "reason": "cleared", "work_seconds": 1.5},
+		{"id": reed_ids[1], "removed": false, "designated": true, "work_seconds": .5},
+		{"id": reed_ids[2], "removed": false, "designated": false, "work_seconds": .75},
+		{"id": flower_ids[0], "removed": true, "reason": "cleared", "work_seconds": 1.5},
+		{"id": flower_ids[1], "removed": false, "designated": true, "work_seconds": .5},
+		{"id": flower_ids[2], "removed": false, "designated": false, "work_seconds": .75},
+		{"id": detail_ids[0], "removed": true, "reason": "cleared", "work_seconds": 7.0},
+		{"id": detail_ids[1], "removed": false, "designated": true, "work_seconds": 2.25},
+		{"id": detail_ids[2], "removed": false, "designated": false, "work_seconds": 1.5},
+		{"id": scree_ids[0], "removed": true, "reason": "cleared", "work_seconds": 3.0},
+		{"id": scree_ids[1], "removed": false, "designated": true, "work_seconds": 1.25},
+		{"id": scree_ids[2], "removed": false, "designated": false, "work_seconds": .5},
+		{"id": shrub_ids[0], "removed": true, "reason": "cleared", "action": "clear", "work_seconds": 2.0},
+		{"id": shrub_ids[1], "removed": false, "designated": true, "action": "harvest", "work_seconds": 1.25, "clear_work_seconds": .4},
+		{"id": shrub_ids[2], "removed": false, "designated": false, "action": "harvest", "work_seconds": .75},
+		{"id": shrub_ids[3], "removed": false, "designated": false, "action": "harvest", "work_seconds": 0, "harvested_cycle": "3:autumn"},
+	]})
 	crafting.restore_state({"orders":[
 		{"recipe":"base:recipe:worker:crude_workbench","quantity":2,"maintain":false,"paused":true,"progress":2.25,
 			"allowed_ingredients":["base:resources:wood:pine_log","base:resources:wood:juniper_log"]},
@@ -209,7 +251,8 @@ func _build_nonempty_colony_state() -> String:
 	var item_cell := _surface_cell(10, 0)
 	var mined_cell := _surface_cell(12, 0)
 	var designated_cell := _surface_cell(14, 0)
-	# Three authoritative forestry states. The focused felling test covers real
+	# Five authoritative forestry states, including picked/partial juniper crops.
+	# The focused felling/harvest tests cover real
 	# workers/visuals; this regression verifies the actual save/reload pipeline.
 	flora.call("restore_state", {"trees": [
 		{"species": "base:flora:oak_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(20, 0)),
@@ -218,12 +261,23 @@ func _build_nonempty_colony_state() -> String:
 			"work_seconds": .75, "designated": false, "felled": false},
 		{"species": "base:flora:apple_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(28, 0)),
 			"work_seconds": 8.0, "designated": false, "felled": true},
+		{"species": "base:flora:juniper_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(32, 0)),
+			"work_seconds": 0.0, "action": "harvest", "harvested_cycle": "3:autumn", "harvest_work_cycle": "3:autumn", "designated": false},
+		{"species": "base:flora:juniper_tree", "stage": "ancient", "origin": _pack_v3i(_surface_cell(36, 0)),
+			"work_seconds": .75, "action": "harvest", "harvest_work_cycle": "3:autumn", "fell_work_seconds": .5, "designated": true},
 	]})
 
 	mining.call("restore_state", {
 		"mined_blocks": [_pack_v3i(mined_cell)],
 		"zones": [{ "id": 101, "blocks": [_pack_v3i(designated_cell)] }],
 	})
+	var caves: Array = _world_generator.get_cave_catalog()
+	if caves.is_empty(): return "no cave for discovery/save fixture"
+	var cave: Dictionary = caves[0]
+	var cave_index := int(cave["columns"][0])
+	var cave_wall := Vector3i(cave_index / 1024 - 1, int(cave["floor_y"]) + 1, cave_index % 1024)
+	mining._mine_block_world(cave_wall)
+	if not root.get_node("InteriorTracker").is_cave_discovered(0): return "cave discovery fixture failed"
 	flag.call("restore_state", {
 		"placed": true,
 		"cell": _pack_v3i(flag_cell),
@@ -316,6 +370,8 @@ func _build_nonempty_colony_state() -> String:
 		"slice_y": 25,
 		"last_slice_y": 25,
 	})
+	_add_transplant_fixtures(details, stockpiles, furniture, items)
+	_add_flower_fixtures(details, stockpiles, furniture, items)
 	_world_clock.call("restore_state", {
 		"day": 7,
 		"season": "autumn",
@@ -324,12 +380,137 @@ func _build_nonempty_colony_state() -> String:
 		"speed": 2.0,
 		"paused": true,
 	})
+	_add_cutting_fixtures(details, furniture, items)
+	if not _add_ladder_fixtures(): return "could not find two natural ladder sites"
 	return ""
+
+
+func _add_ladder_fixtures() -> bool:
+	var ladders := _owner("ladders")
+	if ladders == null: return false
+	var entries: Array = []
+	for x in range(32, 992, 3):
+		for z in range(32, 992, 3):
+			var y: int = _world_generator.get_surface_y(x, z)
+			var base := Vector3i(x,y,z)
+			for yaw in range(4):
+				var wall: Vector3i = base + ladders.facing(yaw)
+				if _world_generator.get_surface_y(wall.x,wall.z) - y < 5: continue
+				var spec: Dictionary = ladders.describe(base,yaw)
+				if not String(spec.reason).is_empty() or int(spec.height) < 5: continue
+				if not entries.is_empty() and Vector3(base - root.get_node("SaveManager").unpack_v3i(entries[0].base)).length() < 8: continue
+				entries.append({"id":entries.size()+1,"key":"base:furniture:crude_ladder","base":_pack_v3i(base),"yaw":yaw,
+					"height":int(spec.height),"built":4 if entries.is_empty() else int(spec.height),
+					"mode":"build" if entries.is_empty() else "remove", "progress":.7})
+				if entries.size() == 2:
+					ladders.restore_state({"routes":entries,"next_id":3})
+					return true
+				break
+	return false
+
+
+func _add_transplant_fixtures(details: Node, stockpiles: Node, furniture: Node, items: Node) -> void:
+	var ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("blueberry:"))
+	ids.sort()
+	assert(ids.size() >= 6)
+	var key := "base:resources:plant:blueberry_bush"
+	# Planted position/yaw and four physical packed-plant locations.
+	for i in range(5):
+		var state: Dictionary = details._state(ids[i])
+		state["harvested_cycle"] = "3:summer"
+		state["packed"] = true
+		details._remove(ids[i], "uprooted")
+	var planted: Dictionary = details._state(ids[0])
+	var destination: Vector3i = details._records[ids[0]].origin + Vector3i.RIGHT
+	planted["origin"] = _pack_v3i(destination)
+	planted["yaw"] = 1
+	planted.packed = false
+	planted.removed = false
+	planted.reason = "transplanted"
+	details._relocate_record(ids[0], destination, 1)
+	var working: Dictionary = details._state(ids[5])
+	working.action = "uproot"
+	working.designated = true
+	working.work_seconds = .65
+	details._ensure_source(ids[5])
+	var ground := _surface_cell(18,0)
+	stockpiles.restore_state({"zones":[{"id":202,"cells":[_pack_v3i(ground)],"stacks":[
+		{"cell":_pack_v3i(ground),"item":key,"count":1,"instance_id":ids[1]}]}]})
+	furniture.restore_state({"installed":[{"id":404,"key":"base:furniture:storage_chest",
+		"origin":_pack_v3i(_surface_cell(40,0)),"inventory":{key:1},
+		"instances":[{"item":key,"count":1,"instance_id":ids[2]}]}],
+		"ghosts":[{"id":302,"key":"base:flora:blueberry_bush","origin":_pack_v3i(_surface_cell(44,0)),
+			"plant_id":ids[4],"plant_work":1.25,"yaw":2}]})
+	for i in [3,4]:
+		items.restore_loose_item(key,Vector3(_surface_cell(42,i-3))+Vector3(.5,1,.5),0,1,ids[i])
+
+
+func _add_flower_fixtures(details: Node, stockpiles: Node, furniture: Node, items: Node) -> void:
+	var ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("flowers:"))
+	ids.sort()
+	var registry := root.get_node("SurfaceDetailRegistry")
+	for i in range(3,7):
+		details._state(ids[i])["packed"] = true
+		details._remove(ids[i], "uprooted")
+	var item_key: String = registry.packed_item("base:detail:flowers", int(details._records[ids[3]].variant))
+	var ground := _surface_cell(18,3)
+	stockpiles.restore_state({"zones":[{"id":203,"cells":[_pack_v3i(ground)],"stacks":[
+		{"cell":_pack_v3i(ground),"item":item_key,"count":1,"instance_id":ids[3]}]}]})
+	item_key = registry.packed_item("base:detail:flowers", int(details._records[ids[4]].variant))
+	furniture.restore_state({"installed":[{"id":405,"key":"base:furniture:storage_chest",
+		"origin":_pack_v3i(_surface_cell(40,5)),"inventory":{item_key:1},
+		"instances":[{"item":item_key,"count":1,"instance_id":ids[4]}]}]})
+	for i in [5,6]:
+		item_key = registry.packed_item("base:detail:flowers", int(details._records[ids[i]].variant))
+		items.restore_loose_item(item_key,Vector3(_surface_cell(42,i))+Vector3(.5,1,.5),0,1,ids[i])
+	furniture._restore_ghost({"id":304,"key":registry.place_key("base:detail:flowers",int(details._records[ids[6]].variant)),
+		"origin":_pack_v3i(_surface_cell(44,7)),"plant_id":ids[6],"plant_work":.7,"yaw":1})
+	var state: Dictionary = details._state(ids[7])
+	state.action = "uproot"
+	state.designated = true
+	state.work_seconds = .6
+	state.clear_work_seconds = .3
+	details._ensure_source(ids[7])
+	var moved: Dictionary = details._state(ids[8])
+	var destination: Vector3i = details._records[ids[8]].origin + Vector3i.RIGHT
+	moved["origin"] = _pack_v3i(destination)
+	moved["yaw"] = 2
+	moved.reason = "transplanted"
+	details._relocate_record(ids[8],destination,2)
+
+
+func _add_cutting_fixtures(details: Node, furniture: Node, items: Node) -> void:
+	var ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("blueberry:"))
+	ids.sort()
+	for i in range(4):
+		var original: String = ids[6+i]
+		var origin: Vector3i = details._records[original].origin
+		details._remove(original, "cleared")
+		var id: String = details.plant_cutting("base:flora:blueberry_bush",origin,i)
+		details._changes[id].planted_at = _world_clock.elapsed_days() - 1.25
+		if i == 1:
+			details.dev_mature_shrub(id)
+			details._changes[id]["harvested_cycle"] = "3:summer"
+		elif i == 2:
+			details._remove(id,"cleared")
+		elif i == 3:
+			details.dev_mature_shrub(id)
+			details._changes[id]["packed"] = true
+			details._remove(id,"uprooted")
+			items.restore_loose_item("base:resources:plant:blueberry_bush",Vector3(_surface_cell(42,2))+Vector3(.5,1,.5),0,1,id)
+	furniture._restore_ghost({"id":303,"key":"base:flora:blueberry_cutting",
+		"origin":_pack_v3i(_surface_cell(44,3)),"plant_work":.8,"yaw":1})
 
 
 func _verify_restored_state(expected_seed: int) -> String:
 	if int(_world_generator.get("world_seed")) != expected_seed:
 		return "world seed did not round-trip"
+	if _terrain_fingerprint() != _terrain_reference:
+		return "regenerated terrain/cave maps changed during save/load"
+	if not root.get_node("InteriorTracker").is_cave_discovered(0):
+		return "mining did not reconstruct discovered cave after load"
+	if current_scene.get_node("Renderer")._discovered_cave_blocks.is_empty():
+		return "restored cave is absent from renderer"
 	if int(_world_clock.get("day")) != 7 \
 			or String(_world_clock.get("season")) != "autumn" \
 			or int(_world_clock.get("year")) != 3:
@@ -343,23 +524,23 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var scene_state := _collect_scene_state()
 	var expected_keys := [
 		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
-		"items", "dwarves", "camera", "slice", "worker_crafting",
+		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders",
 	]
 	for key in expected_keys:
 		if not scene_state.has(key):
 			return "restored scene is missing section %s" % key
-	if (scene_state["mining"] as Dictionary).get("mined_blocks", []).size() != 1:
+	if (scene_state["mining"] as Dictionary).get("mined_blocks", []).size() != 2:
 		return "mined blocks did not round-trip"
-	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 3:
+	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 5:
 		return "forestry progress/designations/removals did not round-trip"
 	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 1:
 		return "mining zones did not round-trip"
 	if not bool((scene_state["settlement_flag"] as Dictionary).get("placed", false)):
 		return "settlement flag did not round-trip"
-	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 1:
+	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 3:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
-	if furniture_state.get("ghosts", []).size() != 1 or furniture_state.get("installed", []).size() != 3:
+	if furniture_state.get("ghosts", []).size() != 4 or furniture_state.get("installed", []).size() != 5:
 		return "furniture state did not round-trip"
 	var rooms := root.get_node("RoomManager")
 	if rooms.get_door_boundaries().size() != 10 or int(rooms.get_stats().doors) != 1:
@@ -367,7 +548,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
 	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 600:
 		return "installed light/heat duplicated across world reload"
-	if (scene_state["items"] as Dictionary).get("loose", []).size() != 1:
+	if (scene_state["items"] as Dictionary).get("loose", []).size() != 6:
 		return "loose items did not round-trip"
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])
 	if roster.size() != 1 or not bool((roster[0] as Dictionary).get("sleeping", false)):
@@ -441,6 +622,20 @@ func _run_inflight_carried_case() -> String:
 		return "in-flight case: save-state owners missing after reload"
 	var loose_before := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
 	var carrier_cell := _surface_cell(16, 0)
+	var details := _owner("surface_details")
+	var plant_ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("blueberry:"))
+	plant_ids.sort()
+	var plant_id := String(plant_ids[10])
+	details._state(plant_id)["packed"] = true
+	details._state(plant_id)["harvested_cycle"] = "3:summer"
+	details._remove(plant_id,"uprooted")
+	var flower_ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("flowers:"))
+	flower_ids.sort()
+	var flower_id := String(flower_ids[9])
+	var flower_variant := int(details._records[flower_id].variant)
+	var flower_item: String = root.get_node("SurfaceDetailRegistry").packed_item("base:detail:flowers",flower_variant)
+	details._state(flower_id)["packed"] = true
+	details._remove(flower_id,"uprooted")
 	dwarves.call("restore_state", {
 		"birth_index": 5,
 		"settlement_anchor": _pack_v3i(_surface_cell(0, 0)),
@@ -471,12 +666,14 @@ func _run_inflight_carried_case() -> String:
 			"carried_items": [
 				"base:resources:stone:rough_stone",
 				{"item_key": "base:resources:seed:pine_cone", "count": 24},
+				{"item_key": "base:resources:plant:blueberry_bush", "count": 1, "instance_id": plant_id},
+				{"item_key": flower_item, "count": 1, "instance_id": flower_id},
 			],
 		}],
 	})
 	var loose_after := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
-	if loose_after != loose_before + 2:
-		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +2)" \
+	if loose_after != loose_before + 4:
+		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +4)" \
 			% [loose_before, loose_after]
 	var carried_cones := 0
 	for drop in (items.call("serialize_state") as Dictionary).get("loose", []):
@@ -484,6 +681,16 @@ func _run_inflight_carried_case() -> String:
 			carried_cones += int(drop.count)
 	if carried_cones != 24:
 		return "in-flight case: crate contents were not conserved"
+	var plant_count := 0
+	for drop: Dictionary in items.serialize_state().loose:
+		if drop.get("instance_id", "") == plant_id: plant_count += int(drop.count)
+	if plant_count != 1 or details._changes[plant_id].harvested_cycle != "3:summer":
+		return "in-flight case: mature shrub identity/crop not conserved"
+	var flower_count := 0
+	for drop: Dictionary in items.serialize_state().loose:
+		if drop.get("instance_id", "") == flower_id and drop.item_key == flower_item: flower_count += int(drop.count)
+	if flower_count != 1 or int(details._records[flower_id].variant) != flower_variant or details.flower_blooming(flower_id):
+		return "in-flight case: flower identity/variant/dormancy not conserved"
 	var roster: Array = (dwarves.call("serialize_state") as Dictionary).get("roster", [])
 	for raw in roster:
 		if not (raw is Dictionary):
@@ -505,9 +712,37 @@ func _owner(section_key: String) -> Node:
 
 
 func _surface_cell(offset_x: int, offset_z: int) -> Vector3i:
-	var x := 512 + offset_x
-	var z := 491 + offset_z
+	var x := _fixture_origin.x + offset_x
+	var z := _fixture_origin.y + offset_z
 	return Vector3i(x, int(_world_generator.call("get_surface_y", x, z)), z)
+
+
+## Locate existing flat lowland for the fixture's row of objects. This never
+## changes terrain, clears trees, or adds a production starting-area contract.
+func _choose_fixture_origin() -> bool:
+	for x in range(36, 956, 32):
+		for z in range(48, 976, 32):
+			var valid := true
+			for dx in range(-4, 44):
+				for dz in range(-4, 8):
+					if _world_generator.get_surface_y(x + dx, z + dz) != 19 or _world_generator.get_waterline(x + dx, z + dz) >= 0:
+						valid = false
+						break
+				if not valid: break
+			if valid:
+				_fixture_origin = Vector2i(x, z)
+				return true
+	return false
+
+
+func _terrain_fingerprint() -> String:
+	var context := HashingContext.new()
+	context.start(HashingContext.HASH_SHA256)
+	context.update(var_to_bytes(_world_generator.get("heightmap")))
+	context.update(var_to_bytes(_world_generator.get("domain_map")))
+	context.update(var_to_bytes(_world_generator.get("waterline_map")))
+	context.update(var_to_bytes(_world_generator.get("_cave_layout")))
+	return context.finish().hex_encode()
 
 
 func _wait_for_world_ready(timeout_msec: int) -> bool:

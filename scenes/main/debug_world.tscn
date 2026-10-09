@@ -18,6 +18,8 @@
 [ext_resource type="Script" path="res://scripts/systems/TreeFellingController.gd" id="16_felling"]
 
 [ext_resource type="Script" path="res://scripts/systems/CraftingManager.gd" id="17_crafting"]
+[ext_resource type="Script" path="res://scripts/ui/CaveDebugPanel.gd" id="18_caves"]
+[ext_resource type="Script" path="res://scripts/systems/SurfaceDetailManager.gd" id="19_details"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -64,6 +66,13 @@ script = ExtResource("14_winmgr")
 script = ExtResource("2_renderer")
 overview_profile = false
 
+[node name="CaveDebugPanel" type="CanvasLayer" parent="."]
+script = ExtResource("18_caves")
+renderer_path = NodePath("../Renderer")
+camera_path = NodePath("../CameraRig")
+slice_path = NodePath("../SliceController")
+window_manager_path = NodePath("../UIWindowManager")
+
 [node name="MiningDesignationController" type="Node3D" parent="." unique_id=1776126510]
 script = ExtResource("5_mining")
 camera_path = NodePath("../CameraRig")
@@ -88,6 +97,11 @@ window_manager_path = NodePath("../UIWindowManager")
 
 [node name="SurfaceFloraSpawner" type="Node3D" parent="."]
 script = ExtResource("7_flora")
+slice_controller_path = NodePath("../SliceController")
+
+[node name="SurfaceDetailManager" type="Node3D" parent="."]
+script = ExtResource("19_details")
+flora_path = NodePath("../SurfaceFloraSpawner")
 slice_controller_path = NodePath("../SliceController")
 
 [node name="DwarfDirector" type="Node3D" parent="."]
@@ -139,3 +153,4 @@ script = ExtResource("16_felling")
 dock_ui_path = NodePath("../DockUI")
 flora_path = NodePath("../SurfaceFloraSpawner")
 explorer_path = NodePath("../ObjectExplorerController")
+details_path = NodePath("../SurfaceDetailManager")

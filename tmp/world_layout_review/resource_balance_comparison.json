@@ -1,0 +1,240 @@
+{
+  "passed": true,
+  "sample_count": 3662272,
+  "sampled_cave_air": 3147,
+  "sampled_cave_air_percent": 0.08593026405466334,
+  "counts_before": {
+    "base:terrain:gem:amethyst": 1929,
+    "base:terrain:gem:diamond": 34,
+    "base:terrain:gem:emerald": 3,
+    "base:terrain:gem:jade": 2128,
+    "base:terrain:gem:ruby": 88,
+    "base:terrain:gem:sapphire": 59,
+    "base:terrain:ore:coal": 220202,
+    "base:terrain:ore:copper": 39485,
+    "base:terrain:ore:gold": 6894,
+    "base:terrain:ore:iron": 98764,
+    "base:terrain:ore:silver": 12956,
+    "base:terrain:ore:tin": 14597,
+    "base:terrain:soil:cave": 130291
+  },
+  "counts_after": {
+    "base:terrain:gem:amethyst": 1929,
+    "base:terrain:gem:diamond": 13,
+    "base:terrain:gem:emerald": 20,
+    "base:terrain:gem:jade": 2128,
+    "base:terrain:gem:ruby": 88,
+    "base:terrain:gem:sapphire": 59,
+    "base:terrain:ore:coal": 220202,
+    "base:terrain:ore:copper": 39485,
+    "base:terrain:ore:gold": 6894,
+    "base:terrain:ore:iron": 98764,
+    "base:terrain:ore:silver": 12956,
+    "base:terrain:ore:tin": 14597,
+    "base:terrain:soil:cave": 130291
+  },
+  "deep_before": {
+    "diamond": 1845,
+    "emerald": 389,
+    "ruby": 4993,
+    "sapphire": 2989
+  },
+  "deep_after": {
+    "diamond": 759,
+    "emerald": 1348,
+    "ruby": 4993,
+    "sapphire": 2989
+  },
+  "deep_by_seed": [
+    {
+      "seed": 7,
+      "before": {
+        "diamond": 241,
+        "emerald": 49,
+        "ruby": 581,
+        "sapphire": 338
+      },
+      "after": {
+        "diamond": 97,
+        "emerald": 177,
+        "ruby": 581,
+        "sapphire": 338
+      },
+      "emerald_y5_12": 128
+    },
+    {
+      "seed": 1234,
+      "before": {
+        "diamond": 281,
+        "emerald": 50,
+        "ruby": 678,
+        "sapphire": 420
+      },
+      "after": {
+        "diamond": 132,
+        "emerald": 186,
+        "ruby": 678,
+        "sapphire": 420
+      },
+      "emerald_y5_12": 136
+    },
+    {
+      "seed": 65535,
+      "before": {
+        "diamond": 254,
+        "emerald": 50,
+        "ruby": 607,
+        "sapphire": 326
+      },
+      "after": {
+        "diamond": 118,
+        "emerald": 173,
+        "ruby": 607,
+        "sapphire": 326
+      },
+      "emerald_y5_12": 123
+    },
+    {
+      "seed": 20261007,
+      "before": {
+        "diamond": 223,
+        "emerald": 42,
+        "ruby": 620,
+        "sapphire": 361
+      },
+      "after": {
+        "diamond": 76,
+        "emerald": 170,
+        "ruby": 620,
+        "sapphire": 361
+      },
+      "emerald_y5_12": 128
+    },
+    {
+      "seed": 3381051336,
+      "before": {
+        "diamond": 247,
+        "emerald": 45,
+        "ruby": 702,
+        "sapphire": 394
+      },
+      "after": {
+        "diamond": 98,
+        "emerald": 176,
+        "ruby": 702,
+        "sapphire": 394
+      },
+      "emerald_y5_12": 131
+    },
+    {
+      "seed": 4294967295,
+      "before": {
+        "diamond": 194,
+        "emerald": 35,
+        "ruby": 590,
+        "sapphire": 353
+      },
+      "after": {
+        "diamond": 76,
+        "emerald": 143,
+        "ruby": 590,
+        "sapphire": 353
+      },
+      "emerald_y5_12": 108
+    },
+    {
+      "seed": 314159265,
+      "before": {
+        "diamond": 207,
+        "emerald": 70,
+        "ruby": 569,
+        "sapphire": 361
+      },
+      "after": {
+        "diamond": 82,
+        "emerald": 167,
+        "ruby": 569,
+        "sapphire": 361
+      },
+      "emerald_y5_12": 97
+    },
+    {
+      "seed": 2147483647,
+      "before": {
+        "diamond": 198,
+        "emerald": 48,
+        "ruby": 646,
+        "sapphire": 436
+      },
+      "after": {
+        "diamond": 80,
+        "emerald": 156,
+        "ruby": 646,
+        "sapphire": 436
+      },
+      "emerald_y5_12": 108
+    }
+  ],
+  "caves_removed_exact": {
+    "base:terrain:gem:amethyst": 320,
+    "base:terrain:gem:diamond": 0,
+    "base:terrain:gem:emerald": 0,
+    "base:terrain:gem:jade": 177,
+    "base:terrain:gem:ruby": 1,
+    "base:terrain:gem:sapphire": 0,
+    "base:terrain:ore:coal": 22840,
+    "base:terrain:ore:copper": 2279,
+    "base:terrain:ore:gold": 256,
+    "base:terrain:ore:iron": 15015,
+    "base:terrain:ore:silver": 2738,
+    "base:terrain:ore:tin": 435,
+    "base:terrain:soil:cave": 18802
+  },
+  "cave_boundary_resources_exact": {
+    "base:terrain:gem:amethyst": 185,
+    "base:terrain:gem:diamond": 0,
+    "base:terrain:gem:emerald": 0,
+    "base:terrain:gem:jade": 160,
+    "base:terrain:gem:ruby": 0,
+    "base:terrain:gem:sapphire": 0,
+    "base:terrain:ore:coal": 11699,
+    "base:terrain:ore:copper": 1139,
+    "base:terrain:ore:gold": 231,
+    "base:terrain:ore:iron": 8616,
+    "base:terrain:ore:silver": 1275,
+    "base:terrain:ore:tin": 214,
+    "base:terrain:soil:cave": 11799
+  },
+  "matched_pre_cave_samples": [
+    {
+      "seed": 7,
+      "sampled_ore_before_caves": 38954,
+      "sampled_ore_with_caves": 38857,
+      "removed_percent": 0.24901165477229553
+    },
+    {
+      "seed": 1234,
+      "sampled_ore_before_caves": 61414,
+      "sampled_ore_with_caves": 61364,
+      "removed_percent": 0.08141466115218028
+    },
+    {
+      "seed": 65535,
+      "sampled_ore_before_caves": 49116,
+      "sampled_ore_with_caves": 49007,
+      "removed_percent": 0.22192360941444744
+    },
+    {
+      "seed": 20261007,
+      "sampled_ore_before_caves": 48142,
+      "sampled_ore_with_caves": 48069,
+      "removed_percent": 0.15163474720618172
+    }
+  ],
+  "unchanged_checks": [
+    "eight geography fingerprints",
+    "all cave summaries",
+    "all sampled ore shape boxes",
+    "sampled counts except diamond/emerald"
+  ]
+}

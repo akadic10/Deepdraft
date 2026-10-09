@@ -226,16 +226,24 @@ func _position_panels() -> void:
 	var visible_count := 0
 	for id: String in _buttons:
 		if _buttons[id].visible: visible_count += 1
-	_grid.columns = maxi(1, mini(3, visible_count))
+	_grid.columns = 3 if visible_count > 4 and viewport.x < 1100 else maxi(1, visible_count)
 	var compact := is_instance_valid(inspector) and inspector.visible and viewport.x < 1100
 	if _compact_style != int(compact):
 		_compact_style = int(compact)
+		var banner_style := UITheme.orders_panel_style(true)
+		banner_style.content_margin_top = 6 if compact else 12
+		banner_style.content_margin_bottom = 6 if compact else 12
+		_banner.add_theme_stylebox_override("panel", banner_style)
+		_banner_layout.add_theme_constant_override("separation", 6 if compact else 12)
+		_title.add_theme_font_size_override("font_size", 20 if compact else 22)
+		_hint.add_theme_font_size_override("font_size", 13 if compact else UITheme.FONT_BODY)
 		for id: String in _buttons:
 			var button: Button = _buttons[id]
 			button.custom_minimum_size = Vector2(88,64) if compact else Vector2(104,76)
 			button.add_theme_font_size_override("font_size", 12 if compact else UITheme.FONT_SMALL)
 			button.add_theme_constant_override("icon_max_width", 26 if compact else 30)
 			button.text = "Cancel\norders" if compact and id == "cancel_orders" else String(_entries[id].label)
+			if compact and id in ["clear_stones", "clear_shrubs", "harvest_plants"]: button.text = String(_entries[id].label).replace(" ", "\n")
 			if button.disabled: button.text += "\nLater"
 	_shelf.reset_size()
 	_shelf.position = Vector2((viewport.x - _shelf.size.x) * .5, _dock_rect.position.y - _shelf.size.y - 8)

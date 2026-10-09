@@ -8,10 +8,10 @@ Dwarves navigate using a **custom 3D A\* (A-Star) grid** tailored to the block w
 
 | Parameter | Value |
 |---|---|
-| Block / node size | 0.5 m |
-| Grid dimensions | Mirrors world grid: 512 × 128 × 512 nodes |
-| Graph scope | Only chunks within active range are populated |
-| Heuristic | 3D Manhattan distance (scaled by 0.5 m) |
+| Block / node size | One terrain block |
+| Grid dimensions | Mirrors world grid: 1024 × 128 × 1024 nodes |
+| Graph scope | Lazy queries across loaded terrain and deterministic generated terrain |
+| Heuristic | Octile X/Z distance + 0.9 × vertical distance |
 
 > **Agent note:** The navigation graph is built lazily per-chunk and cached. Rebuild a chunk's nav nodes only when `WorldData` emits `chunk_changed` for that chunk.
 
@@ -78,9 +78,21 @@ Dwarves can step up a **maximum of 1 block** (0.5 m) without a jump animation:
 
 Dwarves step down up to 1 block without special animation, symmetrical to step-up.
 
-### Ladders / Ramps (Future)
+### Ladders (live 2026-10-09); stairs and ramps deferred
 
-Multi-level vertical traversal will be implemented via designated block types (`"dwarf:ladder"`, `"dwarf:ramp_stone"`). These nodes have special connection rules that allow `y` changes of more than 1 per step. Details TBD in a future update to this document.
+Player-built wooden ladders register explicit rung supports and vertical edges
+in NavGrid. They are scene-owned structures, not terrain block types.
+`is_walkable()` retains solid-floor rules; `is_navigable()` additionally accepts
+clear installed rungs. Only completed height is registered, so builders extend
+tall routes from below without granting early access to the top. Vertical
+movement costs reflect the slower climbing speed; ordinary floor smoothing
+cannot skip over air. Hauling uses these same paths.
+
+Closing routes allow occupants to leave and workers to dismantle from the top,
+while rejecting new through traffic. Interruptions/sleep return an actor to a
+floor first. Route changes invalidate path caches and re-arm blocked tasks.
+See [86 — Rudimentary ladders](../00_dev_roadmap/86_rudimentary_ladders.md) for
+costs, placement constraints, physical construction/recovery and verification.
 
 ## A\* Cost Function
 
@@ -102,13 +114,17 @@ H cost (heuristic) = octile(XZ) + 0.9 × |dy|     (admissible with diagonals)
 
 - Completed paths are cached keyed by `(start_block, goal_block)` with a TTL of `5.0` seconds.
 - On `chunk_changed`, all cached paths whose nodes overlap the changed chunk are immediately invalidated.
-- The Task System's reachability probe uses a **capped A\* expansion** for speed; if no path
-  is found within that budget the task is flagged BLOCKED. The cap is data-driven
-  (`data/tasks/task_config.json` → `scheduler.probe_node_cap`, default **1200**; raised from
-  the original 200 on 2026-06-10 — 200 nodes only "sees" ~30–40 blocks of path, so reachable
-  zones across the settlement plain were probing as unreachable). The cap bounds how far away
-  dwarves notice work; it is a latency/cost dial, never a frame-time risk (probes stay inside
-  the scheduler's per-wake time budget).
+- Task reachability uses **resumable A\* searches**. The configured
+  `scheduler.probe_node_cap` (**1200**) limits one slice; the scheduler's time
+  budget can yield earlier. An unfinished search resumes next wake without
+  marking work blocked. The forward limit matches ordinary walking (**6000**),
+  with up to 64 extra nodes for a quick sealed-destination check. Relevant
+  chunk/occupancy edits and ladder changes invalidate searches; unrelated
+  terrain changes preserve progress. See [milestone 88](../00_dev_roadmap/88_ladder_task_reachability.md).
+- Mining searches all valid working positions together, requiring an exact
+  reached stand. An isolated cliff shelf cannot reject the whole zone. All
+  alternatives share the same search bound, and the chosen worker receives
+  the proven block, stand and cached route.
 
 ---
 

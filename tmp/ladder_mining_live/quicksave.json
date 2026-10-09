@@ -1,0 +1,934 @@
+{
+	"clock": {
+		"day": 1,
+		"hour": 13.0413163055714,
+		"paused": false,
+		"season": "summer",
+		"speed": 1.0,
+		"year": 1
+	},
+	"project": "Deepdraft",
+	"saved_at_utc": "2026-10-09 17:34:45",
+	"scene": {
+		"camera": {
+			"orbit_y": -156.0,
+			"pitch": -50.6,
+			"target_position": [
+				423.976898193359,
+				35.6461601257324,
+				579.240356445313
+			],
+			"zoom": 60.0428898909345
+		},
+		"dwarves": {
+			"birth_index": 5,
+			"roster": [
+				{
+					"appearance": {
+						"age_tier": "young",
+						"beard_style": "goatee",
+						"eye_color": "blue",
+						"eyebrow_style": "bushy",
+						"gender": "male",
+						"hair_color": "auburn",
+						"hair_style": "short_back",
+						"scar": "none",
+						"skin_tone": "pale"
+					},
+					"carried_items": [
+						{
+							"count": 1,
+							"item_key": "base:resources:wood:oak_log"
+						},
+						{
+							"count": 1,
+							"item_key": "base:resources:wood:oak_log"
+						}
+					],
+					"gender": "male",
+					"id": 0,
+					"name": "Baldgrim",
+					"position": [
+						415.5,
+						42.1163558959961,
+						575.5
+					],
+					"profession": "base:profession:worker",
+					"profession_experience": {
+						"base:profession:armorsmith": 0,
+						"base:profession:blacksmith": 0,
+						"base:profession:brewer": 0,
+						"base:profession:builder": 0,
+						"base:profession:carpenter": 0,
+						"base:profession:farmer": 0,
+						"base:profession:innkeeper": 0,
+						"base:profession:merchant": 0,
+						"base:profession:miner": 0,
+						"base:profession:weaponsmith": 0,
+						"base:profession:worker": 7
+					},
+					"rotation_y": 1.57079637050629,
+					"sleep": 0.817096228391399,
+					"sleep_hours_left": 0.0,
+					"sleeping": false,
+					"traits": [
+						"base:trait:homesick"
+					]
+				},
+				{
+					"appearance": {
+						"age_tier": "adult",
+						"beard_style": "",
+						"eye_color": "green",
+						"eyebrow_style": "thin_arched",
+						"gender": "female",
+						"hair_color": "blonde",
+						"hair_style": "twin_braids",
+						"scar": "cheek_slash",
+						"skin_tone": "medium"
+					},
+					"carried_items": [],
+					"gender": "female",
+					"id": 1,
+					"name": "Valna",
+					"position": [
+						410.5,
+						36.0,
+						570.5
+					],
+					"profession": "base:profession:worker",
+					"profession_experience": {
+						"base:profession:armorsmith": 0,
+						"base:profession:blacksmith": 0,
+						"base:profession:brewer": 0,
+						"base:profession:builder": 0,
+						"base:profession:carpenter": 0,
+						"base:profession:farmer": 0,
+						"base:profession:innkeeper": 0,
+						"base:profession:merchant": 0,
+						"base:profession:miner": 0,
+						"base:profession:weaponsmith": 0,
+						"base:profession:worker": 0
+					},
+					"rotation_y": -3.14159274101257,
+					"sleep": 0.615959772311341,
+					"sleep_hours_left": 0.0,
+					"sleeping": false,
+					"traits": [
+						"base:trait:social"
+					]
+				},
+				{
+					"appearance": {
+						"age_tier": "adult",
+						"beard_style": "forked",
+						"eye_color": "brown",
+						"eyebrow_style": "thick_flat",
+						"gender": "male",
+						"hair_color": "black",
+						"hair_style": "shaved",
+						"scar": "cheek_slash",
+						"skin_tone": "medium"
+					},
+					"carried_items": [],
+					"gender": "male",
+					"id": 2,
+					"name": "Durin",
+					"position": [
+						408.5,
+						36.0,
+						570.5
+					],
+					"profession": "base:profession:worker",
+					"profession_experience": {
+						"base:profession:armorsmith": 0,
+						"base:profession:blacksmith": 0,
+						"base:profession:brewer": 0,
+						"base:profession:builder": 0,
+						"base:profession:carpenter": 0,
+						"base:profession:farmer": 0,
+						"base:profession:innkeeper": 0,
+						"base:profession:merchant": 0,
+						"base:profession:miner": 0,
+						"base:profession:weaponsmith": 0,
+						"base:profession:worker": 5
+					},
+					"rotation_y": 1.57079637050629,
+					"sleep": 0.759327119234865,
+					"sleep_hours_left": 0.0,
+					"sleeping": false,
+					"traits": [
+						"base:trait:brave"
+					]
+				},
+				{
+					"appearance": {
+						"age_tier": "young",
+						"beard_style": "full_long",
+						"eye_color": "grey",
+						"eyebrow_style": "thick_flat",
+						"gender": "male",
+						"hair_color": "brown",
+						"hair_style": "shaved",
+						"scar": "none",
+						"skin_tone": "pale"
+					},
+					"carried_items": [],
+					"gender": "male",
+					"id": 3,
+					"name": "Dugek",
+					"position": [
+						415.5,
+						43.5775451660156,
+						575.5
+					],
+					"profession": "base:profession:worker",
+					"profession_experience": {
+						"base:profession:armorsmith": 0,
+						"base:profession:blacksmith": 0,
+						"base:profession:brewer": 0,
+						"base:profession:builder": 0,
+						"base:profession:carpenter": 0,
+						"base:profession:farmer": 0,
+						"base:profession:innkeeper": 0,
+						"base:profession:merchant": 0,
+						"base:profession:miner": 0,
+						"base:profession:weaponsmith": 0,
+						"base:profession:worker": 6
+					},
+					"rotation_y": 1.57079637050629,
+					"sleep": 0.555442564654672,
+					"sleep_hours_left": 0.0,
+					"sleeping": false,
+					"traits": [
+						"base:trait:hardworking",
+						"base:trait:glutton"
+					]
+				},
+				{
+					"appearance": {
+						"age_tier": "adult",
+						"beard_style": "",
+						"eye_color": "blue",
+						"eyebrow_style": "thin_arched",
+						"gender": "female",
+						"hair_color": "dark_brown",
+						"hair_style": "wild",
+						"scar": "none",
+						"skin_tone": "pale"
+					},
+					"carried_items": [],
+					"gender": "female",
+					"id": 4,
+					"name": "Daga",
+					"position": [
+						406.5,
+						36.0,
+						568.5
+					],
+					"profession": "base:profession:worker",
+					"profession_experience": {
+						"base:profession:armorsmith": 0,
+						"base:profession:blacksmith": 0,
+						"base:profession:brewer": 0,
+						"base:profession:builder": 0,
+						"base:profession:carpenter": 0,
+						"base:profession:farmer": 0,
+						"base:profession:innkeeper": 0,
+						"base:profession:merchant": 0,
+						"base:profession:miner": 0,
+						"base:profession:weaponsmith": 0,
+						"base:profession:worker": 7
+					},
+					"rotation_y": -3.14159274101257,
+					"sleep": 0.742203292660009,
+					"sleep_hours_left": 0.0,
+					"sleeping": false,
+					"traits": [
+						"base:trait:homesick"
+					]
+				}
+			],
+			"settlement_anchor": [
+				424,
+				35,
+				561
+			]
+		},
+		"flora": {
+			"trees": [
+				{
+					"action": "fell",
+					"designated": false,
+					"fell_work_seconds": 6.0,
+					"felled": true,
+					"harvest_work_cycle": "",
+					"harvest_work_seconds": 0.0,
+					"harvested_cycle": "",
+					"origin": [
+						387,
+						35,
+						579
+					],
+					"species": "base:flora:pine_tree",
+					"stage": "mature",
+					"work_seconds": 6.0
+				},
+				{
+					"action": "fell",
+					"designated": false,
+					"fell_work_seconds": 12.0,
+					"felled": true,
+					"harvest_work_cycle": "",
+					"harvest_work_seconds": 0.0,
+					"harvested_cycle": "",
+					"origin": [
+						399,
+						35,
+						578
+					],
+					"species": "base:flora:pine_tree",
+					"stage": "ancient",
+					"work_seconds": 12.0
+				},
+				{
+					"action": "fell",
+					"designated": false,
+					"fell_work_seconds": 6.0,
+					"felled": true,
+					"harvest_work_cycle": "",
+					"harvest_work_seconds": 0.0,
+					"harvested_cycle": "",
+					"origin": [
+						400,
+						35,
+						553
+					],
+					"species": "base:flora:pine_tree",
+					"stage": "mature",
+					"work_seconds": 6.0
+				},
+				{
+					"action": "fell",
+					"designated": false,
+					"fell_work_seconds": 6.0,
+					"felled": true,
+					"harvest_work_cycle": "",
+					"harvest_work_seconds": 0.0,
+					"harvested_cycle": "",
+					"origin": [
+						418,
+						43,
+						581
+					],
+					"species": "base:flora:pine_tree",
+					"stage": "mature",
+					"work_seconds": 6.0
+				},
+				{
+					"action": "fell",
+					"designated": false,
+					"fell_work_seconds": 10.0,
+					"felled": true,
+					"harvest_work_cycle": "",
+					"harvest_work_seconds": 0.0,
+					"harvested_cycle": "",
+					"origin": [
+						422,
+						43,
+						587
+					],
+					"species": "base:flora:oak_tree",
+					"stage": "mature",
+					"work_seconds": 10.0
+				}
+			]
+		},
+		"furniture": {
+			"ghosts": [],
+			"installed": [
+				{
+					"flagged_uninstall": false,
+					"id": 1,
+					"key": "base:furniture:crude_workbench",
+					"layout_version": 1,
+					"origin": [
+						407,
+						35,
+						573
+					],
+					"yaw": 0
+				}
+			]
+		},
+		"items": {
+			"loose": [
+				{
+					"count": 1,
+					"item_key": "base:resources:wood:oak_log",
+					"position": [
+						423.471710205078,
+						44.0,
+						588.227722167969
+					],
+					"rotation_y": 6.1845874786377
+				},
+				{
+					"count": 1,
+					"item_key": "base:resources:wood:oak_log",
+					"position": [
+						423.538421630859,
+						44.0,
+						588.319946289063
+					],
+					"rotation_y": 1.66299486160278
+				}
+			]
+		},
+		"ladders": {
+			"next_id": 2,
+			"routes": [
+				{
+					"base": [
+						415,
+						35,
+						575
+					],
+					"built": 8,
+					"height": 8,
+					"id": 1,
+					"key": "base:furniture:crude_ladder",
+					"mode": "ready",
+					"progress": 0.0,
+					"yaw": 3
+				}
+			]
+		},
+		"mining": {
+			"mined_blocks": [],
+			"zones": [
+				{
+					"blocks": [
+						[
+							419,
+							43,
+							576
+						],
+						[
+							419,
+							43,
+							577
+						],
+						[
+							419,
+							43,
+							578
+						],
+						[
+							419,
+							43,
+							579
+						],
+						[
+							419,
+							43,
+							580
+						],
+						[
+							419,
+							43,
+							581
+						],
+						[
+							419,
+							43,
+							582
+						],
+						[
+							419,
+							43,
+							583
+						],
+						[
+							420,
+							43,
+							576
+						],
+						[
+							420,
+							43,
+							577
+						],
+						[
+							420,
+							43,
+							578
+						],
+						[
+							420,
+							43,
+							579
+						],
+						[
+							420,
+							43,
+							580
+						],
+						[
+							420,
+							43,
+							581
+						],
+						[
+							420,
+							43,
+							582
+						],
+						[
+							420,
+							43,
+							583
+						],
+						[
+							421,
+							43,
+							576
+						],
+						[
+							421,
+							43,
+							577
+						],
+						[
+							421,
+							43,
+							578
+						],
+						[
+							421,
+							43,
+							579
+						],
+						[
+							421,
+							43,
+							580
+						],
+						[
+							421,
+							43,
+							581
+						],
+						[
+							421,
+							43,
+							582
+						],
+						[
+							421,
+							43,
+							583
+						],
+						[
+							422,
+							43,
+							576
+						],
+						[
+							422,
+							43,
+							577
+						],
+						[
+							422,
+							43,
+							578
+						],
+						[
+							422,
+							43,
+							579
+						],
+						[
+							422,
+							43,
+							580
+						],
+						[
+							422,
+							43,
+							581
+						],
+						[
+							422,
+							43,
+							582
+						],
+						[
+							422,
+							43,
+							583
+						]
+					],
+					"id": 1
+				}
+			]
+		},
+		"settlement_flag": {
+			"cell": [
+				424,
+				35,
+				561
+			],
+			"placed": true
+		},
+		"slice": {
+			"active": false,
+			"last_slice_y": 127,
+			"seeded": false,
+			"slice_y": 127
+		},
+		"stockpiles": {
+			"zones": [
+				{
+					"cells": [
+						[
+							406,
+							35,
+							566
+						],
+						[
+							406,
+							35,
+							567
+						],
+						[
+							406,
+							35,
+							568
+						],
+						[
+							406,
+							35,
+							569
+						],
+						[
+							406,
+							35,
+							570
+						],
+						[
+							407,
+							35,
+							566
+						],
+						[
+							407,
+							35,
+							567
+						],
+						[
+							407,
+							35,
+							568
+						],
+						[
+							407,
+							35,
+							569
+						],
+						[
+							407,
+							35,
+							570
+						],
+						[
+							408,
+							35,
+							566
+						],
+						[
+							408,
+							35,
+							567
+						],
+						[
+							408,
+							35,
+							568
+						],
+						[
+							408,
+							35,
+							569
+						],
+						[
+							408,
+							35,
+							570
+						],
+						[
+							409,
+							35,
+							566
+						],
+						[
+							409,
+							35,
+							567
+						],
+						[
+							409,
+							35,
+							568
+						],
+						[
+							409,
+							35,
+							569
+						],
+						[
+							409,
+							35,
+							570
+						],
+						[
+							410,
+							35,
+							566
+						],
+						[
+							410,
+							35,
+							567
+						],
+						[
+							410,
+							35,
+							568
+						],
+						[
+							410,
+							35,
+							569
+						],
+						[
+							410,
+							35,
+							570
+						]
+					],
+					"filter_tags": [
+						"stockpile_stone",
+						"stockpile_ore",
+						"stockpile_gem",
+						"stockpile_soil",
+						"stockpile_wood",
+						"stockpile_food",
+						"stockpile_drink",
+						"stockpile_seed",
+						"stockpile_misc",
+						"stockpile_currency",
+						"stockpile_furniture"
+					],
+					"id": 1,
+					"stacks": [
+						{
+							"cell": [
+								406,
+								35,
+								570
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								406,
+								35,
+								569
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								407,
+								35,
+								570
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								406,
+								35,
+								568
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								407,
+								35,
+								569
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								408,
+								35,
+								570
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								407,
+								35,
+								568
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								408,
+								35,
+								569
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								406,
+								35,
+								566
+							],
+							"count": 2,
+							"item": "base:resources:seed:pine_cone"
+						},
+						{
+							"cell": [
+								407,
+								35,
+								567
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								408,
+								35,
+								566
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								408,
+								35,
+								567
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								408,
+								35,
+								568
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								409,
+								35,
+								569
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								410,
+								35,
+								570
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								409,
+								35,
+								570
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								410,
+								35,
+								569
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						},
+						{
+							"cell": [
+								410,
+								35,
+								568
+							],
+							"count": 1,
+							"item": "base:resources:wood:pine_log"
+						}
+					],
+					"storage_filter": {
+						"excluded_items": [],
+						"items": [],
+						"tags": [
+							"stockpile_stone",
+							"stockpile_ore",
+							"stockpile_gem",
+							"stockpile_soil",
+							"stockpile_wood",
+							"stockpile_food",
+							"stockpile_drink",
+							"stockpile_seed",
+							"stockpile_misc",
+							"stockpile_currency",
+							"stockpile_furniture"
+						]
+					}
+				}
+			]
+		},
+		"surface_details": {
+			"changes": [],
+			"next_plant_id": 1,
+			"planted": []
+		},
+		"worker_crafting": {
+			"orders": []
+		}
+	},
+	"schema_version": 1,
+	"weather": {
+		"current_id": "base:weather:clear",
+		"rng_state": 2347016826487019350
+	},
+	"world_seed": 3912970522
+}

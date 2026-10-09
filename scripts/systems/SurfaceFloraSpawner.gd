@@ -281,8 +281,9 @@ func _spawn_column(cx: int, cz: int) -> void:
 	_loaded_columns[Vector2i(cx, cz)] = nodes
 
 
-## Evaluates one scatter cell against ALL species; returns the spawned tree or null.
-func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
+## Shared immutable candidate query. Detail placement uses exactly the same
+## tree selector as spawning, including cells on the other side of a chunk.
+func generated_tree_candidate(cell_x: int, cell_z: int, size: int) -> Dictionary:
 	var h_pos := _hash(cell_x, cell_z, 101)          # jitter within cell
 	var jx: int = h_pos % size
 	var jz: int = floori(float(h_pos) / float(size)) % size
@@ -290,15 +291,15 @@ func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 	var wz := cell_z * size + jz
 
 	if wx < 0 or wx >= CHUNK_COUNT_X * CHUNK_SIZE:
-		return null
+		return {}
 	if wz < 0 or wz >= CHUNK_COUNT_Z * CHUNK_SIZE:
-		return null
+		return {}
 
 	# Environment, read once.
 	var domain := WorldGenerator.get_domain(wx, wz)
 	var ground_y := WorldGenerator.get_surface_y(wx, wz)
 	if ground_y < 0:
-		return null
+		return {}
 	var water := _is_water(wx, wz)
 	var moisture := WorldGenerator.get_moisture(wx, wz)
 
@@ -311,12 +312,12 @@ func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 		scores[i] = s
 		total += s
 	if total <= 0.0:
-		return null
+		return {}
 
 	# Presence test (clamped so even rich cells leave some gaps).
 	var presence := minf(total, max_cell_occupancy)
 	if _unit(_hash(cell_x, cell_z, 202)) >= presence:
-		return null
+		return {}
 
 	# Weighted species pick.
 	var r := _unit(_hash(cell_x, cell_z, 303)) * total
@@ -328,7 +329,7 @@ func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 			chosen = i
 			break
 	if chosen < 0:
-		return null
+		return {}
 	var sp: Dictionary = _species[chosen]
 	var placement: Dictionary = sp["placement"]
 	var stages: Dictionary = sp["stages"]
@@ -337,21 +338,29 @@ func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
 	var stage_name := _pick_stage(placement, _hash(cell_x, cell_z, 304))
 	var stage_data: Dictionary = stages.get(stage_name, {})
 	if stage_data.is_empty():
-		return null
+		return {}
 	var footprint: int = _footprint_for(placement, stage_name)
 
 	# Flatness / validity and cliff-lip setback over the footprint.
 	if not _footprint_ok(placement, wx, wz, footprint, ground_y):
-		return null
+		return {}
 	if not _edge_ok(placement, wx, wz, footprint, ground_y):
-		return null
+		return {}
 
-	var model_path := resolve_tree_model_for_season(
-		stage_data, _season, Vector3i(wx, ground_y, wz))
-	if model_path == "":
-		return null
+	return {"species": sp, "stage": stage_name, "stage_data": stage_data,
+		"origin": Vector3i(wx, ground_y, wz), "footprint": footprint}
 
-	return _instance_tree(sp["name"], model_path, stage_name, stage_data, wx, wz, ground_y, footprint)
+
+func _try_spawn_cell(cell_x: int, cell_z: int, size: int) -> Node3D:
+	var candidate := generated_tree_candidate(cell_x, cell_z, size)
+	if candidate.is_empty():
+		return null
+	var origin: Vector3i = candidate.origin
+	var path := resolve_tree_model_for_season(candidate.stage_data, _season, origin)
+	if path.is_empty():
+		return null
+	return _instance_tree(candidate.species.name, path, candidate.stage,
+		candidate.stage_data, origin.x, origin.z, origin.y, candidate.footprint)
 
 
 ## Per-species suitability weight for a column (0 = unsuitable). Gates on domain,
@@ -388,6 +397,8 @@ func _instance_tree(species_name: String, model_path: String, stage_name: String
 	var tree_id := Vector2i(wx, wz)
 	if bool(_tree_changes.get(tree_id, {}).get("felled", false)):
 		return null
+	model_path = resolve_tree_model_for_season(stage_data, _season, Vector3i(wx, ground_y, wz),
+		String(_tree_changes.get(tree_id, {}).get("harvested_cycle", "")) == _fruit_cycle())
 	var packed := _load_scene(model_path)
 	if packed == null:
 		return null
@@ -455,6 +466,7 @@ func _instance_tree(species_name: String, model_path: String, stage_name: String
 	root.set_meta("tree_id", tree_id)
 	_trees[tree_id] = {"name": species_name, "stage": stage_name,
 		"cell": Vector3i(wx, ground_y, wz), "node": root,
+		"model_path": model_path,
 		"bounds": Picking.world_bounds(root), "occupancy_id": int(root.get_meta("occupancy_id", -1))}
 	_update_felling_marker(tree_id)
 	_spawned_count += 1
@@ -509,8 +521,11 @@ static func resolve_tree_model(models_value, world_pos: Vector3i) -> String:
 
 ## Picks the model for a season with fallback: requested -> "summer" -> error.
 static func resolve_tree_model_for_season(
-		stage_data: Dictionary, season: String, world_pos: Vector3i) -> String:
+		stage_data: Dictionary, season: String, world_pos: Vector3i, picked := false) -> String:
 	var models: Dictionary = stage_data.get("models", {})
+	var fruit: Dictionary = stage_data.get("fruit_harvest", {})
+	if stage_data.has("picked_models") and (picked or season != String(fruit.get("harvest_season", ""))):
+		models = stage_data.picked_models
 	if season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
 		return resolve_tree_model(models["autumn_fruiting"], world_pos)
 	var value = models.get(season, models.get("summer", ""))
@@ -687,7 +702,13 @@ func _build_tree_material() -> StandardMaterial3D:
 
 
 func _on_season_changed(new_season: String) -> void:
+	# Reconcile even when restoring the same season: the saved year/crop may differ.
+	for id: Vector2i in _tree_changes:
+		var state: Dictionary = _tree_changes[id]
+		if String(state.get("action", "fell")) == "harvest" and bool(state.get("designated", false)) and not can_harvest_tree(id):
+			cancel_felling(id)
 	if new_season == _season:
+		for id: Vector2i in _tree_changes: _refresh_tree_crop_visual(id)
 		return
 	var old_season := _season
 	_season = new_season
@@ -717,6 +738,8 @@ func _on_season_changed(new_season: String) -> void:
 ## using the "mature" stage as reference (all stages share the same season keys).
 func _effective_season_for(stages: Dictionary, season: String) -> String:
 	var ref: Dictionary = stages.get("mature", {})
+	if ref.has("picked_models"):
+		return season # Crop models can change even when evergreen foliage does not.
 	var models: Dictionary = ref.get("models", {})
 	if season == "autumn" and ref.has("fruit_harvest") and models.has("autumn_fruiting"):
 		return "autumn_fruiting"
@@ -872,6 +895,9 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 			fruit_status = "Out of season"
 		else:
 			fruit_status = "In season"
+		if float(species_fruit.get("work_seconds", 0)) > 0 and not fruit.is_empty():
+			fruit_status = "Ready to harvest" if can_harvest_tree(tree_id) else "Picked this season" \
+				if String(_tree_changes.get(tree_id, {}).get("harvested_cycle", "")) == _fruit_cycle() else "Out of season"
 	var guaranteed: Array[String] = []
 	var possible: Array[String] = []
 	for drop: Dictionary in stage.get("harvest", {}).get("yields", []):
@@ -884,17 +910,21 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 	var details := ""
 	if not species_fruit.is_empty():
 		details = "Seasonal fruit: %s." % _explorer_item_name(String(species_fruit.get("yield_item", "")))
+		if float(species_fruit.get("work_seconds", 0)) > 0:
+			details += " Pick once per harvest season; the tree stays standing."
+			if not fruit.is_empty(): details += "\nHarvest: %d berries · %.0f seconds." % [int(fruit.yield_count), float(fruit.work_seconds)]
 	if not possible.is_empty():
 		if not details.is_empty():
 			details += "\n\n"
 		details += "Possible extras when felled:\n" + "\n".join(possible)
 	var change: Dictionary = _tree_changes.get(tree_id, {})
 	var marked := bool(change.get("designated", false))
+	var harvesting := String(change.get("action", "fell")) == "harvest"
 	var progress := float(change.get("work_seconds", 0.0))
-	var duration := float(stage.get("felling", {}).get("work_seconds", 1.0))
+	var duration := float(stage.get("fruit_harvest" if harvesting else "felling", {}).get("work_seconds", 1.0))
 	var status := "Standing"
 	if marked:
-		status = "Marked for felling"
+		status = "Marked for harvest" if harvesting else "Marked for felling"
 		var source: RefCounted = _felling_sources.get(tree_id)
 		if source != null:
 			var task := TaskManager.get_task(int(source.get("lease_id")))
@@ -904,9 +934,18 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 				elif task.status == Task.Status.ASSIGNED:
 					status = "Dwarf approaching"
 				elif task.status == Task.Status.IN_PROGRESS:
-					status = "Chopping"
+					status = "Picking berries" if harvesting else "Chopping"
 	if progress > 0.0:
 		status += " · %d%%" % mini(99, floori(progress / maxf(duration, .001) * 100.0))
+	if harvesting:
+		if marked: fruit_status = status
+		status = "Standing"
+	var actions: Array = []
+	if marked:
+		actions.append({"id": "cancel_felling", "text": "Cancel harvest" if harvesting else "Cancel felling"})
+	else:
+		if can_harvest_tree(tree_id): actions.append({"id": "harvest", "text": "Harvest berries"})
+		actions.append({"id": "fell", "text": "Fell tree"})
 	return {"title": String(tree["name"]).capitalize() + " tree", "kind": "Tree",
 		"rows": [
 			["Growth stage", String(tree["stage"]).capitalize()],
@@ -914,8 +953,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 			["Fruit season", fruit_season],
 			["Felling yield", ", ".join(guaranteed) if not guaranteed.is_empty() else "None"],
 			["Felling", status],
-		], "details": details, "actions": [
-			{"id": "cancel_felling" if marked else "fell", "text": "Cancel felling" if marked else "Fell tree"}]}
+		], "details": details, "actions": actions}
 
 
 func perform_explorer_action(tree_id: Variant, action_id: String) -> void:
@@ -924,6 +962,8 @@ func perform_explorer_action(tree_id: Variant, action_id: String) -> void:
 			designate_felling(tree_id)
 		elif action_id == "cancel_felling":
 			cancel_felling(tree_id)
+		elif action_id == "harvest":
+			designate_harvest(tree_id)
 
 
 func _explorer_item_name(item_key: String) -> String:
@@ -945,17 +985,63 @@ func _species_for_key(key: String) -> Dictionary:
 
 
 func designate_felling(tree_id: Vector2i) -> bool:
+	return _designate_tree_work(tree_id, "fell")
+
+
+func designate_harvest(tree_id: Vector2i) -> bool:
+	return can_harvest_tree(tree_id) and _designate_tree_work(tree_id, "harvest")
+
+
+func _fruit_cycle() -> String:
+	return "%d:%s" % [WorldClock.year, WorldClock.season]
+
+
+func _tree_fruit(tree_id: Vector2i) -> Dictionary:
+	var state: Dictionary = _tree_changes.get(tree_id, {})
+	var tree: Dictionary = _trees.get(tree_id, {})
+	var species := _species_for_key(String(state.get("species", "base:flora:%s_tree" % tree.get("name", ""))))
+	return species.get("stages", {}).get(state.get("stage", tree.get("stage", "")), {}).get("fruit_harvest", {})
+
+
+func can_harvest_tree(tree_id: Vector2i) -> bool:
+	var fruit := _tree_fruit(tree_id)
+	var state: Dictionary = _tree_changes.get(tree_id, {})
+	# Only definitions with authored worker timing are live harvest tasks.
+	return float(fruit.get("work_seconds", 0)) > 0 and not bool(state.get("felled", false)) \
+		and String(fruit.get("harvest_season", "")) == WorldClock.season \
+		and String(state.get("harvested_cycle", "")) != _fruit_cycle()
+
+
+func trees_in_harvest_rect(rect: Rect2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for id: Vector2i in trees_in_felling_rect(rect):
+		if can_harvest_tree(id) and not (bool(_tree_changes.get(id, {}).get("designated", false)) \
+			and String(_tree_changes[id].get("action", "fell")) == "fell"):
+			result.append(id)
+	return result
+
+
+func _designate_tree_work(tree_id: Vector2i, action: String) -> bool:
 	if not _trees.has(tree_id) or bool(_tree_changes.get(tree_id, {}).get("felled", false)):
 		return false
 	if bool(_tree_changes.get(tree_id, {}).get("designated", false)):
-		return true # Repeated rectangles do not rebuild markers or post more work.
+		return String(_tree_changes[tree_id].get("action", "fell")) == action
 	if not _tree_changes.has(tree_id):
 		var tree: Dictionary = _trees[tree_id]
 		var species_key := "base:flora:%s_tree" % String(tree["name"])
 		if _species_for_key(species_key).is_empty():
 			return false
 		_tree_changes[tree_id] = {"species": species_key, "stage": String(tree["stage"]),
-			"origin": tree["cell"], "work_seconds": 0.0, "designated": false, "felled": false}
+			"origin": tree["cell"], "work_seconds": 0.0, "designated": false, "felled": false,
+			"action": "fell", "fell_work_seconds": 0.0, "harvest_work_seconds": 0.0,
+			"harvest_work_cycle": "", "harvested_cycle": ""}
+	var state: Dictionary = _tree_changes[tree_id]
+	state[String(state.get("action", "fell")) + "_work_seconds"] = float(state.work_seconds)
+	if action == "harvest" and String(state.get("harvest_work_cycle", "")) != _fruit_cycle():
+		state["harvest_work_seconds"] = 0.0
+		state["harvest_work_cycle"] = _fruit_cycle()
+	state["action"] = action
+	state.work_seconds = float(state.get(action + "_work_seconds", 0.0))
 	_tree_changes[tree_id]["designated"] = true
 	_ensure_felling_source(tree_id)
 	_update_felling_marker(tree_id)
@@ -1018,10 +1104,12 @@ func _ensure_felling_source(tree_id: Vector2i) -> void:
 	var species := _species_for_key(String(state["species"]))
 	var stage: Dictionary = species["stages"][state["stage"]]
 	var source := FellingSource.new()
+	var harvest := String(state.get("action", "fell")) == "harvest"
+	source.task_type = Task.Type.HARVEST_TREE if harvest else Task.Type.FELL_TREE
 	source.source_id = TaskManager.allocate_source_id()
 	source.origin = state["origin"]
 	source.footprint = _footprint_for(species["placement"], String(state["stage"]))
-	source.duration = maxf(float(stage.get("felling", {}).get("work_seconds", 1.0)), .01)
+	source.duration = maxf(float(stage.get("fruit_harvest" if harvest else "felling", {}).get("work_seconds", 1.0)), .01)
 	source.state = state
 	source.complete_callback = _complete_felling.bind(tree_id)
 	source.contact_distance_callback = _felling_contact_distance.bind(tree_id)
@@ -1074,6 +1162,8 @@ func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
 		return false
 	if float(state["work_seconds"]) < float(source.get("duration")):
 		return false
+	if String(state.get("action", "fell")) == "harvest":
+		return _complete_tree_harvest(dwarf_id, tree_id)
 	var drops := get_tree().get_first_node_in_group("item_drop_manager")
 	if drops == null:
 		return false
@@ -1098,6 +1188,52 @@ func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
 			drops.call("spawn_drop", String(drop["item"]), int(drop.get("count", 1)), drop_cell)
 	tree_felling_changed.emit(tree_id)
 	return true
+
+
+func _complete_tree_harvest(dwarf_id: int, tree_id: Vector2i) -> bool:
+	if not can_harvest_tree(tree_id): return false
+	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var dwarf: DwarfAgent = TaskManager._agents.get(dwarf_id)
+	if drops == null or dwarf == null: return false
+	var state: Dictionary = _tree_changes[tree_id]
+	var fruit := _tree_fruit(tree_id)
+	# Commit once before rewards. Neither felling nor streaming refreshes this crop.
+	state["harvested_cycle"] = _fruit_cycle()
+	state.designated = false
+	state.work_seconds = 0.0
+	state["harvest_work_seconds"] = 0.0
+	_retire_felling_source(tree_id, false)
+	_clear_felling_marker(tree_id)
+	_refresh_tree_crop_visual(tree_id)
+	# The trunk stays solid: put the crate on the worker's accessible side.
+	drops.call("spawn_drop", String(fruit.yield_item), int(fruit.yield_count), dwarf.current_cell() + Vector3i.UP)
+	tree_felling_changed.emit(tree_id)
+	return true
+
+
+func _refresh_tree_crop_visual(tree_id: Vector2i) -> void:
+	var tree: Dictionary = _trees.get(tree_id, {})
+	var node: Node3D = tree.get("node")
+	if not is_instance_valid(node): return
+	var species := _species_for_key("base:flora:%s_tree" % tree.name)
+	var stage: Dictionary = species.stages[tree.stage]
+	if not stage.has("picked_models"): return
+	var path := resolve_tree_model_for_season(stage, _season, tree.cell,
+		String(_tree_changes.get(tree_id, {}).get("harvested_cycle", "")) == _fruit_cycle())
+	if path == String(tree.get("model_path", "")): return
+	var packed := _load_scene(path)
+	if packed == null: return
+	var visual := packed.instantiate() as Node3D
+	visual.scale = Vector3.ONE * godot_units_per_block / maxf(voxels_per_block, .0001)
+	_apply_material_recursive(visual)
+	# Replace only the art. Occupancy, collision body and reservations stay intact.
+	var old := node.get_child(0)
+	node.remove_child(old)
+	old.queue_free()
+	node.add_child(visual)
+	node.move_child(visual, 0)
+	tree.model_path = path
+	tree.bounds = Picking.world_bounds(node)
 
 
 func _remove_tree_visual(tree_id: Vector2i) -> void:
@@ -1136,7 +1272,7 @@ func _update_felling_marker(tree_id: Vector2i) -> void:
 	if bounds.size == Vector3.ZERO:
 		return
 	var marker := Label.new()
-	marker.text = "🪓"
+	marker.text = "✿" if String(_tree_changes[tree_id].get("action", "fell")) == "harvest" else "🪓"
 	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	marker.add_theme_font_size_override("font_size", 28)
 	marker.add_theme_color_override("font_outline_color", Color(.08, .07, .06, .95))
@@ -1192,6 +1328,7 @@ func serialize_state() -> Dictionary:
 	ids.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return a.x < b.x or (a.x == b.x and a.y < b.y))
 	for id: Vector2i in ids:
 		var entry: Dictionary = _tree_changes[id].duplicate(true)
+		entry[String(entry.get("action", "fell")) + "_work_seconds"] = float(entry.work_seconds)
 		entry["origin"] = SaveManager.pack_v3i(entry["origin"])
 		entries.append(entry)
 	return {"trees": entries}
@@ -1218,15 +1355,25 @@ func restore_state(state: Dictionary) -> void:
 			continue
 		var id := Vector2i(origin.x, origin.z)
 		var felled := bool(entry.get("felled", false))
-		var duration := float(species["stages"][stage_name].get("felling", {}).get("work_seconds", 1.0))
+		var stage: Dictionary = species.stages[stage_name]
+		var action := String(entry.get("action", "fell"))
+		var fruit: Dictionary = stage.get("fruit_harvest", {})
+		if action != "harvest" or float(fruit.get("work_seconds", 0)) <= 0: action = "fell"
+		var fell_duration := float(stage.get("felling", {}).get("work_seconds", 1.0))
+		var harvest_duration := float(fruit.get("work_seconds", 0))
+		var duration := harvest_duration if action == "harvest" else fell_duration
 		_tree_changes[id] = {"species": String(species["key"]), "stage": stage_name, "origin": origin,
 			"work_seconds": clampf(float(entry.get("work_seconds", 0.0)), 0.0, duration),
+			"action": action, "fell_work_seconds": clampf(float(entry.get("fell_work_seconds", 0)), 0, fell_duration),
+			"harvest_work_seconds": clampf(float(entry.get("harvest_work_seconds", 0)), 0, harvest_duration),
+			"harvest_work_cycle": String(entry.get("harvest_work_cycle", "")), "harvested_cycle": String(entry.get("harvested_cycle", "")),
 			"felled": felled, "designated": bool(entry.get("designated", false)) and not felled}
 		if felled:
 			_remove_tree_visual(id)
 		elif bool(_tree_changes[id]["designated"]):
 			_ensure_felling_source(id)
 			_update_felling_marker(id)
+		if not felled: _refresh_tree_crop_visual(id)
 
 
 func _exit_tree() -> void:

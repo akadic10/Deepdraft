@@ -36,6 +36,12 @@ reservation below. Capacity remains eight. The 0.5 anchor scale is now a maximum
 optional per-slot bounds fit and center rotated items to prevent clipping. Existing
 inventory saves restore into the updated display layout without a schema change.
 
+**Placement priority update, 2026-10-09:** [milestone 87](87_placement_over_storage_hauling.md)
+supersedes the earlier wait-for-hauler-deposit limitation. Storage reservations
+and cargo remain available in Place; confirming a designation releases the
+storage claim or redirects the current carrier to installation. Browsing alone
+does not interrupt hauling. Other placement/crafting claims remain protected.
+
 **Why this milestone:** doc 18 shipped ground stockpiles with a deliberate density ceiling —
 one item per tile, WYSIWYG (Alen, 2026-07-06). Density was explicitly deferred to
 **containers**, the Stonehearth-verified upgrade path (small crate 8 → large crate 32 →

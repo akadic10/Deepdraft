@@ -1,52 +1,133 @@
 {
   "__comment": [
-    "Wild strawberry bush — low-elevation surface berry, a luxury fruit caravans prize highly.",
-    "Placed by world gen directly in the 'fruiting' stage near the mountain base.",
-    "Dwarves plant cuttings which start in 'shrub' before becoming 'fruiting'.",
-    "Fruit drops span SPRING and SUMMER — season_only accepts an array of seasons.",
-    "Harvesting system must skip fruit drops outside of spring and summer.",
-    "Four seasonal models: spring (flowers + early fruit), summer (full red fruit),",
-    "autumn (dying back, no fruit), winter (bare ground-level stems).",
-    "Two growth stages: shrub → fruiting."
+    "Wild mature plants use all four seasonal models. One crop per eligible season; harvested plants lose visible fruit.",
+    "Clearing yields one cutting (100%). Plant one cutting to grow a new shrub. Move and uproot preserve mature plants and their crops.",
+    "Young growth uses stages.shrub.growth_duration_days weighted by wild.planting.seasonal_growth; winter dormancy preserves the plant."
   ],
-
   "base:flora:wild_strawberry_bush": {
     "harvest_resource": "base:resources:flora:wild_strawberry",
-    "material_tags": ["flora", "bush", "fruit_bush", "wild_plant", "luxury", "stockpile_food"],
+    "material_tags": [
+      "flora",
+      "bush",
+      "fruit_bush",
+      "wild_plant",
+      "luxury",
+      "stockpile_food"
+    ],
     "appeal": 2,
-
     "stages": {
-
       "shrub": {
         "clearance_height": 1,
         "growth_duration_days": 3,
         "next_stage": "fruiting",
         "models": {
-          "summer": "res://assets/models/flora/bushes/wild_strawberry/strawberry_shrub.glb"
+          "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_spring.glb",
+          "summer": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_winter.glb"
         },
         "harvest": {
           "yields": []
         }
       },
-
       "fruiting": {
         "clearance_height": 1,
         "growth_duration_days": null,
         "next_stage": null,
         "models": {
-          "spring": "res://assets/models/flora/bushes/wild_strawberry/strawberry_fruiting_spring.glb",
-          "summer": "res://assets/models/flora/bushes/wild_strawberry/strawberry_fruiting.glb",
-          "autumn": "res://assets/models/flora/bushes/wild_strawberry/strawberry_dying.glb",
-          "winter": "res://assets/models/flora/bushes/wild_strawberry/strawberry_bare.glb"
+          "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_spring.glb",
+          "summer": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_winter.glb"
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:flora:wild_strawberry",        "count": 3, "chance": 1.00, "season_only": ["spring", "summer"] },
-            { "item": "base:resources:seed:strawberry_cutting",      "count": 1, "chance": 0.25 }
-          ]
+            {
+              "item": "base:resources:flora:wild_strawberry",
+              "count": 3,
+              "chance": 1.0,
+              "season_only": [
+                "spring",
+                "summer"
+              ]
+            }
+          ],
+          "work_seconds": 3.0
+        },
+        "picked_models": {
+          "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_spring_picked.glb",
+          "summer": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_summer_picked.glb"
         }
       }
-
+    },
+    "wild": {
+      "display_name": "Wild strawberry",
+      "placement_priority": 18,
+      "salt": 75201,
+      "placement": {
+        "habitat": "wild_strawberry",
+        "cell_size": 14,
+        "cell_inset": 2,
+        "min_y": 4,
+        "max_y": 43,
+        "lowland_density": 0.42,
+        "rock_density": 0.42,
+        "rock_min_y": 36,
+        "patch_frequency": 0.02,
+        "patch_floor": 0.18,
+        "clear_ring": 1,
+        "tree_margin": 4,
+        "detail_margin": 3,
+        "min_moisture": 0.25,
+        "max_moisture": 1.0,
+        "ground_kinds": [
+          "grass",
+          "dirt",
+          "soil"
+        ]
+      },
+      "clearing": {
+        "method": "gather",
+        "work_seconds": 2.0,
+        "feedback_block": "base:terrain:soil:light",
+        "yields": [
+          {
+            "item": "base:resources:seed:strawberry_cutting",
+            "count": 1,
+            "chance": 1.0
+          }
+        ]
+      },
+      "transplant": {
+        "item": "base:resources:plant:wild_strawberry_bush",
+        "uproot_seconds": 3.0,
+        "plant_seconds": 1.25,
+        "ground_kinds": [
+          "grass",
+          "dirt",
+          "soil"
+        ],
+        "models": {
+          "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_spring.glb",
+          "summer": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_winter.glb",
+          "spring_picked": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_spring_picked.glb",
+          "summer_picked": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer_picked.glb"
+        }
+      },
+      "planting": {
+        "catalog_key": "base:flora:wild_strawberry_cutting",
+        "item": "base:resources:seed:strawberry_cutting",
+        "work_seconds": 3.0,
+        "seasonal_growth": {
+          "spring": 1.2,
+          "summer": 1.0,
+          "autumn": 0.8,
+          "winter": 0.0
+        }
+      },
+      "planting_radius": 1
     }
   }
 }

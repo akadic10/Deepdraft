@@ -1,0 +1,82 @@
+[
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_1_autumn.glb",
+    "size_blocks": [
+      1.375,
+      1.5,
+      1.0
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 61808
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_1_spring.glb",
+    "size_blocks": [
+      1.375,
+      1.125,
+      1.0
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 52612
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_1_summer.glb",
+    "size_blocks": [
+      1.375,
+      1.5,
+      1.0
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 61808
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_1_winter.glb",
+    "size_blocks": [
+      1.0,
+      1.375,
+      0.875
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 40832
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_2_autumn.glb",
+    "size_blocks": [
+      1.375,
+      2.0,
+      1.0
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 73584
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_2_spring.glb",
+    "size_blocks": [
+      1.375,
+      1.625,
+      1.0
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 63284
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_2_summer.glb",
+    "size_blocks": [
+      1.375,
+      2.0,
+      1.0
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 73584
+  },
+  {
+    "path": "P:\\Deepdraft\\assets\\models\\details\\reeds\\reeds_2_winter.glb",
+    "size_blocks": [
+      1.0,
+      1.875,
+      0.875
+    ],
+    "ground_y": 0.0,
+    "asset_bytes": 52612
+  }
+]

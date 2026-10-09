@@ -80,7 +80,7 @@ func _run() -> void:
 			var data: Dictionary = flora.get_explorer_data(id)
 			_expect(data.rows[0] == ["Growth stage", stage_name.capitalize()], "growth stage value")
 			var expected_fruit := "Too young" if stage_name == "sapling" else "Out of season"
-			_expect(data.rows[1][1] == (expected_fruit if species.name == "apple" else "N/A"), "fruit applicability")
+			_expect(data.rows[1][1] == (expected_fruit if species.name in ["apple", "juniper"] else "N/A"), "fruit applicability")
 			var positions: Array[float] = []
 			for label: Label in explorer._row_values:
 				positions.append(label.global_position.y - explorer._window.position.y)

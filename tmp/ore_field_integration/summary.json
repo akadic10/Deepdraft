@@ -1,0 +1,225 @@
+{
+  "calibration": {
+    "gold": {
+      "before": 6894,
+      "after": 6894,
+      "change_pct": 0.0
+    },
+    "silver": {
+      "before": 12956,
+      "after": 12956,
+      "change_pct": 0.0
+    },
+    "iron": {
+      "before": 98764,
+      "after": 98764,
+      "change_pct": 0.0
+    },
+    "copper": {
+      "before": 39485,
+      "after": 39485,
+      "change_pct": 0.0
+    },
+    "tin": {
+      "before": 14597,
+      "after": 14597,
+      "change_pct": 0.0
+    },
+    "coal": {
+      "before": 220202,
+      "after": 220202,
+      "change_pct": 0.0
+    },
+    "sampled_cells": 3662272,
+    "total_before": 392898,
+    "total_after": 392898
+  },
+  "held_out": {
+    "gold": {
+      "before": 7224,
+      "after": 7669,
+      "change_pct": 6.16
+    },
+    "silver": {
+      "before": 12779,
+      "after": 15095,
+      "change_pct": 18.123
+    },
+    "iron": {
+      "before": 107134,
+      "after": 113164,
+      "change_pct": 5.628
+    },
+    "copper": {
+      "before": 46133,
+      "after": 45061,
+      "change_pct": -2.324
+    },
+    "tin": {
+      "before": 16599,
+      "after": 16695,
+      "change_pct": 0.578
+    },
+    "coal": {
+      "before": 246549,
+      "after": 243207,
+      "change_pct": -1.356
+    },
+    "sampled_cells": 3914944,
+    "total_before": 436418,
+    "total_after": 440891
+  },
+  "all": {
+    "gold": {
+      "before": 14118,
+      "after": 14563,
+      "change_pct": 3.152
+    },
+    "silver": {
+      "before": 25735,
+      "after": 28051,
+      "change_pct": 8.999
+    },
+    "iron": {
+      "before": 205898,
+      "after": 211928,
+      "change_pct": 2.929
+    },
+    "copper": {
+      "before": 85618,
+      "after": 84546,
+      "change_pct": -1.252
+    },
+    "tin": {
+      "before": 31196,
+      "after": 31292,
+      "change_pct": 0.308
+    },
+    "coal": {
+      "before": 466751,
+      "after": 463409,
+      "change_pct": -0.716
+    },
+    "sampled_cells": 7577216,
+    "total_before": 829316,
+    "total_after": 833789
+  },
+  "median_largest": {
+    "base:terrain:ore:gold": 113.5,
+    "base:terrain:ore:silver": 214.5,
+    "base:terrain:ore:iron": 3251.5,
+    "base:terrain:ore:copper": 2179.5,
+    "base:terrain:ore:tin": 472.0,
+    "base:terrain:ore:coal": 32173.0
+  },
+  "cave_exposed": {
+    "base:terrain:ore:gold": 593,
+    "base:terrain:ore:silver": 2238,
+    "base:terrain:ore:iron": 16819,
+    "base:terrain:ore:copper": 2623,
+    "base:terrain:ore:tin": 695,
+    "base:terrain:ore:coal": 26273
+  },
+  "heldout_by_band": {
+    "4-19": {
+      "gold": [
+        4336,
+        4512,
+        4.1
+      ],
+      "silver": [
+        1845,
+        2679,
+        45.2
+      ],
+      "coal": [
+        99192,
+        63420,
+        -36.1
+      ]
+    },
+    "20-36": {
+      "gold": [
+        2888,
+        3157,
+        9.3
+      ],
+      "silver": [
+        5724,
+        7786,
+        36.0
+      ],
+      "iron": [
+        50232,
+        56624,
+        12.7
+      ],
+      "coal": [
+        88226,
+        82664,
+        -6.3
+      ]
+    },
+    "37-54": {
+      "silver": [
+        5210,
+        4630,
+        -11.1
+      ],
+      "iron": [
+        33878,
+        36536,
+        7.8
+      ],
+      "copper": [
+        14287,
+        18669,
+        30.7
+      ],
+      "coal": [
+        44742,
+        52924,
+        18.3
+      ]
+    },
+    "55-72": {
+      "iron": [
+        23024,
+        20004,
+        -13.1
+      ],
+      "copper": [
+        15016,
+        17662,
+        17.6
+      ],
+      "tin": [
+        8673,
+        10452,
+        20.5
+      ],
+      "coal": [
+        9718,
+        28836,
+        196.7
+      ]
+    },
+    "73-95": {
+      "copper": [
+        16830,
+        8730,
+        -48.1
+      ],
+      "tin": [
+        7926,
+        6243,
+        -21.2
+      ],
+      "coal": [
+        4671,
+        15363,
+        228.9
+      ]
+    }
+  }
+}

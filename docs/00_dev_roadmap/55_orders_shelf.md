@@ -1,5 +1,32 @@
 # 55 — Orders shelf
 
+> **2026-10-08 — reeds:** **Clear plants** also selects reeds, individually or
+> alongside shrubs and flowers. Reeds yield no items. Actual mesh clicks, mixed
+> rectangles, Undo, Cancel and harvest/stone exclusion pass. See
+> [77 — Seasonal reeds](77_seasonal_reeds.md).
+
+> **2026-10-08 — flowers:** **Clear shrubs** is now labelled **Clear plants** and
+> selects shrubs and flowers, individually or in a mixed rectangle. Shrub
+> cuttings remain unchanged; flower clearing yields nothing. Harvest plants and
+> Clear stones reject flowers. Cancel, Undo and View retain source guards and
+> partial work. The six-tile layout is unchanged; the internal tool ID remains
+> `clear_shrubs`. See [76 — Seasonal wildflowers](76_seasonal_wildflowers.md).
+
+> **2026-10-08 — shrubs:** adds **Harvest plants** and **Clear shrubs**, keeping
+> stone tools category-specific. Harvest selects ripe plants; clearing selects
+> shrubs regardless of season. Cancel/Undo/View use the same source identities.
+> Six tiles form one row at ≥1100px and two rows on smaller screens; compact
+> banners fit beside inspectors. Real-input native tests pass at 960, 1280 and
+> 2560px widths. See [75 — Seasonal shrubs](75_seasonal_shrubs.md).
+
+> **2026-10-08 — stones:** Orders adds **Clear stones** between Chop trees
+> and Cancel orders. It shares click/ground-rectangle selection, live counts,
+> Undo and View order; Cancel orders handles mining, trees, boulders and scree together.
+> Source identity guards and partial clearing progress are preserved. Four tiles
+> fit in a row, with wrapped compact labels. Headless/native Orders tests and
+> tree/boulder worker regressions pass. The renamed tool also gathers walkable
+> scree. See [74 — Gatherable scree](74_gatherable_scree.md).
+
 > **2026-10-06 follow-up:** the shared shelf now serves separate Orders and Zones
 > groups. Orders contains Mine blocks, Chop trees and Cancel orders; Zones contains
 > Stockpile. Farm plot / Later is omitted. The mode banner is attached above the
@@ -58,7 +85,7 @@ owns its panel styles; new SVG tool icons extend Deepdraft's existing icon set.
 
 MiningDesignationController and StockpileDesignationController supply receipt,
 undo, inspection and hint APIs. TreeFellingController also coordinates the cancel
-gesture, calling mining and flora cancellation APIs. Existing task leases,
+gesture, calling mining, flora and surface-detail cancellation APIs. Existing task leases,
 progress, terrain mutation and save owners remain authoritative. No new global
 script class, autoload, input action or save schema is introduced.
 

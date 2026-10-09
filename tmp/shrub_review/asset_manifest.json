@@ -1,0 +1,258 @@
+[
+  {
+    "species": "blueberry",
+    "season": "spring",
+    "picked": false,
+    "base": [
+      -0.75,
+      0.0,
+      -0.625
+    ],
+    "size": [
+      1.625,
+      1.625,
+      1.5
+    ],
+    "voxels": 528
+  },
+  {
+    "species": "blueberry",
+    "season": "summer",
+    "picked": false,
+    "base": [
+      -0.75,
+      0.0,
+      -0.625
+    ],
+    "size": [
+      1.625,
+      1.625,
+      1.5
+    ],
+    "voxels": 528
+  },
+  {
+    "species": "blueberry",
+    "season": "summer",
+    "picked": true,
+    "base": [
+      -0.75,
+      0.0,
+      -0.625
+    ],
+    "size": [
+      1.625,
+      1.625,
+      1.5
+    ],
+    "voxels": 528
+  },
+  {
+    "species": "blueberry",
+    "season": "autumn",
+    "picked": false,
+    "base": [
+      -0.75,
+      0.0,
+      -0.625
+    ],
+    "size": [
+      1.625,
+      1.625,
+      1.5
+    ],
+    "voxels": 528
+  },
+  {
+    "species": "blueberry",
+    "season": "winter",
+    "picked": false,
+    "base": [
+      -0.375,
+      0.0,
+      -0.5
+    ],
+    "size": [
+      1.125,
+      1.375,
+      1.0
+    ],
+    "voxels": 48
+  },
+  {
+    "species": "elderberry",
+    "season": "spring",
+    "picked": false,
+    "base": [
+      -1.125,
+      0.0,
+      -0.625
+    ],
+    "size": [
+      2.125,
+      2.5,
+      1.75
+    ],
+    "voxels": 519
+  },
+  {
+    "species": "elderberry",
+    "season": "summer",
+    "picked": false,
+    "base": [
+      -1.125,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      2.25,
+      2.5,
+      1.875
+    ],
+    "voxels": 732
+  },
+  {
+    "species": "elderberry",
+    "season": "autumn",
+    "picked": false,
+    "base": [
+      -1.125,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      2.25,
+      2.5,
+      1.875
+    ],
+    "voxels": 732
+  },
+  {
+    "species": "elderberry",
+    "season": "autumn",
+    "picked": true,
+    "base": [
+      -1.125,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      2.25,
+      2.375,
+      1.875
+    ],
+    "voxels": 712
+  },
+  {
+    "species": "elderberry",
+    "season": "winter",
+    "picked": false,
+    "base": [
+      -0.625,
+      0.0,
+      -0.625
+    ],
+    "size": [
+      1.625,
+      2.125,
+      1.375
+    ],
+    "voxels": 72
+  },
+  {
+    "species": "wild_strawberry",
+    "season": "spring",
+    "picked": false,
+    "base": [
+      -0.75,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      1.5,
+      0.625,
+      1.75
+    ],
+    "voxels": 113
+  },
+  {
+    "species": "wild_strawberry",
+    "season": "spring",
+    "picked": true,
+    "base": [
+      -0.75,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      1.5,
+      0.625,
+      1.75
+    ],
+    "voxels": 109
+  },
+  {
+    "species": "wild_strawberry",
+    "season": "summer",
+    "picked": false,
+    "base": [
+      -0.75,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      1.5,
+      0.5,
+      1.75
+    ],
+    "voxels": 109
+  },
+  {
+    "species": "wild_strawberry",
+    "season": "summer",
+    "picked": true,
+    "base": [
+      -0.75,
+      0.0,
+      -0.75
+    ],
+    "size": [
+      1.5,
+      0.5,
+      1.75
+    ],
+    "voxels": 105
+  },
+  {
+    "species": "wild_strawberry",
+    "season": "autumn",
+    "picked": false,
+    "base": [
+      -0.75,
+      0.0,
+      -0.5
+    ],
+    "size": [
+      1.5,
+      0.5,
+      1.5
+    ],
+    "voxels": 78
+  },
+  {
+    "species": "wild_strawberry",
+    "season": "winter",
+    "picked": false,
+    "base": [
+      -0.375,
+      0.0,
+      -0.375
+    ],
+    "size": [
+      0.875,
+      0.375,
+      1.0
+    ],
+    "voxels": 22
+  }
+]

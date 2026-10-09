@@ -96,7 +96,7 @@ func _ready() -> void:
 	items.add_child(_margin(_grid, 10, 8))
 	_empty = VBoxContainer.new()
 	_empty.add_child(_label("Nothing ready to place", 17, true))
-	var explanation := _label("Finished furniture will appear here when it reaches the colony.", 13)
+	var explanation := _label("Finished furniture, uprooted plants and cuttings appear here when available.", 13)
 	explanation.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_empty.add_child(explanation)
 	var browse := UITheme.make_button("Browse all designs", "", Vector2(0, 30))
@@ -112,7 +112,7 @@ func _ready() -> void:
 	_detail = detail
 	detail.add_theme_constant_override("separation", 5)
 	paper.add_child(detail)
-	_name = _label("Select furniture", 19, true)
+	_name = _label("Select an item", 19, true)
 	_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_name.add_theme_color_override("font_color", UITheme.CATALOG_INK)
 	detail.add_child(_name)
@@ -311,7 +311,22 @@ func refresh() -> void:
 	var placing := controller.active_furniture_key() == selected_key
 	_place.text = "Placing · %d available" % stock.available if placing else "Place item" if stock.available > 0 else "None available"
 	_note.text = "Reserved items are awaiting delivery." if stock.reserved > 0 else "Finished furniture, ready for a home." if stock.available > 0 else "No finished items available."
+	if bool(definition.get("plant", false)):
+		var cutting := bool(definition.get("from_cutting", false))
+		_spec.text = "3 × 3 planting area · Open sky"
+		if cutting:
+			var plant := SurfaceDetailRegistry.get_definition(String(definition.plant_definition))
+			_note.text = "Uses 1 cutting. Matures after %.1f growth days; growth pauses in winter." % float(plant.growth_days)
+			_place.text = "Plant cutting" if stock.available > 0 else "No cuttings available"
+		else:
+			_note.text = "Replant this whole plant. Its shape and seasonal state are preserved." if stock.available > 0 else "Uproot a plant of this type to place it here."
+			_place.text = "Replant" if stock.available > 0 else "No uprooted plants"
 	_hint.text = "Click to place repeatedly · R rotates · Esc finishes" if placing else "Click an available item to start placing."
+	if String(definition.placement) == "ladder":
+		_spec.text = "%d blocks per section" % int(definition.ladder.section_height)
+		_note.text = "Aim at a cliff face. The preview shows the full height and section cost before you place it."
+		_place.text = "Place ladder" if stock.available > 0 else "Craft ladder sections first"
+		_hint.text = "Aim at a cliff or its edge · R rotates · Esc finishes" if placing else "Craft sections at a crude workbench."
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Inventory wakes change counts/availability only. Refitting here resets
 	# scroll limits and can clamp a player-positioned window on every pickup.

@@ -104,6 +104,12 @@ block IDs. The deterministic `world_seed` regenerates the untouched world, and t
 section stores only authoritative removal deltas as integer grid coordinates. Restoring a
 save regenerates the same base terrain and reapplies those mined coordinates as void.
 
+Natural caves are part of that deterministic base. On load, replaying a mining
+edit beside cave air re-discovers its connected system and rebuilds its renderer,
+interior and lighting state. Pre-existing cave air is never added to the saved
+mined-block list; developer highlights/previews are transient. See
+[68 — Caves and discovery](../00_dev_roadmap/68_caves_and_discovery.md).
+
 If a future construction system persists a non-void terrain block, it must store the
 block's permanent namespaced key and resolve that key through `BlockRegistry` on load.
 Runtime integer IDs must never cross the save boundary. `schema_version` provides a
@@ -226,19 +232,22 @@ The custom A* nav grid (see `32_navigation_3d.md`) checks walkability against bo
 
 ## Surface Elevation Ranges
 
-The world heightmap is not uniform. Terrain domain determines the elevation range for each column:
+Seeded macro heights determine domain labels, with 32×32 columns per macro cell.
 
-| Domain | Surface Y range | Notes |
+| Domain | Elevation | Notes |
 |---|---|---|
-| Mountain | 44-115 | Ridge shelves and primary dwarf dig-in faces |
-| Valley / Foothills | 20-43 | Flat farmland, trade road corridor, and stepped foothill shelves |
-| Lowland | 12-19 | Open wilderness floor; lake and river mouth |
-| River channel | <= 61 | Carved 1-3 blocks below surrounding surface |
-| Lake basin floor | >= 11 | Bowl-shaped depression; water fills to Y 18 |
+| Mountain | Y44–115; shelf tops 55/67/79/91/103/115 | Substantial connected region and ≥32×32 Y115 summit on every seed |
+| Foothills (`DOMAIN_VALLEY`) | Y20–43; shelf tops 27/35/43 | Seeded natural shelves; no central valley or reserved starting terrace |
+| Lowland | Dry cap Y19 | Connected map-edge lowland regions; no embedded lowland holes |
+| Main lake | Floor Y11, water Y12–18 | One connected macro-cell body, inland or coastal |
+| Optional tarn | Floor Y47, water Y48–54 | Single cell with a full mountain-shelf surround |
 
-Domain boundaries are resolved on the 32x32 macro grid before heights are assigned. Lowland macro cells require a true lowland majority and isolated non-anchor lowland cells are promoted to valley, which prevents single lowland plates from appearing inside foothills. The fixed lowland lake waterline is `Y = 18`. Underground systems (ore depth, cave generation, soil bands) are unaffected by surface domain; they read only absolute Y position.
-
-After lake carving and shelf cleanup, a final edge-detail pass adds shallow blocky ledges only along foothill and mountain shelf edges. It does not apply to lowland, settlement/plain, lake, tarn, or water-bank columns, and it keeps pushed heights inside the source shelf band so visible materials still match the terrain strata rules.
+Water bodies own their footprint, floor and waterline. Column waterlines drive
+rendered surfaces, chunk bounds and actual water blocks consistently. Edge detail
+roughens every natural cliff and shoreline while preserving summit interiors
+and connected lowland/water cores, followed by a full
+column validation before maps become available. Resource depth rules still use
+absolute Y. See [doc 66](../00_dev_roadmap/66_seeded_world_layout.md).
 
 ---
 

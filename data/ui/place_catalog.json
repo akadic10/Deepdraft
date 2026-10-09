@@ -6,7 +6,9 @@
     {"id": "storage", "label": "Storage"},
     {"id": "lighting", "label": "Lighting"},
     {"id": "rooms", "label": "Rooms"},
-    {"id": "workshops", "label": "Workshops"}
+    {"id": "workshops", "label": "Workshops"},
+    {"id": "plants", "label": "Plants"},
+    {"id": "access", "label": "Access"}
   ],
   "items": [
     {"key": "base:furniture:wooden_table", "category": "dining", "label": "Personal table"},
@@ -28,6 +30,16 @@
     {"key": "base:furniture:crude_workbench", "category": "workshops", "label": "Crude workbench"},
     {"key": "base:furniture:anvil", "category": "workshops", "label": "Anvil"},
     {"key": "base:furniture:smelter", "category": "workshops", "label": "Smelter"},
-    {"key": "base:furniture:aging_rack", "category": "workshops", "label": "Aging rack"}
+    {"key": "base:furniture:aging_rack", "category": "workshops", "label": "Aging rack"},
+    {"key": "base:flora:blueberry_bush", "category": "plants", "label": "Blueberry bush"},
+    {"key": "base:flora:elderberry_bush", "category": "plants", "label": "Elderberry bush"},
+    {"key": "base:flora:wild_strawberry_bush", "category": "plants", "label": "Wild strawberry"},
+    {"key": "base:flora:blueberry_cutting", "category": "plants", "label": "Blueberry cutting"},
+    {"key": "base:flora:elderberry_cutting", "category": "plants", "label": "Elderberry cutting"},
+    {"key": "base:flora:wild_strawberry_cutting", "category": "plants", "label": "Strawberry cutting"},
+    {"key": "base:detail:flowers_1", "category": "plants", "label": "Wildflowers Â· cream"},
+    {"key": "base:detail:flowers_2", "category": "plants", "label": "Wildflowers Â· heather"},
+    {"key": "base:detail:flowers_3", "category": "plants", "label": "Wildflowers Â· gold"},
+    {"key": "base:furniture:crude_ladder", "category": "access", "label": "Rough wooden ladder"}
   ]
 }

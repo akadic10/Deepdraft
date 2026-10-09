@@ -5,6 +5,10 @@ var storage
 var chop
 var rig
 var orders
+var details
+const BOULDER_A := "boulder:1234:fixture:a"
+const BOULDER_B := "boulder:1234:fixture:b"
+const BOULDER_OUTSIDE := "boulder:1234:fixture:outside"
 
 
 func _run() -> void:
@@ -21,6 +25,8 @@ func _run() -> void:
 	generator.world_seed = 1234
 	generator.heightmap.resize(1024 * 1024)
 	generator.heightmap.fill(20)
+	generator.waterline_map.resize(1024 * 1024)
+	generator.waterline_map.fill(-1)
 	root.size = Vector2i(1280,720)
 	scene = Node3D.new()
 	root.add_child(scene)
@@ -62,6 +68,14 @@ func _run() -> void:
 	flora.name = "Flora"
 	scene.add_child(flora)
 	flora.set_process(false)
+	details = load("res://scripts/systems/SurfaceDetailManager.gd").new()
+	details.name = "Details"
+	scene.add_child(details)
+	details._initialized = true
+	details.set_process(false)
+	_spawn_order_boulder(BOULDER_A, Vector3i(33,20,32))
+	_spawn_order_boulder(BOULDER_B, Vector3i(37,20,30))
+	_spawn_order_boulder(BOULDER_OUTSIDE, Vector3i(28,20,43))
 	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
 	explorer.name = "Explorer"
 	explorer.window_manager_path = NodePath("../Windows")
@@ -69,6 +83,7 @@ func _run() -> void:
 	chop = load("res://scripts/systems/TreeFellingController.gd").new()
 	chop.dock_ui_path = NodePath("../Dock")
 	chop.flora_path = NodePath("../Flora")
+	chop.details_path = NodePath("../Details")
 	chop.explorer_path = NodePath("../Explorer")
 	scene.add_child(chop)
 	explorer._tools.assign([mining, storage, chop])
@@ -79,7 +94,7 @@ func _run() -> void:
 	_click(dock._button_by_target.orders.get_global_rect().get_center())
 	await _settle()
 	_expect(orders.is_open() and dock._button_by_target.orders.button_pressed, "Orders opens the shelf")
-	_expect(orders._buttons.size() == 4 and not orders._buttons.storage_zone.visible, "Orders shows work tools and keeps stockpiles in Zones")
+	_expect(orders._buttons.size() == 7 and orders._buttons.clear_stones.visible and not orders._buttons.storage_zone.visible, "Orders shows six work tools and keeps stockpiles in Zones")
 	_click(orders._buttons.mine_precision.get_global_rect().get_center())
 	await _settle()
 	_expect(mining.is_active() and orders._banner.visible and not mining._hint_window.visible, "mining uses the shared banner")
@@ -170,6 +185,8 @@ func _run() -> void:
 	var stale_tree: Dictionary = orders._last_order.receipt
 	flora.cancel_felling(tree_id)
 	flora.designate_felling(tree_id)
+	details.designate_clearing(BOULDER_A)
+	details._changes[BOULDER_A].work_seconds = 2.0
 	_expect(not chop.order_is_pending(stale_tree) and chop.undo_order(stale_tree) == 0, "stale tree receipt cannot cancel a new designation")
 	flora._tree_changes[tree_id].work_seconds = 1.25
 	explorer.clear_selection()
@@ -184,11 +201,15 @@ func _run() -> void:
 	var rect := Rect2(Vector2(390,180),Vector2(500,150))
 	_motion(rect.position); _mouse(rect.position,true); _motion(rect.end)
 	chop._process(.1)
-	_expect(chop._preview_mining.size() > 0 and chop._preview_trees.has(tree_id), "cancellation previews both block and tree work")
+	_expect(chop._preview_mining.size() > 0 and chop._preview_trees.has(tree_id) and chop._preview_stones.has(BOULDER_A), "cancellation previews blocks, trees and boulders together")
 	_mouse(rect.end,false)
 	_expect(flora.get_felling_order_token(tree_id) == null, "mixed cancellation releases felling source")
+	_expect(details.get_clearing_order_token(BOULDER_A) == null and details._changes[BOULDER_A].work_seconds == 2.0, "mixed cancellation releases boulder work and keeps progress")
 	var task = root.get_node("TaskManager").get_task(task_id)
 	_expect(task == null or task.status == Task.Status.CANCELLED, "cancellation retires scheduler lease")
+	await _test_boulder_orders()
+	await _test_scree_orders()
+	await _test_shrub_orders()
 	# A stockpile is outside the cancel brush; only explicit zone undo removes it.
 	_click(dock._button_by_target.zones.get_global_rect().get_center())
 	await _settle()
@@ -234,6 +255,251 @@ func _run() -> void:
 	if failures.is_empty(): print("ORDERS_SHELF_OK: Orders/Zones routing and highlights, lower mode stack, closed-shelf Done, two-step Escape, real input, mining zoom/modifier resize, UI wheel isolation, mine/chop/storage, exclusivity, mixed cancel, source leases/progress, safe undo, UI release, native responsive layouts")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
+
+
+func _test_boulder_orders() -> void:
+	explorer.clear_selection()
+	_click(orders._buttons.clear_stones.get_global_rect().get_center())
+	await _settle()
+	_expect(chop.get_order_tool_id() == "clear_stones" and orders.active_tool_id() == "clear_stones", "Clear stones starts exclusive shared tool")
+	_expect(orders._buttons.clear_stones.button_pressed and orders._title.text == "Clear stones", "boulder tile and banner show the active tool")
+	var point := camera.unproject_position(details.get_explorer_bounds(BOULDER_A).get_center())
+	_click(point)
+	_expect(details.get_clearing_order_token(BOULDER_A) != null, "world click creates a boulder job")
+	_expect(explorer._provider == details and explorer._object_id == BOULDER_A, "world click opens normal boulder inspection")
+	var first: RefCounted = details.get_clearing_order_token(BOULDER_A)
+	var count: int = orders._history.size()
+	chop.designate_at_screen(point)
+	_expect(orders._history.size() == count and details.get_clearing_order_token(BOULDER_A) == first, "repeat click keeps one lease and one receipt")
+	orders._view_last()
+	_expect(not chop.is_active() and explorer._provider == details, "View order finishes tool and opens boulder inspector")
+	explorer.clear_selection()
+	dock._request_order_tool("clear_stones")
+	orders._undo_last()
+	_expect(details.get_clearing_order_token(BOULDER_A) == null and details._changes[BOULDER_A].work_seconds == 2.0, "Undo cancels boulder designation without losing partial work")
+	# Stale receipts cannot affect a later re-mark or same-ID restored job.
+	chop.designate_at_screen(point)
+	var stale: Dictionary = orders._last_order.receipt
+	details.cancel_clearing(BOULDER_A)
+	details.designate_clearing(BOULDER_A)
+	_expect(not chop.order_is_pending(stale) and chop.undo_order(stale) == 0, "stale boulder undo cannot cancel reissued work")
+	var state: Dictionary = details.serialize_state()
+	var restored_token: RefCounted = details.get_clearing_order_token(BOULDER_A)
+	details.restore_state(JSON.parse_string(JSON.stringify(state)))
+	_expect(details.get_clearing_order_token(BOULDER_A) != restored_token, "restore creates a fresh boulder order identity")
+	_expect(chop.undo_order({"stones": [{"id": BOULDER_A, "source": restored_token}]}) == 0, "old receipt cannot cancel loaded work")
+	explorer.clear_selection()
+	_click(orders._buttons.cancel_orders.get_global_rect().get_center())
+	_click(point)
+	_expect(details.get_clearing_order_token(BOULDER_A) == null and details._changes[BOULDER_A].work_seconds == 2.0, "Cancel orders click preserves partial stone work")
+	# Two-boulder area; a third outside, trees and ground must remain untouched.
+	_click(orders._buttons.clear_stones.get_global_rect().get_center())
+	await _settle()
+	var a := camera.unproject_position(Vector3(31.2,21,28.2))
+	var b := camera.unproject_position(Vector3(40.8,21,35.8))
+	_motion(a); _mouse(a,true); _motion(b)
+	chop._process(.1)
+	orders.refresh()
+	_expect(chop._preview_stones.size() == 2 and orders._hint.text.begins_with("2 stones"), "rectangle previews actual boulder count")
+	_expect(details._sources.is_empty(), "preview creates no work before release")
+	var polygon: PackedVector2Array = chop._selection._polygon.duplicate()
+	camera.position.x += .1
+	chop._hover_elapsed = 0.0
+	chop._process(.01)
+	_expect(chop._selection._polygon != polygon, "boulder marquee tracks camera before candidate refresh")
+	camera.position.x -= .1
+	if "--capture" in OS.get_cmdline_user_args():
+		for frame in range(2): await process_frame
+		await RenderingServer.frame_post_draw
+		DirAccess.make_dir_recursive_absolute("res://tmp/boulder_review")
+		root.get_texture().get_image().save_png("res://tmp/boulder_review/orders_rectangle.png")
+	_mouse(b,false)
+	_expect(details._sources.size() == 2 and details.get_clearing_order_token(BOULDER_OUTSIDE) == null, "release marks only stones inside area")
+	first = details.get_clearing_order_token(BOULDER_A)
+	var receipt: Dictionary = orders._last_order.receipt
+	count = orders._history.size()
+	_motion(b); _mouse(b,true); _motion(a); _mouse(a,false)
+	_expect(details._sources.size() == 2 and details.get_clearing_order_token(BOULDER_A) == first and orders._history.size() == count, "reverse repeated rectangle is idempotent")
+	# Undo still resolves the correct owner after switching back to Chop trees.
+	dock._request_order_tool("chop")
+	_expect(chop.undo_order(receipt) == 2 and details._changes[BOULDER_A].work_seconds == 2.0, "boulder receipt remains safe after changing modes")
+	# Preview cancellation on Escape, UI release, tool switch and focus loss.
+	dock._request_order_tool("clear_stones")
+	_motion(a); _mouse(a,true); _motion(b)
+	_key(KEY_ESCAPE)
+	_mouse(b,false)
+	_expect(not chop.is_active() and details._sources.is_empty(), "Escape discards unfinished boulder area")
+	dock._request_order_tool("clear_stones")
+	_motion(a); _mouse(a,true); _motion(b)
+	chop._notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_OUT)
+	_mouse(b,false)
+	_expect(not chop._dragging and details._sources.is_empty(), "focus loss discards boulder area")
+	_motion(a); _mouse(a,true); _motion(b)
+	dock._request_order_tool("chop")
+	_mouse(b,false)
+	_expect(details._sources.is_empty(), "changing tools discards boulder preview")
+	dock._request_order_tool("clear_stones")
+	_motion(a); _mouse(a,true)
+	var ui: Vector2 = orders._buttons.clear_stones.get_global_rect().get_center()
+	_motion(ui)
+	await _settle()
+	_mouse(ui,false)
+	_expect(not chop._dragging and details._sources.is_empty(), "release over Orders cancels boulder gesture")
+	# Slicing hides rocks from both new selection and cancellation rectangles.
+	details.designate_clearing(BOULDER_A)
+	details.apply_slice(19)
+	_motion(a); _mouse(a,true); _motion(b); chop._process(.1)
+	_expect(chop._preview_stones.is_empty(), "sliced-out boulders cannot be designated")
+	_mouse(b,false)
+	dock._request_order_tool("cancel_orders")
+	_motion(a); _mouse(a,true); _motion(b); chop._process(.1)
+	_expect(chop._preview_stones.is_empty(), "sliced-out boulder orders are excluded from cancellation")
+	_mouse(b,false)
+	_expect(details.get_clearing_order_token(BOULDER_A) != null, "hidden boulder keeps its queued work")
+	details.apply_slice(127)
+	details.cancel_clearing(BOULDER_A)
+	dock._request_order_tool("")
+	_expect(flora.get_felling_order_token(Vector2i(43,34)) == null and world.get_block(33,20,32) == blocks.get_id("base:terrain:rock:rock01"), "boulder tool does not designate trees or mine ground")
+
+
+func _test_scree_orders() -> void:
+	var id := "scree:1234:fixture:a"
+	details.register_record({"id": id, "definition": "base:detail:scree", "origin": Vector3i(37,20,34), "variant": 0, "yaw": 0, "habitat": "fixture"})
+	details._spawn_visual(id)
+	explorer.clear_selection()
+	dock._request_order_tool("clear_stones")
+	await _settle()
+	var point := camera.unproject_position(Vector3(37.75,21.25,34.875))
+	_click(point)
+	_expect(details.get_clearing_order_token(id) != null and explorer._object_id == id, "Clear stones click picks and designates an actual scree mesh")
+	details._changes[id].work_seconds = .5
+	orders._undo_last()
+	_expect(details.get_clearing_order_token(id) == null and details._changes[id].work_seconds == .5, "scree Undo keeps gathered work")
+	explorer.clear_selection()
+	var a := camera.unproject_position(Vector3(31.2,21,28.2))
+	var b := camera.unproject_position(Vector3(40.8,21,35.8))
+	_motion(a); _mouse(a,true); _motion(b); chop._process(.1)
+	_expect(chop._preview_stones.size() == 3 and chop._preview_stones.has(id), "rectangle counts boulders and scree together")
+	_mouse(b,false)
+	_expect(details._sources.size() == 3, "mixed stone rectangle posts both work types: %s" % str(details._sources.keys()))
+	var receipt: Dictionary = orders._last_order.receipt
+	dock._request_order_tool("chop")
+	_expect(chop.undo_order(receipt) == 3, "mixed receipt undoes all stones even after changing modes")
+	details.designate_clearing(id)
+	details.apply_slice(19)
+	_expect(not details.stones_in_clearing_rect(Rect2i(30,28,14,14)).has(id), "hidden scree excluded from new orders")
+	details.apply_slice(127)
+	dock._request_order_tool("cancel_orders")
+	_click(point)
+	_expect(details.get_clearing_order_token(id) == null and details._changes[id].work_seconds == .5, "Cancel orders picks nonblocking scree and retains work")
+	dock._request_order_tool("")
+
+
+func _spawn_order_boulder(id: String, origin: Vector3i) -> void:
+	details.register_record({"id": id, "definition": "base:detail:boulder", "origin": origin, "variant": 0, "yaw": 0, "habitat": "fixture"})
+	details._spawn_visual(id)
+
+
+func _test_shrub_orders() -> void:
+	var reed := "reeds:1234:fixture:a"
+	details.register_record({"id": reed, "definition": "base:detail:reeds", "origin": Vector3i(31,20,33), "variant": 1, "yaw": 0, "habitat": "fixture"})
+	details._spawn_visual(reed)
+	var flower := "flowers:1234:fixture:a"
+	details.register_record({"id": flower, "definition": "base:detail:flowers", "origin": Vector3i(32,20,29), "variant": 0, "yaw": 0, "habitat": "fixture"})
+	details._spawn_visual(flower)
+	var ids := ["blueberry:1234:fixture:a", "elderberry:1234:fixture:a", "wild_strawberry:1234:fixture:a"]
+	var positions := [Vector3i(35,20,29),Vector3i(40,20,31),Vector3i(35,20,35)]
+	for i in range(ids.size()):
+		details.register_record({"id": ids[i], "definition": "base:flora:%s_bush" % String(ids[i]).get_slice(":",0), "origin": positions[i], "variant": 0, "yaw": 0, "habitat": "fixture"})
+		details._spawn_visual(ids[i])
+	explorer.clear_selection()
+	_click(orders._buttons.harvest_plants.get_global_rect().get_center())
+	await _settle()
+	_expect(chop.get_order_tool_id() == "harvest_plants" and orders._title.text == "Harvest plants", "Harvest plants has an exclusive tile and banner")
+	var point := _detail_pick_point(ids[0])
+	_click(point)
+	_expect(details.get_clearing_order_token(ids[0]) != null and explorer._object_id == ids[0], "actual plant mesh click creates harvest order and inspector")
+	details._changes[ids[0]].work_seconds = .75
+	var stale: Dictionary = orders._last_order.receipt
+	orders._undo_last()
+	_expect(details.get_clearing_order_token(ids[0]) == null and details._changes[ids[0]].work_seconds == .75, "harvest Undo keeps partial work")
+	explorer.clear_selection()
+	# One rectangle contains stones, ripe plants and an out-of-season elderberry.
+	var a := camera.unproject_position(Vector3(31.2,21,28.2))
+	var b := camera.unproject_position(Vector3(41.8,21,35.8))
+	_motion(a); _mouse(a,true); _motion(b); chop._process(.1)
+	_expect(chop._preview_stones.size() == 2 and not chop._preview_stones.has(ids[1]), "harvest area counts only ripe shrubs")
+	_mouse(b,false)
+	_expect(details._sources.size() == 2, "harvest area creates only two crop jobs")
+	_expect(chop.undo_order(stale) == 0, "stale receipt cannot cancel reissued harvest")
+	orders._undo_last()
+	dock._request_order_tool("clear_stones")
+	_expect(not chop.designate_at_screen(point), "Clear stones click cannot clear a shrub")
+	_motion(a); _mouse(a,true); _motion(b); chop._process(.1)
+	_expect(chop._preview_stones.size() == 3 and not chop._preview_stones.has(ids[0]), "stone area excludes all shrubs")
+	chop._cancel_drag(); _mouse(b,false)
+	dock._request_order_tool("clear_shrubs")
+	await _settle()
+	_expect(orders._title.text == "Clear plants", "shared clearing tool names plants")
+	var flower_point := _detail_pick_point(flower)
+	_expect(flower_point.x >= 0, "fixture flowers have exposed pickable geometry")
+	if flower_point.x < 0: return
+	_click(flower_point)
+	_expect(details.get_clearing_order_token(flower) != null, "actual flower mesh click marks clearing")
+	details._changes[flower].work_seconds = .4
+	orders._undo_last()
+	_expect(details.get_clearing_order_token(flower) == null and details._changes[flower].work_seconds == .4, "flower Undo keeps work")
+	var reed_point := _detail_pick_point(reed)
+	_expect(reed_point.x >= 0, "fixture reeds have exposed pickable geometry")
+	if reed_point.x < 0: return
+	_click(reed_point)
+	_expect(details.get_clearing_order_token(reed) != null, "actual reed mesh click marks clearing")
+	details._changes[reed].work_seconds = .3
+	orders._undo_last()
+	_expect(details.get_clearing_order_token(reed) == null and details._changes[reed].work_seconds == .3, "reed Undo keeps work")
+	explorer.clear_selection()
+	_motion(a); _mouse(a,true); _motion(b); chop._process(.1)
+	_expect(chop._preview_stones.size() == 5 and chop._preview_stones.has(ids[1]) and chop._preview_stones.has(flower) and chop._preview_stones.has(reed), "plant area includes flowers, reeds and unripe shrubs, excluding stones")
+	_mouse(b,false)
+	_expect(details._sources.size() == 5 and details._sources[ids[0]].task_type == Task.Type.CLEAR_SHRUB and details._sources[flower].task_type == Task.Type.CLEAR_PLANT and details._sources[reed].task_type == Task.Type.CLEAR_PLANT, "mixed plant area posts correct clearing types")
+	var receipt: Dictionary = orders._last_order.receipt
+	dock._request_order_tool("chop")
+	_expect(chop.undo_order(receipt) == 5, "plant receipt resolves its owner after switching tools")
+	details.designate_clearing(flower)
+	dock._request_order_tool("cancel_orders")
+	_click(flower_point)
+	_expect(details.get_clearing_order_token(flower) == null and details._changes[flower].work_seconds == .4, "Cancel orders releases flower work")
+	details.designate_clearing(reed)
+	_click(reed_point)
+	_expect(details.get_clearing_order_token(reed) == null and details._changes[reed].work_seconds == .3, "Cancel orders releases reed work")
+	if "--capture" in OS.get_cmdline_user_args():
+		dock._request_order_tool("clear_shrubs")
+		explorer.select_object(details,reed)
+		await _settle()
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/reed_review/orders_reeds.png")
+	details.designate_detail(ids[0],"harvest_plants")
+	dock._request_order_tool("cancel_orders")
+	_click(point)
+	_expect(details.get_clearing_order_token(ids[0]) == null and details._changes[ids[0]].work_seconds == .75, "Cancel orders releases plant work and preserves progress")
+	if "--capture" in OS.get_cmdline_user_args():
+		dock._request_order_tool("harvest_plants")
+		explorer.select_object(details,ids[0])
+		await _settle()
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://tmp/shrub_review/orders_harvest.png")
+	explorer.clear_selection()
+	dock._request_order_tool("")
+
+
+func _detail_pick_point(id: String) -> Vector2:
+	var bounds: AABB = details.get_explorer_bounds(id)
+	for x in range(1,10):
+		for z in range(1,10):
+			var point := camera.unproject_position(bounds.position + bounds.size * Vector3(x/10.0,.5,z/10.0))
+			var hit: Dictionary = explorer.pick_at_screen(point)
+			if hit.get("provider") == details and hit.get("id", "") == id: return point
+	return Vector2(-1,-1)
 
 
 func _check_layouts() -> void:

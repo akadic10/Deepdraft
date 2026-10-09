@@ -35,6 +35,7 @@ var region: Dictionary = {}        # Vector3i -> true
 var completed: Dictionary = {}     # Vector3i -> true
 var reserved: Dictionary = {}      # Vector3i -> dwarf_id
 var _reserved_by_dwarf: Dictionary = {}   # dwarf_id -> Vector3i
+var _preferred_work: Dictionary = {}     # dwarf_id -> scheduler-proven block/stand
 
 ## Active lease task ids (maintained by the controller's signal routing).
 var lease_ids: Dictionary = {}     # task_id -> true
@@ -123,6 +124,17 @@ func subtract_blocks(blocks: Array[Vector3i]) -> void:
 func reserve_next(dwarf_id: int, from_cell: Vector3i, exclude: Dictionary = {}) -> Dictionary:
 	if _destination_dirty:
 		_recompute_destination()
+	var preferred: Dictionary = _preferred_work.get(dwarf_id, {})
+	_preferred_work.erase(dwarf_id)
+	if not preferred.is_empty() and not exclude.has(preferred.block) \
+			and mining_candidate_available(preferred):
+		var cells := _walkable_stand_cells(preferred.block, from_cell)
+		cells.erase(preferred.cell)
+		cells.push_front(preferred.cell)
+		unreserve(dwarf_id)
+		reserved[preferred.block] = dwarf_id
+		_reserved_by_dwarf[dwarf_id] = preferred.block
+		return {"block":preferred.block, "stand_cells":cells}
 
 	# Reach-aware selection (Alen playtest, 2026-06-10): prefer a block the
 	# dwarf can mine WITHOUT moving (rank 0) over a merely-nearer one needing a
@@ -172,6 +184,7 @@ func unreserve(dwarf_id: int) -> void:
 
 ## Release-protocol entry (controller routes task_released here).
 func release_worker(dwarf_id: int) -> void:
+	_preferred_work.erase(dwarf_id)
 	unreserve(dwarf_id)
 
 
@@ -293,18 +306,38 @@ func _walkable_stand_cells(block: Vector3i, from_cell: Vector3i) -> Array[Vector
 	return cells
 
 
-## Walkable stand cell CLOSEST to `from_cell`, across EVERY workable
-## (unreserved, uncompleted) block. Dwarf-relative reachability-probe target
-## for the scheduler gate (doc 16 sec 2.6), replacing representative_target()
-## for that purpose only.
-##
-## Why (Alen, 2026-06-26): representative_target() returns one top-of-zone
-## cell -- the top block's geometrically nearest stand cell. At a cliff edge
-## that is the high-plateau neighbour, often unreachable, while the reachable
-## ground cell the dwarf stands on (a valid stand cell via reach-up) is
-## farther and never chosen -- so the gate probes one bad cell and reports
-## no-worker-can-reach for a mineable zone. Probing the cell nearest the
-## DWARF tests what reserve_next would pull. (-1,-1,-1) when none workable.
+## Unique working positions, nearest first. A walkable cliff shelf can still
+## be disconnected; the scheduler must try alternatives before rejecting a zone.
+func mining_stand_candidates(from_cell: Vector3i) -> Array[Dictionary]:
+	if _destination_dirty: _recompute_destination()
+	var result: Array[Dictionary] = []
+	var seen: Dictionary = {}
+	for block: Vector3i in _destination:
+		if completed.has(block) or reserved.has(block): continue
+		for cell: Vector3i in _walkable_stand_cells(block, from_cell):
+			if seen.has(cell): continue
+			seen[cell] = true
+			result.append({"block":block, "cell":cell,
+				"distance":absi(cell.x-from_cell.x)+absi(cell.y-from_cell.y)+absi(cell.z-from_cell.z),
+				"tie":result.size()})
+	result.sort_custom(func(a: Dictionary, b: Dictionary):
+		return a.distance < b.distance if a.distance != b.distance else a.tie < b.tie)
+	return result
+
+
+func mining_candidate_available(candidate: Dictionary) -> bool:
+	var block: Vector3i = candidate.block
+	return region.has(block) and not completed.has(block) and not reserved.has(block) \
+		and _workable_from(block, candidate.cell) and NavGrid.is_walkable(candidate.cell)
+
+
+func prefer_mining_stand(dwarf_id: int, candidate: Dictionary) -> void:
+	_preferred_work[dwarf_id] = candidate
+
+
+## Geometrically nearest stand, retained for diagnostics. It is not a proof
+## of zone accessibility: natural cliffs can have isolated shelves. Assignment
+## searches mining_stand_candidates() instead. (-1,-1,-1) when none workable.
 func nearest_stand_target(from_cell: Vector3i) -> Vector3i:
 	if _destination_dirty:
 		_recompute_destination()

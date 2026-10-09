@@ -1,0 +1,276 @@
+{
+  "base:detail:reeds": {
+    "display_name": "Lakeside reeds",
+    "category": "reeds",
+    "kind": "reed",
+    "blocking": false,
+    "placement_priority": 5,
+    "salt": 77001,
+    "models": [
+      "res://assets/models/details/reeds/reeds_1_summer.glb",
+      "res://assets/models/details/reeds/reeds_2_summer.glb"
+    ],
+    "seasonal_models": {
+      "spring": [
+        "res://assets/models/details/reeds/reeds_1_spring.glb",
+        "res://assets/models/details/reeds/reeds_2_spring.glb"
+      ],
+      "summer": [
+        "res://assets/models/details/reeds/reeds_1_summer.glb",
+        "res://assets/models/details/reeds/reeds_2_summer.glb"
+      ],
+      "autumn": [
+        "res://assets/models/details/reeds/reeds_1_autumn.glb",
+        "res://assets/models/details/reeds/reeds_2_autumn.glb"
+      ],
+      "winter": [
+        "res://assets/models/details/reeds/reeds_1_winter.glb",
+        "res://assets/models/details/reeds/reeds_2_winter.glb"
+      ]
+    },
+    "seasonal_labels": {
+      "spring": "Fresh shoots",
+      "summer": "Green reeds",
+      "autumn": "Golden seedheads",
+      "winter": "Dry stems"
+    },
+    "clear_label": "Clear reeds",
+    "clearing_activity": "Clearing reeds",
+    "description": "Walkable reeds rooted on dry banks. Clearing permanently removes this clump and yields no items. Construction or excavation also removes it. Partial clearing work is kept if cancelled.",
+    "footprint": 1,
+    "height": 2,
+    "placement": {
+      "habitat": "shore",
+      "cell_size": 6,
+      "cell_inset": 1,
+      "min_y": 4,
+      "max_y": 114,
+      "lowland_density": 0.85,
+      "rock_density": 0.85,
+      "rock_min_y": 36,
+      "patch_frequency": 0.04,
+      "patch_floor": 0.0,
+      "clear_ring": 1,
+      "tree_margin": 2,
+      "detail_margin": 4,
+      "min_moisture": 0.0,
+      "max_moisture": 1.0,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "rock"
+      ],
+      "shore_radius": 4,
+      "min_bank_height": 0,
+      "max_bank_height": 2
+    },
+    "clearing": {
+      "method": "gather",
+      "work_seconds": 1.5,
+      "item": "",
+      "count": 0,
+      "feedback_block": "base:terrain:soil:light"
+    }
+  },
+  "base:detail:flowers": {
+    "display_name": "Wildflowers",
+    "category": "flowers",
+    "kind": "flower",
+    "clear_label": "Clear flowers",
+    "clearing_activity": "Clearing flowers",
+    "description": "A seasonal flower clump. Move replants it; Uproot packs it for storage. Both preserve its shape and seasonal bloom. Clearing removes it without a yield. Needs its own 3 × 3 planting area.",
+    "blocking": false,
+    "placement_priority": 10,
+    "salt": 76001,
+    "models": [
+      "res://assets/models/details/flowers/flowers_1_summer.glb",
+      "res://assets/models/details/flowers/flowers_2_summer.glb",
+      "res://assets/models/details/flowers/flowers_3_summer.glb"
+    ],
+    "seasonal_models": {
+      "spring": [
+        "res://assets/models/details/flowers/flowers_1_spring.glb",
+        "res://assets/models/details/flowers/flowers_2_spring.glb",
+        "res://assets/models/details/flowers/flowers_3_spring.glb"
+      ],
+      "summer": [
+        "res://assets/models/details/flowers/flowers_1_summer.glb",
+        "res://assets/models/details/flowers/flowers_2_summer.glb",
+        "res://assets/models/details/flowers/flowers_3_summer.glb"
+      ],
+      "autumn": [
+        "res://assets/models/details/flowers/flowers_1_autumn.glb",
+        "res://assets/models/details/flowers/flowers_2_autumn.glb",
+        "res://assets/models/details/flowers/flowers_3_autumn.glb"
+      ],
+      "winter": [
+        "res://assets/models/details/flowers/flowers_1_winter.glb",
+        "res://assets/models/details/flowers/flowers_2_winter.glb",
+        "res://assets/models/details/flowers/flowers_3_winter.glb"
+      ]
+    },
+    "seasonal_labels": {
+      "spring": "Early blooms",
+      "summer": "In bloom",
+      "autumn": "Dry seedheads",
+      "winter": "Dormant stems"
+    },
+    "footprint": 1,
+    "height": 1,
+    "placement": {
+      "habitat": "grassy_opening",
+      "cell_size": 12,
+      "cell_inset": 2,
+      "min_y": 4,
+      "max_y": 70,
+      "lowland_density": 0.55,
+      "rock_density": 0.4,
+      "rock_min_y": 36,
+      "patch_frequency": 0.018,
+      "patch_floor": 0.0,
+      "clear_ring": 1,
+      "tree_margin": 3,
+      "detail_margin": 4,
+      "min_moisture": 0.15,
+      "max_moisture": 0.9,
+      "ground_kinds": [
+        "grass",
+        "dirt"
+      ]
+    },
+    "clearing": {
+      "method": "gather",
+      "work_seconds": 1.5,
+      "item": "",
+      "count": 0,
+      "feedback_block": "base:terrain:soil:light"
+    },
+    "planting_radius": 1,
+    "bloom": {
+      "seasons": [
+        "spring",
+        "summer"
+      ]
+    },
+    "transplant": {
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "uproot_seconds": 1.5,
+      "plant_seconds": 1.25,
+      "variants": [
+        {
+          "catalog_key": "base:detail:flowers_1",
+          "item": "base:resources:plant:flowers_1",
+          "display_name": "Wildflowers · cream"
+        },
+        {
+          "catalog_key": "base:detail:flowers_2",
+          "item": "base:resources:plant:flowers_2",
+          "display_name": "Wildflowers · heather"
+        },
+        {
+          "catalog_key": "base:detail:flowers_3",
+          "item": "base:resources:plant:flowers_3",
+          "display_name": "Wildflowers · gold"
+        }
+      ],
+      "models": {
+        "spring": [
+          "res://assets/models/details/flowers/flowers_1_packed_spring.glb",
+          "res://assets/models/details/flowers/flowers_2_packed_spring.glb",
+          "res://assets/models/details/flowers/flowers_3_packed_spring.glb"
+        ],
+        "summer": [
+          "res://assets/models/details/flowers/flowers_1_packed_summer.glb",
+          "res://assets/models/details/flowers/flowers_2_packed_summer.glb",
+          "res://assets/models/details/flowers/flowers_3_packed_summer.glb"
+        ],
+        "autumn": [
+          "res://assets/models/details/flowers/flowers_1_packed_autumn.glb",
+          "res://assets/models/details/flowers/flowers_2_packed_autumn.glb",
+          "res://assets/models/details/flowers/flowers_3_packed_autumn.glb"
+        ],
+        "winter": [
+          "res://assets/models/details/flowers/flowers_1_packed_winter.glb",
+          "res://assets/models/details/flowers/flowers_2_packed_winter.glb",
+          "res://assets/models/details/flowers/flowers_3_packed_winter.glb"
+        ]
+      }
+    }
+  },
+  "base:detail:boulder": {
+    "display_name": "Boulder",
+    "category": "boulder",
+    "blocking": true,
+    "placement_priority": 100,
+    "salt": 73001,
+    "models": [
+      "res://assets/models/details/boulders/boulder_1.glb",
+      "res://assets/models/details/boulders/boulder_2.glb",
+      "res://assets/models/details/boulders/boulder_3.glb"
+    ],
+    "footprint": 2,
+    "height": 2,
+    "placement": {
+      "cell_size": 24,
+      "cell_inset": 5,
+      "min_y": 4,
+      "max_y": 115,
+      "lowland_density": 0.14,
+      "rock_density": 0.48,
+      "rock_min_y": 36,
+      "patch_frequency": 0.012,
+      "patch_floor": 0.35,
+      "clear_ring": 3,
+      "tree_margin": 5
+    },
+    "clearing": {
+      "work_seconds": 7.0,
+      "item": "base:resources:stone:rough_stone",
+      "count": 2,
+      "feedback_block": "base:terrain:rock:rock01"
+    }
+  },
+  "base:detail:scree": {
+    "display_name": "Loose stones",
+    "category": "scree",
+    "blocking": false,
+    "placement_priority": 50,
+    "salt": 74001,
+    "models": [
+      "res://assets/models/details/scree/scree_1.glb",
+      "res://assets/models/details/scree/scree_2.glb",
+      "res://assets/models/details/scree/scree_3.glb"
+    ],
+    "footprint": 3,
+    "height": 1,
+    "placement": {
+      "habitat": "cliff_foot",
+      "cell_size": 10,
+      "cell_inset": 1,
+      "min_y": 4,
+      "max_y": 111,
+      "lowland_density": 0.8,
+      "rock_density": 0.8,
+      "rock_min_y": 36,
+      "patch_frequency": 0.023,
+      "patch_floor": 0.0,
+      "clear_ring": 0,
+      "tree_margin": 2,
+      "detail_margin": 2,
+      "cliff_radius": 7,
+      "cliff_min_rise": 4,
+      "outer_density": 0.18
+    },
+    "clearing": {
+      "method": "gather",
+      "work_seconds": 3.0,
+      "item": "base:resources:stone:rough_stone",
+      "count": 1,
+      "feedback_block": "base:terrain:rock:rock01"
+    }
+  }
+}

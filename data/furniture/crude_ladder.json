@@ -1,0 +1,23 @@
+{
+  "furniture_key": "base:furniture:crude_ladder",
+  "furniture_category": "access",
+  "display_name": "Rough wooden ladder",
+  "description": "Split wooden rails and pegged rungs. Each crafted section installs four blocks of ladder. Place at a cliff face; workers install it from below.",
+  "model": "res://assets/models/furniture/crude_ladder_4.glb",
+  "item_key": "base:resources:furniture:crude_ladder",
+  "placement": "ladder",
+  "yaw_steps": 4,
+  "footprint": {"width": 1, "depth": 1},
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false,
+  "ladder": {
+    "section_height": 4,
+    "install_seconds": 2.0,
+    "remove_seconds": 1.5,
+    "climb_speed_multiplier": 0.45,
+    "models": {
+      "4": "res://assets/models/furniture/crude_ladder_4.glb"
+    }
+  }
+}

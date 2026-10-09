@@ -75,5 +75,6 @@ func commit(token: Dictionary, key: String) -> void:
 	var stack: Dictionary = entries.get(token.slot, {"item": key, "count": 0})
 	stack.count = int(stack.count) + int(token.count)
 	assert(int(stack.count) <= int(capacity_for.call(key)))
+	if token.has("instance_id"): stack["instance_id"] = token.instance_id
 	entries[token.slot] = stack
 	release(token)

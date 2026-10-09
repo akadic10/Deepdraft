@@ -9,7 +9,9 @@
       "description": "A rough stump with an axe-hewn top for the colony's first crafts. Workers can make it on clear ground, then haul and install it through Place.",
       "category": "Workshops",
       "ingredient_tag": "timber",
-      "default_ingredients": ["base:resources:wood:pine_log"],
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
       "ingredient_count": 1,
       "work_seconds": 8.0,
       "workshop": "",
@@ -24,13 +26,32 @@
       "description": "Split, charred timber held by a rough wooden wall peg. A simple warm light for the first tunnels; no iron bracket required.",
       "category": "Lighting",
       "ingredient_tag": "timber",
-      "default_ingredients": ["base:resources:wood:pine_log"],
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
       "ingredient_count": 1,
       "work_seconds": 6.0,
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:furniture:wooden_torch",
       "output_count": 4,
       "furniture": "base:furniture:wooden_torch"
+    },
+    {
+      "id": "base:recipe:worker:crude_ladder",
+      "name": "Ladder section",
+      "output_plural": "ladder sections",
+      "description": "Split raw timber into pegged rails and rungs. Each section installs four blocks; taller routes need several sections.",
+      "category": "Access",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 6.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:crude_ladder",
+      "output_count": 1,
+      "furniture": "base:furniture:crude_ladder"
     }
   ]
 }

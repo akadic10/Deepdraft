@@ -16,7 +16,11 @@ func _run() -> void:
 	root.add_child(registry)
 	var definitions: Dictionary = registry.get_item_defs()
 	var count := 0
+	var only := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="): only = arg.trim_prefix("--only=")
 	for key: String in definitions:
+		if not only.is_empty() and not key in only.split(","): continue
 		var definition: Dictionary = definitions[key]
 		if "stockpile_furniture" in definition.get("material_tags", []): continue
 		if not ResourceLoader.exists(String(definition.get("model", ""))): continue

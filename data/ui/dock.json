@@ -30,7 +30,7 @@
       "id": "place",
       "label": "Place",
       "icon": "res://assets/ui/icons/place.svg",
-      "tooltip": "Place finished furniture from colony stores",
+      "tooltip": "Place finished furniture and replant uprooted shrubs",
       "action": "open_panel",
       "target": "place"
     },
@@ -88,10 +88,34 @@
           "target": "chop"
         },
         {
+          "id": "clear_stones",
+          "label": "Clear stones",
+          "icon": "res://assets/ui/icons/clear_boulders.svg",
+          "tooltip": "Click or drag to mark boulders and loose-stone clumps. Workers break boulders or gather scree for rough stone.",
+          "action": "activate_tool",
+          "target": "clear_stones"
+        },
+        {
+          "id": "harvest_plants",
+          "label": "Harvest plants",
+          "icon": "res://assets/ui/icons/harvest_plants.svg",
+          "tooltip": "Pick ripe berries while keeping the plants for later seasons.",
+          "action": "activate_tool",
+          "target": "harvest_plants"
+        },
+        {
+          "id": "clear_shrubs",
+          "label": "Clear plants",
+          "icon": "res://assets/ui/icons/clear_shrubs.svg",
+          "tooltip": "Permanently remove shrubs, flowers and reeds. Shrubs yield a cutting; flowers and reeds yield no items.",
+          "action": "activate_tool",
+          "target": "clear_shrubs"
+        },
+        {
           "id": "cancel",
           "label": "Cancel orders",
           "icon": "res://assets/ui/icons/cancel_orders.svg",
-          "tooltip": "Click or drag across marked blocks and trees to cancel unfinished work.",
+          "tooltip": "Click or drag across marked blocks, trees, stones and shrubs to cancel work. Partial progress is kept.",
           "action": "activate_tool",
           "target": "cancel_orders"
         }
@@ -223,6 +247,62 @@
           "action": "toggle_window",
           "target": "dwarves_dev",
           "tooltip": "Spawn dwarves, test walking and exercise work/rest behavior"
+        },
+        {
+          "id": "cave_development",
+          "label": "DEV: Cave explorer",
+          "action": "toggle_window",
+          "target": "caves_dev",
+          "tooltip": "Highlight caves, jump to their depth and preview interiors"
+        },
+        {
+          "id": "boulder_development",
+          "label": "DEV: Next boulder",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next generated boulder without clearing it"
+        },
+        {
+          "id": "scree_development",
+          "label": "DEV: Next scree",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next loose-stone clump without gathering it"
+        },
+        {
+          "id": "blueberry_development",
+          "label": "DEV: Next blueberry",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next wild shrub without harvesting or clearing it."
+        },
+        {
+          "id": "elderberry_development",
+          "label": "DEV: Next elderberry",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next wild shrub without harvesting or clearing it."
+        },
+        {
+          "id": "reeds_development",
+          "label": "DEV: Next reeds",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next lakeside reed clump without clearing it."
+        },
+        {
+          "id": "flowers_development",
+          "label": "DEV: Next flowers",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next wildflower clump without clearing it."
+        },
+        {
+          "id": "strawberry_development",
+          "label": "DEV: Next strawberry",
+          "action": "panel_action",
+          "target": "surface_details",
+          "tooltip": "Locate and inspect the next wild shrub without harvesting or clearing it."
         }
       ]
     }

@@ -8,7 +8,8 @@
     "  drops           - array of { item, count, chance } loot table entries",
     "  depth_bias      - optional { min_y, max_y } inclusive generation window",
     "  noise_threshold - minimum noise value (0.0-1.0) for vein/pocket placement",
-    "  noise_channel   - generation noise field: ore, gem, or soil",
+    "  noise_channel   - generation category: ore, gem, or soil",
+    "  noise_field     - ore-only independent field: seed_offset, frequency, octaves",
     "  material_tags   - flat string array used by stockpiles, crafting, and AI queries",
     "",
     "durability design notes:",
@@ -95,19 +96,22 @@
       { "item": "base:resources:ore:copper", "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 45, "max_y": 88 },
-    "noise_threshold": 0.66,
+    "noise_threshold": 0.706324934959412,
     "noise_channel": "ore",
+    "noise_field": { "seed_offset": 401, "frequency": 0.06, "octaves": 2 },
     "material_tags": ["ore", "metal", "stockpile_ore"]
   },
 
+  "__comment_metal_fields": "2026-10-08: separate seeded fields for metals, broader coal. Cutoffs fitted offline on eight seeds to preserve sampled abundance; never fitted per world. First-match priority resolves overlaps, so metal cutoffs need not descend. Depth windows and temporary drops unchanged. See roadmap 71.",
   "base:terrain:ore:tin": {
     "durability": 2,
     "drops": [
       { "item": "base:resources:ore:tin", "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 55, "max_y": 95 },
-    "noise_threshold": 0.66,
+    "noise_threshold": 0.735879153013229,
     "noise_channel": "ore",
+    "noise_field": { "seed_offset": 503, "frequency": 0.07, "octaves": 2 },
     "material_tags": ["ore", "metal", "stockpile_ore"]
   },
 
@@ -117,8 +121,9 @@
       { "item": "base:resources:ore:iron",   "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 20, "max_y": 72 },
-    "noise_threshold": 0.70,
+    "noise_threshold": 0.703521609306335,
     "noise_channel": "ore",
+    "noise_field": { "seed_offset": 307, "frequency": 0.055, "octaves": 2 },
     "material_tags": ["ore", "metal", "stockpile_ore"]
   },
 
@@ -128,20 +133,21 @@
       { "item": "base:resources:ore:silver", "count": 1, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 16, "max_y": 52 },
-    "noise_threshold": 0.80,
+    "noise_threshold": 0.80578738451004,
     "noise_channel": "ore",
+    "noise_field": { "seed_offset": 211, "frequency": 0.065, "octaves": 2 },
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
   },
 
-  "__comment_coal_threshold": "0.72 -> 0.62 (2026-08-07, doc 12 calibration item): evaluation is rarest-first with first-match-wins on one shared noise channel, so thresholds must DESCEND down METAL_RESOURCE_KEYS (doc 43). Coal is evaluated LAST but its old 0.72 sat above iron 0.70 / copper 0.66 / tin 0.66, which shadowed it everywhere their bands overlap - coal effectively spawned only at Y12-19 despite the declared Y12-90 window. At 0.62 (lowest of all metals) coal is the most common metal, which is correct: it is the bulk fuel every doc 44 smelting recipe consumes.",
   "base:terrain:ore:coal": {
     "durability": 2,
     "drops": [
       { "item": "base:resources:ore:coal",   "count": 2, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 12, "max_y": 90 },
-    "noise_threshold": 0.62,
+    "noise_threshold": 0.665185779333115,
     "noise_channel": "ore",
+    "noise_field": { "seed_offset": 1, "frequency": 0.02, "octaves": 2 },
     "material_tags": ["ore", "fuel", "stockpile_ore"]
   },
 
@@ -151,8 +157,9 @@
       { "item": "base:resources:ore:gold",        "count": 1, "chance": 0.10 }
     ],
     "depth_bias": { "min_y": 8, "max_y": 36 },
-    "noise_threshold": 0.84,
+    "noise_threshold": 0.83855327963829,
     "noise_channel": "ore",
+    "noise_field": { "seed_offset": 101, "frequency": 0.065, "octaves": 2 },
     "material_tags": ["ore", "metal", "precious", "stockpile_ore"]
   },
 
@@ -213,13 +220,14 @@
     "material_tags": ["gem", "precious", "stockpile_gem"]
   },
 
+  "__comment_diamond_threshold": "0.90 -> 0.91 (2026-10-08): diamond is checked before emerald on the shared gem channel. Equal thresholds suppressed emerald throughout Y5-12. Diamond now owns >0.91 and emerald owns (0.90, 0.91] in the overlap. This makes the highest-value gem rarer while restoring emerald; depths, order, other gem thresholds and mining drops are unchanged.",
   "base:terrain:gem:diamond": {
     "durability": 8,
     "drops": [
       { "item": "base:resources:gem:diamond_raw",   "count": 1, "chance": 0.65 }
     ],
     "depth_bias": { "min_y": 4, "max_y": 12 },
-    "noise_threshold": 0.90,
+    "noise_threshold": 0.91,
     "noise_channel": "gem",
     "material_tags": ["gem", "precious", "luxury", "stockpile_gem"]
   }

@@ -4,7 +4,79 @@
 
 The colony's food and drink supply draws from two distinct farming environments: **surface plots** on outdoor dirt for crops that need open air, and **cave soil patches** underground for fungi and plants adapted to darkness. Both feed into the same brewery and kitchen chain.
 
+## Wild berry harvest — live 2026-10-08
+
+**Habitat, spacing and flower relocation — live 2026-10-09:** wild berry bushes
+root on grass/dirt/soil below Y44. Player cultivation may use suitable soil at
+any height. Bushes, cuttings and flowers reserve exclusive 3×3 planting areas,
+including queued orders, while keeping single-cell roots and no collision.
+Flowers now support Move/Uproot and variant-specific Place → Plants entries;
+seasonal packed art, identity and dormant/blooming state survive relocation and
+storage. See [85 — Plant habitats, spacing and flowers](../00_dev_roadmap/85_plant_habitats_spacing_flowers.md).
+JSON `bloom.seasons` and the manager's planted-clump queries are the future hive
+forage boundary. Only planted blooming clumps qualify; honey is not yet playable.
+
+**Flower follow-up:** the shared clearing tool is now **Clear plants**. Decorative
+wildflowers have four seasonal appearances, no harvest action or resource yield,
+and take 1.5 seconds to clear by hand. Clearing, construction and excavation
+remove them permanently. See [76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md).
+
+Generated blueberry, elderberry and wild-strawberry plants can now be harvested
+or permanently cleared. Harvest takes three seconds and keeps the plant; clearing
+takes two seconds and yields one cutting on completion (100% for all three
+species, configured in `wild.clearing.yields[].chance`). Berry harvest yields once per
+eligible season: blueberry 3 in summer, elderberry 4 in autumn, strawberry 3 in
+spring and again in summer. Picked state, separate partial work and removals save.
+Fruit enters the existing loose produce-crate and hauling pipeline. All four
+seasons have dedicated voxel art, including berry-free picked variants.
+
+Use the individual inspector or **Orders → Harvest plants / Clear shrubs**.
+Cuttings use existing crates and the **Seeds & cuttings** stockpile filter. Each
+completed clearing grants its cutting only once; cancellation and reload cannot
+repeat the reward. Construction/excavation displacement grants no cutting.
+Farm plots, food consumption and brewing remain future work. See
+[75 — Seasonal shrubs](../00_dev_roadmap/75_seasonal_shrubs.md) for exact rules,
+habitats, saved crop cycles and developer test shortcuts.
+
+**Mature shrub relocation — live 2026-10-08:** inspector **Move** replants the
+selected whole bush at chosen open ground; **Uproot** packs it for storage and
+later **Place → Plants**. Each takes three seconds of uprooting, with another
+1.25 seconds to replant. Replanting starts animating on arrival and includes the
+set-down in that duration; see [83 — Shrub planting animation](../00_dev_roadmap/83_shrub_planting_animation.md).
+These actions preserve identity and the seasonal crop
+without yielding fruit or cuttings. Whole shrubs use seasonal wrapped-root art,
+one heavy carry load and one storage slot in Seeds & cuttings. Player placement
+uses suitable dry ground and a clear 3×3 envelope under open sky, independently
+of world-generation habitat bands. See [79 — Shrub transplanting](../00_dev_roadmap/79_shrub_transplanting.md)
+for ground rules, cancellation, save coverage and testing controls.
+
+**Cutting growth — live 2026-10-08:** **Place → Plants** also plants one cutting
+per young shrub, with three seconds of worker planting. Blueberry/strawberry need
+3 growth days and elderberry 4. JSON seasonal multipliers are spring 1.2, summer
+1.0, autumn 0.8 and winter 0.0. Twelve young seasonal models show their growth
+stage without fruit. WorldClock-derived age survives save/load; maturity enables
+ordinary seasonal harvest and mature Move/Uproot. Young clearing returns one
+cutting. Inspector **DEV: Grow to maturity** provides a focused test shortcut.
+See [80 — Shrub cutting growth](../00_dev_roadmap/80_shrub_cutting_growth.md).
+
 ## Agricultural Cycles
+
+**Juniper harvesting — live 2026-10-09:** standing mature and ancient junipers
+yield 2 and 4 berries respectively once each autumn, after three seconds of hand
+picking. Saplings are too young. Inspector **Harvest berries** and **Orders →
+Harvest plants** share the same player-designated task; no recurring orders are
+posted. Felling now grants wood and possible seeds only. JSON stage
+`fruit_harvest` defines season, work and yield. Picked state, partial picking and
+felling work save separately, and eight berry-free models show depleted or
+out-of-season trees. See [84 — Juniper berry harvesting](../00_dev_roadmap/84_juniper_berry_harvesting.md).
+
+**Cave generation status (2026-10-07):** generated caves now expose existing
+soil deposits and can add a rough patch of `base:terrain:soil:cave` on a chamber
+floor. This supplies a material and location for later underground agriculture.
+It does **not** implement farming, saturation, irrigation, or naturally growing
+cave crops. The requirements below remain the design target; dry cave soil alone
+does not promise a working farm. See [68](../00_dev_roadmap/68_caves_and_discovery.md)
+for the deferred water and fungi work.
 
 ### Underground Crops (cave soil — `base:terrain:soil:cave`)
 
@@ -66,6 +138,35 @@ Each transition triggers a visual mesh swap on the farm block (see Single-Tile A
 ## Beehives
 
 Beehives (`base:workshop:beehive`) are outdoor structures that produce honey passively over time. Full schema: `data/workshops/beehive.json`.
+
+### Required future connection: wildflower forage
+
+**User requirement, 2026-10-08:** the generated wildflowers must have a meaningful
+role in honey production when beekeeping is implemented. They currently remain
+decorative; this connection is planned, not live. See
+[76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md).
+
+The proposed design is to measure nearby **blooming flower clumps** as bee forage
+and use that supply to influence hive productivity. Preserving a flower patch
+should give the player a reason to place a hive nearby. Bees visit living
+flowers; flowers are not harvested or consumed as recipe ingredients.
+
+- Count persistent flower records and their actual seasonal bloom state, never
+  visible meshes or camera distance. Current wildflowers bloom in spring and
+  summer; autumn seedheads and winter remnants supply no floral forage.
+- Clearing, construction and excavation remove that clump's contribution.
+  Season changes and loading must refresh the same result without restoring
+  removed plants. Retain the planned winter dormancy and stored honey.
+- Show the local forage supply and its production effect in the hive inspector
+  and placement preview so the relationship is understandable.
+- Define bloom contributions, forage radius and production response in owning
+  JSON data when implementing the system. Tune the radius, rate versus yield
+  effect, caps and overlapping-hive behavior at that milestone; do not assume
+  unlimited throughput from stacking hives around one patch.
+
+Other forage sources (such as flowering shrubs/trees), production with no local
+flowers, and autumn production need an explicit balance decision. The production
+table below remains a planned baseline, to be reconciled with this requirement.
 
 ### Placement
 
@@ -257,11 +358,15 @@ All trees share the same three-stage pattern:
 
 **Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 2×2. Full schema: `data/entities/flora/juniper_tree.json`.
 
-**Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Unlike oak and juniper, apple trees are **perennial fruit producers** — see Fruit Trees below. Full schema: `data/entities/flora/apple_tree.json`.
+**Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Apple has perennial fruit definitions and autumn visuals; its worker harvest remains planned. Juniper now has playable perennial picking, described above. Full apple schema: `data/entities/flora/apple_tree.json`.
 
 **Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner` (see `docs/00_dev_roadmap/13_flora_scatter_pine.md`). Full schema: `data/entities/flora/pine_tree.json`.
 
 ### Fruit Trees
+
+**Implementation boundary:** juniper's player-designated annual picking is live
+in milestone 84. The automatic apple harvest behavior below remains a design
+target; this change does not add apple worker jobs or automatic harvesting.
 
 A fruit tree has two independent harvest mechanisms:
 
@@ -274,6 +379,7 @@ For world-spawned apple trees, `SurfaceFloraSpawner.resolve_tree_model_for_seaso
 | Species | Fruit item | Season | Mature yield | Ancient yield |
 |---|---|---|---|---|
 | Apple | `base:resources:flora:apple` | Autumn | 4–6 | 7–10 |
+| Juniper (live manual picking) | `base:resources:flora:juniper_berry` | Autumn | 2 | 4 |
 
 > **Agent note**: Trees are the **only** surface entities with real collision shapes. Giving a `CollisionShape3D` to any farm crop violates the Single-Tile Asset Overflow Rule above.
 

@@ -1,0 +1,19 @@
+{
+	"cases": {
+		"all_pending": {
+			"median_ms": 3.185,
+			"p95_ms": 3.251
+		},
+		"empty": {
+			"median_ms": 3.234,
+			"p95_ms": 3.53
+		},
+		"half_pending": {
+			"median_ms": 3.262,
+			"p95_ms": 3.515
+		}
+	},
+	"failures": [],
+	"plant_records": 1892,
+	"records": 2142
+}

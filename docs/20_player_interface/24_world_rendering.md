@@ -333,14 +333,27 @@ This is a deliberate departure from "paint every block its own colour" for *inte
 exposed by the plane: interior identity is undiscovered information, and the slice is a camera,
 not a prospecting tool.
 
-> **Unified exposure principle (2026-06-05, shipped with Phase SO-2b):** *a face renders
-> exact block colours iff the air it faces was created by MINING; every other face renders
-> authored data.* Concretely: cut floors are exact only when the entire cut run above was
-> mined (designation floors stay strata — a plan is not a prospecting tool); wall side-bands
-> are exact only where the facing air block was mined open (natural cliffs, slice cuts, and
-> designation ghosts stay strata); the cavity-shell mesh colours per cavity-block source
-> (mined → exact, designated → strata). Derivation and defect history:
+> **Unified exposure principle (2026-06-05, extended for caves 2026-10-07):** a face
+> renders exact underground block colours when it faces mined air or natural cave
+> air discovered through mining. Cut floors are exact only when the entire cut run
+> above is revealed air. Designation floors, untouched cliffs and concealed slice
+> cuts stay authored strata; a plan must not reveal resources. The cavity shell
+> follows the same rule. Derivation and defect history:
 > `00_dev_roadmap/11_slice_xray_plan.md` §Phase SO-2b, Defects 1–5.
+
+Mining into a generated cave reveals its whole connected system. Its air joins
+the renderer's cut/exposure sets independently of executed mining and planned
+cuts. Removing a mining plan must not erase discovered space. Newly discovered
+air is initialized to underground darkness throughout the cave; the usual light
+solver then propagates entrance daylight and placed lights. Merely moving the
+slice does not discover a cave or light its interior.
+
+**Explicit developer inspection exception:** at the user's request, **Menu →
+Development → DEV: Cave explorer** can outline hidden caves and temporarily
+preview their actual interiors. The preview uses a separate cut set and temporary
+readability lighting. Closing it restores normal lighting and the previous view,
+preserving real discoveries and mining plans. Preview air never becomes a mined
+or discovered save delta. See [68 — Caves and discovery](../00_dev_roadmap/68_caves_and_discovery.md).
 
 ### Rejected modes
 

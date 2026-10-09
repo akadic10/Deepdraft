@@ -1,6 +1,7 @@
 # 65 — Session handoff: 2026-10-07
 
-This is the current starting point, superseding
+Historical handoff; superseded by [89 — 2026-10-09](89_session_handoff_2026_10_09.md).
+At the time, this was the starting point, superseding
 [62 — Previous handoff](62_session_handoff_2026_10_06.md). The session repaired
 loose-item support and Object explorer styling, tuned shallow-tunnel darkness,
 and added a playable Worker crafting loop. The player accepted the revised

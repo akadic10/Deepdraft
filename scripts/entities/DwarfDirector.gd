@@ -439,7 +439,8 @@ func restore_state(state: Dictionary) -> void:
 			var offset := Vector3(cos(angle), 0.0, sin(angle)) * 0.22
 			var item_key := String(saved_cargo.get("item_key", "")) if saved_cargo is Dictionary else String(saved_cargo)
 			var count := int(saved_cargo.get("count", 1)) if saved_cargo is Dictionary else 1
-			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count)
+			var instance_id := String(saved_cargo.get("instance_id", "")) if saved_cargo is Dictionary else ""
+			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count, instance_id)
 			carried_index += 1
 		_birth_index = maxi(_birth_index, dwarf_id + 1)
 	_refresh_window()

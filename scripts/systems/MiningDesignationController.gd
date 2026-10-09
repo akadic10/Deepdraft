@@ -160,6 +160,8 @@ func _ready() -> void:
 	# Zero-lease zone revival: terrain changes near a stalled zone re-arm it
 	# (mirrors TaskManager's chunk-dirtied early re-arm for blocked tasks).
 	WorldData.chunk_dirtied.connect(_on_world_chunk_dirtied, CONNECT_DEFERRED)
+	# Resolve hidden-air plans after the current mining commit completes.
+	InteriorTracker.caves_discovered.connect(_remove_blocks_from_zones, CONNECT_DEFERRED)
 
 
 ## One reactive rebuild per visibility change (the renderer emits at most once
@@ -928,7 +930,7 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 		# DEV-mined blocks are gone — air cannot be designated.
 		if _mined_blocks.has(block):
 			continue
-		var block_id := _block_id_at(block)
+		var block_id := _designation_block_id_at(block)
 		if not BlockRegistry.is_solid(block_id):
 			continue
 		var def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
@@ -945,6 +947,15 @@ func _block_id_at(pos: Vector3i) -> int:
 	if WorldGenerator.has_method("get_generated_block_id"):
 		return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
 	return id
+
+
+## Picking/planning must agree with the concealed slice, even when actual
+## generated air exists behind it. Revealed air is removed from plans later.
+func _designation_block_id_at(pos: Vector3i) -> int:
+	var cave_id := WorldGenerator.get_cave_id(pos)
+	if cave_id >= 0 and not InteriorTracker.is_cave_discovered(cave_id):
+		return WorldGenerator.get_overview_strata_block_id(pos.x, pos.y, pos.z)
+	return _block_id_at(pos)
 
 
 func _build_precision_region(
@@ -1075,7 +1086,7 @@ func _raycast_voxel(screen_pos: Vector2) -> Dictionary:
 		# DEV-mined blocks are air: the ray passes through so the freshly
 		# exposed blocks behind/beneath them can be designated (iterative digs).
 		if _in_bounds(pos) and _visible_in_slice(pos) and not _mined_blocks.has(pos):
-			var block_id := _block_id_at(pos)
+			var block_id := _designation_block_id_at(pos)
 			if BlockRegistry.is_solid(block_id):
 				var def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
 				if String(def.get("kind", "")) != "water":
@@ -1945,7 +1956,9 @@ func play_zone_mining_impact(block: Vector3i, position: Vector3, normal: Vector3
 	var block_id := _block_id_at(block)
 	if not BlockRegistry.is_solid(block_id):
 		return
-	if not _mined_blocks.has(block+Vector3i(normal)):
+	var exposed_air := block + Vector3i(normal)
+	var cave_id := WorldGenerator.get_cave_id(exposed_air)
+	if not _mined_blocks.has(exposed_air) and not (cave_id >= 0 and InteriorTracker.is_cave_discovered(cave_id)):
 		block_id = WorldGenerator.get_overview_strata_block_id(block.x,block.y,block.z)
 	WorkFeedback.mining_impact(position,block,block_id,normal)
 

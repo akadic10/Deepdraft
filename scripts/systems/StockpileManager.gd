@@ -222,7 +222,14 @@ func rebuild_totals() -> void:
 ## Fetch withdraw (doc 19 §3.3): pull one stored unit of `item_key` out of
 ## the zone nearest `near`, reserved for `dwarf_id`. Null if no zone holds
 ## the item. Containers join this lookup in Phase 4 via the same surface.
-func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D:
+func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id: String = "") -> Node3D:
+	if not instance_id.is_empty():
+		for source: StorageComponent in _zones.values() + _containers.values():
+			for slot in source.stored_entries():
+				var stack: Dictionary = source.stored_entries()[slot]
+				if String(stack.item) == item_key and String(stack.get("instance_id", "")) == instance_id and not source._outgoing.has(slot):
+					return source.withdraw_stack(slot, 1, dwarf_id)
+		return null
 	var best_zone: StockpileZoneComponent = null
 	var best_dist: int = 0x7FFFFFFF
 	for source_id: int in _zones:
@@ -230,6 +237,7 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D:
 		var has_it := false
 		for cell: Vector3i in zone.cell_stacks:
 			if int(zone.cell_stacks[cell].count) <= int(zone._outgoing.get(cell, {}).get("count", 0)): continue
+			if _drop_manager.instance_promised(String(zone.cell_stacks[cell].get("instance_id", ""))): continue
 			if String((zone.cell_stacks[cell] as Dictionary).get("item", "")) == item_key:
 				has_it = true
 				break
@@ -410,3 +418,23 @@ func _on_task_gone_signal(task: Task) -> void:
 
 func _on_task_failed(task: Task, _reason: String) -> void:
 	_route(task, task.assigned_to)
+
+
+func has_stored_instance(item_key: String, instance_id: String) -> bool:
+	for source: StorageComponent in _zones.values() + _containers.values():
+		if source is ContainerStorageComponent and source.suspended: continue
+		for slot in source.stored_entries():
+			var stack: Dictionary = source.stored_entries()[slot]
+			if String(stack.item) == item_key and String(stack.get("instance_id", "")) == instance_id and not source._outgoing.has(slot): return true
+	return false
+
+
+func get_promised_totals() -> Dictionary:
+	var result := {}
+	if not is_instance_valid(_drop_manager) or _drop_manager._instance_promises.is_empty(): return result
+	for source: StorageComponent in _zones.values() + _containers.values():
+		for slot in source.stored_entries():
+			var stack: Dictionary = source.stored_entries()[slot]
+			if not source._outgoing.has(slot) and _drop_manager.instance_promised(String(stack.get("instance_id", ""))):
+				result[stack.item] = int(result.get(stack.item, 0)) + int(stack.count)
+	return result

@@ -414,6 +414,34 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 	}
 
 
+## Read-only placement offers from this haul. A relocation marker represents
+## an outgoing stored claim, never an extra physical item. Picked cargo replaces
+## its original node (which may have been split from a larger crate).
+func placement_haul_items(dwarf_id: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var pull: Dictionary = _pulls.get(dwarf_id, {})
+	if pull.is_empty() or not is_instance_valid(drop_manager): return result
+	for item: Node3D in pull.items:
+		if not is_instance_valid(item) or item.is_queued_for_deletion() or pull.picked.has(item): continue
+		var token: Dictionary = pull.deposits.get(item, {})
+		if not bool(token.get("active", false)): continue
+		var stored: bool = pull.has("transfer")
+		if not stored and not drop_manager.reserved_by(item, dwarf_id): continue
+		var instance_id := String(item.get_meta("instance_id", ""))
+		if stored:
+			var stack: Dictionary = pull.transfer.source.stored_entries().get(pull.transfer.token.slot, {})
+			instance_id = String(stack.get("instance_id", ""))
+		result.append({"item": item, "key": String(token.item),
+			"count": int(token.count) if stored else int(drop_manager.quantity_of(item)),
+			"instance_id": instance_id, "carried": false})
+	for item: Node3D in pull.cargo:
+		if is_instance_valid(item) and not item.is_queued_for_deletion() and bool(pull.cargo[item].active):
+			result.append({"item": item, "key": String(pull.cargo[item].item),
+				"count": int(drop_manager.quantity_of(item)),
+				"instance_id": String(item.get_meta("instance_id", "")), "carried": true})
+	return result
+
+
 ## Release protocol: frees every remaining reservation. Safe to call twice.
 func cancel_haul(dwarf_id: int) -> void:
 	if not _pulls.has(dwarf_id):
@@ -493,6 +521,7 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 		var node: Node3D = entry[0]
 		var key: String = entry[1]
 		var token: Dictionary = pull.cargo[node]
+		if node.has_meta("instance_id"): token["instance_id"] = node.get_meta("instance_id")
 		_commit_one(token, key)
 		_place_visual(node, token)
 		if changed_callback.is_valid():

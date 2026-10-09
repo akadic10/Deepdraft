@@ -1,50 +1,127 @@
 {
   "__comment": [
-    "Elderberry bush — mid-slope wild berry bush, primary future wine ingredient.",
-    "Placed by world gen directly in the 'fruiting' stage.",
-    "Dwarves plant cuttings which start in 'shrub' before becoming 'fruiting'.",
-    "Fruit drops are AUTUMN ONLY — harvesting system must check WorldClock.season.",
-    "Two seasonal models for the fruiting stage: summer (green), autumn (purple berries),",
-    "winter (bare sticks). Shrub stage uses only the summer model.",
-    "Two growth stages: shrub → fruiting."
+    "Wild mature plants use all four seasonal models. One crop per eligible season; harvested plants lose visible fruit.",
+    "Clearing yields one cutting (100%). Plant one cutting to grow a new shrub. Move and uproot preserve mature plants and their crops.",
+    "Young growth uses stages.shrub.growth_duration_days weighted by wild.planting.seasonal_growth; winter dormancy preserves the plant."
   ],
-
   "base:flora:elderberry_bush": {
     "harvest_resource": "base:resources:flora:elderberry",
-    "material_tags": ["flora", "bush", "fruit_bush", "wild_plant", "stockpile_food"],
+    "material_tags": [
+      "flora",
+      "bush",
+      "fruit_bush",
+      "wild_plant",
+      "stockpile_food"
+    ],
     "appeal": 1,
-
     "stages": {
-
       "shrub": {
-        "clearance_height": 1,
+        "clearance_height": 2,
         "growth_duration_days": 4,
         "next_stage": "fruiting",
         "models": {
-          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_shrub.glb"
+          "spring": "res://assets/models/flora/bushes/elderberry/elderberry_young_spring.glb",
+          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_young_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_young_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/elderberry/elderberry_young_winter.glb"
         },
         "harvest": {
           "yields": []
         }
       },
-
       "fruiting": {
-        "clearance_height": 1,
+        "clearance_height": 3,
         "growth_duration_days": null,
         "next_stage": null,
         "models": {
-          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_fruiting.glb",
-          "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_fruiting_autumn.glb",
-          "winter": "res://assets/models/flora/bushes/elderberry/elderberry_bare.glb"
+          "spring": "res://assets/models/flora/bushes/elderberry/elderberry_spring.glb",
+          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/elderberry/elderberry_winter.glb"
         },
         "harvest": {
           "yields": [
-            { "item": "base:resources:flora:elderberry",         "count": 4, "chance": 1.00, "season_only": "autumn" },
-            { "item": "base:resources:seed:elderberry_cutting",  "count": 1, "chance": 0.20 }
-          ]
+            {
+              "item": "base:resources:flora:elderberry",
+              "count": 4,
+              "chance": 1.0,
+              "season_only": "autumn"
+            }
+          ],
+          "work_seconds": 3.0
+        },
+        "picked_models": {
+          "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_autumn_picked.glb"
         }
       }
-
+    },
+    "wild": {
+      "display_name": "Elderberry bush",
+      "placement_priority": 19,
+      "salt": 75101,
+      "placement": {
+        "habitat": "elderberry",
+        "cell_size": 14,
+        "cell_inset": 2,
+        "min_y": 4,
+        "max_y": 43,
+        "lowland_density": 0.42,
+        "rock_density": 0.42,
+        "rock_min_y": 36,
+        "patch_frequency": 0.02,
+        "patch_floor": 0.18,
+        "clear_ring": 1,
+        "tree_margin": 2,
+        "detail_margin": 3,
+        "min_moisture": 0.5,
+        "max_moisture": 1.0,
+        "ground_kinds": [
+          "grass",
+          "dirt",
+          "soil"
+        ]
+      },
+      "clearing": {
+        "method": "gather",
+        "work_seconds": 2.0,
+        "feedback_block": "base:terrain:soil:light",
+        "yields": [
+          {
+            "item": "base:resources:seed:elderberry_cutting",
+            "count": 1,
+            "chance": 1.0
+          }
+        ]
+      },
+      "transplant": {
+        "item": "base:resources:plant:elderberry_bush",
+        "uproot_seconds": 3.0,
+        "plant_seconds": 1.25,
+        "ground_kinds": [
+          "grass",
+          "dirt",
+          "soil"
+        ],
+        "models": {
+          "spring": "res://assets/models/flora/bushes/elderberry/elderberry_packed_spring.glb",
+          "summer": "res://assets/models/flora/bushes/elderberry/elderberry_packed_summer.glb",
+          "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_packed_autumn.glb",
+          "winter": "res://assets/models/flora/bushes/elderberry/elderberry_packed_winter.glb",
+          "autumn_picked": "res://assets/models/flora/bushes/elderberry/elderberry_packed_autumn_picked.glb"
+        }
+      },
+      "planting": {
+        "catalog_key": "base:flora:elderberry_cutting",
+        "item": "base:resources:seed:elderberry_cutting",
+        "work_seconds": 3.0,
+        "seasonal_growth": {
+          "spring": 1.2,
+          "summer": 1.0,
+          "autumn": 0.8,
+          "winter": 0.0
+        }
+      },
+      "planting_radius": 1
     }
   }
 }

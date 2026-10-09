@@ -1,0 +1,472 @@
+{
+  "pairs": [
+    {
+      "seed": 7,
+      "layout_ms": 573.677,
+      "ready_off_ms": 7990.622,
+      "ready_on_ms": 8242.752,
+      "clumps": 2341,
+      "extra_nodes": 7099.0,
+      "static_delta_mib": 31.512380599975586,
+      "video_delta_mib": 18.25
+    },
+    {
+      "seed": 17,
+      "layout_ms": 570.281,
+      "ready_off_ms": 7709.4,
+      "ready_on_ms": 7559.872,
+      "clumps": 2168,
+      "extra_nodes": 6589.0,
+      "static_delta_mib": 29.47014808654785,
+      "video_delta_mib": 18.25
+    },
+    {
+      "seed": 1234,
+      "layout_ms": 585.721,
+      "ready_off_ms": 7931.57,
+      "ready_on_ms": 7984.751,
+      "clumps": 2142,
+      "extra_nodes": 6484.0,
+      "static_delta_mib": 29.070520401000977,
+      "video_delta_mib": 18.25
+    },
+    {
+      "seed": 20261007,
+      "layout_ms": 611.573,
+      "ready_off_ms": 8379.836,
+      "ready_on_ms": 8447.794,
+      "clumps": 2279,
+      "extra_nodes": 6888.0,
+      "static_delta_mib": 30.516176223754883,
+      "video_delta_mib": 18.25
+    }
+  ],
+  "views": [
+    {
+      "seed": 7,
+      "view": "cliff",
+      "gpu_off_ms": 0.331999987363815,
+      "gpu_on_ms": 0.372999995946884,
+      "gpu_delta_ms": 0.041000008583069014,
+      "calls_off": 143.0,
+      "calls_on": 180.0,
+      "p95_off_ms": 0.88,
+      "p95_on_ms": 1.109
+    },
+    {
+      "seed": 7,
+      "view": "dense",
+      "gpu_off_ms": 0.337000012397766,
+      "gpu_on_ms": 0.342000007629395,
+      "gpu_delta_ms": 0.004999995231628973,
+      "calls_off": 100.0,
+      "calls_on": 125.0,
+      "p95_off_ms": 0.984,
+      "p95_on_ms": 0.983
+    },
+    {
+      "seed": 7,
+      "view": "mountain",
+      "gpu_off_ms": 0.363000005483627,
+      "gpu_on_ms": 0.377000004053116,
+      "gpu_delta_ms": 0.013999998569489025,
+      "calls_off": 176.0,
+      "calls_on": 217.0,
+      "p95_off_ms": 0.972,
+      "p95_on_ms": 1.054
+    },
+    {
+      "seed": 7,
+      "view": "shore",
+      "gpu_off_ms": 0.323000013828278,
+      "gpu_on_ms": 0.324999988079071,
+      "gpu_delta_ms": 0.001999974250793013,
+      "calls_off": 96.0,
+      "calls_on": 127.0,
+      "p95_off_ms": 0.874,
+      "p95_on_ms": 0.933
+    },
+    {
+      "seed": 7,
+      "view": "wide",
+      "gpu_off_ms": 0.375,
+      "gpu_on_ms": 0.412000000476837,
+      "gpu_delta_ms": 0.03700000047683699,
+      "calls_off": 211.0,
+      "calls_on": 246.0,
+      "p95_off_ms": 0.9,
+      "p95_on_ms": 1.128
+    },
+    {
+      "seed": 7,
+      "view": "pan_zoom",
+      "gpu_off_ms": 0.321000009775162,
+      "gpu_on_ms": 0.342999994754791,
+      "gpu_delta_ms": 0.02199998497962896,
+      "calls_off": 93.2968248305387,
+      "calls_on": 110.784037558685,
+      "p95_off_ms": 0.933,
+      "p95_on_ms": 1.012
+    },
+    {
+      "seed": 17,
+      "view": "cliff",
+      "gpu_off_ms": 0.326999992132187,
+      "gpu_on_ms": 0.344999998807907,
+      "gpu_delta_ms": 0.018000006675719993,
+      "calls_off": 154.0,
+      "calls_on": 198.0,
+      "p95_off_ms": 0.874,
+      "p95_on_ms": 0.82
+    },
+    {
+      "seed": 17,
+      "view": "dense",
+      "gpu_off_ms": 0.319999992847443,
+      "gpu_on_ms": 0.356000006198883,
+      "gpu_delta_ms": 0.036000013351439986,
+      "calls_off": 136.0,
+      "calls_on": 162.0,
+      "p95_off_ms": 0.809,
+      "p95_on_ms": 0.916
+    },
+    {
+      "seed": 17,
+      "view": "mountain",
+      "gpu_off_ms": 0.333999991416931,
+      "gpu_on_ms": 0.379999995231628,
+      "gpu_delta_ms": 0.04600000381469699,
+      "calls_off": 176.0,
+      "calls_on": 210.0,
+      "p95_off_ms": 1.014,
+      "p95_on_ms": 1.089
+    },
+    {
+      "seed": 17,
+      "view": "shore",
+      "gpu_off_ms": 0.305000007152557,
+      "gpu_on_ms": 0.36599999666214,
+      "gpu_delta_ms": 0.06099998950958302,
+      "calls_off": 115.0,
+      "calls_on": 141.0,
+      "p95_off_ms": 0.83,
+      "p95_on_ms": 1.055
+    },
+    {
+      "seed": 17,
+      "view": "wide",
+      "gpu_off_ms": 0.407000005245209,
+      "gpu_on_ms": 0.479999989271164,
+      "gpu_delta_ms": 0.07299998402595498,
+      "calls_off": 294.0,
+      "calls_on": 345.0,
+      "p95_off_ms": 0.922,
+      "p95_on_ms": 1.187
+    },
+    {
+      "seed": 17,
+      "view": "pan_zoom",
+      "gpu_off_ms": 0.324999988079071,
+      "gpu_on_ms": 0.381000012159348,
+      "gpu_delta_ms": 0.05600002408027699,
+      "calls_off": 132.174402250352,
+      "calls_on": 157.082107843137,
+      "p95_off_ms": 0.815,
+      "p95_on_ms": 1.1
+    },
+    {
+      "seed": 1234,
+      "view": "cliff",
+      "gpu_off_ms": 0.323000013828278,
+      "gpu_on_ms": 0.361999988555908,
+      "gpu_delta_ms": 0.038999974727630005,
+      "calls_off": 125.0,
+      "calls_on": 156.0,
+      "p95_off_ms": 0.824,
+      "p95_on_ms": 0.964
+    },
+    {
+      "seed": 1234,
+      "view": "dense",
+      "gpu_off_ms": 0.323000013828278,
+      "gpu_on_ms": 0.352999985218048,
+      "gpu_delta_ms": 0.029999971389770008,
+      "calls_off": 120.0,
+      "calls_on": 147.0,
+      "p95_off_ms": 0.808,
+      "p95_on_ms": 0.893
+    },
+    {
+      "seed": 1234,
+      "view": "mountain",
+      "gpu_off_ms": 0.360000014305115,
+      "gpu_on_ms": 0.40599998831749,
+      "gpu_delta_ms": 0.04599997401237499,
+      "calls_off": 183.0,
+      "calls_on": 215.0,
+      "p95_off_ms": 0.951,
+      "p95_on_ms": 1.116
+    },
+    {
+      "seed": 1234,
+      "view": "shore",
+      "gpu_off_ms": 0.312000006437302,
+      "gpu_on_ms": 0.363999992609024,
+      "gpu_delta_ms": 0.05199998617172197,
+      "calls_off": 78.0,
+      "calls_on": 105.0,
+      "p95_off_ms": 0.845,
+      "p95_on_ms": 1.004
+    },
+    {
+      "seed": 1234,
+      "view": "wide",
+      "gpu_off_ms": 0.388999998569489,
+      "gpu_on_ms": 0.407000005245209,
+      "gpu_delta_ms": 0.018000006675719993,
+      "calls_off": 195.0,
+      "calls_on": 229.0,
+      "p95_off_ms": 0.99,
+      "p95_on_ms": 1.061
+    },
+    {
+      "seed": 1234,
+      "view": "pan_zoom",
+      "gpu_off_ms": 0.33500000834465,
+      "gpu_on_ms": 0.356000006198883,
+      "gpu_delta_ms": 0.02099999785423301,
+      "calls_off": 123.578947368421,
+      "calls_on": 148.416236162362,
+      "p95_off_ms": 0.93,
+      "p95_on_ms": 0.932
+    },
+    {
+      "seed": 20261007,
+      "view": "cliff",
+      "gpu_off_ms": 0.335999995470047,
+      "gpu_on_ms": 0.361000001430511,
+      "gpu_delta_ms": 0.025000005960463978,
+      "calls_off": 128.0,
+      "calls_on": 162.0,
+      "p95_off_ms": 0.958,
+      "p95_on_ms": 0.976
+    },
+    {
+      "seed": 20261007,
+      "view": "dense",
+      "gpu_off_ms": 0.324999988079071,
+      "gpu_on_ms": 0.351000010967255,
+      "gpu_delta_ms": 0.026000022888184038,
+      "calls_off": 94.0,
+      "calls_on": 116.0,
+      "p95_off_ms": 0.874,
+      "p95_on_ms": 0.969
+    },
+    {
+      "seed": 20261007,
+      "view": "mountain",
+      "gpu_off_ms": 0.361000001430511,
+      "gpu_on_ms": 0.382999986410141,
+      "gpu_delta_ms": 0.021999984979630016,
+      "calls_off": 194.0,
+      "calls_on": 231.0,
+      "p95_off_ms": 0.945,
+      "p95_on_ms": 0.982
+    },
+    {
+      "seed": 20261007,
+      "view": "shore",
+      "gpu_off_ms": 0.333999991416931,
+      "gpu_on_ms": 0.35699999332428,
+      "gpu_delta_ms": 0.02300000190734902,
+      "calls_off": 83.0,
+      "calls_on": 98.0,
+      "p95_off_ms": 0.936,
+      "p95_on_ms": 1.027
+    },
+    {
+      "seed": 20261007,
+      "view": "wide",
+      "gpu_off_ms": 0.368999987840652,
+      "gpu_on_ms": 0.412000000476837,
+      "gpu_delta_ms": 0.04300001263618497,
+      "calls_off": 195.0,
+      "calls_on": 228.0,
+      "p95_off_ms": 0.943,
+      "p95_on_ms": 1.134
+    },
+    {
+      "seed": 20261007,
+      "view": "pan_zoom",
+      "gpu_off_ms": 0.340999990701675,
+      "gpu_on_ms": 0.331000000238419,
+      "gpu_delta_ms": -0.009999990463256003,
+      "calls_off": 96.5402684563758,
+      "calls_on": 113.392047436345,
+      "p95_off_ms": 0.946,
+      "p95_on_ms": 0.833
+    }
+  ],
+  "seasons": [
+    {
+      "seed": 7,
+      "season": "autumn",
+      "settle_off_ms": 3950.919,
+      "settle_on_ms": 4093.712,
+      "max_frame_off_ms": 100.804,
+      "max_frame_on_ms": 109.128,
+      "sync_off_ms": 15.382,
+      "sync_on_ms": 28.442
+    },
+    {
+      "seed": 7,
+      "season": "spring",
+      "settle_off_ms": 3785.337,
+      "settle_on_ms": 4087.463,
+      "max_frame_off_ms": 91.605,
+      "max_frame_on_ms": 100.993,
+      "sync_off_ms": 15.843,
+      "sync_on_ms": 27.96
+    },
+    {
+      "seed": 7,
+      "season": "summer",
+      "settle_off_ms": 4344.456,
+      "settle_on_ms": 4201.422,
+      "max_frame_off_ms": 101.516,
+      "max_frame_on_ms": 105.515,
+      "sync_off_ms": 17.046,
+      "sync_on_ms": 28.308
+    },
+    {
+      "seed": 7,
+      "season": "winter",
+      "settle_off_ms": 4249.563,
+      "settle_on_ms": 4151.289,
+      "max_frame_off_ms": 103.991,
+      "max_frame_on_ms": 191.144,
+      "sync_off_ms": 15.264,
+      "sync_on_ms": 28.138
+    },
+    {
+      "seed": 17,
+      "season": "autumn",
+      "settle_off_ms": 4111.744,
+      "settle_on_ms": 4223.503,
+      "max_frame_off_ms": 178.148,
+      "max_frame_on_ms": 107.072,
+      "sync_off_ms": 14.843,
+      "sync_on_ms": 26.699
+    },
+    {
+      "seed": 17,
+      "season": "spring",
+      "settle_off_ms": 3938.533,
+      "settle_on_ms": 4106.254,
+      "max_frame_off_ms": 80.123,
+      "max_frame_on_ms": 96.295,
+      "sync_off_ms": 14.914,
+      "sync_on_ms": 25.129
+    },
+    {
+      "seed": 17,
+      "season": "summer",
+      "settle_off_ms": 4047.821,
+      "settle_on_ms": 4141.224,
+      "max_frame_off_ms": 151.486,
+      "max_frame_on_ms": 99.185,
+      "sync_off_ms": 14.861,
+      "sync_on_ms": 25.533
+    },
+    {
+      "seed": 17,
+      "season": "winter",
+      "settle_off_ms": 4027.927,
+      "settle_on_ms": 4213.037,
+      "max_frame_off_ms": 97.829,
+      "max_frame_on_ms": 110.462,
+      "sync_off_ms": 14.655,
+      "sync_on_ms": 25.43
+    },
+    {
+      "seed": 1234,
+      "season": "autumn",
+      "settle_off_ms": 4156.413,
+      "settle_on_ms": 4501.396,
+      "max_frame_off_ms": 107.111,
+      "max_frame_on_ms": 114.521,
+      "sync_off_ms": 16.54,
+      "sync_on_ms": 25.743
+    },
+    {
+      "seed": 1234,
+      "season": "spring",
+      "settle_off_ms": 4204.929,
+      "settle_on_ms": 4337.291,
+      "max_frame_off_ms": 92.187,
+      "max_frame_on_ms": 106.269,
+      "sync_off_ms": 16.093,
+      "sync_on_ms": 25.212
+    },
+    {
+      "seed": 1234,
+      "season": "summer",
+      "settle_off_ms": 4231.024,
+      "settle_on_ms": 4380.249,
+      "max_frame_off_ms": 105.228,
+      "max_frame_on_ms": 117.029,
+      "sync_off_ms": 15.526,
+      "sync_on_ms": 35.813
+    },
+    {
+      "seed": 1234,
+      "season": "winter",
+      "settle_off_ms": 4163.322,
+      "settle_on_ms": 4547.915,
+      "max_frame_off_ms": 102.89,
+      "max_frame_on_ms": 184.398,
+      "sync_off_ms": 14.527,
+      "sync_on_ms": 25.98
+    },
+    {
+      "seed": 20261007,
+      "season": "autumn",
+      "settle_off_ms": 4147.179,
+      "settle_on_ms": 4411.549,
+      "max_frame_off_ms": 98.605,
+      "max_frame_on_ms": 109.966,
+      "sync_off_ms": 14.011,
+      "sync_on_ms": 26.473
+    },
+    {
+      "seed": 20261007,
+      "season": "spring",
+      "settle_off_ms": 4056.127,
+      "settle_on_ms": 4280.812,
+      "max_frame_off_ms": 88.026,
+      "max_frame_on_ms": 100.865,
+      "sync_off_ms": 13.858,
+      "sync_on_ms": 26.661
+    },
+    {
+      "seed": 20261007,
+      "season": "summer",
+      "settle_off_ms": 4163.511,
+      "settle_on_ms": 4448.538,
+      "max_frame_off_ms": 95.187,
+      "max_frame_on_ms": 194.439,
+      "sync_off_ms": 13.676,
+      "sync_on_ms": 27.219
+    },
+    {
+      "seed": 20261007,
+      "season": "winter",
+      "settle_off_ms": 4183.117,
+      "settle_on_ms": 4423.581,
+      "max_frame_off_ms": 99.024,
+      "max_frame_on_ms": 111.406,
+      "sync_off_ms": 13.847,
+      "sync_on_ms": 26.55
+    }
+  ]
+}
