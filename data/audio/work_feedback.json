@@ -20,11 +20,81 @@
       "res://assets/audio/work/axe_chop_06.wav"
     ],
     "completion": ["res://assets/audio/work/tree_felled.wav"],
+    "promotion": ["res://assets/audio/ui/promotion.wav"],
     "mining_stone": [
       "res://assets/audio/work/pick_stone_01.wav", "res://assets/audio/work/pick_stone_02.wav",
       "res://assets/audio/work/pick_stone_03.wav", "res://assets/audio/work/pick_stone_04.wav",
       "res://assets/audio/work/pick_stone_05.wav", "res://assets/audio/work/pick_stone_06.wav"
     ],
+    "rabbit_select": [
+      "res://assets/audio/wildlife/rabbit_select_01.wav",
+      "res://assets/audio/wildlife/rabbit_select_02.wav",
+      "res://assets/audio/wildlife/rabbit_select_03.wav"
+    ],
+    "rabbit_graze": [
+      "res://assets/audio/wildlife/rabbit_graze_01.wav",
+      "res://assets/audio/wildlife/rabbit_graze_02.wav",
+      "res://assets/audio/wildlife/rabbit_graze_03.wav"
+    ],
+    "deer_select": [
+      "res://assets/audio/wildlife/deer_select_01.wav",
+      "res://assets/audio/wildlife/deer_select_02.wav",
+      "res://assets/audio/wildlife/deer_select_03.wav"
+    ],
+    "deer_graze": [
+      "res://assets/audio/wildlife/deer_graze_01.wav",
+      "res://assets/audio/wildlife/deer_graze_02.wav",
+      "res://assets/audio/wildlife/deer_graze_03.wav"
+    ],
+    "wolf_select": [
+      "res://assets/audio/wildlife/wolf_select_01.wav",
+      "res://assets/audio/wildlife/wolf_select_02.wav",
+      "res://assets/audio/wildlife/wolf_select_03.wav"
+    ],
+    "wolf_eat": [
+      "res://assets/audio/wildlife/wolf_eat_01.wav",
+      "res://assets/audio/wildlife/wolf_eat_02.wav",
+      "res://assets/audio/wildlife/wolf_eat_03.wav"
+    ],
+    "profiles": {
+      "promotion": {"level_db": -2.0, "cooldown_seconds": 0.2},
+      "wolf_select": {
+        "near_radius": 4.0, "far_radius": 28.0,
+        "zoom_reference": 20.0, "zoom_exponent": 1.4,
+        "level_db": -5.0, "cooldown_seconds": 1.0, "max_voices": 1,
+        "allow_paused": true
+      },
+      "wolf_eat": {
+        "near_radius": 3.0, "far_radius": 18.0,
+        "zoom_reference": 16.0, "zoom_exponent": 1.6, "max_zoom": 56.0,
+        "level_db": -7.0, "cooldown_seconds": 0.3, "max_voices": 2,
+        "pause_with_simulation": true, "required_activity": "Eating"
+      },
+      "deer_select": {
+        "near_radius": 4.0, "far_radius": 28.0,
+        "zoom_reference": 20.0, "zoom_exponent": 1.4,
+        "level_db": -4.0, "cooldown_seconds": 0.85, "max_voices": 1,
+        "allow_paused": true
+      },
+      "deer_graze": {
+        "near_radius": 3.0, "far_radius": 18.0,
+        "zoom_reference": 16.0, "zoom_exponent": 1.6, "max_zoom": 56.0,
+        "level_db": -7.0, "cooldown_seconds": 0.25, "max_voices": 2,
+        "pause_with_simulation": true, "required_activity": "Grazing"
+      },
+      "rabbit_select": {
+        "near_radius": 3.0, "far_radius": 24.0,
+        "zoom_reference": 18.0, "zoom_exponent": 1.4,
+        "level_db": -4.0, "cooldown_seconds": 0.75, "max_voices": 1,
+        "allow_paused": true
+      },
+      "rabbit_graze": {
+        "near_radius": 2.0, "far_radius": 14.0,
+        "zoom_reference": 14.0, "zoom_exponent": 1.6, "max_zoom": 56.0,
+        "level_db": -7.0, "cooldown_seconds": 0.2, "max_voices": 2,
+        "pause_with_simulation": true, "required_activity": "Grazing"
+      }
+    },
     "mining_soil": [
       "res://assets/audio/work/pick_soil_01.wav", "res://assets/audio/work/pick_soil_02.wav",
       "res://assets/audio/work/pick_soil_03.wav", "res://assets/audio/work/pick_soil_04.wav",

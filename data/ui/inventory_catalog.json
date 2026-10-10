@@ -6,6 +6,7 @@
     {"id": "furniture", "label": "Furniture"},
     {"id": "storage", "label": "Storage"},
     {"id": "lighting", "label": "Lighting"},
+    {"id": "tools", "label": "Tools", "tags": ["tool"]},
     {"id": "food", "label": "Food & seeds", "tags": ["stockpile_food", "stockpile_seed"]},
     {"id": "drink", "label": "Drink", "tags": ["stockpile_drink"]},
     {"id": "other", "label": "Other"}

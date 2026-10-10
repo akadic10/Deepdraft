@@ -47,6 +47,9 @@ var _autosave_backup_path: String = AUTOSAVE_BACKUP_PATH
 var _autosave_temp_path: String = AUTOSAVE_TEMP_PATH
 var _autosave_backup_stage_path: String = AUTOSAVE_BACKUP_STAGE_PATH
 
+func is_loading() -> bool:
+	return _loading
+
 
 ## Isolates automated tests from the player's real quick-save files. This is
 ## intentionally unavailable in release builds.

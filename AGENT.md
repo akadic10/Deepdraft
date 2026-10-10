@@ -2,12 +2,129 @@
 
 This file is the **entry point** for any AI agent working on this codebase. Read it first. It maps every design document to its purpose and tells you which file to consult before touching any system.
 
-**Latest session handoff:** [89 — 2026-10-09](docs/00_dev_roadmap/89_session_handoff_2026_10_09.md)
-records seeded geography, caves/ore, seasonal surface details, plant relocation
-and growth, worker selection, crafted ladders and the successful player staircase
-test. It separates completed work from optional ladder planning, honey, cave,
-balance/performance follow-ups and older open issues. Read it alongside the
-relevant milestone and system docs when resuming.
+**Development save policy (2026-10-09, user decision):** Backward compatibility
+with older development saves is not required. Do not add legacy definitions,
+migrations or compatibility branches just to preserve old saves unless the user
+explicitly requests them. Keep current-version save/load working; development
+changes may invalidate older saves. Use current definitions when loading rather
+than retaining obsolete layouts that require players to rebuild items manually.
+
+**Equipment view and promotion feedback — live (2026-10-09):** [102 — Equipment feedback](docs/00_dev_roadmap/102_equipment_view_promotion_feedback.md)
+adds a shared Equipment tab to the Colony detail column and standalone inspector.
+It shows the actual owned kit, thumbnail, materials and benefit, plus clearly
+planned Iron saw / Iron pickaxe upgrade paths. No upgrade goods or bonuses are
+invented. A short original chime plays on completed promotion, including paused
+Miner appointments; requests, cancellation, demotion and restoration are silent.
+Native UI at three resolutions, completion/restore checks, audio PCM/volume/mute
+and existing promotion/inspector/roster/profession/work/wildlife tests pass.
+
+**Carpenter tool promotion — live (2026-10-09):** [101 — Tool promotion](docs/00_dev_roadmap/101_tool_based_promotion.md)
+requires an available crude carpentry kit. A dwarf reserves and physically picks
+it up before becoming a Carpenter. The inspector shows equipped tools; inventory
+counts them separately from cargo. Cancellation/sleep and changing professions
+release real goods without loss. Equipped and pending promotions survive current
+save/load and backup recovery. Miner keeps free promotion/default pickaxe;
+Carpenter specialist workshop/recipes and other starter-tool careers remain planned.
+
+**Profession crafting and camp furniture — live (2026-10-09):** [100 — Camp crafting](docs/00_dev_roadmap/100_profession_crafting_camp.md)
+opens Craft's profession-button submenu above the dock, then the selected
+profession's recipes/orders or planned preview. The old dropdown is removed;
+Rudimentary contains the live Worker recipes and a Crafters button returns to
+the submenu. Profession buttons wrap into two rows on compact screens.
+Campfires and compact 1×1 stump stools are craftable at the crude workbench,
+physically hauled and installed. Campfires center on a tile in a 3×3 placement
+area and animate/light; idle dwarves use stools directly beside all four sides.
+Stool occupants rest their hands in front and independently face a nearby clear
+campfire, with a small head turn for off-axis fires. Rounded head/beard clearance
+and separate low body/fire regions permit this spacing. Preview
+gating, save/load, compact layouts and existing crafting regressions pass.
+
+**Dwarf idle activity — live (2026-10-09):** [99 — Idle activity](docs/00_dev_roadmap/99_dwarf_idle_activity.md)
+adds staggered local strolls, looking around and exclusive use of nearby wooden
+chairs after work. Leisure stays interruptible and in the scheduler's available
+pool. Same-level local movement, seat removal/sleep cleanup, save-safe poses,
+inspection and native seated views are covered; needs and dining are separate.
+
+**Crafting worker selection — fixed (2026-10-09):** [98 — Crafting selection](docs/00_dev_roadmap/98_crafting_worker_selection.md)
+extends pickup proximity to every Worker recipe. All eligible idle dwarves are
+compared at the first material, with bounded pickup/workbench route checks and
+exact material reservation. Loose, stockpiled and container ingredients compete;
+failed nearby routes cannot hide other workers, materials or workbenches.
+
+**Starter profession tools — live (2026-10-09):** [97 — Starter tools](docs/00_dev_roadmap/97_starter_profession_tools.md)
+adds Worker-crafted stone hoes, hunting spears, carpentry kits and stone hammers
+at the crude workbench, each from one allowed log plus one Rough Stone. Physical
+material trips, safe interruption, storage, save/load, Tools inventory and native
+menus are covered. Profession cards show tool stock; Carpenter pickup/equipping
+followed in milestone 101. Other specialist promotions remain planned.
+A forged saw is a Carpenter upgrade, not its entry gate.
+
+**Professions and Miner — live (2026-10-09):** [96 — Professions](docs/00_dev_roadmap/96_professions_and_miner.md)
+adds the career map and appointment card, usable Worker/Miner changes, and planned
+Farmer/Hunter/Carpenter/Stonemason/Blacksmith careers. Colony Labor opens real Work
+permissions. Miners receive mining preference and levels 1–5 from completed blocks;
+Workers retain normal mining. Safe release, retained XP, permission saves, native
+compact layouts and gameplay/save regressions are covered in the milestone.
+The agreed equipment follow-up is planned: Miner keeps its default pickaxe/free
+promotion; crafted iron and later advanced-metal picks add bounded multi-voxel
+mining. Selected careers will need starter tools. See the equipment sections in
+[41 — Dwarves](docs/40_economy_colony/41_dwarf_agents.md) and
+[43 — Mining](docs/40_economy_colony/43_mining_materials.md). Starter tools are now
+craftable (97); Carpenter equipping is live (101), while equipment bonuses remain planned.
+
+**Deer and wolf arrivals — live (2026-10-09):** [95 — Deer/wolf arrivals](docs/00_dev_roadmap/95_deer_wolf_arrivals.md)
+extends shared events with 2–4 deer every 4–7 days and 1–2 wolves every 7–12
+days, capped at 18 deer / 4 wolves. Full-footprint routes, separate herd homes,
+prey-surplus/local-food gates and saved group progress preserve gentle balance.
+Wolves settle before hunting; kills never accelerate or enlarge events.
+Startup planning waits for tree occupancy. **DEV: Arrival status** covers all
+species; **DEV: Next deer arrival / Next wolf arrival** locates new entrants.
+Four-seed routes, mixed save/backup restoration and wildlife regressions pass.
+
+**Rabbit arrival events — live (2026-10-09):** [94 — Rabbit arrivals](docs/00_dev_roadmap/94_rabbit_arrival_events.md)
+adds the shared WorldEventDirector scene owner and rabbit provider: scheduled
+1–4-member opportunities every 2–4 days, validated edge-to-inland routes,
+staggered entry, population caps and expiry. Kills never accelerate or enlarge
+arrivals. Saved local hunting pressure is wired for future player hunting;
+predation does not add it. Mid-group/mid-stride saves, backup restoration,
+four-seed routes, native inspection/Follow and wildlife regressions pass.
+**DEV: Arrival status / Next arrival** reviews opportunities and entered rabbits.
+Deer/wolf support followed in milestone 95; visitor/raid providers remain future work.
+
+**Rabbit wildlife — live (2026-10-09):** [90 — Rabbit wildlife](docs/00_dev_roadmap/90_rabbit_wildlife.md)
+adds seeded rabbits, gentle grazing and sleep, dwarf avoidance, voxel animation,
+shared inspection/Follow and persistence. **Menu → Development → DEV: Next rabbit**
+locates one. Behavior, native picking/art and full save/backup checks pass.
+[45 — Wildlife](docs/40_economy_colony/45_wildlife.md) records ownership, tuning
+and deferred berries and farm theft.
+
+[91 — Rabbit audio](docs/00_dev_roadmap/91_rabbit_audio.md) adds three quiet
+selection and three grazing variations using the existing Work audio bus/pool.
+Click cooldown, nearby/zoom attenuation, pause-aware eating, slice/source cleanup
+and native PCM checks pass; audio never changes wildlife needs, RNG or saves.
+
+**Deer wildlife — live (2026-10-09):** [92 — Deer wildlife](docs/00_dev_roadmap/92_deer_wildlife.md)
+adds up to eighteen deer in six loose groups, articulated grazing/rest/walking,
+faster escape and quiet selection/eating sounds. **DEV: Next deer** locates one.
+Shared GrazerAgent preserves rabbit behavior; species-specific navigation uses
+the full deer footprint. Herd identity and mixed populations persist, and older
+rabbit-only saves gain deer once. Native, behavior, audio and save checks pass.
+
+**Wolves — live (2026-10-09):** [93 — Wolf wildlife](docs/00_dev_roadmap/93_wolf_wildlife.md)
+adds four sparse predators with hunger-gated, bounded hunts, prey escape,
+atomic captures, long meal satisfaction and protected prey reserves. Wolves
+avoid dwarves. Art, soft selection/eating sounds, inspection, saved pursuits
+and one-time migration are included. **DEV: Next wolf** locates one. Behavior,
+four-seed population, native, audio, save/backup and grazer regression checks pass.
+
+**Latest session handoff:** [103 — Evening 2026-10-09](docs/00_dev_roadmap/103_session_handoff_2026_10_09_evening.md)
+records wildlife/arrivals, professions, starter tools, crafting selection, camp
+furniture/leisure, physical Carpenter promotion and Equipment/promotion feedback.
+The recommended next milestone is Carpenter's workbench and first specialist
+recipes; promotion is live but specialist production and tool upgrades are not.
+It preserves naming/save decisions, final verification and outstanding work.
+[89 — Earlier handoff](docs/00_dev_roadmap/89_session_handoff_2026_10_09.md) retains
+the world, caves, plants and ladder history. Read the relevant system docs as well.
 
 **Seeded world layout — live (2026-10-07):** [66 — Seeded world layout](docs/00_dev_roadmap/66_seeded_world_layout.md)
 replaces fixed compass geography with seeded ridges, a guaranteed ≥32×32 Y115
@@ -244,6 +361,7 @@ verification. Visibility only; dwarf work is unchanged.
 | [`42_farming_brewing.md`](docs/40_economy_colony/42_farming_brewing.md) | Add crops, recipes, farm logic, or plant visual meshes. |
 | [`43_mining_materials.md`](docs/40_economy_colony/43_mining_materials.md) | Add block types, change noise generation, or touch collapse logic. |
 | [`44_crafting_workshops.md`](docs/40_economy_colony/44_crafting_workshops.md) | Work on the Smelter or Forge workshops, Blacksmith/Weaponsmith/Armorsmith professions, metalworking recipes, or ingot stockpile logic. |
+| [`45_wildlife.md`](docs/40_economy_colony/45_wildlife.md) | Work on rabbits/deer/wolves, wildlife needs, animal navigation, herds, hunting, spawning, inspection or future food connections. |
 
 ### 📁 World Events — `docs/50_world_events/`
 
@@ -275,7 +393,7 @@ These constraints appear in individual documents but are listed here for quick r
 1. **Bedrock Protocol**: Never allow any action to modify or mine `Y = 0`. (`12_world_grid.md`)
 2. **RTS-only camera**: No first-person, no WASD direct control. (`11_overview.md`)
 3. **Block ID format**: Save files store namespaced strings, never runtime integers. (`12_world_grid.md`, `13_architecture.md`)
-4. **3-block nav clearance**: Pathfinding requires 3 empty air blocks above every floor node. (`32_navigation_3d.md`)
+4. **3-block dwarf nav clearance**: Dwarf pathfinding requires 3 empty air blocks above every floor node. (`32_navigation_3d.md`) Wildlife uses separate species clearance; never relax dwarf NavGrid for animals. (`45_wildlife.md`)
 5. **Single-tile plant footprint**: Plant visual overhangs must never have collision shapes. (`42_farming_brewing.md`)
 6. **Visual vs logical dwarf height**: Use 3-block logical height for nav/collision, not the 3.3-block visual mesh. (`41_dwarf_agents.md`)
 7. **No 3D UI elements**: All UI lives on a `CanvasLayer`. (`23_user_interface.md`)

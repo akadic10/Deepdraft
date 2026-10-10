@@ -41,11 +41,29 @@
 > quantity, allowed wood and partial progress; it reuses physical fetch/work/
 > set-down and cheap release. Only current Workers receive these starter jobs.
 > First benches are made at the ingredient pickup spot; workshop recipes use
-> any open side of a claimed stump, reconsidered after pickup. The lease's
+> a reachable open side of a claimed stump. The lease's
 > placeholder `target_pos` is not the worksite: routing and inspection use the
 > order's actual `work_cell`. See [64 — Crafting](../00_dev_roadmap/64_worker_crafting.md).
 
+> **CRAFT pickup selection fixed (2026-10-09, doc 98):** compare every eligible
+> idle Worker at the first physical ingredient (stone for starter tools, timber
+> for earlier recipes). Rank read-only loose/storage quotes by Manhattan pickup
+> distance, with idle order only breaking ties. Bounded, resumable searches prove
+> a handling stand and a free workbench before reservation. Execution receives
+> the exact quoted material, pickup stand and delivery stand; a blocked candidate
+> does not hide other workers/materials/benches. Priorities and work permissions
+> run first. An assigned Worker retains the current batch, including later inputs;
+> the next batch returns to normal selection. See
+> [98 — Crafting selection](../00_dev_roadmap/98_crafting_worker_selection.md).
+
 ## Overview
+
+**Idle leisure live (2026-10-09):** available dwarves can stroll locally or sit
+in an installed wooden chair without creating an IDLE lease or leaving
+`_idle_dwarves`. `receive_task` cancels leisure movement and releases any seat
+before the work executor starts. Existing priority, profession, permission and
+proximity rules remain responsible for selecting workers. Sleep still removes
+a dwarf from availability. See [99 — Idle activity](../00_dev_roadmap/99_dwarf_idle_activity.md).
 
 **HARVEST_TREE live (2026-10-09):** appended priority-50 hand-picking work for
 juniper. The existing adjacent-work source respects the actual trunk footprint
@@ -246,6 +264,12 @@ comparison; the executor receives those exclusions for its initial pull. A task
 backs off only after its worker/pickup alternatives are exhausted.
 
 ### Skill Compatibility
+
+**Runtime update (2026-10-09):** Workers retain normal mining speed; the older
+0.7 off-profession proposal below is not applied. Miner levels shorten digging
+duration by 0/5/10/15/20 percent. Idle Miners get first refusal within the existing
+mining bucket, without bypassing higher priorities or reachability. Work permissions
+filter eligibility and safely release disallowed current jobs. See milestone 96.
 
 Each `Task.Type` maps to a preferred dwarf skill. A dwarf without the preferred skill can still take the task at reduced efficiency (×0.7 speed multiplier).
 

@@ -418,9 +418,26 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 	if not _seating.snap.is_empty():
 		cell = _seating.snap.origin
 		_yaw = _seating.snap.yaw
+	else:
+		cell = _cursor_origin(_defs.get(_active_key, {}), cell, _yaw)
 	_hover_cell = cell
 	_hover_valid = _placement_valid(cell)
 	_position_preview(cell)
+
+
+## Saved origins stay minimum-corner floor cells. Centered placement only
+## converts the cursor's tile to that origin; models still use _world_pos.
+func _cursor_origin(def: Dictionary, cell: Vector3i, yaw: int) -> Vector3i:
+	if String(def.get("placement_anchor", "corner")) != "center":
+		return cell
+	var fp: Dictionary = def.get("footprint", {})
+	var w := int(fp.get("width", 1))
+	var d := int(fp.get("depth", 1))
+	if yaw % 2 == 1:
+		var t := w
+		w = d
+		d = t
+	return cell - Vector3i(floori(float(w) * .5), 0, floori(float(d) * .5))
 
 
 func _placement_valid(origin: Vector3i) -> bool:
@@ -747,6 +764,13 @@ func _update_hint(_origin: Vector3i) -> void:
 		_hint_label.text = "Table seat — chair faces inward. Click to place; Esc to finish."
 	if _hover_valid and bool(_defs.get(_active_key, {}).get("plant", false)):
 		_hint_label.text = "Click to choose this plant’s new home · R rotates · Esc cancels" if not _moving_shrub.is_empty() else "Click to plant here · reserves a 3 × 3 area · R rotates · Esc finishes"
+	if bool(_defs.get(_active_key, {}).get("show_placement_area", false)):
+		var fp: Dictionary = _defs[_active_key].footprint
+		var area := "%d × %d" % [int(fp.width), int(fp.depth)]
+		if _hover_valid:
+			_hint_label.text = "Click to place · reserves a %s area · R rotates · Esc finishes" % area
+		elif _invalid_reason == "cell":
+			_hint_label.text = "Needs a clear, level %s area" % area
 	_hint_label.visible = not _hint_label.text.is_empty()
 	if _active_key == _ladders.KEY:
 		var spec: Dictionary = _ladders.describe(_origin, _yaw)
@@ -810,12 +834,18 @@ func _instance_model(furniture_key: String, override: Material, definition: Dict
 		return null
 	var node := scene.instantiate() as Node3D
 	_apply_material(node, override)
-	if bool(def.get("plant", false)):
+	var plant := bool(def.get("plant", false))
+	var ghost_area := bool(def.get("show_placement_area", false)) and override is BaseMaterial3D \
+		and (override as BaseMaterial3D).transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
+	if plant or ghost_area:
 		var outline := MeshInstance3D.new()
-		outline.name = "PlantingArea"
+		outline.name = "PlantingArea" if plant else "PlacementArea"
 		var mesh := ImmediateMesh.new()
 		mesh.surface_begin(Mesh.PRIMITIVE_LINES, override)
-		var corners := [Vector3(-1.5,.04,-1.5), Vector3(1.5,.04,-1.5), Vector3(1.5,.04,1.5), Vector3(-1.5,.04,1.5)]
+		var fp: Dictionary = def.get("footprint", {})
+		var half_w := 1.5 if plant else float(fp.get("width", 1)) * .5
+		var half_d := 1.5 if plant else float(fp.get("depth", 1)) * .5
+		var corners := [Vector3(-half_w,.04,-half_d), Vector3(half_w,.04,-half_d), Vector3(half_w,.04,half_d), Vector3(-half_w,.04,half_d)]
 		for i in range(4):
 			mesh.surface_add_vertex(corners[i])
 			mesh.surface_add_vertex(corners[(i+1)%4])
@@ -1212,7 +1242,7 @@ func restore_state(state: Dictionary) -> void:
 			component.set_uninstall(true)
 
 
-## Unversioned saves predate wide chairs. Preserve their model and footprint;
+## Preserve explicitly versioned layouts when a footprint grows on update;
 ## rebuilding their refunded item uses the current definition.
 func _definition_for_saved(key: String, entry: Dictionary) -> Dictionary:
 	var def: Dictionary = _defs[key]

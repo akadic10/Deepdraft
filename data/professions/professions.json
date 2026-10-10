@@ -1,6 +1,9 @@
 {
   "__comment": [
     "Profession definitions for all dwarf roles.",
+    "RUNTIME (2026-10-09): Worker and Miner are usable; Carpenter promotion requires a physical kit, while specialist recipes remain planned.",
+    "Only Miner experience currently advances: one point per successfully mined block, cumulative levels 1-5.",
+    "Worker speed stays unchanged. Other role bonuses and level 6 below remain future design.",
     "",
     "PROFESSION SYSTEM:",
     "  Every dwarf has exactly one active profession at a time.",
@@ -37,11 +40,29 @@
     "  Fallback task quality and speed are unaffected by profession experience.",
     "",
     "STATUS FIELD:",
-    "  'active'          — fully designed and implemented.",
+    "  'active'          — legacy design status; does not authorize runtime promotion.",
     "  'not_implemented' — namespace reserved; design stub only.",
     "                      No tasks or rooms reference this profession yet."
   ],
 
+  "promotion_screen": [
+    {"role": "worker", "icon": "colony", "position": [278, 12], "summary": "A versatile colony member. Mines, gathers, hauls, builds and crafts basic goods.", "availability": "No requirements. Return to Worker at any time."},
+    {"role": "miner", "icon": "orders", "position": [8, 116], "summary": "Keeps the tunnels moving. Prioritizes mining within work priorities, then helps with permitted general work.", "availability": "No tool or level requirement."},
+    {"role": "farmer", "icon": "farm", "position": [116, 116], "summary": "Plants, tends and harvests cultivated crops. Planned support for fields, underground crops and beehives.", "starter_tool": "base:resources:tools:stone_hoe", "availability": "Planned: farming and tool equipping are not available yet."},
+    {"role": "hunter", "icon": "hunter", "position": [224, 116], "summary": "Hunts designated wildlife for the colony. Tracking and trapping may follow later.", "starter_tool": "base:resources:tools:hunting_spear", "availability": "Planned: requires player hunting, tool equipping and animal resource yields."},
+    {"role": "carpenter", "icon": "craft", "position": [332, 116], "summary": "Collects a carpentry kit to join this profession. Helps with general colony work; specialist wooden goods are planned.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it. Specialist workshop and recipes are planned."},
+    {"role": "stonemason", "icon": "clear_boulders", "position": [440, 116], "summary": "Shapes stone into furniture, building components and decorative pieces.", "availability": "Planned: requires a stone workshop and recipes. Promotion requirements are not finalized."},
+    {"role": "blacksmith", "icon": "anvil", "position": [548, 116], "summary": "Smelts ore and forges metal tools and hardware. Leads to weaponsmithing and armorsmithing.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Planned: requires smelting, forging and tool equipping."},
+    {"role": "weaponsmith", "icon": "hunter", "position": [440, 250], "summary": "An experienced Blacksmith specializing in weapons for the colony.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."},
+    {"role": "armorsmith", "icon": "shield", "position": [548, 250], "summary": "An experienced Blacksmith specializing in armor and shields.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."}
+  ],
+  "work_permissions": [
+    {"id": "haul", "label": "Haul", "description": "Unrelated hauling to storage. Carrying supplies for another permitted job stays allowed.", "tasks": ["HAUL"]},
+    {"id": "gather", "label": "Gather", "description": "Chop trees, gather stone, harvest wild plants and clear or uproot plants.", "tasks": ["FELL_TREE", "CLEAR_BOULDER", "GATHER_SCREE", "HARVEST_SHRUB", "CLEAR_SHRUB", "CLEAR_PLANT", "UPROOT_SHRUB", "HARVEST_TREE"]},
+    {"id": "mine", "label": "Mine", "description": "Mine designated terrain. Miners gain experience for completed blocks.", "tasks": ["MINE"]},
+    {"id": "build", "label": "Build", "description": "Place and remove furniture, ladders and plants, including carrying their supplies.", "tasks": ["BUILD", "FETCH_BUILD", "UNINSTALL"]},
+    {"id": "craft", "label": "Craft", "description": "Craft basic Worker recipes. Available to Workers; return a Miner to Worker to craft.", "tasks": ["CRAFT"]}
+  ],
   "experience_thresholds": {
     "__comment": [
       "Universal thresholds shared by all professions.",
@@ -58,6 +79,14 @@
   "professions": {
 
     "base:profession:worker": {
+      "promotion_enabled": true,
+      "equipment_preview": {
+        "default_name": "Basic work tools", "icon": "colony",
+        "default_description": "Standard tools for general colony work. No crafted upgrade equipped.",
+        "upgrade_name": "Profession tools",
+        "upgrade_description": "A Carpenter collects a crude carpentry kit when promoted. Other specialist tool careers are planned.",
+        "upgrade_method": "Craft a kit under Rudimentary → Starter tools, then choose Carpenter in Profession."
+      },
       "display_name": "Worker",
       "description": "The foundation of every dwarven colony. Workers haul goods, clear rubble, and fill in wherever a specialist is unavailable. Every dwarf begins as a Worker and retains this as a fallback when reassigned.",
       "is_base_profession": true,
@@ -100,6 +129,14 @@
     },
 
     "base:profession:miner": {
+      "equipment_preview": {
+        "default_name": "Default pickaxe", "icon": "orders",
+        "default_description": "Standard mining tool. No equipment bonus; Miner experience improves digging speed separately.",
+        "upgrade_name": "Iron pickaxe", "upgrade_status": "Planned · Not craftable yet",
+        "upgrade_description": "Future Blacksmith-made upgrade. Planned chance to mine 2–3 marked voxels per strike; balance is not finalized.",
+        "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
+      },
+      "promotion_enabled": true,
       "display_name": "Miner",
       "description": "Breaks stone, carves tunnels, and expands the colony's underground domain. The colony's primary engine of growth.",
       "is_base_profession": false,
@@ -141,6 +178,12 @@
       ]
     },
 
+    "base:profession:hunter": {
+      "display_name": "Hunter", "promotes_from": "base:profession:worker", "status": "not_implemented", "task_types": [], "experience_levels": []
+    },
+    "base:profession:stonemason": {
+      "display_name": "Stonemason", "promotes_from": "base:profession:worker", "status": "not_implemented", "task_types": [], "experience_levels": []
+    },
     "base:profession:farmer": {
       "display_name": "Farmer",
       "description": "Plants, tends, and harvests all crops — both underground cave soil plots and surface dirt fields. Also responsible for tending beehives.",
@@ -384,13 +427,22 @@
     },
 
     "base:profession:carpenter": {
+      "promotion_enabled": true,
+      "required_tool": "base:resources:tools:carpentry_kit",
+      "equipment_preview": {
+        "default_name": "No carpentry tool equipped", "icon": "craft",
+        "default_description": "A crude carpentry kit is required for this profession.",
+        "upgrade_name": "Iron saw", "upgrade_status": "Planned · Not craftable yet",
+        "upgrade_description": "Future Blacksmith-made upgrade beyond the mallet and stone adze. Carpentry benefits will be defined with specialist recipes.",
+        "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
+      },
       "display_name": "Carpenter",
       "description": "Processes raw timber into furniture, structural components, and crafted wooden goods.",
       "is_base_profession": false,
       "promotes_from": "base:profession:worker",
       "status": "not_implemented",
 
-      "__comment": "Requires a carpentry workshop and a full furniture/crafting design session before activation.",
+      "__comment": "Tool-based promotion is live. Specialist workshop, recipes and experience remain planned.",
 
       "task_types":          [],
       "fallback_task_types": ["HAUL", "CLEAR_RUBBLE"],

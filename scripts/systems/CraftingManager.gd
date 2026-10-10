@@ -7,6 +7,7 @@ const Order = preload("res://scripts/components/WorkerCraftOrder.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const DATA := "res://data/workshops/worker_crafting.json"
 var recipes: Dictionary = {}
+var sections: Dictionary = {}
 var orders: Array = []
 var bench_claims: Dictionary = {}
 var items: ItemDropManager
@@ -16,6 +17,7 @@ var _next_id := 1
 var _dirty := false
 var _elapsed := 0.0
 var _leaving := false
+var selection_revision := 0
 
 func _ready() -> void:
 	add_to_group("crafting_manager")
@@ -27,9 +29,9 @@ func _ready() -> void:
 	if furniture == null:
 		for node in get_parent().get_children():
 			if node is FurniturePlacementController: furniture = node
-	if items != null: items.loose_items_changed.connect(wake)
+	if items != null: items.loose_items_changed.connect(_selection_changed)
 	StockpileManager.stockpile_changed.connect(func(_key: String, _count: int): wake())
-	if furniture != null: furniture.catalog_changed.connect(wake)
+	if furniture != null: furniture.catalog_changed.connect(_selection_changed)
 	TaskManager.task_completed.connect(_task_gone)
 	TaskManager.task_cancelled.connect(_task_gone)
 	TaskManager.task_failed.connect(func(task: Task, _reason: String): _task_gone(task))
@@ -42,8 +44,10 @@ func _load_definitions() -> void:
 	var raw = JSON.parse_string(FileAccess.get_file_as_string(DATA))
 	if not raw is Dictionary: return
 	max_orders = int(raw.get("max_orders",64))
+	for section: Dictionary in raw.get("sections",[]):
+		sections[String(section.id)] = section
 	for recipe: Dictionary in raw.get("recipes",[]):
-		# The starter executor handles one physical timber unit per batch.
+		# One selectable timber unit, plus optional fixed single-unit materials.
 		if int(recipe.get("ingredient_count",0)) != 1 or float(recipe.get("work_seconds",0)) <= 0:
 			push_error("Unsupported Worker recipe: " + str(recipe.get("id")))
 			continue
@@ -59,6 +63,10 @@ func wake() -> void:
 	if _dirty or _leaving: return
 	_dirty = true
 	_refresh.call_deferred()
+
+func _selection_changed() -> void:
+	selection_revision += 1
+	wake()
 
 func _refresh() -> void:
 	_dirty = false
@@ -133,7 +141,8 @@ func set_allowed_ingredients(id: int, selected: Array) -> void:
 	# Applying a stricter rule takes effect even during pickup/work. The normal
 	# cancellation path returns the intact log; progress stays on the order.
 	if order.lease_id >= 0 and is_instance_valid(order.item) \
-			and items.item_key_of(order.item) not in keys:
+			and items.item_key_of(order.item) not in keys \
+			and items.item_key_of(order.item) not in additional_ingredient_keys(order.recipe):
 		TaskManager.cancel_task(order.lease_id)
 	wake()
 
@@ -194,9 +203,11 @@ func stock_snapshot() -> Dictionary:
 	return Inventory.snapshot(items, furniture)
 
 func reserve_ingredient(recipe: Dictionary, from: Vector3i, dwarf_id: int, allowed: Array[String]) -> Node3D:
+	return reserve_material(allowed_ingredient_keys(recipe,allowed), from, dwarf_id)
+
+func reserve_material(keys: Array[String], from: Vector3i, dwarf_id: int) -> Node3D:
 	var candidate: Node3D
 	var distance := INF
-	var keys := allowed_ingredient_keys(recipe,allowed)
 	for key in keys:
 		var node := items.nearest_loose_of_key(key, from, {})
 		if node != null and items.quantity_of(node) == 1:
@@ -205,6 +216,44 @@ func reserve_ingredient(recipe: Dictionary, from: Vector3i, dwarf_id: int, allow
 			if score < distance: candidate = node; distance = score
 	if candidate != null and items.reserve(candidate, dwarf_id): return candidate
 	return StockpileManager.withdraw_matching_item(keys, from, dwarf_id)
+
+func additional_ingredient_keys(recipe: Dictionary) -> Array[String]:
+	var keys: Array[String] = []
+	for key in recipe.get("additional_ingredients", []): keys.append(String(key))
+	return keys
+
+## No reservations while comparing workers. Keep scans bounded by the same
+## deadline as navigation; storage and loose materials compete by distance.
+func advance_worker_quote(order, from: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary) -> bool:
+	if query.is_empty(): query.merge({"loose":{}, "stored":{}, "benches":furniture._installed.keys(), "index":0, "goals":{}})
+	var keys: Array[String] = additional_ingredient_keys(order.recipe)
+	if keys.is_empty(): keys = order.allowed_ingredients
+	else: keys = [keys[0]]
+	if not items.advance_material_quote(keys,from,query.loose,deadline,excluded): return false
+	if not StockpileManager.advance_material_quote(keys,from,query.stored,deadline,excluded): return false
+	var best: Dictionary = query.loose.best
+	if best.is_empty() or (not query.stored.best.is_empty() and int(query.stored.distance) < int(query.loose.distance)):
+		best = query.stored.best
+	query.material = best
+	if best.is_empty() or String(order.recipe.workshop).is_empty(): return true
+	while int(query.index) < query.benches.size():
+		if Time.get_ticks_usec() >= deadline: return false
+		var id: int = query.benches[query.index]
+		query.index += 1
+		var bench = furniture._installed.get(id)
+		if bench == null or bench.furniture_key != String(order.recipe.workshop) or not bench_valid(id): continue
+		for cell: Vector3i in bench.cells:
+			for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
+				var stand := cell+offset
+				if NavGrid.is_walkable(stand) and not query.goals.has(stand): query.goals[stand] = id
+	return true
+
+func reserve_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
+	if quote.has("source"): return StockpileManager.withdraw_material_quote(quote,dwarf_id)
+	var node: Node3D = quote.get("node")
+	if not is_instance_valid(node) or items.quantity_of(node) != 1: return null
+	if items.item_key_of(node) != quote.key or items.item_floor_cell(node) != quote.cell: return null
+	return node if items.reserve(node,dwarf_id) else null
 
 func bench_valid(id: int, owner := -1) -> bool:
 	var bench = furniture._installed.get(id)
@@ -236,6 +285,11 @@ func waiting_reason(order, totals: Dictionary) -> String:
 	if order.allowed_ingredients.is_empty(): return "Choose allowed wood"
 	if ingredient_available(order.recipe, totals, order.allowed_ingredients) < 1:
 		return "Waiting for " + ingredient_label(order.allowed_ingredients[0]) if order.allowed_ingredients.size()==1 else "Waiting for allowed wood"
+	var extra_counts := {}
+	for key in additional_ingredient_keys(order.recipe):
+		extra_counts[key] = int(extra_counts.get(key,0)) + 1
+		if int(totals.get(key,{}).get("available",0)) < extra_counts[key]:
+			return "Waiting for " + ingredient_label(key)
 	if not String(order.recipe.workshop).is_empty() and bench_target(String(order.recipe.workshop),Vector3i.ZERO).is_empty():
 		return "Waiting for a free workbench"
 	return ""
@@ -247,7 +301,7 @@ func status(order, totals: Dictionary) -> String:
 		var agent = TaskManager._agents.get(order.worker_id)
 		if is_instance_valid(agent) and agent._task_phase == agent.TaskPhase.FETCH_WORKING:
 			return "Crafting · %d%%" % roundi(100.0*order.progress/float(order.recipe.work_seconds))
-		return "Gathering / carrying timber"
+		return "Gathering / carrying timber" if additional_ingredient_keys(order.recipe).is_empty() else "Gathering / carrying materials"
 	var task := TaskManager.get_task(order.lease_id)
 	return "Waiting for a reachable route" if task != null and task.blocked_count > 0 else "Waiting for a Worker"
 

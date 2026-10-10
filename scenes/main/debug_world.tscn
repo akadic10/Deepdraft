@@ -20,6 +20,8 @@
 [ext_resource type="Script" path="res://scripts/systems/CraftingManager.gd" id="17_crafting"]
 [ext_resource type="Script" path="res://scripts/ui/CaveDebugPanel.gd" id="18_caves"]
 [ext_resource type="Script" path="res://scripts/systems/SurfaceDetailManager.gd" id="19_details"]
+[ext_resource type="Script" path="res://scripts/systems/WildlifeManager.gd" id="20_wildlife"]
+[ext_resource type="Script" path="res://scripts/systems/WorldEventDirector.gd" id="21_events"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -109,6 +111,14 @@ script = ExtResource("8_dwarves")
 camera_path = NodePath("../CameraRig")
 slice_controller_path = NodePath("../SliceController")
 window_manager_path = NodePath("../UIWindowManager")
+
+[node name="WildlifeManager" type="Node3D" parent="."]
+script = ExtResource("20_wildlife")
+camera_path = NodePath("../CameraRig")
+slice_controller_path = NodePath("../SliceController")
+
+[node name="WorldEventDirector" type="Node" parent="."]
+script = ExtResource("21_events")
 
 [node name="FlagPlacementController" type="Node3D" parent="."]
 script = ExtResource("9_flag")

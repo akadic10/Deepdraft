@@ -5,6 +5,7 @@ extends Node3D
 ## this controller owns selection, occlusion, window layout and the outline.
 ## Provider API: pick_explorer_object(start,end), get_explorer_data(id),
 ## get_explorer_bounds(id), optional perform_explorer_action(id,action).
+## Optional on_explorer_selected(id) runs on explicit selection, never refresh.
 @export var window_manager_path: NodePath
 @export var slice_controller_path: NodePath
 @export var click_tool_paths: Array[NodePath] = []
@@ -142,6 +143,9 @@ func select_object(provider: Node, object_id: Variant) -> bool:
 		_hide_detached_inspector()
 	else:
 		_manager.open(WINDOW_ID)
+	# Explicit selection only: periodic inspector refreshes are observational.
+	if provider.has_method("on_explorer_selected"):
+		provider.call("on_explorer_selected", object_id)
 	selection_changed.emit()
 	return true
 
@@ -218,7 +222,7 @@ func _on_slice_changed(slice_y: int) -> void:
 
 func _process(delta: float) -> void:
 	# Moving actors keep a smooth outline without rebuilding its mesh every frame.
-	if is_instance_valid(_outline_subject):
+	if is_instance_valid(_outline_subject) and _outline_subject.is_inside_tree():
 		_outline.global_position = _outline_subject.global_position + _outline_offset
 	_refresh_elapsed += delta
 	if _refresh_elapsed >= REFRESH_SECONDS:
@@ -376,6 +380,9 @@ func _refresh(data: Dictionary) -> void:
 			_actions.add_child(button)
 	_update_outline(_provider.call("get_explorer_bounds", _object_id))
 	# The facts and description scroll together; identity and actions stay in view.
+	_outline_subject = data.get("subject") as Node3D
+	if is_instance_valid(_outline_subject):
+		_outline_offset = _outline.global_position - _outline_subject.global_position
 	var fixed_height := _window.get_combined_minimum_size().y - _standard_details_scroll.get_combined_minimum_size().y
 	var body_height: float = _standard_details_scroll.get_child(0).get_combined_minimum_size().y
 	_standard_details_scroll.custom_minimum_size.y = clampf(body_height, 80, maxf(80, minf(300, get_viewport().get_visible_rect().size.y - 152 - fixed_height)))

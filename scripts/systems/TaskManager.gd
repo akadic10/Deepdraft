@@ -59,7 +59,9 @@ var _scan_cursor: Dictionary = {}      # Task.Type -> int (resumable scan positi
 var _haul_match: Dictionary = {}       # one resumable, read-only worker comparison
 var _surface_match: Dictionary = {}    # adjacent surface work, including shrub uprooting
 var _move_match: Dictionary = {}       # exact-plant pickup after uprooting
+var _craft_match: Dictionary = {}      # first ingredient pickup, then a free workshop
 var _work_probe: Dictionary = {}       # resumable ordinary work-source route
+var _mining_rejections: Dictionary = {} # lease -> failed idle workers, valid for this navigation/pool revision
 var _idle_version := 0                # a newly idle dwarf must join that comparison
 
 var _next_task_id: int = 1
@@ -322,6 +324,7 @@ func notify_dwarf_unavailable(dwarf_id: int) -> void:
 ## Clears transient scheduling state before a scene reload. Configuration and
 ## signal connections remain intact because this autoload survives the reload.
 func reset_runtime_state() -> void:
+	_mining_rejections.clear()
 	_work_probe.clear()
 	_tasks.clear()
 	_pending.clear()
@@ -333,6 +336,7 @@ func reset_runtime_state() -> void:
 	_haul_match.clear()
 	_surface_match.clear()
 	_move_match.clear()
+	_craft_match.clear()
 	_idle_version += 1
 	_work_sources.clear()
 	_next_task_id = 1
@@ -437,7 +441,21 @@ func _assign_idle_pass(bonus: Dictionary, probes_left: int, t_start: int, phase:
 		if _is_surface_work(type):
 			probes_left = _try_assign_surface(type, probes_left, t_start)
 			continue
-		for dwarf_id: int in _idle_dwarves.duplicate():
+		if type == Task.Type.CRAFT:
+			probes_left = _try_assign_crafts(probes_left, t_start)
+			continue
+		# Preserve bucket priorities; give idle Miners first refusal on mining
+		# leases so generalists cannot consume the whole zone's worker limit.
+		var candidates := _idle_dwarves.duplicate()
+		if type == Task.Type.MINE:
+			var specialists: Array[int] = []
+			var generalists: Array[int] = []
+			for id: int in candidates:
+				var dwarf: DwarfAgent = _agents.get(id)
+				if is_instance_valid(dwarf) and dwarf.profession == "base:profession:miner": specialists.append(id)
+				else: generalists.append(id)
+			candidates = specialists + generalists
+		for dwarf_id: int in candidates:
 			if not _within_budget(t_start, probes_left): return 0
 			if not dwarf_id in _idle_dwarves: continue # A Move comparison may assign another worker.
 			var agent: DwarfAgent = _agents.get(dwarf_id)
@@ -478,6 +496,8 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 				if task.status != Task.Status.PENDING: scanned -= 1
 				continue
 		if type == Task.Type.MINE and is_instance_valid(src) and src.has_method("mining_stand_candidates"):
+			var rejected := _mining_rejected_workers(task)
+			if rejected.get(agent.dwarf_id, Vector3i(-1,-1,-1)) == dwarf_cell: continue
 			probes_left -= 1
 			_probes_total += 1
 			var mining_result := _advance_mining_probe(task, agent, src, t_start)
@@ -490,7 +510,17 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 				_assign(task, agent)
 				_scan_cursor[type] = (cursor + scanned) % maxi(ids.size(), 1)
 				return probes_left
-			_apply_backoff(task, now)
+			# A preferred Miner on an isolated ledge must not block a reachable
+			# Worker. Remember failed candidates across budget yields, and back
+			# off only after every eligible idle worker has been considered.
+			rejected[agent.dwarf_id] = dwarf_cell
+			var all_rejected := true
+			for id: int in _idle_dwarves:
+				var other: DwarfAgent = _agents.get(id)
+				if is_instance_valid(other) and Task.Type.MINE in _types_for(other) and rejected.get(id, Vector3i(-1,-1,-1)) != other.current_cell():
+					all_rejected = false
+					break
+			if all_rejected: _apply_backoff(task, now)
 			continue
 		probes_left -= 1
 		_probes_total += 1
@@ -516,6 +546,16 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 		_apply_backoff(task, now)
 	_scan_cursor[type] = 0
 	return probes_left
+
+
+## Failed worker/lease pairs are local to the idle pool and navigation state.
+func _mining_rejected_workers(task: Task) -> Dictionary:
+	var signature := [_idle_version, NavGrid.navigation_revision, NavGrid.ladder_revision, task.blocked_count]
+	var context: Dictionary = _mining_rejections.get(task.id, {})
+	if context.get("signature", []) != signature:
+		context = {"signature": signature, "workers": {}}
+		_mining_rejections[task.id] = context
+	return context.workers
 
 
 ## Each matching family owns at most one frontier. Exhausting one wake yields
@@ -628,6 +668,134 @@ func _try_assign_move(task: Task, source: Object, quote: Dictionary, probes_left
 	_move_match.clear()
 	_apply_backoff(task, Time.get_ticks_msec())
 	return probes_left
+
+
+## Crafting starts at its ingredient, not at the workbench. Rank every eligible
+## idle worker before reserving goods, then prove pickup AND delivery. A failed
+## material is excluded only for that worker; later candidates stay available.
+func _try_assign_crafts(probes_left: int, t_start: int) -> int:
+	while not _idle_dwarves.is_empty():
+		if not _within_budget(t_start,probes_left): return 0
+		var now := Time.get_ticks_msec()
+		var task: Task = _tasks.get(int(_craft_match.get("task_id",-1)))
+		if task == null or not task.is_available(now):
+			_craft_match.clear()
+			task = null
+			for id: int in _pending.get(Task.Type.CRAFT,[]):
+				var next: Task = _tasks.get(id)
+				if next != null and next.is_available(now):
+					task = next
+					break
+		if task == null: return probes_left
+		var source: Object = _work_sources.get(task.source_id)
+		if not is_instance_valid(source):
+			cancel_task(task.id)
+			continue
+		var signature: Array = source.scheduling_signature()
+		if _craft_match.get("signature",[]) != signature or int(_craft_match.get("idle_version",-1)) != _idle_version:
+			_craft_match = {"task_id":task.id, "signature":signature, "idle_version":_idle_version,
+				"idle":_idle_dwarves.duplicate(), "index":0, "query":{}, "candidates":[],
+				"ranked":false, "excluded":{}, "eligible":0, "pickup_ok":false}
+		while int(_craft_match.index) < _craft_match.idle.size():
+			if not _within_budget(t_start,probes_left): return 0
+			var dwarf_id: int = _craft_match.idle[_craft_match.index]
+			var agent: DwarfAgent = _agents.get(dwarf_id)
+			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not Task.Type.CRAFT in _types_for(agent):
+				_craft_match.index += 1
+				_craft_match.query = {}
+				continue
+			var from := agent.current_cell()
+			if _craft_match.get("from",from) != from: _craft_match.query = {}
+			_craft_match.from = from
+			var query: Dictionary = _craft_match.query
+			if not source.advance_worker_quote(from,query,t_start+_budget_usec,_craft_match.excluded.get(dwarf_id,{})):
+				_wake_dirty = true
+				return 0
+			_craft_match.eligible += 1
+			if not query.material.is_empty():
+				_craft_match.candidates.append({"dwarf_id":dwarf_id, "from":from,
+					"material":query.material, "goals":query.goals,
+					"distance":int(query.material.distance), "tie":int(_craft_match.index)})
+			_craft_match.index += 1
+			_craft_match.query = {}
+		if not bool(_craft_match.ranked):
+			_craft_match.candidates.sort_custom(func(a: Dictionary,b: Dictionary):
+				return a.distance < b.distance if a.distance != b.distance else a.tie < b.tie)
+			_craft_match.ranked = true
+		if _craft_match.candidates.is_empty():
+			var eligible := int(_craft_match.eligible)
+			_craft_match.clear()
+			if eligible == 0: return probes_left
+			_apply_backoff(task,now)
+			continue
+		if not _within_budget(t_start,probes_left): return 0
+		var candidate: Dictionary = _craft_match.candidates[0]
+		var agent: DwarfAgent = _agents.get(int(candidate.dwarf_id))
+		if not is_instance_valid(agent) or agent.current_cell() != candidate.from:
+			_craft_match.clear()
+			_wake_dirty = true
+			return 0
+		if not bool(_craft_match.pickup_ok):
+			var goals := {}
+			for cell in StorageComponent.ground_access_cells(candidate.material.cell):
+				if NavGrid.is_walkable(cell): goals[cell] = true
+			probes_left -= 1
+			_probes_total += 1
+			var result := _advance_craft_probe(candidate.from,goals,t_start)
+			if result == NavGrid.ProbeResult.SEARCHING: return 0
+			if result == NavGrid.ProbeResult.UNREACHABLE:
+				_reject_craft_material(candidate)
+				continue
+			candidate.pickup_stand = _craft_match.route_query.path.back()
+			candidate.pickup_route = _craft_match.route_query
+			_craft_match.erase("route_query")
+			_craft_match.pickup_ok = true
+		if not _within_budget(t_start,probes_left): return 0
+		var goals: Dictionary = candidate.goals
+		# Bootstrap recipes work at the pickup. Workshop recipes consider every
+		# free bench edge, so the nearest sealed side cannot hide an open one.
+		if String(source.recipe.workshop).is_empty(): goals = {candidate.pickup_stand:-1}
+		probes_left -= 1
+		_probes_total += 1
+		var result := _advance_craft_probe(candidate.pickup_stand,goals,t_start)
+		if result == NavGrid.ProbeResult.SEARCHING: return 0
+		if result == NavGrid.ProbeResult.UNREACHABLE:
+			_reject_craft_material(candidate)
+			continue
+		candidate.delivery_stand = _craft_match.route_query.path.back()
+		candidate.bench_id = goals[candidate.delivery_stand]
+		NavGrid.remember_reachable_path(candidate.pickup_route)
+		NavGrid.remember_reachable_path(_craft_match.route_query)
+		source.prefer_fetch_plan(candidate)
+		_craft_match.clear()
+		task.blocked_count = 0
+		_assign(task,agent)
+	return probes_left
+
+
+func _advance_craft_probe(from: Vector3i, goals: Dictionary, t_start: int) -> int:
+	if goals.is_empty(): return NavGrid.ProbeResult.UNREACHABLE
+	if not _craft_match.has("route_query"): _craft_match.route_query = {}
+	var query: Dictionary = _craft_match.route_query
+	var result := NavGrid.advance_reachability(query,from,goals.keys()[0],
+		_probe_node_cap,t_start+_budget_usec,false,goals)
+	if not _craft_match.has("route_dependencies"): _craft_match.route_dependencies = {}
+	_craft_match.route_dependencies.merge(query.get("chunks",{}))
+	if result == NavGrid.ProbeResult.SEARCHING: _wake_dirty = true
+	return result
+
+
+func _reject_craft_material(candidate: Dictionary) -> void:
+	var excluded: Dictionary = _craft_match.excluded.get(int(candidate.dwarf_id),{})
+	excluded[candidate.material.cell] = true
+	_craft_match.excluded[int(candidate.dwarf_id)] = excluded
+	_craft_match.index = 0
+	_craft_match.query = {}
+	_craft_match.candidates = []
+	_craft_match.ranked = false
+	_craft_match.pickup_ok = false
+	_craft_match.eligible = 0
+	_craft_match.erase("route_query")
 
 
 func _is_surface_work(type: int) -> bool:
@@ -869,14 +1037,30 @@ func _apply_backoff(task: Task, now: int) -> void:
 		task_unreachable.emit(task)
 
 
-## Compatible task types for a dwarf. v1: every dwarf takes any economic type
-## (doc 31: off-profession work runs at x0.7 speed — applied at execution in
-## step 6). Profession-gated types (FORGE etc., doc 44) refine this later.
+## Profession capability and player permissions both apply. Self-care and
+## carrying supplies within an allowed assignment are never separate gates.
 func _types_for(agent: DwarfAgent) -> Array[int]:
+	if agent.promotion_pending(): return []
 	var types: Array[int] = [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
 			Task.Type.BREW, Task.Type.FETCH_BUILD, Task.Type.UNINSTALL, Task.Type.FELL_TREE, Task.Type.CLEAR_BOULDER, Task.Type.GATHER_SCREE, Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB, Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB, Task.Type.HARVEST_TREE]
 	if agent.profession == "base:profession:worker": types.append(Task.Type.CRAFT)
-	return types
+	if agent.work_permissions.is_empty(): return types
+	var allowed: Array[int] = []
+	for type: int in types:
+		if agent.allows_task(type): allowed.append(type)
+	return allowed
+
+
+func work_policy_changed() -> void:
+	_mining_rejections.clear()
+	# Quotes and resumable probes may include a now-ineligible dwarf.
+	_idle_version += 1
+	_work_probe.clear()
+	_surface_match.clear()
+	_move_match.clear()
+	_craft_match.clear()
+	_haul_match.clear()
+	_wake_dirty = true
 
 
 func _bucket_priority(type: int, bonus: Dictionary) -> int:
@@ -909,6 +1093,8 @@ func _insert_pending(task: Task) -> void:
 
 
 func _remove_pending(task: Task) -> void:
+	_mining_rejections.erase(task.id)
+	if int(_craft_match.get("task_id",-1)) == task.id: _craft_match.clear()
 	var ids: Array = _pending.get(task.type, [])
 	ids.erase(task.id)
 	if Time.get_ticks_msec() < task.retry_at:
@@ -933,6 +1119,7 @@ func _mark_idle(dwarf_id: int) -> void:
 	if not _agents.has(dwarf_id):
 		return
 	if not is_instance_valid(_agents[dwarf_id]) or not _agents[dwarf_id].is_inside_tree(): return
+	if _agents[dwarf_id].promotion_pending() or _agents[dwarf_id].is_sleeping(): return
 	if _agents[dwarf_id].has_method("needs_ladder_exit") and _agents[dwarf_id].needs_ladder_exit():
 		return
 	if not _idle_dwarves.has(dwarf_id):
@@ -963,6 +1150,7 @@ func ladder_routes_changed() -> void:
 	_work_probe.clear()
 	_surface_match.clear()
 	_move_match.clear()
+	_craft_match.clear()
 	_haul_match.clear()
 	for task: Task in _tasks.values():
 		if task.status in [Task.Status.PENDING, Task.Status.BLOCKED]: task.retry_at = 0
@@ -970,7 +1158,7 @@ func ladder_routes_changed() -> void:
 
 func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 	var chunk := Vector3i(cx,cy,cz)
-	for context: Dictionary in [_work_probe, _surface_match, _move_match, _haul_match]:
+	for context: Dictionary in [_work_probe, _surface_match, _move_match, _haul_match, _craft_match]:
 		var query: Dictionary = context.get("route_query", {})
 		# Completed pickup legs matter too while a delivery probe is pending.
 		if query.is_empty() or query.chunks.has(chunk) or context.get("route_dependencies", {}).has(chunk):

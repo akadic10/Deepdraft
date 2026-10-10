@@ -58,6 +58,13 @@
   },
   "layout_version": 2,
   "seating_chair": {
+    "rest_pose": {
+      "body": [0, 0.25, -0.125],
+      "left_hand": [-0.1, 0.375, 0.25],
+      "right_hand": [0.1, 0.375, 0.25],
+      "left_foot": [-0.125, 0.125, 0.6],
+      "right_foot": [0.125, 0.125, 0.6]
+    },
     "clearance": {
       "min": [
         -0.375,

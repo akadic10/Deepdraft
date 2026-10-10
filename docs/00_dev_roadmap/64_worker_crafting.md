@@ -1,5 +1,9 @@
 # 64 — Worker crafting (2026-10-07)
 
+**Later extension:** [97 — Starter tools](97_starter_profession_tools.md) adds
+four non-furniture recipes and physical timber-plus-stone collection. It extends
+the single-ingredient limitation described for this original milestone below.
+
 Session context, verification chronology and remaining work:
 [65 — Session handoff](65_session_handoff_2026_10_07.md).
 

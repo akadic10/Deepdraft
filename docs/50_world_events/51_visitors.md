@@ -1,5 +1,20 @@
 # 51 — Visitors & World Events
 
+## Implementation status — 2026-10-09
+
+The shared arrival scheduler is live with rabbit, deer and wolf wildlife providers; merchant,
+traveler and invader behavior below remains planned. WorldEventDirector owns
+saved calendar opportunities, group progress and expiry; scene providers own
+entry rules and actor creation. Wildlife currently uses validated wilderness
+edges. A future trade-road adapter can preserve merchant road access, while
+goblin/orc groups can use their own wilderness eligibility and navigation.
+The earlier single-entry assumption below describes the visitor proposal,
+not a restriction on the live framework. VisitorManager is not registered.
+See [94 — Rabbit arrival events](../00_dev_roadmap/94_rabbit_arrival_events.md)
+for the provider contract and the completed scope.
+Deer/wolf entry groups and predator food limits are recorded in
+[95 — Deer/wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md).
+
 ## Overview
 
 The colony is not isolated. Three categories of visitor enter the map from the world edge along the surface trade road: **Merchants** who buy and sell goods, **Travelers** who seek rest and drink, and **Invaders** who attack. Each type has distinct spawn conditions, infrastructure requirements, and AI behaviour.

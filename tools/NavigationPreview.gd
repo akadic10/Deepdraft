@@ -162,8 +162,12 @@ func _capture_inspector() -> void:
 					"compact menu scrolls without zooming or stopping Follow")
 				scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
 				await _settle()
-				_expect(scroll.get_global_rect().has_point(
-					dock._place_catalog._tiles["base:furniture:aging_rack"].button.get_global_rect().get_center()),
+				# New plant and access designs now follow the aging rack. Check
+				# the actual last visible design instead of an obsolete catalog key.
+				var last_design: Button
+				for child in dock._place_catalog._grid.get_children():
+					if child is Button and child.visible: last_design = child
+				_expect(last_design != null and scroll.get_global_rect().has_point(last_design.get_global_rect().get_center()),
 					"last furniture design is reachable by scrolling")
 				explorer._perform_dwarf_action("stop_follow")
 		explorer.clear_selection()

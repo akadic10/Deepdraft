@@ -283,6 +283,50 @@ func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) 
 	return null
 
 
+## Read-only, resumable material search. Compare storage with loose goods;
+## withdrawal happens only after the scheduler has chosen a reachable worker.
+func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary) -> bool:
+	if query.is_empty():
+		query.merge({"sources":_zones.values()+_containers.values(), "index":0,
+			"slots":[], "slot_index":0, "best":{}, "distance":0x7FFFFFFF})
+	while int(query.index) < query.sources.size():
+		if Time.get_ticks_usec() >= deadline: return false
+		var source: StorageComponent = query.sources[query.index]
+		if is_registered(source) and not (source is ContainerStorageComponent and source.suspended):
+			if query.slots.is_empty(): query.slots = source.stored_entries().keys()
+			while int(query.slot_index) < query.slots.size():
+				if Time.get_ticks_usec() >= deadline: return false
+				var slot = query.slots[query.slot_index]
+				query.slot_index += 1
+				var stack: Dictionary = source.stored_entries().get(slot,{})
+				if stack.is_empty() or String(stack.item) not in keys: continue
+				if int(stack.count) <= int(source._outgoing.get(slot,{}).get("count",0)): continue
+				if source.drop_manager.instance_promised(String(stack.get("instance_id",""))): continue
+				var cell := source.withdrawal_item_cell(slot)
+				if cell.x < 0 or excluded.has(cell): continue
+				var delta := cell-near
+				var distance := absi(delta.x)+absi(delta.y)+absi(delta.z)
+				if distance < int(query.distance):
+					query.distance = distance
+					query.best = {"source":source, "slot":slot, "key":String(stack.item), "cell":cell, "distance":distance}
+		query.index += 1
+		query.slots = []
+		query.slot_index = 0
+	return true
+
+
+func withdraw_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
+	var source: StorageComponent = quote.get("source")
+	if source == null or not is_registered(source): return null
+	if source is ContainerStorageComponent and source.suspended: return null
+	var stack: Dictionary = source.stored_entries().get(quote.slot,{})
+	if stack.is_empty() or String(stack.item) != quote.key: return null
+	if int(stack.count) <= int(source._outgoing.get(quote.slot,{}).get("count",0)): return null
+	if source.drop_manager.instance_promised(String(stack.get("instance_id",""))): return null
+	if source.withdrawal_item_cell(quote.slot) != quote.cell: return null
+	return source.withdraw_stack(quote.slot,1,dwarf_id)
+
+
 func is_registered(storage: StorageComponent) -> bool:
 	return _zones.get(storage.source_id) == storage or _containers.get(storage.source_id) == storage
 

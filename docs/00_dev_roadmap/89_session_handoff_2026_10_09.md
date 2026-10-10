@@ -1,6 +1,7 @@
 # 89 — Session handoff: 2026-10-09
 
-Current starting point, superseding [65 — Previous handoff](65_session_handoff_2026_10_07.md).
+Historical handoff, superseded by [103 — Evening handoff](103_session_handoff_2026_10_09_evening.md).
+This record originally superseded [65 — Previous handoff](65_session_handoff_2026_10_07.md).
 This session progressed from seeded world generation through caves, ore fields,
 surface details, plant relocation and growth, worker assignment, and crafted
 ladders. The approved implementation passes are complete. The most recent player

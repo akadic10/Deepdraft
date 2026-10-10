@@ -7,6 +7,18 @@
 
 ## 1. Visual Identity
 
+**Camp furniture (2026-10-09):** `tools/generate_camp_furniture.py` exports a roughly
+2×2 stone-ring campfire centered within a 3×3 placement area and a compact 1×1
+stump stool, using eight voxels/block, baked
+0.125 scale, linear vertex colors and no colliders. Eight connected, distinct
+fire silhouettes use the existing flame animation component. The stool has a
+flat cut top 0.75 blocks high, bark sides and no back or arms. Its rest pose
+supports the torso with boots on the ground beside the stump and hands resting
+inward in front. Stool sitters can face a nearby fire without rotating the prop.
+Separate body regions and rounded head/beard clearance allow stools directly beside the low campfire
+while protecting the dwarf's wider head and hair. Native seating/menu/art
+review is recorded in [100](../00_dev_roadmap/100_profession_crafting_camp.md).
+
 **Rudimentary ladders (2026-10-09):** `tools/generate_crude_ladder.py` exports
 one four-block installed module and a compact packed rail/rung bundle. Split
 rails, chunky pegged rungs and axe scars use eight voxels/block, baked 0.125

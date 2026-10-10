@@ -16,6 +16,8 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 		if not entry.reserved: row.available += int(entry.count)
 	for entry: Dictionary in physical.carried:
 		_row(result, entry.key).carried += int(entry.count)
+	for entry: Dictionary in physical.equipped:
+		_row(result, entry.key).equipped += int(entry.count)
 	var catalog := furniture.get_catalog_stock() if is_instance_valid(furniture) else {}
 	var furniture_by_item := {}
 	if is_instance_valid(furniture):
@@ -23,7 +25,7 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 			furniture_by_item[String(furniture.get_defs()[key].item_key)] = key
 	for key: String in result:
 		var row: Dictionary = result[key]
-		row.total = row.stored + row.loose + row.carried
+		row.total = row.stored + row.loose + row.carried + row.equipped
 		row.available += maxi(0, row.stored - int(outgoing.get(key, 0)))
 		row.furniture_key = String(furniture_by_item.get(key, ""))
 		if catalog.has(row.furniture_key):
@@ -35,7 +37,7 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 
 static func _row(rows: Dictionary, key: String) -> Dictionary:
 	if not rows.has(key):
-		rows[key] = {"stored": 0, "loose": 0, "carried": 0, "total": 0,
+		rows[key] = {"stored": 0, "loose": 0, "carried": 0, "equipped": 0, "total": 0,
 			"reserved": 0, "available": 0, "requests": 0, "furniture_key": ""}
 	return rows[key]
 

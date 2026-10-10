@@ -1,0 +1,35 @@
+{
+  "id": "base:animal:rabbit",
+  "display_name": "Wild Rabbit",
+  "description": "A timid grazer. Eats ordinary ground vegetation, takes quiet naps and bolts from nearby dwarves or wolves.",
+  "model_parts": {
+    "body": "res://assets/animals/rabbit/body.glb",
+    "head": "res://assets/animals/rabbit/head.glb",
+    "ears": "res://assets/animals/rabbit/ears.glb"
+  },
+  "population": {"count": 48, "salt": 190913, "attempts": 6000, "min_spacing": 24, "max_ground_y": 43},
+  "navigation": {"clearance": 2, "home_radius": 12, "hop_height": 0.18, "hop_seconds": 0.48, "flee_hop_seconds": 0.24, "fall_speed": 6},
+  "behavior": {
+    "threat_radius": 7,
+    "safe_radius": 11,
+    "calm_seconds": 4,
+    "idle_seconds": [2, 6],
+    "hunger_per_hour": 0.055,
+    "hungry_threshold": 0.48,
+    "graze_seconds": 6,
+    "meal_relief": 0.55,
+    "fatigue_per_hour": 0.055,
+    "sleep_threshold": 0.48,
+    "exhausted_threshold": 0.85,
+    "wake_hunger_threshold": 0.9,
+    "sleep_recovery_per_hour": 0.36,
+    "wake_threshold": 0.08,
+    "rest_hours": [[10, 16], [23, 4]]
+  },
+  "forage_kinds": ["grass", "dirt"],
+  "feedback": {
+    "selection_sound": "rabbit_select",
+    "grazing_sound": "rabbit_graze",
+    "grazing_cues": [0.08, 0.52]
+  }
+}

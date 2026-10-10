@@ -38,7 +38,7 @@
       "id": "craft",
       "label": "Craft",
       "icon": "res://assets/ui/icons/craft.svg",
-      "tooltip": "Worker recipes and crafting orders",
+      "tooltip": "Choose a profession to open its crafting menu",
       "action": "open_panel",
       "target": "craft"
     },
@@ -68,6 +68,21 @@
     }
   ],
   "menus": {
+    "craft": {
+      "title": "Crafters",
+      "items": [
+        {"id":"rudimentary","label":"Rudimentary","icon":"res://assets/ui/icons/craft.svg","tooltip":"Basic goods and starter tools made by Workers","action":"open_crafting","target":"rudimentary"},
+        {"id":"carpenter","label":"Carpenter","icon":"res://assets/ui/icons/chop.svg","tooltip":"Wooden furniture, storage and workshop fittings · Planned","action":"open_crafting","target":"carpenter"},
+        {"id":"stonemason","label":"Stonemason","icon":"res://assets/ui/icons/clear_boulders.svg","tooltip":"Stone furnishings and building materials · Planned","action":"open_crafting","target":"stonemason"},
+        {"id":"blacksmith","label":"Blacksmith","icon":"res://assets/ui/icons/anvil.svg","tooltip":"Metal refining and tool upgrades · Planned","action":"open_crafting","target":"blacksmith"},
+        {"id":"weaponsmith","label":"Weaponsmith","icon":"res://assets/ui/icons/hunter.svg","tooltip":"Military weapons · Planned","action":"open_crafting","target":"weaponsmith"},
+        {"id":"armorsmith","label":"Armorsmith","icon":"res://assets/ui/icons/shield.svg","tooltip":"Armor and shields · Planned","action":"open_crafting","target":"armorsmith"},
+        {"id":"farmer","label":"Farmer","icon":"res://assets/ui/icons/farm.svg","tooltip":"Fields, crops and harvest supplies · Planned","action":"open_crafting","target":"farmer"},
+        {"id":"hunter","label":"Hunter","icon":"res://assets/ui/icons/hunter.svg","tooltip":"Hunting supplies and animal materials · Planned","action":"open_crafting","target":"hunter"},
+        {"id":"miner","label":"Miner","icon":"res://assets/ui/icons/orders.svg","tooltip":"Mining equipment preview; Miner is already playable","action":"open_crafting","target":"miner"},
+        {"id":"brewer","label":"Brewer","icon":"res://assets/ui/icons/stocks.svg","tooltip":"Brewing and aging · Planned","action":"open_crafting","target":"brewer"}
+      ]
+    },
     "orders": {
       "title": "Orders",
       "items": [
@@ -155,7 +170,7 @@
           "label": "Labor",
           "action": "toggle_window",
           "target": "labor",
-          "tooltip": "Labor window — currently a preview"
+          "tooltip": "Manage real dwarf work permissions in the colony roster"
         },
         {
           "id": "trade",
@@ -296,6 +311,55 @@
           "action": "panel_action",
           "target": "surface_details",
           "tooltip": "Locate and inspect the next wildflower clump without clearing it."
+        },
+        {
+          "id": "deer_development",
+          "label": "DEV: Next deer",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate and inspect the next wild deer and its herd."
+        },
+        {
+          "id": "wolf_development",
+          "label": "DEV: Next wolf",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate and inspect the next wild wolf."
+        },
+        {
+          "id": "rabbit_development",
+          "label": "DEV: Next rabbit",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate and inspect the next wild rabbit."
+        },
+        {
+          "id": "arrival_status_development",
+          "label": "DEV: Arrival status",
+          "action": "panel_action",
+          "target": "world_events",
+          "tooltip": "Show rabbit, deer and wolf arrival opportunities and their last results."
+        },
+        {
+          "id": "arrival_development",
+          "label": "DEV: Next arrival",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate wildlife that entered from a map edge, including settled arrivals."
+        },
+        {
+          "id": "deer_arrival_development",
+          "label": "DEV: Next deer arrival",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate and inspect a deer from an arriving herd."
+        },
+        {
+          "id": "wolf_arrival_development",
+          "label": "DEV: Next wolf arrival",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate and inspect a wolf that entered from a map edge."
         },
         {
           "id": "strawberry_development",

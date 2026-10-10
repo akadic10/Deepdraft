@@ -203,6 +203,11 @@ func slot_cell(_slot: Variant) -> Vector3i:
 	return Vector3i(-1, -1, -1)
 
 
+## Physical spawn location used by the legacy fetch withdrawal executor.
+func withdrawal_item_cell(slot: Variant) -> Vector3i:
+	return slot_cell(slot)
+
+
 func withdrawal_stands(slot: Variant) -> Array[Vector3i]:
 	return ground_access_cells(slot_cell(slot))
 

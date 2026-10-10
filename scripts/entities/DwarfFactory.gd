@@ -25,6 +25,8 @@ const WORKER_KEY := "base:profession:worker"
 const PROFESSION_KEYS: Array[String] = [
 	"base:profession:worker",
 	"base:profession:miner",
+	"base:profession:hunter",
+	"base:profession:stonemason",
 	"base:profession:farmer",
 	"base:profession:brewer",
 	"base:profession:builder",

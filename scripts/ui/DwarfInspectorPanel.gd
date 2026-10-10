@@ -3,6 +3,7 @@ extends VBoxContainer
 ## The first Hearth & iron surface. A read-only portrait uses cloned visual
 ## parts in its own viewport, never another live agent or a world camera feed.
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
+const EquipmentPanel = preload("res://scripts/ui/DwarfEquipmentPanel.gd")
 signal action_requested(action: String)
 
 ## The colony overview embeds the same live detail component in its own column.
@@ -12,6 +13,11 @@ var _portrait: SubViewport
 var _portrait_model: Node3D
 var _name_label: Label
 var _profession: Label
+var _equipment: Label
+var _equipment_page: VBoxContainer
+var _change_profession: Button
+var _experience: Label
+var _profession_progress: ProgressBar
 var _activity: Label
 var _explanation: Label
 var _destination: Label
@@ -53,14 +59,20 @@ func _ready() -> void:
 		_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_name_label.add_theme_font_override("font", UITheme.hearth_title_font())
 	_profession = _label(identity, "", 14, UITheme.HEARTH_MUTED)
-	var tab_row := HBoxContainer.new()
-	tab_row.add_theme_constant_override("separation", 6)
+	_equipment = _label(identity, "", 12, UITheme.HEARTH_COPPER)
+	var tab_row := GridContainer.new()
+	tab_row.columns = 2 if embedded else 4
+	tab_row.add_theme_constant_override("h_separation", 4)
+	tab_row.add_theme_constant_override("v_separation", 4)
 	add_child(tab_row)
-	for title: String in ["Overview", "Details"]:
+	for title: String in ["Overview", "Details", "Equipment"]:
 		var tab := _button(tab_row, title)
 		var index := _tabs.size()
 		tab.pressed.connect(_show_tab.bind(index))
 		_tabs.append(tab)
+	_change_profession = _button(tab_row, "Profession")
+	_change_profession.tooltip_text = "Change Profession · Explore career paths"
+	_change_profession.pressed.connect(func(): action_requested.emit("profession"))
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.mouse_force_pass_scroll_events = false
@@ -72,6 +84,9 @@ func _ready() -> void:
 	_overview = VBoxContainer.new()
 	_overview.add_theme_constant_override("separation", 8 if embedded else 12)
 	pages.add_child(_overview)
+	var progression := _section(_overview, "PROFESSION")
+	_experience = _label(progression, "", 12, UITheme.HEARTH_MUTED)
+	_profession_progress = _progress(progression)
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
 	_overview.add_child(card)
@@ -99,6 +114,8 @@ func _ready() -> void:
 	_location = _label(_section(_details, "CURRENT LOCATION"), "", 14)
 	_explanation = _label(_section(_details, "CURRENT ACTIVITY"), "", 14)
 	_traits = _section(_details, "TRAITS")
+	_equipment_page = EquipmentPanel.new()
+	pages.add_child(_equipment_page)
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
 	add_child(actions)
@@ -123,6 +140,20 @@ func show_data(data: Dictionary, following: bool) -> void:
 	_name_label.text = String(data.title)
 	_name_label.tooltip_text = String(data.title)
 	_profession.text = "%s · Dwarf" % String(data.profession)
+	_equipment.text = "Tool · " + String(data.get("equipment", "Default work tools")).get_slice("\n", 0)
+	_equipment.tooltip_text = String(data.get("equipment", "Default work tools"))
+	_equipment_page.show_equipment(data.get("equipment_details", {}))
+	var miner := agent.profession == "base:profession:miner"
+	_profession_progress.get_parent().visible = miner
+	if miner:
+		var level := DwarfAssets.profession_level(agent.profession, agent.profession_experience)
+		var count := int(agent.profession_experience.get(agent.profession, 0))
+		var lower := DwarfAssets.experience_threshold(level) if level > 1 else 0
+		var upper := DwarfAssets.experience_threshold(level + 1) if level < 5 else count
+		var reduction := roundi((1.0 - DwarfAssets.mining_duration_multiplier(agent.profession, agent.profession_experience)) * 100)
+		_experience.text = "%d blocks mined · %d%% less digging time\n%s" % [count, reduction, "%d to level %d" % [upper - count, level + 1] if level < 5 else "Master Miner"]
+		_profession_progress.max_value = maxi(1, upper - lower)
+		_profession_progress.value = count - lower if level < 5 else _profession_progress.max_value
 	_activity.text = String(data.activity)
 	_explanation.text = String(data.explanation)
 	_activity.tooltip_text = String(data.explanation)
@@ -186,13 +217,16 @@ func _resize_body() -> void:
 		_portrait_frame.custom_minimum_size = Vector2(52, 52) if compact else Vector2(64, 72)
 		_name_label.max_lines_visible = 1 if compact else 2
 		_name_label.add_theme_font_size_override("font_size", 18 if compact else 20)
-		add_theme_constant_override("separation", 6 if compact else 8)
+		# Equipment has its own view; avoid repeating the summary when height is scarce.
+		_equipment.visible = not compact
+		add_theme_constant_override("separation", 4 if compact else 8)
 		_footer_hint.visible = not compact
 
 
 func _show_tab(index: int) -> void:
 	_overview.visible = index == 0
 	_details.visible = index == 1
+	_equipment_page.visible = index == 2
 	_scroll.scroll_vertical = 0
 	for i in range(_tabs.size()):
 		UITheme.apply_hearth_button(_tabs[i], i == index)

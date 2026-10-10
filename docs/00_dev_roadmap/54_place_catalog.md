@@ -4,6 +4,13 @@ Implemented 2026-10-05 after approval of the Hearth cabinet concept. The native
 game now uses **Place** for finished furniture. Crafting and future structural
 building are separate systems; this screen does not create items from resources.
 
+**Camp furniture follow-up (2026-10-09):** Campfire is listed under Lighting and
+Log chair under Dining. Their original crafting milestone omitted the two UI
+catalog entries, making finished items invisible in Place despite valid stock.
+ProfessionCraftingTest now checks catalog coverage for all placeable Worker
+recipes and uses real menu clicks to install both while starting from pause.
+See [100 — Camp crafting](100_profession_crafting_camp.md).
+
 ## Player flow
 
 - The bottom dock opens a movable **Place an item** cabinet. Drag its title bar;

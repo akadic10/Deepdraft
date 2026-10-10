@@ -80,6 +80,53 @@
     "material_tags": ["stone", "building_material", "void_fill", "stockpile_stone"]
   },
 
+  "__comment_starter_tools": "Worker-crafted physical goods. Carpenter collects and equips its kit; other specialist promotion gates remain planned.",
+
+  "base:resources:tools:stone_hoe": {
+    "display_name": "Stone Hoe",
+    "description": "Wooden haft with a stone blade. A starter tool for the planned Farmer profession; equipping is not available yet.",
+    "model": "res://assets/models/items/tools/stone_hoe.glb",
+    "stack_max": 1,
+    "carry_cost": 1,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["tool", "starter_tool", "stockpile_misc"]
+  },
+  "base:resources:tools:hunting_spear": {
+    "display_name": "Hunting Spear",
+    "description": "Stone-tipped wooden spear. A starter weapon for the planned Hunter profession; hunting and equipping are not available yet.",
+    "model": "res://assets/models/items/tools/hunting_spear.glb",
+    "stack_max": 1,
+    "carry_cost": 1,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["tool", "weapon", "starter_tool", "stockpile_misc"]
+  },
+  "base:resources:tools:carpentry_kit": {
+    "equipment": {
+      "tier": "Crude", "materials": "Wooden mallet · Stone adze",
+      "benefit": "Enables the Carpenter profession. No work-speed bonus. The kit stays equipped until this dwarf changes profession."
+    },
+    "display_name": "Crude Carpentry Kit",
+    "description": "A wooden mallet and stone adze. Collected and equipped when promoting a Carpenter; returned to colony supplies when changing professions.",
+    "model": "res://assets/models/items/tools/carpentry_kit.glb",
+    "stack_max": 1,
+    "carry_cost": 1,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["tool", "starter_tool", "stockpile_misc"]
+  },
+  "base:resources:tools:stone_hammer": {
+    "display_name": "Stone Hammer",
+    "description": "A stone head and wooden handle. A starter tool for the planned Blacksmith profession; forging and equipping are not available yet.",
+    "model": "res://assets/models/items/tools/stone_hammer.glb",
+    "stack_max": 1,
+    "carry_cost": 1,
+    "weight_class": "light",
+    "base_trade_value": 3,
+    "material_tags": ["tool", "starter_tool", "stockpile_misc"]
+  },
+
   "__comment_soil": "Soft earth — farmable cave soil is the most valuable",
 
   "base:resources:soil:cave_soil": {
@@ -1072,6 +1119,34 @@
     "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 3,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
+  "base:resources:furniture:campfire": {
+    "display_name": "Campfire (packed)",
+    "description": "Unlit logs and rough stones packed for a campfire.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
+  "base:resources:furniture:log_chair": {
+    "display_name": "Log Stool (packed)",
+    "description": "One small stump stool packed for installation.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
     "material_tags": [
       "wood",
       "furniture",

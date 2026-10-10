@@ -1,5 +1,15 @@
 # 23 — User Interface
 
+**Profession crafting (2026-10-09):** Craft opens profession icon submenus above
+the dock. Choosing Rudimentary opens Worker recipes with grouped categories and
+that section's live order queue; Crafters returns to the chooser.
+Planned profession sections preview their purpose without enabling fake crafts;
+Miner's equipment preview is separate from its already playable profession.
+Campfires and log stools are new Rudimentary recipes. Campfires center on the
+cursor tile within a visible 3×3 placement area. Queue and Place remain
+visible at 960×540; windows settle their wrapped layout and stay above the dock.
+See [100 — Camp crafting](../00_dev_roadmap/100_profession_crafting_camp.md).
+
 **Ladder workflow (2026-10-09):** Craft offers ladder sections at the crude
 workbench. Place → Access shows the complete route, height and required section
 count; R rotates and Esc finishes. The ladder inspector pauses/resumes building
@@ -167,7 +177,7 @@ search remain; rows keep their positions during updates. Selection uses the same
 world controller and embeds Overview/Details, traits, Locate and Follow without
 opening another window. The two columns scroll independently. Escape closes the
 combined overview; ordinary world inspection resumes after closing. This pass
-adds no labor controls. Developer tools remain in Menu → Development → DEV: Dwarf
+initially added no labor controls; milestone 96 adds Work and Profession views. Developer tools remain in Menu → Development → DEV: Dwarf
 tools. See [57 — Roster](../00_dev_roadmap/57_colony_dwarf_roster.md) and
 [61 — Colony overview](../00_dev_roadmap/61_colony_overview.md).
 
@@ -192,10 +202,19 @@ the live calendar, pause/speed controls and Slice; it does not show sample total
 ## Floating Dock (Bottom Command Bar)
 
 The bottom-centered **floating dock** is a Hearth & iron bar on a `CanvasLayer`.
-Seven labeled entries use small SVG line icons from `assets/ui/icons/`, tinted by
+Eight labeled entries use small SVG line icons from `assets/ui/icons/`, tinted by
 the shared theme. An open group stays highlighted, including while a submenu is
 open. Only one action menu opens at a time; a second click or Escape closes it,
 and submenus have a Back button. Active tools retain their existing Escape handling.
+
+**Craft** opens a Crafters submenu of profession icon buttons above the dock,
+not a recipe window or profession dropdown. Selecting Rudimentary, Carpenter,
+Stonemason, Blacksmith or another entry opens that profession's titled crafting
+menu. Planned entries remain browsable previews without craft/place actions.
+The recipe window's **‹ Crafters** button returns to the profession submenu.
+The submenu uses one desktop row and balanced compact rows; its open state
+keeps Craft highlighted. Orders shown belong to the selected section, while
+switching menus preserves the actual production queue and chosen Worker recipe.
 
 ### Data-Driven Layout
 
@@ -243,6 +262,7 @@ and `disabled` are optional. Malformed entries are skipped with a warning at loa
 | `toggle_window` | Toggles a movable floating window (labor, inventory, trade). `target` names the window. |
 | `activate_tool` | Emits the existing `tool_requested` signal. Orders keeps its shelf open; other command menus close. Controllers retain the one-active-tool contract. |
 | `panel_action` | Dispatches an existing named action, including the DEV stockpile spawners. |
+| `open_crafting` | Closes the profession chooser and opens the recipe/preview menu for the section named by `target`. |
 
 ### Save / Load Menu
 
@@ -510,7 +530,31 @@ Short-lived overlay messages alerting the player to critical colony events.
 ToastManager.push("Ale stockpile is low", ToastManager.WARN)
 ```
 
-## Labor Assignment Window (planned)
+## Labor Assignment — live first pass (2026-10-09)
+
+**Colony → Labor** opens the Work view of Colony Dwarves. Haul, Gather, Mine,
+Build and Craft checkboxes control each real dwarf; Craft remains Worker-only.
+Transport inside an allowed job and automatic rest are independent of those
+checkboxes. Overview retains its activity/cargo/rest display. **Profession** in
+the selected dwarf panel opens a career map with immediate Worker/Miner changes,
+Carpenter promotion through physical kit collection, retained experience and
+clearly marked future roles. See
+[96 — Professions and Miner](../00_dev_roadmap/96_professions_and_miner.md) and
+[101 — Tool promotion](../00_dev_roadmap/101_tool_based_promotion.md).
+
+### Equipment and promotion feedback — live (2026-10-09)
+
+The shared selected-dwarf panel has **Overview**, **Details** and **Equipment**
+views alongside the **Profession** action. Equipment shows the actual owned
+tool, picture, tier, materials and benefit. Carpenter's iron saw and Miner's iron
+pickaxe are clearly marked planned/not craftable, with their future maker and
+assignment flow. Narrow Colony details use two navigation rows; compact screens
+omit the duplicate tool summary to preserve scrolling. Completed specialist
+promotions play a short chime through the existing Work audio controls, including
+immediate Miner promotion while paused. Request/cancel/demotion/load are silent.
+See [102 — Equipment feedback](../00_dev_roadmap/102_equipment_view_promotion_feedback.md).
+
+### Historical extended labor proposal (not implemented)
 
 The implemented **Colony → Dwarves** roster shows current work and rest, with
 selection and Locate actions. The assignment controls below remain future design.

@@ -52,13 +52,66 @@ static func is_chair(def: Dictionary) -> bool:
 	return not (def.get("seating_chair", {}) as Dictionary).is_empty()
 
 
+static func clearance_yaw(piece) -> int:
+	if piece is InstalledFurnitureComponent and piece.idle_seat_owner >= 0 and piece.idle_seat_yaw_steps >= 0:
+		return piece.idle_seat_yaw_steps
+	return piece.yaw_steps
+
+
 static func clearance(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
-	var region: Dictionary = def.seating_chair.clearance
-	var lo := Vector3(region.min[0], region.min[1], region.min[2])
-	var hi := Vector3(region.max[0], region.max[1], region.max[2])
-	var box := rotate_box(def, lo, hi, yaw)
+	var result := AABB()
+	for region: Dictionary in clearance_regions(def, origin, yaw):
+		result = region.bounds if result.size == Vector3.ZERO else result.merge(region.bounds)
+	return result
+
+
+static func _world_box(def: Dictionary, region: Dictionary, origin: Vector3i, yaw: int) -> AABB:
+	var box := rotate_box(def, Vector3(region.min[0], region.min[1], region.min[2]),
+		Vector3(region.max[0], region.max[1], region.max[2]), yaw)
 	box.position += Vector3(origin + Vector3i.UP)
 	return box
+
+
+## Separate low limbs from broad, rounded head/hair space. A single tall box
+## incorrectly treats empty corners and the air above low furniture as solid.
+static func clearance_regions(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for region: Dictionary in def.seating_chair.get("clearance_regions", [def.seating_chair.get("clearance", {})]):
+		var box := _world_box(def, region, origin, yaw)
+		result.append({"bounds": box, "radius": box.size.x * .5 if region.get("shape", "box") == "cylinder" else 0.0})
+	return result
+
+
+static func regions_intersect(a: Dictionary, b: Dictionary) -> bool:
+	var first: AABB = a.bounds
+	var second: AABB = b.bounds
+	if not first.grow(-.0001).intersects(second.grow(-.0001)): return false
+	var ar := float(a.get("radius", 0))
+	var br := float(b.get("radius", 0))
+	if ar == 0 and br == 0: return true
+	var ac := Vector2(first.get_center().x, first.get_center().z)
+	var bc := Vector2(second.get_center().x, second.get_center().z)
+	if ar > 0 and br > 0: return ac.distance_squared_to(bc) < pow(ar + br - .0001, 2)
+	var circle := ac if ar > 0 else bc
+	var box := second if ar > 0 else first
+	var nearest := Vector2(clampf(circle.x, box.position.x, box.end.x), clampf(circle.y, box.position.z, box.end.z))
+	return circle.distance_squared_to(nearest) < pow(maxf(ar, br) - .0001, 2)
+
+
+func _obstacles(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if not def.has("seating_obstacles"):
+		return [{"bounds": controller._visual_bounds(def, origin, yaw)}]
+	for region: Dictionary in def.seating_obstacles:
+		result.append({"bounds": _world_box(def, region, origin, yaw)})
+	return result
+
+
+static func _overlap(first: Array[Dictionary], second: Array[Dictionary]) -> bool:
+	for a in first:
+		for b in second:
+			if regions_intersect(a, b): return true
+	return false
 
 
 static func access_cells(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Vector3i]:
@@ -76,8 +129,9 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 	if exceeds_capacity(def, origin, yaw, skip):
 		return "seat_capacity"
 	var chair := is_chair(def)
-	var bounds: AABB = controller._visual_bounds(def, origin, yaw)
-	var space := clearance(def, origin, yaw) if chair else AABB()
+	var obstacles := _obstacles(def, origin, yaw)
+	var spaces: Array[Dictionary] = []
+	if chair: spaces = clearance_regions(def, origin, yaw)
 	var furniture_handles: Array[int] = []
 	for piece in controller._installed.values():
 		furniture_handles.append_array(piece.occupancy_ids)
@@ -85,19 +139,21 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 		for piece in pieces.values():
 			if piece == skip:
 				continue
-			if chair and space.intersects(controller._visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps).grow(-.0001)):
+			if chair and _overlap(spaces, _obstacles(piece.def, piece.origin_cell, piece.yaw_steps)):
 				return "seat_clearance"
 			if is_chair(piece.def):
-				var other := clearance(piece.def, piece.origin_cell, piece.yaw_steps).grow(-.0001)
-				if other.intersects(bounds) or (chair and other.intersects(space)):
+				var other := clearance_regions(piece.def, piece.origin_cell, clearance_yaw(piece))
+				if _overlap(other, obstacles) or (chair and _overlap(other, spaces)):
 					return "seat_clearance"
 	if not chair:
 		return ""
-	for cell: Vector3i in controller._bounds_cells(space):
-		if cell.x < 0 or cell.z < 0 or cell.x >= WorldGenerator.WORLD_SIZE_X or cell.z >= WorldGenerator.WORLD_SIZE_Z \
-				or cell.y >= WorldData.WORLD_SIZE_Y or controller._block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID \
-				or PlacedEntityRegistry.occupies(cell, furniture_handles):
-			return "seat_clearance"
+	for space in spaces:
+		for cell: Vector3i in controller._bounds_cells(space.bounds):
+			if not regions_intersect(space, {"bounds": AABB(Vector3(cell), Vector3.ONE)}): continue
+			if cell.x < 0 or cell.z < 0 or cell.x >= WorldGenerator.WORLD_SIZE_X or cell.z >= WorldGenerator.WORLD_SIZE_Z \
+					or cell.y >= WorldData.WORLD_SIZE_Y or controller._block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID \
+					or PlacedEntityRegistry.occupies(cell, furniture_handles):
+				return "seat_clearance"
 	for cell in access_cells(def, origin, yaw):
 		if NavGrid.is_walkable(cell) and not controller._cell_to_ghost.has(cell):
 			return ""

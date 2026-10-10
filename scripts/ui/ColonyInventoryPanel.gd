@@ -109,7 +109,7 @@ func _ready() -> void:
 	_name = _label("Colony supplies", 23, true)
 	_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	contents.add_child(_name)
-	for state: String in ["Total", "Stored", "Loose", "Carried", "Reserved", "Available"]:
+	for state: String in ["Total", "Stored", "Loose", "Carried", "Equipped", "Reserved", "Available"]:
 		var line := HBoxContainer.new()
 		contents.add_child(line)
 		var caption := _label(state, 14, true)
@@ -118,9 +118,9 @@ func _ready() -> void:
 		var value := _label("—", 17, true)
 		line.add_child(value)
 		_values[state] = value
-		if state == "Total": line.tooltip_text = "Stored + Loose + Carried. Installed furniture is already in use and excluded."
+		if state == "Total": line.tooltip_text = "Stored + Loose + Carried + Equipped. Installed furniture is already in use and excluded."
 		if state == "Reserved":
-			line.tooltip_text = "Already assigned to hauling or placement. Included in Total, not extra goods."
+			line.tooltip_text = "Already assigned to a dwarf or an order, including equipped tools. Included in Total, not extra goods."
 		if state == "Available": line.tooltip_text = "Unassigned goods available for new orders."
 	_description = _label("Select an item to see where it is kept.", 13, true)
 	_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

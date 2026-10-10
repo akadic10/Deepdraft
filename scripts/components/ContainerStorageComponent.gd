@@ -240,12 +240,16 @@ func withdrawal_contact(_slot: Variant) -> Vector3:
 	return delivery_contact(nearest_stand_target(Vector3i.ZERO))
 
 
+func withdrawal_item_cell(_slot: Variant) -> Vector3i:
+	return nearest_stand_target(Vector3i.ZERO)
+
+
 func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	if suspended or not _slots.entries.has(slot): return null
 	var stack: Dictionary = _slots.entries[slot]
 	var item_key := String(stack.item)
 	if amount <= 0 or amount > int(stack.count): return null
-	var stand := nearest_stand_target(Vector3i.ZERO)
+	var stand := withdrawal_item_cell(slot)
 	if stand.x < 0:
 		return null
 	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id, String(stack.get("instance_id", "")))

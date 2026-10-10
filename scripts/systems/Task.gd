@@ -75,4 +75,5 @@ static func type_name(t: int) -> String:
 		Type.CLEAR_SHRUB: return "CLEAR_SHRUB"
 		Type.CLEAR_PLANT: return "CLEAR_PLANT"
 		Type.HARVEST_TREE: return "HARVEST_TREE"
+		Type.UPROOT_SHRUB: return "UPROOT_SHRUB"
 	return "UNKNOWN"

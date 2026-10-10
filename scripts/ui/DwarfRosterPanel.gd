@@ -27,6 +27,9 @@ var _detail_panel: VBoxContainer
 var _detail_empty: Label
 var _explorer: Node
 var _portraits_pending := false
+var _work_view := false
+var _view_buttons: Array[Button] = []
+var _work_heading: HBoxContainer
 
 
 func _ready() -> void:
@@ -78,6 +81,14 @@ func _ready() -> void:
 	table.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	table.add_theme_constant_override("separation", 6)
 	_body.add_child(table)
+	var modes := HBoxContainer.new()
+	table.add_child(modes)
+	for title: String in ["Overview", "Work"]:
+		var mode := UITheme.make_button(title, "", Vector2(92, 30))
+		var work_mode := title == "Work"
+		mode.pressed.connect(set_work_view.bind(work_mode))
+		modes.add_child(mode)
+		_view_buttons.append(mode)
 	_heading = HBoxContainer.new()
 	_heading.add_theme_constant_override("separation", 10)
 	table.add_child(_margin(_heading, 8, 4))
@@ -92,6 +103,15 @@ func _ready() -> void:
 	var action_space := Control.new()
 	action_space.custom_minimum_size.x = 64
 	_heading.add_child(action_space)
+	_work_heading = HBoxContainer.new()
+	_work_heading.add_theme_constant_override("separation", 0)
+	for entry: Dictionary in DwarfAssets.work_permissions():
+		var label := _label(entry.label, 11, UITheme.HEARTH_MUTED)
+		label.custom_minimum_size.x = 46
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.tooltip_text = entry.description
+		_work_heading.add_child(label)
+	_heading.add_child(_work_heading)
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
@@ -114,6 +134,12 @@ func _ready() -> void:
 	_scroll.get_v_scroll_bar().value_changed.connect(func(_value: float): _queue_portrait_update())
 	get_viewport().size_changed.connect(func(): _fit.call_deferred())
 	set_process(false)
+
+
+func set_work_view(enabled: bool) -> void:
+	_work_view = enabled
+	refresh()
+	_fit.call_deferred()
 
 
 func begin_browsing() -> void:
@@ -150,6 +176,11 @@ func _process(delta: float) -> void:
 func refresh() -> void:
 	if not is_instance_valid(director) or window == null or not window.visible: return
 	var agents: Array = director.get_roster()
+	for i in range(_view_buttons.size()): UITheme.apply_hearth_button(_view_buttons[i], _work_view == (i == 1))
+	_heading.get_child(2).visible = not _work_view
+	_heading.get_child(3).visible = not _work_view
+	_heading.get_child(4).visible = not _work_view
+	_work_heading.visible = _work_view
 	for agent in _rows.keys():
 		if not is_instance_valid(agent) or not agent in agents:
 			var button: Button = _rows[agent].button
@@ -169,6 +200,15 @@ func refresh() -> void:
 		if row.button.visible: shown += 1
 		row.name.text = data.title
 		row.profession.text = data.profession
+		row.work.visible = not _work_view
+		row.rest_box.visible = not _work_view
+		row.locate.visible = not _work_view
+		row.permissions.visible = _work_view
+		for key: String in row.checks:
+			var check: CheckBox = row.checks[key]
+			check.disabled = key == "craft" and agent.profession != "base:profession:worker"
+			check.set_pressed_no_signal(bool(agent.work_permissions.get(key, true)) and not check.disabled)
+		row.work_note.text = "Mining disabled" if agent.profession == "base:profession:miner" and not bool(agent.work_permissions.get("mine", true)) else "Mining focus" if agent.profession == "base:profession:miner" else "General work"
 		row.activity.text = data.summary
 		row.activity.add_theme_color_override("font_color", UITheme.HEARTH_COPPER if data.group == "resting" else UITheme.SUCCESS if data.group == "working" else UITheme.HEARTH_TEXT)
 		row.rest.value = roundi(float(data.rest) * 100)
@@ -200,6 +240,7 @@ func refresh() -> void:
 	_empty.text = "No dwarves have arrived yet.\nPlace a settlement flag to welcome your first settlers." if agents.is_empty() else "No dwarves match this view.\nTry another filter or name."
 	_detail_empty.visible = not _detail_panel.visible
 	_footer.text = "%d of %d dwarves · Select a row for details · Locate moves the camera" % [shown, agents.size()]
+	if _work_view: _footer.text = "Checked = allowed · Miners prefer mining · Supplies for a job stay allowed · Rest is automatic"
 	_queue_portrait_update()
 	# Never sort by changing activity, rebuild rows or refit on these wakes.
 
@@ -262,6 +303,29 @@ func _build_row(agent: DwarfAgent) -> void:
 	locate.pressed.connect(func():
 		if is_instance_valid(agent): director.perform_explorer_action(agent, "locate"))
 	line.add_child(locate)
+	var permissions := HBoxContainer.new()
+	permissions.add_theme_constant_override("separation", 0)
+	permissions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.add_child(permissions)
+	var checks := {}
+	for entry: Dictionary in DwarfAssets.work_permissions():
+		var check := CheckBox.new()
+		for state: String in ["normal", "pressed", "disabled", "hover", "hover_pressed"]:
+			var style := UITheme.style(UITheme.HOVER_BG if state in ["hover", "hover_pressed"] else Color.TRANSPARENT, Color.TRANSPARENT, 0, 2, 0, 0)
+			style.content_margin_left = 14
+			style.content_margin_right = 8
+			check.add_theme_stylebox_override(state, style)
+		check.custom_minimum_size = Vector2(46, 34)
+		check.tooltip_text = "%s: %s" % [entry.label, entry.description]
+		check.toggled.connect(func(allowed: bool):
+			if is_instance_valid(agent) and agent in director.get_roster(): agent.set_work_permission(entry.id, allowed)
+			refresh())
+		permissions.add_child(check)
+		checks[entry.id] = check
+	var work_note := _label("", 12, UITheme.HEARTH_MUTED)
+	work_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	work_note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	permissions.add_child(work_note)
 	_ignore_mouse(line)
 	button.pressed.connect(func():
 		if is_instance_valid(agent): director.inspect_dwarf(agent)
@@ -269,7 +333,7 @@ func _build_row(agent: DwarfAgent) -> void:
 	_rows[agent] = {"button": button, "portrait": portrait, "viewport": null,
 		"identity": identity, "name": name_label, "profession": profession, "activity": activity,
 		"cargo_icon": cargo_icon, "note": note, "rest_box": rest_box, "rest_label": rest_label,
-		"rest": rest, "locate": locate}
+		"rest": rest, "locate": locate, "work": work, "permissions": permissions, "checks": checks, "work_note": work_note}
 	_size_row(_rows[agent])
 
 

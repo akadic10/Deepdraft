@@ -1,14 +1,16 @@
 extends Node
 
-## Owns short world-work audio and disposable effects. All state is cosmetic;
+## Owns short work/wildlife/promotion audio and disposable effects. All state is cosmetic;
 ## changing/reloading the scene clears it. No simulation RNG or save fields.
 const CONFIG_PATH := "res://data/audio/work_feedback.json"
 const DustBurst = preload("res://scripts/components/WorkDustBurst.gd")
 var config: Dictionary = {}
 var _streams: Dictionary = {}
 var _last_variant: Dictionary = {}
+var _last_sound_msec: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _voices: Array[Dictionary] = []
+var _promotion_player: AudioStreamPlayer
 var _bursts: Array[Node3D] = []
 var _scene_id := 0
 var _view: Node
@@ -25,7 +27,8 @@ func _ready() -> void:
 		push_error("WorkFeedback: cannot load settings")
 		return
 	config = JSON.parse_string(file.get_as_text())
-	for kind in ["chop","completion","mining_stone","mining_soil"]:
+	for kind: String in config.audio:
+		if not config.audio[kind] is Array: continue
 		var bank: Array[AudioStream] = []
 		for path in config.audio[kind]:
 			var stream := load(path) as AudioStream
@@ -62,6 +65,10 @@ func _sync_scene() -> bool:
 
 
 func clear_transients() -> void:
+	if is_instance_valid(_promotion_player):
+		_promotion_player.stop()
+		_promotion_player.free()
+	_promotion_player = null
 	for voice in _voices:
 		voice.player.stop()
 		voice.player.free()
@@ -70,6 +77,7 @@ func clear_transients() -> void:
 		burst.free()
 	_bursts.clear()
 	_last_variant.clear()
+	_last_sound_msec.clear()
 
 
 func _exit_tree() -> void:
@@ -97,26 +105,71 @@ func _slice_y() -> int:
 
 
 ## Horizontal distance to the looked-at area, independent of camera altitude.
-func spatial_gain(position: Vector3, focus: Vector3, zoom: float) -> float:
+func spatial_gain(position: Vector3, focus: Vector3, zoom: float, profile: Dictionary = {}) -> float:
+	if profile.has("max_zoom") and zoom > float(profile.max_zoom): return 0.0
 	var distance := Vector2(position.x-focus.x,position.z-focus.z).length()
-	var proximity := 1.0-smoothstep(float(config.audio.near_radius),float(config.audio.far_radius),distance)
-	var zoom_gain := pow(minf(1.0,float(config.audio.zoom_reference)/maxf(zoom,1)),float(config.audio.zoom_exponent))
-	return proximity*proximity*zoom_gain
+	var proximity := 1.0-smoothstep(float(profile.get("near_radius",config.audio.near_radius)),float(profile.get("far_radius",config.audio.far_radius)),distance)
+	var zoom_gain := pow(minf(1.0,float(profile.get("zoom_reference",config.audio.zoom_reference))/maxf(zoom,1)),float(profile.get("zoom_exponent",config.audio.zoom_exponent)))
+	return proximity*proximity*zoom_gain*db_to_linear(float(profile.get("level_db",0)))
 
 
 func play_chop(position: Vector3, floor_y: int) -> bool:
 	return _play("chop",position,floor_y)
 
 
-func _play(kind: String, position: Vector3, floor_y: int) -> bool:
-	if config.is_empty() or not _sync_scene() or WorldClock.paused or WorldClock.speed <= 0:
+## A colony notification, audible even when the appointment was made while
+## paused or its dwarf is outside the current view/slice. One voice bounds spam.
+## Uses the same player volume/mute controls as the rest of the Work bus.
+func play_promotion(position: Vector3) -> bool:
+	if config.is_empty() or not _sync_scene() or _streams.get("promotion", []).is_empty(): return false
+	var now := Time.get_ticks_msec()
+	var profile := _profile("promotion")
+	if now - int(_last_sound_msec.get("promotion", -100000)) < float(profile.get("cooldown_seconds", .2)) * 1000: return false
+	if not is_instance_valid(_promotion_player):
+		_promotion_player = AudioStreamPlayer.new()
+		_promotion_player.bus = config.audio.bus
+		add_child(_promotion_player)
+	_promotion_player.stream = _streams.promotion[0]
+	_promotion_player.volume_db = float(profile.get("level_db", 0))
+	if DisplayServer.get_name() != "headless": _promotion_player.play()
+	_last_sound_msec.promotion = now
+	sound_started.emit("promotion", position, 0)
+	return true
+
+
+func _profile(kind: String) -> Dictionary:
+	return config.audio.get("profiles",{}).get(kind,{})
+
+
+func _source_ready(source: Node3D, profile: Dictionary) -> bool:
+	if not is_instance_valid(source) or not source.is_inside_tree() or source.is_queued_for_deletion() or not source.is_visible_in_tree(): return false
+	var required := String(profile.get("required_activity",""))
+	return required.is_empty() or String(source.get("activity")) == required
+
+
+func play_animal(kind: String, source: Node3D) -> bool:
+	if not _source_ready(source,_profile(kind)): return false
+	return _play(kind,source.global_position,floori(source.global_position.y),source)
+
+
+func _play(kind: String, position: Vector3, floor_y: int, source: Node3D = null) -> bool:
+	if config.is_empty() or not _sync_scene() or not _streams.has(kind):
 		return false
+	var profile := _profile(kind)
+	if (WorldClock.paused or WorldClock.speed <= 0) and not bool(profile.get("allow_paused",false)): return false
+	var now := Time.get_ticks_msec()
+	if _last_sound_msec.has(kind) and now - int(_last_sound_msec[kind]) < float(profile.get("cooldown_seconds",0))*1000: return false
 	var context := _context()
 	if context.is_empty() or floor_y > _slice_y():
 		return false
-	var gain := spatial_gain(position,context.focus,context.zoom)
+	var gain := spatial_gain(position,context.focus,context.zoom,profile)
 	if gain < float(config.audio.minimum_gain) or _streams[kind].is_empty():
 		return false
+	_update_voices(0,context)
+	var kind_count := 0
+	for voice in _voices:
+		if float(voice.remaining) > 0 and voice.get("kind","") == kind: kind_count += 1
+	if profile.has("max_voices") and kind_count >= int(profile.max_voices): return false
 	var selected := -1
 	var quietest := INF
 	var quiet_index := -1
@@ -125,7 +178,7 @@ func _play(kind: String, position: Vector3, floor_y: int) -> bool:
 		if float(voice.remaining) <= 0:
 			selected = i
 			break
-		var current_gain := spatial_gain(voice.player.global_position,context.focus,context.zoom)
+		var current_gain := spatial_gain(voice.player.global_position,context.focus,context.zoom,_profile(String(voice.get("kind",""))))
 		if current_gain < quietest:
 			quietest = current_gain
 			quiet_index = i
@@ -150,17 +203,21 @@ func _play(kind: String, position: Vector3, floor_y: int) -> bool:
 	var voice := _voices[selected]
 	var player: AudioStreamPlayer3D = voice.player
 	player.stop()
+	player.stream_paused = false
 	player.global_position = position
 	player.stream = bank[variant]
 	var variation := float(config.audio.pitch_variation)
 	player.pitch_scale = _rng.randf_range(1.0-variation,1.0+variation)
 	voice.remaining = player.stream.get_length()/player.pitch_scale
 	voice.floor = floor_y
+	voice.kind = kind
+	voice.source = weakref(source) if source != null else null
 	voice.level = _rng.randf_range(-float(config.audio.volume_variation_db),float(config.audio.volume_variation_db))
 	_update_voices(0,context)
 	# Headless simulation has no audio mixer to retire playback handles.
 	if DisplayServer.get_name() != "headless":
 		player.play()
+	_last_sound_msec[kind] = now
 	sound_started.emit(kind,position,variant)
 	return true
 
@@ -240,10 +297,20 @@ func _process(delta: float) -> void:
 func _update_voices(delta: float, context: Dictionary) -> void:
 	var active := 0
 	for voice in _voices:
-		voice.remaining = maxf(0,float(voice.remaining)-delta)
+		var profile := _profile(String(voice.get("kind","")))
+		var paused := bool(profile.get("pause_with_simulation",false)) and (WorldClock.paused or WorldClock.speed <= 0)
+		voice.player.stream_paused = paused
+		voice.remaining = maxf(0,float(voice.remaining)-(0.0 if paused else delta))
+		var source_valid := true
+		if voice.get("source") != null:
+			var source := (voice.source as WeakRef).get_ref() as Node3D
+			source_valid = _source_ready(source,profile)
+			if source_valid:
+				voice.player.global_position = source.global_position
+				voice.floor = floori(source.global_position.y)
 		var gain := 0.0
-		if not context.is_empty() and voice.floor <= _slice_y():
-			gain = spatial_gain(voice.player.global_position,context.focus,context.zoom)
+		if source_valid and not context.is_empty() and voice.floor <= _slice_y():
+			gain = spatial_gain(voice.player.global_position,context.focus,context.zoom,profile)
 		voice.gain = gain
 		if gain < float(config.audio.minimum_gain) or float(voice.remaining) <= 0:
 			voice.player.stop()

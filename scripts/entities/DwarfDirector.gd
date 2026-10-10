@@ -34,6 +34,7 @@ var _count_label: Label
 var _walk_button: Button
 var _roster_panel: Control
 var _roster_window: UIWindow
+var _profession_panel: Control
 
 ## DEV walk test (step 3b): while ON, left-click terrain orders the whole
 ## squad to path there — the visual verification for NavGrid (around trees,
@@ -112,6 +113,9 @@ func get_explorer_bounds(id: Variant) -> AABB:
 
 
 func perform_explorer_action(id: Variant, action: String) -> void:
+	if action == "profession":
+		if _inspectable(id): open_professions(id)
+		return
 	if not _inspectable(id) or not is_instance_valid(_camera_rig):
 		return
 	if action == "locate" and _camera_rig.has_method("locate_subject"):
@@ -417,6 +421,7 @@ func restore_state(state: Dictionary) -> void:
 			"traits": entry.get("traits", []),
 			"profession": String(entry.get("profession", "base:profession:worker")),
 			"profession_experience": entry.get("profession_experience", {}),
+			"work_permissions": entry.get("work_permissions", {}),
 		}
 		var agent := _factory.spawn(data, dwarf_id)
 		agent.position = SaveManager.unpack_v3(entry.get("position", []))
@@ -505,6 +510,18 @@ func is_window_visible() -> bool:
 	return _window_manager != null and _window_manager.is_open("dwarves")
 
 
+func open_professions(agent: DwarfAgent) -> void:
+	if _window_manager == null or not agent in get_roster(): return
+	_window_manager.open("professions")
+	_profession_panel.begin_browsing(agent)
+
+
+func open_work_view() -> void:
+	if _window_manager == null: return
+	_window_manager.open("dwarves")
+	_roster_panel.set_work_view(true)
+
+
 func _register_window() -> void:
 	if _window_manager == null:
 		push_warning("DwarfDirector: UIWindowManager not found at '%s' — roster disabled." % window_manager_path)
@@ -517,6 +534,17 @@ func _register_window() -> void:
 	UITheme.apply_catalog_window(_roster_window)
 	_roster_panel.window = _roster_window
 	_roster_panel._fit.call_deferred()
+	_profession_panel = preload("res://scripts/ui/DwarfProfessionPanel.gd").new()
+	_profession_panel.director = self
+	_profession_panel.manager = _window_manager
+	var promotion_margin := MarginContainer.new()
+	for side: String in ["left", "right", "top", "bottom"]: promotion_margin.add_theme_constant_override("margin_" + side, 12)
+	promotion_margin.add_child(_profession_panel)
+	var promotion_window := _window_manager.register_window("professions", "Professions", "", promotion_margin,
+		{"persistent": false, "default_pos": Vector2(70, 50)})
+	promotion_window.keep_body_on_screen = true
+	UITheme.apply_catalog_window(promotion_window)
+	_profession_panel.window = promotion_window
 	_register_dev_window()
 	_window_manager.window_state_changed.connect(_on_window_state_changed)
 
@@ -600,11 +628,14 @@ func _register_dev_window() -> void:
 ## refresh on every open. The manager's one signal replaces the old
 ## toggle_window-side refresh.
 func _on_window_state_changed(id: String, open: bool) -> void:
+	if id == "professions" and not open: _profession_panel.clear_subject()
 	if id == "dwarves":
 		if open:
 			_set_walk_test(false)
 			_roster_panel.begin_browsing()
-		else: _roster_panel.end_browsing()
+		else:
+			_roster_panel.end_browsing()
+			_window_manager.close("professions")
 	elif id == "dwarves_dev" and open: _refresh_window()
 
 

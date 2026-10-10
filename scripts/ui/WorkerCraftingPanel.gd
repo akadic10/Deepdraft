@@ -2,10 +2,18 @@ extends MarginContainer
 
 ## Recipes, live stock and stable order rows. CraftingManager owns all work.
 signal place_requested(furniture_key: String)
+signal crafters_requested()
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 var controller: Node
 var window: UIWindow
 var selected := ""
+var section_id := "rudimentary"
+var _crafters: Button
+var _section_note: Label
+var _planned_list: Label
+var _category_labels := {}
+var _last_recipe := {}
+var _controls: HBoxContainer
 var _recipes: VBoxContainer
 var _buttons := {}
 var _rows := {}
@@ -16,6 +24,7 @@ var _title: Label
 var _description: Label
 var _requirements: Label
 var _stock: Label
+var _purpose: Label
 var _wood: MenuButton
 var _draft_ingredients := {}
 var _mode: OptionButton
@@ -27,6 +36,7 @@ var _queue_title: Label
 var _hint: Label
 var _detail: VBoxContainer
 var _dock_top := 600.0
+var _layout_pending := false
 
 func _ready() -> void:
 	UITheme.apply_surface(self)
@@ -34,7 +44,15 @@ func _ready() -> void:
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation",10)
 	add_child(body)
-	body.add_child(_label("Every Worker can craft. No promotion needed.",13))
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation",12)
+	body.add_child(header)
+	_crafters = UITheme.make_button("‹ Crafters","Choose another profession",Vector2(116,30))
+	_crafters.pressed.connect(func(): crafters_requested.emit())
+	header.add_child(_crafters)
+	_section_note = _label("",13)
+	_section_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(_section_note)
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation",12)
 	body.add_child(columns)
@@ -47,6 +65,9 @@ func _ready() -> void:
 	_recipes.custom_minimum_size.x = 148
 	recipe_scroll.add_child(_recipes)
 	_recipes.add_child(_label("RECIPES",12))
+	_planned_list = _label("",13)
+	_planned_list.custom_minimum_size.x = 148
+	_recipes.add_child(_planned_list)
 	_detail_scroll = ScrollContainer.new()
 	_detail_scroll.custom_minimum_size.x = 260
 	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -67,11 +88,14 @@ func _ready() -> void:
 	detail.add_child(_description)
 	_requirements = _label("",13,false,true)
 	detail.add_child(_requirements)
+	_purpose = _label("",12,false,true)
+	detail.add_child(_purpose)
 	_wood = _make_wood_menu()
 	detail.add_child(_wood)
 	_stock = _label("",13,false,true)
 	detail.add_child(_stock)
 	var controls := HBoxContainer.new()
+	_controls = controls
 	detail.add_child(controls)
 	_mode = OptionButton.new()
 	_mode.add_item("Make batches")
@@ -112,14 +136,20 @@ func _ready() -> void:
 	_empty = _label("No orders yet.\n\nStart with a crude workbench, then place it from colony stores.",13)
 	_empty.custom_minimum_size.x = 212
 	_queue.add_child(_empty)
-	_hint = _label("Finished goods go to colony stores. Place torches on tunnel walls.",12)
+	_hint = _label("Workers craft basic goods and starter tools at the crude workbench.",12)
 	body.add_child(_hint)
 	visibility_changed.connect(refresh)
 
 func bind_controller(value: Node) -> void:
 	controller = value
 	controller.changed.connect(refresh)
+	if window != null: window.resized.connect(_clamp_above_dock)
 	for recipe: Dictionary in controller.recipes.values():
+		var category := String(recipe.get("category","Recipes"))
+		if not _category_labels.has(category):
+			var heading := _label(category.to_upper(),12)
+			_recipes.add_child(heading)
+			_category_labels[category] = heading
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(148,110)
 		button.toggle_mode = true
@@ -128,7 +158,8 @@ func bind_controller(value: Node) -> void:
 		button.add_theme_stylebox_override("pressed",UITheme.catalog_item_style(true))
 		button.text = String(recipe.name)
 		button.add_theme_font_size_override("font_size",13)
-		var path := "res://assets/ui/furniture/%s.png" % String(recipe.furniture).get_slice(":",2)
+		var furniture_key := String(recipe.get("furniture",""))
+		var path := Inventory.thumbnail_path(String(recipe.output)) if furniture_key.is_empty() else "res://assets/ui/furniture/%s.png" % furniture_key.get_slice(":",2)
 		if ResourceLoader.exists(path): button.icon = load(path)
 		button.expand_icon = true
 		button.add_theme_constant_override("icon_max_width",104)
@@ -137,14 +168,42 @@ func bind_controller(value: Node) -> void:
 		button.pressed.connect(select_recipe.bind(String(recipe.id)))
 		_recipes.add_child(button)
 		_buttons[String(recipe.id)] = button
-	if not controller.recipes.is_empty(): select_recipe(controller.recipes.keys()[0])
+	# Keep each category together even if later content is appended to the data.
+	for category: String in _category_labels:
+		_recipes.move_child(_category_labels[category],_recipes.get_child_count()-1)
+		for recipe: Dictionary in controller.recipes.values():
+			if String(recipe.get("category","Recipes"))==category:
+				_recipes.move_child(_buttons[String(recipe.id)],_recipes.get_child_count()-1)
+	select_section("rudimentary")
+
+func select_section(key: String) -> void:
+	if controller == null or not controller.sections.has(key): return
+	if not selected.is_empty(): _last_recipe[section_id] = selected
+	section_id = key
+	selected = ""
+	if not bool(controller.sections[key].get("planned",false)):
+		for recipe: Dictionary in controller.recipes.values():
+			if String(recipe.get("section","rudimentary"))==key:
+				selected = String(_last_recipe.get(key,recipe.id))
+				break
+		if not selected.is_empty():
+			if not _draft_ingredients.has(selected):
+				_draft_ingredients[selected] = controller.allowed_ingredient_keys(controller.recipes[selected])
+	_detail_scroll.scroll_vertical = 0
+	refresh()
+	_fit.call_deferred()
+	if not selected.is_empty(): _recipes.get_parent().call_deferred("ensure_control_visible",_buttons[selected])
 
 func select_recipe(key: String) -> void:
 	if controller == null or not controller.recipes.has(key): return
+	var recipe_section := String(controller.recipes[key].get("section","rudimentary"))
+	if section_id != recipe_section: select_section(recipe_section)
 	selected = key
 	if not _draft_ingredients.has(key):
 		_draft_ingredients[key] = controller.allowed_ingredient_keys(controller.recipes[key])
 	refresh()
+	_fit.call_deferred()
+	_recipes.get_parent().call_deferred("ensure_control_visible",_buttons[key])
 
 func _queue_selected() -> void:
 	if selected.is_empty(): return
@@ -154,36 +213,66 @@ func _queue_selected() -> void:
 	refresh()
 
 func refresh() -> void:
-	if controller == null or selected.is_empty() or not is_visible_in_tree(): return
-	var recipe: Dictionary = controller.recipes[selected]
+	if controller == null or not controller.sections.has(section_id) or not is_visible_in_tree(): return
 	var totals := Inventory.snapshot(controller.items,controller.furniture)
-	for key: String in _buttons: _buttons[key].set_pressed_no_signal(key == selected)
+	var section: Dictionary = controller.sections[section_id]
+	var planned := bool(section.get("planned",false))
+	if window != null: window.set_window_title(String(section.name) + " crafting")
+	_section_note.text = "Planned profession recipes" if planned else "Every Worker can craft. No promotion needed."
+	_hint.text = String(section.get("hint",""))
+	_planned_list.visible = planned
+	_planned_list.text = "PLANNED\n\n" + "\n\n".join(section.get("preview",[]))
+	for category: String in _category_labels: _category_labels[category].visible = false
+	for key: String in _buttons:
+		var shown := not planned and String(controller.recipes[key].get("section","rudimentary"))==section_id
+		_buttons[key].visible = shown
+		_buttons[key].set_pressed_no_signal(key == selected)
+		if shown: _category_labels[String(controller.recipes[key].get("category","Recipes"))].visible = true
+	for control in [_wood,_stock,_controls,_make]: control.visible = not planned and not selected.is_empty()
+	_refresh_orders(totals)
+	if planned:
+		_title.text = String(section.name) + " · " + String(section.get("status_label","Planned"))
+		_description.text = String(section.description)
+		_requirements.text = String(section.get("requirements",""))
+		_purpose.text = "Recipes, costs and unlocks will appear here when this profession's crafting is available."
+		_purpose.visible = true
+		_place.hide()
+		return
+	if selected.is_empty(): return
+	var recipe: Dictionary = controller.recipes[selected]
 	_title.text = String(recipe.name)
 	_description.text = String(recipe.description)
 	var bench := "No workbench needed" if String(recipe.workshop).is_empty() else "Requires a placed crude workbench"
 	var allowed: Array = _draft_ingredients[selected]
 	_requirements.text = "1 timber · %d allowed logs available\nMakes %d · %.0f seconds\n%s" % [controller.ingredient_available(recipe,totals,allowed),int(recipe.output_count),float(recipe.work_seconds),bench]
+	for key: String in controller.additional_ingredient_keys(recipe):
+		_requirements.text += "\n1 %s · %d available" % [controller.ingredient_label(key),int(totals.get(key,{}).get("available",0))]
+	_purpose.text = String(recipe.get("purpose_short",recipe.get("purpose","")) if get_viewport_rect().size.y < 650 else recipe.get("purpose",""))
+	_purpose.visible = not _purpose.text.is_empty()
 	_update_wood_menu(_wood,allowed,totals,true)
 	var ready := int(totals.get(String(recipe.output),{}).get("available",0))
-	_stock.text = "%d ready to place" % ready
+	var placeable := not String(recipe.get("furniture", "")).is_empty()
+	_stock.text = "%d ready to place" % ready if placeable else "%d available in colony stores" % ready
 	var amount := int(_quantity.value)
 	var output_count := amount*int(recipe.output_count)
 	var output_name := String(recipe.name).to_lower() if output_count==1 else String(recipe.get("output_plural",recipe.name))
 	_make.text = "Queue %d %s" % [output_count,output_name] if _mode.selected==0 else "Keep %d in stock" % amount
 	_make.disabled = allowed.is_empty() or controller.orders.size() >= controller.max_orders
-	_make.tooltip_text = "The order waits if timber or a workbench is missing." if _mode.selected==0 else "Replenish spare items in batches of %d. Installed and reserved items do not count." % int(recipe.output_count)
+	_make.tooltip_text = "The order waits if materials or a workbench are missing." if _mode.selected==0 else "Replenish spare items in batches of %d. Installed and reserved items do not count." % int(recipe.output_count)
 	_place.disabled = ready < 1
-	_refresh_orders(totals)
+	_place.visible = placeable
 
 func _refresh_orders(totals: Dictionary) -> void:
 	var ids: Array[int] = []
-	for order in controller.orders: ids.append(order.id)
+	for order in controller.orders:
+		if String(order.recipe.get("section","rudimentary"))==section_id: ids.append(order.id)
 	for id: int in _rows.keys():
 		if id not in ids:
 			_rows[id].root.queue_free()
 			_queue.remove_child(_rows[id].root)
 			_rows.erase(id)
 	for order in controller.orders:
+		if order.id not in ids: continue
 		if not _rows.has(order.id): _add_order(order.id)
 		var row: Dictionary = _rows[order.id]
 		_queue.move_child(row.root,ids.find(order.id)+1)
@@ -195,6 +284,7 @@ func _refresh_orders(totals: Dictionary) -> void:
 		row.up.disabled = ids.front()==order.id or order.worker_id>=0
 		row.down.disabled = ids.back()==order.id or order.worker_id>=0
 	_empty.visible = ids.is_empty()
+	_empty.text = "Orders will appear here when this profession's crafting is available." if bool(controller.sections[section_id].get("planned",false)) else "No orders yet.\n\nStart with a crude workbench, then place it from colony stores."
 	_queue_title.text = "ORDERS (%d)" % ids.size()
 
 func _add_order(id: int) -> void:
@@ -225,7 +315,7 @@ func _add_order(id: int) -> void:
 	var down := UITheme.make_button("↓","Move later",Vector2(26,26))
 	down.pressed.connect(func(): controller.move_order(id,1))
 	controls.add_child(down)
-	var cancel := UITheme.make_button("×","Cancel order and return its timber",Vector2(26,26))
+	var cancel := UITheme.make_button("×","Cancel order and return its materials",Vector2(26,26))
 	cancel.pressed.connect(func(): controller.remove_order(id))
 	controls.add_child(cancel)
 	_rows[id] = {"root":panel,"title":title,"quantity":quantity,"status":status,"wood":wood,"pause":pause,"up":up,"down":down}
@@ -296,12 +386,33 @@ func _fit() -> void:
 	var compact := viewport.y < 650
 	_hint.visible = not compact
 	_description.visible = not compact
-	_detail.add_theme_constant_override("separation",6 if compact else 10)
+	_detail.add_theme_constant_override("separation",4 if compact else 10)
 	_title.add_theme_font_size_override("font_size",18 if compact else 21)
 	custom_minimum_size.x = minf(790,viewport.x-48)
-	_detail_scroll.custom_minimum_size.y = clampf(_dock_top-150,260,440)
+	_detail_scroll.custom_minimum_size.y = clampf(_dock_top-112,280,425)
 	window.reset_size()
 	window.clamp_to_viewport()
+	refresh()
+	_clamp_above_dock.call_deferred()
+	_settle_layout()
+
+func _settle_layout() -> void:
+	if _layout_pending: return
+	_layout_pending = true
+	# Wrapped labels initially measure against the hidden window's old width.
+	# Shrink once the columns have their actual widths; don't retain that tall
+	# provisional size on the first open or when switching recipe/preview cards.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_layout_pending = false
+	if not is_instance_valid(window): return
+	window.reset_size()
+	window.clamp_to_viewport()
+	_clamp_above_dock()
+
+func _clamp_above_dock() -> void:
+	if window == null: return
+	window.position.y = minf(window.position.y,maxf(4,_dock_top-8-window.size.y))
 
 func _label(value: String, size: int, heading := false, paper := false) -> Label:
 	var label := Label.new()

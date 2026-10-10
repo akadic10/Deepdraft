@@ -3,8 +3,10 @@
 Status: **FURNITURE AND CHAIR SNAPPING IMPLEMENTED — 2026-10-05.**
 The approved personal 2×2 table, communal 8×4 table and separate 2×2 chair are
 live build items. Table seat slots, chair head clearance and approach offsets
-are JSON data. Walking navigation remains 1×1×3. Autonomous sitting, eating,
-seat reservations and tavern gatherings remain future gameplay work.
+are JSON data. Walking navigation remains 1×1×3. Autonomous idle sitting and
+exclusive transient chair reservations now ship in [99 — Idle activity](99_dwarf_idle_activity.md).
+Eating and tavern gatherings remain future gameplay work. The historical study
+and implementation notes below describe the original furniture/placement pass.
 
 Player review: **personal table/chair/dwarf approved; communal 8×4 eight-seat
 layout visually approved** ("I like this look").

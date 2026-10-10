@@ -66,6 +66,23 @@
     "build_time_s": 2.0,
     "uninstall_time_s": 2.0
   },
+  "__comment_idle": "Interruptible leisure while available for work. Seconds follow simulation speed. Walks stay on clear same-level ground near the last work/spawn position; no ladders or long-distance roaming. Chairs remain separately built furniture.",
+  "idle": {
+    "start_delay_min_s": 2.5,
+    "start_delay_max_s": 5.0,
+    "pause_min_s": 8.0,
+    "pause_max_s": 18.0,
+    "walk_radius": 5,
+    "home_radius": 9,
+    "seat_radius": 9,
+      "seat_focus_radius": 6,
+    "seat_chance": 0.6,
+    "sit_min_s": 18.0,
+    "sit_max_s": 35.0,
+    "seat_transition_s": 0.5,
+    "spacing": 2.4,
+    "candidate_attempts": 12
+  },
   "hauling": {
     "max_haulers_per_zone": 4,
     "carry_speed_mult_heavy": 0.7,

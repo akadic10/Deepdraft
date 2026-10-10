@@ -13,6 +13,7 @@
   "items": [
     {"key": "base:furniture:wooden_table", "category": "dining", "label": "Personal table"},
     {"key": "base:furniture:wooden_chair", "category": "dining", "label": "Wooden chair"},
+    {"key": "base:furniture:log_chair", "category": "dining", "label": "Log stool"},
     {"key": "base:furniture:communal_table", "category": "dining", "label": "Communal table"},
     {"key": "base:furniture:bench", "category": "dining", "label": "Bench"},
     {"key": "base:furniture:tavern_bar", "category": "dining", "label": "Tavern bar"},
@@ -20,6 +21,7 @@
     {"key": "base:furniture:storage_chest", "category": "storage", "label": "Storage chest"},
     {"key": "base:furniture:storage_shelf", "category": "storage", "label": "Storage shelf"},
     {"key": "base:furniture:wooden_torch", "category": "lighting", "label": "Wooden torch"},
+    {"key": "base:furniture:campfire", "category": "lighting", "label": "Campfire"},
     {"key": "base:furniture:wall_torch", "category": "lighting", "label": "Wall torch"},
     {"key": "base:furniture:brazier", "category": "lighting", "label": "Brazier"},
     {"key": "base:furniture:door", "category": "rooms", "label": "Wooden door"},

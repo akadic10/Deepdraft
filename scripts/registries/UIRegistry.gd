@@ -29,7 +29,7 @@ var _storage_categories: Array[Dictionary] = []
 var _dock_items: Array = []
 var _menus: Dictionary = {}
 
-const _VALID_ACTIONS := ["open_panel", "toggle_window", "activate_tool", "panel_action"]
+const _VALID_ACTIONS := ["open_panel", "toggle_window", "activate_tool", "panel_action", "open_crafting"]
 
 
 func _ready() -> void:

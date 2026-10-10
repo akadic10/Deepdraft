@@ -241,7 +241,9 @@ func _build_nonempty_colony_state() -> String:
 		{"recipe":"base:recipe:worker:crude_workbench","quantity":2,"maintain":false,"paused":true,"progress":2.25,
 			"allowed_ingredients":["base:resources:wood:pine_log","base:resources:wood:juniper_log"]},
 		{"recipe":"base:recipe:worker:wooden_torch","quantity":8,"maintain":true,"paused":false,"progress":0.0,
-			"allowed_ingredients":["base:resources:wood:apple_wood"]}]})
+			"allowed_ingredients":["base:resources:wood:apple_wood"]},
+		{"recipe":"base:recipe:worker:carpentry_kit","quantity":1,"maintain":false,"paused":true,"progress":3.5,
+			"allowed_ingredients":["base:resources:wood:oak_log"]}]})
 
 	var flag_cell := _surface_cell(0, 0)
 	var dwarf_cell := _surface_cell(2, 0)
@@ -328,6 +330,8 @@ func _build_nonempty_colony_state() -> String:
 			"rotation_y": 0.25,
 		}],
 	})
+	for tool in ["stone_hoe", "hunting_spear", "carpentry_kit", "stone_hammer"]:
+		items.restore_loose_item("base:resources:tools:"+tool, Vector3(item_cell)+Vector3(.5,1,.5),0,1)
 	dwarves.call("restore_state", {
 		"birth_index": 1,
 		"settlement_anchor": _pack_v3i(flag_cell),
@@ -347,8 +351,9 @@ func _build_nonempty_colony_state() -> String:
 				"scar": "none",
 			},
 			"traits": [],
-			"profession": "base:profession:worker",
-			"profession_experience": { "base:profession:worker": 7 },
+			"profession": "base:profession:miner",
+			"profession_experience": { "base:profession:worker": 7, "base:profession:miner": 123 },
+			"work_permissions": {"haul": false, "mine": true, "gather": false},
 			"position": _pack_v3(Vector3(
 				float(dwarf_cell.x) + 0.5, float(dwarf_cell.y) + 1.0, float(dwarf_cell.z) + 0.5)),
 			"rotation_y": 0.5,
@@ -358,6 +363,19 @@ func _build_nonempty_colony_state() -> String:
 			"carried_items": [],
 		}],
 	})
+	var carpenter_state: Dictionary = dwarves.serialize_state().roster[0].duplicate(true)
+	carpenter_state.id = 1
+	carpenter_state.name = "Toolur"
+	carpenter_state.profession = "base:profession:carpenter"
+	carpenter_state.equipment = {"tool":"base:resources:tools:carpentry_kit", "pending_role":""}
+	var pending_state: Dictionary = carpenter_state.duplicate(true)
+	pending_state.id = 2
+	pending_state.name = "Apprentice"
+	pending_state.profession = "base:profession:worker"
+	pending_state.sleeping = false
+	pending_state.sleep = 1.0
+	pending_state.equipment = {"tool":"", "pending_role":"base:profession:carpenter"}
+	dwarves.restore_state({"birth_index":3, "settlement_anchor":_pack_v3i(flag_cell), "roster":[carpenter_state,pending_state]})
 	camera.call("restore_state", {
 		"target_position": _pack_v3(Vector3(520.0, 64.0, 500.0)),
 		"zoom": 42.0,
@@ -382,6 +400,80 @@ func _build_nonempty_colony_state() -> String:
 	})
 	_add_cutting_fixtures(details, furniture, items)
 	if not _add_ladder_fixtures(): return "could not find two natural ladder sites"
+	var wildlife := _owner("wildlife")
+	if wildlife == null: return "wildlife save owner missing"
+	if not wildlife.initialized: wildlife.initialize_population()
+	if wildlife.animals.is_empty(): return "seeded rabbit population missing"
+	var rabbit: Node3D = wildlife.animals[0]
+	rabbit.hunger = 0.61
+	rabbit.fatigue = 0.73
+	rabbit.activity = "Sleeping"
+	rabbit._pose()
+	var deer: Array = wildlife.animals_of_species("deer")
+	if deer.size() < 12: return "seeded deer herds missing"
+	deer[0].hunger = 0.67
+	deer[0].activity = "Grazing"
+	deer[0].timer = 3.5
+	deer[0]._pose()
+	var wolves: Array = wildlife.animals_of_species("wolf")
+	if wolves.size() != 4: return "seeded wolves missing"
+	wolves[0].begin_meal(wildlife.wolf_definition.hunting.prey["base:animal:deer"])
+	wolves[0].timer = 3.25
+	# Store a meal cooldown separately from another wolf's in-flight target.
+	var prey: Node3D = wildlife.animals_of_species("rabbit")[0]
+	wolves[1].hunger = .9
+	wolves[1].satisfied_hours = 0
+	wolves[1].retry_hours = 0
+	wolves[1].begin_hunt(prey)
+	var events := _owner("world_events")
+	if events == null: return "arrival save owner missing"
+	events.initialize_schedule()
+	# Persist an actual edge corridor, one partially entered member, two pending
+	# members, a future decision and unrelated local hunting pressure.
+	for i in range(3): wildlife.remove_animal(wildlife.animals_of_species("rabbit").back(), "predation")
+	var event: Dictionary = events.config.events[0]
+	var batch: Dictionary = events.schedules.rabbit_arrival.next.duplicate(true)
+	batch.merge({"due": _world_clock.elapsed_days(), "count": 3, "seed": "875323", "issued": 0, "wait": 0.0, "route": [], "edge": ""}, true)
+	for attempt in range(64):
+		batch.attempt = attempt
+		var result: Dictionary = wildlife.prepare_arrival(event, batch, events)
+		if result.get("status", "") == "ready":
+			batch.merge(result, true)
+			break
+	if batch.route.is_empty(): return "no arrival corridor for save fixture"
+	if wildlife.spawn_arrival_member(event, batch, events) != "spawned": return "could not enter arrival save fixture"
+	batch.issued = 1
+	batch.wait = .77
+	events.schedules.rabbit_arrival.active = batch
+	events.schedules.rabbit_arrival.next.due = _world_clock.elapsed_days()+3
+	events.record_player_hunt(_surface_cell(0, 0))
+	var arrival: Node3D = wildlife.animals.back()
+	arrival.advance(.1, 0.0, [])
+	arrival.advance(.1, 0.0, [])
+	for species in ["deer", "wolf"]:
+		for i in range(2): wildlife.remove_animal(wildlife.animals_of_species(species).back(), "test")
+		var settings: Dictionary = {}
+		for candidate: Dictionary in events.config.events:
+			if candidate.species == species: settings = candidate
+		var state: Dictionary = events.schedules[settings.id]
+		var group: Dictionary = state.next.duplicate(true)
+		group.merge({"due": _world_clock.elapsed_days(), "count": 2 if species == "deer" else 1, "seed": "875323", "issued": 0, "wait": 0.0, "route": [], "edge": ""}, true)
+		for attempt in range(int(settings.entry_attempts)):
+			group.attempt = attempt
+			var candidate: Dictionary = wildlife.prepare_arrival(settings, group, events)
+			if candidate.get("status", "") == "ready":
+				group.merge(candidate, true)
+				break
+		if group.route.is_empty(): return "no %s arrival corridor for save fixture" % species
+		if wildlife.spawn_arrival_member(settings, group, events) != "spawned": return "could not enter %s save fixture" % species
+		group.issued = 1
+		group.wait = .85
+		state.active = group
+		state.next.due = _world_clock.elapsed_days()+float(settings.interval_days[0])
+		var member: Node3D = wildlife.animals.back()
+		member.advance(.1, 0.0, [])
+		member.advance(.1, 0.0, [])
+		if int(group.issued) == int(group.count): events._finish(settings, state, "arrived")
 	return ""
 
 
@@ -525,6 +617,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var expected_keys := [
 		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
 		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders",
+		"wildlife", "world_events",
 	]
 	for key in expected_keys:
 		if not scene_state.has(key):
@@ -548,11 +641,21 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
 	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 600:
 		return "installed light/heat duplicated across world reload"
-	if (scene_state["items"] as Dictionary).get("loose", []).size() != 6:
+	if (scene_state["items"] as Dictionary).get("loose", []).size() != 10:
 		return "loose items did not round-trip"
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])
-	if roster.size() != 1 or not bool((roster[0] as Dictionary).get("sleeping", false)):
+	if roster.size() != 3 or not bool((roster[0] as Dictionary).get("sleeping", false)):
 		return "dwarf roster/runtime state did not round-trip"
+	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:
+		return "profession, retained experience or work permissions did not round-trip"
+	if roster[1].profession != "base:profession:carpenter" or roster[1].equipment.tool != "base:resources:tools:carpentry_kit":
+		return "equipped Carpenter tool did not round-trip"
+	if roster[2].profession != "base:profession:worker" or roster[2].equipment.pending_role != "base:profession:carpenter":
+		return "pending promotion did not retain current profession and appointment intent"
+	var inventory_read_model = load("res://scripts/components/ColonyInventory.gd")
+	var equipment_stock: Dictionary = inventory_read_model.snapshot(_owner("items"), _owner("furniture"))
+	if int(equipment_stock["base:resources:tools:carpentry_kit"].total) != 2 or int(equipment_stock["base:resources:tools:carpentry_kit"].equipped) != 1:
+		return "equipment duplicated or disappeared across scene replacement"
 	var camera_state := scene_state["camera"] as Dictionary
 	if not is_equal_approx(float(camera_state.get("zoom", 0.0)), 42.0):
 		return "camera state did not round-trip"

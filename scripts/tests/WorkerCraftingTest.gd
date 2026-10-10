@@ -227,7 +227,7 @@ func _ui_capture() -> void:
 		root.size = viewport
 		await _frames(8)
 		var rect: Rect2 = dock._craft_window.get_global_rect()
-		_expect(rect.end.x <= viewport.x and rect.end.y <= dock._dock_panel.position.y-8,"craft window fits above dock at %s" % viewport)
+		_expect(rect.end.x <= viewport.x and rect.end.y <= dock._dock_panel.position.y-8,"craft window fits above dock at %s (window %s, dock %.1f, cached %.1f)" % [viewport,rect,dock._dock_panel.position.y,panel._dock_top])
 		_expect(panel._make.get_global_rect().size.x>=150,"craft action remains usable")
 		_expect(panel._detail_scroll.get_global_rect().encloses(panel._make.get_global_rect()),"queue action visible without scrolling")
 		if "--capture" in OS.get_cmdline_user_args():

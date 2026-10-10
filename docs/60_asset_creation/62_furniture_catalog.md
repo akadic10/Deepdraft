@@ -17,6 +17,8 @@
 
 | Piece | Key | Status | System it serves |
 |---|---|---|---|
+| Campfire | `base:furniture:campfire` | **SHIPPED (2026-10-09, [100](../00_dev_roadmap/100_profession_crafting_camp.md))** — roughly 2×2 stone ring centered in a 3×3 placement area, eight flame frames | Rudimentary crafting, warm local light, 200 heat units; no fuel upkeep |
+| Log Stool | `base:furniture:log_chair` | **SHIPPED (2026-10-09, [100](../00_dev_roadmap/100_profession_crafting_camp.md))** — 1×1 bark stump with a flat cut top, 0.75 blocks high | Rudimentary crafting, placement and interruptible idle sitting |
 | Trade Counter | `base:furniture:trade_counter` | **SHIPPED (2026-10-01, [art doc 37](../00_dev_roadmap/37_trade_counter_asset_and_placement.md))** — 2×1 stone/iron counter, 2 blocks tall; packed item and placement live | Shop room anchor and automated trade remain future work (doc 51) |
 | Barrel | `base:furniture:barrel` | **SHIPPED; oak/iron redesign (art doc 32, 2026-10-01)** — 1×1×1 envelope, recessed lid and dark hoops | Storage container, capacity 8 (doc 19) |
 | Chest / Crate | `base:furniture:storage_chest` (model: `storage_crate.glb`) | **SHIPPED; oak/iron redesign (art doc 33, 2026-10-01)** — 1×1×1 envelope, strapped lid and front clasp | Storage container, capacity 24 (doc 19) |
@@ -125,7 +127,7 @@ SH reaches its volume by multiplying a small archetype set by **material**
 | **Input bins / output boxes** | Already adopted — doc 44's workshop feeding model (doc 18 §2.5) | Workshops (doc 44) |
 | **Rugs / banners / wall décor** | Needs a room-appeal system first; cheap assets, no logic | After room detection (doc 34/51) |
 | **Dresser** | Only meaningful with per-dwarf belongings — no system planned | Far future |
-| **Pet beds** | No animals in Deepdraft's design | Never (out of vision) |
+| **Pet beds** | Wild rabbits/deer/wolves added in milestones 90–93; domestication and pet furniture remain unplanned | Deferred until domestication is approved |
 
 ### The variant strategy (the real structural difference)
 

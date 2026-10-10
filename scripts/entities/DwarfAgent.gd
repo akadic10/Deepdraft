@@ -20,6 +20,8 @@ const LOGICAL_HEIGHT := 3.0    # blocks — collision + future nav clearance
 const FellingPose = preload("res://scripts/components/DwarfFellingPose.gd")
 const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
+const IdleBehavior = preload("res://scripts/components/DwarfIdleBehavior.gd")
+const Equipment = preload("res://scripts/components/DwarfEquipment.gd")
 const COLLISION_LAYER_DWARF := 4   # layer bit 3. NOT layer 1 (camera spring arm
 								   # collides mask 1, terrain only) and NOT
 								   # layer 2 (trees) — see doc 13 §7 gotcha.
@@ -32,6 +34,7 @@ var appearance: DwarfAppearanceData = null
 var traits: Array[String] = []
 var profession: String = "base:profession:worker"
 var profession_experience: Dictionary = {}
+var work_permissions: Dictionary = {}
 
 ## The claimed task id (id, NOT the Task object — doc 16 §2.2). -1 = idle.
 var current_task_id: int = -1
@@ -55,9 +58,7 @@ var _exec_timer: float = 0.0
 
 ## Zone-lease execution state (doc 16 step 6).
 const ZONE_PULL_FAILURE_LIMIT := 3   # §2.7 step 2: 3 path failures -> release lease
-## Off-profession speed (doc 31: ×0.7). Every dwarf is a Worker in v1, so the
-## miner-profession fast path is a later hook; 1.0 keeps the formula visible.
-const MINING_SPEED_MULT := 1.0
+## Workers retain normal speed. Miner experience reduces digging time only.
 var _zone_id: int = -1
 var _zone_block: Vector3i = Vector3i(-1, -1, -1)
 var _zone_stand_cells: Array[Vector3i] = []
@@ -169,6 +170,8 @@ var _hand_r: Node3D
 var _foot_l: Node3D
 var _foot_r: Node3D
 var _bob_phase: float = 0.0
+var _idle_behavior: RefCounted
+var _equipment: RefCounted
 
 
 func setup(p_dwarf_id: int, data: Dictionary) -> void:
@@ -179,6 +182,7 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	traits.assign(data.get("traits", []))
 	profession = String(data.get("profession", "base:profession:worker"))
 	profession_experience = data.get("profession_experience", {})
+	work_permissions = data.get("work_permissions", {}).duplicate(true)
 	name = "Dwarf_%d_%s" % [dwarf_id, dwarf_name]
 	_bob_phase = float(dwarf_id) * 1.7   # desynchronise the squad's idle motion
 	# Stagger initial tiredness deterministically (birth-index hash, no randf)
@@ -203,6 +207,8 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_carry_pose = CarryPose.new()
 	_carry_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
 	walk_finished.connect(_on_walk_finished)
+	_idle_behavior = IdleBehavior.new(self)
+	_equipment = Equipment.new(self)
 
 
 func _process(delta: float) -> void:
@@ -226,6 +232,11 @@ func _process(delta: float) -> void:
 	if sleep <= SLEEP_THRESHOLD:
 		_begin_sleep()
 		return
+	if promotion_pending():
+		_equipment.tick(delta)
+		return
+	if current_task_id < 0 and _task_phase == TaskPhase.NONE and _idle_behavior != null:
+		if _idle_behavior.tick(delta * WorldClock.speed): return
 	if _task_phase in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP, TaskPhase.HAUL_DEPOSIT, TaskPhase.FETCH_DEPOSIT]:
 		_process_item_handling(delta * WorldClock.speed)
 		return
@@ -320,12 +331,13 @@ func _process(delta: float) -> void:
 ## generic timer. Failure paths use the release protocol — releasing is
 ## always cheap and legal (doc 16 §2.8).
 func receive_task(task_id: int, target_pos: Vector3i, carried_item: Node3D = null) -> void:
-	if _sleeping:
+	if _sleeping or promotion_pending():
 		# Race guard (should not happen — sleepers leave the idle pool): an
 		# assignment landing in the frame the dwarf fell asleep bounces straight
 		# back to PENDING; releasing is always cheap and legal (§2.8).
 		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
 		return
+	if _idle_behavior != null: _idle_behavior.cancel()
 	_reset_part_offsets()
 	current_task_id = task_id
 	_task_target = target_pos
@@ -390,8 +402,61 @@ func detach_placement_cargo(item: Node3D) -> bool:
 	return false
 
 
+## Explicit career changes preserve experience and use normal task release.
+func change_profession(key: String) -> bool:
+	if not DwarfAssets.profession_enabled(key): return false
+	if key == profession:
+		if not promotion_pending(): return false
+		_equipment.cancel()
+		return true
+	if not DwarfAssets.profession_tool(key).is_empty(): return _equipment.request(key)
+	_equipment.cancel("", false)
+	_release_for_assignment_change()
+	_equipment.return_tool()
+	_complete_profession_change(key)
+	_equipment.message = "%s is now a %s." % [dwarf_name, DwarfAssets.profession_definition(key).display_name]
+	if not _sleeping: TaskManager.notify_dwarf_idle(dwarf_id)
+	return true
+
+
+func promotion_pending() -> bool:
+	return _equipment != null and _equipment.active()
+
+
+func _complete_profession_change(key: String) -> void:
+	var promoted := key != profession and key != "base:profession:worker"
+	profession = key
+	if not profession_experience.has(key): profession_experience[key] = 0
+	TaskManager.work_policy_changed()
+	if promoted: WorkFeedback.play_promotion(global_position)
+
+
+func set_work_permission(key: String, allowed: bool) -> void:
+	var known := false
+	for entry: Dictionary in DwarfAssets.work_permissions():
+		if entry.id == key: known = true
+	if not known: return
+	work_permissions[key] = allowed
+	var task := TaskManager.get_task(current_task_id)
+	if task != null and not allows_task(task.type): _release_for_assignment_change()
+	TaskManager.work_policy_changed()
+
+
+func allows_task(type: int) -> bool:
+	if work_permissions.is_empty(): return true
+	return bool(work_permissions.get(DwarfAssets.work_category(Task.type_name(type)), true))
+
+
+func _release_for_assignment_change() -> void:
+	if current_task_id < 0: return
+	abort_task()
+	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PLAYER, not _sleeping)
+
+
 ## Called by TaskManager when the task is cancelled out from under us.
 func abort_task() -> void:
+	if promotion_pending(): _equipment.cancel()
+	if _idle_behavior != null: _idle_behavior.cancel()
 	# Defensive unreserve — the controller's cancelled-route also frees it,
 	# but cancel ordering clears assigned_to before the signal fires.
 	if _zone_id >= 0:
@@ -410,6 +475,12 @@ func abort_task() -> void:
 
 
 func _on_walk_finished(success: bool) -> void:
+	if promotion_pending():
+		_equipment.walk_finished(success)
+		return
+	if current_task_id < 0 and _idle_behavior != null and _idle_behavior.owns_walk():
+		_idle_behavior.walk_finished(success)
+		return
 	if _task_phase == TaskPhase.FELL_MOVING:
 		_task_phase = TaskPhase.FELL_FINDING
 		if success:
@@ -486,6 +557,8 @@ func _on_walk_finished(success: bool) -> void:
 ## touched; partial swing progress is discarded — the block keeps full
 ## durability (swings only commit at zero).
 func _begin_sleep() -> void:
+	if promotion_pending(): _equipment.cancel("Promotion cancelled for sleep. The tool is available again.", false)
+	if _idle_behavior != null: _idle_behavior.cancel()
 	if not NavGrid.is_walkable(current_cell()) and not NavGrid.ladder_at(current_cell()).is_empty():
 		# Needs may interrupt a job immediately, but sleep begins on a real floor.
 		dev_force_interrupt()
@@ -565,16 +638,19 @@ func serialize_state() -> Dictionary:
 		"traits": traits.duplicate(),
 		"profession": profession,
 		"profession_experience": profession_experience.duplicate(true),
+		"work_permissions": work_permissions.duplicate(true),
 		"position": SaveManager.pack_v3(position),
 		"rotation_y": rotation.y,
 		"sleep": sleep,
 		"sleeping": _sleeping,
 		"sleep_hours_left": _sleep_hours_left,
 		"carried_items": carried_items,
+		"equipment": _equipment.serialize() if _equipment != null else {},
 	}
 
 
 func restore_saved_runtime(state: Dictionary) -> void:
+	if _idle_behavior != null: _idle_behavior.cancel()
 	sleep = clampf(float(state.get("sleep", 1.0)), 0.0, 1.0)
 	_sleeping = bool(state.get("sleeping", false))
 	_sleep_hours_left = maxf(float(state.get("sleep_hours_left", 0.0)), 0.0)
@@ -583,6 +659,7 @@ func restore_saved_runtime(state: Dictionary) -> void:
 	_task_phase = TaskPhase.NONE
 	stop_walking()
 	_reset_part_offsets()
+	_equipment.restore(state.get("equipment", {}))
 
 
 ## Slow, deep breathing with a drooped head — read as asleep at RTS zoom.
@@ -608,6 +685,9 @@ func _sleep_bob() -> void:
 ## reason PLAYER and return to the idle pool immediately. Returns false if
 ## there was nothing to interrupt.
 func dev_force_interrupt() -> bool:
+	if promotion_pending():
+		_equipment.cancel()
+		return true
 	if current_task_id < 0:
 		return false
 	_finish_zone_state()
@@ -708,7 +788,7 @@ func _begin_swinging() -> void:
 		_zone_pull_next()
 		return
 	_swings_left = int(work["swings"])
-	_swing_time = float(work["swing_time"]) / MINING_SPEED_MULT
+	_swing_time = float(work["swing_time"]) * DwarfAssets.mining_duration_multiplier(profession, profession_experience)
 	_swing_timer = _swing_time
 	_task_phase = TaskPhase.ZONE_SWINGING
 	_face_cell(_zone_block)
@@ -753,6 +833,9 @@ func _process_swinging(delta: float) -> void:
 	_task_phase = TaskPhase.NONE
 	_reset_part_offsets()
 	var committed := source != null and bool(source.call("commit_mined", dwarf_id))
+	if committed and profession == "base:profession:miner":
+		# The final commit may end the zone lease synchronously. Award first.
+		profession_experience[profession] = maxi(0, int(profession_experience.get(profession, 0))) + 1
 	_snap_to_floor()
 	if current_task_id < 0:
 		_finish_zone_state()
@@ -1154,7 +1237,9 @@ func _fetch_begin() -> void:
 	if _fetch_item == null or not is_instance_valid(_fetch_item):
 		_fetch_fail_release()
 		return
-	if not _walk_to_handling_stand(StorageComponent.ground_access_cells(_item_floor_cell(_fetch_item)), TaskPhase.FETCH_TO_ITEM):
+	var pickup_stands := StorageComponent.ground_access_cells(_item_floor_cell(_fetch_item))
+	if pull.has("pickup_stand"): pickup_stands = [pull.pickup_stand]
+	if not _walk_to_handling_stand(pickup_stands, TaskPhase.FETCH_TO_ITEM):
 		_fetch_fail_release()
 
 
@@ -1224,6 +1309,18 @@ func _fetch_complete() -> void:
 	if source == null:
 		_fetch_fail_release()
 		return
+	if source.has_method("needs_ingredient_delivery") and bool(source.call("needs_ingredient_delivery")):
+		if not bool(source.call("stage_ingredient", dwarf_id)):
+			_fetch_fail_release()
+			return
+		_carried_entries = _carried_entries.filter(func(entry: Array) -> bool: return entry[0] != _fetch_item)
+		_fetch_item = null
+		_fetch_picked_up = false
+		_carry_speed_mult = 1.0
+		_carry_pose.clear_items()
+		_reset_part_offsets()
+		_fetch_begin()
+		return
 	# A wall can be mined during the work swing. Release the intact item if
 	# the mount lost its support before the deferred terrain check cancelled it.
 	if source.has_method("can_complete_build") and not bool(source.call("can_complete_build")):
@@ -1251,6 +1348,9 @@ func _begin_fetch_work() -> void:
 	var source := _fetch_source()
 	if source == null:
 		_fetch_fail_release()
+		return
+	if source.has_method("needs_ingredient_delivery") and bool(source.call("needs_ingredient_delivery")):
+		_begin_fetch_deposit()
 		return
 	_task_phase = TaskPhase.FETCH_WORKING
 	_exec_timer = _fetch_work_time()
@@ -1528,6 +1628,8 @@ func _process_ladder_exit(delta: float) -> void:
 ## Orders a walk to a goal floor cell. Returns true if a path was found and
 ## the walk began; emits walk_finished(success) when it ends either way.
 func walk_to(goal_cell: Vector3i) -> bool:
+	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
+	if _idle_behavior != null and _idle_behavior.active(): _idle_behavior.cancel()
 	_reset_part_offsets()
 	var path := NavGrid.find_path(current_cell(), goal_cell)
 	if path.is_empty():
@@ -1539,6 +1641,21 @@ func walk_to(goal_cell: Vector3i) -> bool:
 	_walk_cycle = 0.0
 	_shortcut_timer = 0.0   # string-pull immediately on the first frame
 	return true
+
+
+## Leisure uses only short, fully checked flat segments. No global A* search
+## or ladder route is needed, and normal work can replace this path immediately.
+func walk_nearby(goal_cell: Vector3i) -> void:
+	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
+	_reset_part_offsets()
+	if not NavGrid.line_walkable_flat(current_cell(),goal_cell):
+		walk_finished.emit(false)
+		return
+	_move_path = [current_cell(),goal_cell]
+	_move_index = 0
+	_walk_cycle = 0.0
+	_shortcut_timer = 0.0
+	_ladder_path_revision = NavGrid.ladder_revision
 
 
 func stop_walking() -> void:
@@ -1585,7 +1702,10 @@ func is_walking() -> bool:
 func _follow_path(delta: float) -> void:
 	if _ladder_path_revision != NavGrid.ladder_revision:
 		var goal: Vector3i = _move_path.back()
-		if not walk_to(goal):
+		if _idle_behavior != null and _idle_behavior.owns_walk():
+			walk_nearby(goal)
+			if _move_path.is_empty(): return
+		elif not walk_to(goal):
 			_clear_path()
 			return
 	_shortcut_timer -= delta
@@ -1872,6 +1992,11 @@ func _idle_bob() -> void:
 	if _hand_r != null:
 		_hand_r.position.y = breathe + sin(t * 2.2 + 2.1) * 0.010
 	# Feet stay planted while idle; they animate when walking (nav phase).
+
+
+func _exit_tree() -> void:
+	if _idle_behavior != null: _idle_behavior.cancel()
+	if _equipment != null: _equipment.release_reservation()
 
 
 # ── Slice culling hook (doc 11 Phase 5 pattern — DwarfDirector drives this) ───

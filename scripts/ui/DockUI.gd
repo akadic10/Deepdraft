@@ -284,7 +284,14 @@ func _build_action_panel() -> void:
 	_panel_container.mouse_force_pass_scroll_events = false
 	_panel_container.visible = false
 	_panel_container.add_theme_stylebox_override("panel", UITheme.hud_panel_style())
-	_root.add_child(_panel_container)
+	# Colony menus must remain clickable while the wide roster is open.
+	# Keep the dock at 20, windows at 22, and only its popup menu above them.
+	var menu_layer := CanvasLayer.new()
+	menu_layer.name = "DockMenus"
+	menu_layer.layer = 23
+	add_child(menu_layer)
+	menu_layer.add_child(_panel_container)
+	UITheme.apply_surface(_panel_container)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 12)
@@ -323,6 +330,12 @@ func _layout_action_panel() -> void:
 	var available := viewport_size.x - 48 - (400 if viewport_size.x >= 900 else 0)
 	var width := minf(820 if _active_panel_target == "build" else 460, available)
 	_panel_body.columns = (4 if width >= 780 else (3 if width >= 600 else 2)) if _active_panel_target == "build" else 2
+	if _active_panel_target == "craft":
+		# A row of professions on desktop, balanced rows on compact screens.
+		var count := maxi(1,_panel_body.get_child_count())
+		var columns := count if viewport_size.x >= count*112+40 else mini(5,count)
+		_panel_body.columns = mini(columns,maxi(1,int((viewport_size.x-48)/112)))
+		width = _panel_body.columns*112+32
 	# Measure the real header, padding and borders; font metrics can change the
 	# dock's height, so a fixed bottom allowance can overlap it at small sizes.
 	var chrome_height := _panel_container.get_combined_minimum_size().y - _panel_scroll.get_combined_minimum_size().y
@@ -356,6 +369,10 @@ func _position_action_panel() -> void:
 					panel_position.x = candidate_x
 					closest_distance = distance
 	_panel_container.position = panel_position
+
+
+func is_action_menu_open() -> bool:
+	return _panel_container != null and _panel_container.visible
 
 
 func _close_action_panel() -> void:
@@ -471,6 +488,8 @@ func _dispatch(action: String, target: String) -> void:
 			_open_action_panel(target)
 		"toggle_window":
 			_toggle_window(target)
+		"open_crafting":
+			open_crafting("",target)
 		_:
 			push_warning("DockUI: unknown dock action '%s' for target '%s'." % [action, target])
 	dock_action_invoked.emit(action, target)
@@ -478,10 +497,6 @@ func _dispatch(action: String, target: String) -> void:
 
 
 func _open_action_panel(target: String) -> void:
-	if target == "craft":
-		if _craft_window != null and _craft_window.visible: _window_manager.close("craft")
-		else: open_crafting()
-		return
 	if _craft_window != null: _window_manager.close("craft")
 	if _target_canvas_visible("rooms"):
 		tool_requested.emit("")
@@ -520,6 +535,8 @@ func _open_action_panel(target: String) -> void:
 		button.add_theme_font_size_override("font_size", 14)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.disabled = bool(entry.get("disabled", false))
+		if String(entry.action)=="open_crafting":
+			_style_crafter_button(button,entry)
 		button.pressed.connect(_dispatch_menu_entry.bind(entry))
 		_panel_body.add_child(button)
 	if _panel_body.get_child_count() == 0:
@@ -528,6 +545,26 @@ func _open_action_panel(target: String) -> void:
 	_panel_container.visible = true
 	call_deferred("_layout_action_panel")
 	_refresh_active_buttons()
+
+
+func _style_crafter_button(button: Button, entry: Dictionary) -> void:
+	button.name = "Crafter"+String(entry.target).to_pascal_case()
+	button.custom_minimum_size = Vector2(104,82)
+	button.add_theme_font_size_override("font_size",12)
+	button.icon = load(String(entry.icon)) as Texture2D
+	button.expand_icon = true
+	button.add_theme_constant_override("icon_max_width",28)
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	button.toggle_mode = true
+	var section: Dictionary = _craft_panel.controller.sections.get(String(entry.target),{}) if _craft_panel != null else {}
+	var planned := bool(section.get("planned",false))
+	button.text += "\n"+("Preview" if section.has("status_label") else "Planned") if planned else "\nWorker crafts"
+	button.add_theme_color_override("icon_normal_color",UITheme.HEARTH_MUTED if planned else UITheme.HEARTH_COPPER)
+	button.add_theme_color_override("icon_hover_color",UITheme.HEARTH_COPPER)
+	button.set_pressed_no_signal(_craft_panel != null and _craft_panel.section_id==String(entry.target))
+	# Planned professions remain clickable so their own preview menu is browsable.
+	button.disabled = _craft_panel == null or section.is_empty()
 
 
 func _dispatch_menu_entry(entry: Dictionary) -> void:
@@ -565,6 +602,18 @@ func _make_panel_action_button(label: String, target: String) -> Button:
 
 
 func _dispatch_panel_action(target: String, label: String) -> void:
+	if target == "world_events" and label == "DEV: Arrival status":
+		var events := get_tree().get_first_node_in_group("world_events")
+		if events != null:
+			show_persistence_status(events.dev_status())
+			_persistence_toast_until_msec = Time.get_ticks_msec()+6000
+		return
+	if target == "wildlife" and label in ["DEV: Next rabbit","DEV: Next deer","DEV: Next wolf","DEV: Next arrival","DEV: Next deer arrival","DEV: Next wolf arrival"]:
+		var wildlife := get_tree().get_first_node_in_group("wildlife")
+		if wildlife != null:
+			var found: String = wildlife.call("dev_locate_next",label.trim_prefix("DEV: Next "))
+			if found.is_empty() and label.ends_with("arrival"): show_persistence_status("No %s yet." % ("wildlife arrivals" if label == "DEV: Next arrival" else label.trim_prefix("DEV: Next ")+"s"))
+		return
 	if target == "surface_details" and label in ["DEV: Next boulder", "DEV: Next scree", "DEV: Next blueberry", "DEV: Next elderberry", "DEV: Next strawberry", "DEV: Next flowers", "DEV: Next reeds"]:
 		var details := get_tree().get_first_node_in_group("surface_details")
 		if details != null: details.call("dev_locate_next", {"DEV: Next boulder": "boulder", "DEV: Next scree": "scree", "DEV: Next blueberry": "blueberry", "DEV: Next elderberry": "elderberry", "DEV: Next strawberry": "wild_strawberry", "DEV: Next flowers": "flowers", "DEV: Next reeds": "reeds"}[label])
@@ -641,6 +690,12 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 ## the announce-first contract; world_info and block_inspector stay
 ## overlay-toggles until their doc 24 Phase U2 migrations land.
 func _toggle_window(target: String) -> void:
+	if target == "labor":
+		tool_requested.emit("")
+		if _orders != null: _orders.set_open(false)
+		var director := get_tree().get_first_node_in_group("dwarf_director")
+		if director != null: director.open_work_view()
+		return
 	if target in ["dwarves", "caves_dev"] and _window_manager != null and not _window_manager.is_open(target):
 		tool_requested.emit("")
 		if _orders != null: _orders.set_open(false)
@@ -697,7 +752,7 @@ func _register_dock_windows() -> void:
 	_inventory_panel.window = _inventory_window
 	_inventory_panel.locate_requested.connect(_locate_inventory_item)
 	_inventory_panel.fit_above_dock(_dock_panel.position.y)
-	var placeholder_targets: Array[String] = ["labor", "trade"]
+	var placeholder_targets: Array[String] = ["trade"]
 	for target: String in placeholder_targets:
 		_window_manager.register_window(target, _target_title(target),
 			String(DOCK_WINDOW_EMOJI[target]), _build_placeholder_content(target),
@@ -803,7 +858,8 @@ func _refresh_active_buttons() -> void:
 	if _button_by_target.has("stocks"):
 		_button_by_target.stocks.button_pressed = _inventory_window != null and _inventory_window.visible
 	if _button_by_target.has("craft"):
-		_button_by_target.craft.button_pressed = _craft_window != null and _craft_window.visible
+		_button_by_target.craft.button_pressed = (_craft_window != null and _craft_window.visible) \
+			or (_panel_container.visible and _active_panel_target=="craft")
 	if _button_by_target.has("rooms"):
 		_button_by_target.rooms.button_pressed = _target_canvas_visible("rooms")
 	if _orders != null:
@@ -921,12 +977,13 @@ func register_furniture_controller(controller: Node) -> void:
 func register_crafting_controller(controller: Node) -> void:
 	if _window_manager == null or _craft_panel != null: return
 	_craft_panel = preload("res://scripts/ui/WorkerCraftingPanel.gd").new()
-	_craft_window = _window_manager.register_window("craft", "Worker crafting", "", _craft_panel,
+	_craft_window = _window_manager.register_window("craft", "Rudimentary crafting", "", _craft_panel,
 		{"persistent":false,"default_pos":Vector2(24,76)})
 	_craft_window.keep_body_on_screen = true
 	UITheme.apply_catalog_window(_craft_window)
 	_craft_panel.window = _craft_window
 	_craft_panel.bind_controller(controller)
+	_craft_panel.crafters_requested.connect(_open_action_panel.bind("craft"))
 	_craft_panel.place_requested.connect(func(key: String):
 		_window_manager.close("craft")
 		_window_manager.open("place")
@@ -939,12 +996,13 @@ func register_crafting_controller(controller: Node) -> void:
 	if _place_catalog != null: controller.changed.connect(_place_catalog.refresh)
 
 
-func open_crafting(recipe_id := "") -> void:
+func open_crafting(recipe_id := "", section_id := "") -> void:
 	if _craft_window == null: return
 	_close_action_panel()
 	if _orders != null: _orders.set_open(false)
 	tool_requested.emit("")
 	_window_manager.open("craft")
+	_craft_panel.select_section("rudimentary" if section_id.is_empty() else section_id)
 	if not recipe_id.is_empty(): _craft_panel.select_recipe(recipe_id)
 	_craft_panel.refresh()
 	_craft_panel.fit_above_dock(_dock_panel.position.y)
@@ -991,8 +1049,9 @@ func _locate_inventory_item(key: String, storage_only: bool) -> void:
 	var locations := StockpileManager.get_item_locations(key)
 	if not storage_only:
 		var physical := items.get_inventory_items()
-		for entry: Dictionary in physical.loose + physical.carried:
+		for entry: Dictionary in physical.loose + physical.carried + physical.equipped:
 			var node: Node3D = entry.node
+			if bool(node.get_meta("equipped", false)): node = node.get_parent() as Node3D
 			if entry.key != key or not node.is_inside_tree() or not node.is_visible_in_tree(): continue
 			locations.append({"kind": "item", "node": node, "position": node.global_position})
 	var rig: Node = get_viewport().get_camera_3d()
@@ -1147,8 +1206,6 @@ func _panel_actions(target: String) -> Array[String]:
 ## Labor/Stockpiles/Trade land for real).
 func _window_rows(target: String) -> Array[String]:
 	match target:
-		"labor":
-			return ["Name        Job        Priority", "Urist       Idle       5", "Bomrek      Hauling    4", "Dastot      Mining     6"]
 		"stockpiles":
 			return ["Stone       0", "Ore         0", "Food        0", "Drink       0", "Trade Goods 0"]
 		"trade":

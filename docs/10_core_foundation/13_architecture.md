@@ -41,6 +41,33 @@ The scene also owns `CraftingManager` (2026-10-07), the recipe loader and save
 owner for Worker orders. It depends on the scene's items/furniture owners and
 registers transient work sources with TaskManager. See [Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
 
+`WildlifeManager` (2026-10-09) follows the same scene-owner lifetime: sole loader
+of `data/entities/animals/rabbit.json`, `deer.json` and `wolf.json`, seeded populations,
+inspector provider and save section `wildlife` (priority 65). RabbitAgent and
+DeerAgent receive their definitions and share GrazerAgent's gentle needs and
+state machine. AnimalNavigation checks species footprints/clearance (rabbit
+1×1×2, deer 2×2×4) independently of dwarf NavGrid and ladders. Deer adds local
+herd steering and saved herd identity. WolfAgent reuses terrestrial movement/rest
+and adds bounded pursuit, meal satisfaction and saved prey identity. The manager
+owns prey claims, protected population minima and atomic capture/meal commits.
+Wolf navigation is 2×2×2, with bounded local routing and supported contact checks.
+These are ordinary preloaded scripts,
+with no new global class or autoload. See [Wildlife](../40_economy_colony/45_wildlife.md).
+
+`WorldEventDirector` (2026-10-09) is another scene owner, loading only
+`data/world_events/arrivals.json`. It owns calendar opportunities, seeded group
+decisions, local hunting pressure and pending entry progress in `world_events`
+(priority 66, immediately after wildlife). Providers join `arrival_provider`;
+WildlifeManager supplies rabbit, deer and wolf arrivals through EdgeArrivalPlanner
+and the shared GrazerAgent journey hook. Wide groups save separate connected
+member routes; deer keep one herd identity and wolves recheck prey support before
+each entry. Whole-map tree occupancy gates provider readiness.
+SaveManager.is_loading() prevents scheduling
+until the restored calendar is available. Missing event definitions are added
+with delayed opportunities without changing existing decisions. No new autoload
+or global class is required. See [Rabbit arrivals](../00_dev_roadmap/94_rabbit_arrival_events.md)
+and [Deer/wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md).
+
 `SurfaceDetailRegistry` (2026-10-08) loads `data/entities/surface_details.json`
 (stones, seasonal flowers and reeds) and the three existing bush JSON definitions once,
 with no runtime world dependencies. Scene-owned `SurfaceDetailManager`
@@ -239,6 +266,12 @@ Per-season weighted weather scheduler (`data/weather/*.json`, `data/calendar/wea
 ### `DwarfAssets` *(doc 16 step 2a; spec: 41b)*
 Owner of the ~41 dwarf part GLBs (preloaded PackedScenes) and the three generation JSON pools (`names` / `appearance` / `traits`). Parts are authored in neutral palettes; head/hands are runtime-tinted, body/feet baked (doc 17 §1 tint split).
 
+Also owns `data/professions/professions.json`: runtime promotion availability,
+career-map entries, Miner experience thresholds and cached work categories.
+`DwarfDirector` registers the promotion window; `DwarfProfessionPanel` presents
+it. Roles, retained experience and work permissions belong to each `DwarfAgent`.
+See milestone 96 for the live Worker/Miner scope and planned career previews.
+
 ### `SaveManager` *(doc 20 — save/load persistence)*
 
 Sole owner of runtime save-file I/O, the manual quick save at
@@ -286,13 +319,19 @@ clock, including a different year in the same season; see roadmap 84.
 
 ### `WorkFeedback` (doc 48 — chopping/mining sound and dust, 2026-10-04)
 
-Owns `data/audio/work_feedback.json`, cached generated work WAVs, the runtime
+Owns `data/audio/work_feedback.json`, cached generated work/wildlife WAVs, the runtime
 `Work` audio bus, a capped eight-voice pool, and up to twelve transient dust
 bursts. This shared presentation service is a deliberate exception to the usual
 scene-node presentation split: work executors and world owners can emit short
 feedback without depending on a particular scene hierarchy. It has no simulation
 state or save section. Scene exit/replacement stops sounds and frees all effects;
 the shared asset bank and volume/mute setting remain available.
+
+Promotion feedback (roadmap 102) adds one bounded nonspatial notification player
+on the same Work bus. Only a completed profession change triggers it; it remains
+audible while the world clock is paused and outside the camera/slice. Scene
+cleanup stops it alongside world voices. Equipment previews remain read-only UI
+data from the owning profession/item registries, not a second equipment inventory.
 
 `Camera` provides the smoothed focus position and actual camera-to-pivot zoom
 through `get_work_audio_context()` and the `work_audio_view` group. Horizontal
@@ -310,6 +349,14 @@ effects originate only from committed felling/mining paths, with material and
 position captured before removal; restoration and streaming never replay them.
 Particles use simulation time; brief audio tails finish in real time. Headless
 simulations still exercise event/pool logic but do not start mixer playback.
+
+Rabbit/deer/wolf feedback (roadmaps 91–93) extends this same bus/pool with per-kind profiles.
+Selection allows paused playback and a real-time click cooldown. Grazing pauses
+its current short phrase with simulation and requires a visible, living scene
+source still in the Grazing activity (Eating for wolves). Weak source references update position
+and retire tails on hide/removal/restore. WildlifeManager observes existing meal
+progress crossings; neither animal RNG nor save state includes audio. Work
+impacts retain their existing real-time tail and attenuation defaults.
 
 > **Still planned:** the broader `AudioManager` for ambient loops and combat cues
 > referenced by `52_combat_military.md` is not implemented. Reuse/extend the work

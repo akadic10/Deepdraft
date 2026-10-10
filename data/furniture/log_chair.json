@@ -1,0 +1,86 @@
+{
+  "furniture_key": "base:furniture:log_chair",
+  "furniture_category": "seating",
+  "display_name": "Log Stool",
+  "description": "A short bark-covered stump with a flat cut top. A basic seat for resting between jobs.",
+  "model": "res://assets/models/furniture/log_chair.glb",
+  "item_key": "base:resources:furniture:log_chair",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "depth": 1,
+    "width": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "room_anchor": false,
+  "seating_chair": {
+    "face_nearby_fire": true,
+    "rest_pose": {
+      "right_hand": [
+        0.5625,
+        -0.125,
+        0.8125
+      ],
+      "left_foot": [
+        0.3125,
+        0,
+        0.25
+      ],
+      "left_hand": [
+        -0.5625,
+        -0.125,
+        0.8125
+      ],
+      "body": [
+        0,
+        0.125,
+        0
+      ],
+      "right_foot": [
+        -0.3125,
+        0,
+        0.25
+      ]
+    },
+    "clearance_regions": [
+      {"shape": "cylinder", "min": [-0.875, 1.35, -0.875], "max": [1.875, 3.625, 1.875]},
+      {"min": [-0.1875, 0.75, -0.0625], "max": [1.1875, 2.0, 1.0625]},
+      {"min": [-0.25, 0.875, 1.125], "max": [1.25, 1.375, 1.75]},
+      {"shape": "cylinder", "min": [-0.6875, 1.1, -0.6875], "max": [1.6875, 2.55, 1.6875]}
+    ],
+    "access_cells": [
+      [
+        -1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  "__comment": "One-tile stool: hands rest together in front, boots beside the stump, torso supported by its cut top. Occupants can face a nearby fire independently of stool yaw. Rounded head/hair and beard clearance permits gentle head turns; low body/hand regions clear the fire. Clearance coordinates are relative to the footprint corner, like collision regions.",
+  "layout_version": 2
+}

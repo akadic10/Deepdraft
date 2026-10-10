@@ -1,5 +1,5 @@
 {
-  "__comment": "Starter Worker recipes. CraftingManager is the single data owner. One raw timber unit per batch; output_count is finished units. Finite order quantities are batches; maintain quantities are spare units. No prior workshop is required to make the first bench.",
+  "__comment": "Starter Worker recipes. CraftingManager is the single data owner. One selected timber unit per batch, plus one unit per additional_ingredients entry, physically collected before work. output_count is finished units. Finite quantities are batches; maintain quantities are spare units. The first bench needs no workshop. Tools can be crafted and stored; equipment and specialist professions remain planned.",
   "max_orders": 64,
   "recipes": [
     {
@@ -52,6 +52,249 @@
       "output": "base:resources:furniture:crude_ladder",
       "output_count": 1,
       "furniture": "base:furniture:crude_ladder"
+    },
+    {
+      "id": "base:recipe:worker:campfire",
+      "name": "Campfire",
+      "output_plural": "campfires",
+      "description": "A low ring of rough stones around split timber. Gives warm, flickering light once placed.",
+      "purpose": "Always lit when installed. No fuel upkeep yet.",
+      "category": "Camp furnishings",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:campfire",
+      "output_count": 1,
+      "furniture": "base:furniture:campfire",
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ]
+    },
+    {
+      "id": "base:recipe:worker:log_chair",
+      "name": "Log stool",
+      "output_plural": "log stools",
+      "description": "A short log cut flat for sitting, with rough bark sides. A simple stump seat for the first camp.",
+      "purpose": "Idle dwarves can sit here and return to work when needed.",
+      "category": "Camp furnishings",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 8,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_chair",
+      "output_count": 1,
+      "furniture": "base:furniture:log_chair"
+    },
+    {
+      "id": "base:recipe:worker:stone_hoe",
+      "name": "Stone hoe",
+      "output_plural": "stone hoes",
+      "description": "A shaped stone blade fitted to a wooden haft for the colony's first fields.",
+      "purpose": "Farmer starter tool. Farming and equipping tools are planned; this item can be crafted and stored.",
+      "purpose_short": "Farmer & equipping planned.",
+      "category": "Starter tools",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ],
+      "work_seconds": 10.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:tools:stone_hoe",
+      "output_count": 1
+    },
+    {
+      "id": "base:recipe:worker:hunting_spear",
+      "name": "Hunting spear",
+      "output_plural": "hunting spears",
+      "description": "A stone-tipped wooden spear. A simple hunting weapon that needs no metal or bowstring.",
+      "purpose": "Hunter starter tool. Player hunting and equipping weapons are planned; this item can be crafted and stored.",
+      "purpose_short": "Hunter & equipping planned.",
+      "category": "Starter tools",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ],
+      "work_seconds": 10.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:tools:hunting_spear",
+      "output_count": 1
+    },
+    {
+      "id": "base:recipe:worker:carpentry_kit",
+      "name": "Crude carpentry kit",
+      "output_plural": "carpentry kits",
+      "description": "A wooden mallet and stone adze for rough woodworking. An iron saw can be a later upgrade.",
+      "purpose": "Required to promote a Carpenter. The dwarf collects and equips this kit. Specialist workshop and recipes are planned.",
+      "purpose_short": "Required for Carpenter promotion.",
+      "category": "Starter tools",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ],
+      "work_seconds": 14.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:tools:carpentry_kit",
+      "output_count": 1
+    },
+    {
+      "id": "base:recipe:worker:stone_hammer",
+      "name": "Stone hammer",
+      "output_plural": "stone hammers",
+      "description": "A heavy stone head fitted to a wooden handle for the colony's first metalworking tools.",
+      "purpose": "Blacksmith starter tool. Smelting, forging and equipping tools are planned; this item can be crafted and stored.",
+      "purpose_short": "Blacksmith & equipping planned.",
+      "category": "Starter tools",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ],
+      "work_seconds": 12.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:tools:stone_hammer",
+      "output_count": 1
+    }
+  ],
+  "sections": [
+    {
+      "id": "rudimentary",
+      "name": "Rudimentary",
+      "planned": false,
+      "hint": "Simple goods and starter tools, made by Workers at the crude workbench."
+    },
+    {
+      "id": "carpenter",
+      "name": "Carpenter",
+      "planned": true,
+      "description": "Refined wooden furniture, storage and workshop fittings.",
+      "preview": [
+        "Furniture",
+        "Storage",
+        "Workshop fittings"
+      ],
+      "requirements": "Promote with a crude carpentry kit. Specialist workshop and recipes are planned; a forged saw comes later.",
+      "hint": "Craft a kit under Rudimentary → Starter tools, then promote a dwarf through Colony → Profession."
+    },
+    {
+      "id": "stonemason",
+      "name": "Stonemason",
+      "planned": true,
+      "description": "Shaped stone furnishings and the colony's first substantial stonework.",
+      "preview": [
+        "Stone furnishings",
+        "Building materials",
+        "Workshop stonework"
+      ],
+      "requirements": "Specialist recipes, workshop and promotion requirements are still being designed.",
+      "hint": "Stonemason production is planned."
+    },
+    {
+      "id": "blacksmith",
+      "name": "Blacksmith",
+      "planned": true,
+      "description": "Refine metal and forge better tools, fittings and workshop equipment.",
+      "preview": [
+        "Metal refining",
+        "Tool upgrades",
+        "Metal fittings"
+      ],
+      "requirements": "Entry tool: stone hammer. Iron pickaxes and carpenter saws are future upgrades.",
+      "hint": "The stone hammer is available under Rudimentary → Starter tools."
+    },
+    {
+      "id": "weaponsmith",
+      "name": "Weaponsmith",
+      "planned": true,
+      "description": "A later Blacksmith specialization for military weapons.",
+      "preview": [
+        "Melee weapons",
+        "Ranged weapons"
+      ],
+      "requirements": "Planned progression: experienced Blacksmith and a working forge.",
+      "hint": "Weapon recipes and crafting are planned."
+    },
+    {
+      "id": "armorsmith",
+      "name": "Armorsmith",
+      "planned": true,
+      "description": "A later Blacksmith specialization for protective equipment.",
+      "preview": [
+        "Armor",
+        "Shields"
+      ],
+      "requirements": "Planned progression: experienced Blacksmith and a working forge.",
+      "hint": "Armor recipes and crafting are planned."
+    },
+    {
+      "id": "farmer",
+      "name": "Farmer",
+      "planned": true,
+      "description": "Grow and harvest crops to supply food, drink and other professions.",
+      "preview": [
+        "Fields and crops",
+        "Harvest supplies"
+      ],
+      "requirements": "Entry tool: stone hoe. Farming will use field work; its production controls are still planned.",
+      "hint": "The stone hoe is available under Rudimentary → Starter tools."
+    },
+    {
+      "id": "hunter",
+      "name": "Hunter",
+      "planned": true,
+      "description": "Hunt wildlife and supply the colony with food and animal materials.",
+      "preview": [
+        "Hunting supplies",
+        "Animal materials"
+      ],
+      "requirements": "Entry weapon: hunting spear. Player hunting and processing are planned.",
+      "hint": "The hunting spear is available under Rudimentary → Starter tools."
+    },
+    {
+      "id": "miner",
+      "name": "Miner",
+      "status_label": "Equipment preview",
+      "planned": true,
+      "description": "Miners already specialize in excavation. Their equipment progression will be supplied by other crafts.",
+      "preview": [
+        "Pickaxe progression",
+        "Mining equipment"
+      ],
+      "requirements": "Miner promotion uses the default pickaxe today. Iron and later metal upgrades will be made by smiths.",
+      "hint": "Miner is playable; this equipment section is a preview, with no Miner crafting recipes yet."
+    },
+    {
+      "id": "brewer",
+      "name": "Brewer",
+      "planned": true,
+      "description": "Turn farm harvests into drinks for the colony.",
+      "preview": [
+        "Brewing",
+        "Aging"
+      ],
+      "requirements": "Brewing recipes, ingredients and production controls are planned.",
+      "hint": "Farming and brewing production will be added in later milestones."
     }
   ]
 }

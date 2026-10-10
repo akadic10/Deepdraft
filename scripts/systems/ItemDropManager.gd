@@ -261,7 +261,7 @@ func get_item_defs() -> Dictionary:
 ## Presentation snapshot of non-stored goods. Counts are contents, not crates.
 ## Ground/container storage is counted exclusively by StockpileManager.
 func get_inventory_items() -> Dictionary:
-	var result := {"loose": [], "carried": []}
+	var result := {"loose": [], "carried": [], "equipped": []}
 	for node in _loose:
 		if is_instance_valid(node) and not node.is_queued_for_deletion():
 			result.loose.append({"node": node, "key": String(_loose[node]),
@@ -271,7 +271,8 @@ func get_inventory_items() -> Dictionary:
 		if not is_instance_valid(node) or node.is_queued_for_deletion() or bool(node.get_meta("stored", false)):
 			_inventory_transit.erase(id)
 			continue
-		result.carried.append({"node": node, "key": item_key_of(node), "count": quantity_of(node)})
+		var category := "equipped" if bool(node.get_meta("equipped", false)) else "carried"
+		result[category].append({"node": node, "key": item_key_of(node), "count": quantity_of(node)})
 	return result
 
 
@@ -341,6 +342,26 @@ func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Di
 		if distance < int(query.distance):
 			query.best = node
 			query.distance = distance
+	return true
+
+
+## Read-only single-unit crafting quote; the chosen physical item is retained
+## so route exclusions are not lost when execution claims the material.
+func advance_material_quote(keys: Array[String], from: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary) -> bool:
+	if query.is_empty(): query.merge({"nodes":_loose.keys(), "index":0, "best":{}, "distance":0x7FFFFFFF})
+	while int(query.index) < query.nodes.size():
+		if Time.get_ticks_usec() >= deadline: return false
+		var node = query.nodes[query.index]
+		query.index += 1
+		if not is_instance_valid(node) or not _loose.has(node) or _reserved.has(node): continue
+		if String(_loose[node]) not in keys or quantity_of(node) != 1: continue
+		var cell := item_floor_cell(node)
+		if excluded.has(cell): continue
+		var delta := cell-from
+		var distance := absi(delta.x)+absi(delta.y)+absi(delta.z)
+		if distance < int(query.distance):
+			query.distance = distance
+			query.best = {"node":node, "key":String(_loose[node]), "cell":cell, "distance":distance}
 	return true
 
 

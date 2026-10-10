@@ -1,5 +1,27 @@
 # 44 — Crafting Workshops
 
+**Carpenter promotion (2026-10-09):** A crafted crude carpentry kit now enables
+promotion after the selected dwarf reserves, collects and equips it. Changing
+profession returns the kit. Specialist Carpenter workshop/recipes remain planned;
+general work remains available. See [101 — Tool promotion](../00_dev_roadmap/101_tool_based_promotion.md).
+
+The shared **Equipment** tab shows the owned kit, materials and current benefit.
+The Blacksmith-made iron saw is an explicit planned upgrade, not a craftable
+item. Completed promotions play a chime. See
+[102 — Equipment feedback](../00_dev_roadmap/102_equipment_view_promotion_feedback.md).
+
+**Profession menu and camp furniture (2026-10-09):** Craft opens a submenu of
+profession icon buttons above the dock. Choosing **Rudimentary** opens Worker
+recipes; specialists open planned menus and Miner opens an equipment preview.
+**‹ Crafters** returns to the chooser; the in-window profession dropdown is gone.
+Each menu shows its own section's orders. Browsing preserves live production;
+previews cannot queue unavailable crafts. Workers can now make a campfire from
+one allowed log plus one Rough Stone (10 seconds), or a log stool from one allowed
+log (8 seconds), at the crude workbench. Both use normal physical crafting and
+placement; installed campfires animate and light, and idle dwarves use stump stools.
+No fuel upkeep or specialist jobs are enabled. See
+[100 — Camp crafting](../00_dev_roadmap/100_profession_crafting_camp.md).
+
 **Implemented starter crafting (2026-10-07):** Workers can make a crude workbench
 without an existing workshop, install it, then craft batches of wooden torches.
 The bench is a rough 1×1 stump usable from any open cardinal side. Its first
@@ -10,6 +32,26 @@ allowed wood, defaulting to Pine without automatic substitution. See
 [64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md) for recipes,
 physical ownership, saving and verification. The specialist metalworking and
 carpentry chains below remain design specifications, not live conversion systems.
+
+**Starter tools implemented (2026-10-09):** Workers craft stone hoes, hunting
+spears, crude carpentry kits and stone hammers at the crude workbench. Each uses
+one allowed log and one Rough Stone, collected physically before crafting.
+Tools support normal hauling, storage and saving. The recipe card and profession
+preview show current availability: Carpenter can equip its kit; other careers
+and specialist crafting gameplay remain planned. See
+[97 — Starter tools](../00_dev_roadmap/97_starter_profession_tools.md).
+
+**Agreed equipment direction (2026-10-09, planned):** crafted tools will support
+selected profession requirements and later upgrades. Miner keeps its default
+pickaxe and free promotion; the iron pickaxe is the first planned mining-tool upgrade.
+Workers must be able to craft the crude tools needed to establish the first
+specialists without circular recipe dependencies. The four starter recipes above
+are now live; Carpenter kit pickup/equipping followed in milestone 101. Specialist
+workshops and other tool careers remain future work. Equipment ownership and UI:
+[41 — Equipment progression](41_dwarf_agents.md#agreed-equipment-progression--planned-2026-10-09).
+Iron/advanced-metal multi-voxel benefits and limits:
+[43 — Pickaxe upgrades](43_mining_materials.md#pickaxe-upgrades--planned-2026-10-09).
+Durability and repairs are deferred beyond the first equipment version.
 
 ## Overview
 
@@ -31,6 +73,28 @@ logs → oak staves → oak aging casks**; finished staves are not felling drops
 Keep the existing oak-stave item definition for this future crafting output.
 Recipe quantities, work times and workshop behavior are not implemented yet.
 This carpentry work is separate from the tree-felling milestone.
+
+### Carpenter entry tools — dependency review (2026-10-09)
+
+The player flagged that requiring a saw for Carpenter promotion could require
+Blacksmith first. The chosen starter tool is a crude carpentry kit; a metal saw
+is a later equipment upgrade.
+If the first smithing workshop also needs Carpenter products, that would create
+a circular dependency. Current Worker crafting already starts with an implicit
+axe and crude workbench; milestone 97 extends it with the carpentry kit.
+
+**Starter recipe implemented in milestone 97:** a Worker makes a crude carpentry kit
+at the crude workbench from timber and rough stone, represented by a wooden
+mallet and stone adze. Milestone 101 makes it the Carpenter's collected/equipped
+promotion requirement without metalworking; specialist production remains planned.
+A later Blacksmith-made iron saw will upgrade the Carpenter's equipment,
+with faster work and/or finer recipes to be balanced with the profession.
+Do not invent a wooden saw to satisfy the entry requirement.
+
+The first Blacksmith must likewise be establishable with basic tools and a
+starter workshop that requires neither refined Carpenter goods nor its own
+forged output. The stone hammer is now Worker-crafted; the specialist workshop,
+promotion gates and upgrade benefits remain to be implemented.
 
 ### Blacksmith — `base:profession:blacksmith`
 

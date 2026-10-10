@@ -5,8 +5,8 @@ extends Node
 ## Owns BOTH halves of dwarf creation inputs (Registry Pattern, AGENT.md):
 ##   1. The ~41 modular part GLBs (doc 41b) — preloaded once, queried by key.
 ##      No `preload`/`load` calls for dwarf parts anywhere else in the codebase.
-##   2. The three generation JSON pools — names.json / appearance.json /
-##      traits.json. No other script may FileAccess these files.
+##   2. Generation pools (names/appearance/traits) and profession definitions.
+##      No other script may FileAccess these files.
 ##
 ## Parts are PackedScenes (imported GLBs), instantiated per dwarf by
 ## DwarfFactory. Colors are NOT baked per file: parts are authored in neutral
@@ -114,12 +114,17 @@ var scars: Dictionary = {
 var _names: Dictionary = {}        # { male: {prefixes, suffixes}, female: {...} }
 var _appearance: Dictionary = {}   # { shared: {...}, male: {...}, female: {...} }
 var _traits: Dictionary = {}       # { generation_config, exclusion_groups, traits }
+var _professions: Dictionary = {}
+var _work_categories: Dictionary = {}
 
 
 func _ready() -> void:
 	_names = _load_json(NAMES_PATH)
 	_appearance = _load_json(APPEARANCE_PATH)
 	_traits = _load_json(TRAITS_PATH)
+	_professions = _load_json("res://data/professions/professions.json")
+	for entry: Dictionary in work_permissions():
+		for type: String in entry.tasks: _work_categories[type] = String(entry.id)
 	print("DwarfAssets: parts loaded; pools — names %s, appearance %s, traits %s." % [
 		"ok" if not _names.is_empty() else "MISSING",
 		"ok" if not _appearance.is_empty() else "MISSING",
@@ -153,7 +158,50 @@ func get_trait_data() -> Dictionary:
 	return _traits
 
 
-# ── Loader ────────────────────────────────────────────────────────────────────
+# ── Professions and work policy ─────────────────────────────────────────────
+
+func profession_definition(key: String) -> Dictionary:
+	return _professions.get("professions", {}).get(key, {})
+
+
+func promotion_entries() -> Array:
+	return _professions.get("promotion_screen", [])
+
+
+func work_permissions() -> Array:
+	return _professions.get("work_permissions", [])
+
+
+func profession_enabled(key: String) -> bool:
+	# Historical "active" tags describe design readiness, not runtime support.
+	return bool(profession_definition(key).get("promotion_enabled", false))
+
+
+func work_category(task_name: String) -> String:
+	return _work_categories.get(task_name, "")
+
+
+func profession_tool(key: String) -> String:
+	return String(profession_definition(key).get("required_tool", ""))
+
+
+func profession_level(key: String, experience: Dictionary) -> int:
+	if key != "base:profession:miner": return 1
+	var count := maxi(0, int(experience.get(key, 0)))
+	var level := 1
+	for next in range(2, 6):
+		if count >= experience_threshold(next): level = next
+	return level
+
+
+func experience_threshold(level: int) -> int:
+	return int(_professions.get("experience_thresholds", {}).get("level_%d" % level, 0))
+
+
+func mining_duration_multiplier(key: String, experience: Dictionary) -> float:
+	if key != "base:profession:miner": return 1.0
+	return 1.0 - (profession_level(key, experience) - 1) * float(profession_definition(key).get("work_speed_bonus_per_level", .05))
+
 
 func _load_json(path: String) -> Dictionary:
 	var file := FileAccess.open(path, FileAccess.READ)

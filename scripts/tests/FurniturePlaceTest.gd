@@ -93,9 +93,13 @@ func _run() -> void:
 	_key(KEY_R)
 	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
 	_expect(furniture._yaw == 1, "re-clicking the active tile preserves rotation")
+	catalog._scroll.ensure_control_visible(catalog._tiles["base:furniture:communal_table"].button)
+	await _settle()
 	_click(catalog._tiles["base:furniture:communal_table"].button.get_global_rect().get_center())
 	_expect(not furniture.is_active() and furniture._preview == null and catalog._place.disabled,
 		"unavailable design shows details and clears the old preview")
+	catalog._scroll.ensure_control_visible(catalog._tiles[TABLE].button)
+	await _settle()
 	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
 	_expect(furniture.active_furniture_key() == TABLE, "available tile restarts placement directly")
 	var tile_count: int = furniture._ghosts.size()

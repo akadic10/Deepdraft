@@ -65,6 +65,38 @@ pause/speed handling and scene cleanup. It adds no saved simulation state.
 Implementation, tuning, generators, test coverage and native previews:
 [doc 48 §6](../00_dev_roadmap/48_object_explorer_and_tree_felling.md#6-mining-tool-sound-and-effects).
 
+## Pickaxe upgrades — planned (2026-10-09)
+
+Agreed with the player after the first Miner promotion. This is future equipment
+work, not current mining behavior; see
+[41 — Equipment progression](41_dwarf_agents.md#agreed-equipment-progression--planned-2026-10-09).
+
+| Tool | Planned benefit |
+|---|---|
+| Default pickaxe | Current single-block mining; immediately available, including on Miner promotion |
+| Iron pickaxe | Modest chance to remove **2 voxels total** when completing a block; first crafted upgrade |
+| Steel or another advanced metal | More frequent double breaks, with an occasional **3-voxel total** break |
+
+Exact probabilities, recipes and advanced-metal choice require later balancing.
+The equipment effect supplements the existing Miner experience speed bonus.
+
+- Roll once per normally completed block, never once per animation strike.
+  Bonus removals cannot trigger further bonus rolls.
+- Extra blocks must be adjacent, still designated in the same mining zone,
+  reachable by the miner and eligible for normal mining. Never enlarge the
+  player's designation or take another dwarf's reserved block. A one-block
+  designation still removes exactly one block.
+- Recheck eligibility after each removal, including bedrock protections, current
+  reach and footing beneath dwarves or ladders. Skip extras that would remove
+  that footing; use a smaller result when fewer eligible blocks remain.
+- Every removed voxel uses normal world updates, resource-drop rules and Miner
+  experience. This speeds excavation; it does not multiply a single voxel's loot.
+- Preserve mining progress, task cleanup and save/load behavior, including when
+  a bonus block completes the zone.
+
+Implement this with the physical equipment and specialist crafting systems.
+Tool durability and repairs are outside the first version.
+
 ## Mining Tools
 
 The player designates mining regions using two tools. Both tools create a **mining zone entity** that persists in the world until the work is complete. Dwarves path to the zone's adjacent cells and mine blocks one at a time from the zone's destination region.

@@ -10,17 +10,32 @@
 > (`16_first_dwarf_milestone.md` step 7). Procedural generation (names/appearance/traits,
 > seed-deterministic per `world_seed + birth_index`) runs through `DwarfFactory` +
 > `DwarfAssets`; dwarves spawn at the player-placed Settlement Flag. NOT yet implemented:
-> hunger/thirst/alcohol/mood/health, thoughts, bed use, professions at runtime, the
+> hunger/thirst/alcohol/mood/health, thoughts, bed use, the full profession roster and the
 > full needs-interrupt priority ladder — the tables below remain their design source.
 
 ## Overview
+
+2026-10-09 [96 — Professions and Miner](../00_dev_roadmap/96_professions_and_miner.md)
+implements Worker/Miner changes through the shared inspector's Profession action,
+planned career previews and saved per-dwarf work permissions. Only Miner progression
+is live: completed blocks grant experience at cumulative 10/100/500/2500 thresholds,
+with up to 20% less digging time. Workers keep normal mining and basic crafting.
+Level 6 and all other career bonuses below remain future design.
+
+2026-10-09 follow-ups: Carpenter promotion now requires collecting and equipping
+a crude carpentry kit. The shared Equipment tab shows the real kit, materials,
+benefit and planned upgrades; completed specialist promotions play a chime.
+Carpenter's workshop/recipes and upgraded-tool bonuses remain planned. See
+[101 — Tool promotion](../00_dev_roadmap/101_tool_based_promotion.md) and
+[102 — Equipment feedback](../00_dev_roadmap/102_equipment_view_promotion_feedback.md).
 
 2026-10-07 Worker crafting: current Workers can make the first crude workbench
 beside collected timber, then craft torches at the installed stump from any open
 side. They reuse physical pickup/carry/set-down, the two-handed axe pose and
 contact-synchronized wood sounds. Partial recipe work belongs to the order;
 interruptions return the unconsumed log. Inspection reports the actual crafting
-destination. Carpenter promotion and profession progression remain future work.
+destination. Miner progression followed in milestone 96 and Carpenter tool
+promotion in milestone 101; specialist Carpenter production remains future work.
 See [64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
 
 2026-10-05 inspection and roster: visible dwarves have a portrait, live work/rest
@@ -45,6 +60,20 @@ inventory or durability requirement. Player testing accepted this work on
 [doc 48](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
 
 Each dwarf is an autonomous agent (`DwarfAgent`, extends `CharacterBody3D`) driven by the Task System. Dwarves have physiological stats that degrade over time and must be replenished through colony resources.
+
+## Idle activity — implemented 2026-10-09
+
+After a short staggered pause, available dwarves stroll on nearby clear ground,
+look around, or use an unoccupied installed wooden chair. Their local anchor
+stays at the last job/spawn position so successive walks do not become an
+expedition. Leisure remains in the task scheduler's idle pool and yields to
+work immediately. It does not restore sleep or create a mood/food requirement.
+
+`DwarfIdleBehavior` owns transient activity and uses TaskManager's `idle` tuning.
+Chair claims are exclusive and transient; entry uses authored access cells and
+the seated pose uses existing body parts, preserving 1×1×3 walking clearance.
+Inspection labels the actual activity while the roster retains idle availability.
+See [99 — Idle activity](../00_dev_roadmap/99_dwarf_idle_activity.md).
 
 ## Physiological Stats
 
@@ -281,9 +310,60 @@ Traits in the same **exclusion group** (e.g. `mood_baseline`, `work_pace`) canno
 
 ## Profession System
 
-Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. The player promotes a dwarf to a specialised profession via the labour UI. Switching professions never resets accumulated experience — task counts are retained per profession key so a dwarf can be reassigned and resume from where they left off.
+Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. The shared inspector's Profession action opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit. Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases. Per-dwarf work permissions are independent of the active profession.
 
 Full profession definitions, task type lists, room assignments, and level descriptions: `data/professions/professions.json`.
+
+### Agreed equipment progression — planned (2026-10-09)
+
+**Live follow-up:** [101 — Tool promotion](../00_dev_roadmap/101_tool_based_promotion.md)
+implements Carpenter's kit requirement, physical collection, cancellation,
+equipped-item ownership, inspector/inventory presentation and current saves.
+Miner keeps its implicit pickaxe. Carpenter workshop gameplay and all equipment
+bonuses/upgrades remain planned. The original progression agreement follows.
+
+[102 — Equipment feedback](../00_dev_roadmap/102_equipment_view_promotion_feedback.md)
+adds the shared Equipment view with the owned tool's thumbnail, tier, materials
+and actual benefit. Iron saw/pickaxe are explicit planned previews; no upgrade
+goods or bonuses exist yet. Completed specialist promotions emit a short chime;
+collection requests, cancellation, demotion and load restoration are silent.
+
+The player approved three connected forms of progression:
+
+- **Promotion** selects a profession. Selected careers will require an available
+  starting tool. Milestone 97 adds craftable stone hoes, hunting spears, carpentry
+  kits and stone hammers for Farmer, Hunter, Carpenter and Blacksmith. Carpenter's
+  requirement and physical equipping are live; other tool careers remain planned.
+  Carpenter starts with a
+  mallet/adze kit; its saw is a later upgrade. The dependency review is recorded in
+  [44 — Carpenter entry tools](44_crafting_workshops.md#carpenter-entry-tools--dependency-review-2026-10-09).
+- **Experience** improves the dwarf through practice. Existing Miner levels and
+  digging-time bonuses remain independent of equipment.
+- **Equipment** provides crafted upgrades with visible tools and meaningful
+  benefits. Leveling up does not create a free upgraded tool or weapon.
+
+Miner promotion remains free, with no crafted-tool or level requirement. The
+existing implicit pickaxe is sufficient to begin mining and stays the baseline.
+Carpenter already owns a physical kit; the **iron pickaxe is
+the first planned equipment upgrade**, followed by steel or another advanced metal.
+Mining benefits and limits are specified in
+[43 — Pickaxe upgrades](43_mining_materials.md#pickaxe-upgrades--planned-2026-10-09).
+
+The promotion screen shows the required starter tool, its availability and maker.
+The dwarf inspector shows equipped tool, materials and actual benefit. Automatic
+upgrades and manual allocation of scarce upgraded tools remain planned.
+Equipment must represent owned goods, with one item assigned to one dwarf;
+switching professions must preserve experience and account for the physical item.
+
+Workers must have a route to craft the crude tools needed to establish the first
+specialists, without a profession requiring its own exclusive product to start.
+Tool durability and repairs are deferred beyond the first equipment version.
+These are agreed future requirements; equipment inventory, promotion tool gates
+and tool upgrades are not implemented by milestone 96.
+Milestone [97 — Starter tools](../00_dev_roadmap/97_starter_profession_tools.md)
+adds physical, craftable/storable starter goods and displays their available
+stock in the profession screen. It does not implement equipped-item ownership,
+activate planned professions or grant bonuses for owning tools.
 
 ### Agent Fields
 
@@ -331,12 +411,12 @@ func get_experience_level(profession_key: String) -> int:
 |---|---|---|
 | 1 | — (starting level) | 0 |
 | 2 | 10 | 10 |
-| 3 | 100 | 110 |
-| 4 | 500 | 610 |
-| 5 | 2,500 | 3,110 |
-| 6 | 10,000 | 13,110 |
+| 3 | 90 | 100 |
+| 4 | 400 | 500 |
+| 5 | 2,000 | 2,500 |
+| 6 (planned) | 7,500 | 10,000 |
 
-Level 6 requires both the cumulative task count **and** a qualifying trait (trait system not yet designed).
+Level 6 remains planned and cannot be reached in the current Miner implementation.
 
 ### Work Speed Bonus
 
@@ -346,7 +426,7 @@ Each profession defines a `work_speed_bonus_per_level` (see professions.json). T
 task_duration × (1.0 - (experience_level - 1) × work_speed_bonus_per_level)
 ```
 
-At `work_speed_bonus_per_level: 0.05`, a level 5 dwarf completes primary tasks 20% faster than level 1. Level 6 adds a further 5% (25% total). The bonus applies only to the dwarf's **active profession** task types. Fallback Worker tasks (hauling while off-duty from a specialist role) always use the Worker experience level.
+At `work_speed_bonus_per_level: 0.05`, level 5 mining takes 20% less work time than level 1. The live bonus applies only to mining while the dwarf is a Miner. Fallback work and Workers keep normal speed; Worker progression and level 6 remain planned.
 
 ### Recipe Gates (Brewer)
 

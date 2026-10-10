@@ -30,6 +30,8 @@ var flagged_uninstall: bool = false
 var uninstall_callback: Callable = Callable()   # (component) -> controller teardown
 
 var storage: ContainerStorageComponent = null   # doc 19 Phase 4 — set for storage pieces
+var idle_seat_owner := -1 # Transient exclusive rest use; never serialized.
+var idle_seat_yaw_steps := -1 # A round stool's occupant can face independently.
 
 var _lease_id: int = -1              # the ONE UNINSTALL lease, -1 = none
 
