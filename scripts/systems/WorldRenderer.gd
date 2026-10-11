@@ -105,6 +105,9 @@ const SLICE_CUT_DIM: float = 0.5
 var _material: Material
 var underground_lighting: Node
 var _overview_node: MeshInstance3D = null
+## Full-world scheduling is separate from local dirty work. Discovery/mining
+## can enqueue tiles before the first frame or after global invalidation.
+var _overview_initialized: bool = false
 var _overview_built: bool = false
 var _overview_rebuild_queued: bool = false
 var _overview_rock_color: Color = Color.GRAY
@@ -127,6 +130,7 @@ var _planned_cut_blocks: Dictionary = {}
 ## instant-mine tool; later: real mining execution.
 var _mined_blocks: Dictionary = {}
 var _discovered_cave_blocks: Dictionary = {}
+var _surface_caves_ready := false
 var _debug_cave_blocks: Dictionary = {} # Explicit temporary preview; never saved or discovered.
 var _debug_previous_readability := -1.0
 # Immutable mined-set snapshot for the threaded overview build (same pattern as
@@ -243,11 +247,19 @@ func _ready() -> void:
 	underground_lighting.name = "UndergroundLighting"
 	add_child(underground_lighting)
 	_material = underground_lighting.make_material(_create_material())
+	var water_view := preload("res://scripts/components/WaterRenderer.gd").new()
+	water_view.name = "Water"
+	water_view.terrain = self
+	add_child(water_view)
+	var moisture_view := preload("res://scripts/components/MoistureRenderer.gd").new()
+	moisture_view.terrain = self
+	add_child(moisture_view)
 	_build_block_inspector_ui()
 
 	# No CONNECT_DEFERRED — signal is already emitted on the main thread
 	# via WorldData._deferred_emit_chunk_dirtied, so immediate connection is safe.
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
+	WorldData.block_changed.connect(func(_pos: Vector3i,_old: int,_new: int): _added_terrain_dirty = true)
 	InteriorTracker.caves_discovered.connect(add_discovered_cave_blocks)
 
 	# Grass bands are computed after maps_ready, so the first overview tiles are
@@ -281,6 +293,17 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if not _surface_caves_ready and WorldGenerator._maps_ready:
+		_surface_caves_ready = true
+		InteriorTracker.reveal_surface_caves()
+		# Also support a renderer attached after the water owner initialized.
+		for cave: Dictionary in WorldGenerator.get_cave_catalog():
+			if cave.get("surface_open",false):
+				var cells := WorldGenerator.get_cave_air_cells(cave.id)
+				add_discovered_cave_blocks(cells)
+				underground_lighting._on_caves_discovered(cells)
+	if _added_terrain_dirty or (_added_terrain != null and _added_terrain_slice != slice_y):
+		_rebuild_added_terrain()
 	# VisibleVolume contract (doc 11 Phase 3, ref doc 10 rule S5): flush at most
 	# ONE visible_volume_changed per frame, before either render branch runs, so
 	# consumers rebuild reactively and never poll. Any number of state changes in
@@ -868,7 +891,7 @@ func _rebuild_cavity_shell() -> void:
 			else:
 				exact_id = WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
 				_shell_exact_ids[n] = exact_id
-			if BlockRegistry.is_transparent(exact_id):
+			if not BlockRegistry.is_solid(exact_id):
 				# An undiscovered cave touching a designation still looks solid.
 				# Actual mining discovers connected natural air in InteriorTracker.
 				if WorldGenerator.get_cave_id(n) < 0: continue
@@ -908,7 +931,7 @@ func _cavity_column_top(wx: int, wz: int, col_tops: Dictionary) -> int:
 	var key := Vector2i(wx, wz)
 	if col_tops.has(key):
 		return col_tops[key]
-	var wy := int(WorldGenerator.get_visible_surface_y(wx, wz))
+	var wy := int(WorldGenerator.get_surface_y(wx, wz))
 	if wy < 0:
 		col_tops[key] = -1
 		return -1
@@ -1585,6 +1608,7 @@ func _free_region_node(key: Vector2i) -> void:
 # -- Block-face overview ------------------------------------------------------
 
 func _invalidate_overview_global() -> void:
+	_overview_initialized = false
 	_overview_built = false
 	_overview_rebuild_queued = false
 	_dirty_overview_tiles.clear()
@@ -1808,7 +1832,7 @@ func _update_block_face_overview() -> void:
 	var stats := WorldGenerator.get_streaming_stats()
 	if not stats.get("maps_ready", false):
 		return
-	if not _overview_built and not _overview_rebuild_queued and _dirty_overview_tiles.is_empty():
+	if not _overview_initialized:
 		_apply_pending_restore_slice()
 		_queue_full_overview_rebuild()
 	_drain_overview_tile_queue()
@@ -1886,6 +1910,7 @@ func _queue_full_overview_rebuild() -> void:
 		_enqueue_overview_tile(key)
 	for key: Vector2i in may_band:
 		_enqueue_overview_tile(key)
+	_overview_initialized = true
 	_overview_rebuild_queued = true
 
 
@@ -2348,7 +2373,7 @@ func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 	# exposed it as a striped water monolith. With the waterline as the top:
 	# water-vs-water emits no walls, banks emit a 1-block lip, and the water
 	# surface quad (opaque) hides the basin interior anyway.
-	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
+	var wy := WorldGenerator.get_surface_y(wx, wz)
 	if wy < 0:
 		return edge_y
 	# Slice-aware (Phase SO): a neighbour above the plane is clamped to its cut
@@ -2363,7 +2388,7 @@ func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 
 
 func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
-	var wy := WorldGenerator.get_visible_surface_y(wx, wz)
+	var wy := WorldGenerator.get_surface_y(wx, wz)
 	if wy < 0:
 		return {}
 	# Slice-aware far field (doc 11 Phase SO): a column whose surface is above
@@ -2820,6 +2845,37 @@ func _print_startup_performance_report() -> void:
 	])
 	print("  meshes_built_counter: %d" % _meshes_built)
 
+
+var _added_terrain: MultiMeshInstance3D
+var _added_terrain_dirty := false
+var _added_terrain_slice := -1
+
+## Positive terrain edits (e.g. a dam) sit above the immutable overview bed.
+## Mining still uses the existing revealed-air/cavity pipeline.
+func _rebuild_added_terrain() -> void:
+	_added_terrain_dirty = false
+	_added_terrain_slice = slice_y
+	var cells: Array = []
+	for entry: Dictionary in WorldData.serialize_solid_edits():
+		var cell := SaveManager.unpack_v3i(entry.cell)
+		if cell.y>slice_y or BlockRegistry.is_solid(WorldGenerator.get_generated_block_id(cell.x,cell.y,cell.z)): continue
+		cells.append(entry)
+	if _added_terrain == null:
+		if cells.is_empty(): return
+		_added_terrain = MultiMeshInstance3D.new()
+		_added_terrain.name = "AddedTerrain"
+		_added_terrain.material_override = _material
+		add_child(_added_terrain)
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = BoxMesh.new()
+	mm.instance_count = cells.size()
+	for i in cells.size():
+		var cell := SaveManager.unpack_v3i(cells[i].cell)
+		mm.set_instance_transform(i,Transform3D(Basis.IDENTITY,Vector3(cell)+Vector3.ONE*0.5))
+		mm.set_instance_color(i,BlockRegistry.get_color(BlockRegistry.get_id(cells[i].block),WorldClock.season))
+	_added_terrain.multimesh = mm
 
 func get_render_stats() -> Dictionary:
 	var overview_active := _block_face_overview_active()

@@ -39,6 +39,7 @@ signal block_changed(position: Vector3i, old_id: int, new_id: int)
 
 var _chunks: Dictionary = {}   # Vector3i(cx, cy, cz)  →  Chunk
 var _mutex:  Mutex
+var _edits: Dictionary = {} # Main-thread edits, reapplied to late streamed chunks.
 
 
 func _ready() -> void:
@@ -53,6 +54,9 @@ func _ready() -> void:
 ## This is the only safe way to introduce a new chunk from a non-main thread.
 func submit_chunk(cx: int, cy: int, cz: int, chunk: Chunk) -> void:
 	_mutex.lock()
+	for cell: Vector3i in _edits.get(Vector3i(cx,cy,cz), {}):
+		chunk.blocks[Chunk.local_index(cell.x % 16,cell.y % 16,cell.z % 16)] = _edits[Vector3i(cx,cy,cz)][cell]
+		chunk.has_void = true
 	_chunks[Vector3i(cx, cy, cz)] = chunk
 	_mutex.unlock()
 	call_deferred("_deferred_emit_chunk_dirtied", cx, cy, cz)
@@ -77,9 +81,24 @@ func _emit_existing_neighbor_dirty(cx: int, cy: int, cz: int) -> void:
 # ── Single-block read/write (main-thread game logic) ─────────────────────────
 
 ## Returns the runtime block ID at a world position.
-## Returns BlockRegistry.AIR_ID for any out-of-bounds coordinate or
-## coordinates within an ungenerated chunk.
+## Ungenerated terrain reads as air; known live water is still overlaid.
+## Use get_live_block when a deterministic terrain fallback is required.
 func get_block(wx: int, wy: int, wz: int) -> int:
+	return WaterManager.live_block(Vector3i(wx,wy,wz), _stored_block(wx,wy,wz))
+
+
+## Authoritative terrain with deterministic fallback for unstreamed columns.
+## Water geometry queries use this raw read to avoid querying themselves.
+func get_terrain_block(wx: int, wy: int, wz: int) -> int:
+	if chunk_exists(wx >> 4,wy >> 4,wz >> 4): return _stored_block(wx,wy,wz)
+	return WorldGenerator.get_generated_block_id(wx,wy,wz)
+
+
+func get_live_block(wx: int, wy: int, wz: int) -> int:
+	return WaterManager.live_block(Vector3i(wx,wy,wz),get_terrain_block(wx,wy,wz))
+
+
+func _stored_block(wx: int, wy: int, wz: int) -> int:
 	if not _in_bounds(wx, wy, wz):
 		return BlockRegistry.AIR_ID
 
@@ -112,8 +131,20 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 			wx, wy, wz, WorldGenerator.BEDROCK_MAX_Y])
 		return
 
-	var chunk := _get_or_create_chunk(wx, wy, wz)
+	var chunk := get_chunk_if_exists(wx/16,wy/16,wz/16)
+	if chunk == null:
+		chunk = Chunk.new()
+		for x in 16:
+			for y in 16:
+				for z in 16:
+					chunk.blocks[Chunk.local_index(x,y,z)] = WorldGenerator.get_generated_block_id((wx/16)*16+x,(wy/16)*16+y,(wz/16)*16+z)
+		submit_chunk(wx/16,wy/16,wz/16,chunk)
 	var old_id: int = chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)]
+	_mutex.lock()
+	var chunk_key := _chunk_key(wx,wy,wz)
+	if not _edits.has(chunk_key): _edits[chunk_key] = {}
+	_edits[chunk_key][Vector3i(wx,wy,wz)] = id
+	_mutex.unlock()
 	chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)] = id
 	# Keep the buried-chunk optimisation honest: has_void is baked at
 	# generation time and was never updated afterwards, so carving air into a
@@ -190,9 +221,25 @@ func mark_chunk_dirty(cx: int, cy: int, cz: int) -> void:
 ## Load boundary: discard every materialised chunk before regenerating the
 ## deterministic base world. The generator thread must be stopped first.
 func clear_world() -> void:
+	WaterManager.reset()
 	_mutex.lock()
 	_chunks.clear()
+	_edits.clear()
 	_mutex.unlock()
+
+
+func serialize_solid_edits() -> Array:
+	var result: Array = []
+	for changes: Dictionary in _edits.values():
+		for cell: Vector3i in changes:
+			var id := int(changes[cell])
+			if BlockRegistry.is_solid(id):
+				result.append({"cell":[cell.x,cell.y,cell.z],"block":BlockRegistry.get_key(id)})
+	result.sort_custom(func(a: Dictionary,b: Dictionary):
+		for axis in 3:
+			if a.cell[axis]!=b.cell[axis]: return a.cell[axis]<b.cell[axis]
+		return false)
+	return result
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

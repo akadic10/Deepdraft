@@ -227,6 +227,7 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id:
 		for source: StorageComponent in _zones.values() + _containers.values():
 			for slot in source.stored_entries():
 				var stack: Dictionary = source.stored_entries()[slot]
+				if not source.slot_allowed(slot): continue
 				if String(stack.item) == item_key and String(stack.get("instance_id", "")) == instance_id and not source._outgoing.has(slot):
 					return source.withdraw_stack(slot, 1, dwarf_id)
 		return null
@@ -236,6 +237,7 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id:
 		var zone: StockpileZoneComponent = _zones[source_id]
 		var has_it := false
 		for cell: Vector3i in zone.cell_stacks:
+			if not zone.slot_allowed(cell): continue
 			if int(zone.cell_stacks[cell].count) <= int(zone._outgoing.get(cell, {}).get("count", 0)): continue
 			if _drop_manager.instance_promised(String(zone.cell_stacks[cell].get("instance_id", ""))): continue
 			if String((zone.cell_stacks[cell] as Dictionary).get("item", "")) == item_key:
@@ -270,6 +272,7 @@ func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) 
 		var entries := source.stored_entries()
 		for slot in entries:
 			var stack: Dictionary = entries[slot]
+			if not source.slot_allowed(slot): continue
 			var key := String(stack.item)
 			if key not in keys or int(stack.count) <= int(source._outgoing.get(slot,{}).get("count",0)): continue
 			var delta := source.slot_cell(slot)-near
@@ -299,7 +302,7 @@ func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictiona
 				var slot = query.slots[query.slot_index]
 				query.slot_index += 1
 				var stack: Dictionary = source.stored_entries().get(slot,{})
-				if stack.is_empty() or String(stack.item) not in keys: continue
+				if not source.slot_allowed(slot) or stack.is_empty() or String(stack.item) not in keys: continue
 				if int(stack.count) <= int(source._outgoing.get(slot,{}).get("count",0)): continue
 				if source.drop_manager.instance_promised(String(stack.get("instance_id",""))): continue
 				var cell := source.withdrawal_item_cell(slot)
@@ -320,7 +323,7 @@ func withdraw_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 	if source == null or not is_registered(source): return null
 	if source is ContainerStorageComponent and source.suspended: return null
 	var stack: Dictionary = source.stored_entries().get(quote.slot,{})
-	if stack.is_empty() or String(stack.item) != quote.key: return null
+	if not source.slot_allowed(quote.slot) or stack.is_empty() or String(stack.item) != quote.key: return null
 	if int(stack.count) <= int(source._outgoing.get(quote.slot,{}).get("count",0)): return null
 	if source.drop_manager.instance_promised(String(stack.get("instance_id",""))): return null
 	if source.withdrawal_item_cell(quote.slot) != quote.cell: return null
@@ -336,6 +339,54 @@ func storage_rules_changed() -> void:
 	stockpile_changed.emit("", 0)
 
 
+func get_available_total(key: String) -> int:
+	var total := 0
+	for storage: StorageComponent in _zones.values()+_containers.values():
+		if storage is ContainerStorageComponent and storage.suspended: continue
+		for slot in storage.stored_entries():
+			var stack: Dictionary = storage.stored_entries()[slot]
+			if storage.slot_allowed(slot) and String(stack.item)==key: total += int(stack.count)
+	return total
+
+
+func get_disallowed_total(key: String) -> int:
+	var total := 0
+	for storage: StorageComponent in _zones.values()+_containers.values():
+		for slot in storage.stored_entries():
+			var stack: Dictionary = storage.stored_entries()[slot]
+			if not storage.slot_allowed(slot) and String(stack.item)==key: total += int(stack.count)
+	return total
+
+
+func set_node_disallowed(node: Node3D, value: bool) -> void:
+	for storage: StorageComponent in _zones.values()+_containers.values():
+		for slot in storage.stored_entries():
+			if storage is StockpileZoneComponent and _drop_manager.stored_node_at(slot)==node:
+				storage.set_disallowed(slot,value)
+				return
+			if storage is ContainerStorageComponent and int(slot)<storage._anchor_slots.size() and storage._anchor_slots[int(slot)]!=null and storage._anchor_slots[int(slot)][0]==node:
+				storage.set_disallowed(slot,value)
+				return
+
+
+func permissions_changed() -> void:
+	# Cancel only hauls touching the newly unavailable source or destination.
+	var owners := {}
+	for storage: StorageComponent in _zones.values()+_containers.values():
+		for owner in storage._pulls:
+			var pull: Dictionary = storage._pulls[owner]
+			for item in pull.items:
+				if pull.picked.has(item): continue
+				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[owner]=true
+			for item in pull.cargo:
+				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[owner]=true
+			for token: Dictionary in pull.deposits.values():
+				if bool(storage.stored_entries().get(token.slot,{}).get("disallowed",false)): owners[owner]=true
+			if pull.has("transfer") and pull.picked.is_empty() and not pull.transfer.source.slot_allowed(pull.transfer.token.slot): owners[owner]=true
+	for owner in owners: TaskManager.invalidate_dwarf_task(owner)
+	storage_rules_changed()
+
+
 ## Only rejected stored goods may relocate. A claim never changes ownership
 ## or totals; the source withdraws when the worker physically reaches it.
 func relocation_candidates(destination: StorageComponent, near: Vector3i, exclude: Dictionary = {}, limit: int = 0) -> Array[Dictionary]:
@@ -348,6 +399,7 @@ func relocation_candidates(destination: StorageComponent, near: Vector3i, exclud
 			if origin._outgoing.has(slot) or exclude.has(origin.relocation_id(slot)): continue
 			if exclude.has(origin.slot_cell(slot)): continue
 			var stack: Dictionary = origin.stored_entries()[slot]
+			if not origin.slot_allowed(slot): continue
 			var key := String(stack.item)
 			if origin.accepts_key(key) or not destination._can_haul_key(key): continue
 			var cell := origin.slot_cell(slot)
@@ -386,7 +438,7 @@ func advance_relocation_quote(destination: StorageComponent, near: Vector3i, que
 			query.slot_index += 1
 			if origin._outgoing.has(slot): continue
 			var stack: Dictionary = origin.stored_entries().get(slot, {})
-			if stack.is_empty(): continue
+			if stack.is_empty() or not origin.slot_allowed(slot): continue
 			var key := String(stack.item)
 			if origin.accepts_key(key) or not destination._can_haul_key(key): continue
 			var cell := origin.slot_cell(slot)
@@ -469,6 +521,7 @@ func has_stored_instance(item_key: String, instance_id: String) -> bool:
 		if source is ContainerStorageComponent and source.suspended: continue
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
+			if not source.slot_allowed(slot): continue
 			if String(stack.item) == item_key and String(stack.get("instance_id", "")) == instance_id and not source._outgoing.has(slot): return true
 	return false
 
@@ -479,6 +532,7 @@ func get_promised_totals() -> Dictionary:
 	for source: StorageComponent in _zones.values() + _containers.values():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
+			if not source.slot_allowed(slot): continue
 			if not source._outgoing.has(slot) and _drop_manager.instance_promised(String(stack.get("instance_id", ""))):
 				result[stack.item] = int(result.get(stack.item, 0)) + int(stack.count)
 	return result

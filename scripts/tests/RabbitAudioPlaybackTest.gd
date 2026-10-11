@@ -17,6 +17,7 @@ func _init() -> void:
 func _run() -> void:
 	if "--deer" in OS.get_cmdline_user_args(): species = "deer"
 	if "--wolf" in OS.get_cmdline_user_args(): species = "wolf"
+	if "--duck" in OS.get_cmdline_user_args(): species = "duck"
 	for service in ["SaveManager","RoomManager","StockpileManager","TaskManager","WorldClock"]: root.get_node(service).set_process(false)
 	clock_node = root.get_node("WorldClock")
 	clock_node.set_paused(false)
@@ -42,6 +43,9 @@ func _run() -> void:
 	var samples := {}
 	for label in ["select","select_paused","graze","far","zoom_out","left","right","pause_tail"]:
 		samples[label] = await _record(label)
+	if species=="duck":
+		samples.splash = await _record("splash")
+		_check(samples.splash.peak>.01 and samples.splash.peak<.5,"duck landing splash outputs quiet PCM")
 	_check(samples.select.peak > .01 and samples.select_paused.peak > .01,"selection outputs PCM while running and paused")
 	_check(samples.graze.peak > .01,"nearby grazing outputs audible PCM")
 	_check(samples.far.peak < .001 and samples.zoom_out.peak < .001,"far and overview grazing produce silence")
@@ -67,6 +71,7 @@ func _record(label: String) -> Dictionary:
 	camera.set_meta("work_zoom",80.0 if label == "zoom_out" else 12.0)
 	source.position.x = -6 if label == "left" else 6 if label == "right" else 0
 	var kind := species+"_select" if label.begins_with("select") else species+"_eat" if species == "wolf" else species+"_graze"
+	if species=="duck" and not label.begins_with("select"): kind = "duck_splash" if label=="splash" else "duck_quack"
 	if label == "pause_tail":
 		feedback.play_animal(kind,source)
 		await create_timer(.10).timeout
@@ -87,6 +92,7 @@ func _record(label: String) -> Dictionary:
 		peak = maxf(peak,maxf(absf(l),absf(r)))
 	var directory := "res://tmp/deer_review/native_pcm" if species == "deer" else "res://tmp/rabbit_audio_review/native_pcm"
 	if species == "wolf": directory = "res://tmp/wolf_review/native_pcm"
+	if species == "duck": directory = "res://tmp/duck_review/native_pcm"
 	DirAccess.make_dir_recursive_absolute(directory)
 	wav.save_to_wav(directory+"/"+label+".wav")
 	return {"energy":energy,"peak":peak}

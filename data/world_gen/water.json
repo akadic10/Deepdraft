@@ -1,0 +1,78 @@
+{
+  "river": {
+    "source_min_y": 79,
+    "source_preferred_y": 103,
+    "channel_radius": 2,
+    "narrow_radius": 1,
+    "narrow_interval": 128,
+    "narrow_length": 12,
+    "spring_exit_length": 4,
+    "pool_radius": 3,
+    "bed_depth": 2,
+    "salt": 73159
+  },
+  "spring_cave": {
+    "depth_min": 8,
+    "depth_max": 10,
+    "search_depth": 22,
+    "headroom": 4,
+    "roof_thickness": 2
+  },
+  "simulation": {
+    "tick_seconds": 0.1,
+    "max_cells_per_tick": 384,
+    "level_reach": 8,
+    "conductance": 3.0,
+    "epsilon": 1e-05,
+    "standing_depth": 0.0625,
+    "spring_rate": 2.0,
+    "outlet_rate": 8.0
+  },
+  "rendering": {
+    "tiles_per_frame": 3,
+    "surface_color": "#58AFC4",
+    "depth_shading": 0.12,
+    "foam_color": "#C6EDF0",
+    "surface_speed": 0.65,
+    "small_step_height": 0.125
+  },
+  "irrigation": {
+    "radius": 3,
+    "wet_hours": 2.0,
+    "dry_hours": 24.0
+  },
+  "stones": {
+    "wet": {
+      "model": "res://assets/models/world/water/wet_stone.glb",
+      "display_name": "Wet stone",
+      "item_key": "base:resources:water:wet_stone",
+      "packing_seconds": 2.0
+    },
+    "dry": {
+      "model": "res://assets/models/world/water/dry_stone.glb",
+      "display_name": "Dry stone",
+      "item_key": "base:resources:water:dry_stone",
+      "packing_seconds": 2.0
+    }
+  },
+  "audio": {
+    "scan_seconds": 0.25,
+    "fade_seconds": 0.7,
+    "waterfall": {
+      "level_db": -9.0,
+      "near_radius": 10.0,
+      "far_radius": 65.0,
+      "zoom_reference": 32.0,
+      "zoom_exponent": 0.9,
+      "max_zoom": 180.0
+    },
+    "river": {
+      "level_db": -17.0,
+      "near_radius": 5.0,
+      "far_radius": 30.0,
+      "zoom_reference": 28.0,
+      "zoom_exponent": 1.2,
+      "max_zoom": 120.0
+    }
+  }
+}

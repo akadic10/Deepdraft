@@ -175,7 +175,9 @@ func current_weather_id() -> String:
 func serialize_state() -> Dictionary:
 	return {
 		"current_id": _current_id,
-		"rng_state": _rng.state,
+		# JSON numbers lose low bits of a 64-bit RNG state. Match wildlife's
+		# decimal-text format so loading resumes the exact same weather stream.
+		"rng_state": str(_rng.state),
 	}
 
 

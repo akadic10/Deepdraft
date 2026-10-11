@@ -7,6 +7,14 @@
 
 ## 1. Visual Identity
 
+**Loose water stones (2026-10-10):** `tools/generate_water_stones.py` reuses the
+authored ore-drop template, including all 304 voxels, body shades and mineral
+fleck placement. Only the fleck colors change: turquoise wet stone and muted
+gray dry stone. Both fit the same 1×1×1 block, eight-voxels/block envelope, with
+ground Y0 and root scale 1. Existing ore models are not regenerated. World models
+live in `assets/models/world/water/`; lighting, slicing and lake submersion use
+the normal world presentation rules. See [109](../00_dev_roadmap/109_loose_water_stones.md).
+
 **Camp furniture (2026-10-09):** `tools/generate_camp_furniture.py` exports a roughly
 2×2 stone-ring campfire centered within a 3×3 placement area and a compact 1×1
 stump stool, using eight voxels/block, baked
@@ -1074,9 +1082,30 @@ better than a separate flat mound. Brown ramps (light/mid/dark) derive from the 
 hex; dark and cave are pushed darker than the near-olive terrain values so the three soils read
 apart. This is the one family that does NOT get its own shape — it reuses the stone silhouette.
 
-Review renders: `tmp/ore_drop_review/*.png`. **Future drop families** (gems = crystal cluster,
-flora = produce) get their own shapes via the same generator pattern; the one-shape-per-family
-+ colour-coding rule applies to each family.
+Review renders: `tmp/ore_drop_review/*.png`. Drop families get their own shapes
+via the same generator pattern; the one-shape-per-family + colour-coding rule
+applies to each family. Produce now uses the shared crate described above.
+
+**Finished gems (2026-10-10, user decision):** gems are beautiful when mined,
+with no later Jeweller or finishing step. `tools/generate_gem_glbs.py` uses
+the shared `Voxels` container and exposed-cube-face mesher for one stepped jewel
+shape in six palettes: mint jade, violet amethyst, crimson ruby, royal-blue
+sapphire, vivid emerald and icy diamond. The user rejected the initial angled
+polygon faces: **gems follow the same eight-voxels/block grid and cube geometry
+as the other items**, without sloped faces, bevels, smooth normals or textures.
+Each mesh has 100 voxels / 304 triangles in a 6×5×6-voxel envelope
+(0.75×0.625×0.75 blocks), grounded Y0, centered XZ and baked 0.125 scale.
+The broad shoulders have missing corner cubes and the crown/base narrow in
+whole-voxel steps. Linear vertex colours provide shadow, bright bands and
+small square glints that remain readable at inventory size.
+
+The item definition's optional `surface` roughness/specular fields enable gloss
+through ItemDropManager. Ordinary drops remain matte. UndergroundLighting's
+opt-in direct-light reflection uses the same sky-access gate as diffuse light;
+gems add no emission, transparency, lights, particles or per-item updates. The
+existing faint underground readability floor still applies. Inventory thumbnails
+use the registry's actual item visuals. Review: `GemDropArtTest.gd -- --capture`
+and `tmp/gem_drop_review/`. See [104](../00_dev_roadmap/104_gem_drop_artwork.md).
 
 ---
 
@@ -1179,6 +1208,17 @@ the trade counter's permanence, the rune shelf's monument-feel.
 
 ### Workshop Props
 These are the core of the colony's economy. The Smelter should radiate industrial danger; the Forge should look like weapons are made here, not decorations. The Brewery is warm, steam-touched, slightly chaotic — copper pipes going in unexpected directions, crocks in a row, a barrel that doesn't quite fit. The Aging Cellar is cold, deliberate, and still.
+
+### Ducks (live)
+
+`tools/generate_duck.py` authors seven articulated GLBs under `assets/animals/duck/`:
+male/female body, head and wing, plus a shared foot. Geometry is baked at 0.125
+with unit model roots. Male plumage has a green head, white collar, brown breast
+and grey body; females have brown mottling. Both use broad bills, square eyes
+and blue/white wing patches. Runtime joints supply paddling, head poses and flight;
+the wings fold before touching narrow banks. The water surface hides submerged
+feet. Wakes and splash squares are separate effects, excluded from object picking.
+Review native captures and the behavior contract in milestone 111.
 
 ### Decorative Objects
 World scatter should feel like archaeology — as if the site has been occupied for generations and objects have been placed, forgotten, moved, and placed again. A Mining Cart is dented. A Runic Standing Stone leans 3°. A barrel has a dark stain. These micro-details are achieved through asymmetric voxel placement, not additional geometry complexity.

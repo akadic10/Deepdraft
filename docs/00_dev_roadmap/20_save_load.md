@@ -1,5 +1,14 @@
 # 20 — Save / Load Persistence
 
+**2026-10-10 item permissions:** loose items, carried cargo and physical storage
+stacks save a boolean `disallowed`. Container entries preserve all stacks, even
+without an instance ID. Water owns each stone's identity, placed state, intake,
+head limit and packing progress; furniture plans save the exact Move identity.
+Validation rejects missing/duplicate physical stone owners and malformed flags.
+Packed stones restored from carried cargo remain inactive loose items at the
+dwarf's feet, with their permission and identity intact. Older development saves
+without these required fields need no migration. See milestone 110.
+
 Status: **SHIPPED and verified 2026-07-18.** Version 1 provides an independent manual
 quick-save slot and five-minute autosave slot through the dock's **💾 Save / Load** menu.
 Taking either snapshot is observational and does not interrupt workers or mutate
@@ -17,7 +26,7 @@ of every materialised chunk or runtime object.
    and seed-derived surface flora.
 2. Player/colony state is serialised by the system that owns it.
 3. Runtime integer block IDs never enter the save. Mining removals need only coordinates;
-   future non-void terrain writes must use namespaced block keys.
+   solid terrain writes use namespaced block keys in the water owner's terrain deltas.
 4. Tasks, leases, reservations, paths, meshes, occupancy indexes, and interior indexes are
    transient or derived and rebuild after load.
 5. Saving must not pause time, release work, change an assignment, clear a reservation,
@@ -50,25 +59,56 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
   },
   "weather": {
     "current_id": "base:weather:clear",
-    "rng_state": 1234
+    "rng_state": "1234"
   },
   "scene": {
-    "mining": {},
-    "settlement_flag": {},
-    "stockpiles": {},
-    "furniture": {},
-    "items": {},
-    "dwarves": {},
-    "worker_crafting": {},
-    "camera": {},
-    "slice": {}
+    "mining": {"mined_blocks": [], "zones": []},
+    "water": {
+      "layout_version": 5,
+      "flow": {
+        "cells": [], "active": [], "displaced": [],
+        "added_units": 0, "drained_units": 0, "extracted_units": 0
+      },
+      "source_enabled": true, "outlet_enabled": true,
+      "elapsed_usec": 0, "accumulator_usec": 0,
+      "terrain": [], "test_dam": [], "moisture": []
+    },
+    "flora": {"trees": []},
+    "surface_details": {"changes": [], "planted": [], "next_plant_id": 1},
+    "settlement_flag": {"placed": false, "cell": [-1, -1, -1]},
+    "stockpiles": {"zones": []},
+    "furniture": {"ghosts": [], "installed": []},
+    "ladders": {"routes": [], "next_id": 1},
+    "items": {"loose": []},
+    "dwarves": {"birth_index": 0, "settlement_anchor": [-1, -1, -1], "roster": []},
+    "wildlife": {
+      "initialized": false, "rabbits": [],
+      "deer_initialized": false, "deer": [],
+      "wolf_initialized": false, "wolves": [],
+      "duck_initialized": false, "ducks": []
+    },
+    "world_events": {"initialized": false, "serial": 0, "rng": "0", "schedules": {}, "pressure": {}, "history": []},
+    "worker_crafting": {"orders": []},
+    "camera": {"target_position": [512, 115, 512], "zoom": 30, "pitch": -0.7, "orbit_y": 0},
+    "slice": {"active": false, "seeded": false, "slice_y": 127, "last_slice_y": 127}
   }
 }
 ```
 
 The metadata fields identify the project, schema, creation time, and deterministic world.
 `clock` and `weather` are autoload-owned state. `scene` contains independent sections
-contributed by scene nodes through the ownership contract below.
+contributed by registered owners through the ownership contract below.
+All current sections and their required fields must be present. The example shows
+empty collections for an unsettled world; an empty `scene` or owner dictionary is
+not a usable snapshot. Old development saves do not receive compatibility migrations.
+
+Weather's `rng_state` is a decimal string, restored directly to an integer.
+JSON numbers cannot preserve every bit of a 64-bit RNG state; storing one as a
+number changes subsequent daily weather after loading. This matches wildlife's
+text encoding. `WeatherPersistenceTest.gd` checks exact state and 112 daily
+choices across season/year boundaries for 12 seed/progress combinations,
+including repeated loads. `SaveManagerRoundTripTest.gd` also checks the current
+weather, exact RNG state and future sequence after autosave and backup recovery.
 
 ---
 
@@ -89,24 +129,31 @@ priority so dependencies exist before consumers restore.
 | Priority | Section | Owner | Authoritative content |
 |---:|---|---|---|
 | 10 | `mining` | `MiningDesignationController` | Mined block coordinates and outstanding mining-zone block sets |
+| 11 | `water` | `WaterManager` | Integer water-volume deltas, active flow, displacement, spring/outlet state, moisture history and solid terrain edits |
+| 15 | `flora` | `SurfaceFloraSpawner` | Changed trees, felling/harvest work and completed crop cycles |
+| 16 | `surface_details` | `SurfaceDetailManager` | Removed/changed details, transplanted shrubs and growth state |
 | 20 | `settlement_flag` | `FlagPlacementController` | Placed state and grid cell |
 | 30 | `stockpiles` | `StockpileDesignationController` | Zone IDs/cells, filters, and stored item keys/counts |
 | 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces, yaw, uninstall flags, and container inventories |
+| 41 | `ladders` | `LadderSystem` | Routes, construction/removal progress and next route identity |
 | 50 | `items` | `ItemDropManager` | Loose item keys, positions, and yaw |
 | 60 | `dwarves` | `DwarfDirector` | Roster identity/appearance, profession data, position, sleep state, and carried item keys |
+| 65 | `wildlife` | `WildlifeManager` | Rabbit/deer/wolf/duck populations, needs, motion (including flight), flock/herd identity and exact RNG state |
+| 66 | `world_events` | `WorldEventDirector` | Arrival schedules, active groups, hunting pressure and history |
 | 70 | `worker_crafting` | `CraftingManager` | Ordered recipes, quantities/mode, pause state, partial work and allowed-ingredient keys |
 | 70 | `camera` | `Camera` | Target position, zoom, pitch, and orbit |
 | 80 | `slice` | `SliceController` | Active/seeded state, current plane, and last manual plane |
 
 Section keys must be unique. A new scene-owned system must document both its priority and
-why its state is authoritative rather than seed-derived or transient.
+why its state is authoritative rather than seed-derived or transient, and update
+`SaveSnapshotValidator.gd` alongside its serializer.
 
 **Worker crafting (2026-10-07):** `worker_crafting` restores after furniture,
 items and dwarves; it has no dependency on the same-priority camera owner.
 Tasks, item/bench claims and work positions rebuild. Carried timber remains owned
-by the dwarf snapshot until restored as loose goods. Missing crafting sections
-mean an empty queue; old orders without `allowed_ingredients` adopt Pine, while
-explicit empty/invalid lists remain empty. The smaller stump retains existing
+by the dwarf snapshot until restored as loose goods. An empty `orders` array means
+an empty queue; a missing crafting section is rejected. Orders include an explicit
+`allowed_ingredients` array, which may be empty. The smaller stump retains existing
 furniture/item keys and placement origins, so old benches release their extra
 footprint tile on load. See [64 — Worker crafting](64_worker_crafting.md).
 
@@ -142,7 +189,8 @@ happens only on load; pressing Save does not drop the live carried item.
 1. Select the manual or autosave slot, then open, parse, and validate its primary file.
 2. If the primary is missing or invalid, validate the backup. A valid backup is copied
    back to the primary path before the load continues, repairing the live slot.
-3. Validate the project marker, schema range, non-zero world seed, and `scene` dictionary.
+3. Validation covers metadata, clock/weather, every required scene section, and their
+   typed fields/records before any world mutation. It applies equally to primary and backup.
 4. Store the snapshot as the pending restore and pause the clock.
 5. Reset transient autoload state:
    `TaskManager`, `StockpileManager`, `InteriorTracker`, `NavGrid`,
@@ -193,8 +241,20 @@ Load is rejected before mutating the world when:
 - the file cannot be opened or parsed as a JSON dictionary;
 - `project` is not `Deepdraft`;
 - the schema is missing or newer than the running game;
-- the world seed is missing/zero; or
-- scene state is missing.
+- the world seed is missing/zero or metadata has incorrect types;
+- clock/weather or any required scene section/field is missing or incorrectly typed; or
+- collection records, counts, coordinates or RNG text violate the structural contract.
+
+`SaveSnapshotValidator` performs this pure check for every read, including temporary
+writes and backup staging. JSON integer fields accept finite whole numeric values,
+but never coerce strings or booleans. Coordinates contain exactly three numbers
+(whole numbers for grid cells); RNG text must fit a signed 64-bit integer. Errors
+identify the failing field. Empty rosters, item lists, orders and other collections
+remain valid. This is structural validation, not exhaustive gameplay/reference validation.
+
+An invalid primary cannot replace a healthy backup during saving. Loading falls back
+to a valid backup and repairs the primary. If both generations are invalid, it reports
+failure without pausing/resetting the current colony or reloading its scene.
 
 Manual Save is rejected while the deterministic world maps are still generating. Autosave
 waits without accumulating time while generation is active. All actions report through a
@@ -233,6 +293,22 @@ godot --headless --path . --script res://scripts/tests/SaveManagerRoundTripTest.
 Success prints `SAVE_MANAGER_ROUND_TRIP_OK` and exits with code 0. The harness uses a
 dedicated `user://save_manager_round_trip_test` directory and never touches player saves.
 
+**Validation regression (2026-10-10):** The test first reproduced acceptance of an empty
+scene, then passed with the stricter validator. It accepts an untouched world and a
+populated colony after JSON serialization, rejects 135 malformed snapshots, recovers
+both manual and automatic slots from structurally invalid primaries, and compares the
+restored colony contents. It also verifies rejected temporary writes preserve both good
+generations, invalid primaries never rotate over a good backup, and two invalid generations
+leave the running world unchanged. Existing malformed-JSON recovery, carried cargo and
+weather-sequence checks remain included.
+
+**Session-end regression (2026-10-10):** later water, stone/permission and duck
+work expands the same complete-snapshot test to 156 malformed cases. The final
+run also restores mid-flight ducks and a partially entered aerial flock, with
+the existing colony, exact weather continuation and manual/autosave backup checks.
+See `tmp/duck_review/save_final.log` and [111 — Duck wildlife](111_duck_wildlife.md).
+The 135-case result above records the initial validation fix, not the final count.
+
 ---
 
 ## 9. Durability and remaining follow-ups
@@ -251,7 +327,7 @@ The autosave durability prerequisites are shipped:
 6. The repeatable headless regression covers manual and automatic round trips, slot
    isolation, backup rotation, and the corrupt-primary path.
 
-Explicit schema-migration functions remain required before schema version 2. Multiple
+Older development saves need no migration under the current project policy. Multiple
 named slots, thumbnails, configurable autosave cadence/triggers, and a broader retention
 policy remain separate UI/product decisions.
 

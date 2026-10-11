@@ -87,7 +87,7 @@ static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 			if WorldData.chunk_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4):
 				block_id = WorldData.get_block(pos.x, pos.y, pos.z)
 			else:
-				block_id = WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
+				block_id = WorldData.get_live_block(pos.x, pos.y, pos.z)
 			if BlockRegistry.is_solid(block_id):
 				return {"x": pos.x, "y": pos.y, "z": pos.z, "normal": normal, "distance": travelled}
 		if t_max.x <= t_max.y and t_max.x <= t_max.z:

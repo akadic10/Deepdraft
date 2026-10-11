@@ -934,6 +934,7 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 		if not BlockRegistry.is_solid(block_id):
 			continue
 		var def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
+		if int(def.get("hardness",1))<0: continue
 		if String(def.get("kind", "")) == "water":
 			continue
 		result.append(block)
@@ -1975,6 +1976,7 @@ func execute_zone_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> b
 
 	# Capture identity BEFORE the void write (drops + sanity).
 	var pre_id := _block_id_at(block)
+	if int(BlockRegistry.get_def(BlockRegistry.get_key(pre_id)).get("hardness",1))<0: return false
 	var was_solid := BlockRegistry.is_solid(pre_id)
 
 	_mine_block_world(block)
@@ -2171,6 +2173,7 @@ func _dev_mine_zone(zone_id: int) -> void:
 	for block: Vector3i in zone.get("blocks", []):
 		if block.y <= BEDROCK_MAX_Y:
 			continue   # Hard Rule 1 — never write bedrock, even in DEV paths
+		if int(BlockRegistry.get_def(BlockRegistry.get_key(_block_id_at(block))).get("hardness",1))<0: continue
 		if _zone_by_block.get(block, -1) == zone_id:
 			_zone_by_block.erase(block)
 		_mined_blocks[block] = true

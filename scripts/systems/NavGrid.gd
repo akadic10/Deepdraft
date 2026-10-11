@@ -118,8 +118,16 @@ func _ladder_neighbors(cell: Vector3i, start: Vector3i, goal: Vector3i) -> Array
 
 func _ready() -> void:
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied, CONNECT_DEFERRED)
+	WaterManager.levels_changed.connect(_on_water_changed)
 	PlacedEntityRegistry.occupancy_changed.connect(_on_occupancy_changed)
 	print("NavGrid: ready.")
+
+func _on_water_changed(cells: Array) -> void:
+	var chunks: Dictionary = {}
+	for cell: Vector3i in cells:
+		# A reservoir can rise through several vertical chunks.
+		for y in 8: chunks[Vector3i(cell.x >> 4,y,cell.z >> 4)] = true
+	for key: Vector3i in chunks: _on_chunk_dirtied(key.x,key.y,key.z)
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -362,7 +370,7 @@ func _compute_walkable(cell: Vector3i) -> bool:
 		return false
 	for k in range(1, CLEARANCE + 1):
 		var above := Vector3i(cell.x, cell.y + k, cell.z)
-		if BlockRegistry.is_solid(_block_id(above.x, above.y, above.z)):
+		if _block_id(above.x, above.y, above.z) != BlockRegistry.AIR_ID:
 			return false
 		if PlacedEntityRegistry.occupies(above):
 			return false
@@ -371,9 +379,7 @@ func _compute_walkable(cell: Vector3i) -> bool:
 
 ## Real block where a chunk exists; deterministic generated block elsewhere.
 func _block_id(wx: int, wy: int, wz: int) -> int:
-	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
-		return WorldData.get_block(wx, wy, wz)
-	return WorldGenerator.get_generated_block_id(wx, wy, wz)
+	return WorldData.get_live_block(wx,wy,wz)
 
 
 # ── A* core ───────────────────────────────────────────────────────────────────

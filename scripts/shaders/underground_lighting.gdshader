@@ -1,8 +1,14 @@
 shader_type spatial;
-render_mode cull_disabled, specular_disabled;
+render_mode cull_disabled;
 
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool vertex_color = true;
+// Opt-in item gloss; ordinary world materials keep their matte response.
+uniform float surface_roughness = 1.0;
+uniform float surface_specular = 0.0;
+uniform bool water_surface = false;
+uniform float water_time = 0.0;
+uniform sampler2D water_motion : filter_nearest, repeat_disable;
 uniform float readability_floor = 0.008;
 // Live actors share one body sample, including attached tools/carried meshes.
 // Negative means ordinary world-space terrain/prop sampling.
@@ -95,9 +101,56 @@ void vertex() {
     world_normal = normalize(MODEL_NORMAL_MATRIX*NORMAL);
 }
 
+float water_hash(vec2 p) {
+    vec3 q = fract(vec3(p.xyx)*0.1031);
+    q += dot(q,q.yzx+33.33);
+    return fract((q.x+q.y)*q.z);
+}
+
+// Sparse square/rectangular marks. World anchored, with independent lifetimes
+// and derivative filtering so distant water doesn't turn into crawling pixels.
+float water_marks(vec2 p, float clock, float density) {
+    vec2 cell = floor(p/1.6);
+    float seed = water_hash(cell);
+    vec2 centre = (floor(vec2(water_hash(cell+17.0),water_hash(cell+39.0))*9.0)+2.0)*0.125;
+    vec2 half_size = seed > 0.5 ? vec2(0.0625,0.125) : vec2(0.125,0.0625);
+    vec2 aa = max(fwidth(p),vec2(0.003));
+    vec2 mark = 1.0-smoothstep(half_size-aa,half_size+aa,abs(p-cell*1.6-centre));
+    float life = 0.5+0.5*sin(clock*(0.65+seed*0.45)+seed*31.0);
+    return mark.x*mark.y*smoothstep(0.25,0.8,life)*step(1.0-density,water_hash(cell+83.0));
+}
+
+float water_glints(vec2 p, vec2 current, float clock, float density) {
+    // Two short advection phases crossfade before either resets. Variable
+    // current never multiplies unbounded time or visibly jumps the pattern.
+    float a = fract(clock/3.7);
+    float b = fract(clock/3.7+0.5);
+    float weight = 0.5-0.5*cos(a*6.2831853);
+    return water_marks(p-current*a*3.7,clock,density)*weight
+        + water_marks(p-current*b*3.7,clock,density)*(1.0-weight);
+}
+
 void fragment() {
     sky_access = actor_sky_access >= 0.0 ? actor_sky_access : exposure(world_position+world_normal*0.04);
     ALBEDO = tint.rgb*(vertex_color ? COLOR.rgb : vec3(1.0));
+    if (water_surface) {
+        int slot = int(round(UV2.x));
+        vec2 current = texelFetch(water_motion,ivec2(slot%256,slot/256),0).rg;
+        float activity = smoothstep(0.02,0.3,length(current));
+        vec2 coord = world_position.xz;
+        float footprint = max(length(dFdx(coord)),length(dFdy(coord)));
+        float detail = (1.0-smoothstep(0.045,0.18,footprint))*(1.0-smoothstep(45.0,170.0,length(VERTEX)));
+        float marks = water_glints(coord,current,water_time,0.32)*(0.16+activity*0.09);
+        if (UV2.y > 0.5 && UV2.y < 1.5) {
+            // Vertical falling faces have their own downward motion.
+            coord = vec2(world_position.x+world_position.z,world_position.y);
+            marks = water_glints(coord*vec2(0.6,0.25),vec2(0.0,-0.9),water_time,0.75)*0.65*activity;
+        } else if (UV2.y > 1.5) {
+            float edge = 1.0-smoothstep(0.5,1.0,max(abs(UV.x-0.5),abs(UV.y-0.5))*2.0);
+            marks += water_glints(coord*2.5,current,water_time*1.4,0.8)*edge*activity*0.65;
+        }
+        ALBEDO = mix(ALBEDO,vec3(0.75,0.9,0.91),clamp(marks*detail,0.0,0.7));
+    }
     ROUGHNESS = 1.0;
     SPECULAR = 0.0;
     AO = sky_access;
@@ -120,4 +173,11 @@ void light() {
     float fdl = 1.0+(fd90-1.0)*pow(1.0-ndl,5.0);
     float access = LIGHT_IS_DIRECTIONAL ? sky_access : 1.0;
     DIFFUSE_LIGHT += LIGHT_COLOR*ATTENUATION*ndl*fdv*fdl*access/PI;
+    if (surface_specular > 0.0 && ndl > 0.0) {
+        // A bounded, sharp white facet reflection. Use the same sky gate as
+        // diffuse light: no sunshine through roofs or independent gem glow.
+        float exponent = mix(256.0,8.0,surface_roughness);
+        float highlight = pow(max(dot(NORMAL,halfway),0.0),exponent);
+        SPECULAR_LIGHT += LIGHT_COLOR*ATTENUATION*access*ndl*highlight*surface_specular;
+    }
 }

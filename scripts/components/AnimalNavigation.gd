@@ -9,7 +9,7 @@ static func block_at(cell: Vector3i) -> int:
 	if cell.x < 0 or cell.z < 0 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z or cell.y < 0 or cell.y >= WorldData.WORLD_SIZE_Y: return BlockRegistry.AIR_ID
 	if WorldData.chunk_exists(cell.x >> 4, cell.y >> 4, cell.z >> 4):
 		return WorldData.get_block(cell.x, cell.y, cell.z)
-	return WorldGenerator.get_generated_block_id(cell.x, cell.y, cell.z)
+	return WorldData.get_live_block(cell.x, cell.y, cell.z)
 
 static func inside(cell: Vector3i) -> bool:
 	return cell.x >= 0 and cell.z >= 0 and cell.x < WorldData.WORLD_SIZE_X and cell.z < WorldData.WORLD_SIZE_Z and cell.y > WorldGenerator.BEDROCK_MAX_Y and cell.y < WorldData.WORLD_SIZE_Y - 1

@@ -71,16 +71,86 @@
     "craft": {
       "title": "Crafters",
       "items": [
-        {"id":"rudimentary","label":"Rudimentary","icon":"res://assets/ui/icons/craft.svg","tooltip":"Basic goods and starter tools made by Workers","action":"open_crafting","target":"rudimentary"},
-        {"id":"carpenter","label":"Carpenter","icon":"res://assets/ui/icons/chop.svg","tooltip":"Wooden furniture, storage and workshop fittings · Planned","action":"open_crafting","target":"carpenter"},
-        {"id":"stonemason","label":"Stonemason","icon":"res://assets/ui/icons/clear_boulders.svg","tooltip":"Stone furnishings and building materials · Planned","action":"open_crafting","target":"stonemason"},
-        {"id":"blacksmith","label":"Blacksmith","icon":"res://assets/ui/icons/anvil.svg","tooltip":"Metal refining and tool upgrades · Planned","action":"open_crafting","target":"blacksmith"},
-        {"id":"weaponsmith","label":"Weaponsmith","icon":"res://assets/ui/icons/hunter.svg","tooltip":"Military weapons · Planned","action":"open_crafting","target":"weaponsmith"},
-        {"id":"armorsmith","label":"Armorsmith","icon":"res://assets/ui/icons/shield.svg","tooltip":"Armor and shields · Planned","action":"open_crafting","target":"armorsmith"},
-        {"id":"farmer","label":"Farmer","icon":"res://assets/ui/icons/farm.svg","tooltip":"Fields, crops and harvest supplies · Planned","action":"open_crafting","target":"farmer"},
-        {"id":"hunter","label":"Hunter","icon":"res://assets/ui/icons/hunter.svg","tooltip":"Hunting supplies and animal materials · Planned","action":"open_crafting","target":"hunter"},
-        {"id":"miner","label":"Miner","icon":"res://assets/ui/icons/orders.svg","tooltip":"Mining equipment preview; Miner is already playable","action":"open_crafting","target":"miner"},
-        {"id":"brewer","label":"Brewer","icon":"res://assets/ui/icons/stocks.svg","tooltip":"Brewing and aging · Planned","action":"open_crafting","target":"brewer"}
+        {
+          "id": "rudimentary",
+          "label": "Rudimentary",
+          "icon": "res://assets/ui/icons/craft.svg",
+          "tooltip": "Basic goods and starter tools made by Workers",
+          "action": "open_crafting",
+          "target": "rudimentary"
+        },
+        {
+          "id": "carpenter",
+          "label": "Carpenter",
+          "icon": "res://assets/ui/icons/chop.svg",
+          "tooltip": "Wooden furniture, storage and workshop fittings \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "carpenter"
+        },
+        {
+          "id": "stonemason",
+          "label": "Stonemason",
+          "icon": "res://assets/ui/icons/clear_boulders.svg",
+          "tooltip": "Stone furnishings and building materials \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "stonemason"
+        },
+        {
+          "id": "blacksmith",
+          "label": "Blacksmith",
+          "icon": "res://assets/ui/icons/anvil.svg",
+          "tooltip": "Metal refining and tool upgrades \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "blacksmith"
+        },
+        {
+          "id": "weaponsmith",
+          "label": "Weaponsmith",
+          "icon": "res://assets/ui/icons/hunter.svg",
+          "tooltip": "Military weapons \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "weaponsmith"
+        },
+        {
+          "id": "armorsmith",
+          "label": "Armorsmith",
+          "icon": "res://assets/ui/icons/shield.svg",
+          "tooltip": "Armor and shields \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "armorsmith"
+        },
+        {
+          "id": "farmer",
+          "label": "Farmer",
+          "icon": "res://assets/ui/icons/farm.svg",
+          "tooltip": "Fields, crops and harvest supplies \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "farmer"
+        },
+        {
+          "id": "hunter",
+          "label": "Hunter",
+          "icon": "res://assets/ui/icons/hunter.svg",
+          "tooltip": "Hunting supplies and animal materials \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "hunter"
+        },
+        {
+          "id": "miner",
+          "label": "Miner",
+          "icon": "res://assets/ui/icons/orders.svg",
+          "tooltip": "Mining equipment preview; Miner is already playable",
+          "action": "open_crafting",
+          "target": "miner"
+        },
+        {
+          "id": "brewer",
+          "label": "Brewer",
+          "icon": "res://assets/ui/icons/stocks.svg",
+          "tooltip": "Brewing and aging \u00c2\u00b7 Planned",
+          "action": "open_crafting",
+          "target": "brewer"
+        }
       ]
     },
     "orders": {
@@ -177,7 +247,7 @@
           "label": "Trade",
           "action": "toggle_window",
           "target": "trade",
-          "tooltip": "Trade window — currently a preview"
+          "tooltip": "Trade window \u00e2\u20ac\u201d currently a preview"
         }
       ]
     },
@@ -264,6 +334,13 @@
           "tooltip": "Spawn dwarves, test walking and exercise work/rest behavior"
         },
         {
+          "id": "water_development",
+          "label": "DEV: Water",
+          "action": "toggle_window",
+          "target": "water_dev",
+          "tooltip": "Inspect spring, waterfalls and outlet; test a dam and finite withdrawals."
+        },
+        {
           "id": "cave_development",
           "label": "DEV: Cave explorer",
           "action": "toggle_window",
@@ -327,6 +404,13 @@
           "tooltip": "Locate and inspect the next wild wolf."
         },
         {
+          "id": "duck_development",
+          "label": "DEV: Next duck",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate and inspect a wild duck."
+        },
+        {
           "id": "rabbit_development",
           "label": "DEV: Next rabbit",
           "action": "panel_action",
@@ -338,7 +422,7 @@
           "label": "DEV: Arrival status",
           "action": "panel_action",
           "target": "world_events",
-          "tooltip": "Show rabbit, deer and wolf arrival opportunities and their last results."
+          "tooltip": "Show wildlife arrival opportunities and their last results."
         },
         {
           "id": "arrival_development",
@@ -360,6 +444,13 @@
           "action": "panel_action",
           "target": "wildlife",
           "tooltip": "Locate and inspect a wolf that entered from a map edge."
+        },
+        {
+          "id": "duck_arrival_development",
+          "label": "DEV: Next duck arrival",
+          "action": "panel_action",
+          "target": "wildlife",
+          "tooltip": "Locate ducks that flew in from the map edge."
         },
         {
           "id": "strawberry_development",

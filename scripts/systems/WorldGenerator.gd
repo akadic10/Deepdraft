@@ -6,6 +6,7 @@ const Caves = preload("res://scripts/components/CaveLayout.gd")
 
 var _cave_profile: Dictionary = {}
 var _cave_layout: Dictionary = {"systems": [], "columns": {}, "soil": {}}
+var spring_cave: Dictionary = {}
 var _id_cave_soil: int = -1
 
 # All "/" between two ints in this file are intentional, exact integer divisions
@@ -229,8 +230,50 @@ func load_cave_profile() -> Dictionary:
 	return parsed if parsed is Dictionary else {}
 
 
+var river_layout: Dictionary = {}
+var water_profile: Dictionary = {}
+
+func load_water_profile() -> Dictionary:
+	var file := FileAccess.open("res://data/world_gen/water.json", FileAccess.READ)
+	return JSON.parse_string(file.get_as_text()) if file != null else {}
+
+func _build_river() -> void:
+	river_layout = preload("res://scripts/components/RiverLayout.gd").carve(world_seed, _macro_layout, heightmap, waterline_map, water_profile.river)
+	for col: Vector2i in river_layout.columns:
+		water_bank_columns[col] = true
+	print("WorldGenerator: spring %s; river %d columns, %d falls." % [river_layout.spring, river_layout.columns.size(), river_layout.falls.size()])
+
+
 func _build_cave_maps() -> void:
-	_cave_layout = Caves.build(world_seed, heightmap, waterline_map, _cave_profile)
+	spring_cave = {}
+	if not river_layout.is_empty():
+		spring_cave = preload("res://scripts/components/SpringCaveLayout.gd").build(world_seed,river_layout,heightmap,water_profile.spring_cave)
+		# Form a continuous natural rock ledge where a rough cliff or a nearby
+		# river bend had cut away its support. These are generated solid blocks,
+		# not invisible navigation supports. Preserve the three-cell stream.
+		for cell: Vector3i in spring_cave.ledges:
+			var index := cell.x*WORLD_SIZE_Z+cell.z
+			heightmap[index] = maxi(heightmap[index],cell.y)
+			waterline_map[index] = -1
+			river_layout.columns.erase(Vector2i(cell.x,cell.z))
+			river_layout.initial_units.erase(Vector2i(cell.x,cell.z))
+	_cave_layout = Caves.build(world_seed, heightmap, waterline_map, _cave_profile,spring_cave.get("bounds",Rect2i()))
+	if not spring_cave.is_empty():
+		var id: int = _cave_layout.systems.size()
+		var indices := PackedInt32Array()
+		var volume := 0
+		for index: int in spring_cave.columns:
+			var span: Vector3i = spring_cave.columns[index]
+			span.z = id
+			_cave_layout.columns[index] = span
+			indices.append(index)
+			volume += span.y-span.x
+		indices.sort()
+		_cave_layout.systems.append({"id":id,"center":spring_cave.source-Vector3i.UP,
+			"floor_y":spring_cave.source.y-1,"ceiling_y":spring_cave.ceiling+1,
+			"bounds":spring_cave.bounds,"columns":indices,"floor_area":indices.size(),
+			"air_blocks":volume,"rooms":1,"soil_candidates":0,"surface_open":true})
+		river_layout.spring = spring_cave.source
 	# Cache actual exposed resources for the developer catalog. No extra ore is
 	# painted onto caves: they intersect the same veins as ordinary tunneling.
 	for system: Dictionary in _cave_layout["systems"]:
@@ -256,7 +299,7 @@ func _build_cave_maps() -> void:
 					break
 		system["exposed_resource_blocks"] = ores
 		system["soil_columns"] = soil_count
-	print("WorldGenerator: %d dry cave systems." % _cave_layout["systems"].size())
+	print("WorldGenerator: %d cave systems (including exposed spring when present)." % _cave_layout["systems"].size())
 
 
 ## Cave identity is independent of discovery. These APIs are for simulation
@@ -436,6 +479,8 @@ func generate(new_seed: int = 0) -> void:
 	_reset_generation_state()
 	_cache_block_ids()
 	_layout_profile = load_macro_layout_profile()
+	water_profile = load_water_profile()
+	river_layout = {}
 	var profile_errors := LayoutValidator.profile_errors(_layout_profile)
 	if not profile_errors.is_empty():
 		push_error("WorldGenerator: " + str(profile_errors))
@@ -488,6 +533,7 @@ func _reset_generation_state() -> void:
 	_column_in_flight = false
 	_generation_metrics.clear()
 	_cave_layout = {"systems": [], "columns": {}, "soil": {}}
+	spring_cave = {}
 	_domain_counts.clear()
 	lowland_cap_grass_band_map.clear()
 	lowland_cap_grass_distance_map.clear()
@@ -654,7 +700,7 @@ func get_visible_surface_block_id(wx: int, wz: int) -> int:
 	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
 		return BlockRegistry.AIR_ID
 	var col := Vector2i(wx, wz)
-	if lake_columns.has(col) or tarn_columns.has(col):
+	if waterline_map[wx * WORLD_SIZE_Z + wz] >= 0:
 		return _id_water
 	return _generate_block_id(wx, heightmap[wx * WORLD_SIZE_Z + wz], wz)
 
@@ -844,6 +890,7 @@ func _generate_threaded() -> void:
 		push_error("WorldGenerator: invalid finished terrain: " + str(_layout_validation["errors"]))
 		call_deferred("_deferred_emit_world_complete")
 		return
+	_run_timed_map_phase("river", Callable(self, "_build_river"))
 	_recount_domain_counts()
 	_run_timed_map_phase("caves", Callable(self, "_build_cave_maps"))
 	_maps_ready_msec = Time.get_ticks_msec()

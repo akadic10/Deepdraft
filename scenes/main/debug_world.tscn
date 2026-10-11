@@ -22,6 +22,7 @@
 [ext_resource type="Script" path="res://scripts/systems/SurfaceDetailManager.gd" id="19_details"]
 [ext_resource type="Script" path="res://scripts/systems/WildlifeManager.gd" id="20_wildlife"]
 [ext_resource type="Script" path="res://scripts/systems/WorldEventDirector.gd" id="21_events"]
+[ext_resource type="Script" path="res://scripts/ui/WaterDebugPanel.gd" id="22_water"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -49,6 +50,13 @@ fog_depth_begin = 0.0
 fog_depth_end = 170.0
 
 [node name="DebugWorld" type="Node3D" unique_id=2133557577]
+
+[node name="WaterDebugPanel" type="CanvasLayer" parent="."]
+script = ExtResource("22_water")
+camera_path = NodePath("../CameraRig")
+slice_path = NodePath("../SliceController")
+window_manager_path = NodePath("../UIWindowManager")
+dock_path = NodePath("../DockUI")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1164921905]
 environment = SubResource("Environment_main")

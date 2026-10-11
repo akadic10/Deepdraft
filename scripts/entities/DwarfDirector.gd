@@ -437,15 +437,15 @@ func restore_state(state: Dictionary) -> void:
 		if agent.is_sleeping():
 			TaskManager.notify_dwarf_unavailable(dwarf_id)
 		var carried_index := 0
-		for saved_cargo in entry.get("carried_items", []):
+		for saved_cargo: Dictionary in entry.get("carried_items", []):
 			if item_manager == null or not item_manager.has_method("restore_loose_item"):
 				break
 			var angle := float(carried_index) * 2.399963
 			var offset := Vector3(cos(angle), 0.0, sin(angle)) * 0.22
-			var item_key := String(saved_cargo.get("item_key", "")) if saved_cargo is Dictionary else String(saved_cargo)
-			var count := int(saved_cargo.get("count", 1)) if saved_cargo is Dictionary else 1
-			var instance_id := String(saved_cargo.get("instance_id", "")) if saved_cargo is Dictionary else ""
-			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count, instance_id)
+			var item_key := String(saved_cargo.item_key)
+			var count := int(saved_cargo.count)
+			var instance_id := String(saved_cargo.get("instance_id", ""))
+			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)))
 			carried_index += 1
 		_birth_index = maxi(_birth_index, dwarf_id + 1)
 	_refresh_window()

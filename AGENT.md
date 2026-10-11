@@ -9,6 +9,74 @@ explicitly requests them. Keep current-version save/load working; development
 changes may invalidate older saves. Use current definitions when loading rather
 than retaining obsolete layouts that require players to rebuild items manually.
 
+**Latest session handoff:** [112 — Water and wildlife, 2026-10-10](docs/00_dev_roadmap/112_session_handoff_2026_10_10.md)
+records finished voxel gems, weather/save validation fixes, finite rivers and real
+spring caves, water appearance/audio, movable stones and permissions, and ducks
+with short flights. It lists current verification, fresh-world playtest steps
+and deferred work. Read the relevant system docs alongside the handoff.
+
+**Ducks — live (2026-10-10):** [111 — Duck wildlife](docs/00_dev_roadmap/111_duck_wildlife.md)
+adds seeded calm-water flocks, male/female voxel art, swimming, shore activity,
+short obstacle-checked flights and scheduled aerial arrivals. Quacks/splashes
+use Work audio; picking, Follow, slices, live levels and current saves are covered.
+Menu → Development → DEV: Next duck locates one. Start a fresh development world;
+old saves without duck fields are not migrated. Egg/breeding/domestication and
+duck predation remain future work. Doc 45 owns wildlife behavior.
+
+**Spring-fed rivers and flooding — live (2026-10-10):**
+[105 — Rivers and water](docs/00_dev_roadmap/105_rivers_and_water.md) implements the
+agreed high rock spring, downhill river/pools/waterfalls and protected lake outlet.
+`WaterManager` owns finite water in integer millionths of a block cubed, active
+flow, measured extraction, gradually wetting/drying soil, and current-save state.
+Terrain edits can flood banks and excavations; submerged sources stop. Separate
+voxel water meshes, square sparkles/splashes, local waterfall audio, damp soil and
+a moisture overlay follow live levels. Navigation and placement use live water.
+The terrace-spill fix routes free waterfalls into the lower channel, checks
+detailed river banks and adds plunge pools. Films below 1/16 block look damp and
+remain walkable. Normal river reaches are now about five voxels across, with
+short narrows and wider pools; all water shares one palette with subtle depth
+shading. [106 — Spring caves and water edges](docs/00_dev_roadmap/106_spring_caves_and_water_edges.md)
+replaces the decorative spring mouth with real terrain air, a dry ledge and a
+wet stone feeding a small pool. Hairline water gaps are closed and tiny
+steps share surface lighting. The spring outlet stays aligned for four cells before
+its first bend; rough cliff lips are opened through real cave air. Water layout
+version 5 requires a fresh development world.
+[107 — Water appearance](docs/00_dev_roadmap/107_water_appearance.md) replaces fixed
+scrolling/bands with sparse glints following measured local currents, quiet lake
+shimmer, localized fall foam/splashes and distance fading. Presentation telemetry
+does not change water volumes or saves. Whole-world startup coverage is verified.
+[108 — Water ambience](docs/00_dev_roadmap/108_water_ambience.md) adds procedural
+waterfall rush and gentler river burbling, following visible measured currents,
+camera focus/zoom and the shared Work volume/mute controls. Still lakes stay quiet.
+[109 — Loose water stones](docs/00_dev_roadmap/109_loose_water_stones.md) uses the
+exact ore-drop shape for both stones: turquoise flecks beside the cave pool and
+muted flecks on the lakebed. The old terrain patches and shoreline arch are gone.
+Source/drain positions, rates, discharge cap and retained lake level are unchanged.
+[110 — Permissions and movable stones](docs/00_dev_roadmap/110_item_permissions_and_water_stones.md)
+adds per-item/per-stack Allow/Disallow and real Pack/Move/Place work. Natural stones
+start disallowed and keep working; Allow alone never auto-hauls placed stones.
+Packed/carried/stored stones are inactive; placing restarts their effect at the
+new position. Permissions, exact identities, packing progress and move plans save.
+Extra stone pairs share the same lifecycle through a grant API; scenario acquisition
+remains future work. Initial hydrology is unchanged. Existing development saves
+without these fields are rejected, with no migration required.
+Menu → Development → DEV: Water locates features and provides a reversible test dam.
+Ordinary dam construction jobs and physical brewery hauling/recipes remain planned;
+flood damage, drowning, floating goods, pumps and pressurized pipes are not enabled.
+Reload Current Project after pulling this new autoload. Older development saves
+need no migration, per the policy above. Doc 33 owns the water contract.
+
+**Finished gem artwork — live (2026-10-10):** [104 — Gem drops](docs/00_dev_roadmap/104_gem_drop_artwork.md)
+adds six stepped voxel gem models and matching inventory thumbnails. Jade, Amethyst,
+Ruby, Sapphire, Emerald and Diamond are shiny and finished immediately when mined.
+**User decision: no Jeweller profession/workshop or cutting/polishing stage.**
+The old deferred Jeweller proposal is superseded. Stable `_raw` identifiers stay;
+display names omit "Raw". Gem-only gloss respects sky access and local lights,
+including carried/shelved goods. Native art/lighting, item lifecycle, inventory,
+loose support and full save/backup regressions pass; see 104 for captures.
+The user rejected the initial angled polygon faces: gems now use only cube
+faces on the standard eight-voxels/block grid, with square highlights.
+
 **Equipment view and promotion feedback — live (2026-10-09):** [102 — Equipment feedback](docs/00_dev_roadmap/102_equipment_view_promotion_feedback.md)
 adds a shared Equipment tab to the Colony detail column and standalone inspector.
 It shows the actual owned kit, thumbnail, materials and benefit, plus clearly
@@ -107,20 +175,20 @@ and native PCM checks pass; audio never changes wildlife needs, RNG or saves.
 adds up to eighteen deer in six loose groups, articulated grazing/rest/walking,
 faster escape and quiet selection/eating sounds. **DEV: Next deer** locates one.
 Shared GrazerAgent preserves rabbit behavior; species-specific navigation uses
-the full deer footprint. Herd identity and mixed populations persist, and older
-rabbit-only saves gain deer once. Native, behavior, audio and save checks pass.
+the full deer footprint. Herd identity and mixed populations persist in current
+saves. Native, behavior, audio and save checks pass.
 
 **Wolves — live (2026-10-09):** [93 — Wolf wildlife](docs/00_dev_roadmap/93_wolf_wildlife.md)
 adds four sparse predators with hunger-gated, bounded hunts, prey escape,
 atomic captures, long meal satisfaction and protected prey reserves. Wolves
-avoid dwarves. Art, soft selection/eating sounds, inspection, saved pursuits
-and one-time migration are included. **DEV: Next wolf** locates one. Behavior,
+avoid dwarves. Art, soft selection/eating sounds, inspection and saved pursuits
+are included. **DEV: Next wolf** locates one. Behavior,
 four-seed population, native, audio, save/backup and grazer regression checks pass.
 
-**Latest session handoff:** [103 — Evening 2026-10-09](docs/00_dev_roadmap/103_session_handoff_2026_10_09_evening.md)
+**Previous session handoff:** [103 — Evening 2026-10-09](docs/00_dev_roadmap/103_session_handoff_2026_10_09_evening.md)
 records wildlife/arrivals, professions, starter tools, crafting selection, camp
 furniture/leisure, physical Carpenter promotion and Equipment/promotion feedback.
-The recommended next milestone is Carpenter's workbench and first specialist
+Its recommended next milestone was Carpenter's workbench and first specialist
 recipes; promotion is live but specialist production and tool upgrades are not.
 It preserves naming/save decisions, final verification and outstanding work.
 [89 — Earlier handoff](docs/00_dev_roadmap/89_session_handoff_2026_10_09.md) retains
@@ -350,7 +418,7 @@ verification. Visibility only; dwarf work is unchanged.
 |---|---|
 | [`31_task_system.md`](docs/30_simulation_systems/31_task_system.md) | Add task types, change priorities, or modify the worker polling loop. |
 | [`32_navigation_3d.md`](docs/30_simulation_systems/32_navigation_3d.md) | Modify pathfinding, walkability rules, or step-assist logic. |
-| [`33_water_simulation.md`](docs/30_simulation_systems/33_water_simulation.md) | Touch the CA water loop, pressure model, or water shaders. |
+| [`33_water_simulation.md`](docs/30_simulation_systems/33_water_simulation.md) | Touch springs, rivers, water volume/levels, flooding, irrigation or water rendering. |
 | [`34_temperature.md`](docs/30_simulation_systems/34_temperature.md) | Work on room sealing, heat sources, the aging cellar temperature check, or food preservation. |
 
 ### 📁 Economy & Colony Content — `docs/40_economy_colony/`
@@ -361,13 +429,13 @@ verification. Visibility only; dwarf work is unchanged.
 | [`42_farming_brewing.md`](docs/40_economy_colony/42_farming_brewing.md) | Add crops, recipes, farm logic, or plant visual meshes. |
 | [`43_mining_materials.md`](docs/40_economy_colony/43_mining_materials.md) | Add block types, change noise generation, or touch collapse logic. |
 | [`44_crafting_workshops.md`](docs/40_economy_colony/44_crafting_workshops.md) | Work on the Smelter or Forge workshops, Blacksmith/Weaponsmith/Armorsmith professions, metalworking recipes, or ingot stockpile logic. |
-| [`45_wildlife.md`](docs/40_economy_colony/45_wildlife.md) | Work on rabbits/deer/wolves, wildlife needs, animal navigation, herds, hunting, spawning, inspection or future food connections. |
+| [`45_wildlife.md`](docs/40_economy_colony/45_wildlife.md) | Work on rabbits/deer/wolves/ducks, wildlife needs, ground/swim/flight navigation, flocks, hunting, spawning, inspection or future food connections. |
 
 ### 📁 World Events — `docs/50_world_events/`
 
 | File | Read before you… |
 |---|---|
-| [`51_visitors.md`](docs/50_world_events/51_visitors.md) | Work on any visitor type — merchants, travelers, or invaders. Touch `VisitorManager`, spawn logic, tavern infrastructure, or combat triggers. |
+| [`51_visitors.md`](docs/50_world_events/51_visitors.md) | Work on live wildlife arrival events and `WorldEventDirector`, or planned merchants, travelers, invaders, taverns and combat triggers. |
 | [`52_combat_military.md`](docs/50_world_events/52_combat_military.md) | Work on military professions, the Armory room, enlistment/arming flow, patrol routes, invader waves, or combat resolution. |
 
 ### 📁 Asset Creation — `docs/60_asset_creation/`

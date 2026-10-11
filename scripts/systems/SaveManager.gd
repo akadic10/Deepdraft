@@ -17,6 +17,7 @@ const AUTOSAVE_BACKUP_STAGE_PATH := "user://saves/autosave.backup.tmp.json"
 const AUTOSAVE_INTERVAL_SECONDS := 300.0
 const SAVE_SCHEMA_VERSION := 1
 const OWNER_GROUP := "save_state_owner"
+const SnapshotValidator := preload("res://scripts/components/SaveSnapshotValidator.gd")
 
 signal save_finished(success: bool)
 signal autosave_finished(success: bool)
@@ -545,17 +546,13 @@ func _fail_load(message: String) -> bool:
 
 
 func _validate_snapshot(snapshot: Dictionary) -> String:
-	if String(snapshot.get("project", "")) != "Deepdraft":
-		return "this file belongs to a different project."
-	var version := int(snapshot.get("schema_version", 0))
-	if version < 1:
-		return "the save schema is missing."
-	if version > SAVE_SCHEMA_VERSION:
-		return "this save was made by a newer game version."
-	if int(snapshot.get("world_seed", 0)) == 0:
-		return "the world seed is missing."
-	if not (snapshot.get("scene", null) is Dictionary):
-		return "scene state is missing."
+	var error := SnapshotValidator.validate(snapshot, SAVE_SCHEMA_VERSION)
+	if not error.is_empty(): return error
+	for section: String in ["terrain","test_dam"]:
+		for entry: Dictionary in snapshot.scene.water[section]:
+			var definition := BlockRegistry.get_def(entry.block)
+			if definition.is_empty(): return "save.scene.water contains an unknown terrain block."
+			if section=="terrain" and not BlockRegistry.is_solid(BlockRegistry.get_id(entry.block)): return "save.scene.water contains a non-solid terrain edit."
 	return ""
 
 

@@ -1,5 +1,24 @@
 # 24 — World Rendering & Atmosphere
 
+**Water update (2026-10-10):** terrain overview/chunks now render solid beds;
+`WaterRenderer` renders live fractional voxel water in 32×32 tiles, with batched
+cube splashes and a shared lighting/fog shader. It follows discovery and slice
+changes without exposing hidden caves. `MoistureRenderer` shades damp soil and
+provides a soil-only coverage overlay. Positive solid edits such as dams have a
+batched terrain mesh. Static `waterline_map` remains generation data, not live
+rendering authority. See [105](../00_dev_roadmap/105_rivers_and_water.md).
+
+**Startup coverage fix (2026-10-10):** full-world overview scheduling has its own
+initialization state. Local discovery/edit queues cannot stand in for the initial
+1,024-tile build. This prevents surface cave discovery from leaving most terrain
+absent. `WorldTerrainStartupTest` covers fresh worlds, local updates, slice/save
+reloads and full invalidation; see [106](../00_dev_roadmap/106_spring_caves_and_water_edges.md).
+
+**Flying wildlife (2026-10-10):** full-world visibility includes ducks above the
+highest terrain layer. An actual slice still hides birds and their wake/splash
+effects together. Cosmetic water effects remain outside animal picking bounds.
+See [111 — Ducks](../00_dev_roadmap/111_duck_wildlife.md).
+
 ## Reference
 
 All visual design decisions in this document are derived from analysis of **Stonehearth** (Radiant Entertainment) as the primary reference, specifically its fog system, sky settings, terrain slice view, and world-edge treatment.

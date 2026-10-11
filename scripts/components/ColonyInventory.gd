@@ -13,7 +13,8 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 	for entry: Dictionary in physical.loose:
 		var row := _row(result, entry.key)
 		row.loose += int(entry.count)
-		if not entry.reserved: row.available += int(entry.count)
+		if not entry.reserved and not entry.disallowed: row.available += int(entry.count)
+		if entry.disallowed: row.disallowed += int(entry.count)
 	for entry: Dictionary in physical.carried:
 		_row(result, entry.key).carried += int(entry.count)
 	for entry: Dictionary in physical.equipped:
@@ -26,19 +27,20 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 	for key: String in result:
 		var row: Dictionary = result[key]
 		row.total = row.stored + row.loose + row.carried + row.equipped
-		row.available += maxi(0, row.stored - int(outgoing.get(key, 0)))
+		row.disallowed += StockpileManager.get_disallowed_total(key)
+		row.available += maxi(0, StockpileManager.get_available_total(key) - int(outgoing.get(key, 0)))
 		row.furniture_key = String(furniture_by_item.get(key, ""))
 		if catalog.has(row.furniture_key):
 			row.available = mini(row.total, int(catalog[row.furniture_key].available))
 			row.requests = int(catalog[row.furniture_key].reserved)
-		row.reserved = row.total - row.available
+		row.reserved = maxi(0, row.total - row.available - row.disallowed)
 	return result
 
 
 static func _row(rows: Dictionary, key: String) -> Dictionary:
 	if not rows.has(key):
 		rows[key] = {"stored": 0, "loose": 0, "carried": 0, "equipped": 0, "total": 0,
-			"reserved": 0, "available": 0, "requests": 0, "furniture_key": ""}
+			"disallowed": 0, "reserved": 0, "available": 0, "requests": 0, "furniture_key": ""}
 	return rows[key]
 
 

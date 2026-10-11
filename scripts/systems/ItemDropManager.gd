@@ -1,6 +1,8 @@
 class_name ItemDropManager
 extends Node3D
 
+const Permission = preload("res://scripts/components/ItemPermission.gd")
+
 ## Spawns and owns dropped-item entities. Doc 18 Phase 2 grew this into the
 ## LOOSE-ITEM INDEX: every drop is registered on spawn, reservable by hauling
 ## dwarves, takeable (picked up off the ground), and placeable back as a
@@ -44,6 +46,7 @@ var _defs: Dictionary = {}          # item key (String) -> def Dictionary
 var _defs_loaded: bool = false
 var _scene_cache: Dictionary = {}   # model path -> PackedScene (null cached as absent)
 var _material: Material = null
+var _surface_materials: Dictionary = {} # item key -> shared optional glossy material
 var _slice_y: int = SLICE_OFF_Y
 var _drop_count: int = 0
 var _missing_models: Dictionary = {}   # path -> true (warn once per model)
@@ -100,7 +103,7 @@ func spawn_drop(item_key: String, count: int, block: Vector3i) -> void:
 	# an exact quantity and must never change underneath that worker.
 	if item_capacity(item_key) > 1:
 		for existing: Node3D in _loose:
-			if _reserved.has(existing) or String(_loose[existing]) != item_key:
+			if not Permission.allowed(existing) or _reserved.has(existing) or String(_loose[existing]) != item_key:
 				continue
 			if item_floor_cell(existing) != Vector3i(block.x, rest_y - 1, block.z):
 				continue
@@ -128,7 +131,7 @@ func promise_instance(id: String, owner: int) -> void:
 	if int(_instance_promises.get(id, -1)) == owner: return
 	_instance_promises[id] = owner
 	for node: Node3D in _loose:
-		if is_instance_valid(node) and String(node.get_meta("instance_id", "")) == id and not _reserved.has(node):
+		if Permission.allowed(node) and String(node.get_meta("instance_id", "")) == id and not _reserved.has(node):
 			_reserved[node] = owner
 
 
@@ -145,7 +148,7 @@ func instance_promised(id: String, except_owner: int = -1) -> bool:
 
 func _reserve_promised_instance(node: Node3D) -> void:
 	var id := String(node.get_meta("instance_id", ""))
-	if _instance_promises.has(id): _reserved[node] = int(_instance_promises[id])
+	if Permission.allowed(node) and _instance_promises.has(id): _reserved[node] = int(_instance_promises[id])
 
 
 func get_stats() -> Dictionary:
@@ -169,7 +172,7 @@ func serialize_state() -> Dictionary:
 			"item_key": String(_loose[node]),
 			"position": SaveManager.pack_v3(node.position),
 			"rotation_y": node.rotation.y,
-			"count": quantity_of(node),
+			"count": quantity_of(node), "disallowed": not Permission.allowed(node),
 		})
 		if node.has_meta("instance_id"): entries.back()["instance_id"] = node.get_meta("instance_id")
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -188,7 +191,7 @@ func restore_state(state: Dictionary) -> void:
 		restore_loose_item(
 			key,
 			SaveManager.unpack_v3(entry.get("position", [])),
-			float(entry.get("rotation_y", 0.0)), int(entry.get("count", 1)), String(entry.get("instance_id", "")))
+			float(entry.get("rotation_y", 0.0)), int(entry.get("count", 1)), String(entry.get("instance_id", "")), bool(entry.get("disallowed", false)))
 
 
 ## Builds one unindexed item visual for save restoration consumers (shelf
@@ -210,11 +213,12 @@ func create_item_visual(item_key: String, count: int = 1, instance_id: String = 
 	return node
 
 
-func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1, instance_id: String = "") -> void:
+func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1, instance_id: String = "", disallowed: bool = false) -> void:
 	var node := create_item_visual(item_key, count, instance_id)
 	if node == null:
 		return
 	add_child(node)
+	node.set_meta("disallowed", disallowed)
 	place_stored(node, cell)
 
 
@@ -223,13 +227,14 @@ func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1, insta
 ## used for items that were in transit at snapshot time: tasks are transient,
 ## so those materialize safely at their saved carrier's feet on load.
 func restore_loose_item(item_key: String, restored_position: Vector3,
-		rotation_y: float = 0.0, count: int = 1, instance_id: String = "") -> void:
+		rotation_y: float = 0.0, count: int = 1, instance_id: String = "", disallowed: bool = false) -> void:
 	if count <= 0:
 		return
 	var amount := mini(count, item_capacity(item_key))
 	var node := create_item_visual(item_key, amount, instance_id)
 	if node == null:
 		return
+	node.set_meta("disallowed", disallowed)
 	node.position = restored_position
 	node.rotation.y = rotation_y
 	_settle_item(node)
@@ -241,7 +246,7 @@ func restore_loose_item(item_key: String, restored_position: Vector3,
 	_reserve_promised_instance(node)
 	drop_spawned.emit(item_key)
 	if count > amount:
-		restore_loose_item(item_key, restored_position, rotation_y, count - amount)
+		restore_loose_item(item_key, restored_position, rotation_y, count - amount, "", disallowed)
 
 
 # ── Loose-item index API (doc 18 §2.1) ────────────────────────────────────────
@@ -265,7 +270,7 @@ func get_inventory_items() -> Dictionary:
 	for node in _loose:
 		if is_instance_valid(node) and not node.is_queued_for_deletion():
 			result.loose.append({"node": node, "key": String(_loose[node]),
-				"count": quantity_of(node), "reserved": _reserved.has(node)})
+				"count": quantity_of(node), "disallowed": not Permission.allowed(node), "reserved": _reserved.has(node)})
 	for id: int in _inventory_transit.keys():
 		var node = (_inventory_transit[id] as WeakRef).get_ref()
 		if not is_instance_valid(node) or node.is_queued_for_deletion() or bool(node.get_meta("stored", false)):
@@ -303,7 +308,7 @@ func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {
 	var best: Node3D = null
 	var best_dist: int = 0x7FFFFFFF
 	for node: Node3D in _loose:
-		if _reserved.has(node) or exclude.has(node) or not is_instance_valid(node):
+		if not Permission.allowed(node) or _reserved.has(node) or exclude.has(node):
 			continue
 		var def: Dictionary = _defs.get(_loose[node], {})
 		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
@@ -334,7 +339,7 @@ func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Di
 		if Time.get_ticks_usec() >= deadline_usec: return false
 		var node = query.nodes[query.index]
 		query.index += 1
-		if not is_instance_valid(node) or not _loose.has(node) or _reserved.has(node): continue
+		if not Permission.allowed(node) or not _loose.has(node) or _reserved.has(node): continue
 		if not bool(accepts_key.call(String(_loose[node]))): continue
 		var cell := item_floor_cell(node)
 		if exclude_cells.has(cell): continue
@@ -353,7 +358,7 @@ func advance_material_quote(keys: Array[String], from: Vector3i, query: Dictiona
 		if Time.get_ticks_usec() >= deadline: return false
 		var node = query.nodes[query.index]
 		query.index += 1
-		if not is_instance_valid(node) or not _loose.has(node) or _reserved.has(node): continue
+		if not Permission.allowed(node) or not _loose.has(node) or _reserved.has(node): continue
 		if String(_loose[node]) not in keys or quantity_of(node) != 1: continue
 		var cell := item_floor_cell(node)
 		if excluded.has(cell): continue
@@ -371,7 +376,7 @@ func nearest_loose_of_key(item_key: String, from: Vector3i, exclude: Dictionary 
 	var best: Node3D = null
 	var best_dist: int = 0x7FFFFFFF
 	for node: Node3D in _loose:
-		if (_reserved.has(node) and int(_reserved[node]) != claim_owner) or exclude.has(node) or not is_instance_valid(node):
+		if (_reserved.has(node) and int(_reserved[node]) != claim_owner) or exclude.has(node) or not Permission.allowed(node):
 			continue
 		if String(_loose[node]) != item_key:
 			continue
@@ -393,7 +398,7 @@ func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int,
 	_ensure_defs()
 	var found: Array = []   # [dist, node] pairs
 	for node: Node3D in _loose:
-		if _reserved.has(node) or exclude.has(node) or not is_instance_valid(node):
+		if not Permission.allowed(node) or _reserved.has(node) or exclude.has(node):
 			continue
 		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
 			continue
@@ -427,7 +432,7 @@ func count_loose(accepted_tags: Array, cap: int, can_store: Callable = Callable(
 	_ensure_defs()
 	var found: int = 0
 	for node: Node3D in _loose:
-		if _reserved.has(node) or not is_instance_valid(node):
+		if _reserved.has(node) or not Permission.allowed(node):
 			continue
 		if can_store.is_valid() and not bool(can_store.call(String(_loose[node]))):
 			continue
@@ -460,7 +465,7 @@ func item_key_of(node: Node3D) -> String:
 func get_unreserved_counts() -> Dictionary:
 	var counts := {}
 	for node: Node3D in _loose:
-		if not is_instance_valid(node) or node.is_queued_for_deletion() or _reserved.has(node):
+		if not Permission.allowed(node) or node.is_queued_for_deletion() or _reserved.has(node):
 			continue
 		var key: String = _loose[node]
 		counts[key] = int(counts.get(key, 0)) + quantity_of(node)
@@ -505,7 +510,7 @@ func set_quantity(node: Node3D, count: int) -> void:
 
 ## Take just the reserved quantity. The remainder is still a loose crate.
 func take_quantity(node: Node3D, count: int, dwarf_id: int) -> Node3D:
-	if not _loose.has(node) or int(_reserved.get(node, -1)) != dwarf_id or count <= 0 or count > quantity_of(node):
+	if not Permission.allowed(node) or not _loose.has(node) or int(_reserved.get(node, -1)) != dwarf_id or count <= 0 or count > quantity_of(node):
 		return null
 	if count == quantity_of(node):
 		take(node)
@@ -519,7 +524,7 @@ func take_quantity(node: Node3D, count: int, dwarf_id: int) -> Node3D:
 
 
 func reserve(node: Node3D, dwarf_id: int) -> bool:
-	if not _loose.has(node) or _reserved.has(node):
+	if not Permission.allowed(node) or not _loose.has(node) or _reserved.has(node):
 		return false
 	_reserved[node] = dwarf_id
 	loose_items_changed.emit()
@@ -527,7 +532,7 @@ func reserve(node: Node3D, dwarf_id: int) -> bool:
 
 
 func reserved_by(node: Node3D, owner: int) -> bool:
-	return _loose.has(node) and int(_reserved.get(node, -1)) == owner
+	return Permission.allowed(node) and _loose.has(node) and int(_reserved.get(node, -1)) == owner
 
 
 ## Owner-guarded (doc 18 spam-robustness pass): pass the reserving dwarf_id so
@@ -545,7 +550,7 @@ func unreserve(node: Node3D, dwarf_id: int = -1) -> void:
 ## (the hauling dwarf) reparents it as its carried visual. Returns the
 ## item key, or "" if the node was not a loose item.
 func take(node: Node3D) -> String:
-	if not _loose.has(node):
+	if not Permission.allowed(node) or not _loose.has(node):
 		return ""
 	var key: String = _loose[node]
 	_loose.erase(node)
@@ -727,17 +732,56 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	var key := item_key_of(id)
 	var def := get_item_def(key)
 	var crated := item_capacity(key) > 1
+	var actions := [Permission.action(not Permission.allowed(id))]
+	if def.has("water_stone") and Permission.allowed(id): actions.append({"id":"place","text":"Place stone"})
 	return {
 		"title": String(def.get("display_name", key)),
 		"kind": "Produce crate" if crated else "Resource",
 		"rows": [
 			["Contents", String(def.get("display_name", key))],
 			["Quantity", "%d / %d" % [quantity_of(id), item_capacity(key)] if crated else str(quantity_of(id))],
+			["Colony access", "Disallowed" if not Permission.allowed(id) else "Allowed"],
 			["Location", "In storage" if bool(id.get_meta("stored", false)) else "Awaiting collection"],
 		],
 		"details": String(def.get("description", "")),
-		"actions": [],
+		"actions": actions,
 	}
+
+
+func perform_explorer_action(id: Variant, action_id: String) -> void:
+	if not _inspectable(id): return
+	if action_id == "permission": set_disallowed(id, Permission.allowed(id))
+	elif action_id == "place" and Permission.allowed(id) and get_item_def(item_key_of(id)).has("water_stone"):
+		var controller := get_tree().get_first_node_in_group("furniture_controller")
+		if controller != null: controller.begin_water_stone_move(String(id.get_meta("instance_id", "")))
+
+
+func set_disallowed(node: Node3D, value: bool) -> void:
+	if not is_instance_valid(node): return
+	node.set_meta("disallowed", value)
+	if bool(node.get_meta("stored", false)):
+		StockpileManager.set_node_disallowed(node, value)
+	if value:
+		var owner := int(_reserved.get(node, -1))
+		_reserved.erase(node)
+		if owner >= 0: TaskManager.invalidate_dwarf_task(owner)
+		var parent := node.get_parent()
+		while parent != null:
+			if parent is DwarfAgent:
+				TaskManager.invalidate_dwarf_task(parent.dwarf_id)
+				break
+			parent = parent.get_parent()
+		var furniture := get_tree().get_first_node_in_group("furniture_controller")
+		if furniture != null:
+			for ghost_id in furniture._ghosts.keys():
+				var ghost: FurnitureGhostComponent = furniture._ghosts[ghost_id]
+				if ghost._claim == node or node in ghost._fetches.values() or (not ghost.required_instance_id.is_empty() and ghost.required_instance_id == String(node.get_meta("instance_id", ""))):
+					furniture.cancel_ghost(ghost_id)
+	else:
+		_reserve_promised_instance(node)
+	loose_items_changed.emit()
+	drop_spawned.emit(item_key_of(node))
+	StockpileManager.permissions_changed()
 
 func _build_drop_node(item_key: String, scene: PackedScene) -> Node3D:
 	var node: Node3D = null
@@ -751,15 +795,30 @@ func _build_drop_node(item_key: String, scene: PackedScene) -> Node3D:
 		mesh_instance.mesh = box
 		node = mesh_instance
 	node.name = "Drop_%s_%d" % [item_key.get_slice(":", item_key.get_slice_count(":") - 1), _drop_count]
-	_apply_material(node)
+	_apply_material(node, _material_for(item_key))
 	return node
 
 
-func _apply_material(node: Node) -> void:
+func _material_for(item_key: String) -> Material:
+	var surface: Dictionary = get_item_def(item_key).get("surface", {})
+	if surface.is_empty(): return _material
+	if _surface_materials.has(item_key): return _surface_materials[item_key]
+	var source := StandardMaterial3D.new()
+	source.vertex_color_use_as_albedo = true
+	source.cull_mode = BaseMaterial3D.CULL_DISABLED
+	source.roughness = clampf(float(surface.get("roughness", 1.0)), 0.05, 1.0)
+	source.metallic_specular = clampf(float(surface.get("specular", 0.0)), 0.0, 1.0)
+	var lighting := get_tree().get_first_node_in_group("underground_lighting")
+	var material: Material = lighting.make_material(source, true) if lighting != null else source
+	_surface_materials[item_key] = material
+	return material
+
+
+func _apply_material(node: Node, material: Material) -> void:
 	if node is MeshInstance3D:
-		(node as MeshInstance3D).material_override = _material
+		(node as MeshInstance3D).material_override = material
 	for child in node.get_children():
-		_apply_material(child)
+		_apply_material(child, material)
 
 
 ## Top face of the first solid block at or below the drop position.
@@ -788,7 +847,7 @@ func _rest_y(block: Vector3i) -> int:
 func _block_id(wx: int, wy: int, wz: int) -> int:
 	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
 		return WorldData.get_block(wx, wy, wz)
-	return WorldGenerator.get_generated_block_id(wx, wy, wz)
+	return WorldData.get_live_block(wx, wy, wz)
 
 
 func _model_scene(path: String) -> PackedScene:

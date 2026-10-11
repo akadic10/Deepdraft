@@ -1,0 +1,9 @@
+{
+  "failures": [],
+  "gems": 6,
+  "measurements": {
+    "gloss_difference": 0.000983305313375058,
+    "sealed_sun_difference": 0.0,
+    "torch_difference": 0.0297996151345838
+  }
+}

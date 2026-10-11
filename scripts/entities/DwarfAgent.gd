@@ -616,6 +616,7 @@ func serialize_state() -> Dictionary:
 			var cargo: Node3D = (entry as Array)[0]
 			carried_items.append({"item_key": String((entry as Array)[1]),
 				"count": int(cargo.get_meta("quantity", 1)) if is_instance_valid(cargo) else 1})
+			carried_items.back()["disallowed"] = not preload("res://scripts/components/ItemPermission.gd").allowed(cargo)
 			if is_instance_valid(cargo) and cargo.has_meta("instance_id"):
 				carried_items.back()["instance_id"] = cargo.get_meta("instance_id")
 	if appearance != null:
@@ -1324,6 +1325,9 @@ func _fetch_complete() -> void:
 	# A wall can be mined during the work swing. Release the intact item if
 	# the mount lost its support before the deferred terrain check cancelled it.
 	if source.has_method("can_complete_build") and not bool(source.call("can_complete_build")):
+		_fetch_fail_release()
+		return
+	if not preload("res://scripts/components/ItemPermission.gd").allowed(_fetch_item):
 		_fetch_fail_release()
 		return
 	# Consume the carried item: it is the furniture now, not a drop.

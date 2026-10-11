@@ -2,6 +2,24 @@
 
 ## Global Autoload Singletons
 
+**Water (2026-10-10):** `WaterManager`, after WorldGenerator, owns live finite water
+and analytic soil moisture. WorldGenerator owns `water.json`; WaterFlow and
+SoilMoisture are pure preloaded components. WaterRenderer, MoistureRenderer and
+WaterSound are scene-owned presentation. WorldData exposes `get_terrain_block`
+(raw, generated fallback) and `get_live_block` (including current water). The
+`water` save owner restores at priority 11, after mining changes terrain. New
+planting/navigation avoid standing water; existing plants are not flood-damaged.
+
+**Item permissions and water stones (2026-10-10):** `ItemPermission` supplies the
+shared allowed predicate; item nodes and storage stacks own and save the flag.
+Selection, reservation, withdrawal and pickup/commit boundaries enforce it.
+`WaterManager.stones` owns persistent source/drain identities, placement state,
+head limits and packing progress. `WaterStones` renders the placed forms and owns
+`WaterStonePacking` work sources (UNINSTALL). Furniture plans reuse FETCH_BUILD
+to deliver exact inactive packed items; completion activates the same identity
+at its new location. No new global or separate inventory owner. See roadmap 110.
+
+
 **Ladders (2026-10-09):** FurniturePlacementController owns a scene child
 `LadderSystem` and continues to load the furniture definitions. The child owns
 section plans, installed routes, inspector actions and save section `ladders`
@@ -13,7 +31,7 @@ The following Autoloads are registered in **Project Settings → Autoload** (`pr
 
 > **Registration:** The agent may register these autoloads directly by editing the `[autoload]` section of `project.godot` (see File Ownership Rules in `AGENT.md`). Preserve the load order exactly as listed.
 
-Load order (matches `project.godot` `[autoload]` as of 2026-10-08):
+Load order (matches `project.godot` `[autoload]` as of 2026-10-10):
 
 ```
 SurfaceDetailRegistry
@@ -22,6 +40,7 @@ WorldClock
 WorkFeedback
 WorldData
 WorldGenerator
+WaterManager
 PlacedEntityRegistry
 NavGrid
 TaskManager
@@ -41,8 +60,8 @@ The scene also owns `CraftingManager` (2026-10-07), the recipe loader and save
 owner for Worker orders. It depends on the scene's items/furniture owners and
 registers transient work sources with TaskManager. See [Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
 
-`WildlifeManager` (2026-10-09) follows the same scene-owner lifetime: sole loader
-of `data/entities/animals/rabbit.json`, `deer.json` and `wolf.json`, seeded populations,
+`WildlifeManager` (updated 2026-10-10) follows the same scene-owner lifetime: sole loader
+of `data/entities/animals/rabbit.json`, `deer.json`, `wolf.json` and `duck.json`, seeded populations,
 inspector provider and save section `wildlife` (priority 65). RabbitAgent and
 DeerAgent receive their definitions and share GrazerAgent's gentle needs and
 state machine. AnimalNavigation checks species footprints/clearance (rabbit
@@ -51,22 +70,28 @@ herd steering and saved herd identity. WolfAgent reuses terrestrial movement/res
 and adds bounded pursuit, meal satisfaction and saved prey identity. The manager
 owns prey claims, protected population minima and atomic capture/meal commits.
 Wolf navigation is 2×2×2, with bounded local routing and supported contact checks.
-These are ordinary preloaded scripts,
-with no new global class or autoload. See [Wildlife](../40_economy_colony/45_wildlife.md).
+DuckAgent shares common wildlife identity/needs but supplies swimming, shore
+movement and flight. DuckNavigation reads live finite water, terrain and placed
+obstacles; SurfaceFloraSpawner.flight_obstacles supplies nearby tree-canopy bounds
+for swept flight clearance. DuckPopulation owns habitat and aerial-entry planning.
+These are ordinary preloaded scripts, with no new global class or autoload.
+See [Wildlife](../40_economy_colony/45_wildlife.md).
 
 `WorldEventDirector` (2026-10-09) is another scene owner, loading only
 `data/world_events/arrivals.json`. It owns calendar opportunities, seeded group
 decisions, local hunting pressure and pending entry progress in `world_events`
 (priority 66, immediately after wildlife). Providers join `arrival_provider`;
-WildlifeManager supplies rabbit, deer and wolf arrivals through EdgeArrivalPlanner
-and the shared GrazerAgent journey hook. Wide groups save separate connected
+WildlifeManager supplies terrestrial rabbit, deer and wolf arrivals through
+EdgeArrivalPlanner and the shared GrazerAgent journey hook, and duck aerial
+arrivals through DuckPopulation/DuckAgent. Wide ground groups save separate connected
 member routes; deer keep one herd identity and wolves recheck prey support before
 each entry. Whole-map tree occupancy gates provider readiness.
 SaveManager.is_loading() prevents scheduling
 until the restored calendar is available. Missing event definitions are added
 with delayed opportunities without changing existing decisions. No new autoload
 or global class is required. See [Rabbit arrivals](../00_dev_roadmap/94_rabbit_arrival_events.md)
-and [Deer/wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md).
+and [Deer/wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md), plus
+[Ducks](../00_dev_roadmap/111_duck_wildlife.md) for edge-to-water flights.
 
 `SurfaceDetailRegistry` (2026-10-08) loads `data/entities/surface_details.json`
 (stones, seasonal flowers and reeds) and the three existing bush JSON definitions once,
@@ -263,6 +288,9 @@ Drives the scene `WorldEnvironment` sky/fog and Sun/Moon from keyframed curves i
 ### `WeatherManager` *(doc 08)*
 Per-season weighted weather scheduler (`data/weather/*.json`, `data/calendar/weather_schedule.json`), seeded from the world seed. Emits `weather_changed(weather_id)`; hands overrides to `SkyController`. `set_weather()` / `cycle_weather()` for testing.
 
+Saves the 64-bit RNG state as decimal text, like wildlife, to avoid JSON numeric
+precision loss. Restoring it resumes the same sequence of daily weather choices.
+
 ### `DwarfAssets` *(doc 16 step 2a; spec: 41b)*
 Owner of the ~41 dwarf part GLBs (preloaded PackedScenes) and the three generation JSON pools (`names` / `appearance` / `traits`). Parts are authored in neutral palettes; head/hands are runtime-tinted, body/feet baked (doc 17 §1 tint split).
 
@@ -287,6 +315,11 @@ and revalidates the new primary. An invalid primary cannot displace a valid back
 autosave never touches manual-save files. Loading either slot falls back to its matching
 backup when necessary and repairs its primary before replacing the world.
 
+`SaveSnapshotValidator` checks metadata, clock/weather, all current owner sections,
+required fields and typed collection records before load resets anything. Empty
+collections are valid; missing sections, empty owner dictionaries and mistyped values
+are rejected. The same check protects temporary commits and backup rotation.
+
 Scene nodes opt in through the `save_state_owner` group and expose:
 
 ```gdscript
@@ -297,9 +330,10 @@ func restore_state(state: Dictionary) -> void
 ```
 
 Section keys must be unique. Restore priorities encode dependencies: mining 10,
-flora 15, settlement flag 20, stockpiles 30, furniture 40, loose items 50, dwarves 60, camera 70,
-and slice 80. Adding a new authoritative scene system requires adding this contract and
-documenting whether its data is authoritative, seed-derived, or transient.
+water 11, flora 15, surface details 16, settlement flag 20, stockpiles 30, furniture 40, ladders 41,
+loose items 50, dwarves 60, wildlife 65, world events 66, crafting/camera 70 and slice 80.
+Adding a new authoritative scene system requires adding this contract, updating the
+validator, and documenting whether its data is authoritative, seed-derived, or transient.
 
 Saving is observational: `serialize_state()` must not pause the simulation, release a
 task, clear a reservation, move an entity, or otherwise change gameplay. Loading is a
@@ -308,10 +342,11 @@ autoload state, reloads the current scene with the saved seed, waits for determi
 generation to finish, restores owners in priority order, rebuilds stockpile totals, and
 finally restores clock/weather. Full schema and lifecycle: `00_dev_roadmap/20_save_load.md`.
 
-`SurfaceFloraSpawner` saves only changed trees in the optional `flora` section:
+`SurfaceFloraSpawner` saves only changed trees in the required `flora` section:
 species/stage identity, floor origin, partial felling work, designation and felled
 records. Seeded visuals remain derived; felled records prevent regeneration and
-never replay item drops. Missing flora sections remain compatible with older saves.
+never replay item drops. An empty `trees` array represents the untouched forest;
+missing sections are rejected under the current development-save policy.
 Juniper picking adds an action, separate felling/harvest work, a harvest-work
 cycle and a completed crop cycle to those same changed-tree records. Worker
 leases remain transient. Crop visuals and readiness reconcile with the restored
@@ -355,8 +390,15 @@ Selection allows paused playback and a real-time click cooldown. Grazing pauses
 its current short phrase with simulation and requires a visible, living scene
 source still in the Grazing activity (Eating for wolves). Weak source references update position
 and retire tails on hide/removal/restore. WildlifeManager observes existing meal
-progress crossings; neither animal RNG nor save state includes audio. Work
-impacts retain their existing real-time tail and attenuation defaults.
+progress crossings; these terrestrial cues add no animal RNG consumption or
+save fields. Ducks also use the same bus/pool for quacks and landing splashes.
+Their quack interval is a saved behavior timer driven by the duck's RNG;
+playback variation uses cosmetic RNG and voices are not serialized. Work impacts
+retain their existing real-time tail and attenuation defaults.
+
+`WaterSound` separately owns two spatial loop players on the Work bus. Its
+procedural waterfall/river banks use private cosmetic randomness and visible
+measured currents; still lakes stay quiet. See [Water ambience](../00_dev_roadmap/108_water_ambience.md).
 
 > **Still planned:** the broader `AudioManager` for ambient loops and combat cues
 > referenced by `52_combat_military.md` is not implemented. Reuse/extend the work

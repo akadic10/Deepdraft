@@ -261,14 +261,21 @@ func _refresh_contents(held: Dictionary) -> void:
 	if held.is_empty():
 		_label(_contents, "This storage is empty.\nDwarves will bring the goods allowed by its filters.", 14, UITheme.TEXT_DIM)
 		return
-	for key in _keys:
-		if not held.has(key): continue
+	for slot in storage.stored_entries():
+		var stack: Dictionary = storage.stored_entries()[slot]
+		var key := String(stack.item)
 		var row := HBoxContainer.new()
 		_contents.add_child(row)
 		var name_label := _label(row, _item_name(key), 14)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var quantity := _label(row, "× %d" % int(held[key]), 14)
+		var quantity := _label(row, "× %d" % int(stack.count), 14)
 		quantity.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var toggle := _button(row, "Disallow" if storage.slot_allowed(slot) else "Allow")
+		toggle.icon = preload("res://assets/ui/icons/disallow.svg")
+		toggle.add_theme_constant_override("icon_max_width",18)
+		toggle.size_flags_horizontal = Control.SIZE_SHRINK_END
+		toggle.pressed.connect(func(): if storage != null: storage.set_disallowed(slot, storage.slot_allowed(slot)))
+		if not storage.slot_allowed(slot): _label(_contents, "Disallowed — kept here, unavailable for colony work", 12, UITheme.HEARTH_COPPER)
 		if not storage.accepts_key(key):
 			_label(_contents, "Awaiting relocation", 12, UITheme.HEARTH_COPPER)
 		_contents.add_child(HSeparator.new())

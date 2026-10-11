@@ -140,6 +140,7 @@ func withdraw_nearest(item_key: String, near: Vector3i, dwarf_id: int) -> Node3D
 	var best := Vector3i(-1, -1, -1)
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in cell_stacks:
+		if not slot_allowed(cell): continue
 		if int(cell_stacks[cell].count) <= int(_outgoing.get(cell, {}).get("count", 0)): continue
 		if drop_manager.instance_promised(String(cell_stacks[cell].get("instance_id", ""))): continue
 		if String((cell_stacks[cell] as Dictionary).get("item", "")) != item_key:
@@ -168,7 +169,7 @@ func slot_cell(slot: Variant) -> Vector3i:
 
 func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	var best: Vector3i = slot
-	if not cell_stacks.has(best): return null
+	if not slot_allowed(best): return null
 	var item_key := String(cell_stacks[best].item)
 	var node: Node3D = drop_manager.call("stored_node_at", best)
 	if node == null:

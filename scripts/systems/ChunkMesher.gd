@@ -76,6 +76,7 @@ static func build_arrays(chunk: Chunk, cx: int, cy: int, cz: int, visual_cut_blo
 	#   mining cuts exist (the common case).
 	var color_lut: PackedColorArray = BlockRegistry.get_color_lut(WorldClock.season)
 	var transparent_lut: PackedByteArray = BlockRegistry.get_transparent_lut()
+	var water_id := BlockRegistry.get_id("base:terrain:water:source")
 	var has_cuts := not visual_cut_blocks.is_empty()
 	var neighbors: Array = [
 		_chunk_blocks_or_empty(cx - 1, cy, cz),   # 0: -X
@@ -97,7 +98,7 @@ static func build_arrays(chunk: Chunk, cx: int, cy: int, cz: int, visual_cut_blo
 					continue
 
 				# Skip transparent blocks (void) — they produce no geometry.
-				if transparent_lut[block_id] == 1:
+				if transparent_lut[block_id] == 1 or block_id == water_id:
 					continue
 
 				var color := color_lut[block_id]

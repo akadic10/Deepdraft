@@ -109,7 +109,7 @@ func _ready() -> void:
 	_name = _label("Colony supplies", 23, true)
 	_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	contents.add_child(_name)
-	for state: String in ["Total", "Stored", "Loose", "Carried", "Equipped", "Reserved", "Available"]:
+	for state: String in ["Total", "Stored", "Loose", "Carried", "Equipped", "Reserved", "Disallowed", "Available"]:
 		var line := HBoxContainer.new()
 		contents.add_child(line)
 		var caption := _label(state, 14, true)

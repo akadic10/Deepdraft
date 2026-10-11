@@ -1,0 +1,107 @@
+{
+  "id": "base:animal:duck",
+  "display_name": "Wild Duck",
+  "description": "A sociable water bird. Paddles in calm water, forages and preens along the bank, and makes occasional short flights between pools or away from danger.",
+  "model_parts": {
+    "male_body": "res://assets/animals/duck/male_body.glb",
+    "male_head": "res://assets/animals/duck/male_head.glb",
+    "male_wing": "res://assets/animals/duck/male_wing.glb",
+    "female_body": "res://assets/animals/duck/female_body.glb",
+    "female_head": "res://assets/animals/duck/female_head.glb",
+    "female_wing": "res://assets/animals/duck/female_wing.glb",
+    "foot": "res://assets/animals/duck/foot.glb"
+  },
+  "population": {
+    "groups": 3,
+    "group_size": [
+      2,
+      4
+    ],
+    "cap": 16,
+    "salt": 630271,
+    "attempts": 900,
+    "min_spacing": 36,
+    "shore_distance": 5
+  },
+  "navigation": {
+    "clearance": 2,
+    "radius": 0.5,
+    "body_height": 1.2,
+    "swim_depth": 0.3,
+    "submerge": 0.28,
+    "max_water_step": 0.4,
+    "waterfall_margin": 2,
+    "walk_seconds": 0.7,
+    "swim_seconds": 0.9,
+    "flee_seconds": 0.38,
+    "home_radius": 14,
+    "group_radius": 6,
+    "member_spacing": 1.7,
+    "flight_speed": 8.0,
+    "flight_radius": 1.3,
+    "flight_max_y": 158,
+    "flight_rises": [
+      5,
+      12,
+      24,
+      42
+    ],
+    "flight_range": [
+      12,
+      48
+    ],
+    "landing_attempts": 24,
+    "takeoff_seconds": 0.65,
+    "flight_interval": [
+      70,
+      140
+    ],
+    "flight_retry_seconds": 5
+  },
+  "behavior": {
+    "threat_radius": 7,
+    "safe_radius": 12,
+    "calm_seconds": 4,
+    "idle_seconds": [
+      1.5,
+      4.0
+    ],
+    "shore_chance": 0.16,
+    "preen_chance": 0.18,
+    "hunger_per_hour": 0.035,
+    "hungry_threshold": 0.48,
+    "graze_seconds": 5,
+    "meal_relief": 0.5,
+    "fatigue_per_hour": 0.04,
+    "sleep_threshold": 0.48,
+    "exhausted_threshold": 0.85,
+    "wake_hunger_threshold": 0.9,
+    "sleep_recovery_per_hour": 0.35,
+    "wake_threshold": 0.1,
+    "rest_hours": [
+      [
+        11,
+        15
+      ],
+      [
+        22,
+        5
+      ]
+    ],
+    "quack_seconds": [
+      18,
+      38
+    ]
+  },
+  "forage_kinds": [
+    "grass",
+    "dirt"
+  ],
+  "feedback": {
+    "selection_sound": "duck_select",
+    "ambient_sound": "duck_quack",
+    "splash_sound": "duck_splash",
+    "grazing_sound": "duck_quack",
+    "grazing_cues": []
+  }
+}

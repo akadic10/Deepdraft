@@ -56,7 +56,55 @@
       "res://assets/audio/wildlife/wolf_eat_02.wav",
       "res://assets/audio/wildlife/wolf_eat_03.wav"
     ],
+    "duck_select": [
+      "res://assets/audio/wildlife/duck_quack_01.wav",
+      "res://assets/audio/wildlife/duck_quack_02.wav",
+      "res://assets/audio/wildlife/duck_quack_03.wav"
+    ],
+    "duck_quack": [
+      "res://assets/audio/wildlife/duck_quack_01.wav",
+      "res://assets/audio/wildlife/duck_quack_02.wav",
+      "res://assets/audio/wildlife/duck_quack_03.wav"
+    ],
+    "duck_splash": [
+      "res://assets/audio/wildlife/duck_splash_01.wav",
+      "res://assets/audio/wildlife/duck_splash_02.wav",
+      "res://assets/audio/wildlife/duck_splash_03.wav"
+    ],
     "profiles": {
+      "duck_splash": {
+        "near_radius": 3.0,
+        "far_radius": 26.0,
+        "zoom_reference": 18.0,
+        "zoom_exponent": 1.6,
+        "max_zoom": 64.0,
+        "level_db": -9.0,
+        "cooldown_seconds": 0.7,
+        "max_voices": 2,
+        "pause_with_simulation": true
+      },
+      "duck_quack": {
+        "near_radius": 3.0,
+        "far_radius": 26.0,
+        "zoom_reference": 18.0,
+        "zoom_exponent": 1.6,
+        "max_zoom": 64.0,
+        "level_db": -9.0,
+        "cooldown_seconds": 2.5,
+        "max_voices": 2,
+        "pause_with_simulation": true
+      },
+      "duck_select": {
+        "near_radius": 3.0,
+        "far_radius": 26.0,
+        "zoom_reference": 18.0,
+        "zoom_exponent": 1.6,
+        "max_zoom": 64.0,
+        "level_db": -6.0,
+        "cooldown_seconds": 0.7,
+        "max_voices": 2,
+        "allow_paused": true
+      },
       "promotion": {"level_db": -2.0, "cooldown_seconds": 0.2},
       "wolf_select": {
         "near_radius": 4.0, "far_radius": 28.0,

@@ -4,6 +4,24 @@
 
 The colony's food and drink supply draws from two distinct farming environments: **surface plots** on outdoor dirt for crops that need open air, and **cave soil patches** underground for fungi and plants adapted to darkness. Both feed into the same brewery and kitchen chain.
 
+**Water foundation — live 2026-10-10; farm/brewery jobs remain planned:**
+[33 — Water, rivers & flooding](../30_simulation_systems/33_water_simulation.md)
+defines a high rock spring feeding a river and the lowland lake. Water storage
+is finite and spring replenishment is limited. Players can divert channels into
+farms/cisterns; blocking waterways or breaching reservoirs can flood terrain.
+Filled ditches gradually hydrate nearby soil, which dries gradually after supply
+stops. A perimeter ditch supports nearby crops; larger fields can use internal
+channels. Damp-soil visuals and a moisture overlay explain coverage.
+Moisture reach, crop requirements and rates need balancing; the older saturation
+numbers below are provisional. Flood-related crop damage remains a separate decision.
+
+Dwarves will draw and transport measured water for brewing, making access,
+hauling and storage meaningful. Reconcile recipe inputs and container handling
+when implementing production: the current planned Longbeard Ale recipe has no
+water input. Water simulation and measured withdrawal are live; production jobs and recipe
+changes remain planned. Gravity-fed supply is possible only below the source; higher farms
+and breweries require hauling or a later, separately designed lifting system.
+
 ## Wild berry harvest — live 2026-10-08
 
 **Habitat, spacing and flower relocation — live 2026-10-09:** wild berry bushes
@@ -112,7 +130,7 @@ A cave soil block is eligible for farming designation only if:
 2. Water saturation of the block is `> 0.3` (tracked as a per-block float, separate from fluid CA mass).
 3. There are **at least 3 clear air blocks** above (matches dwarf clearance envelope — crops must be harvestable).
 
-Soil saturation drains at `−0.005 / in-game hour` and is replenished by adjacent water blocks or irrigation channels (future feature). A farm plot with saturation `< 0.1` cannot support new crop growth.
+Live irrigation uses three-cell Manhattan reach, weaker at distance, two game hours to wet and 24 to dry (doc 33). The old `−0.005 / hour` proposal is superseded. A farm plot with saturation `< 0.1` cannot support new crop growth.
 
 ### Surface Dirt Farming Requirements
 

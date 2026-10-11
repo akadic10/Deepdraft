@@ -96,7 +96,7 @@ func _ready() -> void:
 	items.add_child(_margin(_grid, 10, 8))
 	_empty = VBoxContainer.new()
 	_empty.add_child(_label("Nothing ready to place", 17, true))
-	var explanation := _label("Finished furniture, uprooted plants and cuttings appear here when available.", 13)
+	var explanation := _label("Finished furniture, uprooted plants, cuttings and packed water stones appear here when available.", 13)
 	explanation.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_empty.add_child(explanation)
 	var browse := UITheme.make_button("Browse all designs", "", Vector2(0, 30))
@@ -192,6 +192,8 @@ func _build_tile(entry: Dictionary) -> void:
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var path := "res://assets/ui/furniture/%s.png" % String(entry.key).get_slice(":", 2)
+	if not ResourceLoader.exists(path):
+		path = "res://assets/ui/items/%s.png" % String(controller.get_defs()[entry.key].item_key).replace(":","_")
 	if ResourceLoader.exists(path): image.texture = load(path)
 	column.add_child(image)
 	var caption := _label(entry.label, 12)
@@ -322,6 +324,8 @@ func refresh() -> void:
 			_note.text = "Replant this whole plant. Its shape and seasonal state are preserved." if stock.available > 0 else "Uproot a plant of this type to place it here."
 			_place.text = "Replant" if stock.available > 0 else "No uprooted plants"
 	_hint.text = "Click to place repeatedly · R rotates · Esc finishes" if placing else "Click an available item to start placing."
+	if definition.has("water_stone"):
+		_note.text = "Inactive in storage. A dwarf must place it to start the water effect." if stock.available>0 else "Allow and pack a water stone to make it available here."
 	if String(definition.placement) == "ladder":
 		_spec.text = "%d blocks per section" % int(definition.ladder.section_height)
 		_note.text = "Aim at a cliff face. The preview shows the full height and section cost before you place it."

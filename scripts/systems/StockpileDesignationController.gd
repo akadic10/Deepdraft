@@ -521,6 +521,7 @@ func serialize_state() -> Dictionary:
 				"item": String(stack.get("item", "")),
 				"count": int(stack.get("count", 0)),
 			})
+			stacks.back()["disallowed"] = bool(stack.get("disallowed", false))
 			if stack.has("instance_id"): stacks.back()["instance_id"] = stack.instance_id
 		saved_zones.append({
 			"id": zone_id,
@@ -560,9 +561,10 @@ func restore_state(state: Dictionary) -> void:
 					drop_manager.call("spawn_drop", item_key, count - kept, cell + Vector3i.UP)
 				count = kept
 			zone.cell_stacks[cell] = { "item": item_key, "count": count }
+			zone.cell_stacks[cell]["disallowed"] = bool(saved_stack.get("disallowed", false))
 			if saved_stack.has("instance_id"): zone.cell_stacks[cell]["instance_id"] = saved_stack.instance_id
 			if drop_manager != null and drop_manager.has_method("restore_stored_item"):
-				drop_manager.call("restore_stored_item", item_key, cell, count, String(saved_stack.get("instance_id", "")))
+				drop_manager.call("restore_stored_item", item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)))
 
 
 # ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────
@@ -746,7 +748,7 @@ func _axis_t_max(origin_axis: float, direction_axis: float, pos_axis: int) -> fl
 func _block_id(wx: int, wy: int, wz: int) -> int:
 	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
 		return WorldData.get_block(wx, wy, wz)
-	return WorldGenerator.get_generated_block_id(wx, wy, wz)
+	return WorldData.get_live_block(wx, wy, wz)
 
 
 # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────

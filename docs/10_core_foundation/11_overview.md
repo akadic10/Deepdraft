@@ -1,5 +1,14 @@
 # 11 — Game Design Overview
 
+**Implementation checkpoint — 2026-10-10:** the current playable foundation
+includes seasonal day/night and weather, finite spring-fed rivers/lakes,
+waterfalls, flooding, soil moisture, movable wet/dry stones with Allow/Disallow,
+and rabbit/deer/wolf/duck wildlife. Ducks swim, visit banks and make short flights.
+Gems drop as finished voxel goods; no Jeweller or polishing stage is planned.
+Farming, physical brewing-water hauling and the production/trade loop described
+below remain design goals. See [112 — Session handoff](../00_dev_roadmap/112_session_handoff_2026_10_10.md)
+for the completed work and current limits.
+
 1. Core Vision
 
 **Deepdraft** is a modern, high-performance voxel colony management simulation focused on a subterranean dwarven settlement. The player acts as a high-level overseer, issuing global commands, managing production infrastructure, and orchestrating trade rather than directly controlling a single avatar.
@@ -31,7 +40,7 @@ The game operates on a continuous, interconnected economic loop that fuels both 
 
 - **Dig**: Tunnel through solid rock layers to expose open caverns, find vital water pockets, and discover rich veins of coal, iron, gold, and rare mithril crystals.
 - **Brew**: Cultivate cave wheat and glowing fungi in moist underground soil. Mix crops with fresh water inside constructed brewing vats to ferment various tiers of dwarven alcohol.
-- **Trade**: Maintain the mountain's fixed, un-minable trade road threshold. Sell your premium beverages and crafted jewelry to seasonal caravans in exchange for surface resources, seeds, and new hopeful dwarf recruits.
+- **Trade**: Maintain the mountain's fixed, un-minable trade road threshold. Sell your premium beverages, brilliant mined gems and crafted goods to seasonal caravans in exchange for surface resources, seeds, and new hopeful dwarf recruits.
 
 ---
 
@@ -86,11 +95,11 @@ spring → summer → autumn → winter → spring → …
 | **Caravans** | Small Merchant (always) | Travelling Fair (70%) | Trade Expedition (always) | Emergency Supplies (conditional) |
 | **Mood thought** | `base:thought:warm_spring` (+0.04, 30 d) | none | `base:thought:harvest_plenty` (+0.03, 30 d) if food > 100 | `base:thought:winter_dark` (−0.04, 30 d) |
 
-### Future — Day/Night Cycle with Seasonal Day Length
+### Day/Night Cycle with Seasonal Day Length — Implemented
 
 Day length must vary by season and transition smoothly — no sudden jumps at midnight or season boundaries.
 
-**Target day-length range:**
+**Day-length range:**
 - Summer solstice: ~16 in-game hours of daylight, ~8 of night
 - Winter solstice: ~8 in-game hours of daylight, ~16 of night
 - Spring / Autumn equinoxes: ~12 / 12 (midpoint between extremes)
@@ -113,9 +122,9 @@ func daylight_hours(day_of_year: int) -> float:
 > form implemented in `WorldClock.daylight_hours()` and consumed by the sky day/night system
 > (`docs/00_dev_roadmap/08_sky_plan.md`, Phase 3).
 
-Within each in-game day, sky brightness also transitions on a smooth curve (sine ramp) rather than a step — sunrise and sunset should each take roughly 1 in-game hour to fully transition. Underground areas are unaffected by lighting, but the surface ambient light and the UI sky tint should follow this curve.
+Within each in-game day, `SkyController` interpolates sun/moon and sky-gradient curves against `WorldClock.hour`, with one-hour twilight shoulders around sunrise and sunset. Surface ambient light follows the sky. `UndergroundLighting` gates daylight by physical sky access, while local lights illuminate covered interiors.
 
-> **Note:** This system is not yet implemented. Do not build day/night rendering or surface ambient light until this section is marked complete.
+> **Implemented:** `WorldClock.daylight_hours()` supplies seasonal day length; `SkyController` drives the live sky, sun/moon and surface ambient lighting from `data/sky/sky_settings.json`. See [08 — Sky, Clock & Weather](../00_dev_roadmap/08_sky_plan.md) for the implementation reference.
 
 ### Implementation Notes
 

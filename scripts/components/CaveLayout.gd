@@ -7,7 +7,7 @@ const SIZE := 1024
 const CARDINALS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 
 
-static func build(world_seed: int, heights: PackedInt32Array, water: PackedInt32Array, profile: Dictionary) -> Dictionary:
+static func build(world_seed: int, heights: PackedInt32Array, water: PackedInt32Array, profile: Dictionary, reserved := Rect2i()) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = world_seed ^ 0x43415645
 	var roughness := FastNoiseLite.new()
@@ -42,6 +42,7 @@ static func build(world_seed: int, heights: PackedInt32Array, water: PackedInt32
 		var bounds := Rect2i(anchor, Vector2i.ONE)
 		for point: Vector2i in footprint: bounds = bounds.merge(Rect2i(point, Vector2i.ONE))
 		var safe_bounds := bounds.grow(maxi(profile["side_thickness"], profile["water_margin"]))
+		if reserved.has_area() and safe_bounds.intersects(reserved): continue
 		if not Rect2i(8, 8, SIZE - 16, SIZE - 16).encloses(safe_bounds): continue
 		var overlaps := false
 		for system: Dictionary in systems:

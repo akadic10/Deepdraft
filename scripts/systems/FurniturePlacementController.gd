@@ -67,6 +67,7 @@ var _require_stock := false
 var _moving_shrub := ""
 const PlantPlan = preload("res://scripts/components/ShrubPlantingComponent.gd")
 
+var _moving_water_stone := ""
 var _defs: Dictionary = {}            # furniture_key -> def Dictionary
 var _model_bounds: Dictionary = {}    # model path -> cached root-local visual AABB
 var _dock_ui: Node = null
@@ -206,7 +207,7 @@ func get_catalog_stock() -> Dictionary:
 		requested[_ladders.KEY] = ladder_stock.requested
 	for key: String in _defs:
 		var item_key := String(_defs[key].item_key)
-		result[key] = {"available": maxi(0, int(loose.get(item_key, 0)) + StockpileManager.get_total(item_key)
+		result[key] = {"available": maxi(0, int(loose.get(item_key, 0)) + StockpileManager.get_available_total(item_key)
 			- int(outgoing.get(item_key, 0)) - int(promised.get(item_key, 0)) - int(pending.get(item_key, 0))), "reserved": int(requested.get(key, 0))}
 	return result
 
@@ -278,6 +279,7 @@ func deactivate() -> void:
 	_active = false
 	_active_key = ""
 	_moving_shrub = ""
+	_moving_water_stone = ""
 	_free_preview()
 	_require_stock = false
 	tool_active_changed.emit(false)
@@ -453,6 +455,15 @@ func _placement_valid(origin: Vector3i) -> bool:
 
 
 func _floor_placement_reason(def: Dictionary, origin: Vector3i, yaw: int) -> String:
+	if def.has("water_stone"):
+		if _cell_to_ghost.has(origin) or _cell_to_installed.has(origin): return "overlap"
+		if is_instance_valid(_ladders) and _ladders.reserves(_visual_bounds(def,origin,yaw)): return "overlap"
+		if _intersects_wall_piece(_visual_bounds(def,origin,yaw)): return "overlap"
+		var zones := get_tree().get_first_node_in_group("stockpile_controller")
+		if zones != null and zones.is_zone_cell(origin): return "overlap"
+		if not _piece_visible(def,origin,yaw): return "slice"
+		var stones := get_tree().get_first_node_in_group("water_stones")
+		return stones.placement_reason(origin,_moving_water_stone) if stones != null else "cell"
 	if is_instance_valid(_ladders) and _ladders.reserves(_visual_bounds(def, origin, yaw)):
 		return "overlap"
 	if not _piece_visible(def, origin, yaw):
@@ -686,7 +697,7 @@ func _footprint_cells(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Vect
 func _block_id(wx: int, wy: int, wz: int) -> int:
 	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
 		return WorldData.get_block(wx, wy, wz)
-	return WorldGenerator.get_generated_block_id(wx, wy, wz)
+	return WorldData.get_live_block(wx, wy, wz)
 
 
 # ── Ghost visuals ─────────────────────────────────────────────────────────────
@@ -749,7 +760,7 @@ func _update_hint(_origin: Vector3i) -> void:
 		_hint_label.add_theme_constant_override("outline_size", 6)
 		layer.add_child(_hint_label)
 	var wall := WallMount.is_wall(_defs.get(_active_key, {}))
-	var hints := {"plant_soil":"Needs suitable soil and a level 3 × 3 patch",
+	var hints := {"stone_access":"Needs a reachable dry place for a dwarf to stand", "plant_soil":"Needs suitable soil and a level 3 × 3 patch",
 		"plant_clearance":"Clear nearby plants, stones or structures first",
 		"plant_spacing":"Needs its own 3 × 3 area — move farther from plants or queued orders",
 		"plant_sky":"This plant needs open sky", "wall":"Needs a solid wall and four blocks of room height — R rotates",
@@ -877,10 +888,13 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 		return
 	_seating.dirty = true
 	var def: Dictionary = _defs.get(_active_key, {}) if definition.is_empty() else definition
-	if definition.is_empty() and bool(def.get("plant", false)) and not _placement_valid(_hover_cell): return
+	if definition.is_empty() and (bool(def.get("plant", false)) or def.has("water_stone")) and not _placement_valid(_hover_cell): return
 	var ghost: FurnitureGhostComponent = PlantPlan.new() if bool(def.get("plant", false)) else FurnitureGhostComponent.new()
-	ghost.required_instance_id = _moving_shrub
+	ghost.required_instance_id = _moving_water_stone if def.has("water_stone") else _moving_shrub
 	ghost.setup(_next_ghost_id, _active_key, def, _hover_cell, _yaw)
+	if definition.is_empty() and not _moving_water_stone.is_empty():
+		var stones := get_tree().get_first_node_in_group("water_stones")
+		if WaterManager.stones[_moving_water_stone].placed and not stones.request_pack(_moving_water_stone): return
 	if definition.is_empty() and not _moving_shrub.is_empty():
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if plants == null or not plants.designate_uproot(_moving_shrub):
@@ -916,7 +930,7 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 	_next_ghost_id += 1
 	if definition.is_empty():
 		ghost.update_lease() # Player intent can redirect storage hauling even while paused.
-	if definition.is_empty() and not _moving_shrub.is_empty():
+	if definition.is_empty() and (not _moving_shrub.is_empty() or not _moving_water_stone.is_empty()):
 		deactivate()
 		return
 	_update_hover(true)   # own footprint now invalid — retint immediately
@@ -945,7 +959,10 @@ func cancel_ghost(ghost_id: int) -> void:
 	if _window_ghost_id == ghost_id:
 		_close_window()
 	ghost_cancelled.emit(ghost_id)
-	if not ghost.required_instance_id.is_empty():
+	if ghost.def.has("water_stone") and not ghost.required_instance_id.is_empty():
+		var stones := get_tree().get_first_node_in_group("water_stones")
+		if stones != null: stones.cancel_pack(ghost.required_instance_id)
+	elif not ghost.required_instance_id.is_empty():
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if plants != null: plants.cancel_clearing(ghost.required_instance_id)
 
@@ -971,7 +988,10 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 	_ghosts.erase(ghost.ghost_id)
 	if _window_ghost_id == ghost.ghost_id:
 		_close_window()
-	if bool(ghost.def.get("plant", false)):
+	if ghost.def.has("water_stone"):
+		WaterManager.place_stone(ghost.fetched_instance_id,ghost.origin_cell+Vector3i.UP)
+		furniture_installed.emit(ghost.furniture_key,ghost.origin_cell)
+	elif bool(ghost.def.get("plant", false)):
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if bool(ghost.def.get("from_cutting", false)):
 			plants.plant_cutting(String(ghost.def.plant_definition), ghost.origin_cell, ghost.yaw_steps)
@@ -987,7 +1007,10 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if not _ghosts.has(ghost.ghost_id):
 		return false
-	if bool(ghost.def.get("plant", false)):
+	if ghost.def.has("water_stone"):
+		var stones := get_tree().get_first_node_in_group("water_stones")
+		return WaterManager.stones.has(ghost.fetched_instance_id) and not WaterManager.stones[ghost.fetched_instance_id].placed and stones != null and stones.placement_reason(ghost.origin_cell).is_empty()
+	elif bool(ghost.def.get("plant", false)):
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if plants != null and bool(ghost.def.get("from_cutting", false)):
 			return plants.planting_reason(String(ghost.def.plant_definition), ghost.origin_cell, "", ghost.ghost_id).is_empty()
@@ -1014,7 +1037,7 @@ func dev_instant_build(ghost_id: int) -> void:
 	if not _ghosts.has(ghost_id):
 		return
 	var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
-	if bool(ghost.def.get("plant", false)): return # Living plants require their real physical item.
+	if bool(ghost.def.get("plant", false)) or ghost.def.has("water_stone"): return # Requires its real physical item.
 	if not _can_build_ghost(ghost):
 		cancel_ghost(ghost_id)
 		return
@@ -1186,6 +1209,7 @@ func serialize_state() -> Dictionary:
 			"yaw": ghost.yaw_steps,
 			"layout_version": int(ghost.def.get("layout_version", 1)),
 		})
+		if ghost.def.has("water_stone"): saved_ghosts.back()["stone_id"] = ghost.required_instance_id
 		if bool(ghost.def.get("plant", false)):
 			saved_ghosts.back()["plant_work"] = ghost.progress
 			saved_ghosts.back()["plant_id"] = ghost.required_instance_id
@@ -1206,7 +1230,7 @@ func serialize_state() -> Dictionary:
 			entry["inventory"] = component.storage.inventory.duplicate(true)
 			var instances: Array = []
 			for stack: Dictionary in component.storage.stored_entries().values():
-				if stack.has("instance_id"): instances.append(stack.duplicate(true))
+				instances.append(stack.duplicate(true))
 			if not instances.is_empty(): entry["instances"] = instances
 			entry["storage_filter"] = component.storage.serialize_filter()
 		saved_installed.append(entry)
@@ -1264,6 +1288,8 @@ func _restore_ghost(entry: Dictionary) -> void:
 	var prior_key := _active_key
 	var prior_cell := _hover_cell
 	var prior_yaw := _yaw
+	var prior_stone := _moving_water_stone
+	_moving_water_stone = String(entry.get("stone_id", ""))
 	var prior_plant := _moving_shrub
 	_moving_shrub = String(entry.get("plant_id", ""))
 	_next_ghost_id = requested_id
@@ -1273,6 +1299,7 @@ func _restore_ghost(entry: Dictionary) -> void:
 	_confirm_ghost(_definition_for_saved(key, entry))
 	if _ghosts.has(requested_id) and bool(_defs[key].get("plant", false)):
 		_ghosts[requested_id].progress = clampf(float(entry.get("plant_work", 0)), 0, float(_defs[key].planting_seconds))
+	_moving_water_stone = prior_stone
 	_moving_shrub = prior_plant
 	_next_ghost_id = maxi(_next_ghost_id, prior_next)
 	_active_key = prior_key
@@ -1659,6 +1686,8 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		rows.append(["Crafter", "Any Worker"])
 	if piece is InstalledFurnitureComponent and piece.storage != null:
 		return {"title": piece.display_name(), "presentation": "storage", "storage": piece.storage, "actions": actions}
+	if piece.def.has("water_stone"):
+		return {"title":piece.display_name(),"kind":"Water stone placement","rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}
 	if bool(piece.def.get("plant", false)):
 		var cutting := bool(piece.def.get("from_cutting", false))
 		var status := "Awaiting cutting" if cutting else "Awaiting whole plant"
@@ -1707,6 +1736,23 @@ func begin_shrub_move(id: String) -> void:
 	if _dock_ui != null: _dock_ui.emit_signal("tool_requested", TOOL_ID)
 	activate_for(SurfaceDetailRegistry.place_key(String(plants._records[id].definition), int(plants._records[id].variant)))
 	_moving_shrub = id
+
+
+func begin_water_stone_move(id: String) -> void:
+	if not WaterManager.stones.has(id): return
+	var record: Dictionary = WaterManager.stones[id]
+	if record.placed and record.disallowed: return
+	cancel_water_stone_moves(id)
+	if _dock_ui != null: _dock_ui.emit_signal("tool_requested",TOOL_ID)
+	activate_for("base:water:"+record.kind+"_stone")
+	_moving_water_stone = id
+
+
+func cancel_water_stone_moves(id: String) -> void:
+	for ghost_id in _ghosts.keys():
+		var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
+		if ghost.def.has("water_stone") and ghost.required_instance_id==id: cancel_ghost(ghost_id)
+	if _moving_water_stone==id: deactivate()
 
 
 func cancel_shrub_moves(id: String) -> void:

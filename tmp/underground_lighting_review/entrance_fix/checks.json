@@ -1,7 +1,7 @@
 {
   "allocated_tiles": 4,
   "failures": [],
-  "max_frame_work_ms": 2.947,
+  "max_frame_work_ms": 2.612,
   "measurements": {
     "current": {
       "chamber": 0.628718435764313,

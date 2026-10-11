@@ -77,6 +77,12 @@ func _on_caves_discovered(cells: Array[Vector3i]) -> void:
 		if _samples.has(cell): continue
 		_samples[cell] = 0.0
 		_write_cell(cell, 0.0, true)
+	# A generated entrance has no block_changed event to start its daylight
+	# solve. Queue real open air at the mouth and chamber once when revealed.
+	var cave := WorldGenerator.spring_cave
+	if not cave.is_empty() and cells.has(cave.source):
+		for cell: Vector3i in [cave.mouth,cave.source]:
+			if not _pending.has(cell): _pending[cell] = BlockRegistry.AIR_ID
 
 
 func _on_doors_changed(cells: Array) -> void:
@@ -318,12 +324,11 @@ func _inside(pos: Vector3i) -> bool:
 
 func _is_air(pos: Vector3i) -> bool:
 	if _air.has(pos): return bool(_air[pos])
-	var id: int
-	if WorldData.chunk_exists(pos.x>>4,pos.y>>4,pos.z>>4):
-		id = WorldData.get_block(pos.x,pos.y,pos.z)
-	else:
-		id = WorldGenerator.get_generated_block_id(pos.x,pos.y,pos.z)
-	var air := BlockRegistry.is_transparent(id)
+	# Finite water occupies an otherwise open space. It must not become a
+	# voxel roof, or leave black, unlit cells at a fractional cave-water top.
+	# Use static terrain so lighting doesn't depend on streamed/live water.
+	var id := WorldData.get_terrain_block(pos.x,pos.y,pos.z)
+	var air := not BlockRegistry.is_solid(id)
 	_air[pos] = air
 	return air
 
@@ -380,13 +385,15 @@ func _upload() -> void:
 		_table_dirty = false
 
 
-func make_material(source: BaseMaterial3D) -> ShaderMaterial:
-	var id := source.get_instance_id()
+func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMaterial:
+	var id := "%d:%s" % [source.get_instance_id(), glossy]
 	if _material_cache.has(id): return _material_cache[id]
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
 	material.set_shader_parameter("tint",source.albedo_color)
 	material.set_shader_parameter("vertex_color",source.vertex_color_use_as_albedo)
+	material.set_shader_parameter("surface_roughness", source.roughness if glossy else 1.0)
+	material.set_shader_parameter("surface_specular", source.metallic_specular if glossy else 0.0)
 	material.set_shader_parameter("readability_floor",readability)
 	material.set_shader_parameter("sky_table",_table_texture)
 	for i in range(4): material.set_shader_parameter("sky_page_"+str(i),_pages[i])

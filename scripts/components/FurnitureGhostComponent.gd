@@ -98,7 +98,7 @@ func claim_owner_id() -> int:
 
 
 func _claim_valid() -> bool:
-	return _claim != null and is_instance_valid(_claim)
+	return _claim != null and preload("res://scripts/components/ItemPermission.gd").allowed(_claim)
 
 
 ## A matching item exists somewhere the fetch can reach it: claimed by this
@@ -106,7 +106,7 @@ func _claim_valid() -> bool:
 func item_available() -> bool:
 	if _claim_valid():
 		return true
-	if (StockpileManager.get_total(item_key) > 0 if required_instance_id.is_empty() else StockpileManager.has_stored_instance(item_key, required_instance_id)):
+	if (StockpileManager.get_available_total(item_key) > 0 if required_instance_id.is_empty() else StockpileManager.has_stored_instance(item_key, required_instance_id)):
 		return true
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return false

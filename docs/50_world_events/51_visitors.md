@@ -1,12 +1,13 @@
 # 51 — Visitors & World Events
 
-## Implementation status — 2026-10-09
+## Implementation status — 2026-10-10
 
-The shared arrival scheduler is live with rabbit, deer and wolf wildlife providers; merchant,
+The shared arrival scheduler is live with rabbit, deer, wolf and duck wildlife providers; merchant,
 traveler and invader behavior below remains planned. WorldEventDirector owns
 saved calendar opportunities, group progress and expiry; scene providers own
-entry rules and actor creation. Wildlife currently uses validated wilderness
-edges. A future trade-road adapter can preserve merchant road access, while
+entry rules and actor creation. Terrestrial wildlife uses validated wilderness
+edges; ducks enter by air and land in calm water after a checked flight. A future
+trade-road adapter can preserve merchant road access, while
 goblin/orc groups can use their own wilderness eligibility and navigation.
 The earlier single-entry assumption below describes the visitor proposal,
 not a restriction on the live framework. VisitorManager is not registered.
@@ -14,6 +15,8 @@ See [94 — Rabbit arrival events](../00_dev_roadmap/94_rabbit_arrival_events.md
 for the provider contract and the completed scope.
 Deer/wolf entry groups and predator food limits are recorded in
 [95 — Deer/wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md).
+Duck air routes, 2–5-member opportunities and saved pending members are recorded
+in [111 — Duck wildlife](../00_dev_roadmap/111_duck_wildlife.md).
 
 ## Overview
 
@@ -80,10 +83,10 @@ Merchants prioritise goods in this order:
 | Priority | Item category | Example items |
 |---|---|---|
 | 1 | Dwarven alcohol | Ale, stout, mead, wine, gin, aged variants |
-| 2 | Precious gems | Raw ruby, sapphire, diamond |
+| 2 | Precious gems | Jade, amethyst, ruby, sapphire, emerald, diamond — finished when mined |
 | 3 | Luxury stone | Marble blocks |
 | 4 | Precious metals | Gold ore, silver ore |
-| 5 | Crafted goods | *(future: jewellery, furniture)* |
+| 5 | Crafted goods | Forged equipment and furniture |
 
 Merchants will not buy raw stone, soil, or basic ore — only processed or high-value goods.
 
@@ -260,7 +263,7 @@ Undead. Do not eat, drink, or sleep. Immune to morale effects. Active only at ni
 | Trigger | Year ≥ 2 AND colony has at least one crypt/tomb block *(future)* |
 | Frequency | 10% chance per winter night once triggered |
 
-> **Agent note:** Skeleton retreat-at-dawn requires a dusk/dawn hook into `WorldClock`. Do not implement this until the day/night cycle (documented in `10_overview.md`) is complete.
+> **Agent note:** The [day/night cycle](../10_core_foundation/11_overview.md#daynight-cycle-with-seasonal-day-length--implemented) is implemented. Skeleton retreat-at-dawn remains future invader AI work; its dusk/dawn hook must follow `WorldClock` and seasonal daylight timing.
 
 ### Invader AI States
 

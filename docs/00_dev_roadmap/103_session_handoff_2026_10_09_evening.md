@@ -1,6 +1,7 @@
 # 103 — Evening session handoff: 2026-10-09
 
-Current starting point, superseding [89 — Earlier handoff](89_session_handoff_2026_10_09.md).
+**Historical handoff:** superseded by [112 — Water and wildlife, 2026-10-10](112_session_handoff_2026_10_10.md).
+This was the starting point after [89 — Earlier handoff](89_session_handoff_2026_10_09.md).
 The earlier handoff retains the world, caves, plants, hauling and ladder history.
 This session added wildlife and arrivals, profession screens and Miner progression,
 starter tools, camp furniture and leisure, then physical Carpenter promotion and

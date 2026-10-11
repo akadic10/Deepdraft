@@ -376,6 +376,9 @@ func _refresh(data: Dictionary) -> void:
 			child.queue_free()
 		for action: Dictionary in actions:
 			var button := UITheme.make_button(String(action["text"]), "", Vector2(0, 30), String(action.get("variant", "")))
+			if action.has("icon"):
+				button.icon = load(String(action.icon))
+				button.add_theme_constant_override("icon_max_width",20)
 			button.pressed.connect(_perform_action.bind(String(action["id"])))
 			_actions.add_child(button)
 	_update_outline(_provider.call("get_explorer_bounds", _object_id))

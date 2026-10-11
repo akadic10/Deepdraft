@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "windows": {
+    "object_explorer": {
+      "open": true,
+      "x": 846.0,
+      "y": 4.0
+    },
+    "storage_zone_info": {
+      "open": false,
+      "x": 68.0,
+      "y": 4.0
+    }
+  }
+}

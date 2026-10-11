@@ -112,6 +112,7 @@ var _picking := Picking.new()
 ## Stable world-position identities survive seasonal visual replacement. Records
 ## are presentation metadata; felling/growth state will belong to the flora system.
 var _trees: Dictionary = {}  # Vector2i(wx, wz) -> {name, stage, cell, node, bounds}
+var _flight_tree_reach := 32.0 # Conservative initial canopy broad-phase radius.
 const FellingSource = preload("res://scripts/components/TreeFellingComponent.gd")
 var _tree_changes: Dictionary = {} # Vector2i -> authoritative, saveable forestry delta
 var _felling_sources: Dictionary = {} # Vector2i -> TreeFellingComponent
@@ -468,6 +469,7 @@ func _instance_tree(species_name: String, model_path: String, stage_name: String
 		"cell": Vector3i(wx, ground_y, wz), "node": root,
 		"model_path": model_path,
 		"bounds": Picking.world_bounds(root), "occupancy_id": int(root.get_meta("occupancy_id", -1))}
+	_track_flight_reach(_trees[tree_id].bounds,root.position)
 	_update_felling_marker(tree_id)
 	_spawned_count += 1
 	return root
@@ -834,6 +836,27 @@ func get_spawn_stats() -> Dictionary:
 		"pending_columns": _pending.size(),
 		"season": _season,
 	}
+
+
+## Flying wildlife respects whole canopies, including sliced/hidden trees.
+## Ground occupancy remains trunk-only. Query nearby streamed columns instead
+## of scanning the entire forest on each flight step.
+func flight_obstacles(area: AABB) -> Array[AABB]:
+	var result: Array[AABB] = []
+	var search := area.grow(_flight_tree_reach)
+	for x in range(maxi(0,floori(search.position.x/16)),mini(63,floori(search.end.x/16))+1):
+		for z in range(maxi(0,floori(search.position.z/16)),mini(63,floori(search.end.z/16))+1):
+			for node: Node3D in _loaded_columns.get(Vector2i(x,z),[]):
+				if not is_instance_valid(node): continue
+				var id: Vector2i = node.get_meta("tree_id",Vector2i(-1,-1))
+				if not _trees.has(id) or bool(_tree_changes.get(id,{}).get("felled",false)): continue
+				var box: AABB = _trees[id].bounds
+				if area.intersects(box): result.append(box)
+	return result
+
+func _track_flight_reach(box: AABB, origin: Vector3) -> void:
+	_flight_tree_reach = maxf(_flight_tree_reach,maxf(absf(box.position.x-origin.x),absf(box.end.x-origin.x)))
+	_flight_tree_reach = maxf(_flight_tree_reach,maxf(absf(box.position.z-origin.z),absf(box.end.z-origin.z)))
 
 
 # ── Object explorer provider ──────────────────────────────────────────────────
@@ -1234,6 +1257,7 @@ func _refresh_tree_crop_visual(tree_id: Vector2i) -> void:
 	node.move_child(visual, 0)
 	tree.model_path = path
 	tree.bounds = Picking.world_bounds(node)
+	_track_flight_reach(tree.bounds,node.position)
 
 
 func _remove_tree_visual(tree_id: Vector2i) -> void:

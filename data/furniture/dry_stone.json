@@ -1,0 +1,18 @@
+{
+  "furniture_key": "base:water:dry_stone",
+  "furniture_category": "water",
+  "display_name": "Dry stone",
+  "description": "Absorbs excess water above its retained level while placed. Inactive when packed, carried or stored.",
+  "model": "res://assets/models/world/water/dry_stone.glb",
+  "item_key": "base:resources:water:dry_stone",
+  "water_stone": "dry",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false
+}

@@ -1,5 +1,13 @@
 # 23 — User Interface
 
+**Object permissions (2026-10-10):** loose goods and placed water stones expose
+Allow/Disallow in Object explorer. Storage Contents has a separate toggle for
+each physical stack; inventory reports Disallowed alongside available/reserved
+goods. Disallow never hides an object or stops a placed stone's water effect.
+Allowed placed stones offer Move and Pack for storage; allowed packed stones
+can be placed through their inspector or Place → Water. See
+[110 — Permissions and movable stones](../00_dev_roadmap/110_item_permissions_and_water_stones.md).
+
 **Profession crafting (2026-10-09):** Craft opens profession icon submenus above
 the dock. Choosing Rudimentary opens Worker recipes with grouped categories and
 that section's live order queue; Crafters returns to the chooser.
@@ -38,6 +46,14 @@ container uninstall, native window dragging and world-input isolation remain.
 See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).
 
 ## Object explorers (implemented 2026-10-04)
+
+**Wildlife (updated 2026-10-10):** rabbits, deer, wolves and ducks share Object
+explorer, Locate and Follow. Ducks remain inspectable while swimming, on shore
+and in flight; wakes/splashes do not enlarge their pick bounds. Hidden slice
+levels hide birds and effects together; full-world view includes high flights.
+**Menu → Development → DEV: Next duck** locates a seeded duck and **DEV: Next
+duck arrival** locates entered members of later flocks. See
+[111 — Duck wildlife](../00_dev_roadmap/111_duck_wildlife.md).
 
 **Juniper berries (2026-10-09):** tree Fruit/Fruit season rows now show juniper's
 autumn crop, including too young, out of season, ready, worker progress and
@@ -281,14 +297,17 @@ brief **Autosaved.** toast and never replaces the player's manual save.
 The save records the deterministic world seed plus authoritative deltas/state: mined
 blocks and designations, the settlement flag and dwarf roster, stockpile zones and
 contents, furniture ghosts/installed pieces and container inventories, loose items,
-calendar/weather, camera, and slice state. Load regenerates the seed-identical base
+calendar/weather, finite water and stone identities, item/stack permissions,
+wildlife/arrival progress, camera, and slice state. Load regenerates the seed-identical base
 world and reapplies those sections in dependency order. Tasks, leases, reservations,
 navigation/render caches, and interior-region tables are transient or derived and are
 rebuilt. Snapshot creation is observational: it never releases a worker, changes an
 assignment, or clears a reservation. Items currently in transit are recorded with their
 carrier and materialize loose at that dwarf's saved position on load, where rebuilt work
 sources can reclaim them. The dock shows a short success/error toast, including the
-no-save-yet and world-still-generating cases.
+no-save-yet and world-still-generating cases. Required owner sections and typed
+records are validated before changing the world; an empty scene or malformed
+section cannot bypass backup recovery. Older development saves are not migrated.
 
 The complete schema, ownership contract, restore lifecycle, and verification record live
 in `00_dev_roadmap/20_save_load.md`.
@@ -464,7 +483,7 @@ These are the top-level tag groups shown in the filter panel UI:
 |---|---|---|
 | Stone | `stockpile_stone` | Mined rock and construction stone |
 | Ore | `stockpile_ore` | Copper, tin, iron, silver, coal, gold |
-| Gems | `stockpile_gem` | Raw ruby, raw sapphire |
+| Gems | `stockpile_gem` | Ruby, sapphire — brilliant when mined |
 | Soil | `stockpile_soil` | Cave soil, light soil, dark soil |
 | Wood | `stockpile_wood` | Pine, oak, juniper logs, apple wood, and crafted staves |
 | Food | `stockpile_food` | Mushrooms, grains, berries, seeds |

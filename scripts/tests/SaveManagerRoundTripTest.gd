@@ -30,6 +30,8 @@ var _world_clock: Node = null
 var _content_reference: Dictionary = {}
 var _terrain_reference: String = ""
 var _fixture_origin: Vector2i
+var _weather_reference: Dictionary = {}
+var _weather_future: Array[String] = []
 
 
 func _init() -> void:
@@ -59,6 +61,12 @@ func _run() -> void:
 		return
 
 	var expected_seed := int(_world_generator.get("world_seed"))
+	# An untouched world is usable even before settlement: empty collections
+	# are legitimate, but missing owners or malformed fields are not.
+	var fresh_error := String(_save_manager.call("_validate_snapshot", _save_manager.call("_build_snapshot")))
+	if not fresh_error.is_empty():
+		_fail("fresh world rejected: %s" % fresh_error)
+		return
 	_terrain_reference = _terrain_fingerprint()
 	if not _choose_fixture_origin():
 		_fail("could not find natural ground for the save fixture")
@@ -68,6 +76,19 @@ func _run() -> void:
 		_fail(setup_error)
 		return
 	_content_reference = _collect_scene_state()
+	# Save non-initial finite volumes, a paused source and a real solid dam.
+	var water := root.get_node("WaterManager")
+	water.dev_toggle_dam()
+	for _i in 50: water.step(0.1)
+	water.source_enabled = false
+	water.extract(_world_generator.river_layout.outlet,2.345678)
+	_content_reference = _collect_scene_state()
+	_weather_reference = root.get_node("WeatherManager").serialize_state()
+	_weather_future = _weather_forecast()
+	var validation_error := _verify_snapshot_validation()
+	if not validation_error.is_empty():
+		_fail(validation_error)
+		return
 
 	# Advancing the timer by one interval must write only the independent
 	# autosave slot and must not mutate authoritative scene state.
@@ -178,14 +199,159 @@ func _run() -> void:
 	if not bool(repaired_primary.get("ok", false)):
 		_fail("backup load did not repair the primary slot")
 		return
+	var structural_error := await _verify_structural_recovery(expected_seed)
+	if not structural_error.is_empty():
+		_fail(structural_error)
+		return
 
 	var inflight_error := _run_inflight_carried_case()
 	if not inflight_error.is_empty():
 		_fail(inflight_error)
 		return
+	var rejection_error := _verify_rejected_load_preserves_world()
+	if not rejection_error.is_empty():
+		_fail(rejection_error)
+		return
 
 	print("SAVE_MANAGER_ROUND_TRIP_OK")
 	_cleanup_and_quit(0)
+
+
+func _verify_snapshot_validation() -> String:
+	var valid: Dictionary = _save_manager.call("_build_snapshot")
+	# Exercise JSON's numeric representation, not only in-memory integers.
+	var parsed: Dictionary = JSON.parse_string(JSON.stringify(valid))
+	var error := String(_save_manager.call("_validate_snapshot", parsed))
+	if not error.is_empty(): return "complete snapshot rejected: %s" % error
+	var cases: Array[Dictionary] = []
+	var empty_scene := parsed.duplicate(true)
+	empty_scene.scene = {}
+	cases.append({"name": "empty scene", "snapshot": empty_scene})
+	for field: String in ["schema_version", "project", "saved_at_utc", "world_seed", "clock", "weather", "scene"]:
+		var missing := parsed.duplicate(true)
+		missing.erase(field)
+		cases.append({"name": "missing " + field, "snapshot": missing})
+	for section: String in parsed.scene:
+		var missing := parsed.duplicate(true)
+		missing.scene.erase(section)
+		cases.append({"name": "missing scene." + section, "snapshot": missing})
+		for invalid in [null, [], "invalid", false, 12, {}]:
+			var malformed := parsed.duplicate(true)
+			malformed.scene[section] = invalid
+			cases.append({"name": "malformed scene." + section, "snapshot": malformed})
+	for change in [
+		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":-1}]],
+		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":1.5}]],
+		[["scene","water","flow","cells"],[{"cell":[1024,18,10],"units":100}]],
+		[["scene","water","flow","active"],[[10,-1,10]]],
+		[["scene","water","accumulator_usec"],-1],
+		[["scene","water","layout_version"],preload("res://scripts/components/RiverLayout.gd").VERSION-1],
+		[["scene","water","stones","wet","disallowed"],"true"],
+		[["scene","water","stones","wet","kind"],"unknown"],
+		[["scene","water","stones","wet","placed"],false],
+		[["scene","water","next_stone_id"],0],
+		[["scene","water","stones"],{}],
+		[["scene"], {}], [["scene"], []], [["clock"], {}], [["weather"], {}],
+		[["world_seed"], "123"], [["world_seed"], true], [["world_seed"], 1.5],
+		[["schema_version"], "1"], [["schema_version"], 1.5], [["schema_version"], true],
+		[["clock", "paused"], "false"], [["clock", "hour"], []],
+		[["clock", "day"], 0], [["clock", "season"], ""],
+		[["weather", "rng_state"], 1234], [["weather", "rng_state"], "9223372036854775808"],
+		[["scene", "items", "loose"], {}], [["scene", "items", "loose"], [null]],
+		[["scene", "items", "loose"], [{}]],
+		[["scene", "items", "loose", 0, "position"], [1, "2", 3]],
+		[["scene", "items", "loose", 0, "count"], false],
+		[["scene", "items", "loose", 0, "disallowed"], "false"],
+		[["scene", "dwarves", "roster"], {}], [["scene", "dwarves", "roster"], ["dwarf"]],
+		[["scene", "mining", "mined_blocks"], [[1, 2]]],
+		[["scene", "mining", "mined_blocks"], [[1, 2.5, 3]]],
+		[["scene", "wildlife", "rabbits"], [{}]],
+		[["scene", "wildlife", "ducks"], [{}]],
+		[["scene", "wildlife", "duck_initialized"], "true"],
+		[["scene", "world_events", "schedules"], []],
+		[["scene", "camera", "target_position"], [1, 2]],
+		[["scene", "slice", "active"], 1],
+	]:
+		var malformed := parsed.duplicate(true)
+		var target: Variant = malformed
+		var path: Array = change[0]
+		for index in range(path.size() - 1): target = target[path[index]]
+		target[path.back()] = change[1]
+		cases.append({"name": str(path), "snapshot": malformed})
+	for entry: Dictionary in cases:
+		if String(_save_manager.call("_validate_snapshot", entry.snapshot)).is_empty():
+			return "invalid snapshot accepted: " + entry.name
+	print("SAVE_VALIDATION_CASES_OK (%d malformed snapshots)" % cases.size())
+	return ""
+
+
+func _verify_structural_recovery(expected_seed: int) -> String:
+	for autosave in [false, true]:
+		var primary := TEST_AUTOSAVE if autosave else TEST_PRIMARY
+		var backup := TEST_AUTOSAVE_BACKUP if autosave else TEST_BACKUP
+		var original: Dictionary = _save_manager.call("_read_snapshot", primary)
+		var original_backup: Dictionary = _save_manager.call("_read_snapshot", backup)
+		if not original.ok or not original_backup.ok: return "recovery fixture is invalid"
+		var malformed: Dictionary = original.snapshot.duplicate(true)
+		if autosave: malformed.scene.dwarves = []
+		else: malformed.scene = {}
+		var paths: Dictionary = _save_manager.call("_autosave_paths" if autosave else "_quick_save_paths")
+		if String(_save_manager.call("_commit_snapshot", malformed, paths)).is_empty():
+			return "invalid temporary snapshot was committed"
+		for pair in [[primary, original], [backup, original_backup]]:
+			var retained: Dictionary = _save_manager.call("_read_snapshot", pair[0])
+			if not retained.ok or not _deep_diff(pair[1].snapshot, retained.snapshot, "save").is_empty():
+				return "rejected commit changed a healthy save/backup"
+		var write_error := String(_save_manager.call("_write_text_file", primary, JSON.stringify(malformed)))
+		if not write_error.is_empty(): return write_error
+		if bool(_save_manager.call("_read_snapshot", primary).ok): return "malformed primary passed disk validation"
+		# Saving over an invalid primary must retain the previous healthy backup.
+		if not bool(_save_manager.call("request_autosave" if autosave else "request_save")):
+			return "saving over invalid primary failed"
+		var retained_backup: Dictionary = _save_manager.call("_read_snapshot", backup)
+		if not retained_backup.ok or not _deep_diff(original_backup.snapshot, retained_backup.snapshot, "backup").is_empty():
+			return "invalid primary replaced the healthy backup"
+		write_error = String(_save_manager.call("_write_text_file", primary, JSON.stringify(malformed)))
+		if not write_error.is_empty(): return write_error
+		_load_completed = false
+		_load_succeeded = false
+		_load_used_backup = false
+		_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
+		if not bool(_save_manager.call("request_load_autosave" if autosave else "request_load")):
+			return "structurally invalid primary prevented backup recovery"
+		if not await _wait_for_load(LOAD_TIMEOUT_MSEC): return "structural recovery timed out"
+		if not _load_succeeded or not _load_used_backup: return "structural corruption bypassed backup recovery"
+		var error := _verify_restored_state(expected_seed)
+		if not error.is_empty(): return error
+		error = _deep_diff(_content_reference, _collect_scene_state(), "scene")
+		if not error.is_empty(): return "structural recovery lost colony data: " + error
+		var repaired: Dictionary = _save_manager.call("_read_snapshot", primary)
+		if not repaired.ok or not _deep_diff(original_backup.snapshot, repaired.snapshot, "save").is_empty():
+			return "structural recovery did not repair primary from backup"
+	return ""
+
+
+func _verify_rejected_load_preserves_world() -> String:
+	var scene_id := current_scene.get_instance_id()
+	var before: Dictionary = _save_manager.call("_build_snapshot")
+	var invalid := before.duplicate(true)
+	invalid.scene = {}
+	for path: String in [TEST_PRIMARY, TEST_BACKUP, TEST_AUTOSAVE, TEST_AUTOSAVE_BACKUP]:
+		var error := String(_save_manager.call("_write_text_file", path, JSON.stringify(invalid)))
+		if not error.is_empty(): return error
+	for request: String in ["request_load", "request_load_autosave"]:
+		_load_completed = false
+		_load_succeeded = true
+		_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
+		if bool(_save_manager.call(request)): return "load started with both generations invalid"
+		if not _load_completed or _load_succeeded: return "rejected load did not report failure"
+		if current_scene.get_instance_id() != scene_id or bool(_save_manager.call("is_loading")):
+			return "rejected load replaced the live scene"
+		var after: Dictionary = _save_manager.call("_build_snapshot")
+		after.saved_at_utc = before.saved_at_utc
+		var difference := _deep_diff(before, after, "live")
+		if not difference.is_empty(): return "rejected load mutated live world: " + difference
+	return ""
 
 
 func _build_nonempty_colony_state() -> String:
@@ -399,6 +565,7 @@ func _build_nonempty_colony_state() -> String:
 		"paused": true,
 	})
 	_add_cutting_fixtures(details, furniture, items)
+	_add_permission_fixtures(furniture, items)
 	if not _add_ladder_fixtures(): return "could not find two natural ladder sites"
 	var wildlife := _owner("wildlife")
 	if wildlife == null: return "wildlife save owner missing"
@@ -416,6 +583,20 @@ func _build_nonempty_colony_state() -> String:
 	deer[0].timer = 3.5
 	deer[0]._pose()
 	var wolves: Array = wildlife.animals_of_species("wolf")
+	var ducks: Array = wildlife.animals_of_species("duck")
+	if ducks.size()<6: return "seeded duck flocks missing"
+	var duck_flying := false
+	for duck: Node3D in ducks:
+		for destination: Dictionary in wildlife.duck_navigation.landing_candidates(duck.position,duck.rng):
+			var path: PackedVector3Array = wildlife.duck_navigation.flight_path(duck.position,destination.position)
+			if path.is_empty(): continue
+			duck.begin_flight(path,destination.cell)
+			duck.advance(.7,0,[])
+			duck.advance(.15,0,[])
+			duck_flying = true
+			break
+		if duck_flying: break
+	if not duck_flying: return "no clear duck flight for save fixture"
 	if wolves.size() != 4: return "seeded wolves missing"
 	wolves[0].begin_meal(wildlife.wolf_definition.hunting.prey["base:animal:deer"])
 	wolves[0].timer = 3.25
@@ -450,14 +631,14 @@ func _build_nonempty_colony_state() -> String:
 	var arrival: Node3D = wildlife.animals.back()
 	arrival.advance(.1, 0.0, [])
 	arrival.advance(.1, 0.0, [])
-	for species in ["deer", "wolf"]:
+	for species in ["deer", "wolf", "duck"]:
 		for i in range(2): wildlife.remove_animal(wildlife.animals_of_species(species).back(), "test")
 		var settings: Dictionary = {}
 		for candidate: Dictionary in events.config.events:
 			if candidate.species == species: settings = candidate
 		var state: Dictionary = events.schedules[settings.id]
 		var group: Dictionary = state.next.duplicate(true)
-		group.merge({"due": _world_clock.elapsed_days(), "count": 2 if species == "deer" else 1, "seed": "875323", "issued": 0, "wait": 0.0, "route": [], "edge": ""}, true)
+		group.merge({"due": _world_clock.elapsed_days(), "count": 2 if species == "deer" else 3 if species=="duck" else 1, "seed": "875323", "issued": 0, "wait": 0.0, "route": [], "edge": ""}, true)
 		for attempt in range(int(settings.entry_attempts)):
 			group.attempt = attempt
 			var candidate: Dictionary = wildlife.prepare_arrival(settings, group, events)
@@ -594,6 +775,39 @@ func _add_cutting_fixtures(details: Node, furniture: Node, items: Node) -> void:
 		"origin":_pack_v3i(_surface_cell(44,3)),"plant_work":.8,"yaw":1})
 
 
+func _add_permission_fixtures(furniture: Node, items: Node) -> void:
+	# Exact permissions, active packing and more than one stone pair.
+	items.set_disallowed(items._loose.keys()[0],true)
+	for zone in root.get_node("StockpileManager")._zones.values():
+		if not zone.cell_stacks.is_empty(): zone.set_disallowed(zone.cell_stacks.keys()[0],true)
+	for piece in furniture._installed.values():
+		if piece.storage != null and not piece.storage.stored_entries().is_empty():
+			piece.storage.set_disallowed(piece.storage.stored_entries().keys()[0],true)
+	var water := root.get_node("WaterManager")
+	water.stones.wet.disallowed = false
+	water.stones.wet.packing = true
+	water.stones.wet.work = .65
+	furniture._restore_ghost({"id":401,"key":"base:water:wet_stone","origin":_pack_v3i(_surface_cell(46,3)),"yaw":0,"stone_id":"wet"})
+	for kind in ["wet","dry"]: water.grant_stone(kind,_surface_cell(46,5)+Vector3i.UP)
+	var id: String = water.grant_stone("dry",_surface_cell(46,6)+Vector3i.UP)
+	for piece in furniture._installed.values():
+		if piece.storage == null: continue
+		var storage = piece.storage
+		var token = storage._slots.reserve("base:resources:water:dry_stone",1,-1,Vector3i.ZERO,true)
+		if token == null: continue
+		for node in items._loose.keys():
+			if node.get_meta("instance_id","") != id: continue
+			items.set_disallowed(node,false)
+			items.take(node)
+			token["instance_id"] = id
+			token["disallowed"] = true
+			storage._commit_one(token,"base:resources:water:dry_stone")
+			storage._place_visual(node,token)
+			break
+		break
+	root.get_node("StockpileManager").rebuild_totals()
+
+
 func _verify_restored_state(expected_seed: int) -> String:
 	if int(_world_generator.get("world_seed")) != expected_seed:
 		return "world seed did not round-trip"
@@ -612,6 +826,10 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "clock hour/speed did not restore from the backup snapshot"
 	if not bool(_world_clock.get("paused")):
 		return "clock paused state did not round-trip"
+	if root.get_node("WeatherManager").serialize_state() != _weather_reference:
+		return "current weather or exact RNG state did not round-trip"
+	if _weather_forecast() != _weather_future:
+		return "future weather sequence diverged after load"
 
 	var scene_state := _collect_scene_state()
 	var expected_keys := [
@@ -633,7 +851,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 3:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
-	if furniture_state.get("ghosts", []).size() != 4 or furniture_state.get("installed", []).size() != 5:
+	if furniture_state.get("ghosts", []).size() != 5 or furniture_state.get("installed", []).size() != 5:
 		return "furniture state did not round-trip"
 	var rooms := root.get_node("RoomManager")
 	if rooms.get_door_boundaries().size() != 10 or int(rooms.get_stats().doors) != 1:
@@ -641,7 +859,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
 	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 600:
 		return "installed light/heat duplicated across world reload"
-	if (scene_state["items"] as Dictionary).get("loose", []).size() != 10:
+	if (scene_state["items"] as Dictionary).get("loose", []).size() != 12:
 		return "loose items did not round-trip"
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])
 	if roster.size() != 3 or not bool((roster[0] as Dictionary).get("sleeping", false)):
@@ -663,6 +881,17 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if not bool(slice_state.get("active", false)) or int(slice_state.get("slice_y", -1)) != 25:
 		return "slice state did not round-trip"
 	return ""
+
+
+## Probe upcoming seasonal draws without advancing the colony or RNG stream.
+func _weather_forecast() -> Array[String]:
+	var weather := root.get_node("WeatherManager")
+	var saved_state: int = weather._rng.state
+	var sequence: Array[String] = []
+	for season in ["spring", "summer", "autumn", "winter"]:
+		for day in range(28): sequence.append(weather._weather_for_season(season))
+	weather._rng.state = saved_state
+	return sequence
 
 
 func _collect_scene_state() -> Dictionary:
@@ -725,6 +954,12 @@ func _run_inflight_carried_case() -> String:
 		return "in-flight case: save-state owners missing after reload"
 	var loose_before := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
 	var carrier_cell := _surface_cell(16, 0)
+	var water := root.get_node("WaterManager")
+	var stone_id: String = water.grant_stone("wet",carrier_cell+Vector3i.UP,false)
+	for item in items._loose.keys():
+		if item.get_meta("instance_id","")==stone_id:
+			items.take(item)
+			item.free() # Saved cargo below owns it, as a real carried item would.
 	var details := _owner("surface_details")
 	var plant_ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("blueberry:"))
 	plant_ids.sort()
@@ -767,17 +1002,22 @@ func _run_inflight_carried_case() -> String:
 			"sleeping": true,
 			"sleep_hours_left": 5.0,
 			"carried_items": [
-				"base:resources:stone:rough_stone",
+				{"item_key": "base:resources:stone:rough_stone", "count": 1, "disallowed":true},
 				{"item_key": "base:resources:seed:pine_cone", "count": 24},
 				{"item_key": "base:resources:plant:blueberry_bush", "count": 1, "instance_id": plant_id},
 				{"item_key": flower_item, "count": 1, "instance_id": flower_id},
+				{"item_key": "base:resources:water:wet_stone", "count": 1, "instance_id":stone_id, "disallowed":true},
 			],
 		}],
 	})
 	var loose_after := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
-	if loose_after != loose_before + 4:
-		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +4)" \
+	if loose_after != loose_before + 5:
+		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +5)" \
 			% [loose_before, loose_after]
+	var stone_count := 0
+	for drop: Dictionary in items.serialize_state().loose:
+		if drop.get("instance_id","")==stone_id and drop.disallowed: stone_count+=int(drop.count)
+	if stone_count!=1 or water.stones[stone_id].placed: return "in-flight stone lost its identity, permission or inactive state"
 	var carried_cones := 0
 	for drop in (items.call("serialize_state") as Dictionary).get("loose", []):
 		if String(drop.item_key) == "base:resources:seed:pine_cone":

@@ -195,6 +195,23 @@ func stored_entries() -> Dictionary:
 	return {}
 
 
+func slot_allowed(slot: Variant) -> bool:
+	return stored_entries().has(slot) and not bool(stored_entries()[slot].get("disallowed", false))
+
+
+func set_disallowed(slot: Variant, value: bool) -> void:
+	if not stored_entries().has(slot): return
+	stored_entries()[slot]["disallowed"] = value
+	var visual: Node3D
+	if self is StockpileZoneComponent: visual = drop_manager.stored_node_at(slot)
+	elif self is ContainerStorageComponent:
+		var container := self as ContainerStorageComponent
+		if int(slot) < container._anchor_slots.size() and container._anchor_slots[int(slot)] != null: visual = container._anchor_slots[int(slot)][0]
+	if is_instance_valid(visual): visual.set_meta("disallowed", value)
+	StockpileManager.permissions_changed()
+	changed.emit()
+
+
 func storage_capacity() -> int:
 	return 0
 
@@ -434,13 +451,14 @@ func placement_haul_items(dwarf_id: int) -> Array[Dictionary]:
 		if not stored and not drop_manager.reserved_by(item, dwarf_id): continue
 		var instance_id := String(item.get_meta("instance_id", ""))
 		if stored:
+			if not pull.transfer.source.slot_allowed(pull.transfer.token.slot): continue
 			var stack: Dictionary = pull.transfer.source.stored_entries().get(pull.transfer.token.slot, {})
 			instance_id = String(stack.get("instance_id", ""))
 		result.append({"item": item, "key": String(token.item),
 			"count": int(token.count) if stored else int(drop_manager.quantity_of(item)),
 			"instance_id": instance_id, "carried": false})
 	for item: Node3D in pull.cargo:
-		if is_instance_valid(item) and not item.is_queued_for_deletion() and bool(pull.cargo[item].active):
+		if drop_manager.Permission.allowed(item) and not item.is_queued_for_deletion() and bool(pull.cargo[item].active):
 			result.append({"item": item, "key": String(pull.cargo[item].item),
 				"count": int(drop_manager.quantity_of(item)),
 				"instance_id": String(item.get_meta("instance_id", "")), "carried": true})
@@ -516,7 +534,8 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 	# Validate the whole delivery before changing counts. A failed commit leaves
 	# every node with the dwarf, whose release path drops all cargo safely.
 	for entry: Array in carried:
-		if not accepts_key(String(entry[1])): return false
+		if not accepts_key(String(entry[1])) or not drop_manager.Permission.allowed(entry[0]): return false
+		if bool(stored_entries().get(pull.cargo.get(entry[0], {}).get("slot"), {}).get("disallowed", false)): return false
 		if not pull.cargo.has(entry[0]) or not bool(pull.cargo[entry[0]].active):
 			return false
 		var token: Dictionary = pull.cargo[entry[0]]
@@ -526,6 +545,7 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 		var node: Node3D = entry[0]
 		var key: String = entry[1]
 		var token: Dictionary = pull.cargo[node]
+		token["disallowed"] = not drop_manager.Permission.allowed(node)
 		if node.has_meta("instance_id"): token["instance_id"] = node.get_meta("instance_id")
 		_commit_one(token, key)
 		_place_visual(node, token)

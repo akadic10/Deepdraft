@@ -608,7 +608,7 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 			show_persistence_status(events.dev_status())
 			_persistence_toast_until_msec = Time.get_ticks_msec()+6000
 		return
-	if target == "wildlife" and label in ["DEV: Next rabbit","DEV: Next deer","DEV: Next wolf","DEV: Next arrival","DEV: Next deer arrival","DEV: Next wolf arrival"]:
+	if target == "wildlife" and label in ["DEV: Next rabbit","DEV: Next deer","DEV: Next wolf","DEV: Next duck","DEV: Next duck arrival","DEV: Next arrival","DEV: Next deer arrival","DEV: Next wolf arrival"]:
 		var wildlife := get_tree().get_first_node_in_group("wildlife")
 		if wildlife != null:
 			var found: String = wildlife.call("dev_locate_next",label.trim_prefix("DEV: Next "))
@@ -696,7 +696,7 @@ func _toggle_window(target: String) -> void:
 		var director := get_tree().get_first_node_in_group("dwarf_director")
 		if director != null: director.open_work_view()
 		return
-	if target in ["dwarves", "caves_dev"] and _window_manager != null and not _window_manager.is_open(target):
+	if target in ["dwarves", "caves_dev", "water_dev"] and _window_manager != null and not _window_manager.is_open(target):
 		tool_requested.emit("")
 		if _orders != null: _orders.set_open(false)
 	if target in ["stockpiles", "inventory"]:

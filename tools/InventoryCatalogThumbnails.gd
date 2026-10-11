@@ -44,16 +44,11 @@ func _run() -> void:
 		light.light_color = Color("ffe4bb")
 		light.light_energy = 1.2
 		scene.add_child(light)
-		var model: Node3D = load(String(definition.model)).instantiate()
+		var model: Node3D = registry.create_item_visual(key)
 		scene.add_child(model)
 		var bounds := AABB()
 		var first := true
-		var material := StandardMaterial3D.new()
-		material.vertex_color_use_as_albedo = true
-		material.roughness = 1
-		material.cull_mode = BaseMaterial3D.CULL_DISABLED
 		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
-			mesh.material_override = material
 			var box: AABB = model.global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 			bounds = box if first else bounds.merge(box)
 			first = false

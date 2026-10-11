@@ -54,6 +54,17 @@ func is_cave_discovered(cave_id: int) -> bool:
 	return _discovered_caves.has(cave_id)
 
 
+## Surface-connected caves are exposed by generation, not by a fictional
+## mining edit. Re-derived on each new world/load; enclosed caves stay hidden.
+func reveal_surface_caves() -> void:
+	for cave: Dictionary in WorldGenerator.get_cave_catalog():
+		if not cave.get("surface_open",false) or _discovered_caves.has(cave.id): continue
+		_discovered_caves[cave.id] = true
+		var cells := WorldGenerator.get_cave_air_cells(cave.id)
+		for cell: Vector3i in cells: _add_cell(cell)
+		caves_discovered.emit(cells)
+
+
 func discovered_cave_count() -> int:
 	return _discovered_caves.size()
 

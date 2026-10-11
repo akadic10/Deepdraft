@@ -1,0 +1,33 @@
+{
+  "failures": [],
+  "gems": 6,
+  "measurements": {
+    "amethyst_geometry": {
+      "grid_error": 0.0000647375563858077,
+      "normal_error": 0.000125841877888888
+    },
+    "diamond_geometry": {
+      "grid_error": 0.0000647375563858077,
+      "normal_error": 0.000125841877888888
+    },
+    "emerald_geometry": {
+      "grid_error": 0.0000647375563858077,
+      "normal_error": 0.000125841877888888
+    },
+    "gloss_difference": 0.00519625357335149,
+    "jade_geometry": {
+      "grid_error": 0.0000647375563858077,
+      "normal_error": 0.000125841877888888
+    },
+    "ruby_geometry": {
+      "grid_error": 0.0000647375563858077,
+      "normal_error": 0.000125841877888888
+    },
+    "sapphire_geometry": {
+      "grid_error": 0.0000647375563858077,
+      "normal_error": 0.000125841877888888
+    },
+    "sealed_sun_difference": 0.0,
+    "torch_difference": 0.0349818204486774
+  }
+}

@@ -4,7 +4,19 @@
 
 Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositing raw materials into nearby stockpiles. The geological composition of the mountain is procedurally generated and affects resource yield, structural stability, and collapse risk.
 
+**Gem drops (2026-10-10):** Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond
+drop as finished, gleaming valuables. No Jeweller, cutting or polishing stage is
+planned. The six shared voxel models and inventory thumbnails use distinct
+palettes and light-dependent highlights, including under local torches. Gems
+obey normal underground darkness, slice visibility, carrying and storage rules.
+Existing `_raw` item keys, drop chances, values and counts remain unchanged;
+the displayed names omit "Raw". See [104](../00_dev_roadmap/104_gem_drop_artwork.md).
+
 ## Geological Spectrum
+
+Wet and dry stones are loose ore-shaped world models, without terrain block IDs
+or mining yields. Surrounding rock remains editable; their source/drain behavior
+stays fixed. See [109](../00_dev_roadmap/109_loose_water_stones.md).
 
 | Block Key | Category | Hardness | Yield | Notes |
 |---|---|---|---|---|
@@ -446,8 +458,18 @@ remain available to flora, flag placement and other consumers.
 
 Main lake floor Y11 / waterline Y18 and tarn floor Y47 / waterline Y54 remain the
 current profile values. Main lakes can be inland or meet any edge; tarns require
-a full 3×3 mountain-shelf surround. The water simulation itself remains future
-work ([doc 33](../30_simulation_systems/33_water_simulation.md)).
+a full 3×3 mountain-shelf surround. These maps describe initial water occupancy;
+live volumes belong to `WaterManager` ([doc 33](../30_simulation_systems/33_water_simulation.md)).
+
+**River generation — live 2026-10-10:** after macro validation and edge detail,
+`RiverLayout` chooses a downhill connection from an upper rock-face spring to the
+main lake. It preserves Y115 summit columns, cuts authoritative channels, adds
+quiet pools and starts shallow river reaches with a hydraulic gradient. Caves
+are placed afterwards, respecting the resulting water buffers. A natural lake
+fissure drains only excess above its fixed threshold. Stored water is finite;
+mining/solid edits can divert it or cause flooding. `waterline_map` is immutable
+seed data, not a live water-level query. Terrain meshes draw actual beds;
+`WaterRenderer` supplies changing surfaces and cascades. See roadmap 105.
 
 ### Seed and noise
 

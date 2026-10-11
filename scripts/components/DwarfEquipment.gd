@@ -65,7 +65,7 @@ func tick(delta: float) -> void:
 	if stage == "finding":
 		_find_tool()
 		return
-	if not is_instance_valid(item) or (not _lifted and not _items.reserved_by(item, agent.dwarf_id)):
+	if not preload("res://scripts/components/ItemPermission.gd").allowed(item) or (not _lifted and not _items.reserved_by(item, agent.dwarf_id)):
 		cancel("Promotion cancelled: the tool is no longer available.")
 		return
 	if stage == "walking":

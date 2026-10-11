@@ -67,16 +67,20 @@ func restore_inventory(saved: Dictionary, item_manager: Node, instances: Array =
 	var remaining_counts := saved.duplicate()
 	for entry: Dictionary in instances:
 		var key := String(entry.item)
-		if int(remaining_counts.get(key, 0)) <= 0: continue
-		remaining_counts[key] = int(remaining_counts[key]) - 1
-		var token = _slots.reserve(key, 1, -1, Vector3i.ZERO)
+		var amount := int(entry.count)
+		if int(remaining_counts.get(key, 0)) < amount: continue
+		remaining_counts[key] = int(remaining_counts[key]) - amount
+		var token = _slots.reserve(key, amount, -1, Vector3i.ZERO, true)
 		if token == null:
-			item_manager.restore_loose_item(key, Vector3(cells[0]) + Vector3(.5,1,.5), 0.0, 1, String(entry.instance_id))
+			item_manager.restore_loose_item(key, Vector3(cells[0]) + Vector3(.5,1,.5), 0.0, amount, String(entry.get("instance_id", "")), bool(entry.get("disallowed", false)))
 			continue
-		token["instance_id"] = entry.instance_id
+		if entry.has("instance_id"): token["instance_id"] = entry.instance_id
+		token["disallowed"] = bool(entry.get("disallowed", false))
 		_commit_one(token, key)
 		if render_contents:
-			_place_visual(item_manager.create_item_visual(key, 1, String(entry.instance_id)), token)
+			var visual: Node3D = item_manager.create_item_visual(key, amount, String(entry.get("instance_id", "")))
+			visual.set_meta("disallowed", bool(entry.get("disallowed", false)))
+			_place_visual(visual, token)
 	for item_key in remaining_counts:
 		var remaining := maxi(int(remaining_counts[item_key]), 0)
 		while remaining > 0:
@@ -210,6 +214,7 @@ func withdraw_nearest(item_key: String, _near: Vector3i, dwarf_id: int) -> Node3
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return null
 	for slot in _slots.entries:
+		if not slot_allowed(slot): continue
 		if drop_manager.instance_promised(String(_slots.entries[slot].get("instance_id", ""))): continue
 		if int(_slots.entries[slot].count) > int(_outgoing.get(slot, {}).get("count", 0)) and String(_slots.entries[slot].item) == item_key:
 			return withdraw_stack(slot, 1, dwarf_id)
@@ -245,7 +250,7 @@ func withdrawal_item_cell(_slot: Variant) -> Vector3i:
 
 
 func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
-	if suspended or not _slots.entries.has(slot): return null
+	if suspended or not slot_allowed(slot): return null
 	var stack: Dictionary = _slots.entries[slot]
 	var item_key := String(stack.item)
 	if amount <= 0 or amount > int(stack.count): return null
@@ -292,18 +297,9 @@ func dump_contents(at_cell: Vector3i) -> int:
 			_anchor_slots[i] = null
 	var dumped := 0
 	for stack: Dictionary in _slots.entries.values():
-		if not stack.has("instance_id"): continue
-		drop_manager.restore_loose_item(String(stack.item), Vector3(at_cell) + Vector3(.5,1,.5), 0.0, 1, String(stack.instance_id))
-		inventory[stack.item] = int(inventory[stack.item]) - 1
-		if changed_callback.is_valid(): changed_callback.call(String(stack.item), -1)
-		dumped += 1
-	for item_key: String in inventory.keys():
-		var count := int(inventory[item_key])
-		if count > 0:
-			drop_manager.call("spawn_drop", item_key, count, Vector3i(at_cell.x, at_cell.y + 1, at_cell.z))
-			if changed_callback.is_valid():
-				changed_callback.call(item_key, -count)
-			dumped += count
+		drop_manager.restore_loose_item(String(stack.item), Vector3(at_cell)+Vector3(.5,1,.5), 0.0, int(stack.count), String(stack.get("instance_id", "")), bool(stack.get("disallowed", false)))
+		if changed_callback.is_valid(): changed_callback.call(String(stack.item), -int(stack.count))
+		dumped += int(stack.count)
 	inventory.clear()
 	_slots.entries.clear()
 	return dumped

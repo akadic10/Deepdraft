@@ -60,7 +60,7 @@ The colony's metalworking chain converts raw ore into the tools, weapons, and ar
 This system closes the two open placeholders in prior design docs:
 
 - `52_combat_military.md` states military gear is acquired through trade *"until a Weaponsmith exists."* The Weaponsmith profession defined here removes that constraint.
-- `51_visitors.md` lists *"Crafted goods (future: jewellery, furniture)"* as merchant buy priority 5. Forged items are now the first entries in that tier.
+- `51_visitors.md` lists crafted goods as merchant buy priority 5. Forged items are the first entries in that tier; mined gems are already finished valuables in tier 2.
 
 ---
 
@@ -366,7 +366,7 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 
 ## Forward Compatibility Notes
 
-- **Jeweller workshop** — raw gems (ruby, sapphire, emerald, diamond) have no production use today. A Jeweller workshop and `base:profession:jeweller` specialisation (parallel to Weaponsmith/Armorsmith) is the intended path for merchant tier 5 crafted goods. Design deferred to a follow-on doc.
+- **Gems are finished drops (user decision, 2026-10-10)** — Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond are beautiful and trade-ready immediately after mining. No Jeweller profession, workshop, cutting or polishing stage is planned. This replaces the earlier deferred Jeweller proposal. Their stable `_raw` identifiers do not imply unfinished goods. See [104 — Gem drops](../00_dev_roadmap/104_gem_drop_artwork.md).
 - **Steel tier** — `52_combat_military.md` notes steel as a future equipment quality tier above iron. When steel ore or a steel-making recipe is added, it slots into the existing smelting/forging pipeline with higher `min_skill` requirements and better damage/reduction values. No structural changes to this system are needed.
 - **Weaponsmith crafting for champions** — the champion invader AI (`52_combat_military.md` Forward Compatibility) may loot forged weapons on colony breach. The item drop pipeline already handles this; no new code needed.
 - **Copper and tin uses** — copper and tin ingots have no forge recipes yet. They are placeholder outputs for future systems: copper fittings for water/brewing infrastructure upgrades, tin for food preservation vessels. Do not delete them from the smelting table.

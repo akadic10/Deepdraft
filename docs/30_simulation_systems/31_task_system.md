@@ -1,5 +1,13 @@
 # 31 — Task System
 
+**2026-10-10 permissions:** disallowed physical goods are excluded from haul,
+material and tool queries and rejected at reservation/pickup/withdrawal/commit.
+Toggling Disallow releases affected work and reservations, returning carried
+goods intact. Placed water stones are never automatic haul targets: explicit
+packing reuses UNINSTALL, while Move reserves the resulting exact-instance item
+for a FETCH_BUILD plan. Packing progress survives interruption; the water effect
+stays active until the physical item is packed. See milestone 110.
+
 > **IMPLEMENTED (2026-06-10, doc 16 §2 — read that section first).** `TaskManager` autoload +
 > `Task` class shipped with the First Dwarf Milestone. The implementation **refines** this spec:
 > tasks are **intent-sized leases posted by work sources** (a mining zone posts ≤ `MAX_WORKERS`

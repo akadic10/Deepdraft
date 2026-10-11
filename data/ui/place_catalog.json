@@ -8,7 +8,8 @@
     {"id": "rooms", "label": "Rooms"},
     {"id": "workshops", "label": "Workshops"},
     {"id": "plants", "label": "Plants"},
-    {"id": "access", "label": "Access"}
+    {"id": "access", "label": "Access"},
+    {"id": "water", "label": "Water"}
   ],
   "items": [
     {"key": "base:furniture:wooden_table", "category": "dining", "label": "Personal table"},
@@ -42,6 +43,8 @@
     {"key": "base:detail:flowers_1", "category": "plants", "label": "Wildflowers Â· cream"},
     {"key": "base:detail:flowers_2", "category": "plants", "label": "Wildflowers Â· heather"},
     {"key": "base:detail:flowers_3", "category": "plants", "label": "Wildflowers Â· gold"},
-    {"key": "base:furniture:crude_ladder", "category": "access", "label": "Rough wooden ladder"}
+    {"key": "base:furniture:crude_ladder", "category": "access", "label": "Rough wooden ladder"},
+    {"key": "base:water:wet_stone", "category": "water", "label": "Wet stone"},
+    {"key": "base:water:dry_stone", "category": "water", "label": "Dry stone"}
   ]
 }

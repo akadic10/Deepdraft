@@ -1,5 +1,10 @@
 # 45 — Wildlife
 
+**Current scope — 2026-10-10:** rabbits, deer, wolves and ducks are live, including
+scheduled terrestrial/aerial arrivals. Current saves require all four species'
+arrays and initialization flags. Older development saves are not migrated; the
+historical milestone notes describe earlier formats, not compatibility promises.
+
 ## Rabbit pilot — live 2026-10-09
 
 The player approved rabbits first, with gentle animal hunger and sleep, then
@@ -31,14 +36,17 @@ arrivals shipped subsequently in milestone 94; the reserve floors remain intact.
 ## Ownership and navigation
 
 `WildlifeManager` is a scene owner alongside DwarfDirector and CraftingManager.
-It alone loads `data/entities/animals/rabbit.json`, `deer.json` and `wolf.json`, loads their
+It alone loads `data/entities/animals/rabbit.json`, `deer.json`, `wolf.json` and `duck.json`, loads their
 shared model parts, and owns generation, inspection and the `wildlife` save
 section. `GrazerAgent` owns common needs, decisions, terrain support and saved
 state; `RabbitAgent` supplies the original rabbit model/poses, while `DeerAgent`
 supplies articulated deer poses and herd steering. WolfAgent reuses common
 movement/rest but replaces grazing decisions with bounded pursuit. The manager
-owns prey claims and commits capture and meal together. No additional global
-classes or autoloads are registered.
+owns prey claims and commits capture and meal together. DuckAgent supplies
+water/land/air motion through DuckNavigation; DuckPopulation plans safe flocks
+and aerial arrivals. Flight checks query nearby tree canopies from
+SurfaceFloraSpawner as well as terrain and placed obstacles. No additional
+global classes or autoloads are registered.
 
 `AnimalNavigation` reads live WorldData chunks with generated-data fallback and
 PlacedEntityRegistry occupancy. Rabbits require a 1×1 footprint with two empty
@@ -83,15 +91,17 @@ leaf/nibble phrases, at 8% and 52% of the existing meal animation. It has three
 variations, a fourteen-block audible radius, zoom attenuation and a two-voice
 cap. Sleeping has no ambient sound. Grazing playback pauses with simulation and
 stops if the rabbit flees, becomes hidden, is removed or the scene changes.
-Sounds consume only cosmetic RNG, never animal RNG, and create no save fields.
+These rabbit cues consume only cosmetic RNG, never animal RNG, and create no
+save fields. Ducks instead save their behavior's quack timer; playback variation
+still uses cosmetic RNG.
 
 Save priority 65 restores the entire population after dwarves and before the
 camera/slice. Identity, current/home/target cells, position, yaw, appetite,
 fatigue, activity, timers, hop progress and pose phase survive. Each rabbit's
 64-bit RNG state is stored as text to avoid JSON numeric precision loss. Saving
 is observational. An initialized empty population is not reseeded on load;
-it can receive future scheduled arrivals. Older saves
-without this optional section receive the ordinary seeded population on load.
+it can receive future scheduled arrivals. The `wildlife` owner and all current
+species fields are required by SaveSnapshotValidator before restoration.
 
 ## Deer — live 2026-10-09
 
@@ -118,10 +128,9 @@ without this optional section receive the ordinary seeded population on load.
   visibility and source cleanup follow the rabbit rules. Sleeping is silent.
 - Object explorer includes herd size and the existing Locate/Follow controls.
   **Menu → Development → DEV: Next deer** cycles the population.
-- The optional `deer` array and `deer_initialized` flag share the `wildlife` save
+- The required `deer` array and `deer_initialized` flag share the `wildlife` save
   section with unchanged rabbit records. Each deer saves its herd ID in addition
-  to the common state. Rabbit-only saves seed deer once without replacing their
-  rabbits; explicitly saved empty deer populations are not reseeded but can
+  to the common state. Explicitly saved empty deer populations are not reseeded but can
   receive future scheduled arrivals.
 
 Art generators, checks and playtest notes: [92 — Deer wildlife](../00_dev_roadmap/92_deer_wildlife.md).
@@ -160,11 +169,10 @@ Art generators, checks and playtest notes: [92 — Deer wildlife](../00_dev_road
   block range. Sleep has no ambient audio; selection can play while paused.
 - The inspector shows activity, needs, diet and hunting/satisfaction status.
   **Menu → Development → DEV: Next wolf** locates the sparse population.
-- `wolves` and `wolf_initialized` extend the optional `wildlife` save section.
+- `wolves` and `wolf_initialized` are required in the `wildlife` save section.
   Target ID, pursuit time, retry/satisfaction hours and common state persist.
   Target nodes are rebound by ID; stale targets are abandoned without a meal.
-  Consumed prey remains absent on load. Older rabbit/deer saves gain wolves once
-  without replacing existing animals; explicitly empty wolf populations are not
+  Consumed prey remains absent on load. Explicitly empty wolf populations are not
   reseeded but can receive future eligible arrivals.
 
 Generators, checks and playtest notes: [93 — Wolf wildlife](../00_dev_roadmap/93_wolf_wildlife.md).
@@ -205,12 +213,34 @@ Wolves require five surplus prey per total living wolf above the existing
 32-rabbit/12-deer reserve floors, plus two eligible prey within 64 blocks of
 each destination. Food is rechecked before each entry. New wolves enter content
 and finish settling before hunting. Pending routes, members, herd identity and
-movement survive saves; older rabbit-event saves gain delayed new schedules.
+movement survive current saves. Newly configured event definitions receive delayed
+opportunities; this does not bypass validation of the current wildlife format.
 
 Full settings, native captures and checks:
 [95 — Deer and wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md).
 
 Pack coordination, breeding, corpse resources,
 player hunting, domestication and wolf/colonist combat remain separate decisions.
+
+## Ducks — live 2026-10-10
+
+Three seeded flocks of 2–4 ducks occupy calm water near grass/dirt shores.
+They swim at the live water level, walk onto reachable banks, forage, preen,
+rest and flee dwarves/wolves. Short flights allow escape and relocation, including
+to dry shores when tired. Waterfall approaches and cave water are excluded.
+Air routes check real terrain, occupied cells and tree canopy bounds both when
+planned and while moving. This does not change dwarf or terrestrial-animal paths.
+
+Male/female voxel art has articulated wings, heads and feet; wakes, splashes and
+quiet procedural quacks use existing water/world presentation and Work audio.
+The inspector and Follow work while walking, swimming or flying. Airborne state,
+needs, group identity and RNG survive current saves, including pending arrivals.
+New 2–5-member aerial opportunities every 4–7 days share the event director's
+seasonal/habitat/pressure gates and a population cap of 16.
+
+No eggs, breeding, domestication or duck predation is added. Wildlife water
+interaction is observational: ducks never create/remove water or vegetation.
+Settings, implementation, tests and playtest controls:
+[111 — Duck wildlife](../00_dev_roadmap/111_duck_wildlife.md).
 
 Verification and playtest steps: [90 — Rabbit wildlife](../00_dev_roadmap/90_rabbit_wildlife.md).

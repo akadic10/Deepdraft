@@ -173,7 +173,7 @@ func _install_occupancy(record: Dictionary, definition: Dictionary) -> void:
 func _block(pos: Vector3i) -> int:
 	if WorldData.get_chunk_if_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4) != null:
 		return WorldData.get_block(pos.x, pos.y, pos.z)
-	return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
+	return WorldData.get_live_block(pos.x, pos.y, pos.z)
 
 
 func _supported(record: Dictionary) -> bool:
@@ -183,7 +183,9 @@ func _supported(record: Dictionary) -> bool:
 		for z in range(o.z, o.z + int(definition.footprint)):
 			if not BlockRegistry.is_solid(_block(Vector3i(x, o.y, z))): return false
 			for y in range(o.y + 1, o.y + int(definition.height) + 1):
-				if _block(Vector3i(x, y, z)) != BlockRegistry.AIR_ID: return false
+				# Flood damage is not enabled. Water blocks new planting but must
+				# not delete existing plants during a later support check/load.
+				if BlockRegistry.is_solid(_block(Vector3i(x, y, z))): return false
 	return true
 
 

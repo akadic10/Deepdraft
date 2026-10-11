@@ -60,7 +60,7 @@
     "base:terrain:ore:coal":       { "kind": "coal",       "hex_color": "#021C24",   "hardness":  2 },
     "base:terrain:ore:gold":       { "kind": "gold_ore",   "hex_color": "#FFD700",   "hardness":  5 },
 
-    "__comment_water": "Fluid blocks - placed by worldgen into lake and tarn basins; later used by the CA water simulation",
+    "__comment_water": "Water occupancy identity - finite live volume is owned by WaterManager; only explicit springs replenish it",
     "base:terrain:water:source": { "kind": "water", "hex_color": "#3A7BD5", "hardness": 0 },
 
     "__comment_gem": "Gem deposits - two depth tiers; jade/amethyst mid-depth, ruby/sapphire/emerald deep, diamond endgame",

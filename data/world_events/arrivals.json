@@ -76,6 +76,35 @@
       "local_prey_radius": 64.0,
       "local_prey_minimum": 2,
       "initial_hunger": 0.35
+    },
+    {
+      "id": "duck_arrival",
+      "provider": "wildlife",
+      "species": "duck",
+      "singular_name": "duck",
+      "plural_name": "ducks",
+      "entry": "air",
+      "interval_days": [
+        4.0,
+        7.0
+      ],
+      "group_size": [
+        2,
+        5
+      ],
+      "season_chance": {
+        "spring": 0.9,
+        "summer": 0.8,
+        "autumn": 0.9,
+        "winter": 0.3
+      },
+      "population_cap": 16,
+      "expiry_days": 0.25,
+      "member_seconds": 2.5,
+      "settlement_spacing": 24.0,
+      "dwarf_distance": 20.0,
+      "blocked_seconds": 30.0,
+      "entry_attempts": 16
     }
   ]
 }

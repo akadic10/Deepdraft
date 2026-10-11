@@ -72,7 +72,7 @@ func candidate(key: String, definition: Dictionary, cell: Vector2i, flora: Node)
 	for px in range(x - ring, x + width + ring):
 		for pz in range(z - ring, z + width + ring):
 			var col := Vector2i(px, pz)
-			if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col):
+			if WorldGenerator.get_waterline(col.x,col.y)>=0:
 				return _reject("water")
 			if WorldGenerator.get_surface_y(px, pz) != y:
 				return _reject("shelf")
@@ -141,7 +141,7 @@ func _cliff_distance(origin: Vector3i, width: int, pl: Dictionary) -> int:
 		for distance in range(1, int(pl.cliff_radius) + 1):
 			var col := center + direction * (width / 2 + distance)
 			if col.x < 0 or col.y < 0 or col.x >= WorldData.WORLD_SIZE_X or col.y >= WorldData.WORLD_SIZE_Z: break
-			if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col): break
+			if WorldGenerator.get_waterline(col.x,col.y)>=0: break
 			var rise := WorldGenerator.get_surface_y(col.x, col.y) - origin.y
 			if rise >= int(pl.cliff_min_rise):
 				nearest = distance if nearest < 0 else mini(nearest, distance)

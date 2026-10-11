@@ -4,6 +4,7 @@ extends Node3D
 const Rabbit = preload("res://scripts/entities/RabbitAgent.gd")
 const Deer = preload("res://scripts/entities/DeerAgent.gd")
 const Wolf = preload("res://scripts/entities/WolfAgent.gd")
+const Duck = preload("res://scripts/entities/DuckAgent.gd")
 const Navigation = preload("res://scripts/components/AnimalNavigation.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const ArrivalPlanner = preload("res://scripts/components/EdgeArrivalPlanner.gd")
@@ -20,6 +21,11 @@ var deer_initialized := false
 var deer_definition: Dictionary = {}
 var wolf_initialized := false
 var wolf_definition: Dictionary = {}
+var duck_definition: Dictionary = {}
+var duck_initialized := false
+var duck_navigation := preload("res://scripts/components/DuckNavigation.gd").new()
+var duck_population := preload("res://scripts/components/DuckPopulation.gd").new()
+var _duck_models: Dictionary = {}
 var _wolf_models: Dictionary = {}
 var _deer_models: Dictionary = {}
 var _models: Dictionary = {}
@@ -39,6 +45,10 @@ func _ready() -> void:
 	for part: String in deer_definition.model_parts: _deer_models[part] = load(deer_definition.model_parts[part])
 	wolf_definition = JSON.parse_string(FileAccess.get_file_as_string(WOLF_PATH)) as Dictionary
 	for part: String in wolf_definition.model_parts: _wolf_models[part] = load(wolf_definition.model_parts[part])
+	duck_definition = JSON.parse_string(FileAccess.get_file_as_string("res://data/entities/animals/duck.json")) as Dictionary
+	for part: String in duck_definition.model_parts: _duck_models[part] = load(duck_definition.model_parts[part])
+	duck_navigation.config = duck_definition.navigation
+	duck_population.owner = self
 	_camera = get_node_or_null(camera_path) as Node3D if not camera_path.is_empty() else null
 	var slice := get_node_or_null(slice_controller_path) if not slice_controller_path.is_empty() else null
 	if slice != null:
@@ -46,10 +56,11 @@ func _ready() -> void:
 		_slice_y = int(slice.get_slice_y())
 
 func _process(delta: float) -> void:
-	if not initialized or not deer_initialized or not wolf_initialized:
+	if not initialized or not deer_initialized or not wolf_initialized or not duck_initialized:
 		var details := get_tree().get_first_node_in_group("surface_details")
 		if not WorldGenerator.get_streaming_stats().get("maps_ready", false) or details == null or not details._initialized: return
 		initialize_population()
+	duck_navigation.flora = get_tree().get_first_node_in_group("surface_flora")
 	var threats: Array[Vector3] = []
 	var director := get_tree().get_first_node_in_group("dwarf_director")
 	if director != null:
@@ -64,6 +75,7 @@ func advance(delta: float, threats: Array) -> void:
 	for animal in animals.duplicate():
 		if not animal in animals: continue
 		if animal is Deer: _update_herd_context(animal)
+		if animal is Duck: _update_flock_context(animal)
 		if animal is Wolf: _update_wolf_target(animal)
 		var animal_definition: Dictionary = animal.definition
 		var feeding_activity := "Eating" if animal is Wolf else "Grazing"
@@ -72,6 +84,7 @@ func advance(delta: float, threats: Array) -> void:
 		animal.advance(delta * WorldClock.speed, delta * WorldClock.game_hours_per_real_second(), threats if animal is Wolf else prey_threats)
 		if animal is Wolf: _try_capture(animal)
 		animal.visible = _visible_at(animal.position)
+		if animal is Duck: animal.update_effect_visibility()
 		# Crossings are derived from existing meal progress: no sound timers/RNG
 		# in saves, no missed-cue backlog after panning, pausing or restoring.
 		if was_grazing and animal.activity == feeding_activity and animal.visible and animal.hop_progress >= 1:
@@ -123,7 +136,13 @@ func initialize_population() -> void:
 		for cell in initial_wolf_cells(WorldGenerator.world_seed):
 			add_wolf("wolf:%d:%d:%d" % [WorldGenerator.world_seed,cell.x,cell.z],cell,WorldGenerator.world_seed+cell.x*3253+cell.z*9781)
 		wolf_initialized = true
-	print("Wildlife: %d rabbits, %d deer, %d wolves." % [animals_of_species("rabbit").size(),animals_of_species("deer").size(),animals_of_species("wolf").size()])
+	if not duck_initialized and WaterManager.initialized:
+		for group: Dictionary in duck_population.groups(WorldGenerator.world_seed):
+			for cell: Vector3i in group.cells:
+				var duck := add_duck("duck:%d:%d:%d" % [WorldGenerator.world_seed,cell.x,cell.z],cell,WorldGenerator.world_seed+cell.x*3251+cell.z*421,group.id)
+				duck.home = group.home
+		duck_initialized = true
+	print("Wildlife: %d rabbits, %d deer, %d wolves, %d ducks." % [animals_of_species("rabbit").size(),animals_of_species("deer").size(),animals_of_species("wolf").size(),animals_of_species("duck").size()])
 
 func initial_wolf_cells(seed_value: int) -> Array[Vector3i]:
 	var random := RandomNumberGenerator.new()
@@ -261,6 +280,30 @@ func _eligible_prey(prey: Node3D) -> bool:
 		if other.definition.id == kind: count += 1
 	return count > int(food.minimum_population)
 
+func add_duck(id: String, cell: Vector3i, seed_value: int, flock_id := "") -> Node3D:
+	var animal := Duck.new()
+	animal.navigation = duck_navigation
+	add_child(animal)
+	animal.configure(duck_definition,id,cell,seed_value,_duck_models)
+	animal.flock_id = flock_id
+	animals.append(animal)
+	animal.visible = _visible_at(animal.position)
+	return animal
+
+func _update_flock_context(duck: Node3D) -> void:
+	var centre: Vector3 = duck.position
+	var count := 1
+	duck.peers.clear()
+	for other in animals:
+		if other==duck or not other is Duck: continue
+		duck.peers.append(other.position)
+		if other.hop_progress<1: duck.peers.append(Vector3(other.target)+Vector3(.5,0,.5))
+		if other.flock_id==duck.flock_id and other.mode!="air":
+			centre += other.position
+			count += 1
+	duck.flock_centre = centre/count
+	duck.flock_members = count
+
 func _update_wolf_target(wolf: Node3D) -> void:
 	wolf.prey = null
 	if not wolf.hunt_target_id.is_empty():
@@ -319,7 +362,7 @@ func arrival_ready() -> bool:
 	return true
 
 func arrival_definition(species: String) -> Dictionary:
-	return {"rabbit": definition, "deer": deer_definition, "wolf": wolf_definition}.get(species, {})
+	return {"rabbit": definition, "deer": deer_definition, "wolf": wolf_definition,"duck":duck_definition}.get(species, {})
 
 func _wolf_arrival_capacity(event: Dictionary) -> int:
 	# Only prey above the existing protected reserves can support new wolves.
@@ -337,6 +380,7 @@ func _wolf_arrival_has_prey(at: Vector3i, event: Dictionary) -> bool:
 	return count >= int(event.local_prey_minimum)
 
 func prepare_arrival(event: Dictionary, plan: Dictionary, events: Node) -> Dictionary:
+	if event.species=="duck": return duck_population.prepare_arrival(event,plan,events)
 	var data := arrival_definition(event.species)
 	if data.is_empty() or event.entry != "wilderness": return {"status": "blocked", "reason": "unsupported"}
 	var room := int(event.population_cap)-animals_of_species(event.species).size()
@@ -368,6 +412,7 @@ func _arrival_cell_allowed(at: Vector3i, event: Dictionary, events: Node) -> boo
 	return true
 
 func spawn_arrival_member(event: Dictionary, batch: Dictionary, events: Node) -> String:
+	if event.species=="duck": return duck_population.spawn_member(event,batch,events)
 	var data := arrival_definition(event.species)
 	if data.is_empty() or event.entry != "wilderness": return "unsupported"
 	if animals_of_species(event.species).size() >= int(event.population_cap): return "population cap"
@@ -416,10 +461,13 @@ func _arrival_entry_free(entry: Vector3i, data: Dictionary) -> bool:
 
 func apply_slice(y: int) -> void:
 	_slice_y = y
-	for animal in animals: animal.visible = _visible_at(animal.position)
+	for animal in animals:
+		animal.visible = _visible_at(animal.position)
+		if animal is Duck: animal.update_effect_visibility()
 
 func _visible_at(at: Vector3) -> bool:
-	if floori(at.y) > _slice_y: return false
+	# Full-world view includes birds flying above the terrain's top layer.
+	if _slice_y<WorldData.WORLD_SIZE_Y-1 and floori(at.y)>_slice_y: return false
 	var cave_id := WorldGenerator.get_cave_id(Vector3i(at.floor()))
 	return cave_id < 0 or InteriorTracker.is_cave_discovered(cave_id)
 
@@ -455,6 +503,13 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	if id is Wolf:
 		rows[3] = ["Diet","Rabbits and deer"]
 		rows.append(["Hunting","Settling in" if not id.arrival.is_empty() and not id.arrival.route.is_empty() else "Satisfied after a meal" if id.satisfied_hours > 0 else "Pursuing prey" if not id.hunt_target_id.is_empty() else "Resting between attempts" if id.retry_hours > 0 else "Ready when hungry"])
+	if id is Duck:
+		rows[3] = ["Diet","Water plants and shore forage"]
+		rows.append(["Plumage",String(id.sex).capitalize()])
+		var count := 0
+		for other in animals:
+			if other is Duck and other.flock_id==id.flock_id: count += 1
+		rows.append(["Flock","%d ducks" % count])
 	return {"title": data.display_name, "kind": "Wildlife", "subject": id,
 		"rows": rows, "details": data.description,
 		"actions": [{"id":"locate", "text":"Locate"}, {"id":"stop_follow" if is_following(id) else "follow", "text":"Stop following" if is_following(id) else "Follow"}]}
@@ -503,11 +558,13 @@ func serialize_state() -> Dictionary:
 	var records: Array = []
 	var deer: Array = []
 	var wolves: Array = []
+	var ducks: Array = []
 	for animal in animals:
-		if animal is Wolf: wolves.append(animal.serialize_state())
+		if animal is Duck: ducks.append(animal.serialize_state())
+		elif animal is Wolf: wolves.append(animal.serialize_state())
 		elif animal is Deer: deer.append(animal.serialize_state())
 		else: records.append(animal.serialize_state())
-	return {"initialized": initialized, "rabbits": records,"deer_initialized":deer_initialized,"deer":deer,"wolf_initialized":wolf_initialized,"wolves":wolves}
+	return {"initialized": initialized, "rabbits": records,"deer_initialized":deer_initialized,"deer":deer,"wolf_initialized":wolf_initialized,"wolves":wolves,"duck_initialized":duck_initialized,"ducks":ducks}
 
 func restore_state(state: Dictionary) -> void:
 	for animal in animals:
@@ -520,6 +577,7 @@ func restore_state(state: Dictionary) -> void:
 	# rabbits. Explicitly saved empty deer populations never replenish.
 	deer_initialized = bool(state.get("deer_initialized",state.has("deer")))
 	wolf_initialized = bool(state.get("wolf_initialized",state.has("wolves")))
+	duck_initialized = bool(state.get("duck_initialized",false))
 	var seen := {}
 	for raw: Dictionary in state.get("rabbits", []):
 		var id := String(raw.get("id", ""))
@@ -544,5 +602,10 @@ func restore_state(state: Dictionary) -> void:
 		var origin := SaveManager.unpack_v3i(raw.get("cell",[]))
 		if not Navigation.inside(origin): continue
 		var animal := add_wolf(id,origin,1)
+		animal.restore_state(raw)
+	for raw: Dictionary in state.get("ducks",[]):
+		if seen.has(raw.id): continue
+		seen[raw.id] = true
+		var animal := add_duck(raw.id,SaveManager.unpack_v3i(raw.cell),1,raw.flock_id)
 		animal.restore_state(raw)
 	apply_slice(_slice_y)
