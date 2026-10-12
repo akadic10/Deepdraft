@@ -68,7 +68,7 @@ func _supply() -> void:
 func _recipes_and_storage() -> void:
 	for recipe in crafting.recipes.values():
 		_fresh_workers()
-		drops.spawn_drop(PINE,1,Vector3i(55,21,40))
+		drops.spawn_drop(PINE,int(recipe.ingredient_count),Vector3i(55,21,40))
 		drops.spawn_drop(STONE,1,Vector3i(55,21,41))
 		var id: int = crafting.queue_order(String(recipe.id),1)
 		await _dispatch_order(id)

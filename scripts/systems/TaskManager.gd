@@ -61,7 +61,7 @@ var _surface_match: Dictionary = {}    # adjacent surface work, including shrub 
 var _move_match: Dictionary = {}       # exact-plant pickup after uprooting
 var _craft_match: Dictionary = {}      # first ingredient pickup, then a free workshop
 var _work_probe: Dictionary = {}       # resumable ordinary work-source route
-var _mining_rejections: Dictionary = {} # lease -> failed idle workers, valid for this navigation/pool revision
+var _worker_rejections: Dictionary = {} # lease -> failed idle workers, valid for this navigation/pool revision
 var _idle_version := 0                # a newly idle dwarf must join that comparison
 
 var _next_task_id: int = 1
@@ -324,7 +324,7 @@ func notify_dwarf_unavailable(dwarf_id: int) -> void:
 ## Clears transient scheduling state before a scene reload. Configuration and
 ## signal connections remain intact because this autoload survives the reload.
 func reset_runtime_state() -> void:
-	_mining_rejections.clear()
+	_worker_rejections.clear()
 	_work_probe.clear()
 	_tasks.clear()
 	_pending.clear()
@@ -496,7 +496,7 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 				if task.status != Task.Status.PENDING: scanned -= 1
 				continue
 		if type == Task.Type.MINE and is_instance_valid(src) and src.has_method("mining_stand_candidates"):
-			var rejected := _mining_rejected_workers(task)
+			var rejected := _rejected_workers(task)
 			if rejected.get(agent.dwarf_id, Vector3i(-1,-1,-1)) == dwarf_cell: continue
 			probes_left -= 1
 			_probes_total += 1
@@ -510,18 +510,9 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 				_assign(task, agent)
 				_scan_cursor[type] = (cursor + scanned) % maxi(ids.size(), 1)
 				return probes_left
-			# A preferred Miner on an isolated ledge must not block a reachable
-			# Worker. Remember failed candidates across budget yields, and back
-			# off only after every eligible idle worker has been considered.
-			rejected[agent.dwarf_id] = dwarf_cell
-			var all_rejected := true
-			for id: int in _idle_dwarves:
-				var other: DwarfAgent = _agents.get(id)
-				if is_instance_valid(other) and Task.Type.MINE in _types_for(other) and rejected.get(id, Vector3i(-1,-1,-1)) != other.current_cell():
-					all_rejected = false
-					break
-			if all_rejected: _apply_backoff(task, now)
+			_reject_worker_route(task, agent, now)
 			continue
+		if _rejected_workers(task).get(agent.dwarf_id, Vector3i(-1,-1,-1)) == dwarf_cell: continue
 		probes_left -= 1
 		_probes_total += 1
 		# Source leases use a dwarf-relative stand target, not the zone's
@@ -543,19 +534,33 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 			_assign(task, agent)
 			_scan_cursor[type] = (cursor + scanned) % maxi(ids.size(), 1)
 			return probes_left
-		_apply_backoff(task, now)
+		_reject_worker_route(task, agent, now)
 	_scan_cursor[type] = 0
 	return probes_left
 
 
 ## Failed worker/lease pairs are local to the idle pool and navigation state.
-func _mining_rejected_workers(task: Task) -> Dictionary:
+func _rejected_workers(task: Task) -> Dictionary:
 	var signature := [_idle_version, NavGrid.navigation_revision, NavGrid.ladder_revision, task.blocked_count]
-	var context: Dictionary = _mining_rejections.get(task.id, {})
+	var context: Dictionary = _worker_rejections.get(task.id, {})
 	if context.get("signature", []) != signature:
 		context = {"signature": signature, "workers": {}}
-		_mining_rejections[task.id] = context
+		_worker_rejections[task.id] = context
 	return context.workers
+
+
+## Reachability failure belongs to this worker/lease pair. An isolated dwarf
+## must not delay furniture (or mining) that another idle worker can reach.
+## Keep failures across budget yields; only back off after all eligible workers
+## fail. Pool, policy and navigation changes invalidate the comparison.
+func _reject_worker_route(task: Task, agent: DwarfAgent, now: int) -> void:
+	var rejected := _rejected_workers(task)
+	rejected[agent.dwarf_id] = agent.current_cell()
+	for id: int in _idle_dwarves:
+		var other: DwarfAgent = _agents.get(id)
+		if is_instance_valid(other) and task.type in _types_for(other) and rejected.get(id, Vector3i(-1,-1,-1)) != other.current_cell():
+			return
+	_apply_backoff(task, now)
 
 
 ## Each matching family owns at most one frontier. Exhausting one wake yields
@@ -699,12 +704,12 @@ func _try_assign_crafts(probes_left: int, t_start: int) -> int:
 		while int(_craft_match.index) < _craft_match.idle.size():
 			if not _within_budget(t_start,probes_left): return 0
 			var dwarf_id: int = _craft_match.idle[_craft_match.index]
-			var agent: DwarfAgent = _agents.get(dwarf_id)
-			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not Task.Type.CRAFT in _types_for(agent):
+			var candidate_agent: DwarfAgent = _agents.get(dwarf_id)
+			if not is_instance_valid(candidate_agent) or not dwarf_id in _idle_dwarves or not Task.Type.CRAFT in _types_for(candidate_agent):
 				_craft_match.index += 1
 				_craft_match.query = {}
 				continue
-			var from := agent.current_cell()
+			var from := candidate_agent.current_cell()
 			if _craft_match.get("from",from) != from: _craft_match.query = {}
 			_craft_match.from = from
 			var query: Dictionary = _craft_match.query
@@ -736,14 +741,14 @@ func _try_assign_crafts(probes_left: int, t_start: int) -> int:
 			_wake_dirty = true
 			return 0
 		if not bool(_craft_match.pickup_ok):
-			var goals := {}
+			var pickup_goals := {}
 			for cell in StorageComponent.ground_access_cells(candidate.material.cell):
-				if NavGrid.is_walkable(cell): goals[cell] = true
+				if NavGrid.is_walkable(cell): pickup_goals[cell] = true
 			probes_left -= 1
 			_probes_total += 1
-			var result := _advance_craft_probe(candidate.from,goals,t_start)
-			if result == NavGrid.ProbeResult.SEARCHING: return 0
-			if result == NavGrid.ProbeResult.UNREACHABLE:
+			var pickup_result := _advance_craft_probe(candidate.from,pickup_goals,t_start)
+			if pickup_result == NavGrid.ProbeResult.SEARCHING: return 0
+			if pickup_result == NavGrid.ProbeResult.UNREACHABLE:
 				_reject_craft_material(candidate)
 				continue
 			candidate.pickup_stand = _craft_match.route_query.path.back()
@@ -1041,6 +1046,7 @@ func _apply_backoff(task: Task, now: int) -> void:
 ## carrying supplies within an allowed assignment are never separate gates.
 func _types_for(agent: DwarfAgent) -> Array[int]:
 	if agent.promotion_pending(): return []
+	if agent.needs_bridge_exit(): return []
 	var types: Array[int] = [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
 			Task.Type.BREW, Task.Type.FETCH_BUILD, Task.Type.UNINSTALL, Task.Type.FELL_TREE, Task.Type.CLEAR_BOULDER, Task.Type.GATHER_SCREE, Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB, Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB, Task.Type.HARVEST_TREE]
 	if agent.profession == "base:profession:worker": types.append(Task.Type.CRAFT)
@@ -1052,7 +1058,7 @@ func _types_for(agent: DwarfAgent) -> Array[int]:
 
 
 func work_policy_changed() -> void:
-	_mining_rejections.clear()
+	_worker_rejections.clear()
 	# Quotes and resumable probes may include a now-ineligible dwarf.
 	_idle_version += 1
 	_work_probe.clear()
@@ -1093,7 +1099,7 @@ func _insert_pending(task: Task) -> void:
 
 
 func _remove_pending(task: Task) -> void:
-	_mining_rejections.erase(task.id)
+	_worker_rejections.erase(task.id)
 	if int(_craft_match.get("task_id",-1)) == task.id: _craft_match.clear()
 	var ids: Array = _pending.get(task.type, [])
 	ids.erase(task.id)
@@ -1122,6 +1128,7 @@ func _mark_idle(dwarf_id: int) -> void:
 	if _agents[dwarf_id].promotion_pending() or _agents[dwarf_id].is_sleeping(): return
 	if _agents[dwarf_id].has_method("needs_ladder_exit") and _agents[dwarf_id].needs_ladder_exit():
 		return
+	if _agents[dwarf_id].has_method("needs_bridge_exit") and _agents[dwarf_id].needs_bridge_exit(): return
 	if not _idle_dwarves.has(dwarf_id):
 		_idle_dwarves.append(dwarf_id)
 		_idle_version += 1

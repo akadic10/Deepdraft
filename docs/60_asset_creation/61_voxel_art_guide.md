@@ -7,6 +7,32 @@
 
 ## 1. Visual Identity
 
+**Log bed (2026-10-11):** `tools/generate_log_bed.py` authors a 4×3-block bed,
+head at local −X, sleeping hay surface at .75 blocks and head mound at 1 block.
+Rough bark rails and ground-level cross logs use `oak_log` semantic colors;
+ragged loose hay and dried leaves stay unchanged across wood variants. No
+finished headboard, cloth cover or sewn pillow belongs on this starter bed.
+`sleep_surface` declares bedding height and lying orientation. The worker recipe
+uses the shared full-block crate. `tools/LogBedPreview.gd` renders the actual model
+and all four wood variants for review.
+See [120](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
+
+**Shared material palettes (2026-10-11):** CraftMaterials maps authored wood
+swatches to pine, oak, juniper and applewood on cached copies of the same mesh.
+Keep wood roles in `data/materials/craft_materials.json`; avoid reusing those
+exact colors for stone, metal, fibre or flames in a mapped model. Runtime matches
+both linear source colors and Godot's truncated RGBA8 imports. Shared packed
+furniture crates stay neutral. See [118](../00_dev_roadmap/118_crafted_materials_and_appeal.md).
+
+**Starter log furniture (2026-10-11):** `tools/generate_log_furniture.py` now
+authors the 2/3-wide single doors and 4-wide double door, split-log bench and
+basic log torch. Door frame and leaves are named independent meshes; runtime
+hinges animate only installed pieces. All use eight voxels/block, unit roots,
+baked .125 vertex scale and linear colors. Doors retain a 31-voxel height under
+four-block lintels; the bench remains 2×1×1. The torch preserves its flame/mount
+envelope. Native review and generated icons are recorded in
+[117 — Log furniture and fire ambience](../00_dev_roadmap/117_log_furniture_and_fire_audio.md).
+
 **Loose water stones (2026-10-10):** `tools/generate_water_stones.py` reuses the
 authored ore-drop template, including all 304 voxels, body shades and mineral
 fleck placement. Only the fleck colors change: turquoise wet stone and muted
@@ -90,6 +116,14 @@ The same art serves loose drops, ground storage and shelf anchors. Generator:
 Colors follow the existing linear vertex-color item material. This is a local
 authoring exception; the established terrain, timber and furniture scales stay
 in effect.
+
+**Rudimentary hearth (2026-10-11):** `tools/generate_hearth_redesign.py` now authors
+a low open-front fire bed, uneven dry-stacked fieldstones, exposed unsawn logs
+and coals. No dressed masonry, cut plinth, grate or iron straps. Eight voxels/block,
+baked 0.125 scale, linear vertex colors and unchanged 2×2×2 gameplay envelope.
+Stones rise at most 0.75 blocks; ten stepped fire silhouettes keep the body static.
+The placed model, animated clip and catalog icon share the design. Native renders
+and verification are recorded in [30 — Hearth visual redesign](../00_dev_roadmap/30_hearth_visual_redesign.md).
 
 Deepdraft is flat-shaded, chunky, and readable at RTS zoom. Every asset must serve those three goals before anything else.
 
@@ -524,11 +558,15 @@ Path: `res://assets/models/flora/crops/{crop_id}/{crop_id}_{stage}.glb`
 
 Rules: 1×1 footprint, no collision, visual overflow allowed horizontally. Model must never exceed the `clearance_height` from the JSON definition (measured in game blocks).
 
+All crops below use eight authored voxels per block, with **0.125 baked into
+exported positions** and import/runtime root scale **1.0**. One game block is
+one Godot unit; do not apply the export scale a second time on import.
+
 #### Plump Helmet Mushroom (`base:flora:plump_helmet`)
 
 The visual signature of Deepdraft's underground. Must look appetising and fantastical simultaneously.
 
-At **8 MV voxels per block, scale 0.0625**.
+At **8 MV voxels per block, baked scale 0.125**.
 
 | Stage | MV Box | Palette | Notes |
 |---|---|---|---|
@@ -537,7 +575,7 @@ At **8 MV voxels per block, scale 0.0625**.
 
 #### Hops Plant (`base:flora:hops_plant`) — Annual
 
-At **8 MV voxels per block, scale 0.0625**.
+At **8 MV voxels per block, baked scale 0.125**.
 
 | Stage | MV Box | Notes |
 |---|---|---|
@@ -549,7 +587,7 @@ Stake: a 2×2 MV dark wood post running the full height. The climbing bine spira
 
 #### Grape Vine (`base:flora:grape_vine`)
 
-At **8 MV voxels per block, scale 0.0625**.
+At **8 MV voxels per block, baked scale 0.125**.
 
 | Stage | MV Box | Notes |
 |---|---|---|
@@ -560,7 +598,7 @@ Trellis frame: 2 upright posts + 2 horizontal rails in `wood_plank_dark`.
 
 #### Pig Tail Plant (`base:flora:pig_tail_plant`)
 
-At **8 MV voxels per block, scale 0.0625**.
+At **8 MV voxels per block, baked scale 0.125**.
 
 | Stage | MV Box | Notes |
 |---|---|---|
@@ -684,21 +722,22 @@ export, delegated by the canonical furniture generator. Alen's request to
 replace this shelf supersedes the earlier hand-authoring reservation.
 **Item form: the shared packed box** (one-box rule, Alen 2026-07-11 — the §5.7 ore
 one-shape rule applied to furniture): every packed furniture item renders as the SAME
-rope-lashed plank crate, `assets/models/items/furniture/packed_furniture.glb`. The box
+braced plank crate, `assets/models/items/furniture/packed_furniture.glb`. The box
 says "packed furniture"; the ghost says which piece it becomes.
 
-Redesigned 2026-10-01 ([art doc 36](../00_dev_roadmap/36_packed_furniture_visual_redesign.md)):
-framed oak panels, four reinforced wooden corners, two crossing rope loops
-and a raised knot. The original **5×4×5-cell envelope** is preserved at eight
-voxels/block: 0.625 wide/deep and 0.5 high, including the knot. It keeps the
-original local bounds (X/Z −0.25 to +0.375, Y 0 to 0.5) and native carry scale.
-Shelf display size now fits the slot as described above. All thirteen packed
-furniture types share one model. `tools/generate_packed_furniture_redesign.py` owns the geometry and
-local linear `COLOR_0` export; the canonical furniture generator delegates
-its packed item to this builder. The trade counter, dining table, wooden chair, bed
-and brewing vat joined this shared item family in art docs 37–40 and 42; the wall
-torch joins in art doc 43. Existing
-carry behavior is unchanged.
+Enlarged 2026-10-11 ([116 — Full furniture crates](../00_dev_roadmap/116_full_furniture_crates.md)):
+the crate fills a full **8×8×8-voxel envelope**, one world block wide, deep and
+high. Recessed oak planks, square corner posts, perimeter rails and stepped
+diagonal braces replace the smaller rope parcel from art doc 36. Local bounds
+are X/Z −0.5 to +0.5 and Y 0 to 1. It has 362 occupied voxels and 1,168 triangles,
+one connected component, baked 0.125 scale and linear `COLOR_0`.
+
+All 22 definitions using the shared packed model receive the new crate, including
+campfires and log stools. Dedicated ladder/bridge kits retain their timber models.
+Ground storage fills exactly one tile; DwarfCarryPose sizes its grips from actual
+bounds, while shelf displays use their existing slot fitting and restore native
+size on withdrawal. `tools/generate_packed_furniture_redesign.py` owns this art;
+the canonical furniture generator delegates its packed item to this builder.
 
 ---
 
@@ -1176,7 +1215,7 @@ The file path does not include the namespace prefix — only the leaf name. The 
 Before committing any GLB:
 
 - [ ] **Silhouette test**: At 64×64 pixels, the asset's silhouette is immediately recognisable as its type (tree / barrel / mushroom / etc.)
-- [ ] **Scale test**: Asset is positioned at correct world scale relative to a 0.5×0.5×0.5 reference cube
+- [ ] **Scale test**: Asset is positioned at correct world scale relative to a 1.0×1.0×1.0 Godot-unit reference cube (one terrain block)
 - [ ] **Colour discipline**: All colours are from the master palette (Section 4); no stray white or black voxels
 - [ ] **Flat shading**: No smooth normals; the voxel block edges must be crisp
 - [ ] **No collision on plants**: Farm crops and cave flora have no `CollisionShape3D`

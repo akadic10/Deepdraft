@@ -1,0 +1,29 @@
+{
+  "furniture_key": "base:furniture:log_bridge",
+  "furniture_category": "access",
+  "display_name": "Log bridge",
+  "description": "Two blocks wide, spanning one to five water blocks between level banks. Workers carry one kit and assemble it from the bank you select.",
+  "model": "res://assets/models/furniture/log_bridge_5.glb",
+  "item_key": "base:resources:furniture:log_bridge",
+  "placement": "bridge",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false,
+  "bridge": {
+    "width": 2,
+    "max_span": 5,
+    "install_seconds": 8.0,
+    "remove_seconds": 4.0
+  },
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 2,
+    "material_factor": 0.5
+  }
+}

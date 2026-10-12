@@ -1,6 +1,7 @@
 # 112 — Session handoff: water and wildlife, 2026-10-10
 
-Current starting point, superseding [103 — Previous evening](103_session_handoff_2026_10_09_evening.md).
+Historical handoff, superseded by [124 — Starter colony, 2026-10-11](124_session_handoff_2026_10_11.md).
+At publication this superseded [103 — Previous evening](103_session_handoff_2026_10_09_evening.md).
 The previous handoff retains professions, equipment, camp crafting and earlier
 wildlife history. This session added finished gems, save fixes, finite water,
 real spring caves, water presentation/audio, movable stones and ducks. This

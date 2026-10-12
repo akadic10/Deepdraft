@@ -1,0 +1,94 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 8 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:overcast).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (1 remembered window positions).
+WorldGenerator: starting generation (seed 2979685219).
+WorldRenderer: generation started (seed 2979685219).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 32074 cliff/shore columns.
+WorldGenerator: spring (464, 102, 803); river 3554 columns, 15 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: stopped in 10.1 s.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldGenerator: grass bands finalized 5.169 s after maps_ready.
+WorldGenerator metrics:
+  domains: mountain 22.3%, valley 30.1%, lowland 47.6%
+  height: min 11, max 115, avg 35.1
+  top surface: grass 75.1%, dirt 1.0%, rock 21.9%, water 1.9%
+  surface domains: mountain rock 98.4%; valley grass 96.4% dirt 3.4% rock 0.0%
+  finished terrain: summit 3188 columns, detailed 31980, dry shore 933
+  water: lake (718, 364) y18 floor 11-17 depth 7 columns 15578; tarn (80, 848) y54 floor 47-52 depth 7 columns 897; banks 6551
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (1 remembered window positions).
+WorldGenerator: starting generation (seed 1908979947).
+WorldRenderer: generation started (seed 1908979947).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 11 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 24295 cliff/shore columns.
+WorldGenerator: spring (354, 102, 624); river 2550 columns, 20 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 47 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 6.015 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=1908979947, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 1908979947, "accepted": 2162, "rejections": { "density": 19875, "tree": 1279, "shelf": 352, "edge": 1112, "water": 163, "ground": 1186, "moisture": 2527, "height": 4455, "shore": 28585, "cliff_foot": 3458, "cliff_falloff": 157, "detail_overlap": 212 }, "layout_ms": 800.424, "categories": { "boulder": 52, "scree": 157, "blueberry": 300, "elderberry": 324, "wild_strawberry": 476, "flowers": 834, "reeds": 19 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 9 ducks.
+WorldRenderer: first chunk_dirtied received (30,2,37).
+FlagPlacementController: settlement founded at (535, 43, 607).
+StockpileDesignationController: zone 1 created (121 cells at Y 43).
+FurniturePlacementController: installed base:furniture:crude_workbench at (521, 43, 597).
+FurniturePlacementController: installed base:furniture:wooden_torch at (509, 43, 593).
+FurniturePlacementController: installed base:furniture:wooden_torch at (503, 43, 593).
+FurniturePlacementController: installed base:furniture:wooden_torch at (506, 43, 583).
+FurniturePlacementController: installed base:furniture:log_door_3 at (505, 43, 592).
+FurniturePlacementController: installed base:furniture:log_door_4 at (504, 43, 597).
+FurniturePlacementController: installed base:furniture:wooden_torch at (508, 43, 598).
+FurniturePlacementController: installed base:furniture:wooden_torch at (503, 43, 598).
+FurniturePlacementController: installed base:furniture:log_bed at (502, 43, 586).
+FurniturePlacementController: installed base:furniture:log_bed at (502, 43, 603).
+LoadPerformance:
+  total_request_to_restored: 19.310 s
+  read_validate: 407 ms
+  reload_regen_wait: 16.838 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 2058 ms
+    mining: 1102 ms
+    water: 731 ms
+    flora: 0 ms
+    surface_details: 70 ms
+    settlement_flag: 11 ms
+    stockpiles: 10 ms
+    furniture: 100 ms
+    ladders: 0 ms
+    bridges: 0 ms
+    items: 0 ms
+    dwarves: 6 ms
+    wildlife: 26 ms
+    world_events: 0 ms
+    camera: 0 ms
+    worker_crafting: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 7 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldGenerator: grass bands finalized 4.367 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 6/16 built tiles (band columns only).
+COLONY_VERIFICATION {"audtha_exit":{"after":"(507.5, 44.0, 597.8199)","before":"(508.5, 44.0, 600.5)","permitted":true,"state":"leaving_room"},"dwarves":[{"cell":"(508, 43, 600)","clear_idle_stop":false,"id":0,"name":"Audtha","owner":-1,"room_id":-1,"room_type":"bedroom"},{"cell":"(493, 43, 593)","clear_idle_stop":true,"id":1,"name":"Mundmar","owner":-1,"room_id":-1,"room_type":"outside"},{"cell":"(486, 43, 596)","clear_idle_stop":true,"id":2,"name":"Morbrin","owner":-1,"room_id":-1,"room_type":"outside"},{"cell":"(525, 43, 604)","clear_idle_stop":true,"id":3,"name":"Brunna","owner":-1,"room_id":-1,"room_type":"outside"},{"cell":"(497, 43, 595)","clear_idle_stop":true,"id":4,"name":"Grundor","owner":-1,"room_id":-1,"room_type":"outside"}],"mined_counts":{"base:terrain:ore:copper":1,"base:terrain:ore:tin":4,"base:terrain:rock:rock06":635,"base:terrain:soil:cave":424},"mined_y":{"44":266,"45":266,"46":266,"47":266},"rock_cover_max":11,"rock_cover_min":2,"rooms":[{"bed_count":1,"door_cells":{"(505, 43, 592)":true},"heat_bonus_c":0.231481481481481,"heat_units":75,"is_frozen_vault":false,"light_count":1,"mean_floor_y":44.0,"owner_id":0,"room_type":"personal_bedroom","seasonal_influence":0.161412131606973,"temp_c":11.3303872757811,"volume":324,"with_hearth_c":18.7377946831886},{"bed_count":1,"door_cells":{"(504, 43, 597)":true},"heat_bonus_c":0.5859375,"heat_units":150,"is_frozen_vault":false,"light_count":2,"mean_floor_y":44.0,"owner_id":-1,"room_type":"bedroom","seasonal_influence":0.161412131606973,"temp_c":11.6848432942997,"volume":256,"with_hearth_c":21.0598432942997}]}
+WorldGenerator: stopped in 11.3 s.

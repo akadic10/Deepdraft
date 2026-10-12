@@ -92,7 +92,7 @@ func _run() -> void:
 	id = crafting.queue_order(TORCH_RECIPE,1)
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"placed bench enables torch work")
 	order = crafting.get_order(id)
-	_expect(inspection.describe(worker).destination=="Crude Workbench\n"+inspection.location(order.work_cell),"workshop recipe inspector shows the claimed stump's actual work position")
+	_expect(inspection.describe(worker).destination=="Pine crude workbench\n"+inspection.location(order.work_cell),"workshop recipe inspector shows the claimed stump's actual work position")
 	worker._process(.8)
 	if "--capture" in OS.get_cmdline_user_args():
 		await _frames(3)

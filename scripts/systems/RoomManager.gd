@@ -64,6 +64,8 @@ signal door_boundaries_changed(cells: Array[Vector3i])
 var _door_cells: Dictionary = {}          # Vector3i -> true
 var _heat_cells: Dictionary = {}          # Vector3i -> int (heat_units)
 var _light_cells: Dictionary = {}         # floor anchor -> installed light count
+var _bed_cells: Dictionary = {}           # bed origin -> complete footprint
+var _bed_assignments: Dictionary = {}     # bed origin -> permanent dwarf id
 
 var _rooms: Dictionary = {}               # room_id -> RoomData-shaped Dictionary
 var _cell_to_room: Dictionary = {}        # Vector3i (interior air cell) -> room_id
@@ -71,9 +73,11 @@ var _next_room_id: int = 1
 
 var _rooms_dirty: bool = false
 var _rebuild_accum: float = 0.0
+var temperature_config: Dictionary = {}
 
 
 func _ready() -> void:
+	temperature_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/world_gen/temperature.json"))
 	print("RoomManager: ready (doc 34/22).")
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
 	WorldClock.hour_changed.connect(_on_hour_changed)
@@ -106,10 +110,10 @@ func _process(delta: float) -> void:
 ## dictionary (already loaded by FurniturePlacementController — RoomManager
 ## never reads data/furniture/*.json itself, per the registry ownership
 ## rule).
-func on_furniture_changed(key: String, cells: Array[Vector3i], def: Dictionary, installed: bool) -> void:
+func on_furniture_changed(_key: String, cells: Array[Vector3i], def: Dictionary, installed: bool) -> void:
 	var changed := false
 	var door_changes: Array[Vector3i] = []
-	if key == DOOR_KEY:
+	if String(def.get("furniture_category", "")) == "door":
 		for cell: Vector3i in cells:
 			var was_installed := _door_cells.has(cell)
 			if installed:
@@ -134,6 +138,12 @@ func on_furniture_changed(key: String, cells: Array[Vector3i], def: Dictionary, 
 		var count := maxi(0, int(_light_cells.get(anchor, 0)) + (1 if installed else -1))
 		if count > 0: _light_cells[anchor] = count
 		else: _light_cells.erase(anchor)
+		changed = true
+	if String(def.get("furniture_category","")) == "bed" and not cells.is_empty():
+		if installed: _bed_cells[cells[0]] = cells.duplicate()
+		else:
+			_bed_cells.erase(cells[0])
+			_bed_assignments.erase(cells[0])
 		changed = true
 	var heat: Dictionary = def.get("heat_source", {})
 	if not heat.is_empty() and not cells.is_empty():
@@ -173,7 +183,7 @@ func get_stats() -> Dictionary:
 
 ## Returns the RoomData dict for the room containing `cell`, or {} if the
 ## cell is not part of any currently-sealed room. Read-only consumers only
-## (aging cellar / dwarf-comfort hooks land here per doc 34 — not built yet).
+## (sleep comfort is live; future aging/spoilage consumers use this query).
 func get_room_at(cell: Vector3i) -> Dictionary:
 	var room_id: int = _cell_to_room.get(cell, -1)
 	if room_id < 0:
@@ -204,6 +214,8 @@ func clear_runtime_state() -> void:
 	_door_cells.clear()
 	_heat_cells.clear()
 	_light_cells.clear()
+	_bed_cells.clear()
+	_bed_assignments.clear()
 	_rooms.clear()
 	_cell_to_room.clear()
 	_next_room_id = 1
@@ -226,6 +238,42 @@ func count_room_lights(cells: Dictionary) -> int:
 	return count
 
 
+func count_room_beds(cells: Dictionary) -> int:
+	return room_beds(cells).size()
+
+func room_beds(cells: Dictionary) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	for origin: Vector3i in _bed_cells:
+		if _bed_cells[origin].all(func(cell: Vector3i): return cells.has(cell+Vector3i.UP)): result.append(origin)
+	return result
+
+func on_bed_assignment_changed(origin: Vector3i, dwarf_id: int) -> void:
+	if dwarf_id < 0: _bed_assignments.erase(origin)
+	else: _bed_assignments[origin] = dwarf_id
+	for id: int in _rooms:
+		_classify_bedroom(_rooms[id])
+		room_updated.emit(id)
+
+func _classify_bedroom(room: Dictionary) -> void:
+	var beds := room_beds(room.cells)
+	room.bed_count = beds.size()
+	room.room_type = "room"
+	room.owner_id = -1
+	if beds.is_empty() or room.light_count==0 or room.door_cells.is_empty(): return
+	if beds.size()>1:
+		room.room_type = "barracks"
+	else:
+		room.owner_id = int(_bed_assignments.get(beds[0],-1))
+		room.room_type = "personal_bedroom" if room.owner_id>=0 else "bedroom"
+
+func room_label(room: Dictionary) -> String:
+	match String(room.get("room_type","")):
+		"personal_bedroom": return "Personal bedroom"
+		"barracks": return "Barracks"
+		"bedroom": return "Bedroom"
+	return "Room"
+
+
 # ── Triggers ──────────────────────────────────────────────────────────────────
 
 func _on_chunk_dirtied(_cx: int, _cy: int, _cz: int) -> void:
@@ -237,10 +285,7 @@ func _on_chunk_dirtied(_cx: int, _cy: int, _cz: int) -> void:
 
 
 func _on_hour_changed(_new_hour: int) -> void:
-	# Cheap path (doc 34 "Recalculation Triggers"): no geometry changed, so no
-	# flood-fill — just re-run the formula for rooms whose seasonal_influence
-	# is nonzero (shallow rooms only; deep rooms are skipped exactly as doc 34
-	# specifies).
+	# Hourly weather updates reuse room geometry and its precomputed exposure.
 	for room_id: int in _rooms.keys():
 		var room: Dictionary = _rooms[room_id]
 		if float(room.get("seasonal_influence", 0.0)) <= 0.0:
@@ -362,7 +407,7 @@ func _block_id(pos: Vector3i) -> int:
 	return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
 
 
-# ── Temperature (doc 34, formula ported verbatim) ─────────────────────────────
+# ── Temperature (doc 34, sheltered rock climate) ─────────────────────────────
 
 func _build_room_data(fill_result: Dictionary) -> Dictionary:
 	var cells: Dictionary = fill_result["cells"]
@@ -374,10 +419,14 @@ func _build_room_data(fill_result: Dictionary) -> Dictionary:
 		"volume": cells.size(),
 		"mean_floor_y": mean_floor_y,
 		"heat_units": heat_units,
-		"seasonal_influence": clampf(inverse_lerp(30.0, 75.0, mean_floor_y), 0.0, 1.0),
+		"seasonal_influence": _room_exposure(cells),
 		"temp_c": 0.0,
 		"is_frozen_vault": false,
+		"bed_count": count_room_beds(cells),
+		"light_count": count_room_lights(cells),
+		"room_type": "room",
 	}
+	_classify_bedroom(room)
 	_recompute_temp(room)
 	return room
 
@@ -412,36 +461,46 @@ func _sum_heat(cells: Dictionary) -> int:
 	return total
 
 
-## doc 34 "Full Temperature Formula", ported verbatim.
-##
-## EXPLICIT TYPES THROUGHOUT (not `:=` inference): WorldClock.day / .season /
-## .hour read as Variant when accessed from another script — the same reason
-## WorldRenderer.gd writes `var season: String = WorldClock.season` instead of
-## `:=` everywhere it touches WorldClock. Left as inference, a single Variant
-## read taints every downstream `:=` in the expression chain (Godot 4.7
-## "warnings as errors": "Cannot infer the type... because the value doesn't
-## have a set type"). Every var below is either an explicit type with an
-## explicit int()/float() cast at the WorldClock read, or built from vars that
-## already are.
+## Sheltered rock climate and installed heating; tuning is owned by this autoload.
 func _recompute_temp(room: Dictionary) -> void:
-	var mean_floor_y: float = room["mean_floor_y"]
-	var room_volume: int = room["volume"]
-	var total_heat_units: int = room["heat_units"]
+	var heat_bonus := float(room.heat_units)/maxf(float(room.volume),float(temperature_config.minimum_heated_volume))
+	room["heat_bonus_c"] = heat_bonus
+	room["temp_c"] = ambient_temperature(float(room.seasonal_influence))+heat_bonus
+	room["is_frozen_vault"] = float(room.temp_c)<=0.0
 
-	var base_temp: float = lerp(10.0, -8.0, inverse_lerp(75.0, 1.0, mean_floor_y))
-	var heat_bonus: float = float(total_heat_units) / float(max(room_volume, 1))
+## Natural overburden damps weather; absolute map elevation never makes rock
+## colder. Room geometry computes this once, hourly updates only do arithmetic.
+func _room_exposure(cells: Dictionary) -> float:
+	var floors := {}
+	for cell: Vector3i in cells:
+		var column := Vector2i(cell.x,cell.z)
+		if not floors.has(column) or cell.y<int(floors[column]): floors[column] = cell.y
+	var exposure := 0.0
+	for column: Vector2i in floors:
+		var height := WorldGenerator.get_overview_surface_height(column.x,column.y)
+		var cover := maxf(0.0,float(height-int(floors[column])-DOOR_SEAL_HEIGHT))
+		exposure += exp(-cover/float(temperature_config.cover_damping_blocks))
+	return float(temperature_config.sealed_exposure)*exposure/maxi(1,floors.size())
 
-	var seasonal_influence: float = room["seasonal_influence"]
+func temperature_at(air_cell: Vector3i) -> float:
+	var room := get_room_at(air_cell)
+	if not room.is_empty(): return float(room.temp_c)
+	var cover := maxi(0,WorldGenerator.get_overview_surface_height(air_cell.x,air_cell.z)-air_cell.y)
+	return ambient_temperature(exp(-float(cover)/float(temperature_config.cover_damping_blocks)))
+
+func comfort_label(temp_c: float) -> String:
+	if temp_c<float(temperature_config.cold_below_c): return "Cold"
+	if temp_c<float(temperature_config.comfortable_min_c): return "Chilly"
+	if temp_c<=float(temperature_config.comfortable_max_c): return "Comfortable"
+	return "Hot"
+
+func ambient_temperature(exposure: float) -> float:
 	var season_index := { "spring": 0, "summer": 1, "autumn": 2, "winter": 3 }
 	var clock_day: int = WorldClock.day
 	var clock_season: String = WorldClock.season
 	var clock_hour: float = WorldClock.hour
 	var day_of_year: int = (clock_day - 1) + (int(season_index.get(clock_season, 0)) * 28)
 	var s_angle: float = (float(day_of_year) - 28.0) / 112.0 * TAU
-	var seasonal_offset: float = 1.5 * cos(s_angle) * seasonal_influence
-
-	var daily_offset: float = 0.5 * sin((clock_hour - 8.0) / 24.0 * TAU) * seasonal_influence
-
-	var temp_c: float = base_temp + heat_bonus + seasonal_offset + daily_offset
-	room["temp_c"] = temp_c
-	room["is_frozen_vault"] = temp_c <= 0.0
+	var seasonal_offset := float(temperature_config.seasonal_swing_c)*cos(s_angle)*exposure
+	var daily_offset := float(temperature_config.daily_swing_c)*sin((clock_hour-8.0)/24.0*TAU)*exposure
+	return float(temperature_config.rock_temperature_c)+seasonal_offset+daily_offset

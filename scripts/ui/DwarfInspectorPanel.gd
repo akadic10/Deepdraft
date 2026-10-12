@@ -23,6 +23,8 @@ var _explanation: Label
 var _destination: Label
 var _rest_label: Label
 var _rest: ProgressBar
+var _happiness: Label
+var _thought: Label
 var _load_label: Label
 var _load: ProgressBar
 var _cargo: Label
@@ -103,6 +105,7 @@ func _ready() -> void:
 	rest_box.get_child(0).hide()
 	_rest = _progress(rest_box)
 	_rest.tooltip_text = "Current rest level. Dwarves sleep when tired."
+	_happiness = _label(_overview, "", 14, UITheme.HEARTH_COPPER)
 	var carry_box := _section(_overview, "CARRYING")
 	_cargo = _label(carry_box, "", 14)
 	_load_label = _label(carry_box, "", 12, UITheme.HEARTH_MUTED)
@@ -113,6 +116,7 @@ func _ready() -> void:
 	pages.add_child(_details)
 	_location = _label(_section(_details, "CURRENT LOCATION"), "", 14)
 	_explanation = _label(_section(_details, "CURRENT ACTIVITY"), "", 14)
+	_thought = _label(_section(_details, "HAPPINESS"), "", 14)
 	_traits = _section(_details, "TRAITS")
 	_equipment_page = EquipmentPanel.new()
 	pages.add_child(_equipment_page)
@@ -153,7 +157,7 @@ func show_data(data: Dictionary, following: bool) -> void:
 		var reduction := roundi((1.0 - DwarfAssets.mining_duration_multiplier(agent.profession, agent.profession_experience)) * 100)
 		_experience.text = "%d blocks mined · %d%% less digging time\n%s" % [count, reduction, "%d to level %d" % [upper - count, level + 1] if level < 5 else "Master Miner"]
 		_profession_progress.max_value = maxi(1, upper - lower)
-		_profession_progress.value = count - lower if level < 5 else _profession_progress.max_value
+		_profession_progress.value = float(count - lower) if level < 5 else _profession_progress.max_value
 	_activity.text = String(data.activity)
 	_explanation.text = String(data.explanation)
 	_activity.tooltip_text = String(data.explanation)
@@ -161,6 +165,10 @@ func show_data(data: Dictionary, following: bool) -> void:
 	var rest_percent := roundi(float(data.rest) * 100)
 	_rest_label.text = "Rest  %d%% · %s" % [rest_percent, "Sleeping" if data.sleeping else ("Tired" if rest_percent <= 25 else "Awake")]
 	_rest.value = rest_percent
+	var mood: Dictionary = agent._mood.describe()
+	_happiness.text = "%s · Happiness %d%%" % [mood.label,roundi(float(mood.value)*100)]
+	_happiness.tooltip_text = String(mood.thought)
+	_thought.text = String(mood.thought)
 	var lines: Array[String] = []
 	for entry: Dictionary in data.cargo:
 		var line := "%d × %s" % [entry.count, entry.name]
@@ -211,7 +219,7 @@ func clear_subject() -> void:
 
 func _resize_body() -> void:
 	# Leave the default inspector footer clear of the centered bottom navigation.
-	_scroll.custom_minimum_size.y = 40 if embedded else clampf(get_viewport_rect().size.y - 422, 120, 340)
+	_scroll.custom_minimum_size.y = 40.0 if embedded else clampf(get_viewport_rect().size.y - 422, 120, 340)
 	if embedded:
 		var compact := get_viewport_rect().size.y < 650
 		_portrait_frame.custom_minimum_size = Vector2(52, 52) if compact else Vector2(64, 72)

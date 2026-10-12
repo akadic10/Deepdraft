@@ -1,5 +1,11 @@
 # 71 — Independent ore fields
 
+**Superseded balance targets (2026-10-11):**
+[122 — Mining progression](122_bedroom_comfort_and_mining_progression.md) deliberately
+changes depths, cutoffs, deposit scales and yields. Independent seeded metal
+fields remain, with natural-cover gating that includes cliffs. The historical
+abundance-preservation comparison below is no longer an acceptance target.
+
 Implemented 2026-10-08 after the user accepted the separate-field direction in
 [70 — Ore vein prototypes](70_ore_vein_prototypes.md).
 

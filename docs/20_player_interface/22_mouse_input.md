@@ -6,6 +6,16 @@ All player interaction with the voxel world is mouse-driven. The two primary mec
 
 ## Voxel Viewport Raycasting
 
+**Bridge picking (2026-10-11):** log bridge placement resolves the raw furniture
+ray hit to a bank landing before validating it. A bank wall lifts to its solid
+lip; a submerged riverbed searches nearby dry banks within one maximum span.
+Either of the two landing tiles may be under the cursor. Candidate directions
+auto-align across the river and retain all span, equal-height, clearance,
+occupancy, water and slice rules. Clicking rechecks the same resolved landing.
+R prefers a different valid direction; the first placement needs no rotation.
+The cursor result is reused until the aimed voxel, geometry, stock or rotation
+changes. Ordinary furniture and ladder picking keep their own rules.
+
 ### Method
 
 Each frame (on mouse move or on demand), a ray is cast from the camera through the mouse cursor into the 3D world. The hit voxel is identified by stepping through the DDA (Digital Differential Analysis) voxel traversal algorithm.

@@ -4,6 +4,8 @@ extends RefCounted
 ## pool. No tasks, goods or needs are created by wandering or using a chair.
 const Seating = preload("res://scripts/components/FurnitureSeating.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
+const Privacy = preload("DwarfPrivacy.gd")
+var _privacy := Privacy.new()
 var agent: DwarfAgent
 var config: Dictionary
 var state := "waiting"
@@ -26,7 +28,7 @@ func _init(owner: DwarfAgent) -> void:
 	_rng.seed = hash([WorldGenerator.world_seed, agent.dwarf_id, "leisure"])
 
 func owns_walk() -> bool:
-	return state in ["strolling","to_seat"]
+	return state in ["strolling","to_seat","leaving_room"]
 
 func active() -> bool:
 	return home.x >= 0
@@ -38,6 +40,7 @@ func cancel() -> void:
 	home = Vector3i(-1,-1,-1)
 	goal = home
 	_chairs = []
+	_privacy.reset()
 	_sitting_blend = 0.0
 	if walking: agent.stop_walking()
 	agent._reset_part_offsets()
@@ -58,12 +61,21 @@ func tick(delta: float) -> bool:
 		timer = _range("start_delay_min_s","start_delay_max_s")
 		state = "waiting"
 	elapsed += delta
+	if state=="leaving_room":
+		if not _privacy.leave(agent,delta): cancel()
+		return true
+	if not Privacy.allowed(agent.current_cell(),agent.dwarf_id):
+		cancel()
+		home = agent.current_cell()
+		state = "leaving_room"
+		_privacy.leave(agent,delta)
+		return true
 	if state in ["to_seat","sitting","standing_up"] and not _seat_valid():
 		cancel()
 		return true
 	if owns_walk():
 		# Straight local routes cannot acquire a distant detour or use ladders.
-		if (state=="strolling" and not _clear_stop(goal)) or not NavGrid.line_walkable_flat(agent.current_cell(),goal):
+		if (state=="strolling" and not _clear_stop(goal)) or not Privacy.segment(agent.current_cell(),goal,agent.dwarf_id) or not NavGrid.line_walkable_flat_from(agent.global_position,goal):
 			cancel()
 			return true
 		agent._follow_path(delta)
@@ -110,7 +122,7 @@ func _wander() -> void:
 		var cell := from+Vector3i(_rng.randi_range(-radius,radius),0,_rng.randi_range(-radius,radius))
 		if Vector2(cell.x-from.x,cell.z-from.z).length() < 2.0: continue
 		if not _local(cell) or not _uncrowded(cell) or not _clear_stop(cell): continue
-		if not NavGrid.line_walkable_flat(from,cell): continue
+		if not Privacy.segment(from,cell,agent.dwarf_id) or not NavGrid.line_walkable_flat(from,cell): continue
 		goal = cell
 		state = "strolling"
 		agent.walk_nearby(cell)
@@ -131,6 +143,7 @@ func _uncrowded(cell: Vector3i) -> bool:
 	return true
 
 func _clear_stop(cell: Vector3i) -> bool:
+	if not Privacy.allowed(cell,agent.dwarf_id) or RoomManager._door_cells.has(cell): return false
 	if not NavGrid.is_walkable(cell): return false
 	for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
 		if not NavGrid.ladder_at(cell+offset).is_empty(): return false
@@ -153,6 +166,7 @@ func _find_seat_step() -> void:
 	_chair_index += 1
 	if candidate.flagged_uninstall or candidate.idle_seat_owner >= 0 or not is_instance_valid(candidate.node): return
 	if not Seating.is_chair(candidate.def) or not candidate.def.seating_chair.has("rest_pose"): return
+	if not Privacy.allowed(candidate.origin_cell,agent.dwarf_id): return
 	if Vector3(candidate.origin_cell-agent.current_cell()).length() > float(config.get("seat_radius",9)): return
 	var facing := _seat_facing(candidate)
 	if facing.is_empty(): return
@@ -161,7 +175,7 @@ func _find_seat_step() -> void:
 	access.sort_custom(func(a: Vector3i,b: Vector3i): return Vector3(a-from).length_squared() < Vector3(b-from).length_squared())
 	for cell in access:
 		if not _local(cell) or not _uncrowded(cell) or not NavGrid.is_walkable(cell): continue
-		if not NavGrid.line_walkable_flat(from,cell): continue
+		if not Privacy.segment(from,cell,agent.dwarf_id) or not NavGrid.line_walkable_flat(from,cell): continue
 		seat = candidate
 		seat.idle_seat_owner = agent.dwarf_id
 		seat.idle_seat_yaw_steps = int(facing.yaw)
@@ -200,6 +214,7 @@ func _seat_facing(candidate: InstalledFurnitureComponent) -> Dictionary:
 
 func _seat_valid() -> bool:
 	if seat == null or not is_instance_valid(_furniture) or not is_instance_valid(seat.node): return false
+	if not Privacy.allowed(seat.origin_cell,agent.dwarf_id): return false
 	if _furniture._installed.get(seat.installed_id) != seat or seat.flagged_uninstall: return false
 	if seat.idle_seat_owner != agent.dwarf_id or not NavGrid.is_walkable(goal): return false
 	for cell in seat.cells:
@@ -210,6 +225,7 @@ func _seat_valid() -> bool:
 	return true
 
 func walk_finished(success: bool) -> void:
+	if state=="leaving_room": return
 	if not owns_walk(): return
 	if success and state=="to_seat" and _seat_valid():
 		state = "sitting"
@@ -248,6 +264,7 @@ func _pose() -> void:
 
 func describe() -> Dictionary:
 	match state:
+		"leaving_room": return {"activity":"Leaving bedroom", "explanation":"Giving the bedroom its privacy; available for work.", "destination":goal}
 		"strolling": return {"activity":"Strolling nearby", "explanation":"Taking a short walk while available for work.", "destination":goal}
 		"to_seat": return {"activity":"Going to sit", "explanation":"Heading to a nearby free chair; available for work.", "destination":goal}
 		"sitting","standing_up": return {"activity":"Sitting" if state=="sitting" else "Getting up", "explanation":"Taking a seat while available for work.", "destination":goal}

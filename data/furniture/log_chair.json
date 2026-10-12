@@ -57,10 +57,56 @@
       ]
     },
     "clearance_regions": [
-      {"shape": "cylinder", "min": [-0.875, 1.35, -0.875], "max": [1.875, 3.625, 1.875]},
-      {"min": [-0.1875, 0.75, -0.0625], "max": [1.1875, 2.0, 1.0625]},
-      {"min": [-0.25, 0.875, 1.125], "max": [1.25, 1.375, 1.75]},
-      {"shape": "cylinder", "min": [-0.6875, 1.1, -0.6875], "max": [1.6875, 2.55, 1.6875]}
+      {
+        "shape": "cylinder",
+        "min": [
+          -0.875,
+          1.35,
+          -0.875
+        ],
+        "max": [
+          1.875,
+          3.625,
+          1.875
+        ]
+      },
+      {
+        "min": [
+          -0.1875,
+          0.75,
+          -0.0625
+        ],
+        "max": [
+          1.1875,
+          2.0,
+          1.0625
+        ]
+      },
+      {
+        "min": [
+          -0.25,
+          0.875,
+          1.125
+        ],
+        "max": [
+          1.25,
+          1.375,
+          1.75
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "min": [
+          -0.6875,
+          1.1,
+          -0.6875
+        ],
+        "max": [
+          1.6875,
+          2.55,
+          1.6875
+        ]
+      }
     ],
     "access_cells": [
       [
@@ -82,5 +128,11 @@
     ]
   },
   "__comment": "One-tile stool: hands rest together in front, boots beside the stump, torso supported by its cut top. Occupants can face a nearby fire independently of stool yaw. Rounded head/hair and beard clearance permits gentle head turns; low body/hand regions clear the fire. Clearance coordinates are relative to the footprint corner, like collision regions.",
-  "layout_version": 2
+  "layout_version": 2,
+  "material_group": "wood",
+  "material_palette": "camp_log",
+  "appeal": {
+    "design": 1,
+    "material_factor": 1
+  }
 }

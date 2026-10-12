@@ -59,7 +59,7 @@
     "scan_seconds": 0.25,
     "fade_seconds": 0.7,
     "waterfall": {
-      "level_db": -9.0,
+      "level_db": -19.0,
       "near_radius": 10.0,
       "far_radius": 65.0,
       "zoom_reference": 32.0,

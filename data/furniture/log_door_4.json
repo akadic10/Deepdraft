@@ -1,0 +1,36 @@
+{
+  "__comment": [
+    "Log doors: 2/3 blocks single leaf, 4 blocks double leaf. Eight voxels per block, 31 voxels tall below a four-block lintel.",
+    "Doors stay walkable. RoomManager seals every footprint column regardless of cosmetic hinge state. All variants use the same placement, hauling and uninstall pipeline."
+  ],
+  "furniture_key": "base:furniture:log_door_4",
+  "furniture_category": "door",
+  "display_name": "Double log door (4 wide)",
+  "description": "Two rough log leaves swing open as dwarves approach. Fits a 4-block-wide opening and seals the room for warmth.",
+  "model": "res://assets/models/furniture/log_door_4.glb",
+  "item_key": "base:resources:furniture:log_door_4",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 4,
+    "depth": 1
+  },
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false,
+  "door_animation": {
+    "width": 4,
+    "double": true,
+    "open_degrees": 90,
+    "open_seconds": 0.3,
+    "close_seconds": 0.55,
+    "hold_seconds": 0.7,
+    "approach_distance": 2.8
+  },
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 4,
+    "material_factor": 1
+  }
+}

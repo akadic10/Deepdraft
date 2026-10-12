@@ -30,7 +30,7 @@ static func carve(seed_value: int, macro: Dictionary, heights: PackedInt32Array,
 			best_height = h
 			candidates.clear()
 		if h == best_height: candidates.append(index)
-		var col := Vector2i(index / 32, index % 32)
+		var col := Vector2i(index >> 5, index % 32)
 		var turn := rng.randi_range(0,3)
 		for j in 4:
 			var next: Vector2i = col + DIRS[(j + turn) % 4]
@@ -42,7 +42,7 @@ static func carve(seed_value: int, macro: Dictionary, heights: PackedInt32Array,
 	assert(best_height >= int(profile.source_min_y), "No high spring route to lake")
 	var rock_faces: Array[int] = []
 	for index: int in candidates:
-		var col := Vector2i(index/32,index%32)
+		var col := Vector2i(index >> 5,index%32)
 		for dir: Vector2i in DIRS:
 			var neighbor := col+dir
 			if neighbor.x>=0 and neighbor.y>=0 and neighbor.x<32 and neighbor.y<32 and mh[neighbor.x*32+neighbor.y]>best_height:
@@ -54,10 +54,10 @@ static func carve(seed_value: int, macro: Dictionary, heights: PackedInt32Array,
 	var route: Array[Vector2i] = []
 	var cursor := source
 	while cursor >= 0:
-		route.append(Vector2i(cursor / 32, cursor % 32) * 32 + Vector2i(16 + rng.randi_range(-4,4),16 + rng.randi_range(-4,4)))
+		route.append(Vector2i(cursor >> 5, cursor % 32) * 32 + Vector2i(16 + rng.randi_range(-4,4),16 + rng.randi_range(-4,4)))
 		cursor = int(parent[cursor])
 	# Move the mouth towards an adjacent upper rock face when available.
-	var source_macro := Vector2i(source / 32, source % 32)
+	var source_macro := Vector2i(source >> 5, source % 32)
 	var spring_back := Vector2i.ZERO
 	for dir: Vector2i in DIRS:
 		var neighbor := source_macro + dir
@@ -170,7 +170,7 @@ static func carve(seed_value: int, macro: Dictionary, heights: PackedInt32Array,
 	for body: Dictionary in macro.water_bodies:
 		if body.kind != "lowland_lake": continue
 		for macro_index: int in body.cells:
-			var corner := Vector2i(macro_index/32,macro_index%32)*32
+			var corner := Vector2i(macro_index >> 5,macro_index%32)*32
 			for dx in 32:
 				for dz in 32:
 					var col := corner+Vector2i(dx,dz)

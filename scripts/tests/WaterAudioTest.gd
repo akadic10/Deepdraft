@@ -50,7 +50,7 @@ func _run() -> void:
 		var energy := 0.0
 		var peak := 0.0
 		var difference := 0.0
-		var count := data.size()/2
+		var count := data.size() >> 1 # Two bytes per mono PCM16 sample.
 		var previous := float(data.decode_s16((count-1)*2))/32768.0
 		var seam := absf(float(data.decode_s16(0))/32768.0-previous)
 		for i in count:
@@ -116,21 +116,24 @@ func _run() -> void:
 		recorder.format = AudioStreamWAV.FORMAT_16_BITS
 		AudioServer.add_bus_effect(0,recorder)
 		var samples := {}
-		for label in ["waterfall","river","left","right","far","overview","quiet","muted","paused","stopped","loading"]:
+		sound._settings = sound._settings.duplicate(true)
+		var waterfall_level: float = sound._settings.waterfall.level_db
+		for label in ["waterfall_reference","waterfall","river","left","right","far","overview","quiet","muted","paused","stopped","loading"]:
+			sound._settings.waterfall.level_db = -9.0 if label=="waterfall_reference" else waterfall_level
 			if label=="stopped":
 				_fixture("waterfall")
 				await create_timer(1.8).timeout
 			_fixture(label)
 			await create_timer(3.8 if label in ["far","overview","stopped"] else 1.8).timeout
 			recorder.set_recording_active(true)
-			await create_timer(10.0 if label in ["waterfall","river"] else 0.8).timeout
+			await create_timer(10.0 if label in ["waterfall_reference","waterfall","river"] else 0.8).timeout
 			recorder.set_recording_active(false)
 			var wav := recorder.get_recording()
 			var data := wav.data
 			wav.save_to_wav(OUTPUT+"/"+label+".wav")
 			var energy := Vector2.ZERO
 			var peak := 0.0
-			var count := data.size()/4
+			var count := data.size() >> 2 # Four bytes per stereo PCM16 frame.
 			for i in count:
 				var l := float(data.decode_s16(i*4))/32768.0
 				var r := float(data.decode_s16(i*4+2))/32768.0
@@ -138,7 +141,8 @@ func _run() -> void:
 				peak = maxf(peak,maxf(absf(l),absf(r)))
 			samples[label] = {"peak":peak,"energy":energy/maxi(count,1)}
 		check(samples.waterfall.peak>0.01 and samples.river.peak>0.005,"near water produces real PCM")
-		check(samples.river.energy.length()<samples.waterfall.energy.length()*0.35,"river calmer than waterfall")
+		var fall_ratio: float = samples.waterfall.energy.length()/samples.waterfall_reference.energy.length()
+		check(fall_ratio>0.07 and fall_ratio<0.14,"waterfall is 10 dB quieter than previous mix")
 		check(samples.left.energy.x>samples.left.energy.y and samples.right.energy.y>samples.right.energy.x,"stereo follows water")
 		check(samples.quiet.energy.length()<samples.waterfall.energy.length()*0.1,"volume changes output")
 		for label in ["far","overview","muted","paused","stopped","loading"]: check(samples[label].peak<0.001,"silent PCM: "+label)
@@ -152,7 +156,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	check(players[0].get_ref()==null and players[1].get_ref()==null,"scene exit leaked voices")
-	print("WaterAudioTest: ","PASS" if failures.is_empty() else failures)
+	print("WaterAudioTest: ","PASS" if failures.is_empty() else str(failures))
 	quit(0 if failures.is_empty() else 1)
 
 func _fixture(label: String) -> void:

@@ -30,8 +30,9 @@ extends Node
 ## doc 32 updated). Diagonal rules: same-level only (vertical steps stay
 ## cardinal), and NO corner cutting — both cardinal in-between cells must be
 ## walkable, so dwarves never clip tree trunks or wall corners.
-## Costs: lateral 1.0, diagonal 1.414, up 1.2, down 0.9. Heuristic: octile XZ
-## + |dy| (admissible with diagonals; Manhattan would overestimate).
+## Costs: lateral 1.0, diagonal 1.414, up 1.2, down 0.9. The heuristic charges
+## horizontal progress plus only the extra slope cost (or descent discount),
+## bounded below by vertical travel. Installed ladder speeds constrain both.
 
 const CLEARANCE := 3                  # air blocks above every floor cell
 const PATH_CACHE_TTL_MSEC := 5000     # doc 32
@@ -54,9 +55,43 @@ signal ladder_routes_changed
 var ladder_revision := 0
 var _ladders: Dictionary = {}
 var _rungs: Dictionary = {}
+var _bridges: Dictionary = {}
+var _bridge_floors: Dictionary = {}
+var _min_climb_cost := COST_UP
+var _min_vertical_cost := COST_DOWN
 var navigation_revision := 0
 var _chunk_revisions: Dictionary = {}
 enum ProbeResult { SEARCHING, REACHABLE, UNREACHABLE }
+
+## Deck supports belong to structures, not the terrain/water grid. Closing
+## keeps physical support but allows only actors already on that deck to exit.
+func set_bridge(id: int, floors: Array[Vector3i], exits: Array[Vector3i], closing := false) -> void:
+	_bridges[id] = {"cells":floors,"exits":exits,"closing":closing}
+	_rebuild_bridges()
+
+func remove_bridge(id: int) -> void:
+	if not _bridges.has(id): return
+	_bridges.erase(id)
+	_rebuild_bridges()
+
+func _rebuild_bridges() -> void:
+	_bridge_floors.clear()
+	for id: int in _bridges:
+		for cell: Vector3i in _bridges[id].cells: _bridge_floors[cell] = id
+	_walkable_cache.clear()
+	# Structural revision also invalidates in-flight paths and scheduler proofs.
+	_rebuild_ladders()
+
+func bridge_supports(cell: Vector3i) -> bool:
+	return _bridge_floors.has(cell)
+
+func closing_bridge_at(cell: Vector3i) -> Dictionary:
+	var route: Dictionary = _bridges.get(_bridge_floors.get(cell,-1),{})
+	return route if bool(route.get("closing",false)) else {}
+
+func _bridge_entry_allowed(cell: Vector3i, start: Vector3i) -> bool:
+	var id: int = _bridge_floors.get(cell,-1)
+	return id < 0 or not bool(_bridges[id].closing) or _bridge_floors.get(start,-1) == id
 
 
 ## Rungs are explicit traversal supports, never solid terrain/walkable floors.
@@ -73,8 +108,13 @@ func remove_ladder(id: int) -> void:
 func _rebuild_ladders() -> void:
 	navigation_revision += 1
 	_rungs.clear()
+	_min_climb_cost = COST_UP
+	_min_vertical_cost = COST_DOWN
 	for id: int in _ladders:
 		var ladder: Dictionary = _ladders[id]
+		var vertical_cost := 1.0 / maxf(.1, float(ladder.speed))
+		_min_climb_cost = minf(_min_climb_cost, vertical_cost)
+		_min_vertical_cost = minf(_min_vertical_cost, vertical_cost)
 		for y in range(ladder.base.y, ladder.base.y + ladder.height + 1):
 			_rungs[Vector3i(ladder.base.x, y, ladder.base.z)] = id
 	_path_cache.clear()
@@ -135,7 +175,15 @@ func _on_water_changed(cells: Array) -> void:
 ## Full pathfind between two FLOOR cells. Returns the ordered floor-cell path
 ## INCLUDING start and goal, or an empty array if unreachable within the node
 ## cap. Results are cached for PATH_CACHE_TTL_MSEC.
-func find_path(start: Vector3i, goal: Vector3i, max_nodes: int = DEFAULT_MAX_NODES) -> Array[Vector3i]:
+func find_path(start: Vector3i, goal: Vector3i, max_nodes: int = DEFAULT_MAX_NODES, floor_filter := Callable()) -> Array[Vector3i]:
+	# Optional leisure policy is scoped to this search, never the shared work
+	# cache. An owned bed can take a public detour around someone else's room.
+	if floor_filter.is_valid():
+		if not floor_filter.call(goal): return []
+		var query := _new_search(start,goal,false)
+		query["floor_filter"] = floor_filter
+		_advance_search(query,max_nodes,0)
+		return query.path
 	var now := Time.get_ticks_msec()
 	var key := [start, goal]
 	if _path_cache.has(key):
@@ -259,6 +307,8 @@ func _remember_search_area(query: Dictionary, cell: Vector3i) -> void:
 
 
 func _new_approach_probe(start: Vector3i, goal: Vector3i, adjacent_ok := true, exact_goals: Dictionary = {}) -> Dictionary:
+	for bridge: Dictionary in _bridges.values():
+		if bool(bridge.closing): return {}
 	for route: Dictionary in _ladders.values():
 		if bool(route.closing): return {}
 	var query := _new_search(goal, start, false, true)
@@ -320,9 +370,20 @@ func walkable_floor_at(wx: int, wz: int, near_y: int, scan: int = 4) -> Vector3i
 ## the corner-safety margin. Grid paths stay the correctness authority; this
 ## only lets agents cut the staircase zigzag between waypoints.
 func line_walkable_flat(a: Vector3i, b: Vector3i, radius: float = 0.3) -> bool:
-	if a.y != b.y:
+	return line_walkable_flat_from(Vector3(a) + Vector3(.5,1,.5), b, radius)
+
+
+## Moving actors are usually between cell centres. Checking a parallel line
+## from current_cell() can approve a shortcut that steps off a bridge corner.
+func line_walkable_flat_from(position: Vector3, b: Vector3i, radius: float = 0.3) -> bool:
+	var a := Vector3i(floori(position.x), roundi(position.y)-1, floori(position.z))
+	if a.y != b.y or not is_walkable(a) or not is_walkable(b):
 		return false
-	var from := Vector2(float(a.x) + 0.5, float(a.z) + 0.5)
+	# Recentring stays entirely inside one known-clear, supported cell. An
+	# interrupted actor may already be within the corner margin of its edge;
+	# requiring that margin here would prevent it from moving back to safety.
+	if a == b: return true
+	var from := Vector2(position.x, position.z)
 	var to := Vector2(float(b.x) + 0.5, float(b.z) + 0.5)
 	var length := from.distance_to(to)
 	if length < 0.001:
@@ -334,7 +395,8 @@ func line_walkable_flat(a: Vector3i, b: Vector3i, radius: float = 0.3) -> bool:
 		var p := from + dir * t
 		for offset in [Vector2.ZERO, side, -side]:
 			var q: Vector2 = p + offset
-			if not is_walkable(Vector3i(floori(q.x), a.y, floori(q.y))):
+			var sample := Vector3i(floori(q.x), a.y, floori(q.y))
+			if not is_walkable(sample) or not _bridge_entry_allowed(sample,a):
 				return false
 		t += 0.25
 	return true
@@ -353,6 +415,8 @@ func get_stats() -> Dictionary:
 
 func clear_runtime_state() -> void:
 	_chunk_revisions.clear()
+	_bridges.clear()
+	_bridge_floors.clear()
 	_ladders.clear()
 	_rebuild_ladders()
 	_walkable_cache.clear()
@@ -366,7 +430,7 @@ func clear_runtime_state() -> void:
 # ── Walkability ───────────────────────────────────────────────────────────────
 
 func _compute_walkable(cell: Vector3i) -> bool:
-	if not BlockRegistry.is_solid(_block_id(cell.x, cell.y, cell.z)):
+	if not bridge_supports(cell) and not BlockRegistry.is_solid(_block_id(cell.x, cell.y, cell.z)):
 		return false
 	for k in range(1, CLEARANCE + 1):
 		var above := Vector3i(cell.x, cell.y + k, cell.z)
@@ -421,6 +485,7 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 	var came: Dictionary = query.came
 	var closed: Dictionary = query.closed
 	var goals: Dictionary = query.get("goals", {})
+	var floor_filter: Callable = query.get("floor_filter",Callable())
 	var slice_nodes := 0
 	while not heap.is_empty():
 		if slice_nodes >= node_budget or (deadline_usec > 0 and Time.get_ticks_usec() >= deadline_usec): return
@@ -443,6 +508,8 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 
 		var g_cur: float = g[current]
 		for neighbor: Vector3i in _ladder_neighbors(current, query.get("route_start",start), query.get("route_goal",goal)):
+			if floor_filter.is_valid() and not floor_filter.call(neighbor): continue
+			if not _bridge_entry_allowed(neighbor,query.get("route_start",start)): continue
 			if closed.has(neighbor): continue
 			var route: Dictionary = ladder_at(current) if _rungs.has(current) else ladder_at(neighbor)
 			var g_new := g_cur + (1.0 / maxf(.1, float(route.speed)) if neighbor.y != current.y else COST_LATERAL)
@@ -459,8 +526,10 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 			# (a walkable floor's clearance forbids another directly above).
 			for dy: int in [0, 1, -1]:
 				var neighbor := Vector3i(nx, current.y + dy, nz)
+				if floor_filter.is_valid() and not floor_filter.call(neighbor): continue
 				if closed.has(neighbor) or not is_walkable(neighbor):
 					continue
+				if not _bridge_entry_allowed(neighbor,query.get("route_start",start)): continue
 				var step_cost := COST_LATERAL
 				if dy > 0:
 					step_cost = COST_UP
@@ -479,6 +548,10 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 		# and both cardinal in-between cells walkable.
 		for dir: Vector2i in _DIAGS:
 			var neighbor := Vector3i(current.x + dir.x, current.y, current.z + dir.y)
+			if floor_filter.is_valid() and (not floor_filter.call(neighbor) or not floor_filter.call(Vector3i(current.x+dir.x,current.y,current.z)) or not floor_filter.call(Vector3i(current.x,current.y,current.z+dir.y))): continue
+			if not _bridge_entry_allowed(neighbor,query.get("route_start",start)) \
+				or not _bridge_entry_allowed(Vector3i(current.x+dir.x,current.y,current.z),query.get("route_start",start)) \
+				or not _bridge_entry_allowed(Vector3i(current.x,current.y,current.z+dir.y),query.get("route_start",start)): continue
 			if closed.has(neighbor) or not is_walkable(neighbor):
 				continue
 			if not is_walkable(Vector3i(current.x + dir.x, current.y, current.z)):
@@ -502,17 +575,37 @@ func _search_heuristic(query: Dictionary, cell: Vector3i) -> float:
 	if query.has("goal_min"):
 		var lo: Vector3i = query.goal_min
 		var hi: Vector3i = query.goal_max
-		return _heuristic(cell,Vector3i(clampi(cell.x,lo.x,hi.x),clampi(cell.y,lo.y,hi.y),clampi(cell.z,lo.z,hi.z)))
+		return _heuristic_to_box(cell,lo,hi)
+	if bool(query.adjacent_ok):
+		# A superset of the accepted neighbouring stands is still a lower bound.
+		var goal: Vector3i = query.goal
+		return _heuristic_to_box(cell,goal-Vector3i.ONE,goal+Vector3i.ONE)
 	return _heuristic(cell,query.goal)
 
 
-## Octile distance in XZ (diagonals allowed) + vertical Manhattan. Admissible:
-## never overestimates the true cost under the step rules above.
+## Consistent lower bounds on the same route, combined with max. On ordinary
+## terrain, octile XZ pays 1 per cardinal: an ascent adds only 0.2, a descent
+## discounts 0.1. A very fast ladder may make climb + downhill cheaper than
+## flat travel, so cap that horizontal cost and its height adjustment too.
+## Each bound changes by at most the cost of a legal edge; their maximum is
+## also consistent, so closed A* nodes need not be reopened.
 func _heuristic(a: Vector3i, b: Vector3i) -> float:
-	var dx := absi(a.x - b.x)
-	var dz := absi(a.z - b.z)
-	var dy := absi(a.y - b.y)
-	return float(maxi(dx, dz)) + 0.414 * float(mini(dx, dz)) + 0.9 * float(dy)
+	return _heuristic_to_box(a,b,b)
+
+
+func _heuristic_to_box(a: Vector3i, lo: Vector3i, hi: Vector3i) -> float:
+	var dx := absi(a.x - clampi(a.x,lo.x,hi.x))
+	var dz := absi(a.z - clampi(a.z,lo.z,hi.z))
+	var cardinal := minf(COST_LATERAL, COST_DOWN + _min_climb_cost)
+	var horizontal := cardinal * float(maxi(dx,dz)) + (COST_DIAGONAL-cardinal) * float(mini(dx,dz))
+	# Minimise each bound over the goal box independently. The horizontal
+	# bound gets its largest descent discount at the LOWEST goal, which need
+	# not be the nearest goal height used by the vertical bound.
+	var lowest_dy := lo.y - a.y
+	var slope := minf(COST_UP-cardinal, _min_climb_cost) if lowest_dy >= 0 else cardinal-COST_DOWN
+	var dy := clampi(a.y,lo.y,hi.y) - a.y
+	var vertical := _min_climb_cost * dy if dy >= 0 else _min_vertical_cost * -dy
+	return maxf(horizontal + slope * lowest_dy, vertical)
 
 
 func _lateral_adjacent(a: Vector3i, b: Vector3i) -> bool:
@@ -624,7 +717,9 @@ func _invalidate_chunk(chunk_key: Vector3i) -> void:
 
 
 func _path_chunk_set(path: Array[Vector3i]) -> Dictionary:
-	var chunks: Dictionary = {}
+	# Diagonal corner checks and headroom can depend on neighbouring chunks,
+	# even when none of the route's own floor cells lies in those chunks.
+	var query := {"track_changes":true, "chunks":{}}
 	for cell in path:
-		chunks[Vector3i(cell.x >> 4, cell.y >> 4, cell.z >> 4)] = true
-	return chunks
+		_remember_search_area(query,cell)
+	return query.chunks

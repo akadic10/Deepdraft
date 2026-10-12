@@ -1,5 +1,37 @@
 # Deepdraft — Agent Navigation Index
 
+**Latest session handoff:** [124 — Starter colony, 2026-10-11](docs/00_dev_roadmap/124_session_handoff_2026_10_11.md)
+collects today's bridges, furniture/materials, bedrooms, warmth/privacy, mining
+progression, placement timing and grouped storage. It records final verification,
+next-session playtests, current save policy and the two still-unresolved issues.
+
+**Grouped storage contents (2026-10-11):** [59 — Storage filters](docs/00_dev_roadmap/59_storage_filters.md)
+now shows alphabetical totals by item/material across ground zones and containers.
+Allow/Disallow is outside-storage only, including Object explorer. Stored goods
+remain available colony stock; acceptance filters and relocation keep their roles.
+
+**Immediate furniture placement (2026-10-11):** [123 — Placement timing](docs/00_dev_roadmap/123_furniture_placement_timing.md)
+removes the hidden two-second build wait for ordinary furniture. All 25 designs
+install during one 0.65-second set-down, aimed at their actual floor footprint or
+wall mount. Bridges/ladders and plants retain their animated work durations.
+Native/headless timing, rotated placement, interruption, cargo and task-family
+regression checks pass.
+
+**Privacy, heating and mining progression — live (2026-10-11):**
+[122 — Bedroom comfort and mining progression](docs/00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md)
+adds bedroom leisure privacy with normal visitor exits and filtered sleep routes,
+rudimentary hearth crafting (two logs/four stones), sheltered 10°C rock baseline and
+actual cold/chilly/hot sleep thoughts. RoomManager owns temperature.json. Ore/gem
+progression now requires immutable cover from the natural exterior, including
+cliffs, with descent gates for precious resources. Eight fresh-seed samples and
+the copied player save are verified; existing mined goods are untouched.
+
+**Rudimentary hearth art (2026-10-11):** [30 — Hearth visual redesign](docs/00_dev_roadmap/30_hearth_visual_redesign.md)
+now uses low uneven fieldstones, exposed logs/coals and simple stepped flames.
+The starter hearth has no dressed masonry or iron fittings. Its existing 2×2
+footprint, 2400 heat, recipe, sound and stable keys are retained; ten animated
+frames, native renders, placement/save and bedroom crafting/heat checks pass.
+
 This file is the **entry point** for any AI agent working on this codebase. Read it first. It maps every design document to its purpose and tells you which file to consult before touching any system.
 
 **Development save policy (2026-10-09, user decision):** Backward compatibility
@@ -9,11 +41,83 @@ explicitly requests them. Keep current-version save/load working; development
 changes may invalidate older saves. Use current definitions when loading rather
 than retaining obsolete layouts that require players to rebuild items manually.
 
-**Latest session handoff:** [112 — Water and wildlife, 2026-10-10](docs/00_dev_roadmap/112_session_handoff_2026_10_10.md)
-records finished voxel gems, weather/save validation fixes, finite rivers and real
-spring caves, water appearance/audio, movable stones and permissions, and ducks
-with short flights. It lists current verification, fresh-world playtest steps
-and deferred work. Read the relevant system docs alongside the handoff.
+**Bed ownership and comfort — live (2026-10-11):** [121 — Personal bedrooms](docs/00_dev_roadmap/121_personal_bedrooms.md)
+adds bed assignments through Object explorer, exclusive use and one assigned bed
+per colonist. A single assigned bed makes a personal bedroom; multiple beds make
+a barracks. Completed sleep with at least three hours in one's personal bedroom
+grants +10 happiness for 24 game hours. Assignments and thought timers save.
+Torch range/falloff now light a furnished 4×7 room while doors retain shadows.
+
+**Log beds and bedrooms — live (2026-10-11):** [120 — Beds and bedrooms](docs/00_dev_roadmap/120_log_beds_and_bedrooms.md)
+adds Worker-crafted 4×3 log beds with wood variants, real reachable/exclusive bed
+sleep and ground fallback. Bedrooms require a whole bed, door, enclosure and light;
+classification is derived on edits and load. Firelight energy is doubled. A faint
+silhouette preserves dwarf readability behind nearby walls/ladders without changing
+navigation. Native art/UI, sleep, lighting, cover and save checks are documented.
+
+**Dwarf movement and ground rest — live (2026-10-11):** [119 — Walking and ground rest](docs/00_dev_roadmap/119_dwarf_walking_and_ground_rest.md)
+raises walking speed to 3.4 blocks/second with a longer planted stride. Sleepers
+seek a nearby wall or tree, sit or recline with closed eyes and breathing, then
+stand up before returning to work. Quiet spatial snores replace the old emoji.
+Bed use followed in milestone 120; no new save fields. Rest search, poses, audio
+and lifecycle are tested.
+
+**Crafted materials and appeal — live (2026-10-11):** [118 — Crafted materials and appeal](docs/00_dev_roadmap/118_crafted_materials_and_appeal.md)
+preserves pine/oak/juniper/applewood through crafting, hauling, storage, equipment,
+installation, recovery and saves. Shared wood palettes and a material selector
+keep one catalog entry per design. Object appeal combines design and material;
+copper/gold profiles prepare future recipes. Appeal-driven room scores/moods and
+craftsmanship quality remain later work; bedroom/temperature thoughts are live.
+Reload Current Project for the new CraftMaterials registry autoload.
+
+**Log furniture and fire audio — live (2026-10-11):** [117 — Log furniture and fire ambience](docs/00_dev_roadmap/117_log_furniture_and_fire_audio.md)
+adds single log doors at two/three blocks wide and a double at four, with
+approach-driven hinges and full room sealing. The bench and starter torch now
+use simpler log art and names. Worker recipes and icons cover the new doors and
+bench. Campfires and both torches have quiet spatial crackles on the Work bus;
+pause, slices, visibility and source removal silence them. Current saves retain
+installed items. Art, crafting, movement, audio and save/backup checks pass.
+Door faces now sample their own side of the room seal, fixing black outdoor wood
+and light leaking from jambs onto open leaves. All widths/rotations and restore
+are covered by `DoorLightingTest`; see [24 — World rendering](docs/20_player_interface/24_world_rendering.md).
+
+**Full packed furniture crates — live (2026-10-11):** [116 — Full furniture crates](docs/00_dev_roadmap/116_full_furniture_crates.md)
+enlarges the shared packed furniture model to an 8×8×8-voxel wooden shipping
+crate, one full world block, with recessed planks and stepped braces. The 22
+shared furniture items use it at native loose/carry size and fit existing shelf
+slots. Native art, actual hauling and camp furniture installation are verified.
+
+**Dwarf footing — fixed (2026-10-11):** [115 — Dwarf support recovery](docs/00_dev_roadmap/115_dwarf_support_recovery.md)
+checks every dwarf before work, leisure or sleep. If another miner removes its
+floor, the dwarf settles onto the first physical support below, releases obsolete
+routes/claims and drops cargo intact. Current saves with hovering dwarves recover
+when resumed. Normal steps, ladders and bridge supports retain their behavior.
+
+**Crafting browser — live (2026-10-11):** [114 — Crafting browser](docs/00_dev_roadmap/114_crafting_browser.md)
+replaces the tall recipe tiles and permanent queue column with compact icons
+under category headings, recipe/category search, and Recipes / Orders tabs.
+The selected item's illustration, materials and crafting actions share one
+detail card. Queue and Place stay visible on compact screens; live updates
+preserve keyboard focus, order controls and scroll positions.
+
+**Log bridges — live (2026-10-11):** [113 — Log bridges](docs/00_dev_roadmap/113_log_bridges.md)
+adds Worker-crafted kits, Place → Access previews, two-block decks spanning up
+to five water blocks between equal-height banks, and installation from one bank.
+Completed decks support walking/hauling while water flows underneath. Closing,
+evacuation, kit recovery, interrupted work and current saves are verified.
+Placement now snaps bank faces/riverbed hits to landings and auto-aligns across
+the river; real mouse clicks and the playtest seed are covered by the input fix.
+Workers can build from either landing regardless of the preview's anchor bank,
+fixing saved plans that demanded a route across the unbuilt crossing. Opposite-bank
+mouse placement, real delivery and builder facing are regression-tested.
+Bogorn's bridge-corner fall is fixed: moving shortcuts now check the actual actor
+position, with safe recentering after interruption. See doc 32 and
+`BridgeCornerWalkingTest`; already submerged saved actors require recovery.
+Start a fresh development world; older saves lack the required bridges section.
+
+**Previous session:** [112 — Water and wildlife, 2026-10-10](docs/00_dev_roadmap/112_session_handoff_2026_10_10.md)
+retains the finite-water, finished-gem, movable-stone and duck implementation history.
+Use handoff 124 above for the current starting point and remaining work.
 
 **Ducks — live (2026-10-10):** [111 — Duck wildlife](docs/00_dev_roadmap/111_duck_wildlife.md)
 adds seeded calm-water flocks, male/female voxel art, swimming, shore activity,
@@ -53,7 +157,7 @@ exact ore-drop shape for both stones: turquoise flecks beside the cave pool and
 muted flecks on the lakebed. The old terrain patches and shoreline arch are gone.
 Source/drain positions, rates, discharge cap and retained lake level are unchanged.
 [110 — Permissions and movable stones](docs/00_dev_roadmap/110_item_permissions_and_water_stones.md)
-adds per-item/per-stack Allow/Disallow and real Pack/Move/Place work. Natural stones
+adds outside-storage Allow/Disallow and real Pack/Move/Place work. Natural stones
 start disallowed and keep working; Allow alone never auto-hauls placed stones.
 Packed/carried/stored stones are inactive; placing restarts their effect at the
 new position. Permissions, exact identities, packing progress and move plans save.

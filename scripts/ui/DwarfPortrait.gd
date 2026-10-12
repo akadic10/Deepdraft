@@ -39,6 +39,7 @@ static func create_model(viewport: SubViewport, agent: DwarfAgent) -> Node3D:
 		if part == null: continue
 		var copy := part.duplicate(0) as Node3D
 		copy.transform = Transform3D.IDENTITY
+		for silhouette: Node in copy.find_children("OccludedSilhouette","MeshInstance3D",true,false): silhouette.free()
 		# Portraits use their own studio lighting, even when the selected dwarf
 		# stands underground. Keep the original tint without the world light field.
 		for mesh: MeshInstance3D in copy.find_children("*","MeshInstance3D",true,false):

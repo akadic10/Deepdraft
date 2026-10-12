@@ -5,12 +5,15 @@ stone relocation. A later scenario may award another pair; no scenario is added 
 
 ## Player behavior
 
-- Loose goods and individual stored stacks have Allow/Disallow. Ordinary goods
-  start allowed. The natural wet and dry stones start disallowed.
+- Goods outside storage have Allow/Disallow. Ordinary goods start allowed.
+  The natural wet and dry stones start disallowed. The 2026-10-11 storage UX
+  revision removes stored-stack permission controls, including Object explorer.
 - Disallowed goods remain visible in inventory totals and inspection, but cannot
-  be hauled, reserved for crafting/placement, withdrawn, or collected for promotion.
-  Stored stacks have their own toggle in Contents; storage acceptance filters
-  remain separate. Crates with different permissions never merge on restoration.
+  be hauled, reserved for crafting/placement, or collected for promotion.
+  Stored goods are always available colony stock; deposit/restoration clears the
+  stored permission flag. Storage acceptance filters decide which goods belong
+  there, with rejected goods awaiting relocation. Contents groups item/material
+  totals while preserving every physical slot and crate.
 - Placed water stones keep working regardless of permission. Allow alone does
   not turn a functioning stone into an automatic storage-hauling target.
 - An allowed placed stone offers **Move** and **Pack for storage**. A dwarf
@@ -47,9 +50,10 @@ work, permission and save paths; effects are evaluated in deterministic ID order
 No extra starting stones, recipes, acquisition event or reward balance are introduced.
 
 `ItemPermission` is a small shared predicate, not a new global inventory owner.
-The permission is carried by node metadata or its owning storage stack and saved
-with that owner. Container save entries now preserve every physical stack, so
-same-type crates can retain different permissions. Stone identity/progress lives
+The permission is carried by loose/carried node metadata and saved with that
+owner. Storage records retain a false permission field; current storage ownership
+always clears it on load. Container save entries preserve every physical stack,
+its quantity and material. Stone identity/progress lives
 in the existing water section; destinations live in furniture plans. Carried
 stones restore loose at dwarf feet and are reclaimed by their standing Move plan.
 Validation rejects malformed permission fields, missing/duplicate stone owners,
@@ -59,15 +63,15 @@ Older development saves need no migration and may be rejected.
 ## Verification
 
 - `ItemPermissionTest`: real haul before/after contact, safe cargo release,
-  selection gates, ground/chest/shelf withdrawal, blocked crate preservation,
-  independent stack flags and native Contents toggles at 960×540 and 2560×1440.
+  selection gates, ground/chest/shelf withdrawal, available stored stock,
+  grouped contents and outside-only controls at 960×540 and 2560×1440.
 - `CraftingPermissionTest`, `ToolPromotionTest`: forbidden inputs/tools,
   interruption during approach/work/pickup, conservation and successful reuse.
 - `WaterStoneLifecycleTest`: real packing, Move, cancellation, inactive cargo,
   relocated supply, independent extra sources and JSON restoration. Native
   Allow/Disallow/Pack/Move inspection at both resolutions and compact Water catalog.
 - `SaveManagerRoundTripTest`: full scene replacement and manual/autosave backup
-  recovery, permissions in loose/ground/container state, five stone identities,
+  recovery, loose permissions and available ground/container stock, five stone identities,
   active packing progress/destination, and inactive carried-stone restoration.
 - `StorageFilterTest`, `ProduceCrateTest`, `PlacementHaulPriorityTest`: existing
   storage, quantities, physical slots, handoff and cancellation behavior.

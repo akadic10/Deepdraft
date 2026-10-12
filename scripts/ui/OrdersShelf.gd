@@ -247,11 +247,11 @@ func _position_panels() -> void:
 			if button.disabled: button.text += "\nLater"
 	_shelf.reset_size()
 	_shelf.position = Vector2((viewport.x - _shelf.size.x) * .5, _dock_rect.position.y - _shelf.size.y - 8)
-	var banner_width := minf(640, viewport.x - 48 - (inspector.size.x + 16 if compact else 0))
+	var banner_width := minf(640, viewport.x - 48 - (inspector.size.x + 16 if compact else 0.0))
 	_banner_layout.vertical = banner_width < 600
 	_banner.custom_minimum_size.x = banner_width
 	_hint.custom_minimum_size.x = maxf(160, banner_width - 70 \
-		- (0 if _banner_layout.vertical else _banner_actions.get_combined_minimum_size().x + 12))
+		- (0.0 if _banner_layout.vertical else _banner_actions.get_combined_minimum_size().x + 12))
 	_banner.reset_size()
 	var stack_top := _shelf.position.y if _shelf.visible else _dock_rect.position.y
 	_banner.position = Vector2((viewport.x - _banner.size.x) * .5, stack_top - _banner.size.y - 8)
@@ -275,8 +275,8 @@ func _prune_history() -> void:
 	while not _history.is_empty() and not _receipt_pending(_history.back()): _history.pop_back()
 
 
-func _record_order(receipt: Dictionary, owner: Node) -> void:
-	_last_order = {"owner": owner, "receipt": receipt}
+func _record_order(receipt: Dictionary, order_controller: Node) -> void:
+	_last_order = {"owner": order_controller, "receipt": receipt}
 	_history.append(_last_order)
 	if _history.size() > 20: _history.pop_front()
 	_show_feedback(String(receipt.message))

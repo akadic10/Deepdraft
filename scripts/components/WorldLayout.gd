@@ -20,10 +20,10 @@ func generate(world_seed: int, profile: Dictionary) -> Dictionary:
 	var rejected: Array = []
 	for attempt in range(int(profile["max_attempts"])):
 		var candidate := _candidate(world_seed, attempt, false)
-		var check := Validator.inspect(candidate, profile)
-		if check["errors"].is_empty():
-			return _accepted(candidate, check, attempt + 1, false, rejected)
-		rejected.append(check["errors"])
+		var candidate_check := Validator.inspect(candidate, profile)
+		if candidate_check["errors"].is_empty():
+			return _accepted(candidate, candidate_check, attempt + 1, false, rejected)
+		rejected.append(candidate_check["errors"])
 	# A finite fallback family lets the test exercise EVERY possible fallback,
 	# rather than extrapolating a guarantee from randomly sampled fallback seeds.
 	# Selection remains seed-derived. Keep validating in case the profile changes.
@@ -82,7 +82,7 @@ func _candidate(world_seed: int, attempt: int, fallback: bool) -> Dictionary:
 			var point := Vector2i((anchor + along + across).round())
 			point = point.clamp(Vector2i(4, 4), Vector2i(_count - 5, _count - 5))
 			var rank := 9 - int(floor(absf(t - 0.5) * 5.0))
-			if step == length / 2: rank = 9
+			if step == floori(length / 2.0): rank = 9
 			for dx in range(summit_width if rank == 9 else 1):
 				for dz in range(summit_width if rank == 9 else 1):
 					sources.append(Vector3i(point.x + dx, point.y + dz, rank))
@@ -101,8 +101,8 @@ func _candidate(world_seed: int, attempt: int, fallback: bool) -> Dictionary:
 		var center := _point(choices[rng.randi_range(0, choices.size() - 1)])
 		var width := rng.randi_range(int(primary["shoulder_size_min"]), int(primary["shoulder_size_max"]))
 		var ledge: Array[Vector3i] = []
-		for x in range(center.x - width / 2, center.x - width / 2 + width):
-			for z in range(center.y - width / 2, center.y - width / 2 + width):
+		for x in range(center.x - floori(width / 2.0), center.x - floori(width / 2.0) + width):
+			for z in range(center.y - floori(width / 2.0), center.y - floori(width / 2.0) + width):
 				if _inside(x, z): ledge.append(Vector3i(x, z, 4))
 		_raise_shelves(ranks, ledge)
 	_promote_lowland_islands(ranks)
@@ -255,7 +255,7 @@ func _mountain_tarn(ranks: PackedInt32Array, rng: RandomNumberGenerator) -> Dict
 
 
 func _point(index: int) -> Vector2i:
-	return Vector2i(index / _count, index % _count)
+	return Vector2i(floori(float(index) / _count), index % _count)
 
 
 func _inside(x: int, z: int) -> bool:

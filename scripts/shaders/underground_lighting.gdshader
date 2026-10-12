@@ -13,6 +13,12 @@ uniform float readability_floor = 0.008;
 // Live actors share one body sample, including attached tools/carried meshes.
 // Negative means ordinary world-space terrain/prop sampling.
 instance uniform float actor_sky_access = -1.0;
+// Installed doors seal a one-block-deep column, but their wood is thinner.
+// Keep this plane fixed to the doorway while individual leaves swing.
+// xyz = world depth axis, w = signed distance of the doorway centre.
+instance uniform vec4 doorway_light_plane = vec4(0.0);
+// Lateral centre and half-span of the clear air cells inside the jambs.
+instance uniform vec2 doorway_light_span = vec2(0.0);
 uniform bool scene_fog_enabled = false;
 uniform float fog_density = 0.0;
 uniform bool fog_depth_mode = true;
@@ -131,7 +137,25 @@ float water_glints(vec2 p, vec2 current, float clock, float density) {
 }
 
 void fragment() {
-    sky_access = actor_sky_access >= 0.0 ? actor_sky_access : exposure(world_position+world_normal*0.04);
+    vec3 sample_position = world_position+world_normal*0.04;
+    if (dot(doorway_light_plane.xyz,doorway_light_plane.xyz) > 0.5) {
+        vec3 axis = doorway_light_plane.xyz;
+        float depth = dot(sample_position,axis)-doorway_light_plane.w;
+        if (abs(depth) < 0.5) {
+            // Sample the air on the face's side, beyond the virtual seal.
+            // Use the adjacent cell centre so interpolation cannot mix the
+            // dark seal back in. Edge faces follow their physical side.
+            float facing = dot(world_normal,axis);
+            float side = abs(facing) > 0.001 ? sign(facing) : sign(depth);
+            sample_position += axis*(side-depth);
+        }
+        // Open leaves and outer frame faces can touch the solid jambs. Their
+        // cut-plate daylight must not brighten the room side of the wood.
+        vec3 lateral = cross(vec3(0.0,1.0,0.0),axis);
+        float along = dot(sample_position,lateral)-doorway_light_span.x;
+        sample_position += lateral*(clamp(along,-doorway_light_span.y,doorway_light_span.y)-along);
+    }
+    sky_access = actor_sky_access >= 0.0 ? actor_sky_access : exposure(sample_position);
     ALBEDO = tint.rgb*(vertex_color ? COLOR.rgb : vec3(1.0));
     if (water_surface) {
         int slot = int(round(UV2.x));

@@ -10,6 +10,8 @@ var _lighting: Label
 var _lighting_hint: Label
 var _volume: Label
 var _doors: Label
+var _beds: Label
+var _bedroom_hint: Label
 var _heat: Label
 var _season: Label
 var _level: Label
@@ -44,6 +46,8 @@ func _ready() -> void:
 	_overview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_overview.add_theme_constant_override("separation", 14)
 	pages.add_child(_overview)
+	_beds = _row(_overview, "Beds")
+	_bedroom_hint = _label(_overview, "", 13, UITheme.HEARTH_MUTED)
 	var temperature := _card(_overview, "TEMPERATURE")
 	_temperature = _label(temperature, "", 28)
 	UITheme.apply_title(_temperature, 28)
@@ -59,7 +63,7 @@ func _ready() -> void:
 	_heat = _row(_details, "Heating")
 	_season = _row(_details, "Seasonal influence")
 	_level = _row(_details, "Average floor level")
-	_label(_details, "Doors enclose the room. Its depth, the season and heat sources inside determine its temperature.", 13, UITheme.HEARTH_MUTED)
+	_label(_details, "Rock shelters rooms from weather. A stone hearth warms bedrooms; torches mainly provide light. Cold or hot sleep reduces happiness.", 13, UITheme.HEARTH_MUTED)
 	_label(self, "Select another room to inspect · Esc to finish", 11, UITheme.HEARTH_MUTED)
 	get_viewport().size_changed.connect(_fit)
 	_show_tab(0)
@@ -69,17 +73,28 @@ func _ready() -> void:
 func show_room(room: Dictionary) -> void:
 	var frozen := bool(room.get("is_frozen_vault", false))
 	_status.text = "FROZEN VAULT · SEALED" if frozen else "SEALED ROOM"
+	if room.get("room_type","") in ["bedroom","personal_bedroom","barracks"]: _status.text = RoomManager.room_label(room).to_upper()+" · SEALED"
 	_temperature.text = "%.1f°C" % float(room.get("temp_c", 0.0))
 	var level := float(room.get("mean_floor_y", 0.0))
-	_zone.text = _zone_name(level)
+	_zone.text = RoomManager.comfort_label(float(room.temp_c))
 	var count := RoomManager.count_room_lights(room.get("cells", {}))
 	_lighting.text = "No light sources" if count == 0 else "%d light source%s" % [count, "" if count == 1 else "s"]
 	_lighting_hint.text = "Place a torch or brazier inside to light this room." if count == 0 else "Installed lights illuminate the space around them."
 	var volume := int(room.get("volume", 0))
 	_volume.text = "%d blocks" % volume
 	_doors.text = str(room.get("door_cells", {}).size())
+	var beds := RoomManager.count_room_beds(room.get("cells",{}))
+	_beds.text = str(beds)
+	if room.get("room_type","")=="personal_bedroom":
+		var resident: DwarfAgent = TaskManager._agents.get(int(room.owner_id))
+		_bedroom_hint.text = "%s's bedroom. Sleeping here gives a happiness bonus." % (resident.dwarf_name if is_instance_valid(resident) else "Colonist")
+	elif room.get("room_type","")=="barracks": _bedroom_hint.text = "Shared sleeping quarters. Bed assignments are respected; no personal-bedroom bonus."
+	elif room.get("room_type","")=="bedroom": _bedroom_hint.text = "Assign the bed to give a colonist their own bedroom."
+	elif beds==0 and count==0: _bedroom_hint.text = "Add a bed and light to make this a bedroom."
+	elif beds==0: _bedroom_hint.text = "Add a bed to make this a bedroom."
+	else: _bedroom_hint.text = "Add a light inside to make this a bedroom."
 	var heat := int(room.get("heat_units", 0))
-	_heat.text = "%d units · +%.1f°C" % [heat, float(heat) / maxf(1, volume)]
+	_heat.text = "%d units · +%.1f°C" % [heat, float(room.get("heat_bonus_c",0))]
 	_season.text = "%d%%" % roundi(float(room.get("seasonal_influence", 0)) * 100)
 	_level.text = "%.1f" % level
 	# Wrapped text gets its actual height after the window establishes a width.
@@ -134,10 +149,3 @@ func _label(parent: Node, text: String, font_size: int, color: Color = UITheme.H
 	label.add_theme_color_override("font_color", color)
 	parent.add_child(label)
 	return label
-
-
-func _zone_name(level: float) -> String:
-	if level >= 65: return "Cool Cave"
-	if level >= 50: return "Cold Cave"
-	if level >= 37: return "Deep Cold"
-	return "Frozen Zone"

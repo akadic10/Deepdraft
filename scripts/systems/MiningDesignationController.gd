@@ -1953,7 +1953,7 @@ func get_zone_block_work(block: Vector3i) -> Dictionary:
 ## Returns false (and writes nothing) on any guard failure.
 ## Match the struck face's concealment rule: only mined-open neighbours
 ## expose the real resource. A natural/slice/designation face shows strata.
-func play_zone_mining_impact(block: Vector3i, position: Vector3, normal: Vector3) -> void:
+func play_zone_mining_impact(block: Vector3i, impact_position: Vector3, normal: Vector3) -> void:
 	var block_id := _block_id_at(block)
 	if not BlockRegistry.is_solid(block_id):
 		return
@@ -1961,7 +1961,7 @@ func play_zone_mining_impact(block: Vector3i, position: Vector3, normal: Vector3
 	var cave_id := WorldGenerator.get_cave_id(exposed_air)
 	if not _mined_blocks.has(exposed_air) and not (cave_id >= 0 and InteriorTracker.is_cave_discovered(cave_id)):
 		block_id = WorldGenerator.get_overview_strata_block_id(block.x,block.y,block.z)
-	WorkFeedback.mining_impact(position,block,block_id,normal)
+	WorkFeedback.mining_impact(impact_position,block,block_id,normal)
 
 
 func execute_zone_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> bool:

@@ -1,17 +1,17 @@
 {
   "__comment": [
-    "Hearth — redesigned 2x2 stone fire bowl (doc 30, 2026-10-01).",
+    "Rudimentary hearth — rough fieldstones, exposed logs and coals (doc 30, 2026-10-11).",
     "Authored at 8 voxels per block, 0.125 export scale baked into the GLB.",
-    "Stone rim is 1 block high; tallest flame is 2 blocks. Placement and collision cover 2x2x2.",
-    "RoomManager reads heat_source.heat_units. A multi-cell hearth contributes 400 units once, at its origin.",
-    "Named body/flame meshes preserve the stonework while ten voxel fire frames animate above the bowl.",
+    "Uneven stones reach 0.75 blocks; fire fits inside the existing 2x2x2 placement/collision envelope.",
+    "RoomManager reads heat_source.heat_units. A multi-cell hearth contributes 2400 units once, at its origin.",
+    "Named body/flame meshes preserve the fieldstones and logs while ten stepped voxel fire frames animate.",
     "Installed hearths emit warm, gently flickering light. Ghosts and packed items remain unlit.",
     "The shared packed-furniture item and floor-placement behavior are unchanged."
   ],
   "furniture_key": "base:furniture:hearth",
   "furniture_category": "hearth",
-  "display_name": "Hearth",
-  "description": "A broad bowl of dressed stone with an iron grate, glowing coals and rising flames.",
+  "display_name": "Rudimentary hearth",
+  "description": "Rough fieldstones bank a bed of coals and unsawn logs. Warms a small bedroom; larger halls need more heat.",
   "model": "res://assets/models/furniture/hearth.glb",
   "item_key": "base:resources:furniture:hearth",
   "placement": "floor",
@@ -41,7 +41,11 @@
     "energy": 2.0,
     "range": 8.0,
     "attenuation": 1.2,
-    "position": [0, 1.375, 0],
+    "position": [
+      0,
+      1.375,
+      0
+    ],
     "shadows": true,
     "body_shadows": true,
     "emissive_mesh": "hearth_flame",
@@ -49,9 +53,31 @@
     "emission_energy": 0.85,
     "flame_animation": {
       "model": "res://assets/models/furniture/animations/hearth_flame.glb",
-      "frames": ["flame_00", "flame_01", "flame_02", "flame_03", "flame_04", "flame_05", "flame_06", "flame_07", "flame_08", "flame_09"],
-      "frame_durations": [0.14, 0.12, 0.15, 0.13, 0.14, 0.12, 0.16, 0.13, 0.15, 0.14],
-      "speed_variation": 0.10,
+      "frames": [
+        "flame_00",
+        "flame_01",
+        "flame_02",
+        "flame_03",
+        "flame_04",
+        "flame_05",
+        "flame_06",
+        "flame_07",
+        "flame_08",
+        "flame_09"
+      ],
+      "frame_durations": [
+        0.14,
+        0.12,
+        0.15,
+        0.13,
+        0.14,
+        0.12,
+        0.16,
+        0.13,
+        0.15,
+        0.14
+      ],
+      "speed_variation": 0.1,
       "light_variation": 0.08,
       "emission_variation": 0.07,
       "flicker_frequency_hz": 2.0,
@@ -59,6 +85,7 @@
     }
   },
   "heat_source": {
-    "heat_units": 400
-  }
+    "heat_units": 2400
+  },
+  "fire_sound": "campfire"
 }

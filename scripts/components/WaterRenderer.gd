@@ -67,7 +67,7 @@ func _process(_delta: float) -> void:
 		_motion_time = WaterManager.elapsed
 	if _revision != WaterManager.revision or _slice != terrain.slice_y:
 		for tile: Vector2i in _tiles: WaterManager.dirty_tiles[tile] = true
-		for key: Vector3i in WaterManager.flow.mass: WaterManager.dirty_tiles[Vector2i(key.x/32,key.z/32)] = true
+		for key: Vector3i in WaterManager.flow.mass: WaterManager.dirty_tiles[Vector2i(int(key.x/32.0),int(key.z/32.0))] = true
 		_revision = WaterManager.revision
 		_slice = terrain.slice_y
 	var budget := int(WorldGenerator.water_profile.rendering.tiles_per_frame)

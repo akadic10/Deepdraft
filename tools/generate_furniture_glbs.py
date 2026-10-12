@@ -9,7 +9,7 @@ at runtime — no separate ghost asset).
 
 ONE-BOX RULE (Alen, 2026-07-11 — the ore one-shape rule applied to
 furniture): EVERY packed furniture item uses the SAME generic box — a plank
-crate with rope lashing. At RTS zoom the box says "packed furniture"; the
+full 8x8x8-cell crate with wooden braces. At RTS zoom the box says "packed furniture"; the
 ghost you placed says which piece it becomes. All resources.json furniture
 item defs point at the single packed_furniture.glb.
 
@@ -37,8 +37,8 @@ grate + embers — the material-rule exception applied to industrial/utility
 anchors, same bucket as trade_counter and workshop bodies). All three use the
 same packed_furniture.glb item form (one-box rule still applies).
 
-DOC 30 UPDATE (2026-10-01): the hearth is now a 2x2 stone bowl, with a
-1-block rim and 2-block flame tip at the same 8 voxels/block. Its authored
+DOC 30 UPDATE (2026-10-11): the hearth is now a rudimentary 2x2 fieldstone fire bed, with a
+0.75-block uneven rim and exposed logs at the same 8 voxels/block. Its authored
 colors are converted to linear COLOR_0 locally; other furniture is unchanged.
 The 2026-10-02 fire follow-up exports named body/flame meshes and a separate
 ten-frame flame library, shared by installed hearths at runtime.
@@ -63,6 +63,10 @@ in depth. Empty collision regions preserve passage and room sealing.
 DOC 36 ART UPDATE (2026-10-01): the shared packed crate uses framed oak,
 recessed panels and rope loops with a raised knot. Its original 5x4x5-cell
 envelope is unchanged. It now uses the same local linear COLOR_0 export.
+
+DOC 116 ART UPDATE (2026-10-11): the shared packed crate now fills one full
+8x8x8-cell world block, centered X/Z and grounded Y0. Recessed oak planks,
+corner posts and stepped braces replace the smaller rope-bound parcel.
 
 DOC 37 ART ADDITION (2026-10-01): the trade counter is a 2x1 stone/iron
 industrial anchor, 2 blocks tall. It uses local linear COLOR_0 and the
@@ -119,7 +123,7 @@ import generate_hearth_redesign as hearth_art
 import generate_tavern_redesign as tavern_art
 import generate_barrel_redesign as barrel_art
 import generate_chest_redesign as chest_art
-import generate_door_redesign as door_art
+import generate_log_furniture as door_art
 import generate_packed_furniture_redesign as packed_art
 import generate_trade_counter as trade_art
 import generate_dining_table as table_art
@@ -378,7 +382,7 @@ def build_tavern_bar():
 
 
 def build_bench():
-    return tavern_art.bench()
+    return door_art.bench()
 
 
 def build_hearth():
@@ -590,6 +594,8 @@ def main():
         ("bench", build_bench()),
         ("hearth", build_hearth()),
         ("door", build_door()),
+        ("log_door_3", door_art.door(3)),
+        ("log_door_4", door_art.door(4)),
         ("trade_counter", build_trade_counter()),
         ("wooden_table", build_wooden_table()),
         ("communal_table", build_communal_table()),
@@ -605,7 +611,11 @@ def main():
 
     total = 0
     for name, vox in placed:
-        if name == 'hearth':
+        if name in ('door', 'log_door_3', 'log_door_4'):
+            path = placed_dir / f'{name}.glb'
+            door_art.write_door(path, 2 if name == 'door' else int(name[-1]))
+            size = path.stat().st_size
+        elif name == 'hearth':
             from generate_hearth_redesign import write_hearth, write_flames as write_hearth_flames
             path = placed_dir / 'hearth.glb'
             write_hearth(path,root / 'tmp' / 'furniture_review')

@@ -1,0 +1,145 @@
+extends "res://scripts/tests/BedroomTest.gd"
+
+const REVIEW_DIR := "res://tmp/personal_bedroom_20261011/"
+
+func _run() -> void:
+	create_timer(140).timeout.connect(func(): push_error("Bed ownership timeout"); quit(1))
+	DirAccess.make_dir_recursive_absolute(REVIEW_DIR)
+	await _setup_crafting_fixture()
+	rooms = root.get_node("RoomManager")
+	rooms.clear_runtime_state()
+	_build_bedroom()
+	door = _put("door",Vector3i(63,20,60))
+	bed = _put("log_bed",Vector3i(62,20,64))
+	lamp = _put("wooden_torch",Vector3i(68,20,64))
+	_put("hearth",Vector3i(66,20,66)) # Isolate ownership from cold-sleep penalties.
+	_expect(_room_data().room_type=="bedroom","unassigned single bed is a bedroom")
+	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
+	extra_worker = factory.spawn(factory.generate(142,{}),142)
+	scene.add_child(extra_worker)
+	extra_worker.position = Vector3(65.5,21,58.5)
+	extra_worker.set_process(false)
+	tasks.register_dwarf(extra_worker)
+	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
+	explorer.window_manager_path = NodePath("../Windows")
+	scene.add_child(explorer)
+	explorer.select_object(furniture,"installed:%d" % bed.installed_id)
+	await _frames(4)
+	var chooser: MenuButton = explorer._actions.get_child(0)
+	_click(chooser.get_global_rect().get_center())
+	await _frames(3)
+	var popup := chooser.get_popup()
+	_expect(popup.visible and popup.item_count==3,"bed assignment menu lists unassigned and both colonists")
+	if "--capture" in OS.get_cmdline_user_args():
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(REVIEW_DIR+"assignment.png")
+	for index in popup.item_count:
+		if popup.get_item_metadata(index)=="assign_bed:%d" % worker.dwarf_id:
+			popup.id_pressed.emit(index)
+			break
+	await _frames(3)
+	_expect(bed.assigned_dwarf_id==worker.dwarf_id,"inspector action assigns the actual bed")
+	_expect(_room_data().room_type=="personal_bedroom" and _room_data().owner_id==worker.dwarf_id,"single assigned bed derives personal bedroom owner")
+	extra_worker._rest_behavior.bed_rest.begin(48)
+	_expect(extra_worker._rest_behavior.bed_rest._options.is_empty(),"other dwarves cannot claim an assigned bed")
+	_put("log_bed",Vector3i(54,20,55))
+	worker.position = Vector3(57.5,21,58.5)
+	worker._begin_sleep()
+	_expect(await _sleep_in_bed(worker) and worker._rest_behavior.bed_rest.bed==bed,"assigned room wins over nearer unassigned camp bed")
+	var rate: float = clock_node.game_hours_per_real_second()
+	worker._process_sleeping(3.1/rate)
+	_expect(worker._mood.bedroom_memory_hours==0 and worker._mood.personal_sleep_hours>=3,"bonus waits for completed rest")
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(worker.serialize_state()))
+	worker.restore_saved_runtime(saved)
+	_expect(worker._rest_behavior.bed_rest.bed==bed and is_equal_approx(worker._mood.personal_sleep_hours,float(saved.mood.personal_sleep_hours)),"mid-sleep load preserves claimed bed and earned sleep hours")
+	worker._process_sleeping(3.0/rate)
+	_expect(is_equal_approx(worker._mood.value(),.6) and is_equal_approx(worker._mood.bedroom_memory_hours,24),"completed personal-room sleep grants ten happiness for one day")
+	worker._process_sleeping(2)
+	_expect(not worker.is_sleeping() and bed.sleep_owner<0 and bed.assigned_dwarf_id==worker.dwarf_id,"waking releases occupancy but preserves assignment")
+	clock_node.set_paused(true)
+	worker._process(10)
+	_expect(worker._mood.bedroom_memory_hours==24,"pause freezes thought duration")
+	clock_node.set_paused(false)
+	clock_node.set_speed(2)
+	worker._process(1)
+	_expect(is_equal_approx(worker._mood.bedroom_memory_hours,24-clock_node.game_hours_per_real_second()),"mood expiration follows simulation speed")
+	clock_node.set_speed(1)
+	await _review_ownership_ui()
+	var furniture_state: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
+	saved = JSON.parse_string(JSON.stringify(worker.serialize_state()))
+	for id in furniture._installed.keys(): furniture._teardown_installed(id,false)
+	rooms.clear_runtime_state()
+	furniture.restore_state(furniture_state)
+	bed = furniture._installed.values().filter(func(piece): return piece.assigned_dwarf_id==worker.dwarf_id)[0]
+	worker.restore_saved_runtime(saved)
+	_expect(_room_data().room_type=="personal_bedroom" and worker._mood.bedroom_memory_hours>23,"assignment and thought survive furniture/actor JSON restore")
+	worker.stop_walking()
+	worker.position = Vector3(63.5,21,58.5) # Keep instant fixture placement off the actor's access cell.
+	var second = _put("log_bed",Vector3i(62,20,61))
+	_expect(_room_data().room_type=="barracks","multiple beds create barracks even before assignments")
+	furniture.assign_bed(second.installed_id,extra_worker.dwarf_id)
+	_expect(_room_data().room_type=="barracks" and _room_data().owner_id<0,"individual bed owners do not make barracks personal")
+	worker._mood.tick(24)
+	worker._begin_sleep()
+	_expect(await _sleep_in_bed(worker),"assigned barracks bed remains usable")
+	worker._process_sleeping(6.1/rate)
+	_expect(worker._mood.bedroom_memory_hours==0,"barracks sleep gives no personal-bedroom thought")
+	worker._process_sleeping(2)
+	furniture.assign_bed(second.installed_id,worker.dwarf_id)
+	_expect(bed.assigned_dwarf_id<0 and second.assigned_dwarf_id==worker.dwarf_id,"reassignment moves ownership instead of giving a colonist two beds")
+	furniture._teardown_installed(bed.installed_id,false)
+	bed = second
+	_expect(_room_data().room_type=="personal_bedroom","removing extra bed restores personal room")
+	furniture.assign_bed(bed.installed_id,-1)
+	_expect(_room_data().room_type=="bedroom","unassigning restores shared single bedroom")
+	worker._begin_sleep()
+	_expect(await _sleep_in_bed(worker),"unassigned bed accepts sleeper")
+	var remaining: float = worker._sleep_hours_left
+	if worker._rest_behavior.bed_rest.bed!=null:
+		furniture.assign_bed(worker._rest_behavior.bed_rest.bed.installed_id,extra_worker.dwarf_id)
+	_expect(worker._rest_behavior.bed_rest.bed==null and worker._sleep_hours_left==remaining,"reassigning occupied bed releases displaced sleeper without refilling sleep")
+	worker._wake_up()
+	furniture.assign_bed(bed.installed_id,worker.dwarf_id)
+	furniture._teardown_installed(lamp.installed_id,false)
+	for piece in furniture._installed.values():
+		if piece.furniture_key=="base:furniture:hearth": furniture._teardown_installed(piece.installed_id,false)
+	_expect(_room_data().room_type=="room","unlit assigned bed has no personal-room qualification")
+	_expect(not furniture.assign_bed(bed.installed_id,99999),"unknown colonist cannot own a bed")
+	for failure in failures: push_error(failure)
+	if failures.is_empty(): print("BedOwnershipTest: PASS — assignment UI, exclusivity, preference, personal/barracks, sleep happiness, save, pause/speed and reassignment")
+	quit(0 if failures.is_empty() else 1)
+
+func _review_ownership_ui() -> void:
+	var room_tool = load("res://scripts/systems/RoomOverlayController.gd").new()
+	room_tool.window_manager_path = NodePath("../Windows")
+	room_tool.dock_ui_path = NodePath("../Dock")
+	scene.add_child(room_tool)
+	room_tool.activate()
+	room_tool._select_room(rooms.get_room_id_at(room_probe),room_probe)
+	room_tool._window_panel.position = Vector2(24,80)
+	for resolution in [Vector2i(1280,720),Vector2i(960,540)]:
+		root.size = resolution
+		await _frames(6)
+		_expect(room_tool._window_content._status.text=="PERSONAL BEDROOM · SEALED" and room_tool._window_content._bedroom_hint.text.contains(worker.dwarf_name),"room inspector names the resident")
+		_expect(explorer._window.get_global_rect().end.y<=resolution.y,"bed inspector assignment control fits compact screen")
+		if "--capture" in OS.get_cmdline_user_args():
+			DirAccess.make_dir_recursive_absolute(REVIEW_DIR)
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(REVIEW_DIR+"ownership_%d.png" % resolution.x)
+	room_tool.deactivate()
+	room_tool.free()
+	explorer.clear_selection()
+	var dwarf_panel = explorer._dwarf_panel
+	explorer._standard_content.hide()
+	dwarf_panel.show()
+	dwarf_panel.show_data(load("res://scripts/components/DwarfInspection.gd").describe(worker),false)
+	manager.open("object_explorer")
+	_expect(dwarf_panel._happiness.text.contains("60%") and dwarf_panel._thought.text.contains("Slept in my own bedroom"),"dwarf inspector shows happiness and its sleep thought")
+	if "--capture" in OS.get_cmdline_user_args():
+		for tab in [0,1]:
+			dwarf_panel._show_tab(tab)
+			await _frames(5)
+			if tab==1: dwarf_panel._scroll.scroll_vertical = 100
+			await _frames(2)
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(REVIEW_DIR+"happiness_%d.png" % tab)

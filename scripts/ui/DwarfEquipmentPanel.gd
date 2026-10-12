@@ -62,12 +62,12 @@ func show_equipment(details: Dictionary) -> void:
 	_pending.text = String(details.get("pending", ""))
 	_pending.visible = not _pending.text.is_empty()
 
-func _label(parent: Control, text: String, size: int, color := UITheme.HEARTH_TEXT) -> Label:
+func _label(parent: Control, text: String, font_size: int, color := UITheme.HEARTH_TEXT) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	parent.add_child(label)
 	return label

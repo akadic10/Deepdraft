@@ -8,6 +8,11 @@
 
 ---
 
+**2026-10-11 handoff:** Issues 001 and 002 remain unresolved in their original
+reported form. Today's furniture dispatch, lost-floor recovery, bridge-corner
+shortcut and dwarf silhouette fixes have separate reproductions; they do not
+close these entries. See [124 — Session handoff](124_session_handoff_2026_10_11.md).
+
 ## Issue 002 — Dwarves overlap unmined mining-designation cells · **PARKED** · reported 2026-10-07
 
 **Observed.** At a shallow tunnel face in slice view, a dwarf appears inside the
@@ -23,18 +28,34 @@ movement. See [24 — Rendering](../20_player_interface/24_world_rendering.md).
 **Navigation assessment.** This is a separate, moderate movement investigation,
 not a collision-mask toggle. `DwarfAgent._follow_path()` assigns positions
 directly; it does not call `move_and_slide()` or perform a physics sweep.
-`_advance_shortcut()` tests lines from `current_cell()`'s center even when the
-actor is between centers. `NavGrid.line_walkable_flat()` samples at 0.25-block
+Before the bridge-corner correction, `_advance_shortcut()` tested lines from
+`current_cell()`'s center even when the actor was between centers.
+`NavGrid.line_walkable_flat()` samples at 0.25-block
 intervals with a 0.3-block side margin, while the logical body is 1x1x3. Wider
 cosmetic meshes and work animation can also overlap a face from a legal stand.
 These are hypotheses from code inspection; the player's exact movement route
-has not been reproduced, and no navigation fix is claimed.
+has not been reproduced.
+
+**Separate route fix (2026-10-11).** A deterministic review fixture reproduced
+walking through an obstacle placed after a route had started. Active segments
+now revalidate against navigation changes, replan or release safely, and check
+later waypoints before entering them. See [32 — Navigation](../30_simulation_systems/32_navigation_3d.md).
+This does not establish the cause of the original screenshot; issue 002 remains
+parked pending the actual-position/footprint investigation below.
+
+**Bridge-corner follow-up (2026-10-11).** The later Bogorn/Ralrek save reproduced
+the centre-origin hypothesis at a bridge exit: the actual shortcut crossed water
+while its cell-centre proxy stayed on the deck/bank. Moving actors now validate
+from their actual world position and can safely recenter after interruption.
+See [32 — Navigation](../30_simulation_systems/32_navigation_3d.md). This establishes
+and fixes that shortcut defect, but does not yet establish whether the original
+mining-face screenshot was logical-body or cosmetic overlap.
 
 **Next pass.** Capture actor position, floor cell, current waypoint, shortcut
 origin and the physical three-cell clearance while reproducing a turn at a
 partially mined face. Separate cosmetic overlap from an invalid logical body.
-If smoothing is responsible, validate the actual-position swept footprint and
-live waypoint clearance, then cover narrow passages, corners, one-block steps,
+Actual-position segment and live-waypoint checks are now present; assess the
+remaining swept footprint, then cover narrow passages, corners, one-block steps,
 mined floors and task interruption before changing production movement. Keep
 the three-block clearance rule and cheap task-release contract intact.
 

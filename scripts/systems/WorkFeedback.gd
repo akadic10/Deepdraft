@@ -143,6 +143,7 @@ func _profile(kind: String) -> Dictionary:
 
 func _source_ready(source: Node3D, profile: Dictionary) -> bool:
 	if not is_instance_valid(source) or not source.is_inside_tree() or source.is_queued_for_deletion() or not source.is_visible_in_tree(): return false
+	if bool(profile.get("requires_sleep_pose",false)) and (not source.has_method("is_resting") or not source.is_resting()): return false
 	var required := String(profile.get("required_activity",""))
 	return required.is_empty() or String(source.get("activity")) == required
 
@@ -150,6 +151,11 @@ func _source_ready(source: Node3D, profile: Dictionary) -> bool:
 func play_animal(kind: String, source: Node3D) -> bool:
 	if not _source_ready(source,_profile(kind)): return false
 	return _play(kind,source.global_position,floori(source.global_position.y),source)
+
+
+func play_snore(source: Node3D) -> bool:
+	if not _source_ready(source,_profile("snore")): return false
+	return _play("snore",source.global_position,floori(source.global_position.y),source)
 
 
 func _play(kind: String, position: Vector3, floor_y: int, source: Node3D = null) -> bool:
@@ -174,22 +180,22 @@ func _play(kind: String, position: Vector3, floor_y: int, source: Node3D = null)
 	var quietest := INF
 	var quiet_index := -1
 	for i in range(_voices.size()):
-		var voice := _voices[i]
-		if float(voice.remaining) <= 0:
+		var candidate_voice := _voices[i]
+		if float(candidate_voice.remaining) <= 0:
 			selected = i
 			break
-		var current_gain := spatial_gain(voice.player.global_position,context.focus,context.zoom,_profile(String(voice.get("kind",""))))
+		var current_gain := spatial_gain(candidate_voice.player.global_position,context.focus,context.zoom,_profile(String(candidate_voice.get("kind",""))))
 		if current_gain < quietest:
 			quietest = current_gain
 			quiet_index = i
 	if selected < 0 and _voices.size() < int(config.audio.max_voices):
-		var player := AudioStreamPlayer3D.new()
-		player.bus = config.audio.bus
-		player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
-		player.attenuation_filter_cutoff_hz = 20500
-		player.panning_strength = float(config.audio.panning_strength)
-		add_child(player)
-		_voices.append({"player":player,"remaining":0.0,"floor":floor_y,"level":0.0})
+		var new_player := AudioStreamPlayer3D.new()
+		new_player.bus = config.audio.bus
+		new_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
+		new_player.attenuation_filter_cutoff_hz = 20500
+		new_player.panning_strength = float(config.audio.panning_strength)
+		add_child(new_player)
+		_voices.append({"player":new_player,"remaining":0.0,"floor":floor_y,"level":0.0})
 		selected = _voices.size()-1
 	if selected < 0:
 		if gain <= quietest:

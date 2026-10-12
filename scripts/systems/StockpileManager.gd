@@ -222,14 +222,22 @@ func rebuild_totals() -> void:
 ## Fetch withdraw (doc 19 §3.3): pull one stored unit of `item_key` out of
 ## the zone nearest `near`, reserved for `dwarf_id`. Null if no zone holds
 ## the item. Containers join this lookup in Phase 4 via the same surface.
-func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id: String = "") -> Node3D:
-	if not instance_id.is_empty():
+func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id: String = "", material_id: String = "") -> Node3D:
+	if not instance_id.is_empty() or not material_id.is_empty():
+		var candidates: Array = []
 		for source: StorageComponent in _zones.values() + _containers.values():
+			if source is ContainerStorageComponent and source.suspended: continue
 			for slot in source.stored_entries():
 				var stack: Dictionary = source.stored_entries()[slot]
-				if not source.slot_allowed(slot): continue
-				if String(stack.item) == item_key and String(stack.get("instance_id", "")) == instance_id and not source._outgoing.has(slot):
-					return source.withdraw_stack(slot, 1, dwarf_id)
+				if not source.slot_allowed(slot) or source._outgoing.has(slot) or String(stack.item) != item_key: continue
+				if not instance_id.is_empty() and String(stack.get("instance_id", "")) != instance_id: continue
+				if not material_id.is_empty() and String(stack.get("material_id", "")) != material_id: continue
+				if instance_id.is_empty() and _drop_manager.instance_promised(String(stack.get("instance_id", ""))): continue
+				candidates.append({"source": source, "slot": slot, "distance": near.distance_squared_to(source.withdrawal_item_cell(slot))})
+		candidates.sort_custom(func(a: Dictionary, b: Dictionary): return a.distance < b.distance)
+		for candidate: Dictionary in candidates:
+			var node: Node3D = candidate.source.withdraw_stack(candidate.slot, 1, dwarf_id)
+			if node != null: return node
 		return null
 	var best_zone: StockpileZoneComponent = null
 	var best_dist: int = 0x7FFFFFFF
@@ -358,32 +366,19 @@ func get_disallowed_total(key: String) -> int:
 	return total
 
 
-func set_node_disallowed(node: Node3D, value: bool) -> void:
-	for storage: StorageComponent in _zones.values()+_containers.values():
-		for slot in storage.stored_entries():
-			if storage is StockpileZoneComponent and _drop_manager.stored_node_at(slot)==node:
-				storage.set_disallowed(slot,value)
-				return
-			if storage is ContainerStorageComponent and int(slot)<storage._anchor_slots.size() and storage._anchor_slots[int(slot)]!=null and storage._anchor_slots[int(slot)][0]==node:
-				storage.set_disallowed(slot,value)
-				return
-
-
 func permissions_changed() -> void:
 	# Cancel only hauls touching the newly unavailable source or destination.
 	var owners := {}
 	for storage: StorageComponent in _zones.values()+_containers.values():
-		for owner in storage._pulls:
-			var pull: Dictionary = storage._pulls[owner]
+		for dwarf_id in storage._pulls:
+			var pull: Dictionary = storage._pulls[dwarf_id]
 			for item in pull.items:
 				if pull.picked.has(item): continue
-				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[owner]=true
+				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[dwarf_id]=true
 			for item in pull.cargo:
-				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[owner]=true
-			for token: Dictionary in pull.deposits.values():
-				if bool(storage.stored_entries().get(token.slot,{}).get("disallowed",false)): owners[owner]=true
-			if pull.has("transfer") and pull.picked.is_empty() and not pull.transfer.source.slot_allowed(pull.transfer.token.slot): owners[owner]=true
-	for owner in owners: TaskManager.invalidate_dwarf_task(owner)
+				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[dwarf_id]=true
+			if pull.has("transfer") and pull.picked.is_empty() and not pull.transfer.source.slot_allowed(pull.transfer.token.slot): owners[dwarf_id]=true
+	for dwarf_id in owners: TaskManager.invalidate_dwarf_task(dwarf_id)
 	storage_rules_changed()
 
 
@@ -535,4 +530,17 @@ func get_promised_totals() -> Dictionary:
 			if not source.slot_allowed(slot): continue
 			if not source._outgoing.has(slot) and _drop_manager.instance_promised(String(stack.get("instance_id", ""))):
 				result[stack.item] = int(result.get(stack.item, 0)) + int(stack.count)
+	return result
+
+## Available physical units by material, excluding permissions and outgoing claims.
+func available_materials(item_key: String) -> Dictionary:
+	var result := {}
+	for source: StorageComponent in _zones.values() + _containers.values():
+		if source is ContainerStorageComponent and source.suspended: continue
+		for slot in source.stored_entries():
+			var stack: Dictionary = source.stored_entries()[slot]
+			if String(stack.item) != item_key or not source.slot_allowed(slot): continue
+			if _drop_manager.instance_promised(String(stack.get("instance_id", ""))): continue
+			var id := String(stack.get("material_id", ""))
+			result[id] = int(result.get(id, 0)) + maxi(0, int(stack.count) - int(source._outgoing.get(slot, {}).get("count", 0)))
 	return result

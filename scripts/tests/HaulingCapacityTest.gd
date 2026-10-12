@@ -119,7 +119,7 @@ func _test_container_budget() -> void:
 		var item: Node3D = container.take_item(OWNER, i)
 		carried.append([item, drops.item_key_of(item)])
 	_expect(container.commit_haul(OWNER, carried), "container commits reserved budgeted cargo")
-	_expect(container.stored_count() == 2 and _loose_units() == 1 and container._reserved_slots == 0, "container delivery leaves third log available")
+	_expect(container.stored_count() == 2 and _loose_units() == 1 and container.reserved_slot_count == 0, "container delivery leaves third log available")
 
 
 func _test_mixed_trip() -> void:

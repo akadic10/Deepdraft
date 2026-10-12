@@ -17,6 +17,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+CraftMaterials="*res://scripts/registries/CraftMaterials.gd"
+
 SurfaceDetailRegistry="*res://scripts/registries/SurfaceDetailRegistry.gd"
 BlockRegistry="*uid://darckb4wfswr6"
 WorldClock="*uid://cntlqitntp144"

@@ -11,7 +11,7 @@ extends RefCounted
 ## and unreserved, or stored in colony storage (type-matched, SH parity: any
 ## item of the URI satisfies the ghost). The fetching dwarf pulls via
 ## reserve_fetch (loose first, else a storage withdraw), carries the item to
-## the ghost's stand cell, works the build timer, and complete_build hands
+## the ghost's stand cell, plays one set-down, and complete_build hands
 ## off to the controller's shared _install path.
 ##
 ## Ghosts are NON-SOLID (SH parity): no PlacedEntityRegistry registration,
@@ -48,6 +48,8 @@ var build_valid_callback: Callable = Callable() # support check before consuming
 
 var required_instance_id := "" # Empty = any item of this catalog key.
 var fetched_instance_id := ""
+var material_id := ""
+var required_material_id := ""
 var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
 var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
 var _claim: Node3D = null           # ghost-held item claim (see header) — runtime only, never saved
@@ -82,6 +84,10 @@ func footprint_cells() -> Array[Vector3i]:
 	return cells
 
 
+func capture_item_properties(cargo: Node3D) -> void:
+	material_id = CraftMaterials.of_item(cargo)
+
+
 func display_name() -> String:
 	return String(def.get("display_name", furniture_key))
 
@@ -106,11 +112,11 @@ func _claim_valid() -> bool:
 func item_available() -> bool:
 	if _claim_valid():
 		return true
-	if (StockpileManager.get_available_total(item_key) > 0 if required_instance_id.is_empty() else StockpileManager.has_stored_instance(item_key, required_instance_id)):
+	if ((StockpileManager.get_available_total(item_key) > 0 if required_material_id.is_empty() else int(StockpileManager.available_materials(item_key).get(required_material_id, 0)) > 0) if required_instance_id.is_empty() else StockpileManager.has_stored_instance(item_key, required_instance_id)):
 		return true
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return false
-	return drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id) != null
+	return drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id, -1, required_material_id) != null
 
 
 ## Posts/retires the single FETCH_BUILD lease, and keeps the item claim
@@ -127,6 +133,7 @@ func update_lease() -> void:
 		var distance := INF
 		for offer: Dictionary in TaskManager.placement_haul_offers(claim_owner_id()):
 			if String(offer.key) != item_key: continue
+			if not required_material_id.is_empty() and CraftMaterials.of_item(offer.item) != required_material_id: continue
 			if not required_instance_id.is_empty() and String(offer.instance_id) != required_instance_id: continue
 			var candidate: float = offer.item.global_position.distance_squared_to(Vector3(origin_cell))
 			if candidate < distance:
@@ -155,7 +162,7 @@ func _ensure_claim() -> void:
 	_claim = null
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return
-	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id, claim_owner_id())
+	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id, claim_owner_id(), required_material_id)
 	if item != null and (drop_manager.reserved_by(item, claim_owner_id()) or bool(drop_manager.call("reserve", item, claim_owner_id()))):
 		_claim = item
 
@@ -227,6 +234,21 @@ func _cell_in_footprint(cell: Vector3i) -> bool:
 	return false
 
 
+## Put the packed item into the nearest part of the designated footprint,
+## rather than an arbitrary point along the worker's last walking direction.
+## Wall pieces use a raised handoff just in front of their actual mount.
+func placement_contact(from: Vector3) -> Vector3:
+	if String(def.get("placement", "floor")) == "wall":
+		var mount = preload("res://scripts/components/WallFurnitureMount.gd")
+		return mount.position_for(def, origin_cell, yaw_steps) - Vector3(mount.back(yaw_steps)) * .5
+	var contact := Vector3(origin_cell) + Vector3(.5, 1, .5)
+	for cell: Vector3i in footprint_cells():
+		var candidate := Vector3(cell) + Vector3(.5, 1, .5)
+		if from.distance_squared_to(candidate) < from.distance_squared_to(contact):
+			contact = candidate
+	return contact
+
+
 ## Step 1 of the fetch (doc 19 §3.3): hand over the ghost's claim if it
 ## holds one (claimed items are reserved, so the unreserved-only scan below
 ## would never find them) — else the nearest matching loose item, else a
@@ -244,12 +266,12 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 		if not bool(drop_manager.call("reserve", item, dwarf_id)):
 			item = null
 	if item == null:
-		item = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {}, required_instance_id)
+		item = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {}, required_instance_id, -1, required_material_id)
 		if item != null:
 			if not bool(drop_manager.call("reserve", item, dwarf_id)):
 				item = null
 	if item == null:
-		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id, required_instance_id)
+		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id, required_instance_id, required_material_id)
 	if item == null:
 		return {}
 	_fetches[dwarf_id] = item
@@ -286,7 +308,7 @@ func notify_picked_up(dwarf_id: int) -> void:
 	_carried_by[dwarf_id] = true
 
 
-## Step 4: the build swing finished — hand off to the controller's shared
+## Step 4: the placement animation finished — hand off to the controller's shared
 ## install path (the same _install the DEV button uses).
 func complete_build(_dwarf_id: int) -> void:
 	if install_callback.is_valid():

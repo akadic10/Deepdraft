@@ -284,7 +284,7 @@ There is no hard Y placement constraint on the block itself — temperature is t
 
 **Cooling a room:** there is no cooling mechanic. If a room is too warm for a recipe, build a new aging cellar at greater depth.
 
-**Seasonal variation:** shallow rooms (above Y 30) experience a gentle seasonal and daily temperature curve — up to ±2°C total swing at the shallowest caves, fading to zero below Y 30. Deep aging cellars are completely unaffected. A wine cellar at mid-depth with torches may briefly pause in peak summer as the seasonal warmth nudges it above 10°C; removing a torch in early summer prevents this. See `34_temperature.md` for the full formula.
+**Seasonal variation:** rooms above Y 30 experience a gentle seasonal and daily temperature curve — up to ±2°C total swing at Y 75, fading to zero at Y 30 and below. The baseline aging depths in the table therefore retain some seasonal influence; only rooms at Y ≤ 30 are unaffected. A wine cellar at mid-depth with torches may briefly pause in peak summer as the seasonal warmth nudges it above 10°C; removing a torch in early summer prevents this. See `34_temperature.md` for the full formula.
 
 ### Aging Progress and Temperature
 
@@ -310,15 +310,18 @@ Only **one batch per cellar block** can be in progress at a time. Build addition
 
 ### Aging Recipes
 
+These planned recipe values match `data/workshops/aging_cellar.json`; that file
+owns recipe quantities, work times and temperature ranges.
+
 | Recipe ID | Inputs | Output | Aging Time | Temp Range | Min Skill |
 |---|---|---|---|---|---|
-| `base:recipe:age:aged_stout`   | 3× stout + 2× oak stave | 2× aged stout   | 36 h | 4–8°C  | 3 |
-| `base:recipe:age:vintage_wine` | 3× wine + 2× oak stave  | 2× vintage wine | 48 h | 8–12°C | 5 |
-| `base:recipe:age:reserve_gin`  | 3× gin + 2× oak stave   | 2× reserve gin  | 40 h | 1–5°C  | 4 |
+| `base:recipe:age:aged_stout`   | 3× stout + 2× oak stave | 2× aged stout   | 36 h | 3–7°C  | 3 |
+| `base:recipe:age:vintage_wine` | 3× wine + 2× oak stave  | 2× vintage wine | 48 h | 6–10°C | 5 |
+| `base:recipe:age:reserve_gin`  | 3× gin + 2× oak stave   | 2× reserve gin  | 40 h | 1–4°C  | 4 |
 
 ### Frozen Vault and Food Preservation
 
-A sealed room at Y ≤ 14 (temperature ≤ 0°C) becomes a **Frozen Vault**. Food stockpiles inside do not spoil. The Frozen Vault zone is too cold for any aging recipe (minimum 1°C required). Placing an aging cellar inside a frozen vault disables its recipe queue entirely.
+A sealed room whose computed temperature is ≤ 0°C becomes a **Frozen Vault** — approximately Y ≤ 35 on the unheated baseline, with the actual result depending on heat and seasonal variation. Planned food preservation will prevent spoilage in its food stockpiles. The Frozen Vault zone is too cold for any aging recipe (minimum 1°C required), so planned aging progress pauses until the room is warmed into range.
 
 A heavily torched frozen vault can be warmed above 0°C, converting it from a freezer into a potential Reserve Gin cellar — but the freezing benefit is lost. The tradeoff is intentional.
 

@@ -1,5 +1,5 @@
 {
-  "__comment": "Starter Worker recipes. CraftingManager is the single data owner. One selected timber unit per batch, plus one unit per additional_ingredients entry, physically collected before work. output_count is finished units. Finite quantities are batches; maintain quantities are spare units. The first bench needs no workshop. Tools can be crafted and stored; equipment and specialist professions remain planned.",
+  "__comment": "Starter Worker recipes. CraftingManager is the single data owner. ingredient_count matching timber units per batch, plus one unit per additional_ingredients entry, physically collected before work. output_count is finished units. Finite quantities are batches; maintain quantities are spare units. The first bench needs no workshop. Tools can be crafted and stored; equipment and specialist professions remain planned.",
   "max_orders": 64,
   "recipes": [
     {
@@ -17,13 +17,14 @@
       "workshop": "",
       "output": "base:resources:furniture:crude_workbench",
       "output_count": 1,
-      "furniture": "base:furniture:crude_workbench"
+      "furniture": "base:furniture:crude_workbench",
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:wooden_torch",
-      "name": "Wooden torch",
+      "name": "Log torch",
       "output_plural": "torches",
-      "description": "Split, charred timber held by a rough wooden wall peg. A simple warm light for the first tunnels; no iron bracket required.",
+      "description": "A charred branch bound with rough fibre and held by a wooden wall peg. A basic light for the first tunnels.",
       "category": "Lighting",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -34,7 +35,8 @@
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:furniture:wooden_torch",
       "output_count": 4,
-      "furniture": "base:furniture:wooden_torch"
+      "furniture": "base:furniture:wooden_torch",
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:crude_ladder",
@@ -51,7 +53,26 @@
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:furniture:crude_ladder",
       "output_count": 1,
-      "furniture": "base:furniture:crude_ladder"
+      "furniture": "base:furniture:crude_ladder",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_bridge",
+      "name": "Log bridge kit",
+      "output_plural": "bridge kits",
+      "description": "Split and peg timber for a two-block-wide crossing. One kit spans one to five water blocks between matching-height banks.",
+      "category": "Access",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 12.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_bridge",
+      "output_count": 1,
+      "furniture": "base:furniture:log_bridge",
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:campfire",
@@ -72,7 +93,32 @@
       "furniture": "base:furniture:campfire",
       "additional_ingredients": [
         "base:resources:stone:rough_stone"
-      ]
+      ],
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:hearth",
+      "name": "Rudimentary hearth",
+      "output_plural": "hearths",
+      "description": "A rough fieldstone hearth for warm starter bedrooms. Two matching logs and four rough stones.",
+      "purpose": "Warms a small sealed bedroom. Always lit when installed; no fuel upkeep yet.",
+      "category": "Camp furnishings",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone"
+      ],
+      "work_seconds": 18.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:hearth",
+      "output_count": 1,
+      "furniture": "base:furniture:hearth"
     },
     {
       "id": "base:recipe:worker:log_chair",
@@ -90,7 +136,8 @@
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:furniture:log_chair",
       "output_count": 1,
-      "furniture": "base:furniture:log_chair"
+      "furniture": "base:furniture:log_chair",
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:stone_hoe",
@@ -111,7 +158,8 @@
       "work_seconds": 10.0,
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:tools:stone_hoe",
-      "output_count": 1
+      "output_count": 1,
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:hunting_spear",
@@ -132,7 +180,8 @@
       "work_seconds": 10.0,
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:tools:hunting_spear",
-      "output_count": 1
+      "output_count": 1,
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:carpentry_kit",
@@ -153,7 +202,8 @@
       "work_seconds": 14.0,
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:tools:carpentry_kit",
-      "output_count": 1
+      "output_count": 1,
+      "material_group": "wood"
     },
     {
       "id": "base:recipe:worker:stone_hammer",
@@ -174,7 +224,99 @@
       "work_seconds": 12.0,
       "workshop": "base:furniture:crude_workbench",
       "output": "base:resources:tools:stone_hammer",
-      "output_count": 1
+      "output_count": 1,
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:door",
+      "name": "Log door (2 wide)",
+      "output_plural": "log doors",
+      "description": "One rough log leaf swings open as dwarves approach. Fits a 2-block-wide opening and seals the room for warmth.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 12,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:door",
+      "output_count": 1,
+      "furniture": "base:furniture:door",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_door_3",
+      "name": "Log door (3 wide)",
+      "output_plural": "log doors",
+      "description": "One rough log leaf swings open as dwarves approach. Fits a 3-block-wide opening and seals the room for warmth.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 18,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_door_3",
+      "output_count": 1,
+      "furniture": "base:furniture:log_door_3",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_door_4",
+      "name": "Double log door (4 wide)",
+      "output_plural": "log doors",
+      "description": "Two rough log leaves swing open as dwarves approach. Fits a 4-block-wide opening and seals the room for warmth.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 24,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_door_4",
+      "output_count": 1,
+      "furniture": "base:furniture:log_door_4",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:bench",
+      "name": "Log bench",
+      "output_plural": "log benches",
+      "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating.",
+      "category": "Camp furnishings",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:bench",
+      "output_count": 1,
+      "furniture": "base:furniture:bench",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_bed",
+      "name": "Log bed",
+      "output_plural": "log beds",
+      "description": "Fit rough logs into a low frame and heap it with hay and dried leaves. A simple place for one dwarf to sleep.",
+      "purpose": "Dwarves prefer a free bed over the ground. A bed, door, light and sealed enclosure make a bedroom.",
+      "category": "Camp furnishings",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 4,
+      "work_seconds": 16.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_bed",
+      "output_count": 1,
+      "furniture": "base:furniture:log_bed",
+      "material_group": "wood"
     }
   ],
   "sections": [
@@ -195,7 +337,7 @@
         "Workshop fittings"
       ],
       "requirements": "Promote with a crude carpentry kit. Specialist workshop and recipes are planned; a forged saw comes later.",
-      "hint": "Craft a kit under Rudimentary → Starter tools, then promote a dwarf through Colony → Profession."
+      "hint": "Craft a kit under Rudimentary â†’ Starter tools, then promote a dwarf through Colony â†’ Profession."
     },
     {
       "id": "stonemason",
@@ -221,7 +363,7 @@
         "Metal fittings"
       ],
       "requirements": "Entry tool: stone hammer. Iron pickaxes and carpenter saws are future upgrades.",
-      "hint": "The stone hammer is available under Rudimentary → Starter tools."
+      "hint": "The stone hammer is available under Rudimentary â†’ Starter tools."
     },
     {
       "id": "weaponsmith",
@@ -257,7 +399,7 @@
         "Harvest supplies"
       ],
       "requirements": "Entry tool: stone hoe. Farming will use field work; its production controls are still planned.",
-      "hint": "The stone hoe is available under Rudimentary → Starter tools."
+      "hint": "The stone hoe is available under Rudimentary â†’ Starter tools."
     },
     {
       "id": "hunter",
@@ -269,7 +411,7 @@
         "Animal materials"
       ],
       "requirements": "Entry weapon: hunting spear. Player hunting and processing are planned.",
-      "hint": "The hunting spear is available under Rudimentary → Starter tools."
+      "hint": "The hunting spear is available under Rudimentary â†’ Starter tools."
     },
     {
       "id": "miner",

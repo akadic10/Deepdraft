@@ -1,0 +1,140 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 8 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 4274128545).
+WorldRenderer: generation started (seed 4274128545).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 12 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 25999 cliff/shore columns.
+WorldGenerator: spring (259, 102, 816); river 4313 columns, 17 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: stopped in 6.8 s.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldGenerator: grass bands finalized 4.904 s after maps_ready.
+WorldGenerator metrics:
+  domains: mountain 24.5%, valley 18.7%, lowland 56.8%
+  height: min 11, max 115, avg 35.3
+  top surface: grass 72.0%, dirt 0.6%, rock 24.2%, water 3.2%
+  surface domains: mountain rock 98.9%; valley grass 96.3% dirt 3.4% rock 0.0%
+  finished terrain: summit 12470 columns, detailed 25934, dry shore 779
+  water: lake (52, 179) y18 floor 11-17 depth 7 columns 28057; tarn (464, 848) y54 floor 47-52 depth 7 columns 860; banks 7017
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 4203658003).
+WorldRenderer: generation started (seed 4203658003).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 12 macro cells; water bodies 1.
+WorldGenerator: edge detail -> pushed 28145 cliff/shore columns.
+WorldGenerator: spring (496, 102, 444); river 1937 columns, 20 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 47 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 2.826 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=4203658003, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 4203658003, "accepted": 2109, "rejections": { "density": 19833, "tree": 1206, "edge": 1125, "shelf": 452, "water": 154, "moisture": 2438, "ground": 1316, "height": 4631, "shore": 28569, "cliff_foot": 3296, "cliff_falloff": 172, "detail_overlap": 222 }, "layout_ms": 816.806, "categories": { "boulder": 71, "scree": 200, "blueberry": 262, "elderberry": 317, "wild_strawberry": 457, "flowers": 787, "reeds": 15 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 9 ducks.
+WorldRenderer: first chunk_dirtied received (29,2,18).
+FlagPlacementController: settlement founded at (484, 43, 263).
+StockpileDesignationController: zone 1 created (49 cells at Y 43).
+FurniturePlacementController: ghost 16 (base:furniture:log_door_4) at (481, 44, 309) yaw 1.
+FurniturePlacementController: ghost 18 (base:furniture:log_bed) at (491, 43, 302) yaw 1.
+FurniturePlacementController: ghost 19 (base:furniture:bench) at (495, 43, 280) yaw 0.
+FurniturePlacementController: installed base:furniture:crude_workbench at (477, 43, 267).
+FurniturePlacementController: installed base:furniture:wooden_torch at (482, 43, 297).
+FurniturePlacementController: installed base:furniture:wooden_torch at (482, 43, 306).
+FurniturePlacementController: installed base:furniture:wooden_torch at (485, 43, 297).
+FurniturePlacementController: installed base:furniture:wooden_torch at (485, 43, 306).
+FurniturePlacementController: installed base:furniture:wooden_torch at (494, 43, 290).
+FurniturePlacementController: installed base:furniture:wooden_torch at (494, 43, 295).
+FurniturePlacementController: installed base:furniture:wooden_torch at (494, 43, 299).
+FurniturePlacementController: installed base:furniture:wooden_torch at (494, 43, 304).
+FurniturePlacementController: installed base:furniture:log_door_4 at (486, 43, 300).
+FurniturePlacementController: installed base:furniture:log_door_4 at (486, 43, 291).
+FurniturePlacementController: installed base:furniture:log_door_4 at (481, 43, 291).
+FurniturePlacementController: installed base:furniture:log_door_4 at (481, 43, 300).
+FurniturePlacementController: installed base:furniture:log_door_4 at (486, 43, 309).
+FurniturePlacementController: installed base:furniture:log_bed at (491, 43, 293).
+LoadPerformance:
+  total_request_to_restored: 13.475 s
+  read_validate: 421 ms
+  reload_regen_wait: 10.404 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 2644 ms
+    mining: 1649 ms
+    water: 766 ms
+    flora: 0 ms
+    surface_details: 82 ms
+    settlement_flag: 11 ms
+    stockpiles: 9 ms
+    furniture: 93 ms
+    ladders: 0 ms
+    bridges: 1 ms
+    items: 0 ms
+    dwarves: 6 ms
+    wildlife: 25 ms
+    world_events: 0 ms
+    camera: 0 ms
+    worker_crafting: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 6 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldGenerator: grass bands finalized 5.053 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 0/16 built tiles (band columns only).
+PLAYER_BRIDGE routes={ "routes": [{ "id": 1, "key": "base:furniture:log_bridge", "base": [503, 43, 276], "yaw": 1, "span": 5, "built": false, "material_id": "", "required_material_id": "", "mode": "build", "progress": 0.0 }], "next_id": 2 } kit_stock=1
+PLAYER_BRIDGE geometry={ "base": (503, 43, 276), "yaw": 1, "span": 5, "reason": "" } landings=[(503, 43, 276), (497, 43, 276), (503, 43, 275), (497, 43, 275)] source_stands=[(503, 43, 276), (497, 43, 276), (503, 43, 275), (497, 43, 275)]
+PLAYER_BRIDGE dwarf=Inggra cell=(479, 43, 272) chosen=(497, 43, 275) paths=[0, 19, 0, 19]
+PLAYER_BRIDGE dwarf=Fridra cell=(473, 43, 266) chosen=(497, 43, 275) paths=[0, 25, 0, 25]
+PLAYER_BRIDGE dwarf=Ralur cell=(480, 43, 274) chosen=(497, 43, 275) paths=[0, 18, 0, 18]
+PLAYER_BRIDGE dwarf=Furdun cell=(484, 43, 271) chosen=(497, 43, 275) paths=[0, 14, 0, 14]
+PLAYER_BRIDGE dwarf=Fridtris cell=(478, 43, 271) chosen=(497, 43, 275) paths=[0, 20, 0, 20]
+WorldGenerator metrics:
+  domains: mountain 21.3%, valley 23.6%, lowland 55.2%
+  height: min 11, max 115, avg 34.2
+  top surface: grass 74.9%, dirt 0.9%, rock 21.2%, water 3.0%
+  surface domains: mountain rock 99.6%; valley grass 95.9% dirt 3.8% rock 0.0%
+  finished terrain: summit 12478 columns, detailed 28106, dry shore 646
+  water: lake (560, 68) y18 floor 11-17 depth 7 columns 29050; tarn (0, 0) y0 floor 0-0 depth 0 columns 0; banks 4095
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=904).
+StartupPerformance:
+  total_to_initial_load: 11.179 s
+  first_visible_terrain: 2.826 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=47
+  world_maps: ready=true  precompute=2.032 s  ready_at=2.035 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.512 s
+    edge_detail: 0.321 s
+    layout_validation: 0.912 s
+    river: 0.028 s
+    caves: 0.125 s
+    grass_bands: 2.590 s
+    tile_ranges: 0.087 s
+    generation_metrics: 4.517 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.004 s  avg=0.03 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=904
+  overview_state: startup_ready=true  startup_ready_at=11.169 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+FurniturePlacementController: installed base:furniture:bench at (495, 43, 280).
+PLAYER_BRIDGE_BUILT material=base:material:pine kits=0 crossing=7
+WorldGenerator: stopped in 19.5 s.

@@ -26,6 +26,7 @@ var _empty: VBoxContainer
 var _all_toggle: CheckBox
 var _count: Label
 var _name: Label
+var _material: OptionButton
 var _spec: Label
 var _note: Label
 var _values := {}
@@ -37,6 +38,7 @@ var _paper: PanelContainer
 var _detail: VBoxContainer
 var _undo_ids: Array[int] = []
 var _dock_top := 600.0
+var _layout_pending := false
 
 
 func _ready() -> void:
@@ -120,6 +122,15 @@ func _ready() -> void:
 	_spec.add_theme_color_override("font_color", UITheme.CATALOG_MUTED)
 	_spec.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail.add_child(_spec)
+	_material = OptionButton.new()
+	_material.custom_minimum_size.y = 26
+	_material.add_theme_font_size_override("font_size", 12)
+	_material.item_selected.connect(func(index: int):
+		controller.material_choices[selected_key] = String(_material.get_item_metadata(index))
+		controller.deactivate()
+		refresh()
+		_fit.call_deferred())
+	detail.add_child(_material)
 	var counts := HBoxContainer.new()
 	counts.add_theme_constant_override("separation", 8)
 	detail.add_child(counts)
@@ -265,7 +276,7 @@ func refresh() -> void:
 			and (show_all or entry.key in _browse_keys)
 		if tile.button.visible: visible_keys.append(entry.key)
 		tile.count.text = str(counts.available)
-		tile.image.modulate = Color(1, 1, 1, 1 if counts.available > 0 else .45)
+		tile.image.modulate = Color(1, 1, 1, 1.0 if counts.available > 0 else .45)
 		tile.button.tooltip_text = "%s\n%d available · %d reserved for placement" % [controller.get_defs()[entry.key].display_name, counts.available, counts.reserved]
 	var previous_selection := selected_key
 	if not selected_key in visible_keys:
@@ -296,7 +307,20 @@ func refresh() -> void:
 		_place.disabled = true
 		return
 	var definition: Dictionary = controller.get_defs()[selected_key]
-	var stock: Dictionary = _stock[selected_key]
+	var stock: Dictionary = _stock[selected_key].duplicate()
+	_material.visible = definition.has("material_group")
+	_material.clear()
+	_material.add_item("Any material")
+	_material.set_item_metadata(0, "")
+	var chosen := String(controller.material_choices.get(selected_key, ""))
+	if _material.visible:
+		var variants := controller.get_material_stock(selected_key)
+		for id: String in CraftMaterials.definitions:
+			if CraftMaterials.definitions[id].group != definition.material_group: continue
+			_material.add_item("%s · %d available" % [CraftMaterials.material_name(id), int(variants.get(id, 0))])
+			_material.set_item_metadata(_material.item_count - 1, id)
+			if chosen == id: _material.select(_material.item_count - 1)
+	stock.available = controller.placement_available(selected_key)
 	_name.text = String(definition.display_name)
 	var footprint: Dictionary = definition.get("footprint", {})
 	_spec.text = "%d × %d" % [int(footprint.get("width", 1)), int(footprint.get("depth", 1))]
@@ -332,6 +356,13 @@ func refresh() -> void:
 		_place.text = "Place ladder" if stock.available > 0 else "Craft ladder sections first"
 		_hint.text = "Aim at a cliff or its edge · R rotates · Esc finishes" if placing else "Craft sections at a crude workbench."
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if String(definition.placement) == "bridge":
+		_spec.text = "2 blocks wide · Gaps up to %d blocks" % int(definition.bridge.max_span)
+		_note.text = "One kit per crossing. Both two-block landings must be level and the same height."
+		_place.text = "Place bridge" if stock.available > 0 else "Craft a bridge kit first"
+		_hint.text = "Aim at the bank edge · Auto-aligns across water · Click to build" if placing else "Craft a kit at a crude workbench, then choose a narrow crossing."
+	if definition.has("appeal") and not chosen.is_empty():
+		_note.text += "\nAppeal when installed: %s" % str(CraftMaterials.appeal(definition, chosen).total)
 	# Inventory wakes change counts/availability only. Refitting here resets
 	# scroll limits and can clamp a player-positioned window on every pickup.
 
@@ -361,6 +392,20 @@ func _fit() -> void:
 	_scroll.custom_minimum_size.y = maxf(112, minf(710, _dock_top - 84) - chrome)
 	window.reset_size()
 	window.clamp_to_viewport()
+	_settle_layout()
+
+
+func _settle_layout() -> void:
+	if _layout_pending: return
+	_layout_pending = true
+	# Wrapped material/appeal labels need their final width before measuring.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_layout_pending = false
+	if not is_instance_valid(window): return
+	window.reset_size()
+	window.clamp_to_viewport()
+	window.position.y = minf(window.position.y, maxf(4, _dock_top - 8 - window.size.y))
 
 
 func _undo_last() -> void:
@@ -380,12 +425,12 @@ func _label(text: String, font_size: int, title: bool = false) -> Label:
 	return label
 
 
-func _margin(child: Control, horizontal: int, vertical: int) -> MarginContainer:
+func _margin(child: Control, horizontal: int, vertical_padding: int) -> MarginContainer:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", horizontal)
 	margin.add_theme_constant_override("margin_right", horizontal)
-	margin.add_theme_constant_override("margin_top", vertical)
-	margin.add_theme_constant_override("margin_bottom", vertical)
+	margin.add_theme_constant_override("margin_top", vertical_padding)
+	margin.add_theme_constant_override("margin_bottom", vertical_padding)
 	margin.add_child(child)
 	return margin
 

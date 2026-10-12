@@ -1,6 +1,6 @@
 extends "TavernRedesignPreview.gd"
 
-const Lighting = preload("FurnitureLighting.gd")
+const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 var _torch_def: Dictionary
 var _env: Environment
 var _lights: Array[DirectionalLight3D] = []

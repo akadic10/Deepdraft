@@ -6,46 +6,58 @@ from pathlib import Path
 import shutil
 
 from voxel_glb import Voxels, write_glb
-from generate_tavern_redesign import OAK, rgb, box, export_mesh, sha
+from generate_tavern_redesign import OAK, box, export_mesh, sha
 
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = .125
 MODEL = 'assets/models/items/furniture/packed_furniture.glb'
-ROPE = tuple(map(rgb,('81613F','AE8C58','C9AC76','DDC697')))
 
 
 def packed_box():
-    """5x4x5 cells including the knot, retaining the original item bounds."""
+    """A closed shipping crate occupying exactly 8x8x8 cells / one block."""
     v = Voxels()
-    # Solid recessed plank core. The perimeter frame stands one cell proud.
-    box(v,-1,2,0,3,-1,2,OAK[2])
-    for x in range(-2,3):
-        for z in range(-2,3):
-            v.cells[x,0,z] = OAK[2]
-            v.cells[x,2,z] = OAK[4 if x<0 else 3]
-    # Four squared wooden corner posts, with end grain on their top faces.
-    for x in (-2,2):
-        for z in (-2,2):
-            v.cells[x,1,z] = OAK[4]
-            v.cells[x,2,z] = OAK[5]
-    # Two complete rope loops across the lid, under the base and down all
-    # four sides. Quieter undersides keep the light bands readable from above.
-    for a in range(-2,3):
-        v.cells[a,2,0] = ROPE[2]
-        v.cells[0,2,a] = ROPE[2]
-        v.cells[a,0,0] = ROPE[0]
-        v.cells[0,0,a] = ROPE[0]
-    for y in range(3):
-        for x,z in ((-2,0),(2,0),(0,-2),(0,2)):
-            v.cells[x,y,z] = ROPE[1 if y<2 else 2]
-    # Raised crossing and short tucked rope end. No extra carrying height.
-    v.cells[0,3,0] = ROPE[3]
-    v.cells[1,3,0] = ROPE[1]
+    # Closed core; one-cell recesses give the framed sides real depth.
+    box(v,-3,3,0,7,-3,3,OAK[2])
+    for y in range(1,7):
+        plank = OAK[2 + (y // 2) % 2]
+        for a in range(-3,3):
+            for x,z in ((a,-3),(a,2),(-3,a),(2,a)):
+                v.cells[x,y,z] = plank
+    # Continuous bottom/top rails and square corner posts frame all faces.
+    for a in range(-4,4):
+        for b in (-4,3):
+            for x,z in ((a,b),(b,a)):
+                v.cells[x,0,z] = OAK[2]
+                v.cells[x,7,z] = OAK[5]
+    for x in (-4,3):
+        for z in (-4,3):
+            for y in range(1,7):
+                v.cells[x,y,z] = OAK[4 if y > 1 else 3]
+            v.cells[x,7,z] = OAK[6]
+    # Broad lid planks inside the rim, with sparse, quiet wood grain.
+    for x in range(-3,3):
+        for z in range(-3,3):
+            v.cells[x,6,z] = OAK[4 + ((x+3)//2)%2]
+    for z in (-2,-1,0): v.cells[1,6,z] = OAK[3]
+    # Stair-stepped diagonal braces remain on the same integer cube grid.
+    # Adjacent corner-touching steps attach to the solid panel behind them.
+    for i in range(6):
+        a, y = i-3, i+1
+        for x,z in ((a,-4),(a,3),(-4,a),(3,a)):
+            v.cells[x,y,z] = OAK[5 if i % 3 else 4]
+        v.cells[a,7,a] = OAK[5]
+    # Wooden fixing pegs at each brace end distinguish them from rope bands.
+    for x,z in ((-3,-4),(-3,3),(-4,-3),(3,-3)):
+        v.cells[x,1,z] = OAK[1]
+    for x,z in ((2,-4),(2,3),(-4,2),(3,2)):
+        v.cells[x,6,z] = OAK[2]
+    v.cells[-3,7,-3] = OAK[2]
+    v.cells[2,7,2] = OAK[3]
     return v
 
 
 def validate(vox):
-    assert all(-2<=x<3 and 0<=y<4 and -2<=z<3 for x,y,z in vox.cells)
+    assert all(-4<=x<4 and 0<=y<8 and -4<=z<4 for x,y,z in vox.cells)
     todo = {next(iter(vox.cells))}
     visited = set()
     while todo:
@@ -111,11 +123,11 @@ script = ExtResource("1")
     (out/'.gitignore').write_text('.godot/\n*.import\n*.uid\n',encoding='utf-8')
     bounds = [[min(p[a] for p in mesh[0])*SCALE for a in range(3)],
               [max(p[a] for p in mesh[0])*SCALE for a in range(3)]]
-    assert bounds==[[-.25,0,-.25],[.375,.5,.375]]
+    assert bounds==[[-.5,0,-.5],[.5,1,.5]]
     report = {'status':'installed' if install else 'review_export',
               'voxels_per_block':8,'export_scale':SCALE,'color_encoding':'linear COLOR_0',
               'voxels':len(vox),'triangles':len(mesh[3])//3,'bounds':bounds,
-              'connected_components':1,'original_item_bounds_preserved':True,'sha256':sha(path)}
+              'connected_components':1,'envelope_voxels':[8,8,8],'grounded':True,'sha256':sha(path)}
     (out/'validation.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print('PACKED_FURNITURE_REDESIGN_GENERATED',json.dumps(report))
 

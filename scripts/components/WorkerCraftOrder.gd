@@ -17,6 +17,8 @@ var bench_id := -1
 var work_cell := Vector3i(-1,-1,-1)
 var item: Node3D
 var picked_up := false
+var output_material_id := ""
+var timber_key := "" # First timber locks the species for the whole batch.
 var staged_items: Array[Node3D] = [] # Real reserved loose goods beside the bench.
 var staged_cells: Array[Vector3i] = []
 var _preferred_fetch: Dictionary = {}
@@ -69,8 +71,11 @@ func reserve_fetch(dwarf_id: int, from: Vector3i) -> Dictionary:
 		_preferred_fetch = {}
 		if int(plan.dwarf_id) != dwarf_id or plan.from != from: return {}
 		if int(plan.bench_id) >= 0 and not manager.bench_valid(int(plan.bench_id),id): return {}
+		if manager.additional_ingredient_keys(recipe).is_empty() \
+				and plan.material.key not in manager.batch_ingredient_keys(recipe,manager.stock_snapshot(),allowed_ingredients): return {}
 		item = manager.reserve_material_quote(plan.material,dwarf_id)
 		if item == null: return {}
+		if manager.additional_ingredient_keys(recipe).is_empty(): timber_key = manager.items.item_key_of(item)
 		worker_id = dwarf_id
 		bench_id = int(plan.bench_id)
 		if bench_id >= 0: manager.bench_claims[bench_id] = id
@@ -96,7 +101,12 @@ func _reserve_next(from: Vector3i) -> Dictionary:
 		var keys: Array[String] = [extras[staged_items.size()]]
 		item = manager.reserve_material(keys, from, worker_id)
 	else:
-		item = manager.reserve_ingredient(recipe, from, worker_id, allowed_ingredients)
+		if timber_key.is_empty():
+			item = manager.reserve_ingredient(recipe, from, worker_id, allowed_ingredients, id)
+			if item != null: timber_key = manager.items.item_key_of(item)
+		else:
+			var keys: Array[String] = [timber_key]
+			item = manager.reserve_material(keys, from, worker_id)
 	if item == null:
 		cancel_fetch(worker_id)
 		return {}
@@ -105,15 +115,21 @@ func _reserve_next(from: Vector3i) -> Dictionary:
 	return {"item":item, "heavy":String(manager.items.get_item_def(manager.items.item_key_of(item)).get("weight_class","light")) == "heavy"}
 
 func needs_ingredient_delivery() -> bool:
-	return staged_items.size() < manager.additional_ingredient_keys(recipe).size()
+	return staged_items.size() < manager.additional_ingredient_keys(recipe).size() + int(recipe.ingredient_count) - 1
+
+func pending_timber_count() -> int:
+	var gathered := maxi(0,staged_items.size()-manager.additional_ingredient_keys(recipe).size())
+	if is_instance_valid(item) and not timber_key.is_empty() and manager.items.item_key_of(item)==timber_key: gathered += 1
+	return maxi(0,int(recipe.ingredient_count)-gathered)
 
 func stage_ingredient(dwarf_id: int) -> bool:
 	if dwarf_id != worker_id or not picked_up or not is_instance_valid(item): return false
 	if not _staged_valid() or not NavGrid.is_walkable(work_cell): return false
 	if not String(recipe.workshop).is_empty() and not manager.bench_valid(bench_id,id): return false
 	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
-	if staged_items.size() >= extras.size(): return false
-	if manager.items.item_key_of(item) != extras[staged_items.size()] or manager.items.quantity_of(item) != 1: return false
+	if not needs_ingredient_delivery(): return false
+	var expected: String = extras[staged_items.size()] if staged_items.size() < extras.size() else timber_key
+	if manager.items.item_key_of(item) != expected or manager.items.quantity_of(item) != 1: return false
 	# Rejoin the ordinary loose-item owner before the next trip. This keeps
 	# saving, inventory and support-loss handling on their existing paths.
 	manager.items.drop_loose(item, work_cell)
@@ -147,6 +163,7 @@ func cancel_fetch(dwarf_id: int) -> void:
 	staged_cells.clear()
 	if manager.bench_claims.get(bench_id, -1) == id: manager.bench_claims.erase(bench_id)
 	worker_id = -1
+	timber_key = ""
 	bench_id = -1
 	item = null
 	picked_up = false
@@ -159,6 +176,7 @@ func can_complete_build() -> bool:
 	if needs_ingredient_delivery() or not _staged_valid(): return false
 	if manager.items.quantity_of(item) != 1: return false
 	if manager.items.item_key_of(item) not in allowed_ingredients: return false
+	if manager.items.item_key_of(item) != timber_key: return false
 	if not NavGrid.is_walkable(work_cell): return false
 	return String(recipe.workshop).is_empty() or manager.bench_valid(bench_id, id)
 
@@ -183,6 +201,12 @@ func work_surface() -> Vector3:
 			return center + Vector3(toward.x*.125, float(bench.def.get("crafting_surface_height",1.0)), toward.z*.125)
 	return agent.to_global(Vector3(0,0,1.35)) if agent != null else Vector3(work_cell)+Vector3(.5,1,.5)
 
+func capture_item_properties(cargo: Node3D) -> void:
+	output_material_id = ""
+	if not recipe.has("material_group"): return
+	output_material_id = CraftMaterials.of_item(cargo)
+	if output_material_id.is_empty(): output_material_id = CraftMaterials.from_ingredient(manager.items.item_key_of(cargo))
+
 func complete_build(dwarf_id: int) -> void:
 	# Called synchronously after the executor validates the whole batch and
 	# consumes the final carried log. Staged materials commit exactly once.
@@ -191,7 +215,7 @@ func complete_build(dwarf_id: int) -> void:
 		staged.queue_free()
 	staged_items.clear()
 	staged_cells.clear()
-	manager.items.spawn_drop(String(recipe.output), int(recipe.output_count), work_cell+Vector3i.UP)
+	manager.items.spawn_drop(String(recipe.output), int(recipe.output_count), work_cell+Vector3i.UP, output_material_id)
 	if not maintain: quantity -= 1
 	progress = 0.0
 	cancel_fetch(dwarf_id)

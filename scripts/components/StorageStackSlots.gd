@@ -8,20 +8,19 @@ var reservations: Dictionary = {}
 var capacity_for: Callable
 
 
-func room(key: String, slot: Variant) -> int:
+func room(key: String, slot: Variant, material_id: String = "") -> int:
 	var stack: Dictionary = entries.get(slot, {})
-	if bool(stack.get("disallowed", false)): return 0
 	var claim: Dictionary = reservations.get(slot, {})
-	if not stack.is_empty() and String(stack.item) != key:
+	if not stack.is_empty() and (String(stack.item) != key or String(stack.get("material_id", "")) != material_id):
 		return 0
-	if not claim.is_empty() and String(claim.item) != key:
+	if not claim.is_empty() and (String(claim.item) != key or String(claim.get("material_id", "")) != material_id):
 		return 0
 	return maxi(int(capacity_for.call(key)) - int(stack.get("count", 0)) - int(claim.get("count", 0)), 0)
 
 
 func has_room(key: String) -> bool:
 	for slot in slots:
-		if room(key, slot) > 0:
+		if room(key, slot, String(entries.get(slot, reservations.get(slot, {})).get("material_id", ""))) > 0:
 			return true
 	return false
 
@@ -29,19 +28,19 @@ func has_room(key: String) -> bool:
 func has_any_room() -> bool:
 	for slot in slots:
 		var stack: Dictionary = entries.get(slot, reservations.get(slot, {}))
-		if stack.is_empty() or room(String(stack.item), slot) > 0:
+		if stack.is_empty() or room(String(stack.item), slot, String(stack.get("material_id", ""))) > 0:
 			return true
 	return false
 
 
-func reserve(key: String, amount: int, owner: int, near: Vector3i, empty_only: bool = false) -> Variant:
+func reserve(key: String, amount: int, owner: int, near: Vector3i, empty_only: bool = false, material_id: String = "") -> Variant:
 	# Top up a matching crate before claiming another physical slot.
 	for partial in [true, false]:
 		if partial and empty_only: continue
 		var best: Variant = null
 		var best_distance := INF
 		for slot in slots:
-			if (entries.has(slot) or reservations.has(slot)) != partial or room(key, slot) <= 0:
+			if (entries.has(slot) or reservations.has(slot)) != partial or room(key, slot, material_id) <= 0:
 				continue
 			var distance := 0.0
 			if slot is Vector3i:
@@ -52,11 +51,11 @@ func reserve(key: String, amount: int, owner: int, near: Vector3i, empty_only: b
 				best_distance = distance
 		if best == null:
 			continue
-		var count := mini(amount, room(key, best))
-		var claim: Dictionary = reservations.get(best, {"item": key, "count": 0})
+		var count := mini(amount, room(key, best, material_id))
+		var claim: Dictionary = reservations.get(best, {"item": key, "count": 0, "material_id": material_id})
 		claim.count = int(claim.count) + count
 		reservations[best] = claim
-		return {"slot": best, "count": count, "owner": owner, "item": key, "active": true}
+		return {"slot": best, "count": count, "owner": owner, "item": key, "material_id": material_id, "active": true}
 	return null
 
 
@@ -75,9 +74,11 @@ func release(token: Dictionary) -> void:
 func commit(token: Dictionary, key: String) -> void:
 	assert(bool(token.active) and key == String(token.item))
 	var stack: Dictionary = entries.get(token.slot, {"item": key, "count": 0})
-	stack["disallowed"] = bool(token.get("disallowed", false))
+	assert(int(stack.count) == 0 or String(stack.get("material_id", "")) == String(token.get("material_id", "")))
+	stack["disallowed"] = false
 	stack.count = int(stack.count) + int(token.count)
 	assert(int(stack.count) <= int(capacity_for.call(key)))
 	if token.has("instance_id"): stack["instance_id"] = token.instance_id
+	stack["material_id"] = String(token.get("material_id", ""))
 	entries[token.slot] = stack
 	release(token)

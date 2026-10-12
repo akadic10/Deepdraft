@@ -2,6 +2,7 @@ extends SceneTree
 
 const KEY := "base:furniture:hearth"
 const ORIGIN := Vector3i(8,20,8)
+const HEAT_UNITS := 2400
 var controller: Node3D
 var definition: Dictionary
 var rooms: Node
@@ -61,7 +62,7 @@ func _check_animation(piece) -> Dictionary:
 		assert(body.mesh==original_body and body.transform==Transform3D.IDENTITY)
 		assert(light.light_energy>=1.84 and light.light_energy<=2.16)
 		assert(flame.material_override.emission_energy_multiplier>=.7905 and flame.material_override.emission_energy_multiplier<=.9095)
-		assert(rooms._heat_cells[ORIGIN]==400)
+		assert(rooms._heat_cells[ORIGIN]==HEAT_UNITS)
 	assert(frames.size()==10 and energies.size()>20 and emissions.size()>20)
 	# Separate hearths share mesh resources while keeping individual flicker timing.
 	var second: Node3D = controller._instance_model(KEY,controller._make_solid_material())
@@ -84,7 +85,7 @@ func _check_animation(piece) -> Dictionary:
 	assert(controller.serialize_state()==before_save)
 	return {"visible_frames":frames.size(),"distinct_light_samples":energies.size(),
 		"distinct_emission_samples":emissions.size(),"original_bounds_respected":true,
-		"stone_grate_logs_static":true,"shared_clip_independent_phases":true,
+		"fieldstones_logs_static":true,"shared_clip_independent_phases":true,
 		"hidden_slice_suspends_updates":true,"heat_and_saved_state_unchanged":true}
 
 func _room() -> Dictionary:
@@ -111,8 +112,8 @@ func _verify_installed(component,heat_temp: float) -> void:
 	assert(nav.is_walkable(ORIGIN+Vector3i(2,0,0)))
 	assert(not component.cells.has(component.nearest_stand_target(Vector3i(11,20,11))))
 	var room := _room()
-	assert(room.heat_units == 400)
-	assert(is_equal_approx(float(room.temp_c)-heat_temp,6.25))
+	assert(room.heat_units == HEAT_UNITS)
+	assert(is_equal_approx(float(room.temp_c)-heat_temp,18.75))
 
 func _run() -> void:
 	create_timer(45).timeout.connect(func(): push_error("Hearth check timed out");quit(1))
@@ -134,7 +135,7 @@ func _run() -> void:
 	for axis in range(3):
 		assert(int(definition.collision_regions[0].min[axis])==0)
 		assert(int(definition.collision_regions[0].max[axis])==2)
-	assert(definition.heat_source.heat_units == 400)
+	assert(definition.heat_source.heat_units == HEAT_UNITS)
 	var data := root.get_node("WorldData")
 	var blocks := root.get_node("BlockRegistry")
 	var stone: int = blocks.get_id("base:terrain:rock:rock01")
@@ -220,9 +221,11 @@ func _run() -> void:
 	var report := {"rotations_checked":checked,"missing_floor_rejections":16,
 		"flame_animation":animation_report,"model_scale_bounds_material_valid":true,"ghost_nonblocking":true,
 		"four_cell_placement_and_navigation_valid":true,"collision_size":[2,2,2],
-		"room_volume":64,"heat_units":400,"heat_delta_c":6.25,
+		"room_volume":64,"heat_units":HEAT_UNITS,"heat_delta_c":18.75,
 		"installed_and_ghost_save_round_trip":true,"player_saves_touched":false}
-	var out := FileAccess.open("res://tmp/hearth_animation_preview/runtime_checks.json",FileAccess.WRITE)
+	const OUT := "res://tmp/rudimentary_hearth_20261011/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
+	var out := FileAccess.open(OUT+"runtime_checks.json",FileAccess.WRITE)
 	out.store_string(JSON.stringify(report,"  ")+"\n")
 	out.close()
 	for id in controller._ghosts.keys():

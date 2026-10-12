@@ -7,7 +7,10 @@
   "item_key": "base:resources:furniture:crude_ladder",
   "placement": "ladder",
   "yaw_steps": 4,
-  "footprint": {"width": 1, "depth": 1},
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
   "blocks_movement": false,
   "collision_regions": [],
   "room_anchor": false,
@@ -19,5 +22,11 @@
     "models": {
       "4": "res://assets/models/furniture/crude_ladder_4.glb"
     }
+  },
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 0,
+    "material_factor": 0.25
   }
 }

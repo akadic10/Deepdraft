@@ -17,8 +17,13 @@ shared Hearth & iron theme and existing item thumbnails.
   with that category's tag.
 - Accept all goods and Clear all filters apply immediately. Closing the panel
   does not confirm or revert anything. New storage accepts all existing categories.
-- Contents shows actual goods, including items excluded by the new rules.
-  Rejected goods stay visible and count toward capacity while awaiting relocation.
+- Contents groups actual goods by item and material, sorted by displayed name.
+  Separate crates contribute their full unit counts; wood variants remain distinct.
+  Rejected goods stay visible with one Awaiting relocation note per group and
+  still count toward capacity. This is a derived view, not merged physical stock.
+- Allow/Disallow applies only outside storage. Contents and stored-item inspection
+  have no permission controls; stored goods are available colony stock. Storage
+  filters continue to control what belongs here and what should relocate.
 - The scroll area contracts on smaller displays; actions and acceptance summary
   stay outside it. Native title dragging, saved placement, tool-input isolation,
   zone removal, and furniture uninstall keep their existing behavior.
@@ -79,6 +84,10 @@ require a project reload for global-class registration.
   both directions; partial crates; concurrent claims; source reversal/removal;
   orphaned destination cleanup; shelf visuals; zone/container save restoration;
   shared container selection; dragging and world-input isolation.
+- `ItemPermissionTest`: grouped material variants and produce quantities, live
+  withdrawals, occupied-slot totals, relocation notes, ground/chest/shelf contents,
+  outside-only permission controls and available stored goods after restoration.
+  Updated native captures: `tmp/storage_contents_20261011/` at 960×540 and 2560×1440.
 - Native renders inspected at 960×540, 1280×720 and 2560×1440. Captures are under
   `tmp/storage_filter_review/`. Smaller displays preserve a full tile row.
 - Regression coverage: `ProduceCrateTest`, `HaulingAnimationTest`,

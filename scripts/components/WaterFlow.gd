@@ -57,9 +57,9 @@ func depth_at(point: Vector3i) -> float:
 	var key := space_at(point)
 	return clampf(level(key) - point.y, 0.0, 1.0) if key.x >= 0 else 0.0
 
-func seed_column(key: Vector3i, volume: float, active := true) -> void:
-	if volume <= 0: return
-	mass[key] = roundi(volume*UNITS)
+func seed_column(key: Vector3i, initial_volume: float, active := true) -> void:
+	if initial_volume <= 0: return
+	mass[key] = roundi(initial_volume*UNITS)
 	initial[key] = mass[key]
 	if active: wake(key)
 

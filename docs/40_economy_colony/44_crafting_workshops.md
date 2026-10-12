@@ -1,5 +1,45 @@
 # 44 — Crafting Workshops
 
+**Rudimentary hearth (2026-10-11):** Rudimentary → Camp furnishings now offers a
+rough fieldstone hearth: two matching logs and four rough stones, physically delivered to
+a crude workbench before 18 seconds of work. It emits 2400 heat units and quiet
+fire audio when installed. Repeated ingredients appear as one quantity in the
+recipe detail. Fuel upkeep remains future work. See milestone 122.
+
+**Log bed cost (2026-10-11):** One bed requires four matching logs at the crude
+workbench, under Rudimentary → Camp furnishings. Every log is physically delivered
+before the 16 seconds of work. Mixed species cannot substitute for a complete
+batch; the finished bed retains its wood identity. Cancelled work releases all
+unconsumed timber. See [120 — Beds and bedrooms](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
+
+**Material identity and appeal (2026-10-11):** Starter recipes inherit the actual
+selected timber. Wood follows packed goods, storage, carried/equipped items,
+installation and saves. Maintain counts only outputs made from allowed wood;
+Place selects a wood within its existing design card. Appeal is design plus a
+scaled material bonus, with future copper/gold tuning separate from recipes.
+See [118 — Crafted materials and appeal](../00_dev_roadmap/118_crafted_materials_and_appeal.md).
+
+**Log furniture (2026-10-11):** Rudimentary → Rooms offers 2/3-wide single log
+doors and a 4-wide double log door. Camp furnishings adds a log bench. Each uses
+one allowed timber at a crude workbench, taking 12/18/24 seconds for doors and
+10 for the bench. Finished crates use normal haul/install work. The starter
+wooden torch is renamed Log torch; its four-per-log recipe is unchanged. See
+[117 — Log furniture and fire ambience](../00_dev_roadmap/117_log_furniture_and_fire_audio.md).
+
+**Crafting menu (2026-10-11):** the profession cabinet uses compact category
+icon groups, name/category search, and separate Recipes / Orders tabs. A single
+selected-item card shows the illustration, real materials/stock, batch or stock
+target controls, and Place. Pause, priority, cancellation and per-order wood
+selection stay in Orders. Recipe costs, reservations and work are unchanged.
+See [114 — Crafting browser](../00_dev_roadmap/114_crafting_browser.md).
+
+**Log bridge kits (2026-10-11):** Craft → Rudimentary → Access now offers a kit
+from one selected raw log at a crude workbench (12 seconds). Workers physically
+deliver one kit to the chosen bank and install a two-block-wide, 1–5-block river
+crossing in 8 seconds. Place → Access validates both landings and previews the
+whole span. Four seconds of safe dismantling returns the kit. See
+[113 — Log bridges](../00_dev_roadmap/113_log_bridges.md).
+
 **Carpenter promotion (2026-10-09):** A crafted crude carpentry kit now enables
 promotion after the selected dwarf reserves, collects and equips it. Changing
 profession returns the kit. Specialist Carpenter workshop/recipes remain planned;

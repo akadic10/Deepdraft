@@ -98,7 +98,7 @@ func _find_tool() -> void:
 	var goals := {}
 	for cell in StorageComponent.ground_access_cells(_quote.cell):
 		if NavGrid.is_walkable(cell): goals[cell] = true
-	var result := NavGrid.ProbeResult.UNREACHABLE
+	var result: int = NavGrid.ProbeResult.UNREACHABLE
 	if not goals.is_empty():
 		result = NavGrid.advance_reachability(_route, agent.current_cell(), goals.keys()[0], 128, deadline, false, goals)
 	if result == NavGrid.ProbeResult.SEARCHING: return
@@ -202,12 +202,12 @@ func _clear_search() -> void:
 	_route = {}
 
 func serialize() -> Dictionary:
-	return {"tool": tool_key(), "pending_role": pending_role}
+	return {"tool": tool_key(), "pending_role": pending_role, "material_id": CraftMaterials.of_item(equipped)}
 
 func restore(state: Dictionary) -> void:
 	var key := String(state.get("tool", ""))
 	if not key.is_empty() and items() != null:
-		equipped = _items.spawn_reserved(key, agent.current_cell(), agent.dwarf_id)
+		equipped = _items.spawn_reserved(key, agent.current_cell(), agent.dwarf_id, "", String(state.get("material_id", "")))
 		if is_instance_valid(equipped):
 			_items.take(equipped)
 			agent.add_child(equipped)

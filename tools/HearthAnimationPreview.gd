@@ -1,6 +1,6 @@
 extends "HearthRedesignPreview.gd"
 
-const Lighting = preload("FurnitureLighting.gd")
+const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 var _hearth_def: Dictionary
 var _env: Environment
 var _studio_lights: Array[DirectionalLight3D] = []
@@ -73,9 +73,9 @@ func _show(mode: String,angle: String) -> void:
 	_env.ambient_light_energy = .07 if room else .4
 	for label in [_title,_subtitle,_footer]:
 		label.add_theme_color_override("font_color",Color(.88,.84,.76) if room else Color(.12,.15,.16))
-	_title.text = "DEEPDRAFT   /   LIVING HEARTH"
-	_subtitle.text = "Three curling flame tongues · steady ember bed · gentle firelight"
-	_footer.text = "8 voxels per block · 2 × 2 footprint · Stone rim 1 block / flame up to 2 blocks · 400 heat units"
+	_title.text = "DEEPDRAFT   /   RUDIMENTARY HEARTH"
+	_subtitle.text = "Uneven fieldstones · exposed logs and coals · a low open front"
+	_footer.text = "8 voxels per block · 2 × 2 footprint · Rough stones up to ¾ block · 2,400 heat units"
 	_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	_camera.size = 4.6
 	var target := Vector3(0,.8,0)

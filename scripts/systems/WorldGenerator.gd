@@ -163,6 +163,7 @@ var _grass_ids:    Array[int] = []   # [0..7] -> active grass_01..grass_08
 var _dirt_ids:     Array[int] = []   # [0..3]  -> dirt_01..dirt_04
 var _resource_replaceable_rock_ids: Dictionary = {}
 var _metal_windows: Array[Dictionary] = []
+var _resource_cover_maps: Dictionary = {} # burial radius -> natural minimum surface
 var _gem_windows:   Array[Dictionary] = []
 var _soil_windows:  Array[Dictionary] = []
 var _resource_focus_windows: Array[Dictionary] = []
@@ -257,6 +258,7 @@ func _build_cave_maps() -> void:
 			waterline_map[index] = -1
 			river_layout.columns.erase(Vector2i(cell.x,cell.z))
 			river_layout.initial_units.erase(Vector2i(cell.x,cell.z))
+	_build_resource_cover_maps()
 	_cave_layout = Caves.build(world_seed, heightmap, waterline_map, _cave_profile,spring_cave.get("bounds",Rect2i()))
 	if not spring_cave.is_empty():
 		var id: int = _cave_layout.systems.size()
@@ -512,6 +514,7 @@ func prepare_for_world_reload() -> void:
 
 
 func _reset_generation_state() -> void:
+	_resource_cover_maps.clear()
 	_macro_layout.clear()
 	_layout_validation.clear()
 	water_bodies.clear()
@@ -699,7 +702,6 @@ func get_visible_surface_block_id(wx: int, wz: int) -> int:
 		return BlockRegistry.AIR_ID
 	if wx < 0 or wx >= WORLD_SIZE_X or wz < 0 or wz >= WORLD_SIZE_Z:
 		return BlockRegistry.AIR_ID
-	var col := Vector2i(wx, wz)
 	if waterline_map[wx * WORLD_SIZE_Z + wz] >= 0:
 		return _id_water
 	return _generate_block_id(wx, heightmap[wx * WORLD_SIZE_Z + wz], wz)
@@ -867,8 +869,10 @@ func _build_resource_windows(keys: Array, expected_channel: String) -> Array[Dic
 			"min_y": int(depth_bias.get("min_y", 0)),
 			"max_y": int(depth_bias.get("max_y", WORLD_SIZE_Y - 1)),
 			"threshold": float(def.get("noise_threshold", 1.0)),
+			"shallow_threshold": float(def.get("shallow_noise_threshold",def.get("noise_threshold",1.0))),
 			"channel": channel,
 			"noise_field": noise_field.duplicate(true),
+			"min_burial": int(def.get("min_burial",0)),
 		})
 	return windows
 
@@ -966,7 +970,7 @@ func _build_noise_instances() -> void:
 	noise_gem = FastNoiseLite.new()
 	noise_gem.noise_type       = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	noise_gem.seed             = world_seed + 7
-	noise_gem.frequency        = 0.06
+	noise_gem.frequency        = 0.11
 	noise_gem.fractal_octaves  = 3
 
 	# Layer 8 - Moisture map (flora distribution, doc 14)
@@ -2307,7 +2311,7 @@ func _apply_resource_veins(x: int, y: int, z: int, surf_y: int, rock_id: int) ->
 
 	if _y_in_any_resource_window(_gem_windows, y):
 		var n_gem := (noise_gem.get_noise_3d(x, y, z) + 1.0) * 0.5
-		var gem := _pick_resource_from_windows(_gem_windows, y, n_gem)
+		var gem := _pick_buried_gem(x,y,z,n_gem)
 		if gem != -1:
 			return gem
 
@@ -2356,9 +2360,41 @@ func _pick_metal_from_fields(x: int, y: int, z: int) -> int:
 		var window: Dictionary = _metal_windows[i]
 		if y < window["min_y"] or y > window["max_y"]:
 			continue
+		if not has_natural_cover(x,y,z,int(window.get("min_burial",0))): continue
 		var value := (_metal_noise[i].get_noise_3d(x, y, z) + 1.0) * 0.5
-		if value > window["threshold"]:
+		var threshold := float(window.threshold)
+		if float(window.get("shallow_threshold",threshold))>threshold and not has_natural_cover(x,y,z,10): threshold = float(window.shallow_threshold)
+		if value > threshold:
 			return window["id"]
+	return -1
+
+
+func _build_resource_cover_maps() -> void:
+	_resource_cover_maps.clear()
+	for window: Dictionary in _resource_focus_windows:
+		var depth := int(window.get("min_burial",0))
+		if depth<=0 or _resource_cover_maps.has(depth): continue
+		_resource_cover_maps[depth] = preload("res://scripts/components/NaturalRockCover.gd").minimum_heights(heightmap,WORLD_SIZE_X,depth)
+
+## Burial is measured against the original exterior in every direction,
+## including cliff faces. Mining edits cannot unlock rarer geology beside them.
+func has_natural_cover(x: int, y: int, z: int, depth: int) -> bool:
+	if depth<=0: return true
+	if x-depth<0 or z-depth<0 or x+depth>=WORLD_SIZE_X or z+depth>=WORLD_SIZE_Z: return false
+	if heightmap.is_empty() or heightmap[x*WORLD_SIZE_Z+z]<y+depth: return false
+	if _resource_cover_maps.has(depth):
+		return int(_resource_cover_maps[depth][x*WORLD_SIZE_Z+z])>=y+depth
+	# Small synthetic fixtures may omit map precomputation. This exact fallback
+	# is read-only too; real worlds publish every configured radius before use.
+	for cx in range(x-depth,x+depth+1):
+		for cz in range(z-depth,z+depth+1):
+			if heightmap[cx*WORLD_SIZE_Z+cz]<y+depth: return false
+	return true
+
+func _pick_buried_gem(x: int, y: int, z: int, value: float) -> int:
+	for window: Dictionary in _gem_windows:
+		if y<int(window.min_y) or y>int(window.max_y) or value<=float(window.threshold): continue
+		if has_natural_cover(x,y,z,int(window.min_burial)): return int(window.id)
 	return -1
 
 

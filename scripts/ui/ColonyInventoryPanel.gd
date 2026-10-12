@@ -275,6 +275,11 @@ func _refresh_detail() -> void:
 	var entry := _entry(selected_key) if not selected_key.is_empty() else {}
 	_name.text = entry.get("label", "Colony supplies")
 	_description.text = entry.get("description", "Select an item to see where it is kept.")
+	var variants: Dictionary = row.get("materials", {})
+	if variants.keys().any(func(id): return not String(id).is_empty()):
+		_description.text += "\n\nMaterials"
+		for id: String in variants:
+			_description.text += "\n%s × %d" % [CraftMaterials.material_name(id), int(variants[id])]
 	_image.texture = _tiles[selected_key].image.texture if _tiles.has(selected_key) else null
 	for state: String in _values: _values[state].text = str(row.get(state.to_lower(), 0))
 	_locate.disabled = int(row.get("total", 0)) <= 0
@@ -322,10 +327,10 @@ func _label(text: String, font_size: int, paper: bool = false) -> Label:
 	return label
 
 
-func _margin(child: Control, horizontal: int, vertical: int) -> MarginContainer:
+func _margin(child: Control, horizontal: int, vertical_padding: int) -> MarginContainer:
 	var margin := MarginContainer.new()
 	for side: String in ["left", "right"]: margin.add_theme_constant_override("margin_" + side, horizontal)
-	for side: String in ["top", "bottom"]: margin.add_theme_constant_override("margin_" + side, vertical)
+	for side: String in ["top", "bottom"]: margin.add_theme_constant_override("margin_" + side, vertical_padding)
 	margin.add_child(child)
 	return margin
 

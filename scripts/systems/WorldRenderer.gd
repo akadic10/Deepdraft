@@ -697,25 +697,15 @@ func _room_inspect_lines(air_pos: Vector3i) -> Array[String]:
 	var seasonal: float = float(room.get("seasonal_influence", 0.0))
 	var is_frozen: bool = bool(room.get("is_frozen_vault", false))
 	var doors: int = room.get("door_cells", {}).size()
-	var heat_bonus: float = float(heat_units) / float(max(volume, 1))
-	var label := "room: FROZEN VAULT" if is_frozen else "room: Sealed (%s)" % _room_zone_name(mean_floor_y)
+	var heat_bonus: float = float(room.get("heat_bonus_c",0))
+	var label := "room: FROZEN VAULT" if is_frozen else "room: Sealed (%s)" % RoomManager.comfort_label(temp_c)
+	if room.get("room_type", "room") == "bedroom": label = "room: Bedroom (%s)" % RoomManager.comfort_label(temp_c)
 	return [
 		label,
 		"room temp: %.1f°C  volume: %d blocks" % [temp_c, volume],
 		"room heat: %d units (+%.1f°C)  doors: %d" % [heat_units, heat_bonus, doors],
 		"room seasonal influence: %d%%  mean floor y: %.1f" % [roundi(seasonal * 100.0), mean_floor_y],
 	]
-
-
-## Depth-zone label from mean floor Y (doc 34 "Depth–Temperature Gradient").
-func _room_zone_name(mean_floor_y: float) -> String:
-	if mean_floor_y >= 65.0:
-		return "Cool Cave"
-	if mean_floor_y >= 50.0:
-		return "Cold Cave"
-	if mean_floor_y >= 37.0:
-		return "Deep Cold"
-	return "Frozen Zone"
 
 
 func set_visual_cut_blocks(blocks: Dictionary) -> void:

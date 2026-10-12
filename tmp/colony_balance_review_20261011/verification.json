@@ -1,0 +1,105 @@
+{
+  "audtha_exit": {
+    "after": "(507.5, 44.0, 597.8199)",
+    "before": "(508.5, 44.0, 600.5)",
+    "permitted": true,
+    "state": "leaving_room"
+  },
+  "dwarves": [
+    {
+      "cell": "(508, 43, 600)",
+      "clear_idle_stop": false,
+      "id": 0,
+      "name": "Audtha",
+      "owner": -1,
+      "room_id": -1,
+      "room_type": "bedroom"
+    },
+    {
+      "cell": "(493, 43, 593)",
+      "clear_idle_stop": true,
+      "id": 1,
+      "name": "Mundmar",
+      "owner": -1,
+      "room_id": -1,
+      "room_type": "outside"
+    },
+    {
+      "cell": "(486, 43, 596)",
+      "clear_idle_stop": true,
+      "id": 2,
+      "name": "Morbrin",
+      "owner": -1,
+      "room_id": -1,
+      "room_type": "outside"
+    },
+    {
+      "cell": "(525, 43, 604)",
+      "clear_idle_stop": true,
+      "id": 3,
+      "name": "Brunna",
+      "owner": -1,
+      "room_id": -1,
+      "room_type": "outside"
+    },
+    {
+      "cell": "(497, 43, 595)",
+      "clear_idle_stop": true,
+      "id": 4,
+      "name": "Grundor",
+      "owner": -1,
+      "room_id": -1,
+      "room_type": "outside"
+    }
+  ],
+  "mined_counts": {
+    "base:terrain:ore:copper": 1,
+    "base:terrain:ore:tin": 4,
+    "base:terrain:rock:rock06": 635,
+    "base:terrain:soil:cave": 424
+  },
+  "mined_y": {
+    "44": 266,
+    "45": 266,
+    "46": 266,
+    "47": 266
+  },
+  "rock_cover_max": 11,
+  "rock_cover_min": 2,
+  "rooms": [
+    {
+      "bed_count": 1,
+      "door_cells": {
+        "(505, 43, 592)": true
+      },
+      "heat_bonus_c": 0.231481481481481,
+      "heat_units": 75,
+      "is_frozen_vault": false,
+      "light_count": 1,
+      "mean_floor_y": 44.0,
+      "owner_id": 0,
+      "room_type": "personal_bedroom",
+      "seasonal_influence": 0.161412131606973,
+      "temp_c": 11.3303872757811,
+      "volume": 324,
+      "with_hearth_c": 18.7377946831886
+    },
+    {
+      "bed_count": 1,
+      "door_cells": {
+        "(504, 43, 597)": true
+      },
+      "heat_bonus_c": 0.5859375,
+      "heat_units": 150,
+      "is_frozen_vault": false,
+      "light_count": 2,
+      "mean_floor_y": 44.0,
+      "owner_id": -1,
+      "room_type": "bedroom",
+      "seasonal_influence": 0.161412131606973,
+      "temp_c": 11.6848432942997,
+      "volume": 256,
+      "with_hearth_c": 21.0598432942997
+    }
+  ]
+}

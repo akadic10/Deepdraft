@@ -1,10 +1,10 @@
 {
   "__comment": [
-    "Task scheduler tunables (doc 16 First Dwarf Milestone, \u00a72). Loaded by the",
-    "TaskManager autoload \u2014 no other script reads this file (Registry Pattern).",
+    "Task scheduler tunables (doc 16 First Dwarf Milestone, §2). Loaded by the",
+    "TaskManager autoload — no other script reads this file (Registry Pattern).",
     "JSON = what things are (the numbers); GDScript = what things do (the loop).",
     "",
-    "NO-HANG CONTRACT (doc 16 \u00a72.5 \u2014 these keys ARE the guarantees):",
+    "NO-HANG CONTRACT (doc 16 §2.5 — these keys ARE the guarantees):",
     "  scheduler_budget_usec   - hard time budget per scheduler wake; the matching",
     "                            loop stops mid-scan when exceeded and resumes from",
     "                            its cursor on the next wake. Overload degrades into",
@@ -56,14 +56,13 @@
     "UPROOT_SHRUB": 50,
     "HARVEST_TREE": 50
   },
-  "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers \u2014 the zone posts this many MINE leases.",
+  "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers — the zone posts this many MINE leases.",
   "zone_source": {
     "max_workers": 4
   },
   "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip, replacing the old physical-item pouch_capacity limit. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
-  "__comment_furniture": "Furniture pipeline (doc 19 Phase 3). FETCH_BUILD 45 > HAUL 40: SH-verified - the placement task group's priority band TOPS restock's (0.93 vs 0.8), installing furniture outranks putting things away. build/uninstall_time_s: the work-swing duration at the ghost / installed piece.",
+  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Bridges/ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration.",
   "furniture": {
-    "build_time_s": 2.0,
     "uninstall_time_s": 2.0
   },
   "__comment_idle": "Interruptible leisure while available for work. Seconds follow simulation speed. Walks stay on clear same-level ground near the last work/spawn position; no ladders or long-distance roaming. Chairs remain separately built furniture.",
@@ -75,13 +74,46 @@
     "walk_radius": 5,
     "home_radius": 9,
     "seat_radius": 9,
-      "seat_focus_radius": 6,
+    "seat_focus_radius": 6,
     "seat_chance": 0.6,
     "sit_min_s": 18.0,
     "sit_max_s": 35.0,
     "seat_transition_s": 0.5,
     "spacing": 2.4,
     "candidate_attempts": 12
+  },
+  "movement": {
+    "walk_speed": 3.4,
+    "stride_length": 1.05,
+    "foot_lift": 0.22
+  },
+  "rest": {
+    "search_radius": 8,
+    "candidates_per_tick": 12,
+    "transition_seconds": 1.1,
+    "snore_interval_seconds": 7.0,
+    "bed_search_radius": 48
+  },
+  "mood": {
+    "baseline": 0.5,
+    "personal_bedroom": {
+      "bonus": 0.1,
+      "duration_hours": 24.0,
+      "minimum_sleep_hours": 3.0
+    },
+    "thermal": {
+      "minimum_sleep_hours": 1.0,
+      "duration_hours": 24.0,
+      "cold_penalty": 0.2,
+      "chilly_penalty": 0.05,
+      "hot_penalty": 0.15
+    }
+  },
+  "readability": {
+    "color": "b6ac90",
+    "opacity": 0.18,
+    "max_cover_depth": 2.5,
+    "refresh_seconds": 0.2
   },
   "hauling": {
     "max_haulers_per_zone": 4,

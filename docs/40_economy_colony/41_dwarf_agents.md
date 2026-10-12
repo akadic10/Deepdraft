@@ -1,16 +1,22 @@
 # 41 — Dwarf Agents
 
+**2026-10-11 — Privacy and thermal sleep comfort:** Idle visitors leave bedrooms;
+owners may relax in their own, and unassigned bedrooms are for sleep. Work access
+remains open. Cold/chilly/hot sleep creates a −20/−5/−15 happiness thought after
+one actual game hour asleep; strongest thermal penalty only, lasting 24 hours.
+See [122](../00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md).
+
 > **IMPLEMENTATION STATUS (First Dwarf Milestone, doc 16 — banked 2026-06-10 → 2026-07-02).**
 > Shipped: `DwarfAgent` (`scripts/entities/DwarfAgent.gd`) with the four-part mesh hierarchy,
 > runtime tint split (head/hands tinted, body/feet baked — doc 17 §1), procedural
 > **distance-driven walk gait** (plant/lift foot phases, counter-swinging hands, body lean;
-> `walk_speed` 2.2, `stride_length` 0.7 — all exports, doc 17 §2), zone-lease mining execution
+> `walk_speed` 3.4, `stride_length` 1.05 — TaskManager movement tuning), zone-lease mining execution
 > with the vertical reach envelope, and **sleep-lite** — the single `sleep` stat below, draining
-> per the table, with in-place sleeping (no beds yet) and the §2.8 release protocol
+> per the table, with reachable bed use, sheltered ground sleeping and the §2.8 release protocol
 > (`16_first_dwarf_milestone.md` step 7). Procedural generation (names/appearance/traits,
 > seed-deterministic per `world_seed + birth_index`) runs through `DwarfFactory` +
 > `DwarfAssets`; dwarves spawn at the player-placed Settlement Flag. NOT yet implemented:
-> hunger/thirst/alcohol/mood/health, thoughts, bed use, the full profession roster and the
+> hunger/thirst/alcohol/health, the broader thought system, the full profession roster and the
 > full needs-interrupt priority ladder — the tables below remain their design source.
 
 ## Overview
@@ -61,6 +67,45 @@ inventory or durability requirement. Player testing accepted this work on
 
 Each dwarf is an autonomous agent (`DwarfAgent`, extends `CharacterBody3D`) driven by the Task System. Dwarves have physiological stats that degrade over time and must be replenished through colony resources.
 
+## Movement and sleep — updated 2026-10-11
+
+Walking now covers 3.4 blocks/second at normal speed (previously 2.2), with
+1.05-block strides, eased foot lifts, planted stance, hand counter-swing and
+gentle torso/head counter-motion. Movement honors clock speed; heavy carrying
+and ladders retain their multipliers. The existing floating-part silhouette and
+logical 1×1×3 navigation clearance are unchanged.
+
+`DwarfBedRest` first tries the dwarf's assigned bed, then free, unassigned beds
+within 48 blocks, preferring a classified sleeping room. It claims one sleeper per bed and follows normal navigation
+to a mattress-side access cell. Visual parts recline on the mattress while the
+actor remains on that supported floor. Claims release on wake, removal, unusable
+support or actor teardown, and reconstruct from the saved access floor on load.
+Both the new Worker-crafted Log bed and existing Dwarven Bed support sleep.
+
+Without a usable bed, `DwarfRestBehavior` searches within eight blocks for reachable, level ground
+beside a wall or unmarked tree. It checks the full resting footprint, excludes
+stockpiles, furniture plans, bridges and ladder approaches, and keeps sleepers'
+claims separate. Searches use short proven flat routes and a fixed candidate
+budget per tick. Dwarves prefer either reclining or lazy sitting, try the other
+pose when needed, then fall back to clear ground (compact sitting if boxed in).
+Task cleanup and cargo release happen before searching; the six-hour sleep
+clock begins after settling. Walking to shelter does not restore sleep.
+
+Sleep uses eased settle/wake transitions, closed voxel eyelids, breathing and
+slow head motion. The old emoji is removed. Three original quiet snores use
+Work audio, camera distance/zoom, slice/visibility, pause and wake guards.
+Spatial choices and claims are transient: saved sleepers rebuild a suitable
+pose while retaining position and remaining rest. Lost floor support still
+settles the real actor first, then reselects a spot without resetting the need.
+Bed ownership and the first sleep comfort thought are implemented: a completed
+rest with at least three game hours in one's personal bedroom gives +10 happiness
+for 24 game hours, refreshing without stacking. Happiness starts at 50%. Both
+qualifying sleep progress and thought duration save and honor pause/speed. Other
+needs/thoughts remain planned. See [121 — Personal bedrooms](../00_dev_roadmap/121_personal_bedrooms.md).
+See [119 — Dwarf walking and ground rest](../00_dev_roadmap/119_dwarf_walking_and_ground_rest.md).
+Bed use, bedroom classification and the nearby-cover silhouette are detailed in
+[120 — Log beds and bedrooms](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
+
 ## Idle activity — implemented 2026-10-09
 
 After a short staggered pause, available dwarves stroll on nearby clear ground,
@@ -74,6 +119,22 @@ Chair claims are exclusive and transient; entry uses authored access cells and
 the seated pose uses existing body parts, preserving 1×1×3 walking clearance.
 Inspection labels the actual activity while the roster retains idle availability.
 See [99 — Idle activity](../00_dev_roadmap/99_dwarf_idle_activity.md).
+
+## Lost footing — fixed 2026-10-11
+
+Every unpaused dwarf tick checks physical support before jobs, leisure and sleep.
+When another miner removes the floor, the dwarf settles vertically onto the first
+solid block or bridge deck below. This also repairs unsupported positions restored
+from a current save and handles drops deeper than four blocks. It preserves XZ,
+facing and sleep state, and refreshes slice visibility at the new height.
+
+Interrupted work follows the ordinary release protocol: clear the obsolete route,
+release source, seating and tool reservations, drop carried goods at the landing,
+and return awake dwarves to the available pool. The miner completing its own
+underfoot block still settles immediately before pulling the next mining target.
+Ladder rungs and supported step interpolation retain control of vertical movement.
+This is immediate settling, not a gravity or fall-injury simulation.
+See [115 — Dwarf support recovery](../00_dev_roadmap/115_dwarf_support_recovery.md).
 
 ## Physiological Stats
 
@@ -92,9 +153,9 @@ All stats are floats in the range `0.0 – 1.0` unless otherwise noted.
 > ("the dwarves are just stuck doing nothing"). −0.0007/s yields ~18 waking hours per
 > 6-hour nap — the 24-hour cycle §Biological Limits specifies. `DwarfAgent` additionally
 > jitters each dwarf's drain ±10% (deterministic per id) so schedules decohere over days
-> rather than staying phase-locked. Sleeping dwarves additionally show a **💤 billboard
-> indicator** (same Label3D conventions as the name tag, but always on while asleep —
-> gameplay information, not a DEV toggle; added same day at Alen's request). Hunger/thirst rates above are still unimplemented
+> rather than staying phase-locked. The original sleep billboard was replaced by
+> ground poses, closed eyes, breathing and snoring on 2026-10-11 (see above).
+> Hunger/thirst rates above are still unimplemented
 > design values — re-derive them against a 24-hour day before building the needs system
 > (at −0.005/s, hunger would empty in ~3.3 game hours against the stated 8-hour meal
 > cadence — the same class of mis-tune this note fixes for sleep).
@@ -207,6 +268,11 @@ DEAD
 ```
 
 ## Mood Events (Thought System)
+
+The broader table below remains design material. The first live thought is
+`Slept in my own bedroom` (+0.10 for 24 game hours after completing a rest with
+at least three hours in a personal bedroom). DwarfMood currently combines that
+thought with a 0.5 baseline. It has no tantrum or work-speed side effects.
 
 `mood` does not drain over time — it is the running sum of all active thought effects. Each thought has a **magnitude** (positive or negative delta applied instantly) and a **duration** after which the effect expires and mood recalculates.
 

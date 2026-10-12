@@ -66,8 +66,8 @@ func advance(delta: float) -> bool:
 		var offset: Vector3 = p.start + p.velocity*age - Vector3.UP * float(p.gravity)*age*age*.5
 		offset.y = maxf(offset.y,_floor_offset)
 		var shrink := maxf(.001,pow(1.0-fraction,.65))
-		var basis := Basis.from_euler(p.rotation + p.spin*age).scaled(p.size*shrink)
-		_mesh.multimesh.set_instance_transform(i,Transform3D(basis,offset))
+		var particle_basis := Basis.from_euler(p.rotation + p.spin*age).scaled(p.size*shrink)
+		_mesh.multimesh.set_instance_transform(i,Transform3D(particle_basis,offset))
 		var color: Color = p.color
 		color.a *= 1.0-fraction
 		_mesh.multimesh.set_instance_color(i,color)

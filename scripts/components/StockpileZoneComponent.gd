@@ -76,9 +76,9 @@ func _has_any_room() -> bool:
 	return _slots.has_any_room()
 
 
-func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1) -> Variant:
+func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "") -> Variant:
 	if not accepts_key(item_key): return null
-	return _slots.reserve(item_key, amount, dwarf_id, near)
+	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id)
 
 
 func _release_deposit(token: Variant) -> void:
@@ -177,7 +177,7 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	var count := int(cell_stacks[best].count)
 	if amount <= 0 or amount > count: return null
 	if count > amount:
-		var single: Node3D = drop_manager.call("spawn_reserved", item_key, best, dwarf_id)
+		var single: Node3D = drop_manager.call("spawn_reserved", item_key, best, dwarf_id, "", CraftMaterials.of_item(node))
 		if single == null:
 			return null
 		drop_manager.set_quantity(single, amount)

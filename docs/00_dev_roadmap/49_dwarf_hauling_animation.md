@@ -60,6 +60,12 @@ costs and configured capacity are clamped to at least 1. This replaces the old
 
 ## Timing and ownership
 
+**Furniture timing update (2026-10-11):** Finished furniture now starts the shared
+0.65-second set-down immediately on arrival, with no separate two-second build
+wait. Floor items target the nearest designated footprint cell; wall items use a
+raised handoff at the mount. Bridges/ladders and plants keep their own animated
+work durations. See [123 — Furniture placement timing](123_furniture_placement_timing.md).
+
 - `data/tasks/task_config.json`, `hauling.pickup_time_s`: 0.75 seconds.
 - `hauling.deposit_time_s`: 0.65 seconds.
 - The source stays reserved and visually untouched until 36% of the pickup.

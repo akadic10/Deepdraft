@@ -138,11 +138,25 @@ func _run() -> void:
 	var tree := Node3D.new()
 	flora.add_child(tree)
 	tree.set_meta("tree_id",Vector2i(50,40))
-	flora._loaded_columns[Vector2i(3,2)] = [tree]
-	flora._trees[Vector2i(50,40)] = {"bounds":AABB(Vector3(45,21,35),Vector3(10,20,10))}
+	# The scatter cell begins at x=42 in column 2, but jitter puts this tree
+	# at x=50 in column 3. Its stream owner remains the scatter-origin column.
+	tree.set_meta("stream_column",Vector2i(2,2))
+	var streamed_nodes: Array[Node3D] = [tree]
+	flora._loaded_columns[Vector2i(2,2)] = streamed_nodes
+	flora._trees[Vector2i(50,40)] = {"node":tree,"bounds":AABB(Vector3(45,21,35),Vector3(10,20,10))}
 	navigation.flora = flora
 	_expect(not navigation.segment_clear(Vector3(40,30,40),Vector3(60,30,40),1.3,true),"air sweep rejects canopy overhang")
 	_expect(navigation.segment_clear(Vector3(40,44,40),Vector3(60,44,40),1.3,true),"air sweep permits clear air above trees")
+	flora._remove_tree_visual(Vector2i(50,40))
+	_expect(flora._loaded_columns[Vector2i(2,2)].is_empty(),"felling removes a boundary-crossing tree from its actual stream owner")
+	await process_frame
+	await process_frame
+	_expect(navigation.segment_clear(Vector3(40,30,40),Vector3(60,30,40),1.3,true),"flight remains safe after the felled node is freed")
+	# A stale external deletion must be checked before conversion to Node3D.
+	var stale := Node3D.new()
+	flora._loaded_columns[Vector2i(2,2)].append(stale)
+	stale.free()
+	_expect(navigation.segment_clear(Vector3(40,30,40),Vector3(60,30,40),1.3,true),"flight query tolerates a stale freed entry")
 	# Disappearing water initiates a real escape; it must never strand a swimmer.
 	duck.restore_state(start)
 	for x in range(38,43):

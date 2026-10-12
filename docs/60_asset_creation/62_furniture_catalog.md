@@ -37,7 +37,7 @@
 | Armor Stand | `base:furniture:armor_stand` | PLAN (doc 52) | Armory — holds one armour set |
 | Tavern Bar | `base:furniture:tavern_bar` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 2-block height including taps; room_anchor/room_type remain future integration data | Tavern room anchor (future); traveler income (doc 51, still unbuilt) |
 | Bench | `base:furniture:bench` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 1-block seat height | Tavern seating; sit-down behaviour depends on doc 41 (not yet implemented) |
-| Hearth | `base:furniture:hearth` | **SHIPPED; redesigned 2×2 (doc 30, 2026-10-01)** — 1-block stone rim, 2-block flame height; 400 heat units read once by `RoomManager` | Tavern social anchor; real heat source (doc 34, live); `warm_tavern` thought still depends on doc 41 |
+| Rudimentary hearth | `base:furniture:hearth` | **SHIPPED; rough fieldstones and exposed logs (doc 30, 2026-10-11)** — 2×2 footprint, 0.75-block uneven rim; 2400 heat units read once by `RoomManager` | Early bedroom heater; two logs + four rough stones at crude workbench (doc 122) |
 | Door | `base:furniture:door` | **REDESIGNED (2026-10-01, [art doc 34](../00_dev_roadmap/34_door_visual_redesign.md))** — 2×1 framed oak double door, iron straps and ring pulls | Walkable; both tiles seal rooms for `RoomManager` (temperature doc 34) |
 
 ### Workshops (placeable, but a separate category — doc 61 §5.5)

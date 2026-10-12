@@ -65,9 +65,9 @@ const FURNITURE_PANEL_ITEMS: Dictionary = {
 	"📥 Storage Chest": "base:furniture:storage_chest",
 	"📥 Storage Shelf": "base:furniture:storage_shelf",
 	"📥 Tavern Bar": "base:furniture:tavern_bar",
-	"📥 Bench": "base:furniture:bench",
+	"📥 Log Bench": "base:furniture:bench",
 	"📥 Hearth": "base:furniture:hearth",
-	"📥 Door": "base:furniture:door",
+	"📥 Log Door (2 wide)": "base:furniture:door",
 	"📥 Trade Counter": "base:furniture:trade_counter",
 	"📥 Personal Dining Table": "base:furniture:wooden_table",
 	"📥 Communal Dining Table": "base:furniture:communal_table",
@@ -1190,7 +1190,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"chop":
 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
 		"build":
-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Bench", "📥 Hearth", "📥 Door", "📥 Trade Counter", "📥 Personal Dining Table", "📥 Communal Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "📥 Brazier", "Cancel"]
+			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Log Bench", "📥 Hearth", "📥 Log Door (2 wide)", "📥 Trade Counter", "📥 Personal Dining Table", "📥 Communal Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "📥 Brazier", "Cancel"]
 		"storage_zone":
 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
 		"farm":

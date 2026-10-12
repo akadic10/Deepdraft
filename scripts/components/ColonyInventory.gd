@@ -19,6 +19,12 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 		_row(result, entry.key).carried += int(entry.count)
 	for entry: Dictionary in physical.equipped:
 		_row(result, entry.key).equipped += int(entry.count)
+	for source: StorageComponent in StockpileManager._zones.values() + StockpileManager._containers.values():
+		for stack: Dictionary in source.stored_entries().values():
+			_material(_row(result, String(stack.item)), String(stack.get("material_id", "")), int(stack.count))
+	for category: String in physical:
+		for entry: Dictionary in physical[category]:
+			_material(_row(result, entry.key), CraftMaterials.of_item(entry.node), int(entry.count))
 	var catalog := furniture.get_catalog_stock() if is_instance_valid(furniture) else {}
 	var furniture_by_item := {}
 	if is_instance_valid(furniture):
@@ -40,8 +46,12 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 static func _row(rows: Dictionary, key: String) -> Dictionary:
 	if not rows.has(key):
 		rows[key] = {"stored": 0, "loose": 0, "carried": 0, "equipped": 0, "total": 0,
-			"disallowed": 0, "reserved": 0, "available": 0, "requests": 0, "furniture_key": ""}
+			"disallowed": 0, "reserved": 0, "available": 0, "requests": 0, "furniture_key": "", "materials": {}}
 	return rows[key]
+
+
+static func _material(row: Dictionary, id: String, count: int) -> void:
+	row.materials[id] = int(row.materials.get(id, 0)) + count
 
 
 static func thumbnail_path(key: String) -> String:

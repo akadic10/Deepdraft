@@ -6,6 +6,12 @@ planned. This supersedes the earlier permanent-water-block and no-flood rules.
 
 ## Current implementation
 
+Log bridges (2026-10-11) register navigation supports over the river without
+writing terrain blocks or displacing water. Only placement requires standing
+water; a later dry channel retains its bridge. Flooded head clearance blocks
+traversal through the normal live-water checks. See
+[113 — Log bridges](../00_dev_roadmap/113_log_bridges.md).
+
 Duck navigation reads live water levels and excludes unsafe waterfall approaches
 and cave water. Ducks do not add/extract volume, irrigate soil or change terrain;
 their wakes/splashes are cosmetic. See [45 — Wildlife](../40_economy_colony/45_wildlife.md)

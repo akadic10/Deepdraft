@@ -9,8 +9,8 @@
   ],
   "furniture_key": "base:furniture:bench",
   "furniture_category": "seating",
-  "display_name": "Bench",
-  "description": "A long dwarven bench, thick-legged and built to outlast whoever sits on it.",
+  "display_name": "Log bench",
+  "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating.",
   "model": "res://assets/models/furniture/bench.glb",
   "item_key": "base:resources:furniture:bench",
   "placement": "floor",
@@ -21,8 +21,24 @@
   },
   "blocks_movement": true,
   "collision_regions": [
-    { "min": [0, 0, 0], "max": [2, 1, 1] }
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        2,
+        1,
+        1
+      ]
+    }
   ],
-
-  "room_anchor": false
+  "room_anchor": false,
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 2,
+    "material_factor": 1
+  }
 }

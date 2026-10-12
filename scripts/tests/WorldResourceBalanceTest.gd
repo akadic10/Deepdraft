@@ -117,6 +117,9 @@ func _check_metal_fields() -> void:
 	var offsets := {}
 	for i in range(saved_windows.size()):
 		var window: Dictionary = saved_windows[i].duplicate(true)
+		# Isolate field/depth boundaries; ResourceProgressionTest covers real cover.
+		window["min_burial"] = 0
+		window.erase("shallow_threshold")
 		var settings: Dictionary = window["noise_field"]
 		_expect(not offsets.has(settings["seed_offset"]), "Metal fields reuse a seed offset.")
 		offsets[settings["seed_offset"]] = true
@@ -143,7 +146,10 @@ func _check_metal_fields() -> void:
 	var pair: Array[FastNoiseLite] = [saved_noise[0], saved_noise[1]]
 	_generator._metal_windows = overlap
 	_generator._metal_noise = pair
-	for window: Dictionary in overlap: window["threshold"] = -1.0
+	for window: Dictionary in overlap:
+		window["threshold"] = -1.0
+		window["min_burial"] = 0
+		window.erase("shallow_threshold")
 	_expect(_generator._pick_metal_from_fields(125, 24, 257) == overlap[0]["id"], "Metal overlap lost priority.")
 	var checked_independence := false
 	for x in range(128):

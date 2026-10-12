@@ -80,11 +80,11 @@ func initialize() -> void:
 			var volume := float(WorldGenerator.river_layout.initial_units[Vector2i(x,z)])/Flow.UNITS if river else float(water-bottom+1)
 			flow.seed_column(Vector3i(x,bottom,z),volume,river)
 			_nav_tops[Vector3i(x,bottom,z)] = _occupied_top(Vector3i(x,bottom,z))
-			dirty_tiles[Vector2i(x/32,z/32)] = true
+			dirty_tiles[Vector2i(int(x/32.0),int(z/32.0))] = true
 	for key: Vector3i in WorldGenerator.spring_cave.get("water",{}):
 		flow.seed_column(key,float(WorldGenerator.spring_cave.water[key])/Flow.UNITS)
 		_nav_tops[key] = _occupied_top(key)
-		dirty_tiles[Vector2i(key.x/32,key.z/32)] = true
+		dirty_tiles[Vector2i(int(key.x/32.0),int(key.z/32.0))] = true
 	_seed = WorldGenerator.world_seed
 	initialized = true
 	var layout := WorldGenerator.river_layout
@@ -178,7 +178,7 @@ func _flush_changes() -> void:
 				flood_warning.emit()
 		for offset: Vector2i in [Vector2i.ZERO,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
 			var col := Vector2i(cell.x,cell.z)+offset
-			dirty_tiles[Vector2i(col.x/32,col.y/32)] = true
+			dirty_tiles[Vector2i(int(col.x/32.0),int(col.y/32.0))] = true
 	flow.changed.clear()
 	if not occupancy.is_empty(): levels_changed.emit(occupancy)
 
@@ -280,7 +280,7 @@ func restore_state(state: Dictionary) -> void:
 	moisture.restore(state.moisture)
 	_nav_tops.clear()
 	for key: Vector3i in flow.mass:
-		dirty_tiles[Vector2i(key.x/32,key.z/32)] = true
+		dirty_tiles[Vector2i(int(key.x/32.0),int(key.z/32.0))] = true
 		_nav_tops[key] = _occupied_top(key)
 		previous_wet[key] = true
 	levels_changed.emit(previous_wet.keys())

@@ -186,7 +186,7 @@ func _check_storage(component,manager,origin: Vector3i) -> void:
 	assert(manager.get_stats().loose==8)
 	_haul_all(storage,manager,origin)
 	assert(storage.inventory==cargo and storage.stored_count()==8)
-	assert(storage._reserved_slots==0 and manager.get_stats().loose==0)
+	assert(storage.reserved_slot_count==0 and manager.get_stats().loose==0)
 	assert(storage._reserve_deposit("base:resources:ore:iron",origin,100)==null)
 	_check_slots(storage)
 	var pulled: Node3D = storage.withdraw_nearest("base:resources:ore:iron",origin,100)

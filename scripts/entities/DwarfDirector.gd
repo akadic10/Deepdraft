@@ -445,7 +445,7 @@ func restore_state(state: Dictionary) -> void:
 			var item_key := String(saved_cargo.item_key)
 			var count := int(saved_cargo.count)
 			var instance_id := String(saved_cargo.get("instance_id", ""))
-			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)))
+			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)), String(saved_cargo.get("material_id", "")))
 			carried_index += 1
 		_birth_index = maxi(_birth_index, dwarf_id + 1)
 	_refresh_window()

@@ -204,8 +204,8 @@ data, doc 13). Item defs stay solely with `ItemDropManager`.
 2. Dwarf pulls: nearest matching item — loose (index) first, else withdraw from the
    nearest zone cell / container holding one (storage components gain
    withdraw(item_key, dwarf_id) -> Node3D; zone cell empties, container count drops)
-3. Carry to the ghost's stand cell (heavy carry speed) -> `work` swing timer
-4. Swap: item node freed; placed form instanced; collision_regions boxes registered with
+3. Carry to the ghost's stand cell (heavy carry speed) -> one animated set-down
+4. At animation end, swap: item node freed; placed form instanced; collision_regions boxes registered with
    PlacedEntityRegistry (NavGrid invalidates); storage component created + registered
    with StockpileManager; ghost destroyed; lease completes
 5. Interrupt anywhere: item drops at the feet (re-enters index), ghost re-leases —

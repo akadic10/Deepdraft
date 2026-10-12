@@ -65,7 +65,7 @@ func _bench_case(phase: int, after_contact: bool) -> void:
 	_expect(int(furniture.get_catalog_stock()[BENCH].available) == 0, "one owned item cannot be promised twice")
 	if was_carried:
 		_expect(worker._fetch_item == item and worker._fetch_picked_up, "same carrier retains exact item without another pickup")
-		_expect(worker._task_phase in [worker.TaskPhase.FETCH_TO_GHOST,worker.TaskPhase.FETCH_WORKING], "carrier goes directly to placement")
+		_expect(worker._task_phase in [worker.TaskPhase.FETCH_TO_GHOST,worker.TaskPhase.FETCH_DEPOSIT], "carrier goes directly to placement")
 		var cargo: Array = worker.serialize_state().carried_items
 		_expect(cargo.size() == 1 and int(cargo[0].count) == 1, "redirected item remains physical save cargo")
 	else:

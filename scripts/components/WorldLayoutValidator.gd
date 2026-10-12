@@ -139,7 +139,7 @@ static func inspect(layout: Dictionary, profile: Dictionary) -> Dictionary:
 	for component: Array in _components(all_lowland, count):
 		var reaches_edge := false
 		for index: int in component:
-			var x := index / count
+			var x := floori(float(index) / count)
 			var z := index % count
 			if x == 0 or z == 0 or x == count - 1 or z == count - 1: reaches_edge = true
 		if not reaches_edge: errors.append("Isolated lowland hole within higher terrain.")
@@ -162,7 +162,7 @@ static func inspect(layout: Dictionary, profile: Dictionary) -> Dictionary:
 			listed[index] = true
 			mask[index] = true
 			if water[index] != body_index or heights[index] != int(body["floor_y"]): errors.append("Water footprint/floor disagree with final maps.")
-			var x := index / count
+			var x := floori(float(index) / count)
 			var z := index % count
 			if kind == "lowland_lake":
 				if ranks[index] != 0: errors.append("Main lake lies outside lowland.")
@@ -180,7 +180,7 @@ static func inspect(layout: Dictionary, profile: Dictionary) -> Dictionary:
 		if kind == "lowland_lake" and (mask.size() < int(config["min_cells"]) or mask.size() > int(config["max_cells"])): errors.append("Main lake size outside limits.")
 		if kind == "mountain_tarn" and mask.size() != 1: errors.append("Tarn must occupy one macro cell.")
 		for index: int in mask:
-			var point := Vector2i(index / count, index % count)
+			var point := Vector2i(floori(float(index) / count), index % count)
 			for direction in CARDINAL:
 				var next := point + direction
 				if next.x < 0 or next.y < 0 or next.x >= count or next.y >= count: continue
@@ -207,7 +207,7 @@ static func _components(mask: Dictionary, count: int) -> Array:
 		while head < queue.size():
 			var current := queue[head]
 			head += 1
-			var point := Vector2i(current / count, current % count)
+			var point := Vector2i(floori(float(current) / count), current % count)
 			for direction in CARDINAL:
 				var next := point + direction
 				if next.x < 0 or next.y < 0 or next.x >= count or next.y >= count: continue
@@ -224,7 +224,7 @@ static func _components(mask: Dictionary, count: int) -> Array:
 static func _flat_area_budget(index: int, ranks: PackedInt32Array, water: PackedInt32Array, profile: Dictionary) -> int:
 	var count := int(profile["macro_count"])
 	var size := int(profile["macro_size"])
-	var point := Vector2i(index / count, index % count)
+	var point := Vector2i(floori(float(index) / count), index % count)
 	var area := size * size
 	for direction in CARDINAL:
 		var next := point + direction
@@ -336,7 +336,7 @@ static func _within_detail_boundary(x: int, z: int, index: int, layout: Dictiona
 	var ranks: PackedInt32Array = layout["ranks"]
 	var heights: PackedInt32Array = layout["heights"]
 	var water: PackedInt32Array = layout["water_index"]
-	var point := Vector2i(index / count, index % count)
+	var point := Vector2i(floori(float(index) / count), index % count)
 	var distances := [x % size + 1, size - x % size, z % size + 1, size - z % size]
 	for i in range(4):
 		var next := point + CARDINAL[i]
@@ -350,5 +350,5 @@ static func _within_detail_boundary(x: int, z: int, index: int, layout: Dictiona
 
 static func _rank(height: int) -> int:
 	if height <= 19: return 0
-	if height <= 43: return 1 + (height - 20) / 8
-	return 4 + (height - 44) / 12
+	if height <= 43: return 1 + floori((height - 20) / 8.0)
+	return 4 + floori((height - 44) / 12.0)

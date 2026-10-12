@@ -193,7 +193,11 @@ func _blocked_workers_and_sides() -> void:
 	await _walls(columns, true)
 	source = _designate()
 	tasks._max_probes_per_wake = 1
-	await _dispatch(8)
+	# Route probes can yield to the microsecond budget. Wait for the decision,
+	# rather than assuming a fixed number of wakes finishes every work side.
+	for i in range(60):
+		await _dispatch(1)
+		if tasks.get_task(source.lease_id).blocked_count > 0: break
 	_expect(near.current_task_id < 0 and tasks.get_task(source.lease_id).blocked_count == 1,
 		"fully unreachable task backs off once after trying every work side")
 	await _walls(columns, false)

@@ -35,7 +35,7 @@ func _has_any_room() -> bool:
 
 
 ## Reserve one deposit for `item_key`. Returns a token, or null when full.
-func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amount: int = 1) -> Variant:
+func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amount: int = 1, _material_id: String = "") -> Variant:
 	return null
 
 
@@ -196,20 +196,8 @@ func stored_entries() -> Dictionary:
 
 
 func slot_allowed(slot: Variant) -> bool:
-	return stored_entries().has(slot) and not bool(stored_entries()[slot].get("disallowed", false))
-
-
-func set_disallowed(slot: Variant, value: bool) -> void:
-	if not stored_entries().has(slot): return
-	stored_entries()[slot]["disallowed"] = value
-	var visual: Node3D
-	if self is StockpileZoneComponent: visual = drop_manager.stored_node_at(slot)
-	elif self is ContainerStorageComponent:
-		var container := self as ContainerStorageComponent
-		if int(slot) < container._anchor_slots.size() and container._anchor_slots[int(slot)] != null: visual = container._anchor_slots[int(slot)][0]
-	if is_instance_valid(visual): visual.set_meta("disallowed", value)
-	StockpileManager.permissions_changed()
-	changed.emit()
+	# Permission applies to goods outside storage. Stored goods are colony stock.
+	return stored_entries().has(slot)
 
 
 func storage_capacity() -> int:
@@ -293,12 +281,13 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 	for candidate: Dictionary in StockpileManager.relocation_candidates(self, near, exclude):
 		var origin: StorageComponent = candidate.source
 		var outgoing: Dictionary = candidate.token
-		var deposit: Variant = _reserve_deposit(outgoing.item, near, dwarf_id, outgoing.count)
+		var material_id := String(origin.stored_entries()[outgoing.slot].get("material_id", ""))
+		var deposit: Variant = _reserve_deposit(outgoing.item, near, dwarf_id, outgoing.count, material_id)
 		if deposit == null: continue
 		outgoing.count = int(deposit.count)
 		outgoing.active = true
 		origin._outgoing[outgoing.slot] = outgoing
-		var marker: Node3D = drop_manager.create_item_visual(outgoing.item, outgoing.count)
+		var marker: Node3D = drop_manager.create_item_visual(outgoing.item, outgoing.count, "", material_id)
 		if marker == null:
 			_release_deposit(deposit)
 			origin.release_outgoing(outgoing)
@@ -410,7 +399,7 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 		var cost := _carry_cost(key)
 		if cost > remaining:
 			continue
-		var token: Variant = _reserve_deposit(key, main_cell, dwarf_id, int(drop_manager.call("quantity_of", item)))
+		var token: Variant = _reserve_deposit(key, main_cell, dwarf_id, int(drop_manager.call("quantity_of", item)), CraftMaterials.of_item(item))
 		if token == null:
 			continue
 		if not bool(drop_manager.call("reserve", item, dwarf_id)):
@@ -535,7 +524,6 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 	# every node with the dwarf, whose release path drops all cargo safely.
 	for entry: Array in carried:
 		if not accepts_key(String(entry[1])) or not drop_manager.Permission.allowed(entry[0]): return false
-		if bool(stored_entries().get(pull.cargo.get(entry[0], {}).get("slot"), {}).get("disallowed", false)): return false
 		if not pull.cargo.has(entry[0]) or not bool(pull.cargo[entry[0]].active):
 			return false
 		var token: Dictionary = pull.cargo[entry[0]]
@@ -545,8 +533,8 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 		var node: Node3D = entry[0]
 		var key: String = entry[1]
 		var token: Dictionary = pull.cargo[node]
-		token["disallowed"] = not drop_manager.Permission.allowed(node)
 		if node.has_meta("instance_id"): token["instance_id"] = node.get_meta("instance_id")
+		token["material_id"] = CraftMaterials.of_item(node)
 		_commit_one(token, key)
 		_place_visual(node, token)
 		if changed_callback.is_valid():

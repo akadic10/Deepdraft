@@ -355,11 +355,11 @@ func _write_cell(pos: Vector3i, exposure: float, air: bool) -> void:
 	if not _slots.has(key):
 		var index := _slots.size()
 		_slots[key] = index
-		_images[index/PAGE_LAYERS].append(_blank_layer())
+		_images[floori(float(index)/PAGE_LAYERS)].append(_blank_layer())
 		_table.set_pixel(key.x,key.z*4+key.y,Color(index+1,0,0))
 		_table_dirty = true
 	var slot: int = _slots[key]
-	var page := slot/PAGE_LAYERS
+	var page := floori(float(slot)/PAGE_LAYERS)
 	var layer := slot%PAGE_LAYERS
 	var image: Image = _images[page][layer]
 	image.set_pixel(pos.x%TILE,(pos.y%TILE)*TILE+pos.z%TILE,Color(exposure,1.0 if air else 0.0,0))
@@ -370,7 +370,7 @@ func _upload() -> void:
 	if _dirty_layers.is_empty(): return
 	var rebuilt: Dictionary = {}
 	for slot: int in _dirty_layers:
-		var page := slot/PAGE_LAYERS
+		var page := floori(float(slot)/PAGE_LAYERS)
 		if rebuilt.has(page): continue
 		if _pages[page].get_layers() != _images[page].size():
 			var images: Array[Image] = []
@@ -407,8 +407,21 @@ func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMateri
 
 static func bind_world_tree(node: Node) -> void:
 	if not node.is_inside_tree(): return
-	var owner := node.get_tree().get_first_node_in_group("underground_lighting")
-	if owner != null: owner.bind_tree(node)
+	var lighting_owner := node.get_tree().get_first_node_in_group("underground_lighting")
+	if lighting_owner != null: lighting_owner.bind_tree(node)
+
+
+static func bind_door_tree(node: Node3D, width: float) -> void:
+	bind_world_tree(node)
+	# RoomManager's seal is the installed footprint, never the animated leaf.
+	# Per-instance data keeps cached materials reusable across door rotations.
+	var axis := node.global_basis.z.normalized()
+	var plane := Vector4(axis.x, axis.y, axis.z, axis.dot(node.global_position))
+	var lateral := Vector3.UP.cross(axis)
+	var span := Vector2(lateral.dot(node.global_position), maxf(0.0, width * .5 - .5))
+	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		mesh.set_instance_shader_parameter("doorway_light_plane", plane)
+		mesh.set_instance_shader_parameter("doorway_light_span", span)
 
 
 func bind_tree(node: Node) -> void:

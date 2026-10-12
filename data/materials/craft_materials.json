@@ -1,0 +1,155 @@
+{
+  "__comment": "Appeal = design + material bonus * design material_factor. Wood differences are modest; precious metals can be decorative. Metal profiles are tuning for future refined-metal recipes, not ore recipes. Source palettes replace only authored wood colors; crates, flame, fibre and stone remain unchanged.",
+  "materials": {
+    "base:material:pine": {
+      "name": "Pine",
+      "adjective": "Pine",
+      "group": "wood",
+      "appeal_bonus": 0,
+      "ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "colors": {
+        "bark_dark": "44352A",
+        "bark": "60482F",
+        "wood_dark": "81643E",
+        "wood": "987846",
+        "wood_light": "AD8C54",
+        "grain": "BBA066",
+        "grain_light": "CDB17B",
+        "cut": "E4CF97",
+        "ring": "B5A06C",
+        "heart": "D7BC80"
+      }
+    },
+    "base:material:oak": {
+      "name": "Oak",
+      "adjective": "Oak",
+      "group": "wood",
+      "appeal_bonus": 1,
+      "ingredients": [
+        "base:resources:wood:oak_log"
+      ],
+      "colors": {
+        "bark_dark": "412A1C",
+        "bark": "5A381F",
+        "wood_dark": "6C4528",
+        "wood": "7A5230",
+        "wood_light": "91633B",
+        "grain": "A67C52",
+        "grain_light": "B58A5A",
+        "cut": "DABE84",
+        "ring": "AE8C54",
+        "heart": "CCAA6D"
+      }
+    },
+    "base:material:juniper": {
+      "name": "Juniper",
+      "adjective": "Juniper",
+      "group": "wood",
+      "appeal_bonus": 1.5,
+      "ingredients": [
+        "base:resources:wood:juniper_log"
+      ],
+      "colors": {
+        "bark_dark": "3C302C",
+        "bark": "554039",
+        "wood_dark": "674C40",
+        "wood": "78564B",
+        "wood_light": "8A695B",
+        "grain": "9D7A6A",
+        "grain_light": "B08B78",
+        "cut": "CEB199",
+        "ring": "9E7A65",
+        "heart": "B9977B"
+      }
+    },
+    "base:material:applewood": {
+      "name": "Applewood",
+      "adjective": "Applewood",
+      "group": "wood",
+      "appeal_bonus": 2,
+      "ingredients": [
+        "base:resources:wood:apple_wood"
+      ],
+      "colors": {
+        "bark_dark": "483029",
+        "bark": "613C30",
+        "wood_dark": "784A36",
+        "wood": "8B5740",
+        "wood_light": "A56C4C",
+        "grain": "B27D59",
+        "grain_light": "C08D65",
+        "cut": "DABE92",
+        "ring": "AF895B",
+        "heart": "CCA477"
+      }
+    },
+    "base:material:iron": {
+      "name": "Iron",
+      "adjective": "Iron",
+      "group": "metal",
+      "appeal_bonus": 1,
+      "ingredients": [],
+      "colors": {}
+    },
+    "base:material:copper": {
+      "name": "Copper",
+      "adjective": "Copper",
+      "group": "metal",
+      "appeal_bonus": 4,
+      "ingredients": [],
+      "colors": {}
+    },
+    "base:material:gold": {
+      "name": "Gold",
+      "adjective": "Gold",
+      "group": "metal",
+      "appeal_bonus": 25,
+      "ingredients": [],
+      "colors": {}
+    }
+  },
+  "source_palettes": {
+    "oak_log": {
+      "colors": {
+        "bark_dark": "412A1C",
+        "bark": "5A381F",
+        "wood_dark": "6C4528",
+        "wood": "7A5230",
+        "wood_light": "91633B",
+        "grain": "A67C52",
+        "grain_light": "B58A5A",
+        "cut": "DABE84",
+        "ring": "AE8C54",
+        "heart": "CCAA6D"
+      }
+    },
+    "camp_log": {
+      "colors": {
+        "bark": "684827",
+        "bark_dark": "4A3018",
+        "wood": "94643F",
+        "grain": "AD8250",
+        "cut": "C5A46A"
+      }
+    },
+    "camp_fire": {
+      "encoding": 2,
+      "colors": {
+        "bark": "684827",
+        "bark_dark": "4A3018",
+        "wood": "94643F",
+        "grain": "AD8250",
+        "cut": "C5A46A"
+      }
+    },
+    "starter_tool": {
+      "colors": {
+        "wood": "94643F",
+        "grain": "C39B67",
+        "bark": "65462F"
+      }
+    }
+  }
+}

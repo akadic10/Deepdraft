@@ -263,6 +263,12 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "items", "loose", 0, "count"], false],
 		[["scene", "items", "loose", 0, "disallowed"], "false"],
 		[["scene", "dwarves", "roster"], {}], [["scene", "dwarves", "roster"], ["dwarf"]],
+		[["scene", "dwarves", "roster", 0, "mood", "bedroom_memory_hours"], -1.0],
+		[["scene", "dwarves", "roster", 0, "mood", "personal_sleep_hours"], "many"],
+		[["scene", "dwarves", "roster", 0, "mood", "cold_memory_hours"], -1.0],
+		[["scene", "dwarves", "roster", 0, "mood", "hot_sleep_hours"], "many"],
+		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 999999],
+		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 0],
 		[["scene", "mining", "mined_blocks"], [[1, 2]]],
 		[["scene", "mining", "mined_blocks"], [[1, 2.5, 3]]],
 		[["scene", "wildlife", "rabbits"], [{}]],
@@ -443,7 +449,7 @@ func _build_nonempty_colony_state() -> String:
 	if caves.is_empty(): return "no cave for discovery/save fixture"
 	var cave: Dictionary = caves[0]
 	var cave_index := int(cave["columns"][0])
-	var cave_wall := Vector3i(cave_index / 1024 - 1, int(cave["floor_y"]) + 1, cave_index % 1024)
+	var cave_wall := Vector3i((cave_index >> 10) - 1, int(cave["floor_y"]) + 1, cave_index % 1024)
 	mining._mine_block_world(cave_wall)
 	if not root.get_node("InteriorTracker").is_cave_discovered(0): return "cave discovery fixture failed"
 	flag.call("restore_state", {
@@ -478,13 +484,17 @@ func _build_nonempty_colony_state() -> String:
 			"yaw": 0,
 			"flagged_uninstall": false,
 			"storage_filter": {"tags": ["stockpile_stone"], "items": ["base:resources:wood:oak_log"], "excluded_items": []},
-			"inventory": { "base:resources:stone:rough_stone": 2, "base:resources:flora:apple": 27 },
+			"inventory": { "base:resources:stone:rough_stone": 2, "base:resources:flora:apple": 27, "base:resources:furniture:log_chair":1 },
+			"instances":[{"item":"base:resources:furniture:log_chair", "count":1, "material_id":"base:material:applewood", "disallowed":false}],
 		}, {
-			"id": 402, "key": "base:furniture:door",
+			"id": 402, "key": "base:furniture:door", "material_id":"base:material:oak",
 			"origin": _pack_v3i(_surface_cell(32, 0)), "yaw": 0,
 		}, {
 			"id": 403, "key": "base:furniture:brazier",
 			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0,
+		}, {
+			"id": 406, "key": "base:furniture:log_bed", "assigned_dwarf_id": 0,
+			"origin": _pack_v3i(_surface_cell(46, 0)), "yaw": 1,
 		}],
 	})
 	items.call("restore_state", {
@@ -497,7 +507,7 @@ func _build_nonempty_colony_state() -> String:
 		}],
 	})
 	for tool in ["stone_hoe", "hunting_spear", "carpentry_kit", "stone_hammer"]:
-		items.restore_loose_item("base:resources:tools:"+tool, Vector3(item_cell)+Vector3(.5,1,.5),0,1)
+		items.restore_loose_item("base:resources:tools:"+tool, Vector3(item_cell)+Vector3(.5,1,.5),0,1,"",false,"base:material:juniper")
 	dwarves.call("restore_state", {
 		"birth_index": 1,
 		"settlement_anchor": _pack_v3i(flag_cell),
@@ -526,6 +536,7 @@ func _build_nonempty_colony_state() -> String:
 			"sleep": 0.4,
 			"sleeping": true,
 			"sleep_hours_left": 2.5,
+			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0},
 			"carried_items": [],
 		}],
 	})
@@ -533,7 +544,7 @@ func _build_nonempty_colony_state() -> String:
 	carpenter_state.id = 1
 	carpenter_state.name = "Toolur"
 	carpenter_state.profession = "base:profession:carpenter"
-	carpenter_state.equipment = {"tool":"base:resources:tools:carpentry_kit", "pending_role":""}
+	carpenter_state.equipment = {"tool":"base:resources:tools:carpentry_kit", "pending_role":"", "material_id":"base:material:applewood"}
 	var pending_state: Dictionary = carpenter_state.duplicate(true)
 	pending_state.id = 2
 	pending_state.name = "Apprentice"
@@ -567,6 +578,7 @@ func _build_nonempty_colony_state() -> String:
 	_add_cutting_fixtures(details, furniture, items)
 	_add_permission_fixtures(furniture, items)
 	if not _add_ladder_fixtures(): return "could not find two natural ladder sites"
+	if not _add_bridge_fixtures(): return "could not find three natural bridge sites"
 	var wildlife := _owner("wildlife")
 	if wildlife == null: return "wildlife save owner missing"
 	if not wildlife.initialized: wildlife.initialize_population()
@@ -656,6 +668,29 @@ func _build_nonempty_colony_state() -> String:
 		member.advance(.1, 0.0, [])
 		if int(group.issued) == int(group.count): events._finish(settings, state, "arrived")
 	return ""
+
+
+func _add_bridge_fixtures() -> bool:
+	var bridges := _owner("bridges")
+	if bridges == null: return false
+	var entries: Array = []
+	for wet: Vector2i in _world_generator.river_layout.columns:
+		for yaw in range(4):
+			var base: Vector3i = Vector3i(wet.x,0,wet.y)-bridges.facing(yaw)
+			base.y = _world_generator.get_surface_y(base.x,base.z)
+			var nearby := false
+			for entry: Dictionary in entries:
+				if Vector3(base-root.get_node("SaveManager").unpack_v3i(entry.base)).length()<12: nearby = true
+			if nearby: continue
+			var spec: Dictionary = bridges.describe(base,yaw)
+			if not String(spec.reason).is_empty(): continue
+			entries.append({"id":entries.size()+1,"key":"base:furniture:log_bridge","base":_pack_v3i(base),
+				"yaw":yaw,"span":int(spec.span),"built":not entries.is_empty(),
+				"mode":["build","ready","remove"][entries.size()],"progress":.7})
+			if entries.size()==3:
+				bridges.restore_state({"routes":entries,"next_id":4})
+				return true
+	return false
 
 
 func _add_ladder_fixtures() -> bool:
@@ -778,11 +813,6 @@ func _add_cutting_fixtures(details: Node, furniture: Node, items: Node) -> void:
 func _add_permission_fixtures(furniture: Node, items: Node) -> void:
 	# Exact permissions, active packing and more than one stone pair.
 	items.set_disallowed(items._loose.keys()[0],true)
-	for zone in root.get_node("StockpileManager")._zones.values():
-		if not zone.cell_stacks.is_empty(): zone.set_disallowed(zone.cell_stacks.keys()[0],true)
-	for piece in furniture._installed.values():
-		if piece.storage != null and not piece.storage.stored_entries().is_empty():
-			piece.storage.set_disallowed(piece.storage.stored_entries().keys()[0],true)
 	var water := root.get_node("WaterManager")
 	water.stones.wet.disallowed = false
 	water.stones.wet.packing = true
@@ -800,7 +830,6 @@ func _add_permission_fixtures(furniture: Node, items: Node) -> void:
 			items.set_disallowed(node,false)
 			items.take(node)
 			token["instance_id"] = id
-			token["disallowed"] = true
 			storage._commit_one(token,"base:resources:water:dry_stone")
 			storage._place_visual(node,token)
 			break
@@ -834,7 +863,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var scene_state := _collect_scene_state()
 	var expected_keys := [
 		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
-		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders",
+		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders", "bridges",
 		"wildlife", "world_events",
 	]
 	for key in expected_keys:
@@ -851,22 +880,26 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 3:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
-	if furniture_state.get("ghosts", []).size() != 5 or furniture_state.get("installed", []).size() != 5:
+	if furniture_state.get("ghosts", []).size() != 5 or furniture_state.get("installed", []).size() != 6:
 		return "furniture state did not round-trip"
 	var rooms := root.get_node("RoomManager")
 	if rooms.get_door_boundaries().size() != 10 or int(rooms.get_stats().doors) != 1:
 		return "door light boundaries did not rebuild from saved furniture"
 	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
-	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 600:
+	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 3200:
 		return "installed light/heat duplicated across world reload"
 	if (scene_state["items"] as Dictionary).get("loose", []).size() != 12:
 		return "loose items did not round-trip"
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])
 	if roster.size() != 3 or not bool((roster[0] as Dictionary).get("sleeping", false)):
 		return "dwarf roster/runtime state did not round-trip"
+	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0}:
+		return "personal-bedroom sleep progress or happiness did not round-trip"
+	if furniture_state.installed.filter(func(piece): return piece.get("assigned_dwarf_id",-1)==0).size()!=1:
+		return "personal bed assignment did not round-trip"
 	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:
 		return "profession, retained experience or work permissions did not round-trip"
-	if roster[1].profession != "base:profession:carpenter" or roster[1].equipment.tool != "base:resources:tools:carpentry_kit":
+	if roster[1].profession != "base:profession:carpenter" or roster[1].equipment.tool != "base:resources:tools:carpentry_kit" or roster[1].equipment.material_id != "base:material:applewood":
 		return "equipped Carpenter tool did not round-trip"
 	if roster[2].profession != "base:profession:worker" or roster[2].equipment.pending_role != "base:profession:carpenter":
 		return "pending promotion did not retain current profession and appointment intent"
@@ -1093,7 +1126,13 @@ func _wait_for_world_ready(timeout_msec: int) -> bool:
 	while Time.get_ticks_msec() < deadline:
 		var stats: Dictionary = _world_generator.call("get_streaming_stats")
 		if bool(stats.get("maps_ready", false)) and not bool(_world_generator.call("is_generating")):
-			return true
+			# Terrain completion precedes the main-thread water/wildlife owners.
+			# The save fixture needs every population, including water-bound ducks;
+			# checking after terrain alone races their first initialization tick.
+			var wildlife := _owner("wildlife")
+			if wildlife != null and wildlife.initialized and wildlife.deer_initialized \
+					and wildlife.wolf_initialized and wildlife.duck_initialized:
+				return true
 		await process_frame
 	return false
 

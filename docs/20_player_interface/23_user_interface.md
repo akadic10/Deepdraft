@@ -1,16 +1,27 @@
 # 23 — User Interface
 
-**Object permissions (2026-10-10):** loose goods and placed water stones expose
-Allow/Disallow in Object explorer. Storage Contents has a separate toggle for
-each physical stack; inventory reports Disallowed alongside available/reserved
-goods. Disallow never hides an object or stops a placed stone's water effect.
+**Crafting browser (2026-10-11):** Craft → profession now opens compact recipe
+icons grouped by the categories in recipe data, with case-insensitive search
+by name or category. Recipes / Orders (count) tabs share the left column; the
+selected recipe has one illustrated parchment detail card on the right.
+Crafting keeps the browser open and updates the order count. Materials and
+descriptions scroll independently of the fixed wood, quantity, Queue and Place
+controls. Live stock changes preserve focused icons, order rows and scrolling.
+Planned professions retain their preview without recipe/order tabs or actions.
+See [114 — Crafting browser](../00_dev_roadmap/114_crafting_browser.md).
+
+**Object permissions (updated 2026-10-11):** loose goods and placed water stones
+expose Allow/Disallow in Object explorer. Stored goods have no permission action
+and are available colony stock. Inventory still reports Disallowed for goods
+outside storage alongside available/reserved goods. Disallow never hides an
+object or stops a placed stone's water effect.
 Allowed placed stones offer Move and Pack for storage; allowed packed stones
 can be placed through their inspector or Place → Water. See
 [110 — Permissions and movable stones](../00_dev_roadmap/110_item_permissions_and_water_stones.md).
 
 **Profession crafting (2026-10-09):** Craft opens profession icon submenus above
 the dock. Choosing Rudimentary opens Worker recipes with grouped categories and
-that section's live order queue; Crafters returns to the chooser.
+that section's live Orders tab; Crafters returns to the chooser.
 Planned profession sections preview their purpose without enabling fake crafts;
 Miner's equipment preview is separate from its already playable profession.
 Campfires and log stools are new Rudimentary recipes. Campfires center on the
@@ -35,12 +46,14 @@ See [85 — Plant habitats and flowers](../00_dev_roadmap/85_plant_habitats_spac
 
 All UI is implemented as Godot `Control` nodes on a `CanvasLayer`. No 3D world-space UI elements. The interface is divided into four zones: **Status Bar** (top), **Side Panel** (right), **Dock** (bottom — a floating command bar), and **Notification Layer** (overlay).
 
-**Storage inspection (2026-10-06):** clicking a ground zone, chest, barrel or
+**Storage inspection (updated 2026-10-11):** clicking a ground zone, chest, barrel or
 shelf opens the shared Hearth & iron storage panel. Filters and Contents share
 a persistent capacity readout: occupied physical cells/slots and total goods.
 Players can select whole categories, individual items, or mixtures; partial
 categories show a dash. Accept all goods and Clear all filters act immediately.
-Actual contents remain listed when disallowed and show Awaiting relocation;
+Contents groups totals by item/material in alphabetical order, preserving wood
+variants and counting all units in produce crates. It has no Allow/Disallow
+buttons. Goods excluded by the filters remain listed with Awaiting relocation;
 dwarves move them only after reserving accepting storage with room. Zone removal,
 container uninstall, native window dragging and world-input isolation remain.
 See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).

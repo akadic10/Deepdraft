@@ -210,7 +210,7 @@ func _decide_duck(here: Dictionary, threat: Vector3, distance: float) -> void:
 	var direction: Vector3 = destination.position-position
 	rotation.y = atan2(-direction.x,-direction.z)
 	activity = "Fleeing" if calm_left>0 else "Swimming" if destination.water else "Walking"
-	timer = 0 if calm_left>0 else rng.randf_range(b.idle_seconds[0],b.idle_seconds[1])
+	timer = 0.0 if calm_left>0 else rng.randf_range(b.idle_seconds[0],b.idle_seconds[1])
 
 func _settle(sample: Dictionary) -> void:
 	var entered: bool = sample.water and mode!="water"
@@ -249,7 +249,7 @@ func begin_flight(path: PackedVector3Array, landing: Vector3i, already_airborne 
 	flight_index = 1
 	target = landing
 	hop_progress = 1
-	launch_left = 0 if already_airborne or mode=="air" else float(definition.navigation.takeoff_seconds)
+	launch_left = 0.0 if already_airborne or mode=="air" else float(definition.navigation.takeoff_seconds)
 	mode = "air"
 	activity = "Taking off" if launch_left>0 else "Flying"
 	flight_left = rng.randf_range(definition.navigation.flight_interval[0],definition.navigation.flight_interval[1])
@@ -287,7 +287,7 @@ func _advance_flight(seconds: float) -> void:
 		position = next
 		remaining -= distance
 		if position.is_equal_approx(goal): flight_index += 1
-	activity = "Landing" if flight_index>flight.size()*3/4 else "Flying"
+	activity = "Landing" if flight_index>floori(flight.size()*.75) else "Flying"
 	if flight_index>=flight.size():
 		var landing: Dictionary = navigation.surface(Vector2i(target.x,target.z))
 		flight.clear()
@@ -325,7 +325,7 @@ func _pose() -> void:
 		for i in _foam.size():
 			var phase := fposmod(pose_time*1.1+i*.21,1.0)
 			var sign_value := -1 if i%2==0 else 1
-			_foam[i].position = Vector3(sign_value*(.23+phase*.4),sin(phase*PI)*.25 if _splash_left>0 else 0,.2+phase*.8)
+			_foam[i].position = Vector3(sign_value*(.23+phase*.4),sin(phase*PI)*.25 if _splash_left>0 else 0.0,.2+phase*.8)
 			_foam[i].scale = Vector3.ONE*(1-phase)*(.9 if _splash_left>0 else .6)
 
 func update_effect_visibility() -> void:

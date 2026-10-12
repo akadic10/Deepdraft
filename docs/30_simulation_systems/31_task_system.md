@@ -1,7 +1,9 @@
 # 31 — Task System
 
-**2026-10-10 permissions:** disallowed physical goods are excluded from haul,
-material and tool queries and rejected at reservation/pickup/withdrawal/commit.
+**Permissions (updated 2026-10-11):** disallowed goods outside storage are excluded
+from haul, material and tool queries and rejected at reservation/pickup/commit.
+Stored goods are always available colony stock; storage filters control acceptance
+and relocation, independently of outside-item permission.
 Toggling Disallow releases affected work and reservations, returning carried
 goods intact. Placed water stones are never automatic haul targets: explicit
 packing reuses UNINSTALL, while Move reserves the resulting exact-instance item
@@ -36,6 +38,15 @@ stays active until the physical item is packed. See milestone 110.
 > `TaskManager.allocate_source_id()` (monotonic from 10M — the doc 18 allocator debt,
 > paid). The zone re-based onto the shared `StorageComponent` contract with containers as
 > the second face; five work-source families now ride one scheduler unchanged.
+
+**2026-10-11 furniture dispatch fix:** an unreachable idle dwarf no longer puts
+an entire furniture order into backoff. Ordinary work-source probes retain failed
+worker/lease pairs across budget yields and try every other eligible idle dwarf
+before delaying the order, using the same rule as mining. Worker movement,
+navigation changes and idle-pool/work-permission changes invalidate those failures.
+Completed or cancelled leases discard their records. `FurnitureAssignmentTest`
+covers a campfire with an isolated first worker, bounded one-probe wakes, fully
+blocked backoff, item conservation and recovery after a route opens.
 
 > **FELL_TREE live (doc 48, 2026-10-04):** each designated tree posts one lease at
 > priority 50. `SurfaceFloraSpawner` owns persistent work and felled records;

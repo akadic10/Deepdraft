@@ -47,8 +47,8 @@ func _load_definitions() -> void:
 	for section: Dictionary in raw.get("sections",[]):
 		sections[String(section.id)] = section
 	for recipe: Dictionary in raw.get("recipes",[]):
-		# One selectable timber unit, plus optional fixed single-unit materials.
-		if int(recipe.get("ingredient_count",0)) != 1 or float(recipe.get("work_seconds",0)) <= 0:
+		# A batch of matching timber, plus optional fixed single-unit materials.
+		if int(recipe.get("ingredient_count",0)) < 1 or float(recipe.get("work_seconds",0)) <= 0:
 			push_error("Unsupported Worker recipe: " + str(recipe.get("id")))
 			continue
 		recipes[String(recipe.id)] = recipe
@@ -140,9 +140,7 @@ func set_allowed_ingredients(id: int, selected: Array) -> void:
 	order.allowed_ingredients = keys
 	# Applying a stricter rule takes effect even during pickup/work. The normal
 	# cancellation path returns the intact log; progress stays on the order.
-	if order.lease_id >= 0 and is_instance_valid(order.item) \
-			and items.item_key_of(order.item) not in keys \
-			and items.item_key_of(order.item) not in additional_ingredient_keys(order.recipe):
+	if order.lease_id >= 0 and not order.timber_key.is_empty() and order.timber_key not in keys:
 		TaskManager.cancel_task(order.lease_id)
 	wake()
 
@@ -199,11 +197,23 @@ func ingredient_available(recipe: Dictionary, totals: Dictionary, allowed: Varia
 	for key in allowed_ingredient_keys(recipe,allowed): count += int(totals.get(key,{}).get("available",0))
 	return count
 
+## Each finished item has one wood identity. Only start a batch when one allowed
+## species can supply it; don't promise the same remaining logs to two workers.
+func batch_ingredient_keys(recipe: Dictionary, totals: Dictionary, allowed: Array[String], exclude_order := -1) -> Array[String]:
+	var keys: Array[String] = []
+	for key in allowed_ingredient_keys(recipe,allowed):
+		var available := int(totals.get(key,{}).get("available",0))
+		for order in orders:
+			if order.id != exclude_order and order.worker_id >= 0 and order.timber_key == key:
+				available -= order.pending_timber_count()
+		if available >= int(recipe.ingredient_count): keys.append(key)
+	return keys
+
 func stock_snapshot() -> Dictionary:
 	return Inventory.snapshot(items, furniture)
 
-func reserve_ingredient(recipe: Dictionary, from: Vector3i, dwarf_id: int, allowed: Array[String]) -> Node3D:
-	return reserve_material(allowed_ingredient_keys(recipe,allowed), from, dwarf_id)
+func reserve_ingredient(recipe: Dictionary, from: Vector3i, dwarf_id: int, allowed: Array[String], order_id := -1) -> Node3D:
+	return reserve_material(batch_ingredient_keys(recipe,stock_snapshot(),allowed,order_id), from, dwarf_id)
 
 func reserve_material(keys: Array[String], from: Vector3i, dwarf_id: int) -> Node3D:
 	var candidate: Node3D
@@ -225,10 +235,12 @@ func additional_ingredient_keys(recipe: Dictionary) -> Array[String]:
 ## No reservations while comparing workers. Keep scans bounded by the same
 ## deadline as navigation; storage and loose materials compete by distance.
 func advance_worker_quote(order, from: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary) -> bool:
-	if query.is_empty(): query.merge({"loose":{}, "stored":{}, "benches":furniture._installed.keys(), "index":0, "goals":{}})
-	var keys: Array[String] = additional_ingredient_keys(order.recipe)
-	if keys.is_empty(): keys = order.allowed_ingredients
-	else: keys = [keys[0]]
+	if query.is_empty():
+		var first_keys: Array[String] = additional_ingredient_keys(order.recipe)
+		if first_keys.is_empty(): first_keys = batch_ingredient_keys(order.recipe,stock_snapshot(),order.allowed_ingredients)
+		else: first_keys = [first_keys[0]]
+		query.merge({"material_keys":first_keys, "loose":{}, "stored":{}, "benches":furniture._installed.keys(), "index":0, "goals":{}})
+	var keys: Array[String] = query.material_keys
 	if not items.advance_material_quote(keys,from,query.loose,deadline,excluded): return false
 	if not StockpileManager.advance_material_quote(keys,from,query.stored,deadline,excluded): return false
 	var best: Dictionary = query.loose.best
@@ -255,10 +267,10 @@ func reserve_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 	if items.item_key_of(node) != quote.key or items.item_floor_cell(node) != quote.cell: return null
 	return node if items.reserve(node,dwarf_id) else null
 
-func bench_valid(id: int, owner := -1) -> bool:
+func bench_valid(id: int, worker_id := -1) -> bool:
 	var bench = furniture._installed.get(id)
 	if bench == null or bench.flagged_uninstall or not is_instance_valid(bench.node): return false
-	if bench_claims.has(id) and int(bench_claims[id]) != owner: return false
+	if bench_claims.has(id) and int(bench_claims[id]) != worker_id: return false
 	for cell: Vector3i in bench.cells:
 		if not BlockRegistry.is_solid(NavGrid._block_id(cell.x,cell.y,cell.z)): return false
 	return true
@@ -280,10 +292,12 @@ func bench_target(key: String, from: Vector3i) -> Dictionary:
 func waiting_reason(order, totals: Dictionary) -> String:
 	if order.paused: return "Paused"
 	if order.worker_id >= 0: return ""
-	if order.maintain and int(totals.get(String(order.recipe.output),{}).get("available",0)) >= order.quantity:
+	if order.maintain and available_output(order, totals) >= order.quantity:
 		return "Stock target met"
 	if order.allowed_ingredients.is_empty(): return "Choose allowed wood"
-	if ingredient_available(order.recipe, totals, order.allowed_ingredients) < 1:
+	if batch_ingredient_keys(order.recipe, totals, order.allowed_ingredients).is_empty():
+		if int(order.recipe.ingredient_count) > 1:
+			return "Waiting for %d %s logs" % [int(order.recipe.ingredient_count), ingredient_label(order.allowed_ingredients[0]) if order.allowed_ingredients.size()==1 else "matching"]
 		return "Waiting for " + ingredient_label(order.allowed_ingredients[0]) if order.allowed_ingredients.size()==1 else "Waiting for allowed wood"
 	var extra_counts := {}
 	for key in additional_ingredient_keys(order.recipe):
@@ -312,7 +326,7 @@ func crafting_count(item_key: String) -> int:
 		if String(order.recipe.output) != item_key: continue
 		var batch := int(order.recipe.output_count)
 		if order.maintain:
-			var missing := maxi(0,order.quantity-int(totals.get(item_key,{}).get("available",0)))
+			var missing := maxi(0,order.quantity-available_output(order, totals))
 			count += maxi(ceili(float(missing)/batch)*batch,batch if order.worker_id>=0 else 0)
 		else: count += order.quantity * batch
 	return count
@@ -340,3 +354,18 @@ func restore_state(state: Dictionary) -> void:
 func _exit_tree() -> void:
 	_leaving = true
 	for order in orders.duplicate(): remove_order(order.id)
+
+func available_output(order, totals: Dictionary) -> int:
+	var key := String(order.recipe.output)
+	var total := int(totals.get(key, {}).get("available", 0))
+	if not order.recipe.has("material_group") or not is_instance_valid(furniture): return total
+	var furniture_key := String(order.recipe.get("furniture", ""))
+	var variants: Dictionary = furniture.get_material_stock(furniture_key) if not furniture_key.is_empty() else furniture.spare_materials(key)
+	var count := 0
+	var seen := {}
+	for ingredient: String in order.allowed_ingredients:
+		var id := CraftMaterials.from_ingredient(ingredient)
+		if id.is_empty() or seen.has(id): continue
+		seen[id] = true
+		count += int(variants.get(id, 0))
+	return mini(count, total)

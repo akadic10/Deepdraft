@@ -1,44 +1,12 @@
 {
   "__comment": [
-    "Door - the doc 22 prerequisite for doc 34's sealed-room detection.",
-    "",
-    "RESIZED 2026-08-06 (Alen playtest feedback): footprint is 2x1 (was 1x1),",
-    "visually 2 blocks wide x 4 blocks tall - the original single-tile slab",
-    "read as out-of-proportion next to 3-tall dwarves and 1-wide corridors.",
-    "Both footprint cells matter for sealing: RoomManager now registers EVERY",
-    "footprint cell a door occupies as a sealing boundary (not just the",
-    "origin cell), so a 2-wide door only seals a room if BOTH tiles stop the",
-    "flood-fill - see FurniturePlacementController._install/_teardown_installed",
-    "passing component.cells (the full footprint) to on_furniture_changed(),",
-    "and RoomManager.on_furniture_changed()'s updated 'cells: Array[Vector3i]'",
-    "signature.",
-    "",
-    "COLLISION_REGIONS IS DELIBERATELY EMPTY. Every other furniture piece uses",
-    "collision_regions to register NavGrid-blocking occupancy (see",
-    "FurniturePlacementController._install). A door must stay walkable, so it",
-    "carries no occupancy boxes at all - placing one changes nothing about",
-    "pathing. It IS still footprint-tracked (blocks a stockpile zone from being",
-    "drawn on the same tile, which you wouldn't want anyway) and IS tracked by",
-    "RoomManager as a sealing boundary via the direct on_furniture_changed()",
-    "call FurniturePlacementController makes on install/uninstall.",
-    "",
-    "Per doc 34: 'Dwarves always close doors behind them. Door blocks are",
-    "always treated as sealed for temperature calculation purposes regardless",
-    "of animation state.' v1 has no open/close animation at all - every",
-    "installed door is permanently 'closed' for sealing purposes, which is a",
-    "strict superset of that rule (always-sealed is always at least as sealed",
-    "as 'sealed except when a dwarf is mid-walk-through').",
-    "",
-    "PLACEMENT: v1 has no doorway validation (no check that the door sits",
-    "between two solid walls) - only the standard NavGrid.is_walkable(cell)",
-    "check every floor piece gets. Place doors sensibly; a door in the open",
-    "does nothing (RoomManager's flood-fill will simply fail to find a",
-    "bounded interior on either side of it)."
+    "Log doors: 2/3 blocks single leaf, 4 blocks double leaf. Eight voxels per block, 31 voxels tall below a four-block lintel.",
+    "Doors stay walkable. RoomManager seals every footprint column regardless of cosmetic hinge state. All variants use the same placement, hauling and uninstall pipeline."
   ],
   "furniture_key": "base:furniture:door",
   "furniture_category": "door",
-  "display_name": "Door",
-  "description": "A stout double plank door on iron hinges. Dwarves pass through freely; it seals the room for warmth.",
+  "display_name": "Log door (2 wide)",
+  "description": "One rough log leaf swings open as dwarves approach. Fits a 2-block-wide opening and seals the room for warmth.",
   "model": "res://assets/models/furniture/door.glb",
   "item_key": "base:resources:furniture:door",
   "placement": "floor",
@@ -49,6 +17,20 @@
   },
   "blocks_movement": false,
   "collision_regions": [],
-
-  "room_anchor": false
+  "room_anchor": false,
+  "door_animation": {
+    "width": 2,
+    "double": false,
+    "open_degrees": 90,
+    "open_seconds": 0.3,
+    "close_seconds": 0.55,
+    "hold_seconds": 0.7,
+    "approach_distance": 2.8
+  },
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 2,
+    "material_factor": 1
+  }
 }

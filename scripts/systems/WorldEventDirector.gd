@@ -20,11 +20,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if SaveManager.is_loading(): return
-	var ready := false
+	var arrivals_ready := false
 	for event: Dictionary in config.events:
 		var provider := _provider(event)
-		if provider != null and provider.arrival_ready(): ready = true
-	if ready: advance(delta)
+		if provider != null and provider.arrival_ready(): arrivals_ready = true
+	if arrivals_ready: advance(delta)
 
 func initialize_schedule() -> void:
 	if not initialized:

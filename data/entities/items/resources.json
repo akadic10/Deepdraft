@@ -1,28 +1,28 @@
 {
   "__comment": [
     "Item entity definitions for all dropped / harvested resources.",
-    "Loaded on demand when an item is spawned — NOT held in memory at boot.",
+    "Loaded on demand when an item is spawned â€” NOT held in memory at boot.",
     "",
     "Fields:",
-    "  display_name  — human-readable name shown in UI and tooltips",
-    "  description   — one-sentence flavour text shown in the inspect panel",
-    "  model         — path to the MagicaVoxel .glb micro-voxel model (res:// path)",
-    "  stack_max     — legacy balancing hint; not used for physical storage capacity",
-    "  crate_capacity — opted-in produce packaging capacity (24); absent means one unit",
-    "  crate_models  — low / half / full models for counts 1-8 / 9-16 / 17-24",
+    "  display_name  â€” human-readable name shown in UI and tooltips",
+    "  description   â€” one-sentence flavour text shown in the inspect panel",
+    "  model         â€” path to the MagicaVoxel .glb micro-voxel model (res:// path)",
+    "  stack_max     â€” legacy balancing hint; not used for physical storage capacity",
+    "  crate_capacity â€” opted-in produce packaging capacity (24); absent means one unit",
+    "  crate_models  â€” low / half / full models for counts 1-8 / 9-16 / 17-24",
     "                  One crate occupies one ground cell or furniture slot. Loose drops",
     "                  use the same crate; packaging is automatic and costs no resources.",
-    "  carry_cost    — positive points per physical item against hauling.carry_capacity",
+    "  carry_cost    â€” positive points per physical item against hauling.carry_capacity",
     "                  A crate pays once regardless of fill; missing costs default to 1.",
-    "  weight_class  — 'light' | 'heavy' — affects dwarf haul speed",
-    "                  light: full haul speed; heavy: ×0.7 haul speed while any heavy item",
+    "  weight_class  â€” 'light' | 'heavy' â€” affects dwarf haul speed",
+    "                  light: full haul speed; heavy: Ã—0.7 haul speed while any heavy item",
     "                  is in the load; independent of carry_cost",
-    "  base_trade_value — base Trade Point (TP) value used by the trade session UI",
-    "                     actual price fluctuates ±20% based on caravan demand model",
-    "  material_tags — flat string array; must include at least one 'stockpile_*' tag",
+    "  base_trade_value â€” base Trade Point (TP) value used by the trade session UI",
+    "                     actual price fluctuates Â±20% based on caravan demand model",
+    "  material_tags â€” flat string array; must include at least one 'stockpile_*' tag",
     "                  used by stockpile zone filters and crafting ingredient queries"
   ],
-  "__comment_stone": "Raw stone blocks — heavy, common, used for construction",
+  "__comment_stone": "Raw stone blocks â€” heavy, common, used for construction",
   "base:resources:stone:granite": {
     "display_name": "Granite",
     "description": "A rough block of dense igneous stone, useful for construction.",
@@ -112,7 +112,9 @@
       "tool",
       "starter_tool",
       "stockpile_misc"
-    ]
+    ],
+    "material_group": "wood",
+    "material_palette": "starter_tool"
   },
   "base:resources:tools:hunting_spear": {
     "display_name": "Hunting Spear",
@@ -127,12 +129,14 @@
       "weapon",
       "starter_tool",
       "stockpile_misc"
-    ]
+    ],
+    "material_group": "wood",
+    "material_palette": "starter_tool"
   },
   "base:resources:tools:carpentry_kit": {
     "equipment": {
       "tier": "Crude",
-      "materials": "Wooden mallet · Stone adze",
+      "materials": "Wooden mallet Â· Stone adze",
       "benefit": "Enables the Carpenter profession. No work-speed bonus. The kit stays equipped until this dwarf changes profession."
     },
     "display_name": "Crude Carpentry Kit",
@@ -146,7 +150,9 @@
       "tool",
       "starter_tool",
       "stockpile_misc"
-    ]
+    ],
+    "material_group": "wood",
+    "material_palette": "starter_tool"
   },
   "base:resources:tools:stone_hammer": {
     "display_name": "Stone Hammer",
@@ -160,9 +166,11 @@
       "tool",
       "starter_tool",
       "stockpile_misc"
-    ]
+    ],
+    "material_group": "wood",
+    "material_palette": "starter_tool"
   },
-  "__comment_soil": "Soft earth — farmable cave soil is the most valuable",
+  "__comment_soil": "Soft earth â€” farmable cave soil is the most valuable",
   "base:resources:soil:cave_soil": {
     "display_name": "Cave Soil",
     "description": "Rich subterranean earth, ideal for underground farming.",
@@ -206,7 +214,7 @@
       "stockpile_soil"
     ]
   },
-  "__comment_ore": "Metal ore chunks — heavy, moderate trade value",
+  "__comment_ore": "Metal ore chunks â€” heavy, moderate trade value",
   "base:resources:ore:copper": {
     "display_name": "Copper Ore",
     "description": "A green-tinged ore chunk, the first metal dwarves learn to smelt.",
@@ -293,7 +301,7 @@
       "stockpile_ore"
     ]
   },
-  "__comment_gem": "Finished gem drops — naturally brilliant, ready to trade; no jeweller or cutting step. Stable _raw keys are identifiers only.",
+  "__comment_gem": "Finished gem drops â€” naturally brilliant, ready to trade; no jeweller or cutting step. Stable _raw keys are identifiers only.",
   "base:resources:gem:jade_raw": {
     "display_name": "Jade",
     "description": "A lustrous mint-green gem with broad, gleaming facets. Beautiful straight from the rock and ready to trade.",
@@ -406,7 +414,7 @@
       "stockpile_gem"
     ]
   },
-  "__comment_misc": "Miscellaneous finds — fossils, unique drops",
+  "__comment_misc": "Miscellaneous finds â€” fossils, unique drops",
   "base:resources:misc:fossil_fragment": {
     "display_name": "Fossil Fragment",
     "description": "A stone impression of an ancient creature. Scholars pay handsomely.",
@@ -421,7 +429,7 @@
       "stockpile_misc"
     ]
   },
-  "__comment_wood": "Timber — harvested from flora",
+  "__comment_wood": "Timber â€” harvested from flora",
   "base:resources:wood:pine_log": {
     "display_name": "Pine Log",
     "description": "A straight-grained softwood log, light and easy to work. The backbone of early construction.",
@@ -501,7 +509,7 @@
       "stockpile_wood"
     ]
   },
-  "__comment_flora": "Harvested plant matter — crops, berries, seeds",
+  "__comment_flora": "Harvested plant matter â€” crops, berries, seeds",
   "base:resources:flora:elderberry": {
     "display_name": "Elderberry",
     "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
@@ -637,7 +645,7 @@
       "stockpile_food"
     ]
   },
-  "__comment_seed": "Seeds — planted by dwarves to start new crop growth",
+  "__comment_seed": "Seeds â€” planted by dwarves to start new crop growth",
   "base:resources:seed:pine_cone": {
     "display_name": "Pine Cone",
     "description": "A seed-bearing cone from a mature pine. Plant it and wait a few seasons.",
@@ -801,7 +809,7 @@
       "stockpile_seed"
     ]
   },
-  "__comment_drink": "Finished brewed drinks — colony morale and trade goods",
+  "__comment_drink": "Finished brewed drinks â€” colony morale and trade goods",
   "base:resources:drink:ale": {
     "display_name": "Dwarven Ale",
     "description": "A dark, malty ale brewed from cave wheat or plump helmets.",
@@ -833,7 +841,7 @@
       "stockpile_drink"
     ]
   },
-  "__comment_misc2": "Processed goods — outputs from non-brewing workshops",
+  "__comment_misc2": "Processed goods â€” outputs from non-brewing workshops",
   "base:resources:misc:cloth": {
     "display_name": "Pig Tail Cloth",
     "description": "A coarse woven fabric spun from pig tail fibers.",
@@ -863,7 +871,7 @@
       "stockpile_misc"
     ]
   },
-  "__comment_new_flora": "New brewing crops — hops and grapes",
+  "__comment_new_flora": "New brewing crops â€” hops and grapes",
   "base:resources:flora:hops": {
     "display_name": "Hops",
     "description": "Papery green cones with a sharp, resinous bite. The bitter backbone of any proper ale.",
@@ -894,7 +902,7 @@
       "stockpile_food"
     ]
   },
-  "__comment_honey": "Honey — produced by beehives, used in mead and cider",
+  "__comment_honey": "Honey â€” produced by beehives, used in mead and cider",
   "base:resources:misc:honey": {
     "display_name": "Honey",
     "description": "Thick golden honey from mountain beehives. Adds body and sweetness to brewed drinks.",
@@ -911,7 +919,7 @@
       "stockpile_misc"
     ]
   },
-  "__comment_new_seeds": "New plant propagation items — hops and grape cuttings",
+  "__comment_new_seeds": "New plant propagation items â€” hops and grape cuttings",
   "base:resources:seed:hops_cutting": {
     "display_name": "Hops Cutting",
     "description": "A rooted stem cutting from a mature hops bine. Plant it on surface soil before summer.",
@@ -954,7 +962,7 @@
       "stockpile_seed"
     ]
   },
-  "__comment_new_drinks": "New brewed drinks — stout, cider, wine, gin, and their aged variants",
+  "__comment_new_drinks": "New brewed drinks â€” stout, cider, wine, gin, and their aged variants",
   "base:resources:drink:stout": {
     "display_name": "Dark Stout",
     "description": "A thick, near-black ale with a roasted bitterness. Dwarves call it 'proper drinking'.",
@@ -1002,7 +1010,7 @@
   },
   "base:resources:drink:gin": {
     "display_name": "Juniper Gin",
-    "description": "A sharp, resinous spirit distilled from juniper berries. An acquired taste — and a profitable one.",
+    "description": "A sharp, resinous spirit distilled from juniper berries. An acquired taste â€” and a profitable one.",
     "model": "res://assets/models/items/drink/gin_cask.glb",
     "stack_max": 20,
     "carry_cost": 1,
@@ -1015,7 +1023,7 @@
       "stockpile_drink"
     ]
   },
-  "__comment_aged_drinks": "Aged premium variants — produced in the aging cellar, high trade value",
+  "__comment_aged_drinks": "Aged premium variants â€” produced in the aging cellar, high trade value",
   "base:resources:drink:aged_stout": {
     "display_name": "Aged Dark Stout",
     "description": "A stout that has sat in oak for a month of cold stone silence. Smooth, complex, and deeply satisfying.",
@@ -1067,7 +1075,7 @@
       "stockpile_drink"
     ]
   },
-  "__comment_special": "Special items — unique or limited-use objects that anchor major game flows",
+  "__comment_special": "Special items â€” unique or limited-use objects that anchor major game flows",
   "base:items:special:settlement_flag": {
     "display_name": "Settlement Flag",
     "description": "A folded banner and stout marker pole used to choose where the first settlement will take root.",
@@ -1083,7 +1091,7 @@
       "stockpile_misc"
     ]
   },
-  "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall; v1 source is the DEV spawner until crafting/trade produce them. ONE-BOX RULE (Alen, 2026-07-11): every packed furniture item shares the same generic packed_furniture.glb box - the ghost says which piece it becomes.",
+  "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall. ONE-BOX RULE (Alen, 2026-07-11): packed furniture shares packed_furniture.glb - the ghost says which piece it becomes. Redesigned 2026-10-11 as a full 8x8x8-voxel wooden shipping crate (one world block).",
   "base:resources:furniture:barrel": {
     "display_name": "Barrel (packed)",
     "description": "A hooped oak barrel, packed flat and ready to set up wherever it is needed.",
@@ -1141,8 +1149,8 @@
     ]
   },
   "base:resources:furniture:bench": {
-    "display_name": "Bench (packed)",
-    "description": "A dwarven long-bench, legs and planks bundled and lashed.",
+    "display_name": "Log bench (packed)",
+    "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating. Packed in a wooden crate.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
@@ -1152,11 +1160,16 @@
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 2,
+      "material_factor": 1
+    }
   },
   "base:resources:furniture:hearth": {
-    "display_name": "Hearth (packed)",
-    "description": "Fitted ring-stones and an iron grate, packed flat and ready to set.",
+    "display_name": "Rudimentary hearth (packed)",
+    "description": "Rough fieldstones and logs packed for a simple bedroom hearth.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
@@ -1169,18 +1182,23 @@
     ]
   },
   "base:resources:furniture:door": {
-    "display_name": "Door (packed)",
-    "description": "A plank door and its iron hinges, bundled flat for hauling.",
+    "display_name": "Log door (2 wide) (packed)",
+    "description": "Rough logs and wooden pegs packed for a 2-block-wide doorway.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
-    "base_trade_value": 9,
+    "base_trade_value": 8,
     "material_tags": [
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 2,
+      "material_factor": 1
+    }
   },
   "base:resources:furniture:trade_counter": {
     "display_name": "Trade Counter (packed)",
@@ -1278,11 +1296,16 @@
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 1,
+      "material_factor": 0.5
+    }
   },
   "base:resources:furniture:wooden_torch": {
-    "display_name": "Wooden Torch (packed)",
-    "description": "A wooden torch and fork packed for mounting on a tunnel wall.",
+    "display_name": "Log torch (packed)",
+    "description": "A charred branch bound with rough fibre and held by a wooden wall peg. A basic light for the first tunnels. Packed in a wooden crate.",
     "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
@@ -1292,7 +1315,12 @@
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 0.5,
+      "material_factor": 0.25
+    }
   },
   "base:resources:furniture:wall_torch": {
     "display_name": "Wall Torch (packed)",
@@ -1368,7 +1396,7 @@
       "stockpile_furniture"
     ]
   },
-  "__comment_currency": "Currency — gold coins earned through trade with merchants and travelers",
+  "__comment_currency": "Currency â€” gold coins earned through trade with merchants and travelers",
   "base:resources:currency:gold_coin": {
     "display_name": "Gold Coin",
     "description": "A minted coin accepted by every merchant on the mountain road. Spend it or hoard it.",
@@ -1384,7 +1412,7 @@
   },
   "base:resources:plant:blueberry_bush": {
     "display_name": "Uprooted blueberry bush",
-    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place â†’ Plants. Preserves its crop state.",
     "model": "res://assets/models/flora/bushes/blueberry/blueberry_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
@@ -1398,7 +1426,7 @@
   },
   "base:resources:plant:elderberry_bush": {
     "display_name": "Uprooted elderberry bush",
-    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place â†’ Plants. Preserves its crop state.",
     "model": "res://assets/models/flora/bushes/elderberry/elderberry_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
@@ -1412,7 +1440,7 @@
   },
   "base:resources:plant:wild_strawberry_bush": {
     "display_name": "Uprooted wild strawberry",
-    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place â†’ Plants. Preserves its crop state.",
     "model": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
@@ -1426,7 +1454,7 @@
   },
   "base:resources:plant:flowers_1": {
     "display_name": "Uprooted cream wildflowers",
-    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "description": "A living flower clump with wrapped roots. Replant through Place â†’ Plants. Keeps its shape and seasonal bloom.",
     "model": "res://assets/models/details/flowers/flowers_1_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
@@ -1440,7 +1468,7 @@
   },
   "base:resources:plant:flowers_2": {
     "display_name": "Uprooted heather wildflowers",
-    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "description": "A living flower clump with wrapped roots. Replant through Place â†’ Plants. Keeps its shape and seasonal bloom.",
     "model": "res://assets/models/details/flowers/flowers_2_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
@@ -1454,7 +1482,7 @@
   },
   "base:resources:plant:flowers_3": {
     "display_name": "Uprooted gold wildflowers",
-    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "description": "A living flower clump with wrapped roots. Replant through Place â†’ Plants. Keeps its shape and seasonal bloom.",
     "model": "res://assets/models/details/flowers/flowers_3_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
@@ -1478,7 +1506,33 @@
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 0,
+      "material_factor": 0.25
+    },
+    "material_palette": "oak_log"
+  },
+  "base:resources:furniture:log_bridge": {
+    "display_name": "Log bridge kit",
+    "description": "A bundle of split logs and wooden pegs for one small river crossing.",
+    "model": "res://assets/models/items/furniture/log_bridge.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 2,
+      "material_factor": 0.5
+    },
+    "material_palette": "oak_log"
   },
   "base:resources:furniture:campfire": {
     "display_name": "Campfire (packed)",
@@ -1492,7 +1546,12 @@
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 3,
+      "material_factor": 0.25
+    }
   },
   "base:resources:furniture:log_chair": {
     "display_name": "Log Stool (packed)",
@@ -1506,7 +1565,12 @@
       "wood",
       "furniture",
       "stockpile_furniture"
-    ]
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 1,
+      "material_factor": 1
+    }
   },
   "base:resources:water:wet_stone": {
     "display_name": "Wet stone",
@@ -1533,5 +1597,62 @@
     "carry_cost": 4,
     "stack_max": 1,
     "value": 0
+  },
+  "base:resources:furniture:log_door_3": {
+    "display_name": "Log door (3 wide) (packed)",
+    "description": "Rough logs and wooden pegs packed for a 3-block-wide doorway.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 12,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 3,
+      "material_factor": 1
+    }
+  },
+  "base:resources:furniture:log_door_4": {
+    "display_name": "Double log door (4 wide) (packed)",
+    "description": "Rough logs and wooden pegs packed for a 4-block-wide doorway.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 16,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 4,
+      "material_factor": 1
+    }
+  },
+  "base:resources:furniture:log_bed": {
+    "display_name": "Log bed (packed)",
+    "description": "Rough bed logs, loose hay and dried leaves packed in a carrying crate.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 12,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 3,
+      "material_factor": 1
+    }
   }
 }

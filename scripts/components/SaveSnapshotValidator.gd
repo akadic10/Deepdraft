@@ -8,8 +8,8 @@ extends RefCounted
 ## Additional fields are allowed; required fields must still match their types.
 
 const FILTER := {"tags": [TYPE_STRING], "items": [TYPE_STRING], "excluded_items": [TYPE_STRING]}
-const CARGO := {"item_key": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING}
-const STACK := {"item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING}
+const CARGO := {"item_key": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
+const STACK := {"item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
 const ANIMAL := {
 	"id": "key", "cell": "cell", "home": "cell", "target": "cell", "position": "vector",
 	"yaw": TYPE_FLOAT, "hunger": TYPE_FLOAT, "fatigue": TYPE_FLOAT, "activity": "key",
@@ -56,23 +56,30 @@ const SCENE := {
 	"settlement_flag": {"placed": TYPE_BOOL, "cell": "cell"},
 	"stockpiles": {"zones": [{"id": TYPE_INT, "cells": ["cell"], "filter_tags": [TYPE_STRING],
 		"storage_filter": FILTER,
-		"stacks": [{"cell": "cell", "item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING}]}]},
+		"stacks": [{"cell": "cell", "item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]}]},
 	"furniture": {
 		"ghosts": [{"id": TYPE_INT, "key": "key", "origin": "cell", "yaw": TYPE_INT,
-			"layout_version": TYPE_INT, "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING}],
+			"?required_material_id": "material", "layout_version": TYPE_INT, "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING}],
 		"installed": [{"id": TYPE_INT, "key": "key", "origin": "cell", "yaw": TYPE_INT,
-			"layout_version": TYPE_INT, "flagged_uninstall": TYPE_BOOL,
+			"layout_version": TYPE_INT, "flagged_uninstall": TYPE_BOOL, "?material_id": "material",
+			"?assigned_dwarf_id": TYPE_INT,
 			"?inventory": {"*": "positive_int"}, "?instances": [STACK], "?storage_filter": FILTER}],
 	},
 	"ladders": {"routes": [{"id": TYPE_INT, "key": "key", "base": "cell", "yaw": TYPE_INT,
-		"height": TYPE_INT, "built": TYPE_INT, "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": TYPE_INT},
+		"height": TYPE_INT, "built": TYPE_INT, "?materials": ["material"], "?required_material_id": "material", "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": TYPE_INT},
+	"bridges": {"routes": [{"id": "positive_int", "key": "key", "base": "cell", "yaw": TYPE_INT,
+		"span": "positive_int", "built": TYPE_BOOL, "?material_id": "material", "?required_material_id": "material", "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": "positive_int"},
 	"items": {"loose": [{"item_key": "key", "position": "vector", "rotation_y": TYPE_FLOAT,
-		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING}]},
+		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]},
 	"dwarves": {"birth_index": TYPE_INT, "settlement_anchor": "cell", "roster": [{
 		"id": TYPE_INT, "name": TYPE_STRING, "gender": TYPE_STRING, "appearance": {"*": TYPE_STRING},
 		"traits": [TYPE_STRING], "profession": "key", "profession_experience": {"*": TYPE_INT},
 		"work_permissions": {"*": TYPE_BOOL}, "position": "vector", "rotation_y": TYPE_FLOAT,
 		"sleep": TYPE_FLOAT, "sleeping": TYPE_BOOL, "sleep_hours_left": TYPE_FLOAT,
+		"?mood": {"personal_sleep_hours":TYPE_FLOAT,"bedroom_memory_hours":TYPE_FLOAT,
+			"?cold_sleep_hours":TYPE_FLOAT,"?cold_memory_hours":TYPE_FLOAT,
+			"?chilly_sleep_hours":TYPE_FLOAT,"?chilly_memory_hours":TYPE_FLOAT,
+			"?hot_sleep_hours":TYPE_FLOAT,"?hot_memory_hours":TYPE_FLOAT},
 		"carried_items": [CARGO], "equipment": {"*": TYPE_STRING},
 	}]},
 	"wildlife": {"initialized": TYPE_BOOL, "rabbits": [ANIMAL], "deer_initialized": TYPE_BOOL,
@@ -106,6 +113,25 @@ static func validate(snapshot: Dictionary, schema_version: int) -> String:
 	if snapshot.scene.water.layout_version != preload("res://scripts/components/RiverLayout.gd").VERSION:
 		return "this development save uses an outdated river layout; start a new world."
 	if snapshot.clock.hour < 0 or snapshot.clock.speed < 0: return "the saved clock has negative time or speed."
+	var residents := {}
+	for dwarf: Dictionary in snapshot.scene.dwarves.roster:
+		residents[int(dwarf.id)] = true
+		for hours: float in dwarf.get("mood",{}).values():
+			if hours<0: return "save.scene.dwarves has a negative mood timer."
+	var assigned_beds := {}
+	for piece: Dictionary in snapshot.scene.furniture.installed:
+		var resident := int(piece.get("assigned_dwarf_id",-1))
+		if resident < -1: return "save.scene.furniture has an invalid bed assignment."
+		if resident<0: continue
+		if not residents.has(resident) or assigned_beds.has(resident): return "save.scene.furniture has a missing or duplicate bed owner."
+		assigned_beds[resident] = true
+	var bridge_ids := {}
+	for bridge: Dictionary in snapshot.scene.bridges.routes:
+		if bridge.key != "base:furniture:log_bridge" or bridge.span > 5 or bridge.yaw < 0 or bridge.yaw > 3 \
+			or bridge.progress < 0 or bridge_ids.has(bridge.id) or bridge.id >= snapshot.scene.bridges.next_id \
+			or not bridge.mode in (["ready","remove","damaged"] if bridge.built else ["build"]):
+			return "save.scene.bridges has an invalid bridge."
+		bridge_ids[bridge.id] = true
 	for list_name: String in ["cells","displaced"]:
 		var seen: Dictionary = {}
 		for entry: Dictionary in snapshot.scene.water.flow[list_name]:
@@ -159,7 +185,9 @@ static func _validate_stones(scene: Dictionary) -> String:
 	var goods: Array = scene.items.loose.duplicate()
 	for zone: Dictionary in scene.stockpiles.zones: goods.append_array(zone.stacks)
 	for piece: Dictionary in scene.furniture.installed: goods.append_array(piece.get("instances",[]))
-	for dwarf: Dictionary in scene.dwarves.roster: goods.append_array(dwarf.carried_items)
+	for dwarf: Dictionary in scene.dwarves.roster:
+		goods.append_array(dwarf.carried_items)
+		if not CraftMaterials.valid(String(dwarf.equipment.get("material_id", ""))): return "save.scene has an unknown equipped material."
 	for item: Dictionary in goods:
 		var key := String(item.get("item_key", item.get("item", "")))
 		if key not in ["base:resources:water:wet_stone", "base:resources:water:dry_stone"]: continue
@@ -222,6 +250,8 @@ static func _validate(value: Variant, rule: Variant, path: String) -> String:
 			for field: String in ["launch_left","flight_left","shore_left"]:
 				if value[field]<0: return path+" has a negative timer."
 			return ""
+		"material":
+			return "" if value is String and CraftMaterials.valid(value) else "%s has an unknown material." % path
 		"key":
 			if value is String and not value.is_empty(): return ""
 			return path + " must be a non-empty string."

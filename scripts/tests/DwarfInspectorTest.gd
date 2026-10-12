@@ -156,7 +156,7 @@ func _run() -> void:
 	worker.dev_make_tired()
 	worker._process(.01)
 	explorer._refresh_selected()
-	_expect(panel._activity.text == "Sleeping" and "game hours remaining" in panel._explanation.text, "real sleep state is visible")
+	_expect(panel._activity.text == "Finding a place to sleep" and "game hours remaining" in panel._explanation.text, "real sleep search state is visible")
 	var original_portrait = panel._portrait_model
 	explorer._refresh_selected()
 	_expect(panel._portrait_model == original_portrait, "portrait reused across live refreshes")

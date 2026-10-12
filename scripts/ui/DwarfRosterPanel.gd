@@ -408,11 +408,11 @@ func _label(text: String, font_size: int, color := UITheme.HEARTH_TEXT) -> Label
 	return label
 
 
-func _margin(child: Control, horizontal: int, vertical: int) -> MarginContainer:
+func _margin(child: Control, horizontal: int, vertical_padding: int) -> MarginContainer:
 	var margin := MarginContainer.new()
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for side: String in ["left", "right"]: margin.add_theme_constant_override("margin_" + side, horizontal)
-	for side: String in ["top", "bottom"]: margin.add_theme_constant_override("margin_" + side, vertical)
+	for side: String in ["top", "bottom"]: margin.add_theme_constant_override("margin_" + side, vertical_padding)
 	margin.add_child(child)
 	return margin
 

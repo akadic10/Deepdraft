@@ -21,6 +21,7 @@ const FellingPose = preload("res://scripts/components/DwarfFellingPose.gd")
 const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
 const IdleBehavior = preload("res://scripts/components/DwarfIdleBehavior.gd")
+const RestBehavior = preload("res://scripts/components/DwarfRestBehavior.gd")
 const Equipment = preload("res://scripts/components/DwarfEquipment.gd")
 const COLLISION_LAYER_DWARF := 4   # layer bit 3. NOT layer 1 (camera spring arm
 								   # collides mask 1, terrain only) and NOT
@@ -97,7 +98,7 @@ var _carried_entries: Array = []     # [[node: Node3D, item_key: String], ...]
 var _carry_speed_mult: float = 1.0
 
 ## Furniture pipeline (doc 19 §3.3/§3.4). FETCH_BUILD: reserve item via the
-## ghost work source -> walk -> pick up -> walk to the ghost -> build swing.
+## ghost work source -> walk -> pick up -> walk to the ghost -> set down.
 ## UNINSTALL: walk to the piece's stand cell -> teardown swing. Interrupts
 ## anywhere follow Hard Rule 12 (carried item drops at the feet; an
 ## uninstall interrupt leaves the piece installed with the flag set).
@@ -118,9 +119,9 @@ var _mine_contact := Vector3.ZERO
 ## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
 ## Deliberately minimal: ONE stat draining per real second (doc 41 rate);
 ## below the threshold the dwarf releases its task through the §2.8 protocol
-## and sleeps IN PLACE (no beds yet) for the doc-41 minimum rest, counted in
-## in-game hours (clock-speed aware, frozen while paused). The full needs
-## system (hunger/thirst/mood/thoughts) is its own later milestone.
+## and seeks an assigned/free bed or nearby ground shelter for the minimum rest,
+## counted in game hours. DwarfMood supplies the personal-bedroom thought; the
+## broader hunger/thirst/health needs remain a later milestone.
 ## RETUNED 2026-08-07 (Alen playtest: "the dwarves are just stuck doing
 ## nothing" — the whole squad was asleep). The original 0.003/s drain (doc
 ## 41's old table value) emptied full→threshold in ~250 real s ≈ 4 game
@@ -139,6 +140,7 @@ var sleep: float = 1.0
 var _sleep_drain: float = SLEEP_DRAIN_PER_S   # per-dwarf jittered rate (setup())
 var _sleeping: bool = false
 var _sleep_hours_left: float = 0.0
+var _mood: RefCounted
 
 ## Fired when a walk order finishes (arrived) or fails (no path / cleared).
 signal walk_finished(success: bool)
@@ -153,9 +155,10 @@ signal walk_finished(success: bool)
 ## any speed. With foot swing amplitude = stride_length/2 and the planted
 ## foot sliding backward (relative to the body) exactly one stride per half
 ## cycle, the planted foot stays world-fixed — the core fix for foot sliding.
-@export var walk_speed: float = 2.2      # blocks/s on the flat (doc 17: 3.0 read too fast)
-@export var stride_length: float = 0.7   # blocks covered per step (one foot's half cycle)
+@export var walk_speed: float = 3.4      # defaults overridden by TaskManager movement tuning
+@export var stride_length: float = 1.05  # blocks per step; longer stride keeps a natural cadence
 @export var walk_lean_deg: float = 2.5   # forward body pitch while walking (0 = off)
+var _foot_lift := .22
 const SHORTCUT_INTERVAL := 0.3   # s between string-pulling rescans (cost bound)
 var _move_path: Array[Vector3i] = []
 var _move_index: int = 0
@@ -171,6 +174,7 @@ var _foot_l: Node3D
 var _foot_r: Node3D
 var _bob_phase: float = 0.0
 var _idle_behavior: RefCounted
+var _rest_behavior: RefCounted
 var _equipment: RefCounted
 
 
@@ -198,7 +202,6 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_build_parts()
 	_build_collision()
 	_build_name_label()
-	_build_sleep_indicator()
 	_apply_tints()
 	_felling_pose = FellingPose.new()
 	_felling_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
@@ -209,12 +212,24 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	walk_finished.connect(_on_walk_finished)
 	_idle_behavior = IdleBehavior.new(self)
 	_equipment = Equipment.new(self)
+	_rest_behavior = RestBehavior.new(self)
+	_mood = preload("res://scripts/components/DwarfMood.gd").new()
+	preload("res://scripts/components/DwarfReadability.gd").attach(self)
+	var movement := TaskManager.get_config_section("movement")
+	walk_speed = float(movement.get("walk_speed",walk_speed))
+	stride_length = float(movement.get("stride_length",stride_length))
+	_foot_lift = float(movement.get("foot_lift",_foot_lift))
 
 
 func _process(delta: float) -> void:
 	if WorldClock.paused or WorldClock.speed <= 0.0: return
+	_mood.tick(delta * WorldClock.game_hours_per_real_second())
+	if _settle_missing_support(): return
+	if needs_bridge_exit():
+		_process_bridge_exit(delta * WorldClock.speed)
+		return
 	if _ladder_exiting or (current_task_id < 0 and _move_path.is_empty() and needs_ladder_exit()):
-		_process_ladder_exit(delta)
+		_process_ladder_exit(delta * WorldClock.speed)
 		return
 	if _sleeping:
 		_process_sleeping(delta)
@@ -269,7 +284,7 @@ func _process(delta: float) -> void:
 				_fetch_fail_release()
 				return
 			_exec_timer = craft.advance_install(delta * WorldClock.speed)
-			var face: Vector3i = craft.work_facing()
+			var face: Vector3i = craft.work_facing(current_cell())
 			rotation.y = atan2(face.x, face.z)
 			_carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
 			if _exec_timer <= 0.0: _fetch_complete()
@@ -298,11 +313,10 @@ func _process(delta: float) -> void:
 			_plant_pose(craft, clampf(phase, 0.0, 1.0))
 			if _exec_timer <= 0.0: _fetch_complete()
 			return # Planting owns the cargo/hands; the idle hold pose must not overwrite it.
-		else:
-			_exec_timer -= delta * WorldClock.speed
-		if _exec_timer <= 0.0:
-			_begin_fetch_deposit()
-			return
+		# Ordinary furniture uses FETCH_DEPOSIT immediately on arrival. Every
+		# timed source above owns both its work progress and visible animation.
+		_fetch_fail_release()
+		return
 	elif _task_phase == TaskPhase.UNINSTALL_WORKING:
 		var removal := _uninstall_source()
 		if removal != null and removal.has_method("advance_removal"):
@@ -318,7 +332,7 @@ func _process(delta: float) -> void:
 	if _move_path.is_empty():
 		_idle_bob()
 	else:
-		_follow_path(delta)
+		_follow_path(delta * WorldClock.speed)
 	if not _climbing and not _carried_entries.is_empty() and _task_phase not in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP,
 			TaskPhase.HAUL_DEPOSIT, TaskPhase.FETCH_DEPOSIT]:
 		_carry_pose.hold(_carried_entries, _body.position.y if is_instance_valid(_body) else 0.0)
@@ -550,7 +564,7 @@ func _on_walk_finished(success: bool) -> void:
 # ── Sleep-lite (doc 16 §2.8 / Phase 5) ────────────────────────────────────────
 
 ## The interrupt: release whatever we hold through the §2.8 protocol and sleep
-## in place. Local task state is torn down FIRST (phase to NONE before
+## beside nearby shelter. Local task state is torn down FIRST (phase to NONE before
 ## stop_walking, the abort_task ordering) so the synchronous walk_finished(false)
 ## cannot re-enter the executors. The zone reservation is freed by the
 ## controller on task_released; zone-level progress (completed set) is never
@@ -568,7 +582,7 @@ func _begin_sleep() -> void:
 		return
 	_sleeping = true
 	_sleep_hours_left = SLEEP_HOURS
-	_set_sleep_indicator_visible(true)
+	_mood.begin_sleep()
 	var had_task := current_task_id >= 0
 	_finish_zone_state()
 	_finish_haul_state()
@@ -585,27 +599,37 @@ func _begin_sleep() -> void:
 		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
 	else:
 		TaskManager.notify_dwarf_unavailable(dwarf_id)
+	_rest_behavior.begin()
 
 
 func _process_sleeping(delta: float) -> void:
 	# Duration counts in IN-GAME hours: honours clock speed, freezes on pause.
-	_sleep_hours_left -= delta * WorldClock.game_hours_per_real_second()
-	_sleep_bob()
-	if _sleep_hours_left <= 0.0:
-		_wake_up()
+	if _rest_behavior.tick(delta * WorldClock.speed):
+		var hours := minf(_sleep_hours_left,delta * WorldClock.game_hours_per_real_second())
+		var sleep_cell := current_cell()+Vector3i.UP
+		if _rest_behavior.bed_rest.bed!=null: sleep_cell = _rest_behavior.bed_rest.bed.origin_cell+Vector3i.UP
+		_mood.record_sleep(hours,_rest_behavior.bed_rest.in_personal_bedroom(),RoomManager.temperature_at(sleep_cell))
+		_sleep_hours_left -= hours
+		if _sleep_hours_left <= 0.0:
+			_mood.finish_sleep()
+			_rest_behavior.begin_waking()
 
 
 func _wake_up() -> void:
 	_sleeping = false
 	sleep = 1.0
 	_sleep_hours_left = 0.0
-	_set_sleep_indicator_visible(false)
+	if _rest_behavior != null: _rest_behavior.cancel()
 	_reset_part_offsets()
 	TaskManager.notify_dwarf_idle(dwarf_id)
 
 
 func is_sleeping() -> bool:
 	return _sleeping
+
+
+func is_resting() -> bool:
+	return _sleeping and _rest_behavior != null and _rest_behavior.state == "sleeping"
 
 
 func serialize_state() -> Dictionary:
@@ -619,6 +643,7 @@ func serialize_state() -> Dictionary:
 			carried_items.back()["disallowed"] = not preload("res://scripts/components/ItemPermission.gd").allowed(cargo)
 			if is_instance_valid(cargo) and cargo.has_meta("instance_id"):
 				carried_items.back()["instance_id"] = cargo.get_meta("instance_id")
+			carried_items.back()["material_id"] = CraftMaterials.of_item(cargo)
 	if appearance != null:
 		appearance_state = {
 			"gender": appearance.gender,
@@ -645,6 +670,7 @@ func serialize_state() -> Dictionary:
 		"sleep": sleep,
 		"sleeping": _sleeping,
 		"sleep_hours_left": _sleep_hours_left,
+		"mood": _mood.serialize(),
 		"carried_items": carried_items,
 		"equipment": _equipment.serialize() if _equipment != null else {},
 	}
@@ -652,32 +678,17 @@ func serialize_state() -> Dictionary:
 
 func restore_saved_runtime(state: Dictionary) -> void:
 	if _idle_behavior != null: _idle_behavior.cancel()
+	if _rest_behavior != null: _rest_behavior.cancel()
 	sleep = clampf(float(state.get("sleep", 1.0)), 0.0, 1.0)
 	_sleeping = bool(state.get("sleeping", false))
 	_sleep_hours_left = maxf(float(state.get("sleep_hours_left", 0.0)), 0.0)
-	_set_sleep_indicator_visible(_sleeping)   # a dwarf saved mid-nap restores with its 💤
+	_mood.restore(state.get("mood",{}))
 	current_task_id = -1
 	_task_phase = TaskPhase.NONE
 	stop_walking()
 	_reset_part_offsets()
 	_equipment.restore(state.get("equipment", {}))
-
-
-## Slow, deep breathing with a drooped head — read as asleep at RTS zoom.
-## Transform offsets only (doc 41: no AnimationPlayer).
-func _sleep_bob() -> void:
-	if _body == null:
-		return
-	var t := float(Time.get_ticks_msec()) / 1000.0 + _bob_phase
-	var breathe := sin(t * 0.9) * 0.030
-	_body.position.y = breathe
-	if _head != null:
-		_head.position.y = breathe * 1.2 - 0.08
-		_head.rotation.x = 0.35
-	if _hand_l != null:
-		_hand_l.position.y = breathe * 0.5
-	if _hand_r != null:
-		_hand_r.position.y = breathe * 0.5
+	if _sleeping: _rest_behavior.begin(true)
 
 
 # ── DEV interruption helpers (doc 16 Phase 5 — Dwarves window buttons) ────────
@@ -861,18 +872,40 @@ func _finish_zone_state() -> void:
 		_reset_part_offsets()
 
 
-## After mining the block under your own feet, the floor is gone — settle
-## onto the first walkable floor below (visual position only; the nav grid
-## already knows the truth via chunk invalidation).
-func _snap_to_floor() -> void:
+## Every state needs physical support, including idle/sleeping dwarves and old
+## saved positions. Another miner can remove the floor without notifying this
+## agent's executor. Settle before doing work or asking navigation for a path.
+func _settle_missing_support() -> bool:
+	if not _snap_to_floor(): return false
+	# Move first so interruption drops cargo at the actual landing. Normal
+	# cleanup releases source/seat/tool claims and reports a failed walk once.
+	abort_task()
+	if _sleeping and _rest_behavior != null: _rest_behavior.begin()
+	TaskManager.release_dwarf_task(dwarf_id,Task.ReleaseReason.PATH_INVALID,not _sleeping)
+	return true
+
+func _has_floor_support(cell: Vector3i) -> bool:
+	return NavGrid.bridge_supports(cell) or BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y,cell.z))
+
+## Used immediately after our own mining commit as well as before every tick.
+## Physical support is distinct from walkability: an obstructed/wet floor must
+## never be skipped in favour of a deeper floor through solid terrain.
+## Ladders and supported step interpolation already own their vertical motion.
+func _snap_to_floor() -> bool:
 	var cell := current_cell()
-	if NavGrid.is_walkable(cell):
-		return
-	for k in range(1, 5):
-		var below := Vector3i(cell.x, cell.y - k, cell.z)
-		if NavGrid.is_walkable(below):
+	if _has_floor_support(cell) or not NavGrid.ladder_at(cell).is_empty() or _ladder_fall_target.x >= 0:
+		return false
+	# While stepping up, rounded nav height can differ from the solid block
+	# immediately under the feet. Do not lower the actor into that step.
+	var feet := Vector3i(cell.x,floori(global_position.y-.001),cell.z)
+	if _has_floor_support(feet): return false
+	for y in range(mini(cell.y,feet.y)-1,-1,-1):
+		var below := Vector3i(cell.x,y,cell.z)
+		if _has_floor_support(below):
 			global_position.y = float(below.y + 1)
-			return
+			apply_slice(_slice_y)
+			return true
+	return false
 
 
 func _face_cell(cell: Vector3i) -> void:
@@ -928,8 +961,8 @@ func _haul_walk_current() -> void:
 			_haul_cancel_pull()
 			_haul_count_failure()
 		else:
-			var source := _haul_source()
-			if source == null or not _walk_to_handling_stand(source.call("delivery_stand_cells", _haul_deposit, dwarf_id), TaskPhase.HAUL_TO_ZONE):
+			var delivery_source := _haul_source()
+			if delivery_source == null or not _walk_to_handling_stand(delivery_source.call("delivery_stand_cells", _haul_deposit, dwarf_id), TaskPhase.HAUL_TO_ZONE):
 				_drop_carried_at_feet()
 				_haul_cancel_pull()
 				_haul_count_failure()
@@ -1143,7 +1176,11 @@ func _begin_item_lower(contact: Vector3, phase: int) -> void:
 func _begin_fetch_deposit() -> void:
 	# Construction consumes the packed item only after the set-down. Until
 	# then cancellation or a save still sees ordinary carried cargo.
-	_begin_item_lower(to_global(Vector3(0, 0, 1.25)), TaskPhase.FETCH_DEPOSIT)
+	var source := _fetch_source()
+	var contact := to_global(Vector3(0, 0, 1.25))
+	if source != null and source.has_method("placement_contact"):
+		contact = source.placement_contact(global_position)
+	_begin_item_lower(contact, TaskPhase.FETCH_DEPOSIT)
 
 
 func _process_item_handling(delta: float) -> void:
@@ -1302,7 +1339,7 @@ func _fetch_travel_to_ghost() -> void:
 		_fetch_fail_release()
 
 
-## FETCH step 4: the build swing finished — the carried item BECOMES the
+## FETCH step 4: the placement/work animation finished — the carried item BECOMES the
 ## installed piece (node freed, controller instances the solid form).
 func _fetch_complete() -> void:
 	_task_phase = TaskPhase.NONE
@@ -1334,6 +1371,7 @@ func _fetch_complete() -> void:
 	if _fetch_item != null and is_instance_valid(_fetch_item):
 		_carried_entries = _carried_entries.filter(
 			func(entry: Array) -> bool: return entry[0] != _fetch_item)
+		if source.has_method("capture_item_properties"): source.capture_item_properties(_fetch_item)
 		_fetch_item.queue_free()
 	_fetch_item = null
 	_carry_speed_mult = 1.0
@@ -1356,8 +1394,13 @@ func _begin_fetch_work() -> void:
 	if source.has_method("needs_ingredient_delivery") and bool(source.call("needs_ingredient_delivery")):
 		_begin_fetch_deposit()
 		return
+	if not source.has_method("remaining_work"):
+		# Finished furniture only needs one set-down; no invisible build delay
+		# before it. Bridge/ladder assembly, crafting and planting own their time.
+		_begin_fetch_deposit()
+		return
 	_task_phase = TaskPhase.FETCH_WORKING
-	_exec_timer = _fetch_work_time()
+	_exec_timer = float(source.remaining_work())
 	if source.has_method("advance_plant"):
 		_plant_animation_duration = _exec_timer
 		_reset_part_offsets()
@@ -1371,11 +1414,6 @@ func _begin_fetch_work() -> void:
 ## owned by the worker until the final valid-site commit, including saves.
 func _plant_pose(source: RefCounted, phase: float) -> void:
 	_carry_pose.lower(phase, _carried_entries, to_local(source.work_surface()))
-
-
-func _fetch_work_time() -> float:
-	var source := _fetch_source()
-	return float(source.call("remaining_work")) if source != null and source.has_method("remaining_work") else _furniture_time("build_time_s")
 
 
 func _craft_pose(source: RefCounted) -> Vector3:
@@ -1589,9 +1627,38 @@ func current_cell() -> Vector3i:
 
 var _climbing := false
 var _ladder_exiting := false
+var _bridge_exiting := false
 var _ladder_sleep_pending := false
 var _ladder_path_revision := -1
+var _move_validation_revision := -1
+var _move_validation_index := -1
 var _ladder_fall_target := Vector3i(-1, -1, -1)
+
+func needs_bridge_exit() -> bool:
+	return _bridge_exiting or not NavGrid.closing_bridge_at(current_cell()).is_empty()
+
+func _process_bridge_exit(delta: float) -> void:
+	var route := NavGrid.closing_bridge_at(current_cell())
+	if not _bridge_exiting:
+		abort_task() # Cargo is dropped intact on the still-supported deck.
+		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID, false)
+		if _sleeping: _wake_up()
+		if _idle_behavior != null: _idle_behavior.cancel()
+		_clear_path()
+		_bridge_exiting = true
+	TaskManager.notify_dwarf_unavailable(dwarf_id)
+	if route.is_empty():
+		# Finish reaching the landing centre before retiring the escape path.
+		if not _move_path.is_empty(): _follow_path(delta); return
+		_bridge_exiting = false
+		TaskManager.notify_dwarf_idle(dwarf_id)
+		return
+	if _move_path.is_empty():
+		var exits: Array = route.exits.duplicate()
+		exits.sort_custom(func(a: Vector3i,b: Vector3i): return current_cell().distance_squared_to(a) < current_cell().distance_squared_to(b))
+		for cell: Vector3i in exits:
+			if NavGrid.is_walkable(cell) and walk_to(cell): break
+	if not _move_path.is_empty(): _follow_path(delta)
 
 func needs_ladder_exit() -> bool:
 	return _ladder_exiting or (not NavGrid.ladder_at(current_cell()).is_empty() and not NavGrid.is_walkable(current_cell()))
@@ -1635,13 +1702,17 @@ func walk_to(goal_cell: Vector3i) -> bool:
 	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
 	if _idle_behavior != null and _idle_behavior.active(): _idle_behavior.cancel()
 	_reset_part_offsets()
-	var path := NavGrid.find_path(current_cell(), goal_cell)
+	var floor_filter := Callable()
+	if is_sleeping(): floor_filter = func(cell: Vector3i): return preload("res://scripts/components/DwarfPrivacy.gd").allowed(cell,dwarf_id,true)
+	var path := NavGrid.find_path(current_cell(), goal_cell,NavGrid.DEFAULT_MAX_NODES,floor_filter)
 	if path.is_empty():
+		_clear_path() # Failure callbacks may synchronously install a new route.
 		walk_finished.emit(false)
 		return false
 	_move_path = path
 	_ladder_path_revision = NavGrid.ladder_revision
 	_move_index = 0
+	_move_validation_index = -1
 	_walk_cycle = 0.0
 	_shortcut_timer = 0.0   # string-pull immediately on the first frame
 	return true
@@ -1652,11 +1723,13 @@ func walk_to(goal_cell: Vector3i) -> bool:
 func walk_nearby(goal_cell: Vector3i) -> void:
 	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
 	_reset_part_offsets()
-	if not NavGrid.line_walkable_flat(current_cell(),goal_cell):
+	if not NavGrid.line_walkable_flat_from(global_position,goal_cell):
+		_clear_path()
 		walk_finished.emit(false)
 		return
 	_move_path = [current_cell(),goal_cell]
 	_move_index = 0
+	_move_validation_index = -1
 	_walk_cycle = 0.0
 	_shortcut_timer = 0.0
 	_ladder_path_revision = NavGrid.ladder_revision
@@ -1692,7 +1765,8 @@ func _advance_shortcut() -> void:
 	for j in range(_move_index + 1, limit + 1):
 		if _move_path[j].y != here.y:
 			break   # elevation change ahead — take those steps exactly
-		if NavGrid.line_walkable_flat(here, _move_path[j]):
+		if is_sleeping() and not preload("res://scripts/components/DwarfPrivacy.gd").segment(here,_move_path[j],dwarf_id,true): break
+		if NavGrid.line_walkable_flat_from(global_position, _move_path[j]):
 			best = j
 		else:
 			break
@@ -1705,18 +1779,22 @@ func is_walking() -> bool:
 
 func _follow_path(delta: float) -> void:
 	if _ladder_path_revision != NavGrid.ladder_revision:
-		var goal: Vector3i = _move_path.back()
-		if _idle_behavior != null and _idle_behavior.owns_walk():
-			walk_nearby(goal)
-			if _move_path.is_empty(): return
-		elif not walk_to(goal):
-			_clear_path()
-			return
+		_repath_walk()
+		return
 	_shortcut_timer -= delta
 	if _shortcut_timer <= 0.0:
 		_advance_shortcut()
 		_shortcut_timer = SHORTCUT_INTERVAL
 	var cell := _move_path[_move_index]
+	# Cache the check until the target segment or navigation changes. A distant
+	# edit can require a cheap clearance check, but never a new A* search unless
+	# this segment is actually blocked. Later waypoints are checked on entry too.
+	if _move_validation_index != _move_index or _move_validation_revision != NavGrid.navigation_revision:
+		if not _move_segment_clear(cell):
+			_repath_walk()
+			return
+		_move_validation_index = _move_index
+		_move_validation_revision = NavGrid.navigation_revision
 	var target := Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
 	var to_target := target - global_position
 	var distance := to_target.length()
@@ -1757,52 +1835,64 @@ func _follow_path(delta: float) -> void:
 	else: _walk_bob(step)
 
 
-## Distance-driven gait (doc 17 §2). One full cycle = two steps (left + right),
-## so the body covers stride_length per HALF cycle. Each foot alternates a
-## SWING phase (arcs forward with lift) and a PLANT phase (holds flat while
-## sliding backward relative to the body — i.e. world-fixed, faking a real
-## footstep). Hands counter-swing at half amplitude; the body bounces once per
-## step and leans gently into travel. Transform offsets only (doc 41 contract:
-## no AnimationPlayer, no skeleton).
+func _move_segment_clear(cell: Vector3i) -> bool:
+	if not NavGrid.is_navigable(cell): return false
+	var here := current_cell()
+	if here.y == cell.y and NavGrid.is_walkable(here) and NavGrid.is_walkable(cell):
+		return NavGrid.line_walkable_flat_from(global_position,cell)
+	# Steps and ladder entry/exit stay waypoint-exact. During a vertical step,
+	# current_cell() can briefly be between the two supporting floor heights.
+	return absi(here.x-cell.x)+absi(here.z-cell.z) <= 1
+
+
+func _repath_walk() -> void:
+	var goal: Vector3i = _move_path.back()
+	if _idle_behavior != null and _idle_behavior.owns_walk():
+		walk_nearby(goal)
+	else:
+		walk_to(goal)
+	# walk_to/nearby clear failure state BEFORE emitting walk_finished; never
+	# clear here, since a task's failure handler may already have a new route.
+
+
+## Distance drives the stride so carrying and time controls cannot make feet
+## skate. The stance half remains linear; the return half eases into a higher
+## arc. Rotations pivot around the part centres, not around the actor's feet.
 func _walk_bob(moved: float) -> void:
 	_walk_cycle = fposmod(_walk_cycle + moved / maxf(stride_length * 2.0, 0.01), 1.0)
-	var amp := stride_length * 0.5   # foot swing amplitude; matches ground covered
-	# Feet: right foot leads the cycle, left is half a cycle out of phase.
-	_pose_foot(_foot_r, _walk_cycle, amp)
-	_pose_foot(_foot_l, fposmod(_walk_cycle + 0.5, 1.0), amp)
-	# Bounce peaks once per step (twice per cycle), at each foot plant.
-	var bounce := absf(sin(_walk_cycle * TAU)) * 0.04
+	var amp := stride_length * .5
+	_pose_foot(_foot_r,_walk_cycle,amp)
+	_pose_foot(_foot_l,fposmod(_walk_cycle+.5,1.0),amp)
+	var wave := sin(_walk_cycle*TAU)
+	var bounce := (1.0-cos(_walk_cycle*TAU*2.0))*.025
 	var lean := deg_to_rad(walk_lean_deg)
 	if _body != null:
-		_body.position.y = bounce
-		_body.rotation.x = lean
+		_body.rotation = Vector3(lean,wave*.045,-wave*.018)
+		var pivot := Vector3(0,1.15,0)
+		_body.position = pivot+Vector3(wave*.035,bounce,0)-_body.basis*pivot
 	if _head != null:
-		_head.position.y = bounce * 1.2
-		_head.rotation.x = lean * 0.6
-	# Hands counter-swing smoothly at half the foot amplitude (they never plant).
-	var hand_swing := sin(_walk_cycle * TAU) * amp * 0.5
-	if _hand_l != null:
-		_hand_l.position.z = hand_swing
-		_hand_l.position.y = bounce
-	if _hand_r != null:
-		_hand_r.position.z = -hand_swing
-		_hand_r.position.y = bounce
+		_head.rotation = Vector3(lean*.35,-wave*.018,wave*.01)
+		var pivot := Vector3(0,2.45,0)
+		_head.position = pivot+Vector3(wave*.02,bounce*.65,0)-_head.basis*pivot
+	if _hand_l != null: _hand_l.position = Vector3(0,bounce+.025, wave*amp*.75)
+	if _hand_r != null: _hand_r.position = Vector3(0,bounce+.025,-wave*amp*.75)
 
 
-## One foot's pose at cycle phase q ∈ [0, 1): first half = SWING (back → front
-## along local +Z with a sine lift arc), second half = PLANT (front → back,
-## flat on the ground). Local +Z is the dwarf's facing (GLB authoring frame).
 func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
-	if foot == null:
-		return
-	if q < 0.5:
-		var s := q / 0.5                                   # 0 → 1 across the swing
-		foot.position.z = lerpf(-amp, amp, s)
-		foot.position.y = sin(s * PI) * 0.10               # lift arc
+	if foot == null: return
+	var forward: float
+	var lift := 0.0
+	var pitch := 0.0
+	if q < .5:
+		var phase := q*2.0
+		forward = lerpf(-amp,amp,smoothstep(0.0,1.0,phase))
+		lift = sin(phase*PI)*_foot_lift
+		pitch = -sin(phase*TAU)*.15
 	else:
-		var s := (q - 0.5) / 0.5                           # 0 → 1 across the plant
-		foot.position.z = lerpf(amp, -amp, s)              # world-fixed vs moving body
-		foot.position.y = 0.0
+		forward = lerpf(amp,-amp,(q-.5)*2.0)
+	var pivot := Vector3(-.5 if foot==_foot_r else .5,0,.15)
+	foot.rotation.x = pitch
+	foot.position = pivot+Vector3(0,lift,forward)-Basis(Vector3.RIGHT,pitch)*pivot
 
 
 func _reset_part_offsets() -> void:
@@ -1897,33 +1987,6 @@ func _build_name_label() -> void:
 	add_child(label)
 
 
-## 💤 sleep indicator (Alen, 2026-08-07 — "the dwarves are just stuck doing
-## nothing" turned out to be the whole squad napping; make sleep readable at
-## a glance). Same billboard conventions as the name tag, but ALWAYS shown
-## while sleeping — independent of the DEV name-tag toggle, because it is
-## gameplay information, not debug info. Emoji renders via the same system
-## font fallback the dock's emoji buttons already rely on (doc 23).
-func _build_sleep_indicator() -> void:
-	var label := Label3D.new()
-	label.name = "SleepIndicator"
-	label.text = "💤"
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.fixed_size = true
-	label.pixel_size = 0.0009
-	label.font_size = 44
-	label.outline_size = 6
-	label.position = Vector3(0.35, 3.7, 0.0)   # beside the drooped head, below the name tag
-	label.visible = false
-	add_child(label)
-
-
-func _set_sleep_indicator_visible(show_indicator: bool) -> void:
-	var label := get_node_or_null("SleepIndicator")
-	if label != null:
-		(label as Label3D).visible = show_indicator
-
-
 func set_name_label_visible(show_label: bool) -> void:
 	var label := get_node_or_null("NameLabel")
 	if label != null:
@@ -1999,11 +2062,15 @@ func _idle_bob() -> void:
 
 
 func _exit_tree() -> void:
+	if _rest_behavior != null: _rest_behavior.cancel()
 	if _idle_behavior != null: _idle_behavior.cancel()
 	if _equipment != null: _equipment.release_reservation()
 
 
 # ── Slice culling hook (doc 11 Phase 5 pattern — DwarfDirector drives this) ───
 
+var _slice_y := 127
+
 func apply_slice(slice_y: int) -> void:
+	_slice_y = slice_y
 	visible = int(floor(global_position.y)) <= slice_y

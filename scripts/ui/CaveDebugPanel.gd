@@ -161,7 +161,7 @@ func _process(_delta: float) -> void:
 			var lines := PackedVector2Array()
 			var floor_y := float(cave["floor_y"]) + 1.03
 			for index: int in cave["columns"]:
-				var x := index / 1024
+				var x := index >> 10
 				var z := index % 1024
 				for edge in [[-1024, Vector3(x, floor_y, z), Vector3(x, floor_y, z + 1)],
 					[1024, Vector3(x + 1, floor_y, z), Vector3(x + 1, floor_y, z + 1)],

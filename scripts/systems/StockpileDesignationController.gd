@@ -523,6 +523,7 @@ func serialize_state() -> Dictionary:
 			})
 			stacks.back()["disallowed"] = bool(stack.get("disallowed", false))
 			if stack.has("instance_id"): stacks.back()["instance_id"] = stack.instance_id
+			stacks.back()["material_id"] = String(stack.get("material_id", ""))
 		saved_zones.append({
 			"id": zone_id,
 			"cells": cells,
@@ -561,10 +562,11 @@ func restore_state(state: Dictionary) -> void:
 					drop_manager.call("spawn_drop", item_key, count - kept, cell + Vector3i.UP)
 				count = kept
 			zone.cell_stacks[cell] = { "item": item_key, "count": count }
-			zone.cell_stacks[cell]["disallowed"] = bool(saved_stack.get("disallowed", false))
+			zone.cell_stacks[cell]["disallowed"] = false
 			if saved_stack.has("instance_id"): zone.cell_stacks[cell]["instance_id"] = saved_stack.instance_id
+			zone.cell_stacks[cell]["material_id"] = String(saved_stack.get("material_id", ""))
 			if drop_manager != null and drop_manager.has_method("restore_stored_item"):
-				drop_manager.call("restore_stored_item", item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)))
+				drop_manager.call("restore_stored_item", item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")))
 
 
 # ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────

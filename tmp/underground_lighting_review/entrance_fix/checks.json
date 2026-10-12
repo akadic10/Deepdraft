@@ -1,7 +1,7 @@
 {
   "allocated_tiles": 4,
   "failures": [],
-  "max_frame_work_ms": 2.612,
+  "max_frame_work_ms": 2.67,
   "measurements": {
     "current": {
       "chamber": 0.628718435764313,
@@ -9,8 +9,8 @@
       "outside": 0.826898813247681
     },
     "torches": {
-      "chamber": 0.153807781934738,
-      "deep": 0.0573401117324829,
+      "chamber": 0.15340533554554,
+      "deep": 0.0574522998929024,
       "outside": 0.818206310272217
     },
     "unlit": {

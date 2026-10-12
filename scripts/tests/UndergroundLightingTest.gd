@@ -73,8 +73,8 @@ func _run() -> void:
 	var rooms = root.get_node("RoomManager")
 	var first_door: Array[Vector3i] = [Vector3i(39,20,51), Vector3i(40,20,51)]
 	var second_door: Array[Vector3i] = [Vector3i(41,20,51), Vector3i(42,20,51)]
-	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {}, true)
-	rooms.on_furniture_changed(rooms.DOOR_KEY, second_door, {}, true)
+	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {"furniture_category":"door"}, true)
+	rooms.on_furniture_changed(rooms.DOOR_KEY, second_door, {"furniture_category":"door"}, true)
 	await _drain()
 	_expect(field.sky_at(Vector3i(40,22,49)) == 0, "installed doors block daylight without blocking navigation")
 	var restored_field = load("res://scripts/components/UndergroundLighting.gd").new()
@@ -82,13 +82,13 @@ func _run() -> void:
 	while restored_field.is_updating(): await process_frame
 	_expect(restored_field.sky_at(Vector3i(40,22,49)) == 0, "new lighting owner reads existing door boundaries")
 	restored_field.queue_free()
-	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {}, false)
+	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {"furniture_category":"door"}, false)
 	await process_frame
-	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {}, true)
+	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {"furniture_category":"door"}, true)
 	await _drain()
 	_expect(field.sky_at(Vector3i(40,22,49)) == 0, "door replacement during an update settles to closed")
-	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {}, false)
-	rooms.on_furniture_changed(rooms.DOOR_KEY, second_door, {}, false)
+	rooms.on_furniture_changed(rooms.DOOR_KEY, first_door, {"furniture_category":"door"}, false)
+	rooms.on_furniture_changed(rooms.DOOR_KEY, second_door, {"furniture_category":"door"}, false)
 	await _drain()
 	_expect(is_equal_approx(field.sky_at(Vector3i(40,22,49)),entrance_before), "uninstall restores daylight from the entrance")
 	# Source edits while a previous update is running must settle to current truth.

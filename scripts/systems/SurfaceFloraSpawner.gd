@@ -277,6 +277,9 @@ func _spawn_column(cx: int, cz: int) -> void:
 		for cell_z in range(cell_z_lo, cell_z_hi + 1):
 			var tree := _try_spawn_cell(cell_x, cell_z, size)
 			if tree != null:
+				# Jitter can move the tree into the next world chunk. Removal must
+				# still use the scatter-origin column that owns this node list.
+				tree.set_meta("stream_column",Vector2i(cx,cz))
 				nodes.append(tree)
 
 	_loaded_columns[Vector2i(cx, cz)] = nodes
@@ -846,8 +849,10 @@ func flight_obstacles(area: AABB) -> Array[AABB]:
 	var search := area.grow(_flight_tree_reach)
 	for x in range(maxi(0,floori(search.position.x/16)),mini(63,floori(search.end.x/16))+1):
 		for z in range(maxi(0,floori(search.position.z/16)),mini(63,floori(search.end.z/16))+1):
-			for node: Node3D in _loaded_columns.get(Vector2i(x,z),[]):
-				if not is_instance_valid(node): continue
+			# Keep the entry untyped until validity is checked: converting a freed
+			# Object to Node3D raises before the loop body can reject it.
+			for node in _loaded_columns.get(Vector2i(x,z),[]):
+				if not is_instance_valid(node) or node.is_queued_for_deletion(): continue
 				var id: Vector2i = node.get_meta("tree_id",Vector2i(-1,-1))
 				if not _trees.has(id) or bool(_tree_changes.get(id,{}).get("felled",false)): continue
 				var box: AABB = _trees[id].bounds
@@ -1269,7 +1274,7 @@ func _remove_tree_visual(tree_id: Vector2i) -> void:
 	_trees[tree_id]["node"] = null
 	if not is_instance_valid(node):
 		return
-	var column := Vector2i(tree_id.x >> 4, tree_id.y >> 4)
+	var column: Vector2i = node.get_meta("stream_column",Vector2i(tree_id.x >> 4, tree_id.y >> 4))
 	if _loaded_columns.has(column):
 		_loaded_columns[column].erase(node)
 	node.visible = false
@@ -1319,15 +1324,15 @@ func _update_felling_marker_positions() -> void:
 		marker.visible = not camera.is_position_behind(above)
 		if not marker.visible:
 			continue
-		var position := camera.unproject_position(above)
+		var screen_position := camera.unproject_position(above)
 		# Stay above the entire projected canopy, including the far top corner
 		# seen by an angled RTS camera, rather than drifting into its leaves.
 		for i in range(8):
 			var corner := bounds.get_endpoint(i)
 			if not camera.is_position_behind(corner):
-				position.y = minf(position.y, camera.unproject_position(corner).y - 6.0)
-		marker.visible = screen.has_point(position)
-		marker.position = position - Vector2(marker.size.x * .5, marker.size.y)
+				screen_position.y = minf(screen_position.y, camera.unproject_position(corner).y - 6.0)
+		marker.visible = screen.has_point(screen_position)
+		marker.position = screen_position - Vector2(marker.size.x * .5, marker.size.y)
 
 
 func _clear_felling_marker(tree_id: Vector2i) -> void:

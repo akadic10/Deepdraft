@@ -22,5 +22,5 @@ func advance_install(seconds: float) -> float:
 func work_surface() -> Vector3:
 	return Vector3(origin_cell) + Vector3(.5, 2.2, .5)
 
-func work_facing() -> Vector3i:
+func work_facing(_from: Vector3i) -> Vector3i:
 	return [Vector3i.FORWARD, Vector3i.LEFT, Vector3i.BACK, Vector3i.RIGHT][yaw_steps]

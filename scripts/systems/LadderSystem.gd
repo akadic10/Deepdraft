@@ -87,6 +87,9 @@ func describe(base: Vector3i, yaw: int, ignore := -1) -> Dictionary:
 			result.reason = "Another ladder occupies this space"
 			return result
 	var parent := get_parent()
+	if is_instance_valid(parent._bridges) and parent._bridges.reserves(area):
+		result.reason = "Keep the ladder clear of bridges and bridge plans"
+		return result
 	var plants := get_tree().get_first_node_in_group("surface_details")
 	if plants != null:
 		for x in range(base.x - 1, base.x + 2):
@@ -114,7 +117,7 @@ func describe(base: Vector3i, yaw: int, ignore := -1) -> Dictionary:
 func placement_reason(base: Vector3i, yaw: int) -> String:
 	var spec := describe(base, yaw)
 	if not String(spec.reason).is_empty(): return spec.reason
-	var available := int(get_parent().get_catalog_stock().get(KEY, {}).get("available", 0))
+	var available := int(get_parent().placement_available(KEY))
 	var required := sections(spec.height)
 	if available < required:
 		return "%d-block ladder · Needs %d sections · %d available · Craft %d more at the crude workbench" % [spec.height, required, available, required - available]
@@ -127,7 +130,7 @@ func place(base: Vector3i, yaw: int) -> int:
 	var id := _next_id
 	_next_id += 1
 	var route := {"id":id, "base":base, "yaw":yaw, "height":int(spec.height), "built":0,
-		"mode":"build", "progress":0.0, "source":null, "node":null}
+		"required_material_id":String(get_parent().material_choices.get(KEY, "")),"mode":"build", "progress":0.0, "source":null, "node":null, "materials":[]}
 	routes[id] = route
 	_refresh(route)
 	return id
@@ -165,7 +168,9 @@ func _process(delta: float) -> void:
 		if route.mode == "damaged":
 			if _safe_to_remove(route, -1):
 				var drops := get_tree().get_first_node_in_group("item_drop_manager")
-				if drops != null and route.built > 0: drops.spawn_drop(definition.item_key, sections(route.built), route.base + Vector3i.UP)
+				if drops != null:
+					for index in range(sections(route.built)):
+						drops.spawn_drop(definition.item_key, 1, route.base + Vector3i.UP, String(route.get("materials", [])[index]) if index < route.get("materials", []).size() else "")
 				_erase(route)
 			continue
 		if route.source == null: _make_source(route)
@@ -181,6 +186,7 @@ func _make_source(route: Dictionary) -> void:
 		source = BuildSource.new()
 		source.setup(route.id, KEY, definition, route.base + Vector3i.UP * int(route.built), route.yaw)
 		source.drop_manager = drops
+		source.required_material_id = String(route.get("required_material_id", ""))
 		source.build_valid_callback = func(_s): return routes.has(route.id) and route.mode == "build" and String(describe(route.base, route.yaw, route.id).reason).is_empty()
 		source.install_callback = func(_s): _installed(route)
 	elif route.mode == "remove" and route.built > 0:
@@ -199,6 +205,8 @@ func _make_source(route: Dictionary) -> void:
 	else: source.set_uninstall(true)
 
 func _installed(route: Dictionary) -> void:
+	if not route.has("materials"): route.materials = []
+	route.materials.append(route.source.material_id)
 	_retire(route, false)
 	route.built = mini(route.height, route.built + section_height())
 	route.progress = 0.0
@@ -206,11 +214,12 @@ func _installed(route: Dictionary) -> void:
 	_refresh(route)
 
 func _removed(route: Dictionary) -> void:
+	var material_id := String(route.materials.pop_back()) if not route.get("materials", []).is_empty() else ""
 	var origin: Vector3i = route.source.origin_cell
 	_retire(route, false)
 	route.built = maxi(0, (sections(route.built) - 1) * section_height())
 	route.progress = 0.0
-	get_tree().get_first_node_in_group("item_drop_manager").spawn_drop(definition.item_key, 1, origin + Vector3i.UP)
+	get_tree().get_first_node_in_group("item_drop_manager").spawn_drop(definition.item_key, 1, origin + Vector3i.UP, material_id)
 	if route.built == 0: _erase(route)
 	else: _refresh(route)
 
@@ -253,7 +262,7 @@ func _erase(route: Dictionary) -> void:
 	routes.erase(route.id)
 	get_parent()._mark_catalog_dirty()
 
-func make_visual(height: int, built: int, ghost_material: Material = null) -> Node3D:
+func make_visual(height: int, built: int, ghost_material: Material = null, materials: Array = []) -> Node3D:
 	var root_node := Node3D.new()
 	for offset in range(0, height, section_height()):
 		var packed: PackedScene = load(String(definition.ladder.models[str(section_height())]))
@@ -262,13 +271,16 @@ func make_visual(height: int, built: int, ghost_material: Material = null) -> No
 		root_node.add_child(mesh)
 		if offset >= built:
 			get_parent()._apply_material(mesh, ghost_material if ghost_material != null else get_parent()._make_ghost_material())
-		else: get_parent()._apply_material(mesh, get_parent()._make_solid_material())
+		else:
+			get_parent()._apply_material(mesh, get_parent()._make_solid_material())
+			var index := floori(float(offset) / section_height())
+			if index < materials.size(): CraftMaterials.apply_palette(mesh, definition, String(materials[index]))
 	return root_node
 
 func _rebuild_visual(route: Dictionary) -> void:
 	if is_instance_valid(route.node): route.node.queue_free()
 	var height: int = route.height if route.mode == "build" else route.built
-	route.node = make_visual(height, route.built)
+	route.node = make_visual(height, route.built, null, route.get("materials", []))
 	add_child(route.node)
 	route.node.position = Vector3(route.base) + Vector3(.5, 1, .5)
 	route.node.rotation.y = route.yaw * PI * .5
@@ -308,7 +320,7 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	if route.built > 0:
 		actions.append({"id":"pause" if route.mode == "remove" else "remove", "text":"Cancel dismantling" if route.mode == "remove" else "Dismantle and recover sections"})
 	return {"title":"Rough wooden ladder", "kind":"Access", "rows":[["Status",status[route.mode]],
-		["Height", "%d / %d blocks installed" % [route.built, route.height]], ["Sections", "%d installed · %d total" % [sections(route.built), sections(route.height)]]],
+		["Height", "%d / %d blocks installed" % [route.built, route.height]], ["Sections", "%d installed · %d total" % [sections(route.built), sections(route.height)]]] + _material_rows(route),
 		"details":"Workers carry each four-block section here and install it from below. Dismantling waits for climbers to leave and recovers one section at a time.", "actions":actions}
 
 func perform_explorer_action(id: Variant, action: String) -> void:
@@ -333,7 +345,7 @@ func serialize_state() -> Dictionary:
 	var entries: Array = []
 	for route: Dictionary in routes.values():
 		entries.append({"id":route.id, "key":KEY, "base":SaveManager.pack_v3i(route.base), "yaw":route.yaw,
-			"height":route.height, "built":route.built, "mode":route.mode, "progress":route.source.progress if route.source != null else route.progress})
+			"height":route.height, "built":route.built, "materials":route.get("materials", []).duplicate(), "required_material_id":String(route.get("required_material_id", "")),"mode":route.mode, "progress":route.source.progress if route.source != null else route.progress})
 	return {"routes":entries, "next_id":_next_id}
 
 func restore_state(state: Dictionary) -> void:
@@ -352,3 +364,12 @@ func restore_state(state: Dictionary) -> void:
 		routes[route.id] = route
 		_refresh(route)
 	_terrain_dirty = true
+
+func _material_rows(route: Dictionary) -> Array:
+	var names: Array[String] = []
+	var total := 0.0
+	for id: String in route.get("materials", []):
+		var label := CraftMaterials.material_name(id)
+		if label not in names: names.append(label)
+		total += float(CraftMaterials.appeal(definition, id).total)
+	return [["Materials", ", ".join(names)], ["Appeal", str(total)]] if not names.is_empty() else []

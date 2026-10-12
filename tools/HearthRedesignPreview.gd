@@ -52,8 +52,8 @@ func _show(mode: String,angle: String) -> void:
 	for label in _labels:
 		label.text = ""
 	_title.text = "DEEPDRAFT   /   HEARTH STUDY"
-	_subtitle.text = "Dressed stone bowl · recessed coals and iron grate · three uneven flame tips"
-	_footer.text = "8 voxels per block · New hearth: 2 × 2 footprint / 2 blocks tall · Original voxel size, rebuilt on a 16 × 16 grid"
+	_subtitle.text = "Rough fieldstones · exposed logs and coals · low open front"
+	_footer.text = "8 voxels per block · Rudimentary hearth: 2 × 2 footprint · Uneven stones up to ¾ block"
 	var target := Vector3(0,.75,0)
 	_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	_camera.size = 4.0
@@ -64,8 +64,8 @@ func _show(mode: String,angle: String) -> void:
 		_prop("res://models/hearth.glb",Vector3(1.8,0,0),25)
 		_camera.size = 7.4
 		yaw = 0
-		_labels[0].text = "SMALL PROTOTYPE / 1 × 1" if mode == "Comparison" else "ORIGINAL / 1 × 1"
-		_labels[1].text = "NEW HEARTH / 2 × 2"
+		_labels[0].text = "SMALL PROTOTYPE / 1 × 1" if mode == "Comparison" else "PREVIOUS HEARTH / 2 × 2"
+		_labels[1].text = "RUDIMENTARY HEARTH / 2 × 2"
 		_subtitle.text = "Small and large hearths · identical world scale, voxel size and lighting"
 	elif mode == "Dwarf scale":
 		_prop("res://reference/hearth_1x1.glb",Vector3(-2.1,0,.5),25)
@@ -92,7 +92,7 @@ func _show(mode: String,angle: String) -> void:
 		_subtitle.text = "2 × 2 hearth with current tavern furniture · actual asset sizes · RTS elevation 50°"
 	else:
 		_prop("res://models/hearth.glb",Vector3.ZERO)
-		_subtitle.text = "2 × 2 hearth · " + angle + " · stone rim 1 block / tallest flame 2 blocks"
+		_subtitle.text = "2 × 2 rudimentary hearth · " + angle + " · rough stones and exposed logs"
 	var dir := Vector3(sin(deg_to_rad(yaw))*cos(deg_to_rad(elevation)),sin(deg_to_rad(elevation)),cos(deg_to_rad(yaw))*cos(deg_to_rad(elevation)))
 	_camera.position = target+dir*15
 	_camera.look_at(target)

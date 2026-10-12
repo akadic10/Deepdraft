@@ -261,21 +261,33 @@ func _refresh_contents(held: Dictionary) -> void:
 	if held.is_empty():
 		_label(_contents, "This storage is empty.\nDwarves will bring the goods allowed by its filters.", 14, UITheme.TEXT_DIM)
 		return
-	for slot in storage.stored_entries():
-		var stack: Dictionary = storage.stored_entries()[slot]
+	# Derive a presentation view only; physical slots still own the inventory.
+	var grouped := {}
+	var entries: Array[Dictionary] = []
+	for stack: Dictionary in storage.stored_entries().values():
+		var key := String(stack.item)
+		var material_id := String(stack.get("material_id", ""))
+		if not grouped.has(key): grouped[key] = {}
+		if not grouped[key].has(material_id):
+			var entry := {"item": key, "material_id": material_id, "count": 0,
+				"name": CraftMaterials.product_name(_item_name(key), material_id)}
+			grouped[key][material_id] = entry
+			entries.append(entry)
+		grouped[key][material_id].count += int(stack.count)
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var order := String(a.name).naturalnocasecmp_to(String(b.name))
+		if order != 0: return order < 0
+		if a.item != b.item: return String(a.item) < String(b.item)
+		return String(a.material_id) < String(b.material_id))
+	for stack: Dictionary in entries:
 		var key := String(stack.item)
 		var row := HBoxContainer.new()
+		row.custom_minimum_size.y = 28
 		_contents.add_child(row)
-		var name_label := _label(row, _item_name(key), 14)
+		var name_label := _label(row, String(stack.name), 14)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var quantity := _label(row, "× %d" % int(stack.count), 14)
 		quantity.autowrap_mode = TextServer.AUTOWRAP_OFF
-		var toggle := _button(row, "Disallow" if storage.slot_allowed(slot) else "Allow")
-		toggle.icon = preload("res://assets/ui/icons/disallow.svg")
-		toggle.add_theme_constant_override("icon_max_width",18)
-		toggle.size_flags_horizontal = Control.SIZE_SHRINK_END
-		toggle.pressed.connect(func(): if storage != null: storage.set_disallowed(slot, storage.slot_allowed(slot)))
-		if not storage.slot_allowed(slot): _label(_contents, "Disallowed — kept here, unavailable for colony work", 12, UITheme.HEARTH_COPPER)
 		if not storage.accepts_key(key):
 			_label(_contents, "Awaiting relocation", 12, UITheme.HEARTH_COPPER)
 		_contents.add_child(HSeparator.new())
@@ -302,7 +314,7 @@ func _fit() -> void:
 	_grid.columns = 2 if custom_minimum_size.x < 360 else 3
 	window.custom_minimum_size.x = custom_minimum_size.x + 30
 	var fixed := window.get_combined_minimum_size().y - _scroll.custom_minimum_size.y
-	var max_scroll: float = 250.0 + (_filters.get_combined_minimum_size().y + 8 if _shown_tab == 1 else 0)
+	var max_scroll: float = 250.0 + (_filters.get_combined_minimum_size().y + 8 if _shown_tab == 1 else 0.0)
 	_scroll.custom_minimum_size.y = clampf(viewport.y - 100 - fixed, 100, max_scroll)
 	window.reset_size()
 	window.clamp_to_viewport()

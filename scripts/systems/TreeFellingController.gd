@@ -153,10 +153,10 @@ func _begin_drag(screen_pos: Vector2) -> void:
 	if _cancel_mode: return
 	_anchor = Vector3i(-1, -1, -1)
 	var camera := get_viewport().get_camera_3d()
-	var owner := _designation_owner()
-	if camera != null and owner != null:
+	var provider := _designation_owner()
+	if camera != null and provider != null:
 		var hit := Picking.terrain_hit(camera.project_ray_origin(screen_pos),
-			camera.project_ray_normal(screen_pos), int(owner.call("get_slice_y")))
+			camera.project_ray_normal(screen_pos), int(provider.call("get_slice_y")))
 		if not hit.is_empty():
 			_anchor = Vector3i(hit.x, hit.y, hit.z)
 
@@ -189,12 +189,13 @@ func _finish_drag(screen_pos: Vector2) -> void:
 	if _box_select:
 		_update_drag_preview()
 		var added: Array[Dictionary] = []
-		var owner := _designation_owner()
-		var candidates: Array = _preview_stones if _stone_mode else _preview_trees
+		var provider := _designation_owner()
+		var candidates: Array = _preview_trees
+		if _stone_mode: candidates = _preview_stones
 		for id in candidates:
-			var previous := _order_token(owner, id)
-			if _designate(owner, id) and previous == null:
-				added.append({"id": id, "source": _order_token(owner, id)})
+			var previous := _order_token(provider, id)
+			if _designate(provider, id) and previous == null:
+				added.append({"id": id, "source": _order_token(provider, id)})
 		if _stone_mode and _detail_tool == "harvest_plants":
 			for id: Vector2i in _preview_trees:
 				var previous := _order_token(_flora, id)
@@ -255,18 +256,18 @@ func _update_drag_preview(refresh_candidates: bool = true) -> void:
 
 
 func designate_at_screen(screen_pos: Vector2) -> bool:
-	var owner := _designation_owner()
-	if owner == null or _explorer == null:
+	var provider := _designation_owner()
+	if provider == null or _explorer == null:
 		return false
 	var hit := _explorer.pick_at_screen(screen_pos)
 	if not _accepts_hit(hit):
 		return false
-	owner = hit.provider
-	var previous := _order_token(owner, hit["id"])
-	if not _designate(owner, hit["id"]):
+	provider = hit.provider
+	var previous := _order_token(provider, hit["id"])
+	if not _designate(provider, hit["id"]):
 		return false
-	if previous == null: _emit_order([{"id": hit["id"], "source": _order_token(owner, hit["id"])}])
-	_explorer.select_object(owner, hit["id"])
+	if previous == null: _emit_order([{"id": hit["id"], "source": _order_token(provider, hit["id"])}])
+	_explorer.select_object(provider, hit["id"])
 	return true
 
 
@@ -291,20 +292,20 @@ func _process(delta: float) -> void:
 		_drag_screen = mouse
 		_update_cancel_preview()
 		_hover.visible = false
-		var bounds := AABB()
-		if not _preview_trees.is_empty(): bounds = _flora.get_explorer_bounds(_preview_trees[0])
-		elif not _preview_stones.is_empty(): bounds = _details.get_explorer_bounds(_preview_stones[0])
-		elif not _preview_mining.is_empty(): bounds = AABB(Vector3(_preview_mining[0]), Vector3.ONE)
-		if bounds.size != Vector3.ZERO:
+		var preview_bounds := AABB()
+		if not _preview_trees.is_empty(): preview_bounds = _flora.get_explorer_bounds(_preview_trees[0])
+		elif not _preview_stones.is_empty(): preview_bounds = _details.get_explorer_bounds(_preview_stones[0])
+		elif not _preview_mining.is_empty(): preview_bounds = AABB(Vector3(_preview_mining[0]), Vector3.ONE)
+		if preview_bounds.size != Vector3.ZERO:
 			_hover.visible = true
-			_hover.mesh = Picking.outline_mesh(bounds.grow(.12), UITheme.DANGER_RED)
+			_hover.mesh = Picking.outline_mesh(preview_bounds.grow(.12), UITheme.DANGER_RED)
 		return
 	var hit := _explorer.pick_at_screen(mouse)
 	if not _accepts_hit(hit):
 		_hover.visible = false
 		return
-	var owner: Node = hit.provider
-	var bounds: AABB = owner.get_explorer_bounds(hit["id"])
+	var provider: Node = hit.provider
+	var bounds: AABB = provider.get_explorer_bounds(hit["id"])
 	_hover.visible = bounds.size != Vector3.ZERO
 	if _hover.visible and bounds != _hover_bounds:
 		_hover_bounds = bounds
@@ -372,18 +373,18 @@ func _accepts_hit(hit: Dictionary) -> bool:
 	return hit.provider == _designation_owner() and (not _stone_mode or _details.accepts_tool(String(hit.id), _detail_tool))
 
 
-func _order_token(owner: Node, id: Variant) -> RefCounted:
-	return owner.call("get_clearing_order_token" if owner == _details else "get_felling_order_token", id)
+func _order_token(provider: Node, id: Variant) -> RefCounted:
+	return provider.call("get_clearing_order_token" if provider == _details else "get_felling_order_token", id)
 
 
-func _designate(owner: Node, id: Variant) -> bool:
-	if owner == _details: return bool(owner.call("designate_detail", String(id), _detail_tool))
+func _designate(provider: Node, id: Variant) -> bool:
+	if provider == _details: return bool(provider.call("designate_detail", String(id), _detail_tool))
 	if _stone_mode and _detail_tool == "harvest_plants": return _flora.designate_harvest(id)
-	return bool(owner.call("designate_felling", id))
+	return bool(provider.call("designate_felling", id))
 
 
-func _cancel_designation(owner: Node, id: Variant) -> void:
-	owner.call("cancel_clearing" if owner == _details else "cancel_felling", id)
+func _cancel_designation(provider: Node, id: Variant) -> void:
+	provider.call("cancel_clearing" if provider == _details else "cancel_felling", id)
 
 
 func _preview_count() -> int:
@@ -407,10 +408,10 @@ func _emit_order(objects: Array[Dictionary]) -> void:
 func _receipt_entries(receipt: Dictionary) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for key: String in ["trees", "stones"]:
-		var owner: Node = _flora if key == "trees" else _details
-		if owner == null: continue
+		var provider: Node = _flora if key == "trees" else _details
+		if provider == null: continue
 		for entry: Dictionary in receipt.get(key, []):
-			result.append({"owner": owner, "id": entry.id, "source": entry.source})
+			result.append({"owner": provider, "id": entry.id, "source": entry.source})
 	return result
 
 

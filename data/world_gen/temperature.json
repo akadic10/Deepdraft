@@ -1,0 +1,11 @@
+{
+  "rock_temperature_c": 10.0,
+  "seasonal_swing_c": 6.0,
+  "daily_swing_c": 2.0,
+  "sealed_exposure": 0.25,
+  "cover_damping_blocks": 16.0,
+  "minimum_heated_volume": 128.0,
+  "cold_below_c": 8.0,
+  "comfortable_min_c": 16.0,
+  "comfortable_max_c": 26.0
+}

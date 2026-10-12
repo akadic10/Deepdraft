@@ -19,6 +19,21 @@ highest terrain layer. An actual slice still hides birds and their wake/splash
 effects together. Cosmetic water effects remain outside animal picking bounds.
 See [111 — Ducks](../00_dev_roadmap/111_duck_wildlife.md).
 
+## Dwarf readability and firelight — updated 2026-10-11
+
+`DwarfReadability` adds a faint depth-tested silhouette only to portions covered
+by nearby actual terrain or the thin ladder slab. It samples bounded local cover
+at 5 Hz and shares each animated part's mesh/transform. The pass is disabled on
+open ground, omitted from portraits and inherits actor/slice visibility. Cover
+beyond 2.5 blocks fades out; the actor's own body never creates a cover region.
+Logical 1×1×3 navigation and physical terrain remain unchanged. Readability
+color/opacity/reach/timing are loaded by TaskManager from task_config.json.
+The depth reconstruction follows the native renderer's reverse-Z convention.
+
+Campfire and wall torch energy are 3.2 and log torch 2.6, twice their prior values;
+range and heat remain unchanged. Native mine, cover and bedroom captures/tests
+are documented in [120](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
+
 ## Reference
 
 All visual design decisions in this document are derived from analysis of **Stonehearth** (Radiant Entertainment) as the primary reference, specifically its fog system, sky settings, terrain slice view, and world-edge treatment.
@@ -190,6 +205,25 @@ omni lights through their shadows. The room selection keeps a volume outline
 and barely tinted floor rather than a bright unshaded shell. The Room inspector
 counts actual installed `light_source` definitions separately from heat units.
 SaveManager clears old room/door/heat/light registrations before furniture restore.
+
+**Thin-door face lighting (2026-10-11):** log door wood sits inside the full-block
+room seal. Sampling only 0.04 blocks along its normal incorrectly darkened both
+faces, including the outdoor face. Installed doors now carry a fixed world-space
+doorway plane and clear width as per-instance shader parameters. Faces within the
+seal sample the air cell on their own side; open leaves use their physical depth.
+Samples stay inside the clear width so nearby solid jambs cannot leak cut-plate
+daylight onto an indoor leaf. The plane stays fixed when hinges swing, supports
+all four placement rotations, and is recreated through normal furniture restore.
+The skylight flood, room seal, local omni lights and other world materials retain
+their existing rules. No lighting data is saved.
+
+`DoorLightingTest` reproduces the black outdoor pine door with the actual models
+and lighting field. Native pixel checks cover both faces of all three widths in
+four rotations, leaves at 45/90 degrees opening both ways, restored furniture and
+local firelight. The exterior matches a fully exposed reference; the unlit inner
+face remains dark. `UndergroundLightingTest`, `RoomLightingTest` (including scene
+fog and torch occlusion), and `LogFurnitureTest` also pass. Captures and reports:
+`tmp/door_lighting_20261011/`.
 
 **Room darkness / fog follow-up (2026-10-06):** scene fog was still blending sky
 colour into sealed rooms after the lighting shader ran. The earlier native room

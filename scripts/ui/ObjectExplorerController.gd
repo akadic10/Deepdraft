@@ -375,6 +375,21 @@ func _refresh(data: Dictionary) -> void:
 			_actions.remove_child(child)
 			child.queue_free()
 		for action: Dictionary in actions:
+			if action.has("options"):
+				var menu := MenuButton.new()
+				menu.text = String(action.text)
+				menu.flat = false
+				menu.custom_minimum_size.y = 30
+				menu.disabled = bool(action.get("disabled",false))
+				menu.theme = UITheme.shared_theme()
+				var popup := menu.get_popup()
+				for option: Dictionary in action.options:
+					popup.add_radio_check_item(String(option.text))
+					popup.set_item_metadata(popup.item_count-1,String(option.id))
+					popup.set_item_checked(popup.item_count-1,bool(option.get("selected",false)))
+				popup.id_pressed.connect(func(index: int): _perform_action(String(popup.get_item_metadata(index))))
+				_actions.add_child(menu)
+				continue
 			var button := UITheme.make_button(String(action["text"]), "", Vector2(0, 30), String(action.get("variant", "")))
 			if action.has("icon"):
 				button.icon = load(String(action.icon))

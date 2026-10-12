@@ -1,12 +1,12 @@
 {
   "__comment": [
-    "Worker-made wooden torch. Lower wooden mount fits a three-block-high starter tunnel.",
+    "Worker-made log torch. Lower wooden peg fits a three-block-high starter tunnel; the wooden_torch key stays stable.",
     "Always lit when installed; packed torches are unlit. No profession promotion or fuel system required."
   ],
   "furniture_key": "base:furniture:wooden_torch",
   "furniture_category": "lighting",
-  "display_name": "Wooden Torch",
-  "description": "A split-timber torch in a simple wooden fork. Warm light for the first mining tunnels.",
+  "display_name": "Log torch",
+  "description": "A charred branch bound with rough fibre and held by a wooden wall peg. A basic light for the first tunnels.",
   "model": "res://assets/models/furniture/wooden_torch.glb",
   "item_key": "base:resources:furniture:wooden_torch",
   "placement": "wall",
@@ -34,9 +34,10 @@
   },
   "light_source": {
     "color": "#FFC078",
-    "energy": 1.3,
-    "range": 6.0,
-    "attenuation": 1.2,
+    "energy": 2.6,
+    "range": 12.0,
+    "attenuation": 0.6,
+    "size": 0.25,
     "position": [
       0,
       1.1875,
@@ -75,6 +76,13 @@
     }
   },
   "heat_source": {
-    "heat_units": 150
+    "heat_units": 75
+  },
+  "fire_sound": "torch",
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 0.5,
+    "material_factor": 0.25
   }
 }

@@ -42,7 +42,7 @@ func candidate(key: String, definition: Dictionary, cell: Vector2i, flora: Node)
 	var h := hash_cell(_seed, cell.x, cell.y, int(definition.salt))
 	var span := size - inset * 2 - width + 1
 	var x := cell.x * size + inset + h % span
-	var z := cell.y * size + inset + (h / span) % span
+	var z := cell.y * size + inset + floori(float(h) / span) % span
 	var ring := int(pl.clear_ring)
 	if x - ring < 0 or z - ring < 0 or x + width + ring >= WorldData.WORLD_SIZE_X or z + width + ring >= WorldData.WORLD_SIZE_Z:
 		return _reject("edge")
@@ -135,11 +135,11 @@ func shore_info(origin: Vector3i, pl: Dictionary) -> Dictionary:
 
 func _cliff_distance(origin: Vector3i, width: int, pl: Dictionary) -> int:
 	var nearest := -1
-	var center := Vector2i(origin.x + width / 2, origin.z + width / 2)
+	var center := Vector2i(origin.x + floori(width / 2.0), origin.z + floori(width / 2.0))
 	for direction: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN,
 			Vector2i(-1,-1), Vector2i(-1,1), Vector2i(1,-1), Vector2i(1,1)]:
 		for distance in range(1, int(pl.cliff_radius) + 1):
-			var col := center + direction * (width / 2 + distance)
+			var col := center + direction * (floori(width / 2.0) + distance)
 			if col.x < 0 or col.y < 0 or col.x >= WorldData.WORLD_SIZE_X or col.y >= WorldData.WORLD_SIZE_Z: break
 			if WorldGenerator.get_waterline(col.x,col.y)>=0: break
 			var rise := WorldGenerator.get_surface_y(col.x, col.y) - origin.y

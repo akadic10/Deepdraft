@@ -71,7 +71,18 @@
       "res://assets/audio/wildlife/duck_splash_02.wav",
       "res://assets/audio/wildlife/duck_splash_03.wav"
     ],
+    "snore": [
+      "res://assets/audio/dwarves/snore_01.wav",
+      "res://assets/audio/dwarves/snore_02.wav",
+      "res://assets/audio/dwarves/snore_03.wav"
+    ],
     "profiles": {
+      "snore": {
+        "near_radius": 3.0, "far_radius": 22.0,
+        "zoom_reference": 18.0, "zoom_exponent": 1.5, "max_zoom": 60.0,
+        "level_db": -9.0, "cooldown_seconds": 1.0, "max_voices": 2,
+        "pause_with_simulation": true, "requires_sleep_pose": true
+      },
       "duck_splash": {
         "near_radius": 3.0,
         "far_radius": 26.0,
@@ -168,6 +179,27 @@
     "completion": {
       "lifetime": 0.48, "dust_count": 16, "chip_count": 7,
       "scale": 0.5, "spread": 0.65, "height": 0.45, "floor_offset": -0.42
+    }
+  },
+  "fire_ambience": {
+    "max_voices": 4,
+    "scan_seconds": 0.25,
+    "fade_seconds": 0.4,
+    "campfire": {
+      "stream": "res://assets/audio/ambience/campfire.wav",
+      "near_radius": 2,
+      "far_radius": 20,
+      "zoom_reference": 18,
+      "max_zoom": 56,
+      "level_db": -10
+    },
+    "torch": {
+      "stream": "res://assets/audio/ambience/torch.wav",
+      "near_radius": 1,
+      "far_radius": 12,
+      "zoom_reference": 16,
+      "max_zoom": 48,
+      "level_db": -15
     }
   }
 }

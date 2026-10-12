@@ -42,7 +42,7 @@ func hold_transform(entries: Array, index: int, bounce := 0.0) -> Transform3D:
 		for i in range(entries.size()):
 			widths[i % 2] = maxf(widths[i % 2], item_bounds(entries[i][0]).size.x)
 		x = (widths[1] + .025) * .5 if index % 2 == 0 else -(widths[0] + .025) * .5
-		for row in range(index / 2):
+		for row in range(index >> 1):
 			bottom += maxf(item_bounds(entries[row * 2][0]).size.y,
 				item_bounds(entries[row * 2 + 1][0]).size.y) + .025
 	var box := item_bounds(entries[index][0])

@@ -443,5 +443,5 @@ func _refresh_window() -> void:
 	if room.is_empty():
 		_close_window()
 		return
-	_window_panel.set_window_title("Room %d" % _selected_room_id)
+	_window_panel.set_window_title("%s %d" % [RoomManager.room_label(room),_selected_room_id])
 	_window_content.show_room(room)

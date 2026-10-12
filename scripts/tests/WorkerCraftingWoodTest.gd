@@ -115,6 +115,8 @@ func _test_wood_menu() -> void:
 	await _frames(3)
 	_expect(crafting.orders.size()==1 and crafting.orders[0].allowed_ingredients==[JUNIPER],"queue button copies selected wood onto the order")
 	var order = crafting.orders[0]
+	_click(panel._orders_tab.get_global_rect().get_center())
+	await _frames(3)
 	var row: Dictionary = panel._rows[order.id]
 	_click(row.wood.get_global_rect().get_center())
 	await _frames(2)
@@ -124,6 +126,8 @@ func _test_wood_menu() -> void:
 	row_popup.id_pressed.emit(_wood_index(row_popup,PINE))
 	_expect(order.allowed_ingredients==[PINE],"queued order can be edited through its own wood menu")
 	row_popup.hide()
+	_click(panel._recipes_tab.get_global_rect().get_center())
+	await _frames(3)
 	# Clearing the draft must disable submission, not mean 'any timber'.
 	panel._open_wood_menu(panel._wood,-1)
 	popup.id_pressed.emit(_wood_index(popup,JUNIPER))

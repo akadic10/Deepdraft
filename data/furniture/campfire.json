@@ -2,7 +2,7 @@
   "furniture_key": "base:furniture:campfire",
   "furniture_category": "lighting",
   "display_name": "Campfire",
-  "description": "A rough stone ring and split logs, centered in a 3 × 3 camp space. Warm, animated light for the first camp; always lit while installed.",
+  "description": "A rough stone ring and split logs, centered in a 3 Ã— 3 camp space. Warm, animated light for the first camp; always lit while installed.",
   "model": "res://assets/models/furniture/campfire.glb",
   "item_key": "base:resources:furniture:campfire",
   "placement": "floor",
@@ -32,12 +32,34 @@
   "room_anchor": false,
   "seating_focus": "fire",
   "seating_obstacles": [
-    {"min": [0.5, 0, 0.5], "max": [2.5, 0.375, 2.5]},
-    {"min": [1.0, 0.375, 1.0], "max": [2.0, 1.5, 2.0]}
+    {
+      "min": [
+        0.5,
+        0,
+        0.5
+      ],
+      "max": [
+        2.5,
+        0.375,
+        2.5
+      ]
+    },
+    {
+      "min": [
+        1.0,
+        0.375,
+        1.0
+      ],
+      "max": [
+        2.0,
+        1.5,
+        2.0
+      ]
+    }
   ],
   "light_source": {
     "color": "#FFC078",
-    "energy": 1.6,
+    "energy": 3.2,
     "range": 8.0,
     "attenuation": 1.2,
     "position": [
@@ -78,6 +100,13 @@
     }
   },
   "heat_source": {
-    "heat_units": 200
+    "heat_units": 900
+  },
+  "fire_sound": "campfire",
+  "material_group": "wood",
+  "material_palette": "camp_fire",
+  "appeal": {
+    "design": 3,
+    "material_factor": 0.25
   }
 }

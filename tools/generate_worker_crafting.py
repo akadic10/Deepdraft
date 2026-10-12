@@ -4,7 +4,7 @@ import math
 from pathlib import Path
 from voxel_glb import Voxels, write_glb
 from generate_tavern_redesign import box, export_mesh, OAK, rgb
-from generate_wall_torch import torch, write_parts
+from generate_wall_torch import write_parts
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "tmp/worker_crafting_review/art"
@@ -38,18 +38,8 @@ def bench():
     return vox
 
 def wooden_torch():
-    body = Voxels()
-    # A wooden rear peg and fork, with no iron plates, rivets or bands.
-    box(body,-1,1,0,7,0,1,OAK[1])
-    box(body,-1,1,2,4,1,4,OAK[2])
-    box(body,-1,1,2,8,3,5,OAK[2])
-    box(body,-1,0,3,6,4,5,OAK[4])
-    for x in (-2,1): box(body,x,x+1,3,5,3,5,OAK[1])
-    box(body,-1,1,6,8,3,5,rgb("302019"))
-    _, flame = torch()
-    # Keep the existing flame envelope/animation; only the mounting differs.
-    for cell in flame.cells: body.cells.pop(cell,None)
-    return body, flame
+    from generate_log_furniture import log_torch
+    return log_torch()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "windows": {
+    "room_inspector": {
+      "open": true,
+      "x": 1120.0,
+      "y": 29.0
+    },
+    "slice_palette": {
+      "open": true,
+      "x": 24.0,
+      "y": 84.0
+    }
+  }
+}

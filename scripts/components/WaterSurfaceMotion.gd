@@ -55,7 +55,7 @@ func _write(key: Vector3i) -> void:
 	if not slots.has(key): return
 	var index: int = slots[key]
 	var current := velocity(key)
-	image.set_pixel(index%WIDTH,index/WIDTH,Color(current.x,current.y,0,0))
+	image.set_pixel(index%WIDTH,floori(float(index)/WIDTH),Color(current.x,current.y,0,0))
 	dirty = true
 
 func upload() -> ImageTexture:

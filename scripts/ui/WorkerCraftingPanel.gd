@@ -12,7 +12,22 @@ var _crafters: Button
 var _section_note: Label
 var _planned_list: Label
 var _category_labels := {}
+var _category_groups := {}
 var _last_recipe := {}
+var _search: LineEdit
+var _recipe_scroll: ScrollContainer
+var _browser: VBoxContainer
+var _orders_view: VBoxContainer
+var _tabs: HBoxContainer
+var _recipes_tab: Button
+var _orders_tab: Button
+var _show_orders := false
+var _no_results: Label
+var _has_matches := true
+var _columns: HBoxContainer
+var _portrait: TextureRect
+var _summary: Label
+var _info_scroll: ScrollContainer
 var _controls: HBoxContainer
 var _recipes: VBoxContainer
 var _buttons := {}
@@ -42,7 +57,7 @@ func _ready() -> void:
 	UITheme.apply_surface(self)
 	for side in ["left","right","top","bottom"]: add_theme_constant_override("margin_"+side,10)
 	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation",10)
+	body.add_theme_constant_override("separation",8)
 	add_child(body)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation",12)
@@ -53,43 +68,114 @@ func _ready() -> void:
 	_section_note = _label("",13)
 	_section_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_section_note)
-	var columns := HBoxContainer.new()
-	columns.add_theme_constant_override("separation",12)
-	body.add_child(columns)
-	var recipe_scroll := ScrollContainer.new()
-	recipe_scroll.custom_minimum_size.x = 164
-	recipe_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	recipe_scroll.mouse_force_pass_scroll_events = false
-	columns.add_child(recipe_scroll)
+	_columns = HBoxContainer.new()
+	_columns.add_theme_constant_override("separation",12)
+	body.add_child(_columns)
+	var library := VBoxContainer.new()
+	library.custom_minimum_size.x = 300
+	library.add_theme_constant_override("separation",8)
+	_columns.add_child(library)
+	_browser = VBoxContainer.new()
+	_browser.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_browser.add_theme_constant_override("separation",8)
+	library.add_child(_browser)
+	_search = LineEdit.new()
+	_search.placeholder_text = "Search recipes or categories…"
+	_search.clear_button_enabled = true
+	_search.custom_minimum_size.y = 30
+	_search.add_theme_font_size_override("font_size",13)
+	_search.text_changed.connect(func(_text: String):
+		_recipe_scroll.scroll_vertical = 0
+		refresh())
+	_browser.add_child(_search)
+	_recipe_scroll = ScrollContainer.new()
+	_recipe_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_recipe_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_recipe_scroll.mouse_force_pass_scroll_events = false
+	_browser.add_child(_recipe_scroll)
 	_recipes = VBoxContainer.new()
-	_recipes.custom_minimum_size.x = 148
-	recipe_scroll.add_child(_recipes)
-	_recipes.add_child(_label("RECIPES",12))
+	_recipes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_recipes.add_theme_constant_override("separation",4)
+	_recipe_scroll.add_child(_recipes)
 	_planned_list = _label("",13)
-	_planned_list.custom_minimum_size.x = 148
 	_recipes.add_child(_planned_list)
+	_no_results = _label("No matching recipes.\nTry a name such as campfire or a category such as Access.",13)
+	_recipes.add_child(_no_results)
+	_orders_view = VBoxContainer.new()
+	_orders_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	library.add_child(_orders_view)
+	_queue_title = _label("Earlier orders are worked first.",12)
+	_orders_view.add_child(_queue_title)
+	_queue_scroll = ScrollContainer.new()
+	_queue_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_queue_scroll.mouse_force_pass_scroll_events = false
+	_queue_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_orders_view.add_child(_queue_scroll)
+	_queue = VBoxContainer.new()
+	_queue.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_queue.add_theme_constant_override("separation",8)
+	_queue_scroll.add_child(_queue)
+	_empty = _label("No orders yet.\nChoose a recipe, then queue a batch or set a stock target.",13)
+	_queue.add_child(_empty)
+	_tabs = HBoxContainer.new()
+	library.add_child(_tabs)
+	_recipes_tab = UITheme.make_button("Recipes","Browse crafting categories",Vector2(0,30))
+	_orders_tab = UITheme.make_button("Orders (0)","Manage this profession's crafting orders",Vector2(0,30))
+	var tab_group := ButtonGroup.new()
+	for tab in [_recipes_tab,_orders_tab]:
+		tab.toggle_mode = true
+		tab.button_group = tab_group
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_tabs.add_child(tab)
+	_recipes_tab.pressed.connect(_select_tab.bind(false))
+	_orders_tab.pressed.connect(_select_tab.bind(true))
 	_detail_scroll = ScrollContainer.new()
-	_detail_scroll.custom_minimum_size.x = 260
+	_detail_scroll.custom_minimum_size.x = 330
 	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_detail_scroll.mouse_force_pass_scroll_events = false
-	columns.add_child(_detail_scroll)
+	_columns.add_child(_detail_scroll)
 	var paper := PanelContainer.new()
 	paper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	paper.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	paper.add_theme_stylebox_override("panel",UITheme.catalog_paper_style(true))
 	_detail_scroll.add_child(paper)
 	var detail := VBoxContainer.new()
 	_detail = detail
-	detail.add_theme_constant_override("separation",10)
+	detail.add_theme_constant_override("separation",8)
 	paper.add_child(detail)
+	var identity := HBoxContainer.new()
+	detail.add_child(identity)
+	_portrait = TextureRect.new()
+	_portrait.custom_minimum_size = Vector2(88,88)
+	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	identity.add_child(_portrait)
+	var heading := VBoxContainer.new()
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity.add_child(heading)
 	_title = _label("",21,true,true)
-	detail.add_child(_title)
+	heading.add_child(_title)
+	_summary = _label("",12,false,true)
+	heading.add_child(_summary)
+	_info_scroll = ScrollContainer.new()
+	_info_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_info_scroll.custom_minimum_size.y = 60
+	_info_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_info_scroll.mouse_force_pass_scroll_events = false
+	detail.add_child(_info_scroll)
+	var information := VBoxContainer.new()
+	information.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	information.add_theme_constant_override("separation",8)
+	_info_scroll.add_child(information)
 	_description = _label("",13,false,true)
-	detail.add_child(_description)
+	information.add_child(_description)
 	_requirements = _label("",13,false,true)
-	detail.add_child(_requirements)
+	information.add_child(_requirements)
+	information.move_child(_requirements,0)
 	_purpose = _label("",12,false,true)
-	detail.add_child(_purpose)
+	information.add_child(_purpose)
 	_wood = _make_wood_menu()
 	detail.add_child(_wood)
 	_stock = _label("",13,false,true)
@@ -118,24 +204,6 @@ func _ready() -> void:
 	_place = UITheme.make_button("Place finished item", "Open placement for this recipe's finished goods",Vector2(0,30))
 	_place.pressed.connect(func(): place_requested.emit(String(controller.recipes[selected].furniture)))
 	detail.add_child(_place)
-	var queue_column := VBoxContainer.new()
-	queue_column.custom_minimum_size.x = 236
-	columns.add_child(queue_column)
-	_queue_title = _label("ORDERS",12)
-	queue_column.add_child(_queue_title)
-	_queue_scroll = ScrollContainer.new()
-	_queue_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_queue_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
-	_queue_scroll.mouse_force_pass_scroll_events = false
-	_queue_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	queue_column.add_child(_queue_scroll)
-	_queue = VBoxContainer.new()
-	_queue.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_queue.add_theme_constant_override("separation",8)
-	_queue_scroll.add_child(_queue)
-	_empty = _label("No orders yet.\n\nStart with a crude workbench, then place it from colony stores.",13)
-	_empty.custom_minimum_size.x = 212
-	_queue.add_child(_empty)
 	_hint = _label("Workers craft basic goods and starter tools at the crude workbench.",12)
 	body.add_child(_hint)
 	visibility_changed.connect(refresh)
@@ -147,39 +215,45 @@ func bind_controller(value: Node) -> void:
 	for recipe: Dictionary in controller.recipes.values():
 		var category := String(recipe.get("category","Recipes"))
 		if not _category_labels.has(category):
-			var heading := _label(category.to_upper(),12)
-			_recipes.add_child(heading)
+			var group := VBoxContainer.new()
+			group.add_theme_constant_override("separation",2)
+			_recipes.add_child(group)
+			var heading := _label(category,13)
+			heading.add_theme_color_override("font_color",UITheme.CATALOG_GOLD)
+			group.add_child(heading)
 			_category_labels[category] = heading
+			var icons := HFlowContainer.new()
+			icons.add_theme_constant_override("h_separation",6)
+			icons.add_theme_constant_override("v_separation",6)
+			group.add_child(icons)
+			_category_groups[category] = group
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(148,110)
+		button.name = String(recipe.id).get_slice(":",3).to_pascal_case()
+		button.custom_minimum_size = Vector2(44,44)
 		button.toggle_mode = true
 		button.add_theme_stylebox_override("normal",UITheme.catalog_item_style())
 		button.add_theme_stylebox_override("hover",UITheme.catalog_item_style(true))
 		button.add_theme_stylebox_override("pressed",UITheme.catalog_item_style(true))
-		button.text = String(recipe.name)
-		button.add_theme_font_size_override("font_size",13)
+		button.tooltip_text = "%s\n%s" % [recipe.name,recipe.description]
 		var furniture_key := String(recipe.get("furniture",""))
 		var path := Inventory.thumbnail_path(String(recipe.output)) if furniture_key.is_empty() else "res://assets/ui/furniture/%s.png" % furniture_key.get_slice(":",2)
 		if ResourceLoader.exists(path): button.icon = load(path)
+		else: button.text = String(recipe.name).left(3)
 		button.expand_icon = true
-		button.add_theme_constant_override("icon_max_width",104)
+		button.add_theme_constant_override("icon_max_width",32)
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 		button.pressed.connect(select_recipe.bind(String(recipe.id)))
-		_recipes.add_child(button)
+		_category_groups[category].get_child(1).add_child(button)
 		_buttons[String(recipe.id)] = button
-	# Keep each category together even if later content is appended to the data.
-	for category: String in _category_labels:
-		_recipes.move_child(_category_labels[category],_recipes.get_child_count()-1)
-		for recipe: Dictionary in controller.recipes.values():
-			if String(recipe.get("category","Recipes"))==category:
-				_recipes.move_child(_buttons[String(recipe.id)],_recipes.get_child_count()-1)
 	select_section("rudimentary")
 
 func select_section(key: String) -> void:
 	if controller == null or not controller.sections.has(key): return
 	if not selected.is_empty(): _last_recipe[section_id] = selected
 	section_id = key
+	_search.text = ""
+	_show_orders = false
 	selected = ""
 	if not bool(controller.sections[key].get("planned",false)):
 		for recipe: Dictionary in controller.recipes.values():
@@ -190,23 +264,61 @@ func select_section(key: String) -> void:
 			if not _draft_ingredients.has(selected):
 				_draft_ingredients[selected] = controller.allowed_ingredient_keys(controller.recipes[selected])
 	_detail_scroll.scroll_vertical = 0
+	_info_scroll.scroll_vertical = 0
 	refresh()
 	_fit.call_deferred()
-	if not selected.is_empty(): _recipes.get_parent().call_deferred("ensure_control_visible",_buttons[selected])
+	if not selected.is_empty(): _recipe_scroll.call_deferred("ensure_control_visible",_buttons[selected])
 
 func select_recipe(key: String) -> void:
 	if controller == null or not controller.recipes.has(key): return
 	var recipe_section := String(controller.recipes[key].get("section","rudimentary"))
 	if section_id != recipe_section: select_section(recipe_section)
+	if not _matches_search(controller.recipes[key]): _search.text = ""
 	selected = key
+	_last_recipe[section_id] = key
+	_show_orders = false
+	_info_scroll.scroll_vertical = 0
 	if not _draft_ingredients.has(key):
 		_draft_ingredients[key] = controller.allowed_ingredient_keys(controller.recipes[key])
 	refresh()
 	_fit.call_deferred()
-	_recipes.get_parent().call_deferred("ensure_control_visible",_buttons[key])
+	_recipe_scroll.call_deferred("ensure_control_visible",_buttons[key])
+
+func _select_tab(orders: bool) -> void:
+	_show_orders = orders
+	refresh()
+
+func _matches_search(recipe: Dictionary) -> bool:
+	var query := _search.text.strip_edges().to_lower()
+	return query.is_empty() or (String(recipe.name)+" "+String(recipe.get("category",""))).to_lower().contains(query)
+
+func _filter_recipes(planned: bool) -> void:
+	var matches: Array[String] = []
+	var categories: Array[String] = []
+	for id: String in _buttons:
+		var recipe: Dictionary = controller.recipes[id]
+		var shown := not planned and String(recipe.get("section","rudimentary"))==section_id and _matches_search(recipe)
+		_buttons[id].visible = shown
+		if shown:
+			matches.append(id)
+			var category := String(recipe.get("category","Recipes"))
+			if category not in categories: categories.append(category)
+	# Do not briefly hide visible groups on a stock update: that drops the
+	# keyboard focus from their recipe buttons and can shift the scroll position.
+	for category: String in _category_groups:
+		_category_groups[category].visible = category in categories
+	_has_matches = not matches.is_empty()
+	_no_results.visible = not planned and not _has_matches
+	if _has_matches and selected not in matches:
+		selected = matches.front()
+		_info_scroll.scroll_vertical = 0
+		if not _draft_ingredients.has(selected):
+			_draft_ingredients[selected] = controller.allowed_ingredient_keys(controller.recipes[selected])
+	for id: String in _buttons:
+		_buttons[id].set_pressed_no_signal(id==selected)
 
 func _queue_selected() -> void:
-	if selected.is_empty(): return
+	if selected.is_empty() or (not _has_matches and not _show_orders): return
 	_quantity.apply()
 	if _draft_ingredients[selected].is_empty(): return
 	controller.queue_order(selected,int(_quantity.value),_mode.selected == 1,_draft_ingredients[selected])
@@ -222,13 +334,19 @@ func refresh() -> void:
 	_hint.text = String(section.get("hint",""))
 	_planned_list.visible = planned
 	_planned_list.text = "PLANNED\n\n" + "\n\n".join(section.get("preview",[]))
-	for category: String in _category_labels: _category_labels[category].visible = false
-	for key: String in _buttons:
-		var shown := not planned and String(controller.recipes[key].get("section","rudimentary"))==section_id
-		_buttons[key].visible = shown
-		_buttons[key].set_pressed_no_signal(key == selected)
-		if shown: _category_labels[String(controller.recipes[key].get("category","Recipes"))].visible = true
-	for control in [_wood,_stock,_controls,_make]: control.visible = not planned and not selected.is_empty()
+	_filter_recipes(planned)
+	var has_recipe := not planned and not selected.is_empty() and (_has_matches or _show_orders)
+	_tabs.visible = not planned
+	_search.visible = not planned
+	_browser.visible = not _show_orders or planned
+	_orders_view.visible = _show_orders and not planned
+	_recipes_tab.set_pressed_no_signal(not _show_orders)
+	_orders_tab.set_pressed_no_signal(_show_orders)
+	_portrait.visible = has_recipe
+	_summary.visible = has_recipe
+	_description.visible = planned or get_viewport_rect().size.y >= 650
+	_requirements.visible = planned or has_recipe
+	for control in [_wood,_stock,_controls,_make]: control.visible = has_recipe
 	_refresh_orders(totals)
 	if planned:
 		_title.text = String(section.name) + " · " + String(section.get("status_label","Planned"))
@@ -238,28 +356,46 @@ func refresh() -> void:
 		_purpose.visible = true
 		_place.hide()
 		return
-	if selected.is_empty(): return
+	if not has_recipe:
+		_title.text = "No matching recipes"
+		_description.text = "Change or clear your search to browse this profession's recipes."
+		_description.show()
+		_purpose.hide()
+		_place.hide()
+		return
 	var recipe: Dictionary = controller.recipes[selected]
 	_title.text = String(recipe.name)
 	_description.text = String(recipe.description)
+	_portrait.texture = _buttons[selected].icon
+	_summary.text = "Makes %d · %.0f seconds" % [int(recipe.output_count),float(recipe.work_seconds)]
 	var bench := "No workbench needed" if String(recipe.workshop).is_empty() else "Requires a placed crude workbench"
 	var allowed: Array = _draft_ingredients[selected]
-	_requirements.text = "1 timber · %d allowed logs available\nMakes %d · %.0f seconds\n%s" % [controller.ingredient_available(recipe,totals,allowed),int(recipe.output_count),float(recipe.work_seconds),bench]
-	for key: String in controller.additional_ingredient_keys(recipe):
-		_requirements.text += "\n1 %s · %d available" % [controller.ingredient_label(key),int(totals.get(key,{}).get("available",0))]
+	_requirements.text = "%d timber · %d allowed logs available" % [int(recipe.ingredient_count),controller.ingredient_available(recipe,totals,allowed)]
+	if int(recipe.ingredient_count) > 1: _requirements.text += "\nAll logs must be the same wood."
+	var extra_counts := {}
+	for key: String in controller.additional_ingredient_keys(recipe): extra_counts[key] = int(extra_counts.get(key,0))+1
+	for key: String in extra_counts:
+		_requirements.text += "\n%d %s · %d available" % [int(extra_counts[key]),controller.ingredient_label(key),int(totals.get(key,{}).get("available",0))]
+	_requirements.text += "\n"+bench
 	_purpose.text = String(recipe.get("purpose_short",recipe.get("purpose","")) if get_viewport_rect().size.y < 650 else recipe.get("purpose",""))
+	var output_def: Dictionary = controller.items.get_item_def(String(recipe.output))
+	if output_def.has("appeal") and not allowed.is_empty():
+		var scores: Array[float] = []
+		for key: String in allowed: scores.append(float(CraftMaterials.appeal(output_def, CraftMaterials.from_ingredient(key)).total))
+		if not _purpose.text.is_empty(): _purpose.text += "\n"
+		_purpose.text += "Appeal when installed: %s" % (str(scores.min()) if scores.min() == scores.max() else "%s–%s, depending on wood" % [str(scores.min()), str(scores.max())])
 	_purpose.visible = not _purpose.text.is_empty()
 	_update_wood_menu(_wood,allowed,totals,true)
-	var ready := int(totals.get(String(recipe.output),{}).get("available",0))
+	var stock_count := int(totals.get(String(recipe.output),{}).get("available",0))
 	var placeable := not String(recipe.get("furniture", "")).is_empty()
-	_stock.text = "%d ready to place" % ready if placeable else "%d available in colony stores" % ready
+	_stock.text = "%d ready to place" % stock_count if placeable else "%d available in colony stores" % stock_count
 	var amount := int(_quantity.value)
 	var output_count := amount*int(recipe.output_count)
 	var output_name := String(recipe.name).to_lower() if output_count==1 else String(recipe.get("output_plural",recipe.name))
 	_make.text = "Queue %d %s" % [output_count,output_name] if _mode.selected==0 else "Keep %d in stock" % amount
 	_make.disabled = allowed.is_empty() or controller.orders.size() >= controller.max_orders
-	_make.tooltip_text = "The order waits if materials or a workbench are missing." if _mode.selected==0 else "Replenish spare items in batches of %d. Installed and reserved items do not count." % int(recipe.output_count)
-	_place.disabled = ready < 1
+	_make.tooltip_text = "The order waits if materials or a workbench are missing." if _mode.selected==0 else "Replenish items made from the allowed wood, in batches of %d. Installed and reserved items do not count." % int(recipe.output_count)
+	_place.disabled = stock_count < 1
 	_place.visible = placeable
 
 func _refresh_orders(totals: Dictionary) -> void:
@@ -284,8 +420,7 @@ func _refresh_orders(totals: Dictionary) -> void:
 		row.up.disabled = ids.front()==order.id or order.worker_id>=0
 		row.down.disabled = ids.back()==order.id or order.worker_id>=0
 	_empty.visible = ids.is_empty()
-	_empty.text = "Orders will appear here when this profession's crafting is available." if bool(controller.sections[section_id].get("planned",false)) else "No orders yet.\n\nStart with a crude workbench, then place it from colony stores."
-	_queue_title.text = "ORDERS (%d)" % ids.size()
+	_orders_tab.text = "Orders (%d)" % ids.size()
 
 func _add_order(id: int) -> void:
 	var panel := PanelContainer.new()
@@ -385,11 +520,14 @@ func _fit() -> void:
 	var viewport := get_viewport_rect().size
 	var compact := viewport.y < 650
 	_hint.visible = not compact
-	_description.visible = not compact
-	_detail.add_theme_constant_override("separation",4 if compact else 10)
+	_detail.add_theme_constant_override("separation",4 if compact else 8)
 	_title.add_theme_font_size_override("font_size",18 if compact else 21)
-	custom_minimum_size.x = minf(790,viewport.x-48)
-	_detail_scroll.custom_minimum_size.y = clampf(_dock_top-112,280,425)
+	_portrait.custom_minimum_size = Vector2(60,60) if compact else Vector2(88,88)
+	for button: Button in _buttons.values():
+		button.custom_minimum_size = Vector2(40,40) if compact else Vector2(44,44)
+		button.add_theme_constant_override("icon_max_width",28 if compact else 32)
+	custom_minimum_size.x = minf(700,viewport.x-48)
+	_columns.custom_minimum_size.y = clampf(_dock_top-112,300,450)
 	window.reset_size()
 	window.clamp_to_viewport()
 	refresh()
@@ -414,11 +552,11 @@ func _clamp_above_dock() -> void:
 	if window == null: return
 	window.position.y = minf(window.position.y,maxf(4,_dock_top-8-window.size.y))
 
-func _label(value: String, size: int, heading := false, paper := false) -> Label:
+func _label(value: String, font_size: int, heading := false, paper := false) -> Label:
 	var label := Label.new()
 	label.text = value
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size",size)
-	if heading: UITheme.apply_title(label,size)
+	label.add_theme_font_size_override("font_size",font_size)
+	if heading: UITheme.apply_title(label,font_size)
 	if paper: label.add_theme_color_override("font_color",UITheme.CATALOG_INK)
 	return label

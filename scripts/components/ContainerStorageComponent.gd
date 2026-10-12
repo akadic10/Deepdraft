@@ -31,7 +31,7 @@ var anchor_scale: float = 0.5        # maximum display scale; optional slot boun
 var anchor_max_size := Vector3.ZERO # optional per-slot envelope; zero keeps legacy sizing
 
 var _slots = preload("res://scripts/components/StorageStackSlots.gd").new()
-var _reserved_slots: int:
+var reserved_slot_count: int:
 	get:
 		return _slots.reservations.size()
 var _anchor_slots: Array = []        # per-anchor: null | [node: Node3D, item_key: String]
@@ -70,16 +70,14 @@ func restore_inventory(saved: Dictionary, item_manager: Node, instances: Array =
 		var amount := int(entry.count)
 		if int(remaining_counts.get(key, 0)) < amount: continue
 		remaining_counts[key] = int(remaining_counts[key]) - amount
-		var token = _slots.reserve(key, amount, -1, Vector3i.ZERO, true)
+		var token = _slots.reserve(key, amount, -1, Vector3i.ZERO, true, String(entry.get("material_id", "")))
 		if token == null:
-			item_manager.restore_loose_item(key, Vector3(cells[0]) + Vector3(.5,1,.5), 0.0, amount, String(entry.get("instance_id", "")), bool(entry.get("disallowed", false)))
+			item_manager.restore_loose_item(key, Vector3(cells[0]) + Vector3(.5,1,.5), 0.0, amount, String(entry.get("instance_id", "")), bool(entry.get("disallowed", false)), String(entry.get("material_id", "")))
 			continue
 		if entry.has("instance_id"): token["instance_id"] = entry.instance_id
-		token["disallowed"] = bool(entry.get("disallowed", false))
 		_commit_one(token, key)
 		if render_contents:
-			var visual: Node3D = item_manager.create_item_visual(key, amount, String(entry.get("instance_id", "")))
-			visual.set_meta("disallowed", bool(entry.get("disallowed", false)))
+			var visual: Node3D = item_manager.create_item_visual(key, amount, String(entry.get("instance_id", "")), String(entry.get("material_id", "")))
 			_place_visual(visual, token)
 	for item_key in remaining_counts:
 		var remaining := maxi(int(remaining_counts[item_key]), 0)
@@ -114,10 +112,10 @@ func _has_room_for_key(key: String) -> bool:
 	return not suspended and _slots.has_room(key)
 
 
-func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1) -> Variant:
+func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "") -> Variant:
 	if suspended or not accepts_key(item_key):
 		return null
-	return _slots.reserve(item_key, amount, dwarf_id, near)
+	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id)
 
 
 func _release_deposit(token: Variant) -> void:
@@ -183,6 +181,7 @@ func _place_visual(node: Node3D, token: Variant) -> void:
 	ITEM_LAYOUT.fit(node, anchor_max_size, anchor_scale)
 	node.visible = true
 	node.set_meta("stored", true)
+	node.set_meta("disallowed", false)
 	_anchor_slots[slot] = [node, key]
 
 
@@ -257,7 +256,7 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	var stand := withdrawal_item_cell(slot)
 	if stand.x < 0:
 		return null
-	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id, String(stack.get("instance_id", "")))
+	var node: Node3D = drop_manager.call("spawn_reserved", item_key, stand, dwarf_id, String(stack.get("instance_id", "")), String(stack.get("material_id", "")))
 	if node == null:
 		return null
 	drop_manager.set_quantity(node, amount)
@@ -297,7 +296,7 @@ func dump_contents(at_cell: Vector3i) -> int:
 			_anchor_slots[i] = null
 	var dumped := 0
 	for stack: Dictionary in _slots.entries.values():
-		drop_manager.restore_loose_item(String(stack.item), Vector3(at_cell)+Vector3(.5,1,.5), 0.0, int(stack.count), String(stack.get("instance_id", "")), bool(stack.get("disallowed", false)))
+		drop_manager.restore_loose_item(String(stack.item), Vector3(at_cell)+Vector3(.5,1,.5), 0.0, int(stack.count), String(stack.get("instance_id", "")), bool(stack.get("disallowed", false)), String(stack.get("material_id", "")))
 		if changed_callback.is_valid(): changed_callback.call(String(stack.item), -int(stack.count))
 		dumped += int(stack.count)
 	inventory.clear()

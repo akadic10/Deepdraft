@@ -1,50 +1,233 @@
 {
   "__comment": "Place catalog presentation. Definitions and real stock come from FurniturePlacementController; Worker crafting counts come from CraftingManager.",
   "categories": [
-    {"id": "all", "label": "All"},
-    {"id": "dining", "label": "Dining"},
-    {"id": "storage", "label": "Storage"},
-    {"id": "lighting", "label": "Lighting"},
-    {"id": "rooms", "label": "Rooms"},
-    {"id": "workshops", "label": "Workshops"},
-    {"id": "plants", "label": "Plants"},
-    {"id": "access", "label": "Access"},
-    {"id": "water", "label": "Water"}
+    {
+      "id": "all",
+      "label": "All"
+    },
+    {
+      "id": "dining",
+      "label": "Dining"
+    },
+    {
+      "id": "storage",
+      "label": "Storage"
+    },
+    {
+      "id": "lighting",
+      "label": "Lighting"
+    },
+    {
+      "id": "rooms",
+      "label": "Rooms"
+    },
+    {
+      "id": "workshops",
+      "label": "Workshops"
+    },
+    {
+      "id": "plants",
+      "label": "Plants"
+    },
+    {
+      "id": "access",
+      "label": "Access"
+    },
+    {
+      "id": "water",
+      "label": "Water"
+    }
   ],
   "items": [
-    {"key": "base:furniture:wooden_table", "category": "dining", "label": "Personal table"},
-    {"key": "base:furniture:wooden_chair", "category": "dining", "label": "Wooden chair"},
-    {"key": "base:furniture:log_chair", "category": "dining", "label": "Log stool"},
-    {"key": "base:furniture:communal_table", "category": "dining", "label": "Communal table"},
-    {"key": "base:furniture:bench", "category": "dining", "label": "Bench"},
-    {"key": "base:furniture:tavern_bar", "category": "dining", "label": "Tavern bar"},
-    {"key": "base:furniture:barrel", "category": "storage", "label": "Barrel"},
-    {"key": "base:furniture:storage_chest", "category": "storage", "label": "Storage chest"},
-    {"key": "base:furniture:storage_shelf", "category": "storage", "label": "Storage shelf"},
-    {"key": "base:furniture:wooden_torch", "category": "lighting", "label": "Wooden torch"},
-    {"key": "base:furniture:campfire", "category": "lighting", "label": "Campfire"},
-    {"key": "base:furniture:wall_torch", "category": "lighting", "label": "Wall torch"},
-    {"key": "base:furniture:brazier", "category": "lighting", "label": "Brazier"},
-    {"key": "base:furniture:door", "category": "rooms", "label": "Wooden door"},
-    {"key": "base:furniture:dwarf_bunk", "category": "rooms", "label": "Dwarven bed"},
-    {"key": "base:furniture:hearth", "category": "rooms", "label": "Stone hearth"},
-    {"key": "base:furniture:trade_counter", "category": "workshops", "label": "Trade counter"},
-    {"key": "base:furniture:brewing_vat", "category": "workshops", "label": "Brewing vat"},
-    {"key": "base:furniture:crude_workbench", "category": "workshops", "label": "Crude workbench"},
-    {"key": "base:furniture:anvil", "category": "workshops", "label": "Anvil"},
-    {"key": "base:furniture:smelter", "category": "workshops", "label": "Smelter"},
-    {"key": "base:furniture:aging_rack", "category": "workshops", "label": "Aging rack"},
-    {"key": "base:flora:blueberry_bush", "category": "plants", "label": "Blueberry bush"},
-    {"key": "base:flora:elderberry_bush", "category": "plants", "label": "Elderberry bush"},
-    {"key": "base:flora:wild_strawberry_bush", "category": "plants", "label": "Wild strawberry"},
-    {"key": "base:flora:blueberry_cutting", "category": "plants", "label": "Blueberry cutting"},
-    {"key": "base:flora:elderberry_cutting", "category": "plants", "label": "Elderberry cutting"},
-    {"key": "base:flora:wild_strawberry_cutting", "category": "plants", "label": "Strawberry cutting"},
-    {"key": "base:detail:flowers_1", "category": "plants", "label": "Wildflowers Â· cream"},
-    {"key": "base:detail:flowers_2", "category": "plants", "label": "Wildflowers Â· heather"},
-    {"key": "base:detail:flowers_3", "category": "plants", "label": "Wildflowers Â· gold"},
-    {"key": "base:furniture:crude_ladder", "category": "access", "label": "Rough wooden ladder"},
-    {"key": "base:water:wet_stone", "category": "water", "label": "Wet stone"},
-    {"key": "base:water:dry_stone", "category": "water", "label": "Dry stone"}
+    {
+      "key": "base:furniture:wooden_table",
+      "category": "dining",
+      "label": "Personal table"
+    },
+    {
+      "key": "base:furniture:wooden_chair",
+      "category": "dining",
+      "label": "Wooden chair"
+    },
+    {
+      "key": "base:furniture:log_chair",
+      "category": "dining",
+      "label": "Log stool"
+    },
+    {
+      "key": "base:furniture:communal_table",
+      "category": "dining",
+      "label": "Communal table"
+    },
+    {
+      "key": "base:furniture:bench",
+      "category": "dining",
+      "label": "Log bench"
+    },
+    {
+      "key": "base:furniture:tavern_bar",
+      "category": "dining",
+      "label": "Tavern bar"
+    },
+    {
+      "key": "base:furniture:barrel",
+      "category": "storage",
+      "label": "Barrel"
+    },
+    {
+      "key": "base:furniture:storage_chest",
+      "category": "storage",
+      "label": "Storage chest"
+    },
+    {
+      "key": "base:furniture:storage_shelf",
+      "category": "storage",
+      "label": "Storage shelf"
+    },
+    {
+      "key": "base:furniture:wooden_torch",
+      "category": "lighting",
+      "label": "Log torch"
+    },
+    {
+      "key": "base:furniture:campfire",
+      "category": "lighting",
+      "label": "Campfire"
+    },
+    {
+      "key": "base:furniture:wall_torch",
+      "category": "lighting",
+      "label": "Wall torch"
+    },
+    {
+      "key": "base:furniture:brazier",
+      "category": "lighting",
+      "label": "Brazier"
+    },
+    {
+      "key": "base:furniture:door",
+      "category": "rooms",
+      "label": "Log door (2 wide)"
+    },
+    {
+      "key": "base:furniture:log_door_3",
+      "category": "rooms",
+      "label": "Log door (3 wide)"
+    },
+    {
+      "key": "base:furniture:log_door_4",
+      "category": "rooms",
+      "label": "Double log door (4 wide)"
+    },
+    {
+      "key": "base:furniture:dwarf_bunk",
+      "category": "rooms",
+      "label": "Dwarven bed"
+    },
+    {
+      "key": "base:furniture:hearth",
+      "category": "rooms",
+      "label": "Rudimentary hearth"
+    },
+    {
+      "key": "base:furniture:trade_counter",
+      "category": "workshops",
+      "label": "Trade counter"
+    },
+    {
+      "key": "base:furniture:brewing_vat",
+      "category": "workshops",
+      "label": "Brewing vat"
+    },
+    {
+      "key": "base:furniture:crude_workbench",
+      "category": "workshops",
+      "label": "Crude workbench"
+    },
+    {
+      "key": "base:furniture:anvil",
+      "category": "workshops",
+      "label": "Anvil"
+    },
+    {
+      "key": "base:furniture:smelter",
+      "category": "workshops",
+      "label": "Smelter"
+    },
+    {
+      "key": "base:furniture:aging_rack",
+      "category": "workshops",
+      "label": "Aging rack"
+    },
+    {
+      "key": "base:flora:blueberry_bush",
+      "category": "plants",
+      "label": "Blueberry bush"
+    },
+    {
+      "key": "base:flora:elderberry_bush",
+      "category": "plants",
+      "label": "Elderberry bush"
+    },
+    {
+      "key": "base:flora:wild_strawberry_bush",
+      "category": "plants",
+      "label": "Wild strawberry"
+    },
+    {
+      "key": "base:flora:blueberry_cutting",
+      "category": "plants",
+      "label": "Blueberry cutting"
+    },
+    {
+      "key": "base:flora:elderberry_cutting",
+      "category": "plants",
+      "label": "Elderberry cutting"
+    },
+    {
+      "key": "base:flora:wild_strawberry_cutting",
+      "category": "plants",
+      "label": "Strawberry cutting"
+    },
+    {
+      "key": "base:detail:flowers_1",
+      "category": "plants",
+      "label": "Wildflowers \u00c2\u00b7 cream"
+    },
+    {
+      "key": "base:detail:flowers_2",
+      "category": "plants",
+      "label": "Wildflowers \u00c2\u00b7 heather"
+    },
+    {
+      "key": "base:detail:flowers_3",
+      "category": "plants",
+      "label": "Wildflowers \u00c2\u00b7 gold"
+    },
+    {
+      "key": "base:furniture:crude_ladder",
+      "category": "access",
+      "label": "Rough wooden ladder"
+    },
+    {
+      "key": "base:furniture:log_bridge",
+      "category": "access",
+      "label": "Log bridge"
+    },
+    {
+      "key": "base:water:wet_stone",
+      "category": "water",
+      "label": "Wet stone"
+    },
+    {
+      "key": "base:water:dry_stone",
+      "category": "water",
+      "label": "Dry stone"
+    },
+    {
+      "key": "base:furniture:log_bed",
+      "category": "rooms",
+      "label": "Log bed"
+    }
   ]
 }

@@ -79,6 +79,7 @@ func _run() -> void:
 	_expect(await _until_condition(func(): return ladders.routes[id].built == 12), "tall ladder completes after interruption")
 	_check_visible_height(id, 12)
 	_expect(_count(SECTION) == 0 and not nav.find_path(base, upper).is_empty(), "completed route consumes exactly three sections and connects the top")
+	_expect(ladders.routes[id].materials == ["base:material:pine", "base:material:pine", "base:material:pine"], "each paid ladder section keeps its wood")
 	# Real haul across the cliff into ground storage at the top.
 	zone._cell_set.clear()
 	var storage_cells: Array[Vector3i] = [Vector3i(48,32,44)]
@@ -137,6 +138,7 @@ func _run() -> void:
 	ladders._process(.25)
 	_expect(await _until_condition(func(): return not ladders.routes.has(id) and nav.is_walkable(worker.current_cell())), "support loss evacuates occupant to surviving floor")
 	_expect(_count(SECTION) == 3, "support loss conserves installed sections")
+	_expect(drops.get_inventory_items().loose.filter(func(entry): return entry.key == SECTION).all(func(entry): return entry.node.get_meta("material_id", "") == "base:material:pine"), "support loss refunds each section with material")
 	_finish()
 
 func _check_section_heights() -> void:

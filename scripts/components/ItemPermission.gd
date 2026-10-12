@@ -1,12 +1,9 @@
 extends RefCounted
 
-## Permission travels with the physical item/stack, independently of ownership,
-## reservation and water activity. Default goods are available to the colony.
+## Permission travels with loose or carried goods, independently of reservation
+## and water activity. Accepted storage goods are always colony stock.
 static func allowed(node: Node) -> bool:
 	return is_instance_valid(node) and not bool(node.get_meta("disallowed", false))
-
-static func stack_allowed(stack: Dictionary) -> bool:
-	return not bool(stack.get("disallowed", false))
 
 static func action(disallowed: bool) -> Dictionary:
 	return {"id":"permission", "text":"Allow" if disallowed else "Disallow",

@@ -1,299 +1,92 @@
-# 34 — Temperature System
+# 34 — Temperature and room comfort
 
-> **STATUS (updated 2026-08-07, doc 22 close-out): sealed-room detection + the temperature
-> formula are IMPLEMENTED**, in `scripts/systems/RoomManager.gd` (new autoload). Flood-fill
-> from door cells, the depth/heat/seasonal/daily formula below (ported verbatim),
-> heat-source aggregation from installed furniture (`hearth.json`'s
-> `heat_source.heat_units`), and the recalculation triggers in this doc are all live.
-> **2026-10-02:** wall torches now supply 200 heat units and warm local lighting
-> ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)). Sources sharing
-> a floor anchor sum their heat; removing one preserves the others.
-> **The inspect-panel UI shipped 2026-08-07 (v1):** the **Block Inspector** (🔍) is the
-> doc 34 inspect panel — hovering any block adjacent to a sealed room's interior appends
-> the room block (Sealed/Frozen Vault + zone name, temp °C, volume, heat units + bonus °C,
-> door count, seasonal influence %) via `WorldRenderer._room_inspect_lines()` querying
-> `RoomManager.get_room_at()`. **Verified in-engine 2026-08-14** (doc 22 Addendum 8):
-> detection, overlay, room readout, and hearth heat all confirmed on a real mined room —
-> the observed 9.2°C matched this doc's formula (base ≈2.5°C at mean floor Y 44, +6.25°C
-> from 400 heat units / 64 blocks, seasonal 31%). A short remainder (seal-break,
-> save/reload, large-cavern false-positive checks) is listed in doc 22 Addendum 8.
-> **Still NOT implemented:** the Aging Cellar and Food Preservation
-> hooks below (neither consuming system exists in code yet — `RoomManager` exposes
-> `get_room_at(cell) -> Dictionary` with `temp_c` for whenever they land), the aging-recipe
-> gray-out strings in the UI section (no aging cellar exists), and everything in *Forward
-> Compatibility Notes* at the end of this doc.
+Updated 2026-10-11. [Milestone 122](../00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md)
+replaces the original absolute-Y cold gradient with sheltered rock temperature,
+early hearth crafting and actual sleep discomfort.
 
-## Overview
+## Ownership and room detection
 
-Underground temperature is a passive environmental property derived from depth. The colony is situated in a **high, cold mountain range** — even shallow caves are cool, and deep excavations reach well below freezing without any special biome conditions. Temperature stays broadly stable across seasons underground, but shallow rooms feel a gentle seasonal and daily breathing that fades to nothing by mid-depth.
+RoomManager is the authoritative autoload for sealed rooms, temperature, beds,
+owner and installed light/heat counts. Rooms are derived state, rebuilt from
+terrain and furniture on load. No separate room records are saved.
 
-Sealed rooms lock in the ambient temperature at the depth they are built. Heat sources (torches, braziers) can raise a room's temperature. **There is no cooling mechanic** — the only way to lower a room's temperature is to build deeper.
+Each door footprint seals four air cells above its floor, independently of its
+hinge animation. Flood fills begin on both sides of each door. A finite air
+volume bounded by terrain and doors is sealed; a fill beyond 4096 cells is
+treated as open. Furniture does not seal air. Edits, doors, beds and lights dirty
+the room cache, with rebuilds throttled to 0.5 seconds. Hour changes recalculate
+weather exposure without flooding again. Heat registers once at a source's
+floor anchor; membership tests the air cell above that anchor.
 
-Temperature drives two systems:
+A sealed room with a complete bed footprint, a door and a light becomes a
+bedroom. One assigned bed makes it personal; multiple beds make it a barracks.
+Bed ownership and privacy are described in milestones 121/122. Losing a required
+component revokes the classification. Light count is not inferred from heat.
 
-- **Aging Cellar** — each recipe requires a specific temperature range. Aging progress pauses outside that range and resumes automatically when temperature is restored.
-- **Food Preservation** — rooms at or below 0°C prevent all food spoilage. *(Spoilage system not yet implemented — hooks documented here for forward compatibility.)*
+## Temperature formula
 
----
-
-## Depth–Temperature Gradient
-
-A room's base temperature is derived from the **mean floor Y** of all air blocks inside the sealed room via a linear ramp across the playable underground depth:
+RoomManager alone reads `data/world_gen/temperature.json`:
 
 ```
-base_temp_c = lerp(10.0, -8.0, inverse_lerp(75.0, 1.0, mean_floor_y))
+cover = max(original surface Y - lowest interior Y - 4, 0), per floor column
+exposure = 0.25 * mean(exp(-cover / 16))
+base = 10°C
+season = 6°C * cos((day_of_year - 28) / 112 * TAU) * exposure
+daily = 2°C * sin((hour - 8) / 24 * TAU) * exposure
+heat = sum(installed heat units) / max(room volume, 128)
+temperature = base + season + daily + heat
 ```
 
-| Y Range | Base Temp | Zone Name | Primary Use |
-|---|---|---|---|
-| Y 65–75 | 7–10°C | Cool Cave | Vintage Wine aging; general habitation |
-| Y 50–64 | 3–7°C | Cold Cave | Aged Dark Stout aging |
-| Y 37–49 | 1–3°C | Deep Cold | Reserve Gin aging |
-| Y 1–36 | −8 to 0°C | **Frozen Zone** | Zero food spoilage; too cold for aging |
-
-> **Frozen Vault threshold:** any sealed room whose computed temperature rounds to ≤ 0°C is designated a **Frozen Vault**. This occurs at approximately Y ≤ 35 with no heat sources. The label appears in the room's inspect panel.
-
-> **Agent note:** `mean_floor_y` is the average Y of the lowest air block in each column of the room's footprint — not the geometric centre. This ensures a tall room is assessed at its floor, where produce and barrels actually sit.
-
----
-
-## Seasonal and Daily Variation
-
-Shallow rooms are not perfectly static — a gentle temperature curve follows the mountain's seasons and the daily cycle. This variation **attenuates linearly to zero below Y 30**, so mid-depth and deep rooms are completely unaffected.
-
-```gdscript
-# Seasonal influence factor — 1.0 at Y 75, 0.0 at Y 30 and below
-var seasonal_influence := clamp(inverse_lerp(30.0, 75.0, mean_floor_y), 0.0, 1.0)
-```
-
-### Seasonal Offset
-
-Uses the same solstice-keyed cosine curve as `daylight_hours()` in `11_overview.md`. Summer solstice (day 28) is warmest; winter solstice (day 84) is coldest.
-
-```gdscript
-const SEASON_INDEX := {"spring": 0, "summer": 1, "autumn": 2, "winter": 3}
-var day_of_year := (WorldClock.day - 1) + (SEASON_INDEX[WorldClock.season] * 28)
-# day_of_year: 0–111
-
-var s_angle := (day_of_year - 28.0) / 112.0 * TAU
-var seasonal_offset := 1.5 * cos(s_angle) * seasonal_influence
-# +1.5°C at summer solstice, -1.5°C at winter solstice, 0°C at equinoxes
-```
-
-### Daily Offset
-
-A sine wave that peaks at 14:00 (warmest afternoon) and troughs at 02:00 (coldest pre-dawn).
-
-```gdscript
-var daily_offset := 0.5 * sin((WorldClock.hour - 8.0) / 24.0 * TAU) * seasonal_influence
-# +0.5°C at 14:00, -0.5°C at 02:00
-```
-
-### Full Temperature Formula
-
-```gdscript
-# RoomData — recomputed whenever geometry, heat sources, or the hour ticks
-func compute_room_temp_c(mean_floor_y: float,
-                         total_heat_units: int,
-                         room_volume: int) -> float:
-    # 1. Depth base (cold mountain: 10°C shallowest → -8°C near-bedrock)
-    var base_temp := lerp(10.0, -8.0, inverse_lerp(75.0, 1.0, mean_floor_y))
-
-    # 2. Heat source bonus
-    var heat_bonus := float(total_heat_units) / float(max(room_volume, 1))
-
-    # 3. Seasonal and daily variation — attenuates to 0 below Y 30
-    var seasonal_influence := clamp(inverse_lerp(30.0, 75.0, mean_floor_y), 0.0, 1.0)
-
-    const SEASON_INDEX := {"spring": 0, "summer": 1, "autumn": 2, "winter": 3}
-    var day_of_year := (WorldClock.day - 1) + (SEASON_INDEX[WorldClock.season] * 28)
-    var s_angle := (day_of_year - 28.0) / 112.0 * TAU
-    var seasonal_offset := 1.5 * cos(s_angle) * seasonal_influence
-
-    var daily_offset := 0.5 * sin((WorldClock.hour - 8.0) / 24.0 * TAU) * seasonal_influence
-
-    return base_temp + heat_bonus + seasonal_offset + daily_offset
-```
-
-The final value is stored as a float in `RoomData.temp_c` and displayed rounded to one decimal in the inspect panel. Aging recipe comparisons use the rounded integer.
-
-### Variation at a Glance
-
-| Depth | Seasonal Influence | Seasonal Swing | Daily Swing | Total Max Range |
-|---|---|---|---|---|
-| Y 75 (shallowest) | 100% | ±1.5°C | ±0.5°C | ±2.0°C |
-| Y 52 (mid-shallow) | ~50% | ±0.75°C | ±0.25°C | ±1.0°C |
-| Y 30 (deep threshold) | 0% | none | none | rock-steady |
-| Y < 30 | 0% | none | none | rock-steady |
-
-### Emergent Behaviour — The Summer Pause
-
-A wine aging cellar that is heated with torches at mid-depth (Y ~55) sits comfortably in range through winter and spring. In peak summer, the seasonal +1.5°C boost may push the room's temperature briefly above 10°C — the aging batch **pauses** for a few in-game days while the mountain warms, then resumes automatically as autumn arrives. A player who notices this can remove one torch in early summer to stay in range, then replace it in autumn. Temperature management becomes a light seasonal ritual rather than a one-time placement decision.
-
----
-
-## Sealed Rooms
-
-A **sealed room** is any enclosed volume of air blocks bounded entirely by solid blocks and door blocks. The system detects it via flood-fill from a door block inward.
-
-### Sealing Rules
-
-1. Begin flood-fill at all door blocks in the candidate structure.
-2. Expand to adjacent air blocks. If any expansion reaches a block that is neither solid nor a door, the room is **not sealed** — abort.
-3. If the flood-fill terminates with a finite set of air blocks, the room is sealed. Store the result as `RoomData`.
-4. Compute `mean_floor_y` and call `compute_room_temp_c` immediately.
-
-### What Counts as Solid
-
-Any terrain block (`base:terrain:*`) and any constructed wall block qualifies as a sealing surface. Torches, stockpile zones, workshop blocks, and furniture do **not** count as solid for sealing purposes.
-
-### Door Behaviour
-
-Dwarves always close doors behind them. Door blocks are always treated as sealed for temperature calculation purposes regardless of animation state. A door that is mined or removed breaks the room seal immediately — `RoomData` is invalidated and temperature becomes unstable until the gap is repaired.
-
-The 2026-10-06 lighting pass shares these installed-door boundaries with the
-skylight field. Doors stop daylight while remaining walkable. RoomManager also
-tracks installed `light_source` counts separately from heat: the Room inspector
-must not infer lighting from heat units. All door, light, heat and room caches
-are cleared at world reload, then rebuilt through ordinary furniture installation.
-
-### Recalculation Triggers
-
-`RoomData.temp_c` is recomputed whenever:
-- A block on the room's perimeter is mined or placed.
-- A door in the perimeter is removed or added.
-- A heat source inside the room is placed or removed.
-- `WorldClock.hour` ticks (shallow rooms only — skip recomputation if `seasonal_influence == 0.0`).
-
-### Implementation notes (doc 22, 2026-08-03)
-
-`RoomManager` implements the rules above with two pragmatic approximations, both documented in the script's file header:
-
-- **No true door-block type.** `base:furniture:door` (doc 22) is ordinary furniture with an empty `collision_regions` array — it stays walkable and carries no terrain identity of its own. `RoomManager` tracks installed door cells via a direct call from `FurniturePlacementController` (not a terrain-block query) and treats them as a fill-stopping boundary, same as solid rock.
-- **Door seal COLUMNS + per-side fills (corrected 2026-08-07, first Rooms-tool playtest).** The original implementation registered only the door's floor tiles as boundary and seeded the fill from the door itself — the fill walked up through the open doorway gap and leaked, so **no room was ever detected between doc 22 shipping and 2026-08-07** (the readout was dead code, then unverified, the whole time). Corrected: each door tile seals a vertical column (floor + `DOOR_SEAL_HEIGHT` = 4 air cells, matching the doc 22b door's ~4-block height), and each air cell *adjacent* to a door column starts its own fill — per side, since a door separates two spaces; leaked regions are memoised per rebuild. Consequence: a doorway gap taller than 5 blocks is NOT sealed by a door — by design, the wall above a normal 4-high corridor gap is rock.
-- **Heat-source membership is tested at the air cell above the piece (fixed 2026-08-07).** Heat registers at the furniture's solid floor cell; room cells are interior air — the original test compared the floor cell against the air set and never matched, so hearths silently contributed 0°C until the Rooms tool made the number visible.
-- **`MAX_ROOM_CELLS` cap (4096) stands in for "reaches a block that is neither solid nor a door."** Flood-filling the *entire* open world to positively prove a leak is computationally infeasible on every trigger; a fill that exceeds the cap without terminating is treated as unsealed. This is the same kind of tuning call as `NavGrid`'s 1200-node reachability cap (doc 32) — correct for any realistically-sized room, approximate at the boundary.
-- **No per-room dirty tracking yet.** Any geometry-affecting trigger (mine, build, door add/remove) marks the whole system dirty and a full rebuild re-runs flood-fill from every known door, throttled to at most once per 0.5s. Simple and correct at real-world door counts; would need real per-room diffing if a colony ever has hundreds of doors.
-- **No open/close animation.** Every installed door is permanently "closed" for sealing purposes — a strict superset of the rule above (a dwarf mid-walk-through would, per the letter of this doc, temporarily break the seal; v1 never does).
-
----
-
-## Heat Sources
-
-Dwarves can raise a room's temperature by placing heat sources inside it. Heat output is divided by room volume, so small rooms respond strongly to a single torch while large rooms require many sources.
-
-```
-heat_bonus_c = total_heat_units / room_volume_in_blocks
-```
-
-| Heat Source | Item Key | Heat Units | Notes |
-|---|---|---|---|
-| Wall Torch | `base:furniture:wall_torch` (packed: `base:resources:furniture:wall_torch`) | 200 | Shipped wall mount; no floor reservation, four-block room height; always lit in v1 |
-| Hearth | `base:furniture:hearth` (packed: `base:resources:furniture:hearth`) | 400 | Shipped 2×2 floor fire bowl; contributes once at its origin |
-| Brazier | `base:furniture:brazier` (packed: `base:resources:furniture:brazier`) | 600 | Shipped 1×1 floor piece, 2 blocks tall including flames; always lit in v1 |
-
-The brazier's light and flame flicker are cosmetic; its heat stays at 600 units.
-Only installed pieces contribute. Ghosts and packed items have no heat, uninstall
-removes the contribution, and save reconstruction restores it once. In a sealed
-100-block room, one brazier adds 6°C and two add 12°C. Fuel consumption and ignition
-remain future work. See [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md).
-
-### Worked Examples (cold mountain gradient)
-
-**4×4×4 room (64 blocks) at Y 40 — base temp ≈ 1°C:**
-
-| Torches | Bonus | Room Temp | Result |
-|---|---|---|---|
-| 0 | 0°C | 1°C | Reserve Gin aging ✓ |
-| 1 | +3°C | 4°C | Stout range — or warmed Gin ✓ |
-| 2 | +6°C | 7°C | Wine or Stout aging ✓ |
-| 3 | +9°C | 10°C | Wine aging (top of range) ✓ |
-
-**8×8×4 room (256 blocks) at Y 58 — base temp ≈ 5°C:**
-
-| Torches | Bonus | Room Temp | Result |
-|---|---|---|---|
-| 0 | 0°C | 5°C | Stout aging ✓ |
-| 2 | +2°C | 7°C | Stout aging ✓ |
-| 4 | +3°C | 8°C | Wine range edge ✓ |
-| 8 | +6°C | 11°C | Too warm for any recipe ✗ |
-
-### The Asymmetry
-
-A room that is **too cold** → recoverable with torches.
-A room that is **too warm** → only solvable by building a new aging cellar at greater depth.
-
-Being too shallow is the only unrecoverable placement mistake.
-
----
-
-## Frozen Vault
-
-A sealed room whose computed `temp_c` rounds to **≤ 0°C** becomes a **Frozen Vault**. On a cold mountain, this is achievable at approximately Y ≤ 35 without any heat sources.
-
-### Effects
-
-- **Food stockpiles** inside have a spoilage multiplier of **0.0** — contents never degrade.
-- **Aging is not possible** inside a frozen vault. All aging recipes require a minimum of 1°C. The aging cellar queue shows all recipes grayed out with the tooltip: *"Too cold — the contents will freeze solid, not age."*
-
-### The Frozen-or-Gin Tradeoff
-
-A frozen vault room sits right at the border of the Reserve Gin aging range (1–4°C). Placing a single torch inside a 4×4×4 frozen vault (base −1°C) raises it to 2°C — converting it from a freezer into a gin cellar. Removing the torch returns it to frozen. This is an intentional tradeoff: the room cannot be both simultaneously, and the player chooses its purpose via heat source management.
-
----
-
-## UI — Room Temperature Display
-
-> **v1 SHIPPED 2026-08-07 (doc 22 close-out):** the Block Inspector (🔍 dock button) is
-> the inspect panel. When the inspected block face borders a sealed room's interior air,
-> the panel appends: `room: Sealed (<zone>)` / `room: FROZEN VAULT`, `room temp` (°C, one
-> decimal), `volume`, `room heat` (units + computed bonus °C), `doors`, and
-> `seasonal influence` (+ mean floor Y). Zone names derive from mean floor Y per the
-> Depth–Temperature Gradient table (≥65 Cool Cave, 50–64 Cold Cave, 37–49 Deep Cold,
-> else Frozen Zone). The aging-recipe gray-out strings below remain future work (no
-> aging cellar exists yet).
->
-> **Second surface, same day — the 🚪 Rooms tool** (`RoomOverlayController`, Alen's ask):
-> a dedicated dock tool that overlays every sealed room's floor shape through the terrain
-> (amber; icy blue for Frozen Vaults) and makes rooms directly clickable — selection opens
-> a window with this exact readout. `RoomManager` gained read-only `get_rooms()` and
-> `get_room_id_at(cell)` for it. Full spec: `23_user_interface.md` §The Rooms Tool.
-
-When a player inspects any sealed room, the inspect panel shows:
-
-```
-Room: Sealed                     Room: Frozen Vault
-Temperature: 5.2°C (Cold Cave)   Temperature: -1.4°C (Frozen Zone)
-Volume: 64 blocks                Volume: 256 blocks
-Heat sources: 1 torch (+3.1°C)   Heat sources: none
-Seasonal influence: 42%          Seasonal influence: 0%
-```
-
-If a room's temperature is outside an aging recipe's range, that recipe appears grayed out in the aging cellar's queue with a thermometer icon and one of:
-- *"Too warm — lower temperature or build deeper."*
-- *"Too cold — add a torch, or this is a Frozen Vault."*
-- *"Aging paused — room temperature out of range."* (shown on an active batch)
-
----
-
-## Aging Progress and Temperature
-
-See `42_farming_brewing.md` for full aging cellar documentation. The temperature interaction:
-
-- **In range** — progress advances at 1 in-game hour per in-game hour.
-- **Out of range** — progress **pauses**. The progress bar shows a pulsing thermometer warning icon. The batch is not lost or reset.
-- **Restored** — aging resumes from the exact point it paused. No hours are lost.
-
----
-
-## Forward Compatibility Notes
-
-The following hooks are documented here but not yet implemented:
-
-- **Dwarf comfort** — rooms below 2°C could apply `base:thought:biting_cold` (−0.03, 2 h) to dwarves working inside without a nearby heat source.
-- **Food spoilage rate** — when spoilage is implemented, `RoomData.temp_c` feeds directly into the spoilage multiplier curve: warmer rooms spoil food faster, cold rooms slow it, frozen rooms stop it entirely.
-- **Ice blocks** — if glacial cave biomes are added, their ambient temperature feeds into this system without code changes.
-
----
-
-*Prev: [33_water_simulation.md](./33_water_simulation.md) | Next: [41_dwarf_agents.md](../40_economy_colony/41_dwarf_agents.md)*
+The natural heightmap is immutable under mining. Lower absolute Y does not make
+ordinary rock colder; cover damps seasonal and daily variation. Outdoor/unsealed
+sleep uses the same baseline/weather curve with full exposure attenuated by
+overburden. Deliberately cold biomes, weather-event offsets and thermal diffusion
+are future extensions. The current normal mountain has no automatic frozen zone.
+
+| Installed source | Heat units |
+|---|---:|
+| Log torch | 75 |
+| Wall torch | 100 |
+| Campfire | 900 |
+| Rudimentary hearth | 2400 |
+| Brazier | 3200 |
+
+A stone hearth is available in Rudimentary → Camp furnishings: two matching logs,
+four rough stones and 18 seconds at a crude workbench. It warms an ordinary
+256–324-block starter bedroom to roughly 19–21°C. Larger halls need more heat;
+small rooms can overheat. Torches principally supply light. The 128-block minimum
+thermal mass moderates tiny rooms. Ghosts, packed and carried pieces emit no
+heat; removal and save reconstruction update installed contributions exactly once.
+Fuel use, ignition and exhaust are not implemented yet.
+
+## Comfort and sleep thoughts
+
+| Temperature | Room label | Sleep thought |
+|---|---|---:|
+| Below 8°C | Cold | −20 happiness |
+| 8 to below 16°C | Chilly | −5 happiness |
+| 16 through 26°C | Comfortable | No penalty |
+| Above 26°C | Hot | −15 happiness |
+
+DwarfMood records exposure only while actually asleep, at the bed's room or
+ground sleep cell. After one game hour in a category, its thought lasts 24 game
+hours and refreshes during continued exposure. Only the strongest remembered
+thermal penalty applies, alongside the personal-bedroom +10 bonus. At 4°C the
+cold penalty outweighs owning the bedroom. Walking and settling do not count.
+Timers follow pause/speed and survive saves. Work-temperature reactions,
+injuries, sickness, hunger and thirst remain separate future systems.
+
+Both room inspectors show the actual temperature label, computed heating bonus,
+volume, doors and seasonal influence. Mean floor level is diagnostic information,
+not a cold-zone label. Dwarf Overview and Details show happiness and active thoughts.
+
+## Future consumers
+
+`get_room_at(air_cell)` exposes `temp_c`, `heat_bonus_c`, `is_frozen_vault` and room
+classification. `temperature_at(air_cell)` also handles unsealed positions.
+Frozen status is an actual temperature of 0°C or below. Food spoilage,
+temperature-gated brewing/aging and freezer benefits are not implemented; earlier
+doc 34 freezing-by-depth and aging examples are superseded, not live mechanics.
+
+BedroomComfortTest, BedroomPrivacyTest, BedOwnershipTest and SaveManagerRoundTripTest
+cover the current behavior. See milestone 122 for the saved-player-room measurements.

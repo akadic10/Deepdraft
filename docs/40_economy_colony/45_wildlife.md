@@ -230,6 +230,10 @@ rest and flee dwarves/wolves. Short flights allow escape and relocation, includi
 to dry shores when tired. Waterfall approaches and cave water are excluded.
 Air routes check real terrain, occupied cells and tree canopy bounds both when
 planned and while moving. This does not change dwarf or terrestrial-animal paths.
+Streamed trees retain their scatter-origin column ownership even when jitter
+places them across a chunk boundary. Felling removes them from that owning list;
+flight queries skip freed or queued-for-deletion nodes before typed access.
+`DuckWildlifeTest` covers both boundary-crossing felling and a stale freed entry.
 
 Male/female voxel art has articulated wings, heads and feet; wakes, splashes and
 quiet procedural quacks use existing water/world presentation and Work audio.

@@ -512,9 +512,9 @@ func _complete_clearing(dwarf: int, id: String) -> bool:
 	var has_yield := int(definition.clearing.count) > 0 and not String(definition.clearing.item).is_empty()
 	if has_yield and drops == null: return false
 	var origin: Vector3i = record.origin
-	var visible := get_explorer_bounds(id).size != Vector3.ZERO
+	var was_visible := get_explorer_bounds(id).size != Vector3.ZERO
 	_remove(id, "cleared", false) # Tombstone before rewards; finishing worker owns lease completion.
-	if visible and String(definition.clearing.get("method", "break")) != "gather":
+	if was_visible and String(definition.clearing.get("method", "break")) != "gather":
 		WorkFeedback.block_mined(origin + Vector3i.UP, BlockRegistry.get_id(definition.clearing.feedback_block))
 	if has_yield: drops.call("spawn_drop", definition.clearing.item, int(definition.clearing.count), origin + Vector3i.UP)
 	return true
@@ -958,7 +958,7 @@ func flowering_clumps(center: Vector3, radius: float) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for id: String in _records:
 		if not flower_blooming(id): continue
-		var position := Vector3(_records[id].origin) + Vector3(.5,1,.5)
-		if position.distance_squared_to(center) <= radius * radius:
-			result.append({"id":id, "position":position, "definition":_records[id].definition, "variant":int(_records[id].variant)})
+		var flower_position := Vector3(_records[id].origin) + Vector3(.5,1,.5)
+		if flower_position.distance_squared_to(center) <= radius * radius:
+			result.append({"id":id, "position":flower_position, "definition":_records[id].definition, "variant":int(_records[id].variant)})
 	return result

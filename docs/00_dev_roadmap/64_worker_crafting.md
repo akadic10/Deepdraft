@@ -137,10 +137,11 @@ the queue and primary action visible. World clicks remain blocked under the UI.
   adopt the recipe's Pine default. Explicit empty or invalid saved lists stay
   empty rather than silently allowing other species.
 
-This first executor intentionally supports one physical timber unit per batch.
-Multiple ingredients, fuel, profession progression, quality and specialised
-workshops remain future systems. No new autoload or global script class was added;
-restart play mode to use the feature.
+The initial executor used one physical timber unit per batch. Starter tools later
+added fixed extra ingredients (97), and log beds now collect four matching logs
+(120). `ingredient_count` controls the required timber; every input stays physical
+until the final commit. Fuel, quality and specialised workshops remain future
+systems. Restart play mode to load changed recipes.
 
 ## Stonehearth references
 

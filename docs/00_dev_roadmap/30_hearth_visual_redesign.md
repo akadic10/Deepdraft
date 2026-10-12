@@ -1,137 +1,82 @@
-# 30 — Hearth visual redesign
+# 30 — Rudimentary hearth
 
-**Status (2026-10-02): installed at 2×2 with animated fire.** The shipping GLB,
-furniture definition and canonical generator use separate body/flame meshes
-and a ten-frame fire library. Current review project:
-`tmp/hearth_animation_preview/project.godot`. The original size review remains
-under `tmp/hearth_redesign_preview/`.
+**Installed 2026-10-11.** The early hearth is a rough fire bed banked with
+fieldstones. It replaces the dressed stone bowl and iron grate, retaining the
+existing furniture, packed-item and recipe keys. Current saves load the current
+model and definition. Restart the running game to refresh loaded assets.
 
-## Design
+## Appearance
 
-The original shipping hearth was a thin 1×1 stone ring, only 0.25 blocks tall.
-The first redesign added a dressed-stone bowl and rising flame within a 1×1
-footprint. Its appearance was approved, but it still looked small beside the
-3.375-block-tall dwarves. The final version is rebuilt on a 16×16-cell base at
-the same eight voxels per block, rather than enlarging individual voxels.
+Uneven dry-stacked stones form a taller back bank and a low open front. Exposed
+unsawn logs rest on a soot/ember bed. Chipped shoulders, varied stone sizes,
+muted earth/stone colors and blackened inner faces make it look improvised.
+There is no cut plinth, dressed rim, iron clamp or grate. Three simple stepped
+flame tongues animate above the logs; the fieldstones and logs stay static.
 
-A cut-corner plinth supports staggered stone courses and broad capstones.
-Four iron shoulder clamps frame recessed grate rails, charred logs and an
-ember bed. The main curved flame has two lower shoulders. Broad stone colors
-and restrained joints keep the masonry readable at gameplay scale.
+## Asset and gameplay contract
 
-The stone rim reaches 1 block; the highest flame reaches 2 blocks. This is a
-freestanding communal fire bowl, with enough presence to anchor a tavern.
-
-## Export and gameplay contract
-
-| Property | Installed model |
+| Property | Current value |
 |---|---|
-| Authoring grid | 8 voxels per block |
-| Base grid | 16×16 voxels |
-| Export scale | 0.125, baked into positions; import/root scale 1 |
-| World bounds | X/Z −1 to +1; Y 0 to 2 |
-| Occupied voxels | 1,431 |
-| Triangles | 2,888 in static body/flame model; 6,816 across ten library frames |
-| Connected occupied-cell components | 1 |
-| Placement footprint | 2×2 floor cells |
-| Collision region | min [0,0,0], max [2,2,2] |
-| Heat output | 400 units per hearth |
-| Live filename | `assets/models/furniture/hearth.glb` |
+| Authoring grid | Eight voxels per block; 16×16-cell footprint |
+| Export | Baked 0.125 scale, root identity, flat faces, linear COLOR_0 |
+| Static model bounds | X/Z −1 to +1; Y 0 to 1.625 |
+| Maximum stone height | 0.75 blocks |
+| Static geometry | 832 occupied cells, 2,148 triangles, one connected component |
+| Animation | Ten distinct connected frames, 3,908 triangles across the library |
+| Envelope | Every frame fits the existing 2×2×2 placement/collision envelope |
+| Recipe | Two matching logs + four rough stones, 18 seconds at crude workbench |
+| Heating | 2,400 units, registered once at the origin |
+| Audio | Existing quiet campfire crackle |
 
-Authored sRGB palette colors convert to linear `COLOR_0`, matching the existing
-furniture material's default `vertex_color_is_srgb = false`. This conversion
-is local to the hearth; other furniture exports retain their existing colors.
-The body retains its lit, double-sided material and masonry shadows. The
-named `hearth_flame` mesh uses an unshaded emissive material so fire stays
-bright from every direction in a dark room. A warm point light sits above the
-rim, with range 8, energy 2 and at most 8% brightness variation. The hearth
-opts into body shadows; the wall torch retains its existing lighting settings.
+`assets/models/furniture/hearth.glb` contains `hearth_body` and `hearth_flame`.
+`assets/models/furniture/animations/hearth_flame.glb` supplies the ten frames.
+Only the flame is emissive/unshaded; the body uses lit vertex colors and casts
+shadows. The existing light sits at Y1.375, range 8 and energy 2, above the low
+stone bank. Flicker and per-instance timing use `FurnitureFlameAnimation`.
+Ghosts and packed items remain unlit. The shared packed furniture crate is used.
+Craft, Place, installed and packed inspection all call it **Rudimentary hearth**.
+The catalog thumbnail is rendered from the same shipping model.
 
-Ten connected voxel frames curl and vary the height of the three flame tongues
-above the rim, with a fixed broad base and untouched masonry, grate and logs.
-Their 1.38-second cycle is slower than the wall torch's 0.8-second cycle.
-`FurnitureFlameAnimation` shares mesh resources and gives each hearth a
-position-derived phase and small speed variation. Only one flame frame is drawn
-at a time; all frames fit the original 2×2×2 bounds. The effect runs in cosmetic
-real time, independent of calendar speed, without changing the 400-unit heat
-output. Hidden slices suspend updates. Build ghosts and packed items are unlit;
-save restoration rebuilds the light and animation without new save fields.
+## Authoring and verification
 
-The model is centered on the full footprint. All four floor cells must be
-valid for placement. Built hearths block those cells through the existing
-occupancy system; pending build ghosts reserve them without blocking walking.
-`RoomManager` registers 400 heat units once at the origin, so the wider
-footprint does not multiply the heat output. The furniture key, item key,
-shared packed-furniture model and floor-placement behavior are unchanged.
+`tools/generate_hearth_redesign.py` owns the geometry and ten fire frames.
+`tools/generate_furniture_glbs.py` delegates to it, so full exports preserve this
+version. Generator validation checks connectivity, bounds, ten distinct frames,
+no overlap between body/flame, and identical body cells/colors across frames.
+Its isolated review reproduces the production lighting/component directory.
 
-Saved hearth origins and rotations are retained on restoration, and the
-current definition supplies the new dimensions. Existing hearths in cramped
-layouts may need repositioning: an old 1×1 placement now occupies the origin
-and its +X/+Z neighbors. No save-file migration or automatic relocation is
-part of this art update.
+Native Godot Forward+ renders under `tmp/rudimentary_hearth_20261011/renders/`
+cover three angles, actual dwarf scale and a firelit room. `validation.json`
+records generated counts and hashes. `runtime_checks.json` records the live
+placement/animation checks. The original bowl is retained only as an art-review
+reference in that temporary review project, not as a gameplay variant.
 
-## Review and verification
+Verified:
 
-`tools/generate_hearth_redesign.py` creates the isolated review and, with
-`--install`, copies the model and flame library into the game.
-`tools/generate_furniture_glbs.py` delegates the hearth builder and color
-conversion to it, preserving the design when the full furniture set is rebuilt.
+- `tools/VerifyHearthAnimation.gd`: four rotations, 16 missing-floor rejections,
+  model scale/material/bounds, ten live animation frames, static body, independent
+  timing, slice suspension, ghost/installed collision, heat, teardown and save/load.
+- `BedroomComfortTest`: actual crafting consumes all six ingredients; installed
+  heat makes a starter bedroom comfortable and removal clears it.
+- `FurnitureCatalogThumbnails.gd -- --only=hearth`: refreshed current icon.
+- `CraftingBrowserTest -- --capture`: current name/icon, grouped ingredients and
+  crafting controls at 960, 1280 and 1920 pixels.
 
-`tools/HearthRedesignPreview.gd` reuses the tree studio and approved dwarf
-assembly. Nine Godot 4.7.2 Forward+ / D3D12 captures cover the 1×1/2×2 scale
-comparison, dwarf scale, three model angles, tavern context and original
-shipping model comparison. These are native GLB renders under studio lighting.
-
-QA artifacts live under `tmp/hearth_redesign_preview/`:
-
-- `validation.json`: voxel count, bounds, connectivity and export hash.
-- `checks.json`: exported arrays, winding, deterministic bytes, canonical
-  generator output and preservation of the other furniture assets.
-- `runtime_checks.json`: real placement controller, occupancy/navigation,
-  all four rotations, missing-floor rejection, translucent ghosts, build
-  completion, room heat, removal and installed/ghost save restoration.
-- `integration.json`: installed model identity and combined verification.
-
-The runtime check uses an in-memory sealed room with 64 air cells. One hearth
-adds 400 heat units and 6.25°C; removing it clears the contribution. It does
-not load or write player saves. The harness awaits deferred terrain-to-nav
-invalidation before checking floor edits.
-
-The legacy shipping mesh is retained in `reference/hearth.glb`; the approved
-small prototype and its original captures are in `reference/prototype_1x1/`.
-`pre_import.json` records pre-install hashes and the original definition.
-
-## Animated-fire verification (2026-10-02)
-
-`tools/HearthAnimationPreview.gd` shows the live fire close up, beside a dwarf
-and in a dark tavern with the approved furniture. The native Godot movie is
-`tmp/hearth_animation_preview/renders/hearth_animation.mp4`.
-
-`tools/VerifyHearthAnimation.gd` checks all ten imported frames, static body,
-bounded light/emission flicker, shared clips with independent timing, hidden
-slice suspension, four placement rotations, collision/navigation, unlit
-ghosts, teardown, and installed/ghost save restoration. A sealed 64-cell room
-still receives exactly 400 heat units and 6.25°C. `tools/VerifyWallTorch.gd`
-also passes with both light sources present. Fixtures never read/write player saves.
-
-`tools/audit_hearth_animation.py` compares with the pre-animation snapshot,
-checks that every original hearth voxel and color is preserved in the split
-static model, validates the frame library, and reproduces the full canonical
-furniture export in isolation. The other 152 existing GLBs remain unchanged.
-Reports and the scoped source diff live under `tmp/hearth_animation_preview/`.
-
-## Reproduction
+The runtime fixture's 64-cell room uses the current minimum heated volume of
+128, so 2400 heat adds 18.75°C. This tiny fixture is a heat-accounting check;
+normal starter bedrooms are larger. Player saves are never read or written by it.
 
 ```powershell
 python -B tools/generate_hearth_redesign.py --install
-$hearthEngine = 'S:\STEAM\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe'
-Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--editor', '--path', 'P:\Deepdraft\tmp\hearth_animation_preview', '--import') -WindowStyle Hidden -Wait
-Start-Process -FilePath $hearthEngine -ArgumentList @('--path', 'P:\Deepdraft\tmp\hearth_animation_preview', '--resolution', '1600x1000', '--', '--capture') -WindowStyle Hidden -Wait
-Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--editor', '--path', 'P:\Deepdraft', '--import') -WindowStyle Hidden -Wait
-Start-Process -FilePath $hearthEngine -ArgumentList @('--headless', '--path', 'P:\Deepdraft', '--script', 'res://tools/VerifyHearthAnimation.gd') -WindowStyle Hidden -Wait
-python -B tools/audit_hearth_animation.py
+powershell -File tmp/rudimentary_hearth_20261011/run.ps1 -Mode import-review
+powershell -File tmp/rudimentary_hearth_20261011/run.ps1 -Mode preview
+powershell -File tmp/rudimentary_hearth_20261011/run.ps1 -Mode import-game
+powershell -File tmp/rudimentary_hearth_20261011/run.ps1 -Mode thumbnail
+powershell -File tmp/rudimentary_hearth_20261011/run.ps1 -Mode verify
 ```
 
-Omit `--install` to export only the review. Omit `-- --capture` to use the
-interactive model, camera and comparison controls. Restart a running game
-after replacing an already loaded GLB.
+Omit `--install` for a review-only export. The earlier 2026-10-01 size study and
+2026-10-02 animation study remain in `tmp/hearth_redesign_preview/` and
+`tmp/hearth_animation_preview/`. `audit_hearth_animation.py` belongs to that
+historical animation-only change: its preservation assertions intentionally do
+not apply to this requested geometry replacement.

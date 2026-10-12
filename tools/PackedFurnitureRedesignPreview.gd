@@ -43,11 +43,11 @@ func _show(mode: String,angle: String) -> void:
 	for label in _labels:
 		label.text = ""
 	_title.text = "DEEPDRAFT   /   PACKED FURNITURE"
-	_subtitle.text = "Framed oak planks · recessed side panels · rope bindings and raised knot"
-	_footer.text = "8 voxels per block · Existing 5 × 4 × 5-cell envelope · One shared crate for every packed furniture type"
-	var target := Vector3(.0625,.22,.0625)
+	_subtitle.text = "Recessed oak planks · stout corner posts · stepped wooden braces"
+	_footer.text = "Full 8 × 8 × 8 voxels · One world block · Shared packed furniture crate"
+	var target := Vector3(0,.5,0)
 	_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	_camera.size = 1.65
+	_camera.size = 2.25
 	var elevation := 28.0 if angle=="Three-quarter" else 55.0
 	var yaw := 30.0 if angle!="Rear" else 205.0
 	if mode=="Comparison":
@@ -57,18 +57,18 @@ func _show(mode: String,angle: String) -> void:
 		yaw = 0
 		_labels[0].text = "ORIGINAL / PACKED CRATE"
 		_labels[1].text = "REDESIGN / PACKED CRATE"
-		_subtitle.text = "Identical bounds and lighting · original retains its in-game color interpretation"
+		_subtitle.text = "Previous 5 × 4 × 5 parcel and full 8 × 8 × 8 crate · identical lighting and native scale"
 	elif mode=="Carried scale":
 		_dwarf(_actors,Vector3.ZERO,0)
-		# DwarfAgent.CARRY_OFFSET, at native item scale. This is a static
-		# scale study using the existing carry attachment, not a new pose.
-		_prop("res://models/packed_furniture.glb",Vector3(0,1.05,1.55))
+		# Static native-scale study. Actual hand contact and transactions are
+		# reviewed separately with DwarfCarryPose and a real hauling job.
+		_prop("res://models/packed_furniture.glb",Vector3(0,.95,1.65))
 		_prop("res://models/packed_furniture.glb",Vector3(1.8,0,1.3),15)
 		_prop("res://context/storage_crate.glb",Vector3(2.3,0,-.3),15)
 		_camera.size = 6.8
 		target = Vector3(.6,1.35,.4)
 		yaw = 25
-		_subtitle.text = "Existing carry attachment at native scale · ground crate and installed chest for comparison"
+		_subtitle.text = "Native crate scale beside a dwarf · ground crate and installed chest for comparison"
 	elif mode=="Stockpile":
 		for x in range(3):
 			for z in range(2):

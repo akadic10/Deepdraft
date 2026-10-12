@@ -279,7 +279,7 @@ func refresh() -> void:
 		var upper := DwarfAssets.experience_threshold(level + 1) if level < 5 else count
 		_experience.text = "Retained level %d · %d blocks mined\n%s" % [level, count, "%d more blocks to level %d" % [upper - count, level + 1] if level < 5 else "Master Miner · Maximum level"]
 		_progress.max_value = maxi(1, upper - lower)
-		_progress.value = count - lower if level < 5 else _progress.max_value
+		_progress.value = float(count - lower) if level < 5 else _progress.max_value
 	else:
 		_experience.text = "No experience required." if enabled else "Level rewards will be defined with this profession's gameplay."
 		if not enabled: _rewards.text = "FUTURE CAREER\nThis role can be explored here, but cannot be assigned yet."
@@ -366,12 +366,12 @@ func _reveal_selection() -> void:
 		_left_scroll.scroll_vertical = maxi(0, bottom - visible_height)
 
 
-func _label(parent: Control, text: String, size: int, color := UITheme.HEARTH_TEXT) -> Label:
+func _label(parent: Control, text: String, font_size: int, color := UITheme.HEARTH_TEXT) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	parent.add_child(label)
 	return label

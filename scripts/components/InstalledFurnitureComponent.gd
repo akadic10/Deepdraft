@@ -30,8 +30,11 @@ var flagged_uninstall: bool = false
 var uninstall_callback: Callable = Callable()   # (component) -> controller teardown
 
 var storage: ContainerStorageComponent = null   # doc 19 Phase 4 — set for storage pieces
+var material_id := ""
 var idle_seat_owner := -1 # Transient exclusive rest use; never serialized.
 var idle_seat_yaw_steps := -1 # A round stool's occupant can face independently.
+var sleep_owner := -1 # Transient bed use; released on wake/removal and rebuilt on load.
+var assigned_dwarf_id := -1 # Persistent ownership, separate from the current sleeper.
 
 var _lease_id: int = -1              # the ONE UNINSTALL lease, -1 = none
 
@@ -46,7 +49,7 @@ func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: in
 
 
 func display_name() -> String:
-	return String(def.get("display_name", furniture_key))
+	return CraftMaterials.product_name(String(def.get("display_name", furniture_key)), material_id)
 
 
 ## 📤 toggle (SH parity). Posting/cancelling the lease happens here — the
