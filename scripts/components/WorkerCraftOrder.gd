@@ -96,6 +96,18 @@ func reserve_fetch(dwarf_id: int, from: Vector3i) -> Dictionary:
 	return _reserve_next(from)
 
 func _reserve_next(from: Vector3i) -> Dictionary:
+	if not _preferred_fetch.is_empty():
+		var plan := _preferred_fetch
+		_preferred_fetch = {}
+		if plan.from!=from or int(plan.dwarf_id)!=worker_id or not String(plan.material.key) in next_ingredient_keys(): return {}
+		if bench_id>=0 and not manager.bench_valid(bench_id,id): return {}
+		item = manager.reserve_material_quote(plan.material,worker_id)
+		if item==null: return {}
+		if staged_items.size()>=manager.additional_ingredient_keys(recipe).size() and timber_key.is_empty(): timber_key = manager.items.item_key_of(item)
+		_delivery_stand = plan.delivery_stand
+		work_cell = _delivery_stand
+		picked_up = false
+		return {"item":item,"pickup_stand":plan.pickup_stand,"heavy":String(manager.items.get_item_def(plan.material.key).get("weight_class","light"))=="heavy"}
 	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
 	if staged_items.size() < extras.size():
 		var keys: Array[String] = [extras[staged_items.size()]]
@@ -113,6 +125,15 @@ func _reserve_next(from: Vector3i) -> Dictionary:
 	picked_up = false
 	manager.wake()
 	return {"item":item, "heavy":String(manager.items.get_item_def(manager.items.item_key_of(item)).get("weight_class","light")) == "heavy"}
+
+func needs_trip_plan() -> bool:
+	return worker_id>=0 and not is_instance_valid(item) and _preferred_fetch.is_empty()
+
+func next_ingredient_keys() -> Array[String]:
+	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
+	if staged_items.size()<extras.size(): return [extras[staged_items.size()]]
+	if not timber_key.is_empty(): return [timber_key]
+	return manager.batch_ingredient_keys(recipe,manager.stock_snapshot(),allowed_ingredients,id)
 
 func needs_ingredient_delivery() -> bool:
 	return staged_items.size() < manager.additional_ingredient_keys(recipe).size() + int(recipe.ingredient_count) - 1
@@ -221,6 +242,9 @@ func complete_build(dwarf_id: int) -> void:
 	cancel_fetch(dwarf_id)
 
 func serialize() -> Dictionary:
-	return {"recipe":String(recipe.id), "quantity":quantity,
+	return {"id":id,"recipe":String(recipe.id), "quantity":quantity,
 		"maintain":maintain, "paused":paused, "progress":progress,
 		"allowed_ingredients":allowed_ingredients.duplicate()}
+
+func work_waiting_reason() -> String:
+	return manager.waiting_reason(self,manager.stock_snapshot())

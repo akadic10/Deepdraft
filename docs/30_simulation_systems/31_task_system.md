@@ -1,5 +1,18 @@
 # 31 — Task System
 
+**Shared lifecycle implemented (2026-10-11):**
+[126 — Job lifecycle and recovery](../00_dev_roadmap/126_job_lifecycle_and_recovery.md)
+is the current contract following [125 — Architecture review](../00_dev_roadmap/125_jobs_and_dwarves_architecture_review.md).
+Sources own persistent work and physical inventory; the saved journal owns order
+identity/diagnostics; attempts own transient fencing and meaningful progress.
+The simulation-time supervisor releases stalled work safely, and repeated stalls
+become Needs attention in Dwarf development's Job inspector. Fetch planning checks
+pickup and delivery, including later craft ingredients. Searches retain frontiers
+across family/order yields and distinguish budget exhaustion from proven no route.
+Runtime commit receipts prevent stale/duplicate/reentrant effects; source state
+and current save snapshots remain the recovery authority. See 126 for timing
+limits, configuration, implementation boundaries and the regression gate.
+
 **Permissions (updated 2026-10-11):** disallowed goods outside storage are excluded
 from haul, material and tool queries and rejected at reservation/pickup/commit.
 Stored goods are always available colony stock; storage filters control acceptance
@@ -47,6 +60,16 @@ navigation changes and idle-pool/work-permission changes invalidate those failur
 Completed or cancelled leases discard their records. `FurnitureAssignmentTest`
 covers a campfire with an isolated first worker, bounded one-probe wakes, fully
 blocked backoff, item conservation and recovery after a route opens.
+
+**2026-10-11 scheduling fairness:** a fresh pass starts in priority order, but a
+bucket that exhausts its wake yields to the next nonempty job type on the next
+wake. Ordinary and surface searches retain separate frontiers per type; haul,
+craft and Move retain their existing comparisons. This lets reachable access
+construction proceed while higher-priority mining routes are still unproven.
+The 1 ms budget, probe limits, worker eligibility and assigned-work ownership
+are unchanged. Completed passes and a newly available idle pool start at the
+highest priority again. See [88 — Ladder task reachability](../00_dev_roadmap/88_ladder_task_reachability.md)
+for the saved colony and construction-to-mining regression.
 
 > **FELL_TREE live (doc 48, 2026-10-04):** each designated tree posts one lease at
 > priority 50. `SurfaceFloraSpawner` owns persistent work and felled records;

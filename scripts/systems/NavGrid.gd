@@ -61,7 +61,7 @@ var _min_climb_cost := COST_UP
 var _min_vertical_cost := COST_DOWN
 var navigation_revision := 0
 var _chunk_revisions: Dictionary = {}
-enum ProbeResult { SEARCHING, REACHABLE, UNREACHABLE }
+enum ProbeResult { SEARCHING, REACHABLE, UNREACHABLE, BUDGET_EXHAUSTED }
 
 ## Deck supports belong to structures, not the terrain/water grid. Closing
 ## keeps physical support but allows only actors already on that deck to exit.
@@ -264,10 +264,11 @@ func advance_reachability(query: Dictionary, start: Vector3i, goal: Vector3i,
 			query.erase("approach_query")
 		else:
 			return ProbeResult.SEARCHING
-	var remaining := DEFAULT_MAX_NODES - (int(query.expanded) - int(query.approach_nodes))
+	var search_limit := int(query.get("search_limit",DEFAULT_MAX_NODES))
+	var remaining := search_limit - (int(query.expanded) - int(query.approach_nodes))
 	_advance_search(query, mini(maxi(node_budget, 0), remaining), deadline_usec)
-	if int(query.status) == ProbeResult.SEARCHING and int(query.expanded) - int(query.approach_nodes) >= DEFAULT_MAX_NODES:
-		query.status = ProbeResult.UNREACHABLE
+	if int(query.status) == ProbeResult.SEARCHING and int(query.expanded) - int(query.approach_nodes) >= search_limit:
+		query.status = ProbeResult.BUDGET_EXHAUSTED
 	return int(query.status)
 
 

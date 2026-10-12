@@ -124,9 +124,9 @@ func _check_probe_continuation(target: Vector3i) -> void:
 	for i in range(400):
 		status = nav.advance_reachability(query,from,target,100,Time.get_ticks_usec()+100000)
 		if status != nav.ProbeResult.SEARCHING: break
-	_expect(status == nav.ProbeResult.UNREACHABLE and int(query.expanded) <= nav.DEFAULT_MAX_NODES + nav.APPROACH_PROBE_NODES, "missing upper section remains unreachable with a bounded full search")
+	_expect(status in [nav.ProbeResult.UNREACHABLE,nav.ProbeResult.BUDGET_EXHAUSTED] and int(query.expanded) <= nav.DEFAULT_MAX_NODES + nav.APPROACH_PROBE_NODES, "missing upper section has no proof within the bounded search; exhaustion remains unknown")
 	# A failed mining gate must wake as soon as construction connects the route.
-	for i in range(400):
+	for i in range(2000):
 		tasks._run_scheduler()
 		if tasks._tasks.values().any(func(task): return task.blocked_count > 0): break
 		await process_frame

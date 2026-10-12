@@ -932,6 +932,14 @@ func _collect_scene_state() -> Dictionary:
 	for state_owner in get_nodes_in_group(OWNER_GROUP):
 		if state_owner.has_method("save_section_key") and state_owner.has_method("serialize_state"):
 			result[String(state_owner.call("save_section_key"))] = state_owner.call("serialize_state")
+	# Diagnostics are re-assessed on load, while stable order identities must
+	# round-trip. Physical owner sections still compare every saved field.
+	if result.has("jobs"):
+		var identities := {}
+		for locator: String in result.jobs.records:
+			var record: Dictionary = result.jobs.records[locator]
+			identities[locator] = {"key":record.key,"label":record.label}
+		result.jobs = {"records":identities}
 	return result
 
 

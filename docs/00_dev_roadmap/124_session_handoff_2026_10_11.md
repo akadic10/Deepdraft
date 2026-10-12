@@ -1,9 +1,15 @@
 # 124 — Session handoff: starter colony, 2026-10-11
 
 Current starting point, superseding [112 — Water and wildlife](112_session_handoff_2026_10_10.md).
-The user ended the session after the storage Contents cleanup. This handoff
-updates documentation only; the verification below records completed implementation
-runs, not a fresh gameplay test run during this wrap-up.
+The initial documentation wrap-up followed the storage Contents cleanup. A final
+saved-game ladder report then exposed scheduling starvation; that fix and its
+new verification are included below.
+
+The subsequent [jobs/dwarves architecture review](125_jobs_and_dwarves_architecture_review.md)
+led to the four implemented steps in [126 — Shared lifecycle and recovery](126_job_lifecycle_and_recovery.md):
+order/attempt diagnostics, furniture and ladder planning/recovery, shared family
+execution/fairness, and a combined fault-test gate. Temporal informed the lifecycle;
+the game keeps its existing local source ownership and snapshot model.
 
 ## Where we stopped
 
@@ -11,8 +17,10 @@ The starter colony now has log bridges, material-bearing furniture, rudimentary
 beds and hearths, assigned bedrooms, sleep comfort and bedroom privacy. Crafting
 uses a category browser. Furniture placement follows the set-down animation,
 and storage Contents groups quantities by item/material without permission buttons.
-The last storage change is implemented and verified; the user has not reported
-a playtest after restarting with that change. No next implementation is selected.
+Storage, ladder dispatch and the shared job lifecycle are implemented. Next is
+player verification after restarting, especially mixed construction/hauling/mining.
+Use **Dwarf development → DEV: Job inspector** to inspect waiting orders and
+retry orders that need attention.
 
 Restart Play to load the latest scripts. A checkout picking up today's new
 `CraftMaterials` autoload/global classes should first use **Project → Reload
@@ -29,6 +37,8 @@ rewritten by the investigation fixtures; reproductions used isolated copies.
 | Area | Current result | Detail |
 |---|---|---|
 | Stability and assignment | Active walks revalidate changed routes. An unreachable first dwarf no longer blocks a furniture order from other eligible workers. Duck flight queries safely skip freed trees, and felling uses the tree's original scatter-column ownership. | [32 — Navigation](../30_simulation_systems/32_navigation_3d.md), [31 — Tasks](../30_simulation_systems/31_task_system.md), [45 — Wildlife](../40_economy_colony/45_wildlife.md) |
+| Shared jobs and recovery | Stable saved order identity, fresh attempt generations, fenced commits, meaningful progress supervision, safe retry/attention, two-leg fetch planning, retained fair searches and a live development inspector. Physical source state stays authoritative. | [126 — Lifecycle/recovery](126_job_lifecycle_and_recovery.md) |
+| Ladder extension dispatch | Unfinished mining searches yield across job types while preserving search progress. The saved colony finishes its existing partial ladder from stored sections; access-dependent mining can then proceed. | [88 — Ladder reachability](88_ladder_task_reachability.md) |
 | Log bridges | Two blocks wide, clear water spans of 1–5 blocks, equal-height/equal-distance landings. Bank-face and riverbed aiming auto-aligns the preview. Workers can install from either bank, including the saved opposite-bank order. | [113 — Bridges](113_log_bridges.md) |
 | Movement recovery | Mining beneath another dwarf settles the unsupported actor and releases stale work/cargo safely. Bogorn's bridge-corner fall was reproduced and fixed by checking shortcuts from actual actor positions. Already submerged actors still need recovery. | [115 — Footing](115_dwarf_support_recovery.md), [32 — Navigation](../30_simulation_systems/32_navigation_3d.md) |
 | Crafting menu | Compact recipe icons under category headings, search, Recipes/Orders tabs and one selected-recipe card. Actions remain usable on compact screens. | [114 — Crafting browser](114_crafting_browser.md) |
@@ -57,6 +67,9 @@ rewritten by the investigation fixtures; reproductions used isolated copies.
   validation. Do not restore the removed generic two-second build wait.
 - Bridges provide support only when complete. Either bank may serve the builder;
   closing decks retain occupied support until dwarves can leave safely.
+- Priority starts each fresh scheduler pass; an exhausted bucket yields to the
+  next type rather than restarting at mining forever. Retain per-type suspended
+  frontiers and invalidate them with their normal terrain/policy/route owners.
 - Dwarf navigation still requires three blocks of clearance. Visual size,
   sleeping poses and the occlusion silhouette do not relax this rule. Physical
   support is distinct from a navigable exit; settling does not rescue a trapped pit.
@@ -76,6 +89,28 @@ Milestone docs record their own full scope and capture paths. Earlier failed
 diagnostics may remain beside final passing runs; do not infer current status
 from the first log in a review directory.
 
+- Shared job lifecycle: all **23** fixtures pass in
+  `tmp/job_reliability_gate_final/results.json`, including the full current-save
+  round trip. Targeted verification of the final route/diagnostic changes is in
+  `tmp/job_reliability_verification/`. The mixed world completes seven interrupted
+  work families in **222.1 simulated seconds**, with **2,221** ownership checks,
+  actual leisure/sleep and a water obstruction. Its observed worst scheduler
+  wake is **1.614 ms** against the cooperative 1 ms budget; this is a fixture
+  measurement, not a large-colony performance guarantee. The rendered inspector
+  capture is `tmp/job_reliability_20261011/job_inspector.png`.
+  Source progress and cargo remain authoritative; runtime receipts and the saved
+  diagnostic journal do not add crash durability beyond normal game saves.
+  All six final targeted fixtures pass, including `SavedLadderJobTest` with explicit
+  kit-count/material checks. The original quicksave SHA-256 remains
+  `BA79BCD8DCA5ECA3222BA7D6700B77AC18DD349C2F661C4B0004F2732B1D91DF`.
+- Final ladder follow-up: the copied quicksave advances 4 → 8 → 12 blocks,
+  consumes the two stored pine sections and retains all three paid materials.
+  `LadderSchedulingTest` fails before the fix and passes afterward, including
+  automatic mining after construction. Ten surrounding ladder, task-selection,
+  handoff and save/backup suites pass; see [88](88_ladder_task_reachability.md).
+  The crafting-selection fixture now supplies the hearth's four required stones.
+  Evidence is in `tmp/ladder_extension_20261011/`; the original quicksave's
+  SHA-256 still matches the untouched reproduction input.
 - Final storage pass: `ItemPermissionTest` (native), `StorageFilterTest`,
   `CraftingPermissionTest`, `ProduceCrateTest` and `SaveManagerRoundTripTest` pass.
   The Contents fixture checks mixed wood variants, separate produce crates,
@@ -105,6 +140,10 @@ from the first log in a review directory.
   mood component. Missing-Environment warnings belong to lightweight fixtures.
 
 ## Next-session playtest
+
+Reload the final quicksave and watch the unfinished cliff ladder: the remaining
+two stored pine sections should be collected and installed automatically. The
+isolated reproduction completes the existing route without replacing its order.
 
 1. Restart with the current scripts. Open a stocked zone/container: repeated
    items should appear once with summed quantities; inspect a loose item to

@@ -116,3 +116,9 @@ Dedicated stair/ramp construction tools, alternative ladder materials and
 scaffolding remain future work. Ladders are always player-designated; dwarves
 do not create free routes. See [89 — Session handoff](89_session_handoff_2026_10_09.md)
 for the outstanding proposals and deferred work.
+
+**Extension scheduling fixed, 2026-10-11:** a saved 12-block route stalled after
+its first paid section despite two available stored sections. Pending mining
+above the ladder consumed every scheduler wake. Searches now yield across job
+types without discarding their progress; the existing order finishes on reload.
+See the saved-game evidence and `LadderSchedulingTest` in [88](88_ladder_task_reachability.md).

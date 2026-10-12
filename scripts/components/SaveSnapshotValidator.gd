@@ -29,6 +29,9 @@ const ACTIVE_EVENT := {
 	"?member_routes": [["cell"]],
 }
 const SCENE := {
+	"jobs": {"next_order":"positive_int","next_attempt":"positive_int","time":TYPE_FLOAT,
+		"records":{"*":{"key":"key","label":TYPE_STRING,"state":"key","reason":TYPE_STRING,"failures":TYPE_INT,"last_transition":TYPE_FLOAT}},
+		"history":[{"order":"key","state":"key","reason":TYPE_STRING,"attempt":TYPE_INT,"worker":TYPE_INT,"time":TYPE_FLOAT}]},
 	"water": {"layout_version":TYPE_INT,"flow":{"cells":[{"cell":"cell","units":TYPE_INT}],"active":["cell"],
 		"displaced":[{"cell":"cell","units":TYPE_INT}],"added_units":TYPE_INT,"drained_units":TYPE_INT,"extracted_units":TYPE_INT},
 		"source_enabled":TYPE_BOOL,"outlet_enabled":TYPE_BOOL,"elapsed_usec":TYPE_INT,"accumulator_usec":TYPE_INT,
@@ -88,7 +91,7 @@ const SCENE := {
 		"schedules": {"*": {"next": EVENT_PLAN, "active": "active_event"}},
 		"pressure": {"*": {"x": TYPE_FLOAT, "z": TYPE_FLOAT, "level": TYPE_FLOAT, "day": TYPE_FLOAT}},
 		"history": [{"id": "key", "result": TYPE_STRING, "count": TYPE_INT, "day": TYPE_FLOAT}]},
-	"worker_crafting": {"orders": [{"recipe": "key", "quantity": "positive_int", "maintain": TYPE_BOOL,
+	"worker_crafting": {"orders": [{"id":"positive_int","recipe": "key", "quantity": "positive_int", "maintain": TYPE_BOOL,
 		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": [TYPE_STRING]}]},
 	"camera": {"target_position": "vector", "zoom": TYPE_FLOAT, "pitch": TYPE_FLOAT, "orbit_y": TYPE_FLOAT},
 	"slice": {"active": TYPE_BOOL, "seeded": TYPE_BOOL, "slice_y": TYPE_INT, "last_slice_y": TYPE_INT},
@@ -113,6 +116,18 @@ static func validate(snapshot: Dictionary, schema_version: int) -> String:
 	if snapshot.scene.water.layout_version != preload("res://scripts/components/RiverLayout.gd").VERSION:
 		return "this development save uses an outdated river layout; start a new world."
 	if snapshot.clock.hour < 0 or snapshot.clock.speed < 0: return "the saved clock has negative time or speed."
+	var jobs: Dictionary = snapshot.scene.jobs
+	if jobs.time < 0 or jobs.history.size() > 200: return "save.scene.jobs has invalid diagnostic bounds."
+	var order_keys := {}
+	for record: Dictionary in jobs.records.values():
+		var number := int(String(record.key).get_slice(":",1))
+		if number < 1 or number >= int(jobs.next_order) or order_keys.has(record.key) or record.failures < 0 or record.last_transition < 0:
+			return "save.scene.jobs has invalid order identities."
+		order_keys[record.key] = true
+	var craft_ids := {}
+	for order: Dictionary in snapshot.scene.worker_crafting.orders:
+		if craft_ids.has(int(order.id)): return "save.scene.worker_crafting has duplicate order identities."
+		craft_ids[int(order.id)] = true
 	var residents := {}
 	for dwarf: Dictionary in snapshot.scene.dwarves.roster:
 		residents[int(dwarf.id)] = true

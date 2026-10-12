@@ -56,6 +56,7 @@ func tick(delta: float) -> bool:
 	# External/DEV walks retain control. Sleep, ladders and tasks are handled
 	# before this method; cargo must never be taken on a leisure walk.
 	if not agent._carried_entries.is_empty() or (agent.is_walking() and not owns_walk()): return false
+	if TaskManager.planning_held(agent.dwarf_id) and Privacy.allowed(agent.current_cell(),agent.dwarf_id): return true
 	if home.x < 0:
 		home = agent.current_cell()
 		timer = _range("start_delay_min_s","start_delay_max_s")

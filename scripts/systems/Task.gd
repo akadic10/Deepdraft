@@ -24,7 +24,7 @@ enum Type { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL,
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 ## Release reasons (doc 16 §2.8) — passed through task_released for logging/AI.
-enum ReleaseReason { NEED_INTERRUPT, COMBAT, PLAYER, PATH_INVALID, SOURCE_EMPTY }
+enum ReleaseReason { NEED_INTERRUPT, COMBAT, PLAYER, PATH_INVALID, SOURCE_EMPTY, NO_PROGRESS, MATERIAL_UNAVAILABLE, PLAN_CHANGED, SEARCH_BUDGET_EXHAUSTED }
 
 var id: int = -1                       # unique, assigned by TaskManager
 var type: int = Type.IDLE              # Task.Type
@@ -37,6 +37,12 @@ var assigned_to: int = -1              # dwarf id, or -1
 var created_at: int = 0                # Time.get_ticks_msec()
 var retry_at: int = 0                  # msec; BLOCKED until then (scheduler skips, never polls)
 var blocked_count: int = 0             # consecutive blocked probes -> backoff + task_unreachable
+var order_key := ""
+var order_locator := ""
+var wait_reason := "Waiting for assessment"
+var attempt: RefCounted
+var planning_context: Dictionary = {}
+var recovery_paused := false
 
 
 func _init(p_type: int = Type.IDLE, p_priority: int = 1,
@@ -52,7 +58,7 @@ func _init(p_type: int = Type.IDLE, p_priority: int = 1,
 
 ## True when the scheduler may consider this task right now.
 func is_available(now_msec: int) -> bool:
-	return status == Status.PENDING and now_msec >= retry_at
+	return status == Status.PENDING and not recovery_paused and now_msec >= retry_at
 
 
 ## Human-readable type name (UI / debug overlay / task log).

@@ -604,6 +604,12 @@ func _register_dev_window() -> void:
 		button_size, "dev")
 	interrupt.pressed.connect(_dev_interrupt_worker)
 	column.add_child(interrupt)
+	var jobs := UITheme.make_button("DEV: Job inspector","Inspect order progress, waiting reasons and recovery history.",button_size,"dev")
+	jobs.pressed.connect(func(): _window_manager.toggle("jobs_dev"))
+	column.add_child(jobs)
+	var job_panel := preload("res://scripts/ui/JobInspectorPanel.gd").new()
+	_window_manager.register_window("jobs_dev","Job inspector","",job_panel,
+		{"persistent":false,"default_pos":Vector2(220,130)})
 
 	var tire := UITheme.make_button("DEV: tire a worker",
 		"Drops one dwarf's sleep stat to the threshold — they release their task, sleep in place for 6 in-game hours, then resume work. The organic interrupt path (sleep-lite).",

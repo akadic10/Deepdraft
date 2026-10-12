@@ -1,0 +1,217 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 8 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 1355296578).
+WorldRenderer: generation started (seed 1355296578).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 8 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 31987 cliff/shore columns.
+WorldGenerator: spring (496, 102, 578); river 3408 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: stopped in 9.8 s.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldGenerator: grass bands finalized 4.996 s after maps_ready.
+WorldGenerator metrics:
+  domains: mountain 24.4%, valley 29.5%, lowland 46.1%
+  height: min 11, max 115, avg 36.3
+  top surface: grass 73.1%, dirt 1.0%, rock 24.1%, water 1.8%
+  surface domains: mountain rock 98.8%; valley grass 96.2% dirt 3.4% rock 0.0%
+  finished terrain: summit 8324 columns, detailed 31916, dry shore 933
+  water: lake (235, 141) y18 floor 11-17 depth 7 columns 14603; tarn (400, 720) y54 floor 47-52 depth 7 columns 848; banks 6218
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 3774212034).
+WorldRenderer: generation started (seed 3774212034).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 25060 cliff/shore columns.
+WorldGenerator: spring (720, 102, 606); river 4224 columns, 14 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldRenderer: first visible overview tile after 5.789 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3774212034, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3774212034, "accepted": 2211, "rejections": { "density": 19766, "tree": 1209, "edge": 1115, "shelf": 377, "water": 154, "moisture": 3111, "ground": 1113, "height": 3789, "shore": 28815, "cliff_foot": 3511, "cliff_falloff": 135, "detail_overlap": 217 }, "layout_ms": 847.402, "categories": { "boulder": 78, "scree": 168, "blueberry": 290, "elderberry": 298, "wild_strawberry": 498, "flowers": 859, "reeds": 20 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 8 ducks.
+FlagPlacementController: settlement founded at (614, 43, 423).
+StockpileDesignationController: zone 1 created (81 cells at Y 43).
+FurniturePlacementController: installed base:furniture:crude_workbench at (621, 43, 420).
+FurniturePlacementController: installed base:furniture:campfire at (629, 43, 412).
+FurniturePlacementController: installed base:furniture:log_chair at (630, 43, 411).
+FurniturePlacementController: installed base:furniture:bench at (619, 43, 428).
+FurniturePlacementController: installed base:furniture:log_chair at (630, 43, 415).
+LoadPerformance:
+  total_request_to_restored: 18.067 s
+  read_validate: 292 ms
+  reload_regen_wait: 16.532 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1237 ms
+    mining: 476 ms
+    water: 606 ms
+    flora: 0 ms
+    surface_details: 65 ms
+    settlement_flag: 12 ms
+    stockpiles: 9 ms
+    furniture: 23 ms
+    ladders: 4 ms
+    bridges: 11 ms
+    items: 0 ms
+    dwarves: 5 ms
+    wildlife: 25 ms
+    world_events: 0 ms
+    camera: 0 ms
+    worker_crafting: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 6 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldGenerator: grass bands finalized 3.616 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 10/16 built tiles (band columns only).
+PLAYER_LADDER routes={ "routes": [{ "id": 1, "key": "base:furniture:crude_ladder", "base": [638, 43, 414], "yaw": 3, "height": 12, "built": 4, "materials": ["base:material:pine"], "required_material_id": "", "mode": "build", "progress": 0.0 }], "next_id": 2 } stock=2
+PLAYER_LADDER geometry={ "base": (638, 43, 414), "yaw": 3, "height": 12, "reason": "" } work=(638, 47, 414) navigable=true lease=13
+PLAYER_LADDER dwarf=Horgbur cell=(615, 43, 414) chosen=(638, 47, 414) path=[(615, 43, 414), (616, 43, 414), (617, 43, 414), (618, 43, 414), (619, 43, 414), (620, 43, 414), (621, 43, 414), (622, 43, 414), (623, 43, 414), (624, 43, 414), (625, 43, 414), (626, 43, 414), (627, 43, 414), (628, 43, 415), (629, 43, 416), (630, 43, 416), (631, 43, 416), (632, 43, 416), (633, 43, 416), (634, 43, 416), (635, 43, 416), (636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Audka cell=(621, 43, 425) chosen=(638, 47, 414) path=[(621, 43, 425), (622, 43, 425), (623, 43, 424), (624, 43, 423), (625, 43, 422), (626, 43, 421), (627, 43, 420), (628, 43, 419), (629, 43, 418), (630, 43, 417), (631, 43, 417), (632, 43, 416), (633, 43, 416), (634, 43, 415), (635, 43, 415), (636, 43, 415), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Snordor cell=(617, 43, 424) chosen=(638, 47, 414) path=[(617, 43, 424), (618, 43, 424), (619, 43, 423), (620, 43, 423), (621, 43, 423), (622, 43, 423), (623, 43, 423), (624, 43, 423), (625, 43, 422), (626, 43, 421), (627, 43, 420), (628, 43, 419), (629, 43, 418), (630, 43, 417), (631, 43, 417), (632, 43, 417), (633, 43, 417), (634, 43, 417), (635, 43, 417), (636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Dugas cell=(629, 43, 415) chosen=(638, 47, 414) path=[(629, 43, 415), (629, 43, 416), (630, 43, 416), (631, 43, 416), (632, 43, 416), (633, 43, 416), (634, 43, 416), (635, 43, 416), (636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Valbra cell=(636, 43, 416) chosen=(638, 47, 414) path=[(636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 1.77, "probes_per_sec": 3.37837837837838, "worst_wake_usec": 12525, "wake_count": 1 }, "probe_key": [1, 0, (615, 43, 414)], "expanded": 0, "approach": -1, "revision": 2679, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 2655, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":0,"work":[]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 3.831, "probes_per_sec": 3.96825396825397, "worst_wake_usec": 12525, "wake_count": 12 }, "probe_key": [13, 0, (615, 43, 414)], "expanded": 148, "approach": -1, "revision": 2943, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 2908, 3, 0], "workers": {  } }, 13: { "signature": [6, 2926, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=911).
+StartupPerformance:
+  total_to_initial_load: 11.327 s
+  first_visible_terrain: 5.789 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=5.069 s  ready_at=5.071 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.447 s
+    edge_detail: 0.251 s
+    layout_validation: 0.890 s
+    river: 0.031 s
+    caves: 3.318 s
+    grass_bands: 2.702 s
+    tile_ranges: 0.104 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.015 s  avg=0.12 ms  max=11 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=911
+  overview_state: startup_ready=true  startup_ready_at=11.323 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 19.3%, valley 22.0%, lowland 58.7%
+  height: min 11, max 115, avg 32.5
+  top surface: grass 77.9%, dirt 0.7%, rock 19.0%, water 2.4%
+  surface domains: mountain rock 98.8%; valley grass 96.0% dirt 3.2% rock 0.0%
+  finished terrain: summit 3176 columns, detailed 24995, dry shore 885
+  water: lake (305, 176) y18 floor 11-17 depth 7 columns 19766; tarn (720, 464) y54 floor 47-52 depth 7 columns 853; banks 7474
+  layout: macro_layout_v1; attempts 1; fallback false
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 5.92, "probes_per_sec": 7.93650793650794, "worst_wake_usec": 12525, "wake_count": 24 }, "probe_key": [13, 0, (611, 43, 415)], "expanded": 174, "approach": -1, "revision": 3233, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 3198, 3, 0], "workers": {  } }, 13: { "signature": [6, 3214, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 7.961, "probes_per_sec": 5.26315789473684, "worst_wake_usec": 12525, "wake_count": 40 }, "probe_key": [13, 0, (611, 43, 415)], "expanded": 448, "approach": -1, "revision": 3568, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 3527, 3, 0], "workers": {  } }, 13: { "signature": [6, 3549, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(612, 43, 415)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(613, 43, 416)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(614, 43, 416)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(615, 43, 416)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 10.027, "probes_per_sec": 0.0, "worst_wake_usec": 12525, "wake_count": 57 }, "probe_key": [1, 1, (618, 43, 421)], "expanded": 148, "approach": -1, "revision": 4021, "ladder_revision": 3, "rejections": { 1: { "signature": [7, 4000, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(616, 43, 416)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(617, 43, 417)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(618, 43, 417)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(619, 43, 417)","name":"Horgbur","phase":"FETCH_TO_ITEM","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(619, 43, 417)","name":"Horgbur","phase":"FETCH_PICKUP","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(619, 43, 417)","name":"Horgbur","phase":"FETCH_PICKUP","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(619, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(620, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(621, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(622, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 12.144, "probes_per_sec": 0.0, "worst_wake_usec": 12525, "wake_count": 73 }, "probe_key": [1, 1, (619, 43, 419)], "expanded": 495, "approach": -1, "revision": 4335, "ladder_revision": 3, "rejections": { 1: { "signature": [7, 4328, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(623, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(624, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(625, 43, 417)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(625, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(626, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(627, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(628, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(629, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(630, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(631, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 14.23, "probes_per_sec": 6.45161290322581, "worst_wake_usec": 12525, "wake_count": 88 }, "probe_key": [1, 1, (619, 43, 419)], "expanded": 839, "approach": -1, "revision": 4616, "ladder_revision": 3, "rejections": { 1: { "signature": [7, 4596, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(632, 43, 416)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(633, 43, 415)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(634, 43, 415)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(635, 43, 415)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(636, 43, 415)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(637, 43, 414)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 43, 414)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 44, 414)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 16.276, "probes_per_sec": 5.12820512820513, "worst_wake_usec": 12525, "wake_count": 104 }, "probe_key": [1, 1, (619, 43, 419)], "expanded": 1092, "approach": -1, "revision": 5057, "ladder_revision": 3, "rejections": { 1: { "signature": [7, 5020, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 45, 414)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 46, 414)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 47, 414)","name":"Horgbur","phase":"FETCH_TO_GHOST","task":13}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 47, 414)","name":"Horgbur","phase":"FETCH_WORKING","task":13}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 18.304, "probes_per_sec": 0.0, "worst_wake_usec": 12525, "wake_count": 119 }, "probe_key": [1, 1, (619, 43, 419)], "expanded": 1328, "approach": -1, "revision": 5395, "ladder_revision": 3, "rejections": { 1: { "signature": [7, 5381, 3, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":0,"work":[]}
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->16786, sides 103306, validation mismatches 0/0) in 26.77 s since startup.
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 20.304, "probes_per_sec": 0.0, "worst_wake_usec": 12525, "wake_count": 135 }, "probe_key": [1, 1, (617, 43, 420)], "expanded": 0, "approach": -1, "revision": 5741, "ladder_revision": 4, "rejections": { 1: { "signature": [7, 5721, 4, 0], "workers": {  } }, 14: { "signature": [7, 5706, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [1, 2, 3, 4, 0], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 22.316, "probes_per_sec": 0.0, "worst_wake_usec": 12525, "wake_count": 159 }, "probe_key": [1, 1, (616, 43, 420)], "expanded": 411, "approach": -1, "revision": 6231, "ladder_revision": 4, "rejections": { 1: { "signature": [8, 6216, 4, 0], "workers": {  } }, 14: { "signature": [8, 6198, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(616, 43, 420)","name":"Audka","phase":"FETCH_TO_ITEM","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(617, 43, 419)","name":"Audka","phase":"FETCH_TO_ITEM","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(618, 43, 419)","name":"Audka","phase":"FETCH_TO_ITEM","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(618, 43, 418)","name":"Audka","phase":"FETCH_TO_ITEM","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(619, 43, 418)","name":"Audka","phase":"FETCH_TO_ITEM","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(620, 43, 417)","name":"Audka","phase":"FETCH_TO_ITEM","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":0,"cell":"(620, 43, 417)","name":"Audka","phase":"FETCH_PICKUP","task":14}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [2, 3, 4, 0], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 24.323, "probes_per_sec": 5.81395348837209, "worst_wake_usec": 12525, "wake_count": 189 }, "probe_key": [1, 2, (625, 43, 424)], "expanded": 393, "approach": -1, "revision": 6480, "ladder_revision": 4, "rejections": { 1: { "signature": [9, 6480, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(620, 43, 417)","name":"Audka","phase":"FETCH_PICKUP","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(620, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(621, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(622, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(623, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(624, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(625, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(626, 43, 417)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(626, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(627, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(628, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [2, 3, 4, 0], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 26.333, "probes_per_sec": 9.30232558139535, "worst_wake_usec": 12525, "wake_count": 218 }, "probe_key": [1, 2, (625, 43, 424)], "expanded": 1337, "approach": -1, "revision": 6480, "ladder_revision": 4, "rejections": { 1: { "signature": [9, 6480, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(629, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(630, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(631, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(632, 43, 416)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(632, 43, 415)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(633, 43, 415)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(634, 43, 415)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(635, 43, 415)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(636, 43, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(637, 43, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [2, 3, 4, 0], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 28.333, "probes_per_sec": 9.66183574879227, "worst_wake_usec": 12525, "wake_count": 238 }, "probe_key": [1, 2, (622, 43, 425)], "expanded": 298, "approach": -1, "revision": 6480, "ladder_revision": 4, "rejections": { 1: { "signature": [9, 6480, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 43, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 44, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 45, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 46, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 47, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [2, 3, 4, 0], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 30.341, "probes_per_sec": 6.94444444444444, "worst_wake_usec": 12525, "wake_count": 268 }, "probe_key": [1, 2, (622, 43, 425)], "expanded": 1488, "approach": -1, "revision": 6510, "ladder_revision": 4, "rejections": { 1: { "signature": [9, 6510, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 48, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 49, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 50, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 51, 414)","name":"Audka","phase":"FETCH_TO_GHOST","task":14}]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [2, 3, 4, 0], "stats": { "pending_total": 12, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 0 }, "active": 1, "blocked": 0, "oldest_pending_age_s": 32.367, "probes_per_sec": 0.0, "worst_wake_usec": 12525, "wake_count": 298 }, "probe_key": [1, 2, (621, 43, 427)], "expanded": 0, "approach": -1, "revision": 6510, "ladder_revision": 4, "rejections": { 1: { "signature": [9, 6510, 4, 0], "workers": {  } } }, "cursor": { 0: 0, 7: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":8,"lease":14,"mode":"build","status":1,"work":[{"cargo":1,"cell":"(638, 51, 414)","name":"Audka","phase":"FETCH_WORKING","task":14}]}
+PLAYER_LADDER_TICK {"blocked":0,"built":12,"lease":-1,"mode":"ready","status":-1,"work":[]}
+PLAYER_LADDER_COMPLETE stock=0 materials=["base:material:pine", "base:material:pine", "base:material:pine"]
+WorldGenerator: stopped in 40.8 s.

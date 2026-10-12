@@ -202,6 +202,13 @@ func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
 				best_dist = dist
 	return best
 
+func delivery_stand_cells(_target: Vector3i, _dwarf_id: int = -1) -> Array[Vector3i]:
+	var stands: Array[Vector3i] = []
+	for cell: Vector3i in cells:
+		for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
+			if NavGrid.is_walkable(cell+offset) and not cell+offset in stands: stands.append(cell+offset)
+	return stands
+
 
 # ── Withdraw (doc 19 §3.3 fetch path) ─────────────────────────────────────────
 

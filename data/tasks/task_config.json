@@ -36,6 +36,18 @@
     "backoff_max_s": 30.0,
     "unreachable_signal_threshold": 3
   },
+  "supervision": {
+    "interval_seconds": 0.5,
+    "budget_usec": 500,
+    "attempts_per_pass": 8,
+    "no_progress_seconds": 12.0,
+    "recovery_limit": 3,
+    "planning_hold_seconds": 4.0,
+    "planning_quantum_slices": 8,
+    "maximum_search_nodes": 24000,
+    "ingredient_planning_budget_usec": 250,
+    "ingredient_planning_node_cap": 32
+  },
   "static_priorities": {
     "MINE": 50,
     "HAUL": 40,

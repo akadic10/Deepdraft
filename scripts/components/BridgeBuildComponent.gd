@@ -3,6 +3,9 @@ extends FurnitureGhostComponent
 var progress := 0.0
 var stands: Array[Vector3i] = []
 
+func work_stands(_from: Vector3i) -> Array[Vector3i]:
+	return stands.filter(func(cell: Vector3i): return NavGrid.is_walkable(cell))
+
 func nearest_stand_target(from: Vector3i) -> Vector3i:
 	var best := Vector3i(-1,-1,-1)
 	for cell: Vector3i in stands:

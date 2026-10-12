@@ -354,14 +354,19 @@ func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Di
 
 ## Read-only single-unit crafting quote; the chosen physical item is retained
 ## so route exclusions are not lost when execution claims the material.
-func advance_material_quote(keys: Array[String], from: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary) -> bool:
+func advance_material_quote(keys: Array[String], from: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary,
+		claim_owner := -1, material_id := "", instance_id := "", single_unit := true) -> bool:
 	if query.is_empty(): query.merge({"nodes":_loose.keys(), "index":0, "best":{}, "distance":0x7FFFFFFF})
 	while int(query.index) < query.nodes.size():
 		if Time.get_ticks_usec() >= deadline: return false
 		var node = query.nodes[query.index]
 		query.index += 1
-		if not Permission.allowed(node) or not _loose.has(node) or _reserved.has(node): continue
-		if String(_loose[node]) not in keys or quantity_of(node) != 1: continue
+		if not Permission.allowed(node) or not _loose.has(node): continue
+		if _reserved.has(node) and int(_reserved[node]) != claim_owner: continue
+		if String(_loose[node]) not in keys or (single_unit and quantity_of(node) != 1): continue
+		if not material_id.is_empty() and CraftMaterials.of_item(node) != material_id: continue
+		if not instance_id.is_empty() and String(node.get_meta("instance_id","")) != instance_id: continue
+		if instance_promised(String(node.get_meta("instance_id","")),claim_owner): continue
 		var cell := item_floor_cell(node)
 		if excluded.has(cell): continue
 		var delta := cell-from

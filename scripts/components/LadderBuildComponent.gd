@@ -3,6 +3,11 @@ extends FurnitureGhostComponent
 ## One physical section, installed from the floor or the preceding section.
 var progress := 0.0
 
+func work_stands(_from: Vector3i) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	if NavGrid.is_navigable(origin_cell): result.append(origin_cell)
+	return result
+
 func nearest_stand_target(_from: Vector3i) -> Vector3i:
 	return origin_cell if NavGrid.is_navigable(origin_cell) else Vector3i(-1, -1, -1)
 

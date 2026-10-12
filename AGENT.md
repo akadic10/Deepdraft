@@ -1,9 +1,25 @@
 # Deepdraft — Agent Navigation Index
 
+**Shared job lifecycle and recovery — live (2026-10-11):**
+[126 — Lifecycle and recovery](docs/00_dev_roadmap/126_job_lifecycle_and_recovery.md)
+implements the four steps from [125 — Architecture review](docs/00_dev_roadmap/125_jobs_and_dwarves_architecture_review.md):
+saved order identity, attempt fencing, progress supervision, complete furniture
+fetch planning, shared work execution and fair retained searches. Dwarf development
+has a Job inspector with waiting reasons and retry. Run the 23-fixture gate in
+`tools/run_job_reliability.ps1`; source/inventory owners remain authoritative.
+Receipts are runtime guards, not durable event replay. Current saves include jobs
+diagnostics and craft order IDs; no legacy save migration was added.
+
 **Latest session handoff:** [124 — Starter colony, 2026-10-11](docs/00_dev_roadmap/124_session_handoff_2026_10_11.md)
 collects today's bridges, furniture/materials, bedrooms, warmth/privacy, mining
 progression, placement timing and grouped storage. It records final verification,
 next-session playtests, current save policy and the two still-unresolved issues.
+
+**Ladder extension dispatch (2026-10-11):** [88 — Ladder task reachability](docs/00_dev_roadmap/88_ladder_task_reachability.md)
+records the late-session saved-game fix: repeated mining searches above an
+unfinished ladder starved its construction job. Budget yields now give other
+job types a turn while preserving each type's search progress. The copied save
+completes its two remaining sections; no replacement order or new world is needed.
 
 **Grouped storage contents (2026-10-11):** [59 — Storage filters](docs/00_dev_roadmap/59_storage_filters.md)
 now shows alphabetical totals by item/material across ground zones and containers.

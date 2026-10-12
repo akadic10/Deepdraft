@@ -69,10 +69,14 @@ func _recipes_and_storage() -> void:
 	for recipe in crafting.recipes.values():
 		_fresh_workers()
 		drops.spawn_drop(PINE,int(recipe.ingredient_count),Vector3i(55,21,40))
-		drops.spawn_drop(STONE,1,Vector3i(55,21,41))
-		var id: int = crafting.queue_order(String(recipe.id),1)
-		await _dispatch_order(id)
-		_expect(crafting.get_order(id).worker_id==extra_worker.dwarf_id,
+		var additional: Dictionary = {}
+		for key: String in recipe.get("additional_ingredients", []):
+			additional[key] = int(additional.get(key,0)) + 1
+		for key: String in additional:
+			drops.spawn_drop(key,additional[key],Vector3i(55,21,41))
+		var recipe_order_id: int = crafting.queue_order(String(recipe.id),1)
+		await _dispatch_order(recipe_order_id)
+		_expect(crafting.get_order(recipe_order_id).worker_id==extra_worker.dwarf_id,
 			String(recipe.id)+": all Worker recipes compare ingredient proximity")
 	_fresh_workers()
 	# Closer stored material must beat distant loose material as well.

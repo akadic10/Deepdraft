@@ -94,3 +94,49 @@ its missing-ladder backoff and terrain/occupancy invalidation checks.
 successfully mined staircase. This closes the reported ladder/mining workflow
 for this session. The older mining-face stall in Issue 001 has not been reproduced
 against these fixes and remains open; see [89 — Handoff](89_session_handoff_2026_10_09.md).
+
+## Follow-up — unfinished ladder blocked by mining searches (2026-10-11)
+
+The late-session quicksave (`2026-10-12 01:06:36 UTC`, seed `3774212034`)
+contains a 12-block ladder at `(638,43,414)`, yaw 3, with four blocks built and
+two allowed pine sections in ground storage. All five awake workers can reach
+the next work position at `(638,47,414)`. The construction lease is pending,
+unpaused and has no failed-route backoff.
+
+Twelve mining leases have higher priority. Their unfinished route searches
+consume the entire 1 ms scheduler wake, and the next wake starts at mining
+again. Idle walking can restart these long searches before they finish. The
+reachable ladder job never gets a turn, although completing it enables the
+mining. The copied save remained at four built blocks throughout a 45-second
+baseline run; increasing path limits or supplying extra sections would not
+address this starvation.
+
+TaskManager now continues at the next nonempty job-type bucket after a budget
+yield. A fresh/completed pass still begins in priority order. Ordinary routes
+and surface comparisons each retain a bounded frontier per type, so switching
+types does not lose search progress. Existing haul/craft/Move comparisons join
+the same rotation. Relevant terrain edits, ladder changes, work-policy changes
+and reload still invalidate suspended searches. No navigation rules, assembly
+times, item costs, static priorities or scheduler budgets changed.
+
+`LadderSchedulingTest` restores one paid section with two physical sections in
+storage and mining above the cliff. One-node slices reproduce the old starvation
+independently of machine speed. The corrected scheduler assigns construction
+before mining finishes its probe, preserves mining progress without false
+backoff, consumes exactly two sections, completes the ladder, then actually mines
+the upper block. This test failed before the correction and passes afterward.
+
+The same untouched quicksave copied into an isolated profile completes from
+4 → 8 → 12 blocks automatically, with zero remaining kits and three pine material
+records. Evidence: `tmp/ladder_extension_20261011/before.out`, `debug2.out` and
+`after.out`. No developer walk, order replacement, instant installation or edit
+to the original save was used. Restart Play and load the existing save to resume.
+
+The final regression pass also covers `LadderTest`, `LadderMiningTest`,
+`FurnitureAssignmentTest`, `MinerProfessionTest`, `HaulingSelectionTest`,
+`SurfaceWorkSelectionTest`, `CraftingSelectionTest`, `PlacementHaulPriorityTest`,
+`ShrubMoveHandoffTest` and `SaveManagerRoundTripTest`. Crafting's recipe-wide
+selection fixture now supplies each recipe's actual additional ingredients;
+its old single-stone allowance could not start the four-stone hearth recipe.
+Logs are in `tmp/material_furniture_20261011/`. The original mining-face stall
+in Issue 001 remains open; this identifies the ladder dependency starvation only.

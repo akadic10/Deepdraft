@@ -60,6 +60,9 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		if agent._rest_behavior.state in ["travelling","travelling_bed"]: destination = "Resting spot (%d, %d, %d)" % [rest.destination.x,rest.destination.y,rest.destination.z]
 	elif phase != Phase.NONE:
 		match phase:
+			Phase.FETCH_PLANNING:
+				activity = "Finding accessible supplies"
+				explanation = "Checking the next ingredient and return route."
 			Phase.HAUL_TO_ITEM, Phase.FETCH_TO_ITEM:
 				activity = "Collecting supplies"
 				explanation = "Walking to the next item."
@@ -135,6 +138,10 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		activity = "Walking"
 		explanation = "Moving to the requested position."
 		destination = location(agent._move_path.back())
+	var availability := TaskManager.worker_availability(agent)
+	if availability.begins_with("Trapped") and task == null and not agent.is_sleeping():
+		activity = "Needs accessible footing"
+		explanation = "This dwarf cannot start work from here. Restore a safe route or support."
 	var items := _cargo(agent)
 	if task != null and task.type == Task.Type.CRAFT:
 		var craft_source = TaskManager.get_work_source(task.source_id)
@@ -150,7 +157,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 				activity = "Crafting " + String(craft_source.recipe.name).to_lower()
 				explanation = "Working with the gathered materials to finish the recipe."
 	var ladder_build := agent._fetch_source()
-	if task == null and not agent.is_sleeping() and agent._idle_behavior != null and agent._idle_behavior.active():
+	if task == null and not agent.is_sleeping() and not availability.begins_with("Trapped") and agent._idle_behavior != null and agent._idle_behavior.active():
 		var leisure: Dictionary = agent._idle_behavior.describe()
 		activity = leisure.activity
 		explanation = leisure.explanation

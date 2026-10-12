@@ -54,6 +54,25 @@ var _lease_id: int = -1             # the ONE FETCH_BUILD lease, -1 = none
 var _fetches: Dictionary = {}       # dwarf_id -> Node3D (reserved item, pre-pickup)
 var _claim: Node3D = null           # ghost-held item claim (see header) — runtime only, never saved
 var _carried_by: Dictionary = {}    # picked up for this plan; not a loose/store unit anymore
+var _preferred_fetch: Dictionary = {}
+var _delivery_stands: Dictionary = {}
+
+func work_stands(_from: Vector3i) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	var cells: Array[Vector3i] = footprint_cells()
+	if String(def.get("placement","floor")) == "wall": cells = [origin_cell]
+	for cell: Vector3i in cells:
+		for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
+			var stand := cell+offset
+			if _cell_in_footprint(stand) or not NavGrid.is_walkable(stand): continue
+			if not result.has(stand): result.append(stand)
+	return result
+
+func prefer_fetch_plan(plan: Dictionary) -> void:
+	_preferred_fetch = plan
+
+func delivery_stand(dwarf_id: int, from: Vector3i) -> Vector3i:
+	return _delivery_stands.get(dwarf_id,nearest_stand_target(from))
 
 
 func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: int) -> void:
@@ -258,6 +277,36 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return {}
 	var item: Node3D = null
+	if not _preferred_fetch.is_empty():
+		var plan := _preferred_fetch
+		_preferred_fetch = {}
+		if int(plan.dwarf_id) != dwarf_id or plan.from != dwarf_cell: return {}
+		if not plan.delivery_stand in work_stands(plan.pickup_stand): return {}
+		var quote: Dictionary = plan.material
+		if quote.has("source"):
+			item = StockpileManager.withdraw_material_quote(quote,dwarf_id)
+		else:
+			var quoted: Node3D = quote.get("node")
+			if not preload("res://scripts/components/ItemPermission.gd").allowed(quoted): return {}
+			if drop_manager.item_floor_cell(quoted) != quote.cell or drop_manager.item_key_of(quoted) != item_key: return {}
+			if not required_material_id.is_empty() and CraftMaterials.of_item(quoted) != required_material_id: return {}
+			if not required_instance_id.is_empty() and String(quoted.get_meta("instance_id","")) != required_instance_id: return {}
+			if bool(quoted.get_meta("stored",false)) or drop_manager.quantity_of(quoted) <= 0: return {}
+			if quoted == _claim:
+				drop_manager.unreserve(quoted,claim_owner_id())
+				_claim = null
+			if drop_manager.reserve(quoted,dwarf_id): item = quoted
+		if item == null: return {}
+		# A disconnected earlier soft claim must not stay reserved after a
+		# reachable replacement has actually been acquired.
+		if is_instance_valid(_claim):
+			drop_manager.unreserve(_claim,claim_owner_id())
+			_claim = null
+		_fetches[dwarf_id] = item
+		_delivery_stands[dwarf_id] = plan.delivery_stand
+		fetched_instance_id = String(item.get_meta("instance_id",""))
+		return {"item":item,"pickup_stand":plan.pickup_stand,
+			"heavy":String(drop_manager.get_item_def(item_key).get("weight_class","light"))=="heavy"}
 	if _claim_valid():
 		# Transfer the claim to the fetching dwarf (owner-guarded swap).
 		item = _claim
@@ -289,6 +338,8 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 ## is immediately RE-CLAIMED for the ghost so a hauler cannot poach it in
 ## the gap before the next lease wake.
 func cancel_fetch(dwarf_id: int) -> void:
+	_delivery_stands.erase(dwarf_id)
+	_preferred_fetch.clear()
 	_carried_by.erase(dwarf_id)
 	if not _fetches.has(dwarf_id):
 		return

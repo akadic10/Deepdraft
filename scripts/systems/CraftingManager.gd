@@ -340,15 +340,19 @@ func serialize_state() -> Dictionary:
 
 func restore_state(state: Dictionary) -> void:
 	for order in orders.duplicate(): remove_order(order.id)
+	var next_unused := _next_id
 	for entry in state.get("orders",[]):
 		if not entry is Dictionary: continue
+		_next_id = int(entry.get("id",_next_id))
 		# Missing field in a pre-filter save adopts the conservative recipe default.
 		# An explicit empty/invalid list stays empty; never silently allow more wood.
 		var id := queue_order(String(entry.get("recipe","")),int(entry.get("quantity",0)),bool(entry.get("maintain",false)),entry.get("allowed_ingredients"))
 		var order = get_order(id)
+		next_unused = maxi(next_unused,_next_id)
 		if order == null: continue
 		order.paused = bool(entry.get("paused",false))
 		order.progress = clampf(float(entry.get("progress",0)),0,float(order.recipe.work_seconds))
+	_next_id = next_unused
 	wake()
 
 func _exit_tree() -> void:

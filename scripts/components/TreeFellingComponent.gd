@@ -86,8 +86,13 @@ func advance_work(dwarf_id: int, seconds: float) -> bool:
 		return false
 	state["work_seconds"] = minf(float(state.get("work_seconds", 0.0)) + maxf(seconds, 0.0), duration)
 	if float(state["work_seconds"]) >= duration and complete_callback.is_valid():
-		return bool(complete_callback.call(dwarf_id))
+		var task := TaskManager.get_task(lease_id)
+		if task == null or task.attempt == null: return false
+		return TaskManager.commit_step(dwarf_id,task.id,task.attempt.generation,"surface",func(): return bool(complete_callback.call(dwarf_id)))
 	return false
+
+func remaining_work() -> float:
+	return maxf(0.0,duration-float(state.get("work_seconds",0.0)))
 
 
 ## A one-time visual aim query at work start. Use the visible trunk surface

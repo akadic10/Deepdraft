@@ -296,7 +296,8 @@ func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) 
 
 ## Read-only, resumable material search. Compare storage with loose goods;
 ## withdrawal happens only after the scheduler has chosen a reachable worker.
-func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary) -> bool:
+func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary,
+		claim_owner := -1, material_id := "", instance_id := "") -> bool:
 	if query.is_empty():
 		query.merge({"sources":_zones.values()+_containers.values(), "index":0,
 			"slots":[], "slot_index":0, "best":{}, "distance":0x7FFFFFFF})
@@ -312,14 +313,17 @@ func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictiona
 				var stack: Dictionary = source.stored_entries().get(slot,{})
 				if not source.slot_allowed(slot) or stack.is_empty() or String(stack.item) not in keys: continue
 				if int(stack.count) <= int(source._outgoing.get(slot,{}).get("count",0)): continue
-				if source.drop_manager.instance_promised(String(stack.get("instance_id",""))): continue
+				if source.drop_manager.instance_promised(String(stack.get("instance_id","")),claim_owner): continue
+				if not material_id.is_empty() and String(stack.get("material_id","")) != material_id: continue
+				if not instance_id.is_empty() and String(stack.get("instance_id","")) != instance_id: continue
 				var cell := source.withdrawal_item_cell(slot)
 				if cell.x < 0 or excluded.has(cell): continue
 				var delta := cell-near
 				var distance := absi(delta.x)+absi(delta.y)+absi(delta.z)
 				if distance < int(query.distance):
 					query.distance = distance
-					query.best = {"source":source, "slot":slot, "key":String(stack.item), "cell":cell, "distance":distance}
+					query.best = {"source":source, "slot":slot, "key":String(stack.item), "cell":cell, "distance":distance,
+						"material_id":String(stack.get("material_id","")),"instance_id":String(stack.get("instance_id","")),"claim_owner":claim_owner}
 		query.index += 1
 		query.slots = []
 		query.slot_index = 0
@@ -333,7 +337,9 @@ func withdraw_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 	var stack: Dictionary = source.stored_entries().get(quote.slot,{})
 	if not source.slot_allowed(quote.slot) or stack.is_empty() or String(stack.item) != quote.key: return null
 	if int(stack.count) <= int(source._outgoing.get(quote.slot,{}).get("count",0)): return null
-	if source.drop_manager.instance_promised(String(stack.get("instance_id",""))): return null
+	if String(stack.get("material_id","")) != String(quote.get("material_id",stack.get("material_id",""))): return null
+	if String(stack.get("instance_id","")) != String(quote.get("instance_id",stack.get("instance_id",""))): return null
+	if source.drop_manager.instance_promised(String(stack.get("instance_id","")),int(quote.get("claim_owner",-1))): return null
 	if source.withdrawal_item_cell(quote.slot) != quote.cell: return null
 	return source.withdraw_stack(quote.slot,1,dwarf_id)
 

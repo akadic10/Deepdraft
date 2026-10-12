@@ -39,6 +39,7 @@ var work_permissions: Dictionary = {}
 
 ## The claimed task id (id, NOT the Task object — doc 16 §2.2). -1 = idle.
 var current_task_id: int = -1
+var _work_execution := preload("res://scripts/components/DwarfWorkExecution.gd").new()
 
 ## Task execution phases. MOVING/EXECUTING is the generic v1 executor (walk to
 ## target, work a fixed timer — synthetic DEV tasks still use it).
@@ -51,7 +52,7 @@ var current_task_id: int = -1
 enum TaskPhase { NONE, MOVING, EXECUTING, ZONE_MOVING, ZONE_SWINGING, HAUL_TO_ITEM, HAUL_TO_ZONE,
 		FETCH_TO_ITEM, FETCH_TO_GHOST, FETCH_WORKING, UNINSTALL_MOVING, UNINSTALL_WORKING,
 		FELL_FINDING, FELL_MOVING, FELL_WORKING,
-		HAUL_PICKUP, HAUL_DEPOSIT, FETCH_PICKUP, FETCH_DEPOSIT }
+		HAUL_PICKUP, HAUL_DEPOSIT, FETCH_PICKUP, FETCH_DEPOSIT, FETCH_PLANNING }
 const GENERIC_WORK_TIME := 1.0   # seconds — generic executor only
 var _task_phase: int = TaskPhase.NONE
 var _task_target: Vector3i = Vector3i.ZERO
@@ -104,6 +105,7 @@ var _carry_speed_mult: float = 1.0
 ## uninstall interrupt leaves the piece installed with the flag set).
 var _fetch_source_id: int = -1
 var _fetch_item: Node3D = null       # reserved (pre-pickup) or carried (post)
+var _fetch_plan: Dictionary = {}
 var _fetch_picked_up: bool = false
 var _plant_animation_duration := 0.0 # Remaining work at arrival; interrupted planting restarts the reach.
 var _fetch_heavy: bool = false
@@ -252,83 +254,7 @@ func _process(delta: float) -> void:
 		return
 	if current_task_id < 0 and _task_phase == TaskPhase.NONE and _idle_behavior != null:
 		if _idle_behavior.tick(delta * WorldClock.speed): return
-	if _task_phase in [TaskPhase.HAUL_PICKUP, TaskPhase.FETCH_PICKUP, TaskPhase.HAUL_DEPOSIT, TaskPhase.FETCH_DEPOSIT]:
-		_process_item_handling(delta * WorldClock.speed)
-		return
-	if _task_phase == TaskPhase.FELL_FINDING:
-		_fell_try_stand()
-		return
-	if _task_phase == TaskPhase.FELL_WORKING:
-		_process_felling(delta * WorldClock.speed)
-		return
-	if _task_phase == TaskPhase.FELL_MOVING and not _move_path.is_empty() \
-			and not NavGrid.is_navigable(_move_path[_move_index]):
-		_clear_path()
-		_task_phase = TaskPhase.FELL_FINDING
-		return
-	if _task_phase == TaskPhase.EXECUTING:
-		_exec_timer -= delta
-		if _exec_timer <= 0.0:
-			_task_phase = TaskPhase.NONE
-			var finished_id := current_task_id
-			current_task_id = -1
-			if finished_id >= 0:
-				TaskManager.complete_dwarf_task(dwarf_id)
-	elif _task_phase == TaskPhase.ZONE_SWINGING:
-		_process_swinging(delta * WorldClock.speed)
-		return   # swing bob owns the part offsets this frame
-	elif _task_phase == TaskPhase.FETCH_WORKING:
-		var craft := _fetch_source()
-		if craft != null and craft.has_method("advance_install"):
-			if not craft.can_complete_build():
-				_fetch_fail_release()
-				return
-			_exec_timer = craft.advance_install(delta * WorldClock.speed)
-			var face: Vector3i = craft.work_facing(current_cell())
-			rotation.y = atan2(face.x, face.z)
-			_carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
-			if _exec_timer <= 0.0: _fetch_complete()
-			return
-		if craft != null and craft.has_method("advance_craft"):
-			if not bool(craft.call("can_complete_build")):
-				_fetch_fail_release()
-				return
-			var before := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
-			_exec_timer = float(craft.call("advance_craft", delta * WorldClock.speed))
-			var after := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
-			var contact := _craft_pose(craft)
-			# Follow actual axe contact and clamped work progress. A stalled frame
-			# emits at most one hit; resumed work never replays earlier strikes.
-			if floori(after-FellingPose.CONTACT_PHASE) > floori(before-FellingPose.CONTACT_PHASE) \
-					and is_visible_in_tree():
-				WorkFeedback.play_chop(contact,int(craft.get("work_cell").y))
-			if _exec_timer <= 0.0: _begin_fetch_deposit()
-			return
-		if craft != null and craft.has_method("advance_plant"):
-			if not craft.can_complete_build():
-				_fetch_fail_release()
-				return
-			_exec_timer = craft.advance_plant(delta * WorldClock.speed)
-			var phase := 1.0 - _exec_timer / maxf(_plant_animation_duration, .001)
-			_plant_pose(craft, clampf(phase, 0.0, 1.0))
-			if _exec_timer <= 0.0: _fetch_complete()
-			return # Planting owns the cargo/hands; the idle hold pose must not overwrite it.
-		# Ordinary furniture uses FETCH_DEPOSIT immediately on arrival. Every
-		# timed source above owns both its work progress and visible animation.
-		_fetch_fail_release()
-		return
-	elif _task_phase == TaskPhase.UNINSTALL_WORKING:
-		var removal := _uninstall_source()
-		if removal != null and removal.has_method("advance_removal"):
-			_exec_timer = removal.advance_removal(delta * WorldClock.speed, dwarf_id)
-			var face: Vector3i = removal.work_facing()
-			rotation.y = atan2(face.x, face.z)
-			_carry_pose.gather(fposmod(float(removal.progress), 1.0), Vector3(0, 1.7, .4))
-			if _exec_timer <= 0.0: _uninstall_complete()
-			return
-		_exec_timer -= delta
-		if _exec_timer <= 0.0:
-			_uninstall_complete()
+	if _work_execution.tick(self,delta * WorldClock.speed): return
 	if _move_path.is_empty():
 		_idle_bob()
 	else:
@@ -345,11 +271,14 @@ func _process(delta: float) -> void:
 ## generic timer. Failure paths use the release protocol — releasing is
 ## always cheap and legal (doc 16 §2.8).
 func receive_task(task_id: int, target_pos: Vector3i, carried_item: Node3D = null) -> void:
+	var assignment := TaskManager.get_task(task_id)
+	if assignment == null or assignment.attempt == null: return
+	_work_execution.bind(assignment)
 	if _sleeping or promotion_pending():
 		# Race guard (should not happen — sleepers leave the idle pool): an
 		# assignment landing in the frame the dwarf fell asleep bounces straight
 		# back to PENDING; releasing is always cheap and legal (§2.8).
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
 		return
 	if _idle_behavior != null: _idle_behavior.cancel()
 	_reset_part_offsets()
@@ -403,7 +332,7 @@ func receive_task(task_id: int, target_pos: Vector3i, carried_item: Node3D = nul
 		# terrain changed since). Release; backoff will retry it later.
 		_task_phase = TaskPhase.NONE
 		current_task_id = -1
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 
 
 ## Detach ownership, not the node: a confirmed placement retains this exact
@@ -464,7 +393,7 @@ func allows_task(type: int) -> bool:
 func _release_for_assignment_change() -> void:
 	if current_task_id < 0: return
 	abort_task()
-	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PLAYER, not _sleeping)
+	_work_execution.release(dwarf_id, Task.ReleaseReason.PLAYER, not _sleeping)
 
 
 ## Called by TaskManager when the task is cancelled out from under us.
@@ -548,7 +477,7 @@ func _on_walk_finished(success: bool) -> void:
 		else:
 			_finish_uninstall_state()
 			current_task_id = -1
-			TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+			_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 		return
 	if _task_phase != TaskPhase.MOVING:
 		return
@@ -558,7 +487,7 @@ func _on_walk_finished(success: bool) -> void:
 	else:
 		_task_phase = TaskPhase.NONE
 		current_task_id = -1
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 
 
 # ── Sleep-lite (doc 16 §2.8 / Phase 5) ────────────────────────────────────────
@@ -596,7 +525,7 @@ func _begin_sleep() -> void:
 	_reset_part_offsets()
 	if had_task:
 		# requeue_dwarf = false: we re-enter the idle pool only on waking (§2.8).
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
 	else:
 		TaskManager.notify_dwarf_unavailable(dwarf_id)
 	_rest_behavior.begin()
@@ -712,7 +641,7 @@ func dev_force_interrupt() -> bool:
 	_exec_timer = 0.0
 	stop_walking()
 	_reset_part_offsets()
-	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PLAYER)
+	_work_execution.release(dwarf_id, Task.ReleaseReason.PLAYER)
 	return true
 
 
@@ -744,13 +673,13 @@ func _zone_pull_next() -> void:
 	if source == null:
 		_finish_zone_state()
 		current_task_id = -1
-		TaskManager.fail_dwarf_task(dwarf_id, "zone gone")
+		_work_execution.fail(dwarf_id, "zone gone")
 		return
 	var pull: Dictionary = source.call("reserve_next", dwarf_id, current_cell(), _pull_exclude)
 	if pull.is_empty():
 		_finish_zone_state()
 		current_task_id = -1
-		TaskManager.complete_dwarf_task(dwarf_id)
+		_work_execution.complete(dwarf_id)
 		return
 	_zone_block = pull["block"]
 	_zone_stand_cells = pull["stand_cells"]
@@ -780,7 +709,7 @@ func _zone_try_stand() -> void:
 	if _pull_failures >= ZONE_PULL_FAILURE_LIMIT:
 		_finish_zone_state()
 		current_task_id = -1
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 	else:
 		_zone_pull_next()
 
@@ -844,7 +773,7 @@ func _process_swinging(delta: float) -> void:
 	# drops, X0) and marks zone progress.
 	_task_phase = TaskPhase.NONE
 	_reset_part_offsets()
-	var committed := source != null and bool(source.call("commit_mined", dwarf_id))
+	var committed := source != null and _work_execution.commit(dwarf_id,"mine:%s" % _zone_block,func(): return source.commit_mined(dwarf_id))
 	if committed and profession == "base:profession:miner":
 		# The final commit may end the zone lease synchronously. Award first.
 		profession_experience[profession] = maxi(0, int(profession_experience.get(profession, 0))) + 1
@@ -881,7 +810,7 @@ func _settle_missing_support() -> bool:
 	# cleanup releases source/seat/tool claims and reports a failed walk once.
 	abort_task()
 	if _sleeping and _rest_behavior != null: _rest_behavior.begin()
-	TaskManager.release_dwarf_task(dwarf_id,Task.ReleaseReason.PATH_INVALID,not _sleeping)
+	_work_execution.release(dwarf_id,Task.ReleaseReason.PATH_INVALID,not _sleeping)
 	return true
 
 func _has_floor_support(cell: Vector3i) -> bool:
@@ -934,13 +863,13 @@ func _haul_pull_next() -> void:
 	if source == null:
 		_finish_haul_state()
 		current_task_id = -1
-		TaskManager.fail_dwarf_task(dwarf_id, "stockpile zone gone")
+		_work_execution.fail(dwarf_id, "stockpile zone gone")
 		return
 	var pull: Dictionary = source.call("reserve_haul", dwarf_id, current_cell(), _haul_exclude)
 	if pull.is_empty():
 		_finish_haul_state()
 		current_task_id = -1
-		TaskManager.complete_dwarf_task(dwarf_id)
+		_work_execution.complete(dwarf_id)
 		return
 	_haul_items = pull["items"]
 	_haul_index = 0
@@ -989,7 +918,7 @@ func _haul_take_current() -> bool:
 	if source == null:
 		_finish_haul_state()
 		current_task_id = -1
-		TaskManager.fail_dwarf_task(dwarf_id, "stockpile zone gone")
+		_work_execution.fail(dwarf_id, "stockpile zone gone")
 		return false
 	var node: Node3D = source.call("take_item", dwarf_id, _haul_index)
 	if node == null:
@@ -1034,7 +963,7 @@ func _haul_deposit_now() -> void:
 	var source := _haul_source()
 	var committed := false
 	if source != null and not _carried_entries.is_empty():
-		committed = bool(source.call("commit_haul", dwarf_id, _carried_entries))
+		committed = _work_execution.commit(dwarf_id,"haul",func(): return source.commit_haul(dwarf_id,_carried_entries))
 	if committed:
 		_carried_entries = []   # the zone/drop manager owns the nodes now
 		_carry_pose.clear_items()
@@ -1045,7 +974,7 @@ func _haul_deposit_now() -> void:
 		# and prevents higher-priority work from being considered between trips.
 		_finish_haul_state()
 		current_task_id = -1
-		TaskManager.complete_dwarf_task(dwarf_id)
+		_work_execution.complete(dwarf_id)
 	else:
 		_drop_carried_at_feet()
 		_haul_cancel_pull()
@@ -1079,7 +1008,7 @@ func _haul_count_failure() -> void:
 	if _haul_failures >= HAUL_PULL_FAILURE_LIMIT:
 		_finish_haul_state()
 		current_task_id = -1
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 	else:
 		_haul_pull_next()
 
@@ -1261,13 +1190,17 @@ func _fetch_begin() -> void:
 	if source == null:
 		_finish_fetch_state()
 		current_task_id = -1
-		TaskManager.fail_dwarf_task(dwarf_id, "furniture ghost gone")
+		_work_execution.fail(dwarf_id, "furniture ghost gone")
+		return
+	if source.has_method("needs_trip_plan") and source.needs_trip_plan():
+		_fetch_plan.clear()
+		_task_phase = TaskPhase.FETCH_PLANNING
 		return
 	var pull: Dictionary = source.call("reserve_fetch", dwarf_id, current_cell())
 	if pull.is_empty():
 		_finish_fetch_state()
 		current_task_id = -1
-		TaskManager.complete_dwarf_task(dwarf_id)
+		_work_execution.release(dwarf_id,Task.ReleaseReason.MATERIAL_UNAVAILABLE)
 		return
 	_fetch_item = pull["item"]
 	_fetch_picked_up = false
@@ -1328,6 +1261,7 @@ func _fetch_travel_to_ghost() -> void:
 		_fetch_fail_release()
 		return
 	var target: Vector3i = source.call("nearest_stand_target", current_cell())
+	if source.has_method("delivery_stand"): target = source.delivery_stand(dwarf_id,current_cell())
 	if target.x < 0:
 		_fetch_fail_release()   # footprint has no walkable neighbour right now
 		return
@@ -1342,13 +1276,15 @@ func _fetch_travel_to_ghost() -> void:
 ## FETCH step 4: the placement/work animation finished — the carried item BECOMES the
 ## installed piece (node freed, controller instances the solid form).
 func _fetch_complete() -> void:
+	if not TaskManager._matches_attempt(dwarf_id,_work_execution.task_id,_work_execution.generation): return
 	_task_phase = TaskPhase.NONE
 	var source := _fetch_source()
 	if source == null:
 		_fetch_fail_release()
 		return
 	if source.has_method("needs_ingredient_delivery") and bool(source.call("needs_ingredient_delivery")):
-		if not bool(source.call("stage_ingredient", dwarf_id)):
+		var unit := "ingredient:%d" % _fetch_item.get_instance_id() if is_instance_valid(_fetch_item) else "missing ingredient"
+		if not _work_execution.commit(dwarf_id,unit,func(): return bool(source.stage_ingredient(dwarf_id))):
 			_fetch_fail_release()
 			return
 		_carried_entries = _carried_entries.filter(func(entry: Array) -> bool: return entry[0] != _fetch_item)
@@ -1367,6 +1303,20 @@ func _fetch_complete() -> void:
 	if not preload("res://scripts/components/ItemPermission.gd").allowed(_fetch_item):
 		_fetch_fail_release()
 		return
+	if not _work_execution.commit(dwarf_id,"fetch",_commit_fetch_result.bind(source)):
+		_fetch_fail_release()
+		return
+	_fetch_source_id = -1
+	_fetch_picked_up = false
+	var finished_id := current_task_id
+	current_task_id = -1
+	if finished_id >= 0:
+		_work_execution.complete(dwarf_id)
+
+
+func _commit_fetch_result(source: Object) -> bool:
+	if not preload("res://scripts/components/WorkSourceAdapter.gd").valid_commit(source,"fetch"): return false
+	if not is_instance_valid(_fetch_item): return false
 	# Consume the carried item: it is the furniture now, not a drop.
 	if _fetch_item != null and is_instance_valid(_fetch_item):
 		_carried_entries = _carried_entries.filter(
@@ -1378,12 +1328,7 @@ func _fetch_complete() -> void:
 	_carry_pose.clear_items()
 	_reset_part_offsets()
 	source.call("complete_build", dwarf_id)
-	_fetch_source_id = -1
-	_fetch_picked_up = false
-	var finished_id := current_task_id
-	current_task_id = -1
-	if finished_id >= 0:
-		TaskManager.complete_dwarf_task(dwarf_id)
+	return true
 
 
 func _begin_fetch_work() -> void:
@@ -1431,17 +1376,18 @@ func _craft_pose(source: RefCounted) -> Vector3:
 
 
 ## Any fetch failure: Rule 12 teardown + release with backoff.
-func _fetch_fail_release() -> void:
+func _fetch_fail_release(reason: int = Task.ReleaseReason.PATH_INVALID) -> void:
 	_finish_fetch_state()
 	if current_task_id < 0:
 		return
 	current_task_id = -1
-	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+	_work_execution.release(dwarf_id, reason)
 
 
 ## Interrupt/abort teardown: a carried item drops at the feet (it re-enters
 ## the loose index); a merely-reserved item is unreserved via the source.
 func _finish_fetch_state() -> void:
+	_fetch_plan.clear()
 	if _fetch_source_id < 0 and _fetch_item == null:
 		return
 	var source := _fetch_source()
@@ -1453,7 +1399,7 @@ func _finish_fetch_state() -> void:
 	_fetch_source_id = -1
 	_plant_animation_duration = 0.0
 	_carry_speed_mult = 1.0
-	if _task_phase in [TaskPhase.FETCH_TO_ITEM, TaskPhase.FETCH_TO_GHOST, TaskPhase.FETCH_WORKING,
+	if _task_phase in [TaskPhase.FETCH_TO_ITEM, TaskPhase.FETCH_TO_GHOST, TaskPhase.FETCH_WORKING,TaskPhase.FETCH_PLANNING,
 			TaskPhase.FETCH_PICKUP, TaskPhase.FETCH_DEPOSIT]:
 		_task_phase = TaskPhase.NONE
 
@@ -1464,13 +1410,13 @@ func _uninstall_begin() -> void:
 	if source == null:
 		_finish_uninstall_state()
 		current_task_id = -1
-		TaskManager.fail_dwarf_task(dwarf_id, "installed furniture gone")
+		_work_execution.fail(dwarf_id, "installed furniture gone")
 		return
 	var target: Vector3i = source.call("nearest_stand_target", current_cell())
 	if target.x < 0:
 		_finish_uninstall_state()
 		current_task_id = -1
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 		return
 	if target == current_cell():
 		_task_phase = TaskPhase.UNINSTALL_WORKING
@@ -1480,20 +1426,22 @@ func _uninstall_begin() -> void:
 	else:
 		_finish_uninstall_state()
 		current_task_id = -1
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 
 
 ## UNINSTALL step 2: teardown swing finished.
 func _uninstall_complete() -> void:
-	_task_phase = TaskPhase.NONE
 	var source := _uninstall_source()
+	if source == null or not _work_execution.commit(dwarf_id,"uninstall",func(): source.complete_uninstall(dwarf_id)):
+		abort_task()
+		_work_execution.release(dwarf_id,Task.ReleaseReason.PLAN_CHANGED)
+		return
+	_task_phase = TaskPhase.NONE
 	_uninstall_source_id = -1
-	if source != null:
-		source.call("complete_uninstall", dwarf_id)
 	var finished_id := current_task_id
 	current_task_id = -1
 	if finished_id >= 0:
-		TaskManager.complete_dwarf_task(dwarf_id)
+		_work_execution.complete(dwarf_id)
 
 
 ## Interrupt teardown: the piece stays installed, the 📤 flag stays set —
@@ -1591,14 +1539,14 @@ func _process_felling(delta: float) -> void:
 	if bool(source.call("advance_work", dwarf_id, delta)):
 		_finish_felling_state()
 		current_task_id = -1
-		TaskManager.complete_dwarf_task(dwarf_id)
+		_work_execution.complete(dwarf_id)
 
 
 func _fell_release() -> void:
 	_finish_felling_state()
 	current_task_id = -1
 	stop_walking()
-	TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID)
+	_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID)
 
 
 func _finish_felling_state() -> void:
@@ -1641,7 +1589,7 @@ func _process_bridge_exit(delta: float) -> void:
 	var route := NavGrid.closing_bridge_at(current_cell())
 	if not _bridge_exiting:
 		abort_task() # Cargo is dropped intact on the still-supported deck.
-		TaskManager.release_dwarf_task(dwarf_id, Task.ReleaseReason.PATH_INVALID, false)
+		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID, false)
 		if _sleeping: _wake_up()
 		if _idle_behavior != null: _idle_behavior.cancel()
 		_clear_path()

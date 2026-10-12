@@ -1,0 +1,148 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 8 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 1488010614).
+WorldRenderer: generation started (seed 1488010614).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 1 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 27479 cliff/shore columns.
+WorldGenerator: spring (560, 102, 478); river 2902 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: stopped in 10.3 s.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldGenerator: grass bands finalized 5.328 s after maps_ready.
+WorldGenerator metrics:
+  domains: mountain 17.9%, valley 27.5%, lowland 54.7%
+  height: min 11, max 115, avg 31.5
+  top surface: grass 79.2%, dirt 1.0%, rock 17.7%, water 2.1%
+  surface domains: mountain rock 98.9%; valley grass 96.2% dirt 3.6% rock 0.0%
+  finished terrain: summit 1070 columns, detailed 27441, dry shore 912
+  water: lake (147, 657) y18 floor 11-17 depth 7 columns 18709; tarn (784, 720) y54 floor 47-52 depth 7 columns 859; banks 6176
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 3774212034).
+WorldRenderer: generation started (seed 3774212034).
+FurniturePlacementController: 38 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 25060 cliff/shore columns.
+WorldGenerator: spring (720, 102, 606); river 4224 columns, 14 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldRenderer: first visible overview tile after 6.006 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3774212034, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3774212034, "accepted": 2211, "rejections": { "density": 19766, "tree": 1209, "edge": 1115, "shelf": 377, "water": 154, "moisture": 3111, "ground": 1113, "height": 3789, "shore": 28815, "cliff_foot": 3511, "cliff_falloff": 135, "detail_overlap": 217 }, "layout_ms": 854.713, "categories": { "boulder": 78, "scree": 168, "blueberry": 290, "elderberry": 298, "wild_strawberry": 498, "flowers": 859, "reeds": 20 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 8 ducks.
+FlagPlacementController: settlement founded at (614, 43, 423).
+StockpileDesignationController: zone 1 created (81 cells at Y 43).
+FurniturePlacementController: installed base:furniture:crude_workbench at (621, 43, 420).
+FurniturePlacementController: installed base:furniture:campfire at (629, 43, 412).
+FurniturePlacementController: installed base:furniture:log_chair at (630, 43, 411).
+FurniturePlacementController: installed base:furniture:bench at (619, 43, 428).
+FurniturePlacementController: installed base:furniture:log_chair at (630, 43, 415).
+LoadPerformance:
+  total_request_to_restored: 18.744 s
+  read_validate: 304 ms
+  reload_regen_wait: 17.212 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1221 ms
+    mining: 463 ms
+    water: 608 ms
+    flora: 0 ms
+    surface_details: 67 ms
+    settlement_flag: 5 ms
+    stockpiles: 9 ms
+    furniture: 24 ms
+    ladders: 4 ms
+    bridges: 9 ms
+    items: 0 ms
+    dwarves: 6 ms
+    wildlife: 25 ms
+    world_events: 0 ms
+    camera: 0 ms
+    worker_crafting: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 7 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldGenerator: grass bands finalized 3.578 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 10/16 built tiles (band columns only).
+PLAYER_LADDER routes={ "routes": [{ "id": 1, "key": "base:furniture:crude_ladder", "base": [638, 43, 414], "yaw": 3, "height": 12, "built": 4, "materials": ["base:material:pine"], "required_material_id": "", "mode": "build", "progress": 0.0 }], "next_id": 2 } stock=2
+PLAYER_LADDER geometry={ "base": (638, 43, 414), "yaw": 3, "height": 12, "reason": "" } work=(638, 47, 414) navigable=true lease=13
+PLAYER_LADDER dwarf=Horgbur cell=(615, 43, 414) chosen=(638, 47, 414) path=[(615, 43, 414), (616, 43, 414), (617, 43, 414), (618, 43, 414), (619, 43, 414), (620, 43, 414), (621, 43, 414), (622, 43, 414), (623, 43, 414), (624, 43, 414), (625, 43, 414), (626, 43, 414), (627, 43, 414), (628, 43, 415), (629, 43, 416), (630, 43, 416), (631, 43, 416), (632, 43, 416), (633, 43, 416), (634, 43, 416), (635, 43, 416), (636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Audka cell=(621, 43, 425) chosen=(638, 47, 414) path=[(621, 43, 425), (622, 43, 425), (623, 43, 424), (624, 43, 423), (625, 43, 422), (626, 43, 421), (627, 43, 420), (628, 43, 419), (629, 43, 418), (630, 43, 417), (631, 43, 417), (632, 43, 416), (633, 43, 416), (634, 43, 415), (635, 43, 415), (636, 43, 415), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Snordor cell=(617, 43, 424) chosen=(638, 47, 414) path=[(617, 43, 424), (618, 43, 424), (619, 43, 423), (620, 43, 423), (621, 43, 423), (622, 43, 423), (623, 43, 423), (624, 43, 423), (625, 43, 422), (626, 43, 421), (627, 43, 420), (628, 43, 419), (629, 43, 418), (630, 43, 417), (631, 43, 417), (632, 43, 417), (633, 43, 417), (634, 43, 417), (635, 43, 417), (636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Dugas cell=(629, 43, 415) chosen=(638, 47, 414) path=[(629, 43, 415), (629, 43, 416), (630, 43, 416), (631, 43, 416), (632, 43, 416), (633, 43, 416), (634, 43, 416), (635, 43, 416), (636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+PLAYER_LADDER dwarf=Valbra cell=(636, 43, 416) chosen=(638, 47, 414) path=[(636, 43, 416), (637, 43, 415), (638, 43, 414), (638, 44, 414), (638, 45, 414), (638, 46, 414), (638, 47, 414)]
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 1.765, "probes_per_sec": 3.3112582781457, "worst_wake_usec": 12702, "wake_count": 1 }, "probe_key": [1, 0, (615, 43, 414)], "expanded": 0, "approach": -1, "revision": 2679, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 2655, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+PLAYER_LADDER_TICK {"blocked":0,"built":4,"lease":13,"mode":"build","status":0,"work":[]}
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 3.874, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 12 }, "probe_key": [1, 0, (615, 43, 414)], "expanded": 221, "approach": -1, "revision": 2943, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 2926, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=911).
+StartupPerformance:
+  total_to_initial_load: 11.549 s
+  first_visible_terrain: 6.006 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=5.303 s  ready_at=5.306 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.461 s
+    edge_detail: 0.256 s
+    layout_validation: 1.005 s
+    river: 0.027 s
+    caves: 3.408 s
+    grass_bands: 2.645 s
+    tile_ranges: 0.106 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.018 s  avg=0.14 ms  max=11 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=911
+  overview_state: startup_ready=true  startup_ready_at=11.544 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 19.3%, valley 22.0%, lowland 58.7%
+  height: min 11, max 115, avg 32.5
+  top surface: grass 77.9%, dirt 0.7%, rock 19.0%, water 2.4%
+  surface domains: mountain rock 98.8%; valley grass 96.0% dirt 3.2% rock 0.0%
+  finished terrain: summit 3176 columns, detailed 24995, dry shore 885
+  water: lake (305, 176) y18 floor 11-17 depth 7 columns 19766; tarn (720, 464) y54 floor 47-52 depth 7 columns 853; banks 7474
+  layout: macro_layout_v1; attempts 1; fallback false
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 5.915, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 24 }, "probe_key": [1, 0, (611, 43, 415)], "expanded": 261, "approach": -1, "revision": 3233, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 3214, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 7.964, "probes_per_sec": 4.80769230769231, "worst_wake_usec": 12702, "wake_count": 39 }, "probe_key": [1, 0, (611, 43, 415)], "expanded": 653, "approach": -1, "revision": 3549, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 3527, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 10.1, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 56 }, "probe_key": [1, 0, (611, 43, 415)], "expanded": 932, "approach": -1, "revision": 4000, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 3979, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 12.173, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 72 }, "probe_key": [1, 0, (608, 43, 410)], "expanded": 45, "approach": -1, "revision": 4328, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 4312, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 14.342, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 88 }, "probe_key": [1, 0, (608, 43, 410)], "expanded": 666, "approach": -1, "revision": 4616, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 4596, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 16.359, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 104 }, "probe_key": [1, 0, (608, 43, 410)], "expanded": 1090, "approach": -1, "revision": 5057, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 5020, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 18.364, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 120 }, "probe_key": [1, 0, (608, 43, 410)], "expanded": 1372, "approach": -1, "revision": 5413, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 5395, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->16786, sides 103306, validation mismatches 0/0) in 26.92 s since startup.
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 20.385, "probes_per_sec": 32.6086956521739, "worst_wake_usec": 12702, "wake_count": 143 }, "probe_key": [1, 0, (610, 43, 411)], "expanded": 418, "approach": -1, "revision": 5936, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 5918, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 22.385, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 167 }, "probe_key": [1, 0, (610, 43, 411)], "expanded": 1410, "approach": -1, "revision": 6406, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6376, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 24.387, "probes_per_sec": 14.4927536231884, "worst_wake_usec": 12702, "wake_count": 201 }, "probe_key": [1, 0, (610, 43, 411)], "expanded": 2043, "approach": -1, "revision": 6479, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6479, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 26.39, "probes_per_sec": 10.2040816326531, "worst_wake_usec": 12702, "wake_count": 236 }, "probe_key": [1, 0, (610, 43, 411)], "expanded": 2614, "approach": -1, "revision": 6479, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6479, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 28.393, "probes_per_sec": 31.7460317460317, "worst_wake_usec": 12702, "wake_count": 263 }, "probe_key": [1, 0, (611, 43, 409)], "expanded": 86, "approach": -1, "revision": 6479, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6479, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 30.405, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 295 }, "probe_key": [1, 0, (612, 43, 408)], "expanded": 1184, "approach": -1, "revision": 6509, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6509, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 32.429, "probes_per_sec": 10.0, "worst_wake_usec": 12702, "wake_count": 334 }, "probe_key": [1, 0, (612, 43, 408)], "expanded": 2858, "approach": -1, "revision": 6509, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6509, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 34.46, "probes_per_sec": 17.8571428571429, "worst_wake_usec": 12702, "wake_count": 369 }, "probe_key": [1, 0, (610, 43, 407)], "expanded": 0, "approach": -1, "revision": 6509, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6509, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 36.473, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 393 }, "probe_key": [1, 0, (610, 43, 407)], "expanded": 938, "approach": -1, "revision": 6509, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6509, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 38.482, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 424 }, "probe_key": [1, 0, (610, 43, 407)], "expanded": 2162, "approach": -1, "revision": 6599, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6599, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 40.493, "probes_per_sec": 13.3333333333333, "worst_wake_usec": 12702, "wake_count": 460 }, "probe_key": [1, 0, (610, 43, 407)], "expanded": 3519, "approach": -1, "revision": 6599, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6599, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 42.518, "probes_per_sec": 32.6797385620915, "worst_wake_usec": 12702, "wake_count": 488 }, "probe_key": [1, 0, (610, 43, 407)], "expanded": 3988, "approach": -1, "revision": 6599, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6599, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 44.525, "probes_per_sec": 15.3846153846154, "worst_wake_usec": 12702, "wake_count": 512 }, "probe_key": [1, 0, (614, 43, 411)], "expanded": 91, "approach": -1, "revision": 6599, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6599, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+SCHED_DEBUG { "paused": false, "clock_paused": false, "processing": true, "idle": [0, 1, 2, 3, 4], "stats": { "pending_total": 13, "pending_by_type": { "MINE": 12, "FETCH_BUILD": 1 }, "active": 0, "blocked": 0, "oldest_pending_age_s": 46.535, "probes_per_sec": 0.0, "worst_wake_usec": 12702, "wake_count": 552 }, "probe_key": [1, 0, (614, 43, 411)], "expanded": 1753, "approach": -1, "revision": 6629, "ladder_revision": 3, "rejections": { 1: { "signature": [6, 6629, 3, 0], "workers": {  } } }, "cursor": { 0: 0 } }
+PLAYER_LADDER_STALLED {"blocked":0,"built":4,"lease":13,"mode":"build","status":0,"work":[]}
+WorldGenerator: stopped in 54.2 s.
