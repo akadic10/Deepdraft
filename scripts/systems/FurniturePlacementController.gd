@@ -68,6 +68,9 @@ signal tool_active_changed(active: bool)
 var _catalog_pending := false
 var _require_stock := false
 var _moving_shrub := ""
+var _moving_furniture := -1
+var _moves := preload("res://scripts/components/FurnitureMoves.gd").new(self)
+const MovePlan = preload("res://scripts/components/FurnitureMovePlan.gd")
 const PlantPlan = preload("res://scripts/components/ShrubPlantingComponent.gd")
 
 var _moving_water_stone := ""
@@ -79,6 +82,7 @@ var _slice_y: int = SLICE_OFF_Y
 var _active: bool = false
 var _active_key: String = ""          # def being placed while the tool is on
 var _yaw: int = 0
+var _wall_height_offset := 0
 var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
 var _hover_valid: bool = false
 var _invalid_reason: String = ""     # "" | "cell" | "wall" (hint label text)
@@ -94,7 +98,7 @@ var _cell_to_ghost: Dictionary = {}   # Vector3i -> ghost_id
 var _next_installed_id: int = 1
 var _installed: Dictionary = {}       # id -> InstalledFurnitureComponent
 var _cell_to_installed: Dictionary = {}   # Vector3i -> installed id
-var _wall_to_ghost: Dictionary = {}      # Vector4i(floor x,y,z,yaw) -> ghost id
+var _wall_to_ghost: Dictionary = {}      # Vector4i(placement reference x,y,z,yaw) -> ghost id
 var _wall_to_installed: Dictionary = {}  # separate from floor reservations
 var _wall_dirty: bool = false
 
@@ -230,6 +234,30 @@ func active_furniture_key() -> String:
 	return _active_key if _active else ""
 
 
+## Current physical destination for catalog navigation; this never grants stock.
+func get_catalog_location(key: String) -> Dictionary:
+	for id: int in _installed:
+		var piece: InstalledFurnitureComponent = _installed[id]
+		if piece.furniture_key == key:
+			var state := "installed"
+			if piece.flagged_uninstall: state = "packing" if _moves.for_source(id).is_empty() else "moving"
+			return {"state": state,
+				"object_id": "installed:%d" % id, "position": piece.node.global_position}
+	for id: int in _ghosts:
+		var ghost: FurnitureGhostComponent = _ghosts[id]
+		if ghost.furniture_key == key:
+			return {"state": "placing" if ghost.required_instance_id.is_empty() else "moving", "object_id": "ghost:%d" % id,
+				"position": ghost.node.global_position}
+	if int(get_catalog_stock().get(key, {}).get("available", 0)) > 0:
+		return {"state": "packed"}
+	if is_instance_valid(_drop_manager) and _defs.has(key):
+		var physical: Dictionary = _drop_manager.get_inventory_items()
+		for entry: Dictionary in physical.carried:
+			if entry.key == _defs[key].item_key:
+				return {"state": "carried", "position": entry.node.global_position}
+	return {"state": "unavailable"}
+
+
 func has_pending_placement(ghost_id: int) -> bool:
 	if ghost_id < -1_000_000:
 		return is_instance_valid(_bridges) and _bridges.routes.get(-ghost_id-1_000_000,{}).get("mode","") == "build"
@@ -282,6 +310,7 @@ func activate_for(furniture_key: String, require_stock: bool = false) -> void:
 	if require_stock and placement_available(furniture_key) <= 0:
 		return
 	deactivate()   # clean swap if a different def was active
+	_wall_height_offset = 0
 	_require_stock = require_stock
 	_active = true
 	_active_key = furniture_key
@@ -297,6 +326,7 @@ func deactivate() -> void:
 	_active_key = ""
 	_moving_shrub = ""
 	_moving_water_stone = ""
+	_moving_furniture = -1
 	_free_preview()
 	_require_stock = false
 	tool_active_changed.emit(false)
@@ -395,6 +425,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		if WallMount.is_wall(_defs.get(_active_key,{})) and mb.pressed and mb.alt_pressed \
+				and mb.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
+			_wall_height_offset = clampi(_wall_height_offset+(1 if mb.button_index==MOUSE_BUTTON_WHEEL_UP else -1),-WorldData.WORLD_SIZE_Y,WorldData.WORLD_SIZE_Y)
+			_update_hover(true,mb.position)
+			get_viewport().set_input_as_handled()
+			return
 		if not mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
 			return
 		_update_hover(true, mb.position) # Recheck obstruction at the actual click.
@@ -431,7 +467,7 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 		else: hit = {}
 	if WallMount.is_wall(_defs.get(_active_key, {})):
 		var prior_yaw := _yaw
-		hit = _wall_floor_hit(hit)
+		hit = _wall_mount_hit(hit)
 		force = force or _yaw != prior_yaw
 	if hit.is_empty():
 		_seating.reset()
@@ -535,19 +571,22 @@ func _bounds_cells(bounds: AABB) -> Array[Vector3i]:
 
 
 func _wall_structure_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
+	return _wall_structure_reason(def,origin,yaw).is_empty()
+
+
+func _wall_structure_reason(def: Dictionary, origin: Vector3i, yaw: int) -> String:
+	var mount_cell: Vector3i = WallMount.mount_cell(def,origin)
 	if origin.x < WORLD_EDGE_MARGIN or origin.x >= WorldGenerator.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
 			or origin.z < WORLD_EDGE_MARGIN or origin.z >= WorldGenerator.WORLD_SIZE_Z - WORLD_EDGE_MARGIN \
-			or origin.y <= 3:
-		return false
-	if not BlockRegistry.is_solid(_block_id(origin.x, origin.y, origin.z)):
-		return false
+			or mount_cell.y <= 3 or mount_cell.y >= WorldData.WORLD_SIZE_Y:
+		return "wall_support"
 	for support: Vector3i in WallMount.supports(def, origin, yaw):
 		if not BlockRegistry.is_solid(_block_id(support.x, support.y, support.z)):
-			return false
+			return "wall_support"
 	for cell: Vector3i in _bounds_cells(WallMount.bounds_for(def, origin, yaw)):
 		if cell.y >= WorldData.WORLD_SIZE_Y or _block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID:
-			return false
-	return true
+			return "wall_clearance"
+	return ""
 
 
 func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
@@ -557,8 +596,8 @@ func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 	if is_instance_valid(_ladders) and _ladders.reserves(_visual_bounds(def, origin, yaw)):
 		_invalid_reason = "overlap"
 		return false
-	if not _wall_structure_valid(def, origin, yaw):
-		_invalid_reason = "wall"
+	_invalid_reason = _wall_structure_reason(def,origin,yaw)
+	if not _invalid_reason.is_empty():
 		return false
 	if not _piece_visible(def, origin, yaw):
 		_invalid_reason = "slice"
@@ -586,7 +625,7 @@ func _wall_placement_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 	if not seat_reason.is_empty():
 		_invalid_reason = seat_reason
 		return false
-	if WallMount.nearest_stand(origin, origin).x < 0:
+	if WallMount.work_stands(def,origin,yaw).is_empty():
 		_invalid_reason = "access"
 		return false
 	return true
@@ -654,23 +693,28 @@ func _revalidate_wall_mounts() -> void:
 			_teardown_installed(id, true)
 
 
-## Aim at a vertical terrain face to choose its orientation automatically.
-## Floor aiming still supports R, including slice views that cut the wall away.
-func _wall_floor_hit(hit: Dictionary) -> Dictionary:
+## The mount never moves with the floor. A temporarily inaccessible plan waits
+## for a usable work position; the final build rechecks both reach and support.
+func _wall_work_support_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
+	return _wall_structure_valid(def, origin, yaw) and not WallMount.work_stands(def,origin,yaw).is_empty()
+
+
+## Preserve the clicked wall cell's height. Floor aiming provides a convenient
+## default with R for facing; Alt+wheel nudges either mode one block at a time.
+func _wall_mount_hit(hit: Dictionary) -> Dictionary:
 	if hit.is_empty():
 		return {}
 	var normal: Vector3i = hit.get("normal", Vector3i.ZERO)
-	if normal.y != 0 or normal == Vector3i.ZERO:
-		return hit
-	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z)) + normal
-	for yaw in range(4):
-		if WallMount.back(yaw) == -normal:
-			_yaw = yaw
-			break
-	for y in range(cell.y, 3, -1):
-		if BlockRegistry.is_solid(_block_id(cell.x, y, cell.z)):
-			return {"x":cell.x, "y":y, "z":cell.z}
-	return {}
+	if normal.y < 0: return {}
+	var origin := Vector3i(int(hit.x),int(hit.y),int(hit.z))
+	if normal.y == 0 and normal != Vector3i.ZERO:
+		for yaw in range(4):
+			if WallMount.back(yaw) == -normal:
+				_yaw = yaw
+				break
+		origin = WallMount.origin_for_mount(_defs[_active_key],origin+normal)
+	origin.y += _wall_height_offset
+	return {"x":origin.x,"y":origin.y,"z":origin.z}
 
 
 func _is_valid_cell(cell: Vector3i) -> bool:
@@ -809,14 +853,19 @@ func _update_hint(_origin: Vector3i) -> void:
 	var hints := {"stone_access":"Needs a reachable dry place for a dwarf to stand", "plant_soil":"Needs suitable soil and a level 3 × 3 patch",
 		"plant_clearance":"Clear nearby plants, stones or structures first",
 		"plant_spacing":"Needs its own 3 × 3 area — move farther from plants or queued orders",
-		"plant_sky":"This plant needs open sky", "wall":"Needs a solid wall and four blocks of room height — R rotates",
-		"overlap":"Another piece occupies this space", "access":"A dwarf needs room to reach this wall",
+		"plant_sky":"This plant needs open sky", "wall_support":"The bracket needs solid wall behind it",
+		"wall_clearance":"Leave clear space for the whole light, including its flame",
+		"overlap":"Another piece occupies this space", "access":"Needs a clear work position within %d blocks below the mount" % int(TaskManager.get_config_section("furniture").wall_reach_up_blocks),
 		"slice":"Raise the slice to show this furniture",
 		"seat_clearance":"Leave room for a seated dwarf’s head",
 		"seat_access":"Leave an open tile beside or behind the chair",
 		"seat_capacity":"Table chair limit reached — cancel or remove a chair to choose another side",
 		"cell":"This position is occupied or has no clear floor"}
 	_hint_label.text = String(hints.get(_invalid_reason, "Point at a wall, or aim beside it and press R" if wall else ""))
+	if wall and _hover_valid:
+		_hint_label.text = "Mount level %d · Alt + wheel: height · R: floor-aim facing · Click to place" % WallMount.mount_cell(_defs[_active_key],_hover_cell).y
+	elif wall:
+		_hint_label.text += " · Alt + wheel: height"
 	if _hover_valid and not _seating.snap.is_empty():
 		_hint_label.text = "Table seat — chair faces inward. Click to place; Esc to finish."
 	if _hover_valid and bool(_defs.get(_active_key, {}).get("plant", false)):
@@ -926,7 +975,7 @@ func _apply_material(node: Node, mat: Material) -> void:
 
 # ── Ghost lifecycle ───────────────────────────────────────────────────────────
 
-func _confirm_ghost(definition: Dictionary = {}) -> void:
+func _confirm_ghost(definition: Dictionary = {}, restored_move_id: String = "") -> void:
 	if _active_key == _bridges.KEY:
 		var id: int = _bridges.place(_hover_cell,_yaw)
 		if id > 0: ghost_placed.emit(-1_000_000-id)
@@ -944,9 +993,20 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 	_seating.dirty = true
 	var def: Dictionary = _defs.get(_active_key, {}) if definition.is_empty() else definition
 	if definition.is_empty() and (bool(def.get("plant", false)) or def.has("water_stone")) and not _placement_valid(_hover_cell): return
-	var ghost: FurnitureGhostComponent = PlantPlan.new() if bool(def.get("plant", false)) else FurnitureGhostComponent.new()
+	var move_id := restored_move_id
+	var moving: InstalledFurnitureComponent = _installed.get(_moving_furniture) if definition.is_empty() else null
+	if definition.is_empty() and _moving_furniture >= 0:
+		if moving == null or moving.flagged_uninstall:
+			deactivate()
+			return
+		if not _placement_valid(_hover_cell): return
+		move_id = _moves.prepare(moving)
+	var ghost: FurnitureGhostComponent = MovePlan.new() if not move_id.is_empty() else PlantPlan.new() if bool(def.get("plant", false)) else FurnitureGhostComponent.new()
 	ghost.required_material_id = String(material_choices.get(_active_key, ""))
 	ghost.required_instance_id = _moving_water_stone if def.has("water_stone") else _moving_shrub
+	if not move_id.is_empty():
+		ghost.required_instance_id = move_id
+		ghost.required_material_id = moving.material_id if moving != null else ghost.required_material_id
 	ghost.setup(_next_ghost_id, _active_key, def, _hover_cell, _yaw)
 	if definition.is_empty() and not _moving_water_stone.is_empty():
 		var stones := get_tree().get_first_node_in_group("water_stones")
@@ -974,6 +1034,7 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 	_source_to_ghost[ghost.source_id] = ghost.ghost_id
 	_ghosts[ghost.ghost_id] = ghost
 	ghost._ensure_claim() # Restore exact-instance promises before loose goods/cargo.
+	if moving != null: moving.set_uninstall(true)
 	for cell: Vector3i in ghost.footprint_cells():
 		_cell_to_ghost[cell] = ghost.ghost_id
 	if WallMount.is_wall(def):
@@ -986,7 +1047,7 @@ func _confirm_ghost(definition: Dictionary = {}) -> void:
 	_next_ghost_id += 1
 	if definition.is_empty():
 		ghost.update_lease() # Player intent can redirect storage hauling even while paused.
-	if definition.is_empty() and (not _moving_shrub.is_empty() or not _moving_water_stone.is_empty()):
+	if definition.is_empty() and (not _moving_shrub.is_empty() or not _moving_water_stone.is_empty() or not move_id.is_empty()):
 		deactivate()
 		return
 	_update_hover(true)   # own footprint now invalid — retint immediately
@@ -1022,6 +1083,8 @@ func cancel_ghost(ghost_id: int) -> void:
 	if ghost.def.has("water_stone") and not ghost.required_instance_id.is_empty():
 		var stones := get_tree().get_first_node_in_group("water_stones")
 		if stones != null: stones.cancel_pack(ghost.required_instance_id)
+	elif _moves.records.has(ghost.required_instance_id):
+		_moves.cancel(ghost.required_instance_id)
 	elif not ghost.required_instance_id.is_empty():
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if plants != null: plants.cancel_clearing(ghost.required_instance_id)
@@ -1059,7 +1122,9 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 			plants.plant_shrub(ghost.fetched_instance_id, String(ghost.def.plant_definition), ghost.origin_cell, ghost.yaw_steps)
 		furniture_installed.emit(ghost.furniture_key, ghost.origin_cell)
 	else:
+		var installed_id := _next_installed_id
 		_install(ghost.furniture_key, ghost.def, ghost.origin_cell, ghost.yaw_steps, ghost.material_id)
+		_moves.installed(ghost.fetched_instance_id, _installed[installed_id])
 
 
 ## Checked by the dwarf before consuming its carried item, including the frame
@@ -1078,12 +1143,16 @@ func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if not _seating.placement_reason(ghost.def, ghost.origin_cell, ghost.yaw_steps, ghost).is_empty():
 		return false
 	if not WallMount.is_wall(ghost.def):
+		if _moves.records.has(ghost.required_instance_id):
+			for cell: Vector3i in ghost.footprint_cells():
+				if not NavGrid.is_walkable(cell) or _cell_to_installed.has(cell): return false
+			if String(ghost.def.get("placement","floor")) == "floor_wall" and not _has_wall_behind(ghost.def,ghost.origin_cell,ghost.yaw_steps): return false
 		if Seating.is_chair(ghost.def):
 			for cell: Vector3i in ghost.footprint_cells():
 				if not NavGrid.is_walkable(cell):
 					return false
 		return true
-	if not _wall_structure_valid(ghost.def, ghost.origin_cell, ghost.yaw_steps):
+	if not _wall_work_support_valid(ghost.def, ghost.origin_cell, ghost.yaw_steps):
 		return false
 	for cell: Vector3i in _bounds_cells(WallMount.bounds_for(ghost.def, ghost.origin_cell, ghost.yaw_steps)):
 		if PlacedEntityRegistry.occupies(cell):
@@ -1098,6 +1167,7 @@ func dev_instant_build(ghost_id: int) -> void:
 		return
 	var ghost: FurnitureGhostComponent = _ghosts[ghost_id]
 	if bool(ghost.def.get("plant", false)) or ghost.def.has("water_stone"): return # Requires its real physical item.
+	if _moves.records.has(ghost.required_instance_id): return
 	if not _can_build_ghost(ghost):
 		cancel_ghost(ghost_id)
 		return
@@ -1201,27 +1271,30 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int, material
 
 
 func _room_cells(component: InstalledFurnitureComponent) -> Array[Vector3i]:
-	# A wall light contributes heat at its service-floor anchor, reserving no floor.
+	# RoomManager tests anchor+UP: use the mount's actual room, even above a loft.
 	if WallMount.is_wall(component.def):
-		return [component.origin_cell]
+		return [WallMount.mount_cell(component.def,component.origin_cell)-Vector3i.UP]
 	return component.cells
 
 
 ## The real uninstall path (doc 19 §3.4): the dwarf finished the teardown
 ## swing. The dwarf's complete_dwarf_task resolves the lease; contents (Phase
 ## 4) and the packed item re-enter the world as ordinary loose drops.
-func _on_uninstall_complete(component: InstalledFurnitureComponent) -> void:
-	_teardown_installed(component.installed_id, false)
+func _on_uninstall_complete(component: InstalledFurnitureComponent, dwarf_id: int = -1) -> void:
+	_teardown_installed(component.installed_id, false, dwarf_id)
 
 
 ## Shared teardown. `cancel_lease` true on the DEV path (a live 📤 lease may
 ## exist); false when the uninstalling dwarf itself is finishing (its lease
 ## completes normally).
-func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
+func _teardown_installed(installed_id: int, cancel_lease: bool, dwarf_id: int = -1) -> void:
 	_seating.dirty = true
 	if not _installed.has(installed_id):
 		return
 	var component: InstalledFurnitureComponent = _installed[installed_id]
+	var move_id: String = _moves.for_source(installed_id)
+	if not move_id.is_empty() and component.storage != null:
+		_moves.records[move_id].storage_filter = component.storage.serialize_filter()
 	if component.storage != null:
 		# Contents dump first (doc 19 §3.4 step 2) — every stored item
 		# re-enters the world loose, then the container's slots are freed.
@@ -1248,7 +1321,9 @@ func _teardown_installed(installed_id: int, cancel_lease: bool) -> void:
 	RoomManager.on_furniture_changed(component.furniture_key, _room_cells(component), component.def, false)
 	if _drop_manager != null and is_instance_valid(_drop_manager) and not component.item_key.is_empty():
 		var cell := component.origin_cell
-		_drop_manager.call("spawn_drop", component.item_key, 1, Vector3i(cell.x, cell.y + 1, cell.z), component.material_id)
+		if WallMount.is_wall(component.def): cell = WallMount.mount_cell(component.def,cell)-Vector3i.UP
+		if not _moves.packed(component,cell,dwarf_id):
+			_drop_manager.call("spawn_drop", component.item_key, 1, Vector3i(cell.x, cell.y + 1, cell.z), component.material_id)
 	if _window_installed_id == installed_id:
 		_close_window()
 
@@ -1281,6 +1356,7 @@ func serialize_state() -> Dictionary:
 			"layout_version": int(ghost.def.get("layout_version", 1)),
 		})
 		if ghost.def.has("water_stone"): saved_ghosts.back()["stone_id"] = ghost.required_instance_id
+		if _moves.records.has(ghost.required_instance_id): saved_ghosts.back()["move_id"] = ghost.required_instance_id
 		if bool(ghost.def.get("plant", false)):
 			saved_ghosts.back()["plant_work"] = ghost.progress
 			saved_ghosts.back()["plant_id"] = ghost.required_instance_id
@@ -1307,11 +1383,12 @@ func serialize_state() -> Dictionary:
 			if not instances.is_empty(): entry["instances"] = instances
 			entry["storage_filter"] = component.storage.serialize_filter()
 		saved_installed.append(entry)
-	return { "ghosts": saved_ghosts, "installed": saved_installed }
+	return { "ghosts": saved_ghosts, "installed": saved_installed, "moves": _moves.serialize() }
 
 
 func restore_state(state: Dictionary) -> void:
 	_drop_manager = get_tree().get_first_node_in_group("item_drop_manager") as Node3D
+	_moves.restore(state.get("moves",{}))
 	for raw in state.get("ghosts", []):
 		if raw is Dictionary:
 			_restore_ghost(raw as Dictionary)
@@ -1374,7 +1451,7 @@ func _restore_ghost(entry: Dictionary) -> void:
 	_active_key = key
 	_hover_cell = SaveManager.unpack_v3i(entry.get("origin", []))
 	_yaw = int(entry.get("yaw", 0))
-	_confirm_ghost(_definition_for_saved(key, entry))
+	_confirm_ghost(_definition_for_saved(key, entry),String(entry.get("move_id","")))
 	material_choices[key] = prior_material
 	if _ghosts.has(requested_id) and bool(_defs[key].get("plant", false)):
 		_ghosts[requested_id].progress = clampf(float(entry.get("plant_work", 0)), 0, float(_defs[key].planting_seconds))
@@ -1627,7 +1704,7 @@ func _on_primary_pressed() -> void:
 	if _window_installed_id >= 0:
 		var component: InstalledFurnitureComponent = _installed.get(_window_installed_id)
 		if component != null:
-			component.set_uninstall(not component.flagged_uninstall)
+			_toggle_uninstall(component)
 			_open_installed_window(_window_installed_id)   # refresh labels
 
 
@@ -1742,6 +1819,8 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	var details := String(piece.def.get("description", ""))
 	if piece is FurnitureGhostComponent:
 		rows.append(["Status", "Awaiting delivery" if piece.has_lease() else "Awaiting packed item"])
+		if WallMount.is_wall(piece.def) and WallMount.work_stands(piece.def,piece.origin_cell,piece.yaw_steps).is_empty():
+			rows[0][1] = "Waiting for reachable work position"
 		rows.append(["Required item", _explorer_item_name(piece.item_key)])
 		actions = [
 			{"id": "cancel", "text": "Cancel placement", "variant": "danger"},
@@ -1768,6 +1847,19 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		]
 		if piece.def.has("sleep_surface"):
 			actions.push_front(preload("res://scripts/components/BedAssignment.gd").action(self,piece))
+		if not _moves.for_source(piece.installed_id).is_empty():
+			rows[0][1] = "Waiting to move"
+			actions[actions.size()-2] = {"id":"cancel_move","text":"Cancel move"}
+		elif not piece.flagged_uninstall:
+			actions.push_front({"id":"move","text":"Move"})
+	if piece is FurnitureGhostComponent and _moves.records.has(piece.required_instance_id):
+		rows[0][1] = "Awaiting uninstall" if int(_moves.records[piece.required_instance_id].installed_id)>=0 else "Worker delivery / placement" if piece.has_lease() else "Awaiting packed furniture"
+		return {"title":CraftMaterials.product_name(piece.display_name(),piece.required_material_id),"kind":"Furniture move","rows":rows,
+			"details":"A dwarf will pack this exact piece and install it here. Cancelling before packing leaves it installed; cancelling afterward keeps the packed item.",
+			"actions":[{"id":"cancel","text":"Cancel move"}]}
+	if WallMount.is_wall(piece.def):
+		rows.append(["Mount level",str(WallMount.mount_cell(piece.def,piece.origin_cell).y)])
+		if piece is InstalledFurnitureComponent and piece.flagged_uninstall and piece.wall_work_stands().is_empty(): rows[0][1] = "Waiting for reachable work position"
 	if piece is InstalledFurnitureComponent and piece.furniture_key == "base:furniture:crude_workbench" and not piece.flagged_uninstall:
 		actions.push_front({"id":"craft", "text":"Craft items"})
 		rows.append(["Crafter", "Any Worker"])
@@ -1805,8 +1897,10 @@ func perform_explorer_action(object_id: Variant, action_id: String) -> void:
 		if dock != null: dock.open_crafting("base:recipe:worker:wooden_torch")
 	elif action_id.begins_with("assign_bed:"):
 		assign_bed(piece.installed_id,int(action_id.get_slice(":",1)))
-	elif action_id == "uninstall":
-		piece.set_uninstall(not piece.flagged_uninstall)
+	elif action_id == "move":
+		begin_furniture_move(piece.installed_id)
+	elif action_id in ["uninstall","cancel_move"]:
+		_toggle_uninstall(piece)
 	elif action_id == "remove":
 		dev_remove_installed(piece.installed_id)
 
@@ -1821,6 +1915,26 @@ func _explorer_item_name(item_key: String) -> String:
 		if definition.has("display_name"):
 			return String(definition["display_name"])
 	return item_key.get_slice(":", item_key.get_slice_count(":") - 1).capitalize()
+
+
+func begin_furniture_move(installed_id: int) -> void:
+	var piece: InstalledFurnitureComponent = _installed.get(installed_id)
+	if piece == null or piece.flagged_uninstall: return
+	if _dock_ui != null: _dock_ui.emit_signal("tool_requested",TOOL_ID)
+	activate_for(piece.furniture_key)
+	_moving_furniture = installed_id
+	_yaw = piece.yaw_steps
+	_update_hover(true)
+
+
+func _toggle_uninstall(piece: InstalledFurnitureComponent) -> void:
+	var move_id: String = _moves.for_source(piece.installed_id)
+	if not move_id.is_empty():
+		for ghost: FurnitureGhostComponent in _ghosts.values():
+			if ghost.required_instance_id == move_id:
+				cancel_ghost(ghost.ghost_id)
+				return
+	piece.set_uninstall(not piece.flagged_uninstall)
 
 
 func begin_shrub_move(id: String) -> void:

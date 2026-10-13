@@ -146,6 +146,16 @@ func clamp_to_viewport() -> void:
 			maxf(VIEWPORT_MARGIN, vp.x - window_size.x - VIEWPORT_MARGIN))
 	position.y = clampf(position.y, VIEWPORT_MARGIN,
 			maxf(VIEWPORT_MARGIN, vp.y - (window_size.y if keep_body_on_screen else TITLEBAR_HEIGHT) - VIEWPORT_MARGIN))
+	var dial := get_tree().get_first_node_in_group("sky_dial") as Control
+	if dial != null and dial.is_visible_in_tree():
+		var reserved := dial.get_global_rect().grow(8)
+		if get_global_rect().intersects(reserved):
+			if window_size.x <= reserved.position.x - VIEWPORT_MARGIN:
+				position.x = reserved.position.x - window_size.x
+			elif window_size.y <= vp.y - reserved.end.y - VIEWPORT_MARGIN:
+				position.y = reserved.end.y
+			# Wide/tall browsers at small resolutions keep their full usable
+			# area and normal window priority above the status layer.
 
 
 # ── Input ─────────────────────────────────────────────────────────────────────

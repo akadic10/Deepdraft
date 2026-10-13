@@ -1,0 +1,352 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (15 remembered window positions).
+WorldGenerator: starting generation (seed 3208320841).
+WorldRenderer: generation started (seed 3208320841).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 1 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 21260 cliff/shore columns.
+WorldGenerator: spring (528, 102, 317); river 1782 columns, 16 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldRenderer: first visible overview tile after 6.889 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3208320841, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3208320841, "accepted": 2254, "rejections": { "density": 20917, "tree": 1286, "edge": 1125, "water": 169, "shelf": 308, "moisture": 3132, "ground": 1131, "height": 2500, "shore": 28874, "cliff_foot": 3483, "cliff_falloff": 110, "detail_overlap": 234 }, "layout_ms": 875.875, "categories": { "boulder": 52, "scree": 150, "blueberry": 301, "elderberry": 356, "wild_strawberry": 503, "flowers": 880, "reeds": 12 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 10 ducks.
+WorldRenderer: first chunk_dirtied received (3,1,3).
+FurniturePlacementController: installed base:furniture:settlement_flag at (36, 19, 48).
+FlagPlacementController: settlement founded at (36, 19, 48).
+StockpileDesignationController: zone 201 created (1 cells at Y 19).
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (44, 19, 48) yaw 1.
+FurniturePlacementController: installed base:furniture:barrel at (42, 19, 48).
+FurniturePlacementController: installed base:furniture:door at (68, 19, 48).
+FurniturePlacementController: installed base:furniture:brazier at (70, 19, 48).
+FurniturePlacementController: installed base:furniture:log_bed at (82, 19, 48).
+SliceTiming: slice 127 -> 25 — 0 regions + 1024 tiles queued, 0 region nodes, 8 tile nodes, generator idle.
+StockpileDesignationController: zone 202 created (1 cells at Y 19).
+FurniturePlacementController: ghost 302 (base:flora:blueberry_bush) at (80, 19, 48) yaw 2.
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 48).
+StockpileDesignationController: zone 203 created (1 cells at Y 19).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 53).
+FurniturePlacementController: ghost 304 (base:detail:flowers_3) at (80, 19, 55) yaw 1.
+FurniturePlacementController: ghost 303 (base:flora:blueberry_cutting) at (80, 19, 51) yaw 1.
+FurniturePlacementController: ghost 401 (base:water:wet_stone) at (82, 19, 51) yaw 0.
+FurniturePlacementController: ghost 408 (base:furniture:barrel) at (42, 19, 51) yaw 1.
+FurniturePlacementController: installed base:furniture:crude_workbench at (86, 19, 48).
+FurniturePlacementController: ghost 409 (base:furniture:crude_workbench) at (86, 19, 51) yaw 2.
+SAVE_VALIDATION_CASES_OK (190 malformed snapshots)
+SaveManager: validated autosave written to user://save_manager_round_trip_test/autosave.json.
+SaveManager: validated autosave written to user://save_manager_round_trip_test/autosave.json.
+SaveManager: validated quick save written to user://save_manager_round_trip_test/quicksave.json.
+SaveManager: validated quick save written to user://save_manager_round_trip_test/quicksave.json.
+FurniturePlacementController: installed base:furniture:door at (72, 19, 48).
+FurniturePlacementController: installed base:furniture:brazier at (74, 19, 48).
+WorldGenerator: stopped in 21.6 s.
+WorldGenerator: grass bands finalized 15.508 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 5/8 built tiles (band columns only).
+WorldGenerator metrics:
+  domains: mountain 12.9%, valley 19.4%, lowland 67.8%
+  height: min 11, max 115, avg 28.2
+  top surface: grass 83.4%, dirt 0.8%, rock 12.7%, water 3.2%
+  surface domains: mountain rock 98.5%; valley grass 95.7% dirt 4.0% rock 0.0%
+  finished terrain: summit 1060 columns, detailed 21233, dry shore 1243
+  water: lake (171, 300) y18 floor 11-17 depth 7 columns 30653; tarn (688, 432) y54 floor 47-52 depth 7 columns 872; banks 5595
+  layout: macro_layout_v1; attempts 2; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (15 remembered window positions).
+WorldGenerator: starting generation (seed 3208320841).
+WorldRenderer: generation started (seed 3208320841).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 1 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 21260 cliff/shore columns.
+WorldGenerator: spring (528, 102, 317); river 1782 columns, 16 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 25 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 7.055 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3208320841, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3208320841, "accepted": 2254, "rejections": { "density": 20917, "tree": 1286, "edge": 1125, "water": 169, "shelf": 308, "moisture": 3132, "ground": 1131, "height": 2500, "shore": 28874, "cliff_foot": 3483, "cliff_falloff": 110, "detail_overlap": 234 }, "layout_ms": 840.175, "categories": { "boulder": 52, "scree": 150, "blueberry": 301, "elderberry": 356, "wild_strawberry": 503, "flowers": 880, "reeds": 12 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 10 ducks.
+WorldRenderer: first chunk_dirtied received (3,1,3).
+StockpileDesignationController: zone 201 created (1 cells at Y 19).
+StockpileDesignationController: zone 202 created (1 cells at Y 19).
+StockpileDesignationController: zone 203 created (1 cells at Y 19).
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (44, 19, 48) yaw 1.
+FurniturePlacementController: ghost 302 (base:flora:blueberry_bush) at (80, 19, 48) yaw 2.
+FurniturePlacementController: ghost 303 (base:flora:blueberry_cutting) at (80, 19, 51) yaw 1.
+FurniturePlacementController: ghost 304 (base:detail:flowers_3) at (80, 19, 55) yaw 1.
+FurniturePlacementController: ghost 401 (base:water:wet_stone) at (82, 19, 51) yaw 0.
+FurniturePlacementController: ghost 408 (base:furniture:barrel) at (42, 19, 51) yaw 1.
+FurniturePlacementController: ghost 409 (base:furniture:crude_workbench) at (86, 19, 51) yaw 2.
+FurniturePlacementController: installed base:furniture:settlement_flag at (36, 19, 48).
+FurniturePlacementController: installed base:furniture:barrel at (42, 19, 48).
+FurniturePlacementController: installed base:furniture:door at (68, 19, 48).
+FurniturePlacementController: installed base:furniture:brazier at (70, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 53).
+FurniturePlacementController: installed base:furniture:log_bed at (82, 19, 48).
+LoadPerformance:
+  total_request_to_restored: 10.172 s
+  read_validate: 94 ms
+  reload_regen_wait: 8.632 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1419 ms
+    jobs: 1 ms
+    mining: 347 ms
+    water: 869 ms
+    construction: 0 ms
+    flora: 0 ms
+    surface_details: 86 ms
+    settlement_flag: 0 ms
+    stockpiles: 16 ms
+    furniture: 50 ms
+    ladders: 2 ms
+    bridges: 3 ms
+    items: 9 ms
+    dwarves: 5 ms
+    wildlife: 27 ms
+    world_events: 0 ms
+    worker_crafting: 1 ms
+    camera: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 27 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: autosave restored.
+WorldGenerator: grass bands finalized 3.885 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 10/16 built tiles (band columns only).
+WorldGenerator: stopped in 12.2 s.
+WorldGenerator metrics:
+  domains: mountain 12.9%, valley 19.4%, lowland 67.8%
+  height: min 11, max 115, avg 28.2
+  top surface: grass 83.4%, dirt 0.8%, rock 12.7%, water 3.2%
+  surface domains: mountain rock 98.5%; valley grass 95.7% dirt 4.0% rock 0.0%
+  finished terrain: summit 1060 columns, detailed 21233, dry shore 1243
+  water: lake (171, 300) y18 floor 11-17 depth 7 columns 30653; tarn (688, 432) y54 floor 47-52 depth 7 columns 872; banks 5595
+  layout: macro_layout_v1; attempts 2; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (15 remembered window positions).
+WorldGenerator: starting generation (seed 3208320841).
+WorldRenderer: generation started (seed 3208320841).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 1 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 21260 cliff/shore columns.
+WorldGenerator: spring (528, 102, 317); river 1782 columns, 16 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 25 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 7.324 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3208320841, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3208320841, "accepted": 2254, "rejections": { "density": 20917, "tree": 1286, "edge": 1125, "water": 169, "shelf": 308, "moisture": 3132, "ground": 1131, "height": 2500, "shore": 28874, "cliff_foot": 3483, "cliff_falloff": 110, "detail_overlap": 234 }, "layout_ms": 817.564, "categories": { "boulder": 52, "scree": 150, "blueberry": 301, "elderberry": 356, "wild_strawberry": 503, "flowers": 880, "reeds": 12 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 10 ducks.
+WorldRenderer: first chunk_dirtied received (3,1,3).
+StockpileDesignationController: zone 201 created (1 cells at Y 19).
+StockpileDesignationController: zone 202 created (1 cells at Y 19).
+StockpileDesignationController: zone 203 created (1 cells at Y 19).
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (44, 19, 48) yaw 1.
+FurniturePlacementController: ghost 302 (base:flora:blueberry_bush) at (80, 19, 48) yaw 2.
+FurniturePlacementController: ghost 303 (base:flora:blueberry_cutting) at (80, 19, 51) yaw 1.
+FurniturePlacementController: ghost 304 (base:detail:flowers_3) at (80, 19, 55) yaw 1.
+FurniturePlacementController: ghost 401 (base:water:wet_stone) at (82, 19, 51) yaw 0.
+FurniturePlacementController: ghost 408 (base:furniture:barrel) at (42, 19, 51) yaw 1.
+FurniturePlacementController: ghost 409 (base:furniture:crude_workbench) at (86, 19, 51) yaw 2.
+FurniturePlacementController: installed base:furniture:settlement_flag at (36, 19, 48).
+FurniturePlacementController: installed base:furniture:barrel at (42, 19, 48).
+FurniturePlacementController: installed base:furniture:door at (68, 19, 48).
+FurniturePlacementController: installed base:furniture:brazier at (70, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 53).
+FurniturePlacementController: installed base:furniture:log_bed at (82, 19, 48).
+LoadPerformance:
+  total_request_to_restored: 12.105 s
+  read_validate: 303 ms
+  reload_regen_wait: 10.412 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1381 ms
+    jobs: 0 ms
+    mining: 363 ms
+    water: 857 ms
+    construction: 0 ms
+    flora: 0 ms
+    surface_details: 63 ms
+    settlement_flag: 0 ms
+    stockpiles: 15 ms
+    furniture: 40 ms
+    ladders: 1 ms
+    bridges: 2 ms
+    items: 7 ms
+    dwarves: 4 ms
+    wildlife: 26 ms
+    world_events: 0 ms
+    worker_crafting: 1 ms
+    camera: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 9 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: backup quick save restored.
+WorldGenerator: grass bands finalized 3.712 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 10/16 built tiles (band columns only).
+SaveManager: validated quick save written to user://save_manager_round_trip_test/quicksave.json.
+WorldGenerator: stopped in 12.9 s.
+WorldGenerator metrics:
+  domains: mountain 12.9%, valley 19.4%, lowland 67.8%
+  height: min 11, max 115, avg 28.2
+  top surface: grass 83.4%, dirt 0.8%, rock 12.7%, water 3.2%
+  surface domains: mountain rock 98.5%; valley grass 95.7% dirt 4.0% rock 0.0%
+  finished terrain: summit 1060 columns, detailed 21233, dry shore 1243
+  water: lake (171, 300) y18 floor 11-17 depth 7 columns 30653; tarn (688, 432) y54 floor 47-52 depth 7 columns 872; banks 5595
+  layout: macro_layout_v1; attempts 2; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (15 remembered window positions).
+WorldGenerator: starting generation (seed 3208320841).
+WorldRenderer: generation started (seed 3208320841).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 1 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 21260 cliff/shore columns.
+WorldGenerator: spring (528, 102, 317); river 1782 columns, 16 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 25 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 7.253 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3208320841, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3208320841, "accepted": 2254, "rejections": { "density": 20917, "tree": 1286, "edge": 1125, "water": 169, "shelf": 308, "moisture": 3132, "ground": 1131, "height": 2500, "shore": 28874, "cliff_foot": 3483, "cliff_falloff": 110, "detail_overlap": 234 }, "layout_ms": 854.367, "categories": { "boulder": 52, "scree": 150, "blueberry": 301, "elderberry": 356, "wild_strawberry": 503, "flowers": 880, "reeds": 12 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 10 ducks.
+WorldRenderer: first chunk_dirtied received (3,1,3).
+StockpileDesignationController: zone 201 created (1 cells at Y 19).
+StockpileDesignationController: zone 202 created (1 cells at Y 19).
+StockpileDesignationController: zone 203 created (1 cells at Y 19).
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (44, 19, 48) yaw 1.
+FurniturePlacementController: ghost 302 (base:flora:blueberry_bush) at (80, 19, 48) yaw 2.
+FurniturePlacementController: ghost 303 (base:flora:blueberry_cutting) at (80, 19, 51) yaw 1.
+FurniturePlacementController: ghost 304 (base:detail:flowers_3) at (80, 19, 55) yaw 1.
+FurniturePlacementController: ghost 401 (base:water:wet_stone) at (82, 19, 51) yaw 0.
+FurniturePlacementController: ghost 408 (base:furniture:barrel) at (42, 19, 51) yaw 1.
+FurniturePlacementController: ghost 409 (base:furniture:crude_workbench) at (86, 19, 51) yaw 2.
+FurniturePlacementController: installed base:furniture:settlement_flag at (36, 19, 48).
+FurniturePlacementController: installed base:furniture:barrel at (42, 19, 48).
+FurniturePlacementController: installed base:furniture:door at (68, 19, 48).
+FurniturePlacementController: installed base:furniture:brazier at (70, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 53).
+FurniturePlacementController: installed base:furniture:log_bed at (82, 19, 48).
+LoadPerformance:
+  total_request_to_restored: 11.586 s
+  read_validate: 262 ms
+  reload_regen_wait: 10.040 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1275 ms
+    jobs: 1 ms
+    mining: 336 ms
+    water: 780 ms
+    construction: 1 ms
+    flora: 0 ms
+    surface_details: 50 ms
+    settlement_flag: 0 ms
+    stockpiles: 15 ms
+    furniture: 46 ms
+    ladders: 1 ms
+    bridges: 3 ms
+    items: 9 ms
+    dwarves: 5 ms
+    wildlife: 25 ms
+    world_events: 0 ms
+    worker_crafting: 1 ms
+    camera: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 9 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: backup quick save restored.
+WorldGenerator: grass bands finalized 3.684 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 10/16 built tiles (band columns only).
+SaveManager: validated autosave written to user://save_manager_round_trip_test/autosave.json.
+WorldGenerator: stopped in 12.5 s.
+WorldGenerator metrics:
+  domains: mountain 12.9%, valley 19.4%, lowland 67.8%
+  height: min 11, max 115, avg 28.2
+  top surface: grass 83.4%, dirt 0.8%, rock 12.7%, water 3.2%
+  surface domains: mountain rock 98.5%; valley grass 95.7% dirt 4.0% rock 0.0%
+  finished terrain: summit 1060 columns, detailed 21233, dry shore 1243
+  water: lake (171, 300) y18 floor 11-17 depth 7 columns 30653; tarn (688, 432) y54 floor 47-52 depth 7 columns 872; banks 5595
+  layout: macro_layout_v1; attempts 2; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (15 remembered window positions).
+WorldGenerator: starting generation (seed 3208320841).
+WorldRenderer: generation started (seed 3208320841).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 1 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 21260 cliff/shore columns.
+WorldGenerator: spring (528, 102, 317); river 1782 columns, 16 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 25 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+WorldRenderer: first visible overview tile after 7.206 s at tile (16, 16).
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3208320841, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3208320841, "accepted": 2254, "rejections": { "density": 20917, "tree": 1286, "edge": 1125, "water": 169, "shelf": 308, "moisture": 3132, "ground": 1131, "height": 2500, "shore": 28874, "cliff_foot": 3483, "cliff_falloff": 110, "detail_overlap": 234 }, "layout_ms": 796.755, "categories": { "boulder": 52, "scree": 150, "blueberry": 301, "elderberry": 356, "wild_strawberry": 503, "flowers": 880, "reeds": 12 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 10 ducks.
+WorldRenderer: first chunk_dirtied received (3,1,3).
+StockpileDesignationController: zone 201 created (1 cells at Y 19).
+StockpileDesignationController: zone 202 created (1 cells at Y 19).
+StockpileDesignationController: zone 203 created (1 cells at Y 19).
+FurniturePlacementController: ghost 301 (base:furniture:storage_shelf) at (44, 19, 48) yaw 1.
+FurniturePlacementController: ghost 302 (base:flora:blueberry_bush) at (80, 19, 48) yaw 2.
+FurniturePlacementController: ghost 303 (base:flora:blueberry_cutting) at (80, 19, 51) yaw 1.
+FurniturePlacementController: ghost 304 (base:detail:flowers_3) at (80, 19, 55) yaw 1.
+FurniturePlacementController: ghost 401 (base:water:wet_stone) at (82, 19, 51) yaw 0.
+FurniturePlacementController: ghost 408 (base:furniture:barrel) at (42, 19, 51) yaw 1.
+FurniturePlacementController: ghost 409 (base:furniture:crude_workbench) at (86, 19, 51) yaw 2.
+FurniturePlacementController: installed base:furniture:settlement_flag at (36, 19, 48).
+FurniturePlacementController: installed base:furniture:barrel at (42, 19, 48).
+FurniturePlacementController: installed base:furniture:door at (68, 19, 48).
+FurniturePlacementController: installed base:furniture:brazier at (70, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 48).
+FurniturePlacementController: installed base:furniture:storage_chest at (76, 19, 53).
+FurniturePlacementController: installed base:furniture:log_bed at (82, 19, 48).
+LoadPerformance:
+  total_request_to_restored: 10.945 s
+  read_validate: 350 ms
+  reload_regen_wait: 9.280 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1305 ms
+    jobs: 0 ms
+    mining: 345 ms
+    water: 782 ms
+    construction: 0 ms
+    flora: 1 ms
+    surface_details: 68 ms
+    settlement_flag: 0 ms
+    stockpiles: 16 ms
+    furniture: 46 ms
+    ladders: 2 ms
+    bridges: 2 ms
+    items: 8 ms
+    dwarves: 5 ms
+    wildlife: 27 ms
+    world_events: 0 ms
+    worker_crafting: 1 ms
+    camera: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 10 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: backup autosave restored.
+WorldGenerator: grass bands finalized 3.676 s after maps_ready.
+WorldRenderer: grass bands ready — requeued 10/16 built tiles (band columns only).
+SAVE_MANAGER_ROUND_TRIP_OK
+WorldGenerator: stopped in 12.7 s.

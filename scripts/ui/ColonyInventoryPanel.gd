@@ -52,8 +52,10 @@ func _ready() -> void:
 	for entry: Dictionary in _categories:
 		_category_select.add_item(entry.label)
 		_category_select.set_item_metadata(_category_select.item_count - 1, entry.id)
-		var tab := UITheme.make_button(entry.label, "", Vector2(0, 28))
-		tab.toggle_mode = true
+		var tab := preload("res://scripts/ui/DockIconButton.gd").new()
+		tab.setup(entry, UIRegistry.get_dock_icon(entry))
+		tab.custom_minimum_size = Vector2(56, 56)
+		tab.name = "Category" + String(entry.id).to_pascal_case()
 		tab.pressed.connect(_set_category.bind(entry.id))
 		_category_tabs.add_child(tab)
 		_tabs[entry.id] = tab
@@ -201,7 +203,7 @@ func refresh() -> void:
 		if _category_select.get_item_metadata(index) == category: _category_select.select(index)
 	_empty.visible = visible_keys.is_empty()
 	_empty.text = "Your stockroom is quiet.\nGather resources or bring finished furniture into the colony." if category == "all" else "No supplies in this category yet."
-	_count.text = "%d item types · Counts update as dwarves work" % visible_keys.size()
+	_count.text = "%s · %d item types · Counts update as dwarves work" % [_category_select.get_item_text(_category_select.selected), visible_keys.size()]
 	_refresh_detail()
 	# No refit, sorting of existing items, scroll reset or window movement here.
 

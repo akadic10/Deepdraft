@@ -125,7 +125,7 @@ func _focus_selected() -> void:
 	var center: Vector3i = cave["center"]
 	var depth := WorldGenerator.get_visible_surface_y(center.x, center.z) - center.y
 	_camera.focus_world_position(Vector3(center) + Vector3.UP, maxf(100.0, float(depth + 20) / 0.6))
-	_slice.show_at_height(int(cave["floor_y"]) + 3, false)
+	_slice.show_at_height(int(cave["floor_y"]) + 3)
 
 
 func _refresh_preview() -> void:

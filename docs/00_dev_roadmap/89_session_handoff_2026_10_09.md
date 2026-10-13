@@ -54,10 +54,10 @@ player message did not separately report dismantling after the staircase.
    complete, but broader tree/material/world rebuild spikes remain. Profile them
    before expanding population or promising smooth transitions; current density
    was retained after the initial review. See [78](78_surface_detail_review.md).
-6. **Older defects:** [Issue 001](00_open_issues.md) remains open pending its original
-   mining-face reproduction. The new resumable searches address its old probe-cap
-   hypothesis but do not prove that report resolved. Issue 002, dwarf overlap with
-   unmined terrain, remains parked; its lighting symptom was fixed separately.
+6. **Older defects:** At this handoff, [issue 001](00_open_issues.md) was open and
+   issue 002 was parked. Resumable searches and the separate lighting fix did not
+   establish their original causes. **2026-10-12 update:** Alen provisionally closed
+   both reports; reopen only if the player reports the behavior again.
 
 Dedicated stair/ramp construction tools, other access materials, farming/food
 processing, brewing and reed uses remain later gameplay milestones. A staircase

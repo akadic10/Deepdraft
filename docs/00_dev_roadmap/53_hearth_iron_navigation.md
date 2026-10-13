@@ -1,5 +1,21 @@
 # 53 — Hearth & iron: navigation and layout
 
+**Fixed time/Slice HUD (2026-10-12):** [142](142_fixed_time_slice_hud.md) replaces
+the upper-left strip and movable Slice window with bottom-right illustrated
+controls and a permanent ±1/±4 height tower. The main dock centers where space
+allows and shifts left to clear the utility row; very narrow screens stack them.
+
+**Remaining menus (2026-10-12):** [140](140_remaining_illustrated_menus.md)
+extends the art through Craft, Colony, Menu, Development and both catalog category
+strips. World Build and time/weather tests moved into Development; planned
+catalogs stay browsable. Rooms retains direct inspection with small fact symbols.
+
+**Current dock (2026-10-12):** [135 — Illustrated command dock](135_illustrated_command_dock.md)
+replaces permanent text/copper line icons with the approved full-color artwork
+and hover/focus names. Ten entries retain the current order, with Construction
+between Rooms and Place and separate Development at the far right. The dated
+milestones below describe earlier versions.
+
 **Current follow-up (2026-10-07):** [64 — Worker crafting](64_worker_crafting.md)
 adds Craft between Place and Colony, making eight dock entries. The dated
 navigation milestones below describe the earlier layouts.
@@ -50,7 +66,7 @@ No save schema, autoload or simulation behavior changed. Restart play mode.
 > Follow-ups: Build became Place (doc 54), and Stocks became the direct Colony
 > Inventory window (doc 56). The Stockpile overview placeholder is retired.
 > Colony → Dwarves now opens the player roster (doc 57); developer controls moved
-> to Menu → Development. The seven-entry layout above supersedes the original dock below.
+> to Development. The seven-entry layout above supersedes the original dock below.
 
 Implemented 2026-10-05 after approval of the shared theme and movable zone windows.
 
@@ -69,17 +85,18 @@ describes the original rollout; the current dock uses **Place** in that slot.
 - One menu at a time, submenu Back, close control and Escape. Menus scroll at
   compact sizes, reset their scroll position when opened, and consume wheel input
   without zooming the world or stopping camera Follow.
-- Live upper-left season/day/time, Pause, 1×, 2× and Slice. Clicking the calendar
-  opens the existing Clock and weather window. Data comes from WorldClock and the
-  Slice controller; no illustrative resource counters or colony totals are used.
+- Live upper-right Sky Dial for season/day/time, weather and the seasonal cycle
+  ([141](141_sky_dial.md)); fixed bottom-right Pause, 1×, 2× and Slice ([142](142_fixed_time_slice_hud.md)). The former
+  Clock window/calendar button are removed. State comes from the owning systems.
 - All object inspectors default to the right. Saved positions and player drags
   take precedence. Mining/storage windows keep their movable, saved placement.
 - Menus reserve the inspector column at desktop widths and measure available
   vertical space from the dock's actual height. Build changes from four columns
   to two as needed, with an 8 px gap above the dock.
 
-Follow-up: the player requested a centered bottom bar. The dock now centers itself
-on the viewport at startup and on resize, keeping its existing bottom margin.
+Follow-up: the player requested a centered bottom bar. It centers at startup and
+on resize when space allows; milestone 142 moves it left enough for the utility
+controls or stacks those above it at narrow widths, keeping the bottom margin.
 The compact dwarf inspector reserves enough space above it for its action footer.
 Submenus also center above the bar; if the inspector would cover them, they shift
 to the nearest side with sufficient room. Inspector movement updates placement,
@@ -100,7 +117,7 @@ schema, simulation behavior or input-map change is introduced by this stage.
 At the original stage-3 checkpoint, Labor, Trade and Stockpile overview used
 preview content. Labor and Trade remain previews; Colony Inventory has since
 replaced Stockpile overview. The Orders shelf supplies mode feedback (doc 55),
-and developer supplies/dwarf controls now live under Menu → Development
+and developer supplies/dwarf controls now live under Development
 (docs 56/57). Bed use and dining AI remain deferred.
 
 ## Verification

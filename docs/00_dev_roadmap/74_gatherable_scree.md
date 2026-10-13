@@ -8,9 +8,8 @@ reeds remain the next separate milestones.
 
 ## Playtest
 
-1. Restart the game and choose **Menu → Development → DEV: Next scree**.
-   This cycles through generated clumps and opens **Loose stones** in Object
-   explorer. If a canopy obscures one, cycle again or rotate the camera.
+1. Restart the game and click a visible loose-stone clump to open **Loose stones**
+   in Object explorer. If a canopy obscures it, rotate the camera.
 2. Choose **Gather stones**, or **Orders → Clear stones** to click a clump or
    drag across several. That tool also retains boulder clearing. The count is
    the number of clumps/boulders selected, not their eventual item yield.

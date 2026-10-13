@@ -58,10 +58,14 @@ static func sample(agent: DwarfAgent) -> Dictionary:
 	else:
 		remaining = agent._exec_timer
 		seconds = remaining
+	if agent._move_path.is_empty() and phase not in [DwarfAgent.TaskPhase.FETCH_PLANNING,DwarfAgent.TaskPhase.FELL_FINDING]:
+		seconds /= maxf(.1,agent._food.work_multiplier())
 	return {"step":step,"unit":unit,"remaining":remaining,"expected_seconds":seconds}
 
 ## Simulation-time execution dispatch; the agent retains locomotion and poses.
 func tick(agent: DwarfAgent, delta: float) -> bool:
+	# Needs slow productive labor, never navigation, meal timing or search budgets.
+	var work_delta: float = delta*agent._food.work_multiplier()
 	if agent.current_task_id >= 0 and not TaskManager._matches_attempt(agent.dwarf_id,task_id,generation):
 		agent.abort_task()
 		TaskManager.notify_dwarf_idle(agent.dwarf_id)
@@ -78,13 +82,13 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 		elif result!=NavGrid.ProbeResult.SEARCHING: agent._fetch_fail_release()
 		return true
 	if agent._task_phase in [DwarfAgent.TaskPhase.HAUL_PICKUP, DwarfAgent.TaskPhase.FETCH_PICKUP, DwarfAgent.TaskPhase.HAUL_DEPOSIT, DwarfAgent.TaskPhase.FETCH_DEPOSIT]:
-		agent._process_item_handling(delta)
+		agent._process_item_handling(work_delta)
 		return true
 	if agent._task_phase == DwarfAgent.TaskPhase.FELL_FINDING:
 		agent._fell_try_stand()
 		return true
 	if agent._task_phase == DwarfAgent.TaskPhase.FELL_WORKING:
-		agent._process_felling(delta)
+		agent._process_felling(work_delta)
 		return true
 	if agent._task_phase == DwarfAgent.TaskPhase.FELL_MOVING and not agent._move_path.is_empty() \
 			and not NavGrid.is_navigable(agent._move_path[agent._move_index]):
@@ -92,7 +96,7 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 		agent._task_phase = DwarfAgent.TaskPhase.FELL_FINDING
 		return true
 	if agent._task_phase == DwarfAgent.TaskPhase.EXECUTING:
-		agent._exec_timer -= delta
+		agent._exec_timer -= work_delta
 		if agent._exec_timer <= 0.0:
 			agent._task_phase = DwarfAgent.TaskPhase.NONE
 			var finished_id := agent.current_task_id
@@ -100,7 +104,7 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 			if finished_id >= 0:
 				agent._work_execution.complete(agent.dwarf_id)
 	elif agent._task_phase == DwarfAgent.TaskPhase.ZONE_SWINGING:
-		agent._process_swinging(delta)
+		agent._process_swinging(work_delta)
 		return true   # swing bob owns the part offsets this frame
 	elif agent._task_phase == DwarfAgent.TaskPhase.FETCH_WORKING:
 		var craft := agent._fetch_source()
@@ -108,7 +112,7 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 			if not craft.can_complete_build():
 				agent._fetch_fail_release()
 				return true
-			agent._exec_timer = craft.advance_install(delta)
+			agent._exec_timer = craft.advance_install(work_delta)
 			var face: Vector3i = craft.work_facing(agent.current_cell())
 			agent.rotation.y = atan2(face.x, face.z)
 			agent._carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
@@ -119,7 +123,7 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 				agent._fetch_fail_release()
 				return true
 			var before := float(craft.get("progress"))/DwarfAgent.FellingPose.CYCLE_SECONDS
-			agent._exec_timer = float(craft.call("advance_craft", delta))
+			agent._exec_timer = float(craft.call("advance_craft", work_delta))
 			var after := float(craft.get("progress"))/DwarfAgent.FellingPose.CYCLE_SECONDS
 			var contact := agent._craft_pose(craft)
 			# Follow actual axe contact and clamped work progress. A stalled frame
@@ -133,7 +137,7 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 			if not craft.can_complete_build():
 				agent._fetch_fail_release()
 				return true
-			agent._exec_timer = craft.advance_plant(delta)
+			agent._exec_timer = craft.advance_plant(work_delta)
 			var phase := 1.0 - agent._exec_timer / maxf(agent._plant_animation_duration, .001)
 			agent._plant_pose(craft, clampf(phase, 0.0, 1.0))
 			if agent._exec_timer <= 0.0: agent._fetch_complete()
@@ -145,13 +149,13 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 	elif agent._task_phase == DwarfAgent.TaskPhase.UNINSTALL_WORKING:
 		var removal := agent._uninstall_source()
 		if removal != null and removal.has_method("advance_removal"):
-			agent._exec_timer = removal.advance_removal(delta, agent.dwarf_id)
+			agent._exec_timer = removal.advance_removal(work_delta, agent.dwarf_id)
 			var face: Vector3i = removal.work_facing()
 			agent.rotation.y = atan2(face.x, face.z)
 			agent._carry_pose.gather(fposmod(float(removal.progress), 1.0), Vector3(0, 1.7, .4))
 			if agent._exec_timer <= 0.0: agent._uninstall_complete()
 			return true
-		agent._exec_timer -= delta
+		agent._exec_timer -= work_delta
 		if agent._exec_timer <= 0.0:
 			agent._uninstall_complete()
 	return false

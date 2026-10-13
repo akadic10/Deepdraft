@@ -222,6 +222,12 @@ func _on_calendar_changed(_value = null) -> void:
 	_build_curves()
 
 
+## Read-only HUD access to the same seasonal anchors used by world lighting.
+func current_event_hours() -> Dictionary:
+	if _event_hours.is_empty(): _refresh_event_hours()
+	return _event_hours.duplicate()
+
+
 ## Computes today's event-time anchors. midnight and midday (solar noon) stay fixed; the
 ## sunrise/sunset events move so the lit span equals the seasonal daylight length — ~8 h at the
 ## winter solstice, ~16 h at the summer solstice (WorldClock.daylight_hours). The keyframed curves

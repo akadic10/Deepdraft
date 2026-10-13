@@ -48,10 +48,13 @@ func _run() -> void:
 	var dock := scene.get_node("DockUI")
 	var explorer := scene.get_node("ObjectExplorerController")
 	var rig := scene.get_node("CameraRig")
-	dock._dispatch_panel_action("wildlife", "DEV: Next arrival" if species == "rabbit" else "DEV: Next "+species+" arrival")
-	var rabbit: Node3D = explorer._object_id
-	_check(is_instance_valid(rabbit) and not rabbit.arrival.is_empty(), "development locator selects a new arrival")
+	var rabbit: Node3D
+	for animal in wildlife.animals_of_species(species):
+		if not animal.arrival.is_empty(): rabbit = animal; break
+	_check(is_instance_valid(rabbit),"scheduled arrival fixture exists")
 	if not is_instance_valid(rabbit): quit(1); return
+	rig.focus_world_position(rabbit.position+Vector3.UP,30 if species=="deer" else 24)
+	_check(explorer.select_object(wildlife,rabbit),"shared inspector selects a new arrival")
 	for i in range(150): await process_frame
 	_check(explorer._provider == wildlife and rabbit.activity == "Arriving", "shared explorer shows arriving wildlife")
 	var box: AABB = wildlife.get_explorer_bounds(rabbit)

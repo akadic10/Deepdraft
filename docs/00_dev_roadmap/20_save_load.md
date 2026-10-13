@@ -1,5 +1,44 @@
 # 20 — Save / Load Persistence
 
+**Dining (2026-10-12, 131 stage 2):** food saves the last dining arrangement;
+mood saves one outcome and its remaining game hours. Validation checks the
+arrangement and nonnegative timers. Emergency foraging saves partial work in
+the plant's existing harvest fields. Crop/seat/table claims and serving visuals
+are transient. Unfinished meals restore the real carried portion intact, with
+no nutrition granted until a new eating action completes.
+
+**Settlement flag furniture (2026-10-12, 133):** `settlement_flag` now saves
+required `founded` and the last anchor `cell`. It restores history only; furniture
+owns installed flag position/yaw and Move plans, while item/storage/dwarf owners
+hold the real packed flag. Loading during transit cannot instantiate a second
+flag or spawn a new founding squad. Older development saves need no migration.
+
+**Furniture Move (2026-10-12, 132):** required `furniture.moves` saves the next
+serial and exact-item records (source ID, furniture key, bed owner and storage
+filter). Ghosts save `move_id`; packed items keep that instance ID through loose,
+storage and dwarf cargo owners. Load rebuilds destination promises before goods
+restore. Cancellation after packing retains settings until ordinary placement.
+Validation rejects invalid identities and missing/duplicate physical ownership.
+No older-development-save migration is required.
+
+**Food and regrowth (2026-10-12, 131):** each dwarf saves required `food` state
+(fullness, last meal key, elapsed meal hours and retry). An unfinished portion
+remains ordinary carried cargo and restores intact as loose food; eating restarts
+without granting nutrition or consuming a second copy. Search paths and outgoing
+portion claims are transient. Shrubs save regrowth start and credited eligible
+days. Packing credits only planted growth, replanting resumes from that credit,
+and off-season time contributes zero. Current save/load is required; old
+development saves without food state need no migration.
+
+**Structural construction (2026-10-12):** required section `construction` saves
+completed cell/permanent-rock-key pairs, unfinished area IDs/cells, partial work
+and the next ID. Priority 15 restores built terrain after mining removals/water
+and before furniture/dwarves. Mining orders may target a backfilled cell in the
+removal history. Stone in transit remains dwarf-owned cargo and restores through
+the normal loose-item recovery path; reservations and worker assignment rebuild.
+WorldData's positive edits also remain in the water terrain snapshot; construction
+alone owns plans and refund provenance. Old development saves need no migration.
+
 **2026-10-10 item permissions:** loose items, carried cargo and physical storage
 stacks save a boolean `disallowed`. Container entries preserve all stacks, even
 without an instance ID. Water owns each stone's identity, placed state, intake,
@@ -63,6 +102,7 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
   },
   "scene": {
     "mining": {"mined_blocks": [], "zones": []},
+    "construction": {"next_id": 1, "built": [], "orders": []},
     "water": {
       "layout_version": 5,
       "flow": {
@@ -75,7 +115,7 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
     },
     "flora": {"trees": []},
     "surface_details": {"changes": [], "planted": [], "next_plant_id": 1},
-    "settlement_flag": {"placed": false, "cell": [-1, -1, -1]},
+    "settlement_flag": {"founded": false, "cell": [-1, -1, -1]},
     "stockpiles": {"zones": []},
     "furniture": {"ghosts": [], "installed": []},
     "ladders": {"routes": [], "next_id": 1},
@@ -131,8 +171,9 @@ priority so dependencies exist before consumers restore.
 | 10 | `mining` | `MiningDesignationController` | Mined block coordinates and outstanding mining-zone block sets |
 | 11 | `water` | `WaterManager` | Integer water-volume deltas, active flow, displacement, spring/outlet state, moisture history and solid terrain edits |
 | 15 | `flora` | `SurfaceFloraSpawner` | Changed trees, felling/harvest work and completed crop cycles |
+| 15 | `construction` | `ConstructionController` | Built cell/key provenance, unfinished areas and partial work; independent of flora |
 | 16 | `surface_details` | `SurfaceDetailManager` | Removed/changed details, transplanted shrubs and growth state |
-| 20 | `settlement_flag` | `FlagPlacementController` | Placed state and grid cell |
+| 20 | `settlement_flag` | `FlagPlacementController` | Founded state and last installed anchor; physical flag belongs to furniture/items |
 | 30 | `stockpiles` | `StockpileDesignationController` | Zone IDs/cells, filters, and stored item keys/counts |
 | 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces, yaw, uninstall flags, and container inventories |
 | 41 | `ladders` | `LadderSystem` | Routes, construction/removal progress and next route identity |

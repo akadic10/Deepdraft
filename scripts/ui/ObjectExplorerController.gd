@@ -10,6 +10,7 @@ extends Node3D
 @export var slice_controller_path: NodePath
 @export var click_tool_paths: Array[NodePath] = []
 @export var dwarf_director_path: NodePath
+@export var terrain_provider_path: NodePath
 
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const DwarfPanel = preload("res://scripts/ui/DwarfInspectorPanel.gd")
@@ -27,6 +28,7 @@ var _slice_y := 127
 var _refresh_elapsed := 0.0
 var _tools: Array[Node] = []
 var _dwarves: Node
+var _terrain: Node
 var _name_label: Label
 var _kind_label: Label
 var _rows: VBoxContainer
@@ -61,6 +63,7 @@ func _ready() -> void:
 		if tool != null:
 			_tools.append(tool)
 	_dwarves = get_node_or_null(dwarf_director_path)
+	_terrain = get_node_or_null(terrain_provider_path) if not terrain_provider_path.is_empty() else null
 	var slice := get_node_or_null(slice_controller_path)
 	if slice != null:
 		slice.connect("slice_changed", _on_slice_changed)
@@ -91,6 +94,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _click_tool_active() -> bool:
+	if is_instance_valid(_terrain) and _terrain.developer_inspection_active(): return true
 	for tool: Node in _tools:
 		if tool.has_method("is_active") and bool(tool.call("is_active")):
 			return true
@@ -100,12 +104,18 @@ func _click_tool_active() -> bool:
 func select_at_screen(screen_pos: Vector2) -> bool:
 	if _click_tool_active():
 		return false
-	var hit := pick_at_screen(screen_pos)
+	var hit := pick_at_screen(screen_pos,true)
+	if not hit.is_empty() and hit.provider == _terrain:
+		# Existing work/storage zone inspectors take precedence over bare terrain.
+		for tool: Node in _tools:
+			if tool.has_method("_try_select_zone_at_screen") and tool.call("_try_select_zone_at_screen",screen_pos):
+				clear_selection()
+				return true
 	return not hit.is_empty() and select_object(hit["provider"], hit["id"])
 
 
 ## Shared hit arbitration for ordinary selection and designation tools.
-func pick_at_screen(screen_pos: Vector2) -> Dictionary:
+func pick_at_screen(screen_pos: Vector2, include_terrain: bool = false) -> Dictionary:
 	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
 		return {}
 	var camera := get_viewport().get_camera_3d()
@@ -113,7 +123,8 @@ func pick_at_screen(screen_pos: Vector2) -> Dictionary:
 		return {}
 	var start := camera.project_ray_origin(screen_pos)
 	var direction := camera.project_ray_normal(screen_pos).normalized()
-	var terrain := Picking.terrain_hit(start, direction, _slice_y, RAY_MAX)
+	var terrain: Dictionary = _terrain.terrain_hit(start,direction,_slice_y,RAY_MAX) \
+		if include_terrain and is_instance_valid(_terrain) else Picking.terrain_hit(start,direction,_slice_y,RAY_MAX)
 	var limit := minf(float(terrain.get("distance", RAY_MAX)) + .002, RAY_MAX)
 	var end := start + direction * limit
 	var nearest := limit
@@ -126,6 +137,8 @@ func pick_at_screen(screen_pos: Vector2) -> Dictionary:
 			selected = provider
 			selected_id = hit["id"]
 	if selected == null:
+		if include_terrain and is_instance_valid(_terrain) and not terrain.is_empty():
+			return {"provider":_terrain,"id":terrain}
 		return {}
 	return {"provider": selected, "id": selected_id}
 
@@ -315,8 +328,7 @@ func _refresh(data: Dictionary) -> void:
 	_window.set_window_title("DWARF INSPECTOR" if is_dwarf else "Object explorer")
 	if is_storage:
 		_outline_subject = null
-		_window.set_window_title(String(data.title))
-		_storage_panel.show_storage(data.storage, data.get("actions", []))
+		_storage_panel.show_storage(data.storage, data.get("actions", []), String(data.title))
 		_update_outline(_provider.call("get_explorer_bounds", _object_id))
 		_storage_panel._fit()
 		_position_inspector()

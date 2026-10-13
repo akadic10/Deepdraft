@@ -118,11 +118,12 @@ errors. Earlier failed or pre-fix diagnostic logs may also remain in `tmp/`.
 2. Choose further work with the player. Carpenter/specialist production,
    profession progression/labor controls, multiple ingredients, quality, fuel,
    farming, full needs, bed use and autonomous dining remain future work.
-3. Keep [Issue 002](00_open_issues.md) **parked**: dwarf overlap with unmined
-   terrain needs a movement/visual-overlap reproduction. Fixing its brightness
-   did not fix collision or establish the route's root cause.
-4. Keep [Issue 001](00_open_issues.md) **open**: the older mining-face idle stall
-   was not resolved by these crafting, support or lighting changes.
+3. [Issue 002](00_open_issues.md) was parked at this handoff: fixing brightness
+   did not establish the overlap's root cause. **2026-10-12 update:** provisionally
+   closed by Alen; reopen only if reported again.
+4. [Issue 001](00_open_issues.md) was open at this handoff: these crafting, support
+   and lighting changes did not establish its cause. **2026-10-12 update:**
+   provisionally closed by Alen after the scheduler changes; reopen only if reported again.
 5. Treat lighting-dependent work restrictions as a separate decision; current
    darkness only affects presentation.
 

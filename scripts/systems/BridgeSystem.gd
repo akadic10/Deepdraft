@@ -270,7 +270,7 @@ func _make_source(route: Dictionary) -> void:
 		source.setup(route.id,KEY,definition,route.base,route.yaw)
 		source.stands = landings(route)
 		source.safe_callback = func(): return _safe_to_remove(route)
-		source.uninstall_callback = func(_s): _recover(route)
+		source.uninstall_callback = func(_s, _worker_id): _recover(route)
 	else: return
 	source.progress = route.progress
 	source.source_id = TaskManager.allocate_source_id()

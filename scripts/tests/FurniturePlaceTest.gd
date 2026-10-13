@@ -71,7 +71,7 @@ func _run() -> void:
 		_expect(tile.image.texture != null, "real model thumbnail exists")
 	_click(catalog._tabs.storage.get_global_rect().get_center())
 	await _settle()
-	_expect(catalog._count.text == "3 designs", "Storage filter shows its three furniture designs")
+	_expect(catalog._count.text == "Storage · 3 designs", "Storage filter names its category and three furniture designs")
 	_expect(catalog._paper.visible and catalog._tiles[catalog.selected_key].button.visible, "details follow a visible design in the selected category")
 	_click(catalog._all_toggle.get_global_rect().get_center())
 	await _settle()
@@ -315,7 +315,7 @@ func _test_stable_browsing() -> void:
 			items.take(node); node.free()
 	manager.close("place"); manager.open("place")
 	await _settle()
-	_expect(catalog._count.text == "2 designs", "reopening refreshes the owned-design list")
+	_expect(catalog._count.text == "All · 2 designs", "reopening refreshes the owned-design list")
 	root.size = Vector2i(1280,720)
 	catalog._all_toggle.button_pressed = true
 	catalog._scroll.scroll_vertical = 0

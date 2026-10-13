@@ -63,9 +63,10 @@ static func _collect_bounds(node: Node, boxes: Array[AABB]) -> void:
 		_collect_bounds(child, boxes)
 
 
-## Shared slice-aware terrain DDA. Returns the solid FLOOR cell, not its air cell.
+## Shared slice-aware terrain DDA. Returns the hit solid cell and entering face.
+## Optional sampling lets inspection follow rendered cuts without changing work rays.
 static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
-		max_distance: float = 600.0) -> Dictionary:
+		max_distance: float = 600.0, sample_block: Callable = Callable()) -> Dictionary:
 	var pos := Vector3i(floori(origin.x), floori(origin.y), floori(origin.z))
 	var step := Vector3i(1 if direction.x > 0 else -1,
 		1 if direction.y > 0 else -1, 1 if direction.z > 0 else -1)
@@ -84,11 +85,13 @@ static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 				and pos.z >= 0 and pos.z < WorldGenerator.WORLD_SIZE_Z \
 				and pos.y <= mini(slice_y, WorldGenerator.WORLD_SIZE_Y - 1):
 			var block_id: int
-			if WorldData.chunk_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4):
+			if sample_block.is_valid():
+				block_id = sample_block.call(pos)
+			elif WorldData.chunk_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4):
 				block_id = WorldData.get_block(pos.x, pos.y, pos.z)
 			else:
 				block_id = WorldData.get_live_block(pos.x, pos.y, pos.z)
-			if BlockRegistry.is_solid(block_id):
+			if BlockRegistry.is_solid(block_id) or (sample_block.is_valid() and block_id != BlockRegistry.AIR_ID):
 				return {"x": pos.x, "y": pos.y, "z": pos.z, "normal": normal, "distance": travelled}
 		if t_max.x <= t_max.y and t_max.x <= t_max.z:
 			pos.x += step.x

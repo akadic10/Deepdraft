@@ -3,42 +3,119 @@
   "categories": [
     {
       "id": "all",
-      "label": "All"
+      "label": "All",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        12,
+        54,
+        294,
+        290
+      ],
+      "tooltip": "Browse every placeable design."
     },
     {
       "id": "dining",
-      "label": "Dining"
+      "label": "Dining",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        318,
+        54,
+        294,
+        290
+      ],
+      "tooltip": "Tables, chairs, stools and benches."
     },
     {
       "id": "storage",
-      "label": "Storage"
+      "label": "Storage",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        622,
+        54,
+        294,
+        290
+      ],
+      "tooltip": "Shelves, chests and barrels."
     },
     {
       "id": "lighting",
-      "label": "Lighting"
+      "label": "Lighting",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        926,
+        54,
+        294,
+        290
+      ],
+      "tooltip": "Torches, fires and other lights."
     },
     {
       "id": "rooms",
-      "label": "Rooms"
+      "label": "Room furnishings",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        1230,
+        54,
+        294,
+        290
+      ],
+      "tooltip": "Beds, doors, hearths and the settlement flag."
     },
     {
       "id": "workshops",
-      "label": "Workshops"
+      "label": "Workshops",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        12,
+        358,
+        294,
+        290
+      ],
+      "tooltip": "Workbenches and crafting stations."
     },
     {
       "id": "plants",
-      "label": "Plants"
+      "label": "Plants",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        318,
+        358,
+        294,
+        290
+      ],
+      "tooltip": "Packed plants, cuttings and flowers."
     },
     {
       "id": "access",
-      "label": "Access"
+      "label": "Access",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        622,
+        358,
+        294,
+        290
+      ],
+      "tooltip": "Ladders and bridges."
     },
     {
       "id": "water",
-      "label": "Water"
+      "label": "Water",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        926,
+        358,
+        294,
+        290
+      ],
+      "tooltip": "Wet and dry stones."
     }
   ],
   "items": [
+    {
+      "key": "base:furniture:settlement_flag",
+      "category": "rooms",
+      "label": "Settlement flag"
+    },
     {
       "key": "base:furniture:wooden_table",
       "category": "dining",
@@ -192,17 +269,17 @@
     {
       "key": "base:detail:flowers_1",
       "category": "plants",
-      "label": "Wildflowers \u00c2\u00b7 cream"
+      "label": "Wildflowers Â· cream"
     },
     {
       "key": "base:detail:flowers_2",
       "category": "plants",
-      "label": "Wildflowers \u00c2\u00b7 heather"
+      "label": "Wildflowers Â· heather"
     },
     {
       "key": "base:detail:flowers_3",
       "category": "plants",
-      "label": "Wildflowers \u00c2\u00b7 gold"
+      "label": "Wildflowers Â· gold"
     },
     {
       "key": "base:furniture:crude_ladder",

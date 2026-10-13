@@ -1,5 +1,10 @@
 # 82 — Keep shrub Move work with its nearby worker
 
+**2026-10-12 follow-up:** [134 — Distant Move planning](134_distant_shrub_move_planning.md)
+fixes long route searches being repeatedly reset by idle wandering. Both pickup
+and delivery can retain their planning hold while making search progress; the
+handoff regression now exercises distant Moves with live leisure/supervision.
+
 2026-10-09. Follow-up to milestone 81 after the player showed Furlok finishing
 uprooting a strawberry and becoming idle while Rogan walked over to collect it.
 

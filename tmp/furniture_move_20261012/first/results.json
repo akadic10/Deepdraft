@@ -1,0 +1,7 @@
+{
+  "test": "FurnitureMoveTest",
+  "passed": false,
+  "exit": 1,
+  "seconds": 1.23,
+  "timeout": false
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "test": "TerrainExplorerTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 92.41,
+    "timeout": false
+  },
+  {
+    "test": "ObjectExplorerTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.13,
+    "timeout": false
+  },
+  {
+    "test": "ConstructionInputTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.38,
+    "timeout": false
+  }
+]

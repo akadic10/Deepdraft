@@ -240,6 +240,8 @@ func _verify_snapshot_validation() -> String:
 			malformed.scene[section] = invalid
 			cases.append({"name": "malformed scene." + section, "snapshot": malformed})
 	for change in [
+		[["scene","construction","orders",1,"kind"],"unknown_floor"],
+		[["scene","construction","built",2,"block"],"base:terrain:ore:iron"],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":-1}]],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":1.5}]],
 		[["scene","water","flow","cells"],[{"cell":[1024,18,10],"units":100}]],
@@ -269,6 +271,11 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "dwarves", "roster", 0, "mood", "hot_sleep_hours"], "many"],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 999999],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 0],
+		[["scene","furniture","moves","next_id"],1],
+		[["scene","furniture","moves","records"],{}],
+		[["scene","furniture","moves","records","furniture_move:1","installed_id"],999999],
+		[["scene","furniture","moves","records","furniture_move:2","installed_id"],401],
+		[["scene","furniture","ghosts",0,"move_id"],"furniture_move:999"],
 		[["scene", "mining", "mined_blocks"], [[1, 2]]],
 		[["scene", "mining", "mined_blocks"], [[1, 2.5, 3]]],
 		[["scene", "wildlife", "rabbits"], [{}]],
@@ -445,6 +452,21 @@ func _build_nonempty_colony_state() -> String:
 		"mined_blocks": [_pack_v3i(mined_cell)],
 		"zones": [{ "id": 101, "blocks": [_pack_v3i(designated_cell)] }],
 	})
+	# Backfill, freestanding stone, an order to mine that backfill, and unfinished
+	# construction must survive the real scene replacement in the correct order.
+	var construction := _owner("construction")
+	if construction == null: return "construction save owner missing"
+	var standing_stone := _surface_cell(16,4)+Vector3i.UP
+	var pending_stone := _surface_cell(18,4)+Vector3i.UP
+	construction.restore_state({"next_id":703,"built":[
+		{"cell":_pack_v3i(mined_cell),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(mined_cell)))},
+		{"cell":_pack_v3i(standing_stone),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(standing_stone)))},
+		{"cell":_pack_v3i(_surface_cell(16,6)+Vector3i.UP),"block":"base:construction:floor:plank"},
+		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:floor:stone"}],
+		"orders":[{"id":701,"kind":"stone","cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]},
+			{"id":702,"kind":"stone_floor","cells":[{"cell":_pack_v3i(_surface_cell(20,6)+Vector3i.UP),"work":0.0}]}]})
+	var rebuilt_targets: Array[Vector3i] = [mined_cell]
+	mining._create_zone(rebuilt_targets,102)
 	var caves: Array = _world_generator.get_cave_catalog()
 	if caves.is_empty(): return "no cave for discovery/save fixture"
 	var cave: Dictionary = caves[0]
@@ -452,10 +474,7 @@ func _build_nonempty_colony_state() -> String:
 	var cave_wall := Vector3i((cave_index >> 10) - 1, int(cave["floor_y"]) + 1, cave_index % 1024)
 	mining._mine_block_world(cave_wall)
 	if not root.get_node("InteriorTracker").is_cave_discovered(0): return "cave discovery fixture failed"
-	flag.call("restore_state", {
-		"placed": true,
-		"cell": _pack_v3i(flag_cell),
-	})
+	flag.call("_place_flag", flag_cell, false)
 	stockpiles.call("restore_state", {
 		"zones": [{
 			"id": 201,
@@ -536,7 +555,8 @@ func _build_nonempty_colony_state() -> String:
 			"sleep": 0.4,
 			"sleeping": true,
 			"sleep_hours_left": 2.5,
-			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0},
+			"food": {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1},
+			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0},
 			"carried_items": [],
 		}],
 	})
@@ -577,6 +597,7 @@ func _build_nonempty_colony_state() -> String:
 	})
 	_add_cutting_fixtures(details, furniture, items)
 	_add_permission_fixtures(furniture, items)
+	_add_furniture_moves(furniture)
 	if not _add_ladder_fixtures(): return "could not find two natural ladder sites"
 	if not _add_bridge_fixtures(): return "could not find three natural bridge sites"
 	var wildlife := _owner("wildlife")
@@ -837,6 +858,23 @@ func _add_permission_fixtures(furniture: Node, items: Node) -> void:
 	root.get_node("StockpileManager").rebuild_totals()
 
 
+func _add_furniture_moves(furniture: Node) -> void:
+	# Pending source with real storage settings, plus an already-packed bench.
+	var source = furniture._installed[401]
+	var id: String = furniture._moves.prepare(source)
+	source.set_uninstall(true)
+	furniture._restore_ghost({"id":408,"key":source.furniture_key,"move_id":id,
+		"origin":_pack_v3i(_surface_cell(6,3)),"yaw":1})
+	var key := "base:furniture:crude_workbench"
+	var installed_id: int = furniture._next_installed_id
+	furniture._install(key,furniture.get_defs()[key],_surface_cell(50,0),0,"base:material:juniper")
+	source = furniture._installed[installed_id]
+	id = furniture._moves.prepare(source)
+	furniture._restore_ghost({"id":409,"key":key,"move_id":id,"required_material_id":"base:material:juniper",
+		"origin":_pack_v3i(_surface_cell(50,3)),"yaw":2})
+	furniture.dev_remove_installed(installed_id)
+
+
 func _verify_restored_state(expected_seed: int) -> String:
 	if int(_world_generator.get("world_seed")) != expected_seed:
 		return "world seed did not round-trip"
@@ -864,7 +902,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var expected_keys := [
 		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
 		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders", "bridges",
-		"wildlife", "world_events",
+		"wildlife", "world_events", "construction",
 	]
 	for key in expected_keys:
 		if not scene_state.has(key):
@@ -873,28 +911,42 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "mined blocks did not round-trip"
 	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 5:
 		return "forestry progress/designations/removals did not round-trip"
-	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 1:
+	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 2:
 		return "mining zones did not round-trip"
-	if not bool((scene_state["settlement_flag"] as Dictionary).get("placed", false)):
+	var construction_state: Dictionary = scene_state.construction
+	if construction_state.built.size()!=4 or construction_state.orders.size()!=2 or not is_equal_approx(construction_state.orders[0].cells[0].work,.65):
+		return "built stone/floors or unfinished construction did not round-trip"
+	if construction_state.orders[1].kind!="stone_floor" or _owner("construction").orders[702]._lease_id>=0:
+		return "floor construction type or profession lock did not round-trip"
+	for entry: Dictionary in construction_state.built:
+		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
+		if root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z)!=root.get_node("BlockRegistry").get_id(entry.block):
+			return "constructed terrain was not restored after mining"
+	if not bool((scene_state["settlement_flag"] as Dictionary).get("founded", false)):
 		return "settlement flag did not round-trip"
 	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 3:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
-	if furniture_state.get("ghosts", []).size() != 5 or furniture_state.get("installed", []).size() != 6:
+	if furniture_state.get("ghosts", []).size() != 7 or furniture_state.get("installed", []).size() != 7:
 		return "furniture state did not round-trip"
+	var flags: Array = furniture_state.installed.filter(func(piece): return piece.key == "base:furniture:settlement_flag")
+	if flags.size() != 1 or flags[0].origin != scene_state.settlement_flag.cell or scene_state.dwarves.settlement_anchor != scene_state.settlement_flag.cell:
+		return "settlement flag physical owner or anchor did not round-trip"
 	var rooms := root.get_node("RoomManager")
 	if rooms.get_door_boundaries().size() != 10 or int(rooms.get_stats().doors) != 1:
 		return "door light boundaries did not rebuild from saved furniture"
 	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
 	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 3200:
 		return "installed light/heat duplicated across world reload"
-	if (scene_state["items"] as Dictionary).get("loose", []).size() != 12:
+	if (scene_state["items"] as Dictionary).get("loose", []).size() != 13:
 		return "loose items did not round-trip"
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])
 	if roster.size() != 3 or not bool((roster[0] as Dictionary).get("sleeping", false)):
 		return "dwarf roster/runtime state did not round-trip"
-	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0}:
-		return "personal-bedroom sleep progress or happiness did not round-trip"
+	if roster[0].food != {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1}:
+		return "food need, last meal, dining arrangement or retry did not round-trip"
+	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0}:
+		return "personal-bedroom sleep progress or dining/thermal happiness did not round-trip"
 	if furniture_state.installed.filter(func(piece): return piece.get("assigned_dwarf_id",-1)==0).size()!=1:
 		return "personal bed assignment did not round-trip"
 	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:
@@ -994,6 +1046,10 @@ func _run_inflight_carried_case() -> String:
 	if dwarves == null or items == null:
 		return "in-flight case: save-state owners missing after reload"
 	var loose_before := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
+	var move_id := "furniture_move:2"
+	for item in items._loose.keys():
+		if item.get_meta("instance_id","") == move_id:
+			items.take(item); item.free() # Move cargo is restored through the dwarf owner below.
 	var carrier_cell := _surface_cell(16, 0)
 	var water := root.get_node("WaterManager")
 	var stone_id: String = water.grant_stone("wet",carrier_cell+Vector3i.UP,false)
@@ -1043,6 +1099,7 @@ func _run_inflight_carried_case() -> String:
 			"sleeping": true,
 			"sleep_hours_left": 5.0,
 			"carried_items": [
+				{"item_key":"base:resources:furniture:crude_workbench","count":1,"instance_id":move_id,"material_id":"base:material:juniper"},
 				{"item_key": "base:resources:stone:rough_stone", "count": 1, "disallowed":true},
 				{"item_key": "base:resources:seed:pine_cone", "count": 24},
 				{"item_key": "base:resources:plant:blueberry_bush", "count": 1, "instance_id": plant_id},
@@ -1056,6 +1113,10 @@ func _run_inflight_carried_case() -> String:
 		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +5)" \
 			% [loose_before, loose_after]
 	var stone_count := 0
+	var furniture_count := 0
+	for drop: Dictionary in items.serialize_state().loose:
+		if drop.get("instance_id","")==move_id and drop.get("material_id","")=="base:material:juniper": furniture_count+=int(drop.count)
+	if furniture_count != 1 or not items.instance_promised(move_id): return "in-flight furniture lost its identity, material or destination claim"
 	for drop: Dictionary in items.serialize_state().loose:
 		if drop.get("instance_id","")==stone_id and drop.disallowed: stone_count+=int(drop.count)
 	if stone_count!=1 or water.stones[stone_id].placed: return "in-flight stone lost its identity, permission or inactive state"

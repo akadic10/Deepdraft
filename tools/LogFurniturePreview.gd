@@ -1,6 +1,7 @@
 extends SceneTree
 
 const OUTPUT := "res://tmp/log_furniture_20261011/art"
+var output := OUTPUT
 var camera := Camera3D.new()
 var scene := Node3D.new()
 var doors: Array[Node3D] = []
@@ -8,6 +9,8 @@ var actor
 
 func _init() -> void: _run.call_deferred()
 func _run() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): output = arg.trim_prefix("--output=")
 	for name in ["SaveManager","RoomManager","StockpileManager","TaskManager","WorldClock","WaterManager"]: root.get_node(name).set_process(false)
 	root.get_node("WorldClock").paused = true
 	root.size = Vector2i(1600,1000)
@@ -66,7 +69,7 @@ func _run() -> void:
 	actor.position = Vector3(8,0,1)
 	root.get_node("TaskManager").register_dwarf(actor)
 	registry.free()
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	await _capture("closed")
 	root.get_node("WorldClock").paused = false
 	root.get_node("WorldClock").speed = 1
@@ -97,4 +100,4 @@ func _label(text: String, point: Vector3) -> void:
 func _capture(name: String) -> void:
 	for i in range(8): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png(OUTPUT+"/"+name+".png")
+	root.get_texture().get_image().save_png(output+"/"+name+".png")

@@ -8,12 +8,19 @@
 
 ---
 
-**2026-10-11 handoff:** Issues 001 and 002 remain unresolved in their original
-reported form. Today's furniture dispatch, lost-floor recovery, bridge-corner
-shortcut and dwarf silhouette fixes have separate reproductions; they do not
-close these entries. See [124 — Session handoff](124_session_handoff_2026_10_11.md).
+**2026-10-12 status:** Issues 001 and 002 are **CLOSED — presumed resolved**, by
+Alen's decision. Neither requires further investigation unless the player reports
+it again. Their original causes were not confirmed; the historical reports below
+are retained for reference, not as active work. Issue 001 follows the major
+scheduler/lifecycle changes in [126 — Lifecycle and recovery](126_job_lifecycle_and_recovery.md).
+See [124 — Session handoff](124_session_handoff_2026_10_11.md).
 
-## Issue 002 — Dwarves overlap unmined mining-designation cells · **PARKED** · reported 2026-10-07
+## Issue 002 — Dwarves overlap unmined mining-designation cells · **CLOSED — presumed resolved** · reported 2026-10-07
+
+**2026-10-12 disposition (Alen):** Treat this report as resolved and remove it
+from active investigation. Reopen only if Alen notices the behavior and reports
+it again. This is a provisional closure, not a confirmed reproduction or
+root-cause fix. The observations and hypotheses below are historical context.
 
 **Observed.** At a shallow tunnel face in slice view, a dwarf appears inside the
 still-unmined portion of a yellow mining designation. That dwarf is much brighter
@@ -40,8 +47,8 @@ has not been reproduced.
 walking through an obstacle placed after a route had started. Active segments
 now revalidate against navigation changes, replan or release safely, and check
 later waypoints before entering them. See [32 — Navigation](../30_simulation_systems/32_navigation_3d.md).
-This does not establish the cause of the original screenshot; issue 002 remains
-parked pending the actual-position/footprint investigation below.
+This did not establish the cause of the original screenshot; issue 002 was
+kept parked at that time pending the actual-position/footprint investigation below.
 
 **Bridge-corner follow-up (2026-10-11).** The later Bogorn/Ralrek save reproduced
 the centre-origin hypothesis at a bridge exit: the actual shortcut crossed water
@@ -51,9 +58,9 @@ See [32 — Navigation](../30_simulation_systems/32_navigation_3d.md). This esta
 and fixes that shortcut defect, but does not yet establish whether the original
 mining-face screenshot was logical-body or cosmetic overlap.
 
-**Next pass.** Capture actor position, floor cell, current waypoint, shortcut
-origin and the physical three-cell clearance while reproducing a turn at a
-partially mined face. Separate cosmetic overlap from an invalid logical body.
+**If reported again.** Reopen the issue and capture actor position, floor cell,
+current waypoint, shortcut origin and the physical three-cell clearance while
+reproducing a turn at a partially mined face. Separate cosmetic overlap from an invalid logical body.
 Actual-position segment and live-waypoint checks are now present; assess the
 remaining swept footprint, then cover narrow passages, corners, one-block steps,
 mined floors and task interruption before changing production movement. Keep
@@ -61,21 +68,27 @@ the three-block clearance rule and cheap task-release contract intact.
 
 ---
 
-## Issue 001 — Dwarf idles beside available work; unstuck by an unrelated zone completion · **OPEN** · reported 2026-08-14 (Alen, playtest, two screenshots)
+## Issue 001 — Dwarf idles beside available work; unstuck by an unrelated zone completion · **CLOSED — presumed resolved** · reported 2026-08-14 (Alen, playtest, two screenshots)
+
+**2026-10-12 disposition (Alen):** Treat this report as resolved after the major
+scheduler and job-lifecycle changes on 2026-10-11 (doc 126). No further active
+investigation is planned unless Alen reports it again. This is a provisional
+closure, not a confirmed reproduction or root-cause fix of the original report.
+The observations and hypotheses below are retained as historical context.
 
 **2026-10-09 follow-up:** [88 — Ladder task reachability](88_ladder_task_reachability.md)
 replaces the capped yes/no assignment probe with resumable searches and tests all
 valid mining stands, fixing two reproduced ladder-related failures. The player
 confirmed ladder access and staircase excavation. This addresses the older
 probe-cap hypothesis below at the system level, but the original 2026-08-14
-mining/hauling stall has not been reproduced with the new code. Keep this issue
-open. The old cap-raising experiment is historical, not the next recommended fix.
+mining/hauling stall had not been reproduced with the new code, so the issue was
+kept open at that time. The old cap-raising experiment is historical, not the next recommended fix.
 
 **2026-10-06 follow-up:** [60 — Hauling worker selection](60_hauling_worker_selection.md)
 fixes idle-queue ordering after tree felling and a returning hauler bypassing
 matching after deposit. Those defects have targeted reproductions and passing
 regressions. They do not establish the cause of this older mining-face stall;
-Issue 001 remains open with the original diagnostic plan below.
+Issue 001 was therefore kept open at that time, with the diagnostic plan below.
 
 **Observed.** Slice at Y = 47, mountain dig-in face. Multiple mining zones designated
 (yellow); a ground stockpile zone (cyan) on the settlement plain with plenty of empty
@@ -134,11 +147,11 @@ pulls but hauling stays dead, look separately at the HAUL lease wake plumbing
 DEV-spawned furniture mix on the plain; multiple mining zones at the face, one partially
 mined.
 
-**Next step.** Reproduce the original mining/hauling stall against the current
-resumable search implementation, with scheduler stats visible. Separate a pending
+**If reported again.** Reopen the issue and reproduce the new mining/hauling stall
+against the current scheduler, with scheduler stats visible. Separate a pending
 search from proven unreachable work, an exhausted full-search bound, missing wake
 events and legitimate sleep/task eligibility. Check source claims and loose-item
-ownership as well. Record a reproducible cause and regression before closing this
-entry; the historical hypotheses and cap experiment above describe the old code.
+ownership as well. Record a reproducible cause and regression for any confirmed
+fix; the historical hypotheses and cap experiment above describe the old code.
 
 ---

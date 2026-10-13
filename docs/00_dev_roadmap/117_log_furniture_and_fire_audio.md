@@ -3,13 +3,27 @@
 Implemented 2026-10-11 from the playtest request for simpler starter furniture,
 three doorway widths and audible campfires/torches.
 
+**2026-10-12 art revision:** starter log doors are now frameless. Alen reserved
+fixed jambs and top beams for better doors in later tiers. The live 2-, 3- and
+4-wide models contain only swinging log leaves, with uneven cut tops, simple
+wooden battens, pegs and pulls. The leaves fill the opening and pivot at its
+outer edges (`door_animation.hinge_inset: 0`). Footprints, recipes, material
+variants, walkability and room sealing retain their existing behavior.
+
+All three placed-form icons are regenerated. Existing installed doors use the
+new art after restarting Play and loading a current save; no rebuild is required.
+`LogFurnitureTest` and native `DoorLightingTest` pass, including rotations,
+either-side opening, room boundaries and restoration. Native closed/open previews
+and the previous framed model references are in `tmp/frameless_doors_20261012/`.
+
 ## Furniture
 
 The existing Door is now **Log door (2 wide)**, with one swinging leaf.
 **Log door (3 wide)** also has one leaf; **Double log door (4 wide)** has two.
-All use rough vertical logs, wooden cross battens and pegs, wooden pulls and a
-fixed timber frame. Height stays 31 art voxels (3.875 world blocks) under a
-four-block lintel. Footprints are respectively 2×1, 3×1 and 4×1.
+All use rough vertical logs, wooden cross battens and pegs, and wooden pulls.
+There is no separate frame. Tops vary between 30 and 31 art voxels (maximum
+3.875 world blocks) beneath a four-block opening. Footprints are respectively
+2×1, 3×1 and 4×1.
 
 `FurnitureDoorAnimation` reparents named leaf meshes onto hinges when installed.
 Dwarves approaching open the leaves away from their arrival side. Direction

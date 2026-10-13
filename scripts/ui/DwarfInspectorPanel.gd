@@ -23,6 +23,10 @@ var _explanation: Label
 var _destination: Label
 var _rest_label: Label
 var _rest: ProgressBar
+var _food_label: Label
+var _food: ProgressBar
+var _meal: Label
+var _food_effects: Label
 var _happiness: Label
 var _thought: Label
 var _load_label: Label
@@ -105,6 +109,11 @@ func _ready() -> void:
 	rest_box.get_child(0).hide()
 	_rest = _progress(rest_box)
 	_rest.tooltip_text = "Current rest level. Dwarves sleep when tired."
+	var food_box := _section(_overview, "FOOD")
+	food_box.get_child(0).hide()
+	_food_label = _label(food_box, "", 14)
+	_food = _progress(food_box)
+	_food_effects = _label(food_box, "", 12, UITheme.HEARTH_COPPER)
 	_happiness = _label(_overview, "", 14, UITheme.HEARTH_COPPER)
 	var carry_box := _section(_overview, "CARRYING")
 	_cargo = _label(carry_box, "", 14)
@@ -116,6 +125,7 @@ func _ready() -> void:
 	pages.add_child(_details)
 	_location = _label(_section(_details, "CURRENT LOCATION"), "", 14)
 	_explanation = _label(_section(_details, "CURRENT ACTIVITY"), "", 14)
+	_meal = _label(_section(_details, "LAST MEAL"), "", 14)
 	_thought = _label(_section(_details, "HAPPINESS"), "", 14)
 	_traits = _section(_details, "TRAITS")
 	_equipment_page = EquipmentPanel.new()
@@ -165,6 +175,14 @@ func show_data(data: Dictionary, following: bool) -> void:
 	var rest_percent := roundi(float(data.rest) * 100)
 	_rest_label.text = "Rest  %d%% · %s" % [rest_percent, "Sleeping" if data.sleeping else ("Tired" if rest_percent <= 25 else "Awake")]
 	_rest.value = rest_percent
+	var food: Dictionary = data.food
+	_food_label.text = "Food  %d%% · %s" % [roundi(float(food.value)*100),food.label]
+	_food.value = float(food.value)*100.0
+	_food.tooltip_text = String(food.detail)
+	_food_label.tooltip_text = String(food.detail)
+	_food_effects.text = String(food.effects)
+	_food_effects.visible = not _food_effects.text.is_empty()
+	_meal.text = String(food.meal)
 	var mood: Dictionary = agent._mood.describe()
 	_happiness.text = "%s · Happiness %d%%" % [mood.label,roundi(float(mood.value)*100)]
 	_happiness.tooltip_text = String(mood.thought)
@@ -219,7 +237,7 @@ func clear_subject() -> void:
 
 func _resize_body() -> void:
 	# Leave the default inspector footer clear of the centered bottom navigation.
-	_scroll.custom_minimum_size.y = 40.0 if embedded else clampf(get_viewport_rect().size.y - 422, 120, 340)
+	_scroll.custom_minimum_size.y = 40.0 if embedded else clampf(get_viewport_rect().size.y - 438, 120, 340)
 	if embedded:
 		var compact := get_viewport_rect().size.y < 650
 		_portrait_frame.custom_minimum_size = Vector2(52, 52) if compact else Vector2(64, 72)

@@ -45,21 +45,13 @@ func _run() -> void:
 			while not details._visual_queue.is_empty() or not flora._pending.is_empty(): await process_frame
 			for i in range(40): await process_frame
 	else:
-		# Start the review in an interior meadow; the menu still cycles real records.
-		var ids: Array = details._records.keys()
-		ids.sort()
-		var best := INF
-		for index in range(ids.size()):
-			var record: Dictionary = details._records[ids[index]]
-			if not String(ids[index]).begins_with("flowers:"): continue
-			var distance := Vector2(record.origin.x,record.origin.z).distance_squared_to(Vector2(512,512))
-			if distance < best:
-				best = distance
-				details._dev_cursors["flowers"] = index
+		# Choose explicit fixture records near an interior meadow.
+		var ids := _detail_ids(details,"flowers")
+		ids.sort_custom(func(a,b): return Vector2(details._records[a].origin.x,details._records[a].origin.z).distance_squared_to(Vector2(512,512))<Vector2(details._records[b].origin.x,details._records[b].origin.z).distance_squared_to(Vector2(512,512)))
 		var point := Vector2(-1,-1)
-		for attempt in range(30):
-			dock._dispatch_panel_action("surface_details", "DEV: Next flowers")
-			id = String(explorer._object_id)
+		for candidate: String in ids.slice(0,30):
+			id = candidate
+			_inspect_detail(details,id)
 			for i in range(100): await process_frame
 			point = _pick_point(details,explorer,id)
 			if point.x >= 0: break

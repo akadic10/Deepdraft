@@ -1,5 +1,10 @@
 # 11 - Slice & X-Ray: Deepdraft Implementation Plan
 
+**UI/stepping follow-up (2026-10-12):** [142](142_fixed_time_slice_hud.md)
+supersedes this historical plan's movable palette and boundary-snapping steps.
+The live UI is a permanent bottom-right tower with exact ±1/±4 steps; first-use
+camera seeding and existing saved height/state remain unchanged.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = decided / ready to build</span> |

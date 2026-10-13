@@ -78,12 +78,14 @@ func _run() -> void:
 		wildlife.initialize_population()
 		_check(wildlife.serialize_state() == migrated,"wolf migration occurs only once")
 		wildlife.restore_state(original)
-	var dock := scene.get_node("DockUI")
 	var explorer := scene.get_node("ObjectExplorerController")
 	var rig := scene.get_node("CameraRig")
-	dock._dispatch_panel_action("wildlife", "DEV: Next "+species)
-	_check(explorer._provider == wildlife, "development menu opens wildlife inspector")
-	var rabbit: Node3D = explorer._object_id
+	var candidates: Array = wildlife.animals_of_species(species)
+	_check(not candidates.is_empty(),"natural wildlife fixture exists")
+	if candidates.is_empty(): quit(1); return
+	var rabbit: Node3D = candidates[0]
+	rig.focus_world_position(rabbit.position+Vector3.UP,30 if species=="deer" else 24)
+	_check(explorer.select_object(wildlife,rabbit),"shared inspector opens wildlife fixture")
 	for i in range(150): await process_frame
 	# Find an exposed natural rabbit for a real screen-space click.
 	var point := Vector2(-1,-1)
@@ -95,8 +97,9 @@ func _run() -> void:
 				var hit: Dictionary = explorer.pick_at_screen(screen)
 				if hit.get("provider") == wildlife and hit.get("id") == rabbit: point = screen
 		if point.x >= 0: break
-		dock._dispatch_panel_action("wildlife", "DEV: Next "+species)
-		rabbit = explorer._object_id
+		rabbit = candidates[(attempt+1)%candidates.size()]
+		rig.focus_world_position(rabbit.position+Vector3.UP,30 if species=="deer" else 24)
+		explorer.select_object(wildlife,rabbit)
 		for i in range(100): await process_frame
 	_check(point.x >= 0, "natural rabbit is selectable through terrain-aware screen picking")
 	if point.x >= 0:

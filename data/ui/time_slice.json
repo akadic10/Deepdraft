@@ -1,0 +1,13 @@
+{
+  "__note": "Illustrated permanent time/Slice controls. Regions exclude atlas spacing; buttons clip to their beveled outlines at draw time.",
+  "buttons": {
+    "pause": {"label": "Pause / resume", "tooltip": "Pause the settlement, or resume at the previous speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [39, 175, 307, 302]},
+    "play": {"label": "Normal speed · 1×", "tooltip": "Resume the settlement at normal speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [423, 175, 307, 302]},
+    "fast": {"label": "Fast speed · 2×", "tooltip": "Resume the settlement at twice normal speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [807, 175, 307, 302]},
+    "slice": {"label": "Slice view", "tooltip": "Toggle Slice (\\). Your previous level is remembered. Scroll over the height tower for one level; Ctrl + scroll for four.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [1191, 175, 307, 302]},
+    "up_four": {"label": "Raise 4 levels", "tooltip": "Show four more levels · ]", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [27, 635, 331, 195]},
+    "up_one": {"label": "Raise 1 level", "tooltip": "Show one more level · Ctrl + ]", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [411, 635, 331, 195]},
+    "down_one": {"label": "Lower 1 level", "tooltip": "Hide one more level · Ctrl + [", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [795, 635, 331, 195]},
+    "down_four": {"label": "Lower 4 levels", "tooltip": "Hide four more levels · [", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [1179, 635, 331, 195]}
+  }
+}

@@ -1,5 +1,8 @@
 extends Node3D
 
+## Shared read-only view of ConstructionController's authoritative placed cells.
+var built_blocks: Dictionary = {}
+
 ## Manages one MeshInstance3D per chunk and rebuilds meshes as chunks change.
 ##
 ## Mesh building is throttled: at most MESHES_PER_FRAME chunks are built per
@@ -397,6 +400,10 @@ func _process(_delta: float) -> void:
 			print("WorldRenderer: built %d region meshes total, queue=%d." % [_meshes_built, _dirty_region_queue.size()])
 
 
+func is_block_inspector_active() -> bool:
+	return _inspector_layer != null and _inspector_layer.visible
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _inspector_layer == null or not _inspector_layer.visible:
 		return
@@ -650,8 +657,9 @@ func _inspect_block_id(pos: Vector3i) -> Dictionary:
 	var generated_block_id := BlockRegistry.AIR_ID
 	if WorldGenerator.has_method("get_generated_block_id"):
 		generated_block_id = WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
-	var block_id := WorldData.get_block(pos.x, pos.y, pos.z)
-	if not BlockRegistry.is_transparent(block_id):
+	# A materialized chunk's AIR is authoritative too: do not resurrect mined rock.
+	var block_id := WorldData.get_live_block(pos.x, pos.y, pos.z)
+	if WorldData.chunk_exists(pos.x >> 4,pos.y >> 4,pos.z >> 4):
 		return {"block_id": block_id, "generated_block_id": generated_block_id, "source": "streamed_chunk"}
 	return {"block_id": generated_block_id, "generated_block_id": generated_block_id, "source": _fallback_source_label(pos)}
 
@@ -857,6 +865,7 @@ func _rebuild_cavity_shell() -> void:
 	var col_tops: Dictionary = {}   # per-rebuild cache: Vector2i -> effective top
 
 	for block: Vector3i in _visual_cut_blocks.keys():
+		if built_blocks.has(block): continue
 		if block.y > slice_y:
 			continue   # cavity above the plane — hidden with everything else
 		if block.y > _cavity_column_top(block.x, block.z, col_tops):
@@ -864,6 +873,7 @@ func _rebuild_cavity_shell() -> void:
 		var mined := is_revealed_air(block) or _debug_cave_blocks.has(block)
 		for dir: Vector3i in _SHELL_DIRS:
 			var n: Vector3i = block + dir
+			if built_blocks.has(n): continue # Dedicated construction mesh owns this face.
 			if _visual_cut_blocks.has(n):
 				continue   # open continuation of the cavity (plan or hole)
 			if n.y > slice_y:
@@ -2029,7 +2039,7 @@ func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictio
 			# mountain", never walkable ground. Luminance-only (Hard Rule 9).
 			var sliced: bool = surface.get("slice_cut", false)
 			if sliced:
-				color = Color(color.r * SLICE_CUT_DIM, color.g * SLICE_CUT_DIM, color.b * SLICE_CUT_DIM, color.a)
+				color = slice_cut_color(color)
 			var key := Vector2i(
 				int(floor(float(wx - x0) / float(step))),
 				int(floor(float(wz - z0) / float(step))))
@@ -2420,6 +2430,12 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 		"block_id": block_id,
 		"slice_cut": slice_cut,   # SO-2c: cut floors dim at colour-bake time
 	}
+
+
+## Shared by natural overview plates and constructed stone cut by the slice.
+## Only artificial cut faces dim; exposed tops and vertical faces keep their color.
+static func slice_cut_color(color: Color) -> Color:
+	return Color(color.r * SLICE_CUT_DIM, color.g * SLICE_CUT_DIM, color.b * SLICE_CUT_DIM, color.a)
 
 
 func _cache_overview_side_colors(season: String) -> void:
@@ -2848,6 +2864,7 @@ func _rebuild_added_terrain() -> void:
 	var cells: Array = []
 	for entry: Dictionary in WorldData.serialize_solid_edits():
 		var cell := SaveManager.unpack_v3i(entry.cell)
+		if built_blocks.has(cell): continue # Construction's culled mesh owns these faces.
 		if cell.y>slice_y or BlockRegistry.is_solid(WorldGenerator.get_generated_block_id(cell.x,cell.y,cell.z)): continue
 		cells.append(entry)
 	if _added_terrain == null:

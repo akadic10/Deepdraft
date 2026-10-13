@@ -10,7 +10,8 @@ var _buttons: Dictionary = {}
 var _entries: Dictionary = {}
 var _group_by_tool: Dictionary = {}
 var _open_group := "orders"
-var _shelf_title: Label
+var _tool_slots: Dictionary = {}
+var dock_buttons: Dictionary = {}
 var _history: Array[Dictionary] = []
 var _last_order: Dictionary = {}
 var _shelf: PanelContainer
@@ -28,7 +29,7 @@ var _view: Button
 var _toast_until := 0
 var _dock_rect := Rect2()
 var inspector: Control
-var _compact_style := -1
+var _positioning := false
 var _refresh_elapsed := 0.0
 
 
@@ -38,24 +39,12 @@ func _ready() -> void:
 	UITheme.apply_surface(self)
 	_shelf = PanelContainer.new()
 	_shelf.name = "OrdersShelf"
-	_shelf.add_theme_stylebox_override("panel", UITheme.orders_panel_style())
+	_shelf.add_theme_stylebox_override("panel", UITheme.dock_panel_style())
 	_shelf.hide()
 	add_child(_shelf)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	_shelf.add_child(column)
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 24)
-	column.add_child(header)
-	_shelf_title = Label.new()
-	_shelf_title.text = "Orders"
-	UITheme.apply_title(_shelf_title, 20)
-	_shelf_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(_shelf_title)
-	var help := Label.new()
-	help.text = "Choose a tool"
-	help.add_theme_color_override("font_color", UITheme.HEARTH_MUTED)
-	header.add_child(help)
 	_grid = GridContainer.new()
 	_grid.columns = 3
 	_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -70,32 +59,31 @@ func _ready() -> void:
 	for entry: Dictionary in tool_entries:
 		var id := String(entry.target)
 		_entries[id] = entry
-		var button := UITheme.make_button(String(entry.label), String(entry.get("tooltip", "")), Vector2(104, 76))
+		var button = preload("res://scripts/ui/DockIconButton.gd").new()
+		button.setup(entry, UIRegistry.get_dock_icon(entry))
+		button.custom_minimum_size = Vector2(64, 64)
+		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		button.name = id.to_pascal_case()
-		button.focus_mode = Control.FOCUS_ALL
-		button.toggle_mode = true
-		button.icon = load(String(entry.icon)) as Texture2D
-		button.expand_icon = true
-		button.add_theme_constant_override("icon_max_width", 30)
-		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		button.add_theme_color_override("icon_normal_color", UITheme.HEARTH_COPPER)
-		button.add_theme_color_override("icon_pressed_color", UITheme.HEARTH_COPPER)
-		button.add_theme_color_override("icon_hover_color", UITheme.HEARTH_COPPER)
-		button.add_theme_color_override("icon_hover_pressed_color", UITheme.HEARTH_COPPER)
 		button.disabled = bool(entry.get("disabled", false))
-		if button.disabled: button.text += "\nLater"
-		button.pressed.connect(func(): tool_requested.emit(id); refresh())
-		_grid.add_child(button)
+		button.pressed.connect(_request_tool.bind(id))
+		var slot := MarginContainer.new()
+		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if bool(entry.get("separator_before", false)):
+			slot.add_theme_constant_override("margin_left", 12)
+		slot.add_child(button)
+		_grid.add_child(slot)
+		_tool_slots[id] = slot
 		_buttons[id] = button
 		button.visible = group_for_tool(id) == _open_group
+		slot.visible = button.visible
 	_banner = PanelContainer.new()
 	_banner.name = "OrderModeBanner"
-	_banner.add_theme_stylebox_override("panel", UITheme.orders_panel_style(true))
+	_banner.add_theme_stylebox_override("panel", UITheme.orders_context_style())
 	_banner.hide()
 	add_child(_banner)
 	_banner_layout = BoxContainer.new()
-	_banner_layout.add_theme_constant_override("separation", 12)
+	_banner_layout.add_theme_constant_override("separation", 8)
 	_banner.add_child(_banner_layout)
 	var row := HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -105,18 +93,18 @@ func _ready() -> void:
 	_icon.custom_minimum_size = Vector2(30, 30)
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon.modulate = UITheme.HEARTH_COPPER
 	row.add_child(_icon)
 	var text := VBoxContainer.new()
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(text)
 	_title = Label.new()
-	UITheme.apply_title(_title, 22)
+	UITheme.apply_title(_title, 17)
 	text.add_child(_title)
 	_hint = Label.new()
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.custom_minimum_size = Vector2(260, 0)
 	_hint.add_theme_color_override("font_color", UITheme.HEARTH_MUTED)
+	_hint.add_theme_font_size_override("font_size", 13)
 	text.add_child(_hint)
 	_banner_actions = HBoxContainer.new()
 	_banner_actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -140,6 +128,8 @@ func _ready() -> void:
 	toast_row.add_theme_constant_override("separation", 12)
 	_toast.add_child(toast_row)
 	_toast_label = Label.new()
+	_toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_toast_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toast_row.add_child(_toast_label)
 	_view = UITheme.make_button("View order")
 	_view.pressed.connect(_view_last)
@@ -148,6 +138,13 @@ func _ready() -> void:
 		panel.mouse_force_pass_scroll_events = false
 		panel.resized.connect(_position_panels)
 	get_viewport().size_changed.connect(_position_panels)
+
+
+func _request_tool(id: String) -> void:
+	# Planned entries show their explanation, without disturbing the current tool.
+	if bool(_entries[id].get("planned", false)): return
+	tool_requested.emit(id)
+	refresh()
 
 
 func bind_controller(tool_id: String, controller: Node) -> void:
@@ -169,9 +166,9 @@ func is_open(group: String = "") -> bool:
 func set_open(shown: bool, group: String = "") -> void:
 	if not group.is_empty():
 		_open_group = group
-		_shelf_title.text = String(UIRegistry.get_menu(group).get("title", group.capitalize()))
 		for id: String in _buttons:
 			_buttons[id].visible = group_for_tool(id) == group
+			_tool_slots[id].visible = _buttons[id].visible
 	_shelf.visible = shown
 	_position_panels()
 	shelf_visibility_changed.emit()
@@ -194,15 +191,18 @@ func refresh() -> void:
 	if _banner == null: return
 	var active := active_tool_id()
 	for id: String in _buttons:
-		_buttons[id].set_pressed_no_signal(active == id)
+		if _buttons[id].toggle_mode: _buttons[id].set_pressed_no_signal(active == id)
 	_banner.visible = not active.is_empty()
 	if not active.is_empty():
 		var entry: Dictionary = _entries[active]
 		_title.text = entry.label
 		_icon.texture = _buttons[active].icon
-		_hint.text = _controllers[active].get_order_hint()
+		var controller: Node = _controllers[active]
+		_hint.text = controller.get_order_summary() if controller.has_method("get_order_summary") else controller.get_order_hint()
+		_hint.tooltip_text = controller.get_order_hint()
 	_prune_history()
 	_undo.disabled = _history.is_empty()
+	_undo.visible = not _history.is_empty()
 	_view.visible = _receipt_pending(_last_order)
 	_position_panels()
 
@@ -221,50 +221,82 @@ func fit_above_dock(dock_rect: Rect2) -> void:
 
 
 func _position_panels() -> void:
-	if _shelf == null or _dock_rect.size == Vector2.ZERO: return
+	if _shelf == null or _dock_rect.size == Vector2.ZERO or _positioning: return
+	_positioning = true
 	var viewport := get_viewport().get_visible_rect().size
+	var icon_size := 64.0 if viewport.x >= 1200 else 56.0
 	var visible_count := 0
+	var separator_width := 0
 	for id: String in _buttons:
-		if _buttons[id].visible: visible_count += 1
-	_grid.columns = 3 if visible_count > 4 and viewport.x < 1100 else maxi(1, visible_count)
-	var compact := is_instance_valid(inspector) and inspector.visible and viewport.x < 1100
-	if _compact_style != int(compact):
-		_compact_style = int(compact)
-		var banner_style := UITheme.orders_panel_style(true)
-		banner_style.content_margin_top = 6 if compact else 12
-		banner_style.content_margin_bottom = 6 if compact else 12
-		_banner.add_theme_stylebox_override("panel", banner_style)
-		_banner_layout.add_theme_constant_override("separation", 6 if compact else 12)
-		_title.add_theme_font_size_override("font_size", 20 if compact else 22)
-		_hint.add_theme_font_size_override("font_size", 13 if compact else UITheme.FONT_BODY)
-		for id: String in _buttons:
-			var button: Button = _buttons[id]
-			button.custom_minimum_size = Vector2(88,64) if compact else Vector2(104,76)
-			button.add_theme_font_size_override("font_size", 12 if compact else UITheme.FONT_SMALL)
-			button.add_theme_constant_override("icon_max_width", 26 if compact else 30)
-			button.text = "Cancel\norders" if compact and id == "cancel_orders" else String(_entries[id].label)
-			if compact and id in ["clear_stones", "clear_shrubs", "harvest_plants"]: button.text = String(_entries[id].label).replace(" ", "\n")
-			if button.disabled: button.text += "\nLater"
+		if _buttons[id].visible:
+			visible_count += 1
+			if bool(_entries[id].get("separator_before", false)): separator_width += 12
+		_buttons[id].custom_minimum_size = Vector2.ONE * icon_size
+	var shelf_bottom := _dock_rect.position.y - 8
+	var available := _available_width(shelf_bottom, icon_size * 2 + 24)
+	_grid.columns = maxi(1, visible_count)
+	if 16 + separator_width + visible_count * icon_size + (visible_count - 1) * 6 > available:
+		_grid.columns = maxi(1, mini(3, int((available - 16 - separator_width) / (icon_size + 6))))
 	_shelf.reset_size()
-	_shelf.position = Vector2((viewport.x - _shelf.size.x) * .5, _dock_rect.position.y - _shelf.size.y - 8)
-	var banner_width := minf(640, viewport.x - 48 - (inspector.size.x + 16 if compact else 0.0))
+	var anchor := (viewport.x - _shelf.size.x) * .5
+	var parent_button: Control = dock_buttons.get(_open_group)
+	if is_instance_valid(parent_button):
+		anchor = parent_button.get_global_rect().position.x - 8
+	_shelf.position = Vector2(_panel_x(_shelf.size, shelf_bottom - _shelf.size.y, anchor), shelf_bottom - _shelf.size.y)
+	var stack_top := _shelf.position.y if _shelf.visible else _dock_rect.position.y
+	var banner_width := minf(640, _available_width(stack_top - 8, 112))
 	_banner_layout.vertical = banner_width < 600
 	_banner.custom_minimum_size.x = banner_width
-	_hint.custom_minimum_size.x = maxf(160, banner_width - 70 \
+	_hint.custom_minimum_size.x = maxf(160, banner_width - 62 \
 		- (0.0 if _banner_layout.vertical else _banner_actions.get_combined_minimum_size().x + 12))
 	_banner.reset_size()
-	var stack_top := _shelf.position.y if _shelf.visible else _dock_rect.position.y
-	_banner.position = Vector2((viewport.x - _banner.size.x) * .5, stack_top - _banner.size.y - 8)
+	var banner_top := stack_top - _banner.size.y - 8
+	_banner.position = Vector2(_panel_x(_banner.size, banner_top, _shelf.position.x), banner_top)
+	var toast_bottom := (_banner.position.y if _banner.visible else stack_top) - 8
+	var toast_width := minf(500, _available_width(toast_bottom, 80))
+	_toast.custom_minimum_size.x = toast_width
+	_toast_label.custom_minimum_size.x = maxf(120, toast_width - 44 - (_view.get_combined_minimum_size().x if _view.visible else 0.0))
+	_toast.reset_size()
+	_toast.position = Vector2(_panel_x(_toast.size, toast_bottom - _toast.size.y, _shelf.position.x), toast_bottom - _toast.size.y)
+	_positioning = false
+	queue_redraw()
+
+
+## Keep the stack in the usable side of a moved inspector, wrapping icons only
+## when that actual space is too narrow for a single row.
+func _available_width(bottom: float, height: float) -> float:
+	var viewport := get_viewport_rect().size
+	var full := viewport.x - 32
 	if is_instance_valid(inspector) and inspector.visible:
 		var occupied := inspector.get_global_rect().grow(8)
-		for panel: Control in [_shelf, _banner]:
-			if not panel.get_global_rect().intersects(occupied): continue
-			for x: float in [occupied.position.x - panel.size.x, occupied.end.x]:
-				if x >= 24 and x + panel.size.x <= viewport.x - 24:
-					panel.position.x = x
-					break
-	_toast.position = Vector2((viewport.x - _toast.size.x) * .5,
-		(_banner.position.y if _banner.visible else stack_top) - _toast.size.y - 8)
+		if Rect2(16, bottom - height, full, height).intersects(occupied):
+			var side := maxf(occupied.position.x - 16, viewport.x - 16 - occupied.end.x)
+			if side >= 240: return side
+	return full
+
+
+func _panel_x(panel_size: Vector2, top: float, preferred: float) -> float:
+	var right := get_viewport_rect().size.x - 16 - panel_size.x
+	var x := clampf(preferred, 16, right)
+	if is_instance_valid(inspector) and inspector.visible:
+		var occupied := inspector.get_global_rect().grow(8)
+		if Rect2(Vector2(x, top), panel_size).intersects(occupied):
+			var distance := INF
+			for candidate: float in [occupied.position.x - panel_size.x, occupied.end.x]:
+				if candidate >= 16 and candidate <= right and absf(candidate - preferred) < distance:
+					x = candidate
+					distance = absf(candidate - preferred)
+	return x
+
+
+func _draw() -> void:
+	if _shelf == null or not _shelf.visible: return
+	var parent_button: Control = dock_buttons.get(_open_group)
+	if not is_instance_valid(parent_button): return
+	var x := parent_button.get_global_rect().get_center().x
+	var bounds := _shelf.get_global_rect()
+	if x < bounds.position.x + 8 or x > bounds.end.x - 8: return
+	draw_line(Vector2(x, bounds.end.y), Vector2(x, _dock_rect.position.y), UITheme.HEARTH_COPPER, 2)
 
 
 func _receipt_pending(record: Dictionary) -> bool:

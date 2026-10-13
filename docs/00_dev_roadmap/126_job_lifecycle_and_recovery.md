@@ -88,6 +88,10 @@ supervision contract. Their specialized selection rules remain:
 - A short planning hold limits idle wandering from repeatedly moving the search
   start. It expires and has a cooldown; sleep, legitimate work, private-room exits
   and developer walk commands keep their own rules.
+  [Milestone 134](134_distant_shrub_move_planning.md) renews this hold while a
+  surface-work or exact-item Move search expands nodes, so distant routes can
+  finish without leisure repeatedly invalidating their start. Inactive searches
+  stop renewing it; per-wake and total search limits still apply.
 - Exhausting a finite A* allowance means **reachability unknown**, distinct from
   a completed search proving no route. Searches can expand their total allowance
   from 6,000 to 12,000 to 24,000 nodes while retaining their frontier and the normal
@@ -168,5 +172,8 @@ detail panel and retry control are readable and within the window.
 This makes stalls observable and gives failed attempts a common recovery path.
 It does not establish that every possible world/order combination can complete.
 Continue player testing of large colonies, many simultaneous crafters, changing
-water/access and long-running orders. Neither original issue 001 (OPEN) nor issue
-002 (PARKED) is closed without reproducing its original trigger.
+water/access and long-running orders. **2026-10-12 disposition:** Alen considers
+[issue 001](00_open_issues.md) resolved after these changes; it is provisionally
+closed without a confirmed original cause and will reopen only if reported again.
+Alen also provisionally closed issue 002 on the same date, with no further
+investigation unless the player reports it again. Its original cause remains unconfirmed.

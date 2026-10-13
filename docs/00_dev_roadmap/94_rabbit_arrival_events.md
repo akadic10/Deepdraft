@@ -116,10 +116,10 @@ Isolated engine profiles and logs are under `tmp/arrival_review/`.
   three entrants, public DEV locator, screen picking, inspector, Follow,
   journey and settled captures. No player save is read or changed.
 
-Restart play. **Menu → Development → DEV: Arrival status** shows the next
-opportunity and last result. **DEV: Next arrival** locates an entered rabbit,
+Restart play. **Development → DEV: Arrival status** shows the next
+opportunity and last result. Click an entered rabbit to inspect or Follow it,
 including one that has settled. Normal opportunities take 2–4 game days and can
-skip at full capacity; these DEV controls do not force a replacement wave.
+skip at full capacity; the status display does not force a replacement wave.
 
 Captures: `tmp/arrival_review/arrival_entry.png`, `arrival_journey.png`,
 `arrival_settled.png`. No Project Reload is necessary; there are no new globals.

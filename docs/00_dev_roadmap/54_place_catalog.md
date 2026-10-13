@@ -1,5 +1,11 @@
 # 54 — Place catalog
 
+**Illustrated categories (2026-10-12):** [140](140_remaining_illustrated_menus.md)
+adds shared 56 px category art and hover/focus names. The visible Rooms category
+is now **Room furnishings**. The current category name accompanies the design
+count; compact heights keep the labeled dropdown. Stock stability, item thumbnails,
+repeat placement, Move and Undo retain their existing behavior.
+
 Implemented 2026-10-05 after approval of the Hearth cabinet concept. The native
 game now uses **Place** for finished furniture. Crafting and future structural
 building are separate systems; this screen does not create items from resources.
@@ -52,7 +58,7 @@ inspector. The three-column list scrolls independently of the world. At 960×540
 categories use a dropdown and details compact to keep a full item row, actions
 and the bottom dock accessible. Saved or dragged positions remain player-owned.
 
-For the current development build, **Menu → Development → DEV: Spawn Furniture** supplies
+For the current development build, **Development → DEV: Spawn Furniture** supplies
 packed furniture for testing. Workers now produce the crude workbench/stump and
 wooden torch through Craft. A carpenter production screen remains future work.
 

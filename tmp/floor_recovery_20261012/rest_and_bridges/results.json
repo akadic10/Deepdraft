@@ -1,0 +1,37 @@
+[
+  {
+    "test": "DwarfRestTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.72,
+    "timeout": false
+  },
+  {
+    "test": "BedroomTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 12.09,
+    "timeout": false
+  },
+  {
+    "test": "BedroomComfortTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 5.75,
+    "timeout": false
+  },
+  {
+    "test": "BedroomPrivacyTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.66,
+    "timeout": false
+  },
+  {
+    "test": "LogBridgeTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 7.07,
+    "timeout": false
+  }
+]

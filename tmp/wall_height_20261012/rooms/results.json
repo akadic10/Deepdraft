@@ -1,0 +1,16 @@
+[
+  {
+    "test": "RoomLightingTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 1.1,
+    "timeout": false
+  },
+  {
+    "test": "BedroomTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 10.62,
+    "timeout": false
+  }
+]

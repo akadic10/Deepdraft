@@ -1,0 +1,23 @@
+[
+  {
+    "test": "SurfaceWorkSelectionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 6.25,
+    "timeout": false
+  },
+  {
+    "test": "ShrubMoveHandoffTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.86,
+    "timeout": false
+  },
+  {
+    "test": "JobPlanningTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 6.45,
+    "timeout": false
+  }
+]

@@ -159,6 +159,11 @@ func _raise(window: UIWindow) -> void:
 
 
 func _on_viewport_resized() -> void:
+	fit_visible_windows()
+
+
+## HUD owners request a deferred pass after their own responsive layout settles.
+func fit_visible_windows() -> void:
 	for id: String in _windows:
 		var window := _windows[id] as UIWindow
 		if window.visible:

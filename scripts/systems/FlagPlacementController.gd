@@ -4,13 +4,12 @@ extends Node3D
 ## Settlement Flag placement — the Stonehearth-embark slice of doc 06, built
 ## as doc 16 step 2b. The player toggles the tool (dock 'flag' entry), hovers
 ## a ghost flag tinted green/red by validity, and left-clicks to place. On
-## confirm: the flag spawns as a placed entity (PlacedEntityRegistry's second
-## customer after trees), the settlement anchor is recorded, and the starter
-## squad spawns around it via DwarfDirector.
+## confirm: FurniturePlacementController installs the flag, the settlement
+## anchor is recorded, and the starter squad spawns around it via DwarfDirector.
 ##
 ## Tool input contract (doc 21): ESC cancels the mode; right-mouse stays
-## camera orbit and is never consumed. One flag per world (re-placement is out
-## of scope, doc 16). State is session-only until the save system.
+## camera orbit and is never consumed. Founding grants one flag once. Subsequent
+## Move/Uninstall/Place use ordinary furniture and never spawn another squad.
 ##
 ## Raycasting: the flag is a SURFACE placement, so the hover test marches the
 ## camera ray against the height field (`get_visible_surface_y`) — the
@@ -21,12 +20,8 @@ extends Node3D
 @export var dock_ui_path: NodePath
 @export var dwarf_director_path: NodePath
 
-## Visual scale for the flag GLB. The placeholder model is authored one-tile /
-## three-blocks-tall (doc 06); tune here if the import reads off-size.
-@export var flag_scale: float = 1.0
-
 const FLAG_MODEL := "res://assets/models/items/misc/settlement_flag.glb"
-const FLAG_HEIGHT_BLOCKS := 3      # registry box: 1×3×1 (doc 06 footprint)
+const FURNITURE_KEY := "base:furniture:settlement_flag"
 const WORLD_EDGE_MARGIN := 2       # reject placement hugging the world border
 const RAY_STEP := 0.5
 const RAY_MAX := 700.0
@@ -50,8 +45,8 @@ var _ghost: Node3D = null
 var _ghost_material: StandardMaterial3D = null
 var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
 var _hover_valid: bool = false
-var _flag_node: Node3D = null
-var _flag_occupancy_id: int = -1
+var _furniture: Node
+# Last installed location. Founding persists while the real flag is packed.
 var _flag_cell: Vector3i = Vector3i(-1, -1, -1)
 
 
@@ -64,6 +59,19 @@ func _ready() -> void:
 		_dock_ui.call("register_flag_controller", self)
 	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
 		_dock_ui.connect("tool_requested", _on_tool_requested)
+	_bind_furniture.call_deferred()
+
+
+func _bind_furniture() -> void:
+	_furniture = get_tree().get_first_node_in_group("furniture_controller")
+	if _furniture != null and not _furniture.furniture_installed.is_connected(_on_furniture_installed):
+		_furniture.furniture_installed.connect(_on_furniture_installed)
+
+
+func _on_furniture_installed(key: String, cell: Vector3i) -> void:
+	if key != FURNITURE_KEY: return
+	_flag_cell = cell
+	if _director != null: _director.call("set_settlement_anchor", cell)
 
 
 ## One active click-tool at a time: any other tool's activation closes this one.
@@ -100,6 +108,10 @@ func is_active() -> bool:
 	return _active
 
 
+func is_founded() -> bool:
+	return _flag_cell.y >= 0
+
+
 func toggle_active() -> void:
 	if _active:
 		deactivate()
@@ -110,7 +122,7 @@ func toggle_active() -> void:
 func activate() -> void:
 	if _active:
 		return
-	if _flag_node != null:
+	if _flag_cell.y >= 0:
 		push_warning("FlagPlacementController: settlement flag already placed (one per world).")
 		return
 	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
@@ -214,23 +226,12 @@ func _is_valid_cell(cell: Vector3i) -> bool:
 # ── Placement ─────────────────────────────────────────────────────────────────
 
 func _place_flag(cell: Vector3i, spawn_squad: bool = true) -> void:
-	_flag_cell = cell
-	_flag_node = Node3D.new()
-	_flag_node.name = "SettlementFlag"
-	var visual := _instance_flag_visual()
-	if visual != null:
-		_flag_node.add_child(visual)
-	_flag_node.position = Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
-	add_child(_flag_node)
-
-	_flag_occupancy_id = PlacedEntityRegistry.register_box(
-		Vector3i(cell.x, cell.y + 1, cell.z),
-		Vector3i(1, FLAG_HEIGHT_BLOCKS, 1))
-
-	if _director != null:
-		_director.call("set_settlement_anchor", cell)
-		if spawn_squad:
-			_director.call("spawn_squad_at", cell.x, cell.z)
+	if _flag_cell.y >= 0: return
+	_bind_furniture()
+	if _furniture == null: return
+	_furniture._install(FURNITURE_KEY, _furniture.get_defs()[FURNITURE_KEY], cell, 0)
+	if _director != null and spawn_squad:
+		_director.call("spawn_squad_at", cell.x, cell.z)
 
 	print("FlagPlacementController: settlement founded at %s." % str(cell))
 	flag_placed.emit(cell)
@@ -247,14 +248,16 @@ func save_restore_priority() -> int:
 
 func serialize_state() -> Dictionary:
 	return {
-		"placed": _flag_cell.y >= 0,
+		"founded": _flag_cell.y >= 0,
 		"cell": SaveManager.pack_v3i(_flag_cell),
 	}
 
 
 func restore_state(state: Dictionary) -> void:
-	if bool(state.get("placed", false)):
-		_place_flag(SaveManager.unpack_v3i(state.get("cell", [])), false)
+	_bind_furniture()
+	if bool(state.get("founded", false)):
+		# Physical ownership restores once through furniture/items/dwarf cargo.
+		_on_furniture_installed(FURNITURE_KEY, SaveManager.unpack_v3i(state.get("cell", [])))
 
 
 func _instance_flag_visual() -> Node3D:
@@ -267,7 +270,6 @@ func _instance_flag_visual() -> Node3D:
 	var visual := packed.instantiate() as Node3D
 	if visual == null:
 		return null
-	visual.scale = Vector3.ONE * flag_scale
 	# Project-standard world-object material (vertex colour, lit, double-sided)
 	# for the PLACED flag; the ghost overrides this with its tinted material.
 	var mat := StandardMaterial3D.new()

@@ -74,10 +74,10 @@ shows the journey alongside the existing herd/hunting fields; a wolf travelling
 inland reports **Hunting: Settling in**. **DEV: Arrival status** lists all three
 species and their own latest result, with six seconds to read it.
 
-Restart play and use **Menu → Development → DEV: Next deer arrival** or
-**DEV: Next wolf arrival** to find an entered animal. **DEV: Next arrival** still
-cycles all species, including settled entrants. Full starting populations skip
-arrival opportunities until there is room; the controls do not force replacements.
+Restart play and click an entered deer or wolf to inspect or Follow it.
+Development → DEV: Arrival status reports opportunities and their outcomes.
+Full starting populations skip arrival opportunities until there is room; the
+status display does not force replacements.
 
 ## Verification
 

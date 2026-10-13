@@ -1,5 +1,17 @@
 # 12 — World Grid
 
+**Construction (2026-10-12):** full 1×1×1 stone voxels are real terrain writes.
+Construction materializes the original chunk before editing, preserves mining
+history and tracks built provenance separately. Existing natural rock keys supply
+the layer's appearance and solidity; no special constructed block type is added.
+Completed terrain blocks/supports movement and seals rooms. Plans do not. See 127.
+
+**Permanent floors (roadmap 128):** two additional construction-only block keys,
+`base:construction:floor:plank` and `base:construction:floor:stone`, fill full
+support cells after excavation. Natural generation never emits them. Their
+8×8×8 art voxels are presentation detail, not a finer navigation grid or a thin
+surface overlay. Terrain solidity and permanent string-key save rules still apply.
+
 ## Map Dimensions
 
 

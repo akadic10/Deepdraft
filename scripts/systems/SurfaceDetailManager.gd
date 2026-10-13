@@ -28,10 +28,11 @@ var _marker_layer: CanvasLayer
 var _material: StandardMaterial3D
 var _initializing := false
 var _registering_id := ""
-var _dev_cursors: Dictionary = {}
 var diagnostics: Dictionary = {}
 var _next_plant_id := 1
 var _growing: Dictionary = {} # Only player-created young shrubs; no world-wide tick scan.
+var _regrowing: Dictionary = {} # Only harvested planted bushes awaiting another crop.
+var _forage_claims: Dictionary = {} # Transient personal meals; crop progress stays in _changes.
 
 
 func _ready() -> void:
@@ -260,29 +261,6 @@ func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
 			nearest = distance
 			result = {"id": id, "distance": distance}
 	return result
-
-
-## Locate only: no clearing, rewards or terrain edits. Cycle in stable order.
-func dev_locate_next(category := "boulder") -> String:
-	var ids: Array = _records.keys()
-	ids.sort()
-	for i in range(ids.size()):
-		var cursor := int(_dev_cursors.get(category, 0))
-		var id := String(ids[cursor % ids.size()])
-		_dev_cursors[category] = cursor + 1
-		if String(SurfaceDetailRegistry.get_definition(_records[id].definition).category) != category: continue
-		if bool(_changes.get(id, {}).get("removed", false)): continue
-		_spawn_visual(id)
-		var scene := get_tree().current_scene
-		if scene != null:
-			var slice := scene.get_node_or_null("SliceController")
-			if slice != null and slice.call("is_active"): slice.call("deactivate")
-			var camera := scene.get_node_or_null("CameraRig")
-			if camera != null: camera.call("focus_world_position", Vector3(_records[id].origin) + Vector3(1,1,1), 42.0)
-		var explorer := get_tree().get_first_node_in_group("object_explorer")
-		if explorer != null: explorer.call("select_object", self, id)
-		return id
-	return ""
 
 
 func get_explorer_bounds(id: Variant) -> AABB:
@@ -531,6 +509,8 @@ func _complete_shrub(dwarf: int, id: String) -> bool:
 	if String(state.get("action", "clear")) == "uproot":
 		var cargo: Node3D = drops.create_item_visual(SurfaceDetailRegistry.packed_item(_records[id].definition, int(_records[id].variant)), 1, id)
 		if cargo == null: return false
+		if _is_shrub(id): Shrub.pause_regrowth(definition,state)
+		_regrowing.erase(id)
 		state["packed"] = true
 		state["uproot_work_seconds"] = 0.0
 		state.work_seconds = 0.0
@@ -552,17 +532,98 @@ func _complete_shrub(dwarf: int, id: String) -> bool:
 				drops.call("spawn_drop", String(drop.item), int(drop.get("count", 1)), origin + Vector3i.UP)
 		return true
 	if not Shrub.available(definition, state): return false
-	# Stamp the crop and retire its source before rewards. The finishing worker
-	# completes its lease; stale callbacks cannot grant another crop.
+	_stamp_crop(id, state)
+	drops.call("spawn_drop", definition.harvest.item, int(definition.harvest.count), _records[id].origin + Vector3i.UP)
+	return true
+
+
+func _stamp_crop(id: String, state: Dictionary) -> void:
+	# Both harvest orders and emergency meals commit here, before publishing loot.
 	state["harvested_cycle"] = Shrub.cycle()
+	state["regrow_started_at"] = WorldClock.elapsed_days()
+	state["regrow_credit"] = 0.0
+	_regrowing[id] = true
 	state.designated = false
 	state.work_seconds = 0.0
 	state["harvest_work_seconds"] = 0.0
 	_retire_source(id, false)
 	_visual_queue.append(id)
 	_sync_marker(id)
-	drops.call("spawn_drop", definition.harvest.item, int(definition.harvest.count), _records[id].origin + Vector3i.UP)
+	_forage_claims.erase(id)
+
+
+func forage_available(id: String, dwarf := -1) -> bool:
+	if not _is_shrub(id): return false
+	var state: Dictionary = _changes.get(id, {})
+	if bool(state.get("designated", false)) or bool(state.get("packed", false)): return false
+	if _forage_claims.has(id) and int(_forage_claims[id]) != dwarf: return false
+	var definition := SurfaceDetailRegistry.get_definition(_records[id].definition)
+	if not Shrub.available(definition, state) or int(definition.harvest.count) <= 0: return false
+	var drops := get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	return drops != null and not drops.food_definition(definition.harvest.item).is_empty()
+
+
+## Scan only nearby origin columns, yielding to the caller's CPU budget.
+func advance_forage_candidates(from: Vector3i, radius: int, query: Dictionary, deadline: int) -> bool:
+	if query.is_empty(): query.merge({"index":0,"candidates":[],"seen":{}})
+	var width := radius*2+1
+	while int(query.index) < width*width:
+		var index := int(query.index)
+		query.index = index+1
+		var column := Vector2i(from.x-radius+index%width,from.z-radius+index/width)
+		for id: String in _columns.get(column, []):
+			if query.seen.has(id): continue
+			query.seen[id] = true
+			if not forage_available(id): continue
+			var record: Dictionary = _records[id]
+			if Vector3(record.origin-from).length() > radius+1: continue
+			query.candidates.append({"id":id,"cell":record.origin})
+		if Time.get_ticks_usec() >= deadline: return false
+	query.candidates.sort_custom(func(a,b): return Vector3(a.cell-from).length_squared() < Vector3(b.cell-from).length_squared())
 	return true
+
+
+func forage_stands(id: String, from: Vector3i) -> Array[Vector3i]:
+	if not _records.has(id): return []
+	var source := ClearingSource.new()
+	source.origin = _records[id].origin
+	source.footprint = int(SurfaceDetailRegistry.get_definition(_records[id].definition).footprint)
+	return source.stand_cells(from)
+
+
+func claim_forage(id: String, dwarf: int) -> bool:
+	if not forage_available(id, dwarf): return false
+	_forage_claims[id] = dwarf
+	return true
+
+
+func release_forage(id: String, dwarf: int) -> void:
+	if int(_forage_claims.get(id,-1)) == dwarf: _forage_claims.erase(id)
+
+
+func advance_forage(id: String, dwarf: int, stand: Vector3i, seconds: float) -> float:
+	if int(_forage_claims.get(id,-1)) != dwarf or not forage_available(id,dwarf): return -1.0
+	if stand not in forage_stands(id,stand): return -1.0
+	var state := _state(id)
+	var duration := float(SurfaceDetailRegistry.get_definition(_records[id].definition).harvest.work_seconds)
+	var progress := float(state.get("work_seconds",0)) if state.get("action","") == "harvest" else float(state.get("harvest_work_seconds",0))
+	progress = minf(duration,progress+maxf(0.0,seconds))
+	state["harvest_work_seconds"] = progress
+	if state.get("action","") == "harvest": state.work_seconds = progress
+	return duration-progress
+
+
+func take_forage_portion(id: String, dwarf: int, stand: Vector3i) -> Node3D:
+	if advance_forage(id,dwarf,stand,0.0) != 0.0: return null
+	var drops := get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	var definition := SurfaceDetailRegistry.get_definition(_records[id].definition)
+	if drops == null or drops.food_definition(definition.harvest.item).is_empty(): return null
+	var portion := drops.create_item_visual(definition.harvest.item,1)
+	if portion == null: return null
+	_stamp_crop(id,_state(id))
+	if int(definition.harvest.count)>1:
+		drops.spawn_drop(definition.harvest.item,int(definition.harvest.count)-1,_records[id].origin+Vector3i.UP)
+	return portion
 
 
 func _on_season_changed(_season: String) -> void:
@@ -596,7 +657,7 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 	var marked := bool(state.get("designated", false))
 	var harvest := String(state.get("action", "clear")) == "harvest"
 	var uproot := String(state.get("action", "")) == "uproot"
-	var status := "Ready to harvest" if ripe else "Picked this season" if String(state.get("harvested_cycle", "")) == Shrub.cycle() else "Out of season"
+	var status := "Ready to harvest" if ripe else "Regrowing · %.1f game days remaining" % Shrub.regrow_remaining(definition,state) if WorldClock.season in definition.harvest.seasons else "Out of season · regrowth paused"
 	if marked:
 		status = "Marked for harvest" if harvest else "Marked for uprooting" if uproot else "Marked for clearing"
 		var source: RefCounted = _sources.get(id)
@@ -625,7 +686,7 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 		clearing_yields.append("%d × %s (%d%% chance)" % [int(drop.get("count", 1)), label, roundi(float(drop.get("chance", 1.0)) * 100)])
 	return {"title": definition.display_name, "kind": "Transplanted shrub" if state.has("origin") else "Wild shrub", "rows": [
 		["Crop", status], ["Harvest", "%d berries · %s" % [int(definition.harvest.count), " / ".join(seasons)]]],
-		"details": "One crop per harvest season. Move replants this mature shrub. Uproot packs it for storage and later placement. Both preserve its crop; neither grants berries or a cutting. Clearing removes it permanently.\n\nPossible clearing yield: " + ", ".join(clearing_yields) + ".\nPlant cuttings through Place → Plants. Construction removes plants without a drop.",
+		"details": "Berries regrow after %.1f planted days in season. Regrowth pauses out of season and while packed. Move and Uproot preserve its crop and progress; neither grants berries or a cutting. Clearing removes it permanently.\n\nPossible clearing yield: " % float(definition.harvest.regrow_days) + ", ".join(clearing_yields) + ".\nPlant cuttings through Place → Plants. Construction removes plants without a drop.",
 		"actions": actions}
 
 
@@ -726,8 +787,10 @@ func serialize_state() -> Dictionary:
 
 
 func restore_state(saved: Dictionary) -> void:
+	_forage_claims.clear()
 	for id: String in _sources.keys(): _retire_source(id, true)
 	_growing.clear()
+	_regrowing.clear()
 	for id: String in _records.keys():
 		if not bool(_records[id].get("player_created", false)): continue
 		var record: Dictionary = _records[id]
@@ -787,6 +850,9 @@ func restore_state(saved: Dictionary) -> void:
 	# clock's final signals reconcile age; never infer maturity from the old clock.
 	for id: String in planted:
 		if not bool(_changes.get(id, {}).get("removed", false)): _growing[id] = true
+	for id: String in _changes:
+		if _is_shrub(id) and not bool(_changes[id].get("removed",false)) and float(_changes[id].get("regrow_started_at",-1.0)) >= 0.0:
+			_regrowing[id] = true
 
 
 func _exit_tree() -> void:
@@ -861,6 +927,14 @@ func plant_cutting(key: String, origin: Vector3i, yaw: int) -> String:
 
 
 func _on_growth_tick(_hour: int) -> void:
+	for id: String in _regrowing.keys():
+		if not _records.has(id) or bool(_changes.get(id, {}).get("removed", false)):
+			_regrowing.erase(id)
+			continue
+		var definition := SurfaceDetailRegistry.get_definition(_records[id].definition)
+		if Shrub.available(definition,_changes[id]):
+			_regrowing.erase(id)
+			if not id in _visual_queue: _visual_queue.append(id)
 	for id: String in _growing.keys():
 		if not _records.has(id) or bool(_changes.get(id, {}).get("removed", false)):
 			_growing.erase(id)
@@ -883,6 +957,9 @@ func dev_mature_shrub(id: String) -> void:
 func plant_shrub(id: String, key: String, origin: Vector3i, yaw: int) -> void:
 	assert(can_plant(id, key, origin))
 	var state := _state(id)
+	if _is_shrub(id) and float(state.get("regrow_started_at",-1.0)) >= 0.0:
+		state.regrow_started_at = WorldClock.elapsed_days()
+		_regrowing[id] = true
 	state.removed = false
 	state.packed = false
 	state.designated = false

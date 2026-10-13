@@ -7,11 +7,15 @@ var personal_sleep_hours := 0.0
 var bedroom_memory_hours := 0.0
 var thermal_hours := {"cold":0.0,"chilly":0.0,"hot":0.0}
 var thermal_memory := {"cold":0.0,"chilly":0.0,"hot":0.0}
+var food: RefCounted
+var dining_outcome := ""
+var dining_memory_hours := 0.0
 
 func _init() -> void:
 	config = TaskManager.get_config_section("mood")
 
 func tick(hours: float) -> void:
+	dining_memory_hours = maxf(0.0,dining_memory_hours-hours)
 	bedroom_memory_hours = maxf(0.0,bedroom_memory_hours-hours)
 	for kind: String in thermal_memory: thermal_memory[kind] = maxf(0.0,float(thermal_memory[kind])-hours)
 
@@ -33,7 +37,14 @@ func finish_sleep() -> void:
 	personal_sleep_hours = 0.0
 
 func value() -> float:
-	return clampf(float(config.baseline)+(float(config.personal_bedroom.bonus) if bedroom_memory_hours>0 else 0.0)-_thermal_penalty(),0.0,1.0)
+	return clampf(float(config.baseline)+(float(config.personal_bedroom.bonus) if bedroom_memory_hours>0 else 0.0)-_thermal_penalty()-_dining_penalty()-(food.mood_penalty() if food != null else 0.0),0.0,1.0)
+
+func record_dining(outcome: String) -> void:
+	dining_outcome = outcome
+	dining_memory_hours = 0.0 if outcome == "proper" else float(config.dining.duration_hours)
+
+func _dining_penalty() -> float:
+	return float(config.dining.get(dining_outcome,0.0)) if dining_memory_hours>0 else 0.0
 
 func _thermal_penalty() -> float:
 	var penalty := 0.0
@@ -43,6 +54,10 @@ func _thermal_penalty() -> float:
 
 func describe() -> Dictionary:
 	var thoughts: PackedStringArray = []
+	if food != null and food.hungry():
+		thoughts.append("%s · −%d happiness\nWork speed −%d%% until fed" % ["Famished" if food.famished() else "Hungry",roundi(food.mood_penalty()*100),roundi((1.0-food.work_multiplier())*100)])
+	if _dining_penalty()>0:
+		thoughts.append("%s · −%d happiness\n%.1f game hours remaining" % [{"seat_only":"Ate without a table","table_only":"Ate standing up","neither":"Ate without a proper place"}[dining_outcome],roundi(_dining_penalty()*100),dining_memory_hours])
 	if bedroom_memory_hours>0:
 		thoughts.append("Slept in my own bedroom · +%d happiness\n%.1f game hours remaining" % [roundi(float(config.personal_bedroom.bonus)*100),bedroom_memory_hours])
 	for kind: String in thermal_memory:
@@ -53,13 +68,15 @@ func describe() -> Dictionary:
 		"thought":"\n\n".join(thoughts) if not thoughts.is_empty() else "No recent comfort thoughts."}
 
 func serialize() -> Dictionary:
-	var data := {"personal_sleep_hours":personal_sleep_hours,"bedroom_memory_hours":bedroom_memory_hours}
+	var data := {"personal_sleep_hours":personal_sleep_hours,"bedroom_memory_hours":bedroom_memory_hours,"dining_outcome":dining_outcome,"dining_memory_hours":dining_memory_hours}
 	for kind: String in thermal_hours:
 		data[kind+"_sleep_hours"] = thermal_hours[kind]
 		data[kind+"_memory_hours"] = thermal_memory[kind]
 	return data
 
 func restore(data: Dictionary) -> void:
+	dining_outcome = String(data.get("dining_outcome",""))
+	dining_memory_hours = clampf(float(data.get("dining_memory_hours",0.0)),0.0,float(config.dining.duration_hours))
 	personal_sleep_hours = clampf(float(data.get("personal_sleep_hours",0.0)),0.0,DwarfAgent.SLEEP_HOURS)
 	bedroom_memory_hours = clampf(float(data.get("bedroom_memory_hours",0.0)),0.0,float(config.personal_bedroom.duration_hours))
 	for kind: String in thermal_hours:

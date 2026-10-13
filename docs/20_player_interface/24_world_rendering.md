@@ -1,5 +1,24 @@
 # 24 — World Rendering & Atmosphere
 
+**Constructed stone (2026-10-12):** `ConstructionController` draws built blocks
+with the renderer's existing terrain material, natural rock palette and exposed
+cube faces, clipped by slice. Tops exposed only because the slice hides a solid
+block above use the same `slice_cut_color` dimming as natural overview plates.
+Real exposed tops and vertical faces retain ordinary stone color; slice and
+terrain changes rebuild this distinction for existing construction too.
+`WorldRenderer.built_blocks` is a shared read-only
+view of construction provenance: cavity shells and the generic added-terrain
+mesh exclude those cells, preventing duplicate faces and generated ore colors.
+Mined/designation history stays intact so the overview still cuts the original
+terrain away. Plans provide neither terrain nor navigation support. See roadmap 127.
+
+**Permanent floor art (roadmap 128):** ConstructionFloorArt caches the authored
+plank/stone GLB boundary faces and batches exposed faces with the terrain's live
+lighting material. Eight art voxels per block axis retain full-cell tops and
+solidity. World-Z pattern phase joins separate plank areas without a seam; slice
+caps dim when hiding solid terrain above. No extra per-tile nodes or overlapping
+top planes are created.
+
 **Water update (2026-10-10):** terrain overview/chunks now render solid beds;
 `WaterRenderer` renders live fractional voxel water in 32×32 tiles, with batched
 cube splashes and a shared lighting/fog shader. It follows discovery and slice
@@ -294,11 +313,13 @@ sampling, and portraits keep their studio materials. The lighting component
 owns weak references and updates only changed instance values; it does not
 change dwarf movement, tasks, material identity, saves, or terrain meshes.
 
-The navigation symptom is **not fixed by shading**. The current path follower
-moves positions directly with collision mask zero. Its smoothing checks from
-cell centers and uses a smaller margin than the logical footprint. These are
-plausible contributors, not a reproduced root cause of the player's route.
-[Issue 002](../00_dev_roadmap/00_open_issues.md) records the parked investigation.
+The navigation symptom was **not fixed by shading**. At the time of this
+follow-up, the path follower moved positions directly with collision mask zero;
+smoothing checked from cell centers with a smaller margin than the logical
+footprint. These were hypotheses, not a reproduced root cause of the player's
+route. Later actual-position checks are documented in [32 — Navigation](../30_simulation_systems/32_navigation_3d.md).
+[Issue 002](../00_dev_roadmap/00_open_issues.md) retains the historical report;
+Alen provisionally closed it on 2026-10-12, to reopen only if reported again.
 
 Validation for this follow-up:
 
@@ -447,15 +468,24 @@ Mining cuts are **renderer state** (Stonehearth's model — designation never mu
 
 ## Debug Overlay & Block Inspector
 
+Player terrain inspection lives in Object explorer: click an exposed face for
+its material name and simple facts. `TerrainExplorerProvider` follows live
+terrain, constructed blocks and the renderer's visual cuts, keeping undiscovered
+deposits concealed on slices and planned excavations. See
+[130 — Terrain inspection](../00_dev_roadmap/130_terrain_inspection.md).
+
 The debug overlay (`DebugLoadingOverlay`) exposes generation/render state: map readiness, active
 render mode, overview step, overview sampled/merged face counts, overview validation mismatch
 count, domain percentages, surface material percentages, height min/max/average, water-body
 stats, settlement-candidate count, generated column count, and mesh count / queue count.
 
-The block inspector reports, per hovered block: render mode, hit source, face direction, hit
+**Development → Block Inspector** reports, per clicked block: render mode, hit source, face direction, hit
 block key, **generated block key**, agreement (yes/no), coordinate, domain, surface Y, visible
 top Y, water/bank flags, kind, and colour. The agreement check is the core validation that the
-overview/inspector and the generated blocks never disagree.
+overview/inspector and generated blocks agree on unedited terrain. Edited chunk
+AIR is authoritative, so the ray can pass through excavations instead of falling
+back to their original generated rock. These technical details stay out of the
+player terrain inspector.
 
 ---
 

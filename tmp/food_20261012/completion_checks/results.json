@@ -1,0 +1,16 @@
+[
+  {
+    "test": "ProduceCrateTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.2,
+    "timeout": false
+  },
+  {
+    "test": "DwarfFoodTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 11.55,
+    "timeout": false
+  }
+]

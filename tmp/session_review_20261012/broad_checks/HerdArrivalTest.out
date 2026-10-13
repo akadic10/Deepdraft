@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 41 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 8 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WorldGenerator: seeded layout macro_layout_v1; summit 2 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 27160 cliff/shore columns.
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 0 ducks.
+HERD_ARRIVAL_SEED: 0 species=deer count=4 edge=south
+HERD_ARRIVAL_SEED: 0 species=wolf count=2 edge=south
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29817 cliff/shore columns.
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 0 ducks.
+HERD_ARRIVAL_SEED: 42 species=deer count=4 edge=south
+HERD_ARRIVAL_SEED: 42 species=wolf count=2 edge=north
+WorldGenerator: seeded layout macro_layout_v1; summit 6 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29555 cliff/shore columns.
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 0 ducks.
+HERD_ARRIVAL_SEED: 1234 species=deer count=4 edge=south
+HERD_ARRIVAL_SEED: 1234 species=wolf count=2 edge=east
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 25658 cliff/shore columns.
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 0 ducks.
+HERD_ARRIVAL_SEED: 20261009 species=deer count=4 edge=south
+HERD_ARRIVAL_SEED: 20261009 species=wolf count=2 edge=west
+Wildlife: 48 rabbits, 18 deer, 0 wolves, 0 ducks.
+HERD_ARRIVALS_OK
+WeatherManager: ready (4 weather types, current = base:weather:foggy).

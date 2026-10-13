@@ -1,0 +1,23 @@
+[
+  {
+    "test": "DwarfSupportTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.34,
+    "timeout": false
+  },
+  {
+    "test": "FloorConstructionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.41,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePlacementAnimationTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 14.18,
+    "timeout": false
+  }
+]

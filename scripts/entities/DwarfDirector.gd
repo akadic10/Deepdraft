@@ -7,7 +7,7 @@ extends Node3D
 ##
 ## Phase 1 scope: deterministic roster generation (birth-index ordered),
 ## The Colony roster presents real agents through the shared inspector.
-## Developer spawning/walk controls live separately under Menu → Development.
+## Developer spawning/walk controls live separately under Development.
 ## The Settlement Flag remains the player-facing arrival flow.
 
 @export var camera_path: NodePath
@@ -208,7 +208,7 @@ func _set_walk_test(active: bool) -> void:
 
 # ── Settlement anchor (doc 16 Phase 1 — set by the Flag flow) ────────────────
 
-## World cell of the placed Settlement Flag; (-1,-1,-1) = not placed yet.
+## Last installed Settlement Flag cell; retained while packed. (-1,-1,-1) = unfounded.
 ## INTERIM HOME: doc 16 leans toward a field on TaskManager — migrate this
 ## there when TaskManager ships (step 4) if it becomes the second consumer.
 var settlement_anchor: Vector3i = Vector3i(-1, -1, -1)
@@ -378,7 +378,7 @@ func get_agent_stats() -> Dictionary:
 			continue
 		if agent.is_sleeping():
 			sleeping += 1
-		elif agent.current_task_id < 0:
+		elif agent.current_task_id < 0 and not agent.is_eating() and not agent.promotion_pending():
 			idle += 1
 	return { "count": _agents.size(), "idle": idle, "sleeping": sleeping }
 
@@ -477,9 +477,15 @@ func _dev_interrupt_worker() -> void:
 	print("DwarfDirector: DEV interrupt — no dwarf holds a task.")
 
 
-## Drops one dwarf's sleep stat to the threshold — the ORGANIC interrupt path
-## (release → sleep in place → wake → resume) fires next frame. Prefers a
-## working dwarf so the release protocol is actually exercised.
+## Trigger real food seeking without spawning supplies or granting nutrition.
+func _dev_make_worker_hungry() -> void:
+	for agent in _agents:
+		if is_instance_valid(agent) and agent.dev_make_hungry():
+			print("DwarfDirector: %s will look for a food portion." % agent.dwarf_name)
+			return
+
+
+## Drop rest to its threshold, preferring a working dwarf to exercise release.
 func _dev_tire_worker() -> void:
 	var fallback: DwarfAgent = null
 	for agent in _agents:
@@ -616,6 +622,10 @@ func _register_dev_window() -> void:
 		button_size, "dev")
 	tire.pressed.connect(_dev_tire_worker)
 	column.add_child(tire)
+	var hunger := UITheme.make_button("DEV: make a dwarf hungry",
+		"Lowers one awake dwarf's Food to the hungry threshold. They must find and eat real food through normal behavior.",button_size,"dev")
+	hunger.pressed.connect(_dev_make_worker_hungry)
+	column.add_child(hunger)
 
 	var spawn := UITheme.make_button("DEV: Spawn %d at camera" % squad_size,
 		"Generates the next %d roster dwarves on walkable ground around the camera. Deterministic per world seed." % squad_size,

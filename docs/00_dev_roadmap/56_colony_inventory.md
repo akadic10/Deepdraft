@@ -1,5 +1,11 @@
 # 56 — Colony Inventory
 
+**Illustrated categories (2026-10-12):** [140](140_remaining_illustrated_menus.md)
+adds the matching art strip for All, Materials, Furniture, Storage, Lighting,
+Tools, Food & seeds, Drink and Other. The selected category is named beside the
+count; compact windows retain the labeled dropdown. Actual item thumbnails,
+physical accounting, Locate/Inspect, selection, focus and scroll are unchanged.
+
 Implemented 2026-10-05. The bottom navigation now reads **Orders · Place ·
 Colony · Inventory · Menu**. Inventory opens **Colony Inventory** directly;
 the old stockpile-summary placeholder is gone. Storage zones remain stockpiles.
@@ -29,7 +35,7 @@ the old stockpile-summary placeholder is gone. Storage zones remain stockpiles.
 - Drag the title bar; Escape or the dock button closes it. The position is
   remembered by UIWindowManager. The compact layout uses a category dropdown
   and scrollable details with actions always visible above the dock.
-- Developer supplies moved to **Menu → Development → DEV: Spawn Drops /
+- Developer supplies moved to **Development → DEV: Spawn Drops /
   DEV: Spawn Furniture**. Create a stockpile through **Orders → Stockpile**.
   Crafting remains future work.
 

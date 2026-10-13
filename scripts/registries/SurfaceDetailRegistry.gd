@@ -44,6 +44,7 @@ func _load_shrub(species: String) -> void:
 		if entry.item != plant.harvest_resource: continue
 		definition["harvest"] = entry.duplicate(true)
 		definition.harvest["work_seconds"] = float(mature.harvest.work_seconds)
+		definition.harvest["regrow_days"] = float(mature.harvest.regrow_days)
 		definition.harvest["seasons"] = entry.season_only if entry.season_only is Array else [entry.season_only]
 	definitions[key] = definition
 

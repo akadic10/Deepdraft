@@ -29,6 +29,7 @@ func _run() -> void:
 	await _sleep_and_priority()
 	await _cancel_and_interrupt()
 	await _blocked_routes()
+	await _distant_move_with_live_leisure()
 	for message: String in failures: push_error(message)
 	print("SHRUB_MOVE_HANDOFF_OK" if failures.is_empty() else "SHRUB_MOVE_HANDOFF_FAIL: %s" % str(failures))
 	quit(0 if failures.is_empty() else 1)
@@ -251,3 +252,48 @@ func _blocked_routes() -> void:
 		"failed delivery routes leave the exact plant safely claimed at its pickup")
 	await _walls(walls, false)
 	_expect(await _advance_until(func(): return not furniture._ghosts.has(plan)), "opening destination routes resumes and completes Move")
+
+
+## The player save stalled while searches outlasted the four-second leisure
+## hold. Tick real supervision and idle behavior, with deliberately tiny search
+## slices, so both the outward and return route must survive that deadline.
+func _distant_move_with_live_leisure() -> void:
+	var old_plan := _new_case()
+	furniture.cancel_ghost(old_plan)
+	tasks.deregister_dwarf(helper.dwarf_id)
+	helper.free()
+	worker.position = Vector3(100.5,21,100.5)
+	worker._idle_behavior.cancel()
+	var destination := Vector3i(100,20,98)
+	world.set_block(destination.x,destination.y,destination.z,blocks.get_id("base:terrain:surface:grass_01"))
+	await process_frame
+	var plan := _move(STRAW,destination)
+	clock_node.set_speed(3.0)
+	tasks._probe_node_cap = 1
+	tasks._max_probes_per_wake = 1
+	var started: float = tasks.journal.now
+	var first_assignment := -1.0
+	var return_planning_seconds := 0.0
+	var finished := false
+	for i in range(3000):
+		furniture._process(.1)
+		tasks.advance_supervision(.1 * clock_node.speed)
+		var before: int = tasks._probes_total
+		tasks._run_scheduler()
+		_expect(tasks._probes_total-before <= 1, "distant Move keeps the one-probe wake limit")
+		if worker.current_task_id >= 0 and first_assignment < 0:
+			first_assignment = tasks.journal.now-started
+		if _packed() and worker.current_task_id < 0: return_planning_seconds += .1 * clock_node.speed
+		worker._process(.1)
+		if not furniture._ghosts.has(plan):
+			finished = true
+			break
+		if i % 20 == 0: await process_frame
+	_expect(first_assignment > 4.0, "outward route takes longer than the initial planning hold")
+	_expect(return_planning_seconds > 4.0, "return route takes longer than the initial planning hold")
+	_expect(finished, "distant Move completes despite live leisure and slow route planning")
+	_expect(details._records[STRAW].origin == destination and not _packed()
+		and drops.serialize_state().loose.is_empty(), "distant Move preserves the exact plant with no loose duplicate")
+	_expect(tasks.lifecycle_errors().is_empty(), "long planning leaves no orphan work or reservations")
+	tasks.journal.now += 7.0
+	_expect(not tasks.planning_held(worker.dwarf_id), "planning hold expires when search progress stops")

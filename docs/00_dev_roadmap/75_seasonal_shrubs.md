@@ -1,5 +1,11 @@
 # 75 — Seasonal wild shrubs
 
+**Crop timing superseded 2026-10-12:** [131 — Food and dining](131_dwarf_food_and_dining.md)
+replaces the original one-crop-per-season rule with two eligible planted days of
+regrowth between harvests. Original yields and seasonal eligibility stay the same.
+Off-season/packed time pauses growth; saves and relocation preserve progress.
+The remainder of this document records the original seasonal-shrub milestone.
+
 Implemented 2026-10-08 after approval of the shrub milestone and four-season
 voxel art. This is step 6 of [72 — Surface details](72_surface_details_plan.md).
 Flowers and lakeside reeds remain the next separate steps.
@@ -163,8 +169,8 @@ Tests use isolated APPDATA/LOCALAPPDATA beneath `tmp/shrub_review/`.
 
 ## Easy in-game review
 
-1. Start a world; use **Menu → Development → DEV: Next blueberry**, **Next
-   elderberry**, or **Next strawberry** to locate and inspect a plant.
+1. Start a world and click a visible blueberry, elderberry or strawberry plant
+   to inspect it.
 2. In an eligible season, use **Harvest berries** or **Orders → Harvest plants**.
    Let a dwarf finish: the plant remains, berries disappear, and a berry crate is
    created. A second order that season is unavailable.

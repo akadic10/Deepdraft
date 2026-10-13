@@ -65,7 +65,7 @@ func _sync() -> void:
 			job.record = record
 			job.setup(0,"base:water:"+record.kind+"_stone",definition,record.cell-Vector3i.UP,0)
 			job.source_id = TaskManager.allocate_source_id()
-			job.uninstall_callback = func(_component): _pack_complete(id)
+			job.uninstall_callback = func(_component, _worker_id): _pack_complete(id)
 			TaskManager.register_work_source(job.source_id,job)
 			jobs[id] = job
 		jobs[id].set_uninstall(record.packing and not record.disallowed)

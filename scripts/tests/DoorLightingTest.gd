@@ -125,9 +125,7 @@ func _door_case(width: int, yaw: int) -> void:
 				torch_light.free()
 	measurements.append(values)
 	# Hinge rotation must not rotate the stored doorway's lighting boundary.
-	# Hide the frame for isolated leaf samples: at 45 degrees the narrow door's
-	# near jamb otherwise occludes the point being measured by the camera.
-	model.find_child("door_frame", true, false).visible = false
+	# Starter doors consist only of the moving leaves, with no fixed frame.
 	var animation = model.get_node("DoorAnimation")
 	for direction in [-1.0, 1.0]:
 		for angle in [45.0, 90.0]:

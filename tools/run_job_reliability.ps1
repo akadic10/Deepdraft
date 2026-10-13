@@ -1,13 +1,13 @@
 param(
     [Parameter(Mandatory=$true)][string]$Godot,
     [string[]]$Tests = @('JobLifecycleTest','JobPlanningTest','JobMixedWorldTest',
-        'FurnitureAssignmentTest','FurniturePlacementAnimationTest',
+        'FurnitureAssignmentTest','FurniturePlacementAnimationTest','FurnitureMoveTest','SettlementFlagMoveTest','WallMountHeightTest',
         'LadderSchedulingTest','LadderTest','LadderMiningTest',
         'CraftingSelectionTest','WorkerCraftingTest','WorkerCraftingWoodTest',
         'HaulingSelectionTest','HaulingAnimationTest','SurfaceWorkSelectionTest',
         'TreeFellingTest','MinerProfessionTest','PlacementHaulPriorityTest',
-        'ShrubMoveHandoffTest','DwarfSupportTest','DwarfIdleBehaviorTest',
-        'BridgeCornerWalkingTest','NavigationRegressionTest','SaveManagerRoundTripTest'),
+        'ShrubMoveHandoffTest','DwarfSupportTest','DwarfIdleBehaviorTest','DwarfFoodTest','DwarfDiningTest','ShrubRegrowthTest',
+        'BridgeCornerWalkingTest','NavigationRegressionTest','ConstructionTest','ConstructionInputTest','FloorConstructionTest','SaveManagerRoundTripTest'),
     [string]$LogDirectory = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -30,7 +30,7 @@ foreach ($case in $Tests) {
     }
     $output = Get-Content -LiteralPath $outFile -Raw
     $errors = [string](Get-Content -LiteralPath $errFile -Raw)
-    $marker = '_OK\b|' + [regex]::Escape($case) + ': PASS\b'
+    $marker = '_OK\b|_PASS\b|' + [regex]::Escape($case) + ': PASS\b'
     $passed = -not $timedOut -and $process.ExitCode -eq 0 -and $output -match $marker -and $errors -notmatch '(?m)^SCRIPT ERROR:|^ERROR:'
     $entry = [ordered]@{test=$case;passed=$passed;exit=$process.ExitCode;seconds=[math]::Round($timer.Elapsed.TotalSeconds,2);timeout=$timedOut}
     $results += $entry

@@ -16,6 +16,7 @@ func _run() -> void:
 	for item in drops._loose.keys(): drops.take(item); item.free()
 	worker.position = Vector3(48.5,21,55.5)
 	_wall()
+	_check_awake_fatigue()
 	worker._begin_sleep()
 	var initial: float = worker._sleep_hours_left
 	_expect(not tasks._idle_dwarves.has(worker.dwarf_id),"rest search leaves work pool")
@@ -79,8 +80,42 @@ func _run() -> void:
 		await _capture_rest()
 		await _native_audio()
 	for failure: String in failures: push_error(failure)
-	print("DWARF_REST_OK: shelter, separate ground poses, sleep clock, save, pause, wake, tree removal, fallback, gait and audio" if failures.is_empty() else "DWARF_REST_FAIL")
+	print("DWARF_REST_OK: shelter, separate ground poses, fatigue/sleep clock, save, pause, wake, tree removal, fallback, gait and audio" if failures.is_empty() else "DWARF_REST_FAIL")
 	quit(0 if failures.is_empty() else 1)
+
+func _check_awake_fatigue() -> void:
+	var origin: Vector3 = worker.position
+	var normal_drain := 0.0
+	for speed in [1.0,2.0,3.0]:
+		worker._idle_behavior.cancel()
+		worker.stop_walking()
+		worker.position = origin
+		worker.sleep = 0.9
+		clock_node.set_speed(speed)
+		# The same game hour takes fewer real seconds at faster speeds.
+		var real_step: float = (1.0/60.0)/clock_node.game_hours_per_real_second()
+		for i in 60: worker._process(real_step)
+		var drained: float = 0.9-worker.sleep
+		if speed==1.0: normal_drain = drained
+		_expect(drained>0.0 and is_equal_approx(drained,normal_drain),"one game hour drains equal awake fatigue at x%s" % speed)
+	var before: float = worker.sleep
+	clock_node.set_paused(true)
+	worker._process(60)
+	_expect(worker.sleep==before,"pause freezes awake fatigue")
+	clock_node.set_paused(false)
+	clock_node.set_speed(0)
+	worker._process(60)
+	_expect(worker.sleep==before,"zero game speed freezes awake fatigue")
+	clock_node.set_speed(3)
+	# Enough rest for 1.5 simulation seconds: a one-second x3 tick must interrupt.
+	worker.sleep = worker.SLEEP_THRESHOLD+normal_drain*(1.5/60.0)
+	worker._process(1)
+	_expect(worker.is_sleeping() and not tasks._idle_dwarves.has(worker.dwarf_id),"accelerated fatigue crosses sleep threshold and releases availability")
+	worker._wake_up()
+	worker._idle_behavior.cancel()
+	worker.stop_walking()
+	worker.position = origin
+	clock_node.set_speed(1)
 
 func _wall() -> void:
 	var stone: int = blocks.get_id("base:terrain:rock:rock01")

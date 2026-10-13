@@ -205,7 +205,7 @@ structure intersections, and clearing/building does not leave persistent clutter
 **Implemented, 2026-10-08:** three clump variants with spring/summer/autumn/winter
 models. **Clear plants** replaces the Clear shrubs label and includes flowers;
 each clump takes 1.5 seconds of worker hand clearing with no yield. Partial work
-and removal persist. **DEV: Next flowers** supports review. Data, art, native
+and removal persist. Click a visible clump to inspect it. Data, art, native
 captures and verification are recorded in [76](76_seasonal_wildflowers.md).
 
 Favor grassy lowland openings, gentler foothill shelves and selected moist edges.
@@ -231,7 +231,7 @@ ground, competing with selection highlights or creating excessive instance count
 **Implemented, 2026-10-08:** two heights with four seasonal appearances, dry
 bank placement within four horizontal blocks and 0–2 support levels above the
 local waterline. **Clear plants** includes reeds, with 1.5-second hand clearing,
-no yield and persistent removal. **DEV: Next reeds** locates generated clumps.
+no yield and persistent removal. Click visible reeds to inspect them.
 Lake and tarn native captures, eight-seed and lifecycle checks are in [77](77_seasonal_reeds.md).
 
 Start with reeds rooted on **dry banks near the local waterline**, beside the

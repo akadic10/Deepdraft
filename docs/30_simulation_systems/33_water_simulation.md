@@ -79,7 +79,7 @@ darkens that same color by at most 12%, instead of changing to a separate hue.
 Depths below 1/16 block are conserved surface films: damp ground rather than blue
 standing water, without blocking navigation/placement or producing waterfall effects.
 
-Menu → Development → **DEV: Water** offers feature locations, spring stop/start,
+Development → **DEV: Water** offers feature locations, spring stop/start,
 a test dam/removal, a measured lake withdrawal and the moisture overlay. The dam
 uses real terrain edits and survives saving. It is a developer control; ordinary
 construction jobs and brewery/container hauling are separate planned systems.

@@ -1,10 +1,30 @@
 # 62 — Furniture Catalogue & Stonehearth Comparison
 
+**Dining (2026-10-12, 131 stage 2):** wooden chairs, log stools and log benches
+now support meals as well as leisure. A log bench supplies one broad dwarf seat
+with authored access/headroom. Diners prefer a correctly facing nearby tabletop;
+the personal and communal dining tables retain separately built seating.
+
 > Compiled 2026-07-11 (Alen's ask, during doc 19 planning). Deepdraft side gathered from
 > doc 61 §5.4–5.6, doc 19, doc 34 (heat sources), doc 51 (tavern/trade), doc 52 (Armory),
 > and `data/furniture/`. Stonehearth side enumerated directly from `P:\stonehearth`
 > `entities/furniture/` (47 entries), `entities/containers/` (51), `entities/decoration/`
 > (60+). Use this when planning furniture milestones or asset batches.
+
+**Bed behavior and heating checked 2026-10-12:** current behavior follows
+[120 — Beds and bedrooms](../00_dev_roadmap/120_log_beds_and_bedrooms.md),
+[121 — Personal bedrooms](../00_dev_roadmap/121_personal_bedrooms.md) and
+[122 — Bedroom comfort](../00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md).
+Installed heat values come from each definition's `heat_source.heat_units` in
+`data/furniture/`; the Stonehearth comparison below retains its original date.
+
+**Floor categories, 2026-10-12:** simple plank and stone permanent floors now have
+full-block voxel art and DEV Build previews. **Rugs, pelts and fitted carpets**
+form a separate future category; room-wide fitted carpet is not part of the
+wood/stone-floor milestone. Floors fill an excavated support layer. Normal
+construction awaits Carpenter/Stonemason; production recipes/costs remain undecided.
+Other wall types are deferred, and wall finishes are excluded. See
+[128 — Permanent floor preview](../00_dev_roadmap/128_permanent_floor_preview.md).
 
 ---
 
@@ -17,19 +37,21 @@
 
 | Piece | Key | Status | System it serves |
 |---|---|---|---|
-| Campfire | `base:furniture:campfire` | **SHIPPED (2026-10-09, [100](../00_dev_roadmap/100_profession_crafting_camp.md))** — roughly 2×2 stone ring centered in a 3×3 placement area, eight flame frames | Rudimentary crafting, warm local light, 200 heat units; no fuel upkeep |
+| Campfire | `base:furniture:campfire` | **SHIPPED (2026-10-09, [100](../00_dev_roadmap/100_profession_crafting_camp.md))** — roughly 2×2 stone ring centered in a 3×3 placement area, eight flame frames | Rudimentary crafting, warm local light, 900 heat units; no fuel upkeep |
 | Log Stool | `base:furniture:log_chair` | **SHIPPED (2026-10-09, [100](../00_dev_roadmap/100_profession_crafting_camp.md))** — 1×1 bark stump with a flat cut top, 0.75 blocks high | Rudimentary crafting, placement and interruptible idle sitting |
 | Trade Counter | `base:furniture:trade_counter` | **SHIPPED (2026-10-01, [art doc 37](../00_dev_roadmap/37_trade_counter_asset_and_placement.md))** — 2×1 stone/iron counter, 2 blocks tall; packed item and placement live | Shop room anchor and automated trade remain future work (doc 51) |
 | Barrel | `base:furniture:barrel` | **SHIPPED; oak/iron redesign (art doc 32, 2026-10-01)** — 1×1×1 envelope, recessed lid and dark hoops | Storage container, capacity 8 (doc 19) |
 | Chest / Crate | `base:furniture:storage_chest` (model: `storage_crate.glb`) | **SHIPPED; oak/iron redesign (art doc 33, 2026-10-01)** — 1×1×1 envelope, strapped lid and front clasp | Storage container, capacity 24 (doc 19) |
 | Storage Shelf | `base:furniture:storage_shelf` | **REDESIGNED (2026-10-01, [art doc 41](../00_dev_roadmap/41_storage_shelf_visual_redesign.md))** — open oak/iron frame, 1×1 footprint, 2 blocks tall | Eight visible item slots, fitted to avoid overlap (doc 19; art doc 41) |
 | Brewing Vat | `base:furniture:brewing_vat` | **SHIPPED (2026-10-02, [art doc 42](../00_dev_roadmap/42_brewing_vat_asset_and_placement.md))** — 2×2 oak/iron vessel, 2 blocks tall, open rim and copper tap | Placement live; ingredient handling, brewing queues and workshop integration remain future work |
-| Dwarven Bed | `base:furniture:dwarf_bunk` | **SHIPPED (2026-10-01, [art doc 40](../00_dev_roadmap/40_bed_asset_and_placement.md))** — independent 4×2 oak/iron bed, 1-block mattress and 2-block headboard | Placement live; bed assignment, walking to bed, sleep animation and `slept_in_bed` thought remain future work (doc 41; sleep-lite remains in-place) |
+| Dwarven Bed | `base:furniture:dwarf_bunk` | **SHIPPED (2026-10-01, [art doc 40](../00_dev_roadmap/40_bed_asset_and_placement.md))** — independent 4×2 oak/iron bed, 1-block mattress and 2-block headboard | Reachable, exclusive bed sleep with lying/waking animation; persistent assignments, bedroom classification and sleep comfort thoughts live (docs 120–122; details below) |
+| Log bed | `base:furniture:log_bed` | **SHIPPED (2026-10-11, [120](../00_dev_roadmap/120_log_beds_and_bedrooms.md))** — 4×3 rough-log frame, loose hay and leaves, 0.75-block sleep surface | Four matching logs at a crude workbench; retains wood material and uses the same bed assignment, sleep and bedroom systems |
 | Wooden Chair | `base:furniture:wooden_chair` | **REDESIGNED (2026-10-05, [doc 50](../00_dev_roadmap/50_seated_dining_study.md))** — separate 2×2 oak chair, .875 seat and 1.375 low back/arms | Table snapping and seated head clearance live; old saved 1×1 chairs preserved. Sitting/eating AI remains future work |
 | Personal Dining Table | `base:furniture:wooden_table` | **REDESIGNED (2026-10-05, [doc 50](../00_dev_roadmap/50_seated_dining_study.md))** — 2×2 oak table, 1.75 tall | Four alternative snap sides with a one-chair total limit, including queued chairs; chairs remain separate build items |
 | Communal Dining Table | `base:furniture:communal_table` | **SHIPPED (2026-10-05, [doc 50](../00_dev_roadmap/50_seated_dining_study.md))** — 8×4 oak table, 1.75 tall | Eight optional snapped chairs: three per side and one per end; dining AI remains future work |
-| Wall Torch | `base:furniture:wall_torch` | **SHIPPED (2026-10-02, [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md))** — iron/wood mount, 1.5 blocks tall; wall placement with a walkable floor | Warm local light and **200 heat units**, real room-temperature contribution; no fuel consumption yet |
-| Brazier | `base:furniture:brazier` | **SHIPPED (2026-10-03, [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md))** — 1×1 iron fire bowl on a stone pedestal, 2 blocks tall with animated flames | Warm local light and **600 heat units**, real room heating; fuel and ignition remain future work |
+| Log torch | `base:furniture:wooden_torch` | **SHIPPED; log redesign (2026-10-11, [117](../00_dev_roadmap/117_log_furniture_and_fire_audio.md))** — charred branch on a wooden peg; player-selected wall height, five-block worker reach ([129](../00_dev_roadmap/129_wall_mount_heights.md)) | Worker-crafted light and **75 heat units**; always lit when installed, no fuel upkeep |
+| Wall Torch | `base:furniture:wall_torch` | **SHIPPED (2026-10-02, [art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md))** — iron/wood mount, 1.5 blocks tall; same selectable heights/reach as the log torch | Warm local light and **100 heat units**, real room-temperature contribution; no fuel consumption yet |
+| Brazier | `base:furniture:brazier` | **SHIPPED (2026-10-03, [art doc 47](../00_dev_roadmap/47_brazier_asset_and_heating.md))** — 1×1 iron fire bowl on a stone pedestal, 2 blocks tall with animated flames | Warm local light and **3200 heat units**, real room heating; no starter recipe; fuel and ignition remain future work |
 | Anvil | `base:furniture:anvil` | **SHIPPED (2026-10-02, [art doc 44](../00_dev_roadmap/44_anvil_asset_and_placement.md))** — 2×1 iron anvil on a stone pedestal, 1.5-block working height | Independent placement live; smithing recipes, operator animations and forge integration remain future work |
 | Rune Shelf | `base:furniture:rune_shelf` | SPEC (61 §5.4) | Decorative / future room appeal |
 | Stockpile Marker | `base:furniture:stockpile_marker` | SPEC (61 §5.4) | Zone decoration only |
@@ -38,7 +60,33 @@
 | Tavern Bar | `base:furniture:tavern_bar` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 2-block height including taps; room_anchor/room_type remain future integration data | Tavern room anchor (future); traveler income (doc 51, still unbuilt) |
 | Bench | `base:furniture:bench` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 1-block seat height | Tavern seating; sit-down behaviour depends on doc 41 (not yet implemented) |
 | Rudimentary hearth | `base:furniture:hearth` | **SHIPPED; rough fieldstones and exposed logs (doc 30, 2026-10-11)** — 2×2 footprint, 0.75-block uneven rim; 2400 heat units read once by `RoomManager` | Early bedroom heater; two logs + four rough stones at crude workbench (doc 122) |
-| Door | `base:furniture:door` | **REDESIGNED (2026-10-01, [art doc 34](../00_dev_roadmap/34_door_visual_redesign.md))** — 2×1 framed oak double door, iron straps and ring pulls | Walkable; both tiles seal rooms for `RoomManager` (temperature doc 34) |
+| Log door (2 wide) | `base:furniture:door` | **SHIPPED; frameless revision 2026-10-12 ([doc 117](../00_dev_roadmap/117_log_furniture_and_fire_audio.md))** — 2×1; one rough log leaf, wooden battens/pegs/pull, uneven 30–31-voxel top | Opens on approach; walkable; both columns seal rooms |
+| Log door (3 wide) | `base:furniture:log_door_3` | **SHIPPED; frameless** — 3×1; one rough log leaf with wooden fittings | Opens on approach; walkable; all three columns seal rooms |
+| Double log door (4 wide) | `base:furniture:log_door_4` | **SHIPPED; frameless** — 4×1; two rough log leaves with wooden fittings | Leaves swing apart on approach; walkable; all four columns seal rooms |
+
+Starter log doors have no fixed jambs or top beams. Frames are reserved for better
+door tiers later. Existing doors and their placed-form icons share the new art;
+each still costs one selected log at the crude workbench (12/18/24 seconds).
+
+### Bed use and heating (live, 2026-10-12)
+
+Both bed designs support **Assign bed…** in Object explorer, with one assigned
+bed per colonist. Tired dwarves try their assigned bed first, then reachable
+unassigned beds, then sheltered ground rest. Each bed admits one sleeper; other
+colonists cannot use an assigned bed. Assignments save, while temporary sleeper
+claims are rebuilt on load.
+
+A sealed room with a door, installed light and complete bed footprints becomes
+a Bedroom (one unassigned bed), Personal bedroom (one assigned bed), or Barracks
+(multiple beds). Completing rest with at least three game hours asleep in one's
+personal bedroom grants **Slept in my own bedroom**, +10 happiness for 24 game
+hours. Unassigned beds and barracks do not grant this bonus. Cold, chilly and hot
+sleep can separately produce temperature penalties (doc 122).
+
+`RoomManager` counts each installed heat source once, including multi-cell fires.
+The heating contribution is `total heat units / max(room volume, 128)` °C, added
+to ambient temperature. Packed items do not heat rooms. These five installed
+sources require no fuel or ignition; planned workshop heating below is separate.
 
 ### Workshops (placeable, but a separate category — doc 61 §5.5)
 
@@ -67,10 +115,9 @@ packed-item/build/uninstall/save pipeline. Ore processing, fuel, jobs and
 Stone Boulder · Mining Cart · Water Barrel · Fence Post / Palisade · Runic Standing Stone ·
 Mushroom Lantern (the underground torch alternative — `glow_blue` palette).
 
-**Totals: 20 furniture pieces (15 shipped — 3 from doc 19, 3 from doc 21,
-1 from doc 22, 1 each from art docs 37–40, 42–44 and 47; remaining pieces specced or planned),
-5 workshops (Smelter and Aging Cellar have placeable visuals; production is pending), 6 decoratives.
-The Build menu has 17 entries including the Smelter, Aging Rack and Brazier.**
+The earlier snapshot counted 20 furniture pieces (15 shipped), 5 workshops,
+6 decoratives and 17 Build entries. Those historical counts predate the starter
+furniture additions and are not current catalogue or Place-menu totals.
 
 ---
 
@@ -152,9 +199,10 @@ and defer any variant multiplication until crafting quality exists.
 The doc 19 batch (barrel, chest, shelf + item forms) plus the already-specced doc 61 set
 covers Deepdraft's equivalent of SH's starter town. The first post-19 asset batch with
 real system pull was **tavern furniture** (bar, bench, hearth) — **built 2026-08-03,
-see doc 21**. Placing these three pieces today gets working, fetchable, installable
-furniture with no attached gameplay yet; they activate docs 34, 41, and 51 the moment
-those systems are actually implemented, not before.
+see doc 21**. All three use the fetch/install/uninstall pipeline. The hearth now
+provides live room heating and a starter crafting recipe (doc 122); tavern room
+integration, traveler income and the proposed `warm_tavern` thought remain future
+work under doc 51.
 
 ---
 

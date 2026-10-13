@@ -5,7 +5,7 @@ rabbit pilot. No sleep, hopping, alarm or predator sounds were added.
 
 ## Behavior
 
-- Explicit selection, including DEV: Next rabbit, plays one short breath/tooth
+- Clicking a rabbit plays one short breath/tooth
   tick. Three variants avoid immediate repeats. A 0.75-second real-time cooldown
   applies across rabbits, with one selection voice at a time. Selection works
   while paused; inspector refreshes never make sound.
@@ -60,6 +60,6 @@ All Godot runs use isolated APPDATA/LOCALAPPDATA under `tmp/rabbit_audio_review`
   ordinary object selection, full scene restoration, autosaves and recovery
   from a deliberately corrupted primary save.
 
-To hear it in play, restart the play session and choose **Menu → Development →
-DEV: Next rabbit**, then click it while paused or running. Stay close and zoomed
+To hear it in play, restart the play session and click a visible rabbit while
+paused or running. Stay close and zoomed
 in when it grazes. The existing Work mute/volume route also controls these sounds.

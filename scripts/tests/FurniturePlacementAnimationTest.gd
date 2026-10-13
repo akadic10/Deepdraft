@@ -19,6 +19,7 @@ func _run() -> void:
 	for key: String in [LOG_BENCH,"base:furniture:log_bed","base:furniture:log_door_4",WALL]:
 		for yaw in range(1,4): await _place_case(key,yaw)
 	await _interruptions()
+	await _floor_excavation()
 	await _cleanup()
 	for failure: String in failures: push_error(failure)
 	var report := {"placements":checked,"set_down_seconds":tasks.get_config_section("hauling").deposit_time_s,
@@ -77,7 +78,7 @@ func _place_case(key: String,yaw: int) -> void:
 	var contact: Vector3 = worker._handling_target
 	var wall := String(ghost.def.get("placement","floor"))=="wall"
 	if wall:
-		_expect(is_equal_approx(contact.y,float(SITE.y+1)+float(ghost.def.wall_mount.height_above_floor)),"wall handoff rises to mount height")
+		_expect(is_equal_approx(contact.y,float(SITE.y)+float(ghost.def.wall_mount.origin_offset_y)),"wall handoff rises to mount height")
 	else:
 		_expect(ghost.footprint_cells().has(Vector3i(floori(contact.x),roundi(contact.y)-1,floori(contact.z))),"set-down lands inside designated rotated footprint")
 		_expect(not ghost.footprint_cells().has(worker.current_cell()),"installer stays beside finished furniture")
@@ -133,6 +134,72 @@ func _interruptions() -> void:
 	_expect(worker._task_phase==worker.TaskPhase.FETCH_DEPOSIT and is_zero_approx(worker._handling_elapsed),"already at stand begins one immediate set-down")
 	worker._process(1)
 	_expect(not furniture._ghosts.has(handoff_plan.ghost_id),"same-stand handoff finishes")
+
+func _floor_excavation() -> void:
+	var mining = load("res://scripts/systems/MiningDesignationController.gd").new()
+	scene.add_child(mining)
+	mining.set_process(false)
+	var mount = load("res://scripts/components/WallFurnitureMount.gd")
+	var nav = root.get_node("NavGrid")
+	var rooms = root.get_node("RoomManager")
+	var stone: int = blocks.get_id("base:terrain:rock:rock01")
+	for key in [TORCH,WALL]:
+		for yaw in range(4):
+			await _cleanup()
+			var definition: Dictionary = furniture.get_defs()[key]
+			support_cells = mount.supports(definition,SITE,yaw)
+			for cell in support_cells: world.set_block(cell.x,cell.y,cell.z,stone)
+			furniture._install(key,definition,SITE,yaw)
+			var piece = furniture._installed.values()[0]
+			var position: Vector3 = piece.node.position
+			var heat: Dictionary = rooms._heat_cells.duplicate(true)
+			var tiles: Array[Vector3i] = [SITE]
+			mining._mine_blocks_world(tiles)
+			await _frames(2)
+			furniture._process(0)
+			_expect(furniture._installed.has(piece.installed_id),"floor excavation preserves wall-mounted "+key+" yaw "+str(yaw))
+			if furniture._installed.has(piece.installed_id):
+				_expect(piece.node.position==position and rooms._heat_cells==heat,"mounted height and heat survive floor excavation")
+				for item in drops._loose:
+					_expect(drops._loose[item]!=definition.item_key,"excavating the floor refunds no torch")
+				var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
+				furniture._teardown_installed(piece.installed_id,false)
+				for item in drops._loose.keys(): drops.take(item); item.free()
+				furniture.restore_state(saved)
+				furniture._revalidate_wall_mounts()
+				_expect(furniture._installed.size()==1,"save restores a wall torch above the excavated floor")
+			var support: Vector3i = support_cells[0]
+			world.set_block(support.x,support.y,support.z,blocks.AIR_ID)
+			await _frames(2)
+			furniture._process(0)
+			_expect(furniture._installed.is_empty() and rooms._heat_cells.is_empty(),"mining the actual bracket support still detaches the torch")
+			var packed := 0
+			for item in drops._loose:
+				if drops._loose[item]==definition.item_key: packed += drops.quantity_of(item)
+			_expect(packed==1,"only one packed torch is refunded")
+			world.set_block(SITE.x,SITE.y,SITE.z,stone)
+			nav.refresh_mined_block(SITE)
+	# A floor edit may change work access, but never the mount's fixed position.
+	await _cleanup()
+	var definition: Dictionary = furniture.get_defs()[TORCH]
+	support_cells = mount.supports(definition,SITE,0)
+	for cell in support_cells: world.set_block(cell.x,cell.y,cell.z,stone)
+	drops.restore_loose_item(String(definition.item_key),Vector3(50.5,21,44.5),0,1)
+	furniture.activate_for(TORCH,true)
+	furniture._hover_cell = SITE
+	furniture._yaw = 0
+	furniture._confirm_ghost()
+	furniture.deactivate()
+	_expect(furniture._ghosts.size()==1,"wall placement fixture starts with a floor and bracket")
+	if not furniture._ghosts.is_empty():
+		var ghost = furniture._ghosts.values()[0]
+		world.set_block(SITE.x,SITE.y,SITE.z,blocks.AIR_ID)
+		nav.refresh_mined_block(SITE)
+		_expect(furniture._can_build_ghost(ghost),"pending installation can use another floor within reach")
+		furniture._revalidate_wall_mounts()
+		_expect(furniture._ghosts.size()==1,"floor excavation preserves a structurally valid pending wall mount")
+	world.set_block(SITE.x,SITE.y,SITE.z,stone)
+	mining.free()
 
 func _capture_pose(key: String,yaw: int,label: String) -> void:
 	if not "--capture" in OS.get_cmdline_user_args() or yaw!=0 or key not in [LOG_BENCH,WALL]: return

@@ -161,11 +161,10 @@ isolated reproduction completes the existing route without replacing its order.
 
 ## Remaining work and boundaries
 
-[Open issues](00_open_issues.md) **001 remains OPEN** (the original mining/hauling
-stall has not been reproduced on the current scheduler) and **002 remains PARKED**
-(the original mining-face overlap is not yet proven to be logical or cosmetic).
-Today's dispatch, support, shortcut and readability fixes do not establish those
-original causes. Record actor/route/clearance evidence before closing them.
+**2026-10-12 update:** [Issues 001 and 002](00_open_issues.md) are **CLOSED — presumed
+resolved** by Alen's decision. Issue 001 follows the major scheduler/lifecycle
+changes; neither original cause was confirmed. Neither is active investigation
+work. Reopen only if the player reports the behavior again.
 
 Appeal-driven room scores/moods, craftsmanship quality, pricing and precious-metal
 crafting remain future work. Copper/gold profiles are foundations, not craftable

@@ -1,6 +1,6 @@
 extends Node
 
-## Sealed-room detection and temperature — doc 34, doc 22 (doors prerequisite).
+## Sealed rooms, temperature and finished-floor appeal — docs 34, 22 and 128.
 ## Autoload. Registered after InteriorTracker in project.godot.
 ##
 ## ROOM MODEL: a room is DERIVED state, never saved directly (the InteriorTracker
@@ -74,10 +74,12 @@ var _next_room_id: int = 1
 var _rooms_dirty: bool = false
 var _rebuild_accum: float = 0.0
 var temperature_config: Dictionary = {}
+var appeal_config: Dictionary = {}
 
 
 func _ready() -> void:
 	temperature_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/world_gen/temperature.json"))
+	appeal_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/appeal.json"))
 	print("RoomManager: ready (doc 34/22).")
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
 	WorldClock.hour_changed.connect(_on_hour_changed)
@@ -427,8 +429,25 @@ func _build_room_data(fill_result: Dictionary) -> Dictionary:
 		"room_type": "room",
 	}
 	_classify_bedroom(room)
+	room.merge(flooring_stats(cells))
 	_recompute_temp(room)
 	return room
+
+## Count physical interior walking surfaces, even below furniture. Doorway
+## columns are outside room.cells. Mixed floor materials count together; plans
+## and natural rock never count. Derive this again on terrain edits and load.
+func flooring_stats(cells: Dictionary) -> Dictionary:
+	var total := 0
+	var finished := 0
+	for air: Vector3i in cells:
+		if not cells.has(air+Vector3i.UP) or not cells.has(air+Vector3i.UP*2): continue
+		var id := _block_id(air+Vector3i.DOWN)
+		if not BlockRegistry.is_solid(id): continue
+		total += 1
+		if BlockRegistry.get_def(BlockRegistry.get_key(id)).get("kind","") == "constructed_floor": finished += 1
+	var complete := total > 0 and finished == total
+	return {"floor_tiles":total,"finished_floor_tiles":finished,"flooring_complete":complete,
+		"flooring_appeal":float(appeal_config.complete_floor_bonus) if complete else 0.0}
 
 
 ## mean_floor_y = average Y of the LOWEST air cell in each (x,z) column of the

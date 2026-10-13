@@ -62,10 +62,10 @@ func _ready() -> void:
 	for entry: Dictionary in catalog.get("categories", []):
 		_category_select.add_item(entry.label)
 		_category_select.set_item_metadata(_category_select.item_count - 1, entry.id)
-		var tab := UITheme.make_button(entry.label, "", Vector2(0, 26))
-		tab.toggle_mode = true
-		tab.focus_mode = Control.FOCUS_ALL
-		tab.add_theme_font_size_override("font_size", 13)
+		var tab := preload("res://scripts/ui/DockIconButton.gd").new()
+		tab.setup(entry, UIRegistry.get_dock_icon(entry))
+		tab.custom_minimum_size = Vector2(56, 56)
+		tab.name = "Category" + String(entry.id).to_pascal_case()
 		tab.pressed.connect(func(): category = entry.id; refresh(); _fit.call_deferred())
 		tabs.add_child(tab)
 		_tabs[entry.id] = tab
@@ -297,7 +297,8 @@ func refresh() -> void:
 	for key: String in _tabs: _tabs[key].set_pressed_no_signal(key == category)
 	for index in range(_category_select.item_count):
 		if _category_select.get_item_metadata(index) == category: _category_select.select(index)
-	_count.text = "%d designs" % visible_keys.size()
+	_count.text = "%s · %d designs" % [_category_select.get_item_text(_category_select.selected), visible_keys.size()]
+	_count.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_empty.visible = visible_keys.is_empty()
 	_grid.visible = not visible_keys.is_empty()
 	_undo_ids = _undo_ids.filter(func(id: int): return controller.has_pending_placement(id))

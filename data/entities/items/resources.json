@@ -511,6 +511,7 @@
   },
   "__comment_flora": "Harvested plant matter â€” crops, berries, seeds",
   "base:resources:flora:elderberry": {
+    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"643d7a"}},
     "display_name": "Elderberry",
     "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
     "model": "res://assets/models/items/crates/elderberry_low.glb",
@@ -532,6 +533,7 @@
     ]
   },
   "base:resources:flora:blueberry": {
+    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"506dad"}},
     "display_name": "Blueberry",
     "description": "Sweet high-altitude berries with a clean finish. Prized for mead and summer ales.",
     "model": "res://assets/models/items/crates/blueberry_low.glb",
@@ -553,6 +555,7 @@
     ]
   },
   "base:resources:flora:wild_strawberry": {
+    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"ca4342"}},
     "display_name": "Wild Strawberry",
     "description": "Tiny and intensely sweet. Merchants go quiet when they see a basket of these.",
     "model": "res://assets/models/items/crates/wild_strawberry_low.glb",
@@ -575,6 +578,7 @@
     ]
   },
   "base:resources:flora:juniper_berry": {
+    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"67728c"}},
     "display_name": "Juniper Berry",
     "description": "Tart blue-black berries with a resinous bite. Prized for gin-style brewing.",
     "model": "res://assets/models/items/crates/juniper_berry_low.glb",
@@ -625,6 +629,7 @@
     ]
   },
   "base:resources:flora:apple": {
+    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"apple","color":"b34d35"}},
     "display_name": "Apple",
     "description": "A crisp mountain apple. Sweet enough to eat raw, better pressed into cider.",
     "model": "res://assets/models/items/crates/apple_low.glb",
@@ -1077,18 +1082,19 @@
   },
   "__comment_special": "Special items â€” unique or limited-use objects that anchor major game flows",
   "base:items:special:settlement_flag": {
-    "display_name": "Settlement Flag",
-    "description": "A folded banner and stout marker pole used to choose where the first settlement will take root.",
-    "model": "res://assets/models/items/misc/settlement_flag.glb",
+    "display_name": "Settlement flag (packed)",
+    "description": "The colony's settlement marker, packed for storage or relocation. Place it to mark the settlement's new location.",
+    "model": "res://assets/models/items/furniture/packed_furniture.glb",
     "stack_max": 1,
-    "carry_cost": 1,
-    "weight_class": "light",
+    "carry_cost": 4,
+    "weight_class": "heavy",
     "base_trade_value": 0,
     "material_tags": [
       "special",
       "placeable",
       "settlement_anchor",
-      "stockpile_misc"
+      "furniture",
+      "stockpile_furniture"
     ]
   },
   "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall. ONE-BOX RULE (Alen, 2026-07-11): packed furniture shares packed_furniture.glb - the ghost says which piece it becomes. Redesigned 2026-10-11 as a full 8x8x8-voxel wooden shipping crate (one world block).",

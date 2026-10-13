@@ -97,8 +97,8 @@ func _run() -> void:
 		await process_frame
 		var screen: Vector2 = camera.unproject_position(bounds.get_center())
 		var hit: Dictionary = controller._surface_cell_for(screen)
-		var floor_hit: Dictionary = controller._wall_floor_hit(hit)
-		assert(Vector3i(floor_hit.x,floor_hit.y,floor_hit.z)==origin and controller._yaw==yaw)
+		var mount_hit: Dictionary = controller._wall_mount_hit(hit)
+		assert(mount.mount_cell(def,Vector3i(mount_hit.x,mount_hit.y,mount_hit.z))==Vector3i(hit.x,hit.y,hit.z)+hit.normal and controller._yaw==yaw)
 		assert(controller._try_select_at_screen(screen) and controller._window_installed_id==piece.installed_id)
 		# A nearer solid terrain face blocks selection through rock.
 		assert(not controller._try_select_wall(screen,{"distance":1.0}))

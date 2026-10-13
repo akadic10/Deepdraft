@@ -1,0 +1,16 @@
+[
+  {
+    "test": "ConstructionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 5.04,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 69.71,
+    "timeout": false
+  }
+]

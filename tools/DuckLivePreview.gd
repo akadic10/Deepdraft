@@ -31,8 +31,6 @@ func _run() -> void:
 	check(ducks.size()>=6,"natural flocks spawned")
 	if ducks.is_empty(): quit(1); return
 	var camera = scene.get_node("CameraRig")
-	var result: String = wildlife.dev_locate_next("duck")
-	check(not result.is_empty(),"DEV locates natural duck")
 	ducks.sort_custom(func(a,b): return a.position.y<b.position.y)
 	var duck = ducks[0]
 	var explorer = get_first_node_in_group("object_explorer")

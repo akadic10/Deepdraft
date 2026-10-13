@@ -32,7 +32,7 @@ the panel uses Deepdraft's own models, theme and existing game state.
   an open inspector; the next closes the roster. The roster compacts on narrow
   viewports and scrolls above the dock.
 - Developer spawning, walking, stress tasks, interruption and tiredness controls
-  remain under **Menu → Development → DEV: Dwarf tools**.
+  remain under **Development → DEV: Dwarf tools**.
 
 ## Ownership
 

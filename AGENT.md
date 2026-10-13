@@ -1,19 +1,209 @@
 # Deepdraft — Agent Navigation Index
 
+**Latest art direction handoff (2026-10-12):**
+[144 — World art direction and next session](docs/00_dev_roadmap/144_world_art_direction_handoff.md)
+records the preferred pass 2 stone/trees and pass 3 ground, native reference
+images, terrain/grass/path rules, and the proposed gradual move to voxel-inspired
+stylized low-poly world assets. Resume here for art work. Dwarf/animal/furniture
+conversion and production integration remain proposed; the next step is a small
+asset pilot in the isolated study, followed by production-scale measurement.
+
+**Small-world visual study (2026-10-12):** [143 — Visual quality study](docs/00_dev_roadmap/143_visual_quality_study.md)
+adds an isolated 32×32 native scene with paired current/study treatments.
+Art pass 2 adds stone chamfers, fir/oak prototypes, ground/room dressing, flowing
+water presentation and revised lighting. The player likes the individual stone
+and upgraded trees. Pass 3 adds individual dirt/grass blocks, softer edges and
+turf over soil; G compares ground passes without changing trees or lighting.
+Day/dusk/night, slice and real terrain
+edits remain testable. Double-click
+`Launch Visual Study.cmd` for a visible standalone window; F5 still runs the game.
+F6 requires the study .tscn selected in Godot's scene tabs, not just its script.
+Latest captures: `tmp/visual_study_20261012/art_pass_3/`; 42 checks pass. GPU medians
+are 1.71–2.22 ms at 1600×1000 on RX 9070 XT; synchronous fixture remesh is ~100 ms.
+Earlier pass images/reports are retained, including `art_pass_2/`.
+This is an art/lighting experiment, not the production renderer or a full-world
+performance result. Main-world shaders, assets, save behavior and project settings
+are unchanged. No new autoload/global class; no project reload required.
+
+**Fixed time/Slice controls (2026-10-12):** [142 — Utility HUD](docs/00_dev_roadmap/142_fixed_time_slice_hud.md)
+adds illustrated Pause, 1×, 2× and Slice at the bottom right. A permanent tower
+above Slice has exact ±1/±4 arrows and a live level; off reads Full world and
+retains the last height. Wheel over the tower steps height; world scrolling
+still zooms. The old upper-left controls, Slice window and Menu shortcut are
+removed. The main dock makes room, with a stacked fallback at narrow widths;
+menus avoid the utility controls. Native input/layout, saved state, Sky Dial and
+navigation checks pass. Logs: `tmp/time_slice_20261012/`. Restart Play.
+
+**Sky Dial (2026-10-12):** [141 — Clock/weather HUD](docs/00_dev_roadmap/141_sky_dial.md)
+replaces the Clock window, Menu shortcut and upper-left calendar button with a
+permanent illustrated upper-right dial. Live time, season/day, seasonal lighting
+anchors and current Clear/Foggy/Overcast/Snow drive its original art. Hover/focus
+shows year, phase and rise/set. Pause/speed/Slice remain separate; food warnings
+sit below and ordinary windows make room. UIRegistry owns the art definitions;
+there are no simulation/save changes or new autoloads. Restart Play.
+
+**Remaining illustrated menus (2026-10-12):** [140 — Delivery](docs/00_dev_roadmap/140_remaining_illustrated_menus.md)
+implements approved plan 139: Craft, Place, Colony, Menu/Development, Inventory
+and Rooms. Shared original art, hover/focus names and planned catalog badges
+retain direct browser/room flows. World Build and time/weather tests now live in
+Development; save/test dispatch uses stable IDs. Colony's flag entry inspects
+the actual flag/order or opens its packed Place flow without founding again.
+Native layouts, browser stability, worker flag moves and menu checks pass.
+Logs: `tmp/remaining_menus_20261012/`. Restart Play; dwarf-screen work stays separate.
+
+**Illustrated Construction (2026-10-12):** [138 — Construction menus](docs/00_dev_roadmap/138_illustrated_construction.md)
+adds stone-block and Floors icons, then plank/stone floor icons with a Back arrow.
+The two floor tools stay usable DEV previews, with flask badges and hover/focus
+explanations. Stone costs, floor worker locks and DEV Build are unchanged. Menus
+anchor above Construction, which stays highlighted during building. Checks and
+native captures: `tmp/construction_art_20261012/`. Restart Play.
+
+**Illustrated Zones (2026-10-12):** [137 — Zones submenu](docs/00_dev_roadmap/137_illustrated_zones.md)
+adds Storage, Farming and Animal pasture art above Zones. Storage remains live;
+the latter two are dimmed, locked planned entries with mouse/keyboard explanations
+and no tool dispatch. The shared shelf now uses illustrated controls for both
+groups. Native layouts and input checks: `tmp/zones_art_20261012/`. Restart Play.
+
+**Illustrated Orders (2026-10-12):** [136 — Orders submenu](docs/00_dev_roadmap/136_illustrated_orders_plan.md)
+delivers six approved illustrated icons anchored above Orders, with hover/focus
+names, a separated Cancel command and compact live tool feedback. Icons wrap
+beside moved inspectors; Zones subsequently gained matching art in 137. Shared icon setup,
+real input/cancel/undo and native 960/1280/2560 layouts pass. Captures and checks:
+`tmp/orders_art_20261012/`. No simulation/save changes; restart Play.
+
+**Illustrated dock (2026-10-12):** [135 — Command dock](docs/00_dev_roadmap/135_illustrated_command_dock.md)
+uses the approved Hearth & iron art for all ten bottom commands, with hover/focus
+names, square responsive buttons and a copper active notch. UIRegistry owns atlas
+regions in dock.json; DockIconButton owns presentation; existing dispatch remains.
+Native button/menu/tooltip checks cover 960/1280/2560. Dwarf-screen redesign is
+still separate. Captures: `tmp/dock_art_20261012/`.
+
+**Food stage 2 (2026-10-12):** [131 — Food and dining](docs/00_dev_roadmap/131_dwarf_food_and_dining.md)
+now includes emergency berry picking, dining, hunger/dining penalties and serving
+presentation. Stored/loose food wins; only famished dwarves forage within 24 routed
+blocks. SurfaceDetailManager owns crop claims/progress/commit. Seats share leisure
+claims; tables claim access spots. Dining thoughts replace rather than stack.
+Hungry/famished work speed is 90%/75%, mood −5/−15; no starvation damage/death.
+Overview shows effects; Details shows last meal/thoughts; failed food searches
+drive a quiet HUD warning. Current saves preserve meals, mood and crop work.
+The job gate now has 32 fixtures, including DwarfDiningTest. Stage 3's character
+screen reorganization remains deferred. Logs/captures: `tmp/dining_20261012/`.
+
+**Distant shrub Moves (2026-10-12):** [134 — Distant Move planning](docs/00_dev_roadmap/134_distant_shrub_move_planning.md)
+fixes idle wandering repeatedly discarding long uprooting route searches.
+Surface work and exact-item Move searches renew their leisure hold while making
+measured progress. Surface assignments prove/cache the exact work stand.
+Search budgets and normal need/priority interruptions remain unchanged; the
+handoff regression includes slow distant routes with live leisure/supervision.
+
+**Settlement flag furniture (2026-10-12):** [133 — Settlement flag](docs/00_dev_roadmap/133_settlement_flag_furniture.md)
+makes the banner clickable in Object explorer with normal Move/Uninstall and
+worker transport. Place → Rooms recovers a packed flag. The founding controller
+grants the first flag/squad once and retains the last anchor during transit;
+reinstallation updates it. Furniture owns the physical flag and occupancy.
+Current saves use required settlement `founded` state; restoration never creates
+a second physical flag. The shared job gate now has 31 fixtures.
+
+**Furniture Move (2026-10-12):** [132 — Furniture Move](docs/00_dev_roadmap/132_furniture_move.md)
+adds Move to installed furniture/workbench and container inspectors. Confirm a
+normal placement preview, then workers pack, carry and install that exact piece.
+Material, bed ownership and container filters persist; contents empty through
+normal uninstall. Cancelling before packing keeps the original; afterwards the
+packed item remains recoverable. Current saves include required furniture move
+records and destination identities; old development saves need no migration.
+The shared job gate now includes FurnitureMoveTest (30 fixtures).
+
+**Dwarf food foundation (2026-10-12):**
+[131 — Food, dining and character screen](docs/00_dev_roadmap/131_dwarf_food_and_dining.md)
+records the agreed plan. Stage 1 adds general edible-item data (five fruits now),
+game-hour hunger, reachable storage-first portions, allowed loose-food fallback,
+safe interruption/current saves and a Food bar in the shared dwarf inspector.
+Berry bushes regrow after two planted days in eligible seasons; packing and
+off-season time pause growth. Development → Dwarf tools can make a dwarf hungry
+for testing. Stage 2 is now live as described above; only the character-screen
+redesign remains stage 3. No starvation damage/death.
+The shared job gate includes food/regrowth and now has 29 fixtures.
+
+**Clickable terrain (2026-10-12):**
+[130 — Terrain inspection](docs/00_dev_roadmap/130_terrain_inspection.md)
+adds player material names and facts to Object explorer for exposed walls,
+floors and ceilings. Slice/planned faces conceal resources; object and zone
+selection retain priority. Block Inspector now lives in Development and honors
+mined AIR when reading live chunks. Terrain metadata is owned by BlockRegistry.
+
+**Wall-light mounting heights (2026-10-12):**
+[129 — Wall mount heights](docs/00_dev_roadmap/129_wall_mount_heights.md)
+lets the player aim at a wall cell or use Alt + wheel for either torch. Install
+and uninstall share five-block bracket reach from a clear, reachable work floor.
+Saved positions stay fixed when floors change; pending lights wait for renewed
+access. Actual bracket loss still removes them. Room heat samples the mount's
+air cell. Automatic access ladders remain deferred. The job gate has 27 fixtures.
+
+**Permanent floors — development preview (2026-10-12):**
+[128 — Permanent floors](docs/00_dev_roadmap/128_permanent_floor_preview.md)
+adds Construction → Floors → Simple plank/stone floor. Mine a supporting layer,
+then plan full blocks; click a blue plan for DEV Build. Carpenter/Stonemason
+construction stays locked, with no jobs or inventory claims. Original 8×8×8 voxel
+art repeats across the grid and uses live terrain lighting. Completed interior
+floor coverage adds +5 flooring appeal in Rooms; mixed materials and tiles under
+furniture count. Floor kinds, built terrain and pending plans save. The job gate
+included 26 fixtures at this milestone. Rugs, pelts and fitted carpets remain deferred.
+
+**Floor excavation recovery (2026-10-12):** Installed wall torches now depend on
+their bracket supports, preserving their height/light/heat when the floor below
+is dug out. Milestone 129 also preserves pending plans while access is missing.
+Idle dwarves can step
+up out of shallow unfinished floor tiles, and footing recovery lifts embedded
+feet onto a clear raised floor, including current saved positions. See
+[115](docs/00_dev_roadmap/115_dwarf_support_recovery.md) and
+[128](docs/00_dev_roadmap/128_permanent_floor_preview.md).
+
+**Development navigation (2026-10-12):** Development is a standalone dock entry
+at the far right, after Menu. Its tools cover spawning, dwarf tools, block
+inspection, water, cave inspection and arrival status. The 15 cycling object/arrival commands,
+their dispatch, locator methods and cursor state have been removed. QA previews
+select explicit fixtures through normal inspection. Current documentation and
+playtest instructions use the new menu and ordinary click selection.
+
+**Frameless log doors (2026-10-12):** [117 — Log furniture](docs/00_dev_roadmap/117_log_furniture_and_fire_audio.md)
+now uses only rough swinging log leaves at all three widths. Fixed frames are
+reserved for later door tiers. The live generator, placed icons, hinge positions
+and art/catalogue notes agree. Native art, door lighting, passage, sealing and
+restoration checks pass. Restart Play/load a current save to refresh existing art.
+
+**Structural stone construction — live (2026-10-12):**
+[127 — Structural stone](docs/00_dev_roadmap/127_structural_stone_construction.md)
+adds Construction → Stone block. Each full voxel costs one physically delivered
+rough stone and uses the existing natural rock layer at its height. Mining and
+building are separate actions. Constructed slice caps now match natural cut-face
+shading; genuine exposed tops keep their normal color. Native comparisons and
+construction regressions pass. Real terrain supports navigation and room sealing;
+unfinished areas, partial work and built provenance save. Normal mining recovers
+one stone. BlockRegistry owns construction definitions; ConstructionController
+owns orders and provenance. Wall coverings, combined replacement and floor/rug/pelt
+features are outside this milestone. Roadmap 23 is historical and superseded.
+Blue plans are clickable during and after construction mode: Object explorer
+shows remaining blocks, stone, worker and progress, with safe cancellation.
+Additional wall types are deferred and wall finishes remain excluded. Permanent
+wood and stone floor previews follow in milestone 128 above. Fitted carpets are
+grouped with rugs and pelts for later work.
+
 **Shared job lifecycle and recovery — live (2026-10-11):**
 [126 — Lifecycle and recovery](docs/00_dev_roadmap/126_job_lifecycle_and_recovery.md)
 implements the four steps from [125 — Architecture review](docs/00_dev_roadmap/125_jobs_and_dwarves_architecture_review.md):
 saved order identity, attempt fencing, progress supervision, complete furniture
 fetch planning, shared work execution and fair retained searches. Dwarf development
-has a Job inspector with waiting reasons and retry. Run the 23-fixture gate in
+has a Job inspector with waiting reasons and retry. Run the 25-fixture gate in
 `tools/run_job_reliability.ps1`; source/inventory owners remain authoritative.
 Receipts are runtime guards, not durable event replay. Current saves include jobs
 diagnostics and craft order IDs; no legacy save migration was added.
 
-**Latest session handoff:** [124 — Starter colony, 2026-10-11](docs/00_dev_roadmap/124_session_handoff_2026_10_11.md)
+**Earlier gameplay session handoff:** [124 — Starter colony, 2026-10-11](docs/00_dev_roadmap/124_session_handoff_2026_10_11.md)
 collects today's bridges, furniture/materials, bedrooms, warmth/privacy, mining
 progression, placement timing and grouped storage. It records final verification,
-next-session playtests, current save policy and the two still-unresolved issues.
+next-session playtests, current save policy and issue status. On 2026-10-12, Alen
+provisionally closed issues 001 and 002 as presumed resolved. Neither is active
+work; reopen only if the player reports it again.
 
 **Ladder extension dispatch (2026-10-11):** [88 — Ladder task reachability](docs/00_dev_roadmap/88_ladder_task_reachability.md)
 records the late-session saved-game fix: repeated mining searches above an
@@ -139,7 +329,7 @@ Use handoff 124 above for the current starting point and remaining work.
 adds seeded calm-water flocks, male/female voxel art, swimming, shore activity,
 short obstacle-checked flights and scheduled aerial arrivals. Quacks/splashes
 use Work audio; picking, Follow, slices, live levels and current saves are covered.
-Menu → Development → DEV: Next duck locates one. Start a fresh development world;
+Click ducks near water to inspect or Follow them. Start a fresh development world;
 old saves without duck fields are not migrated. Egg/breeding/domestication and
 duck predation remain future work. Doc 45 owns wildlife behavior.
 
@@ -180,7 +370,7 @@ new position. Permissions, exact identities, packing progress and move plans sav
 Extra stone pairs share the same lifecycle through a grant API; scenario acquisition
 remains future work. Initial hydrology is unchanged. Existing development saves
 without these fields are rejected, with no migration required.
-Menu → Development → DEV: Water locates features and provides a reversible test dam.
+Development → DEV: Water locates features and provides a reversible test dam.
 Ordinary dam construction jobs and physical brewery hauling/recipes remain planned;
 flood damage, drowning, floating goods, pumps and pressurized pipes are not enabled.
 Reload Current Project after pulling this new autoload. Older development saves
@@ -266,7 +456,7 @@ days, capped at 18 deer / 4 wolves. Full-footprint routes, separate herd homes,
 prey-surplus/local-food gates and saved group progress preserve gentle balance.
 Wolves settle before hunting; kills never accelerate or enlarge events.
 Startup planning waits for tree occupancy. **DEV: Arrival status** covers all
-species; **DEV: Next deer arrival / Next wolf arrival** locates new entrants.
+species; entered animals use ordinary click inspection and Follow.
 Four-seed routes, mixed save/backup restoration and wildlife regressions pass.
 
 **Rabbit arrival events — live (2026-10-09):** [94 — Rabbit arrivals](docs/00_dev_roadmap/94_rabbit_arrival_events.md)
@@ -276,13 +466,13 @@ staggered entry, population caps and expiry. Kills never accelerate or enlarge
 arrivals. Saved local hunting pressure is wired for future player hunting;
 predation does not add it. Mid-group/mid-stride saves, backup restoration,
 four-seed routes, native inspection/Follow and wildlife regressions pass.
-**DEV: Arrival status / Next arrival** reviews opportunities and entered rabbits.
+**Development → DEV: Arrival status** reviews opportunities and their outcomes.
 Deer/wolf support followed in milestone 95; visitor/raid providers remain future work.
 
 **Rabbit wildlife — live (2026-10-09):** [90 — Rabbit wildlife](docs/00_dev_roadmap/90_rabbit_wildlife.md)
 adds seeded rabbits, gentle grazing and sleep, dwarf avoidance, voxel animation,
-shared inspection/Follow and persistence. **Menu → Development → DEV: Next rabbit**
-locates one. Behavior, native picking/art and full save/backup checks pass.
+shared inspection/Follow and persistence. Click a rabbit to inspect it.
+Behavior, native picking/art and full save/backup checks pass.
 [45 — Wildlife](docs/40_economy_colony/45_wildlife.md) records ownership, tuning
 and deferred berries and farm theft.
 
@@ -293,7 +483,7 @@ and native PCM checks pass; audio never changes wildlife needs, RNG or saves.
 
 **Deer wildlife — live (2026-10-09):** [92 — Deer wildlife](docs/00_dev_roadmap/92_deer_wildlife.md)
 adds up to eighteen deer in six loose groups, articulated grazing/rest/walking,
-faster escape and quiet selection/eating sounds. **DEV: Next deer** locates one.
+faster escape and quiet selection/eating sounds. Click deer to inspect them.
 Shared GrazerAgent preserves rabbit behavior; species-specific navigation uses
 the full deer footprint. Herd identity and mixed populations persist in current
 saves. Native, behavior, audio and save checks pass.
@@ -302,7 +492,7 @@ saves. Native, behavior, audio and save checks pass.
 adds four sparse predators with hunger-gated, bounded hunts, prey escape,
 atomic captures, long meal satisfaction and protected prey reserves. Wolves
 avoid dwarves. Art, soft selection/eating sounds, inspection and saved pursuits
-are included. **DEV: Next wolf** locates one. Behavior,
+are included. Click wolves to inspect them. Behavior,
 four-seed population, native, audio, save/backup and grazer regression checks pass.
 
 **Previous session handoff:** [103 — Evening 2026-10-09](docs/00_dev_roadmap/103_session_handoff_2026_10_09_evening.md)
@@ -332,7 +522,7 @@ balance remains a separate decision.
 **Caves and discovery (2026-10-07):** [68 — Caves and discovery](docs/00_dev_roadmap/68_caves_and_discovery.md)
 adds connected dry chambers, existing exposed veins and occasional floor-soil
 patches. Mining into a cave reveals its connected system; ordinary slicing keeps
-it concealed. **Menu → Development → DEV: Cave explorer** provides outlines,
+it concealed. **Development → DEV: Cave explorer** provides outlines,
 camera/slice focus and temporary interior lighting without changing discovery.
 The document records playtest steps, verification and deferred cave content.
 
@@ -362,32 +552,32 @@ shared-metal-field tuning rules above; final economy balance remains open.
 records the numbered asset, placement, clearing and verification sequence for
 boulders, scree, shrubs, flowers and lakeside reeds. [73 — Boulder pilot](docs/00_dev_roadmap/73_boulder_pilot.md)
 implements three boulder variants, deterministic placement, worker clearing and
-persistent removal. **Menu → Development → DEV: Next boulder** locates one for
-review. Eight-seed layout, clearing, forestry regression and save/load checks pass.
+persistent removal. Click a visible boulder for inspection. Eight-seed layout,
+clearing, forestry regression and save/load checks pass.
 **Orders → Clear stones** supports boulders and gatherable scree with click/rectangle
 designation and live counts; Cancel orders, Undo and View order keep partial work.
 [74 — Gatherable scree](docs/00_dev_roadmap/74_gatherable_scree.md) adds three low,
 walkable clumps at cliff bases. Three seconds of hand gathering yields one rough
 stone, with persistent removal and automatic construction/support displacement.
-**DEV: Next scree** locates examples. Worker, eight-seed, Orders and save checks pass.
+Click loose-stone clumps to inspect them. Worker, eight-seed, Orders and save checks pass.
 [75 — Seasonal wild shrubs](docs/00_dev_roadmap/75_seasonal_shrubs.md) adds blueberry,
 elderberry and wild strawberry with four-season voxel art, picked-crop variants,
 deterministic habitats and nonblocking single-tile support. **Harvest plants**
 keeps plants for one crop per eligible season; **Clear shrubs** permanently removes
 them and yields one cutting (100% for all three species, configured in JSON).
 Cutting growth subsequently shipped in milestone 80 below. Separate partial work, harvested cycles and removals persist.
-**DEV: Next blueberry / elderberry / strawberry** locates examples. Worker, native
-Orders, eight-seed and full save/load checks pass.
+Click shrubs to inspect them. Worker, native Orders, eight-seed and full
+save/load checks pass.
 [76 — Seasonal wildflowers](docs/00_dev_roadmap/76_seasonal_wildflowers.md) adds three
 small clump variants with four seasonal appearances and deterministic grassy
 habitats. **Clear plants** now covers shrubs and flowers; flower clearing takes
 1.5 seconds, yields no items and persists through seasons/load. Building and
-support loss also remove flowers. **DEV: Next flowers** locates examples.
+support loss also remove flowers. Click flower clumps to inspect them.
 Worker, mixed Orders, eight-seed and full save/load checks pass.
 [77 — Seasonal reeds](docs/00_dev_roadmap/77_seasonal_reeds.md) adds short/tall clumps
 with four-season voxel art on dry lake/tarn banks near the actual local waterline.
 **Clear plants** includes reeds: 1.5-second hand clearing, no yield, persistent
-removal and partial work. **DEV: Next reeds** locates examples. Native lake/tarn,
+removal and partial work. Click reed clumps to inspect them. Native lake/tarn,
 worker, mixed Orders, eight-seed, regression and full save/load checks pass.
 [78 — Combined surface-detail review](docs/00_dev_roadmap/78_surface_detail_review.md)
 records twelve-seed placement/persistence checks and four-seed native comparisons
@@ -476,7 +666,8 @@ load, safe pickup interruption, and the shared cabinet styling for Object explor
 
 **Entrance lighting follow-up (2026-10-07):** [24 — World rendering](docs/20_player_interface/24_world_rendering.md)
 records the longer entrance fade and actor lighting across solid cells. Movement
-clipping is separately parked as [Issue 002](docs/00_dev_roadmap/00_open_issues.md).
+clipping was separately recorded as [Issue 002](docs/00_dev_roadmap/00_open_issues.md),
+provisionally closed by Alen on 2026-10-12; reopen only if reported again.
 
 **Storage follow-up (2026-10-06):** [59 — Storage filters](docs/00_dev_roadmap/59_storage_filters.md)
 records the shared storage inspector, exact/category rules, relocation ownership,

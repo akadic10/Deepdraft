@@ -256,5 +256,7 @@ all job code, no new distributed infrastructure and no relaxation of world rules
   review changed documentation only; subsequent implementation and verification
   are recorded in [126](126_job_lifecycle_and_recovery.md).
 
-Existing [issue 001](00_open_issues.md) remains OPEN and issue 002 remains PARKED.
-This review does not establish their original causes or close them.
+This review did not establish the original causes of [issues 001 and 002](00_open_issues.md).
+**2026-10-12 update:** Alen provisionally closed issue 001 as presumed resolved
+after the lifecycle changes in doc 126; reopen only on a player-reported recurrence.
+Alen also provisionally closed issue 002 on the same date; reopen only if reported again.

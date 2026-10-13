@@ -12,8 +12,10 @@ signal load_autosave_requested()
 const DOCK_BOTTOM_MARGIN := 24.0
 const PANEL_TOP_MARGIN := 76.0
 const PANEL_DOCK_GAP := 8.0
-const DOCK_BUTTON_SIZE := Vector2(118.0, 54.0)
-const DOCK_LABEL_FONT_SIZE := 14
+const DOCK_ICON_SIZE := 72.0
+const DOCK_ICON_COMPACT_SIZE := 56.0
+const DOCK_ICON_GAP := 4
+const DOCK_GROUP_GAP := 12.0
 
 ## Window chrome and placement live in UIWindowManager (doc 24) — the dock
 ## only toggles windows by id and reflects their open state on its buttons.
@@ -29,8 +31,14 @@ var _panel_title: Label
 var _panel_body: GridContainer
 var _panel_scroll: ScrollContainer
 var _panel_back: Button
-var _status_panel: PanelContainer
-var _clock_button: Button
+var _panel_margin: MarginContainer
+var _panel_header: Control
+var _panel_rail_back: Button
+var _panel_connector: Line2D
+var _time_slice_hud: Control
+var _sky_dial: Control
+var _sky_hud_root: Control
+var _food_warning: Control
 var _slice_button: Button
 var _speed_buttons: Dictionary = {}
 var _ui_registry: Node
@@ -50,6 +58,7 @@ var _inventory_window: UIWindow
 var _craft_panel: Control
 var _craft_window: UIWindow
 var _mining_controller: Node = null
+var _construction_controller: Node = null
 var _room_controller: Node = null
 var _chop_controller: Node = null
 var _orders: Control
@@ -84,19 +93,12 @@ const FURNITURE_PANEL_ITEMS: Dictionary = {
 ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
 ## Other manager windows (e.g. "dwarves") are registered by their own systems.
 const DOCK_WINDOW_EMOJI: Dictionary = {
-	"clock": "🕒",
 	"labor": "👷",
 	"stockpiles": "🗃️",
 	"trade": "💰",
 }
 
-var _clock_value_labels: Dictionary = {}
 var _clock_refresh_accum: float = 0.0
-
-var _normal_button_style: StyleBox
-var _hover_button_style: StyleBox
-var _active_button_style: StyleBox
-
 
 func _ready() -> void:
 	add_to_group("command_dock")
@@ -112,19 +114,23 @@ func _ready() -> void:
 		push_error("DockUI: UIWindowManager not found at '%s' — windows disabled." % window_manager_path)
 	else:
 		_window_manager.window_state_changed.connect(_on_window_state_changed)
-	_build_styles()
 	_build_root()
 	_build_dock()
 	_build_action_panel()
-	_build_status_strip()
+	_build_sky_dial()
+	_build_time_slice_hud()
 	_orders = preload("res://scripts/ui/OrdersShelf.gd").new()
 	_orders.name = "Orders"
+	_orders.dock_buttons = _button_by_target
 	_root.add_child(_orders)
 	_orders.tool_requested.connect(_request_order_tool)
 	_orders.shelf_visibility_changed.connect(_refresh_active_buttons)
 	if _mining_controller != null: _orders.bind_controller("mine_precision", _mining_controller)
 	_orders.fit_above_dock(_dock_panel.get_global_rect())
 	_build_persistence_toast()
+	_food_warning = preload("ColonyFoodWarning.gd").new()
+	_sky_hud_root.add_child(_food_warning)
+	_position_sky_dial()
 	InteriorTracker.caves_discovered.connect(_on_caves_discovered)
 	tool_requested.connect(func(id: String):
 		if _craft_window != null: _window_manager.close("craft")
@@ -147,7 +153,6 @@ func _process(delta: float) -> void:
 	if _clock_refresh_accum < 0.1:
 		return
 	_clock_refresh_accum = 0.0
-	_update_clock_labels()
 	_update_navigation_status()
 
 
@@ -197,14 +202,6 @@ func _on_caves_discovered(_cells: Array[Vector3i]) -> void:
 	show_persistence_status("Cavern discovered. Bring light to explore it.")
 
 
-func _build_styles() -> void:
-	# Canonical dock button trio from UITheme (doc 24): normal fully
-	# transparent, hover a subtle wash, active/pressed the copper highlight.
-	_normal_button_style = UITheme.dock_button_normal_style()
-	_hover_button_style = UITheme.dock_button_hover_style()
-	_active_button_style = UITheme.dock_button_active_style()
-
-
 func _build_root() -> void:
 	_root = Control.new()
 	UITheme.apply_surface(_root)
@@ -221,9 +218,15 @@ func _build_dock() -> void:
 	_dock_panel.add_theme_stylebox_override("panel", UITheme.dock_panel_style())
 	_root.add_child(_dock_panel)
 	_dock_row = HBoxContainer.new()
-	_dock_row.add_theme_constant_override("separation", 4)
+	_dock_row.add_theme_constant_override("separation", DOCK_ICON_GAP)
 	_dock_panel.add_child(_dock_row)
 	for entry: Dictionary in _ui_registry.call("get_dock_items"):
+		if bool(entry.get("separator_before", false)):
+			var gap := Control.new()
+			gap.name = "%sGap" % _node_suffix(String(entry.id))
+			gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			gap.custom_minimum_size.x = DOCK_GROUP_GAP
+			_dock_row.add_child(gap)
 		_dock_row.add_child(_make_dock_button(entry))
 	get_viewport().size_changed.connect(_fit_dock)
 	_dock_panel.resized.connect(_position_dock)
@@ -233,11 +236,13 @@ func _build_dock() -> void:
 func _fit_dock() -> void:
 	if _dock_row == null or _button_by_target.is_empty():
 		return
-	var width := minf(DOCK_BUTTON_SIZE.x,
-		(get_viewport().get_visible_rect().size.x - 80 \
-			- (400 if get_viewport().get_visible_rect().size.x >= 900 else 0)) / _button_by_target.size())
+	var viewport_width := get_viewport().get_visible_rect().size.x
+	var gaps := _dock_row.get_child_count() - _button_by_target.size()
+	var chrome := 16 + (_dock_row.get_child_count() - 1) * DOCK_ICON_GAP + gaps * DOCK_GROUP_GAP
+	var preferred := DOCK_ICON_SIZE if viewport_width >= 1200 else DOCK_ICON_COMPACT_SIZE
+	var width := floorf(minf(preferred, (viewport_width - 32 - chrome) / _button_by_target.size()))
 	for button: Button in _button_by_target.values():
-		button.custom_minimum_size = Vector2(width, DOCK_BUTTON_SIZE.y)
+		button.custom_minimum_size = Vector2(width, width)
 	_dock_panel.reset_size()
 	_position_dock()
 	if _panel_container != null:
@@ -248,32 +253,22 @@ func _position_dock() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	_dock_panel.position = Vector2((viewport_size.x - _dock_panel.size.x) * 0.5,
 		viewport_size.y - DOCK_BOTTOM_MARGIN - _dock_panel.size.y)
+	if _time_slice_hud != null:
+		var utility_width: float = _time_slice_hud.preferred_row_width()
+		if _dock_panel.size.x + utility_width + 48 <= viewport_size.x:
+			_dock_panel.position.x = minf(_dock_panel.position.x, viewport_size.x - 28 - utility_width - _dock_panel.size.x)
 	if _place_catalog != null: _place_catalog.fit_above_dock(_dock_panel.position.y)
 	if _inventory_panel != null: _inventory_panel.fit_above_dock(_dock_panel.position.y)
 	if _craft_panel != null: _craft_panel.fit_above_dock(_dock_panel.position.y)
 	if _orders != null: _orders.fit_above_dock(_dock_panel.get_global_rect())
+	_position_time_slice_hud()
 
 
 func _make_dock_button(entry: Dictionary) -> Button:
-	var button := Button.new()
+	var button := preload("res://scripts/ui/DockIconButton.gd").new()
 	button.name = "%sButton" % _node_suffix(String(entry.id))
-	button.custom_minimum_size = DOCK_BUTTON_SIZE
-	button.focus_mode = Control.FOCUS_NONE
-	button.toggle_mode = true
-	button.text = String(entry.label)
-	button.tooltip_text = String(entry.get("tooltip", entry.label))
-	if entry.has("icon"):
-		button.icon = load(String(entry.icon)) as Texture2D
-		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	button.add_theme_font_size_override("font_size", DOCK_LABEL_FONT_SIZE)
-	button.add_theme_color_override("icon_normal_color", UITheme.HEARTH_COPPER)
-	button.add_theme_color_override("icon_hover_color", UITheme.HEARTH_TEXT)
-	button.add_theme_color_override("icon_pressed_color", UITheme.HEARTH_COPPER)
-	button.add_theme_stylebox_override("normal", _normal_button_style)
-	button.add_theme_stylebox_override("hover", _hover_button_style)
-	button.add_theme_stylebox_override("pressed", _active_button_style)
-	button.add_theme_stylebox_override("hover_pressed", _active_button_style)
+	button.custom_minimum_size = Vector2.ONE * DOCK_ICON_SIZE
+	button.setup(entry, _ui_registry.get_dock_icon(entry))
 	button.pressed.connect(_dispatch.bind(String(entry.action), String(entry.target)))
 	_button_by_target[String(entry.target)] = button
 	return button
@@ -290,9 +285,15 @@ func _build_action_panel() -> void:
 	menu_layer.name = "DockMenus"
 	menu_layer.layer = 23
 	add_child(menu_layer)
+	_panel_connector = Line2D.new()
+	_panel_connector.width = 2
+	_panel_connector.default_color = UITheme.HEARTH_COPPER
+	_panel_connector.hide()
+	menu_layer.add_child(_panel_connector)
 	menu_layer.add_child(_panel_container)
 	UITheme.apply_surface(_panel_container)
 	var margin := MarginContainer.new()
+	_panel_margin = margin
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 12)
 	_panel_container.add_child(margin)
@@ -300,6 +301,7 @@ func _build_action_panel() -> void:
 	column.add_theme_constant_override("separation", 10)
 	margin.add_child(column)
 	var header := HBoxContainer.new()
+	_panel_header = header
 	column.add_child(header)
 	_panel_back = UITheme.make_button("‹", "Back", Vector2(28, 28))
 	_panel_back.pressed.connect(func():
@@ -316,16 +318,59 @@ func _build_action_panel() -> void:
 	_panel_scroll = ScrollContainer.new()
 	_panel_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(_panel_scroll)
+	var rail := HBoxContainer.new()
+	rail.add_theme_constant_override("separation", 6)
+	_panel_scroll.add_child(rail)
+	_panel_rail_back = UITheme.make_button("‹", "Back", Vector2(28, 56))
+	_panel_rail_back.name = "IllustratedMenuBack"
+	_panel_rail_back.add_theme_font_size_override("font_size", 28)
+	_panel_rail_back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_panel_rail_back.hide()
+	_panel_rail_back.pressed.connect(func():
+		_open_action_panel(String(UIRegistry.get_menu(_active_panel_target).get("parent", ""))))
+	rail.add_child(_panel_rail_back)
 	_panel_body = GridContainer.new()
 	_panel_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_panel_body.add_theme_constant_override("h_separation", 8)
 	_panel_body.add_theme_constant_override("v_separation", 8)
-	_panel_scroll.add_child(_panel_body)
+	rail.add_child(_panel_body)
+	rail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_panel_container.resized.connect(_position_action_panel)
+	_panel_container.visibility_changed.connect(_position_action_panel)
 
 
 func _layout_action_panel() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
+	var menu := UIRegistry.get_menu(_active_panel_target)
+	if bool(menu.get("illustrated", false)):
+		var icon_size := 64.0 if viewport_size.x >= 1200 else 56.0
+		for button: Control in _panel_body.get_children():
+			button.custom_minimum_size = Vector2.ONE * icon_size
+		_panel_rail_back.custom_minimum_size = Vector2(28, icon_size)
+		var preferred := int(menu.get("columns" if viewport_size.x >= 1200 else "compact_columns", 1))
+		var available_columns := maxi(1, int((viewport_size.x - 80) / (icon_size + 6)))
+		_panel_body.columns = mini(preferred, available_columns)
+		# A moved inspector can occupy the center of the menu's usual strip.
+		# Wrap before shrinking icons so every command remains reachable beside it.
+		var inspector := _window_manager.get_ui_window("object_explorer") if _window_manager != null else null
+		if inspector != null and inspector.visible:
+			var obstacle := inspector.get_global_rect().grow(PANEL_DOCK_GAP)
+			var proposed_rows := ceili(float(_panel_body.get_child_count()) / _panel_body.columns)
+			var top := _dock_panel.position.y - PANEL_DOCK_GAP - proposed_rows * (icon_size + 8) - 16
+			if obstacle.end.y > top and obstacle.position.y < _dock_panel.position.y:
+				var side_width := maxf(obstacle.position.x - 24, viewport_size.x - obstacle.end.x - 24)
+				var side_columns := maxi(1, int((side_width - 16 - (34 if _panel_rail_back.visible else 0)) / (icon_size + 6)))
+				_panel_body.columns = mini(_panel_body.columns, side_columns)
+				if _active_panel_target == "craft":
+					_panel_body.columns = ceili(float(_panel_body.get_child_count()) / ceili(float(_panel_body.get_child_count()) / _panel_body.columns))
+		var content_width := _panel_body.columns * icon_size + (_panel_body.columns - 1) * 6
+		if _panel_rail_back.visible: content_width += 34
+		var rows := ceili(float(_panel_body.get_child_count()) / _panel_body.columns)
+		_panel_scroll.custom_minimum_size = Vector2(content_width, rows * icon_size + maxi(0, rows - 1) * 8)
+		_panel_container.custom_minimum_size = Vector2.ZERO
+		_panel_container.reset_size()
+		call_deferred("_position_action_panel")
+		return
 	# Leave the default inspector column clear on a normal desktop viewport.
 	var available := viewport_size.x - 48 - (400 if viewport_size.x >= 900 else 0)
 	var width := minf(820 if _active_panel_target == "build" else 460, available)
@@ -350,14 +395,19 @@ func _layout_action_panel() -> void:
 func _position_action_panel() -> void:
 	var viewport_width := get_viewport().get_visible_rect().size.x
 	var centered_x := (viewport_width - _panel_container.size.x) * 0.5
+	var menu: Dictionary = UIRegistry.get_menu(_active_panel_target)
+	var illustrated := bool(menu.get("illustrated", false))
+	var anchor: Control = _button_by_target.get(String(menu.get("dock_anchor", "")))
+	if illustrated and is_instance_valid(anchor):
+		centered_x = clampf(anchor.get_global_rect().position.x - 8, 24, viewport_width - _panel_container.size.x - 24)
 	var panel_position := Vector2(centered_x, maxf(PANEL_TOP_MARGIN,
 		_dock_panel.position.y - PANEL_DOCK_GAP - _panel_container.size.y))
 	# Keep the menu visually attached to the dock. At compact widths, move only
 	# far enough to clear the inspector, whose higher CanvasLayer would cover it.
 	var inspector := _window_manager.get_ui_window("object_explorer") if _window_manager != null else null
 	if inspector != null:
-		if not inspector.item_rect_changed.is_connected(_position_action_panel):
-			inspector.item_rect_changed.connect(_position_action_panel)
+		if not inspector.item_rect_changed.is_connected(_layout_action_panel):
+			inspector.item_rect_changed.connect(_layout_action_panel)
 		var inspector_rect := inspector.get_global_rect().grow(PANEL_DOCK_GAP)
 		if inspector.visible and Rect2(panel_position, _panel_container.size).intersects(inspector_rect):
 			var closest_distance := INF
@@ -369,6 +419,23 @@ func _position_action_panel() -> void:
 					panel_position.x = candidate_x
 					closest_distance = distance
 	_panel_container.position = panel_position
+	# The fixed utility controls remain usable while a command menu is open.
+	if _time_slice_hud != null:
+		for reserved: Rect2 in _time_slice_hud.occupied_rects():
+			reserved = reserved.grow(PANEL_DOCK_GAP)
+			if not _panel_container.get_global_rect().intersects(reserved): continue
+			var candidate := Vector2(reserved.position.x - _panel_container.size.x, panel_position.y)
+			if candidate.x >= 24 and (inspector == null or not inspector.visible or not Rect2(candidate, _panel_container.size).intersects(inspector.get_global_rect().grow(PANEL_DOCK_GAP))):
+				panel_position = candidate
+			else:
+				panel_position.y = maxf(PANEL_TOP_MARGIN, reserved.position.y - _panel_container.size.y)
+			_panel_container.position = panel_position
+	_panel_connector.visible = illustrated and _panel_container.visible and is_instance_valid(anchor)
+	if _panel_connector.visible:
+		var x := anchor.get_global_rect().get_center().x
+		var bounds := _panel_container.get_global_rect()
+		_panel_connector.visible = x >= bounds.position.x + 8 and x <= bounds.end.x - 8
+		_panel_connector.points = PackedVector2Array([Vector2(x, bounds.end.y), Vector2(x, _dock_panel.position.y)])
 
 
 func is_action_menu_open() -> bool:
@@ -377,6 +444,7 @@ func is_action_menu_open() -> bool:
 
 func _close_action_panel() -> void:
 	_panel_container.hide()
+	_panel_connector.hide()
 	_active_panel_target = ""
 	_refresh_active_buttons()
 
@@ -419,32 +487,57 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _build_status_strip() -> void:
-	_status_panel = PanelContainer.new()
-	_status_panel.position = Vector2(24,24)
-	_status_panel.mouse_force_pass_scroll_events = false
-	_status_panel.add_theme_stylebox_override("panel", UITheme.hud_panel_style())
-	_root.add_child(_status_panel)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	_status_panel.add_child(row)
-	_clock_button = UITheme.make_button("", "Open clock and weather", Vector2(190,32))
-	_clock_button.toggle_mode = true
-	_clock_button.pressed.connect(_dispatch.bind("toggle_window", "clock"))
-	row.add_child(_clock_button)
-	for speed in [0, 1, 2]:
-		var button := UITheme.make_button("Pause" if speed == 0 else "%d×" % speed,
-			"Pause / resume" if speed == 0 else "Run at %d× speed" % speed,
-			Vector2(62 if speed == 0 else 36,32))
-		button.toggle_mode = true
-		button.pressed.connect(_set_clock_speed.bind(speed))
-		row.add_child(button)
-		_speed_buttons[speed] = button
-	_slice_button = UITheme.make_button("Slice", "Toggle slice view (\\)", Vector2(56,32))
-	_slice_button.toggle_mode = true
-	_slice_button.pressed.connect(_dispatch.bind("toggle_window", "slice"))
-	row.add_child(_slice_button)
+func _build_time_slice_hud() -> void:
+	_time_slice_hud = preload("res://scripts/ui/TimeSliceHUD.gd").new()
+	_time_slice_hud.name = "TimeSliceHUD"
+	var hud_layer := CanvasLayer.new()
+	hud_layer.name = "TimeSliceLayer"
+	hud_layer.layer = 24
+	add_child(hud_layer)
+	hud_layer.add_child(_time_slice_hud)
+	_time_slice_hud.speed_requested.connect(_set_clock_speed)
+	_time_slice_hud.slice_toggle_requested.connect(_toggle_slice_tool)
+	_speed_buttons = _time_slice_hud.speed_buttons
+	_slice_button = _time_slice_hud.slice_button
+	if _slice_controller != null: _time_slice_hud.bind_slice(_slice_controller)
+	get_viewport().size_changed.connect(_position_time_slice_hud)
+	_position_dock()
 	_update_navigation_status()
+
+
+func _position_time_slice_hud() -> void:
+	if _time_slice_hud == null: return
+	_time_slice_hud.fit_to_viewport(_dock_panel.get_global_rect())
+	if _panel_container != null: call_deferred("_position_action_panel")
+	if _window_manager != null: _window_manager.call_deferred("fit_visible_windows")
+
+
+func _build_sky_dial() -> void:
+	# Dedicated status layer. Large windows keep normal priority on compact
+	# screens; ordinary inspectors make room through the shared window clamp.
+	var hud := CanvasLayer.new()
+	hud.name = "SkyHUD"
+	hud.layer = 21
+	add_child(hud)
+	_sky_hud_root = Control.new()
+	_sky_hud_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_sky_hud_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(_sky_hud_root)
+	_sky_dial = preload("res://scripts/ui/SkyDial.gd").new()
+	_sky_hud_root.add_child(_sky_dial)
+	get_viewport().size_changed.connect(_position_sky_dial)
+	_position_sky_dial()
+
+
+func _position_sky_dial() -> void:
+	var viewport := get_viewport().get_visible_rect().size
+	var side := 224.0 if viewport.x >= 1600 else (204.0 if viewport.x >= 1200 else 184.0)
+	_sky_dial.size = Vector2.ONE * side
+	_sky_dial.position = Vector2(viewport.x - side - 16, 12)
+	if _window_manager != null: _window_manager.call_deferred("fit_visible_windows")
+	if _food_warning != null:
+		_food_warning.offset_top = _sky_dial.position.y + side + 8
+		_food_warning.offset_bottom = _food_warning.offset_top
 
 
 func _set_clock_speed(speed: int) -> void:
@@ -461,17 +554,12 @@ func _set_clock_speed(speed: int) -> void:
 
 
 func _update_navigation_status() -> void:
-	if _clock_button == null or _world_clock == null:
+	if _world_clock == null:
 		return
-	_clock_button.text = "%s · Day %d · %s" % [
-		String(_world_clock.season).capitalize(), int(_world_clock.day), _world_clock.time_string()]
-	_clock_button.tooltip_text = "Year %d — open clock and weather" % int(_world_clock.year)
 	var paused := bool(_world_clock.paused) or float(_world_clock.speed) <= 0
 	for speed: int in _speed_buttons:
 		var button: Button = _speed_buttons[speed]
 		button.button_pressed = paused if speed == 0 else (not paused and is_equal_approx(float(speed), float(_world_clock.speed)))
-	_speed_buttons[0].text = "Paused" if paused else "Pause"
-	_clock_button.button_pressed = _window_manager != null and _window_manager.is_open("clock")
 	_slice_button.button_pressed = _target_canvas_visible("slice")
 
 func _dispatch(action: String, target: String) -> void:
@@ -525,10 +613,37 @@ func _open_action_panel(target: String) -> void:
 	_active_panel_target = target
 	_panel_title.text = _target_title(target)
 	var menu: Dictionary = UIRegistry.get_menu(target)
+	var illustrated := bool(menu.get("illustrated", false))
+	_panel_header.visible = not illustrated
+	_panel_rail_back.visible = illustrated and not String(menu.get("parent", "")).is_empty()
+	_panel_rail_back.tooltip_text = "Back to " + _target_title(String(menu.get("parent", "")))
+	_panel_container.add_theme_stylebox_override("panel", UITheme.dock_panel_style() if illustrated else UITheme.hud_panel_style())
+	for side: String in ["left", "right", "top", "bottom"]:
+		_panel_margin.add_theme_constant_override("margin_" + side, 0 if illustrated else 12)
+	_panel_body.add_theme_constant_override("h_separation", 6 if illustrated else 8)
+	_panel_body.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if illustrated else Control.SIZE_EXPAND_FILL
 	_panel_back.visible = not String(menu.get("parent", "")).is_empty()
 	_clear_children(_panel_body)
 	_panel_scroll.scroll_vertical = 0
 	for entry: Dictionary in menu.get("items", []):
+		if illustrated:
+			var icon_button := preload("res://scripts/ui/DockIconButton.gd").new()
+			var presentation := entry.duplicate()
+			if String(entry.action) == "open_crafting":
+				var section: Dictionary = _craft_panel.controller.sections.get(String(entry.target), {}) if _craft_panel != null else {}
+				presentation.planned = bool(section.get("planned", false))
+				presentation.status_label = "Catalog preview" if presentation.planned else ""
+				icon_button.disabled = _craft_panel == null or section.is_empty()
+			icon_button.setup(presentation, UIRegistry.get_dock_icon(entry))
+			icon_button.name = String(entry.id).to_pascal_case()
+			if String(entry.action) == "open_crafting":
+				icon_button.name = "Crafter" + String(entry.target).to_pascal_case()
+			icon_button.custom_minimum_size = Vector2(64, 64)
+			icon_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			icon_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			icon_button.pressed.connect(_dispatch_menu_entry.bind(entry))
+			_panel_body.add_child(icon_button)
+			continue
 		var button := UITheme.make_button(String(entry.label),
 			String(entry.get("tooltip", entry.label)), Vector2(128,46),
 			"dev" if String(entry.label).begins_with("DEV") else "")
@@ -573,7 +688,8 @@ func _dispatch_menu_entry(entry: Dictionary) -> void:
 	if action == "open_panel":
 		_dispatch(action, target)
 	elif action == "panel_action":
-		_dispatch_panel_action(target, String(entry.label))
+		if not _dispatch_command(String(entry.id)):
+			_dispatch_panel_action(target, String(entry.label))
 	else:
 		_close_action_panel()
 		if action == "activate_tool":
@@ -581,6 +697,31 @@ func _dispatch_menu_entry(entry: Dictionary) -> void:
 			dock_action_invoked.emit(action, target)
 		else:
 			_dispatch(action, target)
+
+
+## Live save/test commands use stable IDs, independent of captions and artwork.
+func _dispatch_command(id: String) -> bool:
+	match id:
+		"save_game":
+			save_game_requested.emit()
+			_close_action_panel()
+		"load_game":
+			load_game_requested.emit()
+			_close_action_panel()
+		"load_autosave":
+			load_autosave_requested.emit()
+			_close_action_panel()
+		"spawn_drops", "spawn_furniture":
+			if _stockpile_controller != null:
+				_stockpile_controller.call("dev_" + id)
+		"arrival_status_development":
+			var events := get_tree().get_first_node_in_group("world_events")
+			if events != null:
+				show_persistence_status(events.dev_status())
+				_persistence_toast_until_msec = Time.get_ticks_msec() + 6000
+		_:
+			return false
+	return true
 
 func _make_panel_action_button(label: String, target: String) -> Button:
 	var button := Button.new()
@@ -607,16 +748,6 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 		if events != null:
 			show_persistence_status(events.dev_status())
 			_persistence_toast_until_msec = Time.get_ticks_msec()+6000
-		return
-	if target == "wildlife" and label in ["DEV: Next rabbit","DEV: Next deer","DEV: Next wolf","DEV: Next duck","DEV: Next duck arrival","DEV: Next arrival","DEV: Next deer arrival","DEV: Next wolf arrival"]:
-		var wildlife := get_tree().get_first_node_in_group("wildlife")
-		if wildlife != null:
-			var found: String = wildlife.call("dev_locate_next",label.trim_prefix("DEV: Next "))
-			if found.is_empty() and label.ends_with("arrival"): show_persistence_status("No %s yet." % ("wildlife arrivals" if label == "DEV: Next arrival" else label.trim_prefix("DEV: Next ")+"s"))
-		return
-	if target == "surface_details" and label in ["DEV: Next boulder", "DEV: Next scree", "DEV: Next blueberry", "DEV: Next elderberry", "DEV: Next strawberry", "DEV: Next flowers", "DEV: Next reeds"]:
-		var details := get_tree().get_first_node_in_group("surface_details")
-		if details != null: details.call("dev_locate_next", {"DEV: Next boulder": "boulder", "DEV: Next scree": "scree", "DEV: Next blueberry": "blueberry", "DEV: Next elderberry": "elderberry", "DEV: Next strawberry": "wild_strawberry", "DEV: Next flowers": "flowers", "DEV: Next reeds": "reeds"}[label])
 		return
 	if target == "chop":
 		if label == "Chop Trees":
@@ -720,6 +851,9 @@ func _toggle_window(target: String) -> void:
 		tool_requested.emit("rooms")
 		return
 	if target == "flag":
+		if _flag_controller != null and _flag_controller.is_founded():
+			_open_settlement_flag()
+			return
 		# Announce so other click-tools (mining, storage zone) deactivate —
 		# two active tools eating the same click caused the 2026-07-06 crash.
 		tool_requested.emit("flag")
@@ -736,13 +870,41 @@ func _toggle_window(target: String) -> void:
 	_window_manager.toggle(target)
 
 
+func _open_settlement_flag() -> void:
+	tool_requested.emit("")
+	if _orders != null: _orders.set_open(false)
+	if _furniture_controller == null: return
+	var key := FlagPlacementController.FURNITURE_KEY
+	var location: Dictionary = _furniture_controller.get_catalog_location(key)
+	if location.has("position"):
+		var rig: Node = get_viewport().get_camera_3d()
+		while rig != null and not rig.has_method("locate_position"): rig = rig.get_parent()
+		if rig != null: rig.locate_position(location.position)
+	if location.has("object_id"):
+		var explorer := get_tree().get_first_node_in_group("object_explorer")
+		if explorer != null and explorer.select_object(_furniture_controller, location.object_id):
+			if location.state == "moving": show_persistence_status("The settlement flag is being moved. Its current order is shown.")
+			elif location.state == "packing": show_persistence_status("The settlement flag is marked for packing into storage.")
+			elif location.state == "placing": show_persistence_status("The settlement flag is awaiting installation. Its current order is shown.")
+			return
+		show_persistence_status("The settlement flag is at this location. Change the slice level to inspect it.")
+		return
+	if location.state == "packed" and _place_catalog != null:
+		_window_manager.open("place")
+		_place_catalog.category = "rooms"
+		_place_catalog.selected_key = key
+		_place_catalog.begin_browsing()
+		_place_catalog.fit_above_dock(_dock_panel.position.y)
+		show_persistence_status("The settlement flag is packed. Select it in Place to choose a new position.")
+	else:
+		show_persistence_status("A dwarf is carrying the settlement flag. It will be available in Place after delivery." if location.state == "carried" else "The settlement is founded, but no flag is currently available to place.")
+
+
 # ── Dock-owned windows (doc 24 Phase U2a) ─────────────────────────────────────
 
 func _register_dock_windows() -> void:
-	_window_manager.register_window("clock", _target_title("clock"),
-		String(DOCK_WINDOW_EMOJI["clock"]), _build_clock_content(),
-		{"persistent": true, "default_pos": Vector2(32.0, 130.0)})
-	_update_clock_labels()
+	_window_manager.register_window("time_weather_dev", "Time & weather tools", "",
+		_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130)})
 
 	_inventory_panel = preload("res://scripts/ui/ColonyInventoryPanel.gd").new()
 	_inventory_window = _window_manager.register_window("inventory", "Colony Inventory", "", _inventory_panel,
@@ -759,18 +921,14 @@ func _register_dock_windows() -> void:
 			{"persistent": true, "min_size": Vector2(300.0, 0.0)})
 
 
-func _build_clock_content() -> Control:
+func _build_time_weather_tools() -> Control:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
-
-	_clock_value_labels = {}
-	for field: String in ["season", "day", "time", "weather"]:
-		var row := Label.new()
-		row.add_theme_font_size_override("font_size", 15)
-		column.add_child(row)
-		_clock_value_labels[field] = row
-
-	# Test controls — advance the clock / cycle weather to preview the systems.
+	var note := Label.new()
+	note.text = "Advance the simulation to test time and weather."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(note)
+	# Development only; the player's Sky Dial is a read-only HUD.
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 8)
 	column.add_child(buttons)
@@ -804,7 +962,8 @@ func _build_placeholder_content(target: String) -> Control:
 		row.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		column.add_child(row)
 	var note := Label.new()
-	note.text = "(placeholder — live data arrives with this system)"
+	note.text = "Planned · Trading and merchant visits are not available yet."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.add_theme_font_size_override("font_size", 11)
 	note.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 	column.add_child(note)
@@ -818,33 +977,13 @@ func _advance_clock(method: String, arg = null) -> void:
 		_world_clock.call(method)
 	else:
 		_world_clock.call(method, arg)
-	_update_clock_labels()
+	if _sky_dial != null: _sky_dial.refresh()
 
 
 func _cycle_weather() -> void:
 	if _weather_mgr != null:
 		_weather_mgr.call("cycle_weather")
-	_update_clock_labels()
-
-
-func _update_clock_labels() -> void:
-	if _clock_value_labels.is_empty():
-		return
-	var season_text := "Unknown"
-	var day_text    := "Unknown"
-	var time_text   := "Unknown"
-	if _world_clock != null:
-		season_text = String(_world_clock.get("season")).capitalize()
-		day_text    = "%d" % int(_world_clock.get("day"))
-		time_text   = String(_world_clock.call("time_string"))
-	var weather_text := "—"
-	if _weather_mgr != null:
-		weather_text = String(_weather_mgr.call("current_weather_name"))
-	(_clock_value_labels["season"] as Label).text = "Season      %s" % season_text
-	(_clock_value_labels["day"] as Label).text    = "Day         %s" % day_text
-	(_clock_value_labels["time"] as Label).text   = "Time        %s" % time_text
-	if _clock_value_labels.has("weather"):
-		(_clock_value_labels["weather"] as Label).text = "Weather     %s" % weather_text
+	if _sky_dial != null: _sky_dial.refresh()
 
 
 func _refresh_active_buttons() -> void:
@@ -862,6 +1001,8 @@ func _refresh_active_buttons() -> void:
 			or (_panel_container.visible and _active_panel_target=="craft")
 	if _button_by_target.has("rooms"):
 		_button_by_target.rooms.button_pressed = _target_canvas_visible("rooms")
+	if _button_by_target.has("construction") and _target_canvas_visible("construction"):
+		_button_by_target.construction.button_pressed = true
 	if _orders != null:
 		for group: String in ["orders", "zones"]:
 			_button_by_target[group].button_pressed = _orders.is_open(group) \
@@ -875,7 +1016,7 @@ func _on_window_state_changed(_id: String, _open: bool) -> void:
 		elif _open and _place_catalog != null: _place_catalog.begin_browsing()
 	_refresh_active_buttons()
 	if _id == "object_explorer" and _panel_container != null:
-		call_deferred("_position_action_panel")
+		call_deferred("_layout_action_panel")
 		if _orders != null: _orders.inspector = _window_manager.get_ui_window("object_explorer")
 
 
@@ -917,6 +1058,8 @@ func _target_canvas_visible(target: String) -> bool:
 		"mine":
 			return _mining_controller != null and _mining_controller.has_method("is_active") \
 				and bool(_mining_controller.call("is_active"))
+		"construction":
+			return _construction_controller != null and _construction_controller.is_active()
 		"rooms":
 			return _room_controller != null and _room_controller.has_method("is_active") \
 				and bool(_room_controller.call("is_active"))
@@ -930,6 +1073,7 @@ func _target_canvas_visible(target: String) -> bool:
 
 func register_slice_controller(controller: Node) -> void:
 	_slice_controller = controller
+	if _time_slice_hud != null: _time_slice_hud.bind_slice(controller)
 	if controller.has_signal("slice_active_changed"):
 		var refresh := Callable(self, "_on_slice_active_changed")
 		if not controller.is_connected("slice_active_changed", refresh):
@@ -1082,6 +1226,11 @@ func register_mining_controller(controller: Node) -> void:
 	if _chop_controller != null: _chop_controller.set_mining_controller(controller)
 
 
+func register_construction_controller(controller: Node) -> void:
+	_construction_controller = controller
+	_connect_tool_active(controller)
+
+
 ## Push-registration from RoomOverlayController (🚪 Rooms tool, 2026-08-07) —
 ## the dock's 'rooms' entry announces via tool_requested; the controller
 ## self-toggles. Registration exists for the pressed-state readback only.
@@ -1176,7 +1325,6 @@ func _target_title(target: String) -> String:
 		"labor": return "Labor"
 		"stockpiles": return "Stockpiles"
 		"trade": return "Trade"
-		"clock": return "Clock"
 		"save_load": return "Save / Load"
 		"world_info": return "World Info"
 		"block_inspector": return "Block Inspector"
@@ -1209,7 +1357,7 @@ func _window_rows(target: String) -> Array[String]:
 		"stockpiles":
 			return ["Stone       0", "Ore         0", "Food        0", "Drink       0", "Trade Goods 0"]
 		"trade":
-			return ["Counter     None", "Buy Orders  0", "Reputation  0", "Caravan     Away"]
+			return ["Trade preview", "Exchange colony goods with visiting merchants in a future update."]
 	return []
 
 

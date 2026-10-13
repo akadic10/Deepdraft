@@ -1,0 +1,191 @@
+[
+  {
+    "test": "JobLifecycleTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.5,
+    "timeout": false
+  },
+  {
+    "test": "JobPlanningTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 6.46,
+    "timeout": false
+  },
+  {
+    "test": "JobMixedWorldTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 17.0,
+    "timeout": false
+  },
+  {
+    "test": "FurnitureAssignmentTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.58,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePlacementAnimationTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 14.14,
+    "timeout": false
+  },
+  {
+    "test": "WallMountHeightTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.68,
+    "timeout": false
+  },
+  {
+    "test": "LadderSchedulingTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 5.62,
+    "timeout": false
+  },
+  {
+    "test": "LadderTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 13.21,
+    "timeout": false
+  },
+  {
+    "test": "LadderMiningTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 12.37,
+    "timeout": false
+  },
+  {
+    "test": "CraftingSelectionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 11.08,
+    "timeout": false
+  },
+  {
+    "test": "WorkerCraftingTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 8.03,
+    "timeout": false
+  },
+  {
+    "test": "WorkerCraftingWoodTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 8.95,
+    "timeout": false
+  },
+  {
+    "test": "HaulingSelectionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 7.19,
+    "timeout": false
+  },
+  {
+    "test": "HaulingAnimationTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.41,
+    "timeout": false
+  },
+  {
+    "test": "SurfaceWorkSelectionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 5.16,
+    "timeout": false
+  },
+  {
+    "test": "TreeFellingTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.64,
+    "timeout": false
+  },
+  {
+    "test": "MinerProfessionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.46,
+    "timeout": false
+  },
+  {
+    "test": "PlacementHaulPriorityTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 15.61,
+    "timeout": false
+  },
+  {
+    "test": "ShrubMoveHandoffTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.82,
+    "timeout": false
+  },
+  {
+    "test": "DwarfSupportTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.2,
+    "timeout": false
+  },
+  {
+    "test": "DwarfIdleBehaviorTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.51,
+    "timeout": false
+  },
+  {
+    "test": "BridgeCornerWalkingTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.55,
+    "timeout": false
+  },
+  {
+    "test": "NavigationRegressionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.55,
+    "timeout": false
+  },
+  {
+    "test": "ConstructionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 8.39,
+    "timeout": false
+  },
+  {
+    "test": "ConstructionInputTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.38,
+    "timeout": false
+  },
+  {
+    "test": "FloorConstructionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.38,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 67.3,
+    "timeout": false
+  }
+]

@@ -1,5 +1,47 @@
 # 13 — Architecture
 
+**Food and dining (2026-10-12, 131):** per-dwarf `DwarfFoodBehavior` orchestrates
+storage-first meals. `DwarfForaging` uses SurfaceDetailManager's transient crop
+claims, saved harvest work and shared crop commit. `DwarfDining` uses furniture
+seat/table claims and authored access/clearance; neither helper posts public jobs.
+`DwarfMood` derives hunger effects and saves one dining outcome/timer.
+`DwarfWorkExecution` applies labor speed and adjusts supervisor estimates.
+`DwarfMealVisual` presents the item-owned serving palette without inventory;
+`ColonyFoodWarning` presents actual failed food searches. TaskManager owns tuning;
+ItemDropManager owns edible-item data. No new autoloads or registry loaders.
+
+**Settlement flag ownership (2026-10-12, 133):** the founding controller owns
+only the first-placement flow and founded/last-anchor history. Furniture owns
+the installed flag, occupancy and Move plans through its JSON definition.
+Furniture installation signals update the settlement anchor; physical flag
+restoration happens only through furniture/item/cargo owners, never the founding
+history section. See [133](../00_dev_roadmap/133_settlement_flag_furniture.md).
+
+**Furniture Move (2026-10-12):** scene-owned `FurniturePlacementController`
+owns the `FurnitureMoves` settings/identity ledger and its required save fields.
+`FurnitureMovePlan` extends the ordinary fetch/build component for packer
+continuation. Installed furniture remains the UNINSTALL source; items/storage/
+dwarves remain the sole owners of physical goods. No new autoload or global
+class is introduced. See [132](../00_dev_roadmap/132_furniture_move.md).
+
+**Structural construction (2026-10-12):** `BlockRegistry` loads
+`data/construction/blocks.json`. Scene-owned `ConstructionController` owns completed
+block provenance, pending areas, meshes and the `construction` save section
+(priority 15). Preloaded `ConstructionWork` reuses the furniture fetch contract
+for physical stone delivery and retained per-block work. No new autoload or
+global class is introduced. `WorldData` holds solidity; the existing mining,
+navigation, room and terrain-lighting systems consume it. See
+[127 — Structural stone](../00_dev_roadmap/127_structural_stone_construction.md).
+
+**Permanent floors (2026-10-12, roadmap 128):** the same owner holds typed plank
+and stone floor plans, with normal worker work disabled. Their inspector's DEV
+Build commits validated terrain cells. Preloaded `ConstructionFloorArt` caches
+the authored GLBs' boundary faces and appends only exposed faces to the terrain
+batch. BlockRegistry owns their construction data and block IDs. RoomManager
+owns `data/rooms/appeal.json`, deriving finished floor coverage and its +5 room
+contribution. Pending orders now save their construction kind; full scene restore
+covers both floor identities. There are no new autoloads or global classes.
+
 ## Global Autoload Singletons
 
 **Water (2026-10-10):** `WaterManager`, after WorldGenerator, owns live finite water
@@ -31,9 +73,10 @@ The following Autoloads are registered in **Project Settings → Autoload** (`pr
 
 > **Registration:** The agent may register these autoloads directly by editing the `[autoload]` section of `project.godot` (see File Ownership Rules in `AGENT.md`). Preserve the load order exactly as listed.
 
-Load order (matches `project.godot` `[autoload]` as of 2026-10-10):
+Load order (matches `project.godot` `[autoload]` as of 2026-10-12):
 
 ```
+CraftMaterials
 SurfaceDetailRegistry
 BlockRegistry
 WorldClock
@@ -130,6 +173,20 @@ the same section. Their IDs do not depend on generated candidates. Growth uses
 WorldClock's read-only continuous calendar and seasonal interval integration;
 only young records receive hourly maturity checks. Restore defers age reconciliation
 until the final clock signals, preserving observational saves and winter dormancy.
+
+### `CraftMaterials` *(roadmap 118 — crafted materials and appeal)*
+
+Sole loader of `data/materials/craft_materials.json`, registered first with no
+runtime world dependencies. Owns stable material definitions, ingredient-to-material
+mapping, product adjectives, material appeal bonuses and semantic wood palettes.
+It computes object appeal as `design + material bonus × material factor` and
+caches recolored meshes without modifying the original resources.
+
+Recipes and catalogue entries remain grouped by design. Inventory, equipment and
+installed-furniture owners retain and save each item's `material_id`; placement
+plans separately retain `required_material_id`. `CraftMaterials` supplies shared
+validation, naming, appeal and palette helpers, not inventory or save ownership.
+See [118 — Crafted materials and appeal](../00_dev_roadmap/118_crafted_materials_and_appeal.md).
 
 ### `BlockRegistry`
 
@@ -410,11 +467,14 @@ measured currents; still lakes stay quiet. See [Water ambience](../00_dev_roadma
 
 On application startup, autoloads run their `_ready()` in registration order, before the main scene's nodes initialise:
 
-1. **`BlockRegistry._ready()`** — loads `data/terrain/terrain_blocks.json` (block definitions: `kind` + `hex_color`) and `data/terrain/surface_palettes.json` (per-season grass/dirt colours), assigning runtime integer IDs in file order. It then resolves and caches `AIR_ID = get_id("base:terrain:void")`. Documentation-comment keys (any JSON key beginning with `__`) are skipped.
-2. **`WorldClock._ready()`** — loads `data/calendar/calendar.json` and starts the live clock (`_process` advances `hour`/`day`/`season`, honouring `speed` and `paused`).
-3. **`WorldData._ready()`** — allocates its `Mutex`. Chunks are **not** pre-allocated; they are created lazily on first write or handed over by the generator via `submit_chunk()`.
-4. **`WorldGenerator._ready()`** — allocates its request mutex and waits. Generation is **not** kicked off at boot; the renderer in the main scene calls `generate(seed)` explicitly, after which the generator builds the 2D maps and then services `request_chunk_column()` calls.
-5. **The remaining autoloads** (`PlacedEntityRegistry` → `SaveManager`) follow in registration order. Each loads only its owned configuration where applicable; `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load. `SaveManager` performs no save-file read at boot—the file is opened only when the player requests Load.
+1. **`CraftMaterials._ready()`** — loads `data/materials/craft_materials.json` and builds the ingredient-to-material lookup before any consumers initialise.
+2. **`SurfaceDetailRegistry._ready()`** — loads `data/entities/surface_details.json` and the blueberry, elderberry and wild-strawberry bush definitions.
+3. **`BlockRegistry._ready()`** — loads `data/terrain/terrain_blocks.json` (block definitions: `kind` + `hex_color`) and `data/terrain/surface_palettes.json` (per-season grass/dirt colours), assigning runtime integer IDs in file order. It then resolves and caches `AIR_ID = get_id("base:terrain:void")`. Documentation-comment keys (any JSON key beginning with `__`) are skipped.
+4. **`WorldClock._ready()`** — loads `data/calendar/calendar.json` and starts the live clock (`_process` advances `hour`/`day`/`season`, honouring `speed` and `paused`).
+5. **`WorkFeedback._ready()`** — loads `data/audio/work_feedback.json`, caches its audio streams and configures the work-audio bus.
+6. **`WorldData._ready()`** — allocates its `Mutex`. Chunks are **not** pre-allocated; they are created lazily on first write or handed over by the generator via `submit_chunk()`.
+7. **`WorldGenerator._ready()`** — allocates its request mutex and waits. Generation is **not** kicked off at boot; the renderer in the main scene calls `generate(seed)` explicitly, after which the generator builds the 2D maps and then services `request_chunk_column()` calls.
+8. **The remaining autoloads** (`WaterManager` → `SaveManager`) follow in registration order. Each loads only its owned configuration where applicable; `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load. `SaveManager` performs no save-file read at boot—the file is opened only when the player requests Load.
 
 No static game-data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`). Runtime user-save JSON is the separate responsibility of `SaveManager`; no other script opens it.
 

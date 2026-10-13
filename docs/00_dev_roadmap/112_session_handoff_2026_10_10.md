@@ -96,16 +96,16 @@ Do not treat a milestone's earlier save-case count as the current total.
 
 ## Next playtest
 
-1. In a fresh world, use **Menu → Development → DEV: Water** to inspect the
+1. In a fresh world, use **Development → DEV: Water** to inspect the
    cave, river, falls and lake. Review distant terrain as well as close features.
    Its reversible test dam should cause flooding and resume drainage on removal.
 2. Inspect a visible stone: it should start disallowed and still work. Allow,
    Pack/Move and Place should use a dwarf and preserve the exact item. A submerged
    dry stone remains concealed by opaque water and needs reachable dry access.
-3. Use **DEV: Next duck**, inspect and Follow a bird near water. Watch swimming,
+3. Click and Follow a duck near water. Watch swimming,
    bank activity and flight; approach with a dwarf to startle it. Listen nearby
-   for occasional quacks and waterfall/river ambience. **DEV: Next duck arrival**
-   locates members after a later flock has entered.
+   for occasional quacks and waterfall/river ambience. Later arrivals also
+   support click inspection and Follow.
 4. Save/load the current world during activity and confirm the colony, moved
    stones and wildlife continue. Do not use old development saves for this check.
 
@@ -122,6 +122,7 @@ domestication and seasonal departures are not implemented.
 
 Carpenter's workbench and first specialist recipes remain the prior handoff's
 recommended production follow-up; equipment upgrades are still planned. No next
-implementation milestone is selected by this wrap-up. [Open issues](00_open_issues.md)
-001 (original mining-face stall) remains open and 002 (dwarf/terrain overlap)
-remains parked; today's water/duck work does not close them.
+implementation milestone is selected by this wrap-up. At this handoff,
+[issue 001](00_open_issues.md) was open and issue 002 was parked; the water/duck
+work did not establish their original causes. **2026-10-12 update:** Alen
+provisionally closed both reports; reopen only if reported again.

@@ -2,6 +2,12 @@
 
 Status: **INSTALLED AND VERIFIED — 2026-10-02.**
 
+**2026-10-12:** [129 — Wall mount heights](129_wall_mount_heights.md) adds
+player-selected heights for both torch types, shared five-block worker reach,
+and pending plans that wait when access is lost. The lifecycle below reflects
+that change. Current light tuning lives in the furniture JSON; the original
+lighting values in the asset history below describe its first release.
+
 The Wall Torch adds the colony's first independently buildable wall light.
 It has a stepped iron backplate and cradle, charred oak handle, basket prongs
 and a layered amber flame. It remains at eight voxels/block and 1.5 blocks tall.
@@ -65,24 +71,34 @@ GLBs, including the approved static torch, remain byte-identical.
 
 ## Placement and lifecycle
 
-- **Build → Wall Torch**. Aim at a vertical terrain face for automatic orientation,
-  or at the neighboring floor and press R. Four quarter-turns match the rendered
+- **Place → Lighting → Wall Torch**. Aim at a vertical terrain cell for its height
+  and automatic orientation. Alt + wheel shifts height one block. Floor aiming
+  uses the default height and R facing. Four quarter-turns match the rendered
   model. The legacy `floor_wall` rotation helper now uses the same Godot Y rotation.
-- `placement: wall` uses a separate wall-face index. Saved origin remains a FLOOR
-  cell used for work targets and room membership. Floor footprint is 0×0 and
+- `placement: wall` uses a separate wall-face index. Saved origin is a fixed
+  placement reference; `origin_offset_y` locates the model base. Work floors are
+  discovered separately, and room membership samples the actual mount. Floor footprint is 0×0 and
   collision regions are empty; no navigation or stockpile floor reservation.
-- The model base is 2.5 blocks above the floor surface, with the flame at head
-  height and above. Its top reaches 4 blocks. **Four-block room height is required.**
+- Floor aiming defaults to a base 2.5 blocks above the floor surface for the iron
+  torch (1.5 for log). Direct wall aiming allows lower or higher mounts. There is
+  no fixed room-height requirement; the entire model and flame must fit.
   The two terrain cells behind the bracket must be solid and its visual volume air.
 - Low furniture and zones may occupy the floor below. Model bounds prevent overlap
   with tall pieces in either placement order, including walkable doors that have
-  no navigation collision. A dwarf needs a walkable work cell beneath or beside it.
+  no navigation collision. Install/uninstall require a reachable floor beneath or
+  beside the mount, with the bracket cell 1–5 blocks above it and clear reach.
 - Selection tests the mounted model before the terrain behind it, respecting
   intervening rock and slice visibility. A slice below the flame hides the torch and
   light, preventing the emitter from shining over clipped-away wall geometry.
   The placement hint now uses a CanvasLayer, removing the old 3D UI label.
-- Terrain changes recheck live wall mounts. Removing a support or its floor anchor
-  cancels a ghost or uninstalls the piece and refunds one packed torch. A final
+- Terrain changes recheck live wall mounts. Removing a bracket support cancels
+  a ghost or uninstalls the piece and refunds one packed torch. **2026-10-12:**
+  excavating the floor below an installed torch leaves its height, light and heat
+  unchanged. Its saved reference fixes the mount's position but is not a
+  physical support. Pending plans retain that position when access disappears
+  and wait for a reachable work floor; the original floor is not required.
+  `FurniturePlacementAnimationTest` covers both torch types in all four directions,
+  restoration above an excavated floor, bracket removal and pending-build checks. A final
   support check before the dwarf consumes the item closes the same-frame mining
   race; failed completion releases the intact carried crate at the worker's feet.
 - Ordinary fetch/build, uninstall toggle, packed-item refund, ghost persistence

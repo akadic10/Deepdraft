@@ -4,8 +4,20 @@ Implemented 2026-10-06 after approval of the interactive storage study. Stonehea
 provided the interaction reference; the native implementation uses Deepdraft's
 shared Hearth & iron theme and existing item thumbnails.
 
+Presentation updated 2026-10-12: ground zones now use the same framed window,
+wood-toned title bar, inset identity card, serif object name and body spacing as
+Object explorer. The zone window is titled Storage inspector; its card identifies
+the selected zone. Containers use that same identity card inside Object explorer.
+Actions stack below the controls, and Contents contracts for short lists while
+long lists and Filters remain scrollable. Selection, hauling and saved window
+positions retain their existing owners.
+
 ## Player behavior
 
+- Installed containers offer **Move**, using the furniture destination preview.
+  Filters follow the exact packed container; contents empty as loose goods at
+  its old location and can be hauled again. Cancelling before packing leaves it
+  installed. See [132 — Furniture Move](132_furniture_move.md).
 - Ground zones, chests, barrels and shelves share `StorageInspectorPanel`.
 - Filters and Contents are separate tabs. Capacity always shows occupied
   cells/slots separately from goods inside crates.

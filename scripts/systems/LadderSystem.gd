@@ -194,7 +194,7 @@ func _make_source(route: Dictionary) -> void:
 		var remaining := maxi(0, (sections(route.built) - 1) * section_height())
 		source.setup(route.id, KEY, definition, route.base + Vector3i.UP * remaining, route.yaw)
 		source.safe_callback = func(dwarf: int): return _safe_to_remove(route, dwarf)
-		source.uninstall_callback = func(_s): _removed(route)
+		source.uninstall_callback = func(_s, _worker_id): _removed(route)
 	else: return
 	source.progress = route.progress
 	source.source_id = TaskManager.allocate_source_id()

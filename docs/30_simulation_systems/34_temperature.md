@@ -10,13 +10,23 @@ RoomManager is the authoritative autoload for sealed rooms, temperature, beds,
 owner and installed light/heat counts. Rooms are derived state, rebuilt from
 terrain and furniture on load. No separate room records are saved.
 
+**Flooring appeal (2026-10-12):** RoomManager also owns `data/rooms/appeal.json`.
+All interior walking surfaces covered by constructed plank/stone floors grant
+one +5 flooring bonus, shown with coverage in Rooms. Mixed materials and tiles
+under furniture count; door seal columns are excluded. Terrain changes/load
+recompute the contribution. No heat or happiness effect is attached to floors.
+See [128 — Floors](../00_dev_roadmap/128_permanent_floor_preview.md).
+
 Each door footprint seals four air cells above its floor, independently of its
 hinge animation. Flood fills begin on both sides of each door. A finite air
 volume bounded by terrain and doors is sealed; a fill beyond 4096 cells is
 treated as open. Furniture does not seal air. Edits, doors, beds and lights dirty
 the room cache, with rebuilds throttled to 0.5 seconds. Hour changes recalculate
-weather exposure without flooding again. Heat registers once at a source's
-floor anchor; membership tests the air cell above that anchor.
+weather exposure without flooding again. Heat registers once per source;
+floor furniture samples the air above its floor anchor. Wall lights sample their
+actual mounted air cell, so changing placement height or excavating below does
+not associate them with another level's room. See
+[129 — Wall mount heights](../00_dev_roadmap/129_wall_mount_heights.md).
 
 A sealed room with a complete bed footprint, a door and a light becomes a
 bedroom. One assigned bed makes it personal; multiple beds make it a barracks.

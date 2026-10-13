@@ -68,7 +68,7 @@ seasonal migration departures are separate future work.
 
 ## Playtest
 
-Start a fresh development world and use **Menu → Development → DEV: Next duck**.
+Start a fresh development world and click a duck near water.
 Keep the camera close to hear occasional quacks. Use Follow to watch a duck
-paddle, visit shore or fly; approaching with a dwarf startles it. **DEV: Next
-duck arrival** finds members of later flocks once they have entered.
+paddle, visit shore or fly; approaching with a dwarf startles it. Later flocks
+can also be selected once they have entered.

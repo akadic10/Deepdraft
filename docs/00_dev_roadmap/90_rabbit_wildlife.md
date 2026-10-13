@@ -14,7 +14,7 @@ grazing foley, including pause, distance, variation and repetition controls.
 - Small-animal support/clearance checks, live obstacle revalidation and support
   loss handling, independent of dwarf jobs and ladder navigation.
 - Shared inspection with activity/appetite/rest, smooth selection outline,
-  Locate/Follow, slice concealment and **DEV: Next rabbit**.
+  Locate/Follow and slice concealment.
 - Complete population and behavioral save state, including partial hops and RNG.
 
 Definition, design and deferred food connections are in [45 — Wildlife](../40_economy_colony/45_wildlife.md).
@@ -52,7 +52,7 @@ escape behavior should be tuned after ordinary player observation.
 
 ## Player check
 
-1. Start a new play session, then Menu → Development → DEV: Next rabbit.
+1. Start a new play session and click a visible rabbit.
 2. Click or follow it; pause/unpause and try 2× speed. Appetite takes several game
    hours to grow, so feeding is deliberately occasional.
 3. Bring a dwarf nearby to see it flee. Observe a nap later in the day/night.

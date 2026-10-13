@@ -117,8 +117,8 @@ $env:LOCALAPPDATA = 'P:\Deepdraft\tmp\transplant_review\localappdata\native'
 & 'S:\STEAM\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe' --path P:\Deepdraft --script res://scripts/tests/ShrubTransplantTest.gd -- --capture
 ```
 
-For a quick playtest, use **Menu → Development → DEV: Next blueberry**, select
-**Move**, and click nearby open ground. Watch the bush move without leaving a
+For a quick playtest, click a blueberry bush, select **Move**, and click nearby
+open ground. Watch the bush move without leaving a
 duplicate. Then **Uproot** it, allow storage hauling, and use **Place → Plants** to
 replant it. Harvesting a ripe bush before either action should leave the replanted
 bush picked. Cancel a move while the worker carries it to check intact recovery.

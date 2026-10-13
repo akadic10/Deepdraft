@@ -20,7 +20,8 @@ var filter_items: Array[String] = []
 var excluded_items: Array[String] = []
 signal changed
 
-# One outgoing claim per physical stack. Goods stay stored until fist contact.
+# One outgoing total per stack, optionally shared by individual meal claims.
+# Goods stay stored until pickup contact.
 var _outgoing: Dictionary = {}
 
 var _lease_ids: Dictionary = {}               # task_id -> true (live HAUL leases)
@@ -225,6 +226,46 @@ func withdraw_stack(_slot: Variant, _amount: int, _dwarf_id: int) -> Node3D:
 	return null
 
 
+## Personal needs reserve a portion without moving it out of storage. The
+## outgoing token participates in existing inventory/relocation accounting.
+func reserve_portion(slot: Variant, key: String, dwarf_id: int) -> Dictionary:
+	if not StockpileManager.is_registered(self): return {}
+	if self is ContainerStorageComponent and self.suspended: return {}
+	var stack: Dictionary = stored_entries().get(slot, {})
+	if not slot_allowed(slot) or stack.get("item") != key or int(stack.get("count", 0)) < 1: return {}
+	var outgoing: Dictionary = _outgoing.get(slot,{})
+	if not outgoing.is_empty() and (not outgoing.has("portions") or outgoing.item != key): return {}
+	if int(stack.count) <= int(outgoing.get("count",0)): return {}
+	if outgoing.is_empty():
+		outgoing = {"slot":slot,"item":key,"count":0,"active":true,"portions":{}}
+		_outgoing[slot] = outgoing
+	if outgoing.portions.has(dwarf_id): return {}
+	var token := {"slot":slot,"item":key,"count":1,"owner":dwarf_id,"active":true}
+	outgoing.portions[dwarf_id] = token
+	outgoing.count = int(outgoing.count)+1
+	StockpileManager.storage_rules_changed()
+	changed.emit()
+	return token
+
+
+func portion_available(token: Dictionary, dwarf_id: int) -> bool:
+	if not bool(token.get("active", false)) or int(token.get("owner", -1)) != dwarf_id: return false
+	if not StockpileManager.is_registered(self): return false
+	if self is ContainerStorageComponent and self.suspended: return false
+	var stack: Dictionary = stored_entries().get(token.slot, {})
+	var outgoing: Dictionary = _outgoing.get(token.slot,{})
+	return outgoing.get("portions",{}).get(dwarf_id) == token and slot_allowed(token.slot) \
+		and stack.get("item") == token.item and int(stack.get("count", 0)) >= int(outgoing.get("count",1))
+
+
+func take_portion(token: Dictionary, dwarf_id: int, stand: Vector3i) -> Node3D:
+	if not portion_available(token, dwarf_id) or stand not in withdrawal_stands(token.slot): return null
+	var cargo := withdraw_stack(token.slot, int(token.count), dwarf_id)
+	if cargo == null: return null
+	release_outgoing(token)
+	return drop_manager.take_quantity(cargo, int(token.count), dwarf_id)
+
+
 func contents() -> Dictionary:
 	var result := {}
 	for stack: Dictionary in stored_entries().values():
@@ -240,7 +281,15 @@ func relocation_id(slot: Variant) -> String:
 func release_outgoing(token: Dictionary) -> void:
 	if not bool(token.get("active", false)): return
 	token.active = false
-	_outgoing.erase(token.slot)
+	var outgoing: Dictionary = _outgoing.get(token.slot,{})
+	if token.has("owner") and outgoing.get("portions",{}).get(token.owner) == token:
+		outgoing.portions.erase(token.owner)
+		outgoing.count = int(outgoing.count)-int(token.count)
+		if int(outgoing.count)<=0: _outgoing.erase(token.slot)
+	elif outgoing == token:
+		for portion: Dictionary in outgoing.get("portions",{}).values(): portion.active = false
+		_outgoing.erase(token.slot)
+	else: return # A stale release cannot erase a replacement claim.
 	StockpileManager.storage_rules_changed()
 	changed.emit()
 

@@ -23,6 +23,8 @@
 [ext_resource type="Script" path="res://scripts/systems/WildlifeManager.gd" id="20_wildlife"]
 [ext_resource type="Script" path="res://scripts/systems/WorldEventDirector.gd" id="21_events"]
 [ext_resource type="Script" path="res://scripts/ui/WaterDebugPanel.gd" id="22_water"]
+[ext_resource type="Script" uid="uid://c3nv0xasxktrf" path="res://scripts/systems/ConstructionController.gd" id="23_construction"]
+[ext_resource type="Script" path="res://scripts/ui/TerrainExplorerProvider.gd" id="24_terrain_explorer"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -103,7 +105,6 @@ script = ExtResource("6_slice")
 renderer_path = NodePath("../Renderer")
 camera_path = NodePath("../CameraRig")
 dock_ui_path = NodePath("../DockUI")
-window_manager_path = NodePath("../UIWindowManager")
 
 [node name="SurfaceFloraSpawner" type="Node3D" parent="."]
 script = ExtResource("7_flora")
@@ -153,6 +154,13 @@ slice_controller_path = NodePath("../SliceController")
 [node name="CraftingManager" type="Node" parent="."]
 script = ExtResource("17_crafting")
 
+[node name="ConstructionController" type="Node3D" parent="."]
+script = ExtResource("23_construction")
+mining_path = NodePath("../MiningDesignationController")
+furniture_path = NodePath("../FurniturePlacementController")
+renderer_path = NodePath("../Renderer")
+dock_path = NodePath("../DockUI")
+
 [node name="RoomOverlayController" type="Node3D" parent="."]
 script = ExtResource("13_rooms")
 dock_ui_path = NodePath("../DockUI")
@@ -163,8 +171,13 @@ window_manager_path = NodePath("../UIWindowManager")
 script = ExtResource("15_explorer")
 window_manager_path = NodePath("../UIWindowManager")
 slice_controller_path = NodePath("../SliceController")
-click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController")])
+click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController"), NodePath("../ConstructionController")])
 dwarf_director_path = NodePath("../DwarfDirector")
+terrain_provider_path = NodePath("../TerrainExplorerProvider")
+
+[node name="TerrainExplorerProvider" type="Node" parent="."]
+script = ExtResource("24_terrain_explorer")
+renderer_path = NodePath("../Renderer")
 
 [node name="TreeFellingController" type="Node3D" parent="."]
 script = ExtResource("16_felling")

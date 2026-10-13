@@ -27,6 +27,26 @@
     "",
     "Keys beginning with '__' are documentation comments and are skipped."
   ],
+  "food": {
+    "drain_per_hour": 0.075,
+    "hungry_threshold": 0.4,
+    "famished_threshold": 0.15,
+    "initial_spread": 0.2,
+    "retry_hours": 0.25,
+    "pickup_seconds": 0.75,
+    "eat_seconds": 5.0,
+    "search_seconds": 12.0,
+    "search_budget_usec": 250,
+    "search_nodes": 64,
+    "forage_distance": 24,
+    "dining_distance": 16,
+    "desperate_dining_distance": 6,
+    "dining_search_seconds": 2.0,
+    "hungry_work_multiplier": 0.9,
+    "famished_work_multiplier": 0.75,
+    "hungry_mood_penalty": 0.05,
+    "famished_mood_penalty": 0.15
+  },
   "scheduler": {
     "scheduler_budget_usec": 1000,
     "max_probes_per_wake": 8,
@@ -73,9 +93,10 @@
     "max_workers": 4
   },
   "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip, replacing the old physical-item pouch_capacity limit. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
-  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Bridges/ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration.",
+  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Bridges/ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
   "furniture": {
-    "uninstall_time_s": 2.0
+    "uninstall_time_s": 2.0,
+    "wall_reach_up_blocks": 5
   },
   "__comment_idle": "Interruptible leisure while available for work. Seconds follow simulation speed. Walks stay on clear same-level ground near the last work/spawn position; no ladders or long-distance roaming. Chairs remain separately built furniture.",
   "idle": {
@@ -108,6 +129,12 @@
   },
   "mood": {
     "baseline": 0.5,
+    "dining": {
+      "duration_hours": 8.0,
+      "seat_only": 0.03,
+      "table_only": 0.03,
+      "neither": 0.08
+    },
     "personal_bedroom": {
       "bonus": 0.1,
       "duration_hours": 24.0,

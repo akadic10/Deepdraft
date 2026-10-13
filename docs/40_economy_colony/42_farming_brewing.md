@@ -1,5 +1,19 @@
 # 42 — Farming & Brewing
 
+**Zones navigation, 2026-10-12:** [137 — Illustrated Zones](../00_dev_roadmap/137_illustrated_zones.md)
+reserves visible Farming and Animal pasture entries beside live Storage. Both
+are explicitly planned and only explain their status; no farm or pasture zones,
+worker jobs, livestock ownership or crop cultivation are enabled by this UI pass.
+
+**Food foundation, 2026-10-12:** [131 — Food and dining](../00_dev_roadmap/131_dwarf_food_and_dining.md)
+adds eating fresh fruit and repeat berry-bush crops. Dwarves prefer reachable
+stored food, then allowed loose portions. Famished dwarves may pick a ripe,
+unclaimed bush within 24 blocks of routed travel when harvested food is unavailable.
+Normal crop work, yield and regrowth still apply: one portion is carried for eating,
+surplus berries remain haulable, and interrupted work saves on the plant.
+Dining and hunger penalties are live. Edibility/nutrition are explicit item data,
+so later cooked food and edible meats can share the same behavior.
+
 ## Overview
 
 The colony's food and drink supply draws from two distinct farming environments: **surface plots** on outdoor dirt for crops that need open air, and **cave soil patches** underground for fungi and plants adapted to darkness. Both feed into the same brewery and kitchen chain.
@@ -42,9 +56,11 @@ remove them permanently. See [76 — Seasonal wildflowers](../00_dev_roadmap/76_
 Generated blueberry, elderberry and wild-strawberry plants can now be harvested
 or permanently cleared. Harvest takes three seconds and keeps the plant; clearing
 takes two seconds and yields one cutting on completion (100% for all three
-species, configured in `wild.clearing.yields[].chance`). Berry harvest yields once per
-eligible season: blueberry 3 in summer, elderberry 4 in autumn, strawberry 3 in
-spring and again in summer. Picked state, separate partial work and removals save.
+species, configured in `wild.clearing.yields[].chance`). Berry harvest yields
+blueberry 3 in summer, elderberry 4 in autumn, and strawberry 3 in spring/summer.
+As of milestone 131, berries regrow after two planted days in eligible seasons;
+off-season and packed intervals pause progress. Picked visuals, crop progress,
+separate partial work and removals save. Moving a bush cannot refresh its crop.
 Fruit enters the existing loose produce-crate and hauling pipeline. All four
 seasons have dedicated voxel art, including berry-free picked variants.
 
@@ -52,7 +68,7 @@ Use the individual inspector or **Orders → Harvest plants / Clear shrubs**.
 Cuttings use existing crates and the **Seeds & cuttings** stockpile filter. Each
 completed clearing grants its cutting only once; cancellation and reload cannot
 repeat the reward. Construction/excavation displacement grants no cutting.
-Farm plots, food consumption and brewing remain future work. See
+Farm plots and brewing remain future work. Fruit consumption is live in 131. See
 [75 — Seasonal shrubs](../00_dev_roadmap/75_seasonal_shrubs.md) for exact rules,
 habitats, saved crop cycles and developer test shortcuts.
 

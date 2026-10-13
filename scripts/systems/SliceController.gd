@@ -10,7 +10,7 @@ extends Node
 ## rule S1), so toggling off is just a plane move, never a special state.
 ##
 ## Responsibilities (ref doc 10 rules in parentheses):
-##   - Stepping: cell ±4 and single ±1, snapped to cell tops (S2; Deepdraft cell
+##   - Stepping: exact ±4 and ±1 level offsets (S2; Deepdraft cell
 ##     height = 4, NOT Stonehearth's 5).
 ##   - Clamps: slice_y in [4, 127]. Y4 keeps one mineable layer visible above
 ##     bedrock — the Bedrock Protocol stays inviolate. 127 = slice off.
@@ -19,20 +19,18 @@ extends Node
 ##   - Hotkeys (H1): slice_toggle (\), slice_cell_up (]), slice_cell_down ([),
 ##     slice_single_up (Ctrl+]), slice_single_down (Ctrl+[) — registered in
 ##     project.godot [input] (ownership note: AGENT.md, approved 2026-06-05).
-##   - Palette window (H2): cell/single steppers + live Y readout, in the Clock
-##     window's visual language.
+##   - The fixed TimeSliceHUD presents controls/readout; this node owns no UI.
 ##   - Mutual exclusion (S7): the future X-Ray tool calls deactivate_if_active();
 ##     exclusion is enforced at the tool layer, never in the renderer.
 ##
-## Scene wiring: @export paths (Scene Decoupling Contract). DockUI's `slice`
-## dock entry routes its toggle here via register on _ready.
+## Scene wiring: @export paths (Scene Decoupling Contract). DockUI registers
+## this controller with the fixed utility HUD on _ready.
 
 # ── Scene references (wire in Inspector) ─────────────────────────────────────
 
 @export var renderer_path: NodePath
 @export var camera_path: NodePath
 @export var dock_ui_path: NodePath
-@export var window_manager_path: NodePath
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -65,17 +63,6 @@ var _active: bool = false
 var _seeded: bool = false          # S3: seed exactly once per session
 var _last_slice_y: int = MAX_SLICE_Y   # restored on re-activation
 
-var _window_manager: UIWindowManager = null
-var _readout_label: Label
-var _readout_hint: Label
-var _up_buttons: Array[Button] = []
-var _down_buttons: Array[Button] = []
-
-## Manager window id for the palette. Tool state — not a persistent window:
-## visibility follows the tool's active flag (which round-trips through the
-## save file, doc 20); the layout file remembers only its position (doc 24 §2).
-const PALETTE_WINDOW_ID := "slice_palette"
-
 
 func _ready() -> void:
 	add_to_group("work_feedback_slice")
@@ -83,8 +70,6 @@ func _ready() -> void:
 	_renderer = get_node_or_null(renderer_path)
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_dock_ui = get_node_or_null(dock_ui_path)
-	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
-	_build_palette()
 
 	if _renderer == null:
 		push_warning("SliceController: renderer_path is not wired — slice tool inert.")
@@ -152,10 +137,8 @@ func restore_state(state: Dictionary) -> void:
 	_active = bool(state.get("active", false))
 	if _active:
 		_set_slice_y(int(state.get("slice_y", _last_slice_y)))
-		_set_palette_visible(true)
 	else:
 		_set_slice_y(MAX_SLICE_Y)
-		_set_palette_visible(false)
 	slice_active_changed.emit(_active)
 
 
@@ -166,11 +149,10 @@ func toggle_active() -> void:
 		activate()
 
 
-func show_at_height(height: int, open_palette: bool = true) -> void:
+func show_at_height(height: int) -> void:
 	_seeded = true
 	_active = true
 	_set_slice_y(height)
-	_set_palette_visible(open_palette)
 	slice_active_changed.emit(true)
 
 
@@ -191,7 +173,6 @@ func activate() -> void:
 		# visible cut, harmless).
 
 	_set_slice_y(_last_slice_y)
-	_set_palette_visible(true)
 	slice_active_changed.emit(true)
 
 
@@ -203,7 +184,6 @@ func deactivate() -> void:
 	_active = false
 	_last_slice_y = get_slice_y()
 	_set_slice_y(MAX_SLICE_Y)
-	_set_palette_visible(false)
 	slice_active_changed.emit(false)
 
 
@@ -213,27 +193,22 @@ func deactivate_if_active() -> void:
 	deactivate()
 
 
-# ── Stepping (S2 — cell = 4; cell tops are n*4 - 1: Y7, Y11, … Y127) ──────────
+# ── Stepping (exact offsets, clamped at the world limits) ──────────
 
 func step_cell_up() -> void:
-	var y := get_slice_y()
-	_set_slice_y(y - ((y + 1) % CELL_HEIGHT) + CELL_HEIGHT)
+	if _active: _set_slice_y(get_slice_y() + CELL_HEIGHT)
 
 
 func step_cell_down() -> void:
-	var y := get_slice_y()
-	var delta := (y + 1) % CELL_HEIGHT
-	if delta == 0:
-		delta = CELL_HEIGHT
-	_set_slice_y(y - delta)
+	if _active: _set_slice_y(get_slice_y() - CELL_HEIGHT)
 
 
 func step_single_up() -> void:
-	_set_slice_y(get_slice_y() + 1)
+	if _active: _set_slice_y(get_slice_y() + 1)
 
 
 func step_single_down() -> void:
-	_set_slice_y(get_slice_y() - 1)
+	if _active: _set_slice_y(get_slice_y() - 1)
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────
@@ -244,7 +219,6 @@ func _set_slice_y(value: int) -> void:
 	var clamped := clampi(value, MIN_SLICE_Y, MAX_SLICE_Y)
 	if clamped != get_slice_y():
 		_renderer.set("slice_y", clamped)   # setter runs the localized invalidation
-	_update_readout()
 	slice_changed.emit(clamped)
 
 
@@ -263,98 +237,3 @@ func _seed_from_camera() -> int:
 	@warning_ignore("integer_division")
 	var cell_top := (surface_y / CELL_HEIGHT) * CELL_HEIGHT + CELL_HEIGHT - 1
 	return clampi(cell_top, MIN_SLICE_Y, MAX_SLICE_Y)
-
-
-# ── Palette window (H2; doc 24: content only — chrome in UIWindowManager) ─────
-
-func _build_palette() -> void:
-	if _window_manager == null:
-		push_warning("SliceController: UIWindowManager not found at '%s' — palette disabled." % window_manager_path)
-		return
-
-	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 12)
-	var column := VBoxContainer.new()
-	column.custom_minimum_size.x = 254
-	column.add_theme_constant_override("separation", 10)
-	margin.add_child(column)
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
-	column.add_child(card)
-	var readout := VBoxContainer.new()
-	card.add_child(readout)
-	_slice_label(readout, "VIEWING LEVEL", 11, UITheme.HEARTH_COPPER)
-	_readout_label = _slice_label(readout, "", 28)
-	UITheme.apply_title(_readout_label, 28)
-	_readout_hint = _slice_label(readout, "", 13, UITheme.HEARTH_MUTED)
-	var coarse := HBoxContainer.new()
-	coarse.add_theme_constant_override("separation", 6)
-	column.add_child(coarse)
-	var down := _make_step_button("▼  Cell down", "Lower one 4-block cell · [", step_cell_down)
-	var up := _make_step_button("▲  Cell up", "Raise one 4-block cell · ]", step_cell_up)
-	coarse.add_child(down)
-	coarse.add_child(up)
-	_down_buttons.append(down)
-	_up_buttons.append(up)
-	var fine := HBoxContainer.new()
-	fine.add_theme_constant_override("separation", 6)
-	column.add_child(fine)
-	down = _make_step_button("−  Block", "Lower one block · Ctrl+[", step_single_down)
-	up = _make_step_button("+  Block", "Raise one block · Ctrl+]", step_single_up)
-	fine.add_child(down)
-	fine.add_child(up)
-	_down_buttons.append(down)
-	_up_buttons.append(up)
-	_slice_label(column, "[ / ]  Cell    ·    Ctrl + [ / ]  Block", 12, UITheme.HEARTH_MUTED)
-	var done := _make_step_button("Show full world", "Turn off Slice; your level is remembered.", deactivate)
-	column.add_child(done)
-	var window := _window_manager.register_window(PALETTE_WINDOW_ID, "Slice view", "", margin,
-		{"default_pos": Vector2(24.0, 84.0)})
-	UITheme.apply_catalog_window(window)
-	window.keep_body_on_screen = true
-	# Closing the palette with its X IS turning the slice tool off — the
-	# window has no meaning without the tool.
-	_window_manager.window_state_changed.connect(_on_window_state_changed)
-	_update_readout()
-
-
-func _on_window_state_changed(id: String, open: bool) -> void:
-	if id == PALETTE_WINDOW_ID and not open and _active:
-		deactivate()
-
-
-func _set_palette_visible(shown: bool) -> void:
-	if _window_manager == null:
-		return
-	if shown:
-		_window_manager.open(PALETTE_WINDOW_ID)
-	else:
-		_window_manager.close(PALETTE_WINDOW_ID)
-
-
-func _make_step_button(text: String, tooltip: String, on_press: Callable) -> Button:
-	var button := UITheme.make_button(text, tooltip, Vector2(0.0, 34.0))
-	UITheme.apply_hearth_button(button)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.pressed.connect(on_press)
-	return button
-
-
-func _slice_label(parent: Node, text: String, font_size: int, color: Color = UITheme.HEARTH_TEXT) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	parent.add_child(label)
-	return label
-
-
-func _update_readout() -> void:
-	if _readout_label == null:
-		return
-	var y := get_slice_y()
-	_readout_label.text = "Level %d" % y if y < MAX_SLICE_Y else "Full world"
-	_readout_hint.text = "Terrain above this level is hidden." if y < MAX_SLICE_Y else "All terrain is visible."
-	for button in _up_buttons: button.disabled = y >= MAX_SLICE_Y
-	for button in _down_buttons: button.disabled = y <= MIN_SLICE_Y

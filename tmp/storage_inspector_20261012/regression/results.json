@@ -1,0 +1,23 @@
+[
+  {
+    "test": "ZoneWindowTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.04,
+    "timeout": false
+  },
+  {
+    "test": "TerrainExplorerTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.2,
+    "timeout": false
+  },
+  {
+    "test": "ObjectExplorerTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.2,
+    "timeout": false
+  }
+]

@@ -32,8 +32,8 @@ interruption, pause and reload keep partial work. Clearing is permanent; seasons
 never regrow removed flowers. Committed construction or loss of the supporting
 ground also removes the clump and safely cancels its work, without items.
 
-Use **Menu → Development → DEV: Next flowers** to focus and inspect a generated
-clump. It does not clear, reveal terrain or change plant state. Then:
+Click a visible flower clump to inspect it. Inspection does not clear, reveal
+terrain or change plant state. Then:
 
 1. Inspect the flowers close up and at normal play zoom.
 2. Use the existing DEV season controls to inspect all four appearances.

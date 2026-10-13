@@ -1,5 +1,10 @@
 # 34 — Double door visual redesign
 
+> **Historical design, superseded for starter doors:** milestone 117 introduced
+> animated log doors, simplified to frameless leaves on 2026-10-12. Alen reserved
+> framed designs for better doors later. This oak-and-iron design and its generator
+> remain references; the live models come from `generate_log_furniture.py`.
+
 **Status (2026-10-01): installed and verified.** The door now matches the
 warm oak and dark iron of the upgraded tavern and storage furniture. Its
 2×1 footprint, 3.875-block height and walkable, room-sealing behavior are

@@ -79,7 +79,7 @@ resource concealment.
 
 1. **Project → Reload Current Project**, because `WaterManager` is a new autoload.
 2. Start a new world. Development saves predating this owner/layout have no migration.
-3. Open **Menu → Development → DEV: Water**.
+3. Open **Development → DEV: Water**.
 4. Focus the spring, cycle waterfalls, or focus the outlet. Stop/restart the spring.
 5. Build the test dam and unpause to observe accumulation and bank overflow;
    remove it to reopen the channel. This uses real, saved terrain edits and avoids

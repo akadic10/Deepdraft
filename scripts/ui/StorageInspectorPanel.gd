@@ -10,6 +10,7 @@ var storage: StorageComponent
 var category := "stockpile_stone"
 var info_label: Label
 var _kind: Label
+var _name: Label
 var _capacity: ProgressBar
 var _tabs: Array[Button] = []
 var _filters: VBoxContainer
@@ -23,7 +24,7 @@ var _grid: GridContainer
 var _contents: VBoxContainer
 var _summary: Label
 var _waiting: Label
-var _actions: HBoxContainer
+var _actions: VBoxContainer
 var _action_data: Array = []
 var _tiles: Dictionary = {}
 var _groups: Array[Dictionary] = []
@@ -36,7 +37,17 @@ func _ready() -> void:
 	UITheme.apply_surface(self)
 	custom_minimum_size.x = 390
 	add_theme_constant_override("separation", 8)
-	_kind = _label(self, "GROUND STORAGE", 11, UITheme.HEARTH_COPPER)
+	var identity := PanelContainer.new()
+	identity.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
+	add_child(identity)
+	var heading := VBoxContainer.new()
+	heading.add_theme_constant_override("separation", 5)
+	identity.add_child(heading)
+	_kind = _label(heading, "GROUND STORAGE", 11, UITheme.HEARTH_COPPER)
+	_name = _label(heading, "Storage", 26)
+	UITheme.apply_title(_name, 26)
+	_name.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	info_label = _label(self, "", 14)
 	_capacity = ProgressBar.new()
 	_capacity.show_percentage = false
@@ -84,12 +95,13 @@ func _ready() -> void:
 	pages.add_child(_grid)
 	_contents = VBoxContainer.new()
 	_contents.add_theme_constant_override("separation", 8)
+	_contents.minimum_size_changed.connect(func(): _fit.call_deferred())
 	pages.add_child(_contents)
 	_summary = _label(self, "", 13)
 	_summary.max_lines_visible = 2
 	_summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_waiting = _label(self, "", 12, UITheme.HEARTH_COPPER)
-	_actions = HBoxContainer.new()
+	_actions = VBoxContainer.new()
 	add_child(_actions)
 	_groups = UIRegistry.get_storage_categories()
 	for entry in _groups: _category.add_item(entry.label)
@@ -98,7 +110,9 @@ func _ready() -> void:
 	_show_tab(0)
 
 
-func show_storage(value: StorageComponent, actions: Array = []) -> void:
+func show_storage(value: StorageComponent, actions: Array = [], title: String = "Storage") -> void:
+	_name.text = title
+	_name.tooltip_text = title
 	if storage == value and actions == _action_data: return
 	if storage != value:
 		clear_subject()
@@ -307,17 +321,18 @@ func _fit() -> void:
 	if window == null or not is_visible_in_tree(): return
 	var viewport := get_viewport_rect().size
 	var compact := viewport.y < 620
-	_kind.visible = not compact
+	_name.add_theme_font_size_override("font_size", 22 if compact else 26)
 	add_theme_constant_override("separation", 6 if compact else 8)
 	_filters.add_theme_constant_override("separation", 6 if compact else 8)
 	custom_minimum_size.x = clampf(viewport.x - 48, 280, 390)
 	_grid.columns = 2 if custom_minimum_size.x < 360 else 3
 	window.custom_minimum_size.x = custom_minimum_size.x + 30
 	var fixed := window.get_combined_minimum_size().y - _scroll.custom_minimum_size.y
-	var max_scroll: float = 250.0 + (_filters.get_combined_minimum_size().y + 8 if _shown_tab == 1 else 0.0)
-	_scroll.custom_minimum_size.y = clampf(viewport.y - 100 - fixed, 100, max_scroll)
-	window.reset_size()
-	window.clamp_to_viewport()
+	var max_scroll := 250.0 if _shown_tab == 0 else clampf(_contents.get_combined_minimum_size().y, 100, 300)
+	_scroll.custom_minimum_size.y = clampf(viewport.y - 152 - fixed, 68 if compact else 100, max_scroll)
+	# Let container minimum sizes propagate before shrinking the outer window.
+	window.reset_size.call_deferred()
+	window.clamp_to_viewport.call_deferred()
 
 
 func _item_name(key: String) -> String:

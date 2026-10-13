@@ -13,20 +13,20 @@ func _capture_inspector() -> void:
 	dock.window_manager_path = NodePath("../Windows")
 	scene.add_child(dock)
 	dock.register_furniture_controller(furniture)
-	manager.open("clock")
-	var clock_window = manager.get_ui_window("clock")
-	clock_window.position = Vector2(24, 32)
-	dock._update_clock_labels()
+	manager.open("time_weather_dev")
+	var clock_window = manager.get_ui_window("time_weather_dev")
+	clock_window.position = Vector2(24, 96)
+	dock._sky_dial.refresh()
 	await _settle()
 	_click(clock_window._close_button.get_global_rect().get_center())
-	_expect(not manager.is_open("clock") and not dock._clock_button.button_pressed,
-		"shared Close updates the dock indicator")
-	_click(dock._clock_button.get_global_rect().get_center())
-	_expect(manager.is_open("clock") and dock._clock_button.button_pressed,
-		"dock reopens the styled Clock window")
+	_expect(not manager.is_open("time_weather_dev") and dock._sky_dial.visible,
+		"closing development controls leaves the permanent Sky Dial visible")
+	dock._dispatch("toggle_window", "time_weather_dev")
+	_expect(manager.is_open("time_weather_dev") and not manager.has_window("clock"),
+		"development controls reopen without a redundant player clock window")
 	await _save_capture("hearth_windows_1280.png")
 	explorer.clear_selection()
-	manager.close("clock")
+	manager.close("time_weather_dev")
 	furniture._process(0)
 	drops.spawn_drop("base:resources:furniture:wooden_table", 2, Vector3i(34,21,34))
 	var catalog = dock._place_catalog
@@ -105,6 +105,8 @@ func _capture_inspector() -> void:
 
 func _find_button(node: Node, text_part: String) -> Button:
 	if node is Button and text_part in node.text:
+		return node
+	if node is Button and node.get_script() == preload("res://scripts/ui/DockIconButton.gd") and text_part in node.caption:
 		return node
 	for child: Node in node.get_children():
 		var found := _find_button(child, text_part)

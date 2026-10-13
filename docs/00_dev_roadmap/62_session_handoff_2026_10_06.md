@@ -30,7 +30,7 @@ Stonehearth supplies interaction inspiration, not a one-to-one layout or asset c
 
 Inventory remains the colony supplies view. Place installs finished furniture;
 it does not provide crafting or structural building. Labor and Trade remain
-previews. Developer controls remain under **Menu → Development**.
+previews. Developer controls remain under **Development**.
 
 ## Final accepted correction: room darkness
 
@@ -113,9 +113,9 @@ another gameplay change.
    not added by today's UX and lighting work.
 3. Treat lighting restrictions on dwarf work as a separate design decision; the
    accepted scope remains visibility only.
-4. Keep [Issue 001](00_open_issues.md) open. The older mining-face stall that ended
-   on another zone's completion has not been reproduced and resolved by today's
-   two confirmed hauling fixes. Use its original diagnostic plan if it recurs.
+4. [Issue 001](00_open_issues.md) was kept open at this handoff because the two
+   hauling fixes did not establish the original stall's cause. **2026-10-12 update:**
+   Alen provisionally closed it after the scheduler changes; reopen only if reported again.
 
 The workspace retains uncommitted implementation, data, assets and documentation
 from this and the previous session. No commit or repository reset was requested

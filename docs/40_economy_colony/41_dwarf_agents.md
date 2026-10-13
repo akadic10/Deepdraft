@@ -1,5 +1,16 @@
 # 41 — Dwarf Agents
 
+**2026-10-12 — Food and dining:** [131 — Food and dining](../00_dev_roadmap/131_dwarf_food_and_dining.md)
+implements stages 1 and 2 of the agreed plan: game-hour Food, physical fruit
+portions from reachable storage before allowed loose food, bounded retries,
+safe work interruption and current saves. Famished dwarves can pick a nearby
+ripe bush only after harvested food fails. Diners prefer seat/table, seat alone,
+table alone, then neither; penalties are 0/−3/−3/−8 for up to eight game hours.
+Hungry/famished dwarves lose 5/15 happiness and work 10%/25% slower. No damage or
+death. Serving art, last-meal details and shortage warnings are live; stage 3's
+character-screen reorganization remains planned.
+Fresh fruit is the first edible content; future meals/meats use the same metadata.
+
 **2026-10-11 — Privacy and thermal sleep comfort:** Idle visitors leave bedrooms;
 owners may relax in their own, and unassigned bedrooms are for sleep. Work access
 remains open. Cold/chilly/hot sleep creates a −20/−5/−15 happiness thought after
@@ -16,7 +27,7 @@ See [122](../00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md).
 > (`16_first_dwarf_milestone.md` step 7). Procedural generation (names/appearance/traits,
 > seed-deterministic per `world_seed + birth_index`) runs through `DwarfFactory` +
 > `DwarfAssets`; dwarves spawn at the player-placed Settlement Flag. NOT yet implemented:
-> hunger/thirst/alcohol/health, the broader thought system, the full profession roster and the
+> thirst/alcohol/health, the broader thought system, the full profession roster and the
 > full needs-interrupt priority ladder — the tables below remain their design source.
 
 ## Overview
@@ -48,7 +59,7 @@ See [64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
 and cargo readouts in the shared inspector. **Colony → Dwarves** adds a stable
 overview with name search, work/rest filters and Locate; selecting a row opens
 that same inspector. Static portraits use existing visual parts and never create
-simulation agents. Developer controls moved to Menu → Development. See
+simulation agents. Developer controls moved to Development. See
 [doc 51](../00_dev_roadmap/51_hearth_iron_dwarf_inspector.md) and
 [doc 57](../00_dev_roadmap/57_colony_dwarf_roster.md).
 
@@ -113,6 +124,9 @@ look around, or use an unoccupied installed wooden chair. Their local anchor
 stays at the last job/spawn position so successive walks do not become an
 expedition. Leisure remains in the task scheduler's idle pool and yields to
 work immediately. It does not restore sleep or create a mood/food requirement.
+The 2026-10-12 flooring follow-up lets a dwarf with no flat stroll take an
+adjacent one-block step up onto clear ground. This lets them leave shallow tiles
+that DEV Build skipped while occupied. The inspector calls this **Stepping up**.
 
 `DwarfIdleBehavior` owns transient activity and uses TaskManager's `idle` tuning.
 Chair claims are exclusive and transient; entry uses authored access cells and
@@ -127,6 +141,9 @@ When another miner removes the floor, the dwarf settles vertically onto the firs
 solid block or bridge deck below. This also repairs unsupported positions restored
 from a current save and handles drops deeper than four blocks. It preserves XZ,
 facing and sleep state, and refreshes slice visibility at the new height.
+Since 2026-10-12, feet embedded in a raised floor also recover onto that block
+when the full three-block standing space above is clear. This works for current
+saved positions as well as live terrain edits and never searches through a roof.
 
 Interrupted work follows the ordinary release protocol: clear the obsolete route,
 release source, seating and tool reservations, drop carried goods at the landing,
@@ -142,9 +159,16 @@ All stats are floats in the range `0.0 – 1.0` unless otherwise noted.
 
 | Stat | Drain Rate | Critical Threshold | Consequence |
 |---|---|---|---|
-| `hunger` | −0.005 / s | < 0.15 | Work speed ×0.5; < 0.0 → death |
+| `food` (live, 131) | −0.075 / game hour | Hungry ≤ 0.40; Famished ≤ 0.15 | Seek a portion; +0.60 from fruit. Mood −5/−15; work speed −10%/−25%; no damage/death. |
 | `thirst` | −0.008 / s | < 0.15 | Mood penalty; < 0.0 → death |
 | `sleep` | −0.0007 / s | < 0.20 | Work speed ×0.6, pathfinding errors increase |
+
+**Awake fatigue timing corrected 2026-10-12:** the sleep drain rate is per
+simulation second. Awake fatigue now scales with WorldClock speed, so equal
+game hours drain equal rest at ×1, ×2 and ×3, matching the existing six-game-hour
+sleep duration. Pause and speed zero freeze the drain. The ×1 rate, per-dwarf
+variation, sleep threshold and saved fields are unchanged. DwarfRestTest covers
+equal-game-hour drain, pause/zero speed and the accelerated sleep interrupt.
 
 > **Sleep drain retuned 2026-08-07** (was −0.003/s; first extended sleep-lite playtest).
 > The old rate emptied full→threshold in ~4 in-game hours — a 4-hour waking day against a
@@ -155,17 +179,18 @@ All stats are floats in the range `0.0 – 1.0` unless otherwise noted.
 > jitters each dwarf's drain ±10% (deterministic per id) so schedules decohere over days
 > rather than staying phase-locked. The original sleep billboard was replaced by
 > ground poses, closed eyes, breathing and snoring on 2026-10-11 (see above).
-> Hunger/thirst rates above are still unimplemented
-> design values — re-derive them against a 24-hour day before building the needs system
-> (at −0.005/s, hunger would empty in ~3.3 game hours against the stated 8-hour meal
-> cadence — the same class of mis-tune this note fixes for sleep).
+> The former hunger rate of −0.005/s is superseded by milestone 131's
+> game-hour Food tuning. Thirst and the other unimplemented needs below remain
+> future design, including their provisional rates and consequences.
 | `alcohol` | +varies on drink | > 0.80 | Mood bonus but pathfinding accuracy −30% |
 | `mood` | ±event-driven | < 0.10 | Tantrum trigger; < 0.0 → berserk |
 | `health` | injury-driven | < 0.10 | Forced bed rest |
 
 ### Biological Limits
 
-- **Sustenance**: A dwarf must eat food at least once every **8 in-game hours** or hunger hits critical.
+- **Sustenance**: Initial tuning targets one portion every **8 game hours**.
+  Food ≤ 0.40 starts a search; Famished is ≤ 0.15, not an automatic eight-hour
+  death/critical deadline. Sleep also drains Food. Pause freezes both needs.
 - **Rest profiles**: Dwarves require a minimum of **6 in-game hours** of sleep per 24-hour cycle. Sleep is taken autonomously when `sleep < 0.25` and a claimed bed is reachable.
 - **Alcohol levels**: Drinking one unit of ale raises `alcohol` by `+0.15`. Alcohol drains at `−0.02 / s`. Dwarves **will not** voluntarily drink above `0.80`.
 

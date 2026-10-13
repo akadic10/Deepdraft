@@ -227,8 +227,8 @@ func day_of_year() -> int:
 
 
 ## Returns daylight hours for a given day-of-year via the seasonal cosine
-## (11_overview.md §5). Read-only helper; not yet consumed by any system —
-## the day/night renderer (08_sky_plan.md phase 3) will use it.
+## (11_overview.md §5). SkyController uses it for lighting anchors; the Sky Dial
+## reads those same anchors rather than maintaining a second seasonal curve.
 func daylight_hours(doy: int) -> float:
 	var mean:   float = float(_day_length.get("mean_hours", 12.0))
 	var ampl:   float = float(_day_length.get("amplitude_hours", 4.0))

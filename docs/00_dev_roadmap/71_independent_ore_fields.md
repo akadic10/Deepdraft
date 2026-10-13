@@ -162,7 +162,7 @@ Select-String -Path tmp/ore_field_integration/integration.log -Pattern 'SCRIPT E
 ## Playtest and remaining decisions
 
 Restart play mode to generate the new deposits. No new global class, autoload or
-scene wiring requires a project reload. Use **Menu → Development → DEV: Cave
+scene wiring requires a project reload. Use **Development → DEV: Cave
 explorer → Focus + slice → Preview interior with DEV lighting** to see the new
 exposed patches easily. Closing the explorer restores normal discovery and
 concealment. Mining into a cave remains the ordinary discovery path.

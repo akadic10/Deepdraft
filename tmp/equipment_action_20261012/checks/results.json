@@ -1,0 +1,30 @@
+[
+  {
+    "test": "EquipmentFeedbackTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.75,
+    "timeout": false
+  },
+  {
+    "test": "DwarfProfessionPanelTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.33,
+    "timeout": false
+  },
+  {
+    "test": "DwarfInspectorTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.52,
+    "timeout": false
+  },
+  {
+    "test": "DwarfRosterTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 83.76,
+    "timeout": false
+  }
+]

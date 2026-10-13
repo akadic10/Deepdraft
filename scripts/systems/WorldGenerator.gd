@@ -796,6 +796,14 @@ func get_overview_strata_block_id(wx: int, wy: int, wz: int) -> int:
 	return _generate_block_id(wx, wy, wz, false)
 
 
+## Construction uses existing natural stone, without caves, surface soil or
+## resource veins. Above-ground blocks continue the same authored height bands.
+func construction_stone_id(cell: Vector3i) -> int:
+	var id := get_overview_strata_block_id(cell.x,cell.y,cell.z)
+	if String(BlockRegistry.get_def(BlockRegistry.get_key(id)).get("kind","")) == "rock": return id
+	return _fallback_rock_id(cell.y)
+
+
 # -- ID cache (main thread) ----------------------------------------------------
 
 func _cache_block_ids() -> void:

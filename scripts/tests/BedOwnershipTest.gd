@@ -25,7 +25,8 @@ func _run() -> void:
 	scene.add_child(explorer)
 	explorer.select_object(furniture,"installed:%d" % bed.installed_id)
 	await _frames(4)
-	var chooser: MenuButton = explorer._actions.get_child(0)
+	# Move now precedes assignment; locate the actual bed-owner menu.
+	var chooser: MenuButton = explorer._actions.get_children().filter(func(child): return child is MenuButton)[0]
 	_click(chooser.get_global_rect().get_center())
 	await _frames(3)
 	var popup := chooser.get_popup()

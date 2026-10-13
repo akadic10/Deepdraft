@@ -1,5 +1,12 @@
 # 06 - World-Start Placement (Settlement Flag & 3D Preview)
 
+**Current implementation (2026-10-12):** initial surface placement and a real
+starting squad shipped in milestone 16. The banner now uses normal furniture
+inspection and worker Move/Uninstall; packed flags are recoverable from Place →
+Rooms. Founded history and last anchor persist while it is in transit. See
+[133 — Settlement flag furniture](133_settlement_flag_furniture.md). The bounded
+world-start presentation discussed below remains an earlier proposal.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = keep</span> |
@@ -14,10 +21,8 @@ performance baselines, hypotheses, fog/camera budget, and Stonehearth staging re
 removed on 2026-06-06 (recoverable in git; the file keeps its old name so doc 07's link stays
 valid).
 
-What remains here is the one piece of forward-looking content that was *not* a performance
-concern and is captured nowhere else: the **world-start placement flow** — a player-facing
-feature, still backlog, **nothing implemented**. Build it when world-start UX matters, not
-before.
+The remaining proposal is a dedicated bounded world-start presentation. Basic
+flag placement, actual settlers and relocation are implemented as noted above.
 
 ## <span style="color:#3fb950;">KEEP - Feature Goal</span>
 
@@ -32,8 +37,8 @@ intentional new-world experience and a home location for future settlement syste
 ## <span style="color:#d29922;">REVIEW - Current Artifacts</span>
 
 - Settlement Flag item: `base:items:special:settlement_flag` in
-  `data/entities/items/resources.json` — **data only; referenced by no script yet.**
-- Placeholder model: `res://assets/models/items/misc/settlement_flag.glb`
+  `data/entities/items/resources.json` — the packed item used by the furniture lifecycle.
+- Installed model: `res://assets/models/items/misc/settlement_flag.glb`
   (one-tile footprint, three blocks tall).
 
 ## <span style="color:#d29922;">REVIEW - Proposed Flow</span>

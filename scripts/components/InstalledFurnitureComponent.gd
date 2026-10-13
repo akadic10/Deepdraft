@@ -27,12 +27,13 @@ var cells: Array[Vector3i] = []      # footprint floor cells
 # ── Work-source state (doc 19 §3.4 — injected by the controller) ──────────────
 var source_id: int = -1
 var flagged_uninstall: bool = false
-var uninstall_callback: Callable = Callable()   # (component) -> controller teardown
+var uninstall_callback: Callable = Callable()   # (component, worker_id) -> owner teardown
 
 var storage: ContainerStorageComponent = null   # doc 19 Phase 4 — set for storage pieces
 var material_id := ""
 var idle_seat_owner := -1 # Transient exclusive rest use; never serialized.
 var idle_seat_yaw_steps := -1 # A round stool's occupant can face independently.
+var dining_claims: Dictionary = {} # Transient table access positions, worker IDs.
 var sleep_owner := -1 # Transient bed use; released on wake/removal and rebuilt on load.
 var assigned_dwarf_id := -1 # Persistent ownership, separate from the current sleeper.
 
@@ -90,7 +91,7 @@ func on_task_gone(task_id: int, _dwarf_id: int) -> void:
 ## bordering the footprint (the footprint itself is occupied once installed).
 func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
 	if String(def.get("placement", "floor")) == "wall":
-		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(origin_cell, dwarf_cell)
+		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(def,origin_cell,yaw_steps,dwarf_cell)
 	var best := Vector3i(-1, -1, -1)
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in cells:
@@ -106,7 +107,16 @@ func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
 	return best
 
 
+## Wall removal can use any reachable floor within bracket reach.
+func wall_work_stands() -> Array[Vector3i]:
+	return preload("res://scripts/components/WallFurnitureMount.gd").work_stands(def,origin_cell,yaw_steps)
+
+
+func can_uninstall_from(cell: Vector3i) -> bool:
+	return String(def.get("placement","floor")) != "wall" or cell in wall_work_stands()
+
+
 ## The uninstall swing finished — hand off to the controller's teardown.
-func complete_uninstall(_dwarf_id: int) -> void:
+func complete_uninstall(dwarf_id: int) -> void:
 	if uninstall_callback.is_valid():
-		uninstall_callback.call(self)
+		uninstall_callback.call(self, dwarf_id)

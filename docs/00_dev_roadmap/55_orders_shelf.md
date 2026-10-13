@@ -1,5 +1,14 @@
 # 55 — Orders shelf
 
+> **2026-10-12 — illustrated submenu:** [136 — Orders](136_illustrated_orders_plan.md)
+> replaces the six labeled tiles with the approved Hearth & iron artwork and
+> hover/focus names. A 64/56 px icon rail anchors above Orders, wrapping beside
+> moved inspectors. The mode panel is compact; live counts/brush settings,
+> Done/Esc, pending-only Undo, feedback and View order remain. [137 — Zones](137_illustrated_zones.md)
+> extends the same art to live Storage and planned Farming/Animal pasture entries.
+> Native/headless real-input checks and 960/1280/2560 captures
+> pass. The earlier layout notes below are historical.
+
 > **2026-10-08 — reeds:** **Clear plants** also selects reeds, individually or
 > alongside shrubs and flowers. Reeds yield no items. Actual mesh clicks, mixed
 > rectangles, Undo, Cancel and harvest/stone exclusion pass. See

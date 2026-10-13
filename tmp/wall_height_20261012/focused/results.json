@@ -1,0 +1,7 @@
+{
+  "test": "WallMountHeightTest",
+  "passed": false,
+  "exit": 1,
+  "seconds": 18.13,
+  "timeout": false
+}

@@ -48,7 +48,8 @@
               "season_only": "autumn"
             }
           ],
-          "work_seconds": 3.0
+          "work_seconds": 3.0,
+          "regrow_days": 2.0
         },
         "picked_models": {
           "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_autumn_picked.glb"

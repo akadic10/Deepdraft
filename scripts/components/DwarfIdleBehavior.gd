@@ -28,7 +28,7 @@ func _init(owner: DwarfAgent) -> void:
 	_rng.seed = hash([WorldGenerator.world_seed, agent.dwarf_id, "leisure"])
 
 func owns_walk() -> bool:
-	return state in ["strolling","to_seat","leaving_room"]
+	return state in ["strolling","to_seat","leaving_room","stepping_up"]
 
 func active() -> bool:
 	return home.x >= 0
@@ -73,6 +73,12 @@ func tick(delta: float) -> bool:
 		return true
 	if state in ["to_seat","sitting","standing_up"] and not _seat_valid():
 		cancel()
+		return true
+	if state=="stepping_up":
+		if not NavGrid.is_walkable(goal) or not Privacy.segment(agent.current_cell(),goal,agent.dwarf_id):
+			cancel()
+			return true
+		agent._follow_path(delta)
 		return true
 	if owns_walk():
 		# Straight local routes cannot acquire a distant detour or use ladders.
@@ -128,7 +134,29 @@ func _wander() -> void:
 		state = "strolling"
 		agent.walk_nearby(cell)
 		return
+	if _step_up(): return
 	_pause() # A boxed-in dwarf waits; no search loop and no forced teleport.
+
+## A floor preview leaves occupied tiles unfinished. Flat-only wandering could
+## strand an idle dwarf in that shallow hole forever. Try one adjacent step up
+## using ordinary movement, clearance and privacy rules; never jump a wall.
+func _step_up() -> bool:
+	var from := agent.current_cell()
+	if not NavGrid.is_walkable(from): return false
+	for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
+		var cell := from+offset+Vector3i.UP
+		if Vector2(cell.x-home.x,cell.z-home.z).length()>float(config.get("home_radius",9)): continue
+		if not NavGrid.is_walkable(cell) or not Privacy.segment(from,cell,agent.dwarf_id): continue
+		var previous_home := home
+		# walk_to clears leisure first; give it ownership only after success.
+		if not agent.walk_to(cell):
+			home = previous_home
+			continue
+		home = Vector3i(previous_home.x,cell.y,previous_home.z)
+		goal = cell
+		state = "stepping_up"
+		return true
+	return false
 
 func _local(cell: Vector3i) -> bool:
 	return cell.y == home.y and Vector2(cell.x-home.x,cell.z-home.z).length() <= float(config.get("home_radius",9))
@@ -265,6 +293,7 @@ func _pose() -> void:
 
 func describe() -> Dictionary:
 	match state:
+		"stepping_up": return {"activity":"Stepping up", "explanation":"Climbing onto nearby ground; available for work.", "destination":goal}
 		"leaving_room": return {"activity":"Leaving bedroom", "explanation":"Giving the bedroom its privacy; available for work.", "destination":goal}
 		"strolling": return {"activity":"Strolling nearby", "explanation":"Taking a short walk while available for work.", "destination":goal}
 		"to_seat": return {"activity":"Going to sit", "explanation":"Heading to a nearby free chair; available for work.", "destination":goal}

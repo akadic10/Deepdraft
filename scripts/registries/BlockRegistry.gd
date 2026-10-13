@@ -4,6 +4,7 @@ extends Node
 const BLOCKS_PATH    := "res://data/terrain/terrain_blocks.json"
 const PALETTES_PATH  := "res://data/terrain/surface_palettes.json"
 const RESOURCES_PATH := "res://data/terrain/block_resources.json"
+const CONSTRUCTION_PATH := "res://data/construction/blocks.json"
 
 # ── Internal tables ───────────────────────────────────────────────────────────
 # Keys with "__" prefix in the JSON are documentation comments — always skipped.
@@ -16,6 +17,7 @@ var _id_to_key:        Array      = []   # int         →  StringName
 var _id_to_def:        Array      = []   # int         →  Dictionary (full block def)
 var _surface_palettes: Dictionary = {}   # variant_suffix  →  { season: Color }
 var _resource_defs:    Dictionary = {}
+var _construction_defs: Dictionary = {}
 
 # Hot-path lookup tables (doc 11 Phase 1d). Built EAGERLY in _ready and never
 # mutated afterwards, so WorkerThreadPool mesh builders can read them without
@@ -35,6 +37,7 @@ func _ready() -> void:
 	_load_blocks()
 	_load_palettes()
 	_load_resource_defs()
+	_construction_defs = JSON.parse_string(FileAccess.get_file_as_string(CONSTRUCTION_PATH))
 	AIR_ID = get_id(&"base:terrain:void")
 	_build_luts()
 	print("BlockRegistry: loaded %d block types." % _id_to_key.size())
@@ -150,6 +153,9 @@ func _load_resource_defs() -> void:
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
+func get_construction_def(key: String) -> Dictionary:
+	return _construction_defs.get(key, {})
 
 ## Returns the runtime integer ID for a namespaced block key.
 ## Returns -1 if the key is not registered.

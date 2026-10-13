@@ -29,6 +29,8 @@ const ACTIVE_EVENT := {
 	"?member_routes": [["cell"]],
 }
 const SCENE := {
+	"construction": {"next_id":"positive_int","built":[{"cell":"cell","block":"key"}],
+		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT}]}]},
 	"jobs": {"next_order":"positive_int","next_attempt":"positive_int","time":TYPE_FLOAT,
 		"records":{"*":{"key":"key","label":TYPE_STRING,"state":"key","reason":TYPE_STRING,"failures":TYPE_INT,"last_transition":TYPE_FLOAT}},
 		"history":[{"order":"key","state":"key","reason":TYPE_STRING,"attempt":TYPE_INT,"worker":TYPE_INT,"time":TYPE_FLOAT}]},
@@ -51,18 +53,20 @@ const SCENE := {
 			"work_seconds": TYPE_FLOAT, "reason": TYPE_STRING, "?origin": "cell", "?yaw": TYPE_INT,
 			"?packed": TYPE_BOOL, "?planted_at": TYPE_FLOAT, "?growth_credit": TYPE_FLOAT,
 			"?action": TYPE_STRING, "?harvested_cycle": TYPE_STRING, "?harvest_work_cycle": TYPE_STRING,
+			"?regrow_started_at":TYPE_FLOAT,"?regrow_credit":TYPE_FLOAT,
 			"?clear_work_seconds": TYPE_FLOAT, "?harvest_work_seconds": TYPE_FLOAT,
 			"?uproot_work_seconds": TYPE_FLOAT}],
 		"planted": [{"id": "key", "definition": "key", "origin": "cell", "yaw": TYPE_INT}],
 		"next_plant_id": TYPE_INT,
 	},
-	"settlement_flag": {"placed": TYPE_BOOL, "cell": "cell"},
+	"settlement_flag": {"founded": TYPE_BOOL, "cell": "cell"},
 	"stockpiles": {"zones": [{"id": TYPE_INT, "cells": ["cell"], "filter_tags": [TYPE_STRING],
 		"storage_filter": FILTER,
 		"stacks": [{"cell": "cell", "item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]}]},
 	"furniture": {
+		"moves": {"next_id":"positive_int","records":{"*":{"key":"key","installed_id":TYPE_INT,"assigned_dwarf_id":TYPE_INT,"storage_filter":FILTER}}},
 		"ghosts": [{"id": TYPE_INT, "key": "key", "origin": "cell", "yaw": TYPE_INT,
-			"?required_material_id": "material", "layout_version": TYPE_INT, "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING}],
+			"?required_material_id": "material", "layout_version": TYPE_INT, "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING, "?move_id":TYPE_STRING}],
 		"installed": [{"id": TYPE_INT, "key": "key", "origin": "cell", "yaw": TYPE_INT,
 			"layout_version": TYPE_INT, "flagged_uninstall": TYPE_BOOL, "?material_id": "material",
 			"?assigned_dwarf_id": TYPE_INT,
@@ -79,7 +83,9 @@ const SCENE := {
 		"traits": [TYPE_STRING], "profession": "key", "profession_experience": {"*": TYPE_INT},
 		"work_permissions": {"*": TYPE_BOOL}, "position": "vector", "rotation_y": TYPE_FLOAT,
 		"sleep": TYPE_FLOAT, "sleeping": TYPE_BOOL, "sleep_hours_left": TYPE_FLOAT,
+		"food": {"value":TYPE_FLOAT,"last_meal":TYPE_STRING,"?last_dining":TYPE_STRING,"hours_since_meal":TYPE_FLOAT,"retry_hours":TYPE_FLOAT},
 		"?mood": {"personal_sleep_hours":TYPE_FLOAT,"bedroom_memory_hours":TYPE_FLOAT,
+			"?dining_outcome":TYPE_STRING,"?dining_memory_hours":TYPE_FLOAT,
 			"?cold_sleep_hours":TYPE_FLOAT,"?cold_memory_hours":TYPE_FLOAT,
 			"?chilly_sleep_hours":TYPE_FLOAT,"?chilly_memory_hours":TYPE_FLOAT,
 			"?hot_sleep_hours":TYPE_FLOAT,"?hot_memory_hours":TYPE_FLOAT},
@@ -104,6 +110,10 @@ const SNAPSHOT := {
 }
 
 
+static func _construction_cell(cell: Vector3i) -> bool:
+	return cell.x>=0 and cell.x<1024 and cell.y>3 and cell.y<128 and cell.z>=0 and cell.z<1024
+
+
 static func validate(snapshot: Dictionary, schema_version: int) -> String:
 	# Check metadata before comparing/casting it. JSON decodes numbers as floats,
 	# so whole finite numbers are accepted where serializers supply integers.
@@ -116,6 +126,23 @@ static func validate(snapshot: Dictionary, schema_version: int) -> String:
 	if snapshot.scene.water.layout_version != preload("res://scripts/components/RiverLayout.gd").VERSION:
 		return "this development save uses an outdated river layout; start a new world."
 	if snapshot.clock.hour < 0 or snapshot.clock.speed < 0: return "the saved clock has negative time or speed."
+	var construction: Dictionary = snapshot.scene.construction
+	var construction_cells := {}
+	var construction_ids := {}
+	for entry: Dictionary in construction.built:
+		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
+		if not _construction_cell(cell) or construction_cells.has(cell) \
+			or String(BlockRegistry.get_def(StringName(entry.block)).get("kind","")) not in ["rock","constructed_floor"]:
+			return "save.scene.construction has an invalid constructed block."
+		construction_cells[cell] = true
+	for order: Dictionary in construction.orders:
+		if BlockRegistry.get_construction_def(String(order.kind)).is_empty(): return "save.scene.construction has an unknown construction type."
+		if order.id >= construction.next_id or construction_ids.has(order.id) or order.cells.is_empty(): return "save.scene.construction has an invalid order."
+		construction_ids[order.id] = true
+		for entry: Dictionary in order.cells:
+			var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
+			if not _construction_cell(cell) or construction_cells.has(cell) or entry.work<0: return "save.scene.construction has invalid planned work."
+			construction_cells[cell] = true
 	var jobs: Dictionary = snapshot.scene.jobs
 	if jobs.time < 0 or jobs.history.size() > 200: return "save.scene.jobs has invalid diagnostic bounds."
 	var order_keys := {}
@@ -131,8 +158,12 @@ static func validate(snapshot: Dictionary, schema_version: int) -> String:
 	var residents := {}
 	for dwarf: Dictionary in snapshot.scene.dwarves.roster:
 		residents[int(dwarf.id)] = true
-		for hours: float in dwarf.get("mood",{}).values():
-			if hours<0: return "save.scene.dwarves has a negative mood timer."
+		if float(dwarf.food.value)<0.0 or float(dwarf.food.value)>1.0 or float(dwarf.food.hours_since_meal)<0.0 or float(dwarf.food.retry_hours)<0.0:
+			return "save.scene.dwarves has invalid food need or meal timing."
+		for outcome in [dwarf.food.get("last_dining",""),dwarf.get("mood",{}).get("dining_outcome","")]:
+			if outcome not in ["","proper","seat_only","table_only","neither"]: return "save.scene.dwarves has an invalid dining outcome."
+		for field: String in dwarf.get("mood",{}):
+			if field != "dining_outcome" and float(dwarf.mood[field])<0: return "save.scene.dwarves has a negative mood timer."
 	var assigned_beds := {}
 	for piece: Dictionary in snapshot.scene.furniture.installed:
 		var resident := int(piece.get("assigned_dwarf_id",-1))
@@ -218,6 +249,38 @@ static func _validate_stones(scene: Dictionary) -> String:
 		if id.is_empty(): continue
 		if not owners.has(id) or moves.has(id) or ghost.key!="base:water:"+scene.water.stones[id].kind+"_stone": return "save.scene has an invalid water stone move."
 		moves[id] = true
+	return _validate_furniture_moves(scene, goods)
+
+
+static func _validate_furniture_moves(scene: Dictionary, goods: Array) -> String:
+	var moves: Dictionary = scene.furniture.moves
+	var plans := {}
+	var sources := {}
+	for ghost: Dictionary in scene.furniture.ghosts:
+		var id := String(ghost.get("move_id", ""))
+		if id.is_empty(): continue
+		if not moves.records.has(id) or plans.has(id) or ghost.key != moves.records[id].key:
+			return "save.scene.furniture has an invalid move destination."
+		plans[id] = true
+	var counts := {}
+	for item: Dictionary in goods:
+		var id := String(item.get("instance_id", ""))
+		if not id.begins_with("furniture_move:"): continue
+		if not moves.records.has(id) or item.count != 1:
+			return "save.scene.furniture has a packed move item without its settings."
+		counts[id] = int(counts.get(id,0)) + 1
+	for id: String in moves.records:
+		var record: Dictionary = moves.records[id]
+		var serial := int(id.get_slice(":",1))
+		if id != "furniture_move:%d" % serial or serial < 1 or serial >= int(moves.next_id) or record.installed_id < -1 or record.assigned_dwarf_id < -1:
+			return "save.scene.furniture has an invalid move identity."
+		if record.installed_id >= 0:
+			var pieces: Array = scene.furniture.installed.filter(func(piece): return piece.id == record.installed_id and piece.key == record.key and piece.flagged_uninstall)
+			if pieces.size() != 1 or sources.has(record.installed_id) or not plans.has(id) or counts.has(id):
+				return "save.scene.furniture has a missing or duplicated move source."
+			sources[record.installed_id] = true
+		elif int(counts.get(id,0)) != 1:
+			return "save.scene.furniture has missing or duplicated packed furniture."
 	return ""
 
 

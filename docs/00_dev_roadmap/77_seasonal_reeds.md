@@ -11,8 +11,8 @@ construction and support loss also remove the clump without rewards.
 
 ## Quick playtest
 
-Use **Menu → Development → DEV: Next reeds** to focus and inspect a real
-generated clump. The locator does not modify terrain, clear reeds or grant items.
+Click a visible reed clump to inspect it. Inspection does not modify terrain,
+clear reeds or grant items.
 
 1. Check the roots and nearby water at close and ordinary play zoom.
 2. Use the DEV season controls to compare all four appearances.

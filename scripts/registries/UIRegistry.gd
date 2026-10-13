@@ -20,6 +20,8 @@ var _inventory_catalog: Dictionary = {}
 const ROSTER_PATH := "res://data/ui/dwarf_roster.json"
 var _roster_filters: Array[Dictionary] = []
 var _storage_categories: Array[Dictionary] = []
+var _sky_dial: Dictionary = {}
+var _time_slice: Dictionary = {}
 
 # ── Internal tables ───────────────────────────────────────────────────────────
 # Ordered list of validated navigation buttons.
@@ -28,6 +30,7 @@ var _storage_categories: Array[Dictionary] = []
 # automatically (the loader only reads "items" and "menus").
 var _dock_items: Array = []
 var _menus: Dictionary = {}
+var _room_symbols: Dictionary = {}
 
 const _VALID_ACTIONS := ["open_panel", "toggle_window", "activate_tool", "panel_action", "open_crafting"]
 
@@ -38,6 +41,8 @@ func _ready() -> void:
 	_load_inventory_catalog()
 	_load_roster_filters()
 	_load_storage_categories()
+	_load_sky_dial()
+	_load_time_slice()
 	print("UIRegistry: loaded %d dock items." % _dock_items.size())
 
 
@@ -46,6 +51,7 @@ func _ready() -> void:
 func _load_dock() -> void:
 	_dock_items.clear()
 	_menus.clear()
+	_room_symbols.clear()
 
 	var file := FileAccess.open(DOCK_PATH, FileAccess.READ)
 	if file == null:
@@ -64,6 +70,8 @@ func _load_dock() -> void:
 		push_error("UIRegistry: dock layout must be a JSON object.")
 		return
 	var root: Dictionary = json.data
+	if root.get("room_symbols", {}) is Dictionary:
+		_room_symbols = root.get("room_symbols", {})
 	if not root.get("items", []) is Array or not root.get("menus", {}) is Dictionary:
 		push_error("UIRegistry: dock items must be an array and menus an object.")
 		return
@@ -96,7 +104,11 @@ func _load_dock() -> void:
 			else:
 				push_warning("UIRegistry: skipping malformed command in %s." % key)
 		_menus[key] = {"title": String(menu.get("title", key.capitalize())),
-			"parent": String(menu.get("parent", "")), "items": entries}
+			"parent": String(menu.get("parent", "")), "items": entries,
+			"illustrated": bool(menu.get("illustrated", false)),
+			"dock_anchor": String(menu.get("dock_anchor", "")),
+			"columns": maxi(1, int(menu.get("columns", entries.size()))),
+			"compact_columns": maxi(1, int(menu.get("compact_columns", entries.size())))}
 
 
 func _is_valid_button(item: Dictionary) -> bool:
@@ -114,9 +126,63 @@ func get_dock_items() -> Array:
 	return _dock_items
 
 
+## Atlas regions retain the approved illustrated art without baking captions or
+## selection states into individual buttons. Also accepts ordinary icon files.
+func get_dock_icon(entry: Dictionary) -> Texture2D:
+	if String(entry.get("icon", "")).is_empty(): return null
+	var texture := load(String(entry.get("icon", ""))) as Texture2D
+	var region: Array = entry.get("icon_region", [])
+	if texture == null or region.size() != 4: return texture
+	var atlas := AtlasTexture.new()
+	atlas.atlas = texture
+	atlas.region = Rect2(float(region[0]), float(region[1]), float(region[2]), float(region[3]))
+	atlas.filter_clip = true
+	return atlas
+
+
 ## Read-only command-group metadata; behavior remains with DockUI.
 func get_menu(target: String) -> Dictionary:
 	return _menus.get(target, {})
+
+
+func get_room_symbol(id: String) -> Texture2D:
+	return get_dock_icon(_room_symbols.get(id, {}))
+
+
+func get_sky_dial() -> Dictionary:
+	return _sky_dial
+
+
+func get_time_slice() -> Dictionary:
+	return _time_slice
+
+
+func _load_time_slice() -> void:
+	_time_slice.clear()
+	var file := FileAccess.open("res://data/ui/time_slice.json", FileAccess.READ)
+	if file == null:
+		push_error("UIRegistry: missing time/Slice artwork definitions")
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	file.close()
+	if parsed is Dictionary:
+		_time_slice = parsed
+	else:
+		push_error("UIRegistry: malformed time/Slice artwork definitions")
+
+
+func _load_sky_dial() -> void:
+	_sky_dial.clear()
+	var file := FileAccess.open("res://data/ui/sky_dial.json", FileAccess.READ)
+	if file == null:
+		push_error("UIRegistry: missing Sky Dial artwork definitions")
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	file.close()
+	if parsed is Dictionary:
+		_sky_dial = parsed
+	else:
+		push_error("UIRegistry: malformed Sky Dial artwork definitions")
 
 
 ## Re-reads the UI layout files. Useful for development / hot-tweaking the layout.
@@ -126,6 +192,8 @@ func reload() -> void:
 	_load_inventory_catalog()
 	_load_roster_filters()
 	_load_storage_categories()
+	_load_sky_dial()
+	_load_time_slice()
 
 
 func get_storage_categories() -> Array[Dictionary]:

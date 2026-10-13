@@ -70,8 +70,10 @@ packed furniture in a container, loose tools and equipped tools through full sce
 replacement, autosave and backup recovery. Fresh-editor production diagnostics
 include the new autoload.
 
-Appeal is currently an object property and presentation foundation. Appeal-driven
-room scoring and mood effects, craftsmanship/quality, prices and precious-metal
-crafting are later systems. Personal-bedroom and temperature sleep thoughts are
+Appeal is an object property and presentation foundation. Milestone
+[128](128_permanent_floor_preview.md) adds a separate +5 room-flooring contribution
+for complete permanent floors. Aggregate furniture room scoring, appeal-driven
+mood effects, craftsmanship/quality, prices and precious-metal crafting are later
+systems. Personal-bedroom and temperature sleep thoughts are
 live separately in milestones 121–122. Reload Current Project in Godot to register
 `CraftMaterials` before playing.

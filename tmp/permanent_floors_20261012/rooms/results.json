@@ -1,0 +1,23 @@
+[
+  {
+    "test": "BedroomTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 11.31,
+    "timeout": false
+  },
+  {
+    "test": "BedroomComfortTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 6.68,
+    "timeout": false
+  },
+  {
+    "test": "BedroomPrivacyTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.7,
+    "timeout": false
+  }
+]

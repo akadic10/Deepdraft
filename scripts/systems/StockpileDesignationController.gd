@@ -412,6 +412,11 @@ func _confirm_zone(cells: Array[Vector3i]) -> void:
 		"message": "Stockpile created · %d cells" % cells.size()})
 
 
+func get_order_summary() -> String:
+	if _dragging: return "%d valid cells · Release to create storage" % _preview_cells.size()
+	return "Drag over clear, walkable ground to create storage"
+
+
 func get_order_hint() -> String:
 	if _dragging: return "%d valid cells · Release to create stockpile.\nMaximum %d × %d per zone." % [_preview_cells.size(), MAX_ZONE_EXTENT, MAX_ZONE_EXTENT]
 	return "Drag over clear, walkable ground.\nClick an existing zone to inspect its supplies."
@@ -765,7 +770,7 @@ func _on_slice_changed(new_slice_y: int) -> void:
 			(_zone_overlays[zone_id] as MeshInstance3D).visible = zone.floor_y <= _slice_y
 
 
-# ── Zone window (compact — Remove / stored count) ─────────────────────────────
+# ── Storage inspector ────────────────────────────────────────────────────────
 
 func _build_window() -> void:
 	# Simulation fixtures may omit the presentation layer.
@@ -775,8 +780,13 @@ func _build_window() -> void:
 	_storage_panel = preload("res://scripts/ui/StorageInspectorPanel.gd").new()
 	_storage_panel.action_requested.connect(func(action: String):
 		if action == "remove": remove_zone(_window_zone_id))
-	_window_panel = _window_manager.register_window(ZONE_WINDOW_ID, "Storage Zone", "", _storage_panel,
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	margin.add_child(_storage_panel)
+	_window_panel = _window_manager.register_window(ZONE_WINDOW_ID, "Storage inspector", "", margin,
 		{"default_pos": Vector2(18, 48), "min_size": Vector2(420, 0)})
+	UITheme.apply_catalog_window(_window_panel)
 	_storage_panel.window = _window_panel
 	_window_info_label = _storage_panel.info_label
 	_window_panel.keep_body_on_screen = true
@@ -808,8 +818,7 @@ func _open_zone_window(zone_id: int) -> void:
 	if zone == null or _window_panel == null:
 		return
 	_window_zone_id = zone_id
-	_window_panel.set_window_title("Storage Zone %d" % zone_id)
-	_storage_panel.show_storage(zone, [{"id": "remove", "text": "Remove zone", "variant": "danger"}])
+	_storage_panel.show_storage(zone, [{"id": "remove", "text": "Remove zone", "variant": "danger"}], "Storage Zone %d" % zone_id)
 	_window_manager.open(ZONE_WINDOW_ID)
 
 

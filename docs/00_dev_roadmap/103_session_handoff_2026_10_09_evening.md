@@ -91,9 +91,10 @@ before implementation. Preserve the useful Rudimentary bootstrap recipes.
 - Earlier cave/content checks, honey/flower integration, resource balance,
   season-transition performance and optional ladder planning remain in
   [89 — Earlier handoff](89_session_handoff_2026_10_09.md).
-- [Issue 001](00_open_issues.md) remains open for its original mining-face stall;
-  Issue 002 remains parked for dwarf/terrain overlap. New crafting selection and
-  idle movement fixes do not establish either old report resolved.
+- At this handoff, [issue 001](00_open_issues.md) was open and issue 002 was parked;
+  crafting selection and idle movement fixes did not establish their original
+  causes. **2026-10-12 update:** Alen provisionally closed both reports; reopen
+  only if the player reports the behavior again.
 
 ## Verification and working state
 

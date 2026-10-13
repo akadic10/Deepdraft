@@ -13,13 +13,14 @@ func setup(model: Node3D, settings: Dictionary) -> void:
 	_model = model
 	_settings = settings
 	var half_width := float(settings.width)*.5
+	var inset := float(settings.get("hinge_inset",.125))
 	for leaf_name: String in ["leaf_left", "leaf_right"]:
 		var leaf := model.find_child(leaf_name, true, false) as Node3D
 		if leaf == null: continue
 		var hinge := Node3D.new()
 		hinge.name = leaf_name+"_hinge"
 		model.add_child(hinge)
-		hinge.position.x = (-half_width+.125) if leaf_name=="leaf_left" else (half_width-.125)
+		hinge.position.x = (-half_width+inset) if leaf_name=="leaf_left" else (half_width-inset)
 		leaf.reparent(hinge)
 		_hinges.append(hinge)
 

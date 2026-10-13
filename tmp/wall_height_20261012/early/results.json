@@ -1,0 +1,16 @@
+[
+  {
+    "test": "FurniturePlacementAnimationTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 14.2,
+    "timeout": false
+  },
+  {
+    "test": "WorkerCraftingTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 10.04,
+    "timeout": false
+  }
+]

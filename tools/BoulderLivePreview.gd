@@ -37,25 +37,26 @@ func _run() -> void:
 		quit(1)
 		return
 	root.get_node("WorldClock").set_paused(true)
-	# Exercise the public development-menu route and normal shared inspector.
-	scene.get_node("DockUI")._dispatch_panel_action("surface_details", "DEV: Next scree" if scree else "DEV: Next boulder")
+	# Select an explicit QA subject; the game has no cycling locator commands.
+	var candidates := _detail_ids(details,"scree" if scree else "boulder")
+	if candidates.is_empty(): printerr("No surface detail fixture"); quit(1); return
 	var explorer := scene.get_node("ObjectExplorerController")
-	if explorer._provider != details:
-		printerr("Development locator failed")
+	var id: String = candidates[0]
+	if not _inspect_detail(details,id):
+		printerr("Surface detail inspection failed")
 		quit(1)
 		return
-	var id := String(explorer._object_id)
 	var boulder: Node3D = details._records[id].node
 	var target := boulder.position
-	# Terrain at a far-away DEV target must finish streaming before capture.
+	# Terrain at the fixture target must finish streaming before capture.
 	for i in range(120): await process_frame
 	# Canopies/cliffs legitimately occlude some targets at this camera angle.
-	# Cycle the real locator to find an exposed example for click/capture review.
+	# Try explicit fixture records for click/capture review.
 	if scree:
-		for attempt in range(16):
+		for candidate: String in candidates.slice(1,17):
 			if _pick_point(details, explorer, id).x >= 0: break
-			scene.get_node("DockUI")._dispatch_panel_action("surface_details", "DEV: Next scree")
-			id = String(explorer._object_id)
+			id = candidate
+			_inspect_detail(details,id)
 			target = details._records[id].node.position
 			for i in range(100): await process_frame
 	if "--orders" in OS.get_cmdline_user_args():
@@ -94,6 +95,21 @@ func _run() -> void:
 func _shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(_output + name + ".png")
+
+
+func _detail_ids(details: Node,category: String) -> Array:
+	var registry := root.get_node("SurfaceDetailRegistry")
+	var ids: Array = details._records.keys().filter(func(id):
+		return registry.get_definition(details._records[id].definition).category==category and not details._changes.get(id,{}).get("removed",false))
+	ids.sort()
+	return ids
+
+
+func _inspect_detail(details: Node,id: String) -> bool:
+	details._spawn_visual(id)
+	current_scene.get_node("SliceController").deactivate_if_active()
+	current_scene.get_node("CameraRig").focus_world_position(Vector3(details._records[id].origin)+Vector3.ONE,42)
+	return current_scene.get_node("ObjectExplorerController").select_object(details,id)
 
 
 func _pick_point(details: Node, explorer: Node, id: String) -> Vector2:

@@ -70,7 +70,7 @@ Native PCM recordings are in `tmp/deer_review/native_pcm/`.
 
 ## Playtest
 
-Restart play, then choose **Menu → Development → DEV: Next deer**. Use Follow
+Restart play, then click a visible deer. Use Follow
 to watch a group wander, click for its soft selection cue, and stay close while
 it grazes. Move a dwarf nearby to trigger escape. The inspector shows activity,
 appetite, rest and herd size. Existing Work audio volume/mute controls apply.

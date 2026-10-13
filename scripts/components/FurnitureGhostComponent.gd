@@ -36,7 +36,7 @@ var ghost_id: int = -1
 var furniture_key: String = ""      # base:furniture:* (namespaced — Hard Rule 3)
 var item_key: String = ""           # the resources.json item form to fetch
 var def: Dictionary = {}            # parsed data/furniture/*.json definition
-var origin_cell: Vector3i = Vector3i(-1, -1, -1)   # footprint min-corner FLOOR cell
+var origin_cell: Vector3i = Vector3i(-1, -1, -1)   # floor footprint or fixed wall placement reference
 var yaw_steps: int = 0              # 0..3 — 90° each (R key)
 var node: Node3D = null             # translucent in-world marker (controller-owned)
 
@@ -58,9 +58,10 @@ var _preferred_fetch: Dictionary = {}
 var _delivery_stands: Dictionary = {}
 
 func work_stands(_from: Vector3i) -> Array[Vector3i]:
+	if String(def.get("placement","floor")) == "wall":
+		return preload("res://scripts/components/WallFurnitureMount.gd").work_stands(def,origin_cell,yaw_steps)
 	var result: Array[Vector3i] = []
 	var cells: Array[Vector3i] = footprint_cells()
-	if String(def.get("placement","floor")) == "wall": cells = [origin_cell]
 	for cell: Vector3i in cells:
 		for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
 			var stand := cell+offset
@@ -72,7 +73,13 @@ func prefer_fetch_plan(plan: Dictionary) -> void:
 	_preferred_fetch = plan
 
 func delivery_stand(dwarf_id: int, from: Vector3i) -> Vector3i:
-	return _delivery_stands.get(dwarf_id,nearest_stand_target(from))
+	var stand: Vector3i = _delivery_stands.get(dwarf_id,nearest_stand_target(from))
+	if String(def.get("placement","floor")) == "wall" and not stand in work_stands(from): return nearest_stand_target(from)
+	return stand
+
+
+func can_build_from(cell: Vector3i) -> bool:
+	return String(def.get("placement","floor")) != "wall" or cell in work_stands(cell)
 
 
 func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: int) -> void:
@@ -228,7 +235,7 @@ func on_task_gone(task_id: int, dwarf_id: int) -> void:
 ## whole crew stood frozen inside furniture. Build from beside, like mining.
 func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
 	if String(def.get("placement", "floor")) == "wall":
-		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(origin_cell, dwarf_cell)
+		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(def,origin_cell,yaw_steps,dwarf_cell)
 	var best := Vector3i(-1, -1, -1)
 	var best_dist: int = 0x7FFFFFFF
 	for cell: Vector3i in footprint_cells():

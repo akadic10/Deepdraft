@@ -846,6 +846,14 @@ func get_order_hint() -> String:
 	return "%s\nWheel: zoom · Shift + wheel: width %d · Alt + wheel: depth %d" % [action, _horizontal_size, _vertical_size]
 
 
+func get_order_summary() -> String:
+	var removing := Input.is_key_pressed(KEY_CTRL)
+	var action := "Drag to remove marks" if removing else "Drag to mark blocks"
+	if _state == ToolState.DRAGGING:
+		action = "%d blocks · Release to %s" % [_preview_blocks.size(), "unmark" if removing else "mark"]
+	return "%s · Width %d · Depth %d" % [action, _horizontal_size, _vertical_size]
+
+
 func order_is_pending(receipt: Dictionary) -> bool:
 	return _zones.get(receipt.zone_id, {}).get("component") == receipt.source
 
@@ -928,7 +936,7 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 		if not _visible_in_slice(block):
 			continue
 		# DEV-mined blocks are gone — air cannot be designated.
-		if _mined_blocks.has(block):
+		if _mined_blocks.has(block) and not _constructed(block):
 			continue
 		var block_id := _designation_block_id_at(block)
 		if not BlockRegistry.is_solid(block_id):
@@ -945,6 +953,9 @@ func _block_id_at(pos: Vector3i) -> int:
 	var id := WorldData.get_block(pos.x, pos.y, pos.z)
 	if not BlockRegistry.is_transparent(id):
 		return id
+	# Actual solid writes win over excavation history; mined air must never
+	# fall back to the original generated rock or its resource yields.
+	if _mined_blocks.has(pos): return BlockRegistry.AIR_ID
 	if WorldGenerator.has_method("get_generated_block_id"):
 		return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
 	return id
@@ -953,6 +964,7 @@ func _block_id_at(pos: Vector3i) -> int:
 ## Picking/planning must agree with the concealed slice, even when actual
 ## generated air exists behind it. Revealed air is removed from plans later.
 func _designation_block_id_at(pos: Vector3i) -> int:
+	if _constructed(pos): return WorldData.get_terrain_block(pos.x,pos.y,pos.z)
 	var cave_id := WorldGenerator.get_cave_id(pos)
 	if cave_id >= 0 and not InteriorTracker.is_cave_discovered(cave_id):
 		return WorldGenerator.get_overview_strata_block_id(pos.x, pos.y, pos.z)
@@ -1086,7 +1098,7 @@ func _raycast_voxel(screen_pos: Vector2) -> Dictionary:
 	while travelled <= max_distance:
 		# DEV-mined blocks are air: the ray passes through so the freshly
 		# exposed blocks behind/beneath them can be designated (iterative digs).
-		if _in_bounds(pos) and _visible_in_slice(pos) and not _mined_blocks.has(pos):
+		if _in_bounds(pos) and _visible_in_slice(pos) and (not _mined_blocks.has(pos) or _constructed(pos)):
 			var block_id := _designation_block_id_at(pos)
 			if BlockRegistry.is_solid(block_id):
 				var def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
@@ -2085,6 +2097,8 @@ func _ensure_chunk_real(block: Vector3i) -> void:
 ## ItemDropManager. randf chance rolls are runtime behaviour, not worldgen —
 ## Hard Rule 8 (deterministic terrain identity) does not apply to drops.
 func _spawn_block_drops(pre_block_id: int, block: Vector3i) -> void:
+	var construction := get_tree().get_first_node_in_group("construction")
+	if construction != null and construction.mined_refund(block): return
 	var manager := _drop_manager()
 	if manager == null:
 		return
@@ -2105,6 +2119,11 @@ func _drop_manager() -> Node:
 	if _drop_manager_node == null or not is_instance_valid(_drop_manager_node):
 		_drop_manager_node = get_tree().get_first_node_in_group("item_drop_manager")
 	return _drop_manager_node
+
+
+func _constructed(cell: Vector3i) -> bool:
+	var construction := get_tree().get_first_node_in_group("construction")
+	return construction != null and construction.built.has(cell)
 
 
 ## Cancels a finished zone's still-PENDING leases; assigned leases complete
@@ -2297,7 +2316,9 @@ func restore_state(state: Dictionary) -> void:
 		var blocks: Array[Vector3i] = []
 		for packed in entry.get("blocks", []):
 			var block := SaveManager.unpack_v3i(packed)
-			if _in_bounds(block) and not _mined_blocks.has(block) and not _zone_by_block.has(block):
+			# Construction restores after mining removals and before simulation.
+			# A saved mining order may target a rebuilt cell in that removal history.
+			if _in_bounds(block) and not _zone_by_block.has(block):
 				blocks.append(block)
 		if not blocks.is_empty():
 			_create_zone(blocks, int(entry.get("id", -1)))

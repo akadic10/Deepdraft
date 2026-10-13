@@ -42,6 +42,9 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 	if agent.promotion_pending():
 		data.group = "working"
 		data.summary = "Collecting profession tool"
+	if agent.is_eating():
+		data.group = "resting"
+		data.summary = "Eating" if agent._food.state == "eating" else "Getting food"
 	return data
 
 
@@ -180,6 +183,13 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		if is_instance_valid(agent._equipment.item):
 			destination = _item_name(agent, agent._equipment.item.get_meta("item_key", "")) + "\n" + location(agent._item_floor_cell(agent._equipment.item))
 	var load_used := 0
+	var food: Dictionary = agent._food.describe()
+	if agent.is_eating():
+		activity = food.activity
+		explanation = food.explanation
+		destination = location(food.destination) if food.destination.x >= 0 else "Finding reachable food"
+	elif agent._food.hungry() and not food.explanation.is_empty():
+		explanation += "\n"+String(food.explanation)
 	for entry: Dictionary in items:
 		load_used += int(entry.cost)
 	var capacity := int(TaskManager.get_config_section("hauling").get("carry_capacity", 4))
@@ -202,6 +212,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		"equipment": equipment_description(agent),
 		"equipment_details": equipment_details(agent),
 		"location": location(agent.current_cell()), "rest": clampf(agent.sleep, 0.0, 1.0),
+		"food": food,
 		"sleeping": agent.is_sleeping(), "cargo": items, "load": load_used,
 		"capacity": capacity, "traits": ", ".join(trait_names) if not trait_names.is_empty() else "No distinctive traits",
 		"trait_details": trait_details,

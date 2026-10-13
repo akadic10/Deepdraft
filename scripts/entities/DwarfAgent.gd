@@ -119,7 +119,7 @@ var _mining_pose: RefCounted
 var _mine_contact := Vector3.ZERO
 
 ## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
-## Deliberately minimal: ONE stat draining per real second (doc 41 rate);
+## Deliberately minimal: ONE stat draining per simulation second (doc 41 rate);
 ## below the threshold the dwarf releases its task through the §2.8 protocol
 ## and seeks an assigned/free bed or nearby ground shelter for the minimum rest,
 ## counted in game hours. DwarfMood supplies the personal-bedroom thought; the
@@ -135,7 +135,7 @@ var _mine_contact := Vector3.ZERO
 ## sync). Per-dwarf drain jitter (±10%, deterministic — set in setup())
 ## makes the squad's schedules decohere over time instead of staying
 ## phase-locked off the spawn stagger.
-const SLEEP_DRAIN_PER_S := 0.0007   # doc 41 §Physiological Stats drain rate (retuned)
+const SLEEP_DRAIN_PER_S := 0.0007   # per simulation second; doc 41 drain rate
 const SLEEP_THRESHOLD := 0.25       # doc 41: sleep taken autonomously below this
 const SLEEP_HOURS := 6.0            # doc 41: minimum rest per 24-hour cycle
 var sleep: float = 1.0
@@ -143,6 +143,7 @@ var _sleep_drain: float = SLEEP_DRAIN_PER_S   # per-dwarf jittered rate (setup()
 var _sleeping: bool = false
 var _sleep_hours_left: float = 0.0
 var _mood: RefCounted
+var _food: RefCounted
 
 ## Fired when a walk order finishes (arrived) or fails (no path / cleared).
 signal walk_finished(success: bool)
@@ -193,7 +194,7 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_bob_phase = float(dwarf_id) * 1.7   # desynchronise the squad's idle motion
 	# Stagger initial tiredness deterministically (birth-index hash, no randf)
 	# so a squad spawned together does not collapse asleep in the same instant
-	# (at the retuned drain, this 0.35 spread = ~8 real minutes of first-sleep
+	# (at the retuned drain, this 0.35 spread = ~8 minutes at x1 of first-sleep
 	# spread), and jitter each dwarf's drain rate ±10% so sleep schedules
 	# DECOHERE across days instead of staying phase-locked — identical rates
 	# preserve the initial offsets forever, and offsets smaller than a nap
@@ -216,6 +217,8 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_equipment = Equipment.new(self)
 	_rest_behavior = RestBehavior.new(self)
 	_mood = preload("res://scripts/components/DwarfMood.gd").new()
+	_food = preload("res://scripts/components/DwarfFoodBehavior.gd").new(self)
+	_mood.food = _food
 	preload("res://scripts/components/DwarfReadability.gd").attach(self)
 	var movement := TaskManager.get_config_section("movement")
 	walk_speed = float(movement.get("walk_speed",walk_speed))
@@ -226,6 +229,7 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 func _process(delta: float) -> void:
 	if WorldClock.paused or WorldClock.speed <= 0.0: return
 	_mood.tick(delta * WorldClock.game_hours_per_real_second())
+	_food.clock_tick(delta * WorldClock.game_hours_per_real_second())
 	if _settle_missing_support(): return
 	if needs_bridge_exit():
 		_process_bridge_exit(delta * WorldClock.speed)
@@ -245,13 +249,19 @@ func _process(delta: float) -> void:
 		return
 	# Sleep drains in EVERY waking state — idle, walking, working, swinging —
 	# so the threshold can interrupt any of them (doc 16 Phase 5 acceptance).
-	sleep = maxf(sleep - _sleep_drain * delta, 0.0)
+	# Match the game-speed scaling used by sleep recovery and the calendar.
+	sleep = maxf(sleep - _sleep_drain * delta * WorldClock.speed, 0.0)
+	if _food.active():
+		_food.tick(delta * WorldClock.speed)
+		return
+	if _food.famished() and _food.begin_if_needed(): return
 	if sleep <= SLEEP_THRESHOLD:
 		_begin_sleep()
 		return
 	if promotion_pending():
 		_equipment.tick(delta)
 		return
+	if _food.begin_if_needed(): return
 	if current_task_id < 0 and _task_phase == TaskPhase.NONE and _idle_behavior != null:
 		if _idle_behavior.tick(delta * WorldClock.speed): return
 	if _work_execution.tick(self,delta * WorldClock.speed): return
@@ -274,7 +284,7 @@ func receive_task(task_id: int, target_pos: Vector3i, carried_item: Node3D = nul
 	var assignment := TaskManager.get_task(task_id)
 	if assignment == null or assignment.attempt == null: return
 	_work_execution.bind(assignment)
-	if _sleeping or promotion_pending():
+	if _sleeping or promotion_pending() or is_eating():
 		# Race guard (should not happen — sleepers leave the idle pool): an
 		# assignment landing in the frame the dwarf fell asleep bounces straight
 		# back to PENDING; releasing is always cheap and legal (§2.8).
@@ -348,6 +358,7 @@ func detach_placement_cargo(item: Node3D) -> bool:
 ## Explicit career changes preserve experience and use normal task release.
 func change_profession(key: String) -> bool:
 	if not DwarfAssets.profession_enabled(key): return false
+	if is_eating(): _food.cancel()
 	if key == profession:
 		if not promotion_pending(): return false
 		_equipment.cancel()
@@ -364,6 +375,17 @@ func change_profession(key: String) -> bool:
 
 func promotion_pending() -> bool:
 	return _equipment != null and _equipment.active()
+
+
+func is_eating() -> bool:
+	return _food != null and _food.active()
+
+
+func dev_make_hungry() -> bool:
+	if _food == null or is_sleeping() or is_eating() or promotion_pending(): return false
+	_food.value = float(_food.config.hungry_threshold)
+	_food.retry_hours = 0.0
+	return true
 
 
 func _complete_profession_change(key: String) -> void:
@@ -398,6 +420,7 @@ func _release_for_assignment_change() -> void:
 
 ## Called by TaskManager when the task is cancelled out from under us.
 func abort_task() -> void:
+	if is_eating(): _food.cancel("Meal interrupted; food is preserved.", false)
 	if promotion_pending(): _equipment.cancel()
 	if _idle_behavior != null: _idle_behavior.cancel()
 	# Defensive unreserve — the controller's cancelled-route also frees it,
@@ -418,6 +441,9 @@ func abort_task() -> void:
 
 
 func _on_walk_finished(success: bool) -> void:
+	if is_eating():
+		_food.walk_finished(success)
+		return
 	if promotion_pending():
 		_equipment.walk_finished(success)
 		return
@@ -500,6 +526,7 @@ func _on_walk_finished(success: bool) -> void:
 ## touched; partial swing progress is discarded — the block keeps full
 ## durability (swings only commit at zero).
 func _begin_sleep() -> void:
+	if is_eating(): _food.cancel("Meal interrupted for rest.", false)
 	if promotion_pending(): _equipment.cancel("Promotion cancelled for sleep. The tool is available again.", false)
 	if _idle_behavior != null: _idle_behavior.cancel()
 	if not NavGrid.is_walkable(current_cell()) and not NavGrid.ladder_at(current_cell()).is_empty():
@@ -600,18 +627,21 @@ func serialize_state() -> Dictionary:
 		"sleeping": _sleeping,
 		"sleep_hours_left": _sleep_hours_left,
 		"mood": _mood.serialize(),
+		"food": _food.serialize(),
 		"carried_items": carried_items,
 		"equipment": _equipment.serialize() if _equipment != null else {},
 	}
 
 
 func restore_saved_runtime(state: Dictionary) -> void:
+	if is_eating(): _food.cancel("", false)
 	if _idle_behavior != null: _idle_behavior.cancel()
 	if _rest_behavior != null: _rest_behavior.cancel()
 	sleep = clampf(float(state.get("sleep", 1.0)), 0.0, 1.0)
 	_sleeping = bool(state.get("sleeping", false))
 	_sleep_hours_left = maxf(float(state.get("sleep_hours_left", 0.0)), 0.0)
 	_mood.restore(state.get("mood",{}))
+	if state.has("food"): _food.restore(state.food)
 	current_task_id = -1
 	_task_phase = TaskPhase.NONE
 	stop_walking()
@@ -626,6 +656,9 @@ func restore_saved_runtime(state: Dictionary) -> void:
 ## reason PLAYER and return to the idle pool immediately. Returns false if
 ## there was nothing to interrupt.
 func dev_force_interrupt() -> bool:
+	if is_eating():
+		_food.cancel()
+		return true
 	if promotion_pending():
 		_equipment.cancel()
 		return true
@@ -802,10 +835,10 @@ func _finish_zone_state() -> void:
 
 
 ## Every state needs physical support, including idle/sleeping dwarves and old
-## saved positions. Another miner can remove the floor without notifying this
-## agent's executor. Settle before doing work or asking navigation for a path.
+## saved positions. Terrain edits can remove support or raise it into our feet.
+## Recover before doing work or asking navigation for a path.
 func _settle_missing_support() -> bool:
-	if not _snap_to_floor(): return false
+	if not _lift_from_raised_floor() and not _snap_to_floor(): return false
 	# Move first so interruption drops cargo at the actual landing. Normal
 	# cleanup releases source/seat/tool claims and reports a failed walk once.
 	abort_task()
@@ -815,6 +848,23 @@ func _settle_missing_support() -> bool:
 
 func _has_floor_support(cell: Vector3i) -> bool:
 	return NavGrid.bridge_supports(cell) or BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y,cell.z))
+
+
+## Recover a one-block floor intersecting the feet, including saved positions.
+## This is not a search through rock: the tile immediately above must already
+## provide the normal three-block clearance and must not contain furniture.
+func _lift_from_raised_floor() -> bool:
+	if _ladder_fall_target.x >= 0 or not NavGrid.ladder_at(current_cell()).is_empty(): return false
+	var feet := Vector3i(floori(global_position.x),floori(global_position.y+.001),floori(global_position.z))
+	if not BlockRegistry.is_solid(WorldData.get_live_block(feet.x,feet.y,feet.z)) or not NavGrid.is_walkable(feet): return false
+	# A valid interpolated step can briefly enter its higher supporting block.
+	# Let that route finish naturally; invalidated routes cannot suppress repair.
+	# String pulling may already have advanced the target along the upper floor.
+	if is_walking() and not is_equal_approx(global_position.y,roundf(global_position.y)) \
+			and _move_segment_clear(_move_path[_move_index]): return false
+	global_position.y = float(feet.y+1)
+	apply_slice(_slice_y)
+	return true
 
 ## Used immediately after our own mining commit as well as before every tick.
 ## Physical support is distinct from walkability: an obstructed/wet floor must
@@ -1297,6 +1347,9 @@ func _fetch_complete() -> void:
 		return
 	# A wall can be mined during the work swing. Release the intact item if
 	# the mount lost its support before the deferred terrain check cancelled it.
+	if source.has_method("can_build_from") and not source.can_build_from(current_cell()):
+		_fetch_fail_release()
+		return
 	if source.has_method("can_complete_build") and not bool(source.call("can_complete_build")):
 		_fetch_fail_release()
 		return
@@ -1413,6 +1466,10 @@ func _uninstall_begin() -> void:
 		_work_execution.fail(dwarf_id, "installed furniture gone")
 		return
 	var target: Vector3i = source.call("nearest_stand_target", current_cell())
+	var task := TaskManager.get_task(current_task_id)
+	if task != null and task.payload.has("wall_work_stand"):
+		target = task.payload.wall_work_stand
+		if not source.can_uninstall_from(target): target = Vector3i(-1,-1,-1)
 	if target.x < 0:
 		_finish_uninstall_state()
 		current_task_id = -1
@@ -1432,6 +1489,10 @@ func _uninstall_begin() -> void:
 ## UNINSTALL step 2: teardown swing finished.
 func _uninstall_complete() -> void:
 	var source := _uninstall_source()
+	if source != null and source.has_method("can_uninstall_from") and not source.can_uninstall_from(current_cell()):
+		abort_task()
+		_work_execution.release(dwarf_id,Task.ReleaseReason.PATH_INVALID)
+		return
 	if source == null or not _work_execution.commit(dwarf_id,"uninstall",func(): source.complete_uninstall(dwarf_id)):
 		abort_task()
 		_work_execution.release(dwarf_id,Task.ReleaseReason.PLAN_CHANGED)
@@ -1647,6 +1708,7 @@ func _process_ladder_exit(delta: float) -> void:
 ## Orders a walk to a goal floor cell. Returns true if a path was found and
 ## the walk began; emits walk_finished(success) when it ends either way.
 func walk_to(goal_cell: Vector3i) -> bool:
+	if is_eating(): _food.cancel("Meal interrupted by movement.")
 	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
 	if _idle_behavior != null and _idle_behavior.active(): _idle_behavior.cancel()
 	_reset_part_offsets()
@@ -1669,6 +1731,7 @@ func walk_to(goal_cell: Vector3i) -> bool:
 ## Leisure uses only short, fully checked flat segments. No global A* search
 ## or ladder route is needed, and normal work can replace this path immediately.
 func walk_nearby(goal_cell: Vector3i) -> void:
+	if is_eating(): _food.cancel("Meal interrupted by movement.")
 	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
 	_reset_part_offsets()
 	if not NavGrid.line_walkable_flat_from(global_position,goal_cell):
@@ -2010,6 +2073,7 @@ func _idle_bob() -> void:
 
 
 func _exit_tree() -> void:
+	if _food != null: _food.release_reservation()
 	if _rest_behavior != null: _rest_behavior.cancel()
 	if _idle_behavior != null: _idle_behavior.cancel()
 	if _equipment != null: _equipment.release_reservation()

@@ -1,8 +1,8 @@
 {
   "__comment": [
     "Wall torch - art doc 43. Eight voxels/block, 1.5-block model height.",
-    "Origin is the service FLOOR cell; the rear plane touches the wall behind it.",
-    "Base mounts 2.5 blocks above the floor surface; requires four blocks of room height.",
+    "Origin is a fixed placement reference; origin_offset_y locates the model base, independent of the floor.",
+    "Aim at a wall cell to choose height; floor aiming starts at the default reference height.",
     "No floor reservation or navigation occupancy. Light and heat exist only when installed.",
     "Always lit in v1; fuel, ignition and burn-out are future systems."
   ],
@@ -22,7 +22,7 @@
   "collision_regions": [],
   "room_anchor": false,
   "wall_mount": {
-    "height_above_floor": 2.5,
+    "origin_offset_y": 3.5,
     "bracket_height": 0.875,
     "bounds_min": [
       -0.375,

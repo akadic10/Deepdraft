@@ -1,5 +1,12 @@
 # 43 — Mining & Materials
 
+**Built stone (2026-10-12):** Construction spends one rough stone per full voxel
+in cleared space, using the existing natural rock layer at that height. Normal
+mining can remove it again, including cells already present in excavation history,
+and refunds exactly one rough stone. Construction provenance owns this refund;
+natural stone/ore/gem loot rules retain their existing probabilities. There is no
+wall facing or combined mine-and-replace action. See roadmap 127.
+
 ## Overview
 
 Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositing raw materials into nearby stockpiles. The geological composition of the mountain is procedurally generated and affects resource yield, structural stability, and collapse risk.

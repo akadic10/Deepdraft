@@ -177,7 +177,7 @@ func redirect_haul_to_placement(task_id: int, offer: Dictionary) -> bool:
 	var agent: DwarfAgent = _agents.get(int(offer.dwarf_id))
 	if task == null or task.type != Task.Type.FETCH_BUILD or task.assigned_to >= 0: return false
 	if old == null or old.type != Task.Type.HAUL or old.assigned_to != int(offer.dwarf_id) or not is_instance_valid(agent): return false
-	if agent.is_sleeping(): return false
+	if agent.is_sleeping() or agent.is_eating(): return false
 	var source := get_work_source(task.source_id) as FurnitureGhostComponent
 	if source == null or source.has_committed_item(): return false
 	var item: Node3D = offer.item
@@ -343,7 +343,7 @@ func register_dwarf(agent: DwarfAgent) -> void:
 
 func deregister_dwarf(dwarf_id: int) -> void:
 	var agent: DwarfAgent = _agents.get(dwarf_id)
-	if is_instance_valid(agent) and _active.has(dwarf_id): agent.abort_task()
+	if is_instance_valid(agent) and (_active.has(dwarf_id) or agent.is_eating()): agent.abort_task()
 	if _active.has(dwarf_id):
 		release_dwarf_task(dwarf_id, Task.ReleaseReason.SOURCE_EMPTY, false)
 	_agents.erase(dwarf_id)
@@ -604,18 +604,23 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 		var probe_key := [task.id, agent.dwarf_id, dwarf_cell]
 		if _work_probe.get("key", []) != probe_key or not NavGrid.search_is_current(_work_probe.get("route_query", {})):
 			var target := task.target_pos
+			var goals := {}
 			if is_instance_valid(src) and src.has_method("nearest_stand_target"):
 				var stand: Vector3i = src.nearest_stand_target(dwarf_cell)
 				if stand.x >= 0: target = stand
+			if type==Task.Type.UNINSTALL and src is InstalledFurnitureComponent and String(src.def.get("placement","floor"))=="wall":
+				for stand: Vector3i in src.wall_work_stands(): goals[stand] = true
+				target = goals.keys()[0] if not goals.is_empty() else Vector3i(-1,-1,-1)
 			_work_probe.clear()
-			_work_probe.merge({"key":probe_key, "target":target})
-		var result := _advance_work_probe(_work_probe, dwarf_cell, _work_probe.target, t_start)
+			_work_probe.merge({"key":probe_key, "target":target,"goals":goals})
+		var result := _advance_work_probe(_work_probe, dwarf_cell, _work_probe.target, t_start,_work_probe.goals) if _work_probe.target.x>=0 else NavGrid.ProbeResult.UNREACHABLE
 		if result == NavGrid.ProbeResult.SEARCHING:
 			_yield_candidate(task,agent,idx)
 			return 0
 		if result == NavGrid.ProbeResult.BUDGET_EXHAUSTED: task.wait_reason = "Route search budget exhausted; reachability unknown"
 		if result == NavGrid.ProbeResult.REACHABLE:
 			task.blocked_count = 0
+			if not _work_probe.goals.is_empty(): task.payload["wall_work_stand"] = _work_probe.last_route.path.back()
 			_assign(task, agent)
 			_scan_cursor[type] = (cursor + scanned) % maxi(ids.size(), 1)
 			return probes_left
@@ -674,6 +679,21 @@ func _advance_work_probe(context: Dictionary, from: Vector3i, goal: Vector3i, t_
 			var task := get_task(int(context.get("task_id",-1)))
 			if task != null: task.wait_reason = "Route search budget exhausted; reachability unknown"
 		context.erase("route_query")
+	return result
+
+
+## A distant job can take longer to plan than the initial leisure hold. Keep
+## that hold alive only while this worker's bounded search makes progress;
+## wandering must not repeatedly invalidate the start of an unfinished route.
+func _advance_worker_probe(context: Dictionary, agent: DwarfAgent, from: Vector3i,
+		goal: Vector3i, t_start: int, goals: Dictionary = {}) -> int:
+	var before := int(context.get("route_query",{}).get("expanded",0))
+	var result := _advance_work_probe(context,from,goal,t_start,goals)
+	if result == NavGrid.ProbeResult.SEARCHING \
+			and int(context.get("route_query",{}).get("expanded",0)) > before \
+			and planning_held(agent.dwarf_id):
+		_planning_holds[agent.dwarf_id].until = journal.now \
+			+ float(get_config_section("supervision").get("planning_hold_seconds",4.0))
 	return result
 
 
@@ -752,7 +772,7 @@ func _try_assign_move(task: Task, source: Object, quote: Dictionary, probes_left
 		if not bool(_move_match.pickup_ok):
 			probes_left -= 1
 			_probes_total += 1
-			var pickup := _advance_work_probe(_move_match, candidate.from, candidate.cell, t_start,{candidate.cell:true})
+			var pickup := _advance_worker_probe(_move_match, agent, candidate.from, candidate.cell, t_start,{candidate.cell:true})
 			if pickup == NavGrid.ProbeResult.SEARCHING: return 0
 			if pickup != NavGrid.ProbeResult.REACHABLE:
 				_move_match.probe_index += 1
@@ -764,7 +784,7 @@ func _try_assign_move(task: Task, source: Object, quote: Dictionary, probes_left
 		for cell: Vector3i in source.work_stands(candidate.cell): goals[cell] = true
 		probes_left -= 1
 		_probes_total += 1
-		var delivery := _advance_work_probe(_move_match, candidate.cell, destination, t_start,goals) if not goals.is_empty() else NavGrid.ProbeResult.UNREACHABLE
+		var delivery := _advance_worker_probe(_move_match, agent, candidate.cell, destination, t_start,goals) if not goals.is_empty() else NavGrid.ProbeResult.UNREACHABLE
 		if delivery == NavGrid.ProbeResult.SEARCHING: return 0
 		if delivery == NavGrid.ProbeResult.REACHABLE:
 			source.prefer_fetch_plan({"dwarf_id":agent.dwarf_id,"from":candidate.from,"pickup_stand":candidate.cell,
@@ -978,7 +998,8 @@ func _try_assign_surface(type: int, probes_left: int, t_start: int) -> int:
 				return 0
 			probes_left -= 1
 			_probes_total += 1
-			var result := _advance_work_probe(_surface_match, candidate.from, candidate.cell, t_start)
+			# Execution needs this exact work stand, and can reuse its proven path.
+			var result := _advance_worker_probe(_surface_match, agent, candidate.from, candidate.cell, t_start,{candidate.cell:true})
 			if result == NavGrid.ProbeResult.SEARCHING:
 				_surface_match.probe_index -= 1
 				return 0
@@ -1178,7 +1199,7 @@ func _apply_backoff(task: Task, now: int) -> void:
 ## Profession capability and player permissions both apply. Self-care and
 ## carrying supplies within an allowed assignment are never separate gates.
 func _types_for(agent: DwarfAgent) -> Array[int]:
-	if agent.is_sleeping() or not NavGrid.is_navigable(agent.current_cell()): return []
+	if agent.is_sleeping() or agent.is_eating() or not NavGrid.is_navigable(agent.current_cell()): return []
 	if agent.promotion_pending(): return []
 	if agent.needs_bridge_exit(): return []
 	var types: Array[int] = [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
@@ -1267,7 +1288,7 @@ func _mark_idle(dwarf_id: int) -> void:
 	if not _agents.has(dwarf_id):
 		return
 	if not is_instance_valid(_agents[dwarf_id]) or not _agents[dwarf_id].is_inside_tree(): return
-	if _agents[dwarf_id].promotion_pending() or _agents[dwarf_id].is_sleeping(): return
+	if _agents[dwarf_id].promotion_pending() or _agents[dwarf_id].is_sleeping() or _agents[dwarf_id].is_eating(): return
 	if _agents[dwarf_id].has_method("needs_ladder_exit") and _agents[dwarf_id].needs_ladder_exit():
 		return
 	if _agents[dwarf_id].has_method("needs_bridge_exit") and _agents[dwarf_id].needs_bridge_exit(): return
@@ -1475,7 +1496,7 @@ func retry_order(order_key: String) -> void:
 
 func worker_availability(agent: DwarfAgent) -> String:
 	if not is_instance_valid(agent): return "Unavailable"
-	if agent.is_sleeping() or agent.promotion_pending(): return "Self-care"
+	if agent.is_sleeping() or agent.is_eating() or agent.promotion_pending(): return "Self-care"
 	if agent.needs_bridge_exit() or agent.needs_ladder_exit(): return "Recovering access"
 	if not NavGrid.is_navigable(agent.current_cell()): return "Trapped: no navigable footing"
 	if _active.has(agent.dwarf_id): return "Working"
@@ -1593,7 +1614,7 @@ func _reconcile_workers() -> void:
 		if agent.current_task_id >= 0:
 			# An orphan executor must relinquish its real cargo before rejoining.
 			agent.abort_task()
-		if agent.is_sleeping() or agent.promotion_pending() or agent.needs_bridge_exit() or agent.needs_ladder_exit():
+		if agent.is_sleeping() or agent.is_eating() or agent.promotion_pending() or agent.needs_bridge_exit() or agent.needs_ladder_exit():
 			_remove_idle(id)
 		elif not id in _idle_dwarves:
 			_mark_idle(id)

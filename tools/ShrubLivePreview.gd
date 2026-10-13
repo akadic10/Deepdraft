@@ -34,9 +34,9 @@ func _run() -> void:
 		clock_node.restore_state({"year":1,"season":pair[1],"day":1,"hour":10,"speed":1,"paused":true})
 		var id := ""
 		var point := Vector2(-1,-1)
-		for attempt in range(20):
-			dock._dispatch_panel_action("surface_details", "DEV: Next " + pair[0])
-			id = String(explorer._object_id)
+		for candidate: String in _detail_ids(details,"wild_strawberry" if pair[0]=="strawberry" else pair[0]).slice(0,20):
+			id = candidate
+			_inspect_detail(details,id)
 			for i in range(100): await process_frame
 			point = _pick_point(details, explorer, id)
 			if point.x >= 0: break

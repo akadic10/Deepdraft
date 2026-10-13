@@ -31,7 +31,6 @@ var _deer_models: Dictionary = {}
 var _models: Dictionary = {}
 var _picking := Picking.new()
 var _slice_y := 127
-var _dev_cursors: Dictionary = {}
 var _camera: Node3D
 
 func _ready() -> void:
@@ -529,25 +528,6 @@ func clear_explorer_selection(id: Variant) -> void:
 func on_explorer_selected(id: Variant) -> void:
 	if _inspectable(id): WorkFeedback.play_animal(id.definition.feedback.selection_sound, id)
 
-func dev_locate_next(species := "rabbit") -> String:
-	var candidates: Array[Node3D] = []
-	if species == "arrival" or species.ends_with(" arrival"):
-		for animal in animals:
-			if not animal.arrival.is_empty() and (species == "arrival" or animal.definition.id == "base:animal:"+species.trim_suffix(" arrival")): candidates.append(animal)
-	else: candidates = animals_of_species(species)
-	if candidates.is_empty(): return ""
-	var cursor := int(_dev_cursors.get(species,0))
-	var animal := candidates[cursor % candidates.size()]
-	_dev_cursors[species] = cursor+1
-	var slice := get_node_or_null(slice_controller_path) if not slice_controller_path.is_empty() else null
-	if slice != null: slice.deactivate_if_active()
-	if _camera != null: _camera.focus_world_position(animal.position + Vector3.UP, 30.0 if animal is Deer else 24.0)
-	var dock := get_tree().get_first_node_in_group("command_dock")
-	if dock != null: dock.tool_requested.emit("")
-	var explorer := get_tree().get_first_node_in_group("object_explorer")
-	if explorer != null: explorer.select_object(self, animal)
-	return animal.animal_id
-
 func save_section_key() -> String:
 	return "wildlife"
 
@@ -571,7 +551,6 @@ func restore_state(state: Dictionary) -> void:
 		remove_child(animal)
 		animal.queue_free()
 	animals.clear()
-	_dev_cursors.clear()
 	initialized = bool(state.get("initialized", false))
 	# A rabbit-only save seeds deer once after restore, without replacing its
 	# rabbits. Explicitly saved empty deer populations never replenish.

@@ -80,8 +80,7 @@ movement, a crouched sleeping pose and hopping animate without a skeleton.
 Existing world lighting shades the models.
 
 Click a rabbit for activity, appetite and rest in Object explorer, with Locate
-and Follow actions. **Menu → Development → DEV: Next rabbit** cycles the seeded
-population. Concealed caves and hidden slice levels never expose rabbit
+and Follow actions. Concealed caves and hidden slice levels never expose rabbit
 selection. Wildlife does not discover caves.
 
 Quiet rabbit audio shipped in [91 — Rabbit audio](../00_dev_roadmap/91_rabbit_audio.md).
@@ -127,7 +126,6 @@ species fields are required by SaveSnapshotValidator before restoration.
   55% of the meal, with an eighteen-block radius and two-voice cap. Pause, zoom,
   visibility and source cleanup follow the rabbit rules. Sleeping is silent.
 - Object explorer includes herd size and the existing Locate/Follow controls.
-  **Menu → Development → DEV: Next deer** cycles the population.
 - The required `deer` array and `deer_initialized` flag share the `wildlife` save
   section with unchanged rabbit records. Each deer saves its herd ID in addition
   to the common state. Explicitly saved empty deer populations are not reseeded but can
@@ -168,7 +166,6 @@ Art generators, checks and playtest notes: [92 — Deer wildlife](../00_dev_road
   Work bus. Eating cues occur at 12% and 58%, audible nearby with an eighteen-
   block range. Sleep has no ambient audio; selection can play while paused.
 - The inspector shows activity, needs, diet and hunting/satisfaction status.
-  **Menu → Development → DEV: Next wolf** locates the sparse population.
 - `wolves` and `wolf_initialized` are required in the `wildlife` save section.
   Target ID, pursuit time, retry/satisfaction hours and common state persist.
   Target nodes are rebound by ID; stale targets are abandoned without a meal.

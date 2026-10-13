@@ -70,7 +70,7 @@ func _run() -> void:
 	_click(dock._button_by_target.stocks.get_global_rect().get_center())
 	await _settle()
 	_expect(manager.is_open("inventory") and not dock._panel_container.visible, "Inventory opens directly from dock")
-	_expect(dock._button_by_target.stocks.text == "Inventory", "dock uses Inventory name")
+	_expect(dock._button_by_target.stocks.caption == "Inventory" and dock._button_by_target.stocks.text.is_empty(), "dock names Inventory on hover while keeping the art caption-free")
 	_expect(inventory._empty.visible and inventory._locate.disabled, "empty colony has honest empty state")
 	items.restore_loose_item(STONE, Vector3(33.5,21,33.5), 0)
 	items.restore_loose_item(STONE, Vector3(34.5,21,33.5), 0)

@@ -94,7 +94,7 @@ func _run() -> void:
 	_click(dock._button_by_target.orders.get_global_rect().get_center())
 	await _settle()
 	_expect(orders.is_open() and dock._button_by_target.orders.button_pressed, "Orders opens the shelf")
-	_expect(orders._buttons.size() == 7 and orders._buttons.clear_stones.visible and not orders._buttons.storage_zone.visible, "Orders shows six work tools and keeps stockpiles in Zones")
+	_expect(orders._buttons.size() == 9 and orders._buttons.clear_stones.visible and not orders._buttons.storage_zone.visible, "Orders shows six work tools and keeps three zone entries in Zones")
 	_click(orders._buttons.mine_precision.get_global_rect().get_center())
 	await _settle()
 	_expect(mining.is_active() and orders._banner.visible and not mining._hint_window.visible, "mining uses the shared banner")
@@ -514,11 +514,47 @@ func _check_layouts() -> void:
 		_expect(orders._shelf.get_global_rect().end.y <= dock._dock_panel.position.y - 8, "shelf leaves gap above dock")
 		_expect(not orders._shelf.get_global_rect().intersects(orders._banner.get_global_rect()), "shelf and mode banner do not overlap")
 		_expect(orders._banner.get_global_rect().end.y <= orders._shelf.position.y - 8, "mode banner stays attached above the tool shelf")
-		_expect(is_equal_approx(orders._shelf.get_global_rect().get_center().x,viewport_size.x*.5), "shelf centers above dock")
+		_expect(is_equal_approx(orders._buttons.mine_precision.get_global_rect().position.x,
+			dock._button_by_target.orders.get_global_rect().position.x), "Orders icons anchor above their parent command")
+		for id: String in ["mine_precision", "chop", "clear_stones", "harvest_plants", "clear_shrubs", "cancel_orders"]:
+			var button: Button = orders._buttons[id]
+			_expect(button.text.is_empty() and button.icon is AtlasTexture and not button.caption.is_empty(), "illustrated tool has a hover name instead of a caption")
+			_expect(is_equal_approx(button.size.x, button.size.y) and button.size.x >= 56, "Orders art remains square and readable")
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw
 			DirAccess.make_dir_recursive_absolute("res://tmp/orders_review")
-			root.get_texture().get_image().save_png("res://tmp/orders_review/orders_%d.png" % viewport_size.x)
+			root.get_texture().get_image().save_png("res://tmp/orders_art_20261012/orders_%d.png" % viewport_size.x)
+		# Native hover behavior, including keyboard focus and hidden-shelf cleanup.
+		var harvest = orders._buttons.harvest_plants
+		_motion(harvest.get_global_rect().get_center())
+		await create_timer(.4).timeout
+		await _settle()
+		_expect(harvest._info != null and harvest._info.visible, "hover reveals tool name and preservation rules")
+		if "--capture" in OS.get_cmdline_user_args():
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://tmp/orders_art_20261012/hover_%d.png" % viewport_size.x)
+		_motion(Vector2(12, 120))
+		harvest.grab_focus()
+		await create_timer(.4).timeout
+		_expect(harvest._info.visible, "keyboard focus reveals tool help")
+		var accept := InputEventKey.new()
+		accept.keycode = KEY_ENTER
+		accept.pressed = true
+		root.push_input(accept, true)
+		accept = accept.duplicate()
+		accept.pressed = false
+		root.push_input(accept, true)
+		await _settle()
+		_expect(chop.get_order_tool_id() == "harvest_plants" and chop.is_active() and not mining.is_active(), "Enter selects the focused tool through normal dispatch")
+		_expect(not harvest._info.visible, "activating a focused command dismisses its help")
+		harvest.release_focus()
+		harvest.grab_focus()
+		await create_timer(.4).timeout
+		orders.set_open(false)
+		_expect(not harvest._info.visible, "closing shelf clears its tooltip")
+		harvest.release_focus()
+		orders.set_open(true, "orders")
+		dock._request_order_tool("mine_precision")
 		explorer.select_object(flora, Vector2i(43,34))
 		explorer._window.position = Vector2(viewport_size.x - explorer._window.size.x - 24,24)
 		orders.refresh()
@@ -528,17 +564,71 @@ func _check_layouts() -> void:
 		_expect(not dock._dock_panel.get_global_rect().intersects(explorer._window.get_global_rect()), "compact tree inspector clears the dock")
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://tmp/orders_review/orders_inspector_%d.png" % viewport_size.x)
+			root.get_texture().get_image().save_png("res://tmp/orders_art_20261012/orders_inspector_%d.png" % viewport_size.x)
+		if viewport_size.x == 960:
+			explorer._window.position.x = (viewport_size.x - explorer._window.size.x) * .5
+			orders.refresh()
+			await _settle()
+			_expect(orders._grid.columns < 6, "moved inspector makes Orders wrap in the available side space")
+			for panel: Control in [orders._shelf, orders._banner]:
+				_expect(bounds.encloses(panel.get_global_rect()) and not panel.get_global_rect().intersects(explorer._window.get_global_rect()), "wrapped controls clear the centered inspector")
+			for id: String in ["mine_precision", "chop", "clear_stones", "harvest_plants", "clear_shrubs", "cancel_orders"]:
+				_expect(is_equal_approx(orders._buttons[id].size.x, orders._buttons[id].size.y), "wrapping keeps artwork square")
+			if "--capture" in OS.get_cmdline_user_args():
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png("res://tmp/orders_art_20261012/orders_wrapped_960.png")
 		explorer.clear_selection()
 		orders.set_open(true, "zones")
 		dock._request_order_tool("storage_zone")
 		await _settle()
+		_expect(is_equal_approx(orders._buttons.storage_zone.get_global_rect().position.x, dock._button_by_target.zones.get_global_rect().position.x), "Zones anchors its first icon above its dock button")
+		for id: String in ["storage_zone", "farming_zone", "animal_pasture"]:
+			var button = orders._buttons[id]
+			_expect(button.visible and button.text.is_empty() and button.icon is AtlasTexture, "Zones uses three illustrated icons")
+			_expect(is_equal_approx(button.size.x, button.size.y) and button.size.x >= 56, "Zones artwork stays square and legible")
 		for control: Control in [orders._shelf, orders._banner, dock._dock_panel]:
 			_expect(bounds.encloses(control.get_global_rect()), "Zones control fits " + str(viewport_size))
 		_expect(orders._banner.get_global_rect().end.y <= orders._shelf.position.y - 8, "Zones uses the same mode stack")
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://tmp/orders_review/zones_%d.png" % viewport_size.x)
+			root.get_texture().get_image().save_png("res://tmp/zones_art_20261012/zones_%d.png" % viewport_size.x)
+		var requests: Array[String] = []
+		var on_request := func(id: String): requests.append(id)
+		orders.tool_requested.connect(on_request)
+		var zone_count: int = storage._zones.size()
+		for id: String in ["farming_zone", "animal_pasture"]:
+			var planned = orders._buttons[id]
+			_expect(planned.planned and not planned.toggle_mode, "future zone is explicitly planned, not selectable")
+			_motion(planned.get_global_rect().get_center())
+			await create_timer(.4).timeout
+			_expect(planned._info != null and planned._info.visible, "planned zone explains itself on hover")
+			_click(planned.get_global_rect().get_center())
+			await _settle()
+			_expect(planned._info.visible and not planned.button_pressed and storage.is_active(), "planned click shows help and preserves Storage mode")
+			_motion(Vector2(12, 120))
+			planned.release_focus()
+			planned.grab_focus()
+			await create_timer(.4).timeout
+			_expect(planned._info.visible, "planned help is keyboard accessible")
+			var key := InputEventKey.new()
+			key.keycode = KEY_ENTER
+			key.pressed = true
+			root.push_input(key, true)
+			key = key.duplicate()
+			key.pressed = false
+			root.push_input(key, true)
+			await _settle()
+			_expect(requests.is_empty() and storage._zones.size() == zone_count and storage.is_active(), "planned mouse/keyboard input cannot dispatch work or create a zone")
+			_expect(bounds.encloses(planned._info.get_global_rect()), "planned explanation fits the viewport")
+			if "--capture" in OS.get_cmdline_user_args():
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png("res://tmp/zones_art_20261012/%s_%d.png" % [id, viewport_size.x])
+			orders.set_open(false)
+			_expect(not planned._info.visible, "closing Zones dismisses planned explanation")
+			planned.release_focus()
+			orders.set_open(true, "zones")
+			await _settle()
+		orders.tool_requested.disconnect(on_request)
 
 
 func _test_mining_zoom() -> void:

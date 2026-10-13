@@ -13,8 +13,9 @@ func _run() -> void:
 	await _check_bystanders()
 	_check_saved_and_sleeping()
 	_check_walks_and_support()
+	await _check_raised_floor()
 	for failure: String in failures: push_error(failure)
-	print("DWARF_SUPPORT_OK: mining bystanders, cargo/claims, saved hovering, sleep/pause, deep floors, steps, ladders and decks" if failures.is_empty() else "DWARF_SUPPORT_FAIL")
+	print("DWARF_SUPPORT_OK: mining bystanders, raised floors, cargo/claims, saved positions, sleep/pause, deep floors, steps, ladders and decks" if failures.is_empty() else "DWARF_SUPPORT_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _remove_floor(cell: Vector3i) -> void:
@@ -162,3 +163,38 @@ func _finish_walk() -> void:
 	for i in range(500):
 		if not worker.is_walking(): break
 		worker._process(.02)
+
+func _check_raised_floor() -> void:
+	await _new_trip(STONE,3)
+	_expect(await _until(worker.TaskPhase.HAUL_TO_ZONE), "raised-floor fixture owns real cargo")
+	var cell: Vector3i = worker.current_cell()+Vector3i.UP
+	world.set_block(cell.x,cell.y,cell.z,blocks.get_id("base:construction:floor:plank"))
+	nav.refresh_mined_block(cell)
+	worker._process(.01)
+	_expect(worker.current_cell()==cell and nav.is_walkable(cell), "embedded feet recover onto raised flooring")
+	_expect(worker.current_task_id<0 and worker._carried_entries.is_empty() and zone.reserved_cells.is_empty(), "upward recovery releases work and destination claims")
+	_expect(_snapshot_units()==3 and _loose_units()==3, "upward recovery preserves real cargo")
+	for item: Node3D in drops._loose:
+		_expect(is_equal_approx(item.position.y,float(cell.y+1)), "recovered cargo lands above the new floor")
+	worker.position = Vector3(76.35,20,40.7) # Current-save position inside a one-block floor.
+	worker.rotation.y = .7
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(worker.serialize_state()))
+	worker.restore_saved_runtime(saved)
+	clock_node.set_paused(true)
+	worker._process(.1)
+	_expect(worker.position.y==20,"pause freezes embedded saved position")
+	clock_node.set_paused(false)
+	worker._process(.01)
+	_expect(worker.position==Vector3(76.35,21,40.7) and is_equal_approx(worker.rotation.y,.7), "saved embedded dwarf recovers preserving XZ and facing")
+	worker._begin_sleep()
+	var remaining: float = worker._sleep_hours_left
+	world.set_block(76,21,40,blocks.get_id("base:construction:floor:stone"))
+	nav.refresh_mined_block(Vector3i(76,21,40))
+	worker._process(.01)
+	_expect(worker.position.y==22 and worker._sleeping and worker._sleep_hours_left==remaining, "raised floor preserves remaining sleep")
+	worker._wake_up()
+	worker.position = Vector3(78.5,20,40.5)
+	world.set_block(78,23,40,blocks.get_id("base:terrain:rock:rock01"))
+	nav.refresh_mined_block(Vector3i(78,23,40))
+	worker._process(.01)
+	_expect(worker.position.y==20,"recovery never pushes a dwarf into a low ceiling")

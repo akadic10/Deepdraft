@@ -1,0 +1,23 @@
+[
+  {
+    "test": "DwarfFoodTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 12.71,
+    "timeout": false
+  },
+  {
+    "test": "DwarfIdleBehaviorTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 6.63,
+    "timeout": false
+  },
+  {
+    "test": "ShrubRegrowthTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.4,
+    "timeout": false
+  }
+]

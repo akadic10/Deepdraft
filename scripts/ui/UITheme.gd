@@ -205,7 +205,11 @@ static func hud_panel_style(bg_alpha: float = .97) -> StyleBoxFlat:
 
 
 static func dock_panel_style() -> StyleBoxFlat:
-	return style(Color(HEARTH_BG, .96), HEARTH_EDGE, 1, RADIUS)
+	return style(Color(TRACK_BG, .96), HEARTH_EDGE, 1, RADIUS, 8, 5)
+
+
+static func dock_tooltip_style() -> StyleBoxFlat:
+	return style(HEARTH_BG, HEARTH_COPPER, 1, RADIUS, 12, 10)
 
 
 static func toast_style(is_error: bool) -> StyleBoxFlat:
@@ -245,6 +249,10 @@ static func orders_panel_style(banner: bool = false) -> StyleBoxFlat:
 	box.shadow_size = 3
 	box.shadow_offset = Vector2(0, 3)
 	return box
+
+
+static func orders_context_style() -> StyleBoxFlat:
+	return style(HEARTH_BG, HEARTH_COPPER, 1, RADIUS, 10, 8)
 
 
 static func catalog_item_style(selected: bool = false) -> StyleBoxFlat:

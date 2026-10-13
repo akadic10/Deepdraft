@@ -1,0 +1,44 @@
+[
+  {
+    "test": "DwarfFoodTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 11.29,
+    "timeout": false
+  },
+  {
+    "test": "HaulingAnimationTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.42,
+    "timeout": false
+  },
+  {
+    "test": "StorageFilterTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 1.18,
+    "timeout": false
+  },
+  {
+    "test": "ProduceCrateTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 60.97,
+    "timeout": false
+  },
+  {
+    "test": "DwarfInspectorTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.39,
+    "timeout": false
+  },
+  {
+    "test": "ShrubTransplantTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.73,
+    "timeout": false
+  }
+]

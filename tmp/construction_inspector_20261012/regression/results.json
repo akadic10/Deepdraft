@@ -1,0 +1,23 @@
+[
+  {
+    "test": "ConstructionInputTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 1.24,
+    "timeout": false
+  },
+  {
+    "test": "ConstructionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 10.43,
+    "timeout": false
+  },
+  {
+    "test": "ObjectExplorerTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.11,
+    "timeout": false
+  }
+]

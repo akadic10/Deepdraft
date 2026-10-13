@@ -1,13 +1,22 @@
 # 23 — Wall Building & Construction v1
 
+> **Superseded 2026-10-12:** the current implementation and user-approved scope
+> are in [127 — Structural stone construction](127_structural_stone_construction.md).
+> This document preserves the historical proposal, not the current contract.
+> The shipped block uses an existing natural rock key and shade, costs one rough
+> stone, and reuses FETCH_BUILD. Its construction provenance is stored separately.
+> There are no wall coverings or combined Replace wall command. More wall types
+> and thin partitions are deferred. Wood/stone floors are the next discussion;
+> rugs, pelts and fitted carpets are a separate later category. Proposed APIs,
+> the new constructed-stone ID and dedicated BUILD executor below were not adopted.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = decided / ready to build</span> |
 > <span style="color:#d29922;">Yellow = decision needed or tune-in-engine</span> |
 > <span style="color:#f85149;">Red = explicitly out of scope for this milestone</span>
 
-Status: **PROPOSED — drafted 2026-08-14, revised same day after Alen's review.** Nothing
-in this doc is built. This is the design pass for the first player construction
+Historical status: **PROPOSED — drafted 2026-08-14, now superseded.** This was the design pass for the first player construction
 mechanic: dwarves placing solid terrain blocks from stocked rough stone — **anywhere
 there is air**, carved or natural, underground or on the surface.
 

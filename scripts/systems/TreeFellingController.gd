@@ -339,6 +339,22 @@ func get_order_hint() -> String:
 	return "Click a tree, or drag around several.\nMarked trees stay queued after you finish."
 
 
+## Compact player feedback; the longer modifier/help text stays in tooltips.
+func get_order_summary() -> String:
+	if _cancel_mode:
+		if _dragging:
+			return "%d blocks · %d trees · %d stones/plants · Release to cancel" % [_preview_mining.size(), _preview_trees.size(), _preview_stones.size()]
+		return "Click or drag across marked work."
+	if _stone_mode:
+		if _dragging and _box_select:
+			return "%d %s in area · Release to mark" % [_preview_count(), "stones" if _detail_tool == "clear_stones" else "plants"]
+		if _detail_tool == "harvest_plants": return "Click or drag over ripe shrubs and junipers."
+		if _detail_tool == "clear_shrubs": return "Click or drag over shrubs, flowers or reeds."
+		return "Click or drag over boulders and loose stone."
+	if _dragging and _box_select: return "%d trees in area · Release to mark" % _preview_trees.size()
+	return "Click a tree or drag an area."
+
+
 func _update_cancel_preview(refresh_candidates: bool = true) -> void:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null or _flora == null: return

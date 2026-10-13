@@ -1,0 +1,16 @@
+[
+  {
+    "test": "ConstructionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 9.36,
+    "timeout": false
+  },
+  {
+    "test": "ConstructionInputTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.25,
+    "timeout": false
+  }
+]

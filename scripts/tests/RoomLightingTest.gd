@@ -118,15 +118,16 @@ func _run() -> void:
 	await _rooms_settle()
 	room_tool._refresh_window()
 	_expect(room_tool._window_content._lighting.text == "No light sources", "uninstall refreshes room light count")
-	# Slice controls retain their original snap, bounds and remembered-height contract.
+	# Slice controls use exact four/one offsets, bounds and remembered height.
+	var hud = current_scene.get_node("DockUI")._time_slice_hud
 	slice._set_slice_y(59)
-	slice.step_cell_down(); _expect(slice.get_slice_y() == 55, "cell down snaps four blocks")
+	slice.step_cell_down(); _expect(slice.get_slice_y() == 55, "double down moves four blocks")
 	slice.step_single_up(); _expect(slice.get_slice_y() == 56, "fine step moves one block")
-	slice.step_cell_up(); _expect(slice.get_slice_y() == 59, "cell up snaps to top")
+	slice.step_cell_up(); _expect(slice.get_slice_y() == 60, "double up moves exactly four blocks")
 	slice._set_slice_y(4)
-	_expect(slice._down_buttons[0].disabled and slice._down_buttons[1].disabled, "lower bound disables both down controls")
+	_expect(hud.step_buttons.down_four.disabled and hud.step_buttons.down_one.disabled, "lower bound disables both down controls")
 	slice._set_slice_y(127)
-	_expect(slice._up_buttons[0].disabled and slice._readout_label.text == "Full world", "upper bound displays full world")
+	_expect(hud.step_buttons.up_four.disabled and hud.readout.text == "127", "upper bound remains visible in active slice view")
 	slice._set_slice_y(entrance.y + 4)
 	var remembered: int = slice.get_slice_y()
 	slice.deactivate(); slice.activate()
@@ -135,7 +136,7 @@ func _run() -> void:
 		root.size = resolution
 		await _rooms_settle()
 		await _review_capture("panels_%d" % resolution.x)
-		for id in ["room_inspector", "slice_palette"]:
+		for id in ["room_inspector"]:
 			var panel: UIWindow = wm.get_ui_window(id)
 			_expect(panel.get_global_rect().end.x <= resolution.x and panel.get_global_rect().end.y <= resolution.y, "panel fits " + id + " at " + str(resolution))
 	var report := {"failures":failures,"luminance":measures,"entrance":str(entrance)}

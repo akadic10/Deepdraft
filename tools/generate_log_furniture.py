@@ -1,7 +1,7 @@
 """Starter log doors, split-log bench and primitive torch; native 8 voxels/block.
 
-Original voxel geometry with linear vertex colors. Door leaves are separate
-meshes so installed furniture can swing them without changing room sealing.
+Original voxel geometry with linear vertex colors. Frameless door leaves are
+separate meshes so installed furniture can swing without changing room sealing.
 """
 from pathlib import Path
 from voxel_glb import Voxels, write_glb
@@ -16,24 +16,22 @@ CUT, RING, HEART = map(rgb, ("DABE84", "AE8C54", "CCAA6D"))
 def door_parts(width=2):
     assert width in (2, 3, 4)
     low, high = -width * 4, width * 4
-    frame = Voxels()
-    for x in (low, high-1):
-        box(frame, x, x+1, 0, 31, -2, 2, OAK[2])
-        box(frame, x, x+1, 30, 31, -1, 1, CUT)
-    box(frame, low, high, 30, 31, -1, 1, OAK[3])
-    parts = [("door_frame", frame)]
-    ranges = [(low+1, high-1)] if width < 4 else [(low+1, 0), (0, high-1)]
+    # Starter doors are only pegged log leaves. Jambs and a top beam belong
+    # to future better doors; the surrounding terrain is the opening's frame.
+    parts = []
+    ranges = [(low, high)] if width < 4 else [(low, 0), (0, high)]
     for index, (left, right) in enumerate(ranges):
         leaf = Voxels()
         # Closely set rough split logs: continuous core, faceted bark faces.
         box(leaf, left, right, 0, 30, -1, 1, OAK[1])
         for log_index, x in enumerate(range(left, right, 4)):
             end = min(x+4, right)
-            box(leaf, x, end, 0, 30, -1, 1, OAK[2+log_index%2])
+            height = 31 if (log_index+index)%3 == 1 else 30
+            box(leaf, x, end, 0, height, -1, 1, OAK[2+log_index%2])
             if end-x > 2:
-                box(leaf, x+1, end-1, 0, 30, -2, 2, OAK[3+log_index%2])
-                box(leaf, x+1, end-1, 29, 30, -1, 1, CUT)
-            box(leaf, x, end, 29, 30, -1, 1, RING)
+                box(leaf, x+1, end-1, 0, height, -2, 2, OAK[3+log_index%2])
+                box(leaf, x+1, end-1, height-1, height, -2, 2, CUT)
+            box(leaf, x, end, height-1, height, -1, 1, RING)
         # Raw cross battens and broad wooden pegs, on both faces.
         for z in (-3, 2):
             for y in (5, 23):

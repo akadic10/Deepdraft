@@ -94,6 +94,6 @@ Final abundance across seeds 0, 1, 2, 7, 42, 1234, 65535 and 20261007:
 Evidence: `tmp/plant_habitat_review/`, including the layout JSON, test logs,
 `packed_seasonal_art.png`, `planting_spacing.png`, and
 `planting_spacing_blocked.png`. Generate a fresh world to review the new wild
-habitats. **DEV: Next flowers** locates clumps; **Clock & weather** can advance
+habitats. Click flower clumps to inspect them; **Clock & weather** can advance
 seasons. Try moving two plants two blocks apart, then three; pack a flower into
 storage and replant its matching entry from Place → Plants.

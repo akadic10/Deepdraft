@@ -52,7 +52,8 @@
               ]
             }
           ],
-          "work_seconds": 3.0
+          "work_seconds": 3.0,
+          "regrow_days": 2.0
         },
         "picked_models": {
           "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_spring_picked.glb",

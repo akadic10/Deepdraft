@@ -159,7 +159,7 @@ func set_weather(id: String) -> void:
 	_apply(id)
 
 
-## Advance to the next weather type in load order — wired to the Clock window's test button.
+## Advance to the next weather type in load order — Development's test button.
 func cycle_weather() -> void:
 	if _ordered_ids.is_empty():
 		return

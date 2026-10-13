@@ -28,7 +28,7 @@ exploration by dwarves remains a later design choice.
 ## Easy playtest
 
 1. Stop and restart play mode to generate a world with the cave pass.
-2. Open **Menu → Development → DEV: Cave explorer**.
+2. Open **Development → DEV: Cave explorer**.
 3. Choose a cave and press **Focus + slice**. The gold outline marks the selected
    cave through the concealed terrain; cyan outlines mark other caves.
 4. Enable **Preview interior with DEV lighting** to inspect the actual floor,

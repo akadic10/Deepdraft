@@ -120,8 +120,9 @@ func _run() -> void:
 	drops.drop_loose(cargo,Vector3i(12,20,12))
 	_expect(_units(ACORN) == 17 and zone.reserved_cells.is_empty(), "interrupted haul drops all 17 contents and releases storage")
 	var dwarf = load("res://scripts/entities/DwarfAgent.gd").new()
-	# This snapshot-only actor skips setup(), including its mood component.
+	# This snapshot-only actor skips setup(), including its need components.
 	dwarf._mood = load("res://scripts/components/DwarfMood.gd").new()
+	dwarf._food = load("res://scripts/components/DwarfFoodBehavior.gd").new(dwarf)
 	dwarf._carried_entries = [[cargo,ACORN]]
 	_expect(dwarf.serialize_state().carried_items[0].count == 17, "carrier snapshot records crate quantity")
 	dwarf._carried_entries.clear()

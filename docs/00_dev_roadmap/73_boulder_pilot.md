@@ -10,9 +10,8 @@ remain planned. The implementation history below records the boulder pilot.
 
 1. **Project → Reload Current Project** after this update: the project now has
    a `SurfaceDetailRegistry` autoload. Then run the normal debug-world scene.
-2. Choose **Menu → Development → DEV: Next boulder**. This cycles through the
-   generated stones, restores full-world view, focuses the camera and opens
-   Object explorer. It does not designate, remove or reward anything.
+2. Click a visible boulder to open Object explorer. Inspection does not
+   designate, remove or reward anything.
 3. Select **Clear boulder** in the inspector, or **Orders → Clear stones** to
    click individual stones or drag a ground rectangle around several. The live
    banner shows the selected count; mouse release confirms the designation.

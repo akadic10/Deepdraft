@@ -1,0 +1,7 @@
+{
+  "test": "TerrainExplorerTest",
+  "passed": true,
+  "exit": 0,
+  "seconds": 3.0,
+  "timeout": false
+}

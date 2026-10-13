@@ -12,6 +12,8 @@ var _volume: Label
 var _doors: Label
 var _beds: Label
 var _bedroom_hint: Label
+var _flooring: Label
+var _flooring_appeal: Label
 var _heat: Label
 var _season: Label
 var _level: Label
@@ -46,13 +48,15 @@ func _ready() -> void:
 	_overview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_overview.add_theme_constant_override("separation", 14)
 	pages.add_child(_overview)
-	_beds = _row(_overview, "Beds")
+	_beds = _row(_overview, "Beds", "beds")
 	_bedroom_hint = _label(_overview, "", 13, UITheme.HEARTH_MUTED)
-	var temperature := _card(_overview, "TEMPERATURE")
+	_flooring = _row(_overview, "Finished floor", "flooring")
+	_flooring_appeal = _row(_overview, "Flooring appeal", "appeal")
+	var temperature := _card(_overview, "TEMPERATURE", "temperature")
 	_temperature = _label(temperature, "", 28)
 	UITheme.apply_title(_temperature, 28)
 	_zone = _label(temperature, "", 13, UITheme.HEARTH_MUTED)
-	var lighting := _card(_overview, "LIGHTING")
+	var lighting := _card(_overview, "LIGHTING", "lighting")
 	_lighting = _label(lighting, "", 18)
 	_lighting_hint = _label(lighting, "", 13, UITheme.HEARTH_MUTED)
 	_volume = _row(_overview, "Room volume")
@@ -85,6 +89,8 @@ func show_room(room: Dictionary) -> void:
 	_doors.text = str(room.get("door_cells", {}).size())
 	var beds := RoomManager.count_room_beds(room.get("cells",{}))
 	_beds.text = str(beds)
+	_flooring.text = "%d / %d tiles" % [int(room.get("finished_floor_tiles",0)),int(room.get("floor_tiles",0))]
+	_flooring_appeal.text = "+%.0f · Complete" % float(room.flooring_appeal) if room.get("flooring_complete",false) else "+0 · Incomplete"
 	if room.get("room_type","")=="personal_bedroom":
 		var resident: DwarfAgent = TaskManager._agents.get(int(room.owner_id))
 		_bedroom_hint.text = "%s's bedroom. Sleeping here gives a happiness bonus." % (resident.dwarf_name if is_instance_valid(resident) else "Colonist")
@@ -111,33 +117,51 @@ func _show_tab(index: int) -> void:
 
 
 func _fit() -> void:
-	_scroll.custom_minimum_size.y = clampf(get_viewport_rect().size.y - 260, 170, 310)
+	_scroll.custom_minimum_size.y = clampf(get_viewport_rect().size.y - 260, 170, 410)
 	if window != null:
 		window.reset_size()
 		window.clamp_to_viewport.call_deferred()
 
 
-func _card(parent: Node, title: String) -> VBoxContainer:
+func _card(parent: Node, title: String, symbol := "") -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
 	parent.add_child(panel)
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", 6)
 	panel.add_child(body)
-	_label(body, title, 11, UITheme.HEARTH_COPPER)
+	var heading := HBoxContainer.new()
+	heading.add_theme_constant_override("separation", 8)
+	body.add_child(heading)
+	_symbol(heading, symbol)
+	_label(heading, title, 11, UITheme.HEARTH_COPPER)
 	return body
 
 
-func _row(parent: Node, title: String) -> Label:
+func _row(parent: Node, title: String, symbol := "") -> Label:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	parent.add_child(row)
+	_symbol(row, symbol)
 	var caption := _label(row, title, 13, UITheme.HEARTH_MUTED)
 	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var value := _label(row, "", 14)
 	value.autowrap_mode = TextServer.AUTOWRAP_OFF
 	value.size_flags_horizontal = Control.SIZE_SHRINK_END
 	return value
+
+
+func _symbol(parent: Node, id: String) -> void:
+	if id.is_empty(): return
+	var image := TextureRect.new()
+	image.texture = UIRegistry.get_room_symbol(id)
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	image.custom_minimum_size = Vector2(32, 32)
+	image.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	image.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(image)
 
 
 func _label(parent: Node, text: String, font_size: int, color: Color = UITheme.HEARTH_TEXT) -> Label:

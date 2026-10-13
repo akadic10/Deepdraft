@@ -1,0 +1,51 @@
+[
+  {
+    "test": "SettlementFlagMoveTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 5.17,
+    "timeout": false
+  },
+  {
+    "test": "FurnitureMoveTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 12.83,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePlacementAnimationTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 14.5,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePlaceTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.21,
+    "timeout": false
+  },
+  {
+    "test": "ObjectExplorerTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.2,
+    "timeout": false
+  },
+  {
+    "test": "ColonyInventoryTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.94,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 69.78,
+    "timeout": false
+  }
+]

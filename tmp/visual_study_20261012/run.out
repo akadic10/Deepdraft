@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (4 weather types, current = base:weather:clear).
+FurniturePlacementController: 39 placeable defs loaded.
+VISUAL_STUDY_LIGHTS [{"color":"ffeccfff","energy":1.10000002384186,"name":"Sun","visible":true},{"color":"ffffffff","energy":0.0,"name":"Moon","visible":false}]
+VISUAL_STUDY_READY: 32×32 world; C compares; 1/2/3 time; [/] slice; RMB orbit; wheel zoom
+VISUAL_STUDY_OK {"adapter":"AMD Radeon RX 9070 XT","allocated_chunks":36,"captures":{"current_day":{"draw_calls":70,"gpu_median_ms":0.805000007152557,"gpu_ms":0.810999989509583,"gpu_p95_ms":1.03100001811981,"primitives":49298,"render_cpu_ms":0.233999997377396,"sample_frames":90,"terrain_rebuild_ms":61.734},"current_dusk":{"draw_calls":70,"gpu_median_ms":0.810000002384186,"gpu_ms":1.01199996471405,"gpu_p95_ms":1.057000041008,"primitives":49298,"render_cpu_ms":0.237000003457069,"sample_frames":90,"terrain_rebuild_ms":61.535},"current_night":{"draw_calls":70,"gpu_median_ms":0.726999998092651,"gpu_ms":0.707000017166138,"gpu_p95_ms":0.943000018596649,"primitives":49298,"render_cpu_ms":0.361000001430511,"sample_frames":90,"terrain_rebuild_ms":62.045},"study_day":{"draw_calls":76,"gpu_median_ms":2.22399997711182,"gpu_ms":2.25699996948242,"gpu_p95_ms":2.31699991226196,"primitives":158342,"render_cpu_ms":0.27700001001358,"sample_frames":90,"terrain_rebuild_ms":99.582},"study_dusk":{"draw_calls":76,"gpu_median_ms":2.00500011444092,"gpu_ms":2.20900011062622,"gpu_p95_ms":2.26799988746643,"primitives":158342,"render_cpu_ms":0.252999991178513,"sample_frames":90,"terrain_rebuild_ms":99.585},"study_night":{"draw_calls":76,"gpu_median_ms":1.70799994468689,"gpu_ms":1.96700000762939,"gpu_p95_ms":1.96000003814697,"primitives":158342,"render_cpu_ms":0.229000002145767,"sample_frames":90,"terrain_rebuild_ms":98.773}},"checks_passed":42,"environment_art_triangles":76796,"failures":[],"fixture_chunks":8,"opening_daylight":{"closed":0.0,"open":0.444444444444445},"resolution":[1600,1000],"roof_light":0.00694444444444445,"scope":"32×32 presentation study; not a full-world performance forecast","study_msaa":"4x; current comparison uses the shipped disabled setting"}

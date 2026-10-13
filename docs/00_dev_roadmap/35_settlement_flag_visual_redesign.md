@@ -1,5 +1,11 @@
 # 35 — Settlement flag visual redesign
 
+**Lifecycle update (2026-10-12):** the same banner art now belongs to the normal
+furniture system, with Object explorer selection, worker Move/Uninstall and
+Place → Rooms for packed flags. Its 1×1×3 occupancy is unchanged. Founding history
+and physical flag ownership save separately; the historical save/material notes
+below describe the 2026-10-01 art milestone. See [133](133_settlement_flag_furniture.md).
+
 **Status (2026-10-01): installed and verified.** The settlement marker is
 now a crimson hanging standard with a gold geometric emblem, an iron-bound
 oak mast and a compact dressed-stone footing. The existing 1×1 footprint,

@@ -12,6 +12,10 @@ no autonomous leisure movement or chair use existed.
   approaches and other dwarves' current/planned stops. Straight routes must have
   full ordinary dwarf clearance. Leisure does not climb ladders or roam farther
   away to find a destination.
+- **2026-10-12 flooring follow-up:** when no flat stroll is available, the dwarf
+  can take an adjacent one-block step up onto clear ground. This releases dwarves
+  from shallow unfinished floor tiles that DEV Build skipped while occupied.
+  Normal clearance, local bounds, privacy and work interruption still apply.
 - Between activities they pause for 8–18 seconds and look around. Attempts and
   timings are staggered with a per-dwarf RNG independent of world generation.
 - When a nearby suitable wooden chair is free, they may walk to an authored
@@ -25,7 +29,7 @@ no autonomous leisure movement or chair use existed.
   placed rotation is unchanged. Backed wooden chairs retain their placed facing.
 - Work interrupts leisure immediately. Dwarves remain in the scheduler's idle
   pool throughout, preserving task priorities and nearby-worker comparisons.
-- The inspector/roster show Looking around, Strolling nearby, Going to sit,
+- The inspector/roster show Looking around, Strolling nearby, Stepping up, Going to sit,
   Sitting or Getting up. These activities count as idle availability, not work
   or sleep. Pause freezes them; game speed scales their timers and movement.
 
@@ -39,10 +43,11 @@ remain separate work.
 class or autoload. TaskManager remains the owner of `task_config.json`; its
 `idle` section supplies all timing, radius, spacing and attempt settings.
 
-Leisure uses short validated flat segments, not global A* calls. Wander attempts
-are capped; chair discovery considers one installed piece per frame. An enclosed
-dwarf waits rather than teleporting or repeatedly searching the whole map.
-Movement rechecks its straight route and stopping location during travel.
+Strolls use short validated flat segments. Wander attempts are capped; chair
+discovery considers one installed piece per frame. The shallow-hole fallback
+requests an ordinary walking route to a walkable cell one block higher in an
+adjacent column. An enclosed dwarf without such a step waits. Movement rechecks
+its route during travel, and accepting work clears the leisure route.
 
 `InstalledFurnitureComponent.idle_seat_owner` is a transient exclusive claim.
 Its `idle_seat_yaw_steps` reserves the occupant's actual facing, used by shared

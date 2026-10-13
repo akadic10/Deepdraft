@@ -1,5 +1,108 @@
 # 23 — User Interface
 
+**Fixed time/Slice HUD (2026-10-12, 142):** illustrated Pause, 1×, 2× and Slice
+sit permanently at the bottom right. Slice's fixed tower has exact ±1/±4 arrows
+and a live level. Off reads Full world and retains the last height. Wheel over
+the tower steps the plane. The old upper-left strip, movable Slice window and
+Menu shortcut are removed. See [142](../00_dev_roadmap/142_fixed_time_slice_hud.md).
+
+**Sky Dial (2026-10-12, 141):** the upper-right illustrated HUD now presents
+season/day/time, current weather and the seasonal day/night cycle. Hover/focus
+adds year, phase and sunrise/sunset. It replaces the Clock window and Menu
+shortcut. Pause/speed/Slice now live at bottom-right; food warnings sit beneath the dial,
+and ordinary windows make room. See [141](../00_dev_roadmap/141_sky_dial.md).
+
+**Remaining illustrated menus (2026-10-12, 140):** Craft, Colony, Menu and
+Development now share the illustrated submenu rail. Place and Inventory have
+matching illustrated category filters, with a dropdown at short window heights;
+Room furnishings replaces the Place category name Rooms. Room facts have small
+supporting symbols. Colony's flag entry now locates/inspects its existing flag or
+order, or opens its packed recovery in Place. Planned crafting catalogs remain
+browsable with explicit status. See [140 — Delivery](../00_dev_roadmap/140_remaining_illustrated_menus.md).
+
+**Illustrated Construction (2026-10-12, 138):** Stone block and Floors now use
+the same Hearth & iron art and hover/focus names as the dock. Floors opens plank
+and stone illustrations with a Back arrow; a flask badge identifies each as a
+usable DEV preview. Existing construction and DEV Build behavior remains intact.
+See [138 — Construction menus](../00_dev_roadmap/138_illustrated_construction.md).
+
+**Illustrated Zones (2026-10-12, 137):** Storage, Farming and Animal pasture use
+the same icon-only rail and parent anchoring as Orders. Storage is usable;
+Farming and Animal pasture are dimmed with lock badges and explain their planned
+status on hover, focus or activation. They cannot dispatch work or switch tools.
+See [137 — Zones submenu](../00_dev_roadmap/137_illustrated_zones.md).
+
+**Illustrated Orders (2026-10-12, 136):** six caption-free command icons form a
+short rail above Orders, with hover/focus names, active copper borders and a gap
+before Cancel. The 64/56 px icons wrap beside moved inspectors. Compact mode
+feedback retains live counts, mining width/depth, contextual Undo and Done/Esc.
+Zones subsequently adopted matching art in 137; all order ownership remains intact.
+See [136 — Orders submenu](../00_dev_roadmap/136_illustrated_orders_plan.md).
+
+**Illustrated command dock (2026-10-12, 135):** the bottom bar uses ten approved
+Hearth & iron illustrations with no permanent captions. Hover or keyboard focus
+shows a name and explanation; the active command has a copper outline and bottom
+notch. Square 72 px desktop / 56 px compact buttons retain the existing order,
+with gaps before Menu and Development. Menus fit above the measured rail.
+See [135 — Illustrated dock](../00_dev_roadmap/135_illustrated_command_dock.md).
+
+**Settlement flag (2026-10-12, 133):** the placed banner is ordinary furniture
+in Object explorer, including Move/Uninstall, occlusion and slice picking rules.
+Packed flags appear in Place → Room furnishings. Reinstallation updates the settlement
+anchor; the initial founding command remains once-only. See
+[133 — Settlement flag](../00_dev_roadmap/133_settlement_flag_furniture.md).
+
+**Furniture Move (2026-10-12):** installed furniture, crafting stations and
+containers offer Move in Object explorer. Aim/rotate the normal preview and click
+to queue worker relocation; Escape before confirming leaves the piece installed.
+Source and destination offer Cancel move. The chosen piece retains its material,
+bed ownership and storage filters. Containers empty their contents when packed.
+See [132 — Furniture Move](../00_dev_roadmap/132_furniture_move.md).
+
+**Storage inspector styling (2026-10-12):** ground storage and containers share
+Object explorer's framed chrome, inset type/name card and stacked action buttons.
+Ground zones retain their movable Storage inspector with Filters/Contents;
+short contents lists use less empty space. See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).
+
+**Food indicator (2026-10-12, 131):** the shared dwarf inspector/Colony detail
+panel shows Food beside Rest, with Satisfied/Hungry/Famished states and a tooltip
+for the last meal and food-search status. Overview shows actual hunger effects;
+Details shows the last food/time/arrangement and temporary dining thoughts.
+Current activity distinguishes food search, emergency berry picking, dining and
+eating. A quiet HUD warning counts hungry dwarves unable to find reachable food,
+with harvesting/storage-access guidance. The larger tab redesign remains stage 3
+in [131](../00_dev_roadmap/131_dwarf_food_and_dining.md).
+
+**Development menu (2026-10-12):** Development is its own dock entry at the far
+right, after Menu. It opens directly with no parent/back link. Its nine actions
+are Block inspector, World Build, Cave explorer, Dwarf tools, Water tools,
+Arrival status, Spawn Drops, Spawn Furniture and Time & weather. The last panel
+owns +1 Hour, +1 Season and weather cycling; the player clock shows facts only.
+Block Inspector moved here in 130; World Build and time/weather tests in 140.
+All 15 cycling locator commands and their runtime handlers/state
+have been removed. Normal click inspection and Locate/Follow remain available.
+Native menu routing and layouts pass at 960×540, 1280×720 and 2560×1440;
+captures and checks are in `tmp/development_menu_20261012/`.
+
+**Construction (2026-10-12):** the dock entry sits between **Rooms** and **Place**
+and opens **Stone block · 1 stone**.
+Click a terrain face or drag a footprint to plan full voxels in adjoining air.
+Alt + wheel adjusts height; the displayed slice limits the actual order. Green
+previews show the selected cells and cost, blue cells mark pending work. Ctrl +
+click cancels an unfinished area; Escape ends the tool. Click a blue cell, during
+construction mode or afterward, to inspect its whole pending area in Object
+explorer. The outline and live rows show remaining blocks, required stone,
+assigned worker and current block progress. **Cancel construction** removes the
+remaining plan while keeping completed stone and unconsumed materials. Hidden
+plans cannot be clicked through terrain; completion, cancellation or lowering the
+slice below the whole area closes the inspector. Existing solid terrain
+must be mined first. **Construction → Floors** now offers simple plank and stone
+plans, with the required profession marked Planned. Their inspectors expose
+**DEV Build**; workers cannot claim these plans. Rooms displays floor coverage
+and +5 flooring appeal for complete coverage. Decorative coverings remain
+deferred. See [128 — Floors](../00_dev_roadmap/128_permanent_floor_preview.md) and
+[127 — Structural stone](../00_dev_roadmap/127_structural_stone_construction.md).
+
 **Crafting browser (2026-10-11):** Craft → profession now opens compact recipe
 icons grouped by the categories in recipe data, with case-insensitive search
 by name or category. Recipes / Orders (count) tabs share the left column; the
@@ -60,12 +163,19 @@ See [59 — Storage filters](../00_dev_roadmap/59_storage_filters.md).
 
 ## Object explorers (implemented 2026-10-04)
 
+**Terrain faces (2026-10-12):** bare walls, floors and ceilings are clickable.
+Object explorer names the visible material and shows type, surface, level and
+natural/constructed status, with a block outline. Slice caps and planned openings
+keep ore/gems concealed. Ordinary object, mining-zone and storage-zone inspectors
+take precedence; active tools keep their inputs. Technical block diagnostics are
+under Development. See [130 — Terrain inspection](../00_dev_roadmap/130_terrain_inspection.md).
+
 **Wildlife (updated 2026-10-10):** rabbits, deer, wolves and ducks share Object
 explorer, Locate and Follow. Ducks remain inspectable while swimming, on shore
 and in flight; wakes/splashes do not enlarge their pick bounds. Hidden slice
 levels hide birds and effects together; full-world view includes high flights.
-**Menu → Development → DEV: Next duck** locates a seeded duck and **DEV: Next
-duck arrival** locates entered members of later flocks. See
+Click a visible duck to inspect it or use Follow, including birds from later
+flocks. See
 [111 — Duck wildlife](../00_dev_roadmap/111_duck_wildlife.md).
 
 **Juniper berries (2026-10-09):** tree Fruit/Fruit season rows now show juniper's
@@ -81,8 +191,8 @@ work status/progress and rough-stone yield. Projected markers identify active or
 **Orders → Clear stones** supports single clicks and ground rectangles with a
 live count. Cancel orders includes both categories alongside blocks and trees; Undo and
 View order use the shared banner. Cancellation retains partial clearing work.
-**Menu → Development → DEV: Next boulder / DEV: Next scree** cycle through each category,
-restores full-world view and focuses/selects one without changing work state.
+Click a visible boulder or loose-stone clump to inspect it without changing
+its work state.
 Dwarf inspection and the roster distinguish hand gathering, boulder breaking
 and tree chopping. See [74 — Gatherable scree](../00_dev_roadmap/74_gatherable_scree.md).
 
@@ -136,9 +246,10 @@ crafting stump's explorer action. Dwarf inspection shows the actual crafting
 spot or stump stand, not the scheduler's placeholder coordinates. See
 [64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
 
-**Grouped navigation (updated 2026-10-07):** eight labeled entries with copper line
-icons replace the emoji-only command row. Orders, Zones, Rooms, Place, Craft, Colony, Inventory and Menu
-sit at bottom-center, with live calendar, speed and Slice controls at top-left. Menus stay
+**Grouped navigation (updated 2026-10-12):** ten illustrated entries with hover
+names replace the labeled copper line icons. Orders, Zones, Rooms, Construction, Place, Craft, Colony, Inventory, Menu and Development
+sit along the bottom, making room for the fixed time/Slice controls at the right.
+The Sky Dial shows calendar/weather at the upper right. Menus stay
 beside the default right-hand inspector and scroll at smaller resolutions. All
 object inspectors now start on the right; existing saved or dragged positions take
 precedence. See [53 — Navigation and layout](../00_dev_roadmap/53_hearth_iron_navigation.md).
@@ -196,7 +307,7 @@ and Available excludes goods assigned to hauling or placement. Crates count
 contents. Locate and Inspect storage resolve current owners. Furniture remains
 counted here; furnishing happens through the separate Place dock entry.
 Tiles stay fixed through hauling. Developer spawn
-controls now live in Menu → Development. See
+controls now live in Development. See
 [56 — Colony Inventory](../00_dev_roadmap/56_colony_inventory.md).
 
 **Colony Dwarves (updated 2026-10-06):** Colony → Dwarves opens a wider movable
@@ -206,14 +317,14 @@ search remain; rows keep their positions during updates. Selection uses the same
 world controller and embeds Overview/Details, traits, Locate and Follow without
 opening another window. The two columns scroll independently. Escape closes the
 combined overview; ordinary world inspection resumes after closing. This pass
-initially added no labor controls; milestone 96 adds Work and Profession views. Developer tools remain in Menu → Development → DEV: Dwarf
+initially added no labor controls; milestone 96 adds Work and Profession views. Developer tools remain in Development → DEV: Dwarf
 tools. See [57 — Roster](../00_dev_roadmap/57_colony_dwarf_roster.md) and
 [61 — Colony overview](../00_dev_roadmap/61_colony_overview.md).
 
 ## Stockpile Display Readouts (planned)
 
-Resource counters below are a future design. The implemented status strip shows
-the live calendar, pause/speed controls and Slice; it does not show sample totals.
+Resource counters below are a future design. The Sky Dial shows the live calendar
+and weather; the fixed bottom-right utility dock holds pause/speed and Slice.
 
 ### Layout
 
@@ -231,8 +342,8 @@ the live calendar, pause/speed controls and Slice; it does not show sample total
 ## Floating Dock (Bottom Command Bar)
 
 The bottom-centered **floating dock** is a Hearth & iron bar on a `CanvasLayer`.
-Eight labeled entries use small SVG line icons from `assets/ui/icons/`, tinted by
-the shared theme. An open group stays highlighted, including while a submenu is
+Ten illustrated entries use original atlas art from `assets/ui/dock/`, with
+names on hover or keyboard focus. An open group stays highlighted, including while a submenu is
 open. Only one action menu opens at a time; a second click or Escape closes it,
 and submenus have a Back button. Active tools retain their existing Escape handling.
 
@@ -280,8 +391,11 @@ and pending placement requests, not UI data.
 
 `UIRegistry.get_dock_items()` returns the ordered navigation buttons;
 `get_menu(target)` returns a title, optional parent group and validated command
-entries. Buttons require `id`, `label`, `action` and `target`; `icon`, `tooltip`
-and `disabled` are optional. Malformed entries are skipped with a warning at load.
+entries, illustrated state, dock anchor and desktop/compact column limits.
+Buttons require `id`, `label`, `action` and `target`; `icon`, `icon_region`,
+`tooltip`, `planned`, `preview` and `status_label` supply presentation.
+Malformed entries are skipped with a warning at load. Place and Inventory
+category definitions also carry atlas metadata through UIRegistry.
 
 ### Action Types
 
@@ -290,14 +404,14 @@ and `disabled` are optional. Malformed entries are skipped with a warning at loa
 | `open_panel` | Opens a build/designation panel above the dock. Panels are **mutually exclusive** — opening one closes any other. `target` names the panel. |
 | `toggle_window` | Toggles a movable floating window (labor, inventory, trade). `target` names the window. |
 | `activate_tool` | Emits the existing `tool_requested` signal. Orders keeps its shelf open; other command menus close. Controllers retain the one-active-tool contract. |
-| `panel_action` | Dispatches an existing named action, including the DEV stockpile spawners. |
+| `panel_action` | Save and developer commands dispatch by stable item `id`; legacy actions retain their existing handler. |
 | `open_crafting` | Closes the profession chooser and opens the recipe/preview menu for the section named by `target`. |
 
 ### Save / Load Menu
 
-**Menu → Save / Load** opens the standard mutually exclusive action panel above
-the dock. Its actions are **💾 Save Game**,
-**📂 Load Game**, and **🕒 Load Autosave**. `DockUI` owns only the presentation and emits
+**Menu → Save / Load** opens an illustrated child row with Back above
+the dock. Hover/focus names identify **Save game**, **Load game**, and
+**Load autosave**. Stable action IDs route the callbacks. `DockUI` emits
 `save_game_requested`, `load_game_requested`, or `load_autosave_requested`; `SaveManager`
 owns the timer, file I/O, and state serialization.
 
@@ -327,13 +441,13 @@ in `00_dev_roadmap/20_save_load.md`.
 
 Some `toggle_window` targets are intercepted in `DockUI._toggle_window` and routed to a real
 system instead of a generic window: `world_info` / `block_inspector` toggle their overlay
-CanvasLayers, `clock` opens the live Clock window, `slice` toggles the **Slice tool**
+CanvasLayers, `slice` toggles the **Slice tool**
 (see below), and `rooms` toggles the **Rooms tool** (see below). `xray` remains a stub
 until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
 
 ### Developer cave explorer (2026-10-07)
 
-**Menu → Development → DEV: Cave explorer** opens a nonpersistent inspection
+**Development → DEV: Cave explorer** opens a nonpersistent inspection
 window. Choose a cave and use **Focus + slice**; **Previous/Next** steps through
 the cave catalog. Outlines project through terrain on a CanvasLayer. **Preview
 interior with DEV lighting** temporarily exposes the selected cave with enough
@@ -348,22 +462,22 @@ lit. See [68](../00_dev_roadmap/68_caves_and_discovery.md) for repeatable playte
 
 ### The Slice Tool (shipped 2026-06-05 — doc 11 Phase 2)
 
-The status strip's **Slice** button (also **Menu → Slice view**) toggles the slice view. The tool is
-owned by `SliceController` (scene node; DockUI only routes the toggle and mirrors active
-state on the button). The movable **Slice view** panel now uses the Hearth & iron
-cabinet chrome, a large **Level N** readout, paired Cell down/up and −/+ Block
-controls, keyboard hints and **Show full world**. Y127 reads **Full world**;
-buttons disable at their respective bounds. Closing restores the full view while
-remembering the last level. The initial position is below the time strip; a saved
-or dragged position takes precedence. Updated 2026-10-06.
+The bottom-right **Slice** mountain icon toggles the slice view. `SliceController`
+owns the plane and its saved state; the permanent `TimeSliceHUD` tower presents
+double up, single up, a level readout, single down and double down. Single arrows
+move one level and double arrows move exactly four. Buttons disable at their
+bounds. Off retains the tower with muted arrows and **Full world**; reactivation
+restores the last height. No movable window or duplicate Menu command remains.
+An active plane at the upper limit reads **LEVEL 127**. Updated 2026-10-12 (142).
 
 | Input | Effect |
 |---|---|
 | `\` | Toggle the slice view |
-| `]` / `[` | Step the plane one 4-block cell up / down (snaps to cell tops) |
+| `]` / `[` | Step exactly four levels up / down |
 | `Ctrl+]` / `Ctrl+[` | Step one block up / down |
+| Wheel over tower | Step one level up / down; Ctrl modifies this to four |
 
-Clamps: Y4 floor (Bedrock Protocol — one mineable layer always visible) to Y127 = off.
+Clamps: Y4 floor (Bedrock Protocol — one mineable layer always visible) to Y127 (world top).
 First activation seeds the plane from the camera's surface column; afterwards the height is
 fully manual and remembered across toggles. Its active state, current height, seeded flag,
 and last manual height persist in the version-1 quick save.
@@ -402,24 +516,35 @@ RoomManager's id churn by re-resolving through the clicked cell.
 
 | Group | Commands |
 |---|---|
-| Orders | Mine blocks, Chop trees, Cancel orders |
-| Zones | Stockpile |
+| Orders | Mine blocks, Chop trees, Clear stones, Harvest plants, Clear plants, Cancel orders |
+| Zones | Storage; planned Farming and Animal pasture |
 | Rooms | Direct room inspection toggle; active highlight, second click or Escape to exit |
+| Construction | Stone block (one rough stone each) and Floors (plank/stone DEV previews) |
 | Place | Finished furniture catalog: thumbnails, categories, live availability, repeated placement and Undo |
+| Craft | Ten illustrated profession entries; working Rudimentary recipes and explicitly marked specialist catalog previews |
 | Colony | Dwarves, Settlement flag, Labor and Trade |
 | Inventory | Colony supplies with real thumbnails, live physical counts, Locate and Inspect storage |
-| Menu | Save / Load, Clock & weather, Slice view, World Build, Block Inspector and Development |
+| Menu | Save / Load |
+| Development | Block inspector, World Build, Cave explorer, Dwarf tools, Water tools, Arrival status, Spawn Drops, Spawn Furniture, Time & weather |
 
-Farming controls are omitted pending implementation. Labor and Trade retain their
-existing preview contents and say so in their menu tooltips. Inventory uses live
-supplies. Development contains DEV: Spawn Drops and DEV: Spawn Furniture.
+Farming and Animal pasture explain their planned state without dispatching tools.
+Labor opens the roster's real Work view; Trade retains a clearly marked preview.
+Inventory uses live
+supplies. Development is the rightmost dock entry; cycling object locators have
+been removed from the game.
 
-### Live Status Strip
+### Live Status HUD
 
-The upper-left strip reads `WorldClock`: season, day and time, with the year in
-the tooltip. Clicking the date opens the existing Clock and weather window.
-Pause toggles pause/resume; 1× and 2× resume at that speed. Slice reflects the
-existing controller state. These controls remain available with any menu open.
+The upper-right Sky Dial reads `WorldClock` and `WeatherManager`: its plaques show
+time and season/day, while a sun/moon rim and changing landscape show the cycle
+and weather. `SkyController` supplies the same seasonal rise/set times used by
+world lighting. Hover or focus shows details; the old Clock window is removed.
+The bottom-right Pause icon toggles pause/resume; play and fast resume at 1× and
+2× respectively. Slice and its height tower remain fixed above the mountain icon.
+Hover/focus supplies labels. The main dock shifts left to make room when needed;
+at narrow widths the utility row lifts above its right end. Menus clear the
+utility controls. See [141](../00_dev_roadmap/141_sky_dial.md) and
+[142](../00_dev_roadmap/142_fixed_time_slice_hud.md).
 
 ### Panels (opened by `open_panel`)
 
@@ -439,11 +564,16 @@ header stays visible, and reopen at the top. At desktop widths the layout reserv
 space for the default inspector on the right. Verified at 960×540, 1280×720 and
 2560×1440; saved or dragged floating-window positions are still player-controlled.
 
-Wall Torch aims at vertical terrain faces and chooses their orientation automatically;
-aiming at the adjoining floor keeps R rotation available. It needs four blocks of room
-height. The wall-mount hint is a screen-space `Label` on a `CanvasLayer`, replacing the
-old placement `Label3D`. Installed torches are selected directly by their visible model
-bounds, with terrain occlusion and slice visibility respected.
+Both torches take their mounting height and facing from the selected wall cell.
+Alt + wheel adjusts height one block at a time; aiming at the adjoining floor
+starts at the design's default height and keeps R rotation available. The hint
+shows mount level and explains missing support, flame clearance or work access.
+Workers install/remove within five blocks above a reachable work floor. Object
+explorer shows mount level and **Waiting for reachable work position** when access
+is lost. A pending plan retains its chosen position. See
+[129 — Wall mount heights](../00_dev_roadmap/129_wall_mount_heights.md).
+The hint is a screen-space `Label` on a `CanvasLayer`. Installed torches are
+selected by visible model bounds, with terrain occlusion and slices respected.
 
 ### Emoji Rendering Requirement
 

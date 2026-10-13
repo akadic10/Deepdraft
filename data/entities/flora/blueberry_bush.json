@@ -48,7 +48,8 @@
               "season_only": "summer"
             }
           ],
-          "work_seconds": 3.0
+          "work_seconds": 3.0,
+          "regrow_days": 2.0
         },
         "picked_models": {
           "summer": "res://assets/models/flora/bushes/blueberry/blueberry_summer_picked.glb"

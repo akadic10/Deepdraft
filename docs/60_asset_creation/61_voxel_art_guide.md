@@ -3,9 +3,26 @@
 > **Scope:** Trees, bushes, cave flora, farm crops, furniture, workshop props, decorative/world objects.
 > For dwarf body parts, see [`41b_dwarf_appearance_glb.md`](../40_economy_colony/41b_dwarf_appearance_glb.md).
 
+**Art direction study (2026-10-12):**
+[144 — World art direction handoff](../00_dev_roadmap/144_world_art_direction_handoff.md)
+records the preferred native terrain/tree prototypes and a proposed gradual
+transition to voxel-inspired, stylized low-poly assets. Consult it before new
+art-direction work. The production conventions below still describe existing
+assets; the study has not globally replaced them. A small character/animal/
+furniture pilot precedes broader authoring-rule and asset migration work.
+
 ---
 
 ## 1. Visual Identity
+
+**Permanent floors (2026-10-12):** `tools/generate_permanent_floors.py` exports
+full 8×8×8 plank and stone tiles with baked .125 scale and linear vertex colors.
+These structural models fill [0,1]³ from a cell-minimum origin, with a flat top
+exactly at Y1. Planks alternate two phases along world Z for longer staggered
+boards; stone repeats a laid-slab pattern. Construction batches only exposed
+faces under the terrain lighting material. Godot-generated icons use the same
+models. Normal worker construction is locked; DEV Build exposes the preview.
+See [128](../00_dev_roadmap/128_permanent_floor_preview.md).
 
 **Log bed (2026-10-11):** `tools/generate_log_bed.py` authors a 4×3-block bed,
 head at local −X, sleeping hay surface at .75 blocks and head mound at 1 block.
@@ -26,10 +43,11 @@ furniture crates stay neutral. See [118](../00_dev_roadmap/118_crafted_materials
 
 **Starter log furniture (2026-10-11):** `tools/generate_log_furniture.py` now
 authors the 2/3-wide single doors and 4-wide double door, split-log bench and
-basic log torch. Door frame and leaves are named independent meshes; runtime
-hinges animate only installed pieces. All use eight voxels/block, unit roots,
-baked .125 vertex scale and linear colors. Doors retain a 31-voxel height under
-four-block lintels; the bench remains 2×1×1. The torch preserves its flame/mount
+basic log torch. As of 2026-10-12 doors have only named leaf meshes, with no
+fixed frame; framed designs are reserved for later tiers. Runtime hinges animate
+installed pieces from the opening's outer edges. All use eight voxels/block,
+unit roots, baked .125 vertex scale and linear colors. Uneven door tops reach
+30–31 voxels beneath four-block openings; the bench remains 2×1×1. The torch preserves its flame/mount
 envelope. Native review and generated icons are recorded in
 [117 — Log furniture and fire ambience](../00_dev_roadmap/117_log_furniture_and_fire_audio.md).
 
@@ -959,28 +977,27 @@ uses the builder and local linear-color export in `tools/generate_hearth_redesig
 
 ---
 
-#### Door (`base:furniture:door`) — added 2026-08-03 (doc 22), resized 2026-08-06 (doc 22b)
+#### Log doors — updated 2026-10-12 (doc 117)
 
-Footprint: **2×1**, with **no collision region**. Height is 31 voxels / 3.875
-blocks, leaving a small gap under a four-block lintel. The two-voxel core,
-four-voxel framing and projecting ironwork span six voxels / 0.75 blocks in
-depth, centred on the footprint. Originally shipped 1×1 / ~2 blocks tall
-(doc 22), it was widened and raised after Alen's scale review (doc 22b).
+The existing `base:furniture:door` has a **2×1** footprint and one leaf.
+`log_door_3` is **3×1** with one leaf; `log_door_4` is **4×1** with two leaves.
+All are frameless rough logs held together by wooden cross battens and pegs,
+with simple wooden pulls on both faces. There are no separate posts, top beams,
+recessed panels or iron fittings. Framed doors are reserved for later tiers;
+the older oak-and-iron proposal in art doc 34 is historical.
 
-Redesigned 2026-10-01 ([art doc 34](../00_dev_roadmap/34_door_visual_redesign.md)):
-heavy oak stiles and rails surround recessed panels, with a dark meeting
-seam, three tapered iron strap hinges per leaf, projecting hinge knuckles
-and paired ring pulls. Both faces receive the same detailing. Colors match
-the upgraded tavern and storage furniture. The canonical furniture generator
-delegates to `tools/generate_door_redesign.py` and its local linear-color export.
+`tools/generate_log_furniture.py` owns the live multipart geometry, also used by
+the canonical furniture generator. The continuous two-voxel core and faceted
+logs/battens fit six voxels / 0.75 blocks of depth, centred on the footprint.
+Uneven cut tops reach 30–31 voxels, at most 3.875 blocks. Eight voxels/block,
+baked .125 vertex scale, unit roots and linear colors remain the art contract.
+Wood material variants recolor the existing palette.
 
-The empty `collision_regions` array and `blocks_movement: false` stay intact:
-dwarves pass through freely, with no NavGrid occupancy. `RoomManager`
-registers both footprint cells through `FurniturePlacementController` and
-seals each floor cell plus four air cells above it. Both columns share one
-door identity, so each adjoining room counts one door. This preserves the
-temperature system's sealed-room boundary independently of pathfinding.
-The model remains static; no open/close animation is added.
+`FurnitureDoorAnimation` hinges named `leaf_left`/`leaf_right` meshes at the
+outer edges (`hinge_inset: 0`) and opens away from approaching dwarves. Doors
+remain walkable with empty collision regions. `RoomManager` seals each footprint
+column through four air blocks, regardless of animation pose, with one door
+identity for the whole piece. Loading recreates the hinges from current definitions.
 
 ---
 

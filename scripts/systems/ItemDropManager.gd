@@ -484,6 +484,21 @@ func item_capacity(item_key: String) -> int:
 	return maxi(int(get_item_def(item_key).get("crate_capacity", 1)), 1)
 
 
+## Explicit edibility, independent of storage/ingredient tags. Future meals
+## participate by defining food data, without changing dwarf behavior.
+func food_definition(item_key: String) -> Dictionary:
+	var food: Dictionary = get_item_def(item_key).get("food", {})
+	return food if bool(food.get("edible", false)) and float(food.get("nutrition", 0.0)) > 0.0 else {}
+
+
+func edible_keys() -> Array[String]:
+	get_item_def("") # Lazy-load the owning item registry.
+	var result: Array[String] = []
+	for key: String in _defs:
+		if not food_definition(key).is_empty(): result.append(key)
+	return result
+
+
 func quantity_of(node: Node3D) -> int:
 	return int(node.get_meta("quantity", 1))
 

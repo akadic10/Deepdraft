@@ -1,0 +1,16 @@
+[
+  {
+    "test": "RemainingMenusTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 8.78,
+    "timeout": false
+  },
+  {
+    "test": "DwarfInspectorTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.47,
+    "timeout": false
+  }
+]

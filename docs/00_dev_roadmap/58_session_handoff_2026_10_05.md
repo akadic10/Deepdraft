@@ -27,7 +27,7 @@ reference for interaction ideas, not a source of copied art or UI code.
 | Inventory | Colony supplies, categories and physical counts, plus Locate and Inspect storage. It deliberately has no Place item button; furnishing belongs in Place. Existing resource models supply thumbnails. | [56 — Inventory](56_colony_inventory.md) |
 | Colony → Dwarves | Portrait roster with live work/cargo/rest, name search and All/Working/Resting/Idle filters. Stable rows, independent Locate and selection into the shared inspector. | [57 — Roster](57_colony_dwarf_roster.md) |
 
-Developer supplies and dwarf controls are under **Menu → Development**:
+Developer supplies and dwarf controls are under **Development**:
 DEV: Spawn Drops, DEV: Spawn Furniture and DEV: Dwarf tools. The player roster
 replaces the old developer-only Dwarves window.
 

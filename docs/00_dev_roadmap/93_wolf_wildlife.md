@@ -77,7 +77,7 @@ Review captures, sound sampler and native PCM are under `tmp/wolf_review/`.
 
 ## Playtest
 
-Restart play and choose **Menu → Development → DEV: Next wolf**. Follow it to
+Restart play and click a visible wolf. Follow it to
 watch wandering or an occasional hunt; the inspector explains its current
 activity and meal satisfaction. Keep the camera close for quiet selection and
 eating cues. Approach with a dwarf to interrupt and make it retreat. Existing

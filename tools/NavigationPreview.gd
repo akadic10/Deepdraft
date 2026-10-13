@@ -7,14 +7,15 @@ func _capture_inspector() -> void:
 	await super._capture_inspector()
 	var dock = scene.get_node("Dock")
 	dock._mining_controller._hint_window.hide()
-	_expect(dock._button_by_target.keys() == ["orders", "zones", "rooms", "place", "craft", "colony", "stocks", "system"],
-		"Rooms and Craft have dedicated named dock entries")
+	_expect(dock._button_by_target.keys() == ["orders", "zones", "rooms", "construction", "place", "craft", "colony", "stocks", "system", "development"],
+		"all ten illustrated commands retain their dedicated dock entries")
 	var rooms = load("res://scripts/systems/RoomOverlayController.gd").new()
 	rooms.dock_ui_path = NodePath("../Dock")
 	rooms.window_manager_path = NodePath("../Windows")
 	scene.add_child(rooms)
 	for button: Button in dock._button_by_target.values():
-		_expect(not button.text.is_empty() and button.icon != null, "groups have labels and copper icons")
+		_expect(button.text.is_empty() and button.icon != null and not button.caption.is_empty(),
+			"illustrated commands have hover names instead of permanent captions")
 	var requests: Array[String] = []
 	dock.tool_requested.connect(func(id: String): requests.append(id))
 	_click(dock._button_by_target.orders.get_global_rect().get_center())
@@ -65,9 +66,9 @@ func _capture_inspector() -> void:
 		"switching to another dock group exits room inspection")
 	_click(_find_button(dock._panel_body, "Save / Load").get_global_rect().get_center())
 	await _settle()
-	_expect(dock._panel_back.visible and dock._button_by_target.system.button_pressed,
+	_expect(dock._panel_rail_back.visible and dock._button_by_target.system.button_pressed,
 		"submenu retains its parent group and offers Back")
-	_click(dock._panel_back.get_global_rect().get_center())
+	_click(dock._panel_rail_back.get_global_rect().get_center())
 	await _settle()
 	_expect(dock._active_panel_target == "system", "Back returns to Menu")
 	var escape := InputEventKey.new()
@@ -90,7 +91,7 @@ func _capture_inspector() -> void:
 	dock.save_game_requested.connect(func(): saved[0] += 1)
 	dock.load_game_requested.connect(func(): saved[1] += 1)
 	dock.load_autosave_requested.connect(func(): saved[2] += 1)
-	for label in ["💾 Save Game", "📂 Load Game", "🕒 Load Autosave"]:
+	for label in ["Save game", "Load game", "Load autosave"]:
 		_click(dock._button_by_target.system.get_global_rect().get_center())
 		await _settle()
 		_click(_find_button(dock._panel_body, "Save / Load").get_global_rect().get_center())
@@ -108,28 +109,28 @@ func _capture_inspector() -> void:
 	var piece = furniture._installed.values()[0]
 	explorer._inspector_positioned = false # fresh layout preference
 	explorer.select_object(furniture, "installed:%d" % piece.installed_id)
-	_expect(is_equal_approx(explorer._window.position.x, 1280 - explorer._window.size.x - 24),
-		"furniture starts in the same right-hand inspector column as dwarves")
-	explorer._window.position = Vector2(800,80)
+	_expect(is_equal_approx(explorer._window.position.x, dock._sky_dial.position.x - explorer._window.size.x - 8),
+		"furniture's right-hand inspector leaves room for the Sky Dial")
+	explorer._window.position = Vector2(600,80)
 	explorer._window.drag_ended.emit(explorer._window)
 	explorer.select_object(director, worker)
-	_expect(explorer._window.position == Vector2(800,80), "subject changes preserve the player's placement")
+	_expect(explorer._window.position == Vector2(600,80), "subject changes preserve a player's placement clear of the HUD")
 	for viewport_size in [Vector2i(1280,720), Vector2i(960,540), Vector2i(2560,1440)]:
 		root.size = viewport_size
 		await _settle()
-		_expect(is_equal_approx(dock._dock_panel.get_global_rect().get_center().x, viewport_size.x * 0.5),
-			"bottom navigation stays centered after resizing")
+		for utility: Rect2 in dock._time_slice_hud.occupied_rects():
+			_expect(not utility.intersects(dock._dock_panel.get_global_rect()),
+				"bottom navigation leaves room for time/Slice controls after resizing")
 		_expect(Rect2(Vector2.ZERO, Vector2(viewport_size)).encloses(dock._dock_panel.get_global_rect()),
-			"all eight dock entries fit at " + str(viewport_size))
+			"all ten dock entries fit at " + str(viewport_size))
 		explorer.clear_selection()
 		for target in ["colony", "system"]:
 			dock._close_action_panel()
 			_click(dock._button_by_target[target].get_global_rect().get_center())
 			await _settle()
-			_expect(is_equal_approx(dock._panel_container.get_global_rect().get_center().x, viewport_size.x * 0.5),
-				"submenus center over the dock without an inspector at " + str(viewport_size))
-			if target == "orders":
-				await _save_capture("centered_%s_%d.png" % [target, viewport_size.x])
+			_expect(dock._panel_connector.visible,
+				"illustrated submenus attach to their dock entry at " + str(viewport_size))
+			await _save_capture("anchored_%s_%d.png" % [target, viewport_size.x])
 		explorer.select_object(director, worker)
 		explorer._window.position = Vector2(viewport_size.x - explorer._window.size.x - 24,32)
 		for target in ["place", "colony", "system"]:
@@ -157,6 +158,9 @@ func _capture_inspector() -> void:
 				wheel.position = scroll.get_global_rect().get_center()
 				wheel.pressed = true
 				root.push_input(wheel, true)
+				wheel = wheel.duplicate()
+				wheel.pressed = false
+				root.push_input(wheel, true)
 				await _settle()
 				_expect(scroll.scroll_vertical > 0 and rig._target_zoom == zoom and rig.is_following(worker),
 					"compact menu scrolls without zooming or stopping Follow")
@@ -172,12 +176,14 @@ func _capture_inspector() -> void:
 				explorer._perform_dwarf_action("stop_follow")
 		explorer.clear_selection()
 		await _settle()
-		_expect(is_equal_approx(dock._panel_container.get_global_rect().get_center().x, viewport_size.x * 0.5),
-			"closing the inspector recenters the open submenu")
+		_expect(dock._panel_connector.visible,
+			"closing the inspector restores the submenu's dock connection")
 	print("NAVIGATION_OK: grouped commands, tool exclusivity, submenu Back/Escape, all save signals, live clock, inspector placement, 960/1280/2560 layouts")
 
 
 func _save_capture(filename: String) -> void:
 	await _settle()
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/navigation_review/" + filename)
+	var directory := "res://tmp/remaining_menus_20261012/navigation_capture/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	root.get_texture().get_image().save_png(directory + filename)

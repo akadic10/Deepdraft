@@ -1,0 +1,23 @@
+[
+  {
+    "test": "ConstructionTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 12.76,
+    "timeout": false
+  },
+  {
+    "test": "ConstructionInputTest",
+    "passed": false,
+    "exit": 1,
+    "seconds": 1.92,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 74.36,
+    "timeout": false
+  }
+]

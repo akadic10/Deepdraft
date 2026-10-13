@@ -1,6 +1,7 @@
 {
   "__comment": [
-    "Worker-made log torch. Lower wooden peg fits a three-block-high starter tunnel; the wooden_torch key stays stable.",
+    "Worker-made log torch. Aim at a wall cell to select height; floor aiming defaults to a low peg fitting a three-block-high tunnel.",
+    "Origin is a fixed placement reference; origin_offset_y locates the model base independently of the work floor.",
     "Always lit when installed; packed torches are unlit. No profession promotion or fuel system required."
   ],
   "furniture_key": "base:furniture:wooden_torch",
@@ -19,7 +20,7 @@
   "collision_regions": [],
   "room_anchor": false,
   "wall_mount": {
-    "height_above_floor": 1.5,
+    "origin_offset_y": 2.5,
     "bracket_height": 0.875,
     "bounds_min": [
       -0.375,

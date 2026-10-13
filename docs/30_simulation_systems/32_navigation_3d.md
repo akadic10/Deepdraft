@@ -1,5 +1,12 @@
 # 32 — 3D Navigation
 
+**Wall-light access (2026-10-12):** Both torches install and uninstall from a
+reachable walkable floor beneath/beside the bracket, up to five blocks below
+its cell. Normal three-block clearance and a clear reach to the mount are
+required. The planner searches all candidate floors; the worker checks actual
+reach again at commit. Rungs are not work floors and access ladders are not
+created automatically. See [129](../00_dev_roadmap/129_wall_mount_heights.md).
+
 **Bedroom leisure privacy (2026-10-11):** Normal work navigation still passes
 through rooms and doors. Bed searches may supply a per-search floor filter to
 avoid other colonists' bedrooms and take a public detour. These routes bypass
@@ -37,6 +44,10 @@ It settles onto the first physical solid/deck below and releases stale work and
 routes before pathfinding resumes. Physical support is distinct from walkability:
 water or blocked headroom must never make a dwarf fall through a solid floor.
 Existing rung traversal and ordinary step interpolation remain supported.
+The 2026-10-12 flooring follow-up also recovers feet embedded in a one-block
+raised floor when the standing space above is clear. Idle dwarves with no flat
+stroll can take an adjacent one-block step up out of a shallow excavation.
+Both use the existing clearance rules; no pathfinding rules were relaxed.
 See [115 — Dwarf support recovery](../00_dev_roadmap/115_dwarf_support_recovery.md).
 
 **2026-10-11 bridge-corner movement correction:** the saved colony at seed
@@ -202,8 +213,10 @@ placed after smoothing, changed terrain, rising water, a blocked later step,
 unreachable destinations, replacement routes from failure callbacks, unrelated
 edits, and diagonal corner dependencies across chunk boundaries.
 It also compares A* costs against zero-heuristic searches on seeded terraces in
-both directions and on ordinary/faster ladders. This does not close the original
-mining-face visual-overlap report in [open issue 002](../00_dev_roadmap/00_open_issues.md).
+both directions and on ordinary/faster ladders. This coverage did not establish
+the cause of the original mining-face visual-overlap report in
+[issue 002](../00_dev_roadmap/00_open_issues.md). Alen provisionally closed that
+report on 2026-10-12; reopen only if the player reports it again.
 
 ---
 

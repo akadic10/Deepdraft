@@ -1,0 +1,33 @@
+{
+  "stone": {
+    "display_name": "Stone block",
+    "item_key": "base:resources:stone:rough_stone",
+    "cost": 1,
+    "work_seconds": 2.0,
+    "reach_up": 5,
+    "reach_down": 1,
+    "max_height": 8,
+    "max_drag_size": 16
+  },
+  "plank_floor": {
+    "display_name": "Simple plank floor",
+    "category": "floor",
+    "block_key": "base:construction:floor:plank",
+    "worker_enabled": false,
+    "profession": "Carpenter",
+    "max_height": 1,
+    "max_drag_size": 16,
+    "model": "res://assets/models/construction/plank_floor.glb",
+    "pattern_models": ["res://assets/models/construction/plank_floor.glb", "res://assets/models/construction/plank_floor_alternate.glb"]
+  },
+  "stone_floor": {
+    "display_name": "Simple stone floor",
+    "category": "floor",
+    "block_key": "base:construction:floor:stone",
+    "worker_enabled": false,
+    "profession": "Stonemason",
+    "max_height": 1,
+    "max_drag_size": 16,
+    "model": "res://assets/models/construction/stone_floor.glb"
+  }
+}

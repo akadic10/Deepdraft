@@ -1,5 +1,29 @@
 # 31 — Task System
 
+**Furniture Move (2026-10-12, 132):** installed furniture posts its normal
+UNINSTALL job after the player confirms a destination. The destination reserves
+the resulting exact item and posts FETCH_BUILD when it exists. The packer gets
+the same continuation preference as shrub Move. Interrupted workers preserve
+cargo; destination cancellation releases claims and either cancels uninstall or
+leaves the packed piece for storage. Invalid destinations never consume it.
+The reliability gate includes FurnitureMoveTest (30 fixtures).
+
+**Food self-care (2026-10-12, 131):** hungry dwarves release work using the normal
+NEED_INTERRUPT protocol. The personal food component uses bounded supply/route
+searches, reserves one stored portion without withdrawing remotely, collects it
+at a legal access cell and consumes it only after eating. All assignment and
+reconciliation paths exclude active eaters. Failure releases claims, preserves
+cargo and returns the dwarf to work until the game-time retry. There is no public
+EAT job. The reliability gate now includes food and shrub regrowth (29 fixtures).
+
+**Stone construction (2026-10-12):** an area owns one `ConstructionWork` source
+and at most one FETCH_BUILD lease. Its cells are internal work units, not tasks.
+The shared planner proves pickup and a legal adjacent work stand before claiming
+stone; stored goods use normal withdrawal. Occupancy/support are checked again
+before consumption. Release preserves partial work and physical cargo; successful
+completion consumes exactly one stone and writes terrain, then posts the next
+unit. Missing supplies leave the order available for diagnostics/retry. See 127.
+
 **Shared lifecycle implemented (2026-10-11):**
 [126 — Job lifecycle and recovery](../00_dev_roadmap/126_job_lifecycle_and_recovery.md)
 is the current contract following [125 — Architecture review](../00_dev_roadmap/125_jobs_and_dwarves_architecture_review.md).
