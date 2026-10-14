@@ -1,14 +1,14 @@
 {
   "failures": [],
   "measures": {
-    "after_far": 0.117239221930504,
-    "after_middle": 0.188449564576149,
-    "after_outside": 0.00954666640609503,
-    "before_far": 0.00954666640609503,
-    "before_middle": 0.0921733364462853,
-    "before_outside": 0.00954666640609503,
-    "unlit_far": 0.00954666640609503,
-    "unlit_middle": 0.00954666640609503,
-    "unlit_outside": 0.00954666640609503
+    "after_far": 0.205178833007813,
+    "after_middle": 0.317761232852936,
+    "after_outside": 0.0190572552382946,
+    "before_far": 0.0190572552382946,
+    "before_middle": 0.168228870630264,
+    "before_outside": 0.0190572552382946,
+    "unlit_far": 0.0190572552382946,
+    "unlit_middle": 0.0190572552382946,
+    "unlit_outside": 0.0190572552382946
   }
 }

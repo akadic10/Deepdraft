@@ -3,7 +3,7 @@
   "furniture_category": "settlement",
   "display_name": "Settlement flag",
   "description": "Marks the colony's settlement location. Dwarves can pack and move it, or store it for later placement.",
-  "model": "res://assets/models/items/misc/settlement_flag.glb",
+  "model": "res://assets/models/furniture/settlement_flag.glb",
   "item_key": "base:items:special:settlement_flag",
   "placement": "floor",
   "yaw_steps": 4,

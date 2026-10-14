@@ -1,0 +1,63 @@
+{
+  "current_1": {
+    "fixture_pass": true,
+    "renderer_errors": 0,
+    "completed_tasks": 8,
+    "stored_stacks": 32,
+    "save_written": true,
+    "save_reload": {},
+    "report_sha256": "3d9a43183f2b8f6f9ec7c4d3b81ef1244cbd43c7c8614938d82b9e019c59cbcc"
+  },
+  "pilot_2": {
+    "fixture_pass": true,
+    "renderer_errors": 0,
+    "completed_tasks": 8,
+    "stored_stacks": 32,
+    "save_written": true,
+    "save_reload": {
+      "clock": true,
+      "dwarf_count": true,
+      "furniture": true,
+      "stone_conservation": true,
+      "valid_snapshot": true,
+      "wildlife": true
+    },
+    "report_sha256": "f16b904d73d0ab0c60565d03970408a5b206b24c2c068cf61501209a537df995"
+  },
+  "current_2": {
+    "fixture_pass": true,
+    "renderer_errors": 0,
+    "completed_tasks": 8,
+    "stored_stacks": 32,
+    "save_written": true,
+    "save_reload": {
+      "clock": true,
+      "dwarf_count": true,
+      "dwarf_identity_and_appearance": true,
+      "furniture": true,
+      "stone_conservation": true,
+      "terrain_edits": true,
+      "valid_snapshot": true,
+      "wildlife": true
+    },
+    "report_sha256": "01d32bc1c5705791123f99872678caddf8f15b6346b642144154e95ed38cdeb3"
+  },
+  "pilot_3": {
+    "fixture_pass": true,
+    "renderer_errors": 0,
+    "completed_tasks": 8,
+    "stored_stacks": 32,
+    "save_written": true,
+    "save_reload": {
+      "clock": true,
+      "dwarf_count": true,
+      "dwarf_identity_and_appearance": true,
+      "furniture": true,
+      "stone_conservation": true,
+      "terrain_edits": true,
+      "valid_snapshot": true,
+      "wildlife": true
+    },
+    "report_sha256": "744505efbcecc2909fc985fc5cc0d1d7e25ec5444cf91eeecbbfb34f755098e7"
+  }
+}

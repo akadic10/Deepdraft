@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b0x8wnb65taem"
+uid="uid://c7jm7uhypbqag"
 path="res://.godot/imported/oak_mature_2.glb-189a8c879e93ba4dd70df9b586a86a59.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

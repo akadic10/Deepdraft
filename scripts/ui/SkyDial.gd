@@ -118,7 +118,7 @@ func refresh() -> void:
 
 func _hour_text(hour: float) -> String:
 	var minute := floori(hour * 60.0)
-	return "%02d:%02d" % [minute / 60, minute % 60]
+	return "%02d:%02d" % [floori(minute / 60.0), minute % 60]
 
 
 func _draw() -> void:
@@ -133,7 +133,7 @@ func _draw() -> void:
 		_draw_landscape(points, uv, views.night, Color.WHITE)
 		_draw_landscape(points, uv, views.day, Color(1, 1, 1, state.daylight))
 	var weather_symbol: String = state.weather_symbol
-	if weather_symbol in ["overcast", "foggy", "snow"]:
+	if weather_symbol in ["overcast", "foggy", "snow", "rain", "storm"]:
 		draw_colored_polygon(points, Color(.26, .31, .39, .30 if weather_symbol == "overcast" else .44))
 		_draw_symbol("overcast", Rect2(size * Vector2(.25, .20), size * Vector2(.44, .25)), Color(.85, .89, .96, .9))
 		if weather_symbol == "foggy":
@@ -144,6 +144,10 @@ func _draw() -> void:
 				var x := .29 + fmod(float(i) * .117, .42)
 				var y := .35 + fmod(float(i) * .057 + float(state.hour) * .1, .23)
 				draw_circle(size * Vector2(x, y), maxf(1, size.x * .005), Color(.88, .94, 1, .85))
+		elif weather_symbol in ["rain", "storm"]:
+			for i in 9:
+				var point := size * Vector2(.29 + fmod(i * .117, .42), .37 + fmod(i * .057 + float(state.hour) * .1, .2))
+				draw_line(point, point + size * Vector2(-.008, .026), Color(.65, .8, .93, .8), 1.2, true)
 	else:
 		_draw_symbol("sun" if state.is_day else "moon", Rect2(size * Vector2(.26, .23), size * Vector2(.16, .16)))
 	draw_texture_rect(_frame, Rect2(Vector2.ZERO, size), false)
@@ -185,6 +189,16 @@ func _draw_cycle() -> void:
 
 
 func _draw_symbol(id: String, rect: Rect2, tint := Color.WHITE) -> void:
+	if id in ["rain", "storm"]:
+		_draw_symbol("overcast", rect, tint)
+		for i in 3:
+			var point := rect.position + rect.size * Vector2(.3 + i * .21, .67)
+			draw_line(point, point + rect.size * Vector2(-.08, .22), Color(.6, .8, 1), maxf(1, rect.size.x * .04), true)
+		if id == "storm":
+			var bolt := PackedVector2Array()
+			for point: Vector2 in [Vector2(.58,.38), Vector2(.37,.65), Vector2(.53,.65), Vector2(.42,.9), Vector2(.76,.54), Vector2(.59,.54)]: bolt.append(rect.position + rect.size * point)
+			draw_colored_polygon(bolt, Color("e7c67e"))
+		return
 	var texture: Texture2D = _symbols.get(id)
 	if texture != null: draw_texture_rect(texture, rect, false, tint)
 

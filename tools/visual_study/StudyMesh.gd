@@ -125,6 +125,28 @@ func ground_face(corners: Array, normal: Vector3, turf: bool, seed_value: float)
 		quad(corners[i],corners[j],outer[j],outer[i],normal,edge_color*.72,Vector2(5 if grassy_edge else 4,0))
 	quad(corners[0]-normal*.06,corners[1]-normal*.06,corners[2]-normal*.06,corners[3]-normal*.06,normal,color*.7,tag)
 
+## Full-voxel terrain comparison. Identical material on all grass faces; no turf
+## boundary. Closed perimeter keeps this relief prototype within the logical cell.
+func terrain_face(corners: Array, normal: Vector3, color: Color, profile: Dictionary) -> void:
+	if profile.is_empty():
+		quad(corners[0],corners[1],corners[2],corners[3],normal,color)
+		return
+	var centre: Vector3 = (corners[0]+corners[2])*.5
+	var width: float = profile.bevel_width
+	var depth: float = profile.geometry_depth
+	var inner: Array[Vector3] = []
+	var outer: Array[Vector3] = []
+	for corner: Vector3 in corners:
+		inner.append(centre+(corner-centre)*(1.0-2.0*width))
+		outer.append(corner-normal*depth)
+	quad(inner[0],inner[1],inner[2],inner[3],normal,color)
+	for i in range(4):
+		var j := (i+1)%4
+		var n: Vector3 = (normal+((corners[i]+corners[j])*.5-centre).normalized()*float(profile.normal_strength)).normalized()
+		quad(outer[i],outer[j],inner[j],inner[i],n,color)
+		quad(corners[i],corners[j],outer[j],outer[i],normal,color)
+
+
 func append_arrays(arrays: Array, transform: Transform3D, tag: Vector2) -> void:
 	var first := vertices.size()
 	for i in range(arrays[Mesh.ARRAY_VERTEX].size()):

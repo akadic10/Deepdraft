@@ -1,8 +1,14 @@
 """Two grounded reed clumps, four seasons, eight voxels/block and linear colors."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/models/details/reeds'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/flora/reeds'
 SEASONS = ('spring', 'summer', 'autumn', 'winter')
 ROOTS = [(-2,-2), (2,-1), (-1,2), (2,3)]
 

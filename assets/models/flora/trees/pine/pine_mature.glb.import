@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dxsbhf1cellct"
+uid="uid://43tv1kn674m4"
 path="res://.godot/imported/pine_mature.glb-e5018a5ca81782c866e7539fd44605e0.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

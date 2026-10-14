@@ -3,9 +3,9 @@
   "display_name": "Wild Rabbit",
   "description": "A timid grazer. Eats ordinary ground vegetation, takes quiet naps and bolts from nearby dwarves or wolves.",
   "model_parts": {
-    "body": "res://assets/animals/rabbit/body.glb",
-    "head": "res://assets/animals/rabbit/head.glb",
-    "ears": "res://assets/animals/rabbit/ears.glb"
+    "body": "res://assets/models/animals/rabbit/body.glb",
+    "head": "res://assets/models/animals/rabbit/head.glb",
+    "ears": "res://assets/models/animals/rabbit/ears.glb"
   },
   "population": {"count": 48, "salt": 190913, "attempts": 6000, "min_spacing": 24, "max_ground_y": 43},
   "navigation": {"clearance": 2, "home_radius": 12, "hop_height": 0.18, "hop_seconds": 0.48, "flee_hop_seconds": 0.24, "fall_speed": 6},

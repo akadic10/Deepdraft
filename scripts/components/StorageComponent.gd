@@ -83,13 +83,30 @@ func delivery_stand_cells(target: Vector3i, _dwarf_id: int = -1) -> Array[Vector
 
 
 ## Cardinal access avoids reaching diagonally through a wall corner. Include
-## neighbouring steps; the agent checks clearance and a real path to each.
+## neighbouring steps and a ledge within raised-hand reach. Reaching up two
+## blocks does not make that ledge walkable; the agent still needs a real path
+## and its normal three-block clearance beside it.
 static func ground_access_cells(item_floor: Vector3i) -> Array[Vector3i]:
 	var cells: Array[Vector3i] = []
 	for offset: Vector3i in [Vector3i(0,0,-1), Vector3i(-1,0,0), Vector3i(1,0,0), Vector3i(0,0,1)]:
 		for dy in [0, -1, 1]:
 			cells.append(item_floor + offset + Vector3i(0,dy,0))
+		var below := item_floor + offset + Vector3i(0,-2,0)
+		if ledge_reach_clear(item_floor, below):
+			cells.append(below)
 	return cells
+
+
+## The hand passes over the lip from a cardinal neighbour. Read live terrain
+## and placed occupancy so both planning and pickup contact see new blockers.
+static func ledge_reach_clear(item_floor: Vector3i, stand: Vector3i) -> bool:
+	var offset := item_floor - stand
+	if offset.y != 2 or absi(offset.x) + absi(offset.z) != 1:
+		return false
+	for cell: Vector3i in [item_floor + Vector3i.UP, stand + Vector3i(0,3,0)]:
+		if WorldData.get_live_block(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID or PlacedEntityRegistry.occupies(cell):
+			return false
+	return true
 
 
 ## What happens to the carried node on deposit. Default: absorbed (freed) —

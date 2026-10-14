@@ -1,4 +1,10 @@
 """Implicit long-haft mining pick: 8 voxels/block, lower grip origin, +Z point."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 from generate_timber_logs import linear_rgb
@@ -29,5 +35,5 @@ def pickaxe():
 
 
 if __name__ == "__main__":
-    write_glb(ROOT / "assets/dwarves/tools/mining_pickaxe.glb", "mining_pickaxe", pickaxe(), export_scale=.125)
+    write_glb(ROOT / "assets/models/characters/dwarves/tools/mining_pickaxe.glb", "mining_pickaxe", pickaxe(), export_scale=.125)
     print("Mining pick: .125 baked scale, lower grip origin, +Y haft, +Z point.")

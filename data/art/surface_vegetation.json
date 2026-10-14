@@ -1,0 +1,34 @@
+{
+  "description": "Offline authoring palette for the clustered surface vegetation family; dimensions are world units. Runtime identity and gameplay remain in entity registries.",
+  "blueberry": {
+    "bark": "68533F", "spring": ["64854D", "74945A", "829D62"],
+    "summer": ["4D704A", "5A7B50", "6C8957"], "autumn": ["96654E", "B17C57", "86684D"],
+    "fruit": ["536B8E", "6A81A3", "435C7F"], "blossom": "E2D7B7",
+    "height": 1.65, "young_scale": 0.57
+  },
+  "elderberry": {
+    "bark": "6C5746", "spring": ["688152", "7B905C", "8C9C66"],
+    "summer": ["49664B", "5C7751", "71845A"], "autumn": ["7A8050", "98915B", "68734B"],
+    "fruit": ["4B3F58", "63506C", "806582"], "blossom": "E5DEBA",
+    "height": 2.55, "young_scale": 0.68
+  },
+  "wild_strawberry": {
+    "bark": "735744", "spring": ["527845", "63894D", "769455"],
+    "summer": ["456D44", "537C48", "6A8A50"], "autumn": ["7A7950", "967953", "667046"],
+    "winter": ["696A4D", "786B50", "59614B"],
+    "fruit": ["AD4B40", "BF6250", "98443C"], "blossom": "E9E0C5",
+    "height": 0.65, "young_scale": 0.60
+  },
+  "flowers": {
+    "spring": ["637E48", "7C9355"], "summer": ["56734A", "6F8650"],
+    "autumn": ["95845D", "B4A074"], "winter": ["8B7E68", "A5967B"],
+    "petals": ["E8DCC1", "A892B1", "D1B771"], "centers": ["B99B55", "D5C5AF", "A98648"],
+    "height": 0.94
+  },
+  "reeds": {
+    "spring": ["6E854D", "82985B"], "summer": ["617D4A", "789052"],
+    "autumn": ["95804D", "B09B64"], "winter": ["93846A", "B1A080"],
+    "heads": ["79573C", "926F46"], "heights": [1.35, 1.85]
+  },
+  "packing": {"cloth": "B6A27E", "seam": "817356", "soil": "665442"}
+}

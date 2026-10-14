@@ -1,25 +1,22 @@
 {
   "__comment": [
-    "Overcast weather. See data/weather/clear.json for the full field reference.",
-    "No direct Stonehearth source was reviewed for overcast; values below are a reasonable midpoint",
-    "between clear and foggy (denser fog, shorter view, dimmer daytime) and are TBD in a tuning pass.",
-    "Matches the 'overcast/autumn 50 / 0.4 / 150' target noted in 24_world_rendering.md."
+    "Overcast weather. WeatherManager owns schedule and persistence.",
+    "sky_overrides.atmosphere smoothly overrides the clear atmosphere from data/sky/sky_settings.json.",
+    "Cloud cover and haze affect presentation; streaming, visibility budgets and the sun/moon light curves stay unchanged."
   ],
-
   "id": "base:weather:overcast",
   "display_name": "Overcast",
   "vision_multiplier": 0.75,
   "is_dark_during_daytime": true,
   "hide_cloud_shadows": true,
   "snow_accumulation_per_minute": -0.0007,
-  "sky_gradient": "res://assets/sky/gradients/overcast.png",
   "sky_overrides": {
-    "height_fog": [
-      { "at": "midnight",    "fog_height": 90, "thickness": 0.55, "noise": 2, "distance": 120 },
-      { "at": "sunrise_end", "fog_height": 50, "thickness": 0.45, "noise": 2, "distance": 200 },
-      { "at": "midday",      "fog_height": 30, "thickness": 0.40, "noise": 2, "distance": 300 },
-      { "at": "sunset_end",  "fog_height": 90, "thickness": 0.55, "noise": 2, "distance": 120 }
-    ]
+    "atmosphere": {
+      "cloud_cover": 0.85,
+      "fog_density": 0.32,
+      "fog_begin": 65,
+      "fog_end": 360
+    }
   },
   "thoughts": []
 }

@@ -7,25 +7,25 @@
     "placement_priority": 5,
     "salt": 77001,
     "models": [
-      "res://assets/models/details/reeds/reeds_1_summer.glb",
-      "res://assets/models/details/reeds/reeds_2_summer.glb"
+      "res://assets/models/flora/reeds/reeds_1_summer.glb",
+      "res://assets/models/flora/reeds/reeds_2_summer.glb"
     ],
     "seasonal_models": {
       "spring": [
-        "res://assets/models/details/reeds/reeds_1_spring.glb",
-        "res://assets/models/details/reeds/reeds_2_spring.glb"
+        "res://assets/models/flora/reeds/reeds_1_spring.glb",
+        "res://assets/models/flora/reeds/reeds_2_spring.glb"
       ],
       "summer": [
-        "res://assets/models/details/reeds/reeds_1_summer.glb",
-        "res://assets/models/details/reeds/reeds_2_summer.glb"
+        "res://assets/models/flora/reeds/reeds_1_summer.glb",
+        "res://assets/models/flora/reeds/reeds_2_summer.glb"
       ],
       "autumn": [
-        "res://assets/models/details/reeds/reeds_1_autumn.glb",
-        "res://assets/models/details/reeds/reeds_2_autumn.glb"
+        "res://assets/models/flora/reeds/reeds_1_autumn.glb",
+        "res://assets/models/flora/reeds/reeds_2_autumn.glb"
       ],
       "winter": [
-        "res://assets/models/details/reeds/reeds_1_winter.glb",
-        "res://assets/models/details/reeds/reeds_2_winter.glb"
+        "res://assets/models/flora/reeds/reeds_1_winter.glb",
+        "res://assets/models/flora/reeds/reeds_2_winter.glb"
       ]
     },
     "seasonal_labels": {
@@ -83,30 +83,30 @@
     "placement_priority": 10,
     "salt": 76001,
     "models": [
-      "res://assets/models/details/flowers/flowers_1_summer.glb",
-      "res://assets/models/details/flowers/flowers_2_summer.glb",
-      "res://assets/models/details/flowers/flowers_3_summer.glb"
+      "res://assets/models/flora/flowers/flowers_1_summer.glb",
+      "res://assets/models/flora/flowers/flowers_2_summer.glb",
+      "res://assets/models/flora/flowers/flowers_3_summer.glb"
     ],
     "seasonal_models": {
       "spring": [
-        "res://assets/models/details/flowers/flowers_1_spring.glb",
-        "res://assets/models/details/flowers/flowers_2_spring.glb",
-        "res://assets/models/details/flowers/flowers_3_spring.glb"
+        "res://assets/models/flora/flowers/flowers_1_spring.glb",
+        "res://assets/models/flora/flowers/flowers_2_spring.glb",
+        "res://assets/models/flora/flowers/flowers_3_spring.glb"
       ],
       "summer": [
-        "res://assets/models/details/flowers/flowers_1_summer.glb",
-        "res://assets/models/details/flowers/flowers_2_summer.glb",
-        "res://assets/models/details/flowers/flowers_3_summer.glb"
+        "res://assets/models/flora/flowers/flowers_1_summer.glb",
+        "res://assets/models/flora/flowers/flowers_2_summer.glb",
+        "res://assets/models/flora/flowers/flowers_3_summer.glb"
       ],
       "autumn": [
-        "res://assets/models/details/flowers/flowers_1_autumn.glb",
-        "res://assets/models/details/flowers/flowers_2_autumn.glb",
-        "res://assets/models/details/flowers/flowers_3_autumn.glb"
+        "res://assets/models/flora/flowers/flowers_1_autumn.glb",
+        "res://assets/models/flora/flowers/flowers_2_autumn.glb",
+        "res://assets/models/flora/flowers/flowers_3_autumn.glb"
       ],
       "winter": [
-        "res://assets/models/details/flowers/flowers_1_winter.glb",
-        "res://assets/models/details/flowers/flowers_2_winter.glb",
-        "res://assets/models/details/flowers/flowers_3_winter.glb"
+        "res://assets/models/flora/flowers/flowers_1_winter.glb",
+        "res://assets/models/flora/flowers/flowers_2_winter.glb",
+        "res://assets/models/flora/flowers/flowers_3_winter.glb"
       ]
     },
     "seasonal_labels": {
@@ -179,24 +179,24 @@
       ],
       "models": {
         "spring": [
-          "res://assets/models/details/flowers/flowers_1_packed_spring.glb",
-          "res://assets/models/details/flowers/flowers_2_packed_spring.glb",
-          "res://assets/models/details/flowers/flowers_3_packed_spring.glb"
+          "res://assets/models/flora/flowers/flowers_1_packed_spring.glb",
+          "res://assets/models/flora/flowers/flowers_2_packed_spring.glb",
+          "res://assets/models/flora/flowers/flowers_3_packed_spring.glb"
         ],
         "summer": [
-          "res://assets/models/details/flowers/flowers_1_packed_summer.glb",
-          "res://assets/models/details/flowers/flowers_2_packed_summer.glb",
-          "res://assets/models/details/flowers/flowers_3_packed_summer.glb"
+          "res://assets/models/flora/flowers/flowers_1_packed_summer.glb",
+          "res://assets/models/flora/flowers/flowers_2_packed_summer.glb",
+          "res://assets/models/flora/flowers/flowers_3_packed_summer.glb"
         ],
         "autumn": [
-          "res://assets/models/details/flowers/flowers_1_packed_autumn.glb",
-          "res://assets/models/details/flowers/flowers_2_packed_autumn.glb",
-          "res://assets/models/details/flowers/flowers_3_packed_autumn.glb"
+          "res://assets/models/flora/flowers/flowers_1_packed_autumn.glb",
+          "res://assets/models/flora/flowers/flowers_2_packed_autumn.glb",
+          "res://assets/models/flora/flowers/flowers_3_packed_autumn.glb"
         ],
         "winter": [
-          "res://assets/models/details/flowers/flowers_1_packed_winter.glb",
-          "res://assets/models/details/flowers/flowers_2_packed_winter.glb",
-          "res://assets/models/details/flowers/flowers_3_packed_winter.glb"
+          "res://assets/models/flora/flowers/flowers_1_packed_winter.glb",
+          "res://assets/models/flora/flowers/flowers_2_packed_winter.glb",
+          "res://assets/models/flora/flowers/flowers_3_packed_winter.glb"
         ]
       }
     }
@@ -208,9 +208,9 @@
     "placement_priority": 100,
     "salt": 73001,
     "models": [
-      "res://assets/models/details/boulders/boulder_1.glb",
-      "res://assets/models/details/boulders/boulder_2.glb",
-      "res://assets/models/details/boulders/boulder_3.glb"
+      "res://assets/models/rocks/boulders/boulder_1.glb",
+      "res://assets/models/rocks/boulders/boulder_2.glb",
+      "res://assets/models/rocks/boulders/boulder_3.glb"
     ],
     "footprint": 2,
     "height": 2,
@@ -241,9 +241,9 @@
     "placement_priority": 50,
     "salt": 74001,
     "models": [
-      "res://assets/models/details/scree/scree_1.glb",
-      "res://assets/models/details/scree/scree_2.glb",
-      "res://assets/models/details/scree/scree_3.glb"
+      "res://assets/models/rocks/scree/scree_1.glb",
+      "res://assets/models/rocks/scree/scree_2.glb",
+      "res://assets/models/rocks/scree/scree_3.glb"
     ],
     "footprint": 3,
     "height": 1,

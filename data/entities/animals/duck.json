@@ -3,13 +3,13 @@
   "display_name": "Wild Duck",
   "description": "A sociable water bird. Paddles in calm water, forages and preens along the bank, and makes occasional short flights between pools or away from danger.",
   "model_parts": {
-    "male_body": "res://assets/animals/duck/male_body.glb",
-    "male_head": "res://assets/animals/duck/male_head.glb",
-    "male_wing": "res://assets/animals/duck/male_wing.glb",
-    "female_body": "res://assets/animals/duck/female_body.glb",
-    "female_head": "res://assets/animals/duck/female_head.glb",
-    "female_wing": "res://assets/animals/duck/female_wing.glb",
-    "foot": "res://assets/animals/duck/foot.glb"
+    "male_body": "res://assets/models/animals/duck/male_body.glb",
+    "male_head": "res://assets/models/animals/duck/male_head.glb",
+    "male_wing": "res://assets/models/animals/duck/male_wing.glb",
+    "female_body": "res://assets/models/animals/duck/female_body.glb",
+    "female_head": "res://assets/models/animals/duck/female_head.glb",
+    "female_wing": "res://assets/models/animals/duck/female_wing.glb",
+    "foot": "res://assets/models/animals/duck/foot.glb"
   },
   "population": {
     "groups": 3,

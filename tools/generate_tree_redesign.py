@@ -9,6 +9,12 @@ Then import/run tmp/tree_redesign_preview with Godot. --capture saves the review
 Trees retain one voxel per block and baked scale 1.0. Authored palette values
 are sRGB; only this exporter converts them to glTF's linear COLOR_0 convention.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 from collections import deque
 import hashlib
@@ -278,7 +284,7 @@ def prepare_preview(out):
             write_glb(out/'reference'/name, Path(name).stem, mesh_from_voxels(vox))
     for rel in ('body/head_adult','body/body_base','body/eyes','body/hand','body/foot',
                 'eyebrows/brows_m_arched','hair/hair_m_short_back','beards/beard_short_trimmed'):
-        shutil.copyfile(ROOT/'assets/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
+        shutil.copyfile(ROOT/'assets/models/characters/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
     shutil.copyfile(ROOT/'tools/TreeRedesignPreview.gd',out/'TreeRedesignPreview.gd')
     (out/'project.godot').write_text('''config_version=5
 [application]

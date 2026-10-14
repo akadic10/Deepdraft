@@ -1,0 +1,18 @@
+{
+  "description": "One adult dwarf for the isolated October 2026 art pilot. Offline authoring only; no appearance pools or gameplay values.",
+  "palette": {
+    "tunic": "567777", "tunic_shadow": "435E60", "linen": "C3B696",
+    "trousers": "4D5353", "leather": "71513A", "leather_light": "87664A",
+    "leather_dark": "48372E", "sole": "35322E", "iron": "A2A69A"
+  },
+  "head_rings": [
+    [1.82, 0.47, 0.33, 0.00, 0.10],
+    [2.04, 0.73, 0.46, 0.00, 0.16],
+    [2.35, 0.87, 0.56, 0.00, 0.19],
+    [2.78, 0.87, 0.56, 0.00, 0.19],
+    [3.00, 0.72, 0.48, 0.00, 0.18],
+    [3.10, 0.43, 0.32, 0.00, 0.12]
+  ],
+  "anchors": {"palm": [1.0625, 1.25, 0.1875], "eye": [0.4375, 2.5625, 0.61], "sole_y": 0.0},
+  "max_visual_height": 3.375
+}

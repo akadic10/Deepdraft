@@ -203,8 +203,21 @@ func _sync_fog() -> void:
 		directions.resize(4); colors.resize(4)
 		values["fog_sun_directions"] = directions
 		values["fog_sun_colors"] = colors
-		# The live world uses ProceduralSkyMaterial. Evaluate its gradient in the
-		# fragment's view direction, rather than replacing aerial fog with grey.
+		# Match the broad sky cubemap without painting stars onto solid surfaces.
+		if environment.sky != null and environment.sky.sky_material is ShaderMaterial:
+			var sky := environment.sky.sky_material as ShaderMaterial
+			if sky.shader != null and sky.shader.resource_path == "res://scripts/shaders/diorama_sky.gdshader":
+				var energy := environment.background_energy_multiplier
+				values.merge({
+					"fog_aerial": environment.fog_aerial_perspective,
+					"fog_sky_top": sky.get_shader_parameter("sky_top") * energy,
+					"fog_sky_horizon": sky.get_shader_parameter("sky_horizon") * energy,
+					"fog_ground_bottom": sky.get_shader_parameter("sky_bottom") * energy,
+					"fog_ground_horizon": sky.get_shader_parameter("sky_horizon") * energy,
+					"fog_sky_curves": sky.get_shader_parameter("gradient_curves"),
+					"fog_sky_rotation": Basis.from_euler(environment.sky_rotation).inverse(),
+				}, true)
+		# Ordinary procedural environments remain supported for isolated scenes.
 		if environment.sky != null and environment.sky.sky_material is ProceduralSkyMaterial:
 			var sky := environment.sky.sky_material as ProceduralSkyMaterial
 			var energy := sky.energy_multiplier * environment.background_energy_multiplier

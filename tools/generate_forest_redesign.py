@@ -5,6 +5,12 @@ Canonical species generators call build_model/mesh_model/manifest. This CLI
 exports an isolated review; --install also updates live GLBs and model arrays.
 Existing gameplay data is preserved. Every season has matching variant order.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 from functools import lru_cache
 import hashlib
@@ -379,7 +385,7 @@ def prepare_preview(out):
     for folder in ('models','renders','dwarves'):
         (out/folder).mkdir(parents=True,exist_ok=True)
     for rel in ('body/head_adult','body/body_base','body/eyes','body/hand','body/foot','eyebrows/brows_m_arched','hair/hair_m_short_back','beards/beard_short_trimmed'):
-        shutil.copyfile(ROOT/'assets/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
+        shutil.copyfile(ROOT/'assets/models/characters/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
     for name in ('TreeRedesignPreview.gd','ForestRedesignPreview.gd'):
         shutil.copyfile(ROOT/'tools'/name,out/name)
     (out/'project.godot').write_text('''config_version=5
@@ -419,10 +425,14 @@ def generate(out,install=False):
             report['models'][name] = {'species':species,'stage':stage,'season':season,'variant':variant,'bounds':[low,high],
                 'voxels':len(vox.cells),'triangles':len(mesh[3])//3,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
         if install:
-            for path in folder.glob('*.glb'):
-                shutil.copyfile(path,ROOT/'assets/models/flora/trees'/species/path.name)
             registry_path = ROOT/'data/entities/flora'/(species+'_tree.json')
             registry = json.loads(registry_path.read_text(encoding='utf-8'))
+            # A legacy whole-roster rebuild must not roll back a migrated family.
+            if '/trees/pilot/' in json.dumps(registry['base:flora:'+species+'_tree']['stages']):
+                print('PRESERVED_TREE_PILOT',species,'use generate_tree_pilot.py for live art')
+                continue
+            for path in folder.glob('*.glb'):
+                shutil.copyfile(path,ROOT/'assets/models/flora/trees'/species/path.name)
             comments = registry.get('__comment',[])
             prefix = next((i for i,line in enumerate(comments) if line.startswith('MODEL VARIANTS')),len(comments))
             registry['__comment'] = comments[:prefix] + ['MODEL VARIANTS — complete visual roster (doc 29):',

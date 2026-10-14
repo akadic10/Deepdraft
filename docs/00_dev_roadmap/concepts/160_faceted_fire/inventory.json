@@ -1,0 +1,194 @@
+{
+  "changed_assets": [
+    "assets/models/furniture/animations/brazier_flame.glb",
+    "assets/models/furniture/animations/campfire_flame.glb",
+    "assets/models/furniture/animations/hearth_flame.glb",
+    "assets/models/furniture/animations/smelter_flame.glb",
+    "assets/models/furniture/animations/wall_torch_flame.glb",
+    "assets/models/furniture/brazier.glb",
+    "assets/models/furniture/campfire.glb",
+    "assets/models/furniture/hearth.glb",
+    "assets/models/furniture/smelter.glb",
+    "assets/models/furniture/wall_torch.glb",
+    "assets/models/furniture/wooden_torch.glb",
+    "assets/ui/furniture/brazier.png",
+    "assets/ui/furniture/campfire.png",
+    "assets/ui/furniture/hearth.png",
+    "assets/ui/furniture/smelter.png",
+    "assets/ui/furniture/wall_torch.png",
+    "assets/ui/furniture/wooden_torch.png"
+  ],
+  "unchanged_models": 370,
+  "unchanged_furniture_bodies": 6,
+  "unchanged_gameplay_definitions": [
+    "campfire",
+    "hearth",
+    "brazier",
+    "smelter",
+    "wall_torch",
+    "wooden_torch"
+  ],
+  "unchanged_import_settings": 11,
+  "current_import_hashes": 11,
+  "static_furniture": 6,
+  "animation_libraries": 5,
+  "frames": 42,
+  "cost": {
+    "assets/models/furniture/animations/campfire_flame.glb": {
+      "before": {
+        "triangles": 3228,
+        "meshes": 8,
+        "bytes": 304104,
+        "sha256": "b66ca6e63f241a37231f01c2b38aa90af5711f392d47e7727c5e762d9e6046f7"
+      },
+      "after": {
+        "triangles": 2800,
+        "meshes": 8,
+        "bytes": 377276,
+        "sha256": "e32da7b73ad6035a626661dfc9bc4b30228fdcc6c5d60fe2b1397ce478c09fe5"
+      }
+    },
+    "assets/models/furniture/campfire.glb": {
+      "before": {
+        "triangles": 1036,
+        "meshes": 2,
+        "bytes": 123428,
+        "sha256": "e19e6b6bf7ac11fbf337b712e2ec4ab852ec9c6348c8a9a8607fe57cb6819514"
+      },
+      "after": {
+        "triangles": 1002,
+        "meshes": 2,
+        "bytes": 134372,
+        "sha256": "1e9a17e62f0ea22bb4e8b213c5c5c5746e8021bba0b30d385ed4e5f37a34ec3d"
+      }
+    },
+    "assets/models/furniture/animations/hearth_flame.glb": {
+      "before": {
+        "triangles": 3908,
+        "meshes": 10,
+        "bytes": 368340,
+        "sha256": "b321593eab0b712f3fb049fb0a9c18d7002e9bf1a12cfd59f13ebb08cb81ea88"
+      },
+      "after": {
+        "triangles": 3500,
+        "meshes": 10,
+        "bytes": 471544,
+        "sha256": "8a8491317a77b46b47d54f928ab44662dba933207d0509990270f13acb916719"
+      }
+    },
+    "assets/models/furniture/hearth.glb": {
+      "before": {
+        "triangles": 1020,
+        "meshes": 2,
+        "bytes": 121940,
+        "sha256": "f9e0bb31e20e33a2b336b7455a10759f4fa1245ccc9660a750604888dc7533b8"
+      },
+      "after": {
+        "triangles": 1002,
+        "meshes": 2,
+        "bytes": 134360,
+        "sha256": "bedb799a6f09f32bfa42dc54c7e9c42949a2e10bff45244531f4f7e26137cabb"
+      }
+    },
+    "assets/models/furniture/animations/brazier_flame.glb": {
+      "before": {
+        "triangles": 2080,
+        "meshes": 8,
+        "bytes": 198416,
+        "sha256": "a9d0adef217ed8ef317be2c8fa7fe2c6c6138e55f22285cb386712855a8dbe1c"
+      },
+      "after": {
+        "triangles": 2800,
+        "meshes": 8,
+        "bytes": 377252,
+        "sha256": "049a079b0301ede35006b9fb61c89a548c05f36d68618b6d491bab68130599a0"
+      }
+    },
+    "assets/models/furniture/brazier.glb": {
+      "before": {
+        "triangles": 616,
+        "meshes": 2,
+        "bytes": 72756,
+        "sha256": "4c773426fa792e673f4c220e69d5f822d96923f0b34b8ee8e3f852c49c0fa110"
+      },
+      "after": {
+        "triangles": 702,
+        "meshes": 2,
+        "bytes": 94736,
+        "sha256": "ec2ec6a82a77cd8cb21161c7ee991315d538963be30566a50da0ddbc0adfd8cb"
+      }
+    },
+    "assets/models/furniture/animations/smelter_flame.glb": {
+      "before": {
+        "triangles": 3312,
+        "meshes": 8,
+        "bytes": 311792,
+        "sha256": "56e42b333bb19606d51573db17a7d815b9f3b709337e134301b86e206f3c651e"
+      },
+      "after": {
+        "triangles": 2800,
+        "meshes": 8,
+        "bytes": 377268,
+        "sha256": "135c0b273f274f0629961a8e645dbaef29993c40a24939547393c67fa99b0b65"
+      }
+    },
+    "assets/models/furniture/smelter.glb": {
+      "before": {
+        "triangles": 1180,
+        "meshes": 2,
+        "bytes": 140608,
+        "sha256": "24d492cc525f087bf3cccb44aecec9a28c30474b9ec71eab23216447092d54d5"
+      },
+      "after": {
+        "triangles": 1102,
+        "meshes": 2,
+        "bytes": 147508,
+        "sha256": "073b269fe0851edb237c317777c35285d373b1ce13d4687750066a8a21e447c2"
+      }
+    },
+    "assets/models/furniture/animations/wall_torch_flame.glb": {
+      "before": {
+        "triangles": 1152,
+        "meshes": 8,
+        "bytes": 113008,
+        "sha256": "dd7baef58691badf63a280043bbf09a61d709d8f2cb670b532a73da890720672"
+      },
+      "after": {
+        "triangles": 2800,
+        "meshes": 8,
+        "bytes": 377228,
+        "sha256": "3e3e784a100e65862cbb2b27d8d87dbb5ab944163a413ad5bd0edf04da3cdfea"
+      }
+    },
+    "assets/models/furniture/wall_torch.glb": {
+      "before": {
+        "triangles": 472,
+        "meshes": 2,
+        "bytes": 58032,
+        "sha256": "c6f02842dfbd97db3bf76595f9f8ebf283ded074879ba37fe11a3f736d2a3dec"
+      },
+      "after": {
+        "triangles": 666,
+        "meshes": 2,
+        "bytes": 89944,
+        "sha256": "8940c5a857baa43fe3d7f93723220c1ac440ba53f04e1857636686f379adad01"
+      }
+    },
+    "assets/models/furniture/wooden_torch.glb": {
+      "before": {
+        "triangles": 500,
+        "meshes": 2,
+        "bytes": 61724,
+        "sha256": "c60e9996852faf825981a173d23055f32662e6baee4e91e98ad48a57e2a3cdfe"
+      },
+      "after": {
+        "triangles": 694,
+        "meshes": 2,
+        "bytes": 93636,
+        "sha256": "0ae1f558b059e8b7bfeb1e73c6415843fbc8485cce01ff9b6443f9a5ded1d934"
+      }
+    }
+  },
+  "backup": "C:\\Users\\akadi\\.codex\\backups\\deepdraft-fire-art-20261013-165613.zip",
+  "retired_flame_source_verified_in_backup": true
+}

@@ -1,13 +1,22 @@
-"""Boulder pilot: baked 1/8-block voxels, ground origin, 2x2x2 envelope.
+"""Historical voxel boulders, retained for matched comparisons.
+
+Live faceted art is authored by generate_ground_stones.py (roadmap 149).
+Baked 1/8-block voxels, ground origin, 2x2x2 envelope.
 
 Run from any directory. These are dedicated world props, not scaled item art.
 Only writes the three owned GLBs; Godot owns their import metadata.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 import math
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/models/details/boulders'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/rocks/boulders'
 
 
 def boulder(variant):

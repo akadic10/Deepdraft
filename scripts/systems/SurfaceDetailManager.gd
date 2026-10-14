@@ -570,7 +570,7 @@ func advance_forage_candidates(from: Vector3i, radius: int, query: Dictionary, d
 	while int(query.index) < width*width:
 		var index := int(query.index)
 		query.index = index+1
-		var column := Vector2i(from.x-radius+index%width,from.z-radius+index/width)
+		var column := Vector2i(from.x-radius+index%width,from.z-radius+floori(float(index)/width))
 		for id: String in _columns.get(column, []):
 			if query.seen.has(id): continue
 			query.seen[id] = true

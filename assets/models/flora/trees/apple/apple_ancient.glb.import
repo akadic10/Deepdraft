@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://nhfbrk7t5jlo"
+uid="uid://d0k3au2cfbv7"
 path="res://.godot/imported/apple_ancient.glb-84a2a483e2f1696b1734812c29da4829.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

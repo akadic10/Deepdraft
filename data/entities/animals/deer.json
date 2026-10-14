@@ -3,12 +3,12 @@
   "display_name": "Wild Deer",
   "description": "A wary woodland grazer. Stays loosely with its herd, rests in quiet places and runs from approaching dwarves or wolves.",
   "model_parts": {
-    "body": "res://assets/animals/deer/body.glb",
-    "neck": "res://assets/animals/deer/neck.glb",
-    "head": "res://assets/animals/deer/head.glb",
-    "ears": "res://assets/animals/deer/ears.glb",
-    "antlers": "res://assets/animals/deer/antlers.glb",
-    "leg": "res://assets/animals/deer/leg.glb"
+    "body": "res://assets/models/animals/deer/body.glb",
+    "neck": "res://assets/models/animals/deer/neck.glb",
+    "head": "res://assets/models/animals/deer/head.glb",
+    "ears": "res://assets/models/animals/deer/ears.glb",
+    "antlers": "res://assets/models/animals/deer/antlers.glb",
+    "leg": "res://assets/models/animals/deer/leg.glb"
   },
   "population": {"count": 18, "group_size": 3, "group_radius": 8, "member_spacing": 4, "salt": 210717, "attempts": 3000, "min_spacing": 96, "max_ground_y": 43},
   "navigation": {"footprint": 2, "clearance": 4, "home_radius": 18, "hop_height": 0.04, "hop_seconds": 1.05, "flee_hop_seconds": 0.34, "fall_speed": 6},

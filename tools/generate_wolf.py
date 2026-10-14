@@ -3,11 +3,17 @@
 Grey stone-range fur with a cream muzzle/belly keeps the existing muted palette.
 Separate head, pointed ears, brush tail and four legs support runtime animation.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 from generate_rabbit import linear
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/animals/wolf'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/animals/wolf'
 FUR = (.46, .48, .48)
 LIGHT = (.60, .62, .60)
 DARK = (.30, .32, .33)

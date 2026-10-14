@@ -3,6 +3,12 @@
 Original voxel geometry with linear vertex colors. Frameless door leaves are
 separate meshes so installed furniture can swing without changing room sealing.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, write_glb
 from generate_tavern_redesign import OAK, box, export_mesh, rgb

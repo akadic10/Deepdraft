@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""First dwarf redesign milestone, isolated from assets/dwarves.
+"""First dwarf redesign milestone, isolated from assets/models/characters/dwarves.
 
 Run with Python 3: tools/generate_dwarf_redesign.py
 Outputs modular GLBs and a standalone Godot review project under
@@ -10,6 +10,12 @@ XZ shift is baked before the existing GLB writer's 1/8 export scale. This makes
 an odd 15-cell skull symmetric at X=0 and keeps runtime scale.x=-1 mirroring
 valid. All parts still assemble at identity in a common world-space frame.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 import hashlib
 import json
@@ -317,7 +323,7 @@ def main():
     (out/'reference').mkdir(exist_ok=True)
     for ref in refs:
         if (out/'reference'/f'{ref.split("/")[-1]}.glb').exists(): continue
-        shutil.copyfile(ROOT/'assets/dwarves'/f'{ref}.glb',out/'reference'/f'{ref.split("/")[-1]}.glb')
+        shutil.copyfile(ROOT/'assets/models/characters/dwarves'/f'{ref}.glb',out/'reference'/f'{ref.split("/")[-1]}.glb')
     shutil.copyfile(ROOT/'tools/DwarfRedesignPreview.gd',out/'DwarfRedesignPreview.gd')
     (out/'project.godot').write_text('''config_version=5
 

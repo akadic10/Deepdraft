@@ -340,6 +340,9 @@ func _build_action_panel() -> void:
 
 
 func _layout_action_panel() -> void:
+	# A scene reload can detach this dock before queued layout callbacks run.
+	if not is_inside_tree():
+		return
 	var viewport_size := get_viewport().get_visible_rect().size
 	var menu := UIRegistry.get_menu(_active_panel_target)
 	if bool(menu.get("illustrated", false)):
@@ -393,6 +396,8 @@ func _layout_action_panel() -> void:
 
 
 func _position_action_panel() -> void:
+	if not is_inside_tree():
+		return
 	var viewport_width := get_viewport().get_visible_rect().size.x
 	var centered_x := (viewport_width - _panel_container.size.x) * 0.5
 	var menu: Dictionary = UIRegistry.get_menu(_active_panel_target)
@@ -701,16 +706,17 @@ func _dispatch_menu_entry(entry: Dictionary) -> void:
 
 ## Live save/test commands use stable IDs, independent of captions and artwork.
 func _dispatch_command(id: String) -> bool:
+	# Finish local UI work before a listener can synchronously reload the scene.
 	match id:
 		"save_game":
+			_close_action_panel()
 			save_game_requested.emit()
-			_close_action_panel()
 		"load_game":
+			_close_action_panel()
 			load_game_requested.emit()
-			_close_action_panel()
 		"load_autosave":
-			load_autosave_requested.emit()
 			_close_action_panel()
+			load_autosave_requested.emit()
 		"spawn_drops", "spawn_furniture":
 			if _stockpile_controller != null:
 				_stockpile_controller.call("dev_" + id)
@@ -765,16 +771,11 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 	if target == "save_load":
 		match label:
 			"💾 Save Game":
-				save_game_requested.emit()
+				_dispatch_command("save_game")
 			"📂 Load Game":
-				load_game_requested.emit()
+				_dispatch_command("load_game")
 			"🕒 Load Autosave":
-				load_autosave_requested.emit()
-			_:
-				return
-		_panel_container.visible = false
-		_active_panel_target = ""
-		_refresh_active_buttons()
+				_dispatch_command("load_autosave")
 		return
 	if target == "mine" and label == "Mine Block":
 		_panel_container.visible = false
@@ -903,6 +904,10 @@ func _open_settlement_flag() -> void:
 # ── Dock-owned windows (doc 24 Phase U2a) ─────────────────────────────────────
 
 func _register_dock_windows() -> void:
+	var audio_panel := preload("res://scripts/ui/AudioSettingsPanel.gd").new()
+	var audio_window := _window_manager.register_window("audio", "Audio", "", audio_panel,
+		{"persistent": false, "default_pos": Vector2(32, 130)})
+	audio_window.keep_body_on_screen = true
 	_window_manager.register_window("time_weather_dev", "Time & weather tools", "",
 		_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130)})
 

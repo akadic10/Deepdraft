@@ -1,4 +1,10 @@
 """Rudimentary 4 x 3 log bed: rough bark frame and loose hay/leaf bedding."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from random import Random
 from voxel_glb import Voxels, write_glb

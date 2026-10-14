@@ -28,6 +28,12 @@ Outputs (paths must match data/entities/items/resources.json "model" fields):
   assets/models/items/soil/{light_soil,dark_soil,cave_soil}.glb
 """
 
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
+
 import random
 from pathlib import Path
 

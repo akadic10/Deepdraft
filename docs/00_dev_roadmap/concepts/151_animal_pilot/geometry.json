@@ -1,0 +1,88 @@
+{
+  "current": {
+    "parts": [
+      {
+        "part": "antlers",
+        "triangles": 232,
+        "bytes": 22412,
+        "sha256": "5b99f97703f9a16eb424f0a23a30c176e64968cd2abf6b75b4b925a75fcb790f"
+      },
+      {
+        "part": "body",
+        "triangles": 788,
+        "bytes": 73568,
+        "sha256": "6ce971f6942fdffa5d78dd9aa51efc1716e4f6afbc76187d4dd7084f7ede921a"
+      },
+      {
+        "part": "ears",
+        "triangles": 144,
+        "bytes": 14312,
+        "sha256": "a7ec3efd237c65283628af77b2c730c2aa1efb01187a863066b75442f6337ca3"
+      },
+      {
+        "part": "head",
+        "triangles": 216,
+        "bytes": 20932,
+        "sha256": "cceaa0fea32aa0a8385b258972ada7cc18257b695ff44ddc1cc8abb3d11058dd"
+      },
+      {
+        "part": "leg",
+        "triangles": 176,
+        "bytes": 17252,
+        "sha256": "0feb938c2b4a778f4915c49441d3c944643d7fe6f411667e27062920da617a61"
+      },
+      {
+        "part": "neck",
+        "triangles": 332,
+        "bytes": 31608,
+        "sha256": "f227f5f3d0dad1b2aee0d13652bbec31b82911f5853c2314228eba4c4c9c9058"
+      }
+    ],
+    "assembled_triangles": 2416,
+    "visible_meshes": 9,
+    "source_bytes": 180084
+  },
+  "pilot": {
+    "parts": [
+      {
+        "part": "antlers",
+        "triangles": 288,
+        "bytes": 39172,
+        "sha256": "cf8285598612b43595e67e1168cb97756f99dfb1cf1031f254004d9de5caba5d"
+      },
+      {
+        "part": "body",
+        "triangles": 128,
+        "bytes": 17968,
+        "sha256": "2c94ad71f55d04e25e808f1fe620f0f0b9e92b11c9b7ed6dd7864b2f460319b0"
+      },
+      {
+        "part": "ears",
+        "triangles": 32,
+        "bytes": 5324,
+        "sha256": "a5089a14a9caba6a801ad1989b7ab367a2e042b9012a6ebf8d0d63b6333176e2"
+      },
+      {
+        "part": "head",
+        "triangles": 284,
+        "bytes": 38580,
+        "sha256": "caf40269e9f355e86487b7b267f16081ae69e8840a6ee0971d90bf75779236d4"
+      },
+      {
+        "part": "leg",
+        "triangles": 128,
+        "bytes": 17956,
+        "sha256": "f3199c96e5d4ac2d9299a7f6c93a9105c2a7da45a4b903cdcb82d3b31743995b"
+      },
+      {
+        "part": "neck",
+        "triangles": 64,
+        "bytes": 9520,
+        "sha256": "7f259620af64b17c055e7435d7586ae4dc02dd4ff95a2e42031c9acf5f52ca70"
+      }
+    ],
+    "assembled_triangles": 1308,
+    "visible_meshes": 9,
+    "source_bytes": 128520
+  }
+}

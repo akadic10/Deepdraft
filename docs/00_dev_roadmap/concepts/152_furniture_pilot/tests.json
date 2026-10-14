@@ -1,0 +1,37 @@
+[
+  {
+    "test": "FurniturePilotArtTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.54,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePilotBedroomTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 12.37,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePilotDoorTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 19.27,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePilotSeatingTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.13,
+    "timeout": false
+  },
+  {
+    "test": "FurniturePilotMaterialTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 8.72,
+    "timeout": false
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "test": "GroundStoneArtTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.45,
+    "timeout": false
+  },
+  {
+    "test": "BoulderPilotTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.5,
+    "timeout": false
+  },
+  {
+    "test": "ScreePilotTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.41,
+    "timeout": false
+  },
+  {
+    "test": "NavigationRegressionTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.58,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 57.64,
+    "timeout": false
+  }
+]

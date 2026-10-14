@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://civ60vhr20gve"
+uid="uid://caqhfcbjq2pl4"
 path="res://.godot/imported/oak_ancient_spring.glb-e90dcc63e9301777d0ef7e03260fb79d.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

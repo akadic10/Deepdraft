@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://do3o76ybkcj77"
+uid="uid://c5wvghvphnu6k"
 path="res://.godot/imported/apple_ancient_autumn_2.glb-9bf55bc55f8ce40d1356629817c43bb8.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

@@ -46,7 +46,7 @@ func _run() -> void:
 	def = controller.get_defs()[KEY]
 	assert(def.placement=="wall" and def.collision_regions.is_empty() and not def.blocks_movement)
 	assert(def.footprint.width==0 and def.footprint.depth==0 and def.heat_source.heat_units==200)
-	assert(manager.get_item_def(ITEM).model=="res://assets/models/items/furniture/packed_furniture.glb")
+	assert(manager.get_item_def(ITEM).model=="res://assets/models/furniture/packed_furniture.glb")
 	var spawner = load("res://scripts/systems/StockpileDesignationController.gd")
 	assert(spawner.DEV_FURNITURE_MIX[ITEM]==4)
 	for x in range(6,18):

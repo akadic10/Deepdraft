@@ -3,7 +3,7 @@
   "furniture_category": "water",
   "display_name": "Wet stone",
   "description": "Supplies water while deliberately placed. Inactive when packed, carried or stored.",
-  "model": "res://assets/models/world/water/wet_stone.glb",
+  "model": "res://assets/models/furniture/wet_stone.glb",
   "item_key": "base:resources:water:wet_stone",
   "water_stone": "wet",
   "placement": "floor",

@@ -104,7 +104,7 @@ func set_sample_open(open: bool) -> void:
 		world.set_block(cell.x,cell.y,cell.z,blocks.AIR_ID if open else original_sample[cell])
 
 
-func rebuild(material: Material, floor_material: Material, art_mode := false, detailed_ground := false) -> void:
+func rebuild(material: Material, floor_material: Material, art_mode := false, detailed_ground := false, terrain_treatment := "") -> void:
 	for node in mesh_nodes:
 		remove_child(node)
 		node.queue_free()
@@ -131,6 +131,18 @@ func rebuild(material: Material, floor_material: Material, art_mode := false, de
 					if floor_cells.has(cell) and normal == Vector3.UP: continue
 					var id: int = world.get_block(cell.x,cell.y,cell.z)
 					var cut: bool = normal == Vector3.UP and cell.y == slice_y and world.get_block(cell.x,cell.y+1,cell.z) != blocks.AIR_ID
+					if not terrain_treatment.is_empty():
+						var face_color: Color = blocks.get_terrain_color(id, get_node("/root/WorldClock").season)
+						if cut:
+							face_color *= Color(.5,.5,.5,1)
+							if face_color.a < 0.5: face_color.a += 0.5
+						var corners: Array = []
+						for i in range(4): corners.append(raw[0][start+i]+offset)
+						if terrain_treatment == "geometry":
+							detail.terrain_face(corners,normal,face_color,blocks.get_appearance_profile(id))
+						else:
+							detail.quad(corners[0],corners[1],corners[2],corners[3],normal,face_color)
+						continue
 					if art_mode and (id == stone_id or cut):
 						var value := float(posmod((cell.x*73856093) ^ (cell.y*19349663) ^ (cell.z*83492791),101))/100.0
 						var color := Color("444c53").lerp(Color("696f70"),value*.7).srgb_to_linear()

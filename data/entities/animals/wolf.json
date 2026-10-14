@@ -3,14 +3,15 @@
   "display_name": "Wild Wolf",
   "description": "A cautious predator. Hunts only when hungry, gives up long chases and rests after feeding. Avoids approaching dwarves.",
   "model_parts": {
-    "body": "res://assets/animals/wolf/body.glb",
-    "head": "res://assets/animals/wolf/head.glb",
-    "ears": "res://assets/animals/wolf/ears.glb",
-    "tail": "res://assets/animals/wolf/tail.glb",
-    "leg": "res://assets/animals/wolf/leg.glb"
+    "body": "res://assets/models/animals/wolf/body.glb",
+    "head": "res://assets/models/animals/wolf/head.glb",
+    "ears": "res://assets/models/animals/wolf/ears.glb",
+    "tail": "res://assets/models/animals/wolf/tail.glb",
+    "leg": "res://assets/models/animals/wolf/leg.glb"
   },
   "population": {"count": 4, "salt": 541903, "attempts": 4000, "min_spacing": 128, "max_ground_y": 43, "prey_min_distance": 18, "prey_max_distance": 36, "initial_hunger": [0.45, 0.72]},
-  "navigation": {"footprint": 2, "clearance": 2, "home_radius": 32, "hop_height": 0.025, "hop_seconds": 0.95, "flee_hop_seconds": 0.3, "fall_speed": 6},
+  "visual_scale": [1.65, 1.3, 1.75],
+  "navigation": {"footprint": 4, "clearance": 3, "home_radius": 32, "hop_height": 0.025, "hop_seconds": 0.95, "flee_hop_seconds": 0.3, "fall_speed": 6},
   "behavior": {
     "threat_radius": 8, "safe_radius": 14, "calm_seconds": 5,
     "idle_seconds": [1.0, 3.0],

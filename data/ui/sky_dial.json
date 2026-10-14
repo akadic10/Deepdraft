@@ -1,29 +1,130 @@
 {
   "__comment": "Hearth & iron Sky Dial artwork. UIRegistry owns this file; WorldClock and WeatherManager own live state.",
-  "frame": { "icon": "res://assets/ui/sky_dial/frame.png" },
+  "frame": {
+    "icon": "res://assets/ui/sky_dial/frame.png"
+  },
   "landscapes": {
-    "spring": { "day": [0, 0, 512, 384], "night": [512, 0, 512, 384] },
-    "summer": { "day": [0, 384, 512, 384], "night": [512, 384, 512, 384] },
-    "autumn": { "day": [0, 768, 512, 384], "night": [512, 768, 512, 384] },
-    "winter": { "day": [0, 1152, 512, 384], "night": [512, 1152, 512, 384] }
+    "spring": {
+      "day": [
+        0,
+        0,
+        512,
+        384
+      ],
+      "night": [
+        512,
+        0,
+        512,
+        384
+      ]
+    },
+    "summer": {
+      "day": [
+        0,
+        384,
+        512,
+        384
+      ],
+      "night": [
+        512,
+        384,
+        512,
+        384
+      ]
+    },
+    "autumn": {
+      "day": [
+        0,
+        768,
+        512,
+        384
+      ],
+      "night": [
+        512,
+        768,
+        512,
+        384
+      ]
+    },
+    "winter": {
+      "day": [
+        0,
+        1152,
+        512,
+        384
+      ],
+      "night": [
+        512,
+        1152,
+        512,
+        384
+      ]
+    }
   },
   "landscape_atlas": "res://assets/ui/sky_dial/landscapes.png",
   "symbol_atlas": "res://assets/ui/sky_dial/symbols.png",
   "symbols": {
-    "sun": [0, 0, 418, 418],
-    "moon": [418, 0, 418, 418],
-    "overcast": [836, 0, 418, 418],
-    "foggy": [0, 418, 418, 418],
-    "snow": [418, 418, 418, 418],
-    "spring": [836, 418, 418, 418],
-    "summer": [0, 836, 418, 418],
-    "autumn": [418, 836, 418, 418],
-    "winter": [836, 836, 418, 418]
+    "sun": [
+      0,
+      0,
+      418,
+      418
+    ],
+    "moon": [
+      418,
+      0,
+      418,
+      418
+    ],
+    "overcast": [
+      836,
+      0,
+      418,
+      418
+    ],
+    "foggy": [
+      0,
+      418,
+      418,
+      418
+    ],
+    "snow": [
+      418,
+      418,
+      418,
+      418
+    ],
+    "spring": [
+      836,
+      418,
+      418,
+      418
+    ],
+    "summer": [
+      0,
+      836,
+      418,
+      418
+    ],
+    "autumn": [
+      418,
+      836,
+      418,
+      418
+    ],
+    "winter": [
+      836,
+      836,
+      418,
+      418
+    ]
   },
   "weather_symbols": {
     "base:weather:clear": "sun",
     "base:weather:foggy": "foggy",
     "base:weather:overcast": "overcast",
-    "base:weather:snow": "snow"
+    "base:weather:snow": "snow",
+    "base:weather:rain": "rain",
+    "base:weather:storm": "storm"
   }
 }

@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 """Generate the complete redesigned pine roster at one voxel per block.
 
-All live stages, seasons and variants use generate_forest_redesign. Legacy
+The live low-poly pilot uses generate_tree_pilot.py (roadmap 146). This tool
+reproduces the earlier voxel assets for comparison; it does not select live art.
+All older stages, seasons and variants use generate_forest_redesign. Legacy
 builders below remain only for historical before/after preview reproduction.
 Existing mature baseline designs and gameplay footprints are preserved.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 
 import math
 import random

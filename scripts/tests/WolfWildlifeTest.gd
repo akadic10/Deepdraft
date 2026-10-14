@@ -57,7 +57,7 @@ func _run() -> void:
 	camera.set_meta("work_zoom",12.0)
 	await process_frame
 	var box: AABB = wildlife.get_explorer_bounds(wolf)
-	_expect(box.position.y >= 20.99 and box.size.y < 2 and box.size.x <= 2 and box.size.z <= 2,"wolf fits a grounded two-cell envelope")
+	_expect(box.position.y >= 20.99 and box.size.y < 3 and box.size.x <= 4 and box.size.z <= 4,"large wolf fits grounded four-wide, three-high clearance")
 	_expect(wildlife.pick_explorer_object(box.get_center()+Vector3.UP*5,box.get_center()-Vector3.UP*2).get("id") == wolf,"wolf meshes are pickable")
 	var events: Array = []
 	var feedback := root.get_node("WorkFeedback")

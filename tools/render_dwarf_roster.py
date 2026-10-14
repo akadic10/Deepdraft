@@ -2,7 +2,7 @@
 """Render the actual modular GLBs, including every hair/beard/age/brow style.
 
 Software geometry preview; use Godot for the runtime lighting/material check.
-Requires numpy and Pillow. --assets defaults to the live assets/dwarves folder.
+Requires numpy and Pillow. --assets defaults to the live assets/models/characters/dwarves folder.
 """
 import argparse
 from pathlib import Path
@@ -29,7 +29,7 @@ def assemble(folder, hair='m_short_back', beard=None, age='adult', brow='m_arche
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--assets',type=Path,default=ROOT/'assets/dwarves')
+    ap.add_argument('--assets',type=Path,default=ROOT/'assets/models/characters/dwarves')
     ap.add_argument('--out',type=Path,default=ROOT/'tmp/dwarf_roster/renders')
     args=ap.parse_args(); args.out.mkdir(parents=True,exist_ok=True)
     hairs=['m_'+s for s in HAIR_MALE]+['f_'+s for s in HAIR_FEMALE]

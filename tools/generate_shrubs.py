@@ -4,6 +4,12 @@ Ripe and picked versions share stems/leaves. No textures, runtime scaling or
 colliders. Legacy shrub-stage meshes are retained; generate_young_shrubs.py
 authors the seasonal young plants used by the live cutting-growth system.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 

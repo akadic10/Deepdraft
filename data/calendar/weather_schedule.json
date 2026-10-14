@@ -13,28 +13,84 @@
     "",
     "Keys beginning with '__' are documentation comments and are skipped by the loader."
   ],
-
   "spring": [
-    { "weather": "base:weather:clear",    "weight": 55 },
-    { "weather": "base:weather:overcast", "weight": 30 },
-    { "weather": "base:weather:foggy",    "weight": 15 }
+    {
+      "weather": "base:weather:clear",
+      "weight": 42
+    },
+    {
+      "weather": "base:weather:overcast",
+      "weight": 22
+    },
+    {
+      "weather": "base:weather:foggy",
+      "weight": 12
+    },
+    {
+      "weather": "base:weather:rain",
+      "weight": 19
+    },
+    {
+      "weather": "base:weather:storm",
+      "weight": 5
+    }
   ],
-
   "summer": [
-    { "weather": "base:weather:clear",    "weight": 75 },
-    { "weather": "base:weather:overcast", "weight": 20 },
-    { "weather": "base:weather:foggy",    "weight": 5 }
+    {
+      "weather": "base:weather:clear",
+      "weight": 65
+    },
+    {
+      "weather": "base:weather:overcast",
+      "weight": 15
+    },
+    {
+      "weather": "base:weather:foggy",
+      "weight": 5
+    },
+    {
+      "weather": "base:weather:rain",
+      "weight": 10
+    },
+    {
+      "weather": "base:weather:storm",
+      "weight": 5
+    }
   ],
-
   "autumn": [
-    { "weather": "base:weather:clear",    "weight": 40 },
-    { "weather": "base:weather:overcast", "weight": 35 },
-    { "weather": "base:weather:foggy",    "weight": 25 }
+    {
+      "weather": "base:weather:clear",
+      "weight": 32
+    },
+    {
+      "weather": "base:weather:overcast",
+      "weight": 26
+    },
+    {
+      "weather": "base:weather:foggy",
+      "weight": 20
+    },
+    {
+      "weather": "base:weather:rain",
+      "weight": 17
+    },
+    {
+      "weather": "base:weather:storm",
+      "weight": 5
+    }
   ],
-
   "winter": [
-    { "weather": "base:weather:clear",    "weight": 30 },
-    { "weather": "base:weather:overcast", "weight": 30 },
-    { "weather": "base:weather:snow",     "weight": 40 }
+    {
+      "weather": "base:weather:clear",
+      "weight": 30
+    },
+    {
+      "weather": "base:weather:overcast",
+      "weight": 30
+    },
+    {
+      "weather": "base:weather:snow",
+      "weight": 40
+    }
   ]
 }

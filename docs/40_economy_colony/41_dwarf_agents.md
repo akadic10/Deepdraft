@@ -1,5 +1,11 @@
 # 41 — Dwarf Agents
 
+**2026-10-13 — Balanced proportions:** [165](../00_dev_roadmap/165_approved_actor_proportions.md)
+integrates the selected narrower torso/head and relaxed stance. Standing height
+and the logical 1×1×3 body stay fixed. `DwarfAssets` owns `proportions.json`;
+assembly, work/rest resets and static portraits use those factors. Tool/carry
+grips and appearance IDs remain current; existing saves receive the new shape.
+
 **2026-10-12 — Food and dining:** [131 — Food and dining](../00_dev_roadmap/131_dwarf_food_and_dining.md)
 implements stages 1 and 2 of the agreed plan: game-hour Food, physical fruit
 portions from reachable storage before allowed loose food, bounded retries,

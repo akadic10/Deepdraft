@@ -1480,13 +1480,13 @@ func _recover_attempt(task: Task, reason: String) -> void:
 		task.wait_reason = "Needs attention: repeated %s" % reason.to_lower()
 		journal.transition(task.order_locator,"attention",task.wait_reason,generation,id)
 
-func retry_order(order_key: String) -> void:
+func retry_order(order_key: String, reason: String = "Retry requested") -> void:
 	for task: Task in _tasks.values():
 		if task.order_key != order_key or task.assigned_to >= 0: continue
 		task.recovery_paused = false
 		task.retry_at = 0
 		task.blocked_count = 0
-		task.wait_reason = "Retry requested"
+		task.wait_reason = reason
 		task.planning_context.clear()
 		_worker_rejections.erase(task.id)
 		_family_frontiers.erase(task.id)

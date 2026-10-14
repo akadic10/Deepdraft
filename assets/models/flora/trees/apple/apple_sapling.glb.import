@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bwqr340oo4x83"
+uid="uid://5h8l2tedc44f"
 path="res://.godot/imported/apple_sapling.glb-f1daf6f978181f96c3fb46d8faacdf0d.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

@@ -117,6 +117,18 @@ All existing walkability rules (the 3-air-layer clearance envelope above every f
 
 **PlacedEntityRegistry.occupies(pos)** returns true if any registered entity's occupancy box contains that grid coordinate. Boxes are registered on placement and unregistered on removal (see `12_world_grid.md`). Its `occupancy_changed` signal invalidates the affected nav chunks, extending downward by the three-block clearance height; walkability is recomputed lazily.
 
+Mining maintains a separate cache of workable blocks. Its controller also
+listens to occupancy changes, invalidates nearby zone destinations and refreshes
+pending lease targets after the footprint updates settle. NavGrid invalidation
+alone does not refresh that work cache. This distinction caused the moved-bed
+failure fixed in [174](../00_dev_roadmap/174_mining_furniture_access.md).
+
+For loose goods, explicit route goals are the usable pickup stand cells, not
+the item's potentially unwalkable support cell. Validate those actual goals
+with live occupancy. Adjacent pickup reach can extend to a support two blocks
+above the stand floor; it does not increase step height or reduce three-block
+clearance. See [173](../00_dev_roadmap/173_ledge_pickup_and_safe_exports.md).
+
 > **Design note (verified against Stonehearth):** Stonehearth's engine handles this via a `navgrid` system that unifies terrain blocks and entity `region_collision_shape` components into a single walkability query. Our `PlacedEntityRegistry.occupies()` call is the functional equivalent — the nav grid sees one coherent obstacle space, the two data sources just live in separate registries.
 
 ---

@@ -1084,7 +1084,7 @@
   "base:items:special:settlement_flag": {
     "display_name": "Settlement flag (packed)",
     "description": "The colony's settlement marker, packed for storage or relocation. Place it to mark the settlement's new location.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 1,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1101,7 +1101,7 @@
   "base:resources:furniture:barrel": {
     "display_name": "Barrel (packed)",
     "description": "A hooped oak barrel, packed flat and ready to set up wherever it is needed.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1115,7 +1115,7 @@
   "base:resources:furniture:storage_chest": {
     "display_name": "Storage Chest (packed)",
     "description": "A heavy plank chest with its iron corner fittings bundled inside.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1129,7 +1129,7 @@
   "base:resources:furniture:storage_shelf": {
     "display_name": "Shelf Kit",
     "description": "Plank shelving and oak uprights lashed into a carrying bundle, brackets included.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1143,7 +1143,7 @@
   "base:resources:furniture:tavern_bar": {
     "display_name": "Tavern Bar (packed)",
     "description": "A long oak counter and its iron tap fittings, broken down for hauling.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1157,7 +1157,7 @@
   "base:resources:furniture:bench": {
     "display_name": "Log bench (packed)",
     "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating. Packed in a wooden crate.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1176,7 +1176,7 @@
   "base:resources:furniture:hearth": {
     "display_name": "Rudimentary hearth (packed)",
     "description": "Rough fieldstones and logs packed for a simple bedroom hearth.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1190,7 +1190,7 @@
   "base:resources:furniture:door": {
     "display_name": "Log door (2 wide) (packed)",
     "description": "Rough logs and wooden pegs packed for a 2-block-wide doorway.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1209,7 +1209,7 @@
   "base:resources:furniture:trade_counter": {
     "display_name": "Trade Counter (packed)",
     "description": "Dressed counter stones and iron fittings secured in a carrying crate.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1223,7 +1223,7 @@
   "base:resources:furniture:wooden_table": {
     "display_name": "Personal Dining Table (packed)",
     "description": "Broad oak planks, trestles and iron corner fittings secured for hauling.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1237,7 +1237,7 @@
   "base:resources:furniture:communal_table": {
     "display_name": "Communal Dining Table (packed)",
     "description": "Long oak planks and trestles for an eight-place tavern table, secured for hauling.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1251,7 +1251,7 @@
   "base:resources:furniture:wooden_chair": {
     "display_name": "Wooden Chair (packed)",
     "description": "One oak chair, disassembled and secured in a carrying crate.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1265,7 +1265,7 @@
   "base:resources:furniture:dwarf_bunk": {
     "display_name": "Dwarven Bed (packed)",
     "description": "Oak bed timbers, linen bedding and iron fittings packed for hauling.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1279,7 +1279,7 @@
   "base:resources:furniture:brewing_vat": {
     "display_name": "Brewing Vat (packed)",
     "description": "Oak vat staves, iron hoops and a copper tap secured in a carrying crate.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1293,7 +1293,7 @@
   "base:resources:furniture:crude_workbench": {
     "display_name": "Crude Workbench (packed)",
     "description": "A rough crafting stump packed for installation. Workers can use it from any open side.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1312,7 +1312,7 @@
   "base:resources:furniture:wooden_torch": {
     "display_name": "Log torch (packed)",
     "description": "A charred branch bound with rough fibre and held by a wooden wall peg. A basic light for the first tunnels. Packed in a wooden crate.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1331,7 +1331,7 @@
   "base:resources:furniture:wall_torch": {
     "display_name": "Wall Torch (packed)",
     "description": "An iron bracket and unlit wooden torch packed for installation on a wall.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1345,7 +1345,7 @@
   "base:resources:furniture:anvil": {
     "display_name": "Anvil (packed)",
     "description": "An iron anvil, stone pedestal and hold-down clamps secured for hauling.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1360,7 +1360,7 @@
   "base:resources:furniture:smelter": {
     "display_name": "Smelter (packed)",
     "description": "Dressed furnace stones, iron fittings and a grate packed for installation.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1375,7 +1375,7 @@
   "base:resources:furniture:aging_rack": {
     "display_name": "Aging Rack (packed)",
     "description": "Two oak casks, iron hoops and a timber cradle packed for installation.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1390,7 +1390,7 @@
   "base:resources:furniture:brazier": {
     "display_name": "Brazier (packed)",
     "description": "An iron fire bowl and stone pedestal packed for installation.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1461,7 +1461,7 @@
   "base:resources:plant:flowers_1": {
     "display_name": "Uprooted cream wildflowers",
     "description": "A living flower clump with wrapped roots. Replant through Place â†’ Plants. Keeps its shape and seasonal bloom.",
-    "model": "res://assets/models/details/flowers/flowers_1_packed_summer.glb",
+    "model": "res://assets/models/flora/flowers/flowers_1_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1475,7 +1475,7 @@
   "base:resources:plant:flowers_2": {
     "display_name": "Uprooted heather wildflowers",
     "description": "A living flower clump with wrapped roots. Replant through Place â†’ Plants. Keeps its shape and seasonal bloom.",
-    "model": "res://assets/models/details/flowers/flowers_2_packed_summer.glb",
+    "model": "res://assets/models/flora/flowers/flowers_2_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1489,7 +1489,7 @@
   "base:resources:plant:flowers_3": {
     "display_name": "Uprooted gold wildflowers",
     "description": "A living flower clump with wrapped roots. Replant through Place â†’ Plants. Keeps its shape and seasonal bloom.",
-    "model": "res://assets/models/details/flowers/flowers_3_packed_summer.glb",
+    "model": "res://assets/models/flora/flowers/flowers_3_packed_summer.glb",
     "stack_max": 1,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1503,7 +1503,7 @@
   "base:resources:furniture:crude_ladder": {
     "display_name": "Ladder section",
     "description": "A bundle of split rails and pegged rungs. Installs four blocks of wooden ladder.",
-    "model": "res://assets/models/items/furniture/crude_ladder.glb",
+    "model": "res://assets/models/furniture/ladder_kit.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1523,7 +1523,7 @@
   "base:resources:furniture:log_bridge": {
     "display_name": "Log bridge kit",
     "description": "A bundle of split logs and wooden pegs for one small river crossing.",
-    "model": "res://assets/models/items/furniture/log_bridge.glb",
+    "model": "res://assets/models/furniture/bridge_kit.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1543,7 +1543,7 @@
   "base:resources:furniture:campfire": {
     "display_name": "Campfire (packed)",
     "description": "Unlit logs and rough stones packed for a campfire.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1562,7 +1562,7 @@
   "base:resources:furniture:log_chair": {
     "display_name": "Log Stool (packed)",
     "description": "One small stump stool packed for installation.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1581,7 +1581,7 @@
   "base:resources:water:wet_stone": {
     "display_name": "Wet stone",
     "description": "Supplies water while deliberately placed. Inactive when packed, carried or stored.",
-    "model": "res://assets/models/world/water/wet_stone.glb",
+    "model": "res://assets/models/furniture/wet_stone.glb",
     "water_stone": "wet",
     "material_tags": [
       "stockpile_misc"
@@ -1594,7 +1594,7 @@
   "base:resources:water:dry_stone": {
     "display_name": "Dry stone",
     "description": "Absorbs excess water above its retained level while placed. Inactive when packed, carried or stored.",
-    "model": "res://assets/models/world/water/dry_stone.glb",
+    "model": "res://assets/models/furniture/dry_stone.glb",
     "water_stone": "dry",
     "material_tags": [
       "stockpile_misc"
@@ -1607,7 +1607,7 @@
   "base:resources:furniture:log_door_3": {
     "display_name": "Log door (3 wide) (packed)",
     "description": "Rough logs and wooden pegs packed for a 3-block-wide doorway.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1626,7 +1626,7 @@
   "base:resources:furniture:log_door_4": {
     "display_name": "Double log door (4 wide) (packed)",
     "description": "Rough logs and wooden pegs packed for a 4-block-wide doorway.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1645,7 +1645,7 @@
   "base:resources:furniture:log_bed": {
     "display_name": "Log bed (packed)",
     "description": "Rough bed logs, loose hay and dried leaves packed in a carrying crate.",
-    "model": "res://assets/models/items/furniture/packed_furniture.glb",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",

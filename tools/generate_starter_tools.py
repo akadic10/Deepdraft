@@ -3,6 +3,12 @@
 Eight voxels per block, baked scale, linear vertex colours and no colliders.
 The split wooden sockets are pegged; no hidden iron, leather or rope inputs.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 from generate_timber_logs import linear_rgb

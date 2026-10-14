@@ -1,0 +1,15 @@
+{
+	"bed_moved": true,
+	"blocked_attempts": 3,
+	"blocked_faces": 0,
+	"blocks_removed": true,
+	"faces_after_move": 0,
+	"lifecycle_errors": [],
+	"loaded_faces": 2,
+	"mining_finished": true,
+	"mining_stands": [
+		"(647, 43, 461)"
+	],
+	"remaining": 2,
+	"seed": 2520450404.0
+}

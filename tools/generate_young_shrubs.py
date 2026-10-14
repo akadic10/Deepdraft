@@ -1,4 +1,10 @@
 """Young berry plants: seasonal, fruit-free voxel art at baked 0.125 scale."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from generate_shrubs import OUT, RIPE, SEASONS, color, line, mound
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 

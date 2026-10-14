@@ -6,12 +6,17 @@ const ANCIENT := Vector2i(52, 40)
 var details: Node3D
 var far: Node3D
 var receipt: Dictionary = {}
+var capture_output := "res://tmp/juniper_harvest_review/"
 
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Juniper harvest timed out"); quit(1))
 	_setup_fixture()
-	if "--capture" in OS.get_cmdline_user_args(): _capture_environment()
+	if "--capture" in OS.get_cmdline_user_args():
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--capture-output="): capture_output = arg.trim_prefix("--capture-output=").trim_suffix("/")+"/"
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(capture_output))
+		_capture_environment()
 	root.get_node("StockpileManager").set_process(false)
 	_season("summer")
 	var tree := _spawn_tree("juniper", "mature", MATURE)
@@ -190,9 +195,10 @@ func _capture_juniper(label: String) -> void:
 	camera.look_at(tree.position + Vector3(-2,5,0))
 	explorer.select_object(flora, MATURE)
 	explorer._refresh_selected()
+	explorer._window.position = Vector2(20,40) # Keep the tree and worker visible beside the inspector.
 	await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/juniper_harvest_review/" + label + ".png")
+	root.get_texture().get_image().save_png(capture_output + label + ".png")
 
 
 func _capture_environment() -> void:

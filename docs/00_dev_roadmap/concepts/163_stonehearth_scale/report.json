@@ -1,0 +1,272 @@
+{
+	"captures": {
+		"people_current": {
+			"camera_position": "(116.0, 22.5, 125.0)",
+			"camera_rotation": "(0.0, 0.0, 0.0)",
+			"camera_size": 16.0,
+			"match_sh_heights": false
+		},
+		"people_sh_heights": {
+			"camera_position": "(116.0, 22.5, 125.0)",
+			"camera_rotation": "(0.0, 0.0, 0.0)",
+			"camera_size": 16.0,
+			"match_sh_heights": true
+		},
+		"settlement_current": {
+			"camera_position": "(17.43093, 80.63695, 104.4921)",
+			"camera_rotation": "(-0.698132, -0.488692, 0.0)",
+			"camera_size": 49.0,
+			"match_sh_heights": false
+		},
+		"settlement_sh_heights": {
+			"camera_position": "(17.43093, 80.63695, 104.4921)",
+			"camera_rotation": "(-0.698132, -0.488692, 0.0)",
+			"camera_size": 49.0,
+			"match_sh_heights": true
+		},
+		"trees_current": {
+			"camera_position": "(116.0, 34.0, 125.0)",
+			"camera_rotation": "(0.0, 0.0, 0.0)",
+			"camera_size": 53.0,
+			"match_sh_heights": false
+		},
+		"trees_sh_heights": {
+			"camera_position": "(116.0, 34.0, 125.0)",
+			"camera_rotation": "(0.0, 0.0, 0.0)",
+			"camera_size": 53.0,
+			"match_sh_heights": true
+		},
+		"wildlife_current": {
+			"camera_position": "(116.0, 22.4, 125.0)",
+			"camera_rotation": "(0.0, 0.0, 0.0)",
+			"camera_size": 26.0,
+			"match_sh_heights": false
+		},
+		"wildlife_sh_heights": {
+			"camera_position": "(116.0, 22.4, 125.0)",
+			"camera_rotation": "(0.0, 0.0, 0.0)",
+			"camera_size": 26.0,
+			"match_sh_heights": true
+		}
+	},
+	"checks": 78,
+	"failures": [],
+	"measurements": {
+		"Deepdraft deer": {
+			"depth": 1.976,
+			"height": 3.769,
+			"width": 1.456
+		},
+		"Deepdraft dwarf": {
+			"depth": 1.485,
+			"height": 3.32,
+			"width": 2.6
+		},
+		"Deepdraft oak_mature": {
+			"depth": 13.131,
+			"height": 17.0,
+			"width": 12.881
+		},
+		"Deepdraft pine_ancient": {
+			"depth": 12.52,
+			"height": 27.0,
+			"width": 12.367
+		},
+		"Deepdraft pine_mature": {
+			"depth": 9.378,
+			"height": 20.0,
+			"width": 9.277
+		},
+		"Deepdraft rabbit": {
+			"depth": 0.956,
+			"height": 1.47,
+			"width": 0.57
+		},
+		"Deepdraft wolf": {
+			"depth": 1.949,
+			"height": 1.84,
+			"width": 0.78
+		},
+		"Deer": {
+			"bottom": 0.0,
+			"depth": 1.976,
+			"family": "animals",
+			"height": 3.769,
+			"width": 1.456
+		},
+		"Duck": {
+			"bottom": 0.0,
+			"depth": 0.977,
+			"family": "animals",
+			"height": 1.105,
+			"width": 1.076
+		},
+		"Dwarf (beard)": {
+			"bottom": 0.0,
+			"depth": 1.485,
+			"family": "dwarves",
+			"head_width": 2.06,
+			"height": 3.32,
+			"torso_width": 1.4,
+			"width": 2.6
+		},
+		"Dwarf (braids)": {
+			"bottom": 0.0,
+			"depth": 1.463,
+			"family": "dwarves",
+			"head_width": 2.063,
+			"height": 3.28,
+			"torso_width": 1.4,
+			"width": 2.6
+		},
+		"Rabbit": {
+			"bottom": 0.0,
+			"depth": 0.956,
+			"family": "animals",
+			"height": 1.47,
+			"width": 0.57
+		},
+		"SH deer": {
+			"bottom": 0.0,
+			"depth": 2.7,
+			"family": "reference",
+			"height": 3.6,
+			"width": 1.5
+		},
+		"SH hearthling": {
+			"bottom": 0.0,
+			"depth": 1.4,
+			"family": "reference",
+			"height": 3.3,
+			"width": 1.9
+		},
+		"SH oak_mature": {
+			"bottom": 0.0,
+			"depth": 11.0,
+			"family": "reference",
+			"height": 16.0,
+			"width": 11.0
+		},
+		"SH pine_ancient": {
+			"bottom": 0.0,
+			"depth": 15.0,
+			"family": "reference",
+			"height": 27.0,
+			"width": 15.0
+		},
+		"SH pine_mature": {
+			"bottom": 0.0,
+			"depth": 9.0,
+			"family": "reference",
+			"height": 20.0,
+			"width": 9.0
+		},
+		"SH rabbit": {
+			"bottom": 0.0,
+			"depth": 1.1,
+			"family": "reference",
+			"height": 1.0,
+			"width": 0.7
+		},
+		"SH wolf": {
+			"bottom": 0.0,
+			"depth": 4.5,
+			"family": "reference",
+			"height": 2.4,
+			"width": 1.65
+		},
+		"Wolf": {
+			"bottom": 0.0,
+			"depth": 1.949,
+			"family": "animals",
+			"height": 1.84,
+			"width": 0.78
+		},
+		"barrel": {
+			"bottom": 0.0,
+			"depth": 0.94,
+			"family": "furniture",
+			"height": 1.0,
+			"width": 0.94
+		},
+		"campfire": {
+			"bottom": 0.0,
+			"depth": 1.972,
+			"family": "furniture",
+			"height": 1.321,
+			"width": 1.972
+		},
+		"crude_workbench": {
+			"bottom": 0.0,
+			"depth": 0.875,
+			"family": "furniture",
+			"height": 0.875,
+			"width": 0.96
+		},
+		"door": {
+			"bottom": 0.0,
+			"depth": 0.84,
+			"family": "furniture",
+			"height": 3.86,
+			"width": 1.99
+		},
+		"log_bed": {
+			"bottom": 0.0,
+			"depth": 2.96,
+			"family": "furniture",
+			"height": 1.0,
+			"width": 3.96
+		},
+		"log_chair": {
+			"bottom": 0.0,
+			"depth": 0.871,
+			"family": "furniture",
+			"height": 0.75,
+			"width": 0.911
+		},
+		"oak/oak_mature": {
+			"bottom": 0.0,
+			"depth": 13.131,
+			"family": "trees",
+			"height": 17.0,
+			"width": 12.881
+		},
+		"oak/oak_sapling": {
+			"bottom": 0.0,
+			"depth": 4.634,
+			"family": "trees",
+			"height": 7.0,
+			"width": 5.006
+		},
+		"pine/pine_mature": {
+			"bottom": 0.0,
+			"depth": 9.378,
+			"family": "trees",
+			"height": 20.0,
+			"width": 9.277
+		},
+		"pine/pine_sapling": {
+			"bottom": 0.0,
+			"depth": 3.815,
+			"family": "trees",
+			"height": 8.0,
+			"width": 3.595
+		},
+		"wooden_table": {
+			"bottom": 0.0,
+			"depth": 1.988,
+			"family": "furniture",
+			"height": 1.75,
+			"width": 2.0
+		},
+		"wooden_torch": {
+			"bottom": 0.0,
+			"depth": 0.665,
+			"family": "furniture",
+			"height": 1.41,
+			"width": 0.405
+		}
+	},
+	"passed": true,
+	"source_measurements": "reference/measurements.json"
+}

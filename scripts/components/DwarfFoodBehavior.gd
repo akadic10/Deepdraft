@@ -147,7 +147,7 @@ func _find_food() -> void:
 		if NavGrid.is_walkable(cell): goals[cell] = true
 	var result := NavGrid.ProbeResult.UNREACHABLE
 	if not goals.is_empty():
-		result = Route.advance(_route,agent.current_cell(),goals.keys()[0],int(config.search_nodes),deadline,false,goals)
+		result = Route.advance(_route,agent.current_cell(),goals.keys()[0],int(config.search_nodes),deadline,false,goals) as NavGrid.ProbeResult
 	if result == NavGrid.ProbeResult.SEARCHING: return
 	if result != NavGrid.ProbeResult.REACHABLE:
 		_exclude_quote()

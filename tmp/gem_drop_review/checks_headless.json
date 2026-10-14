@@ -2,8 +2,29 @@
   "failures": [],
   "gems": 6,
   "measurements": {
-    "gloss_difference": 0.000983305313375058,
-    "sealed_sun_difference": 0.0,
-    "torch_difference": 0.0297996151345838
+    "amethyst_geometry": {
+      "face_error": 0.0,
+      "radius": 0.405006587505341
+    },
+    "diamond_geometry": {
+      "face_error": 0.0,
+      "radius": 0.405006587505341
+    },
+    "emerald_geometry": {
+      "face_error": 0.0,
+      "radius": 0.405006587505341
+    },
+    "jade_geometry": {
+      "face_error": 0.0,
+      "radius": 0.405006587505341
+    },
+    "ruby_geometry": {
+      "face_error": 0.0,
+      "radius": 0.405006587505341
+    },
+    "sapphire_geometry": {
+      "face_error": 0.0,
+      "radius": 0.405006587505341
+    }
   }
 }

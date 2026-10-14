@@ -1,6 +1,6 @@
 extends Node
 
-## Cosmetic voxel flipbook, independent of calendar speed/heat. Only installed
+## Cosmetic faceted flame flipbook, independent of calendar speed/heat. Only installed
 ## lights create this node. Meshes are shared; each fire owns its emission material.
 ## Visibility changes suspend the update loop when the slice hides the parent.
 static var _clip_cache: Dictionary = {} # resource path -> named Mesh resources

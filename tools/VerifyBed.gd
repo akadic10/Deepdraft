@@ -30,7 +30,7 @@ func _run() -> void:
 	assert(def.collision_regions.size()==4)
 	assert(not def.room_anchor and not def.has("heat_source") and not def.has("storage"))
 	var item_def: Dictionary = manager.get_item_def(item_key)
-	assert(item_def.model=="res://assets/models/items/furniture/packed_furniture.glb")
+	assert(item_def.model=="res://assets/models/furniture/packed_furniture.glb")
 	assert(item_def.weight_class=="heavy" and item_def.stack_max==5)
 	var dock = load("res://scripts/ui/DockUI.gd").new()
 	assert(dock.FURNITURE_PANEL_ITEMS["📥 Dwarven Bed"]==key)

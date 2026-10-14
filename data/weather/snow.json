@@ -1,25 +1,24 @@
 {
   "__comment": [
-    "Snow / blizzard weather. See data/weather/clear.json for the full field reference.",
-    "height_fog seeded from Stonehearth's blizzard settings. POSITIVE snow_accumulation_per_minute",
-    "builds snow cover over time (WeatherManager clamps total 0..1); clear/foggy use a negative value",
-    "so cover melts. Snow is a winter-weighted weather in data/calendar/weather_schedule.json."
+    "Snow weather. WeatherManager owns schedule and persistence.",
+    "sky_overrides.atmosphere smoothly overrides the clear atmosphere from data/sky/sky_settings.json.",
+    "Cloud cover and haze affect presentation; streaming, visibility budgets and the sun/moon light curves stay unchanged."
   ],
-
   "id": "base:weather:snow",
   "display_name": "Snow",
   "vision_multiplier": 0.6,
   "is_dark_during_daytime": true,
   "hide_cloud_shadows": true,
   "snow_accumulation_per_minute": 0.0007,
-  "sky_gradient": "res://assets/sky/gradients/snow.png",
   "sky_overrides": {
-    "height_fog": [
-      { "at": "midnight",    "fog_height": 75, "thickness": 0.75, "noise": 5, "distance": 100 },
-      { "at": "sunrise_end", "fog_height": 70, "thickness": 0.70, "noise": 5, "distance": 200 },
-      { "at": "midday",      "fog_height": 65, "thickness": 0.65, "noise": 5, "distance": 250 },
-      { "at": "sunset_end",  "fog_height": 75, "thickness": 0.75, "noise": 5, "distance": 100 }
-    ]
+    "atmosphere": {
+      "cloud_cover": 0.9,
+      "fog_density": 0.55,
+      "fog_begin": 35,
+      "fog_end": 260
+    }
   },
-  "thoughts": ["base:thought:weather_cold"]
+  "thoughts": [
+    "base:thought:weather_cold"
+  ]
 }

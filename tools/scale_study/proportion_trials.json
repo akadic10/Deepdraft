@@ -1,0 +1,13 @@
+{
+  "description": "Isolated proportion review. No production dimensions or gameplay settings.",
+  "dwarves": [
+    {"label": "Before", "body_x": 1.0, "head_x": 1.0, "hand_inset": 0.0, "foot_inset": 0.0},
+    {"label": "Balanced", "body_x": 0.8, "head_x": 0.93, "hand_inset": 0.22, "foot_inset": 0.06},
+    {"label": "Lean", "body_x": 0.72, "head_x": 0.88, "hand_inset": 0.3, "foot_inset": 0.1}
+  ],
+  "wolves": [
+    {"label": "Before", "visual_scale": [1.0, 1.0, 1.0]},
+    {"label": "Balanced", "visual_scale": [1.35, 1.15, 1.45]},
+    {"label": "Large", "visual_scale": [1.65, 1.3, 1.75]}
+  ]
+}

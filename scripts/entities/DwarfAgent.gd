@@ -11,8 +11,8 @@ extends CharacterBody3D
 ##     hands and feet. No arms, no legs — ever.
 ##   - Parts are independent MeshInstance3D-bearing nodes; NEVER merged into a
 ##     single mesh (equipment attaches as children; animation drives transforms).
-##   - All parts attach at identity transforms — the GLBs are authored in a
-##     shared coordinate frame with the 0.125 scale baked in (doc 41b / 15).
+##   - GLBs share authored rig coordinates. Registry-owned proportions narrow
+##     the torso/head and relaxed stance; palms and vertical anchors stay fixed.
 ##   - Visual height ~3.3 blocks; LOGICAL height 3 blocks (1x1x3 footprint) —
 ##     collision and (future) nav use the logical box, never the visual AABB.
 
@@ -32,6 +32,7 @@ var dwarf_id: int = -1
 var dwarf_name: String = ""
 var gender: String = "male"
 var appearance: DwarfAppearanceData = null
+var proportions: Dictionary = {}
 var traits: Array[String] = []
 var profession: String = "base:profession:worker"
 var profession_experience: Dictionary = {}
@@ -186,6 +187,7 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	dwarf_name = String(data.get("name", "Urist"))
 	gender = String(data.get("gender", "male"))
 	appearance = data.get("appearance") as DwarfAppearanceData
+	proportions = DwarfAssets.get_proportions()
 	traits.assign(data.get("traits", []))
 	profession = String(data.get("profession", "base:profession:worker"))
 	profession_experience = data.get("profession_experience", {})
@@ -212,6 +214,7 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_mining_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
 	_carry_pose = CarryPose.new()
 	_carry_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
+	_reset_part_offsets()
 	walk_finished.connect(_on_walk_finished)
 	_idle_behavior = IdleBehavior.new(self)
 	_equipment = Equipment.new(self)
@@ -1179,6 +1182,14 @@ func _process_item_handling(delta: float) -> void:
 		rotation.y = lerp_angle(_handling_yaw_from, _handling_yaw_to, smoothstep(0.0, .28, phase))
 		_handling_start = global_transform.affine_inverse() * _handling_world_start
 		if not _handling_lifted and phase >= CarryPose.CONTACT_PHASE:
+			var item_floor := _item_floor_cell(_handling_item)
+			if item_floor.y - current_cell().y == 2 and (not NavGrid.is_walkable(current_cell()) or not StorageComponent.ledge_reach_clear(item_floor, current_cell())):
+				_clear_item_handling()
+				if action == TaskPhase.HAUL_PICKUP:
+					_haul_skip_current()
+				else:
+					_fetch_fail_release()
+				return
 			var took := _haul_take_current() if action == TaskPhase.HAUL_PICKUP else _fetch_take_item()
 			if not took:
 				return
@@ -1885,8 +1896,8 @@ func _walk_bob(moved: float) -> void:
 		_head.rotation = Vector3(lean*.35,-wave*.018,wave*.01)
 		var pivot := Vector3(0,2.45,0)
 		_head.position = pivot+Vector3(wave*.02,bounce*.65,0)-_head.basis*pivot
-	if _hand_l != null: _hand_l.position = Vector3(0,bounce+.025, wave*amp*.75)
-	if _hand_r != null: _hand_r.position = Vector3(0,bounce+.025,-wave*amp*.75)
+	if _hand_l != null: _hand_l.position = Vector3(-proportions.relaxed_hand_inset,bounce+.025, wave*amp*.75)
+	if _hand_r != null: _hand_r.position = Vector3(proportions.relaxed_hand_inset,bounce+.025,-wave*amp*.75)
 
 
 func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
@@ -1904,6 +1915,7 @@ func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
 	var pivot := Vector3(-.5 if foot==_foot_r else .5,0,.15)
 	foot.rotation.x = pitch
 	foot.position = pivot+Vector3(0,lift,forward)-Basis(Vector3.RIGHT,pitch)*pivot
+	foot.position.x += proportions.relaxed_foot_inset * (1 if foot==_foot_r else -1)
 
 
 func _reset_part_offsets() -> void:
@@ -1918,6 +1930,7 @@ func _reset_part_offsets() -> void:
 		if part != null:
 			part.position = Vector3.ZERO
 			part.rotation = Vector3.ZERO
+	_relaxed_stance()
 	if _carry_pose != null and not _carried_entries.is_empty():
 		_carry_pose.hold(_carried_entries)
 
@@ -1935,6 +1948,11 @@ func _build_parts() -> void:
 	_hand_r = _attach(self, "MeshHandR", DwarfAssets.hand, true)
 	_foot_l = _attach(self, "MeshFootL", DwarfAssets.foot)
 	_foot_r = _attach(self, "MeshFootR", DwarfAssets.foot, true)
+	# Capture these presentation scales in the work rigs' rest transforms.
+	# Shared authoring coordinates, palms and all vertical anchors stay intact.
+	if _body != null: _body.scale.x = proportions.body_width
+	if _head != null: _head.scale.x = proportions.head_width
+	_relaxed_stance()
 
 	if _head != null:
 		_attach(_head, "MeshEyes", DwarfAssets.eyes)
@@ -1963,6 +1981,13 @@ func _attach(parent: Node3D, part_name: String, packed: PackedScene, mirror: boo
 	instance.name = part_name
 	if mirror:
 		instance.scale = Vector3(-1.0, 1.0, 1.0)
+		# Preserve the mirrored animation frame without rendering a negatively
+		# scaled surface (which reverses its double-sided lighting response).
+		var reflection := Transform3D(Basis.from_scale(Vector3(-1,1,1)),Vector3.ZERO)
+		for mesh: MeshInstance3D in instance.find_children("*","MeshInstance3D",true,false):
+			if mesh.mesh == null: continue
+			mesh.mesh = DwarfAssets.mirrored_limb_mesh(mesh.mesh)
+			mesh.transform = mesh.transform * reflection
 	parent.add_child(instance)
 	return instance
 
@@ -2058,6 +2083,7 @@ func _tint(node: Node, color: Color, recurse_children: bool = true) -> void:
 func _idle_bob() -> void:
 	if _body == null:
 		return
+	_relaxed_stance()
 	var t := float(Time.get_ticks_msec()) / 1000.0 + _bob_phase
 	var breathe := sin(t * 2.2) * 0.018
 	var sway := sin(t * 1.1) * 0.012
@@ -2070,6 +2096,13 @@ func _idle_bob() -> void:
 	if _hand_r != null:
 		_hand_r.position.y = breathe + sin(t * 2.2 + 2.1) * 0.010
 	# Feet stay planted while idle; they animate when walking (nav phase).
+
+
+func _relaxed_stance() -> void:
+	if _hand_l != null: _hand_l.position.x = -proportions.relaxed_hand_inset
+	if _hand_r != null: _hand_r.position.x = proportions.relaxed_hand_inset
+	if _foot_l != null: _foot_l.position.x = -proportions.relaxed_foot_inset
+	if _foot_r != null: _foot_r.position.x = proportions.relaxed_foot_inset
 
 
 func _exit_tree() -> void:

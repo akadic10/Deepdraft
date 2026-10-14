@@ -17,6 +17,8 @@ const WEATHER_FILES := [
 	"res://data/weather/foggy.json",
 	"res://data/weather/overcast.json",
 	"res://data/weather/snow.json",
+	"res://data/weather/rain.json",
+	"res://data/weather/storm.json",
 ]
 
 var _weather_by_id: Dictionary = {}   # id -> weather definition dict
@@ -27,6 +29,7 @@ var _rng := RandomNumberGenerator.new()
 var _clock: Node = null
 var _sky: Node = null
 var _current_id: String = ""
+var _precipitation: Node3D
 
 @warning_ignore("unused_signal")  # connected by UI / future systems
 signal weather_changed(weather_id: String)
@@ -153,6 +156,21 @@ func _apply(id: String) -> void:
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
+func current_definition() -> Dictionary:
+	return _weather_by_id.get(_current_id, {})
+
+
+func _process(_delta: float) -> void:
+	# Presentation belongs to the current world and dies with it on save load.
+	if is_instance_valid(_precipitation): return
+	if current_definition().get("precipitation", {}).is_empty(): return
+	var scene := get_tree().current_scene
+	var view := get_tree().get_first_node_in_group("work_audio_view")
+	if not is_instance_valid(scene) or view == null or not scene.is_ancestor_of(view) or SaveManager.is_loading(): return
+	_precipitation = preload("res://scripts/components/WeatherPrecipitation.gd").new()
+	_precipitation.name = "WeatherPrecipitation"
+	scene.add_child(_precipitation)
 
 ## Force a specific weather id (used for testing / scripted events).
 func set_weather(id: String) -> void:

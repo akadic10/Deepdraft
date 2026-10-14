@@ -85,7 +85,7 @@ func _ready() -> void:
 	SkyController.set_process(false)
 	WeatherManager.set_weather("base:weather:clear")
 	SkyController._darken = 1.0
-	SkyController._vision = 1.0
+	SkyController._atmosphere.clear()
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(),true)
 	await settle()
 	_rebuild()

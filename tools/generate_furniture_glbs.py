@@ -114,6 +114,12 @@ data/entities/items/resources.json "model" fields):
 Review sheet: tmp/furniture_review/furniture_sheet.png
 """
 
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
+
 import math
 import random
 from pathlib import Path

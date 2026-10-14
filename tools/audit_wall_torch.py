@@ -1,4 +1,10 @@
 """Audit torch integration against the pre-edit snapshot and canonical exporters."""
+
+# Historical voxel snapshots are retired; current checks live in the faceted audits.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import json
 from pathlib import Path
 import difflib

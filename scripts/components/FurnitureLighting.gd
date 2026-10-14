@@ -31,7 +31,9 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 		var material := StandardMaterial3D.new()
 		material.vertex_color_use_as_albedo = true
 		material.roughness = 1.0
-		if bool(light_def.get("unshaded_flame", false)):
+		# A flame supplies its own light; its far side should not turn dark
+		# when the bracket, logs or terrain occlude the associated point light.
+		if bool(light_def.get("unshaded_flame", true)):
 			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		material.cull_mode = BaseMaterial3D.CULL_DISABLED
 		material.emission_enabled = true

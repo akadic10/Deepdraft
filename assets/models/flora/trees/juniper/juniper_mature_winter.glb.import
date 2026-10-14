@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bc1kfwt6p85s"
+uid="uid://bp0pek0e4pt5e"
 path="res://.godot/imported/juniper_mature_winter.glb-c22b2fa0ab0635db19b1a697ea28f419.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

@@ -1,0 +1,1925 @@
+{
+  "source_root": "P:\\stonehearth",
+  "units": "terrain blocks",
+  "pose": "occupied QB voxels in authored assembly; no animation applied",
+  "models": {
+    "hearthling": {
+      "entity": "entities/humans/male/male_1.json",
+      "models": [
+        "entities/humans/male/head.qb",
+        "entities/humans/male/body.qb",
+        "entities/humans/male/eyes.qb",
+        "entities/humans/male/hair_1.qb",
+        "jobs/worker/worker_outfit/worker_outfit.qb"
+      ],
+      "render_scale": 0.1,
+      "width": 1.9,
+      "height": 3.3,
+      "depth": 1.4,
+      "occupied_voxels": 3659,
+      "parts": {
+        "head:head": {
+          "size": [
+            1.7000000000000002,
+            1.4000000000000001,
+            1.1
+          ],
+          "min": [
+            7,
+            18,
+            10
+          ],
+          "max": [
+            24,
+            32,
+            21
+          ]
+        },
+        "body:torso": {
+          "size": [
+            0.9,
+            0.9,
+            0.7000000000000001
+          ],
+          "min": [
+            11,
+            10,
+            12
+          ],
+          "max": [
+            20,
+            19,
+            19
+          ]
+        },
+        "body:rightShoulder_0": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.5
+          ],
+          "min": [
+            9,
+            14,
+            13
+          ],
+          "max": [
+            11,
+            17,
+            18
+          ]
+        },
+        "body:leftShoulder_0": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.5
+          ],
+          "min": [
+            20,
+            14,
+            13
+          ],
+          "max": [
+            22,
+            17,
+            18
+          ]
+        },
+        "body:pelvis": {
+          "size": [
+            1.1,
+            0.5,
+            0.7000000000000001
+          ],
+          "min": [
+            10,
+            5,
+            12
+          ],
+          "max": [
+            21,
+            10,
+            19
+          ]
+        },
+        "body:rightFoot": {
+          "size": [
+            0.6000000000000001,
+            0.5,
+            0.7000000000000001
+          ],
+          "min": [
+            9,
+            0,
+            12
+          ],
+          "max": [
+            15,
+            5,
+            19
+          ]
+        },
+        "body:rightThumb1": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            8,
+            7,
+            11
+          ],
+          "max": [
+            10,
+            9,
+            13
+          ]
+        },
+        "body:rightThumb2": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            8,
+            5,
+            11
+          ],
+          "max": [
+            10,
+            7,
+            13
+          ]
+        },
+        "body:rightFinger11": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            6,
+            6,
+            12
+          ],
+          "max": [
+            8,
+            8,
+            14
+          ]
+        },
+        "body:rightFinger12": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            6,
+            4,
+            12
+          ],
+          "max": [
+            8,
+            6,
+            14
+          ]
+        },
+        "body:rightFinger21": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            6,
+            6,
+            14
+          ],
+          "max": [
+            8,
+            8,
+            16
+          ]
+        },
+        "body:rightFinger22": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            6,
+            4,
+            14
+          ],
+          "max": [
+            8,
+            6,
+            16
+          ]
+        },
+        "body:rightFinger31": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            6,
+            6,
+            16
+          ],
+          "max": [
+            8,
+            8,
+            18
+          ]
+        },
+        "body:rightFinger32": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            6,
+            4,
+            16
+          ],
+          "max": [
+            8,
+            6,
+            18
+          ]
+        },
+        "body:leftArm": {
+          "size": [
+            0.4,
+            0.4,
+            0.6000000000000001
+          ],
+          "min": [
+            21,
+            9,
+            12
+          ],
+          "max": [
+            25,
+            13,
+            18
+          ]
+        },
+        "body:leftHand": {
+          "size": [
+            0.4,
+            0.2,
+            0.6000000000000001
+          ],
+          "min": [
+            21,
+            8,
+            12
+          ],
+          "max": [
+            25,
+            10,
+            18
+          ]
+        },
+        "body:leftThumb1": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            21,
+            7,
+            11
+          ],
+          "max": [
+            23,
+            9,
+            13
+          ]
+        },
+        "body:leftThumb2": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            21,
+            5,
+            11
+          ],
+          "max": [
+            23,
+            7,
+            13
+          ]
+        },
+        "body:leftFinger11": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            23,
+            6,
+            12
+          ],
+          "max": [
+            25,
+            8,
+            14
+          ]
+        },
+        "body:leftFinger12": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            23,
+            4,
+            12
+          ],
+          "max": [
+            25,
+            6,
+            14
+          ]
+        },
+        "body:leftFinger21": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            23,
+            6,
+            14
+          ],
+          "max": [
+            25,
+            8,
+            16
+          ]
+        },
+        "body:leftFinger22": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            23,
+            4,
+            14
+          ],
+          "max": [
+            25,
+            6,
+            16
+          ]
+        },
+        "body:leftFinger31": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            23,
+            6,
+            16
+          ],
+          "max": [
+            25,
+            8,
+            18
+          ]
+        },
+        "body:leftFinger32": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            23,
+            4,
+            16
+          ],
+          "max": [
+            25,
+            6,
+            18
+          ]
+        },
+        "body:rightArm": {
+          "size": [
+            0.4,
+            0.4,
+            0.6000000000000001
+          ],
+          "min": [
+            6,
+            9,
+            12
+          ],
+          "max": [
+            10,
+            13,
+            18
+          ]
+        },
+        "body:rightHand": {
+          "size": [
+            0.4,
+            0.2,
+            0.6000000000000001
+          ],
+          "min": [
+            6,
+            8,
+            12
+          ],
+          "max": [
+            10,
+            10,
+            18
+          ]
+        },
+        "body:leftFoot": {
+          "size": [
+            0.6000000000000001,
+            0.5,
+            0.7000000000000001
+          ],
+          "min": [
+            16,
+            0,
+            12
+          ],
+          "max": [
+            22,
+            5,
+            19
+          ]
+        },
+        "body:leftToe": {
+          "size": [
+            0.6000000000000001,
+            0.30000000000000004,
+            0.30000000000000004
+          ],
+          "min": [
+            16,
+            0,
+            9
+          ],
+          "max": [
+            22,
+            3,
+            12
+          ]
+        },
+        "body:rightToe": {
+          "size": [
+            0.6000000000000001,
+            0.30000000000000004,
+            0.30000000000000004
+          ],
+          "min": [
+            9,
+            0,
+            9
+          ],
+          "max": [
+            15,
+            3,
+            12
+          ]
+        },
+        "eyes:eyeL": {
+          "size": [
+            0.2,
+            0.4,
+            0.1
+          ],
+          "min": [
+            17,
+            22,
+            9
+          ],
+          "max": [
+            19,
+            26,
+            10
+          ]
+        },
+        "eyes:eyeR": {
+          "size": [
+            0.2,
+            0.4,
+            0.1
+          ],
+          "min": [
+            12,
+            22,
+            9
+          ],
+          "max": [
+            14,
+            26,
+            10
+          ]
+        },
+        "hair_1:head": {
+          "size": [
+            1.5,
+            0.5,
+            0.6000000000000001
+          ],
+          "min": [
+            8,
+            21,
+            16
+          ],
+          "max": [
+            23,
+            26,
+            22
+          ]
+        },
+        "hair_1:hat": {
+          "size": [
+            1.5,
+            1.0,
+            1.4000000000000001
+          ],
+          "min": [
+            8,
+            23,
+            8
+          ],
+          "max": [
+            23,
+            33,
+            22
+          ]
+        },
+        "worker_outfit:rightArm": {
+          "size": [
+            0.4,
+            0.4,
+            0.6000000000000001
+          ],
+          "min": [
+            6,
+            9,
+            12
+          ],
+          "max": [
+            10,
+            13,
+            18
+          ]
+        },
+        "worker_outfit:rightShoulder": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.5
+          ],
+          "min": [
+            9,
+            14,
+            13
+          ],
+          "max": [
+            11,
+            17,
+            18
+          ]
+        },
+        "worker_outfit:leftShoulder": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.5
+          ],
+          "min": [
+            20,
+            14,
+            13
+          ],
+          "max": [
+            22,
+            17,
+            18
+          ]
+        },
+        "worker_outfit:pelvis": {
+          "size": [
+            1.1,
+            0.5,
+            0.8
+          ],
+          "min": [
+            10,
+            5,
+            11
+          ],
+          "max": [
+            21,
+            10,
+            19
+          ]
+        },
+        "worker_outfit:rightFoot": {
+          "size": [
+            0.6000000000000001,
+            0.5,
+            0.7000000000000001
+          ],
+          "min": [
+            9,
+            0,
+            12
+          ],
+          "max": [
+            15,
+            5,
+            19
+          ]
+        },
+        "worker_outfit:leftFoot": {
+          "size": [
+            0.6000000000000001,
+            0.5,
+            0.7000000000000001
+          ],
+          "min": [
+            16,
+            0,
+            12
+          ],
+          "max": [
+            22,
+            5,
+            19
+          ]
+        },
+        "worker_outfit:leftArm": {
+          "size": [
+            0.4,
+            0.4,
+            0.6000000000000001
+          ],
+          "min": [
+            21,
+            9,
+            12
+          ],
+          "max": [
+            25,
+            13,
+            18
+          ]
+        },
+        "worker_outfit:torso": {
+          "size": [
+            0.9,
+            0.9,
+            0.7000000000000001
+          ],
+          "min": [
+            11,
+            10,
+            12
+          ],
+          "max": [
+            20,
+            19,
+            19
+          ]
+        },
+        "worker_outfit:leftToe": {
+          "size": [
+            0.6000000000000001,
+            0.30000000000000004,
+            0.30000000000000004
+          ],
+          "min": [
+            16,
+            0,
+            9
+          ],
+          "max": [
+            22,
+            3,
+            12
+          ]
+        },
+        "worker_outfit:rightToe": {
+          "size": [
+            0.6000000000000001,
+            0.30000000000000004,
+            0.30000000000000004
+          ],
+          "min": [
+            9,
+            0,
+            9
+          ],
+          "max": [
+            15,
+            3,
+            12
+          ]
+        }
+      }
+    },
+    "deer": {
+      "entity": "entities/critters/deer_horned/deer_horned.json",
+      "models": [
+        "entities/critters/deer_horned/deer_horned.qb"
+      ],
+      "render_scale": 0.1,
+      "width": 1.5,
+      "height": 3.6,
+      "depth": 2.7,
+      "occupied_voxels": 1632,
+      "parts": {
+        "deer_horned:pelvis": {
+          "size": [
+            0.7000000000000001,
+            0.8,
+            0.8
+          ],
+          "min": [
+            6,
+            9,
+            17
+          ],
+          "max": [
+            13,
+            17,
+            25
+          ]
+        },
+        "deer_horned:rightLegFront1": {
+          "size": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "min": [
+            5,
+            8,
+            11
+          ],
+          "max": [
+            7,
+            13,
+            13
+          ]
+        },
+        "deer_horned:rightLegBack3": {
+          "size": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "min": [
+            5,
+            5,
+            23
+          ],
+          "max": [
+            7,
+            10,
+            25
+          ]
+        },
+        "deer_horned:rightLegFront2": {
+          "size": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "min": [
+            5,
+            3,
+            11
+          ],
+          "max": [
+            7,
+            8,
+            13
+          ]
+        },
+        "deer_horned:rightBackFoot": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.2
+          ],
+          "min": [
+            5,
+            2,
+            23
+          ],
+          "max": [
+            7,
+            5,
+            25
+          ]
+        },
+        "deer_horned:neck": {
+          "size": [
+            0.5,
+            1.1,
+            0.8
+          ],
+          "min": [
+            7,
+            11,
+            5
+          ],
+          "max": [
+            12,
+            22,
+            13
+          ]
+        },
+        "deer_horned:earRight": {
+          "size": [
+            0.4,
+            0.4,
+            0.1
+          ],
+          "min": [
+            3,
+            25,
+            7
+          ],
+          "max": [
+            7,
+            29,
+            8
+          ]
+        },
+        "deer_horned:earLeft": {
+          "size": [
+            0.4,
+            0.4,
+            0.1
+          ],
+          "min": [
+            12,
+            25,
+            7
+          ],
+          "max": [
+            16,
+            29,
+            8
+          ]
+        },
+        "deer_horned:tail_0": {
+          "size": [
+            0.30000000000000004,
+            0.5,
+            0.30000000000000004
+          ],
+          "min": [
+            8,
+            13,
+            25
+          ],
+          "max": [
+            11,
+            18,
+            28
+          ]
+        },
+        "deer_horned:rightLegBack2": {
+          "size": [
+            0.2,
+            0.2,
+            0.5
+          ],
+          "min": [
+            5,
+            8,
+            20
+          ],
+          "max": [
+            7,
+            10,
+            25
+          ]
+        },
+        "deer_horned:rightLegBack1": {
+          "size": [
+            0.2,
+            0.7000000000000001,
+            0.4
+          ],
+          "min": [
+            5,
+            8,
+            20
+          ],
+          "max": [
+            7,
+            15,
+            24
+          ]
+        },
+        "deer_horned:torso_0": {
+          "size": [
+            0.7000000000000001,
+            0.8,
+            0.8
+          ],
+          "min": [
+            6,
+            9,
+            9
+          ],
+          "max": [
+            13,
+            17,
+            17
+          ]
+        },
+        "deer_horned:rightFrontFoot": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.2
+          ],
+          "min": [
+            5,
+            0,
+            11
+          ],
+          "max": [
+            7,
+            3,
+            13
+          ]
+        },
+        "deer_horned:leftLegFront2": {
+          "size": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "min": [
+            12,
+            3,
+            11
+          ],
+          "max": [
+            14,
+            8,
+            13
+          ]
+        },
+        "deer_horned:leftFrontFoot": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.2
+          ],
+          "min": [
+            12,
+            0,
+            11
+          ],
+          "max": [
+            14,
+            3,
+            13
+          ]
+        },
+        "deer_horned:leftLegFront1": {
+          "size": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "min": [
+            12,
+            8,
+            11
+          ],
+          "max": [
+            14,
+            13,
+            13
+          ]
+        },
+        "deer_horned:leftLegBack1": {
+          "size": [
+            0.2,
+            0.7000000000000001,
+            0.4
+          ],
+          "min": [
+            12,
+            8,
+            20
+          ],
+          "max": [
+            14,
+            15,
+            24
+          ]
+        },
+        "deer_horned:leftLegBack2": {
+          "size": [
+            0.2,
+            0.2,
+            0.5
+          ],
+          "min": [
+            12,
+            8,
+            20
+          ],
+          "max": [
+            14,
+            10,
+            25
+          ]
+        },
+        "deer_horned:leftLegBack3": {
+          "size": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "min": [
+            12,
+            5,
+            23
+          ],
+          "max": [
+            14,
+            10,
+            25
+          ]
+        },
+        "deer_horned:leftBackFoot": {
+          "size": [
+            0.2,
+            0.30000000000000004,
+            0.2
+          ],
+          "min": [
+            12,
+            2,
+            23
+          ],
+          "max": [
+            14,
+            5,
+            25
+          ]
+        },
+        "deer_horned:jaw": {
+          "size": [
+            0.30000000000000004,
+            0.1,
+            0.5
+          ],
+          "min": [
+            8,
+            21,
+            1
+          ],
+          "max": [
+            11,
+            22,
+            6
+          ]
+        },
+        "deer_horned:head": {
+          "size": [
+            1.5,
+            1.4000000000000001,
+            1.4000000000000001
+          ],
+          "min": [
+            2,
+            22,
+            1
+          ],
+          "max": [
+            17,
+            36,
+            15
+          ]
+        }
+      }
+    },
+    "wolf": {
+      "entity": "entities/monsters/forest/wolf/wolf.json",
+      "models": [
+        "entities/monsters/forest/wolf/wolf.qb"
+      ],
+      "render_scale": 0.15,
+      "width": 1.65,
+      "height": 2.4,
+      "depth": 4.5,
+      "occupied_voxels": 1563,
+      "parts": {
+        "wolf:rightFrontLeg2_0": {
+          "size": [
+            0.3,
+            0.75,
+            0.44999999999999996
+          ],
+          "min": [
+            6,
+            1,
+            13
+          ],
+          "max": [
+            8,
+            6,
+            16
+          ]
+        },
+        "wolf:rightFrontPaw_0": {
+          "size": [
+            0.6,
+            0.44999999999999996,
+            0.6
+          ],
+          "min": [
+            5,
+            0,
+            11
+          ],
+          "max": [
+            9,
+            3,
+            15
+          ]
+        },
+        "wolf:rightFrontLeg1_0": {
+          "size": [
+            0.3,
+            0.75,
+            0.44999999999999996
+          ],
+          "min": [
+            6,
+            6,
+            13
+          ],
+          "max": [
+            8,
+            11,
+            16
+          ]
+        },
+        "wolf:leftFrontLeg2_0": {
+          "size": [
+            0.3,
+            0.75,
+            0.44999999999999996
+          ],
+          "min": [
+            13,
+            1,
+            13
+          ],
+          "max": [
+            15,
+            6,
+            16
+          ]
+        },
+        "wolf:leftFrontPaw_0": {
+          "size": [
+            0.6,
+            0.44999999999999996,
+            0.6
+          ],
+          "min": [
+            12,
+            0,
+            11
+          ],
+          "max": [
+            16,
+            3,
+            15
+          ]
+        },
+        "wolf:leftFrontLeg1_0": {
+          "size": [
+            0.3,
+            0.75,
+            0.44999999999999996
+          ],
+          "min": [
+            13,
+            6,
+            13
+          ],
+          "max": [
+            15,
+            11,
+            16
+          ]
+        },
+        "wolf:tail1_0": {
+          "size": [
+            0.44999999999999996,
+            0.44999999999999996,
+            0.44999999999999996
+          ],
+          "min": [
+            9,
+            9,
+            24
+          ],
+          "max": [
+            12,
+            12,
+            27
+          ]
+        },
+        "wolf:leftEar_0": {
+          "size": [
+            0.44999999999999996,
+            0.6,
+            0.15
+          ],
+          "min": [
+            12,
+            10,
+            8
+          ],
+          "max": [
+            15,
+            14,
+            9
+          ]
+        },
+        "wolf:rightEar_0": {
+          "size": [
+            0.44999999999999996,
+            0.6,
+            0.15
+          ],
+          "min": [
+            6,
+            10,
+            8
+          ],
+          "max": [
+            9,
+            14,
+            9
+          ]
+        },
+        "wolf:neck_0": {
+          "size": [
+            1.65,
+            1.5,
+            1.2
+          ],
+          "min": [
+            5,
+            6,
+            9
+          ],
+          "max": [
+            16,
+            16,
+            17
+          ]
+        },
+        "wolf:lowerBody_0": {
+          "size": [
+            0.75,
+            0.8999999999999999,
+            0.75
+          ],
+          "min": [
+            8,
+            7,
+            19
+          ],
+          "max": [
+            13,
+            13,
+            24
+          ]
+        },
+        "wolf:jaw_0": {
+          "size": [
+            0.75,
+            1.05,
+            0.8999999999999999
+          ],
+          "min": [
+            8,
+            3,
+            4
+          ],
+          "max": [
+            13,
+            10,
+            10
+          ]
+        },
+        "wolf:head_0": {
+          "size": [
+            1.65,
+            1.2,
+            1.2
+          ],
+          "min": [
+            5,
+            4,
+            2
+          ],
+          "max": [
+            16,
+            12,
+            10
+          ]
+        },
+        "wolf:rightBackLeg2_0": {
+          "size": [
+            0.3,
+            0.44999999999999996,
+            0.75
+          ],
+          "min": [
+            6,
+            5,
+            21
+          ],
+          "max": [
+            8,
+            8,
+            26
+          ]
+        },
+        "wolf:rightBackPaw_0": {
+          "size": [
+            0.6,
+            0.44999999999999996,
+            0.6
+          ],
+          "min": [
+            5,
+            1,
+            22
+          ],
+          "max": [
+            9,
+            4,
+            26
+          ]
+        },
+        "wolf:rightBackLeg1_0": {
+          "size": [
+            0.3,
+            0.8999999999999999,
+            0.6
+          ],
+          "min": [
+            6,
+            5,
+            20
+          ],
+          "max": [
+            8,
+            11,
+            24
+          ]
+        },
+        "wolf:leftBackLeg2_0": {
+          "size": [
+            0.3,
+            0.44999999999999996,
+            0.75
+          ],
+          "min": [
+            13,
+            5,
+            21
+          ],
+          "max": [
+            15,
+            8,
+            26
+          ]
+        },
+        "wolf:leftBackPaw_0": {
+          "size": [
+            0.6,
+            0.44999999999999996,
+            0.6
+          ],
+          "min": [
+            12,
+            1,
+            22
+          ],
+          "max": [
+            16,
+            4,
+            26
+          ]
+        },
+        "wolf:leftBackLeg1_0": {
+          "size": [
+            0.3,
+            0.8999999999999999,
+            0.6
+          ],
+          "min": [
+            13,
+            5,
+            20
+          ],
+          "max": [
+            15,
+            11,
+            24
+          ]
+        },
+        "wolf:rightBackLeg3_0": {
+          "size": [
+            0.3,
+            0.44999999999999996,
+            0.3
+          ],
+          "min": [
+            6,
+            3,
+            24
+          ],
+          "max": [
+            8,
+            6,
+            26
+          ]
+        },
+        "wolf:leftBackLeg3_0": {
+          "size": [
+            0.3,
+            0.44999999999999996,
+            0.3
+          ],
+          "min": [
+            13,
+            3,
+            24
+          ],
+          "max": [
+            15,
+            6,
+            26
+          ]
+        },
+        "wolf:tail3_0": {
+          "size": [
+            0.44999999999999996,
+            0.44999999999999996,
+            0.3
+          ],
+          "min": [
+            9,
+            10,
+            30
+          ],
+          "max": [
+            12,
+            13,
+            32
+          ]
+        },
+        "wolf:tail2_0": {
+          "size": [
+            0.44999999999999996,
+            0.44999999999999996,
+            0.44999999999999996
+          ],
+          "min": [
+            9,
+            9,
+            27
+          ],
+          "max": [
+            12,
+            12,
+            30
+          ]
+        },
+        "wolf:body_0": {
+          "size": [
+            1.05,
+            1.2,
+            1.05
+          ],
+          "min": [
+            7,
+            6,
+            12
+          ],
+          "max": [
+            14,
+            14,
+            19
+          ]
+        }
+      }
+    },
+    "rabbit": {
+      "entity": "entities/critters/rabbit/rabbit.json",
+      "models": [
+        "entities/critters/rabbit/rabbit.qb"
+      ],
+      "render_scale": 0.1,
+      "width": 0.7,
+      "height": 1.0,
+      "depth": 1.1,
+      "occupied_voxels": 285,
+      "parts": {
+        "rabbit:torso": {
+          "size": [
+            0.5,
+            0.5,
+            0.7000000000000001
+          ],
+          "min": [
+            1,
+            0,
+            3
+          ],
+          "max": [
+            6,
+            5,
+            10
+          ]
+        },
+        "rabbit:rightPaw": {
+          "size": [
+            0.2,
+            0.1,
+            0.30000000000000004
+          ],
+          "min": [
+            0,
+            0,
+            1
+          ],
+          "max": [
+            2,
+            1,
+            4
+          ]
+        },
+        "rabbit:leftPaw": {
+          "size": [
+            0.2,
+            0.1,
+            0.30000000000000004
+          ],
+          "min": [
+            5,
+            0,
+            1
+          ],
+          "max": [
+            7,
+            1,
+            4
+          ]
+        },
+        "rabbit:rightLeg": {
+          "size": [
+            0.2,
+            0.4,
+            0.4
+          ],
+          "min": [
+            0,
+            0,
+            6
+          ],
+          "max": [
+            2,
+            4,
+            10
+          ]
+        },
+        "rabbit:leftLeg": {
+          "size": [
+            0.2,
+            0.4,
+            0.4
+          ],
+          "min": [
+            5,
+            0,
+            6
+          ],
+          "max": [
+            7,
+            4,
+            10
+          ]
+        },
+        "rabbit:leftBackPaw": {
+          "size": [
+            0.2,
+            0.1,
+            0.30000000000000004
+          ],
+          "min": [
+            5,
+            0,
+            6
+          ],
+          "max": [
+            7,
+            1,
+            9
+          ]
+        },
+        "rabbit:tail": {
+          "size": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "min": [
+            3,
+            2,
+            9
+          ],
+          "max": [
+            5,
+            4,
+            11
+          ]
+        },
+        "rabbit:head": {
+          "size": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "min": [
+            1,
+            2,
+            0
+          ],
+          "max": [
+            6,
+            7,
+            5
+          ]
+        },
+        "rabbit:rightEar": {
+          "size": [
+            0.2,
+            0.5,
+            0.4
+          ],
+          "min": [
+            0,
+            5,
+            1
+          ],
+          "max": [
+            2,
+            10,
+            5
+          ]
+        },
+        "rabbit:leftEar": {
+          "size": [
+            0.2,
+            0.5,
+            0.4
+          ],
+          "min": [
+            5,
+            5,
+            1
+          ],
+          "max": [
+            7,
+            10,
+            5
+          ]
+        },
+        "rabbit:rightBackPaw": {
+          "size": [
+            0.2,
+            0.1,
+            0.30000000000000004
+          ],
+          "min": [
+            0,
+            0,
+            6
+          ],
+          "max": [
+            2,
+            1,
+            9
+          ]
+        }
+      }
+    },
+    "pine_mature": {
+      "entity": "entities/trees/pine_tree/medium_pine_tree/medium_pine_tree.json",
+      "models": [
+        "entities/trees/pine_tree/medium_pine_tree/medium_pine_tree.qb"
+      ],
+      "render_scale": 1,
+      "width": 9,
+      "height": 20,
+      "depth": 9,
+      "occupied_voxels": 272,
+      "parts": {
+        "medium_pine_tree:medium_pine_tree": {
+          "size": [
+            9,
+            20,
+            9
+          ],
+          "min": [
+            -4,
+            0,
+            -4
+          ],
+          "max": [
+            5,
+            20,
+            5
+          ]
+        }
+      }
+    },
+    "pine_ancient": {
+      "entity": "entities/trees/pine_tree/large_pine_tree/large_pine_tree.json",
+      "models": [
+        "entities/trees/pine_tree/large_pine_tree/large_pine_tree.qb"
+      ],
+      "render_scale": 1,
+      "width": 15,
+      "height": 27,
+      "depth": 15,
+      "occupied_voxels": 814,
+      "parts": {
+        "large_pine_tree:large_pine_tree": {
+          "size": [
+            15,
+            27,
+            15
+          ],
+          "min": [
+            -7,
+            0,
+            -7
+          ],
+          "max": [
+            8,
+            27,
+            8
+          ]
+        }
+      }
+    },
+    "pine_sapling": {
+      "entity": "entities/trees/pine_tree/sapling_pine_tree/sapling_pine_tree.json",
+      "models": [
+        "entities/trees/pine_tree/sapling_pine_tree/sapling_pine_tree.qb"
+      ],
+      "render_scale": 0.7,
+      "width": 4.9,
+      "height": 8.4,
+      "depth": 4.9,
+      "occupied_voxels": 107,
+      "parts": {
+        "sapling_pine_tree:small_pine_tree": {
+          "size": [
+            4.8999999999999995,
+            8.399999999999999,
+            4.8999999999999995
+          ],
+          "min": [
+            -3,
+            0,
+            -3
+          ],
+          "max": [
+            4,
+            12,
+            4
+          ]
+        }
+      }
+    },
+    "oak_mature": {
+      "entity": "entities/trees/oak_tree/medium_oak_tree/medium_oak_tree.json",
+      "models": [
+        "entities/trees/oak_tree/medium_oak_tree/medium_oak_tree.qb"
+      ],
+      "render_scale": 1,
+      "width": 11,
+      "height": 16,
+      "depth": 11,
+      "occupied_voxels": 1156,
+      "parts": {
+        "medium_oak_tree:Matrix_2": {
+          "size": [
+            11,
+            16,
+            11
+          ],
+          "min": [
+            -5,
+            0,
+            -5
+          ],
+          "max": [
+            6,
+            16,
+            6
+          ]
+        }
+      }
+    }
+  },
+  "sources_sha256": {
+    "manifest.json": "105def66f6a1900f81fc7a3f43ab06fc286960e9d745f12539a58303764dbe99",
+    "docs/modding_guide/modding_guide/basic/adding_items/item_scale/index.html": "4303a56c9e9f7cd31e871251ef5affd940397784617610b7bb3cfa2ba4f5e59a",
+    "data/materials/color_maps/skin_color_map.json": "dc00be7c30d4555c7e117d0f4d00b5810ad9413170861f3cb3c0bbe203b31861",
+    "data/materials/material_maps/skin_white_material_map.json": "125a6878a0cc053ebf9191701b905ef925e7cbcef879292b9fa8e11aa870dd82",
+    "data/materials/color_maps/hair_color_map.json": "fd5dd53bb6e308b043a000f311b08d339e1ac0ef0d018e623c635b5d268e846f",
+    "data/materials/material_maps/hair_brown_material_map.json": "35ca99b2d3043384a98225547c6a262eb68500d0b441ae2aa0c9756cd3119720",
+    "data/materials/color_maps/eyes_color_map.json": "c5d492c272d9bc590086a756e34cc73b5ca570e640124e27e4a31722e8bf277d",
+    "data/materials/material_maps/eye_blue_material_map.json": "bf99ab1c60d42de434b2a0ef4280fc094ef9c6e868cdc45be5aed6b33faab344",
+    "entities/humans/male/male_1.json": "e0ed5c5786ac9cdcab691bbeef3f35c4a5c1416a6e61f98bf9743b0ac1c1bcf5",
+    "mixins/base_human/base_human.json": "67400057bbcefba5ed15c8e6731d751da2eec37a8ea7d55c639680037ba600b6",
+    "mixins/mob/mob.json": "690cdd428055d05c6712a09f8c769780b2f3402f1a94d3faf22e3a2bbb79f8a9",
+    "jobs/worker/worker_description.json": "e2a1253183b1f33c0797d400a3447e3133c359b064fc31dfae15e395214de0d3",
+    "jobs/worker/worker_outfit/worker_outfit.json": "2808437a4cde1b9c01ec2916e4b83c77879f5f7ef24b8cfe6de40d35786c9bd2",
+    "jobs/worker/mixins/worker_outfit.json": "eaf3a5ee76e5aa8df6cb15ca01982632ac09ed5a91e5db38247f77b52c990f5c",
+    "mixins/item_properties/item_properties.json": "09c459b492c08af81fce2edec9d8fae43b7a5f230bd8780bd775bf902fbfec5d",
+    "entities/humans/male/head.qb": "f6914b24106f04babaa3b4d2344e30b754e68101127b82c052a4fb429edea177",
+    "entities/humans/male/body.qb": "c8541b0a14769a31cfa74b75414c9cfb640c1430b6190a25f484936574dcc294",
+    "entities/humans/male/eyes.qb": "752caf0753605a065cb1135bb306b5b5ceeca6cb7fc561cda90b05814ec17d3b",
+    "entities/humans/male/hair_1.qb": "2c0ba2081bee86064db92e9f5c42b2a4f03ecabce8b963c07ba5a94f812991ce",
+    "jobs/worker/worker_outfit/worker_outfit.qb": "7e33e47a0664be8ac33d3feb61d16a651b07b8c5d22bbbc112348e2bb132dd2c",
+    "entities/critters/deer_horned/deer_horned.json": "3a7ef1ae813646c599e0949a45b00c70b46735370e508078a173015921085f7e",
+    "mixins/critter/critter.json": "fd9f12f3bc5ff2f2a149da0831bd4c5929aa62661a6f2d214b8e5dd16e96dbe1",
+    "entities/critters/deer_horned/deer_horned.qb": "9be9753cf613bdac8391770e828ce66004a47f04d6c8c7571449edaf9e298e62",
+    "entities/monsters/forest/wolf/wolf.json": "ed62b47cb63e87902cac2704d60353cc5ebb86eebb75f5a33fab0e9a7f197779",
+    "mixins/monster/monster.json": "7261bbb753ac1fd79e8b906ccbd6c2304c3fc5483871b91d44d49d7acbbf00a7",
+    "entities/monsters/forest/wolf/wolf.qb": "5616cc49cdc3abdfb16283b1f43b8de0b942a0c132e5b4789f1d03bc200b6b84",
+    "entities/critters/rabbit/rabbit.json": "bea0c029276518181d90b2842e147b620ec1a2e4ed816e3f70450134599a1735",
+    "entities/critters/rabbit/rabbit.qb": "8da45604d6227d84eb051e0ae577e607f2677d7354499a807022777c6f680c80",
+    "entities/trees/pine_tree/medium_pine_tree/medium_pine_tree.json": "886e420b1da82ab534197f83c4b0619e1a4a11386768f10feb692c8099ba66ea",
+    "mixins/tree/tree.json": "13ac19f9f7d5e8b94b6b8b76bfeef7076040945329d27bcc31d28a5a987d400c",
+    "mixins/placed_object/placed_object.json": "9a44fc2e575bd258bb707b6dc3133980820d94c491d7b87fbd36164de3d61d38",
+    "entities/trees/pine_tree/medium_pine_tree/medium_pine_tree.qb": "ebc6e42755a60a879f22fde332dfc1dd50668d1d151548ef8094b2f635a1599a",
+    "entities/trees/pine_tree/large_pine_tree/large_pine_tree.json": "0a0aeb91596def47ed988c00ab71fa245b0bab5d6e7e3c0cacf7e8941b8fa2a2",
+    "entities/trees/pine_tree/large_pine_tree/large_pine_tree.qb": "043a042fe40d45e13110057f70b2e061e1e22499fcf0b2868d63aca384404955",
+    "entities/trees/pine_tree/sapling_pine_tree/sapling_pine_tree.json": "ab91013380b95889b91a46d955edceccb8c574be47d68a411d44a7a7dc8d53a1",
+    "entities/trees/pine_tree/sapling_pine_tree/sapling_pine_tree_ghost.json": "6771f2e8c78664dda122d09203b977a44d6335b26515295a115a4f9d89945d1b",
+    "entities/trees/pine_tree/sapling_pine_tree/sapling_pine_tree.qb": "f305c6ded0e1a5a865c767b032bc05735c9a8e0d06c887a89bf1743fbf614e95",
+    "entities/trees/oak_tree/medium_oak_tree/medium_oak_tree.json": "2a2f739bf75cb1828587d476edc258a8bf6ff1a0d98c7c8d6d25bae8b65b6923",
+    "entities/trees/oak_tree/medium_oak_tree/medium_oak_tree.qb": "605edfa0d5118e0e14e8505983c75c5cd00fb21afd457015c5cbc3efa26d4687"
+  },
+  "source_unchanged": true
+}

@@ -43,13 +43,13 @@
   },
   "stones": {
     "wet": {
-      "model": "res://assets/models/world/water/wet_stone.glb",
+      "model": "res://assets/models/furniture/wet_stone.glb",
       "display_name": "Wet stone",
       "item_key": "base:resources:water:wet_stone",
       "packing_seconds": 2.0
     },
     "dry": {
-      "model": "res://assets/models/world/water/dry_stone.glb",
+      "model": "res://assets/models/furniture/dry_stone.glb",
       "display_name": "Dry stone",
       "item_key": "base:resources:water:dry_stone",
       "packing_seconds": 2.0

@@ -68,8 +68,8 @@ var built_blocks: Dictionary = {}
 ## (surface loop, side build, top merge, mesh creation) and prints the breakdown
 ## plus the single slowest tile when the full overview completes.
 @export var overview_profile: bool = false
-## When true, each frame's batch of overview tiles is built in parallel on a
-## WorkerThreadPool; the main thread only assigns the finished meshes. Set false
+## When true, overview batches run asynchronously on WorkerThreadPool and only
+## completed, current results upload within a main-thread budget. Set false
 ## to fall back to the synchronous per-tile build (e.g. to isolate a problem).
 @export var overview_threaded: bool = true
 ## Debug (slice plan doc 11, Phase 0). When true, every slice_y change logs how
@@ -141,7 +141,7 @@ var _debug_previous_readability := -1.0
 var _ovt_mined: Dictionary = {}
 var _cavity_shell_node: MeshInstance3D = null
 ## Coalesced-rebuild flag: every shell-shaping event (cut/mined block changes,
-## slice moves, season turns, grass bands) marks dirty; _process drains it into
+## slice moves and season turns) marks dirty; _process drains it into
 ## at most ONE _rebuild_cavity_shell() per frame. Real mining commits one block
 ## per swing — rebuilding synchronously per commit made block N cost O(N) (and
 ## save-restore O(N²)); coalescing caps it at one rebuild per frame no matter
@@ -149,11 +149,9 @@ var _cavity_shell_node: MeshInstance3D = null
 var _cavity_shell_dirty: bool = false
 ## Memoised WorldGenerator id lookups for shell neighbour blocks. Generated ids
 ## are deterministic and immutable for the lifetime of a world (the seed never
-## changes within a scene; a load reloads the scene and this node with it), so
-## entries never go stale — with one exception: ids sampled during the
-## grass-band gate window may hold fallback grass, so _on_grass_bands_ready
-## clears both caches. Turns steady-state shell rebuilds from 3D-noise sampling
-## per face into dictionary hits.
+## changes within a scene; a load reloads the scene and this node with it).
+## Entries never go stale. Steady-state shell rebuilds use dictionary hits
+## instead of repeating 3D-noise sampling for every face.
 var _shell_exact_ids: Dictionary = {}    # Vector3i -> int (exact generated id)
 var _shell_strata_ids: Dictionary = {}   # Vector3i -> int (authored strata id)
 ## Chunk coords (Vector3i) → count of visual-cut blocks inside. Lets the
@@ -161,7 +159,7 @@ var _shell_strata_ids: Dictionary = {}   # Vector3i -> int (authored strata id)
 ## must mesh even though the chunk data itself is all-solid).
 var _cut_chunks: Dictionary = {}
 # Immutable cut-block snapshot read by the overview build (incl. worker threads).
-# Set on the main thread before each drain so workers never read the live
+# Set on the main thread before each batch so workers never read the live
 # _visual_cut_blocks while mining could mutate it.
 var _ovt_cut: Dictionary = {}
 # Group-task scratch for the threaded overview build (main thread sets these
@@ -170,6 +168,16 @@ var _ovt_cut: Dictionary = {}
 var _ovt_batch: Array[Vector2i] = []
 var _ovt_results: Array = []
 var _ovt_season: String = ""
+var _ovt_slice: int = 127
+var _ovt_task: int = -1
+var _ovt_building := false
+var _ovt_assign_index := 0
+var _ovt_revisions: Array[int] = []
+var _ovt_epoch := 0
+var _overview_epoch := 0
+var _overview_revisions: Dictionary = {}
+var _overview_stale_results := 0
+const OVERVIEW_UPLOAD_BUDGET_USEC := 4000
 # Per-section profiling accumulators (usec), only written when overview_profile.
 var _ovp_loop_usec: int = 0
 var _ovp_sides_usec: int = 0
@@ -198,6 +206,9 @@ var _region_rebuild_count: int = 0
 var _overview_build_msec_total: int = 0
 var _overview_build_msec_max: int = 0
 var _overview_build_count: int = 0
+var _terrain_drain_max_usec: int = 0
+var _terrain_worker_wait_max_usec: int = 0
+var _terrain_upload_max_usec: int = 0
 var _overview_startup_tile_goal: int = 0
 var _overview_startup_center: Vector2i = Vector2i(-1, -1)
 var _overview_startup_ready_msec: int = 0
@@ -238,6 +249,7 @@ var _inspector_dragging: bool = false
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
+	add_to_group("terrain_overview_renderer")
 	# All chunk positions are in world-space block coordinates (cx*16, cy*16, cz*16).
 	# The Renderer node MUST sit at world origin or every mesh will be displaced.
 	if global_position != Vector3.ZERO:
@@ -250,6 +262,7 @@ func _ready() -> void:
 	underground_lighting.name = "UndergroundLighting"
 	add_child(underground_lighting)
 	_material = underground_lighting.make_material(_create_material())
+	BlockRegistry.configure_terrain_material(_material)
 	var water_view := preload("res://scripts/components/WaterRenderer.gd").new()
 	water_view.name = "Water"
 	water_view.terrain = self
@@ -265,15 +278,9 @@ func _ready() -> void:
 	WorldData.block_changed.connect(func(_pos: Vector3i,_old: int,_new: int): _added_terrain_dirty = true)
 	InteriorTracker.caves_discovered.connect(add_discovered_cave_blocks)
 
-	# Grass bands are computed after maps_ready, so the first overview tiles are
-	# meshed with fallback grass. When the bands finish, re-mesh the already-built
-	# overview tiles in place so the band tiers appear (no node free => no flicker).
-	# Emitted on the main thread, so immediate connection is safe.
-	WorldGenerator.grass_bands_ready.connect(_on_grass_bands_ready)
-
 	# Seasonal surface palettes (surface_palettes.json) are baked into vertex colours at
 	# mesh-build time, so when the season turns we re-mesh whatever is currently built —
-	# same in-place, no-flicker pattern as _on_grass_bands_ready().
+	# reuse mesh nodes and drain changes through the normal tile budget.
 	WorldClock.season_changed.connect(_on_season_changed)
 
 	_camera_rig = _find_camera(get_tree().current_scene)
@@ -293,6 +300,24 @@ func _ready() -> void:
 		if not _block_face_overview_active():
 			_enqueue_visible_existing_chunks()
 		print("WorldRenderer: generation started (seed %d)." % WorldGenerator.world_seed)
+
+
+## Join only on teardown/reload, before the generator can replace its immutable
+## maps. Normal frames only collect jobs that have already completed.
+func finish_pending_overview() -> void:
+	if _ovt_task >= 0:
+		WorkerThreadPool.wait_for_group_task_completion(_ovt_task)
+	_ovt_task = -1
+	_ovt_building = false
+	_ovt_results.clear()
+	_ovt_batch.clear()
+	_overview_epoch += 1
+	_overview_initialized = false
+	_overview_built = false
+
+
+func _exit_tree() -> void:
+	finish_pending_overview()
 
 
 func _process(_delta: float) -> void:
@@ -594,14 +619,6 @@ func _inspect_block_at_screen_position(screen_pos: Vector2) -> void:
 			column_info.get("surface_y", -1),
 		],
 		"height band: %s" % column_info.get("height_band", "unknown"),
-		"lowland cap grass: band %d  distance %d" % [
-			column_info.get("lowland_cap_grass_band", 0),
-			column_info.get("lowland_cap_grass_distance", -1),
-		],
-		"foothill cap grass: band %d  distance %d" % [
-			column_info.get("foothill_cap_grass_band", 0),
-			column_info.get("foothill_cap_grass_distance", -1),
-		],
 		"water: lake %s  tarn %s  bank %s" % [
 			str(column_info.get("is_lake", false)),
 			str(column_info.get("is_tarn", false)),
@@ -904,7 +921,7 @@ func _rebuild_cavity_shell() -> void:
 			else:
 				display_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
 				_shell_strata_ids[n] = display_id
-			_add_shell_face(n, dir, BlockRegistry.get_color(display_id, season), verts, norms, cols, indices)
+			_add_shell_face(n, dir, BlockRegistry.get_terrain_color(display_id, season), verts, norms, cols, indices)
 
 	if verts.is_empty():
 		_cavity_shell_node.mesh = null
@@ -1352,7 +1369,7 @@ func _rebuild_surface_region(key: Vector2i) -> void:
 						continue
 					_add_surface_quad(
 						Vector3(float(wx), float(wy + 1), float(wz)),
-						BlockRegistry.get_color(block_id, season),
+						BlockRegistry.get_terrain_color(block_id, season),
 						verts,
 						norms,
 						cols,
@@ -1496,7 +1513,7 @@ func _add_overview_side_column(
 		var color: Color
 		if has_mined and _ovt_mined.has(Vector3i(neighbor_x, y, neighbor_z)):
 			var exact_id := WorldGenerator.get_generated_block_id(sample_x, y, sample_z)
-			color = BlockRegistry.get_color(exact_id, WorldClock.season) \
+			color = BlockRegistry.get_terrain_color(exact_id, _ovt_season if _ovt_building else WorldClock.season) \
 					if not BlockRegistry.is_transparent(exact_id) else _overview_rock_color
 		else:
 			color = _overview_side_color_at(sample_x, y, sample_z, top_y, top_color)
@@ -1523,7 +1540,7 @@ func _overview_side_color_at(sample_x: int, y: int, sample_z: int, _top_y: float
 	var block_id := WorldGenerator.get_overview_strata_block_id(sample_x, y, sample_z)
 	if BlockRegistry.is_transparent(block_id):
 		return _overview_rock_color
-	return BlockRegistry.get_color(block_id, WorldClock.season)
+	return BlockRegistry.get_terrain_color(block_id, _ovt_season if _ovt_building else WorldClock.season)
 
 
 func _add_overview_side_band(
@@ -1608,6 +1625,8 @@ func _free_region_node(key: Vector2i) -> void:
 # -- Block-face overview ------------------------------------------------------
 
 func _invalidate_overview_global() -> void:
+	_overview_epoch += 1
+	_overview_revisions.clear()
 	_overview_initialized = false
 	_overview_built = false
 	_overview_rebuild_queued = false
@@ -1639,44 +1658,13 @@ func _invalidate_overview_global() -> void:
 	_overview_tile_nodes.clear()
 
 
-## Re-mesh the already-built block-face overview tiles in place after the
-## deferred grass-band passes finish. We re-queue existing tile keys rather than
-## calling _invalidate_overview_global(), so nodes are reused (no free/recreate)
-## and the surface does not flicker. Tiles still queued from the initial build
-## are left alone — they will mesh fresh with the now-open grass gate. Streamed
-## chunks are not handled here: at this point startup is in overview mode, and
-## any later streamed chunk builds after the gate is already open.
-func _on_grass_bands_ready() -> void:
-	# Shell ids memoised during the gate window may hold fallback grass — drop
-	# them and re-bake the shell with the final band variants.
-	_shell_exact_ids.clear()
-	_shell_strata_ids.clear()
-	_cavity_shell_dirty = true
-	# SO-2: the far field exists in both modes now — refresh it regardless.
-	if _overview_tile_nodes.is_empty():
-		return
-	# Selective requeue: only tiles containing band-override columns change
-	# when the gate flips — band-0 columns hash to the same variant before and
-	# after (see WorldGenerator.tile_has_grass_band). Requeueing every built
-	# tile made each one built pre-bands build twice (the bulk of the ~800
-	# double-builds measured on a 1024-tile load, 2026-07-31).
-	var requeued := 0
-	for key: Vector2i in _overview_tile_nodes.keys():
-		if WorldGenerator.tile_has_grass_band(key.x, key.y, OVERVIEW_TILE_SIZE):
-			_enqueue_overview_tile(key)
-			requeued += 1
-	if requeued > 0:
-		_overview_built = false
-	print("WorldRenderer: grass bands ready — requeued %d/%d built tiles (band columns only)." % [
-		requeued, _overview_tile_nodes.size()])
-
-
 ## Re-bake seasonal surface colours when the season turns. Every mesh path reads
 ## WorldClock.season at build time (ChunkMesher, regions, overview tiles), so re-queuing
 ## the already-built meshes is sufficient — nodes are reused in place (no free, no flicker)
 ## and the queues drain at the normal per-frame budget, so the recolour sweeps across the
 ## map over a few seconds rather than stalling a frame.
 func _on_season_changed(_new_season: String) -> void:
+	_added_terrain_dirty = true
 	# Block-face overview tiles (the zoomed-out surface).
 	if not _overview_tile_nodes.is_empty():
 		for key: Vector2i in _overview_tile_nodes.keys():
@@ -1767,6 +1755,7 @@ func _enqueue_overview_tile_for_world(wx: int, wz: int) -> void:
 
 
 func _enqueue_overview_tile(key: Vector2i) -> void:
+	_overview_revisions[key] = int(_overview_revisions.get(key, 0)) + 1
 	if _dirty_overview_tile_set.has(key):
 		return
 	_dirty_overview_tile_set[key] = true
@@ -1845,7 +1834,7 @@ func _update_block_face_overview() -> void:
 			_dirty_overview_tiles.size(),
 		])
 		_print_startup_performance_report()
-	if not _dirty_overview_tiles.is_empty():
+	if not _dirty_overview_tiles.is_empty() or _ovt_building:
 		return
 	if _overview_rebuild_queued:
 		_overview_rebuild_queued = false
@@ -1888,28 +1877,13 @@ func _queue_full_overview_rebuild() -> void:
 	var tile_count_z := ceili(float(WORLD_SIZE_Z) / float(OVERVIEW_TILE_SIZE))
 	var center := _overview_startup_center_tile(tile_count_x, tile_count_z)
 	_overview_startup_center = center
-	# Drain order: startup radius first (the visible area, band-capable or
-	# not), then the far field with band-capable tiles LAST. The grass-band
-	# passes are still running on the generator thread when this queue seeds;
-	# any band tile built before they finish is rebuilt at grass_bands_ready
-	# (551–604 double-builds measured on 2026-07-31). Giving the band passes
-	# the never-band window means band tiles build once, post-bands. Both
-	# partitions preserve center-first ordering. tile_may_have_grass_band is
-	# the heightmap-only proxy — safe now, unlike the band maps themselves.
-	var never_band: Array[Vector2i] = []
-	var may_band: Array[Vector2i] = []
+	# All material variants are final at maps_ready. Build visible tiles first,
+	# then continue outward without the former grass-band deferral/requeue.
+	_overview_startup_tile_goal = 0
 	for key in _overview_tiles_center_first(center, tile_count_x, tile_count_z):
+		_enqueue_overview_tile(key)
 		if _overview_tile_distance(key, center) <= overview_startup_radius_tiles:
-			_enqueue_overview_tile(key)
-		elif WorldGenerator.tile_may_have_grass_band(key.x, key.y, OVERVIEW_TILE_SIZE):
-			may_band.append(key)
-		else:
-			never_band.append(key)
-	_overview_startup_tile_goal = _dirty_overview_tiles.size()
-	for key: Vector2i in never_band:
-		_enqueue_overview_tile(key)
-	for key: Vector2i in may_band:
-		_enqueue_overview_tile(key)
+			_overview_startup_tile_goal += 1
 	_overview_initialized = true
 	_overview_rebuild_queued = true
 
@@ -1946,16 +1920,31 @@ func _overview_tile_distance(a: Vector2i, b: Vector2i) -> int:
 
 
 func _drain_overview_tile_queue() -> void:
-	if _dirty_overview_tiles.is_empty():
+	var drain_started := Time.get_ticks_usec()
+	if _ovt_task >= 0:
+		if not WorkerThreadPool.is_group_task_completed(_ovt_task): return
+		var wait_started := Time.get_ticks_usec()
+		WorkerThreadPool.wait_for_group_task_completion(_ovt_task)
+		_terrain_worker_wait_max_usec = maxi(_terrain_worker_wait_max_usec, Time.get_ticks_usec()-wait_started)
+		_ovt_task = -1
+	if _ovt_building:
+		_consume_overview_results(drain_started)
+		_terrain_drain_max_usec = maxi(_terrain_drain_max_usec, Time.get_ticks_usec()-drain_started)
+		# Start the next batch on the next frame so upload and dispatch have a
+		# bounded combined cost. Existing meshes remain visible while workers run.
 		return
+	if _dirty_overview_tiles.is_empty(): return
 	# Read-only-during-build state, set once on the main thread before any worker
-	# runs: side rock color, cut-block snapshot, and season.
+	# runs. Never replace these snapshots until this batch has been consumed.
 	_cache_overview_side_colors(WorldClock.season)
 	_ovt_cut = _visual_cut_blocks.duplicate()
 	_ovt_mined = _mined_blocks.duplicate()
 	_ovt_mined.merge(_discovered_cave_blocks)
 	_ovt_mined.merge(_debug_cave_blocks)
 	_ovt_season = WorldClock.season
+	_ovt_slice = slice_y
+	_ovt_epoch = _overview_epoch
+	_ovt_revisions.clear()
 
 	# Pull this frame's batch off the dirty queue.
 	var batch: Array[Vector2i] = []
@@ -1963,27 +1952,50 @@ func _drain_overview_tile_queue() -> void:
 		var key: Vector2i = _dirty_overview_tiles.pop_front()
 		_dirty_overview_tile_set.erase(key)
 		batch.append(key)
+		_ovt_revisions.append(int(_overview_revisions.get(key, 0)))
 	if batch.is_empty():
 		return
 
-	if overview_threaded and batch.size() > 1:
-		# Build all tiles in the batch in parallel; each worker writes only its own
-		# _ovt_results slot and reads only the read-only state above. The main thread
-		# blocks until the batch finishes (~batch_time / cores) then assigns meshes.
-		_ovt_batch = batch
-		_ovt_results = []
-		_ovt_results.resize(batch.size())
-		var task_id := WorkerThreadPool.add_group_task(
+	_ovt_batch = batch
+	_ovt_results = []
+	_ovt_results.resize(batch.size())
+	_ovt_assign_index = 0
+	_ovt_building = true
+	_overview_built = false
+	if overview_threaded:
+		_ovt_task = WorkerThreadPool.add_group_task(
 			Callable(self, "_overview_build_worker"), batch.size(), -1, false, "overview_tiles")
-		WorkerThreadPool.wait_for_group_task_completion(task_id)
-		for i in range(batch.size()):
-			_assign_overview_tile(batch[i], _ovt_results[i])
 	else:
-		for key: Vector2i in batch:
-			_assign_overview_tile(key, _build_overview_tile_geometry(key, _ovt_season))
+		for i in batch.size(): _overview_build_worker(i)
+		_consume_overview_results(drain_started)
+	_terrain_drain_max_usec = maxi(_terrain_drain_max_usec, Time.get_ticks_usec()-drain_started)
 
+
+func _overview_result_is_current(index: int) -> bool:
+	return _ovt_epoch == _overview_epoch and _ovt_slice == slice_y \
+		and _ovt_season == WorldClock.season \
+		and _ovt_revisions[index] == int(_overview_revisions.get(_ovt_batch[index], 0))
+
+
+func _consume_overview_results(started: int) -> void:
+	while _ovt_assign_index < _ovt_batch.size():
+		var i := _ovt_assign_index
+		var key := _ovt_batch[i]
+		if _overview_result_is_current(i):
+			_assign_overview_tile(key, _ovt_results[i])
+			_meshes_built += 1
+		else:
+			_overview_stale_results += 1
+			# A global reset already schedules a complete replacement. Local
+			# changes must explicitly keep this tile queued for a fresh snapshot.
+			if _ovt_epoch == _overview_epoch: _enqueue_overview_tile(key)
+		_ovt_assign_index += 1
+		if Time.get_ticks_usec()-started >= OVERVIEW_UPLOAD_BUDGET_USEC: break
 	_recompute_overview_stats()
-	_meshes_built += batch.size()
+	if _ovt_assign_index == _ovt_batch.size():
+		_ovt_building = false
+		_ovt_batch.clear()
+		_ovt_results.clear()
 
 
 ## WorkerThreadPool group-task body: builds one tile of the current batch into its
@@ -1993,7 +2005,7 @@ func _overview_build_worker(i: int) -> void:
 
 
 # PURE geometry build for one overview tile. Reads only read-only state
-# (WorldGenerator maps/noise, BlockRegistry, _visual_cut_blocks, _overview_rock_color
+# (WorldGenerator maps/noise, BlockRegistry, _ovt_cut, _overview_rock_color
 # which is set before the batch) and writes NO member variables, so it is safe to
 # run on a WorkerThreadPool task. Returns the mesh arrays + per-tile stats/timings,
 # or {} when the tile has no geometry. The main-thread wrapper creates the mesh.
@@ -2034,7 +2046,7 @@ func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictio
 				if generated_id != block_id:
 					validation_mismatches += 1
 
-			var color := BlockRegistry.get_color(block_id, season)
+			var color := BlockRegistry.get_terrain_color(block_id, season)
 			# SO-2c: slice-cut strata floors dim to read as "inside the
 			# mountain", never walkable ground. Luminance-only (Hard Rule 9).
 			var sliced: bool = surface.get("slice_cut", false)
@@ -2095,6 +2107,7 @@ func _build_overview_tile_geometry(tile_key: Vector2i, season: String) -> Dictio
 # + update bookkeeping. Only this part touches member state / the scene tree.
 func _assign_overview_tile(tile_key: Vector2i, result: Dictionary) -> void:
 	var t_start := Time.get_ticks_msec()
+	var upload_started := Time.get_ticks_usec()
 	if result.is_empty():
 		_free_overview_tile_node(tile_key)
 		_overview_tile_stats.erase(tile_key)
@@ -2114,6 +2127,7 @@ func _assign_overview_tile(tile_key: Vector2i, result: Dictionary) -> void:
 	var mi := _get_or_create_overview_tile_node(tile_key)
 	mi.mesh = mesh
 	mi.visible = true
+	_terrain_upload_max_usec = maxi(_terrain_upload_max_usec, Time.get_ticks_usec()-upload_started)
 
 	if overview_profile:
 		var t_mesh_usec := Time.get_ticks_usec() - t_mesh0
@@ -2219,7 +2233,7 @@ func _overview_top_cells_merge(a: Dictionary, b: Dictionary) -> bool:
 	# plate of the same block at the same height — the merged rect would paint
 	# one brightness over both.
 	return int(a.get("wy", -999999)) == int(b.get("wy", -999998)) \
-		and int(a.get("block_id", -1)) == int(b.get("block_id", -2)) \
+		and a.get("color", Color.MAGENTA) == b.get("color", Color.TRANSPARENT) \
 		and bool(a.get("sliced", false)) == bool(b.get("sliced", false))
 
 
@@ -2378,8 +2392,9 @@ func _overview_neighbor_top_y(wx: int, wz: int, edge_y: float) -> float:
 		return edge_y
 	# Slice-aware (Phase SO): a neighbour above the plane is clamped to its cut
 	# top, so boundary walls hang from the cut floor, not the world bottom.
-	if wy > slice_y:
-		wy = slice_y
+	var cut_y := _ovt_slice if _ovt_building else slice_y
+	if wy > cut_y:
+		wy = cut_y
 	while wy >= 0 and _ovt_cut.has(Vector3i(wx, wy, wz)):
 		wy -= 1
 	if wy < 0:
@@ -2395,8 +2410,9 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	# the plane shows its CUT FLOOR at slice_y instead of disappearing — the
 	# whole map stays present at any slice depth (the Stonehearth model).
 	var slice_cut := false
-	if wy > slice_y:
-		wy = slice_y
+	var cut_y := _ovt_slice if _ovt_building else slice_y
+	if wy > cut_y:
+		wy = cut_y
 		slice_cut = true
 	# Defects 3/4 fix (2026-06-05): the floor's colour source follows the SOURCE
 	# of the removed blocks above. A walk that crosses ANY designated-only block
@@ -2417,7 +2433,7 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 	if slice_cut or crossed_plan:
 		# STRATA-ONLY cut floor (design rule, Alen 2026-06-04; extended to
 		# designation floors 2026-06-05): slicing and PLANNING must never reveal
-		# undiscovered resources — these floors show the authored rock bands
+		# undiscovered resources — these floors show the authored material strata
 		# only. Veins/gems/caves become visible exclusively through mining.
 		# Bonus: uniform plates greedy-merge into a few large rects.
 		block_id = WorldGenerator.get_overview_strata_block_id(wx, wy, wz)
@@ -2435,11 +2451,14 @@ func _overview_visible_surface_after_cut(wx: int, wz: int) -> Dictionary:
 ## Shared by natural overview plates and constructed stone cut by the slice.
 ## Only artificial cut faces dim; exposed tops and vertical faces keep their color.
 static func slice_cut_color(color: Color) -> Color:
-	return Color(color.r * SLICE_CUT_DIM, color.g * SLICE_CUT_DIM, color.b * SLICE_CUT_DIM, color.a)
+	# Tagged terrain cut planes use quiet detail. Imported floor art keeps alpha=1.
+	var tag := roundi(color.a * 16.0)
+	var alpha := color.a + 0.5 if tag > 0 and tag < 8 else color.a
+	return Color(color.r * SLICE_CUT_DIM, color.g * SLICE_CUT_DIM, color.b * SLICE_CUT_DIM, alpha)
 
 
 func _cache_overview_side_colors(season: String) -> void:
-	_overview_rock_color = BlockRegistry.get_color(
+	_overview_rock_color = BlockRegistry.get_terrain_color(
 		BlockRegistry.get_id(&"base:terrain:rock:rock07"),
 		season)
 
@@ -2655,6 +2674,7 @@ func set_overview_enabled(enabled: bool) -> void:
 	if use_block_face_overview == enabled:
 		return
 	use_block_face_overview = enabled
+	if not enabled: finish_pending_overview()
 	_apply_slice_visibility()
 	if not _block_face_overview_active():
 		_update_streaming_center()
@@ -2709,7 +2729,7 @@ func _update_slice_timing(t_frame: int) -> void:
 	_slice_timing_max_frame_ms = maxi(_slice_timing_max_frame_ms, Time.get_ticks_msec() - t_frame)
 	if not _dirty_region_queue.is_empty():
 		return
-	if not _dirty_overview_tiles.is_empty():
+	if not _dirty_overview_tiles.is_empty() or _ovt_building:
 		return
 	if WorldGenerator.is_generating():
 		return
@@ -2852,7 +2872,7 @@ func _print_startup_performance_report() -> void:
 	print("  meshes_built_counter: %d" % _meshes_built)
 
 
-var _added_terrain: MultiMeshInstance3D
+var _added_terrain: MeshInstance3D
 var _added_terrain_dirty := false
 var _added_terrain_slice := -1
 
@@ -2869,20 +2889,35 @@ func _rebuild_added_terrain() -> void:
 		cells.append(entry)
 	if _added_terrain == null:
 		if cells.is_empty(): return
-		_added_terrain = MultiMeshInstance3D.new()
+		_added_terrain = MeshInstance3D.new()
 		_added_terrain.name = "AddedTerrain"
 		_added_terrain.material_override = _material
+		preload("res://scripts/components/TerrainLighting.gd").configure_mesh(_added_terrain)
 		add_child(_added_terrain)
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
-	mm.mesh = BoxMesh.new()
-	mm.instance_count = cells.size()
-	for i in cells.size():
-		var cell := SaveManager.unpack_v3i(cells[i].cell)
-		mm.set_instance_transform(i,Transform3D(Basis.IDENTITY,Vector3(cell)+Vector3.ONE*0.5))
-		mm.set_instance_color(i,BlockRegistry.get_color(BlockRegistry.get_id(cells[i].block),WorldClock.season))
-	_added_terrain.multimesh = mm
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+	var colors := PackedColorArray()
+	var indices := PackedInt32Array()
+	for entry: Dictionary in cells:
+		var cell := SaveManager.unpack_v3i(entry.cell)
+		var color := BlockRegistry.get_terrain_color(BlockRegistry.get_id(entry.block),WorldClock.season)
+		for direction: Vector3i in _SHELL_DIRS:
+			var neighbour := cell+direction
+			var solid := BlockRegistry.is_solid(WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z))
+			if neighbour.y <= slice_y and solid: continue
+			var cut := direction == Vector3i.UP and cell.y == slice_y and solid
+			_add_shell_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
+	_added_terrain.mesh = null
+	if not verts.is_empty():
+		var arrays := []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = verts
+		arrays[Mesh.ARRAY_NORMAL] = norms
+		arrays[Mesh.ARRAY_COLOR] = colors
+		arrays[Mesh.ARRAY_INDEX] = indices
+		var mesh := ArrayMesh.new()
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		_added_terrain.mesh = mesh
 
 func get_render_stats() -> Dictionary:
 	var overview_active := _block_face_overview_active()
@@ -2898,6 +2933,8 @@ func get_render_stats() -> Dictionary:
 		"render_mode": _inspector_render_mode(),
 		"overview_active": overview_active,
 		"overview_built": _overview_built,
+		"overview_in_flight": _ovt_building,
+		"overview_stale_results": _overview_stale_results,
 		"overview_step": OVERVIEW_STEP,
 		"overview_tile_size": OVERVIEW_TILE_SIZE,
 		"overview_tiles": _overview_tile_nodes.size(),
@@ -2914,6 +2951,9 @@ func get_render_stats() -> Dictionary:
 		"region_rebuild_ms_total": _region_rebuild_msec_total,
 		"region_rebuild_ms_max": _region_rebuild_msec_max,
 		"overview_build_count": _overview_build_count,
+		"terrain_drain_max_ms": _terrain_drain_max_usec/1000.0,
+		"terrain_worker_wait_max_ms": _terrain_worker_wait_max_usec/1000.0,
+		"terrain_upload_max_ms": _terrain_upload_max_usec/1000.0,
 		"overview_build_ms_total": _overview_build_msec_total,
 		"overview_build_ms_max": _overview_build_msec_max,
 		"overview_startup_center": _overview_startup_center,

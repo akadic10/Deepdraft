@@ -1,4 +1,10 @@
 """Audit the hearth animation against its baseline and isolated canonical export."""
+
+# Historical voxel snapshots are retired; current checks live in the faceted audits.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import difflib
 import hashlib
 import json

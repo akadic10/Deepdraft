@@ -11,12 +11,14 @@ func _run() -> void:
 	root.get_node("SaveManager").set_process(false)
 	root.get_node("WorldClock").set_paused(true)
 	root.get_node("RoomManager").set_process(false)
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	var registry = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	registry._load_defs()
 	var only := ""
+	var output_directory := OUT
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--only="): only = arg.trim_prefix("--only=")
+		if arg.begins_with("--out="): output_directory = arg.trim_prefix("--out=")
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output_directory))
 	var count := 0
 	for definition: Dictionary in registry.get_defs().values():
 		if not only.is_empty() and not String(definition.furniture_key).get_slice(":",2) in only.split(","): continue
@@ -69,8 +71,8 @@ func _run() -> void:
 		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		for frame in range(4): await process_frame
 		await RenderingServer.frame_post_draw
-		var output := OUT + String(definition.furniture_key).get_slice(":", 2) + ".png"
-		var result := viewport.get_texture().get_image().save_png(output)
+		var output := output_directory.path_join(String(definition.furniture_key).get_slice(":", 2) + ".png")
+		var result := viewport.get_texture().get_image().save_png(ProjectSettings.globalize_path(output))
 		if result != OK: push_error("Could not save " + output); quit(1); return
 		viewport.queue_free()
 	registry.free()

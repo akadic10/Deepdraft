@@ -80,7 +80,7 @@
       "output_plural": "campfires",
       "description": "A low ring of rough stones around split timber. Gives warm, flickering light once placed.",
       "purpose": "Always lit when installed. No fuel upkeep yet.",
-      "category": "Camp furnishings",
+      "category": "Lighting",
       "ingredient_tag": "timber",
       "default_ingredients": [
         "base:resources:wood:pine_log"
@@ -102,7 +102,7 @@
       "output_plural": "hearths",
       "description": "A rough fieldstone hearth for warm starter bedrooms. Two matching logs and four rough stones.",
       "purpose": "Warms a small sealed bedroom. Always lit when installed; no fuel upkeep yet.",
-      "category": "Camp furnishings",
+      "category": "Rooms",
       "ingredient_tag": "timber",
       "default_ingredients": [
         "base:resources:wood:pine_log"
@@ -126,7 +126,7 @@
       "output_plural": "log stools",
       "description": "A short log cut flat for sitting, with rough bark sides. A simple stump seat for the first camp.",
       "purpose": "Idle dwarves can sit here and return to work when needed.",
-      "category": "Camp furnishings",
+      "category": "Dining",
       "ingredient_tag": "timber",
       "default_ingredients": [
         "base:resources:wood:pine_log"
@@ -286,7 +286,7 @@
       "name": "Log bench",
       "output_plural": "log benches",
       "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating.",
-      "category": "Camp furnishings",
+      "category": "Dining",
       "ingredient_tag": "timber",
       "default_ingredients": [
         "base:resources:wood:pine_log"
@@ -305,7 +305,7 @@
       "output_plural": "log beds",
       "description": "Fit rough logs into a low frame and heap it with hay and dried leaves. A simple place for one dwarf to sleep.",
       "purpose": "Dwarves prefer a free bed over the ground. A bed, door, light and sealed enclosure make a bedroom.",
-      "category": "Camp furnishings",
+      "category": "Rooms",
       "ingredient_tag": "timber",
       "default_ingredients": [
         "base:resources:wood:pine_log"

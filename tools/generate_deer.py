@@ -3,11 +3,17 @@
 Four runtime legs share a mesh authored below its hip pivot. All other parts
 share feet Y0. The standing model fits a 2x2 footprint and four-cell clearance.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 from generate_rabbit import linear
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/animals/deer'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/animals/deer'
 COAT = (.63, .40, .22)
 LIGHT = (.73, .52, .31)
 CREAM = (.88, .81, .66)

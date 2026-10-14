@@ -19,6 +19,7 @@ extends Node3D
 const SETTINGS_PATH  := "res://data/camera/camera_settings.json"
 const BLOCK_SIZE: int = 1          # 1 voxel = 1 m  (12_world_grid.md)
 const SLICE_AUTO_OFFSET: int = 2   # camera sees this many layers below its Y
+const AudioPicking := preload("res://scripts/components/ObjectPicking.gd")
 
 # ── Scene references (wire in Inspector — never use get_node paths) ───────────
 
@@ -92,6 +93,8 @@ var _cursor_label: Label       = null
 var _cursor_os_hidden: bool    = false
 var _last_slice_y: int     = -9999
 var _follow_subject: Node3D
+var _audio_context_frame := -1
+var _audio_context: Dictionary = {}
 
 ## Fires when the AUTO-slice Y changes. Connect to WorldRenderer to drive the
 ## horizontal layer cut-plane (see 21_camera.md §Horizontal Layer Slicing).
@@ -111,8 +114,36 @@ func _ready() -> void:
 
 
 func get_work_audio_context() -> Dictionary:
-	var zoom := global_position.distance_to(camera_node.global_position) if camera_node != null else _target_zoom
-	return {"focus":global_position,"zoom":zoom}
+	if not is_inside_tree() or not is_instance_valid(camera_node) or not camera_node.is_inside_tree(): return {}
+	var frame := Engine.get_process_frames()
+	if frame == _audio_context_frame: return _audio_context
+	_audio_context_frame = frame
+	var focus := global_position
+	# Cursor zoom and the terrain-floor guard can leave the orbit pivot well
+	# above the room on screen. Listen at the visible terrain instead. Share
+	# one centre-ray result per frame across work, fire, water and ambience.
+	if WorldGenerator._maps_ready:
+		var centre := camera_node.get_viewport().get_visible_rect().size * .5
+		var origin := camera_node.project_ray_origin(centre)
+		var direction := camera_node.project_ray_normal(centre).normalized()
+		var slice := get_tree().get_first_node_in_group("work_feedback_slice")
+		var slice_y := int(slice.get_slice_y()) if slice != null else 127
+		var hit := AudioPicking.terrain_hit(origin, direction, slice_y, _far, _audio_surface_block)
+		if not hit.is_empty():
+			focus = origin + direction * float(hit.distance) + Vector3(hit.normal) * .05
+			var cell := Vector3i(hit.x, hit.y, hit.z)
+			if WaterManager.has_standing_water(cell):
+				var key: Vector3i = WaterManager.flow.space_at(cell)
+				focus.y = minf(WaterManager.flow.level(key), slice_y + 1.0) + .05
+	_audio_context = {"focus":focus, "zoom":camera_node.global_position.distance_to(focus)}
+	return _audio_context
+
+
+func _audio_surface_block(cell: Vector3i) -> int:
+	var id := WorldData.get_terrain_block(cell.x, cell.y, cell.z)
+	if BlockRegistry.is_solid(id): return id
+	if WaterManager.has_standing_water(cell): return BlockRegistry.get_id("base:terrain:water:source")
+	return BlockRegistry.AIR_ID
 
 
 func _process(delta: float) -> void:

@@ -1,0 +1,79 @@
+[
+  {
+    "test": "AmbientAudioTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 4.04,
+    "timeout": false
+  },
+  {
+    "test": "AudioListeningPointTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.45,
+    "timeout": false
+  },
+  {
+    "test": "DioramaSkyTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.41,
+    "timeout": false
+  },
+  {
+    "test": "EnvironmentDetailsTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.96,
+    "timeout": false
+  },
+  {
+    "test": "FireAudioTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.43,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 66.39,
+    "timeout": false
+  },
+  {
+    "test": "SkyDialTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.83,
+    "timeout": false
+  },
+  {
+    "test": "SkySceneLifecycleTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.31,
+    "timeout": false
+  },
+  {
+    "test": "WaterAudioTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.59,
+    "timeout": false
+  },
+  {
+    "test": "WeatherPersistenceTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.56,
+    "timeout": false
+  },
+  {
+    "test": "WolfWildlifeTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 1.71,
+    "timeout": false
+  }
+]

@@ -1,5 +1,13 @@
 # 08 - Sky, Clock & Weather: Reference, Fog Post-Mortem & Open Items
 
+**2026-10-13 update:** [166 — Diorama sky](166_diorama_sky.md) implements the
+full-sphere shader, stars, moon/sun discs and weather cloud/haze presentation.
+`SkyController` now applies depth fog with matching atmospheric color; the
+roof-aware shader shares its analytic gradient. `MANAGE_FOG` and the unused
+legacy height-fog hooks are retired. Six fixtures and native day/night/weather
+captures pass. The world-edge dissolve/streaming-budget redesign remains open.
+The historical post-mortem below still explains why a flat grey fog is wrong.
+
 > **Document review legend for Obsidian**
 >
 > <span style="color:#3fb950;">Green = keep / verified</span> |

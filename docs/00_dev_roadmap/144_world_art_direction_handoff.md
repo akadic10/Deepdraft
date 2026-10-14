@@ -1,43 +1,105 @@
 # 144 — World art direction and session handoff
 
+**Latest resume point:** [176 — October 13 handoff](176_session_handoff_2026_10_13.md)
+records the full day's completed work, latest playtest fixes and current build.
+
+**Post-conversion proportions are approved and live:** The native
+[162 — Visual scale review](162_visual_scale_review.md),
+[Stonehearth comparison](163_stonehearth_scale_comparison.md) and
+[trials](164_dwarf_wolf_proportion_trials.md) led to the player's choice of
+**Balanced dwarves and Large wolf**, integrated in
+[165](165_approved_actor_proportions.md). Dwarf and pine heights remain fixed;
+dwarf width and wolf proportions changed. The earlier study captures remain
+comparison evidence. This is separate from the workload/performance study in 153.
+
+**Current status (2026-10-13):** Terrain and current surface clutter are complete
+through [149](149_ground_stones.md). The player approved the
+[dwarf](150_dwarf_art_pilot.md), [deer](151_animal_art_pilot.md) and
+[starter furniture](152_furniture_art_pilot.md) pilots. Their combined
+[shared art standard](../60_asset_creation/63_shared_art_standard.md) is finalized.
+The production-scale comparison is recorded in
+[153 — Settlement art comparison](153_settlement_art_comparison.md).
+**Sequence steps 1–4 are complete for the core families.**
+The art has comparable rendering cost on the tested machine. Existing CPU-side
+world-processing spikes remain a separate performance concern, not a solved target.
+[154 — Complete family conversion](154_complete_family_conversion.md) integrates
+all dwarf appearances, all four live animal species and the full furniture
+catalogue, including packed/access forms. Current-format saves work with the new
+art. [155 — Resource drops and work tools](155_resource_drops_and_work_tools.md)
+also completes all remaining loose goods and both animated work tools.
+[160 — Faceted fire](160_faceted_fire.md) completes all six fire sources and
+their 42 animated frames. Cave flora, growing crops and other unconverted
+effects remain future batches; full grass voxels remain.
+[156 — Legacy art cleanup](156_legacy_art_cleanup.md) removes obsolete and
+duplicate exports and updates authoring and review tools.
+[157 — Folder layout](157_asset_folder_layout.md) then removes the redundant
+`faceted` folders; production models live directly under their asset families
+and categories. [158 — Asset structure](158_asset_structure.md) unifies all
+3D art under `assets/models/`, with peer animal, character, flora, rock,
+construction, furniture and item families. All approved models and current
+saves retain their behavior.
+
+Later follow-ups complete the [rough workbench](159_crude_workbench_stump.md),
+[whole-log bridges](172_rudimentary_log_bridge.md),
+[360-degree sky](166_diorama_sky.md), and
+[environmental audio with rain/storm weather](170_environment_sound_details.md).
+[175](175_dwarf_limb_lighting.md) corrects the reflected-limb lighting defect.
+These are integrated production changes; cave/crop art and grass caps remain
+outside the completed batches.
+
+**Updated direction (2026-10-13):** The base terrain migration is implemented; start with
+[145 — Base world terrain art plan](145_base_world_terrain_art_plan.md).
+The player chose a coherent grey rock palette with subtle variation and full
+grass voxels. Terrain now uses subtle edge shading on merged faces; real chamfers
+remain a measured study alternative. This foundation precedes the character/animal/furniture
+pilots; grass-over-dirt caps and fringes are deferred. The captures and performance
+results below remain the historical October 12 study reference.
+
 Recorded **2026-10-12** for resuming on **2026-10-13**. Deepdraft's proposed
 direction is **voxel-inspired, stylized low-poly art built on editable voxel
 terrain**. The native study now gives us a concrete starting point: retain the
 individual stone treatment and improved trees from pass 2, with pass 3's dirt
 and grass as the preferred ground baseline.
 
-The player likes these study improvements and has asked to preserve the wider
-direction before continuing. Converting dwarves, animals, furniture and the
-production world is still proposed work. This handoff records that plan; it
-does not mean those conversions or production integration have happened.
+The player likes these study improvements and asked to preserve the wider
+direction before continuing. At the October 12 handoff, converting dwarves,
+animals, furniture and production terrain was proposed work. The October 13
+terrain implementation is recorded in 145; 146–149 complete current surface
+clutter, 150–152 record approved pilots, and 63 defines the shared standard.
 
 ## Resume here
 
-1. Read this handoff and [143 — Visual quality study](143_visual_quality_study.md).
-2. Double-click [Launch Visual Study.cmd](../../Launch%20Visual%20Study.cmd)
-   from the project root. **F5 loads the normal game.** F6 only runs the study
-   when its scene is selected in Godot's scene tabs.
-3. Review Whole scene, Trees and Ground close-up. **C** compares the current
-   assets with the study; **G** compares ground passes 2 and 3 while retaining
-   the new trees, stone and lighting. Also review day, dusk, night and slicing.
-4. Continue with the proposed small asset pilot below when the player resumes
-   implementation. Keep it in the isolated study before replacing production art.
+For the current session state and player-review items, start with
+[176](176_session_handoff_2026_10_13.md). The references below explain the art
+baseline and preserve the study history.
 
-The next useful result is one coherent scene containing the preferred terrain
-and trees alongside a redesigned dwarf, one animal and a small furniture set.
-The exact pilot animal and furniture pieces remain to be chosen; they do not
-require a full catalogue redesign first.
+1. Read [63 — Shared art standard](../60_asset_creation/63_shared_art_standard.md)
+   and the approved pilot reports in 150–152. They define the current direction
+   and the remaining art boundaries. The integrated inventories are in 154.
+2. Read [153](153_settlement_art_comparison.md) for the matched settlement results,
+   shader-capacity correction and remaining CPU/update limits. They establish
+   relative art cost on this machine, not minimum hardware or a shipping FPS target.
+3. Read [154](154_complete_family_conversion.md) for the completed dwarf, wildlife
+   and furniture conversion, authoring sources, native review scenes and save QA.
+   [155](155_resource_drops_and_work_tools.md) completes the loose resource/tool
+   catalogue. [159](159_crude_workbench_stump.md) restores the intended crude
+   stump; [160](160_faceted_fire.md) converts the retained voxel flames. Review
+   these in normal Play before choosing cave flora, growing crops or other
+   effects; grass caps remain a separate deferred decision.
+4. Use [143](143_visual_quality_study.md) and `Launch Visual Study.cmd` only for
+   historical study comparisons. Its turf caps and true terrain chamfers are not
+   the current production baseline. **F5 loads the normal game.**
 
 ## Decisions and current status
 
-| Subject | Position at this handoff |
+| Subject | Current position |
 |---|---|
-| Individual stone blocks | The player explicitly likes the native study treatment. Retain this direction. |
-| Trees | The player calls pass 2 a significant visual upgrade. Retain its clustered foliage and shaped trunks as the starting point. |
-| Dirt and grass | Pass 3 was requested and preferred after review. Further refinement should preserve that improvement. |
-| Wider asset style | Discussed as the likely direction for dwarves, animals, furniture and other world objects. No catalogue-wide conversion has started. |
-| Ground rules below | Recommended continuation of the discussion, with exact seam strength, turf fringe and path design still open to visual tuning. |
-| Large world integration | Unproven. The experiment is 32×32; the intended world remains 1024×1024 horizontally and 128 vertically. |
+| Individual stone blocks | Approved visual direction; production uses merged faces with subtle edge shading in 145. True chamfers remain a study alternative. |
+| Trees | All four live species use the accepted clustered foliage and shaped trunks in 146–147. |
+| Dirt and grass | Pass 3 remains a reference for softened ground forms. The October 13 decision keeps grass as a full voxel and defers its turf-over-dirt treatment. |
+| Wider asset style | Standard 63 governs the integrated 41 dwarf parts, 21 wildlife parts and 41 furniture forms in 154. |
+| Ground rules below | Plan 145 now governs the base terrain migration. Seam strength and softening remain visual tuning choices; turf fringe and functional path design are deferred. |
+| Large world integration | Terrain and surface clutter have production measurements in 145–149. The combined 24-dwarf settlement comparison is in 153; art cost is comparable, but baseline CPU stalls remain. The October 12 experiment is only 32×32. |
 | Menus and HUD | The player likes the illustrated main menus. Retain their Hearth & iron theme; this is world-art work. |
 
 The original illustration remains an aspiration for composition, atmosphere and
@@ -47,6 +109,7 @@ are actual native captures.
 
 ## Shared visual language
 
+The finalized rules are in [63](../60_asset_creation/63_shared_art_standard.md).
 Use strong, chunky silhouettes, broad flat-shaded planes, a restrained palette
 and selective bevels. Timber should feel substantial; stone should feel heavy;
 foliage should read in clusters. Warm wood and firelight should sit comfortably
@@ -72,18 +135,19 @@ to subdivide the world simulation or to build floors one-eighth of a block thick
 
 | Surface | Recommended treatment | Gameplay boundary |
 |---|---|---|
-| Natural stone | Retain individually readable blocks, restrained chamfers and deterministic shade variation. Differentiate rock from dressed construction through material treatment where appropriate. | Existing block identity and mining yield remain authoritative. Do not add a wall-finish system. |
+| Natural stone | Retain individually readable blocks, subtle edge shading and deterministic grey shade variation. True chamfers remain a study alternative. Differentiate rock from dressed construction through material treatment where appropriate. | Existing block identity and mining yield remain authoritative. Do not add a wall-finish system. |
 | Dirt | Softer edges, earth-colour variation and occasional small stones. Aim for continuous earth with weaker joints than laid masonry. | Rendering must not turn dirt into a new resource, obstacle or stack of constructed bricks. |
-| Grass | A thin green top with a slightly uneven turf fringe over exposed brown soil; sparse tufts add variety. | The cap belongs to actual grassy terrain, not a separately placed structural block. |
+| Grass | A full grass voxel using the seasonal grass palette on exposed faces, with restrained local variation. Thin turf, soil sides within a grass block and fringes are deferred. | Grass and dirt remain separate voxel materials; see plan 145. |
 | Constructed stone paths | Fitted, chunky stones with shallow joints, modest variation and a visually level walking surface. | A future functional path needs a real persistent construction designation and inspectable material. Study slabs are decorative only. |
 | Permanent indoor floors | Carry the same material language into repeatable plank and laid-stone patterns. | Preserve [128 — Permanent floors](128_permanent_floor_preview.md): mine a full supporting layer and replace it to restore the walking height. |
 
-Grass must not appear on artificial slice cuts, buried faces or every surface
-newly revealed by digging. The current study only adds turf to actual grass
-blocks with open air above. Grass spreading, seasonal changes and other ground
-simulation are separate work, not automatic consequences of this art direction.
+Grass colour belongs to grass voxels, including their exposed side faces; digging
+or slicing rock/dirt must not add a grass coating. The historical pass 3 study
+adds turf only to actual grass blocks with open air above, but that treatment is
+deferred by plan 145. Retain existing seasonal palette behaviour. Grass spreading
+and other new ground simulation are separate work.
 
-Bevels and fringes must meet cleanly at terrain steps and chunk boundaries.
+Surface treatments must meet cleanly at terrain steps and chunk boundaries.
 Mining, construction and restoration must update neighbouring exposed surfaces
 without cracks, floating tufts or mismatched natural/constructed slice caps.
 The player's earlier constructed-stone top-face mismatch is a regression to avoid.
@@ -132,28 +196,46 @@ must address exposed-face batching, cached/instanced props where suitable,
 distance detail levels, bounded terrain updates, lighting cost and memory.
 There is no reason to render every stored world voxel as an individual object.
 
-## Proposed implementation sequence
+## Implementation sequence
 
-1. **Asset pilot in the study.** Add one dwarf, one animal and a small coherent
+**October 13 tree pilot:** After the five terrain phases, the user authorized
+pine and oak as the first production asset pilot. [146](146_tree_art_pilot.md)
+records the completed models, native references, gameplay checks and matched
+forest costs. The user approved it, and [147](147_complete_tree_family.md) now
+completes apple/juniper and the full live tree family.
+The broader asset exercise includes the approved isolated dwarf in
+[150](150_dwarf_art_pilot.md) and the approved deer in
+[151](151_animal_art_pilot.md). The small starter furniture set is approved
+in [152](152_furniture_art_pilot.md); their shared standard is finalized in 63.
+
+**October 13 order:** The terrain phases in
+[145](145_base_world_terrain_art_plan.md) were completed first, followed by surface
+clutter. Core family migration is now complete in 154; the pilot measurement and
+remaining performance limits are preserved in 153.
+
+1. **Asset pilot in the study — complete and approved.** Add one dwarf, one animal and a small coherent
    furniture set beside the preferred trees/ground. Keep the old versions for
    direct comparison. Include basic motion and a relevant interaction pose so
    an attractive static model does not conceal broken use or proportions.
-2. **Set the authoring standard.** Refine proportions, palette, bevel strength,
+2. **Set the authoring standard — complete in [63](../60_asset_creation/63_shared_art_standard.md).** Refine proportions, palette, bevel strength,
    detail density, mesh/material conventions and animation anchors from that
    pilot. Update the shared art guide when those choices are established.
-3. **Test production scale and behaviour.** Exercise a representative generated
+3. **Test production scale and behaviour — measured in [153](153_settlement_art_comparison.md).** Exercise a representative generated
    settlement with active dwarves, wildlife, many trees and lights, normal zoom
    ranges, slicing and repeated terrain edits. Measure frame time, update spikes
    and memory; compare against the same scene using current art. Agree on target
    hardware and budgets before treating the small study as a performance target.
-4. **Migrate by asset family.** Integrate the accepted treatment incrementally,
-   verifying gameplay contacts, material variants, current saves and UI previews
-   for each affected batch. Keep unfinished art experiments in the study.
+4. **Migrate by asset family — core families complete in [154](154_complete_family_conversion.md).**
+   All dwarf appearances, four wildlife species and the furniture catalogue use
+   the accepted treatment. Contacts, wood variants, saves and UI previews pass.
+   All remaining item/tool forms follow in [155](155_resource_drops_and_work_tools.md).
+   Apply the same checks to future cave flora, growing crops and effect batches.
 
-Open choices for the next session are the pilot subject/set, the amount of
-softening and detail at gameplay zoom, dirt seam strength, and the first
-production performance target. None requires reopening the preference for the
-improved trees, individual stone and pass 3 ground baseline.
+The furniture pilot covers the starter log stool, bed and two-wide door. The
+settlement comparison retains accepted terrain and clutter and separates art
+costs from existing simulation and terrain-edit spikes. No absolute performance
+target or minimum hardware requirement has been established. Profile the CPU
+spikes separately; do not claim the visual migration fixes them.
 
 ## Native reference images
 
@@ -184,7 +266,8 @@ existing dwarf/furniture models; they are not examples of completed replacements
 | [StudyEnvironmentArt.gd](../../tools/visual_study/StudyEnvironmentArt.gd) | Prototype trees, slabs and other dressing |
 | [Terrain detail shader](../../tools/visual_study/terrain_detail.gdshaderinc) | Study surface shading |
 | [CaptureStudy.gd](../../tools/visual_study/CaptureStudy.gd) | Native captures and checks |
-| [Art guide](../60_asset_creation/61_voxel_art_guide.md) | Existing production conventions; not yet globally replaced |
+| [Shared art standard](../60_asset_creation/63_shared_art_standard.md) | Current visual/export rules and acceptance workflow |
+| [Asset guide](../60_asset_creation/61_voxel_art_guide.md) | Existing specifications and historical voxel authoring conventions |
 | [Dwarf appearance guide](../40_economy_colony/41b_dwarf_appearance_glb.md) | Existing character asset contracts |
 
 Run from `P:\Deepdraft` to regenerate the study evidence:

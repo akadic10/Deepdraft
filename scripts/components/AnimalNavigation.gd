@@ -31,18 +31,23 @@ static func standable(cell: Vector3i, height: int = 2, width: int = 1) -> bool:
 	return true
 
 static func can_hop(from: Vector3i, to: Vector3i, height: int = 2, width: int = 1) -> bool:
-	# A wide animal strides one footprint. Adjacent start/end squares cover the
-	# entire sweep, without skipping an unchecked column, pit or obstacle.
-	if (from.x != to.x and from.z != to.z) or absi(from.x-to.x) + absi(from.z-to.z) != width or absi(from.y-to.y) > 1: return false
+	# Overlapping/adjacent endpoint footprints cover the complete cardinal sweep.
+	# Larger visual bodies retain two-cell strides and the existing speed/reach.
+	if (from.x != to.x and from.z != to.z) or absi(from.x-to.x) + absi(from.z-to.z) != stride(width,from.y!=to.y) or absi(from.y-to.y) > 1: return false
 	if not standable(from, height, width) or not standable(to, height, width): return false
 	var top_y := maxi(from.y, to.y)
 	return clear(Vector3i(from.x, top_y, from.z), height, width) and clear(Vector3i(to.x, top_y, to.z), height, width)
+
+static func stride(width: int, stepping := false) -> int:
+	# A height transition needs disjoint support footprints: an overlapping
+	# column cannot be both clear at the lower level and solid at the upper one.
+	return width if stepping else mini(width,2)
 
 static func neighbors(cell: Vector3i, height: int = 2, width: int = 1) -> Array[Vector3i]:
 	var result: Array[Vector3i] = []
 	for direction: Vector3i in DIRECTIONS:
 		for dy in [0, 1, -1]:
-			var target := cell + direction * width + Vector3i(0,dy,0)
+			var target := cell + direction * stride(width,dy!=0) + Vector3i(0,dy,0)
 			if can_hop(cell, target, height, width):
 				result.append(target)
 				break
@@ -103,6 +108,6 @@ static func approach(start: Vector3i, goal: Vector3, height: int, width: int, bu
 		for next in neighbors(at,height,width):
 			if first.has(next): continue
 			first[next] = next if at == start else first[at]
-			costs[next] = float(costs[at])+width
+			costs[next] = float(costs[at])+stride(width,next.y!=at.y)
 			open.append(next)
 	return first[best]

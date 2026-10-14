@@ -1,0 +1,52 @@
+{
+  "current": {
+    "parts": [
+      {
+        "part": "log_chair",
+        "triangles": 592,
+        "bytes": 55536,
+        "sha256": "b0a264e713a4c0397d55576985b945486d20eacdd51cff725e663dcdeb1a4548"
+      },
+      {
+        "part": "log_bed",
+        "triangles": 5208,
+        "bytes": 480216,
+        "sha256": "5f5c46d72ef76f5df6b215e1836bf24f74b589a50de4ce4ac854cd63155aa750"
+      },
+      {
+        "part": "door",
+        "triangles": 3928,
+        "bytes": 362484,
+        "sha256": "cea1d712803137280e00e472797e66226580bdb2d6c5d13e65912fa06fc4f5bb"
+      }
+    ],
+    "total_triangles": 9728,
+    "visible_meshes": 3,
+    "source_bytes": 898236
+  },
+  "pilot": {
+    "parts": [
+      {
+        "part": "log_chair",
+        "triangles": 220,
+        "bytes": 30144,
+        "sha256": "2c1d36a1b8ffc4af6c790e22a6b3a8e9a52cdc2805d09aa6f78cccdf9715635c"
+      },
+      {
+        "part": "log_bed",
+        "triangles": 2638,
+        "bytes": 349292,
+        "sha256": "131a7d7cf9d997482cdbc9b0299a4ca1ceb47db03c9aa7dc82d68296c2dcf1a4"
+      },
+      {
+        "part": "door",
+        "triangles": 2356,
+        "bytes": 312104,
+        "sha256": "2a828eb57e430a625cdc305f2f46f6b8b219eb80a1fc6efbdaaa07b8733a230d"
+      }
+    ],
+    "total_triangles": 5214,
+    "visible_meshes": 3,
+    "source_bytes": 691540
+  }
+}

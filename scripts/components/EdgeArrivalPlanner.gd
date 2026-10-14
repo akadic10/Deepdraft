@@ -47,7 +47,7 @@ static func from_entry(start: Vector3i, side: int, event: Dictionary, animal: Di
 			if parents.has(next) or not allowed.call(next): continue
 			if Vector2(next.x-start.x, next.z-start.z).length() > float(event.inland_depth)+float(event.corridor_radius): continue
 			parents[next] = at
-			costs[next] = float(costs[at])+width
+			costs[next] = float(costs[at])+Navigation.stride(width,next.y!=at.y)
 			open.append(next)
 	return {}
 

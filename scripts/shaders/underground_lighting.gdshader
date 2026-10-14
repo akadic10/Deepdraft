@@ -1,6 +1,9 @@
 shader_type spatial;
 render_mode cull_disabled;
 
+#include "res://scripts/shaders/terrain_appearance.gdshaderinc"
+#include "res://scripts/shaders/sky_atmosphere.gdshaderinc"
+
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool vertex_color = true;
 // Opt-in item gloss; ordinary world materials keep their matte response.
@@ -92,10 +95,9 @@ vec4 atmosphere(vec3 view_position, vec3 world_view_direction) {
         amount = max(amount,1.0-exp(min(0.0,(world_position.y-fog_height.x)*fog_height.y)));
     }
     vec3 direction = fog_sky_rotation * world_view_direction;
-    float elevation = clamp(direction.y,-1.0,1.0);
-    vec3 sky = mix(fog_sky_top.rgb,fog_sky_horizon.rgb,clamp(pow(1.0-elevation,fog_sky_curves.x),0.0,1.0));
-    vec3 ground = mix(fog_ground_bottom.rgb,fog_ground_horizon.rgb,clamp(pow(1.0+elevation,fog_sky_curves.y),0.0,1.0));
-    vec3 color = mix(fog_color.rgb,mix(ground,sky,step(0.0,elevation)),fog_aerial);
+    vec3 horizon = direction.y >= 0.0 ? fog_sky_horizon.rgb : fog_ground_horizon.rgb;
+    vec3 sky = diorama_atmosphere(direction, fog_sky_top.rgb, horizon, fog_ground_bottom.rgb, fog_sky_curves);
+    vec3 color = mix(fog_color.rgb, sky, fog_aerial);
     for (int i=0;i<fog_sun_count;i++) {
         color += fog_sun_colors[i]*pow(max(dot(world_view_direction,fog_sun_directions[i]),0.0),8.0);
     }
@@ -157,6 +159,7 @@ void fragment() {
     }
     sky_access = actor_sky_access >= 0.0 ? actor_sky_access : exposure(sample_position);
     ALBEDO = tint.rgb*(vertex_color ? COLOR.rgb : vec3(1.0));
+    terrain_appearance(world_position,world_normal,COLOR.a,length(VERTEX),mat3(VIEW_MATRIX),ALBEDO,NORMAL);
     if (water_surface) {
         int slot = int(round(UV2.x));
         vec2 current = texelFetch(water_motion,ivec2(slot%256,slot/256),0).rg;

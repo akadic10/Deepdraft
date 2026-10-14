@@ -1,0 +1,23 @@
+[
+  {
+    "test": "SkySceneLifecycleTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 2.27,
+    "timeout": false
+  },
+  {
+    "test": "DioramaSkyTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 3.2,
+    "timeout": false
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "passed": true,
+    "exit": 0,
+    "seconds": 66.78,
+    "timeout": false
+  }
+]

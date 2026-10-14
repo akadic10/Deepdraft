@@ -1,0 +1,10 @@
+{
+  "definitions_identical_except_six_model_paths": true,
+  "unchanged_tree_models": 94,
+  "unchanged_plant_models": 76,
+  "unchanged_previous_stone_models": 6,
+  "triangles_before": 9204,
+  "triangles_after": 1140,
+  "bytes_before": 853228,
+  "bytes_after": 157092
+}

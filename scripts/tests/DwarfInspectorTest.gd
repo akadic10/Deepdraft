@@ -52,7 +52,7 @@ func _run() -> void:
 	var panel = explorer._dwarf_panel
 	_expect(panel.visible and not explorer._standard_content.visible, "dwarf uses the opt-in Hearth panel")
 	_expect(panel._name_label.text == worker.dwarf_name, "actual generated identity")
-	_expect(panel._portrait_model.get_child_count() == 2, "portrait contains only static head/body visual copies")
+	_expect(panel._portrait_model.get_child_count() == (2 if worker.appearance.scar=="none" else 3), "portrait contains static head/body copies and the saved optional scar")
 	_expect(tasks._agents.size() == 1, "portrait never registers another worker")
 	_click(explorer._window.position + Vector2(120, 16))
 	_expect(explorer._object_id == worker, "panel clicks cannot pick through UI")

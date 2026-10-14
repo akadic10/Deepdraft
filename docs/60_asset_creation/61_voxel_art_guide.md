@@ -3,13 +3,127 @@
 > **Scope:** Trees, bushes, cave flora, farm crops, furniture, workshop props, decorative/world objects.
 > For dwarf body parts, see [`41b_dwarf_appearance_glb.md`](../40_economy_colony/41b_dwarf_appearance_glb.md).
 
+**Current authoring standard (2026-10-13):** Start with
+[63 — Shared world art standard](63_shared_art_standard.md) for new art and
+planned conversions. It consolidates the approved environment, dwarf, deer and
+furniture direction: broad facets, selective bevels, restrained colors and
+world-unit exports. This document remains the asset inventory and historical
+voxel construction reference. Its fixed voxel resolutions, legacy palettes and
+cube-based modeling instructions do not override 63; existing gameplay bounds,
+anchors, IDs and state contracts still apply. [154 — Complete conversion](../00_dev_roadmap/154_complete_family_conversion.md)
+integrates all dwarf appearances, live wildlife and furniture forms. Their
+production generators are `generate_dwarf_faceted.py`, `generate_wildlife_faceted.py`
+and `generate_furniture_faceted.py`. [156 — Cleanup](../00_dev_roadmap/156_legacy_art_cleanup.md)
+removes the original voxel files and duplicate pilots; dated images and metrics
+remain the comparison evidence. See 63 for current production folder paths.
+
+[155 — Resource drops and work tools](../00_dev_roadmap/155_resource_drops_and_work_tools.md)
+integrates the remaining 92 item forms and both animated tools. Use
+`tools/generate_items_faceted.py` with `data/art/items.json`; production exports
+are under `assets/models/items/` and `assets/models/characters/dwarves/tools/` after
+[158 — Asset structure](../00_dev_roadmap/158_asset_structure.md).
+The old crate, timber, ore, gem and tool generators described below now serve
+historical source only and their export commands are guarded. Their gameplay IDs, fill counts, material roles and
+interaction anchors remain authoritative; their cube-only geometry does not.
+
+**Character study (2026-10-13):**
+[150 — Dwarf art pilot](../00_dev_roadmap/150_dwarf_art_pilot.md) provides one
+faceted adult alongside the existing model, using production animation and
+portrait code. Its visual direction is player-approved and incorporated in 63;
+all 41 appearance parts are now converted and integrated in 154.
+
+**Animal study (2026-10-13):**
+[151 — Animal art pilot](../00_dev_roadmap/151_animal_art_pilot.md) provides one
+faceted deer with tapered anatomy and branching antlers. Six unit-root parts
+retain the live neck/head/ear/hip anchors, four-block clearance and grazing reach.
+Use `tools/generate_deer_pilot.py` and its offline `data/art/deer_pilot.json`;
+`--check` verifies closed geometry and reproducibility. The six approved exports
+are included unchanged in the full 21-part wildlife conversion in 154.
+
+**Furniture study (2026-10-13):**
+[152 — Starter furniture pilot](../00_dev_roadmap/152_furniture_art_pilot.md)
+adds faceted versions of the log stool, hay bed and two-wide frameless door.
+Use `tools/generate_furniture_pilot.py` and `data/art/furniture_pilot.json`;
+`--check` verifies closed geometry, grounding and reproducibility. Preserve
+exact semantic wood colors for CraftMaterials recoloring, independent hay/leaf
+colors, the .75 seat/sleep surfaces and named `leaf_left` hinge geometry.
+These player-approved exports are included unchanged in the complete catalogue
+conversion in 154, including access and packed forms.
+
 **Art direction study (2026-10-12):**
 [144 — World art direction handoff](../00_dev_roadmap/144_world_art_direction_handoff.md)
-records the preferred native terrain/tree prototypes and a proposed gradual
-transition to voxel-inspired, stylized low-poly assets. Consult it before new
-art-direction work. The production conventions below still describe existing
-assets; the study has not globally replaced them. A small character/animal/
-furniture pilot precedes broader authoring-rule and asset migration work.
+records the original native terrain/tree prototypes and the staged transition
+to voxel-inspired, stylized low-poly assets. Its updated sequence points to
+the completed family migration in 154 after the
+[production-scale comparison](../00_dev_roadmap/153_settlement_art_comparison.md).
+The family specifications below still describe
+existing assets where a later milestone has not superseded them.
+[145 — Base world terrain art plan](../00_dev_roadmap/145_base_world_terrain_art_plan.md)
+records the terrain implementation: coherent grey rock, full seasonal grass
+voxels and restrained dirt. The production terrain uses batched surfaces with
+soft edge shading; the chamfer comparison remains a study prototype. Turf caps
+stay deferred. The character/animal/furniture pilots and shared standard are
+complete; full family migration starts with the dwarf appearance roster.
+
+**Production tree pilot (2026-10-13):**
+[146 — Pine and oak](../00_dev_roadmap/146_tree_art_pilot.md) adopts the study's
+clustered low-poly treatment for those two species across all stages and seasons.
+[147 — Apple and juniper](../00_dev_roadmap/147_complete_tree_family.md) completes
+the four-species family, including spring blossoms, autumn fruit and picked
+juniper states: **94 GLBs** in total. These conventions now cover all live trees.
+Author in **world units**, root scale 1, ground Y0, centered trunk. Fractional
+vertices, rotated foliage masses, small true bevels and eight-sided tapered wood
+are allowed for this family; the integer-cube rule below remains historical for
+these pilot trees. Use `tools/generate_tree_pilot.py` and its offline
+`data/art/tree_pilot.json` profile, then Godot's normal importer. `--check` verifies
+reproducibility. Do not regenerate live pilot art with the older voxel generators.
+
+Keep one opaque vertex-color surface per model, convert sRGB authoring colors to
+linear `COLOR_0`, and reuse the spawner's shared lit material. Avoid individual
+leaf noise, texture requirements or per-tree materials. Every visible cluster is
+closed geometry. Seasons preserve the wood scaffold and variant index; winter
+pine snow colors the upward foliage faces without adding overlapping surfaces.
+Pine visual heights are 8/20/27; oak 7/17/24 world units. Trunk collision remains
+the JSON footprint and clearance height, **not the canopy envelope**. Adult
+canopies must leave three blocks of walkable space outside the footprint. Never
+embed canopy collision. No automatic tree growth behavior is implied by authoring
+the three existing stages. Apple visual heights are 6/12/18; juniper 5/12/16.
+Apple uses a spreading crown, exposed cream/pink blossoms and muted red fruit;
+juniper uses an irregular evergreen crown, cool greens and blue berry clusters.
+Picked juniper models must remove only fruit, preserving every wood/leaf vertex
+and color. Saplings carry no fruit. Apple worker harvesting remains future work.
+**Production surface vegetation (2026-10-13):**
+[148 — Bushes, wildflowers and reeds](../00_dev_roadmap/148_surface_vegetation.md)
+extends the low-poly conventions to all three berry bushes, three wildflower
+colors and both reed variants: **76 models**, including seasonal, young, picked
+and applicable packed forms. Author with `tools/generate_surface_vegetation.py`
+and `data/art/surface_vegetation.json`; run `--check` after edits. The older shrub,
+flower and reed voxel generators only retain comparison assets.
+
+Use closed faceted leaves/petals, tapered stems and restrained beveled foliage
+clusters in world units, root scale 1, ground Y0. Keep one opaque linear
+vertex-color surface, with no embedded physics. Bushes use distinct rounded,
+branching and low-rosette silhouettes. Fruit must remain readable on the outside
+of foliage and picking must remove only fruit. Young plants remain fruit-free
+and fit one-block clearance. Mature blueberry/elderberry/strawberry envelopes
+stay below 2/3/1 blocks; flowers below 1 and reeds below 2. The logical footprint
+is still one support tile; flower/shrub planting spacing is a separate rule.
+Packed forms preserve exact plant geometry above a wrapped root bundle/mat.
+Keep registry crop/bloom seasons and state identity intact. Do not put gameplay
+values in the offline art profile.
+
+**Production ground stones (2026-10-13):**
+[149 — Boulders and loose stones](../00_dev_roadmap/149_ground_stones.md) converts
+all six ground-stone variants. Use `tools/generate_ground_stones.py` and
+`data/art/ground_stones.json` for broad planar fractures and terrain-adjacent grey
+colors. The generator's `--check` validates closed geometry and reproducibility.
+Live files are under `assets/models/rocks/{boulders,scree}/`; older voxel
+exports are retired and their dated reports retain comparison evidence. Keep unit roots, ground Y0, one opaque
+linear vertex-color surface, and no embedded collision. Every boulder fits its
+2×2×2 envelope; scree stays below .5 high inside 3×3, with grounded fragments
+and open gaps. The production owner supplies only the boulder's existing
+blocking body. Shape/palette must not change habitat, yields or save identity.
+Other asset families retain their shipping models until explicitly converted.
 
 ---
 
@@ -106,14 +220,14 @@ desaturated purple accent for readability on grass, without emission. Early
 spring blooms, full summer blooms, autumn seedheads and short winter remnants
 retain the same roots. See [76](../00_dev_roadmap/76_seasonal_wildflowers.md).
 
-**Gatherable scree (2026-10-08):** three low, walkable stone groups under
+**Historical gatherable scree (2026-10-08; art superseded by 149):** three low, walkable stone groups under
 `assets/models/details/scree/`, generated by `tools/generate_scree.py`. Eight
 voxels/block, baked 0.125 scale, root scale 1, linear vertex colors, ground Y0.
 Sizes range from 2.375–2.625 wide, 0.375–0.5 tall and 2.25–2.5 deep, fitting a
 3×3 support envelope. Gaps expose the ground; every stone is grounded. See
 [74 — Gatherable scree](../00_dev_roadmap/74_gatherable_scree.md).
 
-**Boulder pilot (2026-10-08):** three dedicated world stones in
+**Historical boulder pilot (2026-10-08; art superseded by 149):** three dedicated world stones in
 `assets/models/details/boulders/`, generated by `tools/generate_boulders.py`.
 Eight voxels/block, baked scale 0.125, root scale 1, centered X/Z and ground Y0.
 Their two-block footprint contains heights of 1.375–1.75 blocks. Authored display
@@ -149,14 +263,20 @@ Deepdraft is flat-shaded, chunky, and readable at RTS zoom. Every asset must ser
 
 | Pillar | What it means in practice |
 |---|---|
-| **Dwarven weight** | Forms are squat, broad, and heavy. Thin spindly geometry reads as elven or human — not here. A dwarf table is thick-legged; a dwarf barrel is stout; a dwarf tree has a trunk as wide as it is tall. |
+| **Dwarven weight** | Dwarven bodies and crafted objects feel substantial: thick table legs, stout barrels and broad boots. Preserve species-specific plant and animal proportions; the accepted trees use tapered trunks and distinct crowns. |
 | **Stone and iron first** | The dominant materials of the WORLD are grey granite, dark iron, and amber torch-light — halls, industry, and monuments are stone and iron. **Furniture is woodwork (Alen, 2026-07-11):** beds, chairs, benches, tables, shelves — anything dwarves use rather than work — is wood, warm against the stone. Wood is plentiful on the surface (the map is forested); it is the natural furniture material, not a luxury. Stone/iron furniture is reserved for industrial anchors (anvil, trade counter, workshop bodies) and monuments (rune shelf, standing stones). |
 | **Mushroom magic** | The underground is alive with bioluminescence. Cave flora glows — not neon, but a soft, cold blue-violet that contrasts sharply with the warm stone environment. This is the game's primary visual signature. |
-| **Weather and age** | Everything in this world has been underground too long or outside too long. Stone is darkened at corners. Wood is grain-streaked. Iron is dull and pitted. Achieve this through colour gradient within a voxel mesh — a lighter highlight layer on top surfaces, a darker shadow layer on underside and recesses. Never flat fill an entire material with a single colour. |
+| **Weather and age** | Use restrained recess tones, sparse grain and selected chips to describe material and wear. Let scene lighting reveal the broad facets; mandatory bright top bands or per-face noise are not part of the current standard. |
 
 ---
 
 ## 2. Toolchain
+
+The pipeline below is retained for legacy voxel assets. New faceted art uses the
+family generators and export contracts in [63](63_shared_art_standard.md).
+MagicaVoxel is not required for the new style. Reuse each runtime owner's lit
+material path; the illustrative material below does not replace its slicing,
+recoloring or animation behavior.
 
 **Canonical tool: MagicaVoxel 0.99.7.1+**
 
@@ -196,15 +316,24 @@ mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL # lit by the sun
 > §6. Tradeoff: `CULL_DISABLED` ~doubles a mesh's drawn triangles; terrain already runs this
 > way, so revisit only if it costs too much at scale.
 
-The **highlight/shadow gradient still matters** (top surfaces lighter, recesses darker, baked
-into vertex colour) — lighting enhances that read, it does not replace it. Never flat-fill a
-material with a single colour.
+Older voxel models often bake top highlights and recess shadows. For new art,
+use restrained material variation and let lighting reveal facets, following 63;
+a gradient is not mandatory on every component.
 
-World assets (unlike dwarf parts) do **not** use a runtime `tint` uniform. Their colours are baked at authoring time. If a future system needs runtime recolouring (e.g. banner dye), it will use a separate shader with a tint uniform identical to the dwarf shader in `41b`.
+Most world-asset colors are baked. Furniture already supports runtime semantic
+recoloring through CraftMaterials, while dwarf parts retain their separate tint
+pipeline. Preserve the owning system's material behavior rather than adding a
+new tint shader to implement an existing material variant.
 
 ---
 
 ## 3. Scale Reference
+
+**Legacy resolution reference:** the voxel counts and import-scale table below
+describe earlier authoring pipelines. New art exports world-unit positions with
+root scale 1, as specified in [63](63_shared_art_standard.md); fractional vertices
+are allowed. Do not apply a legacy `.125` import scale to a world-unit GLB.
+Converted trees are the 94-model family in 146–147, not the older 86-model set.
 
 **The anchor: in the live game 1 block = 1.0 Godot unit.** (The renderer emits one block as a
 1.0-unit cube; the old "1 block = 0.5 units / root scale 0.0625" rule in this section was wrong
@@ -324,8 +453,11 @@ pine_mature_winter_2.glb    ← variant 2 (winter)
 
 All variants for a given species/stage/season **must share**:
 - Trunk base XZ position (the origin point collision and harvest targeting uses)
-- Full XZ canopy footprint (collision box is identical across variants)
-- Overall height (`clearance_height` applies to all variants equally)
+- Logical trunk footprint and occupancy height (the collision box is identical)
+- Stage-scale visual height; the canopy envelope can vary within the art budget
+
+`clearance_height` is trunk occupancy, not total visual height. Runtime picking
+uses actual mesh bounds; canopy overhang never enlarges ground occupancy.
 
 Variants **may differ in**:
 - Canopy silhouette and branch layout
@@ -337,7 +469,11 @@ Variants **may differ in**:
 
 ## 4. Master Colour Palette
 
-All world assets draw from this palette. Using consistent colours across assets is what makes the game world feel cohesive. **Do not introduce colours outside these ranges without a design justification.**
+This is the legacy palette reference for unconverted assets. Current terrain and
+converted families use the owned profiles and semantic palettes listed in
+[63](63_shared_art_standard.md). Do not copy historical stone bands or wood
+swatches over those sources. Keep each family coherent with the accepted native
+references; material-selectable wood must retain exact semantic colors.
 
 ### Stone & Earth
 
@@ -1192,18 +1328,29 @@ flag without respawning that squad. No gameplay or save-format change.
 
 ### File Paths
 
+Current production layout, maintained in [63](63_shared_art_standard.md):
+
 ```
 res://assets/models/
+  animals/        ← wildlife, grouped by species
+  characters/
+    dwarves/      ← modular appearance parts and rig-specific work tools
   flora/
     trees/        ← surface trees
     bushes/       ← surface shrubs, berry bushes
-    crops/        ← farm crops (per-stage GLBs)
-  furniture/      ← furniture pieces
-  workshops/      ← workshop block visuals
-  world/          ← scatter / world-gen decoratives
-  dwarves/        ← dwarf body parts (see 41b — not this doc)
-  equipment/      ← weapons, armour, tools (future)
+    flowers/      ← wildflowers and their packed forms
+    reeds/        ← reed variants
+  rocks/
+    boulders/
+    scree/
+  construction/   ← construction models
+  furniture/      ← furniture, packed forms and owned animation libraries
+  items/          ← loose goods, crates and inventory tools
 ```
+
+The `assets/` root also contains `audio/` and `ui/`. Add future crops, cave flora,
+equipment or workshop families when their production art is authored; older
+planned paths elsewhere in this historical guide are not an existing inventory.
 
 ### File Name Pattern
 
@@ -1233,13 +1380,16 @@ Before committing any GLB:
 
 - [ ] **Silhouette test**: At 64×64 pixels, the asset's silhouette is immediately recognisable as its type (tree / barrel / mushroom / etc.)
 - [ ] **Scale test**: Asset is positioned at correct world scale relative to a 1.0×1.0×1.0 Godot-unit reference cube (one terrain block)
-- [ ] **Colour discipline**: All colours are from the master palette (Section 4); no stray white or black voxels
-- [ ] **Flat shading**: No smooth normals; the voxel block edges must be crisp
+- [ ] **Colour discipline**: Use the owning family's palette and color-space contract in 63; verify runtime tints or semantic recolors where applicable
+- [ ] **Flat shading**: Broad readable planes and selective bevels follow the approved family reference
 - [ ] **No collision on plants**: Farm crops and cave flora have no `CollisionShape3D`
-- [ ] **Footprint match**: Asset visual extent fits within its declared `footprint` from JSON
-- [ ] **Season completeness**: Trees have all four season variants; underground plants have `summer` only (the fallback)
-- [ ] **Highlight/shadow gradient**: No material is flat-filled with a single colour; top faces are lighter, underside/recesses darker
-- [ ] **Dwarven weight check**: Nothing looks thin, elegant, or elven. If it does, widen the trunk/legs/frame.
+- [ ] **Bounds and contacts**: Fit the family's visual envelope and preserve logical occupancy and anchors; canopy/plant overhang does not become collision
+- [ ] **State completeness**: Preserve every existing seasonal, growth, crop, picked, packed or appearance mapping required by the family
+- [ ] **Material read**: Restrained variation and scene lighting explain form without noisy gradients or baked sunlight
+- [ ] **Proportions**: Dwarven objects retain weight; plants and wildlife retain their own recognizable proportions
+
+Use the complete authoring and acceptance workflow in [63](63_shared_art_standard.md)
+for regeneration, imported-resource checks, native views and relevant gameplay fixtures.
 
 ---
 

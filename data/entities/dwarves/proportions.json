@@ -1,0 +1,7 @@
+{
+  "description": "Approved Balanced presentation, milestone 165. Part meshes retain their shared rig coordinates; logical clearance stays 1x1x3.",
+  "body_width": 0.8,
+  "head_width": 0.93,
+  "relaxed_hand_inset": 0.22,
+  "relaxed_foot_inset": 0.06
+}

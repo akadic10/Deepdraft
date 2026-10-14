@@ -1,4 +1,13 @@
-"""Export berry-free juniper variants without changing their silhouette or trunk."""
+"""Reproduce the legacy berry-free voxel junipers for before/after comparison.
+
+Live clustered models, including picked states, use generate_tree_pilot.py.
+"""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 
 from generate_forest_redesign import build_model, mesh_model

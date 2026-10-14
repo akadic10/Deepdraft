@@ -442,7 +442,7 @@ func _rebuild_visuals() -> void:
 		var visible_y := _slice_y()
 		for cell: Vector3i in built:
 			if cell.y > visible_y: continue
-			var stone_color := BlockRegistry.get_color(BlockRegistry.get_id(built[cell]),WorldClock.season)
+			var stone_color := BlockRegistry.get_terrain_color(BlockRegistry.get_id(built[cell]),WorldClock.season)
 			var block_def := BlockRegistry.get_def(built[cell])
 			var floor_def := BlockRegistry.get_construction_def(String(block_def.get("construction","")))
 			for direction: Vector3i in DIRECTIONS:

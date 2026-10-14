@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bpkuj4v5n5fl0"
+uid="uid://ceyaba6ak81ym"
 path="res://.godot/imported/oak_mature_winter.glb-5b1e7c8702516ce62c2540c02c7f3d44.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

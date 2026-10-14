@@ -1,13 +1,19 @@
 # 44 — Crafting Workshops
 
-**Rudimentary hearth (2026-10-11):** Rudimentary → Camp furnishings now offers a
+**Recipe categories (2026-10-13):** Rudimentary groups items by their use, matching
+the Place catalogue: Rooms contains the log bed, hearth and three doors; Dining
+contains the log stool and bench; Lighting contains the log torch and campfire.
+These replace the mixed Camp furnishings group. Workshops, Access and Starter
+tools retain their existing recipes. Categories affect browsing and search only.
+
+**Rudimentary hearth (2026-10-11):** Rudimentary → Rooms now offers a
 rough fieldstone hearth: two matching logs and four rough stones, physically delivered to
 a crude workbench before 18 seconds of work. It emits 2400 heat units and quiet
 fire audio when installed. Repeated ingredients appear as one quantity in the
 recipe detail. Fuel upkeep remains future work. See milestone 122.
 
 **Log bed cost (2026-10-11):** One bed requires four matching logs at the crude
-workbench, under Rudimentary → Camp furnishings. Every log is physically delivered
+workbench, under Rudimentary → Rooms. Every log is physically delivered
 before the 16 seconds of work. Mixed species cannot substitute for a complete
 batch; the finished bed retains its wood identity. Cancelled work releases all
 unconsumed timber. See [120 — Beds and bedrooms](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
@@ -20,7 +26,7 @@ scaled material bonus, with future copper/gold tuning separate from recipes.
 See [118 — Crafted materials and appeal](../00_dev_roadmap/118_crafted_materials_and_appeal.md).
 
 **Log furniture (2026-10-11):** Rudimentary → Rooms offers 2/3-wide single log
-doors and a 4-wide double log door. Camp furnishings adds a log bench. Each uses
+doors and a 4-wide double log door. Dining offers a log bench. Each uses
 one allowed timber at a crude workbench, taking 12/18/24 seconds for doors and
 10 for the bench. Finished crates use normal haul/install work. The starter
 wooden torch is renamed Log torch; its four-per-log recipe is unchanged. See

@@ -3,10 +3,16 @@
 Eight voxels per block, baked scale 0.125, root scale 1. Parts share a feet
 origin; the actor supplies head/ear pivots. Colours are linear vertex colours.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/animals/rabbit'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/animals/rabbit'
 FUR = (0.55, 0.41, 0.27)
 CREAM = (0.86, 0.79, 0.64)
 PINK = (0.65, 0.40, 0.35)

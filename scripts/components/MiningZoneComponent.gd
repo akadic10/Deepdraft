@@ -426,6 +426,17 @@ func intersects_chunk(chunk: Vector3i) -> bool:
 		and chunk.z >= _chunk_min.z - 1 and chunk.z <= _chunk_max.z + 1
 
 
+## Same conservative reach/clearance margin as terrain invalidation, for a
+## furniture/trunk footprint that may straddle several chunks.
+func intersects_occupancy(box_min: Vector3i, box_size: Vector3i) -> bool:
+	var box_max := box_min + box_size - Vector3i.ONE
+	var lo := Vector3i(box_min.x >> 4, box_min.y >> 4, box_min.z >> 4)
+	var hi := Vector3i(box_max.x >> 4, box_max.y >> 4, box_max.z >> 4)
+	return hi.x >= _chunk_min.x - 1 and lo.x <= _chunk_max.x + 1 \
+		and hi.y >= _chunk_min.y - 1 and lo.y <= _chunk_max.y + 1 \
+		and hi.z >= _chunk_min.z - 1 and lo.z <= _chunk_max.z + 1
+
+
 func _recompute_chunk_bounds() -> void:
 	if region.is_empty():
 		_chunk_min = Vector3i.ZERO

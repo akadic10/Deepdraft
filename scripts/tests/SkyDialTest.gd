@@ -22,7 +22,7 @@ func _run() -> void:
 		dial.refresh()
 		_expect(dial.state.season == season and dial.state.day == 1 and dial.state.year == 2, "restoring calendar refreshes " + season)
 		_expect(is_equal_approx(dial.state.sunrise, sky.current_event_hours().sunrise) and is_equal_approx(dial.state.sunset, sky.current_event_hours().sunset), "HUD rise/set match world lighting")
-		for id in ["clear", "overcast", "foggy", "snow"]:
+		for id in ["clear", "overcast", "foggy", "snow", "rain", "storm"]:
 			weather.set_weather("base:weather:" + id)
 			dial.refresh()
 			_expect(dial.state.weather_id == "base:weather:" + id and dial.tooltip_text.contains(weather.current_weather_name()), "actual weather is displayed: " + id)
@@ -74,7 +74,7 @@ func _run() -> void:
 		inspector.clamp_to_viewport()
 		_expect(not dial.get_global_rect().intersects(inspector.get_global_rect()), "ordinary windows make room for the dial")
 		inspector.hide()
-		for example in [["summer", 1, 8.55, "clear"], ["autumn", 12, 17.75, "overcast"], ["winter", 6, 23.1667, "clear"], ["spring", 8, 12.0, "foggy"], ["winter", 12, 12.0, "snow"]]:
+		for example in [["summer", 1, 8.55, "clear"], ["autumn", 12, 17.75, "overcast"], ["winter", 6, 23.1667, "clear"], ["spring", 8, 12.0, "foggy"], ["winter", 12, 12.0, "snow"], ["spring", 8, 12.0, "rain"], ["summer", 8, 12.0, "storm"]]:
 			clock_node.restore_state({"year": 1, "season": example[0], "day": example[1], "hour": example[2], "speed": 1, "paused": true})
 			weather.set_weather("base:weather:" + example[3])
 			dial.refresh()

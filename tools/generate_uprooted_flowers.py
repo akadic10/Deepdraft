@@ -1,4 +1,10 @@
 """The same seasonal flower stems and petals, carried with a wrapped root mat."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from generate_flowers import OUT, SEASONS, clump, color
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 

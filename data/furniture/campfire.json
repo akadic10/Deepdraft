@@ -104,7 +104,7 @@
   },
   "fire_sound": "campfire",
   "material_group": "wood",
-  "material_palette": "camp_fire",
+  "material_palette": "oak_log",
   "appeal": {
     "design": 3,
     "material_factor": 0.25

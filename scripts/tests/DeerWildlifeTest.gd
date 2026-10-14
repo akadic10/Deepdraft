@@ -6,6 +6,9 @@ var wildlife
 var deer
 var clock_node
 
+func _make_wildlife() -> Node3D:
+	return load("res://scripts/systems/WildlifeManager.gd").new()
+
 func _run() -> void:
 	create_timer(60).timeout.connect(func(): push_error("Deer test timed out"); quit(1))
 	Navigation = load("res://scripts/components/AnimalNavigation.gd")
@@ -23,7 +26,7 @@ func _run() -> void:
 	scene = Node3D.new()
 	root.add_child(scene)
 	current_scene = scene
-	wildlife = load("res://scripts/systems/WildlifeManager.gd").new()
+	wildlife = _make_wildlife()
 	scene.add_child(wildlife)
 	wildlife.set_process(false)
 	wildlife.initialized = true
@@ -94,7 +97,7 @@ func _run() -> void:
 	wildlife.advance(.01,[])
 	_expect(deer.activity == "Sleeping" and deer.visual.scale == Vector3.ONE,"deer rests with folded legs and a full-size body")
 	var rest_box: AABB = wildlife.get_explorer_bounds(deer)
-	_expect(rest_box.position.y >= 20.99 and rest_box.position.z >= 39.99 and rest_box.end.z <= 42.01,"resting deer stays above ground inside its footprint")
+	_expect(rest_box.position.y >= 20.99 and rest_box.position.z >= 39.99 and rest_box.end.z <= 42.01,"resting deer stays above ground inside its footprint: %s" % rest_box)
 	for i in range(100): wildlife.advance(.1,[])
 	_expect(deer.fatigue < .8,"sleep restores fatigue")
 	wildlife.advance(.01,[deer.position+Vector3(-5,0,0)])

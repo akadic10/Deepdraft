@@ -1,4 +1,10 @@
 """Rough crafting stump and iron-free wall torch, eight voxels per block."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 import math
 from pathlib import Path

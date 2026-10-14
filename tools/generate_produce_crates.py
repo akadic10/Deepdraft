@@ -3,6 +3,12 @@
 Run with --update-data to register the authored crate presentations. Crates
 are automatic packaging, never a craftable input or a separate inventory item.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 import argparse
 import json

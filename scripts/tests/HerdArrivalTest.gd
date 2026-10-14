@@ -44,7 +44,7 @@ func _run() -> void:
 				for other in homes: _check(Vector3(home-other).length() >= 4, "group homes are separated")
 				homes.append(home)
 				for i in range(1, member_route.size()):
-					_check(navigation.can_hop(_unpack(member_route[i-1]), _unpack(member_route[i]), int(data.navigation.clearance), 2), "every wide stride is fully supported")
+					_check(navigation.can_hop(_unpack(member_route[i-1]), _unpack(member_route[i]), int(data.navigation.clearance), int(data.navigation.footprint)), "every wide stride is fully supported")
 				_check(planner.habitat(home, data), "whole destination footprint is grassy habitat")
 			print("HERD_ARRIVAL_SEED: ", seed_value, " species=", species, " count=", count, " edge=", batch.edge)
 	# A migrating deer group must enter, keep one herd identity, and settle

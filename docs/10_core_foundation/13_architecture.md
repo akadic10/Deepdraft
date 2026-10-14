@@ -425,12 +425,15 @@ audible while the world clock is paused and outside the camera/slice. Scene
 cleanup stops it alongside world voices. Equipment previews remain read-only UI
 data from the owning profession/item registries, not a second equipment inventory.
 
-`Camera` provides the smoothed focus position and actual camera-to-pivot zoom
-through `get_work_audio_context()` and the `work_audio_view` group. Horizontal
+`Camera` provides the centre-screen, slice-aware terrain hit and actual camera-to-hit
+distance through `get_work_audio_context()` and the `work_audio_view` group. The ray
+is shared once per process frame by all sound owners; a terrain miss falls back to
+the pivot, and detached cameras return no context (milestone 169). Horizontal
 focus distance supplies attenuation, zoom reduces gain, and native positional
 audio supplies subtle stereo panning. The `work_feedback_slice` group exposes
 the current slice height. No world or yield RNG is consumed. `set_volume_db()`
-and `set_muted()` control the work bus; a general audio settings UI is future work.
+and `set_muted()` control the work bus. Menu → Audio now exposes this as Effects,
+beside the independent Ambience channel (milestone 168).
 
 Chop and pick events originate at the dwarf's animation contact crossing.
 Worker crafting reuses the wood-chop bank at axe contact, with its order's
@@ -457,9 +460,21 @@ retain their existing real-time tail and attenuation defaults.
 procedural waterfall/river banks use private cosmetic randomness and visible
 measured currents; still lakes stay quiet. See [Water ambience](../00_dev_roadmap/108_water_ambience.md).
 
-> **Still planned:** the broader `AudioManager` for ambient loops and combat cues
-> referenced by `52_combat_military.md` is not implemented. Reuse/extend the work
-> playback ownership when that scope arrives instead of duplicating its bus/pool.
+`AmbientAudio` (milestone 168) owns the environmental soundscape, its separate
+Ambience bus, `data/audio/environment.json` and `user://audio.cfg` preferences.
+It combines clock/sky anchors, weather, nearby flora and physical sky exposure.
+Ten loop players and three shared phrase players are cleared at scene exit/loading;
+cosmetic RNG and real-time playback never alter simulation state. The settings
+panel calls this owner for both Ambience and existing Work/Effects controls.
+See [168 — Environmental ambience](../00_dev_roadmap/168_environment_ambience.md).
+Milestone [170](../00_dev_roadmap/170_environment_sound_details.md) adds read-only
+habitat queries for shoreline, discovered wet caves, trees and actual wolves.
+Wolf howls use Effects; the other environmental details use Ambience. Rain and
+storm are registered, scheduled weather types; WeatherManager creates one
+scene-owned WeatherPrecipitation mesh when needed. Roof/slice clipping and
+cosmetic rain never modify water mass or simulation state.
+Combat cues and music remain planned; the older proposed `AudioManager` name
+does not identify a live system.
 
 ---
 

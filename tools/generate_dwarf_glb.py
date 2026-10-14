@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the approved Deepdraft dwarf roster (41 modular GLBs).
+"""Generate the legacy voxel Deepdraft dwarf roster (41 modular GLBs).
+
+Production faceted art is authored by generate_dwarf_faceted.py (standard 63).
+This generator and its unchanged output paths remain for historical comparisons
+and voxel helper imports; they do not overwrite the integrated faceted roster.
 
 Run: python tools/generate_dwarf_glb.py [--out DIR] [--check]
-Default output: assets/dwarves. All 800 current appearance combinations are
+Default output: assets/models/characters/dwarves. All 800 current appearance combinations are
 validated before writing. --check validates the source without writing GLBs.
 
 8 voxels = 1 block. X/Z cell centres are integers; character meshes receive a
@@ -13,6 +17,12 @@ Keep Godot import Root Scale at 1.0. See docs/00_dev_roadmap/25_dwarf_visual_red
 The common voxel helpers remain re-exported here for existing tree, item and
 furniture generators; their corner-based frame and output are unchanged.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 import hashlib
 import json
@@ -31,7 +41,7 @@ EXPORT_SCALE = 0.125
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--out', type=Path, default=Path(__file__).resolve().parents[1]/'assets/dwarves')
+    ap.add_argument('--out', type=Path, default=Path(__file__).resolve().parents[1]/'assets/models/characters/dwarves')
     ap.add_argument('--check', action='store_true')
     args = ap.parse_args()
     parts = {f'{folder}/{name}': builder() for folder,name,builder in manifest()}

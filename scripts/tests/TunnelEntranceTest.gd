@@ -98,7 +98,8 @@ func _check_actor(entrance: Vector3i, mining: Node) -> void:
 	_expect(field.actor_sky_at(actor.position+Vector3.UP*1.5) == 0, "physical solid never returns slice daylight")
 	var production: Shader = field.SHADER
 	var legacy := Shader.new()
-	legacy.code = production.code.replace("actor_sky_access >= 0.0 ? actor_sky_access : exposure(world_position+world_normal*0.04)", "exposure(world_position+world_normal*0.04)")
+	legacy.code = production.code.replace("actor_sky_access >= 0.0 ? actor_sky_access : exposure(sample_position)", "exposure(sample_position)")
+	_expect(legacy.code != production.code, "legacy comparison actually disables actor light sampling")
 	for material: ShaderMaterial in field._material_cache.values(): material.shader = legacy
 	var before := await _image("clipped_dwarf_before")
 	for material: ShaderMaterial in field._material_cache.values(): material.shader = production
@@ -136,6 +137,8 @@ func _check_actor(entrance: Vector3i, mining: Node) -> void:
 	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		_expect(mesh.material_override is BaseMaterial3D, "portrait retains studio material")
 	texture.queue_free()
+	root.get_node("TaskManager").deregister_dwarf(actor.dwarf_id)
+	director._agents.erase(actor)
 	actor.queue_free()
 	await _settle()
 	_expect(field._actor_meshes.is_empty(), "freed actor releases lighting records")
@@ -143,7 +146,8 @@ func _check_actor(entrance: Vector3i, mining: Node) -> void:
 func _check_actor_parameters(actor: Node3D, amount: float, label: String) -> void:
 	var count := 0
 	for mesh: MeshInstance3D in actor.find_children("*", "MeshInstance3D", true, false):
-		if mesh.get_active_material(0) is ShaderMaterial:
+		var material := mesh.get_active_material(0) as ShaderMaterial
+		if material != null and material.shader == field.SHADER:
 			count += 1
 			_expect(is_equal_approx(float(mesh.get_instance_shader_parameter("actor_sky_access")), amount), label + " shades every actor part")
 	_expect(count >= 6, "actor parts are bound " + label)

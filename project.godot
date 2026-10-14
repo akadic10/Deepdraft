@@ -36,6 +36,7 @@ SkyController="*res://scripts/systems/SkyController.gd"
 WeatherManager="*res://scripts/systems/WeatherManager.gd"
 DwarfAssets="*res://scripts/registries/DwarfAssets.gd"
 SaveManager="*res://scripts/systems/SaveManager.gd"
+AmbientAudio="*res://scripts/systems/AmbientAudio.gd"
 
 [display]
 
@@ -77,3 +78,5 @@ slice_single_down={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+; Full-world vegetation plus settlement actors exceeds the default instance-uniform buffer.
+limits/global_shader_variables/buffer_size=131072

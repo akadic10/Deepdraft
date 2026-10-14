@@ -273,6 +273,8 @@ func _part(node: Node3D, center: Vector3, target: Vector3, rotation: Vector3, mi
 	var anchor := center
 	if mirror: anchor.x = -anchor.x
 	var reflection := Basis.from_scale(Vector3(-1,1,1) if mirror else Vector3.ONE)
+	if node==agent._body: reflection=Basis.from_scale(Vector3(agent.proportions.body_width,1,1))
+	if node==agent._head: reflection=Basis.from_scale(Vector3(agent.proportions.head_width,1,1))
 	node.transform = Transform3D(basis*reflection,anchor.lerp(target,weight)-basis*anchor)
 
 func _apply_pose() -> void:

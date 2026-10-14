@@ -15,6 +15,8 @@ func configure(data: Dictionary, id: String, origin: Vector3i, seed_value: int, 
 	_pose()
 
 func _build_visual(models: Dictionary) -> void:
+	var size: Array=definition.visual_scale
+	visual.scale=Vector3(size[0],size[1],size[2])
 	visual.add_child((models.body as PackedScene).instantiate())
 	head = Node3D.new()
 	head.position = Vector3(0,1.125,-.5)
@@ -53,7 +55,7 @@ func begin_hunt(target_animal: Node3D) -> void:
 	hunt_left = float(definition.hunting.pursuit_seconds)
 	timer = 0
 	activity = "Hunting"
-	if hop_progress < 1: hop_seconds = float(definition.hunting.stride_seconds)
+	if hop_progress < 1: hop_seconds = _hop_duration(float(definition.hunting.stride_seconds))
 
 func abandon_hunt() -> void:
 	hunt_target_id = ""
@@ -95,7 +97,7 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 		var destination := Navigation.approach(cell,prey.position,int(definition.navigation.clearance),footprint,int(definition.hunting.route_budget),float(definition.hunting.capture_radius))
 		if destination != cell:
 			_hop(destination)
-			hop_seconds = float(definition.hunting.stride_seconds)
+			hop_seconds = _hop_duration(float(definition.hunting.stride_seconds))
 			timer = 0
 			return
 		# Stay for the manager's contact check; blocked hunts back off.
@@ -112,6 +114,7 @@ func _pose() -> void:
 	var resting := activity == "Sleeping"
 	var moving := hop_progress < 1
 	visual.position.y = -.43 if resting else sin(hop_progress*PI)*float(definition.navigation.hop_height) if moving else 0.0
+	visual.position.y *= visual.scale.y
 	head.rotation.x = -.45 + sin(pose_time*6)*.045 if activity == "Eating" else -.12 if resting else 0.0
 	ears.rotation.x = .3 if resting else sin(pose_time*1.3)*.025
 	tail.rotation.y = sin(pose_time*2)*.09 if moving else .35 if resting else 0.0

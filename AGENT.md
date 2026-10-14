@@ -1,12 +1,377 @@
 # Deepdraft — Agent Navigation Index
 
-**Latest art direction handoff (2026-10-12):**
+**Temporary build exclusion corrected (2026-10-13):**
+The root `.gitignore` now excludes all new `tmp/` output, including extracted
+playtest executables. Earlier rules covered only selected logs/profiles and let
+a 104 MiB test EXE appear in GitHub Desktop's commit list. Keep durable review
+evidence under `docs/00_dev_roadmap/concepts/`; do not force-add scratch builds.
+Existing tracked review files and local test/build files are preserved.
+
+**Session closed (2026-10-13) — resume here:**
+[176 — Session handoff](docs/00_dev_roadmap/176_session_handoff_2026_10_13.md)
+records the completed art, scale, sky/audio/weather and friends-playtest work,
+the latest mining/limb fixes, validation boundaries and current Windows build.
+Balanced dwarves and Large wolf are approved and live. Latest fixes have native
+verification; player review after restart remains pending. Grass caps, cave/crop
+art and broader performance work remain deferred or future work. No new feature
+is assigned by this documentation-only closeout.
+
+**Mismatched dwarf limb lighting fixed (2026-10-13):**
+[175 — Dwarf limb lighting](docs/00_dev_roadmap/175_dwarf_limb_lighting.md)
+fixes the dark blue/grey right hand and boot caused by rendering reflected
+double-sided meshes. Cached reflected geometry preserves the existing signed
+rig transforms and work anchors while presenting positive transforms to the
+renderer. All four skin tones match across hands/boots in daylight and torchlight;
+six art/gameplay fixtures and a copied-save Ulvrek review pass. Restart Play or
+use the refreshed Windows release and ZIP. Existing appearance saves are unchanged.
+
+**Mining resumes after furniture moves (2026-10-13):**
+[174 — Mining furniture access](docs/00_dev_roadmap/174_mining_furniture_access.md)
+fixes cached zero-face mining zones after a bed or other obstruction moves.
+Nearby occupancy changes refresh work positions and re-arm pending leases;
+rapid changes coalesce without losing removals. Seven fixtures pass. A native
+copy of the player's save completes the real bed Move and both remaining wall
+blocks. Existing saves need no migration or redesignation. The Windows ZIP
+and a new isolated release directory include the fix.
+
+**Ledge pickup and Windows export lifetime fixed (2026-10-13):**
+[173 — Ledge pickup and safe exports](docs/00_dev_roadmap/173_ledge_pickup_and_safe_exports.md)
+lets dwarves collect reachable drops two blocks above the adjacent floor, with
+live obstruction checks and unchanged navigation clearance. Ten gameplay/UI
+fixtures pass. All three door widths and all 41 packed furniture models load;
+the missing door preview came from overwriting a running game's PCK. Exports
+now use unique `build/windows/releases/` folders. Close the old game and launch
+the freshly exported EXE, or extract the refreshed playtest ZIP into a new folder.
+Existing saves work without migration.
+
+**Rudimentary bridge corrected (2026-10-13):**
+[172 — Rudimentary log bridge](docs/00_dev_roadmap/172_rudimentary_log_bridge.md)
+replaces pale flat boards with four bark-covered trunks on rough cross logs across
+all five spans. The catalogue icon is refreshed; bank anchors, walking surface,
+palettes, placement and saves remain intact. Four fixtures and native comparisons
+pass; all other 376 GLBs are unchanged. The Windows playtest ZIP is refreshed.
+Restart Play or relaunch the exported game to see the new bridge.
+
+**Windows friends playtest prepared (2026-10-13):**
+[171 — Windows playtest](docs/00_dev_roadmap/171_windows_playtest.md) fixes all ten
+main-scene GDScript warnings without disabling diagnostics. Seven affected
+regression fixtures pass, including full save/load and backup recovery. The
+Windows x86-64 release includes all 102 runtime JSON definitions and excludes
+development files. Share `build/windows/Deepdraft-Windows-Playtest.zip`; keep
+its EXE and PCK together. Native DirectX 12 startup/world generation passes.
+Rebuild using `tools/windows_playtest/Export.ps1`. Player data stays separate.
+
+**Environmental sound details and rain/storm weather added (2026-10-13):**
+[170 — Environment sound details](docs/00_dev_roadmap/170_environment_sound_details.md)
+completes daytime insects, individual chirps, dry leaves, winter wind, tree
+creaks, shoreline laps, warm-night frogs, discovered wet-cave drips and actual
+wolf howls. Rain/Storm are scheduled and saved weather types with roof-clipped
+rain, muted roof patter, thunder and sky-dial symbols. Cosmetic precipitation
+does not add simulated water. Audio follows fractional water surfaces as well
+as terrain. Eleven regression fixtures, all 12 new sound families in the native
+mixer, and five generated-world reviews pass. Restart Play; existing saves and
+audio preferences work. Final listening balance is ready for player review.
+
+**Room sound perspective fixed (2026-10-13):**
+[169 — Room audio perspective](docs/00_dev_roadmap/169_room_audio_perspective.md)
+anchors listening to the terrain at screen centre, using the visible slice and live
+mined cells. An elevated orbit pivot had silenced bedroom torches and weakened
+nearby snoring. One cached ray supplies all sound owners. Focused camera/audio
+fixtures and native playback from a copied player save pass. Restart Play and
+load normally; the original save and audio preferences remain unchanged.
+
+**Environmental ambience added (2026-10-13):**
+[168 — Environmental ambience](docs/00_dev_roadmap/168_environment_ambience.md)
+adds wind, nearby foliage, daytime birds, warm-night insects and sparse owls.
+Seasonal sunrise, weather, physical shelter and overview zoom shape the mix.
+Menu → Audio controls Ambience and Effects independently; preferences survive
+scene changes. Native mixer/UI checks, existing fire/water/menu tests, full
+save/load regression and generated-world day/night captures pass. Reload the
+current project once for the new AmbientAudio autoload, then restart Play.
+Existing saves work; listening balance is ready for player review.
+
+**Sky save-load lifetime fixed (2026-10-13):**
+[167 — Sky scene lifetime](docs/00_dev_roadmap/167_sky_scene_lifetime.md)
+fixes sun/moon global-transform errors during the gap in scene reload. The sky
+autoload clears scene references on Environment exit and resumes on rebind.
+The exact reproducer, sky state checks and full dock-driven save round trip pass.
+A native copy of the player's latest quicksave restores five dwarves and 19
+furniture pieces; original saves remain byte-identical. Restart Play and load
+normally. No migration, new world or art change is required.
+
+**Full-sphere diorama sky implemented (2026-10-13):**
+[166 — Diorama sky](docs/00_dev_roadmap/166_diorama_sky.md) replaces grey clear
+nights with a blue atmosphere, stable stars and a crescent moon. The backdrop
+continues below the horizon; day/dawn/dusk and weather drive color, clouds and
+haze. Roof-aware fog shares the sky gradient and enclosed rooms remain dark.
+Existing celestial light curves, terrain, actors, streaming and saves stay intact.
+Six fixtures pass, including 85 native sky checks; 18 final production captures
+and before/after evidence are recorded. Restart Play for player review.
+
+**Balanced dwarves and Large wolves integrated (2026-10-13):**
+[165 — Approved actor proportions](docs/00_dev_roadmap/165_approved_actor_proportions.md)
+ships the player's selection from 164. Dwarf resting span is 2.16 blocks with
+fixed height; torso/head width factors .8/.93 come from registry-owned proportions.
+Work, rest, portraits and interruption resets retain the new shape. Wolves are
+2.392 high and 3.411 long, with four-wide/three-high navigation clearance;
+two-cell flat strides preserve speed, and longer terrace strides adjust duration.
+All 17 affected fixtures, 364 native viewer checks, a full 24-dwarf settlement
+and pre-change settlement restoration pass. All 381 GLBs stay byte-identical;
+pines, other animals and the world grid keep their sizes. Restart Play; tested
+current-format saves load without migration. Standard 63 records the live rig factors.
+
+**Dwarf and wolf proportion trials ready (2026-10-13):**
+[164 — Dwarf and wolf proportion trials](docs/00_dev_roadmap/164_dwarf_wolf_proportion_trials.md)
+adds Current/Balanced/Lean dwarves and Current/Balanced/Large wolves beside the
+local Stonehearth reference. Launch `Launch Proportion Study.cmd` for two dwarf
+appearances, live poses, multiple angles and settlement comparisons. Dwarf/pine
+heights stay fixed; dwarf resting spans are 2.60/2.16/2.00 blocks and wolf heights
+are 1.84/2.116/2.392. All 363 study checks and headless import pass; 63 captures
+are recorded. Balanced is the moderate recommendation for each family, awaiting
+player selection. Both taller wolves exceed current navigation clearance and
+need gameplay review before integration. Production art, code and saves stay current.
+
+**Stonehearth scale comparison ready (2026-10-13):**
+[163 — Stonehearth scale comparison](docs/00_dev_roadmap/163_stonehearth_scale_comparison.md)
+measures the supplied `P:/stonehearth` QB models using resolved render scales
+and displays them beside current Deepdraft art. Launch `Launch Stonehearth Comparison.cmd`.
+Dwarf/hearthling heights are 3.32/3.30; our resting hand span is 37% wider.
+Mature/ancient pine heights already match 20/27 blocks. Wolf proportions differ
+substantially; 75% trees in 162 are a concept trial, not a Stonehearth correction.
+Four parser fixtures and 78 native checks pass; 39 source files stay unchanged.
+The height-matching toggle affects only study instances. Production stays current.
+
+**Visual scale study ready (2026-10-13):**
+[162 — Visual scale review](docs/00_dev_roadmap/162_visual_scale_review.md)
+adds an isolated native lineup, furnished room comparison, camera/tree trials
+and the earlier settlement concept. Double-click `Launch Scale Study.cmd`.
+Dwarves measure 3.32 blocks high, with a 2.6-block resting hand span. Review
+character width, compact room layouts and smaller settlement trees before
+changing global actor height. All 80 study checks pass. These are candidates
+awaiting player review; production art, scales, gameplay and saves are unchanged.
+
+**Save-menu reload fixed (2026-10-13):**
+[161 — Save menu scene teardown](docs/00_dev_roadmap/161_save_menu_scene_teardown.md)
+fixes the null viewport error when loading from the dock. Persistence commands
+close the menu before emitting signals, and queued layout callbacks ignore
+detached docks. Three fixtures pass, including real menu-driven scene reloads.
+A copy of the player's pre-fire quicksave restores five dwarves and 14 furniture
+pieces with current art; all four original save files remain byte-identical.
+Restart Play and load normally; no save migration is needed.
+
+**Fire effects converted (2026-10-13):**
+[160 — Faceted fire](docs/00_dev_roadmap/160_faceted_fire.md) replaces retained
+voxel flames on campfires, both torches, hearths, braziers and smelters. All six
+static forms and 42 frames across five clips use tapered flame tongues and
+warm color gradients. Flames are self-lit from every view; world light, heat,
+audio, timing and gameplay definitions remain unchanged. Bodies retain exact
+geometry/colors; 370 other models are untouched. Nine affected fixtures and
+native day/night/frame reviews pass. Use `tools/generate_fire_faceted.py` and
+`data/art/fire_effects.json`; the unused voxel mesh dump is removed and backed
+up outside the project. Thumbnails are refreshed. Restart Play; saves work.
+
+**Crude workbench corrected (2026-10-13):**
+[159 — Crude workbench stump](docs/00_dev_roadmap/159_crude_workbench_stump.md)
+replaces the overbuilt plank table with the intended rough bark-covered stump.
+The cut top matches the existing `.875` crafting height. Its model and catalogue
+thumbnail are updated; the other 380 models and all gameplay definitions remain
+unchanged. Five affected fixtures, four wood variants and all-sided worker
+crafting pass. Exact follow-up art fingerprints are in `data/art/asset_revisions.json`.
+Restart Play to refresh cached models and thumbnails; existing saves work.
+
+**Production asset structure unified (2026-10-13):**
+[158 — Asset structure](docs/00_dev_roadmap/158_asset_structure.md) places all
+381 models under `assets/models/`, grouped into animals, characters, flora,
+rocks, construction, furniture and items. Dwarves belong to
+`characters/dwarves/`; trees, bushes, flowers and reeds are peers under flora.
+All 146 moved files retain their bytes and importer settings. Definitions,
+registry paths, generators, audits, viewers and fixtures use the new locations.
+Ten authoring checks, 16 fixtures, native family galleries and pre-change
+settlement restoration pass. Standard 63 is the current folder guide. Restart
+Play; no new world or save migration is needed. Notes below retain dated layouts.
+
+**Production asset folders flattened (2026-10-13):**
+[157 — Asset folder layout](docs/00_dev_roadmap/157_asset_folder_layout.md)
+removes all seven redundant `faceted` folders and moves 297 models directly
+under their family/species/part categories. All 381 model files retain their
+exact bytes; moved import settings are preserved. Definitions, registry paths,
+generators, audits, review tools and tests use the new layout. Standard 63 lists
+the current paths. All 16 affected fixtures pass, and a pre-change settlement
+save restores its actors, furniture, trees, wildlife and terrain. Restart Play;
+no new world or save migration is needed. Generator filenames still describe
+the faceted art style; prior notes and reports below are dated milestones.
+
+**Legacy asset cleanup complete (2026-10-13):**
+[156 — Legacy art cleanup](docs/00_dev_roadmap/156_legacy_art_cleanup.md)
+removes 353 superseded voxel exports and 17 duplicate pilot exports. All 373
+approved production GLBs and eight retained floor/effect models are byte-identical.
+Trees now live under `assets/models/flora/trees/faceted/`; definitions, generators
+and review tools use production paths. Old export commands are guarded; historical
+images and cost reports remain. Six retained furniture flame meshes now have
+independent offline source data, without dependencies on retired furniture bodies.
+All 16 affected fixtures and native reviews pass; a pre-cleanup settlement save
+restores all actors, trees, furniture and terrain. Restart Play; no migration is
+needed. Cave flora, growing crops and effects remain future art batches. Full
+grass voxels remain; turf caps are deferred. Notes below are dated milestones.
+
+**Resource drops and work tools integrated (2026-10-13):**
+[155 — Resource drops and work tools](docs/00_dev_roadmap/155_resource_drops_and_work_tools.md)
+completes all remaining 62 item definitions / 92 model presentations and the
+animated axe and pickaxe. This includes 23 previously missing models, all crate
+fill states, material-selectable starter tools and refreshed inventory thumbnails.
+All 1,507 imported-art checks and 15 distinct fixtures pass. Real mining, felling,
+carrying, storage, crafting and save/reload retain their existing behavior.
+Use `tools/generate_items_faceted.py` and `data/art/items.json`; original exports
+remain for comparisons. Model paths alone changed in production definitions and
+the tool registry. Restart Play; no new world or save migration is needed.
+Cave flora, growing crop stages and effects remain future art batches. Full
+grass voxels remain; turf caps are deferred. Prior notes below are milestones.
+
+**Dwarf, wildlife and furniture conversions integrated (2026-10-13):**
+[154 — Complete family conversion](docs/00_dev_roadmap/154_complete_family_conversion.md)
+ships all 41 dwarf appearance parts, 21 wildlife parts and 41 furniture forms
+(30 definitions, legacy chair, ladder/bridge variants and packed forms).
+The 17 approved pilot exports are byte-identical. All 7,583 new art checks and
+30 distinct gameplay/UI/art fixtures pass, including native door/bedroom lighting.
+The full 24-dwarf/48-furniture settlement and pre-conversion save restoration pass.
+Catalog thumbnails now match the integrated art; portraits include saved scars.
+Gameplay IDs, bounds, recipes, behavior and save schemas are unchanged. Restart
+Play; no new world is needed for current-format saves. Standard 63 is canonical.
+Use `generate_dwarf_faceted.py`, `generate_wildlife_faceted.py` and
+`generate_furniture_faceted.py`; retain old files for comparisons. The core family
+migration in roadmap step 4 is complete. Loose items and tools follow in 155 above;
+cave flora, growing crops and effects remain future batches. Full grass voxels remain.
+The dated pilot/comparison notes below describe their original milestones.
+
+**Production-scale art comparison (2026-10-13):**
+[153 — Settlement comparison](docs/00_dev_roadmap/153_settlement_art_comparison.md)
+tests the accepted dwarf, deer and starter furniture in the full generated world:
+24 dwarves, 48 furniture pieces, eight lights, 2,953 trees and live wildlife.
+Current/pilot runs retain matching starting-state and world hashes. Rendering
+cost is comparable, with fewer primitives and unchanged paused draw counts;
+real worker interactions and native save/reload pass. An existing shader-instance
+capacity limit caused black actor parts; `project.godot` now doubles the uniform
+buffer to 131072 slots. Restart Play. CPU world-processing spikes remain in both
+art sets; no minimum-hardware or FPS guarantee is implied. Roadmap steps 1–3 are
+complete. Subsequent full dwarf, animal and furniture integration is recorded in
+154 above; the preserved measurements here describe the earlier pilot comparison.
+
+**Shared world art standard finalized (2026-10-13):**
+[63 — Shared art standard](docs/60_asset_creation/63_shared_art_standard.md)
+consolidates the approved environment, dwarf, deer and starter furniture work.
+New art uses broad flat-shaded forms, selective bevels, restrained owned palettes
+and world-unit exports. It supersedes universal legacy voxel-modeling rules in
+61 while preserving gameplay footprints, anchors, IDs, states and material roles.
+Terrain, surface clutter, dwarves, wildlife and the furniture catalogue are
+integrated. The production-scale pilot comparison is in 153; family migration
+is in 154. Full grass voxels remain;
+turf caps are deferred. This standard adds no runtime changes.
+
+**Furniture art pilot visually approved (2026-10-13):**
+[152 — Starter furniture art pilot](docs/00_dev_roadmap/152_furniture_art_pilot.md)
+adds a faceted log stool, hay bed and frameless two-wide door in an isolated
+current/pilot viewer. Launch `Launch Furniture Pilot.cmd` for all four wood
+materials, sitting/sleeping with the approved dwarf and production door hinges.
+All 70 asset checks and four gameplay adapters pass; 28 native comparisons are
+recorded. Shipping furniture, definitions, worker behavior and saves are unchanged.
+The player approved the furniture direction, completing all three pilot subjects.
+Their shared authoring standard is finalized in 63; production-scale results are
+in 153 and family migration follows.
+
+**Deer art pilot visually approved (2026-10-13):**
+[151 — Animal art pilot](docs/00_dev_roadmap/151_animal_art_pilot.md) adds six
+faceted deer parts in an isolated current/pilot viewer. Launch
+`Launch Animal Pilot.cmd` for standing, walking, fleeing, grazing and resting,
+plus the approved dwarf as a size reference. All 66 imported-asset/pose checks
+and the existing wildlife fixture with both current and pilot art pass.
+Thirty native comparisons are recorded. Shipping animal models, definitions,
+behavior and saves remain unchanged. The player approved the deer direction;
+the furniture pilot is also approved and the shared standard is finalized in 63.
+
+**Dwarf art pilot visually approved (2026-10-13):**
+[150 — Dwarf art pilot](docs/00_dev_roadmap/150_dwarf_art_pilot.md) adds one adult
+faceted dwarf in an isolated comparison viewer. Launch `Launch Dwarf Pilot.cmd`
+to compare walking, mining, felling, carrying, seating and sleep using live rigs.
+Eight modular GLBs preserve anchors, tints and the logical 1×1×3 body. All 173
+asset/pose checks and three gameplay adapters pass; native views and portraits
+are recorded. Shipping dwarf art, pools, saves and accepted environment assets
+remain unchanged. The player approved the pilot's look; use it as the visual
+reference when the appearance roster conversion is undertaken.
+The approved deer and furniture pilots are in 151–152; the shared standard is in 63.
+
+**Ground stones completed (2026-10-13):**
+[149 — Boulders and loose stones](docs/00_dev_roadmap/149_ground_stones.md)
+converts all six models to broad faceted grey stone, completing current surface
+clutter. Boulder blocking and scree walkability, worker yields/times, placement,
+picking and saves are unchanged. All 476 asset/spawner checks, four gameplay
+fixtures and native worker captures pass. Matched world hashes/draws stay fixed;
+source triangles fall from 9,204 to 1,140 with no measured GPU regression.
+All 170 accepted tree/plant models are byte-identical. Offline authoring:
+`tools/generate_ground_stones.py`, `data/art/ground_stones.json`. Restart Play;
+existing worlds work. Character/animal/furniture production migration and turf caps remain future work.
+
+**Surface vegetation completed (2026-10-13):**
+[148 — Bushes, wildflowers and reeds](docs/00_dev_roadmap/148_surface_vegetation.md)
+adds 76 low-poly models for all three berry bushes, three wildflower colors and
+both reed variants, including seasonal, young, picked and applicable packed forms.
+The 1,831 asset/spawner checks and ten gameplay fixtures pass, including real
+worker moves/planting, crop regrowth and save/load. Native paired seed-1234 views
+retain plant identities and draw counts with no measured GPU regression. All
+94 accepted trees and terrain stay unchanged. Offline authoring:
+`tools/generate_surface_vegetation.py`, `data/art/surface_vegetation.json`.
+Restart Play; existing worlds work. Main surface vegetation conversion is complete.
+
+**Complete tree family (2026-10-13):**
+[147 — Apple/juniper completion](docs/00_dev_roadmap/147_complete_tree_family.md)
+adds 52 clustered GLBs, including apple blossom/fruit and all picked junipers.
+All four live species now use the new style (94 models); approved pine/oak are
+byte-identical. All 2,064 asset/spawner checks, real juniper harvesting, felling,
+picking, navigation and save/load pass. Matched 2,953-tree production captures
+add ~0.12 ms median GPU time for the new pair in the 2560×1440 overview on RX 9070 XT.
+No gameplay/stat changes; apple worker harvesting remains future work. Generator:
+`tools/generate_tree_pilot.py`; profile: `data/art/tree_pilot.json`. Evidence in
+147 and `tmp/tree_family_20261013/`. Restart Play; no new world needed.
+
+**Pine/oak art pilot (2026-10-13):**
+[146 — Tree art pilot](docs/00_dev_roadmap/146_tree_art_pilot.md) integrates
+42 clustered low-poly GLBs across every existing stage, season and variant of
+pine/oak. Placement, footprints, felling, yields and saves remain unchanged;
+apple/juniper completion is recorded in 147 above. Offline profile/generator:
+`data/art/tree_pilot.json`, `tools/generate_tree_pilot.py`. All 976 asset/spawner
+checks plus picking, chopping, navigation and save/load pass. Native matched
+2,953-tree views retain draw counts; the 2560×1440 overview adds 0.577 ms median
+GPU time on RX 9070 XT. Evidence and limits in 146. Restart Play; no new world.
+Broader character/animal/furniture migration and turf caps remain deferred.
+
+**Shoreline colour correction (2026-10-13):** The reported moving pale shoreline
+band came from `MoistureRenderer` covering the new linear terrain palette with
+old sRGB vertex colours. Damp grass/dirt now share terrain profiles and shading,
+with gradual darkening and paused-season refresh. Explicit moisture coverage
+remains a separate debug palette. Five focused fixtures pass, including 314
+overlay checks. Matched native 0/30/90-second captures preserve identical water
+and moisture states. Evidence: `tmp/shoreline_art_20261013/` and roadmap 145.
+Restart Play; no new world or save migration is needed.
+
+**Base world terrain art implemented (2026-10-13):**
+[145 — Base world terrain art plan](docs/00_dev_roadmap/145_base_world_terrain_art_plan.md)
+records all five completed phases. The base terrain uses one
+coherent grey rock palette with subtle local variation, full grass voxels,
+and restrained dirt. Height-driven rock colour bands and generated grass edge
+rings are retired. Turf-over-dirt caps remain deferred. Production uses soft
+terrain-only edge shading on merged faces; the real-chamfer comparison stays in
+the study. Overview jobs finish asynchronously with stale-result rejection and
+a 4 ms soft upload budget. All 41 distinct regression fixtures pass, including
+564 appearance checks, generation, concealment, construction and current save/load.
+Native 1600×1000/2560×1440 comparisons and limits are recorded in 145: existing
+large mining-command and active-simulation spikes remain. Restart Play.
+
+**Wider art direction handoff (2026-10-12):**
 [144 — World art direction and next session](docs/00_dev_roadmap/144_world_art_direction_handoff.md)
-records the preferred pass 2 stone/trees and pass 3 ground, native reference
-images, terrain/grass/path rules, and the proposed gradual move to voxel-inspired
-stylized low-poly world assets. Resume here for art work. Dwarf/animal/furniture
-conversion and production integration remain proposed; the next step is a small
-asset pilot in the isolated study, followed by production-scale measurement.
+records the original native study, terrain/path rules and the staged move to
+voxel-inspired stylized low-poly world assets. Plan 145 supersedes its turf-cap
+recommendation; 146–152 record the environment migration and approved pilots.
+Standard 63 completes the shared authoring rules; 153 records the production-scale
+comparison. The full dwarf, wildlife and furniture migration is complete in 154.
 
 **Small-world visual study (2026-10-12):** [143 — Visual quality study](docs/00_dev_roadmap/143_visual_quality_study.md)
 adds an isolated 32×32 native scene with paired current/study treatments.
@@ -753,8 +1118,9 @@ verification. Visibility only; dwarf work is unchanged.
 
 | File | Read before you… |
 |---|---|
-| [`61_voxel_art_guide.md`](docs/60_asset_creation/61_voxel_art_guide.md) | Author or review any GLB asset — trees, bushes, cave flora, farm crops, furniture, workshop props, or world decoratives. Contains the master colour palette, MagicaVoxel scale rules, per-asset bounding boxes, naming conventions, and the Dwarven fantasy aesthetic brief. |
+| [`61_voxel_art_guide.md`](docs/60_asset_creation/61_voxel_art_guide.md) | Find existing asset specifications, naming, historical voxel pipelines and family dimensions. Read 63 first for the current shared art direction and export rules. |
 | [`62_furniture_catalog.md`](docs/60_asset_creation/62_furniture_catalog.md) | Plan a furniture or decoration milestone, or pick the next asset batch. Full Deepdraft furniture inventory (status per piece) compared against Stonehearth's catalogue (enumerated from source 2026-07-11), with the variant strategy and archetype gap list. |
+| [`63_shared_art_standard.md`](docs/60_asset_creation/63_shared_art_standard.md) | Author, review or convert world art. Approved form/palette rules, world-unit exports, material ownership, family anchors, acceptance workflow and integration status. |
 
 
 ---

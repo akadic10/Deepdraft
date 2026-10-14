@@ -226,7 +226,9 @@ func advance_reachability(query: Dictionary, start: Vector3i, goal: Vector3i,
 	if query.is_empty() or query.start != start or query.goal != goal or query.adjacent_ok != adjacent_ok \
 			or query.get("goals", {}) != exact_goals or not search_is_current(query):
 		query.clear()
-		query.merge(_new_search(start, goal, adjacent_ok, true))
+		# With explicit work stands, the referenced item/block need not be a
+		# place an actor can stand (e.g. ore on a shelf under a low ceiling).
+		query.merge(_new_search(start, goal, adjacent_ok, true, exact_goals.is_empty()))
 		if not exact_goals.is_empty():
 			query["goals"] = exact_goals
 			var lo := goal
@@ -459,12 +461,12 @@ func _astar(start: Vector3i, goal: Vector3i, max_nodes: int, adjacent_ok: bool) 
 	return result
 
 
-func _new_search(start: Vector3i, goal: Vector3i, adjacent_ok: bool, track_changes := false) -> Dictionary:
+func _new_search(start: Vector3i, goal: Vector3i, adjacent_ok: bool, track_changes := false, validate_goal := true) -> Dictionary:
 	# Binary min-heap of [f, tie, cell]; g + came-from maps.
 	var heap: Array = []
 	var path: Array[Vector3i] = []
 	var status := ProbeResult.SEARCHING
-	if not is_navigable(start) or (not adjacent_ok and not is_navigable(goal)):
+	if not is_navigable(start) or (validate_goal and not adjacent_ok and not is_navigable(goal)):
 		status = ProbeResult.UNREACHABLE
 	else:
 		_heap_push(heap, [_heuristic(start, goal), 0, start])

@@ -28,7 +28,7 @@ func _run() -> void:
 	_generator = root.get_node("WorldGenerator")
 	_renderer = scene.get_node("Renderer")
 	var deadline := Time.get_ticks_msec() + 90000
-	while not _generator._grass_bands_ready or not _renderer._overview_built:
+	while not _generator._maps_ready or not _renderer._overview_built:
 		await process_frame
 		if Time.get_ticks_msec() > deadline:
 			_failures.append("Scene did not finish terrain generation.")

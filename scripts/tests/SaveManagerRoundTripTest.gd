@@ -50,6 +50,9 @@ func _run() -> void:
 		_fail("could not isolate test storage")
 		return
 
+	# Use a reproducible world with known flora and wildlife arrival corridors.
+	node_added.connect(func(node: Node):
+		if node.name == "Renderer" and node.get_script() != null: node.set("world_seed", 1234))
 	var scene_error := change_scene_to_file("res://scenes/main/debug_world.tscn")
 	if scene_error != OK:
 		_fail("could not load debug_world.tscn (%s)" % error_string(scene_error))
@@ -59,6 +62,9 @@ func _run() -> void:
 	if not await _wait_for_world_ready(WORLD_TIMEOUT_MSEC):
 		_fail("world generation timed out")
 		return
+	# Script-launched fixtures can miss the autoload's initial deferred bind.
+	# Keep the real sky driver active before the very first menu load too.
+	root.get_node("SkyController").rebind_to_current_scene()
 
 	var expected_seed := int(_world_generator.get("world_seed"))
 	# An untouched world is usable even before settlement: empty collections
@@ -148,7 +154,7 @@ func _run() -> void:
 	_load_succeeded = false
 	_load_used_backup = false
 	_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-	if not bool(_save_manager.call("request_load_autosave")):
+	if not _load_through_dock("load_autosave"):
 		_fail("autosave load did not start")
 		return
 	if not await _wait_for_load(LOAD_TIMEOUT_MSEC):
@@ -176,7 +182,7 @@ func _run() -> void:
 	_load_succeeded = false
 	_load_used_backup = false
 	_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-	if not bool(_save_manager.call("request_load")):
+	if not _load_through_dock("load_game"):
 		_fail("backup load did not start")
 		return
 	if not await _wait_for_load(LOAD_TIMEOUT_MSEC):
@@ -330,7 +336,7 @@ func _verify_structural_recovery(expected_seed: int) -> String:
 		_load_succeeded = false
 		_load_used_backup = false
 		_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-		if not bool(_save_manager.call("request_load_autosave" if autosave else "request_load")):
+		if not _load_through_dock("load_autosave" if autosave else "load_game"):
 			return "structurally invalid primary prevented backup recovery"
 		if not await _wait_for_load(LOAD_TIMEOUT_MSEC): return "structural recovery timed out"
 		if not _load_succeeded or not _load_used_backup: return "structural corruption bypassed backup recovery"
@@ -352,11 +358,11 @@ func _verify_rejected_load_preserves_world() -> String:
 	for path: String in [TEST_PRIMARY, TEST_BACKUP, TEST_AUTOSAVE, TEST_AUTOSAVE_BACKUP]:
 		var error := String(_save_manager.call("_write_text_file", path, JSON.stringify(invalid)))
 		if not error.is_empty(): return error
-	for request: String in ["request_load", "request_load_autosave"]:
+	for command: String in ["load_game", "load_autosave"]:
 		_load_completed = false
 		_load_succeeded = true
 		_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-		if bool(_save_manager.call(request)): return "load started with both generations invalid"
+		if _load_through_dock(command): return "load started with both generations invalid"
 		if not _load_completed or _load_succeeded: return "rejected load did not report failure"
 		if current_scene.get_instance_id() != scene_id or bool(_save_manager.call("is_loading")):
 			return "rejected load replaced the live scene"
@@ -365,6 +371,35 @@ func _verify_rejected_load_preserves_world() -> String:
 		var difference := _deep_diff(before, after, "live")
 		if not difference.is_empty(): return "rejected load mutated live world: " + difference
 	return ""
+
+
+## Click the production menu button: calling SaveManager directly misses the
+## dock's signal/scene-teardown lifecycle. Rejected loads use this route too.
+func _load_through_dock(command: String) -> bool:
+	var dock := get_first_node_in_group("command_dock")
+	if dock == null:
+		return false
+	dock.call("_open_action_panel", "save_load")
+	var entries: Array = root.get_node("UIRegistry").get_menu("save_load").items
+	for i in entries.size():
+		if String(entries[i].id) != command:
+			continue
+		var button: Button = dock.get("_panel_body").get_child(i)
+		button.pressed.emit()
+		if dock.call("is_action_menu_open"):
+			_fail("persistence command left the old dock menu open")
+			return false
+		var loading := bool(_save_manager.call("is_loading"))
+		if loading:
+			var sky := root.get_node("SkyController")
+			if sky._ready_ok or sky._sun != null or sky._moon != null:
+				_fail("loading retained the detached scene's sky lights")
+				return false
+			# Guarantee a sky tick in the detach/replacement gap instead of relying
+			# on whether the 20 Hz timer happens to expire during this load.
+			sky._process(.1)
+		return loading
+	return false
 
 
 func _build_nonempty_colony_state() -> String:
@@ -876,6 +911,14 @@ func _add_furniture_moves(furniture: Node) -> void:
 
 
 func _verify_restored_state(expected_seed: int) -> String:
+	var sky := root.get_node("SkyController")
+	if not sky._ready_ok or sky._world_env != current_scene.get_node("WorldEnvironment"):
+		return "restored scene did not rebind its sky"
+	if not is_instance_valid(sky._sun) or not is_instance_valid(sky._moon):
+		return "restored celestial lights are invalid"
+	if not sky._sun.is_inside_tree() or not sky._moon.is_inside_tree():
+		return "restored celestial lights are detached"
+	sky._update(float(_world_clock.hour))
 	if int(_world_generator.get("world_seed")) != expected_seed:
 		return "world seed did not round-trip"
 	if _terrain_fingerprint() != _terrain_reference:

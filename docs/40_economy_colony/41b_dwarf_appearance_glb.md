@@ -2,6 +2,35 @@
 
 ## Overview
 
+**2026-10-13 complete conversion:** [154 — Family conversion](../00_dev_roadmap/154_complete_family_conversion.md)
+integrates all 41 parts under `assets/models/characters/dwarves/`, preserving all appearance
+IDs and the 800 shape combinations. The eight approved [pilot](../00_dev_roadmap/150_dwarf_art_pilot.md)
+exports are byte-identical. Runtime tints, detached anatomy, shared frame, work
+grips, eye anchors and the logical 1×1×3 body are retained. Portraits also show
+the saved scar while world actors continue to omit it. Author production art
+with `tools/generate_dwarf_faceted.py`, `data/art/dwarf_pilot.json` and
+`data/art/dwarf_roster.json` under [standard 63](../60_asset_creation/63_shared_art_standard.md).
+The voxel recipes below are historical dimensions and assembly references;
+`generate_dwarf_glb.py` is retired and its original outputs were removed in
+[156](../00_dev_roadmap/156_legacy_art_cleanup.md). The approved pilot parts now
+resolve directly to their production files, with no duplicate pilot folder.
+[157](../00_dev_roadmap/157_asset_folder_layout.md) removes the intermediate
+style folder; [158](../00_dev_roadmap/158_asset_structure.md) moves the family
+under `assets/models/characters/`. Body, hair, beard, eyebrow and scar categories remain.
+All new exports are baked in world units with root scale 1.
+
+**Current assembly corrections (2026-10-13):**
+[165](../00_dev_roadmap/165_approved_actor_proportions.md) integrates the approved
+Balanced proportions without changing dwarf height or logical clearance.
+[175](../00_dev_roadmap/175_dwarf_limb_lighting.md) fixes asymmetric hand/boot
+lighting: the right-part rig root keeps its negative X scale for poses and
+anchors, while its inner mesh uses cached reflected geometry plus a
+counter-reflection. Final rendered transforms are positive. Reflect normals and
+tangents and reverse winding with positions; preserve baked colors and runtime
+tints. Never replace this with a plain negative mesh scale or separate right-side
+color compensation. Imported left/source meshes and appearance save IDs remain
+unchanged. The historical assembly notes below retain their coordinate meaning.
+
 This document catalogues every visual attribute a dwarf can have and defines the modular GLB file strategy for constructing them at runtime. The design goal is the minimum set of authored files that can express all valid combinations without duplicating geometry per color variant.
 
 2026-06-08 rework note: the current generated GLBs are being corrected because `body_base.glb` included arms and legs. The source of truth is now explicit: `body_base.glb` is compact torso plus neck only, while hands and feet remain detached floating parts. Track the regen work in [15_dwarf_asset_rework.md](../00_dev_roadmap/15_dwarf_asset_rework.md).
@@ -59,11 +88,11 @@ All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall
 
 ## GLB File Inventory
 
-All appearance parts live under `assets/dwarves/`. Total: **41 appearance GLB files**.
+All current appearance parts live under `assets/models/characters/dwarves/`. Total: **41 appearance GLB files**.
 Work tools are additional assets, described below.
 
 ```
-assets/dwarves/
+assets/models/characters/dwarves/
   body/
     head_young.glb
     head_adult.glb
@@ -272,61 +301,61 @@ All GLB resources are preloaded once in a single autoload singleton. The factory
 extends Node
 
 var heads: Dictionary = {
-    "young":  preload("res://assets/dwarves/body/head_young.glb"),
-    "adult":  preload("res://assets/dwarves/body/head_adult.glb"),
-    "middle": preload("res://assets/dwarves/body/head_middle.glb"),
-    "elder":  preload("res://assets/dwarves/body/head_elder.glb"),
+    "young":  preload("res://assets/models/characters/dwarves/body/head_young.glb"),
+    "adult":  preload("res://assets/models/characters/dwarves/body/head_adult.glb"),
+    "middle": preload("res://assets/models/characters/dwarves/body/head_middle.glb"),
+    "elder":  preload("res://assets/models/characters/dwarves/body/head_elder.glb"),
 }
-var eyes:  Mesh = preload("res://assets/dwarves/body/eyes.glb")
-var body:  Mesh = preload("res://assets/dwarves/body/body_base.glb")
-var hand:  Mesh = preload("res://assets/dwarves/body/hand.glb")
-var foot:  Mesh = preload("res://assets/dwarves/body/foot.glb")
+var eyes:  Mesh = preload("res://assets/models/characters/dwarves/body/eyes.glb")
+var body:  Mesh = preload("res://assets/models/characters/dwarves/body/body_base.glb")
+var hand:  Mesh = preload("res://assets/models/characters/dwarves/body/hand.glb")
+var foot:  Mesh = preload("res://assets/models/characters/dwarves/body/foot.glb")
 
 var hair_male: Dictionary = {
-    "short_back":   preload("res://assets/dwarves/hair/hair_m_short_back.glb"),
-    "shaved":       preload("res://assets/dwarves/hair/hair_m_shaved.glb"),
-    "wild_loose":   preload("res://assets/dwarves/hair/hair_m_wild_loose.glb"),
-    "braided_back": preload("res://assets/dwarves/hair/hair_m_braided_back.glb"),
+    "short_back":   preload("res://assets/models/characters/dwarves/hair/hair_m_short_back.glb"),
+    "shaved":       preload("res://assets/models/characters/dwarves/hair/hair_m_shaved.glb"),
+    "wild_loose":   preload("res://assets/models/characters/dwarves/hair/hair_m_wild_loose.glb"),
+    "braided_back": preload("res://assets/models/characters/dwarves/hair/hair_m_braided_back.glb"),
     "bald":         null,
 }
 var hair_female: Dictionary = {
-    "bun":             preload("res://assets/dwarves/hair/hair_f_bun.glb"),
-    "braid_side":      preload("res://assets/dwarves/hair/hair_f_braid_side.glb"),
-    "braid_long":      preload("res://assets/dwarves/hair/hair_f_braid_long.glb"),
-    "short_practical": preload("res://assets/dwarves/hair/hair_f_short_practical.glb"),
-    "twin_braids":     preload("res://assets/dwarves/hair/hair_f_twin_braids.glb"),
-    "half_up":         preload("res://assets/dwarves/hair/hair_f_half_up.glb"),
-    "loose_long":      preload("res://assets/dwarves/hair/hair_f_loose_long.glb"),
-    "shaved_sides":    preload("res://assets/dwarves/hair/hair_f_shaved_sides.glb"),
-    "cropped":         preload("res://assets/dwarves/hair/hair_f_cropped.glb"),
-    "wild":            preload("res://assets/dwarves/hair/hair_f_wild.glb"),
+    "bun":             preload("res://assets/models/characters/dwarves/hair/hair_f_bun.glb"),
+    "braid_side":      preload("res://assets/models/characters/dwarves/hair/hair_f_braid_side.glb"),
+    "braid_long":      preload("res://assets/models/characters/dwarves/hair/hair_f_braid_long.glb"),
+    "short_practical": preload("res://assets/models/characters/dwarves/hair/hair_f_short_practical.glb"),
+    "twin_braids":     preload("res://assets/models/characters/dwarves/hair/hair_f_twin_braids.glb"),
+    "half_up":         preload("res://assets/models/characters/dwarves/hair/hair_f_half_up.glb"),
+    "loose_long":      preload("res://assets/models/characters/dwarves/hair/hair_f_loose_long.glb"),
+    "shaved_sides":    preload("res://assets/models/characters/dwarves/hair/hair_f_shaved_sides.glb"),
+    "cropped":         preload("res://assets/models/characters/dwarves/hair/hair_f_cropped.glb"),
+    "wild":            preload("res://assets/models/characters/dwarves/hair/hair_f_wild.glb"),
 }
 var beards: Dictionary = {
-    "full_long":      preload("res://assets/dwarves/beards/beard_full_long.glb"),
-    "full_braided":   preload("res://assets/dwarves/beards/beard_full_braided.glb"),
-    "short_trimmed":  preload("res://assets/dwarves/beards/beard_short_trimmed.glb"),
-    "forked":         preload("res://assets/dwarves/beards/beard_forked.glb"),
-    "mutton_chops":   preload("res://assets/dwarves/beards/beard_mutton_chops.glb"),
-    "goatee":         preload("res://assets/dwarves/beards/beard_goatee.glb"),
-    "braided_long":   preload("res://assets/dwarves/beards/beard_braided_long.glb"),
+    "full_long":      preload("res://assets/models/characters/dwarves/beards/beard_full_long.glb"),
+    "full_braided":   preload("res://assets/models/characters/dwarves/beards/beard_full_braided.glb"),
+    "short_trimmed":  preload("res://assets/models/characters/dwarves/beards/beard_short_trimmed.glb"),
+    "forked":         preload("res://assets/models/characters/dwarves/beards/beard_forked.glb"),
+    "mutton_chops":   preload("res://assets/models/characters/dwarves/beards/beard_mutton_chops.glb"),
+    "goatee":         preload("res://assets/models/characters/dwarves/beards/beard_goatee.glb"),
+    "braided_long":   preload("res://assets/models/characters/dwarves/beards/beard_braided_long.glb"),
 }
 var brows_male: Dictionary = {
-    "thick_flat": preload("res://assets/dwarves/eyebrows/brows_m_thick_flat.glb"),
-    "bushy":      preload("res://assets/dwarves/eyebrows/brows_m_bushy.glb"),
-    "arched":     preload("res://assets/dwarves/eyebrows/brows_m_arched.glb"),
-    "unibrow":    preload("res://assets/dwarves/eyebrows/brows_m_unibrow.glb"),
+    "thick_flat": preload("res://assets/models/characters/dwarves/eyebrows/brows_m_thick_flat.glb"),
+    "bushy":      preload("res://assets/models/characters/dwarves/eyebrows/brows_m_bushy.glb"),
+    "arched":     preload("res://assets/models/characters/dwarves/eyebrows/brows_m_arched.glb"),
+    "unibrow":    preload("res://assets/models/characters/dwarves/eyebrows/brows_m_unibrow.glb"),
 }
 var brows_female: Dictionary = {
-    "thin_arched":  preload("res://assets/dwarves/eyebrows/brows_f_thin_arched.glb"),
-    "thick_flat":   preload("res://assets/dwarves/eyebrows/brows_f_thick_flat.glb"),
-    "bushy":        preload("res://assets/dwarves/eyebrows/brows_f_bushy.glb"),
-    "sharp_angled": preload("res://assets/dwarves/eyebrows/brows_f_sharp_angled.glb"),
+    "thin_arched":  preload("res://assets/models/characters/dwarves/eyebrows/brows_f_thin_arched.glb"),
+    "thick_flat":   preload("res://assets/models/characters/dwarves/eyebrows/brows_f_thick_flat.glb"),
+    "bushy":        preload("res://assets/models/characters/dwarves/eyebrows/brows_f_bushy.glb"),
+    "sharp_angled": preload("res://assets/models/characters/dwarves/eyebrows/brows_f_sharp_angled.glb"),
 }
 var scars: Dictionary = {
-    "cheek_slash": preload("res://assets/dwarves/scars/scar_cheek_slash.glb"),
-    "brow_notch":  preload("res://assets/dwarves/scars/scar_brow_notch.glb"),
-    "nose_bridge": preload("res://assets/dwarves/scars/scar_nose_bridge.glb"),
-    "chin_split":  preload("res://assets/dwarves/scars/scar_chin_split.glb"),
+    "cheek_slash": preload("res://assets/models/characters/dwarves/scars/scar_cheek_slash.glb"),
+    "brow_notch":  preload("res://assets/models/characters/dwarves/scars/scar_brow_notch.glb"),
+    "nose_bridge": preload("res://assets/models/characters/dwarves/scars/scar_nose_bridge.glb"),
+    "chin_split":  preload("res://assets/models/characters/dwarves/scars/scar_chin_split.glb"),
 }
 
 func hair_for(appearance: DwarfAppearanceData) -> Mesh:
@@ -389,14 +418,15 @@ func _attach(parent: Node3D, node_name: String, mesh: Mesh) -> void:
 
 ---
 
-## Work tools — felling axe and mining pick (2026-10-04)
+## Work tools — felling axe and mining pick (updated 2026-10-13)
 
-`assets/dwarves/tools/felling_axe.glb` is separate from the 41 appearance parts.
+`assets/models/characters/dwarves/tools/felling_axe.glb` is separate from the 41 appearance parts.
 `DwarfAssets` owns its preload; `DwarfFellingPose.gd` instantiates it under the
 right hand when felling starts and hides it when work stops. Dwarves implicitly
 carry their work tools, with no inventory, delivery or durability requirement.
 
-The axe uses eight voxels/block with baked 0.125 scale and linear vertex colors.
+The axe uses broad forged planes, selective bevels, a faceted wooden haft and
+linear vertex colors, exported directly in world units with a unit root.
 Unlike the shared-frame body parts, its origin is the lower hand grip, with the
 haft along +Y and blade facing +Z. Both hands rotate around their authored palm
 centres and stay on the handle throughout the swing. The tool attachment cancels
@@ -405,12 +435,17 @@ scales so subsequent walking cannot flip the mirrored hand or boot. The axe uses
 its own lit vertex-color material and is never skin-tinted. Navigation and
 collision retain their existing logical footprint.
 
-Generator: `tools/generate_dwarf_axe.py`. Native preview:
+Generator: `tools/generate_items_faceted.py`; palette: `data/art/items.json`.
+Both impact points are vertices in the new meshes. The lower origin, upper grip
+`(0,.625,0)`, axe edge `(0,1.0625,.6875)` and pick point `(0,1.375,.9375)` are
+unchanged. [155](../00_dev_roadmap/155_resource_drops_and_work_tools.md) records
+import, pose and real-worker checks. Old voxel files/generators remain comparisons.
+Native preview:
 `tools/DwarfFellingPreview.gd`. Behavior and validation:
 [48_object_explorer_and_tree_felling.md](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
-`assets/dwarves/tools/mining_pickaxe.glb` adds a longer haft, curved iron point
-and opposing chisel, using the same scale/material/grip convention. Generator:
-`tools/generate_dwarf_pickaxe.py`; native pose studies:
+`assets/models/characters/dwarves/tools/mining_pickaxe.glb` adds a longer haft, curved iron
+point and opposing chisel, using the same material/grip convention. The shared
+item generator authors both tools; native pose studies:
 `tools/DwarfMiningPreview.gd`. `DwarfMiningPose.gd` aims at the target voxel face
 for wall, overhead, low and underfoot mining. Both rigs now inherit attachment,
 material and mirrored-part reset behavior from `DwarfWorkToolPose.gd`. No body

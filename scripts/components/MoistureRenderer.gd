@@ -10,11 +10,12 @@ func _ready() -> void:
 	var base := StandardMaterial3D.new()
 	base.vertex_color_use_as_albedo = true
 	material_override = terrain.underground_lighting.make_material(base)
+	BlockRegistry.configure_terrain_material(material_override)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func _process(_delta: float) -> void:
 	if not WaterManager.initialized: return
-	var stamp := "%d:%d:%d:%s" % [WaterManager.revision,int(WaterManager.elapsed),terrain.slice_y,WaterManager.show_moisture]
+	var stamp := "%d:%d:%d:%s:%s" % [WaterManager.revision,int(WaterManager.elapsed),terrain.slice_y,WaterManager.show_moisture,WorldClock.season]
 	if stamp == _stamp: return
 	_stamp = stamp
 	var verts := PackedVector3Array()
@@ -36,7 +37,13 @@ func _process(_delta: float) -> void:
 		if kind not in ["dirt","grass"]: continue
 		var moisture := maxf(WaterManager.soil_moisture_at(cell),clampf(WaterManager.depth_at(cell+Vector3i.UP)/WaterManager.standing_depth,0.0,1.0))
 		if moisture<0.005 and not WaterManager.show_moisture: continue
-		var color := Color("#AB8661").lerp(Color("#378FCE"),moisture) if WaterManager.show_moisture else BlockRegistry.get_color(block,WorldClock.season).darkened(moisture*0.25)
+		# This covers the terrain top, so it must use the same linear colour and
+		# appearance tag. Raw sRGB here creates a bright advancing shoreline ring
+		# instead of gradual dampening as the simulation wets each soil cell.
+		var color := BlockRegistry.get_terrain_color(block,WorldClock.season).darkened(moisture*0.25)
+		if WaterManager.show_moisture:
+			# Explicit debug colours opt out of terrain variation (opaque alpha).
+			color = Color("#AB8661").lerp(Color("#378FCE"),moisture).srgb_to_linear()
 		var x := cell.x
 		var z := cell.z
 		var y := cell.y+1.012

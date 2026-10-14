@@ -8,6 +8,25 @@
 
 ---
 
+**2026-10-13 playtest fixes:** The following reports have reproduced causes and
+implemented fixes, with automated/native evidence in their milestone docs:
+
+- Elevated copper drops unreachable and door preview missing:
+  [173](173_ledge_pickup_and_safe_exports.md). Pickup stands/reach corrected;
+  the door issue came from replacing a running game's PCK, now prevented by
+  unique release folders.
+- Mining stuck at zero faces after moving a bed:
+  [174](174_mining_furniture_access.md). Occupancy changes now refresh mining
+  destinations and pending lease recovery.
+- Left/right dwarf hand and boot colors appear mismatched:
+  [175](175_dwarf_limb_lighting.md). Reflected mesh lighting corrected while
+  retaining shared colors and rig anchors.
+
+Player review of the latest mining/limb fixes after restart remains pending.
+These reports are separate from historical issues 001/002 below and do not
+establish their original causes. Current build and resume notes:
+[176 — Session handoff](176_session_handoff_2026_10_13.md).
+
 **2026-10-12 status:** Issues 001 and 002 are **CLOSED — presumed resolved**, by
 Alen's decision. Neither requires further investigation unless the player reports
 it again. Their original causes were not confirmed; the historical reports below

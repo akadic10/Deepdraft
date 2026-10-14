@@ -1,0 +1,189 @@
+{
+  "assets/models/furniture/crude_workbench.glb": {
+    "milestone": "docs/00_dev_roadmap/159_crude_workbench_stump.md",
+    "reason": "User-requested rough stump replaces the fitted plank bench; working top matches existing 0.875 height.",
+    "previous_sha256": "5ca996ee7074e63ce3fcaa59da80bdd8cfd294d9f74ced90ddc3b47b08d97c0e",
+    "metrics": {
+      "triangles": 280,
+      "meshes": 1,
+      "bytes": 38116,
+      "sha256": "e45b2ca8ea6246e3a633be723d64a1ae5ecbb39f891705b18f68d970ef3b7cd8"
+    }
+  },
+  "assets/models/furniture/animations/campfire_flame.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "b66ca6e63f241a37231f01c2b38aa90af5711f392d47e7727c5e762d9e6046f7",
+    "metrics": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377276,
+      "sha256": "e32da7b73ad6035a626661dfc9bc4b30228fdcc6c5d60fe2b1397ce478c09fe5"
+    }
+  },
+  "assets/models/furniture/campfire.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "e19e6b6bf7ac11fbf337b712e2ec4ab852ec9c6348c8a9a8607fe57cb6819514",
+    "metrics": {
+      "triangles": 1002,
+      "meshes": 2,
+      "bytes": 134372,
+      "sha256": "1e9a17e62f0ea22bb4e8b213c5c5c5746e8021bba0b30d385ed4e5f37a34ec3d"
+    }
+  },
+  "assets/models/furniture/animations/hearth_flame.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "b321593eab0b712f3fb049fb0a9c18d7002e9bf1a12cfd59f13ebb08cb81ea88",
+    "metrics": {
+      "triangles": 3500,
+      "meshes": 10,
+      "bytes": 471544,
+      "sha256": "8a8491317a77b46b47d54f928ab44662dba933207d0509990270f13acb916719"
+    }
+  },
+  "assets/models/furniture/hearth.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "f9e0bb31e20e33a2b336b7455a10759f4fa1245ccc9660a750604888dc7533b8",
+    "metrics": {
+      "triangles": 1002,
+      "meshes": 2,
+      "bytes": 134360,
+      "sha256": "bedb799a6f09f32bfa42dc54c7e9c42949a2e10bff45244531f4f7e26137cabb"
+    }
+  },
+  "assets/models/furniture/animations/brazier_flame.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "a9d0adef217ed8ef317be2c8fa7fe2c6c6138e55f22285cb386712855a8dbe1c",
+    "metrics": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377252,
+      "sha256": "049a079b0301ede35006b9fb61c89a548c05f36d68618b6d491bab68130599a0"
+    }
+  },
+  "assets/models/furniture/brazier.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "4c773426fa792e673f4c220e69d5f822d96923f0b34b8ee8e3f852c49c0fa110",
+    "metrics": {
+      "triangles": 702,
+      "meshes": 2,
+      "bytes": 94736,
+      "sha256": "ec2ec6a82a77cd8cb21161c7ee991315d538963be30566a50da0ddbc0adfd8cb"
+    }
+  },
+  "assets/models/furniture/animations/smelter_flame.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "56e42b333bb19606d51573db17a7d815b9f3b709337e134301b86e206f3c651e",
+    "metrics": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377268,
+      "sha256": "135c0b273f274f0629961a8e645dbaef29993c40a24939547393c67fa99b0b65"
+    }
+  },
+  "assets/models/furniture/smelter.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "24d492cc525f087bf3cccb44aecec9a28c30474b9ec71eab23216447092d54d5",
+    "metrics": {
+      "triangles": 1102,
+      "meshes": 2,
+      "bytes": 147508,
+      "sha256": "073b269fe0851edb237c317777c35285d373b1ce13d4687750066a8a21e447c2"
+    }
+  },
+  "assets/models/furniture/animations/wall_torch_flame.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "dd7baef58691badf63a280043bbf09a61d709d8f2cb670b532a73da890720672",
+    "metrics": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377228,
+      "sha256": "3e3e784a100e65862cbb2b27d8d87dbb5ab944163a413ad5bd0edf04da3cdfea"
+    }
+  },
+  "assets/models/furniture/wall_torch.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "c6f02842dfbd97db3bf76595f9f8ebf283ded074879ba37fe11a3f736d2a3dec",
+    "metrics": {
+      "triangles": 666,
+      "meshes": 2,
+      "bytes": 89944,
+      "sha256": "8940c5a857baa43fe3d7f93723220c1ac440ba53f04e1857636686f379adad01"
+    }
+  },
+  "assets/models/furniture/wooden_torch.glb": {
+    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
+    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
+    "previous_sha256": "c60e9996852faf825981a173d23055f32662e6baee4e91e98ad48a57e2a3cdfe",
+    "metrics": {
+      "triangles": 694,
+      "meshes": 2,
+      "bytes": 93636,
+      "sha256": "0ae1f558b059e8b7bfeb1e73c6415843fbc8485cce01ff9b6443f9a5ded1d934"
+    }
+  },
+  "assets/models/furniture/log_bridge_2.glb": {
+    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
+    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
+    "previous_sha256": "66dcd9825a26fb8d23d1d6db70a8c79d1f41b24748a562153d5fd056f1fac6d7",
+    "metrics": {
+      "triangles": 896,
+      "meshes": 1,
+      "bytes": 119440,
+      "sha256": "c596f13ec85a4c4c1e1f3e70f4e34d2cd19a475f418981c3733e2057ffa34249"
+    }
+  },
+  "assets/models/furniture/log_bridge_5.glb": {
+    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
+    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
+    "previous_sha256": "44bca44eb15ca3417a852fde77a27b2764b7dc0b0e5d0b52c82b689aa1bca923",
+    "metrics": {
+      "triangles": 896,
+      "meshes": 1,
+      "bytes": 119440,
+      "sha256": "49538e69a4bd603a4e4b96ab1683347d426b1c55721b19486b454574c1079cb9"
+    }
+  },
+  "assets/models/furniture/log_bridge_1.glb": {
+    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
+    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
+    "previous_sha256": "c370527328e28e480017b6bda1f995a21320bb714320aec069f5aea0f3124549",
+    "metrics": {
+      "triangles": 896,
+      "meshes": 1,
+      "bytes": 119440,
+      "sha256": "9dbcb12fcd89678d843edec46233792094db171c133b3628cddc6de81636426e"
+    }
+  },
+  "assets/models/furniture/log_bridge_4.glb": {
+    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
+    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
+    "previous_sha256": "73e429ffb4cb5617eef63cb16e83ce99466ab91529bb955ab2384dc6458d96fe",
+    "metrics": {
+      "triangles": 896,
+      "meshes": 1,
+      "bytes": 119440,
+      "sha256": "997514f75c112071d8684b90b013a540fc567290b5d80e15edf18256913e68eb"
+    }
+  },
+  "assets/models/furniture/log_bridge_3.glb": {
+    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
+    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
+    "previous_sha256": "88501250457b1fcbc6d157c1fce63ac9fd0c16d03f3c7124806670fc395cb03c",
+    "metrics": {
+      "triangles": 896,
+      "meshes": 1,
+      "bytes": 119440,
+      "sha256": "0c1ae2a9b662119f6015108da3edd3df4afc6cdcbd8cfb3179c5a09a1598ae1e"
+    }
+  }
+}

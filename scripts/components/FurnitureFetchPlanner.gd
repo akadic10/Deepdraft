@@ -38,7 +38,7 @@ static func advance(source: FurnitureGhostComponent, worker: DwarfAgent, context
 			for cell: Vector3i in source.work_stands(start): goals[cell] = true
 		var result := NavGrid.ProbeResult.UNREACHABLE
 		if not goals.is_empty():
-			result = preload("res://scripts/components/WorkRouteProbe.gd").advance(context.route_query,start,goals.keys()[0],node_budget,deadline,false,goals)
+			result = preload("res://scripts/components/WorkRouteProbe.gd").advance(context.route_query,start,goals.keys()[0],node_budget,deadline,false,goals) as NavGrid.ProbeResult
 			context.route_dependencies.merge(context.route_query.get("chunks",{}))
 		if result == NavGrid.ProbeResult.SEARCHING: return result
 		if result != NavGrid.ProbeResult.REACHABLE:

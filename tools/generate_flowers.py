@@ -1,8 +1,14 @@
 """Small seasonal wildflower clumps: eight voxels/block, baked scale, no colliders."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/models/details/flowers'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/flora/flowers'
 SEASONS = ('spring', 'summer', 'autumn', 'winter')
 # Same rooted stems in every season. Gaps expose the ground between rosettes.
 GROUPS = [

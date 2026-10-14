@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://garlbc77rspa"
+uid="uid://d0e320a8wdnk6"
 path="res://.godot/imported/pine_mature_winter_2.glb-2da7578a471ffd08f1bd2e25cc637fec.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

@@ -285,6 +285,31 @@ func _spawn_column(cx: int, cz: int) -> void:
 	_loaded_columns[Vector2i(cx, cz)] = nodes
 
 
+## Read-only soundscape query. Removed and sliced-away trees add no rustle.
+func ambient_tree_density(point: Vector3, radius: float, full_count: float) -> float:
+	var count := 0.0
+	for node: Node3D in ambient_trees(point, radius):
+		var distance := Vector2(node.global_position.x - point.x, node.global_position.z - point.z).length()
+		count += 1.0 - smoothstep(radius * .4, radius, distance)
+	return clampf(count / maxf(full_count, 1), 0, 1)
+
+
+func ambient_trees(point: Vector3, radius: float) -> Array[Node3D]:
+	var trees: Array[Node3D] = []
+	# Inspect nearby populated columns only, not the whole forest each frame.
+	var centre := Vector2i(floori(point.x / CHUNK_SIZE), floori(point.z / CHUNK_SIZE))
+	var reach := ceili(radius / CHUNK_SIZE) + 1
+	for x in range(centre.x - reach, centre.x + reach + 1):
+		for z in range(centre.y - reach, centre.y + reach + 1):
+			for node in _loaded_columns.get(Vector2i(x, z), []):
+				if not is_instance_valid(node) or node.is_queued_for_deletion() or not node.is_inside_tree() or not node.is_visible_in_tree(): continue
+				var id: Vector2i = node.get_meta("tree_id", Vector2i(-1, -1))
+				if bool(_tree_changes.get(id, {}).get("felled", false)): continue
+				var distance := Vector2(node.global_position.x - point.x, node.global_position.z - point.z).length()
+				if distance < radius: trees.append(node)
+	return trees
+
+
 ## Shared immutable candidate query. Detail placement uses exactly the same
 ## tree selector as spawning, including cells on the other side of a chunk.
 func generated_tree_candidate(cell_x: int, cell_z: int, size: int) -> Dictionary:

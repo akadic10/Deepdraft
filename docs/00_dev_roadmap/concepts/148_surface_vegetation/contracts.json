@@ -1,0 +1,10 @@
+{
+  "definition_semantics_unchanged": true,
+  "accepted_trees_unchanged": 94,
+  "legacy_plants_unchanged": 76,
+  "matched_world_identities": true,
+  "old_triangles": 70864,
+  "new_triangles": 69736,
+  "old_bytes": 6603268,
+  "new_bytes": 9293612
+}

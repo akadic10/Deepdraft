@@ -2,13 +2,13 @@
   "__comment": [
     "Apple tree — deciduous fruit tree, primary source of apples for mountain_cider.",
     "THREE growth stages: sapling (clutter) → mature (3×3) → ancient (5×5, world-gen only).",
-    "PERENNIAL FRUIT: mature and ancient stages auto-yield apples each autumn via fruit_harvest.",
+    "PERENNIAL FRUIT: authored autumn yields remain future gameplay; worker apple harvesting is not enabled yet.",
     "Fruit harvest is NON-DESTRUCTIVE — tree persists. Chop harvest gives wood + seeds only.",
     "Four seasonal models: spring (blossom), summer (leafy), autumn (gold/rust), winter (bare).",
     "Footprint follows the spreading-tree rule — see 42_farming_brewing.md § Surface Trees.",
     "",
-    "MODEL VARIANTS — complete visual roster (doc 29):",
-    "All stages use redesigned 1:1 models. Season arrays have matching variant counts/order.",
+    "MODEL VARIANTS — complete clustered tree family (doc 147):",
+    "All stages use clustered low-poly models in world units. Seasonal variant counts/order match.",
     "World-position hashing preserves each tree variant across seasonal changes.",
     "Placement, growth, collision and harvest values are unchanged."
   ],

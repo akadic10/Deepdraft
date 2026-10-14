@@ -50,16 +50,21 @@ func _run() -> void:
 		_expect(meshes.size() == 1 and meshes[0].mesh is ArrayMesh, key + " imports real gem geometry")
 		var mesh := meshes[0] as MeshInstance3D
 		var arrays: Array = mesh.mesh.surface_get_arrays(0)
-		var normal_error := 0.0
-		for normal: Vector3 in arrays[Mesh.ARRAY_NORMAL]:
-			normal_error = maxf(normal_error, normal.distance_to(normal.round()))
-		var grid_error := 0.0
-		for vertex: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
-			grid_error = maxf(grid_error, (vertex * 8).distance_to((vertex * 8).round()))
-		# Imported vertex/normal compression has tiny quantization error. The
-		# generator also checks its uncompressed coordinates/normals exactly.
-		_expect(normal_error < .0002 and grid_error < .0002, key + " has only cube faces on the project voxel grid")
-		measurements[NAMES[i] + "_geometry"] = {"normal_error": normal_error, "grid_error": grid_error}
+		# Standard 63 replaces integer cube faces with broad jewel facets.
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var face_error := 0.0
+		var sloping := false
+		for j in range(0,indices.size(),3):
+			var a: int = indices[j]; var b: int = indices[j+1]; var c: int = indices[j+2]
+			face_error = maxf(face_error,maxf(normals[a].distance_to(normals[b]),normals[a].distance_to(normals[c])))
+			if absf(normals[a].y) > .05 and absf(normals[a].y) < .95: sloping = true
+		_expect(face_error < .001 and sloping, key + " has flat sloping jewel facets")
+		var radius := 0.0
+		for vertex in vertices: radius=maxf(radius,Vector2(vertex.x,vertex.z).length())
+		_expect(radius < .5 and mesh.get_aabb().size.y <= .626, key + " preserves jewel scale at every yaw")
+		measurements[NAMES[i] + "_geometry"] = {"face_error": face_error, "radius": radius}
 		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
 		_expect(not reference_colours.has(colors), key + " has a distinct palette")
 		reference_colours[colors] = true
@@ -114,6 +119,7 @@ func _run() -> void:
 	var report_name := "checks.json" if "--capture" in OS.get_cmdline_user_args() else "checks_headless.json"
 	FileAccess.open(OUT + report_name, FileAccess.WRITE).store_string(JSON.stringify(report, "  "))
 	print("GEM_DROP_ART_TEST: ", JSON.stringify(report))
+	if failures.is_empty(): print("GEM_DROP_ART_OK")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
 

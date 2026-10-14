@@ -1,0 +1,260 @@
+{
+  "__comment": "Cosmetic real-time ambience and contextual sources. Rain/storm IDs are owned by WeatherManager; no audio changes simulation or water volume.",
+  "bus": "Ambience",
+  "default_volume": 0.72,
+  "default_effects_volume": 0.4466836,
+  "fade_seconds": 4.0,
+  "scan_seconds": 0.75,
+  "pause_gain": 0.25,
+  "forest_radius": 38.0,
+  "forest_full_count": 12.0,
+  "call_voices": 3,
+  "loops": {
+    "wind": {
+      "stream": "res://assets/audio/ambience/environment/wind.wav",
+      "level_db": -8.0
+    },
+    "foliage": {
+      "stream": "res://assets/audio/ambience/environment/foliage.wav",
+      "level_db": -9.0
+    },
+    "crickets": {
+      "stream": "res://assets/audio/ambience/environment/crickets.wav",
+      "level_db": -11.0
+    },
+    "shelter": {
+      "stream": "res://assets/audio/ambience/environment/shelter.wav",
+      "level_db": -16.0
+    },
+    "dry_leaves": {
+      "stream": "res://assets/audio/ambience/environment/dry_leaves.wav",
+      "level_db": -12
+    },
+    "winter_wind": {
+      "stream": "res://assets/audio/ambience/environment/winter_wind.wav",
+      "level_db": -10
+    },
+    "day_insects": {
+      "stream": "res://assets/audio/ambience/environment/day_insects.wav",
+      "level_db": -19
+    },
+    "shoreline": {
+      "stream": "res://assets/audio/ambience/environment/shoreline.wav",
+      "level_db": -12,
+      "positional": true
+    },
+    "rain": {
+      "stream": "res://assets/audio/ambience/environment/rain.wav",
+      "level_db": -8
+    },
+    "rain_roof": {
+      "stream": "res://assets/audio/ambience/environment/rain_roof.wav",
+      "level_db": -12
+    }
+  },
+  "calls": {
+    "birds": {
+      "streams": [
+        "bird_01",
+        "bird_02",
+        "bird_03",
+        "bird_04",
+        "bird_05",
+        "bird_06"
+      ],
+      "level_db": -17.0,
+      "interval": [
+        5.0,
+        13.0
+      ],
+      "dawn_interval_multiplier": 0.6
+    },
+    "owls": {
+      "streams": [
+        "owl_01",
+        "owl_02",
+        "owl_03"
+      ],
+      "level_db": -23.0,
+      "interval": [
+        42.0,
+        90.0
+      ],
+      "dawn_interval_multiplier": 1.0
+    },
+    "frogs": {
+      "streams": [
+        "frog_01",
+        "frog_02",
+        "frog_03"
+      ],
+      "level_db": -16,
+      "interval": [
+        13,
+        29
+      ],
+      "dawn_interval_multiplier": 1.0
+    },
+    "drips": {
+      "streams": [
+        "drip_01",
+        "drip_02",
+        "drip_03"
+      ],
+      "level_db": -13,
+      "interval": [
+        7,
+        19
+      ],
+      "dawn_interval_multiplier": 1.0
+    },
+    "creaks": {
+      "streams": [
+        "creak_01",
+        "creak_02",
+        "creak_03"
+      ],
+      "level_db": -19,
+      "interval": [
+        28,
+        65
+      ],
+      "dawn_interval_multiplier": 1.0
+    },
+    "wolves": {
+      "streams": [
+        "wolf_howl_01",
+        "wolf_howl_02",
+        "wolf_howl_03"
+      ],
+      "level_db": -10,
+      "interval": [
+        55,
+        115
+      ],
+      "dawn_interval_multiplier": 1.0,
+      "bus": "Work"
+    },
+    "thunder": {
+      "streams": [
+        "thunder_01",
+        "thunder_02",
+        "thunder_03"
+      ],
+      "level_db": -7,
+      "interval": [
+        35,
+        85
+      ],
+      "dawn_interval_multiplier": 1.0
+    },
+    "chirps": {
+      "streams": [
+        "chirp_01",
+        "chirp_02",
+        "chirp_03"
+      ],
+      "level_db": -20,
+      "interval": [
+        14,
+        33
+      ],
+      "dawn_interval_multiplier": 1.0
+    }
+  },
+  "seasons": {
+    "spring": {
+      "wind": 0.85,
+      "foliage": 0.8,
+      "insects": 0.38,
+      "birds": 1.0,
+      "owls": 0.8,
+      "dry_leaves": 0.15,
+      "winter_wind": 0
+    },
+    "summer": {
+      "wind": 0.7,
+      "foliage": 0.85,
+      "insects": 1.0,
+      "birds": 0.85,
+      "owls": 1.0,
+      "dry_leaves": 0.08,
+      "winter_wind": 0
+    },
+    "autumn": {
+      "wind": 1.1,
+      "foliage": 1.0,
+      "insects": 0.12,
+      "birds": 0.5,
+      "owls": 0.8,
+      "dry_leaves": 1,
+      "winter_wind": 0
+    },
+    "winter": {
+      "wind": 0.9,
+      "foliage": 0.3,
+      "insects": 0.0,
+      "birds": 0.22,
+      "owls": 0.45,
+      "dry_leaves": 0.1,
+      "winter_wind": 1
+    }
+  },
+  "weather": {
+    "base:weather:clear": {
+      "wind": 1.0,
+      "foliage": 1.0,
+      "insects": 1.0,
+      "birds": 1.0,
+      "owls": 1.0,
+      "rain": 0,
+      "thunder": 0
+    },
+    "base:weather:overcast": {
+      "wind": 1.35,
+      "foliage": 1.15,
+      "insects": 0.55,
+      "birds": 0.55,
+      "owls": 0.7,
+      "rain": 0,
+      "thunder": 0
+    },
+    "base:weather:foggy": {
+      "wind": 0.6,
+      "foliage": 0.45,
+      "insects": 0.45,
+      "birds": 0.3,
+      "owls": 0.45,
+      "rain": 0,
+      "thunder": 0
+    },
+    "base:weather:snow": {
+      "wind": 0.85,
+      "foliage": 0.3,
+      "insects": 0.0,
+      "birds": 0.15,
+      "owls": 0.25,
+      "rain": 0,
+      "thunder": 0
+    },
+    "base:weather:rain": {
+      "wind": 1.25,
+      "foliage": 1.2,
+      "insects": 0.15,
+      "birds": 0.2,
+      "owls": 0.2,
+      "rain": 0.7,
+      "thunder": 0
+    },
+    "base:weather:storm": {
+      "wind": 1.65,
+      "foliage": 1.3,
+      "insects": 0,
+      "birds": 0.05,
+      "owls": 0,
+      "rain": 1,
+      "thunder": 1
+    }
+  },
+  "source_radius": 18
+}

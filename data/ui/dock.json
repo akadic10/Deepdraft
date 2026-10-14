@@ -591,6 +591,15 @@
             288
           ],
           "tooltip": "Save or restore your settlement."
+        },
+        {
+          "id": "audio",
+          "label": "Audio",
+          "action": "toggle_window",
+          "target": "audio",
+          "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
+          "icon_region": [922, 411, 268, 264],
+          "tooltip": "Adjust ambience and effects volume."
         }
       ],
       "illustrated": true,

@@ -34,7 +34,7 @@ static func advance(order: RefCounted, worker: DwarfAgent, context: Dictionary, 
 	var result := NavGrid.ProbeResult.UNREACHABLE
 	if not goals.is_empty():
 		var nodes := int(TaskManager.get_config_section("supervision").get("ingredient_planning_node_cap",32))
-		result = preload("WorkRouteProbe.gd").advance(context.route_query,start,goals.keys()[0],nodes,deadline,false,goals)
+		result = preload("WorkRouteProbe.gd").advance(context.route_query,start,goals.keys()[0],nodes,deadline,false,goals) as NavGrid.ProbeResult
 	context.route_dependencies.merge(context.route_query.get("chunks",{}))
 	if result==NavGrid.ProbeResult.SEARCHING: return result
 	if result!=NavGrid.ProbeResult.REACHABLE:

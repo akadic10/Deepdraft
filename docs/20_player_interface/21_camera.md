@@ -29,11 +29,19 @@ clean pitch/zoom pivot. Terrain has **no physics colliders** (picking is a heigh
 data-ray, not physics), so the spring arm cannot push the camera out of rock — the **surface floor**
 below does that job instead.
 
-## Work sound perspective (2026-10-04)
+## World sound perspective (updated 2026-10-13)
 
-The camera publishes its smoothed pivot and actual camera-to-pivot distance to
-`WorkFeedback`. Nearby chopping and mining are strongest around the looked-at X/Z area,
-fades smoothly between 6 and 65 blocks from it, and becomes quieter when zooming
+The camera publishes the centre-screen terrain hit and actual camera-to-hit distance
+through `get_work_audio_context()`. A shared slice-aware voxel ray follows live
+mined terrain and standing water and is cached once per process frame for work,
+fire, water and ambience. Water uses its fractional surface level; listening
+must not sink to the hidden lake bed (milestone 170).
+Missing terrain uses the orbit pivot; detached cameras return no context. This keeps
+room sounds near the viewed floor when cursor zoom lifts the orbit pivot above it.
+See [169 — Room audio perspective](../00_dev_roadmap/169_room_audio_perspective.md).
+
+Nearby chopping and mining are strongest around the looked-at X/Z area,
+fade smoothly between 6 and 65 blocks from it, and become quieter when zooming
 out beyond 24 units. Camera altitude alone does not suppress nearby work.
 Native positional playback supplies restrained left/right panning. Active sound
 tails also update while panning; distant hits are discarded rather than queued.

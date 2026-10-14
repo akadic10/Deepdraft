@@ -52,6 +52,7 @@ func _run() -> void:
 			cases += 1
 	_expect(positive_large and negative_large, "fixtures cover both signs beyond JSON's exact integer range")
 	print("WEATHER_PERSISTENCE_TEST: ", JSON.stringify({"cases": cases, "days_per_case": 112, "failures": failures}))
+	print("WeatherPersistenceTest: ", "PASS" if failures.is_empty() else "FAIL")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
 

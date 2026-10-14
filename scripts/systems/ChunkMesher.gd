@@ -74,7 +74,7 @@ static func build_arrays(chunk: Chunk, cx: int, cy: int, cz: int, visual_cut_blo
 	#   acquisitions (6 locks per chunk instead of thousands);
 	# - has_cuts skips Vector3i construction + dict lookups entirely while no
 	#   mining cuts exist (the common case).
-	var color_lut: PackedColorArray = BlockRegistry.get_color_lut(WorldClock.season)
+	var color_lut: PackedColorArray = BlockRegistry.get_terrain_color_lut(WorldClock.season)
 	var transparent_lut: PackedByteArray = BlockRegistry.get_transparent_lut()
 	var water_id := BlockRegistry.get_id("base:terrain:water:source")
 	var has_cuts := not visual_cut_blocks.is_empty()

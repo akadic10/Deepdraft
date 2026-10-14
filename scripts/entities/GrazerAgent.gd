@@ -78,7 +78,7 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 		activity = "Fleeing"
 		timer = 0
 		# An interrupted graze grants no meal, and a nap ends immediately.
-		if hop_progress < 1: hop_seconds = float(definition.navigation.flee_hop_seconds)
+		if hop_progress < 1: hop_seconds = _hop_duration(float(definition.navigation.flee_hop_seconds))
 	if not _support(seconds):
 		_pose()
 		return
@@ -224,16 +224,19 @@ func _movement_score(_cell: Vector3i) -> float:
 func _cover(at: Vector3i) -> int:
 	var result := 0
 	for direction: Vector3i in Navigation.DIRECTIONS:
-		if not Navigation.clear(at + direction * footprint, int(definition.navigation.clearance), footprint): result += 1
+		if not Navigation.clear(at + direction * Navigation.stride(footprint), int(definition.navigation.clearance), footprint): result += 1
 	return result
 
 func _hop(destination: Vector3i, fleeing := false) -> void:
 	target = destination
 	hop_progress = 0
-	hop_seconds = float(definition.navigation.flee_hop_seconds if fleeing else definition.navigation.hop_seconds)
+	hop_seconds = _hop_duration(float(definition.navigation.flee_hop_seconds if fleeing else definition.navigation.hop_seconds))
 	var direction := Vector3(target - cell)
 	rotation.y = atan2(-direction.x, -direction.z)
 	if fleeing: timer = 0
+
+func _hop_duration(base_seconds: float) -> float:
+	return base_seconds * float(absi(target.x-cell.x)+absi(target.z-cell.z)) / Navigation.stride(footprint)
 
 func _hop_position() -> Vector3:
 	var from := Navigation.centre(cell, footprint)
@@ -269,7 +272,7 @@ func _support(seconds: float) -> bool:
 			return false
 	# A new building may occupy a wildlife cell: move only to an open neighbour.
 	for direction: Vector3i in Navigation.DIRECTIONS:
-		var next := cell + direction * footprint
+		var next := cell + direction * Navigation.stride(footprint)
 		if Navigation.standable(next, int(definition.navigation.clearance), footprint) and _can_enter(next):
 			cell = next
 			target = cell

@@ -1,5 +1,70 @@
 # 24 — World Rendering & Atmosphere
 
+**Rain and storms (2026-10-13):**
+[170](../00_dev_roadmap/170_environment_sound_details.md) adds two scheduled and
+saved weather IDs with cloud/haze overrides and one bounded local rain mesh.
+Actual roofs and the visible slice clip streaks, including visually removed
+roofs over rooms. Rain presentation never adds simulated water or flooding.
+The sky dial and environmental audio follow the same authoritative weather ID.
+
+**Sky scene lifetime (2026-10-13):**
+[167](../00_dev_roadmap/167_sky_scene_lifetime.md) clears the sky autoload's
+scene references on Environment exit. Save loading leaves a gap between old
+scene detachment and replacement; no light global transforms may be read in
+that gap. The existing SaveManager rebind resumes rendering. This lifecycle is
+covered by a dedicated fixture and real dock-driven save/restoration tests.
+
+**Full-sphere sky (2026-10-13):**
+[166 — Diorama sky](../00_dev_roadmap/166_diorama_sky.md) replaces the plain
+procedural backdrop with a continuous directional sky shader, stars and
+celestial discs. `SkyController` now owns time/weather haze as well as sky color;
+clear-night fog no longer retains daytime grey. The same gradient is evaluated
+by roof-aware materials, preserving sealed-room darkness. Cloud/star details
+are excluded from the ambient cubemap. The lower hemisphere is atmosphere,
+and orthographic views use a finite sky FOV. Six fixtures and native captures
+pass. World-edge streaming/dissolve work remains separate.
+
+**Settlement shader capacity (2026-10-13):**
+[153 — Settlement art comparison](../00_dev_roadmap/153_settlement_art_comparison.md)
+exposed shader-instance allocation failures with the full forest, 24 dwarves,
+wildlife and 48 furniture pieces. Some character parts rendered black with
+the existing art. `project.godot` now sets
+`rendering/limits/global_shader_variables/buffer_size=131072`, doubling the
+default uniform-slot capacity. Both current and pilot benchmark runs use this
+setting and reject renderer errors. This is buffer headroom, not a new population
+or performance guarantee. Restart Play after changing it.
+
+**Base terrain art (2026-10-13):**
+[145 — Base world terrain art](../00_dev_roadmap/145_base_world_terrain_art_plan.md)
+unifies natural rock into one grey palette and keeps grass as a full seasonal
+voxel. Dirt uses a restrained earth family. Local variation and soft edge normals
+run on the existing merged surfaces; the measured chamfer prototype remains in
+the study. Real world geometry, support and picking planes retain their cube
+boundaries. Grass edge-distance maps and their deferred recolour pass are removed.
+
+BlockRegistry loads `appearance_profiles.json` and builds immutable linear terrain
+colour lookups. The existing opaque sRGB `get_color` API remains for UI and
+definitions. Terrain vertices carry a profile in colour alpha (`id / 16`);
+artificial cut faces add eight to the tag and use quieter detail. Alpha one opts
+out, preserving imported floor art. Only the terrain material enables the shader
+treatment; shared actor, prop and water materials retain their existing response.
+Exposure/concealment chooses the permitted material before assigning any profile.
+
+The damp-soil overlay is part of this terrain colour contract too. It uses the
+same linear palette and appearance tag, then darkens with moisture. Mixing its
+former sRGB colours with linear terrain caused a pale band that advanced as the
+shore became wet. Seasonal changes invalidate it even while time is paused.
+The explicit moisture debug palette is linear and opts out of terrain variation.
+
+Overview batches now complete asynchronously. The main thread polls completion
+and uploads finished meshes within a 4 ms soft budget (one mesh upload is atomic).
+Tile revisions, slice/season snapshots and a global rebuild epoch reject stale
+results. Existing meshes stay visible until a current replacement is ready.
+Scene teardown/save reload joins workers before generation maps are cleared.
+The exact chunk renderer remains dormant in normal play. Seasonal refresh also
+updates generic added-terrain meshes. Positive edits now batch their exposed
+faces, cull shared faces and tag slice-only tops just like constructed stone.
+
 **Constructed stone (2026-10-12):** `ConstructionController` draws built blocks
 with the renderer's existing terrain material, natural rock palette and exposed
 cube faces, clipped by slice. Tops exposed only because the slice hides a solid
@@ -77,11 +142,14 @@ These values are derived from Stonehearth's `sky_settings.json` `height_fog` par
 
 ### Sky
 
-Use Godot's `WorldEnvironment` with a `ProceduralSkyMaterial` or a gradient sky texture. The horizon color must match the daytime fog color. Even a simple two-stop gradient (sky blue top → hazy blue-grey horizon) is sufficient.
+Use the full-sphere `diorama_sky.gdshader` installed by `SkyController` on the
+`WorldEnvironment`. Above and below the horizon are continuous atmosphere.
+Sky and roof-aware fog share `sky_atmosphere.gdshaderinc`; the broad gradient
+also supplies ambient light. Stars and clouds remain background detail.
 
 > **Current implementation:** `SkyController` drives the sky gradient and Sun/Moon
-> lights from calendar-keyed data. The scene's authored Environment still supplies
-> fog settings; the separate world-edge fog redesign remains deferred. See
+> lights from calendar-keyed data. It also applies weather cloud/haze parameters
+> from the owned sky/weather JSON. The world-edge fog redesign remains deferred. See
 > [08 — Sky plan](../00_dev_roadmap/08_sky_plan.md) and the live underground-lighting
 > section below for the current division of responsibilities.
 
@@ -256,7 +324,8 @@ Environment at 20 Hz, updating only changed material parameters. Depth / density
 and height falloff, the ProceduralSky gradient in the view direction, and sun
 scattering remain available outdoors. The gradient is evaluated analytically;
 this does not reproduce the engine's blurred sky-radiance sampling or volumetric
-fog. The current scene uses depth fog and a ProceduralSky. No additional render
+fog. That baseline used depth fog and a ProceduralSky; milestone 166 now uses
+the shared full-sphere gradient while preserving this roof gate. No additional render
 pass, terrain rebuild, atmosphere JSON owner or simulation dependency is added.
 The visibility glow is reduced from 0.05 to 0.008 so closed unlit spaces read as
 near-black, with only a faint shape remaining.

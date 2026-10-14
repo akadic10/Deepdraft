@@ -7,17 +7,14 @@ extends Node
 ## are usually scene nodes here (WorldRenderer, Camera), but an autoload mirrors Stonehearth's
 ## sky_renderer *service* and avoids editing the main scene; 08_sky_plan.md §D.2 allows either.
 ##
-## PHASE 2 (this file): each frame, evaluate the keyframed curves at the current in-game hour and
-##   - tint the ProceduralSkyMaterial gradient (sky_gradient_colors curve),
-##   - match the fog colour to the sky horizon and set fog density/distance (height_fog curve),
-##   - move + recolour the Sun and a runtime Moon (sun/moon colour + angle_pitch curves).
-## Non-time-varying renderer params (aerial perspective, sky affect, sun scatter, fog enabled,
-## ambient energy) are applied once from the static 'environment' block. Ambient stays sky-sourced,
-## so it darkens for free as the sky gradient darkens at night.
+## A full-sphere backdrop shares its broad ambient gradient with roof-aware fog.
+## Stars, clouds and celestial discs are background detail; the existing directional
+## light curves remain responsible for lighting the world.
 ##
 ## JSON = what things are (the curves); GDScript = what things do (interpolating + applying them).
 
 const SETTINGS_PATH := "res://data/sky/sky_settings.json"
+const SKY_SHADER := preload("res://scripts/shaders/diorama_sky.gdshader")
 
 # ── Tuning (safe to tweak; calibrate against screenshots) ─────────────────────
 const SUN_ENERGY_SCALE   := 1.5    # light_energy = colour_brightness × this
@@ -30,14 +27,7 @@ const MIN_DAYLIGHT        := 8.0   # winter-solstice daylight span (hours)
 const MAX_DAYLIGHT        := 16.0  # summer-solstice daylight span (hours)
 const WEATHER_BLEND       := 0.04  # per-update smoothing toward weather targets (~1.5 s settle)
 const DARK_FACTOR         := 0.65  # sky/fog brightness scale when is_dark_during_daytime
-const FOG_END_FRACTION    := 0.9   # fog hits FULL opacity at 0.9×far — BEFORE the far clip, so the
-								   # clip only ever cuts already-invisible terrain (no hard edge).
-const EDGE_FADE_START     := 0.55  # fade begins at 0.55×(fog end) — a wide, clearly visible dissolve.
-const MIN_VIEW            := 32.0  # never collapse the fogged view below this many blocks
-const FAR_FALLBACK        := 512.0 # used if no Camera3D is found in the scene
-const FOG_DIAGNOSTIC      := false # TEMP debug: forces an unmistakable RED fog. Leave false.
-const FOG_SATURATION      := 3.0   # exponential density × distance at the saturation point (~95% opacity)
-const MANAGE_FOG          := false # keep Environment fog inactive; sky/fog solution is still under review.
+
 
 # Fallback event hours if WorldClock has none (matches data/calendar/calendar.json).
 const DEFAULT_EVENT_HOURS := {
@@ -49,11 +39,9 @@ var _settings: Dictionary = {}
 var _clock: Node = null
 var _world_env: WorldEnvironment = null
 var _env: Environment = null
-var _sky_mat: ProceduralSkyMaterial = null
+var _sky_mat: ShaderMaterial = null
 var _sun: DirectionalLight3D = null
 var _moon: DirectionalLight3D = null
-var _camera: Camera3D = null
-var _renderer: Node = null   # optional renderer hook for future fog/radius coupling.
 var _sun_yaw: float = 45.0
 var _moon_yaw: float = 225.0
 
@@ -65,8 +53,6 @@ var _c_sun_color: Array = []
 var _c_sun_pitch: Array = []
 var _c_moon_color: Array = []
 var _c_moon_pitch: Array = []
-var _c_fog_thickness: Array = []
-var _c_fog_distance: Array = []
 
 var _event_hours: Dictionary = {}
 var _accum: float = 0.0
@@ -74,10 +60,9 @@ var _ready_ok: bool = false
 
 # Weather state — applied target, smoothed by _update for soft transitions.
 var _active_weather: Dictionary = {}
-var _c_fog_thickness_w: Array = []
-var _c_fog_distance_w: Array = []
 var _darken: float = 1.0
-var _vision: float = 1.0
+var _c_stars: Array = []
+var _atmosphere: Dictionary = {}
 
 
 func _ready() -> void:
@@ -127,31 +112,42 @@ func _load_settings() -> Dictionary:
 
 # ── Scene binding ─────────────────────────────────────────────────────────────
 
-func _bind_to_scene() -> void:
+## The autoload outlives the scene. Stop reading its lights before Godot
+## detaches/frees them, including the gap inside reload_current_scene().
+func _clear_scene_binding() -> void:
 	_ready_ok = false
+	_accum = 0.0
+	if is_instance_valid(_world_env) and _world_env.tree_exiting.is_connected(_clear_scene_binding):
+		_world_env.tree_exiting.disconnect(_clear_scene_binding)
 	_world_env = null
 	_env = null
 	_sky_mat = null
 	_sun = null
 	_moon = null
-	_camera = null
-	_renderer = null
+
+
+func _bind_to_scene() -> void:
+	_clear_scene_binding()
 	var scene := get_tree().current_scene
-	if scene == null:
+	if not is_instance_valid(scene) or not scene.is_inside_tree():
 		push_warning("SkyController: no current scene — cannot bind sky/fog.")
 		return
 
 	_world_env = _find_by_class(scene, "WorldEnvironment") as WorldEnvironment
 	_sun = _find_by_class(scene, "DirectionalLight3D") as DirectionalLight3D
-	_camera = _find_by_class(scene, "Camera3D") as Camera3D   # fog pins to its far plane
-	_renderer = scene.get_node_or_null("Renderer")
-	if _renderer == null or not _renderer.has_method("set_terrain_fog"):
-		_renderer = _find_by_method(scene, "set_terrain_fog")
 
 	if _world_env != null:
+		_world_env.tree_exiting.connect(_clear_scene_binding)
 		_env = _world_env.environment
-		if _env != null and _env.sky != null and _env.sky.sky_material is ProceduralSkyMaterial:
-			_sky_mat = _env.sky.sky_material as ProceduralSkyMaterial
+		if _env != null:
+			_sky_mat = ShaderMaterial.new()
+			_sky_mat.shader = SKY_SHADER
+			var sky := Sky.new()
+			sky.sky_material = _sky_mat
+			sky.process_mode = Sky.PROCESS_MODE_REALTIME
+			sky.radiance_size = Sky.RADIANCE_SIZE_256
+			_env.sky = sky
+			_env.background_mode = Environment.BG_SKY
 
 	if _sun != null:
 		preload("res://scripts/components/TerrainLighting.gd").configure_sun(_sun)
@@ -160,12 +156,14 @@ func _bind_to_scene() -> void:
 
 	# Create a Moon directional light at runtime so nights are not pitch black. It never casts
 	# shadows (one shadow-caster — the Sun — keeps the cost down).
-	_moon = DirectionalLight3D.new()
-	_moon.name = "Moon"
-	_moon.shadow_enabled = false
-	_moon.light_energy = 0.0
-	_moon.visible = false
-	scene.add_child(_moon)
+	_moon = scene.get_node_or_null("Moon") as DirectionalLight3D
+	if _moon == null:
+		_moon = DirectionalLight3D.new()
+		_moon.name = "Moon"
+		_moon.shadow_enabled = false
+		_moon.light_energy = 0.0
+		_moon.visible = false
+		scene.add_child(_moon)
 
 	_ready_ok = _env != null
 	if _env == null:
@@ -188,18 +186,6 @@ func _find_by_class(node: Node, cls: StringName) -> Node:
 		return node
 	for child in node.get_children():
 		var found := _find_by_class(child, cls)
-		if found != null:
-			return found
-	return null
-
-
-func _find_by_method(node: Node, m: StringName) -> Node:
-	if node == null:
-		return null
-	if node.has_method(m):
-		return node
-	for child in node.get_children():
-		var found := _find_by_method(child, m)
 		if found != null:
 			return found
 	return null
@@ -269,6 +255,7 @@ func _build_curves() -> void:
 	_c_sky_top     = _color_curve(sky.get("top", []))
 	_c_sky_horizon = _color_curve(sky.get("horizon", []))
 	_c_sky_ground  = _color_curve(sky.get("ground_bottom", []))
+	_c_stars = _scalar_curve(_settings.get("starfield_brightness", []), "value")
 
 	var sun: Dictionary = _settings.get("sun", {})
 	_c_sun_color = _color_curve(sun.get("light_color", []))
@@ -278,29 +265,10 @@ func _build_curves() -> void:
 	_c_moon_color = _color_curve(moon.get("light_color", []))
 	_c_moon_pitch = _scalar_curve(moon.get("angle_pitch", []), "deg")
 
-	var hf = _settings.get("height_fog", [])
-	_c_fog_thickness = _scalar_curve(hf, "thickness")
-	_c_fog_distance  = _scalar_curve(hf, "distance")
-	_build_weather_curves()
 
-
-# ── Weather ───────────────────────────────────────────────────────────────────
-
-## Called by WeatherManager. Stores the active weather and rebuilds its fog-override curves.
-## The look is blended in smoothly by _update (darkening, fog density/distance, vision range).
+# Weather presentation blends without changing generation or streaming budgets.
 func apply_weather(weather: Dictionary) -> void:
 	_active_weather = weather if weather != null else {}
-	_build_weather_curves()
-
-
-func _build_weather_curves() -> void:
-	_c_fog_thickness_w = []
-	_c_fog_distance_w = []
-	var ov: Dictionary = _active_weather.get("sky_overrides", {})
-	var hf = ov.get("height_fog", [])
-	if hf is Array and not (hf as Array).is_empty():
-		_c_fog_thickness_w = _scalar_curve(hf, "thickness")
-		_c_fog_distance_w  = _scalar_curve(hf, "distance")
 
 
 func _color_curve(arr) -> Array:
@@ -389,34 +357,68 @@ func _eval_scalar(curve: Array, h: float) -> float:
 # ── Per-frame apply ───────────────────────────────────────────────────────────
 
 func _update(h: float) -> void:
-	# Weather targets, smoothed toward for soft transitions.
+	if not _ready_ok:
+		return
+	if not is_instance_valid(_world_env) or not _world_env.is_inside_tree():
+		_clear_scene_binding()
+		return
 	var darken_target := DARK_FACTOR if bool(_active_weather.get("is_dark_during_daytime", false)) else 1.0
-	var vision_target := float(_active_weather.get("vision_multiplier", 1.0))
 	_darken = lerpf(_darken, darken_target, WEATHER_BLEND)
-	_vision = lerpf(_vision, vision_target, WEATHER_BLEND)
-
-	var horizon := _scale_color(_eval_color(_c_sky_horizon, h), _darken)
-
-	# Sky gradient (dimmed by overcast/fog/snow weather).
+	var look: Dictionary = _settings.get("diorama", {})
+	var targets: Dictionary = look.get("atmosphere", {}).duplicate()
+	targets.merge(_active_weather.get("sky_overrides", {}).get("atmosphere", {}), true)
+	for key: String in targets:
+		_atmosphere[key] = lerpf(float(_atmosphere.get(key, targets[key])), float(targets[key]), WEATHER_BLEND)
+	var cover: float = _atmosphere.get("cloud_cover", 0.0)
+	var top := _weather_color(_eval_color(_c_sky_top, h), cover)
+	var horizon := _weather_color(_eval_color(_c_sky_horizon, h), cover)
+	var bottom := _weather_color(_eval_color(_c_sky_ground, h), cover)
+	var night := _eval_scalar(_c_stars, h)
+	var sun_live := is_instance_valid(_sun) and _sun.is_inside_tree()
+	var moon_live := is_instance_valid(_moon) and _moon.is_inside_tree()
+	if sun_live:
+		_apply_light(_sun, _eval_color(_c_sun_color, h), _eval_scalar(_c_sun_pitch, h), _sun_yaw, SUN_ENERGY_SCALE)
+	if moon_live:
+		_apply_light(_moon, _eval_color(_c_moon_color, h), _eval_scalar(_c_moon_pitch, h), _moon_yaw, MOON_ENERGY_SCALE)
 	if _sky_mat != null:
-		_sky_mat.sky_top_color        = _scale_color(_eval_color(_c_sky_top, h), _darken)
-		_sky_mat.sky_horizon_color    = horizon
-		_sky_mat.ground_horizon_color = horizon                       # match the sky horizon
-		_sky_mat.ground_bottom_color  = _scale_color(_eval_color(_c_sky_ground, h), _darken)
+		_sky_mat.set_shader_parameter("sky_top", top)
+		_sky_mat.set_shader_parameter("sky_horizon", horizon)
+		_sky_mat.set_shader_parameter("sky_bottom", bottom)
+		_sky_mat.set_shader_parameter("night_amount", night * (1.0 - cover * 0.85))
+		_sky_mat.set_shader_parameter("cloud_cover", cover)
+		# Calendar motion stops when paused and wraps continuously at midnight.
+		_sky_mat.set_shader_parameter("cloud_rotation", h * TAU / DAY_HOURS)
+		var cloud_day := _to_color(look.get("cloud_day", [.82, .86, .91]))
+		var cloud_night := _to_color(look.get("cloud_night", [.13, .18, .28]))
+		_sky_mat.set_shader_parameter("cloud_color", _scale_color(cloud_day.lerp(cloud_night, night), _darken))
+		if sun_live:
+			_sky_mat.set_shader_parameter("sun_direction", _sun.global_basis.z.normalized())
+			_sky_mat.set_shader_parameter("sun_visibility", (1.0 - night) * (1.0 - cover * .8) if _sun.visible else 0.0)
+		else:
+			_sky_mat.set_shader_parameter("sun_visibility", 0.0)
+		if moon_live:
+			_sky_mat.set_shader_parameter("moon_direction", _moon.global_basis.z.normalized())
+			_sky_mat.set_shader_parameter("moon_visibility", night * (1.0 - cover * .8) if _moon.visible else 0.0)
+		else:
+			_sky_mat.set_shader_parameter("moon_visibility", 0.0)
+	if _env != null:
+		var camera := get_viewport().get_camera_3d()
+		# Godot otherwise stretches an orthographic camera's world-unit size
+		# across the sky. Give study/overview cameras a finite angular backdrop.
+		_env.sky_custom_fov = camera.fov if camera != null and camera.projection == Camera3D.PROJECTION_ORTHOGONAL else 0.0
+		_env.fog_light_color = horizon
+		_env.fog_density = float(_atmosphere.get("fog_density", .2))
+		_env.fog_depth_begin = float(_atmosphere.get("fog_begin", 90.0))
+		_env.fog_depth_end = float(_atmosphere.get("fog_end", 450.0))
 
-	# Fog: colour tracks the sky horizon (sky/fog match). Density + distance come from the weather
-	# height_fog override when present (else base); distance is further scaled by the weather's
-	# vision multiplier (fog closes in during foggy/snow). Both are smoothed for a soft transition.
-	if MANAGE_FOG and _renderer != null:
-		_renderer.call("set_terrain_fog", horizon, _vision, FOG_END_FRACTION, EDGE_FADE_START, FOG_DIAGNOSTIC)
 
-	# Celestial lights.
-	_apply_light(_sun,  _eval_color(_c_sun_color, h),  _eval_scalar(_c_sun_pitch, h),  _sun_yaw,  SUN_ENERGY_SCALE)
-	_apply_light(_moon, _eval_color(_c_moon_color, h), _eval_scalar(_c_moon_pitch, h), _moon_yaw, MOON_ENERGY_SCALE)
+func _weather_color(color: Color, cover: float) -> Color:
+	var grey := color.get_luminance()
+	return _scale_color(color.lerp(Color(grey, grey, grey), cover * .55), _darken)
 
 
 func _apply_light(light: DirectionalLight3D, c: Color, pitch: float, yaw: float, energy_scale: float) -> void:
-	if light == null:
+	if not is_instance_valid(light) or not light.is_inside_tree():
 		return
 	var b := maxf(c.r, maxf(c.g, c.b))
 	if b <= LIGHT_OFF_THRESHOLD:
@@ -441,8 +443,18 @@ func _apply_static_base() -> void:
 		_env.ambient_light_color = _to_color(look["ambient_color"])
 	if look.has("ambient_energy"):
 		_env.ambient_light_energy = float(look["ambient_energy"])
-	if MANAGE_FOG:
-		_env.fog_enabled = false
+	_env.fog_enabled = true
+	_env.fog_mode = Environment.FOG_MODE_DEPTH
+	_env.fog_aerial_perspective = 1.0
+	_env.fog_sky_affect = 0.0
+	_env.fog_sun_scatter = 0.0
+	_env.fog_depth_curve = 1.0
+	var diorama: Dictionary = _settings.get("diorama", {})
+	if _sky_mat != null:
+		var curves: Array = diorama.get("gradient_curves", [1.8, 1.2])
+		_sky_mat.set_shader_parameter("gradient_curves", Vector2(float(curves[0]), float(curves[1])))
+		for key in ["star_brightness", "star_scale", "sun_radius", "moon_radius"]:
+			if diorama.has(key): _sky_mat.set_shader_parameter(key, float(diorama[key]))
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -451,13 +463,6 @@ func _current_hour() -> float:
 	if _clock != null:
 		return float(_clock.get("hour"))
 	return 12.0
-
-
-## The camera far plane (in blocks) the edge fog dissolves at. Read live so it tracks far_clip.
-func _far_distance() -> float:
-	if _camera != null:
-		return _camera.far
-	return FAR_FALLBACK
 
 
 ## Multiplies a colour's RGB by a scalar (alpha untouched). Used for weather darkening.

@@ -1,4 +1,10 @@
 """Approved dining geometry and isolated seated-dwarf review export. Does not install assets."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import json
 import shutil
 from pathlib import Path
@@ -100,10 +106,10 @@ def generate():
         assert [high[a]-low[a] for a in range(3)] == size
         assert connected_count(voxels) == 1
         report['models'][name] = {'bounds': [low, high], 'voxels': len(voxels), 'sha256': sha(path)}
-    for source in (ROOT / 'assets/dwarves').rglob('*.glb'):
+    for source in (ROOT / 'assets/models/characters/dwarves').rglob('*.glb'):
         if source.parent.name not in ['body', 'hair', 'beards', 'eyebrows']:
             continue
-        relative = source.relative_to(ROOT / 'assets/dwarves')
+        relative = source.relative_to(ROOT / 'assets/models/characters/dwarves')
         target = OUT / 'dwarves' / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)

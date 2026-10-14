@@ -1,0 +1,43 @@
+{
+	"checks": [
+		"day production environment is audible",
+		"night production environment is audible",
+		"rock slice suppresses exterior audio"
+	],
+	"cut_exposure": 0.0,
+	"day": {
+		"exposure": 1.0,
+		"forest": 0.537544728930822,
+		"scan_max_usec": 65,
+		"scan_median_usec": 45,
+		"targets": {
+			"birds": 0.821161773334688,
+			"crickets": 0.0,
+			"dawn": 0.00000000000000000000099915084464,
+			"foliage": 0.441411182855548,
+			"owls": 0.0,
+			"shelter": 0.0,
+			"wind": 0.7
+		}
+	},
+	"night": {
+		"exposure": 1.0,
+		"forest": 0.537544728930822,
+		"scan_max_usec": 50,
+		"scan_median_usec": 45,
+		"targets": {
+			"birds": 0.00000000395783395968346,
+			"crickets": 0.966072674511397,
+			"dawn": 0.00000000602474763226455,
+			"foliage": 0.441411182855548,
+			"owls": 0.653336894116811,
+			"shelter": 0.0,
+			"wind": 0.525
+		}
+	},
+	"position": [
+		526.0,
+		36.0,
+		523.0
+	]
+}

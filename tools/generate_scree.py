@@ -1,12 +1,21 @@
-"""Three walkable loose-stone clumps; baked 1/8-block voxels and linear colors.
+"""Historical voxel scree, retained for matched comparisons.
+
+Live faceted art is authored by generate_ground_stones.py (roadmap 149).
+Three walkable loose-stone clumps; baked 1/8-block voxels and linear colors.
 
 Each stone touches Y0. Open gaps expose the supporting ground inside a 3x3
 footprint. Only writes owned GLBs; Godot creates import metadata.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 
-OUT = Path(__file__).resolve().parents[1] / 'assets/models/details/scree'
+OUT = Path(__file__).resolve().parents[1] / 'assets/models/rocks/scree'
 GROUPS = [
     [(-6, -5, 4, 3, 4), (3, -4, 3, 2, 3), (-1, 4, 4, 3, 3), (7, 6, 2, 2, 2), (-8, 7, 2, 1, 2)],
     [(-5, 0, 4, 4, 3), (5, -6, 3, 2, 3), (4, 4, 4, 2, 3), (-5, 8, 2, 1, 2), (-9, -8, 2, 2, 2)],

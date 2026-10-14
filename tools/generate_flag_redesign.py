@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """Export a settlement standard at eight voxels/block; --install replaces its GLB."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 import json
 from pathlib import Path
@@ -97,7 +103,7 @@ def generate(out,install=False):
     for name in ('barrel','storage_crate','hearth'):
         shutil.copyfile(ROOT/f'assets/models/furniture/{name}.glb',out/f'context/{name}.glb')
     for rel in ('body/head_adult','body/body_base','body/eyes','body/hand','body/foot','eyebrows/brows_m_arched','hair/hair_m_short_back','beards/beard_short_trimmed'):
-        shutil.copyfile(ROOT/'assets/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
+        shutil.copyfile(ROOT/'assets/models/characters/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
     for name in ('TreeRedesignPreview.gd','TavernRedesignPreview.gd','FlagRedesignPreview.gd'):
         shutil.copyfile(ROOT/'tools'/name,out/name)
     vox = flag()

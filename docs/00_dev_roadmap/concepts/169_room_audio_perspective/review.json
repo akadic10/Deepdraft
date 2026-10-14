@@ -1,0 +1,64 @@
+{
+	"contexts": {
+		"pivot": {
+			"focus": "(662.8625, 61.23413, 482.2173)",
+			"zoom": 1.99999368190765
+		},
+		"screen": {
+			"focus": "(660.1221, 44.05, 473.473)",
+			"zoom": 21.4747638702393
+		}
+	},
+	"recordings": {
+		"pivot_snore": {
+			"fire_gain": 0.0,
+			"peak": 0.041748046875,
+			"rms": 0.0054381607650109,
+			"snore_emissions": 2
+		},
+		"pivot_torch": {
+			"fire_gain": 0.0,
+			"peak": 0.002716064453125,
+			"rms": 0.000486126946690728,
+			"snore_emissions": 0
+		},
+		"room_mix": {
+			"fire_gain": 0.056978139005492,
+			"peak": 0.0496826171875,
+			"rms": 0.00525406011967647,
+			"snore_emissions": 2
+		},
+		"screen_snore": {
+			"fire_gain": 0.0,
+			"peak": 0.060211181640625,
+			"rms": 0.00599546185297041,
+			"snore_emissions": 2
+		},
+		"screen_torch": {
+			"fire_gain": 0.056978139005492,
+			"peak": 0.01409912109375,
+			"rms": 0.00229518208626319,
+			"snore_emissions": 0
+		}
+	},
+	"sleepers": [
+		{
+			"id": 1,
+			"pivot_gain": 0.194316072765263,
+			"position": "(659.5, 44.0, 473.5)",
+			"screen_gain": 0.272280263303649
+		},
+		{
+			"id": 2,
+			"pivot_gain": 0.0119667189588242,
+			"position": "(648.5, 44.0, 473.5)",
+			"screen_gain": 0.088186481327261
+		},
+		{
+			"id": 4,
+			"pivot_gain": 0.013141658316212,
+			"position": "(669.5, 44.0, 497.5)",
+			"screen_gain": 0.0
+		}
+	]
+}

@@ -313,6 +313,15 @@ Matching loop per wake for non-hauling work:
 
 `backoff(n) = min(2^n, 30)` seconds. After 3 consecutive blocked probes → `task_unreachable(task)` fires for the UI; the task keeps retrying on its backoff schedule, re-armed early when `chunk_dirtied` touches terrain near its target.
 
+Mining leases also recover when nearby placed-entity occupancy changes. The
+mining controller invalidates the zone's cached work positions immediately,
+then coalesces footprint changes into a deferred target refresh. It calls
+`retry_order(order_key, "Nearby obstruction changed")` for pending leases,
+clearing stale plans, worker rejections, backoff and attention state. The retry
+API's optional reason defaults to `"Retry requested"`. Active ownership and
+distant orders are preserved; this is not a global retry reset. See
+[174 — Mining furniture access](../00_dev_roadmap/174_mining_furniture_access.md).
+
 When HAUL leases are pending, matching uses three passes: compatible types above
 HAUL's current bucket priority, the HAUL comparison, then remaining types.
 Priority buckets and scan cursors remain; eligible workers are considered within

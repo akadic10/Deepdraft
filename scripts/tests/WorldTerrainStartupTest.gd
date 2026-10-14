@@ -50,6 +50,17 @@ func _run() -> void:
 	if view._overview_tile_nodes[Vector2i.ZERO] != distant or distant.mesh != distant_mesh:
 		_fail("local refresh rebuilt distant terrain")
 		return
+	# Interrupt an actual in-flight batch with a second revision. The completed
+	# older mesh must be discarded and the replacement must retain full coverage.
+	view._enqueue_overview_tiles_for_blocks(local_blocks)
+	view._drain_overview_tile_queue()
+	var stale_before: int = view._overview_stale_results
+	view._enqueue_overview_tiles_for_blocks(local_blocks)
+	await _settle(view)
+	if view._overview_stale_results <= stale_before:
+		_fail("in-flight terrain revision was not rejected")
+		return
+	if not _coverage(view, "edit during asynchronous build"): return
 
 	# Load a saved slice through the real SaveManager scene-reload path. Cave
 	# exposure and restored edits can enqueue local work before initial meshes.
@@ -61,6 +72,10 @@ func _run() -> void:
 	if not saves.request_save():
 		_fail("save failed")
 		return
+	# Loading while a batch is running must join readers before generator maps
+	# are cleared. Saving above records a complete, stable scene.
+	view._enqueue_overview_tiles_for_blocks(local_blocks)
+	view._drain_overview_tile_queue()
 	saves.load_finished.connect(func(ok: bool, _backup: bool):
 		_load_ok = ok
 		_load_finished = true)

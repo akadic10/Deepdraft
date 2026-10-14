@@ -2,16 +2,16 @@
   "entrance": "(692, 17, 544)",
   "failures": [],
   "luminance": {
-    "closed_corridor_torch": 0.0151356877759099,
-    "closed_unlit": 0.0151356877759099,
-    "closed_unlit_far_camera": 0.0151356877759099,
-    "far_day_outdoor_delta": 0.00420469045639038,
-    "far_night_outdoor_delta": 0.00420469045639038,
-    "legacy_fog_room": 0.158314511179924,
-    "lit_room": 0.214263818860054,
-    "open_corridor_torch": 0.155323517918587,
-    "outdoor_fog_current": 0.442487835884094,
-    "outdoor_fog_legacy": 0.442487835884094,
-    "selected_room": 0.0454117655754089
+    "closed_corridor_torch": 0.0190572552382946,
+    "closed_unlit": 0.0190572552382946,
+    "closed_unlit_far_camera": 0.0190572552382946,
+    "far_day_outdoor_delta": 0.00392153859138489,
+    "far_night_outdoor_delta": 0.00392153859138489,
+    "legacy_fog_room": 0.166425108909607,
+    "lit_room": 0.243107868432999,
+    "open_corridor_torch": 0.179291704297066,
+    "outdoor_fog_current": 0.28560471534729,
+    "outdoor_fog_legacy": 0.288692563772202,
+    "selected_room": 0.0490501970052719
   }
 }

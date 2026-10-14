@@ -3,6 +3,12 @@
 Only the fleck palette differs. Existing ore assets are never rewritten.
 These are world features, not inventory goods; eight voxels per block, Y0 base.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from generate_ore_glbs import build_rock_template, build_ore, _c, EXPORT_SCALE
 from voxel_glb import mesh_from_voxels, write_glb

@@ -1,0 +1,24 @@
+{
+  "description": "Offline faceted flame art. Closed tapered tongues, fixed roots, warm amber edges and a pale golden core. Existing furniture definitions own light, heat and animation timing.",
+  "palette": {
+    "ember": "E95B18",
+    "orange": "FF8A26",
+    "gold": "FFBD49",
+    "hot": "FFE18A",
+    "core": "FFF0BB"
+  },
+  "families": {
+    "campfire": {"anchor": [0, 0.375, 0], "size": [0.74, 1.04, 0.66], "bounds": [[-0.5, 0.375, -0.5], [0.5, 1.5, 0.5]]},
+    "hearth": {"anchor": [0, 0.5, 0.055], "size": [0.74, 1.08, 0.62], "bounds": [[-0.5, 0.5, -0.4], [0.5, 1.75, 0.5]]},
+    "brazier": {"anchor": [0.035, 1.0, 0], "size": [0.58, 0.94, 0.48], "bounds": [[-0.4, 1.0, -0.4], [0.45, 2.125, 0.4]]},
+    "smelter": {"anchor": [0.025, 0.375, 0.32], "size": [0.76, 1.04, 0.52], "bounds": [[-0.5, 0.375, -0.01], [0.53, 1.5, 0.68]]},
+    "wall_torch": {"anchor": [-0.03, 1.0, 0.50], "size": [0.46, 0.45, 0.40], "bounds": [[-0.375, 1.0, 0.25], [0.25, 1.5, 0.75]]}
+  },
+  "tongues": [
+    {"offset": [0, 0], "width": 0.38, "height": 0.91, "phase": 0.0, "core": false},
+    {"offset": [-0.23, -0.04], "width": 0.23, "height": 0.69, "phase": 2.1, "core": false},
+    {"offset": [0.23, 0.07], "width": 0.22, "height": 0.76, "phase": 4.2, "core": false},
+    {"offset": [-0.045, 0.22], "width": 0.23, "height": 0.48, "phase": 1.2, "core": true},
+    {"offset": [0.035, -0.21], "width": 0.22, "height": 0.51, "phase": 3.4, "core": true}
+  ]
+}

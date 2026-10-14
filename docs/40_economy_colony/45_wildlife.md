@@ -1,9 +1,28 @@
 # 45 — Wildlife
 
+**2026-10-13 — Large wolf proportions:** [165](../00_dev_roadmap/165_approved_actor_proportions.md)
+integrates the selected wolf at 2.392 blocks high, 1.287 wide and 3.411 long.
+Its definition owns the assembled visual scale and four-wide, three-high
+navigation clearance. Flat strides remain two cells; terrace transitions span
+four cells with twice the duration. Capture reach, needs and population rules
+are unchanged. The other species retain their dimensions and movement rules.
+
 **Current scope — 2026-10-10:** rabbits, deer, wolves and ducks are live, including
 scheduled terrestrial/aerial arrivals. Current saves require all four species'
 arrays and initialization flags. Older development saves are not migrated; the
 historical milestone notes describe earlier formats, not compatibility promises.
+
+**All live wildlife converted — 2026-10-13:** [154 — Family conversion](../00_dev_roadmap/154_complete_family_conversion.md)
+integrates 21 faceted parts: rabbit 3, deer 6, wolf 5 and duck 7, including both
+duck sexes. The six approved [deer pilot](../00_dev_roadmap/151_animal_art_pilot.md)
+exports are byte-identical. Species definitions change only their model paths;
+needs, predation, navigation, arrivals, animation pivots and saves retain the
+contracts below. All four live behavior fixtures and imported/pose checks pass.
+Author with `tools/generate_wildlife_faceted.py`, `data/art/wildlife.json` and
+the approved `deer_pilot.json`, under [standard 63](../60_asset_creation/63_shared_art_standard.md).
+Original models and duplicate pilots were removed in [156](../00_dev_roadmap/156_legacy_art_cleanup.md);
+comparison images and costs remain archived. Current native review captures cover
+all species and duck land/water/air poses; the dry studio is not a swimming fixture.
 
 ## Rabbit pilot — live 2026-10-09
 
@@ -141,8 +160,9 @@ Art generators, checks and playtest notes: [92 — Deer wildlife](../00_dev_road
 - Appetite rises by 0.012 per game hour. A wolf can acquire prey only at 0.6 or
   above, outside its satisfaction/retry period and while awake and calm. It
   chooses nearby unclaimed rabbits/deer within forty blocks and line of sight.
-- Pursuit uses a 2×2 footprint with two-cell clearance, cardinal strides and
-  bounded local routing. Hunting strides take 0.28 seconds. After twelve seconds,
+- Pursuit uses a 4×4 footprint with three-cell clearance, cardinal strides and
+  bounded local routing. Two-cell flat hunting strides take 0.28 seconds;
+  four-cell terrace strides take 0.56 seconds. After twelve seconds,
   a lost/distant target, fatigue, or a blocked route, the wolf gives up and waits
   a game hour before another attempt. A dwarf within eight blocks interrupts
   hunting/eating; wolves retreat and never attack colonists.

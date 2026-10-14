@@ -12,6 +12,12 @@ authored 1:1 (1 voxel = 1 block, scale 1.0; see docs/60_asset_creation/
     generate_juniper_glbs.py
 """
 
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
+
 import sys
 
 if __name__ == "__main__":

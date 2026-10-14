@@ -106,6 +106,8 @@ func _check_discovery(cave: Dictionary) -> void:
 	var renderer: Node = load("res://scripts/systems/WorldRenderer.gd").new()
 	_interior.caves_discovered.connect(renderer.add_discovered_cave_blocks)
 	var mining: Node = load("res://scripts/systems/MiningDesignationController.gd").new()
+	# Construction ownership is resolved through the scene tree by the picker.
+	root.add_child(mining)
 	mining._renderer = renderer
 	var cells: Array[Vector3i] = _generator.get_cave_air_cells(cave["id"])
 	var center: Vector3i = cave["center"]
@@ -148,6 +150,7 @@ func _check_discovery(cave: Dictionary) -> void:
 	_world.clear_world()
 	_interior.clear_runtime_state()
 	mining = load("res://scripts/systems/MiningDesignationController.gd").new()
+	root.add_child(mining)
 	mining.restore_state(saved)
 	_expect(_interior.discovered_cave_count() == 1, "Discovery was not reconstructed from saved mining.")
 	mining.free()

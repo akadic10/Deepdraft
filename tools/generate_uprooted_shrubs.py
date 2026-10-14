@@ -1,4 +1,10 @@
 """Whole mature shrubs with a wrapped root ball, all seasons and picked states."""
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from generate_shrubs import OUT, SEASONS, RIPE, plant, color
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 

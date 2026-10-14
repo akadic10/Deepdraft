@@ -4,6 +4,12 @@ One connected bark-covered log with cut end grain; no processed planks/staves.
 Colors are authored in sRGB then exported as linear vertex colors, matching
 ItemDropManager's existing material. Root scale remains 1.0.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 import math
 

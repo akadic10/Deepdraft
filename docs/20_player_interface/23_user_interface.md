@@ -1,5 +1,15 @@
 # 23 — User Interface
 
+**Audio preferences (2026-10-13):** Menu → Audio opens separate Ambience and
+Effects sliders with mute buttons and Restore defaults. Preferences persist
+across settlements. Ambience includes the new weather/season-aware woodland
+soundscape and softens on pause; Effects includes existing work, wildlife,
+water, fires and notifications. See [168](../00_dev_roadmap/168_environment_ambience.md).
+The [170](../00_dev_roadmap/170_environment_sound_details.md) expansion adds rain,
+thunder, seasonal textures, shoreline, frogs and cave drips to Ambience. Actual
+wolf howls use Effects. The sky dial displays Rain and Storm with cloud/rain
+marks and a storm lightning symbol; its tooltip names the actual weather.
+
 **Fixed time/Slice HUD (2026-10-12, 142):** illustrated Pause, 1×, 2× and Slice
 sit permanently at the bottom right. Slice's fixed tower has exact ±1/±4 arrows
 and a live level. Off reads Full world and retains the last height. Wheel over
@@ -111,6 +121,9 @@ Crafting keeps the browser open and updates the order count. Materials and
 descriptions scroll independently of the fixed wood, quantity, Queue and Place
 controls. Live stock changes preserve focused icons, order rows and scrolling.
 Planned professions retain their preview without recipe/order tabs or actions.
+As of 2026-10-13, Rudimentary uses Workshops, Lighting, Access, Rooms, Dining and
+Starter tools. Rooms groups beds, hearths and doors; Dining groups stools and
+benches; Lighting groups torches and campfires, matching their Place categories.
 See [114 — Crafting browser](../00_dev_roadmap/114_crafting_browser.md).
 
 **Object permissions (updated 2026-10-11):** loose goods and placed water stones
@@ -414,6 +427,12 @@ the dock. Hover/focus names identify **Save game**, **Load game**, and
 **Load autosave**. Stable action IDs route the callbacks. `DockUI` emits
 `save_game_requested`, `load_game_requested`, or `load_autosave_requested`; `SaveManager`
 owns the timer, file I/O, and state serialization.
+
+The dock finishes closing the menu before emitting persistence signals, because
+a load listener can synchronously remove the old scene. Deferred layout and
+position callbacks return when the dock is outside the scene tree. This lifecycle
+is covered by `DockPersistenceLifecycleTest` and menu-driven scene reloads in
+`SaveManagerRoundTripTest` (roadmap 161).
 
 The manual quick save lives at `user://saves/quicksave.json`; a separate automatic save is
 written every five minutes of ready, non-generating world time to

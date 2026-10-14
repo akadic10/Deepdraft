@@ -5,6 +5,12 @@ Outputs only tmp/apple_redesign_preview by default; no live registry changes.
 The shipping apple generator reuses apple() and the linear-color exporter.
 Uses the approved tree exporter: unit cubes, flat faces, linear vertex colors.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 import hashlib
 import json
@@ -170,7 +176,7 @@ def prepare_preview(out):
             shutil.copyfile(ROOT/'assets/models/flora/trees'/species/name,out/'models'/name)
     for rel in ('body/head_adult','body/body_base','body/eyes','body/hand','body/foot',
                 'eyebrows/brows_m_arched','hair/hair_m_short_back','beards/beard_short_trimmed'):
-        shutil.copyfile(ROOT/'assets/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
+        shutil.copyfile(ROOT/'assets/models/characters/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
     for name in ('TreeRedesignPreview.gd','AppleRedesignPreview.gd'):
         shutil.copyfile(ROOT/'tools'/name,out/name)
     (out/'project.godot').write_text('''config_version=5

@@ -1,0 +1,25 @@
+{
+  "changed_assets": [
+    "assets/models/furniture/crude_workbench.glb",
+    "assets/ui/furniture/crude_workbench.png"
+  ],
+  "unchanged_models": 380,
+  "unchanged_other_images": 123,
+  "unchanged_definitions": true,
+  "unchanged_import_settings": true,
+  "current_import": true,
+  "revision": {
+    "assets/models/furniture/crude_workbench.glb": {
+      "milestone": "docs/00_dev_roadmap/159_crude_workbench_stump.md",
+      "reason": "User-requested rough stump replaces the fitted plank bench; working top matches existing 0.875 height.",
+      "previous_sha256": "5ca996ee7074e63ce3fcaa59da80bdd8cfd294d9f74ced90ddc3b47b08d97c0e",
+      "metrics": {
+        "triangles": 280,
+        "meshes": 1,
+        "bytes": 38116,
+        "sha256": "e45b2ca8ea6246e3a633be723d64a1ae5ecbb39f891705b18f68d970ef3b7cd8"
+      }
+    }
+  },
+  "backup": "C:\\Users\\akadi\\.codex\\backups\\deepdraft-workbench-stump-20261013-164838.zip"
+}

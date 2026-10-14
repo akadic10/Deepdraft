@@ -253,11 +253,9 @@ func _run() -> void:
 	_expect(selected != null and roster._rows[selected].button.visible and selected.is_sleeping(), "initial selection respects the retained roster filter")
 	_key(KEY_ESCAPE)
 	# Developer tools are still reachable through their new menu.
-	_click(dock._button_by_target.system.get_global_rect().get_center())
+	_click(dock._button_by_target.development.get_global_rect().get_center())
 	await _settle()
-	_click(_button_named(dock._panel_body, "Development").get_global_rect().get_center())
-	await _settle()
-	_click(_button_named(dock._panel_body, "DEV: Dwarf tools").get_global_rect().get_center())
+	_click(_button_named(dock._panel_body, "Dwarf tools").get_global_rect().get_center())
 	_expect(manager.is_open("dwarves_dev"), "developer controls remain available under Menu")
 	if failures.is_empty(): print("DWARF_ROSTER_OK: native menu, compact table, embedded shared details and Follow, real haul/sleep, live filters/search, stable rows, selection handoff, Locate, slice/removal guards, lazy rendering, drag, scroll, Escape and 960/1280/2560 layouts")
 	for failure in failures: push_error(failure)
@@ -282,6 +280,7 @@ func _settle() -> void:
 func _button_named(parent: Node, caption: String) -> Button:
 	for child in parent.get_children():
 		if child is Button and child.text == caption: return child
+		if child.get_script() == preload("res://scripts/ui/DockIconButton.gd") and child.caption == caption: return child
 	return null
 
 

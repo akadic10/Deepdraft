@@ -1,5 +1,24 @@
 # 62 — Furniture Catalogue & Stonehearth Comparison
 
+**Complete catalogue converted (2026-10-13):**
+[154 — Family conversion](../00_dev_roadmap/154_complete_family_conversion.md)
+integrates 41 faceted GLBs covering all 30 furniture/water-stone definitions,
+the legacy chair, ladder heights 1–4, bridge spans 1–5 and three packed forms.
+The approved stool, hay bed and two-wide door are byte-identical to
+[152](../00_dev_roadmap/152_furniture_art_pilot.md). Footprints, collision, seats,
+sleeping surfaces, hinges, recipes, heat and saves are unchanged. Existing flame
+meshes and flipbook libraries remain. Campfire wood now uses the once-linear
+`oak_log` source palette; selectable material identity is preserved. Catalogue
+and water-stone inventory thumbnails match the new models.
+Author with `tools/generate_furniture_faceted.py`, `data/art/furniture_catalog.json`,
+the pilot profile and CraftMaterials palettes, under [63](63_shared_art_standard.md).
+The old voxel construction descriptions below are historical; retain their
+gameplay bounds and tier roles. `tools/furniture_art/RunReview.ps1` records the
+complete production review from opposing angles, including sitting/sleeping/hinge poses.
+[156 — Cleanup](../00_dev_roadmap/156_legacy_art_cleanup.md) removes old exports
+and duplicate pilots. Retained flame source data lives in `data/art/furniture_flames.json`;
+static furniture and flame-animation GLBs retain their exact approved bytes.
+
 **Dining (2026-10-12, 131 stage 2):** wooden chairs, log stools and log benches
 now support meals as well as leisure. A log bench supplies one broad dwarf seat
 with authored access/headroom. Diners prefer a correctly facing nearby tabletop;

@@ -13,11 +13,27 @@ Mining is the primary expansion mechanic. Dwarves remove solid blocks, depositin
 
 **Gem drops (2026-10-10):** Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond
 drop as finished, gleaming valuables. No Jeweller, cutting or polishing stage is
-planned. The six shared voxel models and inventory thumbnails use distinct
+planned. The six shared jewel models and inventory thumbnails use distinct
 palettes and light-dependent highlights, including under local torches. Gems
 obey normal underground darkness, slice visibility, carrying and storage rules.
 Existing `_raw` item keys, drop chances, values and counts remain unchanged;
 the displayed names omit "Raw". See [104](../00_dev_roadmap/104_gem_drop_artwork.md).
+
+**Loose-item art (2026-10-13):** [155](../00_dev_roadmap/155_resource_drops_and_work_tools.md)
+converts all remaining drops and both dwarf work tools to standard 63. Ore
+identities retain a shared shape and colored mineral patches; natural stone is
+coherent grey, coal dark, and gems faceted with their existing gloss. Generator:
+`tools/generate_items_faceted.py`; profile: `data/art/items.json`. Only model
+paths change in resource definitions; generation, loot, quantities, material
+selection, worker contacts and saves retain their existing rules.
+
+**Terrain appearance (2026-10-13):** Rock keys and their generation/resource rules
+remain authoritative, but all eleven natural-rock variants now share one grey
+colour family. Grass variants are selected deterministically without edge-distance
+maps; all eight share a full-voxel seasonal grass palette. Dirt's decorative
+variant stripes are also removed. Material geography, soil depth, caves, resource
+placement, hardness and yields retain their existing rules. See
+[145 — Base world terrain art](../00_dev_roadmap/145_base_world_terrain_art_plan.md).
 
 ## Geological Spectrum
 
@@ -331,11 +347,17 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
    exposure), drops spawn via ItemDropManager per block_resources.json, InteriorTracker X0
    bookkeeping, nav cells invalidated
 5. Destination recompute is lazy and local (blocks completing / chunk_dirtied in zone bounds);
-   stalled zones re-target + re-arm leases when nearby terrain opens
+   nearby placed-entity occupancy changes also invalidate cached work positions.
+   A deferred batch refreshes targets and re-arms pending leases after furniture moves,
+   clearing stale plans/backoff while preserving active ownership and distant orders
 6. When the zone empties: leases complete, zone entity destroyed
 ```
 
 Interruption at any step releases the lease cleanly (doc 16 §2.8) — the reserved block returns to the destination set, zone progress is never lost.
+
+See [174 — Mining furniture access](../00_dev_roadmap/174_mining_furniture_access.md)
+for the zero-face cache failure after moving a bed, regression coverage and a
+native copied-save completion. Existing zones recover without redesignation.
 
 ---
 

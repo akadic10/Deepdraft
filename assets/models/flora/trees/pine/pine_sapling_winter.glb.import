@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cls2ehfv0h0hn"
+uid="uid://cag1p6frdvqog"
 path="res://.godot/imported/pine_sapling_winter.glb-a0e6b38af4ed7c9d4d6cfe33654be982.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

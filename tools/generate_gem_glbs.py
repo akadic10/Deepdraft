@@ -6,6 +6,12 @@ vertex colours supply broad bands and small square glints at RTS zoom; the
 item registry supplies light-dependent gloss. No processing stage or textures.
 Run with Python from any directory; output is deterministic.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from math import sqrt
 from pathlib import Path
 

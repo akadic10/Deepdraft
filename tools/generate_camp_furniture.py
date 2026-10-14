@@ -3,6 +3,12 @@
 Grounded stone-ring fire with animated flame meshes and a small stump stool.
 No metal fittings or processed planks. Packed goods use the existing carry crate.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 import math
 from voxel_glb import Voxels, mesh_from_voxels, write_glb

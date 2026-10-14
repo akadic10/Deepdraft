@@ -12,13 +12,7 @@
 # Python bytecode (tool scripts)
 __pycache__/
 
-# Generated test output stays local; reports and review captures can be committed.
-/tmp/**/*.log
-/tmp/**/*.err
-
-# Isolated Godot test profiles (runtime saves, settings and shader caches)
-/tmp/**/appdata/
-/tmp/**/localappdata/
-/tmp/**/shader_cache/
-/tmp/boulder_review/appdata_*/
-/tmp/boulder_review/localappdata_*/
+# Local test output, extracted builds, scratch scripts and isolated Godot profiles.
+# Copy durable reports/review captures into docs/00_dev_roadmap/concepts/.
+# Previously tracked tmp files remain tracked; this prevents new scratch output.
+/tmp/

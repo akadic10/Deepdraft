@@ -3,6 +3,12 @@
 The handle runs along +Y and the cutting edge faces +Z. Colors are linear
 vertex colors, using the normal lit material; this is a tool visual, not loot.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 from pathlib import Path
 from voxel_glb import Voxels, mesh_from_voxels, write_glb
 from generate_timber_logs import linear_rgb
@@ -33,5 +39,5 @@ def axe():
 
 
 if __name__ == "__main__":
-    write_glb(ROOT / "assets/dwarves/tools/felling_axe.glb", "felling_axe", axe(), export_scale=.125)
+    write_glb(ROOT / "assets/models/characters/dwarves/tools/felling_axe.glb", "felling_axe", axe(), export_scale=.125)
     print("Felling axe: 8 voxels/block, baked scale .125, lower grip origin, +Y haft, +Z blade.")

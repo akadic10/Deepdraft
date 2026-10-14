@@ -67,6 +67,7 @@ var _preview_blocks: Array[Vector3i] = []
 var _preview_is_remove: bool = false
 var _next_zone_id: int = 1
 var _zones: Dictionary = {}
+var _occupancy_dirty_zones: Dictionary = {}
 var _zone_by_block: Dictionary = {}
 var _selected_zone_id: int = -1
 
@@ -160,6 +161,7 @@ func _ready() -> void:
 	# Zero-lease zone revival: terrain changes near a stalled zone re-arm it
 	# (mirrors TaskManager's chunk-dirtied early re-arm for blocked tasks).
 	WorldData.chunk_dirtied.connect(_on_world_chunk_dirtied, CONNECT_DEFERRED)
+	PlacedEntityRegistry.occupancy_changed.connect(_on_occupancy_changed)
 	# Resolve hidden-air plans after the current mining commit completes.
 	InteriorTracker.caves_discovered.connect(_remove_blocks_from_zones, CONNECT_DEFERRED)
 
@@ -1931,6 +1933,30 @@ func _on_world_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 		_refresh_zone_lease_targets(zone_id)
 
 
+## Furniture moves and felled trunks change stand cells without editing terrain.
+## Invalidate immediately, then coalesce all footprint changes before replanning
+## against NavGrid's final state. Never throttle away the removal half of a move.
+func _on_occupancy_changed(box_min: Vector3i, box_size: Vector3i) -> void:
+	if not is_inside_tree(): return
+	var was_empty := _occupancy_dirty_zones.is_empty()
+	for zone_id: int in _zones:
+		var component: MiningZoneComponent = _zones[zone_id].get("component")
+		if component == null or component.is_empty() or not component.intersects_occupancy(box_min,box_size): continue
+		component.mark_destination_dirty()
+		_occupancy_dirty_zones[zone_id] = true
+	if was_empty and not _occupancy_dirty_zones.is_empty():
+		_refresh_occupancy_zones.call_deferred()
+
+
+func _refresh_occupancy_zones() -> void:
+	var changed := _occupancy_dirty_zones.keys()
+	_occupancy_dirty_zones.clear()
+	if not is_inside_tree(): return
+	for zone_id: int in changed:
+		_top_up_zone_leases(zone_id)
+		_refresh_zone_lease_targets(zone_id, "Nearby obstruction changed")
+
+
 func _zone_has_assigned_worker(component: MiningZoneComponent) -> bool:
 	for task_id: int in component.lease_ids.keys():
 		var task := TaskManager.get_task(task_id)
@@ -2019,7 +2045,7 @@ func execute_zone_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> b
 ## Re-target the zone's still-PENDING leases (≤ max_workers of them) so their
 ## probes and the chunk-dirtied re-arm aim at live geometry, and clear their
 ## backoff — the terrain just changed in this very zone.
-func _refresh_zone_lease_targets(zone_id: int) -> void:
+func _refresh_zone_lease_targets(zone_id: int, retry_reason: String = "") -> void:
 	var zone: Dictionary = _zones.get(zone_id, {})
 	var component: MiningZoneComponent = zone.get("component") if not zone.is_empty() else null
 	if component == null:
@@ -2027,12 +2053,16 @@ func _refresh_zone_lease_targets(zone_id: int) -> void:
 	var rep := component.representative_target()
 	if rep.y < 0:
 		return
+	var orders: Dictionary = {}
 	for task_id: int in component.lease_ids.keys():
 		var task := TaskManager.get_task(task_id)
 		if task == null or task.assigned_to >= 0:
 			continue
 		task.target_pos = rep
 		task.retry_at = 0   # re-arm immediately; the next wake re-probes
+		if not retry_reason.is_empty(): orders[task.order_key] = true
+	for order_key: String in orders:
+		TaskManager.retry_order(order_key, retry_reason)
 
 
 ## World-mutation core shared by real mining and DEV mine: materialise the

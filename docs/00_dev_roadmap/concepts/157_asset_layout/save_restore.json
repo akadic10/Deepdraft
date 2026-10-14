@@ -1,0 +1,52 @@
+{
+  "adapter": "AMD Radeon RX 9070 XT",
+  "captures": {},
+  "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+  "engine": {
+    "build": "steam",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (steam)",
+    "timestamp": 0
+  },
+  "failures": [],
+  "fixed_simulation_fps": 60,
+  "pilot": false,
+  "quick": false,
+  "resolution": [
+    2560,
+    1440
+  ],
+  "save_reload": {
+    "checks": {
+      "clock": true,
+      "dwarf_count": true,
+      "dwarf_identity_and_appearance": true,
+      "furniture": true,
+      "stone_conservation": true,
+      "terrain_edits": true,
+      "valid_snapshot": true,
+      "wildlife": true
+    },
+    "counts": {
+      "deer": 30,
+      "duck": 11,
+      "dwarves": 24,
+      "furniture": 48,
+      "lights": 8,
+      "mesh_instances": 7490,
+      "rabbit": 46,
+      "trees": 2953,
+      "wolf": 4
+    },
+    "elapsed_ms": 18411.69,
+    "stone_units": 96,
+    "validation_error": ""
+  },
+  "seed": 1234,
+  "shader_uniform_buffer_slots": 131072
+}

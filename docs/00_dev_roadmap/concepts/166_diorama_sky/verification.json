@@ -1,0 +1,32 @@
+[
+    {
+        "test":  "DioramaSkyTest",
+        "passed":  true,
+        "exit":  0
+    },
+    {
+        "test":  "SkyDialTest",
+        "passed":  true,
+        "exit":  0
+    },
+    {
+        "test":  "WeatherPersistenceTest",
+        "passed":  true,
+        "exit":  0
+    },
+    {
+        "test":  "UndergroundLightingTest",
+        "passed":  true,
+        "exit":  0
+    },
+    {
+        "test":  "RoomLightingTest",
+        "passed":  true,
+        "exit":  0
+    },
+    {
+        "test":  "TunnelEntranceTest",
+        "passed":  true,
+        "exit":  0
+    }
+]

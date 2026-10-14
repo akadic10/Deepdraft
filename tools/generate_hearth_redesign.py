@@ -4,6 +4,12 @@
 Exports a review under tmp/rudimentary_hearth_20261011. --install replaces
 the shipping body/flame GLB and its ten-frame fire library.
 """
+
+# Retained only as historical source / flame-building helpers.
+if __name__ == "__main__":
+    from retired_voxel_art import stop
+    stop()
+
 import argparse
 import hashlib
 import json
@@ -252,7 +258,7 @@ def generate(out,install=False):
     for name in ('barrel','tavern_bar','bench'):
         shutil.copyfile(ROOT/f'assets/models/furniture/{name}.glb',out/f'context/{name}.glb')
     for rel in ('body/head_adult','body/body_base','body/eyes','body/hand','body/foot','eyebrows/brows_m_arched','hair/hair_m_short_back','beards/beard_short_trimmed'):
-        shutil.copyfile(ROOT/'assets/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
+        shutil.copyfile(ROOT/'assets/models/characters/dwarves'/(rel+'.glb'),out/'dwarves'/(Path(rel).name+'.glb'))
     for name in ('TreeRedesignPreview.gd','TavernRedesignPreview.gd','HearthRedesignPreview.gd','HearthAnimationPreview.gd'):
         shutil.copyfile(ROOT/'tools'/name,out/name)
     for name in ('FurnitureLighting.gd','FurnitureFlameAnimation.gd'):

@@ -49,64 +49,66 @@ const EYE_COLORS := {
 # ── Part tables (doc 41b §GLB File Inventory) — PackedScenes ─────────────────
 
 var heads: Dictionary = {
-	"young":  preload("res://assets/dwarves/body/head_young.glb"),
-	"adult":  preload("res://assets/dwarves/body/head_adult.glb"),
-	"middle": preload("res://assets/dwarves/body/head_middle.glb"),
-	"elder":  preload("res://assets/dwarves/body/head_elder.glb"),
+	"young":  preload("res://assets/models/characters/dwarves/body/head_young.glb"),
+	"adult":  preload("res://assets/models/characters/dwarves/body/head_adult.glb"),
+	"middle": preload("res://assets/models/characters/dwarves/body/head_middle.glb"),
+	"elder":  preload("res://assets/models/characters/dwarves/body/head_elder.glb"),
 }
-var eyes: PackedScene = preload("res://assets/dwarves/body/eyes.glb")
-var body: PackedScene = preload("res://assets/dwarves/body/body_base.glb")
-var hand: PackedScene = preload("res://assets/dwarves/body/hand.glb")
-var foot: PackedScene = preload("res://assets/dwarves/body/foot.glb")
+var eyes: PackedScene = preload("res://assets/models/characters/dwarves/body/eyes.glb")
+var body: PackedScene = preload("res://assets/models/characters/dwarves/body/body_base.glb")
+var hand: PackedScene = preload("res://assets/models/characters/dwarves/body/hand.glb")
+var foot: PackedScene = preload("res://assets/models/characters/dwarves/body/foot.glb")
+## Shared right-limb geometry; keep imported meshes immutable for left parts.
+var _mirrored_limb_meshes: Dictionary = {}
 ## Implicit work equipment: presentation only, with no inventory requirement.
-var felling_axe: PackedScene = preload("res://assets/dwarves/tools/felling_axe.glb")
-var mining_pickaxe: PackedScene = preload("res://assets/dwarves/tools/mining_pickaxe.glb")
+var felling_axe: PackedScene = preload("res://assets/models/characters/dwarves/tools/felling_axe.glb")
+var mining_pickaxe: PackedScene = preload("res://assets/models/characters/dwarves/tools/mining_pickaxe.glb")
 
 var hair_male: Dictionary = {
-	"short_back":   preload("res://assets/dwarves/hair/hair_m_short_back.glb"),
-	"shaved":       preload("res://assets/dwarves/hair/hair_m_shaved.glb"),
-	"wild_loose":   preload("res://assets/dwarves/hair/hair_m_wild_loose.glb"),
-	"braided_back": preload("res://assets/dwarves/hair/hair_m_braided_back.glb"),
+	"short_back":   preload("res://assets/models/characters/dwarves/hair/hair_m_short_back.glb"),
+	"shaved":       preload("res://assets/models/characters/dwarves/hair/hair_m_shaved.glb"),
+	"wild_loose":   preload("res://assets/models/characters/dwarves/hair/hair_m_wild_loose.glb"),
+	"braided_back": preload("res://assets/models/characters/dwarves/hair/hair_m_braided_back.glb"),
 	"bald":         null,
 }
 var hair_female: Dictionary = {
-	"bun":             preload("res://assets/dwarves/hair/hair_f_bun.glb"),
-	"braid_side":      preload("res://assets/dwarves/hair/hair_f_braid_side.glb"),
-	"braid_long":      preload("res://assets/dwarves/hair/hair_f_braid_long.glb"),
-	"short_practical": preload("res://assets/dwarves/hair/hair_f_short_practical.glb"),
-	"twin_braids":     preload("res://assets/dwarves/hair/hair_f_twin_braids.glb"),
-	"half_up":         preload("res://assets/dwarves/hair/hair_f_half_up.glb"),
-	"loose_long":      preload("res://assets/dwarves/hair/hair_f_loose_long.glb"),
-	"shaved_sides":    preload("res://assets/dwarves/hair/hair_f_shaved_sides.glb"),
-	"cropped":         preload("res://assets/dwarves/hair/hair_f_cropped.glb"),
-	"wild":            preload("res://assets/dwarves/hair/hair_f_wild.glb"),
+	"bun":             preload("res://assets/models/characters/dwarves/hair/hair_f_bun.glb"),
+	"braid_side":      preload("res://assets/models/characters/dwarves/hair/hair_f_braid_side.glb"),
+	"braid_long":      preload("res://assets/models/characters/dwarves/hair/hair_f_braid_long.glb"),
+	"short_practical": preload("res://assets/models/characters/dwarves/hair/hair_f_short_practical.glb"),
+	"twin_braids":     preload("res://assets/models/characters/dwarves/hair/hair_f_twin_braids.glb"),
+	"half_up":         preload("res://assets/models/characters/dwarves/hair/hair_f_half_up.glb"),
+	"loose_long":      preload("res://assets/models/characters/dwarves/hair/hair_f_loose_long.glb"),
+	"shaved_sides":    preload("res://assets/models/characters/dwarves/hair/hair_f_shaved_sides.glb"),
+	"cropped":         preload("res://assets/models/characters/dwarves/hair/hair_f_cropped.glb"),
+	"wild":            preload("res://assets/models/characters/dwarves/hair/hair_f_wild.glb"),
 }
 var beards: Dictionary = {
-	"full_long":     preload("res://assets/dwarves/beards/beard_full_long.glb"),
-	"full_braided":  preload("res://assets/dwarves/beards/beard_full_braided.glb"),
-	"short_trimmed": preload("res://assets/dwarves/beards/beard_short_trimmed.glb"),
-	"forked":        preload("res://assets/dwarves/beards/beard_forked.glb"),
-	"mutton_chops":  preload("res://assets/dwarves/beards/beard_mutton_chops.glb"),
-	"goatee":        preload("res://assets/dwarves/beards/beard_goatee.glb"),
-	"braided_long":  preload("res://assets/dwarves/beards/beard_braided_long.glb"),
+	"full_long":     preload("res://assets/models/characters/dwarves/beards/beard_full_long.glb"),
+	"full_braided":  preload("res://assets/models/characters/dwarves/beards/beard_full_braided.glb"),
+	"short_trimmed": preload("res://assets/models/characters/dwarves/beards/beard_short_trimmed.glb"),
+	"forked":        preload("res://assets/models/characters/dwarves/beards/beard_forked.glb"),
+	"mutton_chops":  preload("res://assets/models/characters/dwarves/beards/beard_mutton_chops.glb"),
+	"goatee":        preload("res://assets/models/characters/dwarves/beards/beard_goatee.glb"),
+	"braided_long":  preload("res://assets/models/characters/dwarves/beards/beard_braided_long.glb"),
 }
 var brows_male: Dictionary = {
-	"thick_flat": preload("res://assets/dwarves/eyebrows/brows_m_thick_flat.glb"),
-	"bushy":      preload("res://assets/dwarves/eyebrows/brows_m_bushy.glb"),
-	"arched":     preload("res://assets/dwarves/eyebrows/brows_m_arched.glb"),
-	"unibrow":    preload("res://assets/dwarves/eyebrows/brows_m_unibrow.glb"),
+	"thick_flat": preload("res://assets/models/characters/dwarves/eyebrows/brows_m_thick_flat.glb"),
+	"bushy":      preload("res://assets/models/characters/dwarves/eyebrows/brows_m_bushy.glb"),
+	"arched":     preload("res://assets/models/characters/dwarves/eyebrows/brows_m_arched.glb"),
+	"unibrow":    preload("res://assets/models/characters/dwarves/eyebrows/brows_m_unibrow.glb"),
 }
 var brows_female: Dictionary = {
-	"thin_arched":  preload("res://assets/dwarves/eyebrows/brows_f_thin_arched.glb"),
-	"thick_flat":   preload("res://assets/dwarves/eyebrows/brows_f_thick_flat.glb"),
-	"bushy":        preload("res://assets/dwarves/eyebrows/brows_f_bushy.glb"),
-	"sharp_angled": preload("res://assets/dwarves/eyebrows/brows_f_sharp_angled.glb"),
+	"thin_arched":  preload("res://assets/models/characters/dwarves/eyebrows/brows_f_thin_arched.glb"),
+	"thick_flat":   preload("res://assets/models/characters/dwarves/eyebrows/brows_f_thick_flat.glb"),
+	"bushy":        preload("res://assets/models/characters/dwarves/eyebrows/brows_f_bushy.glb"),
+	"sharp_angled": preload("res://assets/models/characters/dwarves/eyebrows/brows_f_sharp_angled.glb"),
 }
 var scars: Dictionary = {
-	"cheek_slash": preload("res://assets/dwarves/scars/scar_cheek_slash.glb"),
-	"brow_notch":  preload("res://assets/dwarves/scars/scar_brow_notch.glb"),
-	"nose_bridge": preload("res://assets/dwarves/scars/scar_nose_bridge.glb"),
-	"chin_split":  preload("res://assets/dwarves/scars/scar_chin_split.glb"),
+	"cheek_slash": preload("res://assets/models/characters/dwarves/scars/scar_cheek_slash.glb"),
+	"brow_notch":  preload("res://assets/models/characters/dwarves/scars/scar_brow_notch.glb"),
+	"nose_bridge": preload("res://assets/models/characters/dwarves/scars/scar_nose_bridge.glb"),
+	"chin_split":  preload("res://assets/models/characters/dwarves/scars/scar_chin_split.glb"),
 }
 
 # ── Generation pools (loaded once at boot) ────────────────────────────────────
@@ -116,12 +118,14 @@ var _appearance: Dictionary = {}   # { shared: {...}, male: {...}, female: {...}
 var _traits: Dictionary = {}       # { generation_config, exclusion_groups, traits }
 var _professions: Dictionary = {}
 var _work_categories: Dictionary = {}
+var _proportions: Dictionary = {}
 
 
 func _ready() -> void:
 	_names = _load_json(NAMES_PATH)
 	_appearance = _load_json(APPEARANCE_PATH)
 	_traits = _load_json(TRAITS_PATH)
+	_proportions = _load_json("res://data/entities/dwarves/proportions.json")
 	_professions = _load_json("res://data/professions/professions.json")
 	for entry: Dictionary in work_permissions():
 		for type: String in entry.tasks: _work_categories[type] = String(entry.id)
@@ -144,6 +148,43 @@ func brows_for(appearance: DwarfAppearanceData) -> PackedScene:
 	return table.get(appearance.eyebrow_style)
 
 
+# ── Derived limb geometry (shared; callers must not mutate) ─────────────────
+
+## Closed, unskinned triangle limbs use a baked X reflection with reversed
+## winding. A counter-reflection on the mesh node cancels the rig's negative
+## scale, so the renderer sees an ordinary positive-handed transform. The rig
+## itself keeps its existing signed scale, palm anchors and animation poses.
+func mirrored_limb_mesh(source: Mesh) -> ArrayMesh:
+	if _mirrored_limb_meshes.has(source): return _mirrored_limb_meshes[source]
+	var result := ArrayMesh.new()
+	for surface in source.get_surface_count():
+		var arrays := source.surface_get_arrays(surface).duplicate(true)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		for i in vertices.size(): vertices[i].x = -vertices[i].x
+		for i in normals.size(): normals[i].x = -normals[i].x
+		arrays[Mesh.ARRAY_VERTEX] = vertices
+		arrays[Mesh.ARRAY_NORMAL] = normals
+		if arrays[Mesh.ARRAY_TANGENT] != null:
+			var tangents: PackedFloat32Array = arrays[Mesh.ARRAY_TANGENT]
+			for i in range(0,tangents.size(),4):
+				tangents[i] = -tangents[i]
+				tangents[i+3] = -tangents[i+3]
+			arrays[Mesh.ARRAY_TANGENT] = tangents
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+		if indices.is_empty():
+			for i in vertices.size(): indices.append(i)
+		for i in range(0,indices.size(),3):
+			var swap := indices[i+1]
+			indices[i+1] = indices[i+2]
+			indices[i+2] = swap
+		arrays[Mesh.ARRAY_INDEX] = indices
+		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		result.surface_set_material(surface,source.surface_get_material(surface))
+	_mirrored_limb_meshes[source] = result
+	return result
+
+
 # ── Pool queries (read-only views; callers must not mutate) ──────────────────
 
 func get_name_pools() -> Dictionary:
@@ -156,6 +197,10 @@ func get_appearance_pools() -> Dictionary:
 
 func get_trait_data() -> Dictionary:
 	return _traits
+
+
+func get_proportions() -> Dictionary:
+	return _proportions
 
 
 # ── Professions and work policy ─────────────────────────────────────────────

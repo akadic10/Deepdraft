@@ -21,6 +21,7 @@ func _run() -> void:
 		if name!="bench": _room(origin, int(def.footprint.width))
 		await _frames(2)
 		furniture.activate_for(key,true)
+		_expect(is_instance_valid(furniture._preview), "placement loads a model preview: " + name)
 		furniture._yaw = 0
 		furniture._hover_cell = origin
 		_expect(furniture._placement_valid(origin), "fits prepared opening: "+name)

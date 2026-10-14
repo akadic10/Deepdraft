@@ -1,0 +1,137 @@
+{
+  "fixtures": [
+    {
+      "test": "TreePilotTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.51,
+      "timeout": false
+    },
+    {
+      "test": "SurfaceVegetationArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 1.6,
+      "timeout": false
+    },
+    {
+      "test": "GroundStoneArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.51,
+      "timeout": false
+    },
+    {
+      "test": "DwarfFacetedArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 1.59,
+      "timeout": false
+    },
+    {
+      "test": "WildlifeFacetedArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.47,
+      "timeout": false
+    },
+    {
+      "test": "FurnitureFacetedArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 2.24,
+      "timeout": false
+    },
+    {
+      "test": "ItemFacetedArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.29,
+      "timeout": false
+    },
+    {
+      "test": "DwarfPilotArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 1.22,
+      "timeout": false
+    },
+    {
+      "test": "DeerPilotArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.4,
+      "timeout": false
+    },
+    {
+      "test": "FurniturePilotArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 1.5,
+      "timeout": false
+    },
+    {
+      "test": "MiningAnimationTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.58,
+      "timeout": false
+    },
+    {
+      "test": "TreeFellingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 1.96,
+      "timeout": false
+    },
+    {
+      "test": "HaulingAnimationTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 6.55,
+      "timeout": false
+    },
+    {
+      "test": "ProduceCrateTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 1.43,
+      "timeout": false
+    },
+    {
+      "test": "WaterStoneLifecycleTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.99,
+      "timeout": false
+    },
+    {
+      "test": "SaveManagerRoundTripTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 63.48,
+      "timeout": false
+    }
+  ],
+  "generator_reproduction_passed": [
+    "tree_pilot",
+    "surface_vegetation",
+    "ground_stones",
+    "dwarf_faceted",
+    "wildlife_faceted",
+    "furniture_faceted",
+    "items_faceted",
+    "dwarf_pilot",
+    "deer_pilot",
+    "furniture_pilot"
+  ],
+  "native_reviews": {
+    "items": "ITEM_ART_CAPTURE_OK: 41 native views; all 92 forms, wood variants, tool motion and cargo",
+    "furniture": "FURNITURE_FACETED_CAPTURE_OK: 57 paired catalogue, interaction, material and packed-form views"
+  },
+  "clean_godot_import": true,
+  "unchanged_model_hashes": 381,
+  "unchanged_moved_import_settings": 297,
+  "source_reference_scan": "no stale live model paths or new missing references",
+  "historical_reports": "retained with their original paths; audits map those paths to current locations"
+}

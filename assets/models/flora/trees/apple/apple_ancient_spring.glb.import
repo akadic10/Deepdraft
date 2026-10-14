@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dbvjdqgqwypwu"
+uid="uid://be6ge2hr4m5ug"
 path="res://.godot/imported/apple_ancient_spring.glb-04866e6cf847a501b8147c3f52c97558.scn"
 
 [deps]
@@ -42,4 +42,4 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1
-gltf/texture_map_mode=0
+gltf/texture_map_mode=1

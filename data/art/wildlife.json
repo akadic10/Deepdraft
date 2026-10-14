@@ -1,0 +1,6 @@
+{
+  "description": "Offline palettes for the complete faceted wildlife family. Deer reuses the approved pilot unchanged; gameplay remains in animal definitions.",
+  "rabbit": {"fur":"A38A68","shade":"8C7255","cream":"D3C4A1","ear":"BA8B80","eye":"282922","nose":"845C53","glint":"DDD8C0"},
+  "wolf": {"fur":"7E8482","shade":"626B6C","light":"A0A49B","cream":"C5BEA6","nose":"292C2C","eye":"8F753F","ear":"8C8076","glint":"D6CEAB"},
+  "duck": {"male_coat":"939A8A","male_breast":"745240","male_crown":"426B4F","male_bill":"C5A64D","female_coat":"988365","female_breast":"B69B70","female_crown":"95805E","female_bill":"B79961","dark":"54594F","eye":"20261F","ring":"D5D0AE","speculum":"536F92","foot":"C68A43"}
+}

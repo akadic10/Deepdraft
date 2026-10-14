@@ -20,7 +20,7 @@ extends Node3D
 @export var dock_ui_path: NodePath
 @export var dwarf_director_path: NodePath
 
-const FLAG_MODEL := "res://assets/models/items/misc/settlement_flag.glb"
+const FLAG_MODEL := "res://assets/models/furniture/settlement_flag.glb"
 const FURNITURE_KEY := "base:furniture:settlement_flag"
 const WORLD_EDGE_MARGIN := 2       # reject placement hugging the world border
 const RAY_STEP := 0.5
