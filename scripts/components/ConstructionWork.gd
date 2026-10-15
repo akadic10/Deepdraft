@@ -15,9 +15,12 @@ func display_name() -> String:
 func work_stands(_from: Vector3i) -> Array[Vector3i]:
 	_stand_targets.clear()
 	var result: Array[Vector3i] = []
-	var candidates: Array[Vector3i] = [target] if not _carried_by.is_empty() else cells
+	var candidates: Array[Vector3i] = []
+	if not _carried_by.is_empty(): candidates.append(target)
+	else: candidates = cells
+	var obstacles: Dictionary = controller.obstacle_snapshot()
 	for cell: Vector3i in candidates:
-		if not controller.build_reason(cell, false).is_empty(): continue
+		if not controller.build_reason(cell, false, true, "stone", obstacles).is_empty(): continue
 		for stand: Vector3i in controller.stands_for(cell):
 			if not _stand_targets.has(stand):
 				_stand_targets[stand] = cell

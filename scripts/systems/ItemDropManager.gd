@@ -334,16 +334,32 @@ func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {
 
 ## Read-only scheduler query. Unlike a hauling reservation, this can span
 ## wakes without claiming anything. The scheduler invalidates it on item changes.
-func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Dictionary, deadline_usec: int, exclude_cells: Dictionary = {}) -> bool:
-	if query.is_empty():
-		query.merge({"nodes": _loose.keys(), "index": 0, "best": null, "distance": 0x7FFFFFFF})
-	while int(query.index) < query.nodes.size():
+func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Dictionary, snapshot: Dictionary, deadline_usec: int, exclude_cells: Dictionary = {}) -> bool:
+	# One incremental eligibility pass serves all workers ranking this source.
+	# Only proximity and worker-specific route exclusions differ between them.
+	var revision := StockpileManager.hauling_revision
+	if int(snapshot.get("revision", -1)) != revision or snapshot.get("accepts") != accepts_key or snapshot.get("manager") != self:
+		snapshot.clear()
+		snapshot.merge({"revision": revision, "accepts": accepts_key, "manager": self,
+			"nodes": _loose.keys(), "index": 0, "keys": {}, "accepted": [], "cells": []})
+		query.clear()
+	while int(snapshot.index) < snapshot.nodes.size():
 		if Time.get_ticks_usec() >= deadline_usec: return false
-		var node = query.nodes[query.index]
-		query.index += 1
+		var node = snapshot.nodes[snapshot.index]
+		snapshot.index += 1
 		if not Permission.allowed(node) or not _loose.has(node) or _reserved.has(node): continue
-		if not bool(accepts_key.call(String(_loose[node]))): continue
-		var cell := item_floor_cell(node)
+		var key: String = _loose[node]
+		if not snapshot.keys.has(key): snapshot.keys[key] = bool(accepts_key.call(key))
+		if not snapshot.keys[key]: continue
+		snapshot.accepted.append(node)
+		snapshot.cells.append(item_floor_cell(node))
+	if query.is_empty():
+		query.merge({"index": 0, "best": null, "distance": 0x7FFFFFFF})
+	while int(query.index) < snapshot.accepted.size():
+		if Time.get_ticks_usec() >= deadline_usec: return false
+		var node = snapshot.accepted[query.index]
+		var cell: Vector3i = snapshot.cells[query.index]
+		query.index += 1
 		if exclude_cells.has(cell): continue
 		var distance := absi(cell.x - from.x) + absi(cell.y - from.y) + absi(cell.z - from.z)
 		if distance < int(query.distance):

@@ -1,0 +1,11 @@
+{
+  "comparisons": 37,
+  "failures": [],
+  "timings": {
+    "filter_calls": 2,
+    "items": 641,
+    "original_usec": 45182,
+    "shared_usec": 5308,
+    "workers": 30
+  }
+}

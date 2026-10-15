@@ -1,0 +1,696 @@
+{
+  "duck_before_saved": {
+    "active_pan": {
+      "frame": {
+        "max": 37.383,
+        "mean": 12.5218613138686,
+        "over_100": 0,
+        "over_16_7": 228,
+        "over_33_3": 7,
+        "over_50": 0,
+        "p50": 11.014,
+        "p95": 25.353,
+        "p99": 32.13
+      },
+      "wildlife": {
+        "max": 12.092,
+        "mean": 3.50080813347237,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 3.17,
+        "p95": 5.06,
+        "p99": 7.453
+      },
+      "duck": {
+        "max": 10.517,
+        "mean": 2.23381230448384,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.964,
+        "p95": 3.406,
+        "p99": 6.253
+      },
+      "worst_frame": {
+        "frame_ms": 37.383,
+        "scene_ms": 27.82,
+        "stages": [
+          [
+            "WaterManager",
+            14.097
+          ],
+          [
+            "water_sim/total",
+            14.089
+          ],
+          [
+            "water_sim/flow",
+            11.277
+          ],
+          [
+            "DebugWorld/Renderer",
+            8.902
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.236
+          ],
+          [
+            "water_render/total",
+            5.208
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            3.961
+          ],
+          [
+            "water_render/mesh",
+            3.919
+          ]
+        ]
+      }
+    },
+    "active_pan_repeat": {
+      "frame": {
+        "max": 39.042,
+        "mean": 13.2800110619469,
+        "over_100": 0,
+        "over_16_7": 241,
+        "over_33_3": 10,
+        "over_50": 0,
+        "p50": 11.862,
+        "p95": 26.87,
+        "p99": 33.108
+      },
+      "wildlife": {
+        "max": 14.867,
+        "mean": 3.49899889380531,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 3.305,
+        "p95": 4.736,
+        "p99": 6.475
+      },
+      "duck": {
+        "max": 13.24,
+        "mean": 2.19590154867256,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.954,
+        "p95": 3.004,
+        "p99": 5.472
+      },
+      "worst_frame": {
+        "frame_ms": 39.042,
+        "scene_ms": 31.438,
+        "stages": [
+          [
+            "WaterManager",
+            14.808
+          ],
+          [
+            "water_sim/total",
+            14.799
+          ],
+          [
+            "water_sim/flow",
+            10.874
+          ],
+          [
+            "DebugWorld/Renderer",
+            10.494
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.677
+          ],
+          [
+            "water_render/total",
+            5.642
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.85
+          ],
+          [
+            "water_render/mesh",
+            4.349
+          ]
+        ]
+      }
+    },
+    "active_static": {
+      "frame": {
+        "max": 202.301,
+        "mean": 12.9627948164147,
+        "over_100": 1,
+        "over_16_7": 212,
+        "over_33_3": 7,
+        "over_50": 3,
+        "p50": 11.235,
+        "p95": 26.7,
+        "p99": 32.253
+      },
+      "wildlife": {
+        "max": 16.64,
+        "mean": 3.46389632829374,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 3.213,
+        "p95": 4.751,
+        "p99": 7.935
+      },
+      "duck": {
+        "max": 14.963,
+        "mean": 2.16942980561555,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.901,
+        "p95": 3.021,
+        "p99": 6.498
+      },
+      "worst_frame": {
+        "frame_ms": 202.301,
+        "scene_ms": 8.675,
+        "stages": [
+          [
+            "DebugWorld/WildlifeManager",
+            3.95
+          ],
+          [
+            "wildlife/base:animal:duck",
+            2.652
+          ],
+          [
+            "DebugWorld/Renderer",
+            2.328
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            2.044
+          ],
+          [
+            "water_render/total",
+            2.017
+          ],
+          [
+            "water_render/mesh",
+            1.858
+          ],
+          [
+            "wildlife/base:animal:rabbit",
+            0.621
+          ],
+          [
+            "wildlife/base:animal:deer",
+            0.529
+          ]
+        ]
+      }
+    },
+    "paused_pan": {
+      "frame": {
+        "max": 5.801,
+        "mean": 1.69436072285754,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.596,
+        "p95": 2.101,
+        "p99": 3.585
+      },
+      "wildlife": {
+        "max": 0.068,
+        "mean": 0.00813525342369094,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.008,
+        "p95": 0.01,
+        "p99": 0.012
+      },
+      "duck": null,
+      "worst_frame": {
+        "frame_ms": 5.801,
+        "scene_ms": 0.747,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.394
+          ],
+          [
+            "WorkFeedback",
+            0.139
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.101
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.071
+          ],
+          [
+            "water_render/total",
+            0.049
+          ],
+          [
+            "water_render/splash",
+            0.036
+          ],
+          [
+            "AmbientAudio",
+            0.035
+          ],
+          [
+            "DebugWorld/CameraRig",
+            0.021
+          ]
+        ]
+      }
+    },
+    "paused_static": {
+      "frame": {
+        "max": 17.812,
+        "mean": 2.16843765811348,
+        "over_100": 0,
+        "over_16_7": 2,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.844,
+        "p95": 4.065,
+        "p99": 7.238
+      },
+      "wildlife": {
+        "max": 0.086,
+        "mean": 0.0084522949042281,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.008,
+        "p95": 0.011,
+        "p99": 0.015
+      },
+      "duck": null,
+      "worst_frame": {
+        "frame_ms": 17.812,
+        "scene_ms": 0.578,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.288
+          ],
+          [
+            "WorkFeedback",
+            0.133
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.069
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.059
+          ],
+          [
+            "water_render/total",
+            0.042
+          ],
+          [
+            "water_render/splash",
+            0.032
+          ],
+          [
+            "AmbientAudio",
+            0.03
+          ],
+          [
+            "DebugWorld/CameraRig",
+            0.017
+          ]
+        ]
+      }
+    }
+  },
+  "duck_after_saved": {
+    "active_pan": {
+      "frame": {
+        "max": 37.08,
+        "mean": 11.3215952830189,
+        "over_100": 0,
+        "over_16_7": 188,
+        "over_33_3": 2,
+        "over_50": 0,
+        "p50": 10.158,
+        "p95": 23.947,
+        "p99": 29.692
+      },
+      "wildlife": {
+        "max": 10.676,
+        "mean": 3.04378773584906,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 2.894,
+        "p95": 4.149,
+        "p99": 4.59
+      },
+      "duck": {
+        "max": 9.714,
+        "mean": 1.78504150943396,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.603,
+        "p95": 2.493,
+        "p99": 3.116
+      },
+      "worst_frame": {
+        "frame_ms": 37.08,
+        "scene_ms": 28.244,
+        "stages": [
+          [
+            "WaterManager",
+            13.817
+          ],
+          [
+            "water_sim/total",
+            13.809
+          ],
+          [
+            "water_sim/flow",
+            10.425
+          ],
+          [
+            "DebugWorld/Renderer",
+            9.146
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            4.804
+          ],
+          [
+            "water_render/total",
+            4.772
+          ],
+          [
+            "water_render/mesh",
+            4.568
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.282
+          ]
+        ]
+      }
+    },
+    "active_pan_repeat": {
+      "frame": {
+        "max": 37.534,
+        "mean": 11.8631195652174,
+        "over_100": 0,
+        "over_16_7": 207,
+        "over_33_3": 6,
+        "over_50": 0,
+        "p50": 10.564,
+        "p95": 24.428,
+        "p99": 30.705
+      },
+      "wildlife": {
+        "max": 14.93,
+        "mean": 3.04511363636364,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 2.929,
+        "p95": 4.047,
+        "p99": 4.401
+      },
+      "duck": {
+        "max": 13.547,
+        "mean": 1.77458102766798,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.587,
+        "p95": 2.381,
+        "p99": 2.646
+      },
+      "worst_frame": {
+        "frame_ms": 37.534,
+        "scene_ms": 28.986,
+        "stages": [
+          [
+            "WaterManager",
+            11.897
+          ],
+          [
+            "water_sim/total",
+            11.889
+          ],
+          [
+            "DebugWorld/Renderer",
+            9.91
+          ],
+          [
+            "water_sim/flow",
+            9.569
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.207
+          ],
+          [
+            "water_render/total",
+            5.174
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.104
+          ],
+          [
+            "water_render/mesh",
+            3.905
+          ]
+        ]
+      }
+    },
+    "active_static": {
+      "frame": {
+        "max": 194.801,
+        "mean": 11.6726520894072,
+        "over_100": 1,
+        "over_16_7": 185,
+        "over_33_3": 11,
+        "over_50": 2,
+        "p50": 10.184,
+        "p95": 24.581,
+        "p99": 33.214
+      },
+      "wildlife": {
+        "max": 15.543,
+        "mean": 3.01345578231293,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 2.878,
+        "p95": 4.055,
+        "p99": 5.236
+      },
+      "duck": {
+        "max": 14.034,
+        "mean": 1.72692322643343,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.528,
+        "p95": 2.381,
+        "p99": 2.85
+      },
+      "worst_frame": {
+        "frame_ms": 194.801,
+        "scene_ms": 5.208,
+        "stages": [
+          [
+            "DebugWorld/WildlifeManager",
+            2.859
+          ],
+          [
+            "wildlife/base:animal:duck",
+            1.854
+          ],
+          [
+            "DebugWorld/Renderer",
+            0.584
+          ],
+          [
+            "wildlife/base:animal:rabbit",
+            0.447
+          ],
+          [
+            "wildlife/base:animal:deer",
+            0.408
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.333
+          ],
+          [
+            "water_render/total",
+            0.316
+          ],
+          [
+            "water_render/mesh",
+            0.214
+          ]
+        ]
+      }
+    },
+    "paused_pan": {
+      "frame": {
+        "max": 5.612,
+        "mean": 1.73503773312129,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.625,
+        "p95": 2.231,
+        "p99": 3.554
+      },
+      "wildlife": {
+        "max": 0.052,
+        "mean": 0.0083151655341913,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.008,
+        "p95": 0.011,
+        "p99": 0.014
+      },
+      "duck": null,
+      "worst_frame": {
+        "frame_ms": 5.612,
+        "scene_ms": 0.75,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.42
+          ],
+          [
+            "WorkFeedback",
+            0.118
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.099
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.087
+          ],
+          [
+            "water_render/total",
+            0.065
+          ],
+          [
+            "water_render/splash",
+            0.052
+          ],
+          [
+            "AmbientAudio",
+            0.045
+          ],
+          [
+            "DebugWorld/CameraRig",
+            0.021
+          ]
+        ]
+      }
+    },
+    "paused_static": {
+      "frame": {
+        "max": 6.113,
+        "mean": 1.89190335803248,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.741,
+        "p95": 2.568,
+        "p99": 3.939
+      },
+      "wildlife": {
+        "max": 0.081,
+        "mean": 0.00847706132744754,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.008,
+        "p95": 0.011,
+        "p99": 0.014
+      },
+      "duck": null,
+      "worst_frame": {
+        "frame_ms": 6.113,
+        "scene_ms": 0.91,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.453
+          ],
+          [
+            "WorkFeedback",
+            0.195
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.134
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.083
+          ],
+          [
+            "water_render/total",
+            0.06
+          ],
+          [
+            "SkyController",
+            0.055
+          ],
+          [
+            "water_render/splash",
+            0.047
+          ],
+          [
+            "AmbientAudio",
+            0.042
+          ]
+        ]
+      }
+    }
+  }
+}

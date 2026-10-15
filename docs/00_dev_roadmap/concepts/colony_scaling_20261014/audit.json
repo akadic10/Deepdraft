@@ -1,0 +1,59 @@
+{
+  "sources": {
+    "scripts/systems/ConstructionController.gd": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "scripts/components/ConstructionWork.gd": "3f16f4a8a02a830aca9e6eb7d4e0be9d80e5caf827d0b775fdfed1a2ae6354f5",
+    "scripts/systems/TaskManager.gd": "bc11f5c707bf9247fb79ce3d304255b5c661a020ad34e5f09aa96ca87d8ebe3d",
+    "scripts/entities/DwarfAgent.gd": "fe2513aa4ee7f7fe4518d133335ae5ea611b145494b7755cc29f563f4c5a7a56",
+    "scripts/systems/NavGrid.gd": "3c88618f16d7f70564cbcc4c65f73ba4f9e16b65d26e723cb2c630e2ce3458c6",
+    "scripts/components/FurnitureFetchPlanner.gd": "40a850f4e1f87f8d363e94abcf272c636661af3a07230221a5d0bbd3b634c64b",
+    "scripts/systems/WorldRenderer.gd": "e48214701e987898c38e63f80dfe1951082855f344ce58162a0e4df542c42221",
+    "scripts/components/DuckNavigation.gd": "b776d6d11988ee11b6bcceb3bb4e5d1a2a20f397002ed665ae5a9f070adaddc3",
+    "scripts/components/WaterFlow.gd": "607c88150cd3cc574a765785ad546c50dd7ac3366ee6ef840e400cc09e04b322",
+    "scripts/systems/RoomManager.gd": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0",
+    "tools/performance/CameraBenchmark.gd": "3b4facf7f392bfcd54034795b17a2a7ab7a9d5ba98c017bfec505d12785d6d2c",
+    "tools/performance/ColonyScalingBenchmark.gd": "cecce5afb65bdbdfb40c8acee59ddd85d1634b80ff0cefb88f4f2ee40b4766e3",
+    "tools/performance/RunScaling.ps1": "2ce6920825d5bcd624fe64099772ee688ab7a07af5babfd202035555abe51031",
+    "scripts/tests/ConstructionObstacleReuseTest.gd": "1b82b9ad4cd2438252c567e45b57785716ae98fae9c8545db7fb7f97c098fa6a"
+  },
+  "baseline_sources": {
+    "ConstructionController": "5c79aff95e7b382f1ed0f4408764d1c18b6a1bf134cca679e41720a425dae31c",
+    "ConstructionWork": "8228b4eee655dd59551c651d7ca666913c3f0bf44e169d6271a6cfe1f45298b9"
+  },
+  "native_runs": {
+    "colony_v2_before_5": {
+      "passed": true,
+      "all_work_types_progressed": false
+    },
+    "colony_v2_before_20": {
+      "passed": true,
+      "all_work_types_progressed": false
+    },
+    "colony_v2_before_50": {
+      "passed": true,
+      "all_work_types_progressed": false
+    },
+    "colony_v2_before_100": {
+      "passed": true,
+      "all_work_types_progressed": false
+    },
+    "colony_v2_after_5": {
+      "passed": true,
+      "all_work_types_progressed": true
+    },
+    "colony_v2_after_20": {
+      "passed": true,
+      "all_work_types_progressed": false
+    },
+    "colony_v2_after_50": {
+      "passed": true,
+      "all_work_types_progressed": false
+    },
+    "colony_v2_after_100": {
+      "passed": true,
+      "all_work_types_progressed": false
+    }
+  },
+  "regression_fixtures": 12,
+  "archive_sha256": "a01ba23406814a027beb38cc52697ee79b76d0fe918e96d3ec3b1ef57d5980fa",
+  "source_save_sha256": "c815b96df85c9aed2a8ec0f03700dae9ff74218623b93ee6538274598808428d"
+}

@@ -53,8 +53,9 @@ func _run() -> void:
 		_expect(animation._direction==-direction, "opens away from either side: "+name)
 		if width==4:
 			_expect(is_equal_approx(animation._hinges[0].rotation.y,-animation._hinges[1].rotation.y), "double leaves swing apart")
-		var fill: Dictionary = rooms._flood_fill_room(origin+Vector3i(0,1,2),rooms.get_door_boundaries())
-		_expect(not fill.leaked and fill.door_cells.size()==1, "open door seals one room: "+name)
+		rooms._rebuild_all_rooms()
+		var fill: Dictionary = rooms.get_room_at(origin+Vector3i(0,1,2))
+		_expect(not fill.is_empty() and fill.door_cells.size()==1, "open door seals one room: "+name)
 		for cell in piece.cells:
 			_expect(nav.is_walkable(cell), "door footprint stays traversable: "+name)
 		worker.position = Vector3(origin)+Vector3(.5,1,-2.5)
@@ -71,12 +72,13 @@ func _run() -> void:
 		var entry: Dictionary = saved.installed.filter(func(p): return p.key==key)[0]
 		furniture._teardown_installed(piece.installed_id,false)
 		await _frames(2)
-		var open_fill: Dictionary = rooms._flood_fill_room(origin+Vector3i(0,1,2),rooms.get_door_boundaries())
-		_expect(open_fill.leaked, "uninstall unseals opening: "+name)
+		rooms._rebuild_all_rooms()
+		_expect(rooms.get_room_at(origin+Vector3i(0,1,2)).is_empty(), "uninstall unseals opening: "+name)
 		furniture.restore_state({"installed":[entry],"ghosts":[]})
 		var restored = furniture._installed[int(entry.id)]
 		_expect(restored.node.get_node("DoorAnimation")._hinges.size()==(2 if width==4 else 1), "restore recreates hinges: "+name)
-		_expect(not rooms._flood_fill_room(origin+Vector3i(0,1,2),rooms.get_door_boundaries()).leaked, "restore reseals room: "+name)
+		rooms._rebuild_all_rooms()
+		_expect(not rooms.get_room_at(origin+Vector3i(0,1,2)).is_empty(), "restore reseals room: "+name)
 		for yaw in range(4):
 			var rotated := Vector3i(105,20,40+yaw*8)
 			furniture._install(key,def,rotated,yaw)

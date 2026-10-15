@@ -1,21 +1,125 @@
 extends RefCounted
 ## Small terrestrial animals deliberately do not change dwarf NavGrid clearance
 ## or inherit its ladder links. Every hop checks live support and swept space.
+## Main-thread cache only: edits invalidate overlapping footprints immediately.
 
 const DIRECTIONS := [Vector3i(1,0,0), Vector3i(-1,0,0), Vector3i(0,0,1), Vector3i(0,0,-1)]
+const MAX_TILES := 128
+const MAX_TILE_ENTRIES := 1024
+static var _tiles: Dictionary = {}
+static var _connected := false
+static var _water_revision := -1
+static var _occupancy_revision := -1
+static var _seed := -1
+static var _maps_ready := false
+static var _max_width := 1
+static var _access := 0
+static var _hits := 0
+static var _misses := 0
+static var _evictions := 0
+
+static func clear_cache() -> void:
+	_tiles.clear()
+
+static func get_cache_stats() -> Dictionary:
+	var entries := 0
+	for tile: Dictionary in _tiles.values(): entries += int(tile.entries)
+	return {"tiles":_tiles.size(),"entries":entries,"hits":_hits,"misses":_misses,"evictions":_evictions}
+
+static func _check_epoch() -> void:
+	if not _connected:
+		WorldData.block_changed.connect(_block_changed)
+		# Streamed chunks have the same generated identity. Deferred notifications
+		# also discard any earlier query against a newly materialized chunk.
+		WorldData.chunk_dirtied.connect(_chunk_changed, CONNECT_DEFERRED)
+		PlacedEntityRegistry.occupancy_changed.connect(_invalidate_box)
+		WaterManager.levels_changed.connect(_water_changed)
+		_connected = true
+	if _water_revision != WaterManager.revision or _occupancy_revision != PlacedEntityRegistry.reset_revision or _seed != WorldGenerator.world_seed or _maps_ready != WorldGenerator._maps_ready:
+		clear_cache()
+		_water_revision = WaterManager.revision
+		_occupancy_revision = PlacedEntityRegistry.reset_revision
+		_seed = WorldGenerator.world_seed
+		_maps_ready = WorldGenerator._maps_ready
+
+static func _tile(cell: Vector3i) -> Dictionary:
+	_check_epoch()
+	var key := Vector2i(cell.x >> 4,cell.z >> 4)
+	_access += 1
+	if not _tiles.has(key):
+		if _tiles.size() >= MAX_TILES:
+			var oldest: Vector2i = _tiles.keys()[0]
+			for other: Vector2i in _tiles:
+				if int(_tiles[other].used) < int(_tiles[oldest].used): oldest = other
+			_tiles.erase(oldest)
+			_evictions += 1
+		_tiles[key] = {"terrain":{},"clear":{},"standable":{},"entries":0,"used":0}
+	var tile: Dictionary = _tiles[key]
+	tile.used = _access
+	return tile
+
+static func _store(tile: Dictionary, kind: String, key: Variant, value: Variant) -> void:
+	# Nested queries can fill the same tile, so enforce the bound at insertion.
+	if int(tile.entries) >= MAX_TILE_ENTRIES:
+		tile.terrain.clear()
+		tile["clear"].clear()
+		tile.standable.clear()
+		tile.entries = 0
+		_evictions += 1
+	tile[kind][key] = value
+	tile.entries += 1
+
+static func _invalidate_box(at: Vector3i, size: Vector3i) -> void:
+	# A result is stored by its origin, but may depend on a neighbouring tile.
+	# Include every possible origin whose footprint overlaps the changed box.
+	var low := Vector2i((at.x-_max_width+1) >> 4,(at.z-_max_width+1) >> 4)
+	var high := Vector2i((at.x+size.x-1) >> 4,(at.z+size.z-1) >> 4)
+	for x in range(low.x,high.x+1):
+		for z in range(low.y,high.y+1): _tiles.erase(Vector2i(x,z))
+
+static func _block_changed(at: Vector3i, _old: int, _new: int) -> void:
+	_invalidate_box(at,Vector3i.ONE)
+
+static func _chunk_changed(x: int, _y: int, z: int) -> void:
+	_invalidate_box(Vector3i(x*16,0,z*16),Vector3i(16,128,16))
+
+static func _water_changed(cells: Array) -> void:
+	for cell: Vector3i in cells: _invalidate_box(cell,Vector3i.ONE)
+
+static func terrain_at(cell: Vector3i) -> int:
+	if cell.x < 0 or cell.z < 0 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z or cell.y < 0 or cell.y >= WorldData.WORLD_SIZE_Y: return BlockRegistry.AIR_ID
+	var tile := _tile(cell)
+	if tile.terrain.has(cell):
+		_hits += 1
+		return tile.terrain[cell]
+	_misses += 1
+	var id := WorldData.get_terrain_block(cell.x,cell.y,cell.z)
+	_store(tile,"terrain",cell,id)
+	return id
 
 static func block_at(cell: Vector3i) -> int:
 	# Reading support includes immutable bedrock; only feet positions exclude it.
 	if cell.x < 0 or cell.z < 0 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z or cell.y < 0 or cell.y >= WorldData.WORLD_SIZE_Y: return BlockRegistry.AIR_ID
-	if WorldData.chunk_exists(cell.x >> 4, cell.y >> 4, cell.z >> 4):
-		return WorldData.get_block(cell.x, cell.y, cell.z)
-	return WorldData.get_live_block(cell.x, cell.y, cell.z)
+	# Keep fractional live water separate from cached terrain identity.
+	return WaterManager.live_block(cell,terrain_at(cell))
 
 static func inside(cell: Vector3i) -> bool:
 	return cell.x >= 0 and cell.z >= 0 and cell.x < WorldData.WORLD_SIZE_X and cell.z < WorldData.WORLD_SIZE_Z and cell.y > WorldGenerator.BEDROCK_MAX_Y and cell.y < WorldData.WORLD_SIZE_Y - 1
 
 static func clear(cell: Vector3i, height: int, width: int = 1) -> bool:
-	if not inside(cell) or cell.y + height > WorldData.WORLD_SIZE_Y or cell.x + width > WorldData.WORLD_SIZE_X or cell.z + width > WorldData.WORLD_SIZE_Z: return false
+	if not inside(cell) or height < 1 or width < 1 or cell.y + height > WorldData.WORLD_SIZE_Y or cell.x + width > WorldData.WORLD_SIZE_X or cell.z + width > WorldData.WORLD_SIZE_Z: return false
+	_max_width = maxi(_max_width,width)
+	var tile := _tile(cell)
+	var key := Vector4i(cell.x,cell.y,cell.z,(width << 16)+height)
+	if tile["clear"].has(key):
+		_hits += 1
+		return tile["clear"][key]
+	_misses += 1
+	var result := _clear_uncached(cell,height,width)
+	_store(tile,"clear",key,result)
+	return result
+
+static func _clear_uncached(cell: Vector3i, height: int, width: int) -> bool:
 	for x in range(width):
 		for z in range(width):
 			for y in range(height):
@@ -25,6 +129,17 @@ static func clear(cell: Vector3i, height: int, width: int = 1) -> bool:
 
 static func standable(cell: Vector3i, height: int = 2, width: int = 1) -> bool:
 	if not clear(cell, height, width): return false
+	var tile := _tile(cell)
+	var key := Vector4i(cell.x,cell.y,cell.z,(width << 16)+height)
+	if tile.standable.has(key):
+		_hits += 1
+		return tile.standable[key]
+	_misses += 1
+	var result := _supported_uncached(cell,width)
+	_store(tile,"standable",key,result)
+	return result
+
+static func _supported_uncached(cell: Vector3i, width: int) -> bool:
 	for x in range(width):
 		for z in range(width):
 			if not BlockRegistry.is_solid(block_at(cell + Vector3i(x,-1,z))): return false

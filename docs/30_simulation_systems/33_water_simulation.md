@@ -1,5 +1,44 @@
 # 33 — Water, Rivers & Flooding
 
+**Water flow loop (2026-10-14):**
+[184](../00_dev_roadmap/184_water_flow_loop_performance.md) reuses quantities
+within ordered transfers, stores receiving ceilings with invalidated terrain
+connections, and traverses the live wet prefix of cached reach geometry without
+building temporary key arrays. The prior solver matches across 3,200 differential
+ticks; all 16 final-source fixtures pass. Tick cadence, rounding, sources, queue
+order, offscreen activity and saves are unchanged. Controlled full-world water
+CPU falls 21%; matched uninterrupted native pans show 15–22% cheaper water
+updates and 8–12% lower frame P95, with occasional larger stalls still present.
+
+**Water current animation (2026-10-14):**
+[183](../00_dev_roadmap/183_water_current_performance.md) removes periodic
+whole-field current-update stalls. Cosmetic samples own accumulated flux and
+compact volume snapshots, then drain across frames within a soft 1 ms budget.
+The solver records later telemetry separately and continues unchanged, including
+offscreen water. No mass, solver schedule, queue or saved state is modified.
+
+**Damp-ground rendering (2026-10-14):**
+[182](../00_dev_roadmap/182_moisture_rendering_performance.md) removes the
+periodic whole-mesh rebuild. Soil contact and fractional water notifications
+feed a disposable tile index; rendering proceeds within a soft 1 ms frame
+budget. Wetting/drying equations, water amounts and persistence are unchanged.
+
+**Water solver performance (2026-10-14):**
+[181](../00_dev_roadmap/181_water_simulation_performance.md) caches valid space
+ceilings and flat-reach geometry, and skips redundant neighbor wake work.
+Wet/dry boundaries remain live; terrain edits and reloads invalidate geometry.
+Simulation cadence, cell budget, transfer order, conservation, moisture and save
+formats are unchanged. Native fresh-world average water-update cost falls by
+about one third; the original solver and final code match in 1,400 differential
+ticks. Optional stage timers are disabled during normal play.
+
+**Water mesh scheduling (2026-10-14):**
+[179](../00_dev_roadmap/179_water_mesh_rebuild_performance.md) moves geometry
+construction to workers with private snapshots. Coalesced, camera-prioritized
+requests use at most two jobs and a 2 ms soft main-thread preparation/upload
+budget. Slice/reload epochs reject old results; unseen water still simulates.
+Water heights, flooding, appearance and save formats are unchanged.
+
 Status: **Water simulation, river generation, voxel presentation and soil moisture
 implemented 2026-10-10.** Physical brewing-water hauling and production remain
 planned. This supersedes the earlier permanent-water-block and no-flood rules.

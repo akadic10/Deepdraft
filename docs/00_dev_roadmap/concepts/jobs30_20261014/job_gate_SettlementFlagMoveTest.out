@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+ItemDropManager: loaded 98 item definitions.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+UIWindowManager: ready (0 remembered window positions).
+FurniturePlacementController: 39 placeable defs loaded.
+FurniturePlacementController: installed base:furniture:settlement_flag at (44, 20, 40).
+FlagPlacementController: settlement founded at (44, 20, 40).
+FurniturePlacementController: ghost 1 (base:furniture:settlement_flag) at (53, 20, 44) yaw 1.
+FurniturePlacementController: ghost 2 (base:furniture:settlement_flag) at (53, 20, 44) yaw 1.
+FurniturePlacementController: installed base:furniture:settlement_flag at (53, 20, 44).
+FurniturePlacementController: ghost 3 (base:furniture:settlement_flag) at (48, 20, 49) yaw 2.
+FurniturePlacementController: 39 placeable defs loaded.
+FurniturePlacementController: ghost 3 (base:furniture:settlement_flag) at (48, 20, 49) yaw 2.
+FurniturePlacementController: installed base:furniture:settlement_flag at (48, 20, 49).
+FurniturePlacementController: ghost 4 (base:furniture:settlement_flag) at (44, 20, 40) yaw 0.
+FurniturePlacementController: ghost 5 (base:furniture:settlement_flag) at (44, 20, 40) yaw 0.
+FurniturePlacementController: installed base:furniture:settlement_flag at (44, 20, 40).
+SETTLEMENT_FLAG_MOVE_OK: founding once, click/occlusion/slice, worker Move, cancellation, packed stock, current save recovery and anchor

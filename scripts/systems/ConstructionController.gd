@@ -296,7 +296,19 @@ func perform_explorer_action(object_id: Variant,action_id: String) -> void:
 	if action_id == "cancel": cancel_order(int(object_id))
 	elif action_id == "dev_build": dev_build_order(int(object_id))
 
-func build_reason(cell: Vector3i, planning := true, require_support := true, kind := "stone") -> String:
+## A work-stand pass is synchronous: capture moving actors and loose items
+## once for that call, never across frames or while a route search yields.
+func obstacle_snapshot() -> Dictionary:
+	var actors: Array[AABB] = []
+	for actor in TaskManager._agents.values():
+		if is_instance_valid(actor): actors.append(AABB(actor.global_position-Vector3(.5,0,.5),Vector3(1,3,1)))
+	var loose := {}
+	if drops != null:
+		for item in drops._loose:
+			if is_instance_valid(item): loose[drops.item_floor_cell(item)+Vector3i.UP] = true
+	return {"actors":actors,"loose":loose}
+
+func build_reason(cell: Vector3i, planning := true, require_support := true, kind := "stone", obstacles: Dictionary = {}) -> String:
 	if cell.x < 0 or cell.z < 0 or cell.y <= 3 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z or cell.y >= WorldData.WORLD_SIZE_Y: return "Outside the buildable world"
 	if WorldData.get_live_block(cell.x,cell.y,cell.z) != BlockRegistry.AIR_ID: return "Mine existing terrain before building"
 	var cave_id := WorldGenerator.get_cave_id(cell)
@@ -306,9 +318,15 @@ func build_reason(cell: Vector3i, planning := true, require_support := true, kin
 		return "Floor tiles need solid support below"
 	if PlacedEntityRegistry.occupies(cell): return "A placed object occupies this cell"
 	var area := AABB(Vector3(cell)+Vector3.ONE*.001,Vector3.ONE*.998)
-	for actor in TaskManager._agents.values():
-		if is_instance_valid(actor) and area.intersects(AABB(actor.global_position-Vector3(.5,0,.5),Vector3(1,3,1))): return "A dwarf occupies this cell"
-	if drops != null:
+	if obstacles.has("actors"):
+		for bounds: AABB in obstacles.actors:
+			if area.intersects(bounds): return "A dwarf occupies this cell"
+	else:
+		for actor in TaskManager._agents.values():
+			if is_instance_valid(actor) and area.intersects(AABB(actor.global_position-Vector3(.5,0,.5),Vector3(1,3,1))): return "A dwarf occupies this cell"
+	if obstacles.has("loose"):
+		if obstacles.loose.has(cell): return "Haul loose items clear first"
+	elif drops != null:
 		for item in drops._loose:
 			if is_instance_valid(item) and drops.item_floor_cell(item)+Vector3i.UP == cell: return "Haul loose items clear first"
 	if furniture != null:

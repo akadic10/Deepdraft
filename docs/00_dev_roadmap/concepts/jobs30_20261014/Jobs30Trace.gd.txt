@@ -1,0 +1,8 @@
+extends "res://tools/performance/ColonyScalingBenchmark.gd"
+
+## Diagnostic only: requires temporary TaskManager counters, never used for FPS claims.
+func _sample(mode: String) -> void:
+	await super._sample(mode)
+	report.phases[mode]["planning_trace"]=root.get_node("TaskManager").planning_trace.duplicate()
+	_save_report()
+	print("PLANNING_TRACE ",mode," ",JSON.stringify(report.phases[mode].planning_trace))

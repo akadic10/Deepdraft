@@ -1,0 +1,16 @@
+{
+	"calls": {
+		"_level_wet_reach": 78088,
+		"_record_surface_transfer": 633339,
+		"_set_mass": 879902,
+		"lowest_receiving_level": 153600
+	},
+	"inclusive_usec": {
+		"_level_wet_reach": 1614105,
+		"_record_surface_transfer": 341620,
+		"_set_mass": 1230606,
+		"lowest_receiving_level": 615743
+	},
+	"ticks": 400,
+	"total_ms": 4475.13
+}

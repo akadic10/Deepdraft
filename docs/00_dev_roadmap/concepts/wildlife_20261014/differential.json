@@ -1,0 +1,10 @@
+{
+	"before_ms": 642.101,
+	"cold_ms": 50.011,
+	"comparisons": 392,
+	"current_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+	"failures": [],
+	"original_sha256": "45358e44aaf56f8b56f740e6096290e77a7e321192905d21bcc8f3ba491043e5",
+	"routes": 16,
+	"warm_ms": 14.017
+}

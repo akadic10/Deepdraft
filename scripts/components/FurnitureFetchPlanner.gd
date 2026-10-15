@@ -35,7 +35,14 @@ static func advance(source: FurnitureGhostComponent, worker: DwarfAgent, context
 				if NavGrid.is_walkable(cell): goals[cell] = true
 		else:
 			start = context.pickup_stand
-			for cell: Vector3i in source.work_stands(start): goals[cell] = true
+			if not context.has("delivery_goals"):
+				# Preparing a large construction area's stands may consume this
+				# slice. Retain them so the next slice can actually advance A*.
+				var prepared := {}
+				for cell: Vector3i in source.work_stands(start): prepared[cell] = true
+				context["delivery_goals"] = prepared
+				return NavGrid.ProbeResult.SEARCHING
+			goals = context.delivery_goals
 		var result := NavGrid.ProbeResult.UNREACHABLE
 		if not goals.is_empty():
 			result = preload("res://scripts/components/WorkRouteProbe.gd").advance(context.route_query,start,goals.keys()[0],node_budget,deadline,false,goals) as NavGrid.ProbeResult
@@ -48,6 +55,7 @@ static func advance(source: FurnitureGhostComponent, worker: DwarfAgent, context
 			context.loose = {}
 			context.stored = {}
 			context.erase("route_query")
+			context.erase("delivery_goals")
 			# One search slice per scheduler probe, even after a failed leg.
 			return NavGrid.ProbeResult.SEARCHING
 		if context.stage == "pickup":
@@ -57,6 +65,13 @@ static func advance(source: FurnitureGhostComponent, worker: DwarfAgent, context
 			context.stage = "delivery"
 			return NavGrid.ProbeResult.SEARCHING
 		context["delivery_stand"] = context.route_query.path.back()
+		# Moving actors can change construction eligibility without a nav edit.
+		# Refresh the source's stand-to-work-unit map immediately before choosing
+		# a plan; no claim may rely on the earlier preparation snapshot.
+		if not context.delivery_stand in source.work_stands(start):
+			context.erase("delivery_goals")
+			context.route_query = {}
+			return NavGrid.ProbeResult.SEARCHING
 		context["dwarf_id"] = worker.dwarf_id
 		NavGrid.remember_reachable_path(context.pickup_route)
 		NavGrid.remember_reachable_path(context.route_query)

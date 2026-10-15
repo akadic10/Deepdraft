@@ -10,7 +10,7 @@ class Terrain:
 
 var failures: Array[String] = []
 var checks := 0
-var view: MeshInstance3D
+var view: Node3D
 var terrain: Terrain
 var water: Node
 var blocks: Node
@@ -49,7 +49,7 @@ func _run() -> void:
 	view.terrain = terrain
 	terrain.add_child(view)
 	view.set_process(false)
-	_check(view.material_override.get_shader_parameter("terrain_surface"),"Damp soil shares terrain appearance shading")
+	_check(view.material.get_shader_parameter("terrain_surface"),"Damp soil shares terrain appearance shading")
 	for season in ["spring","summer","autumn","winter"]:
 		clock.season = season
 		for id in [grass,dirt]:
@@ -58,7 +58,7 @@ func _run() -> void:
 			var previous := dry
 			for amount in [0.006,0.1,0.5,1.0]:
 				_set_moisture(amount)
-				var data: Array = view.mesh.surface_get_arrays(0)
+				var data: Array = _mesh().surface_get_arrays(0)
 				_check(data[Mesh.ARRAY_VERTEX].size() == 4,"Damp soil renders one exposed top")
 				var expected := dry.darkened(amount*0.25)
 				for color: Color in data[Mesh.ARRAY_COLOR]:
@@ -66,46 +66,46 @@ func _run() -> void:
 					_check(color.r <= previous.r+1.0/255 and color.g <= previous.g+1.0/255 and color.b <= previous.b+1.0/255,"Increasing moisture never brightens ground")
 				previous = data[Mesh.ARRAY_COLOR][0]
 			_set_moisture(0.004)
-			_check(view.mesh == null,"Dry-enough ground has no overlay")
+			_check(_mesh() == null,"Dry-enough ground has no overlay")
 			_set_moisture(0.006)
-			var near_dry: Color = view.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR][0]
+			var near_dry: Color = _mesh().surface_get_arrays(0)[Mesh.ARRAY_COLOR][0]
 			# Allow one quantization step plus the intended tiny dampening.
 			_check(absf(near_dry.r-dry.r)<2.0/255 and absf(near_dry.g-dry.g)<2.0/255 and absf(near_dry.b-dry.b)<2.0/255,"Crossing the visibility threshold cannot create a pale ring")
 	# A paused season switch must refresh even though water time has not advanced.
 	chunk.blocks[Chunk.local_index(6,10,6)] = grass
 	clock.season = "summer"
 	_set_moisture(0.5)
-	var summer_mesh: Mesh = view.mesh
+	var summer_mesh: Mesh = _mesh()
 	clock.season = "winter"
-	view._process(0)
-	_check(view.mesh != summer_mesh,"Paused seasonal change refreshes wet grass")
-	_check(_matches(view.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR][0],blocks.get_terrain_color(grass,"winter").darkened(0.125)),"Wet winter grass uses winter colour")
+	_refresh()
+	_check(_mesh() != summer_mesh,"Paused seasonal change refreshes wet grass")
+	_check(_matches(_mesh().surface_get_arrays(0)[Mesh.ARRAY_COLOR][0],blocks.get_terrain_color(grass,"winter").darkened(0.125)),"Wet winter grass uses winter colour")
 	var saved: Array = water.moisture.serialize()
-	var unchanged: Mesh = view.mesh
-	view._process(0)
-	_check(view.mesh == unchanged,"Unchanged water/time/season keeps the same mesh")
+	var unchanged: Mesh = _mesh()
+	_refresh()
+	_check(_mesh() == unchanged,"Unchanged water/time/season keeps the same mesh")
 	_check(water.moisture.serialize() == saved,"Drawing never changes moisture history")
 	water.show_moisture = true
-	view._process(0)
-	var debug_color: Color = view.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR][0]
+	_refresh()
+	var debug_color: Color = _mesh().surface_get_arrays(0)[Mesh.ARRAY_COLOR][0]
 	_check(_matches(debug_color,Color("#AB8661").lerp(Color("#378FCE"),0.5).srgb_to_linear()),"Explicit moisture coverage uses linear debug colours")
 	_check(debug_color.a == 1.0,"Debug coverage opts out of terrain variation")
 	water.show_moisture = false
 	terrain.slice_y = cell.y-1
 	terrain.visible_volume_changed.emit()
-	view._process(0)
-	_check(view.mesh == null,"Moisture cannot appear above the slice")
+	_refresh()
+	_check(_mesh() == null,"Moisture cannot appear above the slice")
 	terrain.slice_y = 127
 	terrain.revealed = false
 	gen.heightmap[cell.x*1024+cell.z] = cell.y+1
 	terrain.visible_volume_changed.emit()
-	view._process(0)
-	_check(view.mesh == null,"Hidden cave soil remains hidden")
+	_refresh()
+	_check(_mesh() == null,"Hidden cave soil remains hidden")
 	gen.heightmap[cell.x*1024+cell.z] = cell.y
 	water.flow.seed_column(cell+Vector3i.UP,0.5)
 	terrain.visible_volume_changed.emit()
-	view._process(0)
-	_check(view.mesh == null,"Standing water hides the soil overlay")
+	_refresh()
+	_check(_mesh() == null,"Standing water hides the soil overlay")
 	terrain.free()
 	gen._maps_ready = false
 	water.reset()
@@ -117,7 +117,7 @@ func _set_moisture(amount: float) -> void:
 	var units := roundi(amount*1000000)
 	water.moisture.soils[cell] = {"value":units,"target":units,"since":water.elapsed_usec}
 	water.revision += 1
-	view._process(0)
+	_refresh()
 
 func _matches(actual: Color, expected: Color) -> bool:
 	return absf(actual.r-expected.r) <= 1.0/255 and absf(actual.g-expected.g) <= 1.0/255 and absf(actual.b-expected.b) <= 1.0/255 and absf(actual.a-expected.a) <= 1.0/255
@@ -125,3 +125,13 @@ func _matches(actual: Color, expected: Color) -> bool:
 func _check(ok: bool, message: String) -> void:
 	checks += 1
 	if not ok and message not in failures: failures.append(message)
+
+func _mesh() -> Mesh:
+	var node: MeshInstance3D = view._nodes.get(Vector2i(4,4))
+	return node.mesh if node != null and node.visible else null
+
+func _refresh() -> void:
+	for i in 10000:
+		view._process(0)
+		if not view.is_updating(): return
+	_check(false,"Moisture work must drain")

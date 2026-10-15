@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://r0b7tmsq7e25"
+
+[deps]
+
+files=["res://docs/00_dev_roadmap/concepts/performance_20261014/summary.phase.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.frames.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.seconds.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.mean.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.p50.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.p95.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.p99.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.max.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.over.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.gpu.translation"]
+
+source_file="res://docs/00_dev_roadmap/concepts/performance_20261014/summary.csv"
+dest_files=["res://docs/00_dev_roadmap/concepts/performance_20261014/summary.phase.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.frames.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.seconds.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.mean.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.p50.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.p95.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.p99.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.max.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.over.translation", "res://docs/00_dev_roadmap/concepts/performance_20261014/summary.gpu.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -1,0 +1,80 @@
+{
+	"after_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+	"before_sha256": "837e03b06b1437226a61b5fe6930988cc20ec74ae2ca5f3f5acce05df405e933",
+	"failures": [],
+	"samples": [
+		{
+			"actual_faces": 0,
+			"equal": true,
+			"expected_faces": 0,
+			"label": "initial"
+		},
+		{
+			"actual_faces": 3480,
+			"equal": true,
+			"expected_faces": 3480,
+			"label": "wet"
+		},
+		{
+			"actual_faces": 3484,
+			"equal": true,
+			"expected_faces": 3484,
+			"label": "dam"
+		},
+		{
+			"actual_faces": 3315,
+			"equal": true,
+			"expected_faces": 3315,
+			"label": "false_summer_35"
+		},
+		{
+			"actual_faces": 3484,
+			"equal": true,
+			"expected_faces": 3484,
+			"label": "false_summer_127"
+		},
+		{
+			"actual_faces": 3315,
+			"equal": true,
+			"expected_faces": 3315,
+			"label": "false_winter_35"
+		},
+		{
+			"actual_faces": 3484,
+			"equal": true,
+			"expected_faces": 3484,
+			"label": "false_winter_127"
+		},
+		{
+			"actual_faces": 3331,
+			"equal": true,
+			"expected_faces": 3331,
+			"label": "true_summer_35"
+		},
+		{
+			"actual_faces": 3502,
+			"equal": true,
+			"expected_faces": 3502,
+			"label": "true_summer_127"
+		},
+		{
+			"actual_faces": 3331,
+			"equal": true,
+			"expected_faces": 3331,
+			"label": "true_winter_35"
+		},
+		{
+			"actual_faces": 3502,
+			"equal": true,
+			"expected_faces": 3502,
+			"label": "true_winter_127"
+		},
+		{
+			"actual_faces": 3502,
+			"equal": true,
+			"expected_faces": 3502,
+			"label": "concealed"
+		}
+	],
+	"water_ticks": 600
+}

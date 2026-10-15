@@ -1,0 +1,670 @@
+{
+  "before_fresh": {
+    "run": "tmp\\performance_20261014\\motion_baseline_fresh",
+    "source": {
+      "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+      "duck_navigation_sha256": "e2c05f9a26785060883cda213559e7473e26c4f20f6f3ef9adede7c59ab629ab",
+      "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+      "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+      "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+      "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+      "water_flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+      "water_manager_sha256": "54735ef72efc33dba7233d4e9cf91bebcdc877019e54ad1f8cbd6cd5301f61c8",
+      "water_motion_sha256": "fcb092c3a6388414c16a1b3f56bcdb140714de0198bc31636e5207496f6c9120",
+      "water_renderer_sha256": "7c19c9ade2b9d63640ca0582eeb0fdb4169133f187a3235bc0772669f7507502",
+      "wildlife_manager_sha256": "55a8e05c2371fad2eb190220c6a6ac1b899a56fb47c5fb990077bc3d64d5156c"
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 28.004,
+          "mean": 6.68614870509607,
+          "over_100": 0,
+          "over_16_7": 61,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 5.51,
+          "p95": 16.707,
+          "p99": 24.306
+        },
+        "seconds": 8.003344,
+        "frames": 1197,
+        "stages": {
+          "motion": {
+            "count": 1197,
+            "mean": 0.14723558897243108,
+            "p95": 0.001,
+            "p99": 5.621,
+            "max": 6.746,
+            "cpu_ms_per_wall_second": 22.020920255333273,
+            "working_frames": {
+              "count": 33,
+              "mean": 5.330515151515152,
+              "p95": 6.095,
+              "p99": 6.3,
+              "max": 6.746
+            }
+          },
+          "texture": {
+            "count": 1197,
+            "mean": 0.0035263157894736843,
+            "p95": 0.002,
+            "p99": 0.071,
+            "max": 0.082,
+            "cpu_ms_per_wall_second": 0.5274045449002317
+          },
+          "splash": {
+            "count": 1197,
+            "mean": 0.0803358395989975,
+            "p95": 0.101,
+            "p99": 0.105,
+            "max": 0.139,
+            "cpu_ms_per_wall_second": 12.015227634848634
+          },
+          "mesh": {
+            "count": 1197,
+            "mean": 0.5746583124477861,
+            "p95": 2.969,
+            "p99": 3.735,
+            "max": 4.128,
+            "cpu_ms_per_wall_second": 85.94732401856024
+          },
+          "total": {
+            "count": 1197,
+            "mean": 0.8102272347535505,
+            "p95": 3.38,
+            "p99": 8.775,
+            "max": 10.17,
+            "cpu_ms_per_wall_second": 121.17959692848389
+          }
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 33.383,
+          "mean": 8.1603618756371,
+          "over_100": 0,
+          "over_16_7": 76,
+          "over_33_3": 1,
+          "over_50": 0,
+          "p50": 6.837,
+          "p95": 19.743,
+          "p99": 27.42
+        },
+        "seconds": 8.005342,
+        "frames": 981,
+        "stages": {
+          "motion": {
+            "count": 981,
+            "mean": 0.21846381243628948,
+            "p95": 0.001,
+            "p99": 7.184,
+            "max": 10.922,
+            "cpu_ms_per_wall_second": 26.771248498814913,
+            "working_frames": {
+              "count": 32,
+              "mean": 6.68809375,
+              "p95": 7.834,
+              "p99": 7.958,
+              "max": 10.922
+            }
+          },
+          "texture": {
+            "count": 981,
+            "mean": 0.003971457696228339,
+            "p95": 0.003,
+            "p99": 0.07,
+            "max": 0.085,
+            "cpu_ms_per_wall_second": 0.48667502275355634
+          },
+          "splash": {
+            "count": 981,
+            "mean": 0.08423649337410805,
+            "p95": 0.103,
+            "p99": 0.127,
+            "max": 0.181,
+            "cpu_ms_per_wall_second": 10.322607079122914
+          },
+          "mesh": {
+            "count": 981,
+            "mean": 1.2118603465851172,
+            "p95": 3.328,
+            "p99": 3.848,
+            "max": 4.029,
+            "cpu_ms_per_wall_second": 148.5052106455914
+          },
+          "total": {
+            "count": 981,
+            "mean": 1.5232405708460754,
+            "p95": 3.614,
+            "p99": 10.883,
+            "max": 13.738,
+            "cpu_ms_per_wall_second": 186.6627309614005
+          }
+        }
+      }
+    }
+  },
+  "after_fresh": {
+    "run": "tmp\\performance_20261014\\motion_compact_fresh",
+    "source": {
+      "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+      "duck_navigation_sha256": "e2c05f9a26785060883cda213559e7473e26c4f20f6f3ef9adede7c59ab629ab",
+      "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+      "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+      "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+      "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+      "water_flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+      "water_manager_sha256": "54735ef72efc33dba7233d4e9cf91bebcdc877019e54ad1f8cbd6cd5301f61c8",
+      "water_motion_sha256": "08ecc9333d986e0cc7253165273f9e07f7242187b9811129ef007369d45f3010",
+      "water_renderer_sha256": "90a191576880c9a98bf321a459e750fe997f06062aae3fb6d7dc28f9521361e9",
+      "wildlife_manager_sha256": "55a8e05c2371fad2eb190220c6a6ac1b899a56fb47c5fb990077bc3d64d5156c"
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 25.954,
+          "mean": 6.95207384882711,
+          "over_100": 0,
+          "over_16_7": 60,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 5.727,
+          "p95": 16.697,
+          "p99": 20.002
+        },
+        "seconds": 8.001865,
+        "frames": 1151,
+        "stages": {
+          "motion": {
+            "count": 1151,
+            "mean": 0.13590877497827974,
+            "p95": 1.01,
+            "p99": 1.027,
+            "max": 1.19,
+            "cpu_ms_per_wall_second": 19.549317565342577,
+            "working_frames": {
+              "count": 169,
+              "mean": 0.9149704142011834,
+              "p95": 1.055,
+              "p99": 1.142,
+              "max": 1.19
+            }
+          },
+          "texture": {
+            "count": 1151,
+            "mean": 0.00988966116420504,
+            "p95": 0.063,
+            "p99": 0.072,
+            "max": 0.085,
+            "cpu_ms_per_wall_second": 1.4225433695769674
+          },
+          "splash": {
+            "count": 1151,
+            "mean": 0.08055690703735882,
+            "p95": 0.101,
+            "p99": 0.11,
+            "max": 0.153,
+            "cpu_ms_per_wall_second": 11.587423681854167
+          },
+          "mesh": {
+            "count": 1151,
+            "mean": 0.6093692441355343,
+            "p95": 3.052,
+            "p99": 3.864,
+            "max": 4.292,
+            "cpu_ms_per_wall_second": 87.65256599555228
+          },
+          "total": {
+            "count": 1151,
+            "mean": 0.8402536924413553,
+            "p95": 3.832,
+            "p99": 4.489,
+            "max": 5.186,
+            "cpu_ms_per_wall_second": 120.86332373765364
+          }
+        },
+        "motion_pending": {
+          "count": 1151,
+          "mean": 331.04430929626415,
+          "p95": 3244,
+          "p99": 4890,
+          "max": 5516
+        },
+        "motion_latency_ms": {
+          "count": 1151,
+          "mean": 36.07152389226759,
+          "p95": 50.664,
+          "p99": 54.627,
+          "max": 54.627
+        },
+        "motion_age_ms": {
+          "count": 1151,
+          "mean": 2.8255065160729798,
+          "p95": 25.401,
+          "p99": 38.994,
+          "max": 53.74
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 27.638,
+          "mean": 8.21219692307692,
+          "over_100": 0,
+          "over_16_7": 73,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 7.166,
+          "p95": 18.865,
+          "p99": 21.312
+        },
+        "seconds": 8.006926,
+        "frames": 975,
+        "stages": {
+          "motion": {
+            "count": 975,
+            "mean": 0.1921723076923077,
+            "p95": 1.012,
+            "p99": 1.219,
+            "max": 1.376,
+            "cpu_ms_per_wall_second": 23.400740808644915,
+            "working_frames": {
+              "count": 193,
+              "mean": 0.9632642487046632,
+              "p95": 1.219,
+              "p99": 1.359,
+              "max": 1.376
+            }
+          },
+          "texture": {
+            "count": 975,
+            "mean": 0.012381538461538461,
+            "p95": 0.063,
+            "p99": 0.072,
+            "max": 0.155,
+            "cpu_ms_per_wall_second": 1.5076947133019587
+          },
+          "splash": {
+            "count": 975,
+            "mean": 0.08394564102564102,
+            "p95": 0.103,
+            "p99": 0.129,
+            "max": 0.153,
+            "cpu_ms_per_wall_second": 10.222025281612444
+          },
+          "mesh": {
+            "count": 975,
+            "mean": 1.2591958974358974,
+            "p95": 3.337,
+            "p99": 3.981,
+            "max": 4.317,
+            "cpu_ms_per_wall_second": 153.3317530348101
+          },
+          "total": {
+            "count": 975,
+            "mean": 1.5524225641025642,
+            "p95": 4.106,
+            "p99": 5.177,
+            "max": 5.527,
+            "cpu_ms_per_wall_second": 189.03784048959614
+          }
+        },
+        "motion_pending": {
+          "count": 975,
+          "mean": 517.3394871794872,
+          "p95": 4354,
+          "p99": 5763,
+          "max": 6471
+        },
+        "motion_latency_ms": {
+          "count": 975,
+          "mean": 47.92894564102564,
+          "p95": 70.459,
+          "p99": 74.747,
+          "max": 74.747
+        },
+        "motion_age_ms": {
+          "count": 975,
+          "mean": 5.267461538461538,
+          "p95": 40.299,
+          "p99": 58.571,
+          "max": 73.863
+        }
+      }
+    }
+  },
+  "before_saved": {
+    "run": "tmp\\performance_20261014\\motion_baseline_saved",
+    "source": {
+      "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+      "duck_navigation_sha256": "e2c05f9a26785060883cda213559e7473e26c4f20f6f3ef9adede7c59ab629ab",
+      "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+      "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+      "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+      "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+      "water_flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+      "water_manager_sha256": "54735ef72efc33dba7233d4e9cf91bebcdc877019e54ad1f8cbd6cd5301f61c8",
+      "water_motion_sha256": "fcb092c3a6388414c16a1b3f56bcdb140714de0198bc31636e5207496f6c9120",
+      "water_renderer_sha256": "7c19c9ade2b9d63640ca0582eeb0fdb4169133f187a3235bc0772669f7507502",
+      "wildlife_manager_sha256": "55a8e05c2371fad2eb190220c6a6ac1b899a56fb47c5fb990077bc3d64d5156c"
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 40.48,
+          "mean": 9.77723321123321,
+          "over_100": 0,
+          "over_16_7": 89,
+          "over_33_3": 15,
+          "over_50": 0,
+          "p50": 8.267,
+          "p95": 24.993,
+          "p99": 35.264
+        },
+        "seconds": 8.007589,
+        "frames": 819,
+        "stages": {
+          "motion": {
+            "count": 819,
+            "mean": 0.42464468864468863,
+            "p95": 0.001,
+            "p99": 11.946,
+            "max": 13.103,
+            "cpu_ms_per_wall_second": 43.4317995091906,
+            "working_frames": {
+              "count": 32,
+              "mean": 10.8603125,
+              "p95": 12.966,
+              "p99": 13.086,
+              "max": 13.103
+            }
+          },
+          "texture": {
+            "count": 819,
+            "mean": 0.0045482295482295486,
+            "p95": 0.003,
+            "p99": 0.072,
+            "max": 0.097,
+            "cpu_ms_per_wall_second": 0.46518371509826495
+          },
+          "splash": {
+            "count": 819,
+            "mean": 0.12053601953601953,
+            "p95": 0.148,
+            "p99": 0.192,
+            "max": 0.251,
+            "cpu_ms_per_wall_second": 12.328180180076675
+          },
+          "mesh": {
+            "count": 819,
+            "mean": 1.31307326007326,
+            "p95": 3.623,
+            "p99": 3.945,
+            "max": 4.138,
+            "cpu_ms_per_wall_second": 134.29847610810197
+          },
+          "total": {
+            "count": 819,
+            "mean": 1.8675006105006104,
+            "p95": 4.055,
+            "p99": 15.32,
+            "max": 16.739,
+            "cpu_ms_per_wall_second": 191.00418365627908
+          }
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 37.498,
+          "mean": 9.09696363636364,
+          "over_100": 0,
+          "over_16_7": 79,
+          "over_33_3": 15,
+          "over_50": 0,
+          "p50": 7.638,
+          "p95": 21.882,
+          "p99": 34.542
+        },
+        "seconds": 8.005355,
+        "frames": 880,
+        "stages": {
+          "motion": {
+            "count": 880,
+            "mean": 0.3961977272727273,
+            "p95": 0.001,
+            "p99": 11.88,
+            "max": 13.844,
+            "cpu_ms_per_wall_second": 43.552596980396245,
+            "working_frames": {
+              "count": 32,
+              "mean": 10.8874375,
+              "p95": 13.618,
+              "p99": 13.708,
+              "max": 13.844
+            }
+          },
+          "texture": {
+            "count": 880,
+            "mean": 0.004315909090909091,
+            "p95": 0.003,
+            "p99": 0.073,
+            "max": 0.079,
+            "cpu_ms_per_wall_second": 0.4744324267943146
+          },
+          "splash": {
+            "count": 880,
+            "mean": 0.12001818181818182,
+            "p95": 0.147,
+            "p99": 0.179,
+            "max": 0.236,
+            "cpu_ms_per_wall_second": 13.19316882261936
+          },
+          "mesh": {
+            "count": 880,
+            "mean": 1.2128954545454544,
+            "p95": 3.579,
+            "p99": 4.07,
+            "max": 4.421,
+            "cpu_ms_per_wall_second": 133.32925273145287
+          },
+          "total": {
+            "count": 880,
+            "mean": 1.7380363636363636,
+            "p95": 4.15,
+            "p99": 15.696,
+            "max": 17.862,
+            "cpu_ms_per_wall_second": 191.05611181515374
+          }
+        }
+      }
+    }
+  },
+  "after_saved": {
+    "run": "tmp\\performance_20261014\\motion_compact_saved",
+    "source": {
+      "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+      "duck_navigation_sha256": "e2c05f9a26785060883cda213559e7473e26c4f20f6f3ef9adede7c59ab629ab",
+      "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+      "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+      "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+      "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+      "water_flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+      "water_manager_sha256": "54735ef72efc33dba7233d4e9cf91bebcdc877019e54ad1f8cbd6cd5301f61c8",
+      "water_motion_sha256": "08ecc9333d986e0cc7253165273f9e07f7242187b9811129ef007369d45f3010",
+      "water_renderer_sha256": "90a191576880c9a98bf321a459e750fe997f06062aae3fb6d7dc28f9521361e9",
+      "wildlife_manager_sha256": "55a8e05c2371fad2eb190220c6a6ac1b899a56fb47c5fb990077bc3d64d5156c"
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 37.427,
+          "mean": 9.73049696233292,
+          "over_100": 0,
+          "over_16_7": 87,
+          "over_33_3": 1,
+          "over_50": 0,
+          "p50": 8.598,
+          "p95": 22.544,
+          "p99": 26.522
+        },
+        "seconds": 8.008227,
+        "frames": 823,
+        "stages": {
+          "motion": {
+            "count": 823,
+            "mean": 0.35995625759416766,
+            "p95": 1.016,
+            "p99": 1.994,
+            "max": 2.345,
+            "cpu_ms_per_wall_second": 36.99245788112649,
+            "working_frames": {
+              "count": 281,
+              "mean": 1.0504270462633452,
+              "p95": 1.926,
+              "p99": 2.179,
+              "max": 2.345
+            }
+          },
+          "texture": {
+            "count": 823,
+            "mean": 0.013194410692588093,
+            "p95": 0.048,
+            "p99": 0.068,
+            "max": 0.071,
+            "cpu_ms_per_wall_second": 1.3559805435085694
+          },
+          "splash": {
+            "count": 823,
+            "mean": 0.12079222357229648,
+            "p95": 0.149,
+            "p99": 0.18,
+            "max": 0.329,
+            "cpu_ms_per_wall_second": 12.413734026270735
+          },
+          "mesh": {
+            "count": 823,
+            "mean": 1.3134216281895503,
+            "p95": 3.691,
+            "p99": 4.126,
+            "max": 4.387,
+            "cpu_ms_per_wall_second": 134.97944051785746
+          },
+          "total": {
+            "count": 823,
+            "mean": 1.8122515188335357,
+            "p95": 4.495,
+            "p99": 5.977,
+            "max": 6.537,
+            "cpu_ms_per_wall_second": 186.24384648437163
+          }
+        },
+        "motion_pending": {
+          "count": 823,
+          "mean": 1419.5479951397326,
+          "p95": 7727,
+          "p99": 9496,
+          "max": 10467
+        },
+        "motion_latency_ms": {
+          "count": 823,
+          "mean": 78.25263791008506,
+          "p95": 123.668,
+          "p99": 132.901,
+          "max": 132.901
+        },
+        "motion_age_ms": {
+          "count": 823,
+          "mean": 14.765521263669502,
+          "p95": 73.891,
+          "p99": 98.244,
+          "max": 129.358
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 28.987,
+          "mean": 8.92446153846154,
+          "over_100": 0,
+          "over_16_7": 81,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 7.817,
+          "p95": 21.115,
+          "p99": 25.496
+        },
+        "seconds": 8.005272,
+        "frames": 897,
+        "stages": {
+          "motion": {
+            "count": 897,
+            "mean": 0.33432887402452616,
+            "p95": 1.015,
+            "p99": 2.043,
+            "max": 2.332,
+            "cpu_ms_per_wall_second": 37.461937583132716,
+            "working_frames": {
+              "count": 282,
+              "mean": 1.059131205673759,
+              "p95": 1.943,
+              "p99": 2.191,
+              "max": 2.332
+            }
+          },
+          "texture": {
+            "count": 897,
+            "mean": 0.012537346711259756,
+            "p95": 0.054,
+            "p99": 0.072,
+            "max": 0.08,
+            "cpu_ms_per_wall_second": 1.4048242208384676
+          },
+          "splash": {
+            "count": 897,
+            "mean": 0.11996655518394649,
+            "p95": 0.143,
+            "p99": 0.169,
+            "max": 0.239,
+            "cpu_ms_per_wall_second": 13.442391464025208
+          },
+          "mesh": {
+            "count": 897,
+            "mean": 1.2059765886287626,
+            "p95": 3.496,
+            "p99": 4.04,
+            "max": 4.316,
+            "cpu_ms_per_wall_second": 135.13107362248277
+          },
+          "total": {
+            "count": 897,
+            "mean": 1.6776064659977705,
+            "p95": 4.281,
+            "p99": 5.158,
+            "max": 6.653,
+            "cpu_ms_per_wall_second": 187.97774766428924
+          }
+        },
+        "motion_pending": {
+          "count": 897,
+          "mean": 1313.654403567447,
+          "p95": 7502,
+          "p99": 9408,
+          "max": 10470
+        },
+        "motion_latency_ms": {
+          "count": 897,
+          "mean": 75.7817558528428,
+          "p95": 114.965,
+          "p99": 116.974,
+          "max": 116.974
+        },
+        "motion_age_ms": {
+          "count": 897,
+          "mean": 12.927823857302117,
+          "p95": 71.097,
+          "p99": 93.189,
+          "max": 116.172
+        }
+      }
+    }
+  }
+}

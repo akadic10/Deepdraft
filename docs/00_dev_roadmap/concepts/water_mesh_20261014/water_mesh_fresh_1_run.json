@@ -1,0 +1,17 @@
+{
+  "source_save_unchanged": true,
+  "save_sha256": null,
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/CameraBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/water_mesh_fresh_1",
+    "--seconds=8"
+  ],
+  "exit_code": 0
+}

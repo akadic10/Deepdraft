@@ -8,6 +8,8 @@ var dry_usec := 1440000000
 var soils: Dictionary = {}
 var sources: Dictionary = {}
 var contacts: Dictionary = {}
+## Read-only presentation invalidation; never serialized or used by the solver.
+signal cells_changed(cells: Dictionary)
 
 func value_units(cell: Vector3i, now: int) -> int:
 	if not soils.has(cell): return 0
@@ -30,6 +32,7 @@ func set_source(source: Vector3i, reached: Dictionary, now: int) -> void:
 		for strength: int in contacts[cell].values(): target = maxi(target,strength)
 		if soils.has(cell) and int(soils[cell].target)==target: continue
 		soils[cell] = {"value":value_units(cell,now),"target":target,"since":now}
+	if cells_changed.has_connections(): cells_changed.emit(affected)
 
 func serialize() -> Array:
 	var result: Array = []

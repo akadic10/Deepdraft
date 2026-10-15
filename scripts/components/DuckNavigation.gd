@@ -6,7 +6,61 @@ const DIRS := [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]
 var config: Dictionary
 var flora: Node
 
+## Only WildlifeManager's synchronous observation pass enables reuse. Water,
+## terrain and placed obstacles do not change inside that pass. Results never
+## cross an update, pause, restore or standalone population/navigation query.
+const MAX_QUERY_ENTRIES := 4096
+var _observing := false
+var _wet_samples := {}
+var _safe_surfaces := {}
+var _unsafe_surfaces := {}
+var _body_clearance := {}
+var _receiving_levels := {}
+var _query_entries := 0
+var _query_hits := 0
+var _query_misses := 0
+var _query_peak := 0
+var _query_batches := 0
+
+func begin_update() -> void:
+	_clear_queries()
+	_observing = true
+	_query_batches += 1
+
+func end_update() -> void:
+	_observing = false
+	_clear_queries()
+
+func get_query_stats() -> Dictionary:
+	return {"active":_observing,"entries":_query_entries,"peak":_query_peak,
+		"hits":_query_hits,"misses":_query_misses,"batches":_query_batches}
+
+func _clear_queries() -> void:
+	_wet_samples.clear()
+	_safe_surfaces.clear()
+	_unsafe_surfaces.clear()
+	_body_clearance.clear()
+	_receiving_levels.clear()
+	_query_entries = 0
+
+func _remember(cache: Dictionary, key: Variant, value: Variant) -> void:
+	if not _observing: return
+	# A failed flight search can visit many columns. Bound all maps together.
+	if _query_entries >= MAX_QUERY_ENTRIES: _clear_queries()
+	cache[key] = value
+	_query_entries += 1
+	_query_misses += 1
+	_query_peak = maxi(_query_peak,_query_entries)
+
 func water_at(col: Vector2i) -> Dictionary:
+	if _observing and _wet_samples.has(col):
+		_query_hits += 1
+		return _wet_samples[col]
+	var result := _water_at_live(col)
+	_remember(_wet_samples,col,result)
+	return result
+
+func _water_at_live(col: Vector2i) -> Dictionary:
 	if not WaterManager.initialized or not _inside(col): return {}
 	for span: Vector2i in WaterManager.flow.spans(col):
 		var key := Vector3i(col.x,span.x,col.y)
@@ -20,6 +74,15 @@ func water_at(col: Vector2i) -> Dictionary:
 	return {}
 
 func surface(col: Vector2i, safe := true) -> Dictionary:
+	var cache := _safe_surfaces if safe else _unsafe_surfaces
+	if _observing and cache.has(col):
+		_query_hits += 1
+		return cache[col]
+	var result := _surface_live(col,safe)
+	_remember(cache,col,result)
+	return result
+
+func _surface_live(col: Vector2i, safe: bool) -> Dictionary:
 	if not _inside(col) or not WaterManager.initialized: return {}
 	var wet := water_at(col)
 	if not wet.is_empty():
@@ -41,8 +104,16 @@ func calm_water(col: Vector2i, wet: Dictionary) -> bool:
 			var sample := water_at(p)
 			if sample.is_empty(): continue
 			if absf(float(sample.level)-float(wet.level))>float(config.max_water_step): return false
-			if WaterManager.flow.lowest_receiving_level(sample.key)<float(sample.key.y)-0.5: return false
+			if _receiving_level(sample.key)<float(sample.key.y)-0.5: return false
 	return true
+
+func _receiving_level(key: Vector3i) -> float:
+	if _observing and _receiving_levels.has(key):
+		_query_hits += 1
+		return float(_receiving_levels[key])
+	var result: float = WaterManager.flow.lowest_receiving_level(key)
+	_remember(_receiving_levels,key,result)
+	return result
 
 func _inside(col: Vector2i) -> bool:
 	return col.x>0 and col.y>0 and col.x<1023 and col.y<1023
@@ -51,11 +122,20 @@ func clear_body(point: Vector3, radius: float) -> bool:
 	var low := Vector3i((point-Vector3(radius,0,radius)+Vector3.ONE*.001).floor())
 	var high := Vector3i((point+Vector3(radius,float(config.body_height),radius)-Vector3.ONE*.001).floor())
 	if low.x<0 or low.z<0 or high.x>=1024 or high.z>=1024 or low.y<4 or high.y>=int(config.flight_max_y): return false
+	var bounds := AABB(Vector3(low),Vector3(high-low))
+	if _observing and _body_clearance.has(bounds):
+		_query_hits += 1
+		return bool(_body_clearance[bounds])
+	var result := _clear_bounds_live(low,high)
+	_remember(_body_clearance,bounds,result)
+	return result
+
+func _clear_bounds_live(low: Vector3i, high: Vector3i) -> bool:
 	for x in range(low.x,high.x+1):
 		for y in range(low.y,high.y+1):
 			for z in range(low.z,high.z+1):
 				var p := Vector3i(x,y,z)
-				if y<128 and BlockRegistry.is_solid(WorldData.get_terrain_block(x,y,z)): return false
+				if y<128 and BlockRegistry.is_solid(Ground.terrain_at(p)): return false
 				if PlacedEntityRegistry.occupies(p): return false
 	return true
 

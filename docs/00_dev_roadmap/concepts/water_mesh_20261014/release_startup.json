@@ -1,0 +1,7 @@
+{
+  "full_world_overview": true,
+  "exit_code": 0,
+  "rendering": "Native D3D12",
+  "executable": "P:/Deepdraft/build/windows/releases/20261014-164409-853-5bef146e/Deepdraft/Deepdraft.exe",
+  "verification": "Normal release launch with --quit-after 1800; full overview and clean exit; no script/engine errors"
+}

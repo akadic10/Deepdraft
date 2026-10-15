@@ -1048,7 +1048,7 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			_haul_match = {"task_id": task.id, "idle_version": _idle_version, "revision": revision,
 				"idle": _idle_dwarves.duplicate(), "index": 0, "query": {}, "candidates": [],
 				"ranked": false, "probe_index": 0, "pickup_ok": false, "eligible": 0,
-				"excluded": {}, "blocked_workers": {}, "failed": false}
+				"excluded": {}, "blocked_workers": {}, "failed": false, "pickup_snapshot": {}}
 		while int(_haul_match.index) < _haul_match.idle.size():
 			if not _within_budget(t_start, probes_left): return 0
 			var dwarf_id: int = _haul_match.idle[_haul_match.index]
@@ -1063,6 +1063,9 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			if query.has("from") and query.from != from: query.clear()
 			query.from = from
 			query.exclude = _haul_match.excluded.get(dwarf_id, {})
+			# Source filtering is identical for every worker in this comparison.
+			# Inventory/idle invalidation above discards the shared snapshot too.
+			query.pickup_snapshot = _haul_match.pickup_snapshot
 			if is_instance_valid(source) and source.has_method("advance_haul_quote"):
 				if not bool(source.advance_haul_quote(from, query, deadline)):
 					_wake_dirty = true

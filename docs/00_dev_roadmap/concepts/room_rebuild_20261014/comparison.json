@@ -1,0 +1,988 @@
+{
+  "room_before_saved": {
+    "paused_pan": {
+      "room_process": {
+        "mean": 0.04693269230769231,
+        "p95": 0.001,
+        "p99": 0.001,
+        "max": 28.605
+      },
+      "room_cpu_total_ms": 205.002,
+      "frame": {
+        "max": 31.046,
+        "mean": 1.83152197802198,
+        "over_100": 0,
+        "over_16_7": 8,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.663,
+        "p95": 2.499,
+        "p99": 3.877
+      },
+      "scheduled": 8,
+      "worst_frame": {
+        "frame_ms": 31.046,
+        "scene_ms": 29.233,
+        "stages": [
+          [
+            "RoomManager",
+            28.605
+          ],
+          [
+            "DebugWorld/Renderer",
+            0.362
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.093
+          ],
+          [
+            "WorkFeedback",
+            0.083
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.07
+          ],
+          [
+            "water_render/total",
+            0.051
+          ],
+          [
+            "AmbientAudio",
+            0.041
+          ],
+          [
+            "water_render/splash",
+            0.038
+          ]
+        ]
+      },
+      "completed_jobs": []
+    },
+    "active_pan": {
+      "room_process": {
+        "mean": 0.41364615384615383,
+        "p95": 0.001,
+        "p99": 25.134,
+        "max": 41.56
+      },
+      "room_cpu_total_ms": 241.983,
+      "frame": {
+        "max": 59.137,
+        "mean": 13.684682051282,
+        "over_100": 0,
+        "over_16_7": 170,
+        "over_33_3": 14,
+        "over_50": 4,
+        "p50": 11.699,
+        "p95": 28.872,
+        "p99": 44.629
+      },
+      "scheduled": 8,
+      "worst_frame": {
+        "frame_ms": 59.137,
+        "scene_ms": 53.853,
+        "stages": [
+          [
+            "RoomManager",
+            41.56
+          ],
+          [
+            "DebugWorld/Renderer",
+            6.115
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.244
+          ],
+          [
+            "water_render/total",
+            5.192
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.981
+          ],
+          [
+            "water_render/mesh",
+            3.757
+          ],
+          [
+            "wildlife/base:animal:duck",
+            3.087
+          ],
+          [
+            "water_render/motion",
+            1.021
+          ]
+        ]
+      },
+      "completed_jobs": []
+    },
+    "active_pan_repeat": {
+      "room_process": {
+        "mean": 0.3569543973941368,
+        "p95": 0.001,
+        "p99": 25.035,
+        "max": 35.534
+      },
+      "room_cpu_total_ms": 219.17,
+      "frame": {
+        "max": 64.004,
+        "mean": 13.0562263843648,
+        "over_100": 0,
+        "over_16_7": 154,
+        "over_33_3": 13,
+        "over_50": 5,
+        "p50": 11.166,
+        "p95": 27.229,
+        "p99": 36.371
+      },
+      "scheduled": 8,
+      "worst_frame": {
+        "frame_ms": 64.004,
+        "scene_ms": 60.39,
+        "stages": [
+          [
+            "RoomManager",
+            35.534
+          ],
+          [
+            "WaterManager",
+            11.428
+          ],
+          [
+            "water_sim/total",
+            11.42
+          ],
+          [
+            "water_sim/flow",
+            8.35
+          ],
+          [
+            "DebugWorld/Renderer",
+            7.512
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.886
+          ],
+          [
+            "water_render/total",
+            5.846
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            5.092
+          ]
+        ]
+      },
+      "completed_jobs": []
+    }
+  },
+  "room_after_saved": {
+    "paused_pan": {
+      "room_process": {
+        "mean": 0.06745355570998379,
+        "p95": 0.001,
+        "p99": 1.584,
+        "max": 1.779
+      },
+      "room_cpu_total_ms": 291.197,
+      "frame": {
+        "max": 35.163,
+        "mean": 1.85332823720176,
+        "over_100": 0,
+        "over_16_7": 2,
+        "over_33_3": 1,
+        "over_50": 0,
+        "p50": 1.617,
+        "p95": 3.47,
+        "p99": 4.999
+      },
+      "scheduled": 8,
+      "worst_frame": {
+        "frame_ms": 35.163,
+        "scene_ms": 0.584,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.306
+          ],
+          [
+            "WorkFeedback",
+            0.123
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.07
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.059
+          ],
+          [
+            "water_render/total",
+            0.042
+          ],
+          [
+            "water_render/splash",
+            0.032
+          ],
+          [
+            "AmbientAudio",
+            0.031
+          ],
+          [
+            "DebugWorld/CameraRig",
+            0.017
+          ]
+        ]
+      },
+      "completed_jobs": [
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 1,
+          "last_frames": 30,
+          "last_latency_ms": 504.255,
+          "main_ms": 0.0,
+          "pending": true
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 2,
+          "last_frames": 24,
+          "last_latency_ms": 93.637,
+          "main_ms": 0.767,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 3,
+          "last_frames": 24,
+          "last_latency_ms": 88.785,
+          "main_ms": 1.27,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 4,
+          "last_frames": 23,
+          "last_latency_ms": 80.52,
+          "main_ms": 1.437,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 5,
+          "last_frames": 24,
+          "last_latency_ms": 88.281,
+          "main_ms": 0.818,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 6,
+          "last_frames": 23,
+          "last_latency_ms": 74.882,
+          "main_ms": 1.506,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 7,
+          "last_frames": 23,
+          "last_latency_ms": 75.515,
+          "main_ms": 0.659,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 8,
+          "last_frames": 23,
+          "last_latency_ms": 79.12,
+          "main_ms": 0.644,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 9,
+          "last_frames": 24,
+          "last_latency_ms": 83.4,
+          "main_ms": 0.772,
+          "pending": false
+        }
+      ]
+    },
+    "active_pan": {
+      "room_process": {
+        "mean": 0.5238119658119659,
+        "p95": 1.601,
+        "p99": 1.693,
+        "max": 1.835
+      },
+      "room_cpu_total_ms": 306.43,
+      "frame": {
+        "max": 43.042,
+        "mean": 13.7015846153846,
+        "over_100": 0,
+        "over_16_7": 158,
+        "over_33_3": 16,
+        "over_50": 0,
+        "p50": 12.149,
+        "p95": 28.151,
+        "p99": 37.258
+      },
+      "scheduled": 8,
+      "worst_frame": {
+        "frame_ms": 43.042,
+        "scene_ms": 36.025,
+        "stages": [
+          [
+            "WaterManager",
+            12.319
+          ],
+          [
+            "water_sim/total",
+            12.313
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            11.972
+          ],
+          [
+            "wildlife/base:animal:duck",
+            10.552
+          ],
+          [
+            "water_sim/flow",
+            9.994
+          ],
+          [
+            "DebugWorld/Renderer",
+            9.287
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.616
+          ],
+          [
+            "water_render/total",
+            5.591
+          ]
+        ]
+      },
+      "completed_jobs": [
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 9,
+          "last_frames": 24,
+          "last_latency_ms": 83.4,
+          "main_ms": 0.0,
+          "pending": true
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 10,
+          "last_frames": 24,
+          "last_latency_ms": 277.539,
+          "main_ms": 1.139,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 1,
+          "completed": 11,
+          "last_frames": 25,
+          "last_latency_ms": 404.131,
+          "main_ms": 1.125,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 1,
+          "completed": 12,
+          "last_frames": 25,
+          "last_latency_ms": 484.761,
+          "main_ms": 1.287,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 1,
+          "completed": 13,
+          "last_frames": 24,
+          "last_latency_ms": 431.049,
+          "main_ms": 1.833,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 1,
+          "completed": 14,
+          "last_frames": 23,
+          "last_latency_ms": 214.922,
+          "main_ms": 0.362,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 2,
+          "completed": 15,
+          "last_frames": 24,
+          "last_latency_ms": 272.826,
+          "main_ms": 1.26,
+          "pending": false
+        }
+      ]
+    },
+    "active_pan_repeat": {
+      "room_process": {
+        "mean": 0.6164718446601942,
+        "p95": 1.637,
+        "p99": 1.715,
+        "max": 2.084
+      },
+      "room_cpu_total_ms": 317.483,
+      "frame": {
+        "max": 46.976,
+        "mean": 15.5592174757282,
+        "over_100": 0,
+        "over_16_7": 188,
+        "over_33_3": 17,
+        "over_50": 0,
+        "p50": 13.977,
+        "p95": 30.746,
+        "p99": 37.563
+      },
+      "scheduled": 8,
+      "worst_frame": {
+        "frame_ms": 46.976,
+        "scene_ms": 40.466,
+        "stages": [
+          [
+            "WaterManager",
+            15.594
+          ],
+          [
+            "water_sim/total",
+            15.584
+          ],
+          [
+            "water_sim/flow",
+            12.125
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            11.372
+          ],
+          [
+            "DebugWorld/Renderer",
+            10.946
+          ],
+          [
+            "wildlife/base:animal:duck",
+            9.874
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.352
+          ],
+          [
+            "water_render/total",
+            5.319
+          ]
+        ]
+      },
+      "completed_jobs": [
+        {
+          "active": false,
+          "cancelled": 2,
+          "completed": 16,
+          "last_frames": 27,
+          "last_latency_ms": 631.464,
+          "main_ms": 0.0,
+          "pending": true
+        },
+        {
+          "active": false,
+          "cancelled": 2,
+          "completed": 17,
+          "last_frames": 26,
+          "last_latency_ms": 461.358,
+          "main_ms": 0.799,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 3,
+          "completed": 18,
+          "last_frames": 29,
+          "last_latency_ms": 545.464,
+          "main_ms": 1.995,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 3,
+          "completed": 19,
+          "last_frames": 26,
+          "last_latency_ms": 475.728,
+          "main_ms": 1.556,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 3,
+          "completed": 20,
+          "last_frames": 22,
+          "last_latency_ms": 243.055,
+          "main_ms": 1.794,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 4,
+          "completed": 21,
+          "last_frames": 25,
+          "last_latency_ms": 432.843,
+          "main_ms": 1.343,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 4,
+          "completed": 22,
+          "last_frames": 25,
+          "last_latency_ms": 450.902,
+          "main_ms": 2.081,
+          "pending": false
+        }
+      ]
+    }
+  },
+  "room_before_natural": {
+    "paused_pan": {
+      "room_process": {
+        "mean": 0.0005560578661844485,
+        "p95": 0.001,
+        "p99": 0.001,
+        "max": 0.07
+      },
+      "room_cpu_total_ms": 2.46,
+      "frame": {
+        "max": 28.923,
+        "mean": 1.80910036166365,
+        "over_100": 0,
+        "over_16_7": 1,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.624,
+        "p95": 2.897,
+        "p99": 4.984
+      },
+      "scheduled": 0,
+      "worst_frame": {
+        "frame_ms": 28.923,
+        "scene_ms": 0.54,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.285
+          ],
+          [
+            "WorkFeedback",
+            0.105
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.07
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.058
+          ],
+          [
+            "water_render/total",
+            0.042
+          ],
+          [
+            "AmbientAudio",
+            0.032
+          ],
+          [
+            "water_render/splash",
+            0.031
+          ],
+          [
+            "DebugWorld/CameraRig",
+            0.016
+          ]
+        ]
+      },
+      "completed_jobs": []
+    },
+    "active_pan": {
+      "room_process": {
+        "mean": 0.08334850863422293,
+        "p95": 0.001,
+        "p99": 0.002,
+        "max": 27.178
+      },
+      "room_cpu_total_ms": 53.093,
+      "frame": {
+        "max": 38.792,
+        "mean": 12.5772433281005,
+        "over_100": 0,
+        "over_16_7": 147,
+        "over_33_3": 9,
+        "over_50": 0,
+        "p50": 11.08,
+        "p95": 26.706,
+        "p99": 33.726
+      },
+      "scheduled": 0,
+      "worst_frame": {
+        "frame_ms": 38.792,
+        "scene_ms": 33.339,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            14.085
+          ],
+          [
+            "WaterManager",
+            8.364
+          ],
+          [
+            "water_sim/total",
+            8.357
+          ],
+          [
+            "water_sim/flow",
+            6.659
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            4.573
+          ],
+          [
+            "water_render/total",
+            4.546
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.294
+          ],
+          [
+            "DebugWorld/Renderer/Water/@Node3D@1210",
+            3.373
+          ]
+        ]
+      },
+      "completed_jobs": []
+    },
+    "active_pan_repeat": {
+      "room_process": {
+        "mean": 0.000709470304975923,
+        "p95": 0.001,
+        "p99": 0.002,
+        "max": 0.002
+      },
+      "room_cpu_total_ms": 0.442,
+      "frame": {
+        "max": 39.619,
+        "mean": 12.8514494382023,
+        "over_100": 0,
+        "over_16_7": 148,
+        "over_33_3": 9,
+        "over_50": 0,
+        "p50": 11.409,
+        "p95": 25.744,
+        "p99": 34.812
+      },
+      "scheduled": 0,
+      "worst_frame": {
+        "frame_ms": 39.619,
+        "scene_ms": 31.276,
+        "stages": [
+          [
+            "WaterManager",
+            16.604
+          ],
+          [
+            "water_sim/total",
+            16.595
+          ],
+          [
+            "water_sim/flow",
+            12.054
+          ],
+          [
+            "DebugWorld/Renderer",
+            9.785
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.102
+          ],
+          [
+            "water_render/total",
+            5.074
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.003
+          ],
+          [
+            "water_render/mesh",
+            3.808
+          ]
+        ]
+      },
+      "completed_jobs": []
+    }
+  },
+  "room_after_natural": {
+    "paused_pan": {
+      "room_process": {
+        "mean": 0.0007298914247728783,
+        "p95": 0.001,
+        "p99": 0.001,
+        "max": 0.017
+      },
+      "room_cpu_total_ms": 3.294,
+      "frame": {
+        "max": 28.715,
+        "mean": 1.77290471969865,
+        "over_100": 0,
+        "over_16_7": 1,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.642,
+        "p95": 2.331,
+        "p99": 3.901
+      },
+      "scheduled": 0,
+      "worst_frame": {
+        "frame_ms": 28.715,
+        "scene_ms": 0.713,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            0.391
+          ],
+          [
+            "WorkFeedback",
+            0.127
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            0.094
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            0.079
+          ],
+          [
+            "water_render/total",
+            0.057
+          ],
+          [
+            "water_render/splash",
+            0.044
+          ],
+          [
+            "AmbientAudio",
+            0.035
+          ],
+          [
+            "DebugWorld/CameraRig",
+            0.02
+          ]
+        ]
+      },
+      "completed_jobs": [
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 1,
+          "last_frames": 31,
+          "last_latency_ms": 428.284,
+          "main_ms": 0.0,
+          "pending": false
+        }
+      ]
+    },
+    "active_pan": {
+      "room_process": {
+        "mean": 0.1315172981878089,
+        "p95": 1.539,
+        "p99": 1.608,
+        "max": 1.68
+      },
+      "room_cpu_total_ms": 79.831,
+      "frame": {
+        "max": 40.242,
+        "mean": 13.1929406919275,
+        "over_100": 0,
+        "over_16_7": 163,
+        "over_33_3": 9,
+        "over_50": 0,
+        "p50": 11.737,
+        "p95": 27.309,
+        "p99": 34.151
+      },
+      "scheduled": 0,
+      "worst_frame": {
+        "frame_ms": 40.242,
+        "scene_ms": 30.147,
+        "stages": [
+          [
+            "DebugWorld/Renderer",
+            15.568
+          ],
+          [
+            "WaterManager",
+            9.118
+          ],
+          [
+            "water_sim/total",
+            9.11
+          ],
+          [
+            "water_sim/flow",
+            7.261
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.368
+          ],
+          [
+            "DebugWorld/Renderer/UndergroundLighting",
+            4.272
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            3.588
+          ],
+          [
+            "water_render/total",
+            3.558
+          ]
+        ]
+      },
+      "completed_jobs": [
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 1,
+          "last_frames": 31,
+          "last_latency_ms": 428.284,
+          "main_ms": 0.0,
+          "pending": true
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 2,
+          "last_frames": 24,
+          "last_latency_ms": 276.835,
+          "main_ms": 0.518,
+          "pending": false
+        },
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 3,
+          "last_frames": 28,
+          "last_latency_ms": 486.638,
+          "main_ms": 0.925,
+          "pending": false
+        }
+      ]
+    },
+    "active_pan_repeat": {
+      "room_process": {
+        "mean": 0.000813614262560778,
+        "p95": 0.001,
+        "p99": 0.002,
+        "max": 0.002
+      },
+      "room_cpu_total_ms": 0.502,
+      "frame": {
+        "max": 40.334,
+        "mean": 12.9894651539708,
+        "over_100": 0,
+        "over_16_7": 164,
+        "over_33_3": 5,
+        "over_50": 0,
+        "p50": 11.646,
+        "p95": 26.244,
+        "p99": 32.596
+      },
+      "scheduled": 0,
+      "worst_frame": {
+        "frame_ms": 40.334,
+        "scene_ms": 32.904,
+        "stages": [
+          [
+            "WaterManager",
+            13.745
+          ],
+          [
+            "water_sim/total",
+            13.736
+          ],
+          [
+            "water_sim/flow",
+            10.664
+          ],
+          [
+            "DebugWorld/Renderer",
+            10.575
+          ],
+          [
+            "DebugWorld/Renderer/Water",
+            5.901
+          ],
+          [
+            "water_render/total",
+            5.866
+          ],
+          [
+            "DebugWorld/WildlifeManager",
+            4.615
+          ],
+          [
+            "water_render/mesh",
+            4.564
+          ]
+        ]
+      },
+      "completed_jobs": [
+        {
+          "active": false,
+          "cancelled": 0,
+          "completed": 3,
+          "last_frames": 28,
+          "last_latency_ms": 486.638,
+          "main_ms": 0.0,
+          "pending": false
+        }
+      ]
+    }
+  }
+}

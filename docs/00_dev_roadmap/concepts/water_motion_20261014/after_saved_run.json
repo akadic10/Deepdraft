@@ -1,0 +1,18 @@
+{
+  "exit_code": 0,
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/CameraBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/motion_compact_saved",
+    "--seconds=8",
+    "--saved"
+  ],
+  "source_save_unchanged": true,
+  "save_sha256": "C815B96DF85C9AED2A8EC0F03700DAE9FF74218623B93EE6538274598808428D"
+}

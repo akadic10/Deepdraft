@@ -1,0 +1,17 @@
+{
+  "save_sha256": null,
+  "source_save_unchanged": true,
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/CameraBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/moisture_before_fresh",
+    "--seconds=8"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,127 @@
+{
+  "regressions": [
+    {
+      "exit_code": 0,
+      "test": "WaterFlowCacheTest",
+      "errors": false,
+      "seconds": 2.373472
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterFlowTest",
+      "errors": false,
+      "seconds": 3.2996052
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterSurfaceMotionTest",
+      "errors": false,
+      "seconds": 1.408211
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterSurfaceMeshTest",
+      "errors": false,
+      "seconds": 3.3749008
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterMeshSchedulingTest",
+      "errors": false,
+      "seconds": 1.4084694
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterAudioTest",
+      "errors": false,
+      "seconds": 3.5833747
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterStoneLifecycleTest",
+      "errors": false,
+      "seconds": 4.0009474
+    },
+    {
+      "exit_code": 0,
+      "test": "MoistureRenderingTest",
+      "errors": false,
+      "seconds": 3.2994676
+    },
+    {
+      "exit_code": 0,
+      "test": "AnimalNavigationCacheTest",
+      "errors": false,
+      "seconds": 1.5032537
+    },
+    {
+      "exit_code": 0,
+      "test": "DuckWildlifeTest",
+      "errors": false,
+      "seconds": 3.5933242
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterWorldTest",
+      "errors": false,
+      "seconds": 37.4633781
+    },
+    {
+      "exit_code": 0,
+      "test": "WaterStabilityTest",
+      "errors": false,
+      "seconds": 138.9359542
+    },
+    {
+      "exit_code": 0,
+      "test": "SaveManagerRoundTripTest",
+      "errors": false,
+      "seconds": 66.8331936
+    }
+  ],
+  "source_hashes": {
+    "water_flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+    "water_manager_sha256": "e55b7df402ec9e5ed01b82907d44ddbef9a6a296eab43f42fdbd32e21c602672",
+    "soil_moisture_sha256": "492e39cc99912d62f28cf95c9fccc6a4e0cff626204f0e530f6deb749b229d66",
+    "water_renderer_sha256": "38aaf24f8ab1b8913c1223122d37895129b3f33c838e9c3e314c87ab3cf8e18d",
+    "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+    "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+    "duck_navigation_sha256": "e2c05f9a26785060883cda213559e7473e26c4f20f6f3ef9adede7c59ab629ab",
+    "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6"
+  },
+  "both_final_native_runs_match_current_sources": true,
+  "differential_flow": {
+    "after_ms": 856.935,
+    "before_ms": 1420.553,
+    "current_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+    "failures": [],
+    "original_sha256": "14803cc879fb3b45be8f99045bce1c79c00489ff16fe56fef5f87a716be9c2df",
+    "ticks": 900
+  },
+  "differential_world": {
+    "failures": [],
+    "flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+    "full_snapshots": 21,
+    "manager_sha256": "e55b7df402ec9e5ed01b82907d44ddbef9a6a296eab43f42fdbd32e21c602672",
+    "original_manager_sha256": "08fba30aee51320ad91e0c0b97550c3b869b1ecdead76a62e173ff0927b4013d",
+    "ticks": 500
+  },
+  "stability_seeds": [
+    474028005,
+    1630876908,
+    1234,
+    42
+  ],
+  "stability_ticks_per_seed": 3000,
+  "native_presentation": {
+    "errors": false,
+    "pass": true,
+    "exit_code": 0
+  },
+  "packed_smoke_pass": true,
+  "release_startup_pass": true,
+  "source_save_sha256": "c815b96df85c9aed2a8ec0f03700dae9ff74218623b93ee6538274598808428d",
+  "source_save_unchanged": true,
+  "zip_sha256": "9da046220d5887d31fe40e600ad7551244afee2ad53b529e9be07f0aa7a79aba",
+  "notes": "Native performance runs ran alone. Full-world differential and save-roundtrip correctness checks overlapped; neither is used for timing claims. Package smoke uses the editor executable with main-pack; release startup is checked separately."
+}

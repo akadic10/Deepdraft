@@ -1,0 +1,21 @@
+{
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/ColonyScalingBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/colony_v2_after_50",
+    "--seconds=12",
+    "--population=50",
+    "--no-ablations",
+    "--weather=base:weather:clear"
+  ],
+  "errors": false,
+  "population": 50,
+  "exit_code": 0,
+  "headless": false
+}

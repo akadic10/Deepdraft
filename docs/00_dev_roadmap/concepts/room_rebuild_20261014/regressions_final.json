@@ -1,0 +1,58 @@
+[
+  {
+    "seconds": 3.5697833,
+    "errors": false,
+    "test": "RoomRebuildSchedulingTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 12.6318437,
+    "errors": false,
+    "test": "BedroomTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 6.0852051,
+    "errors": false,
+    "test": "BedroomComfortTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 3.5982692,
+    "errors": false,
+    "test": "BedOwnershipTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 2.0065566,
+    "errors": false,
+    "test": "BedroomPrivacyTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 8.5775141,
+    "errors": false,
+    "test": "ConstructionTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 4.045221,
+    "errors": false,
+    "test": "WallMountHeightTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  },
+  {
+    "seconds": 61.7569633,
+    "errors": false,
+    "test": "SaveManagerRoundTripTest",
+    "exit_code": 0,
+    "room_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0"
+  }
+]

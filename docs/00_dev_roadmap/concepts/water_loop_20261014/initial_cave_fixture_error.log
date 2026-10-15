@@ -1,0 +1,19 @@
+WARNING: SkyController: no current scene — cannot bind sky/fog.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:133)
+       [1] _ready (res://scripts/systems/SkyController.gd:73)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:559)
+   GDScript backtrace (most recent call first):
+       [0] _constructed (res://scripts/systems/MiningDesignationController.gd:2155)
+       [1] _designation_block_id_at (res://scripts/systems/MiningDesignationController.gd:969)
+       [2] _filter_mineable_blocks (res://scripts/systems/MiningDesignationController.gd:943)
+       [3] _run (res://scripts/tests/SpringCaveTest.gd:106)
+SCRIPT ERROR: Cannot call method 'get_first_node_in_group' on a null value.
+   at: MiningDesignationController._constructed (res://scripts/systems/MiningDesignationController.gd:2155)
+   GDScript backtrace (most recent call first):
+       [0] _constructed (res://scripts/systems/MiningDesignationController.gd:2155)
+       [1] _designation_block_id_at (res://scripts/systems/MiningDesignationController.gd:969)
+       [2] _filter_mineable_blocks (res://scripts/systems/MiningDesignationController.gd:943)
+       [3] _run (res://scripts/tests/SpringCaveTest.gd:106)

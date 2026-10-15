@@ -32,6 +32,9 @@ var _models: Dictionary = {}
 var _picking := Picking.new()
 var _slice_y := 127
 var _camera: Node3D
+## Opt-in diagnostic; no timers or extra saved state during normal play.
+var profile_updates := false
+var last_update_ms: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("wildlife")
@@ -68,11 +71,14 @@ func _process(delta: float) -> void:
 
 func advance(delta: float, threats: Array) -> void:
 	if WorldClock.paused or WorldClock.speed <= 0: return
+	if profile_updates: last_update_ms.clear()
+	duck_navigation.begin_update()
 	var prey_threats := threats.duplicate()
 	for animal in animals:
 		if animal is Wolf: prey_threats.append(animal.position)
 	for animal in animals.duplicate():
 		if not animal in animals: continue
+		var started := Time.get_ticks_usec() if profile_updates else 0
 		if animal is Deer: _update_herd_context(animal)
 		if animal is Duck: _update_flock_context(animal)
 		if animal is Wolf: _update_wolf_target(animal)
@@ -94,6 +100,11 @@ func advance(delta: float, threats: Array) -> void:
 				if previous_timer > crossing and animal.timer <= crossing:
 					WorkFeedback.play_animal(animal_definition.feedback.eating_sound if animal is Wolf else animal_definition.feedback.grazing_sound, animal)
 					break # A stalled frame never bursts through skipped sounds.
+		if profile_updates:
+			var species: String = animal.definition.id
+			last_update_ms[species] = float(last_update_ms.get(species,0.0)) + (Time.get_ticks_usec()-started)/1000.0
+
+	duck_navigation.end_update()
 
 func initial_cells(seed_value: int) -> Array[Vector3i]:
 	var random := RandomNumberGenerator.new()

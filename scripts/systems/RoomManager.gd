@@ -34,13 +34,13 @@ extends Node
 ## FurniturePlacementController calls RoomManager.on_furniture_changed()
 ## directly at both its install and uninstall sites.
 ##
-## PERFORMANCE: geometry-affecting triggers (door add/remove, a mined/placed
-## block) mark _rooms_dirty and a full rebuild runs at most once per
-## REBUILD_THROTTLE_S in _process() — full rebuild (re-flood-fill from every
-## known door) rather than incremental per-room diffing, which is simpler and
-## correct at the door counts a colony will realistically have. WorldClock's
-## hourly tick is cheap by contrast (formula only, no flood-fill) and runs
-## directly against already-tracked rooms.
+## PERFORMANCE: edits coalesce for 0.5s, then RoomRebuild advances under a
+## soft per-frame budget. Readers keep the last complete room map until the
+## replacement is ready. Changed chunks already read by a pending job cancel
+## it; unvisited chunks are read live when reached. Furniture changes cancel
+## pending work. Door light boundaries still update immediately.
+
+const RoomRebuild = preload("res://scripts/components/RoomRebuild.gd")
 
 const MAX_ROOM_CELLS := 4096          # ~ a generous 16x16x16 hall; tuning constant
 const DOOR_SEAL_HEIGHT := 4           # air cells above a door's floor cell that seal
@@ -73,11 +73,21 @@ var _next_room_id: int = 1
 
 var _rooms_dirty: bool = false
 var _rebuild_accum: float = 0.0
+var detection_config: Dictionary = {}
+var _rebuild: RefCounted
+var _rebuild_started_usec := 0
+var _rebuild_frames := 0
+var _completed_rebuilds := 0
+var _cancelled_rebuilds := 0
+var _last_rebuild_frames := 0
+var _last_latency_ms := 0.0
+var _last_main_ms := 0.0
 var temperature_config: Dictionary = {}
 var appeal_config: Dictionary = {}
 
 
 func _ready() -> void:
+	detection_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/detection.json"))
 	temperature_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/world_gen/temperature.json"))
 	appeal_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/appeal.json"))
 	print("RoomManager: ready (doc 34/22).")
@@ -86,13 +96,54 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _rooms_dirty:
-		return
-	_rebuild_accum += delta
-	if _rebuild_accum >= REBUILD_THROTTLE_S:
-		_rebuild_accum = 0.0
-		_rooms_dirty = false
-		_rebuild_all_rooms()
+	_last_main_ms = 0.0
+	if _rebuild == null:
+		if not _rooms_dirty: return
+		_rebuild_accum += delta
+		if _rebuild_accum < REBUILD_THROTTLE_S: return
+	var start := Time.get_ticks_usec()
+	if _rebuild == null: _begin_rebuild()
+	_rebuild_frames += 1
+	_rebuild.advance(start + maxi(1, int(float(detection_config.rebuild_budget_ms) * 1000)),
+		maxi(1, int(detection_config.budget_check_operations)))
+	if _rebuild.stage == RoomRebuild.Stage.DONE: _publish_rebuild()
+	_last_main_ms = (Time.get_ticks_usec() - start) / 1000.0
+
+
+func is_updating() -> bool:
+	return _rooms_dirty or _rebuild != null
+
+
+func get_rebuild_stats() -> Dictionary:
+	return {"pending": is_updating(), "active": _rebuild != null,
+		"main_ms": _last_main_ms, "completed": _completed_rebuilds,
+		"cancelled": _cancelled_rebuilds, "last_frames": _last_rebuild_frames,
+		"last_latency_ms": _last_latency_ms}
+
+
+func _begin_rebuild() -> void:
+	_rooms_dirty = false
+	_rebuild_accum = 0.0
+	_rebuild_started_usec = Time.get_ticks_usec()
+	_rebuild_frames = 0
+	_rebuild = RoomRebuild.new(self)
+
+
+func _publish_rebuild() -> void:
+	# Refresh the clock-dependent formula at commit, not at a room's scan time.
+	for room: Dictionary in _rebuild.rooms.values(): _recompute_temp(room)
+	var old_ids := _rooms.keys()
+	_rooms = _rebuild.rooms
+	_cell_to_room = _rebuild.cell_to_room
+	_next_room_id = _rebuild.next_room_id
+	_rebuild = null
+	_completed_rebuilds += 1
+	_last_rebuild_frames = _rebuild_frames
+	_last_latency_ms = (Time.get_ticks_usec() - _rebuild_started_usec) / 1000.0
+	# Both maps are complete before any observer is notified.
+	for id: int in _rooms: room_updated.emit(id)
+	for id: int in old_ids:
+		if not _rooms.has(id): room_removed.emit(id)
 
 
 # ── Public API — called directly by FurniturePlacementController ─────────────
@@ -194,7 +245,7 @@ func get_room_at(cell: Vector3i) -> Dictionary:
 
 
 ## Room id containing `cell`, or -1. NOTE room ids are reassigned on every
-## rebuild (_rebuild_all_rooms clears and renumbers) — treat an id as valid
+## completed rebuild — treat an id as valid
 ## only until the next room_updated/room_removed burst; re-resolve by cell.
 func get_room_id_at(cell: Vector3i) -> int:
 	return int(_cell_to_room.get(cell, -1))
@@ -221,6 +272,12 @@ func clear_runtime_state() -> void:
 	_rooms.clear()
 	_cell_to_room.clear()
 	_next_room_id = 1
+	_rebuild = null
+	_completed_rebuilds = 0
+	_cancelled_rebuilds = 0
+	_last_rebuild_frames = 0
+	_last_latency_ms = 0.0
+	_last_main_ms = 0.0
 	_rooms_dirty = false
 	_rebuild_accum = 0.0
 	if not boundaries.is_empty(): door_boundaries_changed.emit(boundaries)
@@ -250,6 +307,7 @@ func room_beds(cells: Dictionary) -> Array[Vector3i]:
 	return result
 
 func on_bed_assignment_changed(origin: Vector3i, dwarf_id: int) -> void:
+	if _rebuild != null: _mark_dirty()
 	if dwarf_id < 0: _bed_assignments.erase(origin)
 	else: _bed_assignments[origin] = dwarf_id
 	for id: int in _rooms:
@@ -278,11 +336,10 @@ func room_label(room: Dictionary) -> String:
 
 # ── Triggers ──────────────────────────────────────────────────────────────────
 
-func _on_chunk_dirtied(_cx: int, _cy: int, _cz: int) -> void:
-	# Any block edit can open or close a room perimeter. Worldgen chunk
-	# streaming also fires this signal, so this is a coarse trigger — the
-	# throttle in _process() keeps a burst of edits (e.g. mining a corridor)
-	# from re-running the flood-fill on every single block.
+func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
+	# Unread chunks will be queried live. Distant streaming must not starve a
+	# pending scan; any changed chunk already examined requires a fresh scan.
+	if _rebuild != null and not _rebuild.read_chunks.has(Vector3i(cx, cy, cz)): return
 	_mark_dirty()
 
 
@@ -298,63 +355,22 @@ func _on_hour_changed(_new_hour: int) -> void:
 
 func _mark_dirty() -> void:
 	_rooms_dirty = true
+	if _rebuild != null:
+		_rebuild = null
+		_cancelled_rebuilds += 1
+		# Already paid the coalescing delay. Restart once on the next frame.
+		_rebuild_accum = REBUILD_THROTTLE_S
 
 
 # ── Detection ─────────────────────────────────────────────────────────────────
 
-## Full rebuild — REWRITTEN 2026-08-07 (Alen's first Rooms-tool playtest: no
-## room ever showed, and the tool finally made the reason visible). The
-## original fill had two fatal geometry errors, live since doc 22 shipped:
-##
-## 1. Only the door's FLOOR cells were boundary. The doorway is a 2-wide,
-##    ~4-tall gap of open AIR above those cells (the door piece is walkable
-##    and has no terrain identity), so the fill walked straight up through
-##    the gap and out into the corridor and the open world — every fill hit
-##    MAX_ROOM_CELLS and NO room could ever be detected. Fix: each door
-##    footprint cell seals a vertical COLUMN (floor + DOOR_SEAL_HEIGHT air
-##    cells — the doc 22b door stands ~4 blocks tall), built per rebuild by
-##    _door_boundary_cells().
-## 2. The fill SEEDED from the door cell itself, which (once the column is
-##    boundary) discovers BOTH sides of the door — room and corridor — as
-##    one region, and the corridor side leaks. A door separates two spaces;
-##    they must be filled separately. Fix: each air cell ADJACENT to the
-##    door column starts its own fill; a fill that terminates within the
-##    cap is a sealed room, a fill that leaks marks its cells as open (the
-##    `leaked` memo) so the corridor region is probed at most once per
-##    rebuild, not once per door neighbour.
+## Synchronous drain for deterministic fixtures/development queries only.
+## Runtime scheduling always enters through _process's budgeted path.
 func _rebuild_all_rooms() -> void:
-	var old_ids: Array = _rooms.keys()
-	_rooms.clear()
-	_cell_to_room.clear()
-
-	var boundary := _door_boundary_cells()
-	var leaked: Dictionary = {}     # Vector3i -> true: known-open cells (probed, unsealed)
-	for boundary_cell: Vector3i in boundary.keys():
-		for offset: Vector3i in NEIGHBOR_OFFSETS:
-			var start: Vector3i = boundary_cell + offset
-			if boundary.has(start) or _cell_to_room.has(start) or leaked.has(start):
-				continue
-			if BlockRegistry.is_solid(_block_id(start)):
-				continue
-			var result := _flood_fill_room(start, boundary)
-			if bool(result.get("leaked", false)):
-				for c: Vector3i in result["cells"].keys():
-					leaked[c] = true
-				continue
-			if result.get("cells", {}).is_empty():
-				continue
-			var room_id := _next_room_id
-			_next_room_id += 1
-			var room := _build_room_data(result)
-			_rooms[room_id] = room
-			for cell: Vector3i in room["cells"].keys():
-				_cell_to_room[cell] = room_id
-
-	for room_id: int in _rooms.keys():
-		room_updated.emit(room_id)
-	for old_id: int in old_ids:
-		if not _rooms.has(old_id):
-			room_removed.emit(old_id)
+	_begin_rebuild()
+	while _rebuild.stage != RoomRebuild.Stage.DONE:
+		_rebuild.advance(Time.get_ticks_usec() + 1000000, 16)
+	_publish_rebuild()
 
 
 ## Every cell a door seals: each registered footprint FLOOR cell plus the
@@ -370,36 +386,6 @@ func _door_boundary_cells() -> Dictionary:
 	return result
 
 
-## Doc 34 Sealing Rules 1-3, one side of a door at a time. `start` must be a
-## non-boundary air cell. Returns {"cells", "door_cells", "leaked"} — cells
-## are interior AIR only; door_cells are the PIECE ORIGIN cells of every
-## door whose seal column bounds this region (so .size() = door count, one
-## per piece regardless of footprint width); leaked=true means the region
-## exceeded MAX_ROOM_CELLS (open space — see file header).
-func _flood_fill_room(start: Vector3i, boundary: Dictionary) -> Dictionary:
-	var visited: Dictionary = { start: true }   # interior air cells found
-	var door_tiles: Dictionary = {}             # piece origin -> true
-	var queue: Array[Vector3i] = [start]
-	var head := 0
-	while head < queue.size():
-		var cur: Vector3i = queue[head]
-		head += 1
-		for offset: Vector3i in NEIGHBOR_OFFSETS:
-			var n := cur + offset
-			if visited.has(n):
-				continue
-			if boundary.has(n):
-				door_tiles[boundary[n]] = true
-				continue
-			if BlockRegistry.is_solid(_block_id(n)):
-				continue
-			visited[n] = true
-			if visited.size() > MAX_ROOM_CELLS:
-				return { "cells": visited, "door_cells": {}, "leaked": true }
-			queue.append(n)
-	return { "cells": visited, "door_cells": door_tiles, "leaked": false }
-
-
 func _block_id(pos: Vector3i) -> int:
 	# The InteriorTracker world-truth pattern (X0): materialised chunks are
 	# authoritative once mining has touched them; ungenerated chunks fall back
@@ -410,28 +396,6 @@ func _block_id(pos: Vector3i) -> int:
 
 
 # ── Temperature (doc 34, sheltered rock climate) ─────────────────────────────
-
-func _build_room_data(fill_result: Dictionary) -> Dictionary:
-	var cells: Dictionary = fill_result["cells"]
-	var mean_floor_y := _mean_floor_y(cells)
-	var heat_units := _sum_heat(cells)
-	var room := {
-		"cells": cells,
-		"door_cells": fill_result["door_cells"],
-		"volume": cells.size(),
-		"mean_floor_y": mean_floor_y,
-		"heat_units": heat_units,
-		"seasonal_influence": _room_exposure(cells),
-		"temp_c": 0.0,
-		"is_frozen_vault": false,
-		"bed_count": count_room_beds(cells),
-		"light_count": count_room_lights(cells),
-		"room_type": "room",
-	}
-	_classify_bedroom(room)
-	room.merge(flooring_stats(cells))
-	_recompute_temp(room)
-	return room
 
 ## Count physical interior walking surfaces, even below furniture. Doorway
 ## columns are outside room.cells. Mixed floor materials count together; plans
@@ -448,22 +412,6 @@ func flooring_stats(cells: Dictionary) -> Dictionary:
 	var complete := total > 0 and finished == total
 	return {"floor_tiles":total,"finished_floor_tiles":finished,"flooring_complete":complete,
 		"flooring_appeal":float(appeal_config.complete_floor_bonus) if complete else 0.0}
-
-
-## mean_floor_y = average Y of the LOWEST air cell in each (x,z) column of the
-## room's footprint (doc 34 Agent note) — not the geometric centre.
-func _mean_floor_y(cells: Dictionary) -> float:
-	var lowest_by_column: Dictionary = {}     # Vector2i(x,z) -> lowest y seen
-	for cell: Vector3i in cells.keys():
-		var col := Vector2i(cell.x, cell.z)
-		if not lowest_by_column.has(col) or cell.y < int(lowest_by_column[col]):
-			lowest_by_column[col] = cell.y
-	if lowest_by_column.is_empty():
-		return 0.0
-	var total := 0
-	for col: Vector2i in lowest_by_column.keys():
-		total += int(lowest_by_column[col])
-	return float(total) / float(lowest_by_column.size())
 
 
 ## Heat sources register at their footprint FLOOR cell (a SOLID ground
@@ -486,20 +434,6 @@ func _recompute_temp(room: Dictionary) -> void:
 	room["heat_bonus_c"] = heat_bonus
 	room["temp_c"] = ambient_temperature(float(room.seasonal_influence))+heat_bonus
 	room["is_frozen_vault"] = float(room.temp_c)<=0.0
-
-## Natural overburden damps weather; absolute map elevation never makes rock
-## colder. Room geometry computes this once, hourly updates only do arithmetic.
-func _room_exposure(cells: Dictionary) -> float:
-	var floors := {}
-	for cell: Vector3i in cells:
-		var column := Vector2i(cell.x,cell.z)
-		if not floors.has(column) or cell.y<int(floors[column]): floors[column] = cell.y
-	var exposure := 0.0
-	for column: Vector2i in floors:
-		var height := WorldGenerator.get_overview_surface_height(column.x,column.y)
-		var cover := maxf(0.0,float(height-int(floors[column])-DOOR_SEAL_HEIGHT))
-		exposure += exp(-cover/float(temperature_config.cover_damping_blocks))
-	return float(temperature_config.sealed_exposure)*exposure/maxi(1,floors.size())
 
 func temperature_at(air_cell: Vector3i) -> float:
 	var room := get_room_at(air_cell)

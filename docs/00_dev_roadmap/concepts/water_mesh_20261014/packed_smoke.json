@@ -1,0 +1,8 @@
+{
+  "pck": "P:/Deepdraft/build/windows/releases/20261014-164409-853-5bef146e/Deepdraft/Deepdraft.pck",
+  "exit_code": 0,
+  "zip_sha256": "F3E8AA4368D5B1E2A0EC51ED4A5641AEF175448A6E158D184A9A2E8B53A09F6C",
+  "source_save_unchanged": true,
+  "runner": "Godot editor executable with --main-pack and package working directory",
+  "source_sha256": "C815B96DF85C9AED2A8EC0F03700DAE9FF74218623B93EE6538274598808428D"
+}

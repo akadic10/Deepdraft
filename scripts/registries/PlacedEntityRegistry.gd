@@ -34,6 +34,8 @@ var _columns: Dictionary = {}
 var _boxes: Dictionary = {}
 
 var _next_id: int = 1
+## Cache epoch for the bulk reset, which deliberately emits no box changes.
+var reset_revision := 0
 
 
 func _ready() -> void:
@@ -100,3 +102,4 @@ func clear_runtime_state() -> void:
 	_columns.clear()
 	_boxes.clear()
 	_next_id = 1
+	reset_revision += 1

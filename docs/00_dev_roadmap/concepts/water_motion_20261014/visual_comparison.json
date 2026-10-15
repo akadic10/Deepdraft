@@ -1,0 +1,26 @@
+{
+  "controls.png": {
+    "sha256": "c6edbf5089de6e4265d72b7f804158448097b8080ccd4d8ab89aafa8b0e2b7bf",
+    "identical_to_182": false
+  },
+  "falls.png": {
+    "sha256": "0ddeaa5f90d9c13cc31046fb53e09e49a1b95facb9f7b27e2b504dda460ec656",
+    "identical_to_182": true
+  },
+  "flood.png": {
+    "sha256": "5fafe06943918907f1a4a5c9844b2ed26cfddb7f3de92ce8aefb5016ced3c266",
+    "identical_to_182": false
+  },
+  "lake.png": {
+    "sha256": "f17d666a699ee0bc063007e602396a83e3e510c7691d9a859f7f3695ceebf65e",
+    "identical_to_182": true
+  },
+  "moisture.png": {
+    "sha256": "609b3c590024495b1491bf3febd4dcb7adc82cd634085505e2828e8b5b4779fc",
+    "identical_to_182": false
+  },
+  "spring.png": {
+    "sha256": "8ddcf744f8483da17e139a7686f83cc286b077992b55950ec0f28719445bc684",
+    "identical_to_182": true
+  }
+}

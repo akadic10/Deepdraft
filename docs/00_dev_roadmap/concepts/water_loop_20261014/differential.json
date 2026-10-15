@@ -1,0 +1,36 @@
+{
+	"cases": [
+		{
+			"after_ms": 996.723,
+			"before_ms": 1415.168,
+			"kind": "synthetic",
+			"seed": 6813,
+			"ticks": 900
+		},
+		{
+			"after_ms": 1050.396,
+			"before_ms": 1505.891,
+			"kind": "synthetic",
+			"seed": 47,
+			"ticks": 900
+		},
+		{
+			"after_ms": 1031.979,
+			"before_ms": 1463.839,
+			"kind": "synthetic",
+			"seed": 991,
+			"ticks": 900
+		},
+		{
+			"after_ms": 3491.766,
+			"before_ms": 4432.411,
+			"full_snapshots": 21,
+			"kind": "generated_world",
+			"seed": 1234,
+			"ticks": 500
+		}
+	],
+	"failures": [],
+	"flow_sha256": "607c88150cd3cc574a765785ad546c50dd7ac3366ee6ef840e400cc09e04b322",
+	"reference_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08"
+}

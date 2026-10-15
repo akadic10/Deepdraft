@@ -1,0 +1,7 @@
+{
+  "duck_navigation_sha256": "b776d6d11988ee11b6bcceb3bb4e5d1a2a20f397002ed665ae5a9f070adaddc3",
+  "exit_code": 0,
+  "seconds": 5.882567,
+  "errors": false,
+  "test": "DuckQueryReuseTest"
+}

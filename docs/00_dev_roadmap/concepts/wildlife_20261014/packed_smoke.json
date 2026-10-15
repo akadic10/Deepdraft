@@ -1,0 +1,15 @@
+{
+	"animals_after": 79,
+	"cache": {
+		"entries": 9538,
+		"evictions": 0,
+		"hits": 316136,
+		"misses": 17688,
+		"tiles": 126
+	},
+	"driver": "d3d12",
+	"dwarves": 5,
+	"failures": [],
+	"moved": 72,
+	"offscreen_at_start": 79
+}

@@ -1,0 +1,3 @@
+Play this build: P:\Deepdraft\build\windows\releases\20261014-170908-903-8a8c38bd\Deepdraft\Deepdraft.exe
+Created P:\Deepdraft\build\windows\Deepdraft-Windows-Playtest.zip (76.9 MiB)
+SHA256 672A537DC836448975E4FD5DCF268837991A242FC7A6D0977D75B82F36B48B72

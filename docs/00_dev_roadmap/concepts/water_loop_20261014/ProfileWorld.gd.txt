@@ -1,0 +1,42 @@
+extends SceneTree
+var failures: Array[String]=[]
+func _init() -> void: _run.call_deferred()
+func _run() -> void:
+	for service in ["SaveManager","WorldClock","TaskManager","WaterManager"]: root.get_node(service).set_process(false)
+	root.get_node("WorldClock").paused=true
+	var generator=root.get_node("WorldGenerator")
+	var water=root.get_node("WaterManager")
+	var scene:=Node3D.new()
+	root.add_child(scene)
+	current_scene=scene
+	generator._reset_generation_state()
+	generator.world_seed=1234
+	generator._cache_block_ids()
+	generator._layout_profile=generator.load_macro_layout_profile()
+	generator.water_profile=generator.load_water_profile()
+	generator._build_noise_instances()
+	generator._build_seeded_maps()
+	generator._apply_edge_detail()
+	generator._build_river()
+	generator._build_cave_maps()
+	generator._maps_ready=true
+	water.initialize()
+	var profiled=load("res://tmp/water_loop_20261014/WaterFlowProfile.gd").new()
+	profiled.spans_at=water.flow.spans_at
+	profiled.initial=water.flow.initial.duplicate()
+	profiled.restore(water.flow.serialize())
+	profiled.track_surface_motion=true
+	water.flow=profiled
+	for tick in 200:
+		water.step(.1)
+		profiled.surface_flux.clear()
+	profiled.timings.clear()
+	profiled.calls.clear()
+	var start := Time.get_ticks_usec()
+	for tick in 400:
+		water.step(.1)
+		profiled.surface_flux.clear()
+	var result: Dictionary={"ticks":400,"total_ms":(Time.get_ticks_usec()-start)/1000.0,"inclusive_usec":profiled.timings,"calls":profiled.calls}
+	FileAccess.open("res://tmp/water_loop_20261014/profile.json",FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
+	print("FLOW_PROFILE ",JSON.stringify(result))
+	quit()

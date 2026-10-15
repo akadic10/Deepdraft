@@ -1,18 +1,13 @@
 extends Node3D
 
 ## Opaque, fractionally filled voxel water. One mesh per 32×32 tile; no nodes
-## per cell. The ordinary terrain mesh renders the actual bed underneath.
+## per cell. Geometry builds from private snapshots on workers; only bounded
+## snapshot/mesh uploads run here. The terrain mesh renders the bed underneath.
 var terrain: Node3D
 var material: ShaderMaterial
 var _tiles: Dictionary = {}
 var _revision := -1
 var _slice := -1
-var _verts := PackedVector3Array()
-var _norms := PackedVector3Array()
-var _colors := PackedColorArray()
-var _indices := PackedInt32Array()
-var _uvs := PackedVector2Array()
-var _surface_data := PackedVector2Array()
 var motion := preload("res://scripts/components/WaterSurfaceMotion.gd").new()
 var _motion_time := -1.0
 var _motion_flow: RefCounted
@@ -20,9 +15,26 @@ var _falls: Dictionary = {}
 var _splash_sites: Dictionary = {}
 var _splash: MultiMeshInstance3D
 var _sound: Node3D
+const MeshBuilder := preload("res://scripts/components/WaterMeshBuilder.gd")
+const Flow := preload("res://scripts/components/WaterFlow.gd")
+var _pending: Dictionary = {} # Tile -> first dirty wall-clock time; repeated edits coalesce.
+var _jobs: Array[Dictionary] = []
+var _last_inputs: Dictionary = {}
+var _epoch := 0
+var _view_dirty := true
+var _dispatch_count := 0
+var _built := 0
+var _unchanged := 0
+var _stale := 0
+var last_mesh_work_usec := 0
+var last_snapshot_usec := 0
+var last_upload_usec := 0
+var last_worker_usec := 0
+var profile_updates := false
+var last_update_ms: Dictionary = {}
 
 func _ready() -> void:
-	terrain.visible_volume_changed.connect(func(): _revision = -1)
+	terrain.visible_volume_changed.connect(func(): _view_dirty = true)
 	var base := StandardMaterial3D.new()
 	base.vertex_color_use_as_albedo = true
 	base.roughness = 0.65
@@ -47,6 +59,8 @@ func _ready() -> void:
 	add_child(stones)
 
 func _process(_delta: float) -> void:
+	if profile_updates: last_update_ms.clear()
+	var started := Time.get_ticks_usec() if profile_updates else 0
 	visible = WaterManager.initialized
 	if not WaterManager.initialized: return
 	if _sound == null:
@@ -60,24 +74,32 @@ func _process(_delta: float) -> void:
 		_motion_time = WaterManager.elapsed
 		motion.reset()
 	material.set_shader_parameter("water_time",WaterManager.elapsed)
+	var stage := Time.get_ticks_usec() if profile_updates else 0
+	var motion_started := Time.get_ticks_usec()
+	var motion_budget := maxi(1,roundi(float(WorldGenerator.water_profile.rendering.get("motion_budget_ms",1.0))*1000.0))
 	var motion_delta: float = WaterManager.elapsed-_motion_time
-	if motion_delta >= 0.2:
+	if motion_delta >= 0.2 and not motion.is_updating():
 		motion.gain = float(WorldGenerator.water_profile.rendering.surface_speed)*2.0
-		motion.update(WaterManager.flow,motion_delta)
+		motion.begin_update(WaterManager.flow,motion_delta)
 		_motion_time = WaterManager.elapsed
-	if _revision != WaterManager.revision or _slice != terrain.slice_y:
-		for tile: Vector2i in _tiles: WaterManager.dirty_tiles[tile] = true
-		for key: Vector3i in WaterManager.flow.mass: WaterManager.dirty_tiles[Vector2i(int(key.x/32.0),int(key.z/32.0))] = true
-		_revision = WaterManager.revision
-		_slice = terrain.slice_y
-	var budget := int(WorldGenerator.water_profile.rendering.tiles_per_frame)
-	for tile: Vector2i in WaterManager.dirty_tiles.keys():
-		WaterManager.dirty_tiles.erase(tile)
-		_build(tile)
-		budget -= 1
-		if budget <= 0: break
+	# Snapshot capture counts against the same soft budget. Current samples may
+	# finish while paused, then remain frozen until simulation time advances.
+	motion.advance(maxi(1,motion_budget-(Time.get_ticks_usec()-motion_started)))
+	if profile_updates: last_update_ms.motion = (Time.get_ticks_usec()-stage)/1000.0
+	stage = Time.get_ticks_usec() if profile_updates else 0
+	if _revision != WaterManager.revision or _slice != terrain.slice_y or _view_dirty:
+		_invalidate_view()
+	if profile_updates: last_update_ms.view = (Time.get_ticks_usec()-stage)/1000.0
+	_drain_mesh_work()
+	if profile_updates: last_update_ms.mesh = last_mesh_work_usec/1000.0
+	stage = Time.get_ticks_usec() if profile_updates else 0
 	material.set_shader_parameter("water_motion",motion.upload())
+	if profile_updates: last_update_ms.texture = (Time.get_ticks_usec()-stage)/1000.0
+	stage = Time.get_ticks_usec() if profile_updates else 0
 	_animate_splash()
+	if profile_updates:
+		last_update_ms.splash = (Time.get_ticks_usec()-stage)/1000.0
+		last_update_ms.total = (Time.get_ticks_usec()-started)/1000.0
 
 func _animate_splash() -> void:
 	var index := 0
@@ -100,74 +122,122 @@ func _animate_splash() -> void:
 				index += 1
 	_splash.multimesh.visible_instance_count = index
 
-func _build(tile: Vector2i) -> void:
-	_verts.clear()
-	_norms.clear()
-	_colors.clear()
-	_indices.clear()
-	_uvs.clear()
-	_surface_data.clear()
-	_falls[tile] = []
-	_splash_sites[tile] = []
+func _invalidate_view() -> void:
+	_epoch += 1
+	_view_dirty = false
+	_revision = WaterManager.revision
+	_slice = terrain.slice_y
+	_last_inputs.clear()
+	# An old slice must never linger while workers finish (including cave discovery).
+	# Normal level changes retain the old mesh until its replacement is complete.
+	for tile: Vector2i in _tiles:
+		_tiles[tile].visible = false
+		_queue_tile(tile)
+	_falls.clear()
+	_splash_sites.clear()
+	for key: Vector3i in WaterManager.flow.mass:
+		_queue_tile(Vector2i(int(key.x/32.0),int(key.z/32.0)))
+
+func _queue_tile(tile: Vector2i) -> void:
+	if tile.x < 0 or tile.y < 0 or tile.x >= 32 or tile.y >= 32: return
+	if not _pending.has(tile): _pending[tile] = Time.get_ticks_usec()
+
+func _drain_mesh_work() -> void:
+	var started := Time.get_ticks_usec()
+	var settings: Dictionary = WorldGenerator.water_profile.rendering
+	var budget_usec := maxi(1,roundi(float(settings.mesh_budget_ms)*1000.0))
+	last_snapshot_usec = 0
+	last_upload_usec = 0
+	for tile: Vector2i in WaterManager.dirty_tiles: _queue_tile(tile)
+	WaterManager.dirty_tiles.clear()
+	# Poll first. Never wait for an unfinished task during a frame.
+	for i in range(_jobs.size()-1,-1,-1):
+		var job := _jobs[i]
+		if not WorkerThreadPool.is_task_completed(job.task): continue
+		WorkerThreadPool.wait_for_task_completion(job.task)
+		_jobs.remove_at(i)
+		if job.epoch == _epoch:
+			var upload_started := Time.get_ticks_usec()
+			_assign_mesh(job.tile,job.builder.result)
+			last_upload_usec += Time.get_ticks_usec()-upload_started
+			last_worker_usec = job.builder.result.build_usec
+			_last_inputs[job.tile] = job.builder.snapshot
+			_built += 1
+		else:
+			_stale += 1
+		# Changes made during a build are still in _pending, so they cannot be lost.
+		if Time.get_ticks_usec()-started >= budget_usec: break
+	var camera := get_viewport().get_camera_3d() if is_inside_tree() else null
+	while _jobs.size() < int(settings.mesh_jobs) and Time.get_ticks_usec()-started < budget_usec:
+		var tile := _next_tile(camera)
+		if tile.x < 0: break
+		var queued_usec: int = _pending[tile]
+		_pending.erase(tile)
+		var capture_started := Time.get_ticks_usec()
+		var snapshot := _capture(tile)
+		last_snapshot_usec += Time.get_ticks_usec()-capture_started
+		# Compare exact render inputs. Never quantize away small shore/step faces.
+		if _last_inputs.has(tile) and snapshot == _last_inputs[tile]:
+			_unchanged += 1
+			continue
+		var builder := MeshBuilder.new()
+		builder.snapshot = snapshot
+		var task := WorkerThreadPool.add_task(builder.build,false,"water_tile")
+		_jobs.append({"task":task,"builder":builder,"tile":tile,"epoch":_epoch,"queued_usec":queued_usec})
+	last_mesh_work_usec = Time.get_ticks_usec()-started
+
+func _next_tile(camera: Camera3D) -> Vector2i:
+	var oldest_turn := _dispatch_count % 8 == 7 or camera == null
+	var best := Vector2i(-1,-1)
+	var best_score := INF
+	for tile: Vector2i in _pending:
+		var busy := false
+		for job: Dictionary in _jobs:
+			if job.tile == tile: busy = true; break
+		if busy: continue
+		var score := float(_pending[tile])
+		if not oldest_turn:
+			var x := tile.x*32+16
+			var z := tile.y*32+16
+			var center := Vector3(x,mini(terrain.slice_y,WorldGenerator.get_surface_y(x,z))+1,z)
+			score = camera.global_position.distance_squared_to(center)
+			if not camera.is_position_in_frustum(center): score += 1048576.0
+		if score < best_score: best = tile; best_score = score
+	if best.x >= 0: _dispatch_count += 1
+	return best
+
+func _capture(tile: Vector2i) -> Dictionary:
 	var flow = WaterManager.flow
-	var palette: Dictionary = WorldGenerator.water_profile.rendering
-	var surface := Color(palette.surface_color)
-	var foam := Color(palette.foam_color)
-	for x in range(maxi(0,tile.x*32),mini(1024,tile.x*32+32)):
-		for z in range(maxi(0,tile.y*32),mini(1024,tile.y*32+32)):
-			for span: Vector2i in flow.spans(Vector2i(x,z)):
+	var snapshot := {"tile":tile,"slice":terrain.slice_y,"standing_depth":WaterManager.standing_depth,
+		"epsilon":flow.epsilon,"palette":WorldGenerator.water_profile.rendering.duplicate(true),
+		"spans":{},"mass":{},"visible":{}}
+	# Copy one compact tile plus its halo in a single pass. Every mutable container
+	# is private; side faces/free-outlet checks can read neighboring columns safely.
+	for x in range(tile.x*32-1,tile.x*32+33):
+		for z in range(tile.y*32-1,tile.y*32+33):
+			var col := Vector2i(x,z)
+			var spans: Array = flow.spans(col)
+			snapshot.spans[col] = spans.duplicate()
+			for span: Vector2i in spans:
 				var key := Vector3i(x,span.x,z)
-				var amount: float = flow.volume(key)
+				var units: int = flow.mass.get(key,0)
+				if units <= 0: continue
+				snapshot.mass[key] = units
+				if x < tile.x*32 or x >= tile.x*32+32 or z < tile.y*32 or z >= tile.y*32+32: continue
+				var amount := float(units)/Flow.UNITS
 				if amount < WaterManager.standing_depth or key.y > terrain.slice_y: continue
 				var top := minf(key.y+amount,terrain.slice_y+1.0)
-				# Hidden underground water must not disclose a cave through a cut.
-				if key.y <= WorldGenerator.get_surface_y(x,z) and not terrain.is_revealed_air(Vector3i(x,mini(int(ceil(top))-1,terrain.slice_y),z)): continue
-				# One water palette for rivers, lakes and pools. Depth changes the
-				# shade subtly, rather than switching between cyan and dark blue.
-				var color := surface.darkened(float(palette.depth_shading)*clampf(amount/6.0,0.0,1.0))
-				var motion_slot := motion.slot(key)
-				_quad(Vector3(x,top,z),Vector3(x,top,z+1),Vector3(x+1,top,z+1),Vector3(x+1,top,z),Vector3.UP,color,motion_slot)
-				var outfall: float = flow.lowest_receiving_level(key)
-				for dir: Vector2i in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
-					var col := Vector2i(x,z)+dir
-					var lower := float(key.y)
-					var falling := false
-					var receiver := Vector3i(-1,-1,-1)
-					for next: Vector2i in flow.spans(col):
-						if next.x >= top or next.y <= key.y: continue
-						var next_key := Vector3i(col.x,next.x,col.y)
-						receiver = next_key
-						lower = minf(top,flow.level(next_key))
-						falling = next.x < key.y and top-lower > 1.0
-						if falling and outfall<key.y-flow.epsilon and lower>outfall+flow.epsilon:
-							falling = false
-							lower = float(key.y)
-						break
-					# Even sub-pixel steps need a closed face: skipping <.002 left
-					# cracks showing the dark river bed between neighboring tops.
-					if top<=lower: continue
-					var normal := Vector3(dir.x,0,dir.y)
-					var center := Vector3(x+0.5,top,z+0.5)+normal*0.5
-					if falling: center += normal*0.025 # Avoid coplanar cliff-face flicker.
-					var side := Vector3(-dir.y,0,dir.x)*0.5
-					var down := Vector3(0,lower-top,0)
-					# Tiny level differences are part of the surface, not dark cliff
-					# walls. Keep real drops directional and retain their fall foam.
-					var shading_normal := Vector3.UP if top-lower<float(palette.small_step_height) else normal
-					_quad(center-side,center+side,center+side+down,center-side+down,shading_normal,color.lerp(foam,0.22) if falling else color,motion_slot,1.0 if falling else 0.0)
-					if falling:
-						var landing := center+down+normal*0.25
-						_falls[tile].append(landing)
-						_splash_sites[tile].append({"point":landing,"key":key})
-						# Small broken foam patches on the wet lip and landing cell.
-						var lip := center-normal*0.15+Vector3.UP*0.006
-						var across := side*0.9
-						var along := normal*0.1
-						_quad(lip-across-along,lip+across-along,lip+across+along,lip-across+along,Vector3.UP,color,motion_slot,2.0)
-						if receiver.x >= 0 and flow.volume(receiver)>=WaterManager.standing_depth:
-							var pool := Vector3(col.x+0.5,lower+0.006,col.y+0.5)
-							var pool_color := surface.darkened(float(palette.depth_shading)*clampf(flow.volume(receiver)/6.0,0.0,1.0))
-							_quad(pool+Vector3(-0.45,0,-0.45),pool+Vector3(-0.45,0,0.45),pool+Vector3(0.45,0,0.45),pool+Vector3(0.45,0,-0.45),Vector3.UP,pool_color,motion_slot,2.0)
+				if key.y <= WorldGenerator.get_surface_y(x,z) and not terrain.is_revealed_air(Vector3i(x,mini(ceili(top)-1,terrain.slice_y),z)): continue
+				snapshot.visible[key] = motion.slot(key)
+	# Changes to invisible pools/films must not keep rebuilding an empty mesh.
+	if snapshot.visible.is_empty():
+		snapshot.spans.clear()
+		snapshot.mass.clear()
+	return snapshot
+
+func _assign_mesh(tile: Vector2i, result: Dictionary) -> void:
+	_falls[tile] = result.falls
+	_splash_sites[tile] = result.splash_sites
 	if not _tiles.has(tile):
 		var node := MeshInstance3D.new()
 		node.name = "Water_%d_%d" % [tile.x,tile.y]
@@ -175,27 +245,31 @@ func _build(tile: Vector2i) -> void:
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(node)
 		_tiles[tile] = node
-	if _verts.is_empty():
+	_tiles[tile].visible = true
+	if result.arrays[Mesh.ARRAY_VERTEX].is_empty():
 		_tiles[tile].mesh = null
 		return
-	var arrays: Array = []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = _verts
-	arrays[Mesh.ARRAY_NORMAL] = _norms
-	arrays[Mesh.ARRAY_COLOR] = _colors
-	arrays[Mesh.ARRAY_INDEX] = _indices
-	arrays[Mesh.ARRAY_TEX_UV] = _uvs
-	arrays[Mesh.ARRAY_TEX_UV2] = _surface_data
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,result.arrays)
 	_tiles[tile].mesh = mesh
 
-func _quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,n: Vector3,color: Color,motion_slot := 0,kind := 0.0) -> void:
-	var i := _verts.size()
-	_verts.append_array(PackedVector3Array([a,b,c,d]))
-	for _j in 4:
-		_norms.append(n)
-		_colors.append(color)
-		_surface_data.append(Vector2(motion_slot,kind))
-	_uvs.append_array(PackedVector2Array([Vector2.ZERO,Vector2(0,1),Vector2.ONE,Vector2(1,0)]))
-	_indices.append_array(PackedInt32Array([i,i+2,i+1,i,i+3,i+2]))
+## Synchronous entry for geometry fixtures only; live frames always use the queue.
+func _build(tile: Vector2i) -> void:
+	var builder := MeshBuilder.new()
+	builder.snapshot = _capture(tile)
+	builder.build()
+	_assign_mesh(tile,builder.result)
+
+func get_mesh_stats() -> Dictionary:
+	var oldest := Time.get_ticks_usec()
+	for stamp: int in _pending.values(): oldest = mini(oldest,stamp)
+	for job: Dictionary in _jobs: oldest = mini(oldest,job.queued_usec)
+	return {"pending":_pending.size(),"in_flight":_jobs.size(),"built":_built,
+		"unchanged":_unchanged,"stale":_stale,"oldest_ms":(Time.get_ticks_usec()-oldest)/1000.0,
+		"main_ms":last_mesh_work_usec/1000.0,"snapshot_ms":last_snapshot_usec/1000.0,
+		"upload_ms":last_upload_usec/1000.0,"worker_ms":last_worker_usec/1000.0}
+
+func _exit_tree() -> void:
+	# Jobs only own copied data, but must be joined before releasing their owners.
+	for job: Dictionary in _jobs: WorkerThreadPool.wait_for_task_completion(job.task)
+	_jobs.clear()

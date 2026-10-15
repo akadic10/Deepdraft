@@ -1,5 +1,146 @@
 # Deepdraft — Agent Navigation Index
 
+**Session closed (2026-10-14) — resume here:**
+[189 — Performance session handoff](docs/00_dev_roadmap/189_session_handoff_2026_10_14.md)
+records today's completed performance passes, the tested Windows build and
+the next work order for October 15. Start by profiling the measured 250 ms
+lighting hitch, then continue the agreed long-session/event review at 5/20/30
+dwarves. Keep work completion and waiting metrics alongside frame times.
+The final scheduling pass improves throughput but does not establish an FPS
+win. Review findings in 177 remain parked; this closeout is documentation only.
+
+**Colony size direction (2026-10-14):** The intended maximum is **30 dwarves**.
+Use 5/20/30 dwarves for routine performance reviews, with a busy mature
+30-dwarf settlement as the main target. The 50/100-dwarf results in 187 are
+optional stress evidence, not shipping requirements. Prioritize camera/slice
+smoothness, reliable job progress, accumulated items/rooms and long-session
+events within the intended population. Thirty dwarves are now measured in
+[188](docs/00_dev_roadmap/188_job_scheduling_performance.md). This records design direction; runtime population
+enforcement is not part of the performance changes.
+
+**30-dwarf job preparation improved (2026-10-14):**
+[188 — Job scheduling performance](docs/00_dev_roadmap/188_job_scheduling_performance.md)
+shares hauling eligibility work across workers and retains prepared construction
+stands between route-search slices, with fresh validation before assignment.
+Controlled hauling-query CPU falls 88%. Two native 30-dwarf runs build 10–12
+blocks and store 12–38 items, versus 1/0 before; the final 20-dwarf run also
+progresses in all three jobs. Later 30-dwarf frame times are 11–21% higher as
+the world does more work; this is not an FPS win or a complete waiting fix.
+All 34 fixtures, native packaged-save checks and release startup pass.
+Windows build/ZIP refreshed; restart Play or launch the new release.
+Next: long-session/event hitches, including an identified 250 ms lighting
+update. Findings in 177 remain parked; no population cap is implemented.
+
+**Colony scaling measured; construction scans reduced (2026-10-14):**
+[187 — Colony scaling performance](docs/00_dev_roadmap/187_colony_scaling_performance.md)
+adds a reproducible 5/20/50/100-dwarf mining/building/hauling yard. A synchronous
+construction call now shares obstacle checks across candidate blocks; controlled
+query CPU falls 89%, with 35 exact comparisons. Yard mean frame time falls
+35–38% at 5 dwarves and 11–17% at 20; 50/100-dwarf tail performance is mixed.
+Heavy-colony hauling still stalls, and dwarf updates/renderer CPU dominate at
+100. This is not a complete scaling fix. Twelve fixtures, native PCK copied-save
+checks and release startup pass. Windows build/ZIP refreshed; restart Play or
+launch the new release. Opportunity 3 is long-session/event hitches; the report
+also records remaining scheduling, dwarf-update and actor-lighting targets.
+Findings in 177 remain parked.
+
+**Duck navigation work reduced (2026-10-14):**
+[186 — Duck query performance](docs/00_dev_roadmap/186_duck_query_performance.md)
+reuses water and clearance queries within one synchronous wildlife update,
+then discards them. Saved-game duck CPU falls 19–20%, total wildlife CPU 13%,
+and active-pan mean frame time 10–11%; frame P95 falls 6–9%. Isolated stalls
+remain. All 1,200 differential updates and 882 navigation comparisons match;
+11 fixtures, native packaged-save checks and release startup pass. Offscreen
+activity, flight/animation, water and saves retain their behavior. Windows
+build/ZIP refreshed; restart Play or launch the new release. Larger-colony
+scaling and long-session/event hitches remain opportunities 2 and 3. Findings
+in 177 remain parked.
+
+**Room rebuild hitches reduced (2026-10-14):**
+[185 — Room rebuild performance](docs/00_dev_roadmap/185_room_rebuild_performance.md)
+spreads detection and room metadata across frames with a soft 1.5 ms budget.
+Saved-game repeated-rebuild peaks fall from 35–42 ms to 1.8–2.1 ms; active-pan
+whole-frame maxima fall from 59/64 to 43/47 ms. Average FPS is mixed: total
+detector CPU increases 35–43%, and complete room metadata arrives later.
+15 exact scheduling scenarios, 36 controlled comparisons, 12 fixtures, native
+lighting/inspector checks, copied-save export checks and release startup pass.
+Door lighting boundaries remain immediate; saves and water/wildlife are unchanged.
+Windows build/ZIP refreshed. Restart Play or launch the new release. Findings in
+177 remain parked; later natural pans still have non-room camera spikes.
+
+**Water flow loop improved (2026-10-14):**
+[184 — Water flow loop performance](docs/00_dev_roadmap/184_water_flow_loop_performance.md)
+reuses transfer quantities and receiving ceilings, and avoids temporary reach
+arrays. Matched uninterrupted camera runs show 15–22% cheaper water updates
+and 8–12% lower whole-frame P95. Controlled full-world water CPU falls 21%.
+All 3,200 differential ticks match the prior solver; 16 final-source fixtures,
+12,000 stability ticks, native views, packaged-save checks and release startup
+pass. Simulation cadence, water behavior and saves remain unchanged. Windows
+build/ZIP are refreshed; restart Play or launch the new release. Isolated stalls
+remain, including a 37 ms room rebuild. Findings in 177 stay parked.
+
+**Water current-animation spikes reduced (2026-10-14):**
+[183 — Water current animation performance](docs/00_dev_roadmap/183_water_current_performance.md)
+captures compact current inputs and processes them across frames with a soft
+1 ms budget. Saved-game current-update peaks fall from 13–14 ms to about 2.3 ms;
+first/later pan P99 falls from 35.3/34.5 to 26.5/25.5 ms. Average frame times
+change little; the benefit is shorter stalls. Nine fixtures, 103 scheduling
+checks, native water views, packaged conservation/slicing and release startup
+pass. Simulation, geometry and saves remain unchanged. Windows build and ZIP
+are refreshed; restart Play or launch the new release. Findings in 177 stay parked.
+
+**Periodic damp-ground hitch removed (2026-10-14):**
+[182 — Moisture rendering performance](docs/00_dev_roadmap/182_moisture_rendering_performance.md)
+replaces whole-mesh moisture rebuilds with 16×16 tiles, incremental notifications
+and a soft 1 ms frame budget. Worst measured moisture update falls from about
+37 ms to 1.4 ms. Both fresh/saved pan samples have zero frames above 50 ms;
+saved-pan P95 improves from 35.3/31.6 to 24.5/21.9 ms. Fresh averages are slightly
+slower: this trades some steady CPU work for shorter stalls. Nine fixtures and
+12 exact geometry comparisons pass. Slice/discovery concealment remains immediate;
+simulation and saves are unchanged. Findings in 177 remain parked.
+Native visuals, packaged-save conservation/slicing and release startup pass;
+Windows build and ZIP are refreshed. Restart Play or launch the new release.
+
+**Water simulation performance improved (2026-10-14):**
+[181 — Water simulation performance](docs/00_dev_roadmap/181_water_simulation_performance.md)
+reuses unchanged space ceilings/reach geometry and avoids redundant neighbor
+wakes. Native fresh-world average water-update cost falls by about one third;
+first/later pan P95 improves from 26.5/33.7 to 21.0/25.8 ms. The original and final
+solvers match across 1,400 differential ticks; all 13 regression fixtures pass.
+Water behavior, simulation schedule, saves and offscreen activity are unchanged.
+Saved-pan first/later P95 improves from 41.8/39.7 to 35.3/31.6 ms. Native water
+views, packed-save conservation/slicing and release startup pass; Windows build
+and ZIP are refreshed. Restart Play or launch the new release. Renderer spikes
+remain a profiling target; this is not steady 60 FPS. Findings in 177 remain parked.
+
+**Wildlife navigation performance improved (2026-10-14):**
+[180 — Wildlife navigation performance](docs/00_dev_roadmap/180_wildlife_navigation_performance.md)
+reuses terrain, clearance and support checks with immediate edit/occupancy/water
+invalidation and bounded storage. Wildlife still simulates every frame offscreen.
+Saved-pan mean improves from 29.3 to 16.5 ms; P95 from 59.0 to 41.8 ms. Later
+fresh-world wildlife P95 falls from 29.4 to 5.9 ms. Ten fixtures, 392 navigation
+comparisons and native packaged-save checks pass. Windows build/ZIP refreshed;
+restart Play or launch the new release. Water simulation/presentation remain the
+next CPU targets; this is not steady 60 FPS. Findings in 177 remain parked.
+
+**Water mesh rebuild performance improved (2026-10-14):**
+[179 — Water mesh rebuild performance](docs/00_dev_roadmap/179_water_mesh_rebuild_performance.md)
+moves geometry construction to snapshot-only workers, coalesces dirty requests,
+prioritizes nearby water and budgets main-thread preparation/uploads. Final saved
+pan P95 improves from 82.6 to 59.0 ms; fresh-world initial pan from 65.6 to 30.8 ms.
+Seven relevant fixtures, 36 exact geometry comparisons and native water views
+pass. The refreshed Windows ZIP passes packaged save/slice and native release
+startup checks. Simulation, visual detail and saves are unchanged; further CPU
+work is needed for steady 60 FPS. Earlier findings in 177 remain parked.
+
+**Performance baseline measured (2026-10-14):**
+[178 — Performance baseline and camera stutter](docs/00_dev_roadmap/178_performance_baseline_and_camera_stutter.md)
+records three native runs, reproducible profiling tools, and the measured water
+and wildlife CPU costs behind camera stalls. Production behavior is unchanged;
+optimization priorities and validation targets are proposed there. The unrelated
+review findings in [177](docs/00_dev_roadmap/177_project_review_deferred_2026_10_14.md)
+remain parked at the user's request.
+
 **Temporary build exclusion corrected (2026-10-13):**
 The root `.gitignore` now excludes all new `tmp/` output, including extracted
 playtest executables. Earlier rules covered only selected logs/profiles and let

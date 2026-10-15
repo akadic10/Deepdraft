@@ -326,12 +326,20 @@ func scheduling_revision() -> int:
 ## Quote the same first pickup reserve_haul would choose, without claiming
 ## goods. Incremental scans keep the scheduler's time budget meaningful.
 func advance_haul_quote(from: Vector3i, query: Dictionary, deadline_usec: int) -> bool:
+	var revision := scheduling_revision()
+	if int(query.get("stock_revision", -1)) != revision or query.get("source") != self or query.get("from") != from:
+		query.erase("loose")
+		query.erase("relocation")
+		query["stock_revision"] = revision
+		query["source"] = self
+		query["from"] = from
 	if not is_instance_valid(drop_manager) or not _has_any_room():
 		query.cell = Vector3i(-1, -1, -1)
 		return true
 	if not query.has("loose"): query.loose = {}
+	if not query.has("pickup_snapshot"): query.pickup_snapshot = {}
 	var exclude: Dictionary = query.get("exclude", {})
-	if not drop_manager.advance_nearest_haul_query(from, _can_haul_key, query.loose, deadline_usec, exclude): return false
+	if not drop_manager.advance_nearest_haul_query(from, _can_haul_key, query.loose, query.pickup_snapshot, deadline_usec, exclude): return false
 	if is_instance_valid(query.loose.best):
 		query.cell = drop_manager.item_floor_cell(query.loose.best)
 		return true

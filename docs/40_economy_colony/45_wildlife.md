@@ -1,5 +1,20 @@
 # 45 — Wildlife
 
+**2026-10-14 — Duck water/clearance query reuse:** [186](../00_dev_roadmap/186_duck_query_performance.md)
+adds bounded reuse only within one synchronous WildlifeManager update. All
+queries are discarded at its end, so fractional water levels, terrain and
+occupancy changes are read again next update; population/arrival queries stay
+live. Saved-game duck CPU falls 19–20% and total wildlife CPU 13%. All 1,200
+differential updates, 882 query comparisons, 11 fixtures and packaged checks
+pass. Decisions, flight, animation, offscreen activity and saves are unchanged.
+
+**2026-10-14 — Navigation query reuse:** [180](../00_dev_roadmap/180_wildlife_navigation_performance.md)
+adds bounded terrain/clearance/support caches with live edit, occupancy, water
+and reload invalidation. Wildlife still advances every frame everywhere; needs,
+travel, hunting, animation and saves keep their existing behavior. Later fresh-world
+wildlife P95 falls from 29.4 to 5.9 ms. Ten fixtures, 392 navigation comparisons
+and native packaged-save checks pass. Restart Play or use the refreshed Windows build.
+
 **2026-10-13 — Large wolf proportions:** [165](../00_dev_roadmap/165_approved_actor_proportions.md)
 integrates the selected wolf at 2.392 blocks high, 1.287 wide and 3.411 long.
 Its definition owns the assembled visual scale and four-wide, three-high

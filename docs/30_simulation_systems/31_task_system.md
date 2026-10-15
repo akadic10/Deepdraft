@@ -356,6 +356,36 @@ Each `Task.Type` maps to a preferred dwarf skill. A dwarf without the preferred 
 | BREW | `skill_brewing` |
 | BUILD | `skill_building` |
 
+**2026-10-14 — construction work-position cost:** a synchronous
+`ConstructionWork.work_stands` call captures dwarf bounds and loose-item cells
+once and shares them across candidate blocks. The snapshot ends with the call;
+route yields and final construction commitment never reuse it. Other build
+constraints remain live. This reduces repeated obstacle scans without changing
+scheduler budgets, priorities or reservations. The 5/20/50/100-dwarf benchmark
+still exposes poor hauling/construction throughput under heavier load; see
+[187 — Colony scaling](../00_dev_roadmap/187_colony_scaling_performance.md).
+
+**2026-10-14 — planning progress at 30 dwarves:** hauling comparisons now share
+one incremental eligible-item snapshot across workers for the same source and
+inventory revision. Item-key acceptance/capacity checks happen once per key;
+distances and route exclusions remain per worker. Inventory, claims, filters,
+storage capacity, idle-pool and navigation invalidation remain authoritative.
+Quotes make no physical claims.
+
+Fetch/build planning retains prepared delivery goals across route-search
+slices, preventing stand preparation from consuming every slice before A*
+can advance. Before accepting a reachable plan it refreshes legal stands and
+the construction target mapping; invalid endpoints replan. Final reservation
+and construction commitment retain live checks. The obstacle snapshot itself
+still lasts only for one synchronous `work_stands` call. No transient planning
+data is saved, and priorities and the soft 1 ms budget are unchanged.
+
+The 30-dwarf yard now completes construction and hauling, but later frame
+times are higher and some planning waits remain. See
+[188 — Job scheduling performance](../00_dev_roadmap/188_job_scheduling_performance.md)
+for throughput, frame-time tradeoffs and validation. This is not a runtime
+population cap or a guarantee against starvation in every settlement.
+
 ## Signals
 
 ```gdscript

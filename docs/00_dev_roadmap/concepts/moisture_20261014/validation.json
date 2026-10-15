@@ -1,0 +1,167 @@
+{
+  "regressions": [
+    {
+      "seconds": 2.3702811,
+      "exit_code": 0,
+      "errors": false,
+      "test": "MoistureRenderingTest"
+    },
+    {
+      "seconds": 3.4994288,
+      "exit_code": 0,
+      "errors": false,
+      "test": "MoistureSchedulingTest"
+    },
+    {
+      "seconds": 1.3159823,
+      "exit_code": 0,
+      "errors": false,
+      "test": "WaterFlowTest"
+    },
+    {
+      "seconds": 3.3896354,
+      "exit_code": 0,
+      "errors": false,
+      "test": "WaterSurfaceMotionTest"
+    },
+    {
+      "seconds": 1.4107611,
+      "exit_code": 0,
+      "errors": false,
+      "test": "WaterSurfaceMeshTest"
+    },
+    {
+      "seconds": 3.4756281,
+      "exit_code": 0,
+      "errors": false,
+      "test": "WaterMeshSchedulingTest"
+    },
+    {
+      "errors": false,
+      "exit_code": 0,
+      "test": "AnimalNavigationCacheTest",
+      "seconds": 2.5520048
+    },
+    {
+      "errors": false,
+      "exit_code": 0,
+      "test": "WaterWorldTest",
+      "seconds": 35.9310692
+    },
+    {
+      "errors": false,
+      "exit_code": 0,
+      "test": "SaveManagerRoundTripTest",
+      "seconds": 51.8122462
+    }
+  ],
+  "source_hashes": {
+    "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+    "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+    "water_manager_sha256": "54735ef72efc33dba7233d4e9cf91bebcdc877019e54ad1f8cbd6cd5301f61c8",
+    "water_flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
+    "water_renderer_sha256": "38aaf24f8ab1b8913c1223122d37895129b3f33c838e9c3e314c87ab3cf8e18d",
+    "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+    "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6"
+  },
+  "water_config_sha256": "455ffee0a0be2858a53947dd8b69943e438be9fdd48eb90b435a0f8c21d99a5d",
+  "both_final_native_runs_match_current_sources": true,
+  "geometry": {
+    "after_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+    "before_sha256": "837e03b06b1437226a61b5fe6930988cc20ec74ae2ca5f3f5acce05df405e933",
+    "failures": [],
+    "samples": [
+      {
+        "actual_faces": 0,
+        "equal": true,
+        "expected_faces": 0,
+        "label": "initial"
+      },
+      {
+        "actual_faces": 3480,
+        "equal": true,
+        "expected_faces": 3480,
+        "label": "wet"
+      },
+      {
+        "actual_faces": 3484,
+        "equal": true,
+        "expected_faces": 3484,
+        "label": "dam"
+      },
+      {
+        "actual_faces": 3315,
+        "equal": true,
+        "expected_faces": 3315,
+        "label": "false_summer_35"
+      },
+      {
+        "actual_faces": 3484,
+        "equal": true,
+        "expected_faces": 3484,
+        "label": "false_summer_127"
+      },
+      {
+        "actual_faces": 3315,
+        "equal": true,
+        "expected_faces": 3315,
+        "label": "false_winter_35"
+      },
+      {
+        "actual_faces": 3484,
+        "equal": true,
+        "expected_faces": 3484,
+        "label": "false_winter_127"
+      },
+      {
+        "actual_faces": 3331,
+        "equal": true,
+        "expected_faces": 3331,
+        "label": "true_summer_35"
+      },
+      {
+        "actual_faces": 3502,
+        "equal": true,
+        "expected_faces": 3502,
+        "label": "true_summer_127"
+      },
+      {
+        "actual_faces": 3331,
+        "equal": true,
+        "expected_faces": 3331,
+        "label": "true_winter_35"
+      },
+      {
+        "actual_faces": 3502,
+        "equal": true,
+        "expected_faces": 3502,
+        "label": "true_winter_127"
+      },
+      {
+        "actual_faces": 3502,
+        "equal": true,
+        "expected_faces": 3502,
+        "label": "concealed"
+      }
+    ],
+    "water_ticks": 600
+  },
+  "native_presentation": {
+    "exit_code": 0,
+    "pass": true,
+    "errors": false
+  },
+  "packed_smoke_pass": true,
+  "release_startup_pass": true,
+  "source_save_sha256": "c815b96df85c9aed2a8ec0f03700dae9ff74218623b93ee6538274598808428d",
+  "source_save_unchanged": true,
+  "native_captures_identical_to_previous_build": {
+    "spring": true,
+    "lake": true,
+    "falls": true,
+    "flood": true,
+    "moisture": true
+  },
+  "zip_sha256": "dd2966e004ec71e5c7e9e541a7be1346c2c9611cb0cf015a4ae5bfdc78f9e89d",
+  "notes": "Native timing runs ran alone. Geometry comparison overlapped correctness-only integration tests. Package smoke uses editor main-pack; native release startup is separate. An optional UndergroundLightingTest attempt was stopped because that screenshot fixture requires native rendering and had been invoked headlessly; it is not counted as passing. Native WaterPresentationTest supplies the relevant visual check."
+}

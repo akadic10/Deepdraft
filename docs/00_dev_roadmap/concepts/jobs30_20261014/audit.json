@@ -1,0 +1,20 @@
+{
+  "production_and_test_sha256": {
+    "scripts/systems/TaskManager.gd": "1a194ebb191dc16298da62c2aa3dde337e3cecc540f2fd6f0207298a204b4f1c",
+    "scripts/components/StorageComponent.gd": "62cd50569368215708212e56aba60f38da0822e399db7f21bcf97d8452843e91",
+    "scripts/systems/ItemDropManager.gd": "1019d8c489d08bdbbd3bcc1dc940cf89db86e07382a1620d9fad3af49c3bbd68",
+    "scripts/components/FurnitureFetchPlanner.gd": "230787e6fc75e474d086731bd32b84995726271eb830ecb1a13804433c374ca6",
+    "scripts/tests/JobPreparationReuseTest.gd": "f1650321f02616d067f50cef328b40d9207bdbb94fa935a1956a10c49a638c8f",
+    "tools/performance/ColonyScalingBenchmark.gd": "1f3a470af569fd7d216ecd6f16a0dd2ca1d94695a06f188882f9b81a2c5ab4ec"
+  },
+  "runs": [
+    "jobs30_before",
+    "jobs30_trace_before",
+    "jobs30_after_v1",
+    "jobs30_after_repeat",
+    "jobs20_after"
+  ],
+  "trace_run_excluded_from_fps_comparison": true,
+  "package": "P:\\Deepdraft\\build\\windows\\releases\\20261014-215739-733-56349389\\Deepdraft",
+  "zip_sha256": "4bbf447f53724619a9e6fa1952fb77e159b585de74ddb78df8656fd3f96eba28"
+}

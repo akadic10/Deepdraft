@@ -1,0 +1,16 @@
+extends RefCounted
+static var enabled := false
+static var totals := {}
+static var calls := {}
+static var peaks := {}
+static func reset(active: bool) -> void:
+	enabled = active
+	totals.clear()
+	calls.clear()
+	peaks.clear()
+static func record(label: String, start: int) -> void:
+	if not enabled: return
+	var ms := (Time.get_ticks_usec() - start) / 1000.0
+	totals[label] = float(totals.get(label,0.0)) + ms
+	calls[label] = int(calls.get(label,0)) + 1
+	peaks[label] = maxf(float(peaks.get(label,0)),ms)

@@ -25,6 +25,9 @@ var elapsed: float:
 	get: return float(elapsed_usec)/1000000.0
 var revision := 0
 var last_step_usec := 0
+## Optional frame-level stage timings; disabled during normal play, never saved.
+var profile_updates := false
+var last_update_ms: Dictionary = {}
 var edited_columns: Dictionary = {}
 var dirty_tiles: Dictionary = {}
 var _nav_tops: Dictionary = {}
@@ -34,6 +37,8 @@ var _config: Dictionary = {}
 var test_dam: Array = []
 var _last_flood_warning := -600.0
 signal levels_changed(cells: Array)
+## Includes fractional changes that do not affect navigation occupancy.
+signal surface_changed(cells: Array)
 signal flood_warning
 
 func _ready() -> void:
@@ -130,6 +135,7 @@ func soil_moisture_at(cell: Vector3i) -> float:
 	return float(moisture.value_units(cell,elapsed_usec))/Moisture.SCALE if initialized else 0.0
 
 func _process(delta: float) -> void:
+	if profile_updates: last_update_ms.clear()
 	if not WorldGenerator._maps_ready:
 		if initialized: reset()
 		return
@@ -158,17 +164,28 @@ func step(seconds: float) -> void:
 		if not stone.placed: continue
 		if stone.kind == "wet" and source_enabled: flow.add_at(stone.intake, seconds * float(_config.simulation.spring_rate), stone.level)
 		if stone.kind == "dry" and outlet_enabled: flow.remove_at(stone.intake, seconds * float(_config.simulation.outlet_rate), stone.level, true)
+	if profile_updates: _record_stage("sources",Time.get_ticks_usec()-started)
+	var flow_started := Time.get_ticks_usec() if profile_updates else 0
 	flow.step(seconds, int(_config.simulation.max_cells_per_tick))
+	if profile_updates: _record_stage("flow",Time.get_ticks_usec()-flow_started)
 	elapsed_usec += roundi(seconds*1000000.0)
 	_flush_changes()
 	last_step_usec = Time.get_ticks_usec()-started
+	if profile_updates: _record_stage("total",last_step_usec)
+
+func _record_stage(stage: String, usec: int) -> void:
+	last_update_ms[stage] = float(last_update_ms.get(stage,0.0))+usec/1000.0
 
 func _flush_changes() -> void:
 	if flow.changed.is_empty(): return
+	var started := Time.get_ticks_usec() if profile_updates else 0
+	var moisture_usec := 0
 	var cells: Array = flow.changed.keys()
 	var occupancy: Array = []
 	for cell: Vector3i in cells:
+		var moisture_started := Time.get_ticks_usec() if profile_updates else 0
 		_update_moisture_contact(cell)
+		if profile_updates: moisture_usec += Time.get_ticks_usec()-moisture_started
 		var top := _occupied_top(cell)
 		if top != int(_nav_tops.get(cell,cell.y)):
 			_nav_tops[cell] = top
@@ -180,7 +197,13 @@ func _flush_changes() -> void:
 			var col := Vector2i(cell.x,cell.z)+offset
 			dirty_tiles[Vector2i(int(col.x/32.0),int(col.y/32.0))] = true
 	flow.changed.clear()
+	var notify_started := Time.get_ticks_usec() if profile_updates else 0
 	if not occupancy.is_empty(): levels_changed.emit(occupancy)
+	if surface_changed.has_connections(): surface_changed.emit(cells)
+	if profile_updates:
+		_record_stage("moisture",moisture_usec)
+		_record_stage("changes",notify_started-started-moisture_usec)
+		_record_stage("notifications",Time.get_ticks_usec()-notify_started)
 
 func _spaces(col: Vector2i) -> Array:
 	if col.x < 0 or col.y < 0 or col.x >= 1024 or col.y >= 1024: return []

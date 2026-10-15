@@ -29,6 +29,11 @@ var extracted: float:
 	get: return float(extracted_units)/UNITS
 var _spans: Dictionary = {}
 var _links: Dictionary = {}
+## Disposable topology only. Water amounts and wet/dry boundaries stay live.
+var _ceilings: Dictionary = {}
+var _reaches: Dictionary = {}
+var _cached_level_reach := -1
+const MAX_CACHED_REACHES := 8192
 var _queue: Array[Vector3i] = []
 var _queued: Dictionary = {}
 var _head := 0
@@ -43,8 +48,11 @@ func space_at(point: Vector3i) -> Vector3i:
 	return Vector3i(-1,-1,-1)
 
 func ceiling(key: Vector3i) -> int:
+	if _ceilings.has(key): return _ceilings[key]
 	for span: Vector2i in spans(Vector2i(key.x, key.z)):
-		if span.x == key.y: return span.y
+		if span.x == key.y:
+			_ceilings[key] = span.y
+			return span.y
 	return key.y
 
 func volume(key: Vector3i) -> float:
@@ -76,7 +84,9 @@ func connections(key: Vector3i) -> Array:
 		var col := Vector2i(key.x, key.z) + dir
 		for span: Vector2i in spans(col):
 			var sill := maxi(key.y, span.x)
-			if sill < mini(top, span.y): result.append([Vector3i(col.x, span.x, col.y), sill])
+			# The receiving ceiling belongs to this same topology snapshot. A
+			# terrain edit already invalidates both sides of the connection.
+			if sill < mini(top, span.y): result.append([Vector3i(col.x, span.x, col.y), sill, span.y])
 	_links[key] = result
 	return result
 
@@ -86,7 +96,13 @@ func _set_mass(key: Vector3i, value: int) -> void:
 	changed[key] = true
 	wake(key)
 	for link: Array in connections(key):
-		if volume(link[0]) > epsilon: wake(link[0])
+		var other: Vector3i = link[0]
+		# Most neighbours are already waiting for this tick or the next one.
+		# Checking membership first avoids repeated volume reads and wake calls,
+		# while appending newly wet neighbours in the identical original order.
+		if not _queued.has(other) and volume(other) > epsilon:
+			_queued[other] = true
+			_queue.append(other)
 
 func add_at(point: Vector3i, requested: float, maximum_level: float) -> float:
 	var key := space_at(point)
@@ -115,7 +131,8 @@ func lowest_receiving_level(key: Vector3i) -> float:
 	var lowest := float(key.y)
 	for link: Array in connections(key):
 		var other: Vector3i = link[0]
-		if ceiling(other)-level(other)>epsilon: lowest = minf(lowest,level(other))
+		var other_level := level(other)
+		if int(link[2])-other_level>epsilon: lowest = minf(lowest,other_level)
 	return lowest
 
 
@@ -133,7 +150,8 @@ func step(delta: float, budget: int) -> int:
 		var key := _queue[_head]
 		_head += 1
 		_queued.erase(key)
-		if volume(key) <= epsilon: continue
+		var stored := int(mass.get(key,0))
+		if float(stored)/UNITS <= epsilon: continue
 		var links := connections(key)
 		# A free overfall drains towards the lowest receiving surface. Treating
 		# every exposed side as an equal outlet sprayed a little water onto each
@@ -143,15 +161,19 @@ func step(delta: float, budget: int) -> int:
 		var lowest := lowest_receiving_level(key)
 		for link: Array in links:
 			var other: Vector3i = link[0]
-			if lowest < key.y-epsilon and level(other)>lowest+epsilon: continue
-			var available := maxf(0, level(key) - float(link[1]))
-			var difference := level(key) - maxf(level(other), float(link[1]))
+			var other_stored := int(mass.get(other,0))
+			var other_level := other.y + float(other_stored)/UNITS
+			if lowest < key.y-epsilon and other_level>lowest+epsilon: continue
+			var current_level := key.y + float(stored)/UNITS
+			var available := maxf(0, current_level - float(link[1]))
+			var difference := current_level - maxf(other_level, float(link[1]))
 			var amount := minf(available, minf(difference * 0.5, difference * conductance * delta))
-			amount = minf(amount, ceiling(other) - level(other))
+			amount = minf(amount, int(link[2]) - other_level)
 			if amount <= epsilon: continue
-			var units := mini(int(mass[key]),floori(amount*UNITS))
-			_set_mass(key,int(mass[key])-units)
-			_set_mass(other,int(mass.get(other,0))+units)
+			var units := mini(stored,floori(amount*UNITS))
+			stored -= units
+			_set_mass(key,stored)
+			_set_mass(other,other_stored+units)
 			_record_surface_transfer(key,other,units)
 		# Water within an already connected, flat wet reach shares its level.
 		# This avoids one-cell diffusion making long quiet river reaches behave
@@ -164,12 +186,45 @@ func step(delta: float, budget: int) -> int:
 	return count
 
 func _level_wet_reach(key: Vector3i, dir: Vector2i) -> void:
-	var keys: Array[Vector3i] = [key]
-	var top := ceiling(key)
 	var total := int(mass.get(key,0))
 	var smallest := total
 	var largest := total
-	if total <= roundi(epsilon*UNITS): return
+	var threshold := roundi(epsilon*UNITS)
+	if total <= threshold: return
+	# Iterate the cached topology directly. Only the wet prefix participates;
+	# amounts and its length are read again for every equalization operation.
+	var geometry := _reach_geometry(key,dir)
+	var count := 1
+	for next: Vector3i in geometry:
+		var stored := int(mass.get(next,0))
+		if stored<=threshold: break
+		count += 1
+		total += stored
+		smallest = mini(smallest,stored)
+		largest = maxi(largest,stored)
+	if count<3 or largest-smallest<=threshold: return
+	@warning_ignore("integer_division")
+	var mean := total/count
+	var remainder := total%count
+	var crossing := 0
+	for i in count:
+		var current := key if i==0 else geometry[i-1]
+		var stored := int(mass[current])
+		var value := mean+(1 if i<remainder else 0)
+		# Prefix mass difference gives the net transfer through each interface
+		# in this conservative equalization pass, including negative (back) flow.
+		crossing += stored-value
+		if i+1 < count: _record_surface_transfer(current,geometry[i],crossing)
+		if stored!=value: _set_mass(current,value)
+
+func _reach_geometry(key: Vector3i, dir: Vector2i) -> Array[Vector3i]:
+	if _cached_level_reach != level_reach:
+		_reaches.clear()
+		_cached_level_reach = level_reach
+	var cache_key := Vector4i(key.x,key.y,key.z,dir.x+dir.y*2)
+	if _reaches.has(cache_key): return _reaches[cache_key]
+	var result: Array[Vector3i] = []
+	var top := ceiling(key)
 	for distance in range(1,level_reach+1):
 		var col := Vector2i(key.x,key.z)+dir*distance
 		var same_space := false
@@ -177,29 +232,18 @@ func _level_wet_reach(key: Vector3i, dir: Vector2i) -> void:
 			if span.x==key.y and span.y==top:
 				same_space = true
 				break
-		var next := Vector3i(col.x,key.y,col.y)
-		var stored := int(mass.get(next,0))
-		if not same_space or stored<=roundi(epsilon*UNITS): break
-		keys.append(next)
-		total += stored
-		smallest = mini(smallest,stored)
-		largest = maxi(largest,stored)
-	if keys.size()<3 or largest-smallest<=roundi(epsilon*UNITS): return
-	@warning_ignore("integer_division")
-	var mean := total/keys.size()
-	var remainder := total%keys.size()
-	var crossing := 0
-	for i in keys.size():
-		var value := mean+(1 if i<remainder else 0)
-		# Prefix mass difference gives the net transfer through each interface
-		# in this conservative equalization pass, including negative (back) flow.
-		crossing += int(mass[keys[i]])-value
-		if i+1 < keys.size(): _record_surface_transfer(keys[i],keys[i+1],crossing)
-		if int(mass[keys[i]])!=value: _set_mass(keys[i],value)
+		if not same_space: break
+		result.append(Vector3i(col.x,key.y,col.y))
+	if _reaches.size() >= MAX_CACHED_REACHES: _reaches.clear()
+	_reaches[cache_key] = result
+	return result
 
 ## Rebuild only the edited column and its interfaces. Preserve water intersected
 ## by new solid blocks as explicit displaced volume; never silently delete it.
 func terrain_changed(column: Vector2i) -> void:
+	# An edit can split a reach rooted up to level_reach columns away. Terrain
+	# edits are rare; a conservative reset avoids missing a remote dependency.
+	_reaches.clear()
 	var old: Array = []
 	for span: Vector2i in spans(column):
 		var key := Vector3i(column.x, span.x, column.y)
@@ -207,6 +251,7 @@ func terrain_changed(column: Vector2i) -> void:
 		mass.erase(key)
 		surface_flux.erase(key)
 		_links.erase(key)
+		_ceilings.erase(key)
 		modified[key] = true
 		changed[key] = true
 	_spans.erase(column)
@@ -275,6 +320,8 @@ func restore(state: Dictionary) -> void:
 	changed.clear()
 	_links.clear()
 	_spans.clear()
+	_ceilings.clear()
+	_reaches.clear()
 	for entry: Dictionary in state.cells:
 		var p: Array = entry.cell
 		var key := Vector3i(int(p[0]), int(p[1]), int(p[2]))

@@ -102,6 +102,8 @@ func _run() -> void:
 		print("SpringCave seed ",seed_value," depth ",cave.length," ledges ",entry," to ",end)
 		if seed_value==2544080684:
 			var mining = load("res://scripts/systems/MiningDesignationController.gd").new()
+			# The production controller resolves construction through its SceneTree.
+			root.add_child(mining)
 			var stone_cells: Array[Vector3i] = [cave.stone]
 			check(mining._filter_mineable_blocks(stone_cells).is_empty(),"fixed wet stone can be designated for mining")
 			mining.free()

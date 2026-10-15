@@ -1,0 +1,21 @@
+{
+  "population": 20,
+  "errors": false,
+  "exit_code": 0,
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/ColonyScalingBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/colony_before_20",
+    "--seconds=12",
+    "--population=20",
+    "--no-ablations",
+    "--weather=base:weather:clear"
+  ],
+  "headless": false
+}

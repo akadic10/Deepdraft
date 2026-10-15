@@ -13,6 +13,14 @@ for the completed work and current limits.
 
 **Deepdraft** is a modern, high-performance voxel colony management simulation focused on a subterranean dwarven settlement. The player acts as a high-level overseer, issuing global commands, managing production infrastructure, and orchestrating trade rather than directly controlling a single avatar.
 
+**Colony scale — 2026-10-14:** The intended maximum is **30 dwarves**.
+Design progression and performance around that population, including a mature
+settlement's rooms, loose goods, production and wildlife. Routine benchmarks
+use 5, 20 and 30 dwarves; 50/100 are optional stress cases. Smooth camera and
+slice interaction, reliable job progress and long-session stability at the
+intended scale take priority. Population enforcement remains an implementation
+task for recruitment; this decision does not alter current spawning or saves.
+
 2. Setting & Theme
 
 - **The World**: An unforgiving, dangerous surface wilderness forces a desperate group of dwarven refugees to tunnel deep into a massive mountain in search of prosperity, safety, and shelter.

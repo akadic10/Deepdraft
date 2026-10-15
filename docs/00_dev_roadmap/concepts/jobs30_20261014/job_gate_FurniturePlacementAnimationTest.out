@@ -1,0 +1,118 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+ItemDropManager: loaded 98 item definitions.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+UIWindowManager: ready (0 remembered window positions).
+FurniturePlacementController: 39 placeable defs loaded.
+FurniturePlacementController: ghost 1 (base:furniture:aging_rack) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:aging_rack at (52, 20, 46).
+FurniturePlacementController: ghost 2 (base:furniture:anvil) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:anvil at (52, 20, 46).
+FurniturePlacementController: ghost 3 (base:furniture:barrel) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:barrel at (52, 20, 46).
+FurniturePlacementController: ghost 4 (base:furniture:bench) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 46).
+FurniturePlacementController: ghost 5 (base:furniture:brazier) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:brazier at (52, 20, 46).
+FurniturePlacementController: ghost 6 (base:furniture:brewing_vat) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:brewing_vat at (52, 20, 46).
+FurniturePlacementController: ghost 7 (base:furniture:campfire) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:campfire at (52, 20, 46).
+FurniturePlacementController: ghost 8 (base:furniture:communal_table) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:communal_table at (52, 20, 46).
+FurniturePlacementController: ghost 9 (base:furniture:crude_workbench) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:crude_workbench at (52, 20, 46).
+FurniturePlacementController: ghost 10 (base:furniture:door) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:door at (52, 20, 46).
+FurniturePlacementController: ghost 11 (base:furniture:dwarf_bunk) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:dwarf_bunk at (52, 20, 46).
+FurniturePlacementController: ghost 12 (base:furniture:hearth) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:hearth at (52, 20, 46).
+FurniturePlacementController: ghost 13 (base:furniture:log_bed) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:log_bed at (52, 20, 46).
+FurniturePlacementController: ghost 14 (base:furniture:log_chair) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:log_chair at (52, 20, 46).
+FurniturePlacementController: ghost 15 (base:furniture:log_door_3) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:log_door_3 at (52, 20, 46).
+FurniturePlacementController: ghost 16 (base:furniture:log_door_4) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:log_door_4 at (52, 20, 46).
+FurniturePlacementController: ghost 17 (base:furniture:settlement_flag) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:settlement_flag at (52, 20, 46).
+FurniturePlacementController: ghost 18 (base:furniture:smelter) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:smelter at (52, 20, 46).
+FurniturePlacementController: ghost 19 (base:furniture:storage_chest) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:storage_chest at (52, 20, 46).
+FurniturePlacementController: ghost 20 (base:furniture:storage_shelf) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:storage_shelf at (52, 20, 46).
+FurniturePlacementController: ghost 21 (base:furniture:tavern_bar) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:tavern_bar at (52, 20, 46).
+FurniturePlacementController: ghost 22 (base:furniture:trade_counter) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:trade_counter at (52, 20, 46).
+FurniturePlacementController: ghost 23 (base:furniture:wall_torch) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: ghost 24 (base:furniture:wooden_chair) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_chair at (52, 20, 46).
+FurniturePlacementController: ghost 25 (base:furniture:wooden_table) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_table at (52, 20, 46).
+FurniturePlacementController: ghost 26 (base:furniture:wooden_torch) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: ghost 27 (base:furniture:bench) at (52, 20, 46) yaw 1.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 46).
+FurniturePlacementController: ghost 28 (base:furniture:bench) at (52, 20, 46) yaw 2.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 46).
+FurniturePlacementController: ghost 29 (base:furniture:bench) at (52, 20, 46) yaw 3.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 46).
+FurniturePlacementController: ghost 30 (base:furniture:log_bed) at (52, 20, 46) yaw 1.
+FurniturePlacementController: installed base:furniture:log_bed at (52, 20, 46).
+FurniturePlacementController: ghost 31 (base:furniture:log_bed) at (52, 20, 46) yaw 2.
+FurniturePlacementController: installed base:furniture:log_bed at (52, 20, 46).
+FurniturePlacementController: ghost 32 (base:furniture:log_bed) at (52, 20, 46) yaw 3.
+FurniturePlacementController: installed base:furniture:log_bed at (52, 20, 46).
+FurniturePlacementController: ghost 33 (base:furniture:log_door_4) at (52, 20, 46) yaw 1.
+FurniturePlacementController: installed base:furniture:log_door_4 at (52, 20, 46).
+FurniturePlacementController: ghost 34 (base:furniture:log_door_4) at (52, 20, 46) yaw 2.
+FurniturePlacementController: installed base:furniture:log_door_4 at (52, 20, 46).
+FurniturePlacementController: ghost 35 (base:furniture:log_door_4) at (52, 20, 46) yaw 3.
+FurniturePlacementController: installed base:furniture:log_door_4 at (52, 20, 46).
+FurniturePlacementController: ghost 36 (base:furniture:wall_torch) at (52, 20, 46) yaw 1.
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: ghost 37 (base:furniture:wall_torch) at (52, 20, 46) yaw 2.
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: ghost 38 (base:furniture:wall_torch) at (52, 20, 46) yaw 3.
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: ghost 39 (base:furniture:bench) at (52, 20, 46) yaw 0.
+FurniturePlacementController: ghost 40 (base:furniture:bench) at (52, 20, 46) yaw 0.
+FurniturePlacementController: ghost 41 (base:furniture:bench) at (52, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 46).
+FurniturePlacementController: ghost 42 (base:furniture:bench) at (52, 20, 46) yaw 2.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wooden_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: installed base:furniture:wall_torch at (52, 20, 46).
+FurniturePlacementController: ghost 43 (base:furniture:wooden_torch) at (52, 20, 46) yaw 0.
+FURNITURE_PLACEMENT_ANIMATION_OK: {"failures":[],"placements":38,"player_saves_touched":false,"set_down_seconds":0.65}

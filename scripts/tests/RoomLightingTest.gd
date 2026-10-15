@@ -3,6 +3,7 @@ extends "res://tools/UndergroundWorldReview.gd"
 ## Native generated-world regression: a 4x4x4 room off a lit corridor,
 ## installed walkable door, real slice/room windows and local-light shadows.
 const REVIEW := "res://tmp/room_lighting_review/entrance_fix/"
+var review_output := REVIEW
 var camera: Camera3D
 var room_tool
 var furniture
@@ -10,6 +11,9 @@ var room_cell: Vector3i
 var measures := {}
 
 func _run() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): review_output = arg.trim_prefix("--output=").trim_suffix("/") + "/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(review_output))
 	create_timer(180).timeout.connect(func(): push_error("Room lighting test timed out"); quit(1))
 	if not "/room_lighting_review/" in OS.get_user_data_dir().replace("\\", "/"):
 		push_error("Room test requires isolated APPDATA"); quit(1); return
@@ -140,7 +144,7 @@ func _run() -> void:
 			var panel: UIWindow = wm.get_ui_window(id)
 			_expect(panel.get_global_rect().end.x <= resolution.x and panel.get_global_rect().end.y <= resolution.y, "panel fits " + id + " at " + str(resolution))
 	var report := {"failures":failures,"luminance":measures,"entrance":str(entrance)}
-	FileAccess.open(REVIEW + "checks.json", FileAccess.WRITE).store_string(JSON.stringify(report, "  "))
+	FileAccess.open(review_output + "checks.json", FileAccess.WRITE).store_string(JSON.stringify(report, "  "))
 	print("ROOM_LIGHTING_TEST: ", JSON.stringify(report))
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
@@ -166,7 +170,7 @@ func _install(key: String, origin: Vector3i, yaw: int = 0) -> int:
 
 func _rooms_settle() -> void:
 	await _settle()
-	root.get_node("RoomManager")._rebuild_all_rooms()
+	while root.get_node("RoomManager").is_updating(): await process_frame
 	if room_tool != null and room_tool.is_active(): room_tool._rebuild_overlays()
 	for i in range(8): await process_frame
 
@@ -174,7 +178,7 @@ func _review_capture(label: String) -> Image:
 	for i in range(8): await process_frame
 	await RenderingServer.frame_post_draw
 	var capture := root.get_texture().get_image()
-	capture.save_png(REVIEW + label + ".png")
+	capture.save_png(review_output + label + ".png")
 	return capture
 
 func _measure(label: String) -> void:

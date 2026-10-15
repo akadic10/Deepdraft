@@ -1,0 +1,79 @@
+[
+  {
+    "exit_code": 0,
+    "seconds": 8.6734832,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "ConstructionTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 4.8933586,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "FloorConstructionTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 6.3725307,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "ConstructionInputTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 6.8319603,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "JobPlanningTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 2.7569318,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "JobLifecycleTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 16.9148335,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "JobMixedWorldTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 2.7599284,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "FurnitureAssignmentTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 7.3860161,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "HaulingSelectionTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 4.5233743,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "HaulingAnimationTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 1.741084,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "NavigationRegressionTest",
+    "errors": false
+  },
+  {
+    "exit_code": 0,
+    "seconds": 62.1767289,
+    "construction_controller_sha256": "6b2af9e35e7bba60e600035db62a25c439fef6ec728b45f18f2eaf395d52196a",
+    "test": "SaveManagerRoundTripTest",
+    "errors": false
+  }
+]

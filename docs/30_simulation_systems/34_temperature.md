@@ -1,5 +1,16 @@
 # 34 — Temperature and room comfort
 
+**Room scheduling (2026-10-14):** [185 — Room rebuild performance](../00_dev_roadmap/185_room_rebuild_performance.md)
+keeps the 0.5-second coalescing delay, then spreads detection and geometry-derived
+metadata across frames under the soft 1.5 ms budget in `data/rooms/detection.json`.
+RoomManager publishes complete room/cell maps together and refreshes temperatures
+at that point. Readers retain the previous complete result while work is pending.
+Edits to examined chunks or furniture changes cancel pending work; distant unread
+chunks are sampled live. World reload discards pending results. Door lighting
+boundaries still update immediately. Formulas, sealing and saved data are unchanged.
+This reduces individual stalls while adding total CPU and room-update latency;
+see 185 for measured limits and correctness checks.
+
 Updated 2026-10-11. [Milestone 122](../00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md)
 replaces the original absolute-Y cold gradient with sheltered rock temperature,
 early hearth crafting and actual sleep discomfort.

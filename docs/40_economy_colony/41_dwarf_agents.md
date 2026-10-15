@@ -1,5 +1,12 @@
 # 41 — Dwarf Agents
 
+**2026-10-14 — Colony size:** The intended maximum is **30 dwarves**.
+Use 5/20/30 as the routine performance cases and test mature-colony work and
+needs at 30. Larger development populations are stress tests. This is design
+direction; runtime population enforcement has not been added. See
+[11 — Overview](../10_core_foundation/11_overview.md) and
+[187 — Scaling measurements](../00_dev_roadmap/187_colony_scaling_performance.md).
+
 **2026-10-13 — Balanced proportions:** [165](../00_dev_roadmap/165_approved_actor_proportions.md)
 integrates the selected narrower torso/head and relaxed stance. Standing height
 and the logical 1×1×3 body stay fixed. `DwarfAssets` owns `proportions.json`;

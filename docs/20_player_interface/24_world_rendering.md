@@ -1,5 +1,28 @@
 # 24 — World Rendering & Atmosphere
 
+**Water current scheduling (2026-10-14):**
+[183](../00_dev_roadmap/183_water_current_performance.md) snapshots only the
+volumes needed for measured/decaying currents and processes animation updates
+across frames within a soft 1 ms budget. Pending samples retain their captured
+inputs while new telemetry accumulates separately. Shader animation continues
+every frame; current changes appear progressively. Reload discards pending work.
+Water simulation, geometry, shader detail and save formats remain unchanged.
+
+**Damp-ground scheduling (2026-10-14):**
+[182](../00_dev_roadmap/182_moisture_rendering_performance.md) replaces the
+whole-world moisture mesh with 16×16-column tiles, incremental soil/film
+notifications and a soft 1 ms main-thread work budget. Partial tiles resume
+across frames. Slice/discovery changes hide existing tiles immediately;
+season/debug changes refresh while paused. Terrain colors, moisture simulation,
+surface films and saves retain their existing behavior.
+
+**Water mesh rebuilds (2026-10-14):**
+[179](../00_dev_roadmap/179_water_mesh_rebuild_performance.md) adds private
+worker snapshots, coalesced dirty tiles, nearby priority with distant progress,
+and a soft main-thread time budget for water mesh preparation/uploads. The
+32×32 tile geometry, palette, waterfalls and concealment rules stay intact.
+Simulation runs independently of presentation scheduling.
+
 **Rain and storms (2026-10-13):**
 [170](../00_dev_roadmap/170_environment_sound_details.md) adds two scheduled and
 saved weather IDs with cloud/haze overrides and one bounded local rain mesh.

@@ -1,0 +1,74 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 1234).
+WorldRenderer: generation started (seed 1234).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 6 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29555 cliff/shore columns.
+WorldGenerator: spring (272, 102, 572); river 2751 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=1234, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 1234, "accepted": 2114, "rejections": { "density": 19622, "tree": 1274, "edge": 1125, "shelf": 447, "water": 158, "moisture": 2917, "ground": 1097, "height": 4306, "shore": 28717, "cliff_foot": 3311, "cliff_falloff": 193, "detail_overlap": 242 }, "layout_ms": 838.096, "categories": { "boulder": 58, "scree": 192, "blueberry": 275, "elderberry": 353, "wild_strawberry": 441, "flowers": 780, "reeds": 15 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 11 ducks.
+WorldRenderer: first visible overview tile after 8.854 s at tile (16, 16).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 9.731 s
+  first_visible_terrain: 8.854 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=7.030 s  ready_at=7.031 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.640 s
+    edge_detail: 0.369 s
+    layout_validation: 1.207 s
+    river: 0.030 s
+    caves: 4.603 s
+    tile_ranges: 0.110 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.009 s  avg=0.07 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=9.727 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 21.7%, valley 25.6%, lowland 52.8%
+  height: min 11, max 115, avg 34.1
+  top surface: grass 75.3%, dirt 0.9%, rock 21.5%, water 2.3%
+  surface domains: mountain rock 99.0%; valley grass 96.0% dirt 3.5% rock 0.0%
+  finished terrain: summit 6252 columns, detailed 29487, dry shore 1219
+  water: lake (819, 528) y18 floor 11-17 depth 7 columns 20422; tarn (336, 848) y54 floor 47-52 depth 7 columns 887; banks 6831
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->14900, sides 79874, validation mismatches 0/0) in 14.11 s since startup.
+WorldRenderer: first chunk_dirtied received (27,7,27).
+COLONY_CONSTRUCTION_PROBE {"stands":38,"supply_available":true,"work_stands_ms":2.984}
+COLONY_WORKLOAD_READY 20 {"active":0,"built":0,"idle":20,"mined":0,"navigation":{"nodes_expanded_total":0,"path_cache_hits":0,"path_cache_size":0,"paths_served":0,"probes_run":0,"walkable_chunks_cached":0},"stored":0}
+CAMERA_SAMPLE paused_pan {"gpu":{"max":3.96000003814697,"mean":1.35671978906426,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":1.22000002861023,"p95":2.06299996376038,"p99":2.20199990272522},"scene":{"max":8.879,"mean":0.916522798742141,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":0.8,"p95":1.146,"p99":5.945},"wall":{"max":12.968,"mean":2.24621754267745,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":2.023,"p95":3.01,"p99":7.373}}
+CAMERA_SAMPLE active_pan {"gpu":{"max":5.32100009918213,"mean":2.36923719951942,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":2.24900007247925,"p95":2.92899990081787,"p99":3.75799989700317},"scene":{"max":257.129,"mean":14.0222075471698,"over_100":1,"over_16_7":301,"over_33_3":21,"over_50":1,"p50":11.739,"p95":27.196,"p99":35.815},"wall":{"max":261.095,"mean":17.9770071877808,"over_100":2,"over_16_7":494,"over_33_3":61,"over_50":6,"p50":15.535,"p95":33.541,"p99":42.967}}
+MiningDesignationController: zone 1 mined out — destroyed.
+MiningDesignationController: zone 2 mined out — destroyed.
+MiningDesignationController: zone 3 mined out — destroyed.
+MiningDesignationController: zone 4 mined out — destroyed.
+CAMERA_SAMPLE active_pan_repeat {"gpu":{"max":4.37599992752075,"mean":2.31159251668101,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":2.20900011062622,"p95":2.86500000953674,"p99":3.6159999370575},"scene":{"max":45.706,"mean":16.2567151767152,"over_100":0,"over_16_7":352,"over_33_3":23,"over_50":0,"p50":14.656,"p95":29.508,"p99":36.711},"wall":{"max":51.784,"mean":20.7970758835759,"over_100":0,"over_16_7":611,"over_33_3":80,"over_50":1,"p50":19.417,"p95":35.638,"p99":44.56}}
+COLONY_WORK_RESULTS {"active":19,"built":18,"idle":1,"mined":120,"navigation":{"nodes_expanded_total":31130,"path_cache_hits":167,"path_cache_size":52,"paths_served":143,"probes_run":448,"walkable_chunks_cached":48},"stored":34}
+CAMERA_BENCHMARK_PASS res://tmp/performance_20261014/jobs20_after/
+WorldGenerator: stopped in 100.5 s.
+WorldGenerator: world_complete signal firing.

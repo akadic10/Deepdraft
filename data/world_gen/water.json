@@ -29,7 +29,10 @@
     "outlet_rate": 8.0
   },
   "rendering": {
-    "tiles_per_frame": 3,
+    "mesh_budget_ms": 2.0,
+    "mesh_jobs": 2,
+    "moisture_budget_ms": 1.0,
+    "motion_budget_ms": 1.0,
     "surface_color": "#58AFC4",
     "depth_shading": 0.12,
     "foam_color": "#C6EDF0",
