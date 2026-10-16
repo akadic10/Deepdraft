@@ -26,9 +26,10 @@ func _run() -> void:
 	_expect(snapshot[STOOL_ITEM].total == 4 and snapshot[STOOL_ITEM].materials.size() == 4, "one inventory row exposes four variants")
 	var loose_save: Dictionary = JSON.parse_string(JSON.stringify(drops.serialize_state()))
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
-	_expect(validator._validate(loose_save, validator.SCENE.items, "items").is_empty(), "material cargo validates")
+	var catalogs: Dictionary=root.get_node("SaveManager")._capture_catalogs()
+	_expect(validator._validate(loose_save, validator.SCENE.items, "items", catalogs).is_empty(), "material cargo validates")
 	loose_save.loose[0].material_id = "base:material:made_up"
-	_expect(not validator._validate(loose_save, validator.SCENE.items, "items").is_empty(), "unknown material is rejected")
+	_expect(not validator._validate(loose_save, validator.SCENE.items, "items", catalogs).is_empty(), "unknown material is rejected")
 	# Exercise real multi-item hauling: four wood identities must occupy four slots.
 	zone.carry_capacity = 4
 	for trip in range(4):

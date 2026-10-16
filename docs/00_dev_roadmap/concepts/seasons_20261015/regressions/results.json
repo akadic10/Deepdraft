@@ -1,0 +1,22 @@
+[
+  {
+    "clean": true,
+    "exit": 0,
+    "test": "SeasonalRefreshTest"
+  },
+  {
+    "clean": true,
+    "exit": 0,
+    "test": "TreeFellingTest"
+  },
+  {
+    "clean": true,
+    "exit": 0,
+    "test": "ObjectExplorerTest"
+  },
+  {
+    "clean": false,
+    "exit": 1,
+    "test": "JuniperHarvestTest"
+  }
+]

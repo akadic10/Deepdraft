@@ -72,6 +72,9 @@ func _run() -> void:
 	if not saves.request_save():
 		_fail("save failed")
 		return
+	while saves.is_saving(): await process_frame
+	if not saves.last_save_profile.get("success",false):
+		_fail("save completion failed"); return
 	# Loading while a batch is running must join readers before generator maps
 	# are cleared. Saving above records a complete, stable scene.
 	view._enqueue_overview_tiles_for_blocks(local_blocks)

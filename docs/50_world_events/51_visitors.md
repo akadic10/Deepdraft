@@ -1,5 +1,20 @@
 # 51 — Visitors & World Events
 
+## Arrival preparation update — 2026-10-15
+
+`WorldEventDirector._process()` supplies one soft 2 ms deadline across providers.
+`prepare_arrival(event, plan, director, deadline_usec = 0)` may return `pending`;
+this preserves the current attempt and draws no new random decision. Duck
+planning resumes between water-pool batches, habitat probes and swept flight
+segments. Direct synchronous callers can omit the deadline. Terrestrial probes
+and actual member entry remain synchronous, so this is not a hard callback cap.
+
+Providers may implement `cancel_arrival_preparation(event_id)` to discard partial
+work on expiry or restore. Private search state is not saved. Restoring the
+saved event seed/attempt starts it again; accepted routes and issued ordinals
+retain their existing schema. Pause stops planning. Each member still validates
+live conditions before entering. See [193](../00_dev_roadmap/193_arrival_preparation_performance.md).
+
 ## Implementation status — 2026-10-10
 
 The shared arrival scheduler is live with rabbit, deer, wolf and duck wildlife providers; merchant,

@@ -1,0 +1,130 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+SaveManager: Loading quick save…
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 2520450404).
+WorldRenderer: generation started (seed 2520450404).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 9 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 30182 cliff/shore columns.
+WorldGenerator: spring (528, 102, 190); river 5693 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=2520450404, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 2520450404, "accepted": 2137, "rejections": { "density": 19920, "tree": 1247, "edge": 1126, "shelf": 461, "water": 121, "moisture": 2517, "ground": 1040, "height": 4563, "shore": 28686, "cliff_foot": 3301, "cliff_falloff": 171, "detail_overlap": 233 }, "layout_ms": 841.041, "categories": { "boulder": 68, "scree": 226, "blueberry": 289, "elderberry": 327, "wild_strawberry": 436, "flowers": 786, "reeds": 5 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 11 ducks.
+WorldRenderer: first chunk_dirtied received (39,2,30).
+StockpileDesignationController: zone 1 created (121 cells at Y 43).
+FurniturePlacementController: installed base:furniture:settlement_flag at (652, 43, 499).
+FurniturePlacementController: installed base:furniture:crude_workbench at (650, 43, 494).
+FurniturePlacementController: installed base:furniture:log_door_3 at (651, 43, 474).
+FurniturePlacementController: installed base:furniture:wooden_torch at (642, 43, 475).
+FurniturePlacementController: installed base:furniture:campfire at (643, 43, 485).
+FurniturePlacementController: installed base:furniture:log_chair at (642, 43, 486).
+FurniturePlacementController: installed base:furniture:log_chair at (646, 43, 486).
+FurniturePlacementController: installed base:furniture:bench at (649, 43, 484).
+FurniturePlacementController: installed base:furniture:log_bed at (645, 43, 471).
+FurniturePlacementController: installed base:furniture:wooden_torch at (665, 43, 475).
+FurniturePlacementController: installed base:furniture:log_door_3 at (656, 43, 474).
+FurniturePlacementController: installed base:furniture:log_bed at (660, 43, 471).
+FurniturePlacementController: installed base:furniture:wooden_torch at (652, 44, 470).
+FurniturePlacementController: installed base:furniture:wooden_torch at (655, 44, 470).
+FurniturePlacementController: installed base:furniture:log_door_3 at (656, 43, 464).
+FurniturePlacementController: installed base:furniture:wooden_torch at (665, 44, 465).
+FurniturePlacementController: installed base:furniture:wooden_torch at (642, 44, 465).
+FurniturePlacementController: installed base:furniture:log_bed at (660, 43, 461).
+FurniturePlacementController: installed base:furniture:log_door_3 at (651, 43, 464).
+FurniturePlacementController: installed base:furniture:log_bed at (642, 43, 461).
+LoadPerformance:
+  total_request_to_restored: 13.618 s
+  read_validate: 255 ms
+  reload_regen_wait: 9.353 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 4006 ms
+    jobs: 0 ms
+    mining: 3174 ms
+    water: 483 ms
+    construction: 0 ms
+    flora: 0 ms
+    surface_details: 52 ms
+    settlement_flag: 0 ms
+    stockpiles: 18 ms
+    furniture: 230 ms
+    ladders: 0 ms
+    bridges: 6 ms
+    items: 1 ms
+    dwarves: 9 ms
+    wildlife: 30 ms
+    world_events: 0 ms
+    worker_crafting: 2 ms
+    camera: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 4 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldRenderer: first visible overview tile after 12.297 s at tile (16, 16).
+WorldGenerator metrics:
+  domains: mountain 22.0%, valley 26.5%, lowland 51.5%
+  height: min 11, max 115, avg 34.7
+  top surface: grass 75.4%, dirt 1.0%, rock 21.7%, water 1.8%
+  surface domains: mountain rock 98.5%; valley grass 95.7% dirt 3.9% rock 0.0%
+  finished terrain: summit 9364 columns, detailed 30121, dry shore 741
+  water: lake (793, 978) y18 floor 11-17 depth 7 columns 12719; tarn (720, 368) y54 floor 47-52 depth 7 columns 876; banks 7878
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 13.458 s
+  first_visible_terrain: 12.297 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=6.537 s  ready_at=6.537 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.541 s
+    edge_detail: 0.331 s
+    layout_validation: 1.189 s
+    river: 0.032 s
+    caves: 4.279 s
+    tile_ranges: 0.110 s
+    generation_metrics: 4.097 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.009 s  avg=0.07 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=13.448 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->15622, sides 83805, validation mismatches 0/0) in 18.10 s since startup.
+DwarfDirector: spawned 20 dwarves near (652, 499) — roster 25.
+DwarfDirector: spawned 5 dwarves near (652, 499) — roster 30.
+LONG_SESSION_WINDOW {"frame":{"max":87.603,"mean":27.211407239819,"over_100":0,"over_16_7":924,"over_33_3":272,"over_50":40,"p50":25.868,"p95":46.178,"p99":61.465},"seconds":30.044942,"state":{"assignments":{"FETCH_BUILD":3,"HAUL":11,"MINE":4},"built":88,"clock":{"day":3,"hour":21.7256487976136,"paused":false,"season":"summer","speed":1.0,"year":1},"completed":{"FETCH_BUILD":2,"HAUL":8},"loose":210,"mined":2770,"nodes":23993,"objects":37093.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1},"resources":836.0,"scheduler":{"active":7,"blocked":0,"oldest_pending_age_s":1.74,"pending_by_type":{"FETCH_BUILD":1,"HAUL":1,"MINE":0},"pending_total":2,"probes_per_sec":17.0940170940171,"wake_count":289,"worst_wake_usec":41500},"static_memory_mb":452.106194496155,"stored":111,"video_memory_mb":951.89453125,"wildlife":79}}
+SaveManager: validated autosave written to user://saves/autosave.json.
+MiningDesignationController: zone 1 mined out — destroyed.
+LONG_SESSION_WINDOW {"frame":{"max":855.153,"mean":22.2220792005922,"over_100":1,"over_16_7":850,"over_33_3":142,"over_50":24,"p50":19.921,"p95":38.538,"p99":57.077},"seconds":60.067014,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":3,"hour":23.9993703703704,"paused":false,"season":"summer","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":15,"MINE":4},"loose":182,"mined":2780,"nodes":23987,"objects":37084.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":836.0,"scheduler":{"active":3,"blocked":0,"oldest_pending_age_s":16.309,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":0.0,"wake_count":1188,"worst_wake_usec":46255},"static_memory_mb":456.472123146057,"stored":136,"video_memory_mb":932.76953125,"wildlife":79}}
+LONG_SESSION_WINDOW {"frame":{"max":170.0,"mean":17.1940616438356,"over_100":1,"over_16_7":756,"over_33_3":71,"over_50":6,"p50":15.027,"p95":32.16,"p99":39.572},"seconds":90.190984,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":4,"hour":0.49930607222222,"paused":false,"season":"summer","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24065,"objects":37195.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":836.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":46.433,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":29.2887029288703,"wake_count":2940,"worst_wake_usec":46255},"static_memory_mb":465.907658576965,"stored":146,"video_memory_mb":937.64453125,"wildlife":82}}
+LONG_SESSION_WINDOW {"frame":{"max":62.713,"mean":16.2576352813853,"over_100":0,"over_16_7":717,"over_33_3":66,"over_50":2,"p50":13.945,"p95":30.307,"p99":38.67},"seconds":120.235072,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":4,"hour":1.00226735555556,"paused":false,"season":"summer","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37266.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":836.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":76.477,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":41.958041958042,"wake_count":4788,"worst_wake_usec":46255},"static_memory_mb":470.951752662659,"stored":146,"video_memory_mb":941.08203125,"wildlife":83}}
+LONG_SESSION_WINDOW {"frame":{"max":106.733,"mean":16.2338642509465,"over_100":1,"over_16_7":725,"over_33_3":63,"over_50":4,"p50":14.16,"p95":30.165,"p99":38.523},"seconds":150.251514,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":0.00194076666666923,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":13057,"objects":23903.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":876.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":106.493,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":0.0,"wake_count":6637,"worst_wake_usec":46255},"static_memory_mb":438.593876838684,"stored":145,"video_memory_mb":968.33203125,"wildlife":83}}
+LONG_SESSION_WINDOW {"frame":{"max":65.479,"mean":19.5076928571428,"over_100":0,"over_16_7":813,"over_33_3":130,"over_50":4,"p50":17.415,"p95":36.535,"p99":45.752},"seconds":180.293345,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":0.503468544444445,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37408.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":940.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":136.535,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":27.027027027027,"wake_count":8177,"worst_wake_usec":46255},"static_memory_mb":465.565140724182,"stored":145,"video_memory_mb":975.95703125,"wildlife":83}}
+LONG_SESSION_WINDOW {"frame":{"max":90.532,"mean":17.9425582785416,"over_100":0,"over_16_7":783,"over_33_3":83,"over_50":3,"p50":15.912,"p95":33.231,"p99":41.236},"seconds":210.311235,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":1.00396999444445,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37431.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":940.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":166.553,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":65.7894736842105,"wake_count":9850,"worst_wake_usec":46255},"static_memory_mb":470.931660652161,"stored":143,"video_memory_mb":958.76953125,"wildlife":83}}
+LONG_SESSION_WINDOW {"frame":{"max":55.778,"mean":18.7282994385527,"over_100":0,"over_16_7":831,"over_33_3":95,"over_50":2,"p50":17.116,"p95":34.329,"p99":41.056},"seconds":240.332719,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":1.50399021666668,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37434.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":940.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":196.575,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":0.0,"wake_count":11453,"worst_wake_usec":46255},"static_memory_mb":471.418480873108,"stored":143,"video_memory_mb":977.89453125,"wildlife":83}}
+LONG_SESSION_WINDOW {"frame":{"max":53.181,"mean":19.0214604179861,"over_100":0,"over_16_7":849,"over_33_3":95,"over_50":1,"p50":17.457,"p95":34.853,"p99":40.799},"seconds":270.367615,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":2.00452410000001,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37434.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":940.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":226.61,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":35.0877192982456,"wake_count":13032,"worst_wake_usec":46255},"static_memory_mb":470.739880561829,"stored":143,"video_memory_mb":959.20703125,"wildlife":83}}
+LONG_SESSION_WINDOW {"frame":{"max":85.105,"mean":19.6878393442623,"over_100":0,"over_16_7":836,"over_33_3":106,"over_50":3,"p50":17.833,"p95":35.335,"p99":43.806},"seconds":300.39156,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":2.50504295555559,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37432.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":940.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":256.633,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":27.5229357798165,"wake_count":14557,"worst_wake_usec":46255},"static_memory_mb":470.175206184387,"stored":143,"video_memory_mb":959.45703125,"wildlife":83}}
+SaveManager: validated autosave written to user://saves/autosave.json.
+LONG_SESSION_WINDOW {"frame":{"max":1540.666,"mean":20.3815687757909,"over_100":1,"over_16_7":807,"over_33_3":85,"over_50":3,"p50":17.804,"p95":34.55,"p99":41.093},"seconds":330.02635,"state":{"assignments":{"FETCH_BUILD":4,"HAUL":18,"MINE":5},"built":89,"clock":{"day":1,"hour":2.9752137555556,"paused":false,"season":"autumn","speed":1.0,"year":1},"completed":{"FETCH_BUILD":3,"HAUL":18,"MINE":4},"loose":181,"mined":2780,"nodes":24106,"objects":37433.0,"orphan_nodes":0.0,"released":{"FETCH_BUILD":1,"MINE":1},"resources":940.0,"scheduler":{"active":0,"blocked":0,"oldest_pending_age_s":286.268,"pending_by_type":{"FETCH_BUILD":1,"HAUL":0,"MINE":0},"pending_total":1,"probes_per_sec":0.0,"wake_count":16011,"worst_wake_usec":46255},"static_memory_mb":473.07875919342,"stored":143,"video_memory_mb":959.45703125,"wildlife":83}}
+LONG_SESSION_PASS 30 dwarves 330.15278 seconds; autosaves=2
+CAMERA_BENCHMARK_PASS res://tmp/performance_20261014/events_long_30/
+WorldGenerator: stopped in 348.9 s.
+WorldGenerator: world_complete signal firing.

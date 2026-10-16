@@ -1,0 +1,32 @@
+param([string[]]$Tests=@('WorkDustReuseTest','WorkFeedbackTest','MiningFeedbackTest','MiningAnimationTest','TreeFellingTest','ConstructionTest','JobMixedWorldTest','HaulingSelectionTest','SaveManagerRoundTripTest','WorldTerrainStartupTest'),[string]$Label='regressions')
+$ErrorActionPreference='Stop'
+$testRoot='P:/Deepdraft/tmp/autosave_20261015/'+$Label
+New-Item -ItemType Directory -Force $testRoot | Out-Null
+$oldAppData=$env:APPDATA
+$oldLocalAppData=$env:LOCALAPPDATA
+$results=@()
+try {
+    foreach($test in $Tests) {
+        $env:APPDATA=$testRoot+'/'+$test+'_profile'
+        $env:LOCALAPPDATA=$env:APPDATA
+        New-Item -ItemType Directory -Force $env:APPDATA | Out-Null
+        $out=$testRoot+'/'+$test+'.out'
+        $err=$testRoot+'/'+$test+'.err'
+        $args=@('--headless','--path','P:/Deepdraft','--audio-driver','Dummy','--script',('res://scripts/tests/'+$test+'.gd'))
+        $timer=[Diagnostics.Stopwatch]::StartNew()
+        $p=Start-Process -FilePath 'S:/STEAM/steamapps/common/Godot Engine/godot.windows.opt.tools.64.exe' -ArgumentList $args -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+        $null=$p.Handle
+        if(-not $p.WaitForExit(300000)){Stop-Process -Id $p.Id; throw "Timed out: $test"}
+        $errors=Select-String -LiteralPath $err -Pattern '^SCRIPT ERROR:|^ERROR:' -Quiet
+        $marker=Select-String -LiteralPath $out -Pattern '_OK\b|_PASS\b|: PASS\b' -Quiet
+        $result=@{pass_marker=$marker;test=$test;exit_code=$p.ExitCode;errors=$errors;seconds=$timer.Elapsed.TotalSeconds;save_manager_sha256=(Get-FileHash -LiteralPath P:/Deepdraft/scripts/systems/SaveManager.gd -Algorithm SHA256).Hash.ToLower()}
+        $results+=$result
+        $results | ConvertTo-Json -Depth 4 | Set-Content ($testRoot+'/results.json')
+        Write-Output ($test+' '+($result|ConvertTo-Json -Compress))
+        Get-Content $out -Tail 2
+        if($errors -or $p.ExitCode -ne 0 -or -not $marker){Get-Content $err -Tail 35; exit 1}
+    }
+} finally {$env:APPDATA=$oldAppData; $env:LOCALAPPDATA=$oldLocalAppData}
+
+
+

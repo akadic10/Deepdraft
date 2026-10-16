@@ -1,0 +1,9 @@
+$ErrorActionPreference="Stop"
+$oldAppData=$env:APPDATA
+$oldLocalAppData=$env:LOCALAPPDATA
+try {
+    $env:APPDATA="P:/Deepdraft/tmp/autosave_20261015/export_profile"
+    $env:LOCALAPPDATA=$env:APPDATA
+    New-Item -ItemType Directory -Force $env:APPDATA | Out-Null
+    & P:/Deepdraft/tools/windows_playtest/Export.ps1 | Tee-Object -FilePath P:/Deepdraft/tmp/autosave_20261015/export_summary.txt
+} finally { $env:APPDATA=$oldAppData; $env:LOCALAPPDATA=$oldLocalAppData }

@@ -1,0 +1,6 @@
+{
+  "scripts/entities/DuckAgent.gd": "8ab0c8c45c94e5dcabb5ebd1defbc2b0a0072bd96106f8a9dd39b2b1186d8b51",
+  "scripts/systems/WildlifeManager.gd": "a446493bcd8c218e864f5041b26cc0a509749f17f9676fb6a3eee7e702ceb591",
+  "scripts/components/DuckNavigation.gd": "21ca17db7c5d1425d790f1ae36a745126671fdb412abccd4238493d4f0b471ca",
+  "scripts/systems/SurfaceFloraSpawner.gd": "169bda9afff95306531bc8026b011d40bb4c9021cf02fc15dc04e70c5a1ea1d6"
+}

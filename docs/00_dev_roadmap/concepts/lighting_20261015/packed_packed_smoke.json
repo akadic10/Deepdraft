@@ -1,0 +1,28 @@
+{
+	"animals_after": 79,
+	"cache": {
+		"entries": 10046,
+		"evictions": 24,
+		"hits": 279146,
+		"misses": 19278,
+		"tiles": 128
+	},
+	"driver": "d3d12",
+	"duck_queries": {
+		"active": false,
+		"batches": 671,
+		"entries": 0,
+		"hits": 47556,
+		"misses": 129107,
+		"peak": 1252
+	},
+	"dwarves": 5,
+	"failures": [],
+	"lighting_cleanup_idle": true,
+	"lighting_refreshes": 1,
+	"lighting_texture_layers": 14,
+	"moved": 65,
+	"obstacle_comparisons": 245,
+	"offscreen_at_start": 79,
+	"quote_comparisons": 5
+}

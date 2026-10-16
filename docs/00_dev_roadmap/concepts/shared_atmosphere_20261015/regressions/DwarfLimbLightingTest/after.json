@@ -1,0 +1,322 @@
+[
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.8235, 0.6706, 0.5647, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.8235, 0.6706, 0.5647, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4588, 0.3569, 0.2941, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4588, 0.3569, 0.2941, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.8196, 0.6627, 0.549, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.8196, 0.6627, 0.549, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4431, 0.3294, 0.2549, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4431, 0.3294, 0.2549, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "daylight",
+		"skin": "medium"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.9294, 0.8627, 0.851, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.9294, 0.8627, 0.851, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4588, 0.3569, 0.2941, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4588, 0.3569, 0.2941, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.9255, 0.8549, 0.8431, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.9255, 0.8549, 0.8431, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4431, 0.3294, 0.2549, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4431, 0.3294, 0.2549, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "daylight",
+		"skin": "pale"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.00392156839370728,
+						"left": "(0.6902, 0.5216, 0.4078, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.6902, 0.5216, 0.4118, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4588, 0.3569, 0.2941, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4588, 0.3569, 0.2941, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.6824, 0.5098, 0.3843, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.6824, 0.5098, 0.3843, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4431, 0.3294, 0.2549, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4431, 0.3294, 0.2549, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "daylight",
+		"skin": "tan"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.4196, 0.3137, 0.2471, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.4196, 0.3137, 0.2471, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4588, 0.3569, 0.2941, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4588, 0.3569, 0.2941, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0,
+						"left": "(0.4039, 0.2863, 0.2, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.4039, 0.2863, 0.2, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4431, 0.3294, 0.2549, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4431, 0.3294, 0.2549, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "daylight",
+		"skin": "dark"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.0117647051811218,
+						"left": "(1.0, 0.6863, 0.4588, 1.0)",
+						"part": "MeshHandL",
+						"right": "(1.0, 0.6745, 0.4549, 1.0)"
+					},
+					{
+						"difference": 0.00392156839370728,
+						"left": "(0.5373, 0.3216, 0.2196, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.5412, 0.3216, 0.2235, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0117647051811218,
+						"left": "(1.0, 0.5608, 0.2157, 1.0)",
+						"part": "MeshHandL",
+						"right": "(1.0, 0.5725, 0.2235, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4941, 0.2392, 0.0706, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4941, 0.2392, 0.0706, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "torch",
+		"skin": "medium"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.0117647051811218,
+						"left": "(1.0, 0.8784, 0.6941, 1.0)",
+						"part": "MeshHandL",
+						"right": "(1.0, 0.8667, 0.6941, 1.0)"
+					},
+					{
+						"difference": 0.00392156839370728,
+						"left": "(0.5373, 0.3216, 0.2196, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.5412, 0.3216, 0.2235, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0156862735748291,
+						"left": "(1.0, 0.7255, 0.349, 1.0)",
+						"part": "MeshHandL",
+						"right": "(1.0, 0.7412, 0.3569, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4941, 0.2392, 0.0706, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4941, 0.2392, 0.0706, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "torch",
+		"skin": "pale"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.0156862735748291,
+						"left": "(0.9333, 0.5333, 0.3294, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.9176, 0.5255, 0.3294, 1.0)"
+					},
+					{
+						"difference": 0.00392156839370728,
+						"left": "(0.5373, 0.3216, 0.2196, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.5412, 0.3216, 0.2235, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0196078419685364,
+						"left": "(0.8667, 0.4275, 0.1451, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.8863, 0.4392, 0.149, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4941, 0.2392, 0.0706, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4941, 0.2392, 0.0706, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "torch",
+		"skin": "tan"
+	},
+	{
+		"actors": [
+			{
+				"material": "standard",
+				"samples": [
+					{
+						"difference": 0.00784313678741455,
+						"left": "(0.5725, 0.3176, 0.1961, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.5647, 0.3137, 0.1961, 1.0)"
+					},
+					{
+						"difference": 0.00392156839370728,
+						"left": "(0.5373, 0.3216, 0.2196, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.5412, 0.3216, 0.2235, 1.0)"
+					}
+				]
+			},
+			{
+				"material": "world",
+				"samples": [
+					{
+						"difference": 0.0117647051811218,
+						"left": "(0.5176, 0.2353, 0.0588, 1.0)",
+						"part": "MeshHandL",
+						"right": "(0.5294, 0.2431, 0.0627, 1.0)"
+					},
+					{
+						"difference": 0.0,
+						"left": "(0.4941, 0.2392, 0.0706, 1.0)",
+						"part": "MeshFootL",
+						"right": "(0.4941, 0.2392, 0.0706, 1.0)"
+					}
+				]
+			}
+		],
+		"lighting": "torch",
+		"skin": "dark"
+	}
+]

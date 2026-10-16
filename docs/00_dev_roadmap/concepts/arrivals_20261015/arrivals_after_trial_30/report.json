@@ -1,0 +1,358 @@
+{
+  "ablations": false,
+  "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+  "arrivals": {
+    "director_sha256": "87f745c48ed8b1db70035ff700198ae832040aa2167140d292decb17a29de3bc",
+    "event_cpu": {
+      "max": 13.753,
+      "mean": 0.279093681917211,
+      "over_100": 0,
+      "over_16_7": 0,
+      "over_33_3": 0,
+      "over_50": 0,
+      "p50": 0.026,
+      "p95": 2.189,
+      "p99": 2.464
+    },
+    "events": [
+      {
+        "data": {},
+        "kind": "opportunities",
+        "seconds": 6.043106
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "east",
+          "id": "rabbit_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 6.065992
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "west",
+          "id": "deer_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 6.10871
+      },
+      {
+        "data": {
+          "count": 2,
+          "edge": "south",
+          "id": "duck_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 13.536214
+      }
+    ],
+    "final": {
+      "assignments": {},
+      "built": 88,
+      "clock": {
+        "day": 3,
+        "hour": 21.8922522111056,
+        "paused": true,
+        "season": "summer",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {},
+      "loose": 197,
+      "mined": 2780,
+      "nodes": 24112,
+      "objects": 37314.0,
+      "orphan_nodes": 0.0,
+      "released": {},
+      "resources": 840.0,
+      "scheduler": {
+        "active": 5,
+        "blocked": 0,
+        "oldest_pending_age_s": 0.0,
+        "pending_by_type": {
+          "FETCH_BUILD": 0,
+          "HAUL": 0,
+          "MINE": 0
+        },
+        "pending_total": 0,
+        "probes_per_sec": 0.0,
+        "wake_count": 393,
+        "worst_wake_usec": 42733
+      },
+      "static_memory_mb": 454.129289627075,
+      "stored": 120,
+      "video_memory_mb": 939.89453125,
+      "wildlife": 83
+    },
+    "frames": {
+      "max": 97.08,
+      "mean": 29.0731118373275,
+      "over_100": 0,
+      "over_16_7": 1212,
+      "over_33_3": 413,
+      "over_50": 73,
+      "p50": 27.806,
+      "p95": 50.293,
+      "p99": 60.55
+    },
+    "initial": {
+      "assignments": {},
+      "built": 86,
+      "clock": {
+        "day": 3,
+        "hour": 21.225374933328,
+        "paused": false,
+        "season": "summer",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {},
+      "loose": 240,
+      "mined": 2716,
+      "nodes": 23975,
+      "objects": 37015.0,
+      "orphan_nodes": 0.0,
+      "released": {},
+      "resources": 836.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 0.534,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 4,
+          "MINE": 4
+        },
+        "pending_total": 9,
+        "probes_per_sec": 0.0,
+        "wake_count": 0,
+        "worst_wake_usec": 0
+      },
+      "static_memory_mb": 467.137403488159,
+      "stored": 89,
+      "video_memory_mb": 931.01953125,
+      "wildlife": 79
+    },
+    "population": 30,
+    "profile": null,
+    "schedules": {
+      "history": [
+        {
+          "count": 1,
+          "day": 30.8885992506942,
+          "id": "rabbit_arrival:2520450404:1",
+          "result": "arrived"
+        },
+        {
+          "count": 1,
+          "day": 30.8886244152776,
+          "id": "deer_arrival:2520450404:2",
+          "result": "arrived"
+        },
+        {
+          "count": 0,
+          "day": 30.8886572988424,
+          "id": "wolf_arrival:2520450404:3",
+          "result": "population cap"
+        },
+        {
+          "count": 2,
+          "day": 30.893800028472,
+          "id": "duck_arrival:2520450404:4",
+          "result": "arrived"
+        }
+      ],
+      "initialized": true,
+      "pressure": {},
+      "rng": "2767147305803717251",
+      "schedules": {
+        "deer_arrival": {
+          "active": {},
+          "next": {
+            "count": 4,
+            "due": 36.9323557356796,
+            "id": "deer_arrival:2520450404:6",
+            "roll": 0.634482443332672,
+            "seed": "3762782672"
+          }
+        },
+        "duck_arrival": {
+          "active": {},
+          "next": {
+            "count": 3,
+            "due": 35.5143674353561,
+            "id": "duck_arrival:2520450404:8",
+            "roll": 0.088665671646595,
+            "seed": "2981176598"
+          }
+        },
+        "rabbit_arrival": {
+          "active": {},
+          "next": {
+            "count": 1,
+            "due": 33.1512373427352,
+            "id": "rabbit_arrival:2520450404:5",
+            "roll": 0.831969499588013,
+            "seed": "2752068540"
+          }
+        },
+        "wolf_arrival": {
+          "active": {},
+          "next": {
+            "count": 2,
+            "due": 38.6795738676986,
+            "id": "wolf_arrival:2520450404:7",
+            "roll": 0.504567205905914,
+            "seed": "1801438157"
+          }
+        }
+      },
+      "serial": 8
+    },
+    "seconds": 40.009856,
+    "wildlife_sha256": "a446493bcd8c218e864f5041b26cc0a509749f17f9676fb6a3eee7e702ceb591"
+  },
+  "camera_origin": "(652.0, 47.0, 499.0)",
+  "camera_zoom": 48.0,
+  "counts": {
+    "dwarves": 30,
+    "furniture": 20,
+    "nodes": 23975,
+    "surface_details": 2137,
+    "trees": 2925,
+    "water_columns": 19322,
+    "wildlife": 79,
+    "wildlife_points_in_camera_frustum": 0,
+    "wildlife_within_100_units_of_camera_target": 0
+  },
+  "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+  "driver": "d3d12",
+  "duck_agent_sha256": "8ab0c8c45c94e5dcabb5ebd1defbc2b0a0072bd96106f8a9dd39b2b1186d8b51",
+  "duck_navigation_sha256": "21ca17db7c5d1425d790f1ae36a745126671fdb412abccd4238493d4f0b471ca",
+  "engine": {
+    "build": "steam",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (steam)",
+    "timestamp": 0
+  },
+  "final_renderer": {
+    "camera_chunk": "(-9999, -9999)",
+    "dirty_queue": 0,
+    "first_visible_mesh_ms": 12828,
+    "initial_load": false,
+    "mesh_nodes": 0,
+    "meshes_built": 1090,
+    "overview_active": true,
+    "overview_build_count": 1090,
+    "overview_build_ms_max": 2,
+    "overview_build_ms_total": 61,
+    "overview_built": true,
+    "overview_complete_ms": 18805,
+    "overview_dirty_tiles": 0,
+    "overview_in_flight": false,
+    "overview_merged_top_faces": 15764,
+    "overview_sampled_top_faces": 1048576,
+    "overview_side_faces": 84057,
+    "overview_sides": true,
+    "overview_stale_results": 2,
+    "overview_startup_center": "(16, 16)",
+    "overview_startup_radius_tiles": 5,
+    "overview_startup_ready_ms": 14030,
+    "overview_startup_tile_goal": 121,
+    "overview_step": 1,
+    "overview_tile_size": 32,
+    "overview_tiles": 1024,
+    "overview_validation_mismatches": 0,
+    "overview_validation_samples": 0,
+    "region_rebuild_count": 0,
+    "region_rebuild_ms_max": 0,
+    "region_rebuild_ms_total": 0,
+    "render_mode": "block-face overview exact",
+    "slice_y": 127,
+    "startup_elapsed_ms": 59412,
+    "terrain_drain_max_ms": 1.757,
+    "terrain_upload_max_ms": 0.223,
+    "terrain_worker_wait_max_ms": 0.002,
+    "unload_radius_chunks": 6,
+    "view_radius_chunks": 5
+  },
+  "fixed_fps": false,
+  "gpu": "AMD Radeon RX 9070 XT",
+  "markers": true,
+  "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+  "note": "Same-priority process brackets include descendants; do not sum nested groups. GPU timestamps can lag. Ablations freeze a subsystem for diagnosis, not a gameplay solution. Sequential phases advance the same world.",
+  "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+  "phases": {},
+  "ready_renderer": {
+    "camera_chunk": "(-9999, -9999)",
+    "dirty_queue": 0,
+    "first_visible_mesh_ms": 12828,
+    "initial_load": false,
+    "mesh_nodes": 0,
+    "meshes_built": 1027,
+    "overview_active": true,
+    "overview_build_count": 1027,
+    "overview_build_ms_max": 2,
+    "overview_build_ms_total": 56,
+    "overview_built": true,
+    "overview_complete_ms": 18805,
+    "overview_dirty_tiles": 0,
+    "overview_in_flight": false,
+    "overview_merged_top_faces": 15764,
+    "overview_sampled_top_faces": 1048576,
+    "overview_side_faces": 84057,
+    "overview_sides": true,
+    "overview_stale_results": 0,
+    "overview_startup_center": "(16, 16)",
+    "overview_startup_radius_tiles": 5,
+    "overview_startup_ready_ms": 14030,
+    "overview_startup_tile_goal": 121,
+    "overview_step": 1,
+    "overview_tile_size": 32,
+    "overview_tiles": 1024,
+    "overview_validation_mismatches": 0,
+    "overview_validation_samples": 0,
+    "region_rebuild_count": 0,
+    "region_rebuild_ms_max": 0,
+    "region_rebuild_ms_total": 0,
+    "render_mode": "block-face overview exact",
+    "slice_y": 127,
+    "startup_elapsed_ms": 19387,
+    "terrain_drain_max_ms": 1.757,
+    "terrain_upload_max_ms": 0.222,
+    "terrain_worker_wait_max_ms": 0.002,
+    "unload_radius_chunks": 6,
+    "view_radius_chunks": 5
+  },
+  "resolution": [
+    2560,
+    1440
+  ],
+  "room_manager_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0",
+  "room_rebuild_sha256": "eb1fed5b2d8a5971493bb57b7676aff915286efd5ccf1d60c09f23ef184d604b",
+  "sample_seconds_min": 40.0,
+  "saved": true,
+  "scheduled_room_rebuilds": false,
+  "seed": 2520450404,
+  "slice_y": 127,
+  "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+  "underground_lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+  "vsync": "disabled",
+  "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+  "water_flow_sha256": "607c88150cd3cc574a765785ad546c50dd7ac3366ee6ef840e400cc09e04b322",
+  "water_manager_sha256": "cf5d764a276f377bd20eb7c254d898e2372678525aeaa0f001365c3040b1933e",
+  "water_motion_sha256": "08ecc9333d986e0cc7253165273f9e07f7242187b9811129ef007369d45f3010",
+  "water_renderer_sha256": "90a191576880c9a98bf321a459e750fe997f06062aae3fb6d7dc28f9521361e9",
+  "weather": "base:weather:clear",
+  "weather_override": "base:weather:clear",
+  "wildlife_manager_sha256": "a446493bcd8c218e864f5041b26cc0a509749f17f9676fb6a3eee7e702ceb591",
+  "work_dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670",
+  "work_feedback_sha256": "1fdaa30db6eefca1b4e2ec08a88c91f48c74b1f467a1029034713916fd71da4d"
+}

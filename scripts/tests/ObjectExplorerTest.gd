@@ -177,12 +177,12 @@ func _run() -> void:
 	flora._ready_to_spawn = true
 	flora._on_season_changed("autumn")
 	explorer._refresh_selected()
-	_expect(manager.is_open("object_explorer") and explorer._object_id == apple_id, "selection survives visual despawn")
+	_expect(manager.is_open("object_explorer") and explorer._object_id == apple_id, "selection survives queued season refresh")
 	_expect(explorer._row_values[1].text == "In season", "season updates the fruit row")
 	await process_frame
-	var apple: Dictionary = flora._species[2]
-	var autumn_path: String = flora.resolve_tree_model_for_season(apple.stages.mature, "autumn", Vector3i(apple_id.x,20,apple_id.y))
-	var replacement: Node3D = flora._instance_tree("apple", autumn_path, "mature", apple.stages.mature, apple_id.x, apple_id.y, 20, 3)
+	var replacement: Node3D = flora._trees[apple_id].node
+	flora._refresh_tree_crop_visual(apple_id)
+	_expect(flora._trees[apple_id].node == replacement, "season art retains selected tree body")
 	explorer._refresh_selected()
 	_expect(explorer._outline.visible, "outline follows replacement model")
 	if "--capture" in OS.get_cmdline_user_args():

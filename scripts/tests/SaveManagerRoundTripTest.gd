@@ -100,6 +100,7 @@ func _run() -> void:
 	# autosave slot and must not mutate authoritative scene state.
 	var scene_before_autosave := JSON.stringify(_collect_scene_state())
 	_save_manager.call("_tick_autosave", 300.0)
+	if not await _wait_for_save(): _fail("autosave completion failed"); return
 	if not FileAccess.file_exists(TEST_AUTOSAVE):
 		_fail("five-minute timer did not create an autosave")
 		return
@@ -111,6 +112,7 @@ func _run() -> void:
 		_fail("autosave did not validate")
 		return
 	_save_manager.call("_tick_autosave", 300.0)
+	if not await _wait_for_save(): _fail("autosave completion failed"); return
 	if not FileAccess.file_exists(TEST_AUTOSAVE_BACKUP):
 		_fail("second autosave did not rotate the previous autosave to backup")
 		return
@@ -122,6 +124,7 @@ func _run() -> void:
 	if not bool(_save_manager.call("request_save")):
 		_fail("first validated save failed")
 		return
+	if not await _wait_for_save(): _fail("manual save completion failed"); return
 	var scene_after := JSON.stringify(_collect_scene_state())
 	if scene_before != scene_after:
 		_fail("saving mutated authoritative scene state")
@@ -139,6 +142,7 @@ func _run() -> void:
 	if not bool(_save_manager.call("request_save")):
 		_fail("second save/backup rotation failed")
 		return
+	if not await _wait_for_save(): _fail("manual backup save failed"); return
 	if not FileAccess.file_exists(TEST_BACKUP):
 		_fail("validated backup was not created")
 		return
@@ -210,6 +214,10 @@ func _run() -> void:
 		_fail(structural_error)
 		return
 
+	var worker_error: String = await preload("res://scripts/tests/SaveWorkerChecks.gd").run(self,_save_manager)
+	if not worker_error.is_empty():
+		_fail(worker_error)
+		return
 	var inflight_error := _run_inflight_carried_case()
 	if not inflight_error.is_empty():
 		_fail(inflight_error)
@@ -327,6 +335,7 @@ func _verify_structural_recovery(expected_seed: int) -> String:
 		# Saving over an invalid primary must retain the previous healthy backup.
 		if not bool(_save_manager.call("request_autosave" if autosave else "request_save")):
 			return "saving over invalid primary failed"
+		if not await _wait_for_save(): return "replacement save completion failed"
 		var retained_backup: Dictionary = _save_manager.call("_read_snapshot", backup)
 		if not retained_backup.ok or not _deep_diff(original_backup.snapshot, retained_backup.snapshot, "backup").is_empty():
 			return "invalid primary replaced the healthy backup"
@@ -1294,3 +1303,12 @@ func _cleanup_test_storage() -> void:
 	if DirAccess.dir_exists_absolute(absolute_directory):
 		# The fixed test directory is removed only when the exact files above left it empty.
 		DirAccess.remove_absolute(absolute_directory)
+
+
+func _wait_for_save() -> bool:
+	var started:=Time.get_ticks_msec()
+	while _save_manager.is_saving():
+		_save_manager._poll_save()
+		if Time.get_ticks_msec()-started>30000: return false
+		await process_frame
+	return bool(_save_manager.last_save_profile.get("success",false))

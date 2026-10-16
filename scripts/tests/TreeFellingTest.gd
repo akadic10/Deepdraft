@@ -113,10 +113,12 @@ func _run() -> void:
 	source = flora._felling_sources[oak_id]
 	# Season swap during work: no lost progress, reservation or lease.
 	flora._ready_to_spawn = true
+	var standing_tree: Node3D = flora._trees[oak_id].node
 	flora._on_season_changed("winter")
 	_expect(root.get_node("PlacedEntityRegistry").occupies(Vector3i(40,21,40)), "season rebuild preserves trunk navigation occupancy")
 	_expect(source.reserved_by == worker.dwarf_id and is_equal_approx(source.state.work_seconds, partial), "season swap preserves live job")
-	_spawn_tree("oak", "mature", oak_id)
+	flora._refresh_tree_crop_visual(oak_id)
+	_expect(flora._trees[oak_id].node == standing_tree, "season swaps art without replacing the working tree body")
 	_expect(await _until_felled(oak_id), "dwarf completes felling")
 	_check_stowed_axe("completion")
 	_expect(flora._trees[oak_id].node == null and flora.get_explorer_data(oak_id).is_empty(), "felled tree disappears and cannot be inspected")

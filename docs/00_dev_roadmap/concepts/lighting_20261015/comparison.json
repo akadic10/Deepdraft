@@ -1,0 +1,937 @@
+{
+  "lighting_20261015_before_30": {
+    "diagnostic_only": false,
+    "counts": {
+      "dwarves": 30,
+      "furniture": 0,
+      "nodes": 25006,
+      "surface_details": 2114,
+      "trees": 2953,
+      "water_columns": 24090,
+      "wildlife": 81,
+      "wildlife_points_in_camera_frustum": 3,
+      "wildlife_within_100_units_of_camera_target": 0
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 260.739,
+          "mean": 18.1214425339366,
+          "over_100": 2,
+          "over_16_7": 506,
+          "over_33_3": 51,
+          "over_50": 5,
+          "p50": 15.748,
+          "p95": 32.732,
+          "p99": 41.861
+        },
+        "lighting_ms": {
+          "max": 231.491,
+          "mean": 3.2404479638009,
+          "over_100": 1,
+          "over_16_7": 1,
+          "over_33_3": 1,
+          "over_50": 1,
+          "p50": 3.049,
+          "p95": 3.704,
+          "p99": 4.108
+        },
+        "assignment_counts": {
+          "FETCH_BUILD": 12,
+          "HAUL": 16,
+          "MINE": 12
+        },
+        "assignment_window_seconds": 21.632562,
+        "first_assignment_seconds": {
+          "FETCH_BUILD": 0.214306,
+          "HAUL": 0.639283,
+          "MINE": 0.127962
+        },
+        "work_after": {
+          "active": 21,
+          "built": 6,
+          "idle": 9,
+          "mined": 126,
+          "navigation": {
+            "nodes_expanded_total": 13879,
+            "path_cache_hits": 102,
+            "path_cache_size": 26,
+            "paths_served": 141,
+            "probes_run": 329,
+            "walkable_chunks_cached": 47
+          },
+          "stored": 26
+        },
+        "work_before": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "worker_sample_frames": 83,
+        "worker_samples": {
+          "FETCH_BUILD": 263,
+          "HAUL": 668,
+          "MINE": 975,
+          "idle": 584
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 46.253,
+          "mean": 16.664190674438,
+          "over_100": 0,
+          "over_16_7": 487,
+          "over_33_3": 23,
+          "over_50": 0,
+          "p50": 15.244,
+          "p95": 29.096,
+          "p99": 36.554
+        },
+        "lighting_ms": {
+          "max": 13.044,
+          "mean": 1.99087510407993,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 2.995,
+          "p95": 3.565,
+          "p99": 3.77
+        },
+        "assignment_counts": {
+          "FETCH_BUILD": 6,
+          "HAUL": 20,
+          "MINE": 10
+        },
+        "assignment_window_seconds": 21.63186,
+        "first_assignment_seconds": {
+          "FETCH_BUILD": 4.731068,
+          "HAUL": 1.955636,
+          "MINE": 1.401253
+        },
+        "work_after": {
+          "active": 21,
+          "built": 12,
+          "idle": 9,
+          "mined": 176,
+          "navigation": {
+            "nodes_expanded_total": 41496,
+            "path_cache_hits": 207,
+            "path_cache_size": 64,
+            "paths_served": 219,
+            "probes_run": 707,
+            "walkable_chunks_cached": 49
+          },
+          "stored": 62
+        },
+        "work_before": {
+          "active": 21,
+          "built": 6,
+          "idle": 9,
+          "mined": 126,
+          "navigation": {
+            "nodes_expanded_total": 13879,
+            "path_cache_hits": 102,
+            "path_cache_size": 26,
+            "paths_served": 141,
+            "probes_run": 329,
+            "walkable_chunks_cached": 47
+          },
+          "stored": 26
+        },
+        "worker_sample_frames": 85,
+        "worker_samples": {
+          "FETCH_BUILD": 392,
+          "HAUL": 692,
+          "MINE": 657,
+          "idle": 809
+        }
+      },
+      "paused_pan": {
+        "frame_ms": {
+          "max": 14.948,
+          "mean": 2.31622061378115,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 2.118,
+          "p95": 3.229,
+          "p99": 9.824
+        },
+        "lighting_ms": {
+          "max": 0.81,
+          "mean": 0.478395946728436,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.473,
+          "p95": 0.513,
+          "p99": 0.554
+        },
+        "assignment_counts": {},
+        "assignment_window_seconds": 22.1407,
+        "first_assignment_seconds": {},
+        "work_after": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "work_before": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "worker_sample_frames": 617,
+        "worker_samples": {
+          "idle": 18510
+        }
+      }
+    }
+  },
+  "lighting_20261015_trace_30": {
+    "diagnostic_only": true,
+    "counts": {
+      "dwarves": 30,
+      "furniture": 0,
+      "nodes": 25006,
+      "surface_details": 2114,
+      "trees": 2953,
+      "water_columns": 24090,
+      "wildlife": 81,
+      "wildlife_points_in_camera_frustum": 3,
+      "wildlife_within_100_units_of_camera_target": 0
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 257.605,
+          "mean": 17.1299392123288,
+          "over_100": 2,
+          "over_16_7": 472,
+          "over_33_3": 38,
+          "over_50": 3,
+          "p50": 14.814,
+          "p95": 30.298,
+          "p99": 38.913
+        },
+        "lighting_ms": {
+          "max": 236.731,
+          "mean": 3.22444520547945,
+          "over_100": 1,
+          "over_16_7": 6,
+          "over_33_3": 1,
+          "over_50": 1,
+          "p50": 3.033,
+          "p95": 3.587,
+          "p99": 3.949
+        },
+        "assignment_counts": {
+          "FETCH_BUILD": 10,
+          "HAUL": 16,
+          "MINE": 12
+        },
+        "assignment_window_seconds": 21.618698,
+        "first_assignment_seconds": {
+          "FETCH_BUILD": 0.214569,
+          "HAUL": 0.618496,
+          "MINE": 0.128943
+        },
+        "work_after": {
+          "active": 18,
+          "built": 6,
+          "idle": 12,
+          "mined": 126,
+          "navigation": {
+            "nodes_expanded_total": 15660,
+            "path_cache_hits": 98,
+            "path_cache_size": 26,
+            "paths_served": 140,
+            "probes_run": 342,
+            "walkable_chunks_cached": 47
+          },
+          "stored": 28
+        },
+        "work_before": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "worker_sample_frames": 87,
+        "worker_samples": {
+          "FETCH_BUILD": 283,
+          "HAUL": 716,
+          "MINE": 1027,
+          "idle": 584
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 79.128,
+          "mean": 16.7593559463987,
+          "over_100": 0,
+          "over_16_7": 490,
+          "over_33_3": 30,
+          "over_50": 1,
+          "p50": 14.724,
+          "p95": 30.226,
+          "p99": 37.454
+        },
+        "lighting_ms": {
+          "max": 21.299,
+          "mean": 1.89044974874372,
+          "over_100": 0,
+          "over_16_7": 1,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 1.1,
+          "p95": 3.555,
+          "p99": 3.778
+        },
+        "assignment_counts": {
+          "FETCH_BUILD": 9,
+          "HAUL": 18,
+          "MINE": 11
+        },
+        "assignment_window_seconds": 21.634421,
+        "first_assignment_seconds": {
+          "FETCH_BUILD": 3.248982,
+          "HAUL": 3.822412,
+          "MINE": 1.667031
+        },
+        "work_after": {
+          "active": 26,
+          "built": 12,
+          "idle": 4,
+          "mined": 181,
+          "navigation": {
+            "nodes_expanded_total": 45319,
+            "path_cache_hits": 204,
+            "path_cache_size": 55,
+            "paths_served": 220,
+            "probes_run": 663,
+            "walkable_chunks_cached": 48
+          },
+          "stored": 50
+        },
+        "work_before": {
+          "active": 18,
+          "built": 6,
+          "idle": 12,
+          "mined": 126,
+          "navigation": {
+            "nodes_expanded_total": 15660,
+            "path_cache_hits": 98,
+            "path_cache_size": 26,
+            "paths_served": 140,
+            "probes_run": 342,
+            "walkable_chunks_cached": 47
+          },
+          "stored": 28
+        },
+        "worker_sample_frames": 85,
+        "worker_samples": {
+          "FETCH_BUILD": 443,
+          "HAUL": 703,
+          "MINE": 663,
+          "idle": 741
+        }
+      },
+      "paused_pan": {
+        "frame_ms": {
+          "max": 11.559,
+          "mean": 2.33437441643325,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 2.136,
+          "p95": 3.245,
+          "p99": 9.865
+        },
+        "lighting_ms": {
+          "max": 0.859,
+          "mean": 0.487954598506064,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.483,
+          "p95": 0.522,
+          "p99": 0.557
+        },
+        "assignment_counts": {},
+        "assignment_window_seconds": 22.141318,
+        "first_assignment_seconds": {},
+        "work_after": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "work_before": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "worker_sample_frames": 613,
+        "worker_samples": {
+          "idle": 18390
+        }
+      }
+    }
+  },
+  "lighting_20261015_after_30": {
+    "diagnostic_only": false,
+    "counts": {
+      "dwarves": 30,
+      "furniture": 0,
+      "nodes": 25006,
+      "surface_details": 2114,
+      "trees": 2953,
+      "water_columns": 24090,
+      "wildlife": 81,
+      "wildlife_points_in_camera_frustum": 3,
+      "wildlife_within_100_units_of_camera_target": 0
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 168.178,
+          "mean": 17.037601362862,
+          "over_100": 1,
+          "over_16_7": 474,
+          "over_33_3": 37,
+          "over_50": 1,
+          "p50": 14.879,
+          "p95": 31.526,
+          "p99": 40.189
+        },
+        "lighting_ms": {
+          "max": 5.775,
+          "mean": 2.89934838160136,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 3.028,
+          "p95": 3.569,
+          "p99": 3.789
+        },
+        "assignment_counts": {
+          "FETCH_BUILD": 10,
+          "HAUL": 16,
+          "MINE": 12
+        },
+        "assignment_window_seconds": 21.615095,
+        "first_assignment_seconds": {
+          "FETCH_BUILD": 0.212552,
+          "HAUL": 0.640147,
+          "MINE": 0.127745
+        },
+        "work_after": {
+          "active": 17,
+          "built": 6,
+          "idle": 13,
+          "mined": 126,
+          "navigation": {
+            "nodes_expanded_total": 14922,
+            "path_cache_hits": 98,
+            "path_cache_size": 29,
+            "paths_served": 139,
+            "probes_run": 321,
+            "walkable_chunks_cached": 47
+          },
+          "stored": 30
+        },
+        "work_before": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "worker_sample_frames": 88,
+        "worker_samples": {
+          "FETCH_BUILD": 251,
+          "HAUL": 665,
+          "MINE": 1039,
+          "idle": 685
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 47.874,
+          "mean": 16.6027692946058,
+          "over_100": 0,
+          "over_16_7": 475,
+          "over_33_3": 38,
+          "over_50": 0,
+          "p50": 14.551,
+          "p95": 30.424,
+          "p99": 37.188
+        },
+        "lighting_ms": {
+          "max": 4.269,
+          "mean": 1.76486887966805,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.997,
+          "p95": 3.552,
+          "p99": 3.73
+        },
+        "assignment_counts": {
+          "FETCH_BUILD": 11,
+          "HAUL": 18,
+          "MINE": 12
+        },
+        "assignment_window_seconds": 21.628964,
+        "first_assignment_seconds": {
+          "FETCH_BUILD": 3.2999,
+          "HAUL": 5.589563,
+          "MINE": 1.524901
+        },
+        "work_after": {
+          "active": 28,
+          "built": 16,
+          "idle": 2,
+          "mined": 181,
+          "navigation": {
+            "nodes_expanded_total": 38982,
+            "path_cache_hits": 207,
+            "path_cache_size": 54,
+            "paths_served": 210,
+            "probes_run": 665,
+            "walkable_chunks_cached": 49
+          },
+          "stored": 46
+        },
+        "work_before": {
+          "active": 17,
+          "built": 6,
+          "idle": 13,
+          "mined": 126,
+          "navigation": {
+            "nodes_expanded_total": 14922,
+            "path_cache_hits": 98,
+            "path_cache_size": 29,
+            "paths_served": 139,
+            "probes_run": 321,
+            "walkable_chunks_cached": 47
+          },
+          "stored": 30
+        },
+        "worker_sample_frames": 85,
+        "worker_samples": {
+          "FETCH_BUILD": 423,
+          "HAUL": 656,
+          "MINE": 649,
+          "idle": 822
+        }
+      },
+      "paused_pan": {
+        "frame_ms": {
+          "max": 13.198,
+          "mean": 2.33183444094672,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 2.138,
+          "p95": 3.157,
+          "p99": 9.834
+        },
+        "lighting_ms": {
+          "max": 0.796,
+          "mean": 0.482672379619919,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.478,
+          "p95": 0.516,
+          "p99": 0.556
+        },
+        "assignment_counts": {},
+        "assignment_window_seconds": 22.1453,
+        "first_assignment_seconds": {},
+        "work_after": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "work_before": {
+          "active": 0,
+          "built": 0,
+          "idle": 30,
+          "mined": 0,
+          "navigation": {
+            "nodes_expanded_total": 0,
+            "path_cache_hits": 0,
+            "path_cache_size": 0,
+            "paths_served": 0,
+            "probes_run": 0,
+            "walkable_chunks_cached": 0
+          },
+          "stored": 0
+        },
+        "worker_sample_frames": 613,
+        "worker_samples": {
+          "idle": 18390
+        }
+      }
+    }
+  },
+  "lighting_20261015_saved_before": {
+    "diagnostic_only": false,
+    "counts": {
+      "dwarves": 5,
+      "furniture": 20,
+      "nodes": 22339,
+      "surface_details": 2137,
+      "trees": 2925,
+      "water_columns": 19322,
+      "wildlife": 79,
+      "wildlife_points_in_camera_frustum": 0,
+      "wildlife_within_100_units_of_camera_target": 0
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 26.397,
+          "mean": 7.68730355427473,
+          "over_100": 0,
+          "over_16_7": 58,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 6.378,
+          "p95": 17.683,
+          "p99": 22.075
+        },
+        "lighting_ms": {
+          "max": 2.874,
+          "mean": 0.362491834774255,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.083,
+          "p95": 2.14,
+          "p99": 2.547
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 29.147,
+          "mean": 7.91237549407114,
+          "over_100": 0,
+          "over_16_7": 62,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 6.454,
+          "p95": 17.904,
+          "p99": 22.816
+        },
+        "lighting_ms": {
+          "max": 3.088,
+          "mean": 0.385831027667985,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.084,
+          "p95": 2.198,
+          "p99": 2.757
+        }
+      },
+      "active_static": {
+        "frame_ms": {
+          "max": 25.241,
+          "mean": 7.659995215311,
+          "over_100": 0,
+          "over_16_7": 61,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 6.299,
+          "p95": 17.43,
+          "p99": 22.146
+        },
+        "lighting_ms": {
+          "max": 3.734,
+          "mean": 0.372371291866029,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.084,
+          "p95": 2.16,
+          "p99": 2.608
+        }
+      },
+      "paused_pan": {
+        "frame_ms": {
+          "max": 5.011,
+          "mean": 1.6749593887377,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 1.592,
+          "p95": 1.948,
+          "p99": 3.197
+        },
+        "lighting_ms": {
+          "max": 0.166,
+          "mean": 0.0829049612727638,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.081,
+          "p95": 0.102,
+          "p99": 0.117
+        }
+      },
+      "paused_static": {
+        "frame_ms": {
+          "max": 4.732,
+          "mean": 1.78341440035667,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 1.696,
+          "p95": 2.093,
+          "p99": 3.257
+        },
+        "lighting_ms": {
+          "max": 0.197,
+          "mean": 0.0836127953633516,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.081,
+          "p95": 0.104,
+          "p99": 0.12
+        }
+      }
+    }
+  },
+  "lighting_20261015_saved_after": {
+    "diagnostic_only": false,
+    "counts": {
+      "dwarves": 5,
+      "furniture": 20,
+      "nodes": 22339,
+      "surface_details": 2137,
+      "trees": 2925,
+      "water_columns": 19322,
+      "wildlife": 79,
+      "wildlife_points_in_camera_frustum": 0,
+      "wildlife_within_100_units_of_camera_target": 0
+    },
+    "phases": {
+      "active_pan": {
+        "frame_ms": {
+          "max": 26.966,
+          "mean": 7.79736744639377,
+          "over_100": 0,
+          "over_16_7": 58,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 6.544,
+          "p95": 17.365,
+          "p99": 22.728
+        },
+        "lighting_ms": {
+          "max": 3.063,
+          "mean": 0.379237816764133,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.084,
+          "p95": 2.228,
+          "p99": 2.533
+        }
+      },
+      "active_pan_repeat": {
+        "frame_ms": {
+          "max": 28.168,
+          "mean": 7.86849754178958,
+          "over_100": 0,
+          "over_16_7": 64,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 6.542,
+          "p95": 18.266,
+          "p99": 23.07
+        },
+        "lighting_ms": {
+          "max": 3.183,
+          "mean": 0.378098328416913,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.084,
+          "p95": 2.138,
+          "p99": 2.549
+        }
+      },
+      "active_static": {
+        "frame_ms": {
+          "max": 25.031,
+          "mean": 7.73200579710145,
+          "over_100": 0,
+          "over_16_7": 61,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 6.387,
+          "p95": 17.838,
+          "p99": 22.048
+        },
+        "lighting_ms": {
+          "max": 3.293,
+          "mean": 0.376940096618358,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.084,
+          "p95": 2.235,
+          "p99": 2.611
+        }
+      },
+      "paused_pan": {
+        "frame_ms": {
+          "max": 5.989,
+          "mean": 1.6783018670023,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 1.585,
+          "p95": 1.976,
+          "p99": 3.256
+        },
+        "lighting_ms": {
+          "max": 0.174,
+          "mean": 0.0832080973358486,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.081,
+          "p95": 0.103,
+          "p99": 0.118
+        }
+      },
+      "paused_static": {
+        "frame_ms": {
+          "max": 4.855,
+          "mean": 1.77968616548043,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 1.681,
+          "p95": 2.149,
+          "p99": 3.315
+        },
+        "lighting_ms": {
+          "max": 0.18,
+          "mean": 0.083711521352312,
+          "over_100": 0,
+          "over_16_7": 0,
+          "over_33_3": 0,
+          "over_50": 0,
+          "p50": 0.081,
+          "p95": 0.104,
+          "p99": 0.121
+        }
+      }
+    }
+  }
+}

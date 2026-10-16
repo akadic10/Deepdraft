@@ -1,0 +1,58 @@
+[
+  {
+    "test": "WeatherPersistenceTest",
+    "clean": true,
+    "native": false,
+    "exit": 0
+  },
+  {
+    "test": "SkySceneLifecycleTest",
+    "clean": true,
+    "native": false,
+    "exit": 0
+  },
+  {
+    "test": "TerrainAppearanceTest",
+    "clean": true,
+    "native": false,
+    "exit": 0
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "clean": true,
+    "native": false,
+    "exit": 0
+  },
+  {
+    "test": "UndergroundLightingTest",
+    "clean": true,
+    "native": true,
+    "exit": 0
+  },
+  {
+    "test": "TunnelEntranceTest",
+    "clean": true,
+    "native": true,
+    "exit": 0
+  },
+  {
+    "test": "RoomLightingTest",
+    "clean": true,
+    "native": true,
+    "exit": 0
+  },
+  {
+    "test": "DoorLightingTest",
+    "clean": true,
+    "native": true,
+    "exit": 0
+  },
+  {
+    "exit": 0,
+    "test": "DwarfLimbLightingTest",
+    "native": true,
+    "clean": true,
+    "evidence_path": "dwarf_retry/DwarfLimbLightingTest",
+    "initial_attempt": "Color samples passed, but an empty profile path segment prevented shader-cache creation. Final rerun uses a normalized isolated profile."
+  }
+]

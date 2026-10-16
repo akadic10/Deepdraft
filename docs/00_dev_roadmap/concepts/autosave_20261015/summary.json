@@ -1,0 +1,676 @@
+[
+  {
+    "label": "autosave_before_5",
+    "population": 5,
+    "frames": {
+      "max": 1429.788,
+      "mean": 19.8371459192086,
+      "over_100": 2,
+      "over_16_7": 596,
+      "over_33_3": 90,
+      "over_50": 12,
+      "p50": 16.394,
+      "p95": 37.108,
+      "p99": 49.484
+    },
+    "requests_ms": [
+      816.598,
+      1413.844
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "seconds": 6.819192
+      },
+      {
+        "ok": true,
+        "seconds": 15.42793
+      }
+    ],
+    "progress": {
+      "mined": 39,
+      "built": 0,
+      "stored": 8
+    },
+    "save_manager_sha256": "3f1bfbab31f19ab699473cef6b2f834c3b6a9ed7f6059b594f1e1f3a6199b0b9",
+    "validator_sha256": "7f6bec17346f8e5f16e905d2a1d0ba221ed2b0878de1638984f5b125b45b1fe7"
+  },
+  {
+    "label": "autosave_before_20",
+    "population": 20,
+    "frames": {
+      "max": 1442.273,
+      "mean": 31.7378471673254,
+      "over_100": 2,
+      "over_16_7": 656,
+      "over_33_3": 223,
+      "over_50": 37,
+      "p50": 27.401,
+      "p95": 48.663,
+      "p99": 69.05
+    },
+    "requests_ms": [
+      867.64,
+      1400.721
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "seconds": 6.87968
+      },
+      {
+        "ok": true,
+        "seconds": 15.412847
+      }
+    ],
+    "progress": {
+      "mined": 47,
+      "built": 2,
+      "stored": 16
+    },
+    "save_manager_sha256": "3f1bfbab31f19ab699473cef6b2f834c3b6a9ed7f6059b594f1e1f3a6199b0b9",
+    "validator_sha256": "7f6bec17346f8e5f16e905d2a1d0ba221ed2b0878de1638984f5b125b45b1fe7"
+  },
+  {
+    "label": "autosave_profile_before_30",
+    "population": 30,
+    "frames": {
+      "max": 1347.087,
+      "mean": 21.9740939781022,
+      "over_100": 2,
+      "over_16_7": 624,
+      "over_33_3": 103,
+      "over_50": 14,
+      "p50": 18.151,
+      "p95": 38.379,
+      "p99": 51.153
+    },
+    "requests_ms": [
+      766.225,
+      1334.408
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "seconds": 6.771039
+      },
+      {
+        "ok": true,
+        "seconds": 15.334893
+      }
+    ],
+    "progress": {
+      "mined": 49,
+      "built": 1,
+      "stored": 15
+    },
+    "save_manager_sha256": "3f1bfbab31f19ab699473cef6b2f834c3b6a9ed7f6059b594f1e1f3a6199b0b9",
+    "validator_sha256": "7f6bec17346f8e5f16e905d2a1d0ba221ed2b0878de1638984f5b125b45b1fe7"
+  },
+  {
+    "label": "autosave_after_trial_30",
+    "population": 30,
+    "frames": {
+      "max": 83.242,
+      "mean": 30.337297979798,
+      "over_100": 0,
+      "over_16_7": 718,
+      "over_33_3": 276,
+      "over_50": 59,
+      "p50": 28.832,
+      "p95": 53.131,
+      "p99": 63.943
+    },
+    "requests_ms": [
+      17.157,
+      14.91
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 17.134,
+          "completion_ms": 0.041,
+          "elapsed_ms": 1211.687,
+          "owners": {
+            "bridges": 0.009,
+            "camera": 0.005,
+            "construction": 0.161,
+            "dwarves": 0.958,
+            "flora": 0.041,
+            "furniture": 0.069,
+            "items": 0.902,
+            "jobs": 0.523,
+            "ladders": 0.002,
+            "mining": 0.235,
+            "settlement_flag": 0.003,
+            "slice": 0.004,
+            "stockpiles": 0.232,
+            "surface_details": 1.409,
+            "water": 11.603,
+            "wildlife": 0.743,
+            "worker_crafting": 0.013,
+            "world_events": 0.023
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 19.727,
+            "encode_json": 77.223,
+            "parse_json": 91.626,
+            "prepare": 174.918,
+            "read_bytes": 6.117,
+            "transaction": 970.409,
+            "validate": 751.023
+          }
+        },
+        "seconds": 7.266466
+      },
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 14.885,
+          "completion_ms": 0.02,
+          "elapsed_ms": 2114.842,
+          "owners": {
+            "bridges": 0.009,
+            "camera": 0.004,
+            "construction": 0.149,
+            "dwarves": 0.606,
+            "flora": 0.04,
+            "furniture": 0.064,
+            "items": 0.537,
+            "jobs": 0.543,
+            "ladders": 0.002,
+            "mining": 0.221,
+            "settlement_flag": 0.002,
+            "slice": 0.004,
+            "stockpiles": 0.208,
+            "surface_details": 1.16,
+            "water": 10.593,
+            "wildlife": 0.542,
+            "worker_crafting": 0.011,
+            "world_events": 0.018
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 16.433,
+            "encode_json": 75.144,
+            "parse_json": 191.03,
+            "prepare": 176.409,
+            "read_bytes": 12.626,
+            "transaction": 1903.303,
+            "validate": 1528.821
+          }
+        },
+        "seconds": 16.139252
+      }
+    ],
+    "progress": {
+      "mined": 50,
+      "built": 1,
+      "stored": 15
+    },
+    "save_manager_sha256": "a5d1833d01d5e4a18fa8f838170c2a8784db6a94d94900232fea5e0cb5dbba0a",
+    "validator_sha256": "5c89c73b745cf25e1ccff4a82c97313b68243ea70b3b305227c61d48d95e6641"
+  },
+  {
+    "label": "autosave_after_5",
+    "population": 5,
+    "frames": {
+      "max": 60.762,
+      "mean": 17.7415557195572,
+      "over_100": 0,
+      "over_16_7": 634,
+      "over_33_3": 102,
+      "over_50": 6,
+      "p50": 15.893,
+      "p95": 35.873,
+      "p99": 45.452
+    },
+    "requests_ms": [
+      14.826,
+      14.688
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 14.804,
+          "completion_ms": 0.039,
+          "elapsed_ms": 1170.585,
+          "owners": {
+            "bridges": 0.008,
+            "camera": 0.005,
+            "construction": 0.146,
+            "dwarves": 0.128,
+            "flora": 0.037,
+            "furniture": 0.056,
+            "items": 0.598,
+            "jobs": 0.594,
+            "ladders": 0.002,
+            "mining": 0.233,
+            "settlement_flag": 0.003,
+            "slice": 0.003,
+            "stockpiles": 0.22,
+            "surface_details": 1.184,
+            "water": 10.87,
+            "wildlife": 0.5,
+            "worker_crafting": 0.012,
+            "world_events": 0.016
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 18.023,
+            "encode_json": 74.66,
+            "parse_json": 92.958,
+            "prepare": 157.505,
+            "read_bytes": 5.625,
+            "transaction": 962.459,
+            "validate": 743.385
+          }
+        },
+        "seconds": 7.182982
+      },
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 14.662,
+          "completion_ms": 0.009,
+          "elapsed_ms": 1997.759,
+          "owners": {
+            "bridges": 0.008,
+            "camera": 0.005,
+            "construction": 0.149,
+            "dwarves": 0.13,
+            "flora": 0.039,
+            "furniture": 0.062,
+            "items": 0.592,
+            "jobs": 0.528,
+            "ladders": 0.003,
+            "mining": 0.227,
+            "settlement_flag": 0.002,
+            "slice": 0.003,
+            "stockpiles": 0.228,
+            "surface_details": 1.16,
+            "water": 10.831,
+            "wildlife": 0.475,
+            "worker_crafting": 0.012,
+            "world_events": 0.015
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 16.534,
+            "encode_json": 75.678,
+            "parse_json": 178.442,
+            "prepare": 177.805,
+            "read_bytes": 12.37,
+            "transaction": 1784.017,
+            "validate": 1427.998
+          }
+        },
+        "seconds": 16.035466
+      }
+    ],
+    "progress": {
+      "mined": 44,
+      "built": 0,
+      "stored": 8
+    },
+    "save_manager_sha256": "af6ece005da64051c0d42d1f16a1bde605c9bebed610a09d749c405fe2b7d9cc",
+    "validator_sha256": "8a732e4e1e8c922e333cebdc3ba4b5eafee57b2398ee20182916e172fc74beff"
+  },
+  {
+    "label": "autosave_after_20",
+    "population": 20,
+    "frames": {
+      "max": 96.425,
+      "mean": 28.3299893867925,
+      "over_100": 0,
+      "over_16_7": 720,
+      "over_33_3": 247,
+      "over_50": 38,
+      "p50": 26.436,
+      "p95": 47.963,
+      "p99": 64.646
+    },
+    "requests_ms": [
+      15.824,
+      15.071
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 15.796,
+          "completion_ms": 0.069,
+          "elapsed_ms": 1200.739,
+          "owners": {
+            "bridges": 0.009,
+            "camera": 0.006,
+            "construction": 0.185,
+            "dwarves": 0.389,
+            "flora": 0.04,
+            "furniture": 0.089,
+            "items": 0.557,
+            "jobs": 0.731,
+            "ladders": 0.003,
+            "mining": 0.225,
+            "settlement_flag": 0.002,
+            "slice": 0.004,
+            "stockpiles": 0.225,
+            "surface_details": 1.187,
+            "water": 11.363,
+            "wildlife": 0.479,
+            "worker_crafting": 0.013,
+            "world_events": 0.017
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 19.686,
+            "encode_json": 80.629,
+            "parse_json": 92.268,
+            "prepare": 163.563,
+            "read_bytes": 5.438,
+            "transaction": 951.744,
+            "validate": 724.137
+          }
+        },
+        "seconds": 7.227936
+      },
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 15.042,
+          "completion_ms": 0.081,
+          "elapsed_ms": 2158.936,
+          "owners": {
+            "bridges": 0.01,
+            "camera": 0.004,
+            "construction": 0.176,
+            "dwarves": 0.469,
+            "flora": 0.04,
+            "furniture": 0.074,
+            "items": 0.539,
+            "jobs": 0.539,
+            "ladders": 0.003,
+            "mining": 0.223,
+            "settlement_flag": 0.002,
+            "slice": 0.004,
+            "stockpiles": 0.222,
+            "surface_details": 1.178,
+            "water": 10.866,
+            "wildlife": 0.487,
+            "worker_crafting": 0.014,
+            "world_events": 0.018
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 17.639,
+            "encode_json": 78.132,
+            "parse_json": 189.707,
+            "prepare": 171.798,
+            "read_bytes": 12.328,
+            "transaction": 1948.335,
+            "validate": 1569.452
+          }
+        },
+        "seconds": 16.167565
+      }
+    ],
+    "progress": {
+      "mined": 51,
+      "built": 1,
+      "stored": 16
+    },
+    "save_manager_sha256": "af6ece005da64051c0d42d1f16a1bde605c9bebed610a09d749c405fe2b7d9cc",
+    "validator_sha256": "8a732e4e1e8c922e333cebdc3ba4b5eafee57b2398ee20182916e172fc74beff"
+  },
+  {
+    "label": "autosave_after_30",
+    "population": 30,
+    "frames": {
+      "max": 101.907,
+      "mean": 30.9639136597938,
+      "over_100": 1,
+      "over_16_7": 711,
+      "over_33_3": 283,
+      "over_50": 47,
+      "p50": 29.666,
+      "p95": 51.835,
+      "p99": 68.423
+    },
+    "requests_ms": [
+      15.255,
+      17.578
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 15.23,
+          "completion_ms": 0.014,
+          "elapsed_ms": 1155.877,
+          "owners": {
+            "bridges": 0.007,
+            "camera": 0.005,
+            "construction": 0.177,
+            "dwarves": 0.614,
+            "flora": 0.039,
+            "furniture": 0.063,
+            "items": 0.48,
+            "jobs": 0.51,
+            "ladders": 0.003,
+            "mining": 0.228,
+            "settlement_flag": 0.003,
+            "slice": 0.004,
+            "stockpiles": 0.237,
+            "surface_details": 1.252,
+            "water": 10.865,
+            "wildlife": 0.531,
+            "worker_crafting": 0.01,
+            "world_events": 0.023
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 19.111,
+            "encode_json": 64.806,
+            "parse_json": 99.576,
+            "prepare": 177.581,
+            "read_bytes": 5.744,
+            "transaction": 899.146,
+            "validate": 684.677
+          }
+        },
+        "seconds": 7.174765
+      },
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 17.552,
+          "completion_ms": 0.01,
+          "elapsed_ms": 1989.571,
+          "owners": {
+            "bridges": 0.009,
+            "camera": 0.008,
+            "construction": 0.169,
+            "dwarves": 0.869,
+            "flora": 0.056,
+            "furniture": 0.081,
+            "items": 0.461,
+            "jobs": 0.7,
+            "ladders": 0.004,
+            "mining": 0.234,
+            "settlement_flag": 0.002,
+            "slice": 0.006,
+            "stockpiles": 0.208,
+            "surface_details": 1.458,
+            "water": 12.568,
+            "wildlife": 0.504,
+            "worker_crafting": 0.011,
+            "world_events": 0.019
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 17.224,
+            "encode_json": 64.28,
+            "parse_json": 183.178,
+            "prepare": 156.303,
+            "read_bytes": 12.641,
+            "transaction": 1751.018,
+            "validate": 1394.41
+          }
+        },
+        "seconds": 16.030742
+      }
+    ],
+    "progress": {
+      "mined": 51,
+      "built": 1,
+      "stored": 17
+    },
+    "save_manager_sha256": "af6ece005da64051c0d42d1f16a1bde605c9bebed610a09d749c405fe2b7d9cc",
+    "validator_sha256": "8a732e4e1e8c922e333cebdc3ba4b5eafee57b2398ee20182916e172fc74beff"
+  },
+  {
+    "label": "autosave_before_repeat_30",
+    "population": 30,
+    "frames": {
+      "max": 1414.716,
+      "mean": 33.1601887052341,
+      "over_100": 3,
+      "over_16_7": 652,
+      "over_33_3": 239,
+      "over_50": 44,
+      "p50": 28.564,
+      "p95": 52.366,
+      "p99": 72.439
+    },
+    "requests_ms": [
+      813.316,
+      1396.819
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "seconds": 6.827727
+      },
+      {
+        "ok": true,
+        "seconds": 15.409097
+      }
+    ],
+    "progress": {
+      "mined": 47,
+      "built": 1,
+      "stored": 12
+    },
+    "save_manager_sha256": "3f1bfbab31f19ab699473cef6b2f834c3b6a9ed7f6059b594f1e1f3a6199b0b9",
+    "validator_sha256": "7f6bec17346f8e5f16e905d2a1d0ba221ed2b0878de1638984f5b125b45b1fe7"
+  },
+  {
+    "label": "autosave_after_repeat_30",
+    "population": 30,
+    "frames": {
+      "max": 79.781,
+      "mean": 30.1372155388471,
+      "over_100": 0,
+      "over_16_7": 715,
+      "over_33_3": 267,
+      "over_50": 54,
+      "p50": 28.462,
+      "p95": 52.733,
+      "p99": 68.911
+    },
+    "requests_ms": [
+      15.95,
+      15.365
+    ],
+    "completions": [
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 15.919,
+          "completion_ms": 0.018,
+          "elapsed_ms": 1179.015,
+          "owners": {
+            "bridges": 0.009,
+            "camera": 0.006,
+            "construction": 0.165,
+            "dwarves": 0.744,
+            "flora": 0.041,
+            "furniture": 0.074,
+            "items": 0.557,
+            "jobs": 0.594,
+            "ladders": 0.002,
+            "mining": 0.22,
+            "settlement_flag": 0.002,
+            "slice": 0.004,
+            "stockpiles": 0.266,
+            "surface_details": 1.258,
+            "water": 11.172,
+            "wildlife": 0.496,
+            "worker_crafting": 0.013,
+            "world_events": 0.016
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 14.295,
+            "encode_json": 72.888,
+            "parse_json": 95.116,
+            "prepare": 177.652,
+            "read_bytes": 6.118,
+            "transaction": 967.98,
+            "validate": 744.58
+          }
+        },
+        "seconds": 7.216155
+      },
+      {
+        "ok": true,
+        "profile": {
+          "capture_ms": 15.34,
+          "completion_ms": 0.085,
+          "elapsed_ms": 2049.576,
+          "owners": {
+            "bridges": 0.009,
+            "camera": 0.006,
+            "construction": 0.171,
+            "dwarves": 0.635,
+            "flora": 0.039,
+            "furniture": 0.063,
+            "items": 0.648,
+            "jobs": 0.552,
+            "ladders": 0.002,
+            "mining": 0.239,
+            "settlement_flag": 0.005,
+            "slice": 0.004,
+            "stockpiles": 0.184,
+            "surface_details": 1.202,
+            "water": 10.839,
+            "wildlife": 0.53,
+            "worker_crafting": 0.01,
+            "world_events": 0.022
+          },
+          "success": true,
+          "worker": {
+            "cleanup": 14.166,
+            "encode_json": 72.528,
+            "parse_json": 185.877,
+            "prepare": 173.333,
+            "read_bytes": 12.287,
+            "transaction": 1826.185,
+            "validate": 1462.282
+          }
+        },
+        "seconds": 16.103426
+      }
+    ],
+    "progress": {
+      "mined": 50,
+      "built": 1,
+      "stored": 16
+    },
+    "save_manager_sha256": "af6ece005da64051c0d42d1f16a1bde605c9bebed610a09d749c405fe2b7d9cc",
+    "validator_sha256": "8a732e4e1e8c922e333cebdc3ba4b5eafee57b2398ee20182916e172fc74beff"
+  }
+]

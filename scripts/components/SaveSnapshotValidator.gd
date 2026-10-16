@@ -114,10 +114,10 @@ static func _construction_cell(cell: Vector3i) -> bool:
 	return cell.x>=0 and cell.x<1024 and cell.y>3 and cell.y<128 and cell.z>=0 and cell.z<1024
 
 
-static func validate(snapshot: Dictionary, schema_version: int) -> String:
+static func validate_captured(snapshot: Dictionary, schema_version: int, catalogs: Dictionary) -> String:
 	# Check metadata before comparing/casting it. JSON decodes numbers as floats,
 	# so whole finite numbers are accepted where serializers supply integers.
-	var error := _validate(snapshot, SNAPSHOT, "save")
+	var error := _validate(snapshot, SNAPSHOT, "save", catalogs)
 	if not error.is_empty(): return error
 	if snapshot.project != "Deepdraft": return "this file belongs to a different project."
 	if snapshot.schema_version < 1: return "the save schema is missing."
@@ -132,11 +132,11 @@ static func validate(snapshot: Dictionary, schema_version: int) -> String:
 	for entry: Dictionary in construction.built:
 		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
 		if not _construction_cell(cell) or construction_cells.has(cell) \
-			or String(BlockRegistry.get_def(StringName(entry.block)).get("kind","")) not in ["rock","constructed_floor"]:
+			or String(catalogs.blocks.get(entry.block,{}).get("kind","")) not in ["rock","constructed_floor"]:
 			return "save.scene.construction has an invalid constructed block."
 		construction_cells[cell] = true
 	for order: Dictionary in construction.orders:
-		if BlockRegistry.get_construction_def(String(order.kind)).is_empty(): return "save.scene.construction has an unknown construction type."
+		if not catalogs.construction.has(String(order.kind)): return "save.scene.construction has an unknown construction type."
 		if order.id >= construction.next_id or construction_ids.has(order.id) or order.cells.is_empty(): return "save.scene.construction has an invalid order."
 		construction_ids[order.id] = true
 		for entry: Dictionary in order.cells:
@@ -210,10 +210,10 @@ static func validate(snapshot: Dictionary, schema_version: int) -> String:
 			seen[str(p)] = true
 	for section: String in snapshot.scene:
 		if not snapshot.scene[section] is Dictionary: return "save.scene.%s must be a dictionary." % section
-	return _validate_stones(snapshot.scene)
+	return _validate_stones(snapshot.scene,catalogs)
 
 
-static func _validate_stones(scene: Dictionary) -> String:
+static func _validate_stones(scene: Dictionary, catalogs: Dictionary) -> String:
 	if not scene.water.stones.has("wet") or not scene.water.stones.has("dry"):
 		return "save.scene.water is missing a natural stone identity."
 	var owners := {}
@@ -233,7 +233,7 @@ static func _validate_stones(scene: Dictionary) -> String:
 	for piece: Dictionary in scene.furniture.installed: goods.append_array(piece.get("instances",[]))
 	for dwarf: Dictionary in scene.dwarves.roster:
 		goods.append_array(dwarf.carried_items)
-		if not CraftMaterials.valid(String(dwarf.equipment.get("material_id", ""))): return "save.scene has an unknown equipped material."
+		if not catalogs.materials.has(String(dwarf.equipment.get("material_id", ""))): return "save.scene has an unknown equipped material."
 	for item: Dictionary in goods:
 		var key := String(item.get("item_key", item.get("item", "")))
 		if key not in ["base:resources:water:wet_stone", "base:resources:water:dry_stone"]: continue
@@ -284,13 +284,13 @@ static func _validate_furniture_moves(scene: Dictionary, goods: Array) -> String
 	return ""
 
 
-static func _validate(value: Variant, rule: Variant, path: String) -> String:
+static func _validate(value: Variant, rule: Variant, path: String, catalogs: Dictionary) -> String:
 	if rule is Dictionary:
 		if not value is Dictionary: return path + " must be a dictionary."
 		if rule.has("*"):
 			for key: Variant in value:
 				if not key is String: return path + " must have string keys."
-				var error := _validate(value[key], rule["*"], path + "." + key)
+				var error := _validate(value[key], rule["*"], path + "." + key, catalogs)
 				if not error.is_empty(): return error
 		else:
 			for field: String in rule:
@@ -298,13 +298,13 @@ static func _validate(value: Variant, rule: Variant, path: String) -> String:
 				if not value.has(key):
 					if field.begins_with("?"): continue
 					return path + "." + key + " is missing."
-				var error := _validate(value[key], rule[field], path + "." + key)
+				var error := _validate(value[key], rule[field], path + "." + key, catalogs)
 				if not error.is_empty(): return error
 		return ""
 	if rule is Array:
 		if not value is Array: return path + " must be an array."
 		for index in value.size():
-			var error := _validate(value[index], rule[0], "%s[%d]" % [path, index])
+			var error := _validate(value[index], rule[0], "%s[%d]" % [path, index], catalogs)
 			if not error.is_empty(): return error
 		return ""
 	if rule is int:
@@ -318,7 +318,7 @@ static func _validate(value: Variant, rule: Variant, path: String) -> String:
 	match rule:
 		"duck":
 			for schema: Dictionary in [ANIMAL,DUCK]:
-				var error := _validate(value,schema,path)
+				var error := _validate(value,schema,path,catalogs)
 				if not error.is_empty(): return error
 			if value.sex not in ["male","female"] or value.mode not in ["land","water","air"]: return path+" has an invalid duck state."
 			if not value.flight.is_empty() and (value.flight.size()<2 or value.flight_index>=value.flight.size() or value.mode!="air"): return path+" has an invalid flight."
@@ -329,7 +329,7 @@ static func _validate(value: Variant, rule: Variant, path: String) -> String:
 				if value[field]<0: return path+" has a negative timer."
 			return ""
 		"material":
-			return "" if value is String and CraftMaterials.valid(value) else "%s has an unknown material." % path
+			return "" if value is String and catalogs.materials.has(value) else "%s has an unknown material." % path
 		"key":
 			if value is String and not value.is_empty(): return ""
 			return path + " must be a non-empty string."
@@ -344,12 +344,12 @@ static func _validate(value: Variant, rule: Variant, path: String) -> String:
 			if not value is Array or value.size() != 3: return path + " must have three coordinates."
 			for index in 3:
 				var error := _validate(value[index], TYPE_INT if rule == "cell" else TYPE_FLOAT,
-					"%s[%d]" % [path, index])
+					"%s[%d]" % [path, index], catalogs)
 				if not error.is_empty(): return error
 			return ""
 		"active_event":
 			if value is Dictionary and value.is_empty(): return ""
-			var error := _validate(value, ACTIVE_EVENT, path)
+			var error := _validate(value, ACTIVE_EVENT, path, catalogs)
 			if not error.is_empty(): return error
 			if value.id.begins_with("duck_arrival:") and not value.route.is_empty():
 				if not value.has("member_routes") or value.member_routes.size()!=value.count or value.issued<0 or value.issued>=value.count: return path+" has invalid duck arrival members."

@@ -1,0 +1,5 @@
+ERROR: same-season clock restoration refreshes saved crop visuals for its year
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/tests/JuniperHarvestTest.gd:116)
+       [1] _until_felled (res://scripts/tests/TreeFellingTest.gd:456)

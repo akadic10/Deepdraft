@@ -22,22 +22,9 @@ instance uniform float actor_sky_access = -1.0;
 instance uniform vec4 doorway_light_plane = vec4(0.0);
 // Lateral centre and half-span of the clear air cells inside the jambs.
 instance uniform vec2 doorway_light_span = vec2(0.0);
-uniform bool scene_fog_enabled = false;
-uniform float fog_density = 0.0;
-uniform bool fog_depth_mode = true;
-uniform vec3 fog_depth = vec3(0.0,170.0,1.0);
-uniform vec2 fog_height = vec2(0.0);
-uniform vec4 fog_color : source_color = vec4(0.0);
-uniform float fog_aerial = 0.0;
-uniform vec4 fog_sky_top : source_color = vec4(0.0);
-uniform vec4 fog_sky_horizon : source_color = vec4(0.0);
-uniform vec4 fog_ground_bottom : source_color = vec4(0.0);
-uniform vec4 fog_ground_horizon : source_color = vec4(0.0);
-uniform vec2 fog_sky_curves = vec2(4.0,30.0);
-uniform mat3 fog_sky_rotation = mat3(1.0);
-uniform int fog_sun_count = 0;
-uniform vec3 fog_sun_directions[4];
-uniform vec3 fog_sun_colors[4];
+// SceneAtmosphereData owns this 20-texel float packet. Colours are already
+// linear; source_color here would also incorrectly convert numeric fields.
+uniform sampler2D atmosphere_data : filter_nearest, repeat_disable;
 uniform sampler2D sky_table : filter_nearest, repeat_disable;
 uniform sampler2DArray sky_page_0 : filter_nearest, repeat_disable;
 uniform sampler2DArray sky_page_1 : filter_nearest, repeat_disable;
@@ -82,7 +69,24 @@ float exposure(vec3 position) {
 }
 
 vec4 atmosphere(vec3 view_position, vec3 world_view_direction) {
-    if (!scene_fog_enabled || sky_access <= 0.0) return vec4(0.0);
+    vec4 settings = texelFetch(atmosphere_data,ivec2(0,0),0);
+    if (settings.x < 0.5 || sky_access <= 0.0) return vec4(0.0);
+    float fog_density = settings.y;
+    bool fog_depth_mode = settings.z > 0.5;
+    float fog_aerial = settings.w;
+    vec4 depth_sun = texelFetch(atmosphere_data,ivec2(1,0),0);
+    vec3 fog_depth = depth_sun.xyz;
+    int fog_sun_count = int(depth_sun.w);
+    vec2 fog_height = texelFetch(atmosphere_data,ivec2(2,0),0).xy;
+    vec3 fog_color = texelFetch(atmosphere_data,ivec2(3,0),0).rgb;
+    vec3 fog_sky_top = texelFetch(atmosphere_data,ivec2(4,0),0).rgb;
+    vec3 fog_sky_horizon = texelFetch(atmosphere_data,ivec2(5,0),0).rgb;
+    vec3 fog_ground_bottom = texelFetch(atmosphere_data,ivec2(6,0),0).rgb;
+    vec3 fog_ground_horizon = texelFetch(atmosphere_data,ivec2(7,0),0).rgb;
+    vec2 fog_sky_curves = texelFetch(atmosphere_data,ivec2(8,0),0).xy;
+    mat3 fog_sky_rotation = mat3(texelFetch(atmosphere_data,ivec2(9,0),0).xyz,
+        texelFetch(atmosphere_data,ivec2(10,0),0).xyz,
+        texelFetch(atmosphere_data,ivec2(11,0),0).xyz);
     float distance_to_camera = length(view_position);
     float amount;
     if (fog_depth_mode) {
@@ -99,7 +103,9 @@ vec4 atmosphere(vec3 view_position, vec3 world_view_direction) {
     vec3 sky = diorama_atmosphere(direction, fog_sky_top.rgb, horizon, fog_ground_bottom.rgb, fog_sky_curves);
     vec3 color = mix(fog_color.rgb, sky, fog_aerial);
     for (int i=0;i<fog_sun_count;i++) {
-        color += fog_sun_colors[i]*pow(max(dot(world_view_direction,fog_sun_directions[i]),0.0),8.0);
+        vec3 sun_direction = texelFetch(atmosphere_data,ivec2(12+i,0),0).xyz;
+        vec3 sun_color = texelFetch(atmosphere_data,ivec2(16+i,0),0).rgb;
+        color += sun_color*pow(max(dot(world_view_direction,sun_direction),0.0),8.0);
     }
     return vec4(color,clamp(amount,0.0,1.0)*sky_access);
 }

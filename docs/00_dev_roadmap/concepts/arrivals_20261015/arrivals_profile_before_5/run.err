@@ -1,0 +1,36 @@
+WARNING: SkyController: no current scene — cannot bind sky/fog.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:133)
+       [1] _ready (res://scripts/systems/SkyController.gd:73)
+WARNING: WeatherManager: world_seed unavailable — weather RNG randomized (non-deterministic).
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _seed_rng (res://scripts/systems/WeatherManager.gd:107)
+       [1] _ready (res://scripts/systems/WeatherManager.gd:51)
+ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _begin_item_pickup (res://scripts/entities/DwarfAgent.gd:1111)
+       [1] _haul_pickup_current (res://scripts/entities/DwarfAgent.gd:966)
+       [2] _on_walk_finished (res://scripts/entities/DwarfAgent.gd:472)
+       [3] _walk_to_handling_stand (res://scripts/entities/DwarfAgent.gd:1135)
+       [4] _haul_walk_current (res://scripts/entities/DwarfAgent.gd:957)
+       [5] _haul_skip_current (res://scripts/entities/DwarfAgent.gd:1003)
+       [6] _on_walk_finished (res://scripts/entities/DwarfAgent.gd:474)
+       [7] stop_walking (res://scripts/entities/DwarfAgent.gd:1765)
+       [8] cancel (res://scripts/components/DwarfRestBehavior.gd:42)
+       [9] _exit_tree (res://scripts/entities/DwarfAgent.gd:2110)
+ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _begin_item_pickup (res://scripts/entities/DwarfAgent.gd:1114)
+       [1] _haul_pickup_current (res://scripts/entities/DwarfAgent.gd:966)
+       [2] _on_walk_finished (res://scripts/entities/DwarfAgent.gd:472)
+       [3] _walk_to_handling_stand (res://scripts/entities/DwarfAgent.gd:1135)
+       [4] _haul_walk_current (res://scripts/entities/DwarfAgent.gd:957)
+       [5] _haul_skip_current (res://scripts/entities/DwarfAgent.gd:1003)
+       [6] _on_walk_finished (res://scripts/entities/DwarfAgent.gd:474)
+       [7] stop_walking (res://scripts/entities/DwarfAgent.gd:1765)
+       [8] cancel (res://scripts/components/DwarfRestBehavior.gd:42)
+       [9] _exit_tree (res://scripts/entities/DwarfAgent.gd:2110)

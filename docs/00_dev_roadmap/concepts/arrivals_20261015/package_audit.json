@@ -1,0 +1,14 @@
+{
+  "package": "P:\\Deepdraft\\build\\windows\\releases\\20261015-175703-165-d9607ed8\\Deepdraft",
+  "zip_sha256": "959ff956c59c2742be05bc08012cb3437ab146544f26919b5fa8b250e4b933f7",
+  "entries": {
+    "Deepdraft.console.exe": "cc9f4d846242473aa26ae9d44e3f4096617d0855ca84484ad1d0c640b90d8869",
+    "Deepdraft.exe": "cc973f0f97943fb64cc043598255a1f6e0f6197bdf8e89fcd60e779c9a3ffe26",
+    "Deepdraft.pck": "7991dab1de4444cda227d51d048f7c0dc07d808b55be7f92212dcd4c64967abe",
+    "README.txt": "14a3b95a6f4c4a8b61dfb946bad6cfe9069d7a7e7fe10444b10da5d411b8acdd"
+  },
+  "zip_matches_release": true,
+  "original_save_unchanged": true,
+  "prior_performance_changes_unchanged": true,
+  "ground_planner_and_event_tuning_unchanged": true
+}

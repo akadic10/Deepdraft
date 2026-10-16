@@ -1,0 +1,148 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 2795346874).
+WorldRenderer: generation started (seed 2795346874).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 4 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 33365 cliff/shore columns.
+WorldGenerator: spring (669, 102, 624); river 2463 columns, 17 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=2795346874, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 2795346874, "accepted": 2156, "rejections": { "density": 19770, "tree": 1251, "edge": 1112, "shelf": 526, "water": 136, "moisture": 2982, "ground": 1243, "height": 3865, "shore": 28777, "cliff_foot": 3232, "cliff_falloff": 228, "detail_overlap": 245 }, "layout_ms": 804.008, "categories": { "boulder": 57, "scree": 246, "blueberry": 260, "elderberry": 318, "wild_strawberry": 452, "flowers": 797, "reeds": 26 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 7 ducks.
+WorldRenderer: first visible overview tile after 6.867 s at tile (16, 16).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 7.692 s
+  first_visible_terrain: 6.867 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=5.145 s  ready_at=5.146 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.429 s
+    edge_detail: 0.249 s
+    layout_validation: 0.916 s
+    river: 0.026 s
+    caves: 3.394 s
+    tile_ranges: 0.108 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.006 s  avg=0.05 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=7.682 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 20.5%, valley 33.9%, lowland 45.6%
+  height: min 11, max 115, avg 34.2
+  top surface: grass 76.4%, dirt 1.2%, rock 20.3%, water 2.1%
+  surface domains: mountain rock 99.0%; valley grass 96.2% dirt 3.7% rock 0.0%
+  finished terrain: summit 4180 columns, detailed 33332, dry shore 915
+  water: lake (656, 145) y18 floor 11-17 depth 7 columns 18705; tarn (112, 464) y54 floor 47-52 depth 7 columns 860; banks 5986
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->16590, sides 90484, validation mismatches 0/0) in 12.70 s since startup.
+WorldTerrainStartupTest: fresh world all 1024 tiles have visible geometry
+WorldTerrainStartupTest: local refresh all 1024 tiles have visible geometry
+WorldTerrainStartupTest: edit during asynchronous build all 1024 tiles have visible geometry
+SliceTiming: slice 127 -> 105 — 0 regions + 24 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 127 -> 105 DONE — 24 regions+tiles rebuilt (24 queued at start) over 17 frames, 0.133 s total, worst frame 1 ms.
+WorldTerrainStartupTest: slice all 1024 tiles have visible geometry
+SaveManager: validated quick save written.
+WorldGenerator: stopped in 13.2 s.
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 2795346874).
+WorldRenderer: generation started (seed 2795346874).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 4 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 33365 cliff/shore columns.
+WorldGenerator: spring (669, 102, 624); river 2463 columns, 17 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 105 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=2795346874, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 2795346874, "accepted": 2156, "rejections": { "density": 19770, "tree": 1251, "edge": 1112, "shelf": 526, "water": 136, "moisture": 2982, "ground": 1243, "height": 3865, "shore": 28777, "cliff_foot": 3232, "cliff_falloff": 228, "detail_overlap": 245 }, "layout_ms": 816.087, "categories": { "boulder": 57, "scree": 246, "blueberry": 260, "elderberry": 318, "wild_strawberry": 452, "flowers": 797, "reeds": 26 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 7 ducks.
+LoadPerformance:
+  total_request_to_restored: 7.678 s
+  read_validate: 55 ms
+  reload_regen_wait: 7.013 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 604 ms
+    jobs: 0 ms
+    mining: 0 ms
+    water: 506 ms
+    construction: 0 ms
+    flora: 0 ms
+    surface_details: 69 ms
+    settlement_flag: 0 ms
+    stockpiles: 0 ms
+    furniture: 0 ms
+    ladders: 0 ms
+    bridges: 0 ms
+    items: 0 ms
+    dwarves: 0 ms
+    wildlife: 28 ms
+    world_events: 0 ms
+    worker_crafting: 0 ms
+    camera: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 6 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldRenderer: first visible overview tile after 7.501 s at tile (16, 16).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 8.329 s
+  first_visible_terrain: 7.501 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=105
+  world_maps: ready=true  precompute=5.216 s  ready_at=5.218 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.483 s
+    edge_detail: 0.273 s
+    layout_validation: 0.903 s
+    river: 0.021 s
+    caves: 3.404 s
+    tile_ranges: 0.093 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.010 s  avg=0.08 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=8.325 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 20.5%, valley 33.9%, lowland 45.6%
+  height: min 11, max 115, avg 34.2
+  top surface: grass 76.4%, dirt 1.2%, rock 20.3%, water 2.1%
+  surface domains: mountain rock 99.0%; valley grass 96.2% dirt 3.7% rock 0.0%
+  finished terrain: summit 4180 columns, detailed 33332, dry shore 915
+  water: lake (656, 145) y18 floor 11-17 depth 7 columns 18705; tarn (112, 464) y54 floor 47-52 depth 7 columns 860; banks 5986
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->16494, sides 90049, validation mismatches 0/0) in 13.31 s since startup.
+SliceTiming: slice 127 -> 105 DONE — 1024 regions+tiles rebuilt (2 queued at start) over 823 frames, 7.523 s total, worst frame 21 ms.
+WorldTerrainStartupTest: save reload all 1024 tiles have visible geometry
+SliceTiming: slice 105 -> 127 — 0 regions + 24 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 105 -> 127 DONE — 24 regions+tiles rebuilt (24 queued at start) over 18 frames, 0.142 s total, worst frame 2 ms.
+WorldTerrainStartupTest: slice off after reload all 1024 tiles have visible geometry
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->16590, sides 90484, validation mismatches 0/0) in 19.23 s since startup.
+WorldTerrainStartupTest: global invalidation plus local update all 1024 tiles have visible geometry
+WorldTerrainStartupTest: PASS seed=2795346874
+WorldGenerator: stopped in 19.3 s.

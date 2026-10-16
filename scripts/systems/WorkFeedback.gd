@@ -15,6 +15,7 @@ var _bursts: Array[Node3D] = []
 var _scene_id := 0
 var _view: Node
 var _slice: Node
+var _dust_warmup: MultiMeshInstance3D
 signal sound_started(kind: String, position: Vector3, variant: int)
 signal burst_started(position: Vector3, stage: String)
 
@@ -61,10 +62,18 @@ func _sync_scene() -> bool:
 		_slice = null
 		if scene != null:
 			scene.tree_exiting.connect(clear_transients,CONNECT_ONE_SHOT)
+			if DisplayServer.get_name() != "headless":
+				# Instance the real dust format while the world is loading. Hidden
+				# surfaces still allow Godot to prepare their rendering pipeline.
+				_dust_warmup = DustBurst.create_render_mesh(1)
+				_dust_warmup.visible = false
+				add_child(_dust_warmup)
 	return id != 0
 
 
 func clear_transients() -> void:
+	if is_instance_valid(_dust_warmup): _dust_warmup.free()
+	_dust_warmup = null
 	if is_instance_valid(_promotion_player):
 		_promotion_player.stop()
 		_promotion_player.free()

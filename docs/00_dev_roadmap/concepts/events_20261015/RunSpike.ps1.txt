@@ -1,0 +1,24 @@
+param([int]$Population=5,[string]$Label='colony_trial_5',[double]$Seconds=12,[switch]$Headless)
+$ErrorActionPreference='Stop'
+if ($Population -notin 5,20,30,50,100 -or $Label -notmatch '^[a-zA-Z0-9_-]+$') {throw 'Invalid scaling case'}
+$root='P:/Deepdraft'
+$output=Join-Path $root ('tmp/performance_20261014/'+$Label)
+if(Test-Path -LiteralPath $output){throw 'Use a new label to preserve prior results'}
+New-Item -ItemType Directory -Path ($output+'/profile') -Force | Out-Null
+$arguments=@('--path',('"'+$root+'"'),'--disable-vsync','--audio-driver','Dummy','--script','res://tools/performance/EventSpikeBenchmark.gd','--',('--output=res://tmp/performance_20261014/'+$Label),('--seconds='+$Seconds),('--population='+$Population),'--no-ablations','--weather=base:weather:clear')
+if($Headless){$arguments=@('--headless')+$arguments}
+$oldAppData=$env:APPDATA
+$oldLocalAppData=$env:LOCALAPPDATA
+try {
+    $env:APPDATA=$output+'/profile'
+    $env:LOCALAPPDATA=$env:APPDATA
+    $p=Start-Process -FilePath 'S:/STEAM/steamapps/common/Godot Engine/godot.windows.opt.tools.64.exe' -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput ($output+'/run.out') -RedirectStandardError ($output+'/run.err')
+    $null=$p.Handle
+} finally {$env:APPDATA=$oldAppData;$env:LOCALAPPDATA=$oldLocalAppData}
+Write-Output "Scaling $Population dwarves, PID $($p.Id): $output"
+if(-not $p.WaitForExit(240000)){Stop-Process -Id $p.Id;throw 'Scaling benchmark timeout'}
+$errors=Select-String -LiteralPath ($output+'/run.err') -Pattern '^SCRIPT ERROR:|^ERROR:' -Quiet
+@{population=$Population;exit_code=$p.ExitCode;errors=$errors;headless=[bool]$Headless;arguments=$arguments}|ConvertTo-Json -Depth 3|Set-Content ($output+'/run.json')
+Get-Content ($output+'/run.out') -Tail 5
+if($errors -or $p.ExitCode -ne 0){Get-Content ($output+'/run.err') -Tail 35;exit 1}
+if(-not (Select-String -LiteralPath ($output+'/run.out') -Pattern '^CAMERA_BENCHMARK_PASS' -Quiet)){throw 'Missing pass marker'}

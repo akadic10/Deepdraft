@@ -1,0 +1,17 @@
+{
+  "scripts/systems/WorldRenderer.gd": {
+    "before": "855295e2e4d3c757bb8fc2670075859cc2ceab86e1c6ef41daaeccf4d1440090",
+    "instrumented": "f65059b6e05f7ee9ba399b9a4fb90b90bfa6037ddbbde60a5a6bdce5cf8899a6",
+    "backup": "WorldRenderer.gd.before.txt"
+  },
+  "scripts/components/UndergroundLighting.gd": {
+    "before": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+    "instrumented": "8f979dac35e32dfcfb0c220cebf5a8074d38897621a992613534dd639f990654",
+    "backup": "UndergroundLighting.gd.before.txt"
+  },
+  "scripts/entities/DwarfAgent.gd": {
+    "before": "fe2513aa4ee7f7fe4518d133335ae5ea611b145494b7755cc29f563f4c5a7a56",
+    "instrumented": "3af2f7a3335796d9085bf3c5d2139af5e5b4754c4e7a62d2b539748d9ab7e442",
+    "backup": "DwarfAgent.gd.before.txt"
+  }
+}

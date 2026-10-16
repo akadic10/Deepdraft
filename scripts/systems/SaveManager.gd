@@ -17,12 +17,22 @@ const AUTOSAVE_BACKUP_STAGE_PATH := "user://saves/autosave.backup.tmp.json"
 const AUTOSAVE_INTERVAL_SECONDS := 300.0
 const SAVE_SCHEMA_VERSION := 1
 const OWNER_GROUP := "save_state_owner"
+const FileStore = preload("res://scripts/components/SaveFileStore.gd")
 const SnapshotValidator := preload("res://scripts/components/SaveSnapshotValidator.gd")
 
 signal save_finished(success: bool)
 signal autosave_finished(success: bool)
 signal load_finished(success: bool, used_backup: bool)
 
+# At most one transaction owns either slot. Completion is consumed only after
+# joining the worker; normal frames never wait for unfinished I/O.
+var _save_task := -1
+var _save_job: RefCounted
+var _saving_autosave := false
+var _save_started_usec := 0
+var last_save_profile: Dictionary = {}
+var _capture_profile: Dictionary = {}
+var _captured_sections: Array[String] = []
 var _dock_ui: Node = null
 var _pending_restore: Dictionary = {}
 var _loading: bool = false
@@ -48,6 +58,10 @@ var _autosave_backup_path: String = AUTOSAVE_BACKUP_PATH
 var _autosave_temp_path: String = AUTOSAVE_TEMP_PATH
 var _autosave_backup_stage_path: String = AUTOSAVE_BACKUP_STAGE_PATH
 
+## Save request return values mean accepted; *_finished signals mean committed.
+func is_saving() -> bool:
+	return _save_task >= 0
+
 func is_loading() -> bool:
 	return _loading
 
@@ -55,6 +69,7 @@ func is_loading() -> bool:
 ## Isolates automated tests from the player's real quick-save files. This is
 ## intentionally unavailable in release builds.
 func configure_storage_for_testing(directory: String) -> bool:
+	if is_saving() or _loading: return false
 	if not OS.is_debug_build():
 		push_error("SaveManager: test storage can only be configured in a debug build.")
 		return false
@@ -76,6 +91,7 @@ func configure_storage_for_testing(directory: String) -> bool:
 
 
 func reset_storage_after_testing() -> void:
+	if is_saving() or _loading: return
 	_save_directory_path = SAVE_DIRECTORY
 	_save_path = SAVE_PATH
 	_backup_save_path = BACKUP_SAVE_PATH
@@ -122,32 +138,78 @@ func pending_slice_for_new_scene(fallback: int) -> int:
 
 
 func request_save() -> bool:
-	if _loading:
-		return _fail_save("A save is currently loading.")
-	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
+	if _loading: return _fail_save("A save is currently loading.")
+	if is_saving():
+		_notify("A save is still finishing.")
+		return false
+	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready",false)):
 		return _fail_save("The world is still generating; try Save again shortly.")
-
-	var commit_error := _commit_snapshot(_build_snapshot(), _quick_save_paths())
-	if not commit_error.is_empty():
-		return _fail_save("Save failed: %s" % commit_error)
-	_notify("Game saved.")
-	print("SaveManager: validated quick save written to %s." % _save_path)
-	save_finished.emit(true)
-	return true
-
+	return _start_save(false)
 
 func request_autosave() -> bool:
-	if _loading or not _world_ready_for_autosave():
-		return false
-	var commit_error := _commit_snapshot(_build_snapshot(), _autosave_paths())
-	if not commit_error.is_empty():
-		_notify("Autosave failed: %s" % commit_error, true)
-		autosave_finished.emit(false)
-		return false
-	_notify("Autosaved.")
-	print("SaveManager: validated autosave written to %s." % _autosave_path)
-	autosave_finished.emit(true)
+	if _loading or is_saving() or not _world_ready_for_autosave(): return false
+	return _start_save(true)
+
+func _start_save(autosave: bool) -> bool:
+	_save_started_usec=Time.get_ticks_usec()
+	_save_job=_file_store()
+	_save_job.paths=_absolute_paths(_autosave_paths() if autosave else _quick_save_paths())
+	_save_job.snapshot=_capture_snapshot()
+	_save_job.sections=_captured_sections
+	_captured_sections=[]
+	_saving_autosave=autosave
+	last_save_profile={"capture_ms":(Time.get_ticks_usec()-_save_started_usec)/1000.0,"owners":_capture_profile.duplicate()}
+	_save_task=WorkerThreadPool.add_task(_save_job.run,false,"Validated colony save")
+	if not autosave: _notify("Saving…")
 	return true
+
+func _capture_snapshot() -> Dictionary:
+	_capture_profile={}
+	_captured_sections=[]
+	var state: Dictionary={"schema_version":SAVE_SCHEMA_VERSION,"project":"Deepdraft",
+		"saved_at_utc":Time.get_datetime_string_from_system(true,true),"world_seed":WorldGenerator.world_seed,
+		"clock":WorldClock.serialize_state().duplicate(true),"weather":WeatherManager.serialize_state().duplicate(true),"scene":{}}
+	for owner in get_tree().get_nodes_in_group(OWNER_GROUP):
+		if not owner.has_method("save_section_key") or not owner.has_method("serialize_state"): continue
+		var key:=String(owner.call("save_section_key"))
+		if key.is_empty(): continue
+		var started:=Time.get_ticks_usec()
+		if owner.has_method("capture_save_state"):
+			state.scene[key]=owner.call("capture_save_state")
+			_captured_sections.append(key)
+		else:
+			state.scene[key]=owner.call("serialize_state").duplicate(true)
+		_capture_profile[key]=(Time.get_ticks_usec()-started)/1000.0
+	return state
+
+func _poll_save() -> void:
+	if _save_task<0 or not WorkerThreadPool.is_task_completed(_save_task): return
+	var started:=Time.get_ticks_usec()
+	WorkerThreadPool.wait_for_task_completion(_save_task)
+	var error: String=_save_job.result_error
+	var autosave:=_saving_autosave
+	last_save_profile["worker"]=_save_job.timings.duplicate()
+	last_save_profile["elapsed_ms"]=(Time.get_ticks_usec()-_save_started_usec)/1000.0
+	last_save_profile["success"]=error.is_empty()
+	for warning in _save_job.warnings: push_warning(warning)
+	_save_job=null
+	_save_task=-1
+	last_save_profile["completion_ms"]=(Time.get_ticks_usec()-started)/1000.0
+	if error.is_empty():
+		_notify("Autosaved." if autosave else "Game saved.")
+		print("SaveManager: validated %s written." % ("autosave" if autosave else "quick save"))
+	else:
+		_notify(("Autosave failed: " if autosave else "Save failed: ")+error,true)
+	if autosave: autosave_finished.emit(error.is_empty())
+	else: save_finished.emit(error.is_empty())
+
+func _exit_tree() -> void:
+	# Closing after an accepted save must not abandon a file replacement.
+	if _save_task>=0:
+		WorkerThreadPool.wait_for_task_completion(_save_task)
+		_save_task=-1
+		if not _save_job.result_error.is_empty(): push_warning("SaveManager: closing save failed: "+_save_job.result_error)
+		_save_job=null
 
 
 func _build_snapshot() -> Dictionary:
@@ -171,6 +233,7 @@ func request_load_autosave() -> bool:
 
 
 func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
+	if is_saving(): return _fail_load("A save is still finishing; try Load again shortly.")
 	if _loading:
 		return _fail_load("A save is already loading.")
 
@@ -249,6 +312,7 @@ func _on_scene_reloaded() -> void:
 
 
 func _process(delta: float) -> void:
+	_poll_save()
 	if not _loading:
 		_tick_autosave(delta)
 		return
@@ -267,7 +331,7 @@ func _process(delta: float) -> void:
 
 
 func _tick_autosave(delta: float) -> void:
-	if not _world_ready_for_autosave():
+	if is_saving() or not _world_ready_for_autosave():
 		return
 	_autosave_elapsed_seconds += delta
 	if _autosave_elapsed_seconds < AUTOSAVE_INTERVAL_SECONDS:
@@ -373,164 +437,51 @@ func _autosave_paths() -> Dictionary:
 	}
 
 
+func _capture_catalogs() -> Dictionary:
+	var blocks := {}
+	for key in BlockRegistry._key_to_id:
+		blocks[String(key)]={"kind":String(BlockRegistry.get_def(key).get("kind","void")),
+			"solid":BlockRegistry.is_solid(BlockRegistry.get_id(key))}
+	var construction := {}
+	for key in BlockRegistry._construction_defs:
+		if not BlockRegistry.get_construction_def(key).is_empty(): construction[key]=true
+	var materials := {"":true}
+	for key in CraftMaterials.definitions: materials[key]=true
+	return {"blocks":blocks,"construction":construction,"materials":materials}
+
+
+func _file_store() -> RefCounted:
+	var store:=FileStore.new()
+	store.directory=ProjectSettings.globalize_path(_save_directory_path)
+	store.schema_version=SAVE_SCHEMA_VERSION
+	store.catalogs=_capture_catalogs()
+	return store
+
+func _absolute_paths(paths: Dictionary) -> Dictionary:
+	var result: Dictionary={}
+	for key in paths: result[key]=ProjectSettings.globalize_path(paths[key])
+	return result
+
+## Synchronous helpers for reads/recovery and transaction fault fixtures only.
+## Gameplay writes enter _start_save and run the same transaction on a worker.
 func _commit_snapshot(snapshot: Dictionary, paths: Dictionary) -> String:
-	var dir_error := DirAccess.make_dir_recursive_absolute(
-		ProjectSettings.globalize_path(_save_directory_path))
-	if dir_error != OK and dir_error != ERR_ALREADY_EXISTS:
-		return "could not create the saves folder (%s)." % error_string(dir_error)
-
-	var temp_path := String(paths.get("temp", ""))
-	var backup_stage_path := String(paths.get("backup_stage", ""))
-	var cleanup_error := _remove_if_exists(temp_path)
-	if not cleanup_error.is_empty():
-		return cleanup_error
-	cleanup_error = _remove_if_exists(backup_stage_path)
-	if not cleanup_error.is_empty():
-		return cleanup_error
-
-	var write_error := _write_text_file(temp_path, JSON.stringify(snapshot, "\t"))
-	if not write_error.is_empty():
-		return write_error
-	var temp_result := _read_snapshot(temp_path)
-	if not bool(temp_result.get("ok", false)):
-		_remove_if_exists(temp_path)
-		return "temporary save validation failed: %s" % String(temp_result.get("error", "invalid file"))
-
-	var rotation_error := _rotate_primary_to_backup_if_valid(paths)
-	if not rotation_error.is_empty():
-		_remove_if_exists(temp_path)
-		return rotation_error
-
-	var replace_error := _replace_primary_with_temp(paths)
-	if not replace_error.is_empty():
-		_remove_if_exists(temp_path)
-		return replace_error
-	return ""
-
-
-func _rotate_primary_to_backup_if_valid(paths: Dictionary) -> String:
-	var primary_path := String(paths.get("primary", ""))
-	var backup_path := String(paths.get("backup", ""))
-	var backup_stage_path := String(paths.get("backup_stage", ""))
-	var primary_result := _read_snapshot(primary_path)
-	if not bool(primary_result.get("ok", false)):
-		if not bool(primary_result.get("missing", false)):
-			push_warning("SaveManager: existing primary is invalid and will not replace the backup (%s)." \
-				% String(primary_result.get("error", "invalid file")))
-		return ""
-
-	var copy_error := DirAccess.copy_absolute(
-		ProjectSettings.globalize_path(primary_path),
-		ProjectSettings.globalize_path(backup_stage_path))
-	if copy_error != OK:
-		return "could not stage the previous save as a backup (%s)." % error_string(copy_error)
-	var staged_result := _read_snapshot(backup_stage_path)
-	if not bool(staged_result.get("ok", false)):
-		_remove_if_exists(backup_stage_path)
-		return "staged backup validation failed: %s" % String(staged_result.get("error", "invalid file"))
-
-	var remove_error := _remove_if_exists(backup_path)
-	if not remove_error.is_empty():
-		_remove_if_exists(backup_stage_path)
-		return remove_error
-	var rename_error := DirAccess.rename_absolute(
-		ProjectSettings.globalize_path(backup_stage_path),
-		ProjectSettings.globalize_path(backup_path))
-	if rename_error != OK:
-		_remove_if_exists(backup_stage_path)
-		return "could not install the validated backup (%s)." % error_string(rename_error)
-	return ""
-
-
-func _replace_primary_with_temp(paths: Dictionary) -> String:
-	var primary_path := String(paths.get("primary", ""))
-	var temp_path := String(paths.get("temp", ""))
-	var remove_error := _remove_if_exists(primary_path)
-	if not remove_error.is_empty():
-		return remove_error
-	var rename_error := DirAccess.rename_absolute(
-		ProjectSettings.globalize_path(temp_path),
-		ProjectSettings.globalize_path(primary_path))
-	if rename_error != OK:
-		var recovery_error := _restore_primary_from_backup(paths)
-		if recovery_error.is_empty():
-			return "could not install the new save; the previous backup was restored (%s)." \
-				% error_string(rename_error)
-		return "could not install the new save (%s); recovery also failed: %s" \
-			% [error_string(rename_error), recovery_error]
-
-	var installed_result := _read_snapshot(primary_path)
-	if not bool(installed_result.get("ok", false)):
-		var validation_error := String(installed_result.get("error", "invalid file"))
-		var recovery_error := _restore_primary_from_backup(paths)
-		if recovery_error.is_empty():
-			return "installed save failed validation; the previous backup was restored (%s)." \
-				% validation_error
-		return "installed save failed validation (%s); recovery also failed: %s" \
-			% [validation_error, recovery_error]
-	return ""
-
+	if is_saving(): return "a save is still finishing."
+	var store:=_file_store()
+	var result: String=store._commit_snapshot(snapshot,_absolute_paths(paths))
+	for warning in store.warnings: push_warning(warning)
+	return result
 
 func _restore_primary_from_backup(paths: Dictionary) -> String:
-	var primary_path := String(paths.get("primary", ""))
-	var backup_path := String(paths.get("backup", ""))
-	var backup_result := _read_snapshot(backup_path)
-	if not bool(backup_result.get("ok", false)):
-		return "no valid backup is available (%s)." % String(backup_result.get("error", "missing"))
-	var remove_error := _remove_if_exists(primary_path)
-	if not remove_error.is_empty():
-		return remove_error
-	var copy_error := DirAccess.copy_absolute(
-		ProjectSettings.globalize_path(backup_path),
-		ProjectSettings.globalize_path(primary_path))
-	if copy_error != OK:
-		return "could not copy the backup into the primary slot (%s)." % error_string(copy_error)
-	var restored_result := _read_snapshot(primary_path)
-	if not bool(restored_result.get("ok", false)):
-		return "recovered primary failed validation: %s" \
-			% String(restored_result.get("error", "invalid file"))
-	return ""
-
-
-func _write_text_file(path: String, contents: String) -> String:
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file == null:
-		return "could not open %s for writing." % path
-	file.store_string(contents)
-	file.flush()
-	var write_error := file.get_error()
-	file.close()
-	if write_error != OK:
-		return "write failed for %s (%s)." % [path, error_string(write_error)]
-	return ""
-
+	return _file_store()._restore_primary_from_backup(_absolute_paths(paths))
 
 func _read_snapshot(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return { "ok": false, "missing": true, "error": "is missing" }
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		return { "ok": false, "missing": false, "error": "could not be opened" }
-	var contents := file.get_as_text()
-	file.close()
-	var json := JSON.new()
-	var parse_error := json.parse(contents)
-	if parse_error != OK or not (json.data is Dictionary):
-		return { "ok": false, "missing": false, "error": "contains invalid JSON" }
-	var snapshot: Dictionary = json.data
-	var validation_error := _validate_snapshot(snapshot)
-	if not validation_error.is_empty():
-		return { "ok": false, "missing": false, "error": validation_error }
-	return { "ok": true, "missing": false, "error": "", "snapshot": snapshot }
+	return _file_store()._read_snapshot(ProjectSettings.globalize_path(path))
 
+func _write_text_file(path: String, contents: String) -> String:
+	return _file_store()._write_text_file(ProjectSettings.globalize_path(path),contents)
 
 func _remove_if_exists(path: String) -> String:
-	if not FileAccess.file_exists(path):
-		return ""
-	var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
-	if remove_error != OK:
-		return "could not remove %s (%s)." % [path, error_string(remove_error)]
-	return ""
+	return _file_store()._remove_if_exists(ProjectSettings.globalize_path(path))
 
 
 func _fail_save(message: String) -> bool:
@@ -546,14 +497,7 @@ func _fail_load(message: String) -> bool:
 
 
 func _validate_snapshot(snapshot: Dictionary) -> String:
-	var error := SnapshotValidator.validate(snapshot, SAVE_SCHEMA_VERSION)
-	if not error.is_empty(): return error
-	for section: String in ["terrain","test_dam"]:
-		for entry: Dictionary in snapshot.scene.water[section]:
-			var definition := BlockRegistry.get_def(entry.block)
-			if definition.is_empty(): return "save.scene.water contains an unknown terrain block."
-			if section=="terrain" and not BlockRegistry.is_solid(BlockRegistry.get_id(entry.block)): return "save.scene.water contains a non-solid terrain edit."
-	return ""
+	return _file_store()._validate_snapshot(snapshot)
 
 
 func _notify(message: String, is_error: bool = false) -> void:

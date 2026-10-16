@@ -1,0 +1,21 @@
+{
+  "source_save_unchanged": true,
+  "exit_code": 0,
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/SeasonBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/season_final_5",
+    "--seconds=55",
+    "--population=5",
+    "--saved",
+    "--no-ablations",
+    "--weather=base:weather:clear"
+  ],
+  "save_sha256": "F223EEE6DFE52FEFE6ADD9A763362640F02C439FB2F33687F550661FB9CC148B"
+}

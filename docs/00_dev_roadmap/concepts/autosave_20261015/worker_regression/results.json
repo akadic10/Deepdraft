@@ -1,0 +1,8 @@
+{
+  "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670",
+  "pass_marker": false,
+  "test": "SaveManagerRoundTripTest",
+  "errors": true,
+  "seconds": 14.9550904,
+  "exit_code": 1
+}

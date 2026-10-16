@@ -1,0 +1,893 @@
+{
+  "ablations": false,
+  "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+  "camera_origin": "(652.0, 47.0, 499.0)",
+  "camera_zoom": 48.0,
+  "counts": {
+    "dwarves": 30,
+    "furniture": 20,
+    "nodes": 23907,
+    "surface_details": 2137,
+    "trees": 2925,
+    "water_columns": 19322,
+    "wildlife": 79,
+    "wildlife_points_in_camera_frustum": 0,
+    "wildlife_within_100_units_of_camera_target": 0
+  },
+  "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+  "driver": "d3d12",
+  "duck_agent_sha256": "8ab0c8c45c94e5dcabb5ebd1defbc2b0a0072bd96106f8a9dd39b2b1186d8b51",
+  "duck_navigation_sha256": "21ca17db7c5d1425d790f1ae36a745126671fdb412abccd4238493d4f0b471ca",
+  "engine": {
+    "build": "steam",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (steam)",
+    "timestamp": 0
+  },
+  "final_renderer": {
+    "camera_chunk": "(-9999, -9999)",
+    "dirty_queue": 0,
+    "first_visible_mesh_ms": 11525,
+    "initial_load": false,
+    "mesh_nodes": 0,
+    "meshes_built": 1094,
+    "overview_active": true,
+    "overview_build_count": 1094,
+    "overview_build_ms_max": 2,
+    "overview_build_ms_total": 62,
+    "overview_built": true,
+    "overview_complete_ms": 17712,
+    "overview_dirty_tiles": 0,
+    "overview_in_flight": false,
+    "overview_merged_top_faces": 15764,
+    "overview_sampled_top_faces": 1048576,
+    "overview_side_faces": 84057,
+    "overview_sides": true,
+    "overview_stale_results": 1,
+    "overview_startup_center": "(16, 16)",
+    "overview_startup_radius_tiles": 5,
+    "overview_startup_ready_ms": 12793,
+    "overview_startup_tile_goal": 121,
+    "overview_step": 1,
+    "overview_tile_size": 32,
+    "overview_tiles": 1024,
+    "overview_validation_mismatches": 0,
+    "overview_validation_samples": 0,
+    "region_rebuild_count": 0,
+    "region_rebuild_ms_max": 0,
+    "region_rebuild_ms_total": 0,
+    "render_mode": "block-face overview exact",
+    "slice_y": 127,
+    "startup_elapsed_ms": 132522,
+    "terrain_drain_max_ms": 1.905,
+    "terrain_upload_max_ms": 0.199,
+    "terrain_worker_wait_max_ms": 0.002,
+    "unload_radius_chunks": 6,
+    "view_radius_chunks": 5
+  },
+  "fixed_fps": false,
+  "gpu": "AMD Radeon RX 9070 XT",
+  "lifecycle_errors": [],
+  "markers": false,
+  "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+  "note": "Same-priority process brackets include descendants; do not sum nested groups. GPU timestamps can lag. Ablations freeze a subsystem for diagnosis, not a gameplay solution. Sequential phases advance the same world.",
+  "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+  "phases": {
+    "active_pan": {
+      "after_draw_ms": {
+        "max": 0.79,
+        "mean": 0.235391549295775,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.201,
+        "p95": 0.416,
+        "p99": 0.529
+      },
+      "after_process_ms": {
+        "max": 14.825,
+        "mean": 0.999135915492958,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.185,
+        "p95": 5.315,
+        "p99": 10.835
+      },
+      "calendar_seconds_per_hour": 60.0,
+      "detail": {},
+      "detailed": false,
+      "draw_calls": {
+        "max": 395,
+        "mean": 353.289436619718,
+        "over_100": 1420,
+        "over_16_7": 1420,
+        "over_33_3": 1420,
+        "over_50": 1420,
+        "p50": 361,
+        "p95": 382,
+        "p99": 394
+      },
+      "draw_ms": {
+        "max": 10.551,
+        "mean": 4.51573591549296,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 3.432,
+        "p95": 9.305,
+        "p99": 9.914
+      },
+      "final": {
+        "assignments": {
+          "FETCH_BUILD": 4,
+          "HAUL": 20,
+          "MINE": 6
+        },
+        "built": 89,
+        "clock": {
+          "day": 3,
+          "hour": 22.4935237976136,
+          "paused": false,
+          "season": "summer",
+          "speed": 1.0,
+          "year": 1
+        },
+        "completed": {
+          "FETCH_BUILD": 3,
+          "HAUL": 19,
+          "MINE": 4
+        },
+        "loose": 184,
+        "mined": 2780,
+        "nodes": 23930,
+        "objects": 37025.0,
+        "orphan_nodes": 0.0,
+        "released": {
+          "FETCH_BUILD": 1,
+          "MINE": 2
+        },
+        "resources": 841.0,
+        "scheduler": {
+          "active": 1,
+          "blocked": 0,
+          "oldest_pending_age_s": 37.245,
+          "pending_by_type": {
+            "FETCH_BUILD": 1,
+            "HAUL": 0,
+            "MINE": 0
+          },
+          "pending_total": 1,
+          "probes_per_sec": 45.4545454545455,
+          "wake_count": 2185,
+          "worst_wake_usec": 56575
+        },
+        "static_memory_mb": 457.159441947937,
+        "stored": 145,
+        "video_memory_mb": 847.76953125,
+        "wildlife": 79
+      },
+      "frame_ms": {
+        "max": 96.411,
+        "mean": 21.1339676056338,
+        "over_100": 0,
+        "over_16_7": 877,
+        "over_33_3": 138,
+        "over_50": 7,
+        "p50": 19.514,
+        "p95": 37.156,
+        "p99": 44.613
+      },
+      "frames": 1420,
+      "gpu_ms": {
+        "max": 3.40400004386902,
+        "mean": 1.8773042269156,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.80299997329712,
+        "p95": 2.40100002288818,
+        "p99": 2.88100004196167
+      },
+      "initial": {
+        "assignments": {
+          "FETCH_BUILD": 4,
+          "HAUL": 16,
+          "MINE": 6
+        },
+        "built": 89,
+        "clock": {
+          "day": 3,
+          "hour": 21.9934757452326,
+          "paused": false,
+          "season": "summer",
+          "speed": 1.0,
+          "year": 1
+        },
+        "completed": {
+          "FETCH_BUILD": 3,
+          "HAUL": 12,
+          "MINE": 4
+        },
+        "loose": 195,
+        "mined": 2780,
+        "nodes": 23930,
+        "objects": 37050.0,
+        "orphan_nodes": 0.0,
+        "released": {
+          "FETCH_BUILD": 1,
+          "MINE": 2
+        },
+        "resources": 841.0,
+        "scheduler": {
+          "active": 4,
+          "blocked": 0,
+          "oldest_pending_age_s": 7.235,
+          "pending_by_type": {
+            "FETCH_BUILD": 1,
+            "HAUL": 0,
+            "MINE": 0
+          },
+          "pending_total": 1,
+          "probes_per_sec": 50.0,
+          "wake_count": 765,
+          "worst_wake_usec": 47400
+        },
+        "static_memory_mb": 453.707209587097,
+        "stored": 124,
+        "video_memory_mb": 845.95703125,
+        "wildlife": 79
+      },
+      "lighting_final": {
+        "actor_meshes": 409,
+        "actors": 30,
+        "completed_updates": 39,
+        "invalid_actor_refs": 0,
+        "materials": 1326,
+        "pending": 0,
+        "phase": "idle"
+      },
+      "lighting_initial": {
+        "actor_meshes": 420,
+        "actors": 30,
+        "completed_updates": 39,
+        "invalid_actor_refs": 0,
+        "materials": 1320,
+        "pending": 0,
+        "phase": "idle"
+      },
+      "physics_ms": {
+        "max": 0.208,
+        "mean": 0.0291943661971831,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.023,
+        "p95": 0.06,
+        "p99": 0.075
+      },
+      "primitives": {
+        "max": 198390,
+        "mean": 175602.205633803,
+        "over_100": 1420,
+        "over_16_7": 1420,
+        "over_33_3": 1420,
+        "over_50": 1420,
+        "p50": 180358,
+        "p95": 196472,
+        "p99": 197500
+      },
+      "process": {},
+      "process_ms": {
+        "max": 73.798,
+        "mean": 15.3837042253521,
+        "over_100": 0,
+        "over_16_7": 471,
+        "over_33_3": 31,
+        "over_50": 4,
+        "p50": 13.423,
+        "p95": 28.164,
+        "p99": 37.706
+      },
+      "render_cpu_ms": {
+        "max": 2.36199998855591,
+        "mean": 1.67641478852487,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.72000002861023,
+        "p95": 2.06800007820129,
+        "p99": 2.16599988937378
+      },
+      "render_setup_ms": {
+        "max": 6.775,
+        "mean": 1.59829647887324,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.236,
+        "p95": 5.734,
+        "p99": 6.166
+      },
+      "seconds": 30.010038
+    },
+    "active_pan_repeat": {
+      "after_draw_ms": {
+        "max": 0.541,
+        "mean": 0.15110391822828,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.164,
+        "p95": 0.354,
+        "p99": 0.44
+      },
+      "after_process_ms": {
+        "max": 10.73,
+        "mean": 0.689042021578649,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.161,
+        "p95": 2.527,
+        "p99": 8.443
+      },
+      "calendar_seconds_per_hour": 60.0,
+      "detail": {},
+      "detailed": false,
+      "draw_calls": {
+        "max": 389,
+        "mean": 346.837024417944,
+        "over_100": 1761,
+        "over_16_7": 1761,
+        "over_33_3": 1761,
+        "over_50": 1761,
+        "p50": 361,
+        "p95": 381,
+        "p99": 388
+      },
+      "draw_ms": {
+        "max": 30.074,
+        "mean": 3.54552526973311,
+        "over_100": 0,
+        "over_16_7": 1,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 2.7,
+        "p95": 9.045,
+        "p99": 9.858
+      },
+      "final": {
+        "assignments": {
+          "FETCH_BUILD": 4,
+          "HAUL": 20,
+          "MINE": 6
+        },
+        "built": 89,
+        "clock": {
+          "day": 3,
+          "hour": 23.1278617481189,
+          "paused": false,
+          "season": "summer",
+          "speed": 1.0,
+          "year": 1
+        },
+        "completed": {
+          "FETCH_BUILD": 3,
+          "HAUL": 20,
+          "MINE": 4
+        },
+        "loose": 184,
+        "mined": 2780,
+        "nodes": 23930,
+        "objects": 37018.0,
+        "orphan_nodes": 0.0,
+        "released": {
+          "FETCH_BUILD": 1,
+          "MINE": 2
+        },
+        "resources": 841.0,
+        "scheduler": {
+          "active": 0,
+          "blocked": 0,
+          "oldest_pending_age_s": 75.303,
+          "pending_by_type": {
+            "FETCH_BUILD": 1,
+            "HAUL": 0,
+            "MINE": 0
+          },
+          "pending_total": 1,
+          "probes_per_sec": 68.9655172413793,
+          "wake_count": 4330,
+          "worst_wake_usec": 56575
+        },
+        "static_memory_mb": 465.140767097473,
+        "stored": 146,
+        "video_memory_mb": 846.89453125,
+        "wildlife": 79
+      },
+      "frame_ms": {
+        "max": 58.74,
+        "mean": 17.0416922203294,
+        "over_100": 0,
+        "over_16_7": 725,
+        "over_33_3": 71,
+        "over_50": 2,
+        "p50": 14.787,
+        "p95": 32.254,
+        "p99": 41.219
+      },
+      "frames": 1761,
+      "gpu_ms": {
+        "max": 3.57299995422363,
+        "mean": 1.82571834180248,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 2.09500002861023,
+        "p95": 2.63100004196167,
+        "p99": 3.30699992179871
+      },
+      "initial": {
+        "assignments": {
+          "FETCH_BUILD": 4,
+          "HAUL": 20,
+          "MINE": 6
+        },
+        "built": 89,
+        "clock": {
+          "day": 3,
+          "hour": 22.6276231087247,
+          "paused": false,
+          "season": "summer",
+          "speed": 1.0,
+          "year": 1
+        },
+        "completed": {
+          "FETCH_BUILD": 3,
+          "HAUL": 20,
+          "MINE": 4
+        },
+        "loose": 184,
+        "mined": 2780,
+        "nodes": 23930,
+        "objects": 37019.0,
+        "orphan_nodes": 0.0,
+        "released": {
+          "FETCH_BUILD": 1,
+          "MINE": 2
+        },
+        "resources": 841.0,
+        "scheduler": {
+          "active": 0,
+          "blocked": 0,
+          "oldest_pending_age_s": 45.293,
+          "pending_by_type": {
+            "FETCH_BUILD": 1,
+            "HAUL": 0,
+            "MINE": 0
+          },
+          "pending_total": 1,
+          "probes_per_sec": 35.0877192982456,
+          "wake_count": 2569,
+          "worst_wake_usec": 56575
+        },
+        "static_memory_mb": 455.115862846375,
+        "stored": 146,
+        "video_memory_mb": 847.01953125,
+        "wildlife": 79
+      },
+      "lighting_final": {
+        "actor_meshes": 408,
+        "actors": 30,
+        "completed_updates": 39,
+        "invalid_actor_refs": 0,
+        "materials": 1326,
+        "pending": 0,
+        "phase": "idle"
+      },
+      "lighting_initial": {
+        "actor_meshes": 408,
+        "actors": 30,
+        "completed_updates": 39,
+        "invalid_actor_refs": 0,
+        "materials": 1326,
+        "pending": 0,
+        "phase": "idle"
+      },
+      "physics_ms": {
+        "max": 0.091,
+        "mean": 0.0228921067575242,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.022,
+        "p95": 0.048,
+        "p99": 0.065
+      },
+      "primitives": {
+        "max": 200292,
+        "mean": 174363.831913685,
+        "over_100": 1761,
+        "over_16_7": 1761,
+        "over_33_3": 1761,
+        "over_50": 1761,
+        "p50": 177462,
+        "p95": 197488,
+        "p99": 199096
+      },
+      "process": {},
+      "process_ms": {
+        "max": 43.295,
+        "mean": 12.6560210107893,
+        "over_100": 0,
+        "over_16_7": 394,
+        "over_33_3": 20,
+        "over_50": 0,
+        "p50": 10.886,
+        "p95": 25.726,
+        "p99": 33.473
+      },
+      "render_cpu_ms": {
+        "max": 2.69099998474121,
+        "mean": 1.47795684154165,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.46899998188019,
+        "p95": 2.06200003623962,
+        "p99": 2.24699997901917
+      },
+      "render_setup_ms": {
+        "max": 7.135,
+        "mean": 0.995712663259512,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.181,
+        "p95": 5.459,
+        "p99": 5.933
+      },
+      "seconds": 30.010174
+    },
+    "active_static": {
+      "after_draw_ms": {
+        "max": 0.824,
+        "mean": 0.303190301921318,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.316,
+        "p95": 0.492,
+        "p99": 0.663
+      },
+      "after_process_ms": {
+        "max": 14.197,
+        "mean": 1.55535041171089,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.231,
+        "p95": 8.685,
+        "p99": 12.264
+      },
+      "calendar_seconds_per_hour": 60.0,
+      "detail": {},
+      "detailed": false,
+      "draw_calls": {
+        "max": 404,
+        "mean": 381.201280878317,
+        "over_100": 1093,
+        "over_16_7": 1093,
+        "over_33_3": 1093,
+        "over_50": 1093,
+        "p50": 379,
+        "p95": 396,
+        "p99": 403
+      },
+      "draw_ms": {
+        "max": 10.434,
+        "mean": 4.71953064958829,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 3.544,
+        "p95": 9.209,
+        "p99": 9.707
+      },
+      "final": {
+        "assignments": {
+          "FETCH_BUILD": 4,
+          "HAUL": 14,
+          "MINE": 6
+        },
+        "built": 88,
+        "clock": {
+          "day": 3,
+          "hour": 21.8590664753913,
+          "paused": false,
+          "season": "summer",
+          "speed": 1.0,
+          "year": 1
+        },
+        "completed": {
+          "FETCH_BUILD": 2,
+          "HAUL": 11,
+          "MINE": 4
+        },
+        "loose": 201,
+        "mined": 2780,
+        "nodes": 23933,
+        "objects": 37045.0,
+        "orphan_nodes": 0.0,
+        "released": {
+          "FETCH_BUILD": 1,
+          "MINE": 2
+        },
+        "resources": 841.0,
+        "scheduler": {
+          "active": 4,
+          "blocked": 0,
+          "oldest_pending_age_s": 0.039,
+          "pending_by_type": {
+            "FETCH_BUILD": 0,
+            "HAUL": 1,
+            "MINE": 0
+          },
+          "pending_total": 1,
+          "probes_per_sec": 0.0,
+          "wake_count": 413,
+          "worst_wake_usec": 47400
+        },
+        "static_memory_mb": 453.118627548218,
+        "stored": 121,
+        "video_memory_mb": 864.76953125,
+        "wildlife": 79
+      },
+      "frame_ms": {
+        "max": 83.915,
+        "mean": 27.4804986276304,
+        "over_100": 0,
+        "over_16_7": 923,
+        "over_33_3": 283,
+        "over_50": 32,
+        "p50": 26.536,
+        "p95": 46.883,
+        "p99": 58.407
+      },
+      "frames": 1093,
+      "gpu_ms": {
+        "max": 2.23600006103516,
+        "mean": 1.66877035852539,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.64699995517731,
+        "p95": 1.84500002861023,
+        "p99": 2.00300002098084
+      },
+      "initial": {
+        "assignments": {
+          "FETCH_BUILD": 2,
+          "HAUL": 4,
+          "MINE": 4
+        },
+        "built": 86,
+        "clock": {
+          "day": 3,
+          "hour": 21.3586344753915,
+          "paused": false,
+          "season": "summer",
+          "speed": 1.0,
+          "year": 1
+        },
+        "completed": {},
+        "loose": 238,
+        "mined": 2730,
+        "nodes": 23930,
+        "objects": 37031.0,
+        "orphan_nodes": 0.0,
+        "released": {
+          "FETCH_BUILD": 1
+        },
+        "resources": 841.0,
+        "scheduler": {
+          "active": 9,
+          "blocked": 0,
+          "oldest_pending_age_s": 0.0,
+          "pending_by_type": {
+            "FETCH_BUILD": 0,
+            "HAUL": 0,
+            "MINE": 0
+          },
+          "pending_total": 0,
+          "probes_per_sec": 0.0,
+          "wake_count": 136,
+          "worst_wake_usec": 35837
+        },
+        "static_memory_mb": 448.373338699341,
+        "stored": 87,
+        "video_memory_mb": 864.64453125,
+        "wildlife": 79
+      },
+      "lighting_final": {
+        "actor_meshes": 418,
+        "actors": 30,
+        "completed_updates": 38,
+        "invalid_actor_refs": 0,
+        "materials": 1320,
+        "pending": 0,
+        "phase": "idle"
+      },
+      "lighting_initial": {
+        "actor_meshes": 412,
+        "actors": 30,
+        "completed_updates": 9,
+        "invalid_actor_refs": 0,
+        "materials": 1318,
+        "pending": 1,
+        "phase": "light"
+      },
+      "physics_ms": {
+        "max": 0.155,
+        "mean": 0.0398828911253431,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.039,
+        "p95": 0.079,
+        "p99": 0.107
+      },
+      "primitives": {
+        "max": 198882,
+        "mean": 192409.473010064,
+        "over_100": 1093,
+        "over_16_7": 1093,
+        "over_33_3": 1093,
+        "over_50": 1093,
+        "p50": 191918,
+        "p95": 196602,
+        "p99": 198630
+      },
+      "process": {},
+      "process_ms": {
+        "max": 66.69,
+        "mean": 20.9024272644099,
+        "over_100": 0,
+        "over_16_7": 669,
+        "over_33_3": 109,
+        "over_50": 10,
+        "p50": 18.753,
+        "p95": 37.528,
+        "p99": 49.739
+      },
+      "render_cpu_ms": {
+        "max": 2.55100011825562,
+        "mean": 1.70364409745121,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 1.72599995136261,
+        "p95": 2.08299994468689,
+        "p99": 2.24200010299683
+      },
+      "render_setup_ms": {
+        "max": 6.687,
+        "mean": 1.72945288197621,
+        "over_100": 0,
+        "over_16_7": 0,
+        "over_33_3": 0,
+        "over_50": 0,
+        "p50": 0.282,
+        "p95": 5.698,
+        "p99": 6.036
+      },
+      "seconds": 30.035925
+    }
+  },
+  "ready_renderer": {
+    "camera_chunk": "(-9999, -9999)",
+    "dirty_queue": 0,
+    "first_visible_mesh_ms": 11525,
+    "initial_load": false,
+    "mesh_nodes": 0,
+    "meshes_built": 1027,
+    "overview_active": true,
+    "overview_build_count": 1027,
+    "overview_build_ms_max": 2,
+    "overview_build_ms_total": 54,
+    "overview_built": true,
+    "overview_complete_ms": 17712,
+    "overview_dirty_tiles": 0,
+    "overview_in_flight": false,
+    "overview_merged_top_faces": 15764,
+    "overview_sampled_top_faces": 1048576,
+    "overview_side_faces": 84057,
+    "overview_sides": true,
+    "overview_stale_results": 0,
+    "overview_startup_center": "(16, 16)",
+    "overview_startup_radius_tiles": 5,
+    "overview_startup_ready_ms": 12793,
+    "overview_startup_tile_goal": 121,
+    "overview_step": 1,
+    "overview_tile_size": 32,
+    "overview_tiles": 1024,
+    "overview_validation_mismatches": 0,
+    "overview_validation_samples": 0,
+    "region_rebuild_count": 0,
+    "region_rebuild_ms_max": 0,
+    "region_rebuild_ms_total": 0,
+    "render_mode": "block-face overview exact",
+    "slice_y": 127,
+    "startup_elapsed_ms": 18321,
+    "terrain_drain_max_ms": 1.905,
+    "terrain_upload_max_ms": 0.199,
+    "terrain_worker_wait_max_ms": 0.002,
+    "unload_radius_chunks": 6,
+    "view_radius_chunks": 5
+  },
+  "resolution": [
+    1280,
+    720
+  ],
+  "room_manager_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0",
+  "room_rebuild_sha256": "eb1fed5b2d8a5971493bb57b7676aff915286efd5ccf1d60c09f23ef184d604b",
+  "sample_seconds_min": 30.0,
+  "saved": true,
+  "scheduled_room_rebuilds": false,
+  "seed": 2520450404,
+  "slice_y": 127,
+  "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+  "source_hashes": {
+    "scripts/components/UndergroundLighting.gd": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+    "scripts/entities/DwarfAgent.gd": "fe2513aa4ee7f7fe4518d133335ae5ea611b145494b7755cc29f563f4c5a7a56",
+    "scripts/systems/WorldRenderer.gd": "855295e2e4d3c757bb8fc2670075859cc2ceab86e1c6ef41daaeccf4d1440090",
+    "tools/performance/RenderProfile.gd": "0387bb2c7c2222aafedeb7f52548455e641f9e5afc6ec4b8897c510e62f2ec36",
+    "tools/performance/SteadyRenderingBenchmark.gd": "06997ca14dacf4f7e8318f074a307bfb5611d3254d3543de7c4f34e27423f180"
+  },
+  "underground_lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+  "vsync": "disabled",
+  "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+  "water_flow_sha256": "607c88150cd3cc574a765785ad546c50dd7ac3366ee6ef840e400cc09e04b322",
+  "water_manager_sha256": "cf5d764a276f377bd20eb7c254d898e2372678525aeaa0f001365c3040b1933e",
+  "water_motion_sha256": "08ecc9333d986e0cc7253165273f9e07f7242187b9811129ef007369d45f3010",
+  "water_renderer_sha256": "90a191576880c9a98bf321a459e750fe997f06062aae3fb6d7dc28f9521361e9",
+  "weather": "base:weather:clear",
+  "weather_override": "",
+  "wildlife_manager_sha256": "a446493bcd8c218e864f5041b26cc0a509749f17f9676fb6a3eee7e702ceb591",
+  "work_dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670",
+  "work_feedback_sha256": "1fdaa30db6eefca1b4e2ec08a88c91f48c74b1f467a1029034713916fd71da4d",
+  "workload": {
+    "anchor": "(652, 43, 499)",
+    "construction_blocks": 48,
+    "loose_logs": 80,
+    "loose_stone": 160,
+    "mining_blocks": 64,
+    "note": "Copied developed settlement expanded to 30 dwarves with normal jobs. Normal x1 clock (60 real seconds/game hour), needs and simulation. Autosave and arrival scheduling disabled for steady-cost attribution; no artificial events.",
+    "population": 30
+  }
+}

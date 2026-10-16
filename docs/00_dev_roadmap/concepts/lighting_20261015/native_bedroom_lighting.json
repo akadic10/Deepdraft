@@ -1,0 +1,14 @@
+{
+  "failures": [],
+  "measures": {
+    "after_far": 0.205178833007813,
+    "after_middle": 0.317761232852936,
+    "after_outside": 0.0190572552382946,
+    "before_far": 0.0190572552382946,
+    "before_middle": 0.168228870630264,
+    "before_outside": 0.0190572552382946,
+    "unlit_far": 0.0190572552382946,
+    "unlit_middle": 0.0190572552382946,
+    "unlit_outside": 0.0190572552382946
+  }
+}

@@ -164,6 +164,10 @@ func save_restore_priority() -> int:
 
 
 func serialize_state() -> Dictionary:
+	return preload("res://scripts/components/SaveSnapshotPreparation.gd").items(capture_save_state())
+
+
+func capture_save_state() -> Dictionary:
 	var entries: Array = []
 	for node: Node3D in _loose:
 		if not is_instance_valid(node):
@@ -176,10 +180,6 @@ func serialize_state() -> Dictionary:
 		})
 		if node.has_meta("instance_id"): entries.back()["instance_id"] = node.get_meta("instance_id")
 		entries.back()["material_id"] = CraftMaterials.of_item(node)
-	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var ak := "%s:%s" % [String(a["item_key"]), str(a["position"])]
-		var bk := "%s:%s" % [String(b["item_key"]), str(b["position"])]
-		return ak < bk)
 	return { "loose": entries }
 
 

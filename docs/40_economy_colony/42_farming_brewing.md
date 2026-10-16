@@ -1,5 +1,12 @@
 # 42 — Farming & Brewing
 
+**Gradual seasonal art, 2026-10-15:** trees, shrubs, flowers and reeds update
+their appearance across the first night of a season. Harvest eligibility and
+crop cycles still change at midnight; harvest/removal actions use current
+logical state. Tree bodies, occupancy and chopping work survive visual swaps.
+Saving preserves gameplay state; a paused load rebuilds target art through
+bounded frames. See [194](../00_dev_roadmap/194_gradual_season_transition.md).
+
 **Zones navigation, 2026-10-12:** [137 — Illustrated Zones](../00_dev_roadmap/137_illustrated_zones.md)
 reserves visible Farming and Animal pasture entries beside live Storage. Both
 are explicitly planned and only explain their status; no farm or pasture zones,

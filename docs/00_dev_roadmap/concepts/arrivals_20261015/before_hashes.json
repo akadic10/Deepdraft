@@ -1,0 +1,8 @@
+{
+  "scripts/systems/WorldEventDirector.gd": "d84f99e1c8fafb125cd39a63a4a731935a36e245d1e0cea7d80a90232c7b304a",
+  "scripts/systems/WildlifeManager.gd": "9f6fb2dd95fca0ca6d567dcb300c2658849be522cb4c259be6bbf403a413f69c",
+  "scripts/components/EdgeArrivalPlanner.gd": "ca61fac6b06aab517b012bcbf94a9c288713912a54a27fb419d9e813d5519b0f",
+  "scripts/components/DuckPopulation.gd": "550274c2b19f6581fd7b38d4ba482deb393071bda80ebcb99d1c736078129563",
+  "scripts/components/DuckNavigation.gd": "b776d6d11988ee11b6bcceb3bb4e5d1a2a20f397002ed665ae5a9f070adaddc3",
+  "data/world_events/arrivals.json": "95d2a771ac5e19cd96d751afe883c83a03b7601d2a68165dd69d44280858441b"
+}

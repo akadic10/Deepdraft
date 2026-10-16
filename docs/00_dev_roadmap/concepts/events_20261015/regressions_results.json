@@ -1,0 +1,82 @@
+[
+  {
+    "test": "WorkDustReuseTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 2.5546428,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "WorkFeedbackTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 3.4803553,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "MiningFeedbackTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 1.6926742,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "MiningAnimationTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 3.7662375,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "TreeFellingTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 2.1616846,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "ConstructionTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 10.7047856,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "JobMixedWorldTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 16.7814873,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "HaulingSelectionTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 9.4158801,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 62.034509,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  },
+  {
+    "test": "WorldTerrainStartupTest",
+    "errors": false,
+    "exit_code": 0,
+    "seconds": 37.3445339,
+    "pass_marker": true,
+    "dust_sha256": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "source_save_unchanged": true,
+  "arguments": [
+    "--path",
+    "\"P:\\Deepdraft\"",
+    "--disable-vsync",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://tools/performance/LongSessionBenchmark.gd",
+    "--",
+    "--output=res://tmp/performance_20261014/events_long_30",
+    "--seconds=330",
+    "--population=30",
+    "--saved",
+    "--no-ablations",
+    "--weather=base:weather:clear"
+  ],
+  "save_sha256": "F223EEE6DFE52FEFE6ADD9A763362640F02C439FB2F33687F550661FB9CC148B",
+  "exit_code": 0
+}

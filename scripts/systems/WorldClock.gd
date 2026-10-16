@@ -29,6 +29,9 @@ var hour:   float  = 0.0       # 0.0–23.999… (24-hour clock)
 ## Multiplies real time. 0 = frozen. 1 = ×1 (24-minute day). Set via set_speed().
 var speed:  float = 1.0
 var paused: bool  = false
+## Transient notification context. Restored presentation catches up within frame
+## budgets, even when loading a paused night; never saved as simulation state.
+var restoring_state: bool = false
 
 # ── Configuration (loaded from calendar.json; values below are fallbacks) ──────
 var _real_seconds_per_game_hour: float = 60.0
@@ -151,9 +154,11 @@ func restore_state(state: Dictionary) -> void:
 	speed = maxf(float(state.get("speed", 1.0)), 0.0)
 	paused = bool(state.get("paused", false))
 	_last_hour_int = int(floor(hour))
+	restoring_state = true
 	season_changed.emit(season)
 	day_changed.emit(day)
 	hour_changed.emit(_last_hour_int)
+	restoring_state = false
 
 
 # ── Debug / testing helpers ───────────────────────────────────────────────────
@@ -186,6 +191,15 @@ func advance_season() -> void:
 ## including fractional planting days; no wall-clock/offline growth counters.
 func elapsed_days() -> float:
 	return float((year - 1) * _days_per_season * _season_order.size() + day_of_year()) + hour / float(_hours_per_day)
+
+
+## Presentation catches up from midnight to sunrise on day one. Use the same
+## solar-noon/day-length calculation as SkyController, without depending on its
+## signal order. Calendar, crop and weather rules still turn over at midnight.
+func season_visual_progress() -> float:
+	if day != 1: return 1.0
+	var sunrise := clampf(float(_event_times.get("midday", 14.0)) - daylight_hours(day_of_year()) * 0.5, 0.001, float(_hours_per_day))
+	return clampf(hour / sunrise, 0.0, 1.0)
 
 
 ## Integrate designer-provided seasonal rates across calendar boundaries.

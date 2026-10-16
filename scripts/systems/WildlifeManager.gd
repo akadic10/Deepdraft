@@ -389,8 +389,8 @@ func _wolf_arrival_has_prey(at: Vector3i, event: Dictionary) -> bool:
 		if animal.position.distance_to(Navigation.centre(at, 2)) <= float(event.local_prey_radius) and _eligible_prey(animal): count += 1
 	return count >= int(event.local_prey_minimum)
 
-func prepare_arrival(event: Dictionary, plan: Dictionary, events: Node) -> Dictionary:
-	if event.species=="duck": return duck_population.prepare_arrival(event,plan,events)
+func prepare_arrival(event: Dictionary, plan: Dictionary, events: Node, deadline_usec: int = 0) -> Dictionary:
+	if event.species=="duck": return duck_population.prepare_arrival(event,plan,events,deadline_usec)
 	var data := arrival_definition(event.species)
 	if data.is_empty() or event.entry != "wilderness": return {"status": "blocked", "reason": "unsupported"}
 	var room := int(event.population_cap)-animals_of_species(event.species).size()
@@ -420,6 +420,9 @@ func _arrival_cell_allowed(at: Vector3i, event: Dictionary, events: Node) -> boo
 		for dwarf: Node3D in dwarves.get_roster():
 			if dwarf.global_position.distance_to(Vector3(at)) < float(event.dwarf_distance): return false
 	return true
+
+func cancel_arrival_preparation(event_id: String) -> void:
+	if event_id=="duck_arrival": duck_population.cancel_arrival_preparation()
 
 func spawn_arrival_member(event: Dictionary, batch: Dictionary, events: Node) -> String:
 	if event.species=="duck": return duck_population.spawn_member(event,batch,events)
@@ -558,6 +561,7 @@ func serialize_state() -> Dictionary:
 	return {"initialized": initialized, "rabbits": records,"deer_initialized":deer_initialized,"deer":deer,"wolf_initialized":wolf_initialized,"wolves":wolves,"duck_initialized":duck_initialized,"ducks":ducks}
 
 func restore_state(state: Dictionary) -> void:
+	duck_population.cancel_arrival_preparation()
 	for animal in animals:
 		remove_child(animal)
 		animal.queue_free()

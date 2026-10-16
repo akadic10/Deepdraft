@@ -1,0 +1,42 @@
+[
+  {
+    "test": "UndergroundLightingTest",
+    "seconds": 9.4449594,
+    "pass_marker": true,
+    "exit_code": 0,
+    "errors": false,
+    "lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb"
+  },
+  {
+    "test": "DoorLightingTest",
+    "seconds": 23.040753,
+    "pass_marker": true,
+    "exit_code": 0,
+    "errors": false,
+    "lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb"
+  },
+  {
+    "test": "DwarfLimbLightingTest",
+    "seconds": 4.2240957,
+    "pass_marker": true,
+    "exit_code": 0,
+    "errors": false,
+    "lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb"
+  },
+  {
+    "test": "RoomLightingTest",
+    "seconds": 33.0255689,
+    "pass_marker": true,
+    "exit_code": 0,
+    "errors": false,
+    "lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb"
+  },
+  {
+    "test": "BedroomLightingTest",
+    "seconds": 23.880105,
+    "pass_marker": true,
+    "exit_code": 0,
+    "errors": false,
+    "lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb"
+  }
+]

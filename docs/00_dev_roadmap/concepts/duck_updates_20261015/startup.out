@@ -1,0 +1,62 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 904657481).
+WorldRenderer: generation started (seed 904657481).
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: edge detail -> pushed 24975 cliff/shore columns.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (6 weather types, current = base:weather:foggy).
+WorldGenerator: spring (412, 102, 560); river 3388 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=904657481, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 904657481, "accepted": 2287, "rejections": { "density": 20988, "tree": 1325, "water": 93, "edge": 1128, "shelf": 390, "moisture": 2677, "ground": 775, "height": 3168, "shore": 28840, "cliff_foot": 3473, "cliff_falloff": 161, "detail_overlap": 218 }, "layout_ms": 628.923, "categories": { "boulder": 65, "scree": 174, "blueberry": 301, "elderberry": 385, "wild_strawberry": 471, "flowers": 880, "reeds": 11 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 7 ducks.
+WorldRenderer: first visible overview tile after 5.510 s at tile (16, 16).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 6.295 s
+  first_visible_terrain: 5.510 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=4.329 s  ready_at=4.331 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.199 s
+    edge_detail: 0.150 s
+    layout_validation: 0.785 s
+    river: 0.018 s
+    caves: 3.030 s
+    tile_ranges: 0.077 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.005 s  avg=0.04 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=6.285 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 16.1%, valley 23.2%, lowland 60.7%
+  height: min 11, max 115, avg 30.7
+  top surface: grass 81.7%, dirt 0.9%, rock 15.9%, water 1.5%
+  surface domains: mountain rock 98.6%; valley grass 95.4% dirt 4.0% rock 0.0%
+  finished terrain: summit 3174 columns, detailed 24947, dry shore 641
+  water: lake (32, 245) y18 floor 11-17 depth 7 columns 11793; tarn (240, 336) y54 floor 47-52 depth 7 columns 878; banks 5525
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->12868, sides 72177, validation mismatches 0/0) in 11.88 s since startup.
+WorldGenerator: stopped in 41.7 s.

@@ -1,0 +1,8 @@
+{
+  "errors": true,
+  "pass_marker": false,
+  "exit_code": 1,
+  "test": "ArrivalPreparationTest",
+  "wildlife_sha256": "a446493bcd8c218e864f5041b26cc0a509749f17f9676fb6a3eee7e702ceb591",
+  "seconds": 0.1745159
+}

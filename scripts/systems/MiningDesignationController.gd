@@ -2329,6 +2329,12 @@ func serialize_state() -> Dictionary:
 	return { "mined_blocks": mined, "zones": saved_zones }
 
 
+func capture_save_state() -> Dictionary:
+	var zones := {}
+	for id in _zones: zones[id]=_zones[id].get("blocks",[]).duplicate()
+	return {"mined_blocks":_mined_blocks.keys(),"zones":zones}
+
+
 func restore_state(state: Dictionary) -> void:
 	# Collect every valid mined block first, then commit them as ONE batch —
 	# per-block _mine_block_world calls here made loading O(n²) in mined

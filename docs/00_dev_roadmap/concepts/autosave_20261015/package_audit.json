@@ -1,0 +1,17 @@
+{
+  "package": "P:\\Deepdraft\\build\\windows\\releases\\20261015-173619-332-778e7c05\\Deepdraft",
+  "zip_sha256": "bd17237590276f0bec12a4eb1a5dfccb2d73515d43ca7e3052f274daa4b1a62d",
+  "entries": {
+    "Deepdraft.console.exe": "cc9f4d846242473aa26ae9d44e3f4096617d0855ca84484ad1d0c640b90d8869",
+    "Deepdraft.exe": "cc973f0f97943fb64cc043598255a1f6e0f6197bdf8e89fcd60e779c9a3ffe26",
+    "Deepdraft.pck": "e28ea27905afb922d57c4225d6a1573370a5c7473d6abedd56152d730625f595",
+    "README.txt": "14a3b95a6f4c4a8b61dfb946bad6cfe9069d7a7e7fe10444b10da5d411b8acdd"
+  },
+  "zip_matches_release": true,
+  "original_save_unchanged": true,
+  "prior_performance_sources_unchanged": {
+    "scripts/components/UndergroundLighting.gd": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+    "scripts/components/WorkDustBurst.gd": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670",
+    "scripts/systems/WorkFeedback.gd": "1fdaa30db6eefca1b4e2ec08a88c91f48c74b1f467a1029034713916fd71da4d"
+  }
+}

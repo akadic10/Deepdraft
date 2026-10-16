@@ -1,0 +1,26 @@
+{
+  "zip": "P:/Deepdraft/build/windows/Deepdraft-Windows-Playtest.zip",
+  "zip_sha256": "3A3835D59B2785F1EE155C028D6455FEE9DF0D81443CAC7D27BCE47D392BFF0F",
+  "exe": "P:\\Deepdraft\\build\\windows\\releases\\20261015-194526-942-648e8027\\Deepdraft\\Deepdraft.exe",
+  "directory": "P:\\Deepdraft\\build\\windows\\releases\\20261015-194526-942-648e8027\\Deepdraft",
+  "entries": {
+    "Deepdraft.exe": {
+      "sha256": "cc973f0f97943fb64cc043598255a1f6e0f6197bdf8e89fcd60e779c9a3ffe26",
+      "bytes": 109168640
+    },
+    "Deepdraft.console.exe": {
+      "sha256": "cc9f4d846242473aa26ae9d44e3f4096617d0855ca84484ad1d0c640b90d8869",
+      "bytes": 91136
+    },
+    "Deepdraft.pck": {
+      "sha256": "0259d1022bfc30bcc8f9e5d834056ddd9a9dc4082f65bd410b5493dda921dd0c",
+      "bytes": 44295520
+    },
+    "README.txt": {
+      "sha256": "14a3b95a6f4c4a8b61dfb946bad6cfe9069d7a7e7fe10444b10da5d411b8acdd",
+      "bytes": 1791
+    }
+  },
+  "zip_bytes": 80657629,
+  "zip_matches_release": true
+}

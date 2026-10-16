@@ -1,0 +1,975 @@
+{
+  "5": {
+    "duration_seconds": 330.047561,
+    "frame_ms": {
+      "frames": 25027,
+      "mean": 13.187872897270948,
+      "p95": 27.034,
+      "p99": 35.213,
+      "max": 1427.489,
+      "over_33": 384,
+      "over_50": 24,
+      "over_100": 7
+    },
+    "intervals": {
+      "first_30_seconds": {
+        "frames": 1833,
+        "mean": 16.37150409165303,
+        "p95": 34.012,
+        "p99": 41.665,
+        "max": 59.059,
+        "over_33": 99,
+        "over_50": 1,
+        "over_100": 0
+      },
+      "explicit_save": {
+        "frames": 136,
+        "mean": 22.13220588235294,
+        "p95": 31.396,
+        "p99": 40.727,
+        "max": 868.01,
+        "over_33": 5,
+        "over_50": 1,
+        "over_100": 1
+      },
+      "day_boundary": {
+        "frames": 468,
+        "mean": 10.701549145299145,
+        "p95": 24.476,
+        "p99": 34.012,
+        "max": 42.992,
+        "over_33": 6,
+        "over_50": 0,
+        "over_100": 0
+      },
+      "arrivals": {
+        "frames": 728,
+        "mean": 13.72837912087912,
+        "p95": 26.652,
+        "p99": 43.944,
+        "max": 378.276,
+        "over_33": 20,
+        "over_50": 7,
+        "over_100": 5
+      },
+      "season_change": {
+        "frames": 2204,
+        "mean": 13.6152944646098,
+        "p95": 27.124,
+        "p99": 33.84,
+        "max": 84.961,
+        "over_33": 25,
+        "over_50": 2,
+        "over_100": 0
+      },
+      "later_steady": {
+        "frames": 2172,
+        "mean": 13.808360957642725,
+        "p95": 27.317,
+        "p99": 34.258,
+        "max": 48.645,
+        "over_33": 29,
+        "over_50": 0,
+        "over_100": 0
+      },
+      "natural_autosave": {
+        "frames": 2043,
+        "mean": 14.693254038179148,
+        "p95": 27.105,
+        "p99": 34.823,
+        "max": 1427.489,
+        "over_33": 34,
+        "over_50": 1,
+        "over_100": 1
+      }
+    },
+    "events": [
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 30.857759
+      },
+      {
+        "data": {
+          "main_thread_ms": 825.995,
+          "ok": true
+        },
+        "kind": "explicit_autosave",
+        "seconds": 30.857767
+      },
+      {
+        "data": {},
+        "kind": "prepare_day_boundary",
+        "seconds": 60.004417
+      },
+      {
+        "data": {
+          "day": 4
+        },
+        "kind": "day_changed",
+        "seconds": 60.095212
+      },
+      {
+        "data": {
+          "note": "normal provider eligibility, caps and route rules retained"
+        },
+        "kind": "arrival_opportunities",
+        "seconds": 90.0064
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "east",
+          "id": "rabbit_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.013628
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "west",
+          "id": "deer_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.021534
+      },
+      {
+        "data": {
+          "count": 2,
+          "edge": "south",
+          "id": "duck_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 93.841798
+      },
+      {
+        "data": {},
+        "kind": "prepare_season_boundary",
+        "seconds": 150.010107
+      },
+      {
+        "data": {
+          "season": "autumn"
+        },
+        "kind": "season_changed",
+        "seconds": 150.082044
+      },
+      {
+        "data": {
+          "day": 1
+        },
+        "kind": "day_changed",
+        "seconds": 150.082171
+      },
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 302.910393
+      }
+    ],
+    "progress": {
+      "mined": 64,
+      "built": 3,
+      "stored": 54,
+      "loose": -57,
+      "wildlife": 4
+    },
+    "initial": {
+      "assignments": {},
+      "built": 86,
+      "clock": {
+        "day": 3,
+        "hour": 21.225374933328,
+        "paused": false,
+        "season": "summer",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {},
+      "loose": 240,
+      "mined": 2716,
+      "nodes": 23070,
+      "objects": 34265.0,
+      "orphan_nodes": 0.0,
+      "released": {},
+      "resources": 832.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 0.406,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 4,
+          "MINE": 4
+        },
+        "pending_total": 9,
+        "probes_per_sec": 0.0,
+        "wake_count": 0,
+        "worst_wake_usec": 0
+      },
+      "static_memory_mb": 449.952058792114,
+      "stored": 89,
+      "video_memory_mb": 849.58203125,
+      "wildlife": 79
+    },
+    "final": {
+      "assignments": {
+        "FETCH_BUILD": 4,
+        "HAUL": 20,
+        "MINE": 5
+      },
+      "built": 89,
+      "clock": {
+        "day": 1,
+        "hour": 2.97743836111113,
+        "paused": true,
+        "season": "autumn",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {
+        "FETCH_BUILD": 3,
+        "HAUL": 19,
+        "MINE": 4
+      },
+      "loose": 183,
+      "mined": 2780,
+      "nodes": 23206,
+      "objects": 34690.0,
+      "orphan_nodes": 0.0,
+      "released": {
+        "FETCH_BUILD": 1,
+        "HAUL": 1,
+        "MINE": 1
+      },
+      "resources": 940.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 234.898,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 0,
+          "MINE": 0
+        },
+        "pending_total": 1,
+        "probes_per_sec": 0.0,
+        "wake_count": 16739,
+        "worst_wake_usec": 50519
+      },
+      "static_memory_mb": 452.512247085571,
+      "stored": 143,
+      "video_memory_mb": 878.45703125,
+      "wildlife": 83
+    },
+    "window_frame_means": [
+      16.3778053435115,
+      12.5923562447611,
+      10.0078422974768,
+      12.1260016155089,
+      11.2429509546986,
+      13.5996358695652,
+      13.7952578125,
+      13.9540525092937,
+      14.403792706334,
+      14.9885581627558,
+      14.6458918518519
+    ],
+    "window_frame_p95": [
+      34.012,
+      26.174,
+      22.74,
+      25.378,
+      23.587,
+      27.024,
+      27.317,
+      27.205,
+      27.37,
+      28.557,
+      27.039
+    ],
+    "window_nodes": [
+      23098,
+      23096,
+      23127,
+      23206,
+      12387,
+      23206,
+      23206,
+      23206,
+      23206,
+      23206,
+      23206
+    ],
+    "window_resources": [
+      836.0,
+      836.0,
+      836.0,
+      836.0,
+      900.0,
+      940.0,
+      940.0,
+      940.0,
+      940.0,
+      940.0,
+      940.0
+    ],
+    "window_memory_mb": [
+      435.169652938843,
+      439.190626144409,
+      438.435022354126,
+      446.964807510376,
+      416.717821121216,
+      454.40634727478,
+      455.734220504761,
+      449.695844650269,
+      452.556116104126,
+      455.642976760864,
+      455.263879776001
+    ],
+    "auto_count": 2,
+    "failures": [],
+    "lifecycle_errors": []
+  },
+  "20": {
+    "duration_seconds": 210.021777,
+    "frame_ms": {
+      "frames": 12291,
+      "mean": 17.088050036612156,
+      "p95": 33.443,
+      "p99": 43.709,
+      "max": 840.958,
+      "over_33": 626,
+      "over_50": 61,
+      "over_100": 2
+    },
+    "intervals": {
+      "first_30_seconds": {
+        "frames": 1225,
+        "mean": 24.493889795918367,
+        "p95": 43.206,
+        "p99": 56.005,
+        "max": 74.168,
+        "over_33": 227,
+        "over_50": 32,
+        "over_100": 0
+      },
+      "explicit_save": {
+        "frames": 87,
+        "mean": 34.54627586206897,
+        "p95": 46.555,
+        "p99": 66.093,
+        "max": 840.958,
+        "over_33": 17,
+        "over_50": 5,
+        "over_100": 1
+      },
+      "day_boundary": {
+        "frames": 288,
+        "mean": 17.339975694444444,
+        "p95": 29.971,
+        "p99": 38.892,
+        "max": 75.274,
+        "over_33": 11,
+        "over_50": 2,
+        "over_100": 0
+      },
+      "arrivals": {
+        "frames": 651,
+        "mean": 15.368388632872504,
+        "p95": 28.968,
+        "p99": 40.729,
+        "max": 191.131,
+        "over_33": 17,
+        "over_50": 1,
+        "over_100": 1
+      },
+      "season_change": {
+        "frames": 1647,
+        "mean": 18.21139040680024,
+        "p95": 34.309,
+        "p99": 41.993,
+        "max": 89.829,
+        "over_33": 104,
+        "over_50": 3,
+        "over_100": 0
+      },
+      "later_steady": {
+        "frames": 1933,
+        "mean": 15.523686497672012,
+        "p95": 29.385,
+        "p99": 37.003,
+        "max": 56.975,
+        "over_33": 48,
+        "over_50": 1,
+        "over_100": 0
+      },
+      "natural_autosave": {}
+    },
+    "events": [
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 30.813103
+      },
+      {
+        "data": {
+          "main_thread_ms": 795.831,
+          "ok": true
+        },
+        "kind": "explicit_autosave",
+        "seconds": 30.813111
+      },
+      {
+        "data": {},
+        "kind": "prepare_day_boundary",
+        "seconds": 60.039057
+      },
+      {
+        "data": {
+          "day": 4
+        },
+        "kind": "day_changed",
+        "seconds": 60.074666
+      },
+      {
+        "data": {
+          "note": "normal provider eligibility, caps and route rules retained"
+        },
+        "kind": "arrival_opportunities",
+        "seconds": 90.002004
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "east",
+          "id": "rabbit_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.033643
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "west",
+          "id": "deer_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.045687
+      },
+      {
+        "data": {
+          "count": 2,
+          "edge": "south",
+          "id": "duck_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 92.609347
+      },
+      {
+        "data": {},
+        "kind": "prepare_season_boundary",
+        "seconds": 150.005035
+      },
+      {
+        "data": {
+          "season": "autumn"
+        },
+        "kind": "season_changed",
+        "seconds": 150.080729
+      },
+      {
+        "data": {
+          "day": 1
+        },
+        "kind": "day_changed",
+        "seconds": 150.080862
+      }
+    ],
+    "progress": {
+      "mined": 64,
+      "built": 3,
+      "stored": 54,
+      "loose": -57,
+      "wildlife": 4
+    },
+    "initial": {
+      "assignments": {},
+      "built": 86,
+      "clock": {
+        "day": 3,
+        "hour": 21.225374933328,
+        "paused": false,
+        "season": "summer",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {},
+      "loose": 240,
+      "mined": 2716,
+      "nodes": 23613,
+      "objects": 35912.0,
+      "orphan_nodes": 0.0,
+      "released": {},
+      "resources": 832.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 0.478,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 4,
+          "MINE": 4
+        },
+        "pending_total": 9,
+        "probes_per_sec": 0.0,
+        "wake_count": 0,
+        "worst_wake_usec": 0
+      },
+      "static_memory_mb": 461.232278823853,
+      "stored": 89,
+      "video_memory_mb": 896.64453125,
+      "wildlife": 79
+    },
+    "final": {
+      "assignments": {
+        "FETCH_BUILD": 4,
+        "HAUL": 21,
+        "MINE": 5
+      },
+      "built": 89,
+      "clock": {
+        "day": 1,
+        "hour": 0.999092071717177,
+        "paused": true,
+        "season": "autumn",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {
+        "FETCH_BUILD": 3,
+        "HAUL": 21,
+        "MINE": 4
+      },
+      "loose": 183,
+      "mined": 2780,
+      "nodes": 23750,
+      "objects": 36338.0,
+      "orphan_nodes": 0.0,
+      "released": {
+        "FETCH_BUILD": 1,
+        "MINE": 1
+      },
+      "resources": 940.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 168.183,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 0,
+          "MINE": 0
+        },
+        "pending_total": 1,
+        "probes_per_sec": 0.0,
+        "wake_count": 10842,
+        "worst_wake_usec": 59530
+      },
+      "static_memory_mb": 469.435368537903,
+      "stored": 143,
+      "video_memory_mb": 924.39453125,
+      "wildlife": 83
+    },
+    "window_frame_means": [
+      24.4919616639478,
+      20.7888130193906,
+      15.527724137931,
+      14.5047341710972,
+      14.7491060903733,
+      18.1585181378477,
+      15.4971339239187
+    ],
+    "window_frame_p95": [
+      43.206,
+      37.794,
+      29.132,
+      27.62,
+      28.565,
+      34.276,
+      29.385
+    ],
+    "window_nodes": [
+      23634,
+      23631,
+      23709,
+      23750,
+      12789,
+      23750,
+      23750
+    ],
+    "window_resources": [
+      836.0,
+      836.0,
+      836.0,
+      836.0,
+      884.0,
+      940.0,
+      940.0
+    ],
+    "window_memory_mb": [
+      447.04137134552,
+      451.888710975647,
+      459.795071601868,
+      482.799115180969,
+      441.662934303284,
+      464.024819374084,
+      471.320561408997
+    ],
+    "auto_count": 1,
+    "failures": [],
+    "lifecycle_errors": []
+  },
+  "30": {
+    "duration_seconds": 330.041761,
+    "frame_ms": {
+      "frames": 17279,
+      "mean": 19.101221598472133,
+      "p95": 35.535,
+      "p99": 45.24,
+      "max": 1540.666,
+      "over_33": 1208,
+      "over_50": 92,
+      "over_100": 4
+    },
+    "intervals": {
+      "first_30_seconds": {
+        "frames": 1104,
+        "mean": 27.194746376811594,
+        "p95": 46.178,
+        "p99": 61.465,
+        "max": 87.603,
+        "over_33": 271,
+        "over_50": 40,
+        "over_100": 0
+      },
+      "explicit_save": {
+        "frames": 79,
+        "mean": 37.888316455696206,
+        "p95": 45.605,
+        "p99": 93.294,
+        "max": 855.153,
+        "over_33": 22,
+        "over_50": 3,
+        "over_100": 1
+      },
+      "day_boundary": {
+        "frames": 263,
+        "mean": 19.007623574144485,
+        "p95": 33.336,
+        "p99": 51.581,
+        "max": 53.821,
+        "over_33": 15,
+        "over_50": 5,
+        "over_100": 0
+      },
+      "arrivals": {
+        "frames": 598,
+        "mean": 16.705909698996656,
+        "p95": 32.308,
+        "p99": 41.032,
+        "max": 170.0,
+        "over_33": 28,
+        "over_50": 2,
+        "over_100": 1
+      },
+      "season_change": {
+        "frames": 1535,
+        "mean": 19.54423973941368,
+        "p95": 36.535,
+        "p99": 46.208,
+        "max": 106.733,
+        "over_33": 130,
+        "over_50": 6,
+        "over_100": 1
+      },
+      "later_steady": {
+        "frames": 1664,
+        "mean": 18.02342548076923,
+        "p95": 33.245,
+        "p99": 41.581,
+        "max": 90.532,
+        "over_33": 84,
+        "over_50": 3,
+        "over_100": 0
+      },
+      "natural_autosave": {
+        "frames": 1466,
+        "mean": 20.46457162346521,
+        "p95": 34.604,
+        "p99": 41.929,
+        "max": 1540.666,
+        "over_33": 88,
+        "over_50": 4,
+        "over_100": 1
+      }
+    },
+    "events": [
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 30.864329
+      },
+      {
+        "data": {
+          "main_thread_ms": 804.658,
+          "ok": true
+        },
+        "kind": "explicit_autosave",
+        "seconds": 30.864335
+      },
+      {
+        "data": {},
+        "kind": "prepare_day_boundary",
+        "seconds": 60.013401
+      },
+      {
+        "data": {
+          "day": 4
+        },
+        "kind": "day_changed",
+        "seconds": 60.084403
+      },
+      {
+        "data": {
+          "note": "normal provider eligibility, caps and route rules retained"
+        },
+        "kind": "arrival_opportunities",
+        "seconds": 90.020975
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "east",
+          "id": "rabbit_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.036821
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "west",
+          "id": "deer_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.045605
+      },
+      {
+        "data": {
+          "count": 2,
+          "edge": "south",
+          "id": "duck_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 92.572078
+      },
+      {
+        "data": {},
+        "kind": "prepare_season_boundary",
+        "seconds": 150.006664
+      },
+      {
+        "data": {
+          "season": "autumn"
+        },
+        "kind": "season_changed",
+        "seconds": 150.097622
+      },
+      {
+        "data": {
+          "day": 1
+        },
+        "kind": "day_changed",
+        "seconds": 150.097746
+      },
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 302.245228
+      }
+    ],
+    "progress": {
+      "mined": 64,
+      "built": 3,
+      "stored": 54,
+      "loose": -59,
+      "wildlife": 4
+    },
+    "initial": {
+      "assignments": {},
+      "built": 86,
+      "clock": {
+        "day": 3,
+        "hour": 21.225374933328,
+        "paused": false,
+        "season": "summer",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {},
+      "loose": 240,
+      "mined": 2716,
+      "nodes": 23975,
+      "objects": 37010.0,
+      "orphan_nodes": 0.0,
+      "released": {},
+      "resources": 832.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 0.545,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 4,
+          "MINE": 4
+        },
+        "pending_total": 9,
+        "probes_per_sec": 0.0,
+        "wake_count": 0,
+        "worst_wake_usec": 0
+      },
+      "static_memory_mb": 466.511361122131,
+      "stored": 89,
+      "video_memory_mb": 931.01953125,
+      "wildlife": 79
+    },
+    "final": {
+      "assignments": {
+        "FETCH_BUILD": 4,
+        "HAUL": 18,
+        "MINE": 5
+      },
+      "built": 89,
+      "clock": {
+        "day": 1,
+        "hour": 2.9752137555556,
+        "paused": true,
+        "season": "autumn",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {
+        "FETCH_BUILD": 3,
+        "HAUL": 18,
+        "MINE": 4
+      },
+      "loose": 181,
+      "mined": 2780,
+      "nodes": 24106,
+      "objects": 37433.0,
+      "orphan_nodes": 0.0,
+      "released": {
+        "FETCH_BUILD": 1,
+        "MINE": 1
+      },
+      "resources": 940.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 286.283,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 0,
+          "MINE": 0
+        },
+        "pending_total": 1,
+        "probes_per_sec": 0.0,
+        "wake_count": 16011,
+        "worst_wake_usec": 46255
+      },
+      "static_memory_mb": 471.833634376526,
+      "stored": 143,
+      "video_memory_mb": 959.45703125,
+      "wildlife": 83
+    },
+    "window_frame_means": [
+      27.211407239819,
+      22.2220792005922,
+      17.1940616438356,
+      16.2576352813853,
+      16.2338642509465,
+      19.5076928571428,
+      17.9425582785416,
+      18.7282994385527,
+      19.0214604179861,
+      19.6878393442623,
+      20.3815687757909
+    ],
+    "window_frame_p95": [
+      46.178,
+      38.538,
+      32.16,
+      30.307,
+      30.165,
+      36.535,
+      33.231,
+      34.329,
+      34.853,
+      35.335,
+      34.55
+    ],
+    "window_nodes": [
+      23993,
+      23987,
+      24065,
+      24106,
+      13057,
+      24106,
+      24106,
+      24106,
+      24106,
+      24106,
+      24106
+    ],
+    "window_resources": [
+      836.0,
+      836.0,
+      836.0,
+      836.0,
+      876.0,
+      940.0,
+      940.0,
+      940.0,
+      940.0,
+      940.0,
+      940.0
+    ],
+    "window_memory_mb": [
+      452.106194496155,
+      456.472123146057,
+      465.907658576965,
+      470.951752662659,
+      438.593876838684,
+      465.565140724182,
+      470.931660652161,
+      471.418480873108,
+      470.739880561829,
+      470.175206184387,
+      473.07875919342
+    ],
+    "auto_count": 2,
+    "failures": [],
+    "lifecycle_errors": []
+  }
+}

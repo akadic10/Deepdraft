@@ -1,0 +1,15 @@
+{
+  "scripts/systems/WorldEventDirector.gd": "87f745c48ed8b1db70035ff700198ae832040aa2167140d292decb17a29de3bc",
+  "scripts/systems/WildlifeManager.gd": "a446493bcd8c218e864f5041b26cc0a509749f17f9676fb6a3eee7e702ceb591",
+  "scripts/components/DuckPopulation.gd": "dd39fe5bfff538113472e29e3edecab382d49e9db204c972d1f4ed600e667009",
+  "scripts/components/DuckNavigation.gd": "21ca17db7c5d1425d790f1ae36a745126671fdb412abccd4238493d4f0b471ca",
+  "scripts/components/DuckArrivalPreparation.gd": "f1986ff1da71c07b58bacf6f16c13c10044a8feb3d2bf4535e96714a6f5bd7d2",
+  "scripts/components/EdgeArrivalPlanner.gd": "ca61fac6b06aab517b012bcbf94a9c288713912a54a27fb419d9e813d5519b0f",
+  "scripts/tests/ArrivalPreparationTest.gd": "f793204cc533760b3df110e83a5e1dc5781a78215e2db852c2d5211282a31a51",
+  "tools/performance/ArrivalBenchmark.gd": "73dc82a75633da93b717692cc770717d5fd55ff16f709d3a34486a3a6837761d",
+  "tools/performance/SmokeArrivalExport.gd": "821dae36ff8d08a84531427c98c9d5cc4f24143460e0dfd15c021bacef1ed751",
+  "scripts/systems/SaveManager.gd": "af6ece005da64051c0d42d1f16a1bde605c9bebed610a09d749c405fe2b7d9cc",
+  "scripts/components/UndergroundLighting.gd": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+  "scripts/components/WorkDustBurst.gd": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670",
+  "scripts/systems/WorkFeedback.gd": "1fdaa30db6eefca1b4e2ec08a88c91f48c74b1f467a1029034713916fd71da4d"
+}

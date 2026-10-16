@@ -144,6 +144,8 @@ func _run() -> void:
 	if observations.moving_animal_frames == 0: report.failures.append("No wildlife travel observed")
 	if observations.open_door_frames == 0: report.failures.append("No live door opening observed")
 	report["save_written"] = save.request_save()
+	while save.is_saving(): await process_frame
+	report["save_written"] = report.save_written and bool(save.last_save_profile.get("success",false))
 	if not report.save_written: report.failures.append("Fixture save failed")
 	if report.save_written: await _reload_check(save)
 	_finish()

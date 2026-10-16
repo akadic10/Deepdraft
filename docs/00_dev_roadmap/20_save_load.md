@@ -80,7 +80,8 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
 
 ## 2. File schema
 
-`SaveManager` is the sole reader and writer of runtime save JSON.
+`SaveManager` owns runtime save JSON and delegates file transactions to its private
+`SaveFileStore` helper.
 
 ```json
 {
@@ -166,6 +167,25 @@ func restore_state(state: Dictionary) -> void
 `SaveManager` collects every owner by section key. On load it sorts owners by restore
 priority so dependencies exist before consumers restore.
 
+Saving captures all owners in one main-thread call, then one worker owns the private
+snapshot. The default path deep-copies `serialize_state()` containers. Water, mining,
+and loose items implement `capture_save_state()` to copy raw data cheaply;
+`SaveSnapshotPreparation` formats and sorts those copies on the worker. Such captures
+must contain only privately owned data, with no live Nodes, Resources, or mutable
+containers shared with gameplay. New capture formats need a matching preparation case
+and equality tests against `serialize_state()`.
+
+`request_save()` and `request_autosave()` return **accepted**, not durable completion.
+Wait for `save_finished(success)` / `autosave_finished(success)`, or `is_saving()` to
+clear, before assuming the file exists. The completion toast follows validation and
+installation. A busy writer rejects additional saves and loads; loading can be retried
+after completion. Closing the game joins an accepted transaction before teardown ends.
+
+The worker formats, encodes, writes, validates, rotates, and frees its private data.
+It uses captured registry catalogs; it never reads the active scene or autoloads.
+Normal frames only collect a completed worker. Reads and load recovery remain
+synchronous. See [192 — Autosave performance](192_autosave_performance.md).
+
 | Priority | Section | Owner | Authoritative content |
 |---:|---|---|---|
 | 10 | `mining` | `MiningDesignationController` | Mined block coordinates and outstanding mining-zone block sets |
@@ -212,8 +232,9 @@ Manual and automatic saves ask owners for dictionaries and write them without ca
 task reset/release APIs or changing agents.
 
 The autosave counter advances only while the world maps are ready, deterministic
-generation is idle, and no load is running. At 300 seconds it takes the same observational
-snapshot into the independent autosave slot and shows a short **Autosaved.** toast. Manual
+generation is idle, and no save or load is running. At 300 seconds it captures an observational
+snapshot for the independent autosave slot. **Autosaved.** appears when the worker
+finishes the validated transaction. Manual
 saves do not reset this counter; completing a load does, avoiding an immediate post-load
 autosave.
 

@@ -1,0 +1,86 @@
+{
+	"animals_after": 79,
+	"arrival_history": [
+		{
+			"count": 2,
+			"day": 30.8927432710646,
+			"id": "duck_arrival:2520450404:4",
+			"result": "arrived"
+		}
+	],
+	"autosave_completions": [
+		true,
+		true
+	],
+	"cache": {
+		"entries": 10061,
+		"evictions": 24,
+		"hits": 285846,
+		"misses": 19294,
+		"tiles": 128
+	},
+	"driver": "d3d12",
+	"duck_queries": {
+		"active": false,
+		"batches": 687,
+		"entries": 0,
+		"hits": 48881,
+		"misses": 132370,
+		"peak": 1252
+	},
+	"dwarves": 5,
+	"failures": [],
+	"lighting_cleanup_idle": true,
+	"lighting_refreshes": 1,
+	"lighting_texture_layers": 14,
+	"manual_completions": [
+		true
+	],
+	"moved": 65,
+	"obstacle_comparisons": 245,
+	"offscreen_at_start": 79,
+	"quote_comparisons": 5,
+	"recovery": [
+		{
+			"backup": true,
+			"ok": true
+		}
+	],
+	"resumed_arrivals": 2,
+	"save_profile": {
+		"capture_ms": 13.589,
+		"completion_ms": 0.012,
+		"elapsed_ms": 1475.911,
+		"owners": {
+			"bridges": 0.01,
+			"camera": 0.005,
+			"construction": 0.09,
+			"dwarves": 0.122,
+			"flora": 0.038,
+			"furniture": 0.065,
+			"items": 0.002,
+			"jobs": 0.437,
+			"ladders": 0.002,
+			"mining": 0.227,
+			"settlement_flag": 0.002,
+			"slice": 0.005,
+			"stockpiles": 0.203,
+			"surface_details": 1.242,
+			"water": 10.439,
+			"wildlife": 0.463,
+			"worker_crafting": 0.013,
+			"world_events": 0.021
+		},
+		"success": true,
+		"worker": {
+			"cleanup": 11.555,
+			"encode_json": 60.07,
+			"parse_json": 128.362,
+			"prepare": 67.988,
+			"read_bytes": 9.656,
+			"transaction": 1379.725,
+			"validate": 1112.854
+		}
+	},
+	"work_effect_prepared": true
+}

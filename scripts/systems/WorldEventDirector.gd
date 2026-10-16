@@ -3,6 +3,7 @@ extends Node
 ## entry routing and actors; this owner owns decisions, expiry and batch progress.
 signal arrival_finished(event_id: String, count: int, edge: String)
 
+const PREPARATION_BUDGET_USEC := 2000
 const DATA_PATH := "res://data/world_events/arrivals.json"
 var config: Dictionary = {}
 var initialized := false
@@ -24,7 +25,7 @@ func _process(delta: float) -> void:
 	for event: Dictionary in config.events:
 		var provider := _provider(event)
 		if provider != null and provider.arrival_ready(): arrivals_ready = true
-	if arrivals_ready: advance(delta)
+	if arrivals_ready: advance(delta,Time.get_ticks_usec()+PREPARATION_BUDGET_USEC)
 
 func initialize_schedule() -> void:
 	if not initialized:
@@ -42,7 +43,7 @@ func _draw(event: Dictionary) -> Dictionary:
 		"count": random.randi_range(int(event.group_size[0]), int(event.group_size[1])),
 		"roll": random.randf(), "seed": str(random.randi())}
 
-func advance(delta: float) -> void:
+func advance(delta: float, deadline_usec: int = 0) -> void:
 	if SaveManager.is_loading(): return
 	initialize_schedule()
 	if WorldClock.paused or WorldClock.speed <= 0: return
@@ -70,7 +71,9 @@ func advance(delta: float) -> void:
 		var provider := _provider(event)
 		if provider == null or not provider.arrival_ready(): continue
 		if active.route.is_empty():
-			var result: Dictionary = provider.prepare_arrival(event, active, self)
+			if deadline_usec>0 and Time.get_ticks_usec()>=deadline_usec: continue
+			var result: Dictionary = provider.prepare_arrival(event, active, self, deadline_usec)
+			if result.get("status", "retry")=="pending": continue
 			active.attempt = int(active.attempt) + 1
 			if result.get("status", "retry") == "blocked":
 				_finish(event, state, String(result.get("reason", "blocked")))
@@ -96,6 +99,8 @@ func _provider(event: Dictionary) -> Node:
 	return null
 
 func _finish(event: Dictionary, state: Dictionary, reason: String) -> void:
+	var provider:=_provider(event)
+	if provider!=null and provider.has_method("cancel_arrival_preparation"): provider.cancel_arrival_preparation(event.id)
 	var active: Dictionary = state.active
 	_record(active.id, reason, int(active.issued))
 	state.active = {}
@@ -168,6 +173,9 @@ func serialize_state() -> Dictionary:
 		"schedules": schedules.duplicate(true), "pressure": pressure.duplicate(true), "history": history.duplicate(true)}
 
 func restore_state(state: Dictionary) -> void:
+	for event: Dictionary in config.events:
+		var provider:=_provider(event)
+		if provider!=null and provider.has_method("cancel_arrival_preparation"): provider.cancel_arrival_preparation(event.id)
 	initialized = bool(state.get("initialized", false))
 	serial = int(state.get("serial", 0))
 	random.state = int(String(state.get("rng", "0")))

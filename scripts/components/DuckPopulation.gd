@@ -2,6 +2,8 @@ extends RefCounted
 
 ## Seeded shore groups and aerial arrivals; the wildlife owner owns all actors.
 var owner: Node
+var _arrival_search: RefCounted
+var _arrival_key := ""
 
 func groups(seed_value: int) -> Array[Dictionary]:
 	var data: Dictionary = owner.duck_definition
@@ -33,43 +35,30 @@ func groups(seed_value: int) -> Array[Dictionary]:
 		result.append({"id":"flock:%d:%d:%d" % [seed_value,col.x,col.y],"home":sample.cell,"cells":cells})
 	return result
 
-func prepare_arrival(event: Dictionary, plan: Dictionary, events: Node) -> Dictionary:
+func cancel_arrival_preparation() -> void:
+	_arrival_search=null
+	_arrival_key=""
+
+func prepare_arrival(event: Dictionary, plan: Dictionary, events: Node, deadline_usec: int = 0) -> Dictionary:
 	if not WaterManager.initialized or not owner.duck_initialized: return {}
-	var room: int = int(event.population_cap)-owner.animals_of_species("duck").size()
-	if room<=0: return {"status":"blocked","reason":"population cap"}
-	var rng := RandomNumberGenerator.new()
-	rng.seed = int(String(plan.seed))+int(plan.attempt)*7919
-	var habitats := groups(rng.randi())
-	for group in habitats:
-		var home: Vector3i = group.home
-		if not owner._arrival_cell_allowed(home,event,events): continue
-		var close := false
-		for animal in owner.animals_of_species("duck"):
-			if animal.position.distance_to(Vector3(home))<float(event.settlement_spacing): close = true
-		if close: continue
-		var count := mini(room,int(plan.count))
-		var cells: Array = owner.duck_navigation.group_cells(Vector2i(home.x,home.z),count,2.0)
-		if cells.size()!=count: continue
-		var routes: Array = []
-		var edge := "west"
-		var distances := [home.x,1023-home.x,home.z,1023-home.z]
-		var nearest := distances.find(distances.min())
-		edge = ["west","east","north","south"][nearest]
-		for cell: Vector3i in cells:
-			var entry := cell
-			if nearest==0: entry.x = 1
-			elif nearest==1: entry.x = 1022
-			elif nearest==2: entry.z = 1
-			else: entry.z = 1022
-			entry.y = maxi(cell.y,WorldGenerator.get_surface_y(entry.x,entry.z)+1)+16
-			var dest: Dictionary = owner.duck_navigation.surface(Vector2i(cell.x,cell.z))
-			if dest.is_empty(): break
-			var path: PackedVector3Array = owner.duck_navigation.flight_path(Vector3(entry)+Vector3(.5,0,.5),dest.position)
-			if path.is_empty(): break
-			routes.append([SaveManager.pack_v3i(entry),SaveManager.pack_v3i(cell)])
-		if routes.size()==count:
-			return {"status":"ready","count":count,"route":routes[0],"member_routes":routes,"edge":edge}
-	return {}
+	var room: int=int(event.population_cap)-owner.animals_of_species("duck").size()
+	if room<=0:
+		cancel_arrival_preparation()
+		return {"status":"blocked","reason":"population cap"}
+	var key:="%s:%s:%d" % [String(plan.id),String(plan.seed),int(plan.attempt)]
+	if _arrival_search==null or _arrival_key!=key:
+		cancel_arrival_preparation()
+		_arrival_key=key
+		_arrival_search=preload("res://scripts/components/DuckArrivalPreparation.gd").new()
+		_arrival_search.setup(owner,event,plan,events,room)
+	# Reuse queries only during this synchronous slice, never across frames.
+	owner.duck_navigation.begin_update()
+	var finished: bool=_arrival_search.advance(deadline_usec)
+	owner.duck_navigation.end_update()
+	if not finished: return {"status":"pending"}
+	var result: Dictionary=_arrival_search.result
+	cancel_arrival_preparation()
+	return result
 
 func spawn_member(event: Dictionary, batch: Dictionary, events: Node) -> String:
 	if owner.animals_of_species("duck").size()>=int(event.population_cap): return "population cap"

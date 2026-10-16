@@ -1,0 +1,77 @@
+{
+	"animals_after": 79,
+	"autosave_completions": [
+		true,
+		true
+	],
+	"cache": {
+		"entries": 10057,
+		"evictions": 24,
+		"hits": 303894,
+		"misses": 19314,
+		"tiles": 128
+	},
+	"driver": "d3d12",
+	"duck_queries": {
+		"active": false,
+		"batches": 734,
+		"entries": 0,
+		"hits": 51990,
+		"misses": 141237,
+		"peak": 1252
+	},
+	"dwarves": 5,
+	"failures": [],
+	"lighting_cleanup_idle": true,
+	"lighting_refreshes": 1,
+	"lighting_texture_layers": 14,
+	"manual_completions": [
+		true
+	],
+	"moved": 65,
+	"obstacle_comparisons": 245,
+	"offscreen_at_start": 79,
+	"quote_comparisons": 5,
+	"recovery": [
+		{
+			"backup": true,
+			"ok": true
+		}
+	],
+	"save_profile": {
+		"capture_ms": 13.154,
+		"completion_ms": 0.008,
+		"elapsed_ms": 1455.955,
+		"owners": {
+			"bridges": 0.009,
+			"camera": 0.005,
+			"construction": 0.098,
+			"dwarves": 0.117,
+			"flora": 0.036,
+			"furniture": 0.065,
+			"items": 0.002,
+			"jobs": 0.403,
+			"ladders": 0.002,
+			"mining": 0.221,
+			"settlement_flag": 0.003,
+			"slice": 0.005,
+			"stockpiles": 0.197,
+			"surface_details": 1.193,
+			"water": 10.118,
+			"wildlife": 0.441,
+			"worker_crafting": 0.012,
+			"world_events": 0.015
+		},
+		"success": true,
+		"worker": {
+			"cleanup": 11.401,
+			"encode_json": 55.543,
+			"parse_json": 125.104,
+			"prepare": 54.29,
+			"read_bytes": 10.357,
+			"transaction": 1372.909,
+			"validate": 1112.255
+		}
+	},
+	"work_effect_prepared": true
+}

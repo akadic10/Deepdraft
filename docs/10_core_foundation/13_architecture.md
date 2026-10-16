@@ -129,6 +129,13 @@ EdgeArrivalPlanner and the shared GrazerAgent journey hook, and duck aerial
 arrivals through DuckPopulation/DuckAgent. Wide ground groups save separate connected
 member routes; deer keep one herd identity and wolves recheck prey support before
 each entry. Whole-map tree occupancy gates provider readiness.
+`DuckArrivalPreparation` holds transient main-thread work across frames under the
+event director's soft 2 ms preparation deadline. Habitat selection keeps seeded
+ordering; sampled flight queries can resume between swept segments. Pending
+work does not consume an attempt or enter the save. Restore/expiry discards it,
+and the saved event seed/ordinal restarts preparation. Live checks still gate
+each actor's actual entry; no worker reads the scene. See roadmap 193.
+
 SaveManager.is_loading() prevents scheduling
 until the restored calendar is available. Missing event definitions are added
 with delayed opportunities without changing existing decisions. No new autoload
@@ -226,7 +233,16 @@ func advance_hours(amount: float) -> void    # DEV/testing
 func growth_rate_multiplier() -> float       # spring 1.2 / summer 1.0 / autumn 0.8 / winter 0.0
 func day_of_year() -> int                    # 0–111
 func daylight_hours(day_of_year: int) -> float  # solstice cosine curve (11_overview.md §5)
+func season_visual_progress() -> float       # midnight-to-sunrise presentation progress on day 1
 ```
+
+Season rules and signals remain immediate. As of [194](../00_dev_roadmap/194_gradual_season_transition.md),
+flora, ground plants and existing terrain meshes use transient `SeasonalRefreshQueue`
+instances to spread art changes across the first night. Queues share a soft 2 ms
+admission/art budget; terrain still uses its existing worker/upload budgets.
+Tree bodies, navigation and work sources survive art swaps. The transient
+`restoring_state` flag lets paused loads catch up within frame budgets instead
+of waiting for dawn. Neither that flag nor presentation queues enter saves.
 
 ### `WorldData`
 Owns the chunk data matrix (a dictionary of `Chunk` objects, lazily created) and exposes thread-safe block read/write APIs. A `Mutex` guards the chunk dictionary; chunk byte arrays are written by only one party at a time (generator pre-submit, game logic post-submit).
@@ -249,6 +265,12 @@ It listens to exact block edits, incrementally derives roof/skylight exposure,
 and supplies the shared world-space material to terrain and live entity visuals.
 It is neither an autoload nor a save owner. Its tuning comes from SkyController's
 existing sky-settings registry; see `24_world_rendering.md` for the lighting contract.
+Its `SceneAtmosphereData` helper owns a stable 20×1 RGBA float texture shared by
+that owner's materials. Fog/sky/sun changes update it at the existing 20 Hz
+maximum cadence, without broadcasting uniforms to each material. Colour fields
+are converted to linear once; numeric fields and already-linear sunlight remain
+raw. Each scene/viewport owner has independent data; it is derived presentation,
+with no global shader state, autoload or save field. See [196](../00_dev_roadmap/196_shared_atmosphere_performance.md).
 
 ### `WorldGenerator`
 Procedural world generation. Builds the 2D terrain maps on a background thread, then streams 3D chunk columns on demand as the renderer requests them. Full pipeline: `43_mining_materials.md`.
@@ -364,13 +386,22 @@ Sole owner of runtime save-file I/O, the manual quick save at
 `user://saves/autosave.json`. It records the deterministic world seed, clock/weather, and
 authoritative scene deltas while leaving tasks, reservations, navigation data, renderer
 meshes, and other derived caches transient. The autosave timer advances only when world
-generation is complete and no load is running.
+generation is complete and no save or load is running.
 
-Writes use a shared transactional path: `SaveManager` writes and validates a temporary
+Writes use a shared transactional path: its private `SaveFileStore` writes and validates a temporary
 snapshot, rotates only the selected slot's valid primary to its own backup, then promotes
 and revalidates the new primary. An invalid primary cannot displace a valid backup, and
 autosave never touches manual-save files. Loading either slot falls back to its matching
 backup when necessary and repairs its primary before replacing the world.
+
+A save captures private owner data and registry catalogs on the main thread, then one
+worker formats, encodes, validates, rotates, and frees that data. Water, mining and
+items use `capture_save_state()` plus `SaveSnapshotPreparation`; other owners use a
+deep copy of `serialize_state()`. Workers never access the active scene or registries.
+Normal frames join only completed tasks; shutdown joins an outstanding save.
+Save request booleans mean acceptance. `save_finished` / `autosave_finished` report
+commit completion. Additional saves and loads are rejected while a writer is busy.
+See [192 — Autosave performance](../00_dev_roadmap/192_autosave_performance.md).
 
 `SaveSnapshotValidator` checks metadata, clock/weather, all current owner sections,
 required fields and typed collection records before load resets anything. Empty
@@ -491,7 +522,7 @@ On application startup, autoloads run their `_ready()` in registration order, be
 7. **`WorldGenerator._ready()`** — allocates its request mutex and waits. Generation is **not** kicked off at boot; the renderer in the main scene calls `generate(seed)` explicitly, after which the generator builds the 2D maps and then services `request_chunk_column()` calls.
 8. **The remaining autoloads** (`WaterManager` → `SaveManager`) follow in registration order. Each loads only its owned configuration where applicable; `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load. `SaveManager` performs no save-file read at boot—the file is opened only when the player requests Load.
 
-No static game-data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`). Runtime user-save JSON is the separate responsibility of `SaveManager`; no other script opens it.
+No static game-data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`). Runtime user-save JSON is the separate responsibility of `SaveManager` and its private `SaveFileStore` transaction helper.
 
 ---
 

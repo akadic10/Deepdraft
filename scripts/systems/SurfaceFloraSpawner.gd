@@ -106,6 +106,8 @@ var _pending_set: Dictionary = {}       # Vector2i -> true (dedupe)
 var _scene_cache: Dictionary = {}       # model path -> PackedScene
 var _tree_material: Material = null
 var _spawned_count: int = 0
+const SeasonalRefresh = preload("res://scripts/components/SeasonalRefreshQueue.gd")
+var _seasonal_refresh := SeasonalRefresh.new()
 
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _picking := Picking.new()
@@ -198,6 +200,7 @@ func _enqueue_all_columns() -> void:
 
 func _process(_delta: float) -> void:
 	_update_felling_marker_positions()
+	_seasonal_refresh.drain(_refresh_tree_crop_visual)
 	if not _ready_to_spawn:
 		if bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
 			_arm()
@@ -737,31 +740,10 @@ func _on_season_changed(new_season: String) -> void:
 		var state: Dictionary = _tree_changes[id]
 		if String(state.get("action", "fell")) == "harvest" and bool(state.get("designated", false)) and not can_harvest_tree(id):
 			cancel_felling(id)
-	if new_season == _season:
-		for id: Vector2i in _tree_changes: _refresh_tree_crop_visual(id)
-		return
-	var old_season := _season
 	_season = new_season
-	if not _ready_to_spawn:
-		return
-	# Skip the rebuild only if EVERY species resolves the old and new season to the
-	# same model set (e.g. evergreens map spring/summer/autumn all to "summer").
-	var changed := false
-	for sp in _species:
-		var stages: Dictionary = sp["stages"]
-		if _effective_season_for(stages, old_season) != _effective_season_for(stages, new_season):
-			changed = true
-			break
-	if not changed:
-		return
-	for key: Vector2i in _loaded_columns.keys():
-		_despawn_column(key, true) # Seasonal visuals must not briefly open paths through trunks.
-	_pending.clear()
-	_pending_set.clear()
-	if cover_whole_map:
-		_enqueue_all_columns()
-	else:
-		_camera_chunk = Vector2i(-9999, -9999)
+	# Keep bodies, occupancy, picking and jobs alive. Only changed art is replaced,
+	# in small batches across the night; newly streamed trees use the new season.
+	_seasonal_refresh.begin(_trees.keys(), WorldClock)
 
 
 ## Resolves a season to the model key it actually uses, per the summer fallback,
@@ -1270,7 +1252,6 @@ func _refresh_tree_crop_visual(tree_id: Vector2i) -> void:
 	if not is_instance_valid(node): return
 	var species := _species_for_key("base:flora:%s_tree" % tree.name)
 	var stage: Dictionary = species.stages[tree.stage]
-	if not stage.has("picked_models"): return
 	var path := resolve_tree_model_for_season(stage, _season, tree.cell,
 		String(_tree_changes.get(tree_id, {}).get("harvested_cycle", "")) == _fruit_cycle())
 	if path == String(tree.get("model_path", "")): return
@@ -1389,6 +1370,7 @@ func serialize_state() -> Dictionary:
 
 
 func restore_state(state: Dictionary) -> void:
+	_seasonal_refresh.clear()
 	for id: Vector2i in _felling_sources.keys():
 		_retire_felling_source(id, true)
 	for id: Vector2i in _felling_markers.keys():

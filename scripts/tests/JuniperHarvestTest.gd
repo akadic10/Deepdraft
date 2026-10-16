@@ -93,8 +93,13 @@ func _run() -> void:
 	_season("autumn", 2)
 	_expect(flora.can_harvest_tree(MATURE), "changing year renews a crop")
 	clock_node.restore_state({"season":"autumn", "year":1, "paused":false})
+	_expect(not flora.can_harvest_tree(MATURE), "same-season restore reconciles crop eligibility immediately")
+	for i in 16:
+		if flora._seasonal_refresh.pending_count() == 0: break
+		await process_frame
+		flora._seasonal_refresh.drain(flora._refresh_tree_crop_visual)
 	_expect(not flora.can_harvest_tree(MATURE) and String(flora._trees[MATURE].model_path).ends_with("_picked.glb"),
-		"same-season clock restoration refreshes saved crop visuals for its year")
+		"same-season clock restoration refreshes saved crop visuals within frame budgets")
 	flora.designate_harvest(ANCIENT)
 	worker.position = Vector3(51.5,21,40.5)
 	_expect(await _until_working(), "ancient tree uses its larger footprint")

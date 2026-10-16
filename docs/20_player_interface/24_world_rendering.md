@@ -1,5 +1,37 @@
 # 24 — World Rendering & Atmosphere
 
+**Shared live atmosphere (2026-10-15):**
+[196](../00_dev_roadmap/196_shared_atmosphere_performance.md) replaces repeated
+fog/sky uniform broadcasts with one scene-owned 20×1 RGBA float texture
+(`SceneAtmosphereData`). Every material made by that `UndergroundLighting`
+owner binds the same stable texture; changed atmosphere uploads 320 bytes at
+the existing maximum 20 Hz cadence. Colours retain the old `source_color`
+conversion, sun colours remain linear, and camera environment overrides still
+apply. Roof/door/actor exposure and water appearance use the same equations.
+The packet is derived data, recreated on scene load, with independent ownership
+for separate viewports. Eight native comparisons against the frozen prior
+shader are pixel-identical. This changes data delivery, not atmospheric design.
+
+**Work effect preparation (2026-10-15):**
+[191](../00_dev_roadmap/191_event_hitch_review.md) identifies first-use dust
+pipeline compilation as a separate mining hitch. `WorkDustBurst` shares one
+immutable box mesh/material while each burst retains its own MultiMesh colors
+and transforms. `WorkFeedback` prepares the same format with one hidden
+scene-lifetime instance during loading; headless runs skip it. Counts, RNG,
+animation, sound and slice behavior are unchanged. The traced first impact's
+rendering drops from 199.83 to 2.33 ms. Compilation work moves to loading.
+Performance diagnostics now include render setup CPU, which viewport-only
+render timing omits. Autosave and arrival stalls remain separate follow-ups.
+
+**Lighting buffer disposal (2026-10-15):**
+[190](../00_dev_roadmap/190_lighting_buffer_disposal_performance.md) moves
+clearing the previous light calculation's private CPU work buffers to a worker.
+Only one retired set may await disposal; later edits coalesce until that slot
+is available. Published light samples, images, textures and scene/world access
+stay on the main thread. The solver, actor lighting and concealment rules are
+unchanged. Native 30-dwarf lighting peaks fall from 231.49 to 5.78 ms; separate
+frame stalls remain. Cleanup still consumes CPU and scene teardown joins it.
+
 **Water current scheduling (2026-10-14):**
 [183](../00_dev_roadmap/183_water_current_performance.md) snapshots only the
 volumes needed for measured/decaying currents and processes animation updates
@@ -87,6 +119,16 @@ Scene teardown/save reload joins workers before generation maps are cleared.
 The exact chunk renderer remains dormant in normal play. Seasonal refresh also
 updates generic added-terrain meshes. Positive edits now batch their exposed
 faces, cull shared faces and tag slice-only tops just like constructed stone.
+
+**Gradual seasons (2026-10-15):** existing terrain is admitted for seasonal
+recolour in normal worker-sized batches across midnight to sunrise. Trees and
+ground plants share the night schedule and a soft 2 ms admission/art budget;
+tree root nodes and collision stay alive while only changed art is replaced.
+The existing mesh build/upload budgets remain separate. Edits and slice
+concealment still invalidate immediately. Pause holds the night schedule;
+paused loads rebuild the target appearance within frame budgets. This is a
+sequence of discrete replacements rather than a continuous colour crossfade.
+See [194](../00_dev_roadmap/194_gradual_season_transition.md).
 
 **Constructed stone (2026-10-12):** `ConstructionController` draws built blocks
 with the renderer's existing terrain material, natural rock palette and exposed
@@ -343,7 +385,8 @@ even with the readability glow set to zero, fog alone contributed 0.131.
 
 The shared lighting shader now supplies `FOG` explicitly and scales its opacity
 by physical sky access. It reads the active scene (or camera override)
-Environment at 20 Hz, updating only changed material parameters. Depth / density
+Environment at a maximum 20 Hz, uploading changed values through the shared
+scene atmosphere texture (196; originally individual material parameters). Depth / density
 and height falloff, the ProceduralSky gradient in the view direction, and sun
 scattering remain available outdoors. The gradient is evaluated analytically;
 this does not reproduce the engine's blurred sky-radiance sampling or volumetric

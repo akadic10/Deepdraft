@@ -53,7 +53,7 @@ static func _tile(cell: Vector3i) -> Dictionary:
 				if int(_tiles[other].used) < int(_tiles[oldest].used): oldest = other
 			_tiles.erase(oldest)
 			_evictions += 1
-		_tiles[key] = {"terrain":{},"clear":{},"standable":{},"entries":0,"used":0}
+		_tiles[key] = {"terrain":{},"clear":{},"standable":{},"solid_bounds":{},"entries":0,"used":0}
 	var tile: Dictionary = _tiles[key]
 	tile.used = _access
 	return tile
@@ -64,6 +64,7 @@ static func _store(tile: Dictionary, kind: String, key: Variant, value: Variant)
 		tile.terrain.clear()
 		tile["clear"].clear()
 		tile.standable.clear()
+		tile.solid_bounds.clear()
 		tile.entries = 0
 		_evictions += 1
 	tile[kind][key] = value
@@ -102,6 +103,30 @@ static func block_at(cell: Vector3i) -> int:
 	if cell.x < 0 or cell.z < 0 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z or cell.y < 0 or cell.y >= WorldData.WORLD_SIZE_Y: return BlockRegistry.AIR_ID
 	# Keep fractional live water separate from cached terrain identity.
 	return WaterManager.live_block(cell,terrain_at(cell))
+
+static func solid_bounds_clear(low: Vector3i, high: Vector3i) -> bool:
+	# Inclusive duck body bounds: water remains traversable, and flight may
+	# extend above terrain height. Cache only raw solids and placed occupancy.
+	# The shared edit/reset invalidation also covers footprints crossing tiles.
+	_max_width = maxi(_max_width,maxi(high.x-low.x+1,high.z-low.z+1))
+	var tile := _tile(low)
+	var key := AABB(Vector3(low),Vector3(high-low))
+	if tile.solid_bounds.has(key):
+		_hits += 1
+		return tile.solid_bounds[key]
+	_misses += 1
+	var result := _solid_bounds_uncached(low,high)
+	_store(tile,"solid_bounds",key,result)
+	return result
+
+static func _solid_bounds_uncached(low: Vector3i, high: Vector3i) -> bool:
+	for x in range(low.x,high.x+1):
+		for y in range(low.y,high.y+1):
+			for z in range(low.z,high.z+1):
+				var cell := Vector3i(x,y,z)
+				if y<WorldData.WORLD_SIZE_Y and BlockRegistry.is_solid(terrain_at(cell)): return false
+				if PlacedEntityRegistry.occupies(cell): return false
+	return true
 
 static func inside(cell: Vector3i) -> bool:
 	return cell.x >= 0 and cell.z >= 0 and cell.x < WorldData.WORLD_SIZE_X and cell.z < WorldData.WORLD_SIZE_Z and cell.y > WorldGenerator.BEDROCK_MAX_Y and cell.y < WorldData.WORLD_SIZE_Y - 1

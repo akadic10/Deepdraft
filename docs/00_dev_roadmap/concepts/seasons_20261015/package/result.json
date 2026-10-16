@@ -1,0 +1,9 @@
+{
+  "checks": 22270,
+  "dawn_hour": 8.0,
+  "driver": "d3d12",
+  "failures": [],
+  "half_night_pending": 1463,
+  "season": "autumn",
+  "trees": 2925
+}

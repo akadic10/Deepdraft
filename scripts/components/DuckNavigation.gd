@@ -9,6 +9,8 @@ var flora: Node
 ## Only WildlifeManager's synchronous observation pass enables reuse. Water,
 ## terrain and placed obstacles do not change inside that pass. Results never
 ## cross an update, pause, restore or standalone population/navigation query.
+## Raw solid bounds separately use Ground's edit-invalidated terrain cache;
+## water levels, hydraulic safety and canopy intersections remain live.
 const MAX_QUERY_ENTRIES := 4096
 var _observing := false
 var _wet_samples := {}
@@ -131,13 +133,7 @@ func clear_body(point: Vector3, radius: float) -> bool:
 	return result
 
 func _clear_bounds_live(low: Vector3i, high: Vector3i) -> bool:
-	for x in range(low.x,high.x+1):
-		for y in range(low.y,high.y+1):
-			for z in range(low.z,high.z+1):
-				var p := Vector3i(x,y,z)
-				if y<128 and BlockRegistry.is_solid(Ground.terrain_at(p)): return false
-				if PlacedEntityRegistry.occupies(p): return false
-	return true
+	return Ground.solid_bounds_clear(low,high)
 
 func segment_clear(from: Vector3, to: Vector3, radius: float, airborne := false) -> bool:
 	if airborne and is_instance_valid(flora):
@@ -186,22 +182,37 @@ func near_shore(col: Vector2i, distance: int, forage: Array = []) -> bool:
 	return false
 
 func flight_path(from: Vector3, to: Vector3) -> PackedVector3Array:
-	# A sampled arch gives a continuous climb/glide/descent. Every section is
-	# swept at planning and again during flight, including canopy overhangs.
-	var count := maxi(16,ceili(from.distance_to(to)/2))
-	for rise: float in config.flight_rises:
-		var points := PackedVector3Array([from])
-		var clear := true
-		for i in range(1,count+1):
-			var t := float(i)/count
-			var p := from.lerp(to,t)+Vector3.UP*sin(t*PI)*rise
-			var radius := float(config.radius) if i==1 or i==count else float(config.flight_radius)
-			if not segment_clear(points[-1],p,radius,true):
-				clear = false
-				break
-			points.append(p)
-		if clear: return points
-	return PackedVector3Array()
+	var query:=begin_flight_path(from,to)
+	advance_flight_path(query)
+	return query.result
+
+func begin_flight_path(from: Vector3, to: Vector3) -> Dictionary:
+	return {"from":from,"to":to,"count":maxi(16,ceili(from.distance_to(to)/2)),
+		"rise":0,"index":1,"points":PackedVector3Array([from]),"result":PackedVector3Array(),"done":false}
+
+func advance_flight_path(query: Dictionary, deadline_usec: int = 0) -> bool:
+	# The same sampled arches and swept sections as flight_path, with a pause
+	# between sections for arrival preparation. Actual entry rechecks the path.
+	while not query.done:
+		if deadline_usec>0 and Time.get_ticks_usec()>=deadline_usec: return false
+		if int(query.rise)>=config.flight_rises.size(): query.done=true; break
+		var i:=int(query.index)
+		var count:=int(query.count)
+		var t:=float(i)/count
+		var from: Vector3=query.from
+		var p:=from.lerp(query.to,t)+Vector3.UP*sin(t*PI)*float(config.flight_rises[int(query.rise)])
+		var radius:=float(config.radius) if i==1 or i==count else float(config.flight_radius)
+		if not segment_clear(query.points[-1],p,radius,true):
+			query.rise=int(query.rise)+1
+			query.index=1
+			query.points=PackedVector3Array([from])
+			continue
+		query.points.append(p)
+		query.index=i+1
+		if i==count:
+			query.result=query.points
+			query.done=true
+	return true
 
 func near_water(col: Vector2i) -> bool:
 	for dir: Vector2i in DIRS:

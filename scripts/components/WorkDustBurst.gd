@@ -7,6 +7,30 @@ var floor_y := 0
 var _floor_offset := .06
 var _mesh: MultiMeshInstance3D
 var _particles: Array[Dictionary] = []
+static var _cube: BoxMesh
+static var _material: StandardMaterial3D
+
+
+## The invisible loading instance and live bursts use the same render resources
+## and MultiMesh format, so the first mining impact needs no new pipeline.
+static func create_render_mesh(count: int) -> MultiMeshInstance3D:
+	if _cube == null:
+		_cube = BoxMesh.new()
+		_cube.size = Vector3.ONE
+		_material = StandardMaterial3D.new()
+		_material.vertex_color_use_as_albedo = true
+		_material.roughness = 1.0
+		_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var instance := MultiMeshInstance3D.new()
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	instance.material_override = _material
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.use_colors = true
+	multi.mesh = _cube
+	multi.instance_count = count
+	instance.multimesh = multi
+	return instance
 
 
 func setup(settings: Dictionary, size: float, seed_value: int, base_floor: int, direction := Vector3.ZERO) -> void:
@@ -15,22 +39,9 @@ func setup(settings: Dictionary, size: float, seed_value: int, base_floor: int, 
 	lifetime = float(settings["lifetime"])
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
-	_mesh = MultiMeshInstance3D.new()
-	_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var multi := MultiMesh.new()
-	multi.transform_format = MultiMesh.TRANSFORM_3D
-	multi.use_colors = true
-	var cube := BoxMesh.new()
-	cube.size = Vector3.ONE
-	multi.mesh = cube
-	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.roughness = 1.0
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_mesh.material_override = material
 	var dust_count := int(settings["dust_count"])
-	multi.instance_count = dust_count + int(settings["chip_count"])
-	_mesh.multimesh = multi
+	_mesh = create_render_mesh(dust_count + int(settings["chip_count"]))
+	var multi := _mesh.multimesh
 	add_child(_mesh)
 	for i in range(multi.instance_count):
 		var dust := i < dust_count

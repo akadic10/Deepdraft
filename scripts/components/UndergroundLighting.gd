@@ -12,6 +12,7 @@ const FRAME_BUDGET_USEC := 2500
 var reach := 12
 var readability := 0.008
 var _fog_parameters: Dictionary = {}
+var _atmosphere := preload("res://scripts/components/SceneAtmosphereData.gd").new()
 var _fog_elapsed := 0.0
 var _sky_lights: Array[WeakRef] = []
 var _pending: Dictionary = {}
@@ -40,6 +41,7 @@ var _affected: Array[Vector3i] = []
 var _cursor := 0
 var completed_updates := 0
 var max_step_usec := 0
+var _cleanup_task := -1
 
 
 func _ready() -> void:
@@ -101,16 +103,47 @@ func sky_at(cell: Vector3i) -> float:
 
 
 func _process(delta: float) -> void:
+	if _cleanup_task >= 0 and WorkerThreadPool.is_task_completed(_cleanup_task):
+		WorkerThreadPool.wait_for_task_completion(_cleanup_task)
+		_cleanup_task = -1
 	_fog_elapsed += delta
 	if _fog_elapsed >= 0.05:
 		_fog_elapsed = 0.0
 		_sync_fog()
 	var start := Time.get_ticks_usec()
 	while is_updating() and Time.get_ticks_usec() - start < FRAME_BUDGET_USEC:
+		# At most one retired job may await disposal. Keep new edits coalesced
+		# until it finishes instead of blocking or accumulating old buffers.
+		if _phase == "idle" and _cleanup_task >= 0: break
 		_step()
 	_upload()
 	max_step_usec = maxi(max_step_usec, Time.get_ticks_usec() - start)
 	_sync_actors()
+
+
+func _exit_tree() -> void:
+	if _cleanup_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_cleanup_task)
+		_cleanup_task = -1
+
+
+func _retire_work_buffers() -> void:
+	if _air.is_empty() and _visited.is_empty() and _queue.is_empty() and _light.is_empty() and _light_queue.is_empty() and _affected.is_empty(): return
+	# These containers hold only coordinates, numbers and booleans. Transfer
+	# exclusive ownership before the worker clears them; published sky samples,
+	# world data, images, textures and scene nodes never leave this thread.
+	var retired: Array = [_air, _visited, _queue, _light, _light_queue, _affected]
+	_air = {}
+	_visited = {}
+	_queue = []
+	_light = {}
+	_light_queue = []
+	_affected = []
+	_cleanup_task = WorkerThreadPool.add_task(_clear_work_buffers.bind(retired), false, "Lighting buffer disposal")
+
+
+static func _clear_work_buffers(retired: Array) -> void:
+	for buffer in retired: buffer.clear()
 
 
 ## Actors sample one body position, not separate head/hand fragments that can
@@ -230,10 +263,13 @@ func _sync_fog() -> void:
 				"fog_sky_curves": Vector2(0.6 / maxf(sky.sky_curve, .001), 0.6 / maxf(sky.ground_curve, .001)),
 				"fog_sky_rotation": Basis.from_euler(environment.sky_rotation).inverse(),
 			}, true)
+	var changed := false
 	for key: String in values:
 		if _fog_parameters.get(key) == values[key]: continue
-		for material: ShaderMaterial in _material_cache.values(): material.set_shader_parameter(key, values[key])
 		_fog_parameters[key] = values[key]
+		changed = true
+	if changed:
+		_atmosphere.update(_fog_parameters)
 
 
 func _step() -> void:
@@ -249,12 +285,7 @@ func _step() -> void:
 				_columns[col] = maxi(int(_columns.get(col,-1)),old_top)
 			_pending.clear()
 			_column_keys = _columns.keys()
-			_air.clear()
-			_visited.clear()
-			_queue.clear()
-			_light.clear()
-			_light_queue.clear()
-			_affected.clear()
+			_retire_work_buffers()
 			_cursor = 0
 			_phase = "roof"
 		"roof":
@@ -410,7 +441,7 @@ func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMateri
 	material.set_shader_parameter("readability_floor",readability)
 	material.set_shader_parameter("sky_table",_table_texture)
 	for i in range(4): material.set_shader_parameter("sky_page_"+str(i),_pages[i])
-	for key: String in _fog_parameters: material.set_shader_parameter(key, _fog_parameters[key])
+	material.set_shader_parameter("atmosphere_data", _atmosphere.texture)
 	# Hold the source as metadata too: its instance id cannot be recycled while
 	# this cache entry exists. Materials are released with their scene owner.
 	material.set_meta("underground_source_material",source)

@@ -1,0 +1,118 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+SaveManager: Loading quick save…
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 2520450404).
+WorldRenderer: generation started (seed 2520450404).
+FurniturePlacementController: 39 placeable defs loaded.
+ItemDropManager: loaded 98 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 9 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 30182 cliff/shore columns.
+WorldGenerator: spring (528, 102, 190); river 5693 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=2520450404, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 2520450404, "accepted": 2137, "rejections": { "density": 19920, "tree": 1247, "edge": 1126, "shelf": 461, "water": 121, "moisture": 2517, "ground": 1040, "height": 4563, "shore": 28686, "cliff_foot": 3301, "cliff_falloff": 171, "detail_overlap": 233 }, "layout_ms": 579.377, "categories": { "boulder": 68, "scree": 226, "blueberry": 289, "elderberry": 327, "wild_strawberry": 436, "flowers": 786, "reeds": 5 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 11 ducks.
+WorldRenderer: first chunk_dirtied received (39,2,30).
+StockpileDesignationController: zone 1 created (121 cells at Y 43).
+FurniturePlacementController: installed base:furniture:settlement_flag at (652, 43, 499).
+FurniturePlacementController: installed base:furniture:crude_workbench at (650, 43, 494).
+FurniturePlacementController: installed base:furniture:log_door_3 at (651, 43, 474).
+FurniturePlacementController: installed base:furniture:wooden_torch at (642, 43, 475).
+FurniturePlacementController: installed base:furniture:campfire at (643, 43, 485).
+FurniturePlacementController: installed base:furniture:log_chair at (642, 43, 486).
+FurniturePlacementController: installed base:furniture:log_chair at (646, 43, 486).
+FurniturePlacementController: installed base:furniture:bench at (649, 43, 484).
+FurniturePlacementController: installed base:furniture:log_bed at (645, 43, 471).
+FurniturePlacementController: installed base:furniture:wooden_torch at (665, 43, 475).
+FurniturePlacementController: installed base:furniture:log_door_3 at (656, 43, 474).
+FurniturePlacementController: installed base:furniture:log_bed at (660, 43, 471).
+FurniturePlacementController: installed base:furniture:wooden_torch at (652, 44, 470).
+FurniturePlacementController: installed base:furniture:wooden_torch at (655, 44, 470).
+FurniturePlacementController: installed base:furniture:log_door_3 at (656, 43, 464).
+FurniturePlacementController: installed base:furniture:wooden_torch at (665, 44, 465).
+FurniturePlacementController: installed base:furniture:wooden_torch at (642, 44, 465).
+FurniturePlacementController: installed base:furniture:log_bed at (660, 43, 461).
+FurniturePlacementController: installed base:furniture:log_door_3 at (651, 43, 464).
+FurniturePlacementController: installed base:furniture:log_bed at (642, 43, 461).
+LoadPerformance:
+  total_request_to_restored: 10.770 s
+  read_validate: 460 ms
+  reload_regen_wait: 7.108 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 3197 ms
+    jobs: 0 ms
+    mining: 2423 ms
+    water: 458 ms
+    construction: 0 ms
+    flora: 0 ms
+    surface_details: 43 ms
+    settlement_flag: 0 ms
+    stockpiles: 12 ms
+    furniture: 219 ms
+    ladders: 0 ms
+    bridges: 6 ms
+    items: 0 ms
+    dwarves: 7 ms
+    wildlife: 26 ms
+    world_events: 0 ms
+    worker_crafting: 1 ms
+    camera: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 5 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldRenderer: first visible overview tile after 9.213 s at tile (16, 16).
+WorldGenerator metrics:
+  domains: mountain 22.0%, valley 26.5%, lowland 51.5%
+  height: min 11, max 115, avg 34.7
+  top surface: grass 75.4%, dirt 1.0%, rock 21.7%, water 1.8%
+  surface domains: mountain rock 98.5%; valley grass 95.7% dirt 3.9% rock 0.0%
+  finished terrain: summit 9364 columns, detailed 30121, dry shore 741
+  water: lake (793, 978) y18 floor 11-17 depth 7 columns 12719; tarn (720, 368) y54 floor 47-52 depth 7 columns 876; banks 7878
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 10.267 s
+  first_visible_terrain: 9.213 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=4.762 s  ready_at=4.762 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.523 s
+    edge_detail: 0.206 s
+    layout_validation: 0.831 s
+    river: 0.023 s
+    caves: 3.059 s
+    tile_ranges: 0.084 s
+    generation_metrics: 2.809 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.011 s  avg=0.09 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=10.256 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->15622, sides 83805, validation mismatches 0/0) in 14.19 s since startup.
+CAMERA_SAMPLE paused_static {"gpu":{"max":1.98699998855591,"mean":1.09300936264913,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":1.05400002002716,"p95":1.24800002574921,"p99":1.4190000295639},"scene":{"max":2.213,"mean":0.633692822113245,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":0.605,"p95":0.699,"p99":1.818},"wall":{"max":4.732,"mean":1.78341440035667,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":1.696,"p95":2.093,"p99":3.257}}
+CAMERA_SAMPLE paused_pan {"gpu":{"max":1.82500004768372,"mean":1.07901632819486,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":1.057000041008,"p95":1.29100000858307,"p99":1.39400005340576},"scene":{"max":2.734,"mean":0.628238015490899,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":0.606,"p95":0.687,"p99":1.895},"wall":{"max":5.011,"mean":1.6749593887377,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":1.592,"p95":1.948,"p99":3.197}}
+CAMERA_SAMPLE active_static {"gpu":{"max":2.65400004386902,"mean":2.28106507251137,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":2.2279999256134,"p95":2.49600005149841,"p99":2.5550000667572},"scene":{"max":21.654,"mean":5.4640076555024,"over_100":0,"over_16_7":41,"over_33_3":0,"over_50":0,"p50":4.192,"p95":15.541,"p99":19.371},"wall":{"max":25.241,"mean":7.659995215311,"over_100":0,"over_16_7":61,"over_33_3":0,"over_50":0,"p50":6.299,"p95":17.43,"p99":22.146}}
+CAMERA_SAMPLE active_pan {"gpu":{"max":3.23300004005432,"mean":2.29026224885734,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":2.26600003242493,"p95":2.85199999809265,"p99":3.03600001335144},"scene":{"max":22.191,"mean":5.52954178674351,"over_100":0,"over_16_7":42,"over_33_3":0,"over_50":0,"p50":4.331,"p95":15.686,"p99":20.011},"wall":{"max":26.397,"mean":7.68730355427473,"over_100":0,"over_16_7":58,"over_33_3":0,"over_50":0,"p50":6.378,"p95":17.683,"p99":22.075}}
+CAMERA_SAMPLE active_pan_repeat {"gpu":{"max":3.30100011825562,"mean":2.34975098880383,"over_100":0,"over_16_7":0,"over_33_3":0,"over_50":0,"p50":2.30699992179871,"p95":2.9909999370575,"p99":3.11500000953674},"scene":{"max":23.818,"mean":5.67602075098815,"over_100":0,"over_16_7":44,"over_33_3":0,"over_50":0,"p50":4.3,"p95":15.145,"p99":19.764},"wall":{"max":29.147,"mean":7.91237549407114,"over_100":0,"over_16_7":62,"over_33_3":0,"over_50":0,"p50":6.454,"p95":17.904,"p99":22.816}}
+CAMERA_BENCHMARK_PASS res://tmp/performance_20261014/lighting_20261015_saved_before/
+WorldGenerator: stopped in 62.7 s.
+WorldGenerator: world_complete signal firing.

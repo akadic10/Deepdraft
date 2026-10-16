@@ -1,10 +1,33 @@
 # 45 — Wildlife
 
+**2026-10-15 — Duck body clearance:** [197](../00_dev_roadmap/197_duck_update_performance.md)
+reuses inclusive raw-solid/placed-obstacle bounds across duck updates through
+AnimalNavigation's existing bounded main-thread cache. Terrain edits, placed
+occupancy changes, streamed chunks and world/registry resets invalidate affected
+results, including footprints crossing tile seams. These entries share the
+existing 128-tile/1,024-entry-per-tile limit with terrestrial navigation. They
+remain separate from terrestrial air/support checks: swimming water is passable
+and flight above terrain height still checks placed obstacles. Duck water levels,
+hydraulic safety, surface results and canopy intersections keep their existing
+live observation rules. Every duck continues to update and animate each active
+frame, including offscreen. No behavior, population, save-schema or art changes.
+
+**2026-10-15 — Arrival preparation:** [193](../00_dev_roadmap/193_arrival_preparation_performance.md)
+spreads duck habitat and flight preparation across main-thread frames. The event
+director shares a soft 2 ms preparation budget; pending work does not consume a
+candidate attempt. Transient work is discarded on load/expiry; saved seeds and
+ordinals restart it. The final member entry still checks the live landing and
+complete flight. Population caps, chance rolls, member spacing, clearances,
+ordinary animal updates and the save format remain unchanged. Duck query reuse
+is enabled only inside a synchronous preparation slice and cleared afterward.
+Terrestrial searches and final entry checks remain synchronous.
+
 **2026-10-14 — Duck water/clearance query reuse:** [186](../00_dev_roadmap/186_duck_query_performance.md)
-adds bounded reuse only within one synchronous WildlifeManager update. All
-queries are discarded at its end, so fractional water levels, terrain and
-occupancy changes are read again next update; population/arrival queries stay
-live. Saved-game duck CPU falls 19–20% and total wildlife CPU 13%. All 1,200
+adds bounded reuse only within one synchronous WildlifeManager update. Its
+query maps are discarded at the end, so fractional water levels remain live
+next update; population/arrival queries stay live. Raw solid bounds now also
+use the edit-invalidated cache described in 197 above. Saved-game duck CPU
+fell 19–20% and total wildlife CPU 13% in 186. All 1,200
 differential updates, 882 query comparisons, 11 fixtures and packaged checks
 pass. Decisions, flight, animation, offscreen activity and saves are unchanged.
 

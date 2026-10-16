@@ -89,6 +89,9 @@ func _run() -> void:
 	water_view.profile_updates = markers
 	RenderingServer.viewport_set_measure_render_time(root.get_viewport_rid(),true)
 	report={"engine":Engine.get_version_info(),"cpu":OS.get_processor_name(),"gpu":RenderingServer.get_video_adapter_name(),
+		"work_dust_sha256":FileAccess.get_sha256("res://scripts/components/WorkDustBurst.gd"),
+		"work_feedback_sha256":FileAccess.get_sha256("res://scripts/systems/WorkFeedback.gd"),
+		"underground_lighting_sha256":FileAccess.get_sha256("res://scripts/components/UndergroundLighting.gd"),
 		"room_manager_sha256":FileAccess.get_sha256("res://scripts/systems/RoomManager.gd"),
 		"room_rebuild_sha256":FileAccess.get_sha256("res://scripts/components/RoomRebuild.gd") if FileAccess.file_exists("res://scripts/components/RoomRebuild.gd") else "",
 		"scheduled_room_rebuilds":room_rebuilds,
@@ -228,6 +231,7 @@ func _sample(mode: String) -> void:
 		var row: Dictionary={"frame_ms":(current_frame-previous_frame)/1000.0,"scene_ms":probe.last_ms,
 			"gpu_ms":RenderingServer.viewport_get_measured_render_time_gpu(rid),
 			"render_cpu_ms":RenderingServer.viewport_get_measured_render_time_cpu(rid),
+			"render_setup_ms":RenderingServer.get_frame_setup_time_cpu(),
 			"water_dirty_tiles":root.get_node("WaterManager").dirty_tiles.size(),"process":measurements.duplicate()}
 		if water_view.has_method("get_mesh_stats"): row["water_mesh"]=water_view.get_mesh_stats()
 		if rooms.has_method("get_rebuild_stats"): row["rooms"]=rooms.get_rebuild_stats()
@@ -263,7 +267,7 @@ func _sample(mode: String) -> void:
 			var values: Array=[]
 			for row: Dictionary in rows: values.append(row.water_mesh[key])
 			summary.water_mesh[key]=_stats(values)
-	for key: String in ["frame_ms","scene_ms","gpu_ms","render_cpu_ms"]:
+	for key: String in ["frame_ms","scene_ms","gpu_ms","render_cpu_ms","render_setup_ms"]:
 		var values: Array=[]
 		for row: Dictionary in rows: values.append(row[key])
 		summary[key]=_stats(values)

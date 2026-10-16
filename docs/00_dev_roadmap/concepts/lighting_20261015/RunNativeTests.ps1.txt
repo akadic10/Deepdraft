@@ -1,0 +1,33 @@
+param([string[]]$Tests=@('UndergroundLightingTest','DoorLightingTest','DwarfLimbLightingTest','RoomLightingTest','BedroomLightingTest'))
+$ErrorActionPreference='Stop'
+$taskRoot='P:/Deepdraft/tmp/lighting_20261015/native_tests'
+New-Item -ItemType Directory -Force $taskRoot | Out-Null
+$oldAppData=$env:APPDATA
+$oldLocalAppData=$env:LOCALAPPDATA
+$results=@()
+try {
+    foreach($test in $Tests) {
+        $profile=$taskRoot+'/'+$test+'_profile'
+        if($test -eq 'UndergroundLightingTest') {$profile='P:/Deepdraft/tmp/underground_lighting_review/lighting_20261015_profile'}
+        if($test -eq 'DoorLightingTest') {$profile='P:/Deepdraft/tmp/door_lighting_20261011/lighting_20261015_profile'}
+        if($test -eq 'RoomLightingTest') {$profile='P:/Deepdraft/tmp/room_lighting_review/lighting_20261015_profile'}
+        $env:APPDATA=$profile
+        $env:LOCALAPPDATA=$profile
+        New-Item -ItemType Directory -Force $profile | Out-Null
+        $out=$taskRoot+'/'+$test+'.out'
+        $err=$taskRoot+'/'+$test+'.err'
+        $args=@('--path','P:/Deepdraft','--audio-driver','Dummy','--script',('res://scripts/tests/'+$test+'.gd'),'--',('--output='+$taskRoot+'/'+$test),'--capture')
+        $timer=[Diagnostics.Stopwatch]::StartNew()
+        $p=Start-Process -FilePath 'S:/STEAM/steamapps/common/Godot Engine/godot.windows.opt.tools.64.exe' -ArgumentList $args -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+        $null=$p.Handle
+        if(-not $p.WaitForExit(240000)){Stop-Process -Id $p.Id;throw "Timed out: $test"}
+        $errors=Select-String -LiteralPath $err -Pattern '^SCRIPT ERROR:|^ERROR:' -Quiet
+        $marker=Select-String -LiteralPath $out -Pattern '_OK\b|_PASS\b|: PASS\b|UNDERGROUND_LIGHTING_TEST:|ROOM_LIGHTING_TEST:' -Quiet
+        $result=@{test=$test;exit_code=$p.ExitCode;errors=$errors;pass_marker=$marker;seconds=$timer.Elapsed.TotalSeconds;lighting_sha256=(Get-FileHash -LiteralPath P:/Deepdraft/scripts/components/UndergroundLighting.gd -Algorithm SHA256).Hash.ToLower()}
+        $results+=$result
+        $results | ConvertTo-Json -Depth 4 | Set-Content ($taskRoot+'/results.json')
+        Write-Output ($test+' '+($result|ConvertTo-Json -Compress))
+        Get-Content $out -Tail 2
+        if($errors -or $p.ExitCode -ne 0 -or -not $marker){Get-Content $err -Tail 35;throw "Native fixture failed: $test"}
+    }
+} finally {$env:APPDATA=$oldAppData;$env:LOCALAPPDATA=$oldLocalAppData}

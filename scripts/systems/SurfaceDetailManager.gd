@@ -22,6 +22,8 @@ var _sources: Dictionary = {}
 var _source_ids: Dictionary = {}
 var _columns: Dictionary = {}
 var _visual_queue: Array[String] = []
+const SeasonalRefresh = preload("res://scripts/components/SeasonalRefreshQueue.gd")
+var _seasonal_refresh := SeasonalRefresh.new()
 var _models: Dictionary = {}
 var _markers: Dictionary = {}
 var _marker_layer: CanvasLayer
@@ -68,6 +70,7 @@ func _process(_delta: float) -> void:
 		initialize_layout()
 	for i in range(mini(visual_budget, _visual_queue.size())):
 		_spawn_visual(_visual_queue.pop_back())
+	_seasonal_refresh.drain(_spawn_visual)
 	_update_markers()
 
 
@@ -628,18 +631,16 @@ func take_forage_portion(id: String, dwarf: int, stand: Vector3i) -> Node3D:
 
 func _on_season_changed(_season: String) -> void:
 	_on_growth_tick(0)
-	# Preserve pending order while checking membership once per plant. Scanning
-	# the growing Array for every record makes a full-world season change quadratic.
-	var queued: Dictionary = {}
-	for queued_id: String in _visual_queue: queued[queued_id] = true
+	var seasonal: Array = []
 	for id: String in _records:
 		if (not _is_shrub(id) and not _is_decorative_plant(id)) or bool(_changes.get(id, {}).get("removed", false)): continue
 		var state: Dictionary = _changes.get(id, {})
 		if bool(state.get("designated", false)) and String(state.get("action", "clear")) == "harvest":
 			if not Shrub.available(SurfaceDetailRegistry.get_definition(_records[id].definition), state): cancel_clearing(id)
-		if not queued.has(id):
-			_visual_queue.append(id)
-			queued[id] = true
+		seasonal.append(id)
+	# Initial spawning, harvesting and relocation keep their immediate queue.
+	# Existing seasonal art stays visible until its replacement is due.
+	_seasonal_refresh.begin(seasonal, WorldClock)
 
 
 func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> Dictionary:
@@ -787,6 +788,7 @@ func serialize_state() -> Dictionary:
 
 
 func restore_state(saved: Dictionary) -> void:
+	_seasonal_refresh.clear()
 	_forage_claims.clear()
 	for id: String in _sources.keys(): _retire_source(id, true)
 	_growing.clear()

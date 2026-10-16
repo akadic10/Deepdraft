@@ -1,0 +1,27 @@
+param([string]$Label = 'regressions')
+$ErrorActionPreference = 'Stop'
+$seasonCheckRoot = 'P:/Deepdraft/tmp/seasons_20261015/' + $Label
+if (Test-Path -LiteralPath $seasonCheckRoot) { throw 'Choose a fresh check label' }
+New-Item -ItemType Directory -Path $seasonCheckRoot -Force | Out-Null
+$seasonOldAppData = $env:APPDATA
+$seasonOldLocal = $env:LOCALAPPDATA
+$seasonResults = @()
+try {
+    $env:APPDATA = $seasonCheckRoot + '/profile'
+    $env:LOCALAPPDATA = $env:APPDATA
+    foreach ($seasonFixture in @('SeasonalRefreshTest','TreeFellingTest','ObjectExplorerTest','JuniperHarvestTest','ShrubPilotTest','ShrubTransplantTest','ShrubRegrowthTest','FlowerPilotTest','ReedPilotTest','TerrainAppearanceTest','WorldTerrainStartupTest','SaveManagerRoundTripTest','WeatherPersistenceTest','SkySceneLifecycleTest')) {
+        $seasonOut = Join-Path $seasonCheckRoot ($seasonFixture+'.out')
+        $seasonErr = Join-Path $seasonCheckRoot ($seasonFixture+'.err')
+        $seasonP = Start-Process -FilePath 'S:/STEAM/steamapps/common/Godot Engine/godot.windows.opt.tools.64.exe' -ArgumentList @('--headless','--path','P:/Deepdraft','--script',('res://scripts/tests/'+$seasonFixture+'.gd')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $seasonOut -RedirectStandardError $seasonErr
+        $null = $seasonP.Handle
+        if (-not $seasonP.WaitForExit(240000)) { Stop-Process -Id $seasonP.Id; throw "Timeout: $seasonFixture" }
+        $seasonClean = $seasonP.ExitCode -eq 0 -and -not (Select-String -LiteralPath $seasonErr -Pattern '^ERROR:|^SCRIPT ERROR:' -Quiet)
+        $seasonResults += @{test=$seasonFixture;exit=$seasonP.ExitCode;clean=$seasonClean}
+        $seasonResults | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $seasonCheckRoot 'results.json')
+        Write-Output "$seasonFixture clean=$seasonClean"
+        if (-not $seasonClean) { Get-Content -LiteralPath $seasonErr -Tail 25; throw "Failed: $seasonFixture" }
+    }
+} finally {
+    $env:APPDATA = $seasonOldAppData
+    $env:LOCALAPPDATA = $seasonOldLocal
+}

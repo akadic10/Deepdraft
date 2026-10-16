@@ -1,0 +1,887 @@
+{
+  "director_sha256": "d84f99e1c8fafb125cd39a63a4a731935a36e245d1e0cea7d80a90232c7b304a",
+  "event_cpu": {
+    "max": 258.292,
+    "mean": 0.35070375,
+    "over_100": 2,
+    "over_16_7": 2,
+    "over_33_3": 2,
+    "over_50": 2,
+    "p50": 0.025,
+    "p95": 0.032,
+    "p99": 0.038
+  },
+  "events": [
+    {
+      "data": {},
+      "kind": "opportunities",
+      "seconds": 6.002185
+    },
+    {
+      "data": {
+        "count": 1,
+        "edge": "east",
+        "id": "rabbit_arrival"
+      },
+      "kind": "arrival_finished",
+      "seconds": 6.046488
+    },
+    {
+      "data": {
+        "count": 1,
+        "edge": "west",
+        "id": "deer_arrival"
+      },
+      "kind": "arrival_finished",
+      "seconds": 6.059888
+    },
+    {
+      "data": {
+        "count": 2,
+        "edge": "south",
+        "id": "duck_arrival"
+      },
+      "kind": "arrival_finished",
+      "seconds": 9.008186
+    }
+  ],
+  "final": {
+    "assignments": {},
+    "built": 88,
+    "clock": {
+      "day": 3,
+      "hour": 21.8866500253914,
+      "paused": true,
+      "season": "summer",
+      "speed": 1.0,
+      "year": 1
+    },
+    "completed": {},
+    "loose": 200,
+    "mined": 2780,
+    "nodes": 23750,
+    "objects": 36211.0,
+    "orphan_nodes": 0.0,
+    "released": {},
+    "resources": 839.0,
+    "scheduler": {
+      "active": 5,
+      "blocked": 0,
+      "oldest_pending_age_s": 0.0,
+      "pending_by_type": {
+        "FETCH_BUILD": 0,
+        "HAUL": 0,
+        "MINE": 0
+      },
+      "pending_total": 0,
+      "probes_per_sec": 0.0,
+      "wake_count": 323,
+      "worst_wake_usec": 37805
+    },
+    "static_memory_mb": 448.369621276855,
+    "stored": 118,
+    "video_memory_mb": 922.58203125,
+    "wildlife": 83
+  },
+  "frames": {
+    "max": 321.791,
+    "mean": 25.017831875,
+    "over_100": 2,
+    "over_16_7": 1205,
+    "over_33_3": 320,
+    "over_50": 34,
+    "p50": 23.727,
+    "p95": 44.304,
+    "p99": 55.437
+  },
+  "initial": {
+    "assignments": {},
+    "built": 86,
+    "clock": {
+      "day": 3,
+      "hour": 21.225374933328,
+      "paused": false,
+      "season": "summer",
+      "speed": 1.0,
+      "year": 1
+    },
+    "completed": {},
+    "loose": 240,
+    "mined": 2716,
+    "nodes": 23613,
+    "objects": 35915.0,
+    "orphan_nodes": 0.0,
+    "released": {},
+    "resources": 835.0,
+    "scheduler": {
+      "active": 0,
+      "blocked": 0,
+      "oldest_pending_age_s": 0.478,
+      "pending_by_type": {
+        "FETCH_BUILD": 1,
+        "HAUL": 4,
+        "MINE": 4
+      },
+      "pending_total": 9,
+      "probes_per_sec": 0.0,
+      "wake_count": 0,
+      "worst_wake_usec": 0
+    },
+    "static_memory_mb": 461.589375495911,
+    "stored": 89,
+    "video_memory_mb": 895.14453125,
+    "wildlife": 79
+  },
+  "population": 20,
+  "profile": [
+    {
+      "attempt": 0,
+      "duck": {},
+      "ground": {
+        "_patch": 0.417,
+        "from_entry": 3.962
+      },
+      "ms": 4.021,
+      "result": {
+        "count": 1,
+        "edge": "east",
+        "route": [
+          [
+            1023,
+            20,
+            451
+          ],
+          [
+            1022,
+            20,
+            451
+          ],
+          [
+            1021,
+            20,
+            451
+          ],
+          [
+            1020,
+            20,
+            451
+          ],
+          [
+            1019,
+            20,
+            451
+          ],
+          [
+            1018,
+            20,
+            451
+          ],
+          [
+            1017,
+            20,
+            451
+          ],
+          [
+            1016,
+            20,
+            451
+          ],
+          [
+            1015,
+            20,
+            451
+          ],
+          [
+            1014,
+            20,
+            451
+          ],
+          [
+            1013,
+            20,
+            451
+          ],
+          [
+            1012,
+            20,
+            451
+          ],
+          [
+            1011,
+            20,
+            451
+          ],
+          [
+            1010,
+            20,
+            451
+          ],
+          [
+            1009,
+            20,
+            451
+          ],
+          [
+            1008,
+            20,
+            451
+          ],
+          [
+            1007,
+            20,
+            451
+          ],
+          [
+            1006,
+            20,
+            451
+          ],
+          [
+            1005,
+            20,
+            451
+          ],
+          [
+            1004,
+            20,
+            451
+          ],
+          [
+            1003,
+            20,
+            451
+          ],
+          [
+            1002,
+            20,
+            451
+          ],
+          [
+            1001,
+            20,
+            451
+          ],
+          [
+            1000,
+            20,
+            451
+          ],
+          [
+            999,
+            20,
+            451
+          ],
+          [
+            998,
+            20,
+            451
+          ],
+          [
+            997,
+            20,
+            451
+          ],
+          [
+            996,
+            20,
+            451
+          ],
+          [
+            995,
+            20,
+            451
+          ],
+          [
+            994,
+            20,
+            451
+          ],
+          [
+            993,
+            20,
+            451
+          ],
+          [
+            993,
+            20,
+            452
+          ],
+          [
+            992,
+            20,
+            452
+          ],
+          [
+            991,
+            20,
+            452
+          ]
+        ],
+        "status": "ready"
+      },
+      "species": "rabbit"
+    },
+    {
+      "attempt": 0,
+      "duck": {},
+      "ground": {
+        "_patch": 1.677,
+        "from_entry": 11.958,
+        "group_routes": 0.025
+      },
+      "ms": 12.052,
+      "result": {
+        "count": 1,
+        "edge": "west",
+        "member_routes": [
+          [
+            [
+              0,
+              20,
+              139
+            ],
+            [
+              2,
+              20,
+              139
+            ],
+            [
+              4,
+              20,
+              139
+            ],
+            [
+              6,
+              20,
+              139
+            ],
+            [
+              8,
+              20,
+              139
+            ],
+            [
+              10,
+              20,
+              139
+            ],
+            [
+              12,
+              20,
+              139
+            ],
+            [
+              14,
+              20,
+              139
+            ],
+            [
+              16,
+              20,
+              139
+            ],
+            [
+              18,
+              20,
+              139
+            ],
+            [
+              20,
+              20,
+              139
+            ],
+            [
+              22,
+              20,
+              139
+            ],
+            [
+              24,
+              20,
+              139
+            ],
+            [
+              26,
+              20,
+              139
+            ],
+            [
+              28,
+              20,
+              139
+            ],
+            [
+              30,
+              20,
+              139
+            ],
+            [
+              32,
+              20,
+              139
+            ],
+            [
+              34,
+              20,
+              139
+            ],
+            [
+              36,
+              20,
+              139
+            ],
+            [
+              38,
+              20,
+              139
+            ],
+            [
+              40,
+              20,
+              139
+            ]
+          ]
+        ],
+        "route": [
+          [
+            0,
+            20,
+            139
+          ],
+          [
+            2,
+            20,
+            139
+          ],
+          [
+            4,
+            20,
+            139
+          ],
+          [
+            6,
+            20,
+            139
+          ],
+          [
+            8,
+            20,
+            139
+          ],
+          [
+            10,
+            20,
+            139
+          ],
+          [
+            12,
+            20,
+            139
+          ],
+          [
+            14,
+            20,
+            139
+          ],
+          [
+            16,
+            20,
+            139
+          ],
+          [
+            18,
+            20,
+            139
+          ],
+          [
+            20,
+            20,
+            139
+          ],
+          [
+            22,
+            20,
+            139
+          ],
+          [
+            24,
+            20,
+            139
+          ],
+          [
+            26,
+            20,
+            139
+          ],
+          [
+            28,
+            20,
+            139
+          ],
+          [
+            30,
+            20,
+            139
+          ],
+          [
+            32,
+            20,
+            139
+          ],
+          [
+            34,
+            20,
+            139
+          ],
+          [
+            36,
+            20,
+            139
+          ],
+          [
+            38,
+            20,
+            139
+          ],
+          [
+            40,
+            20,
+            139
+          ]
+        ],
+        "status": "ready"
+      },
+      "species": "deer"
+    },
+    {
+      "attempt": 0,
+      "duck": {},
+      "ground": {},
+      "ms": 0.025,
+      "result": {
+        "reason": "population cap",
+        "status": "blocked"
+      },
+      "species": "wolf"
+    },
+    {
+      "attempt": 0,
+      "duck": {
+        "groups": 62.751,
+        "pools": 12.864
+      },
+      "ground": {},
+      "ms": 237.066,
+      "result": {},
+      "species": "duck"
+    },
+    {
+      "attempt": 1,
+      "duck": {
+        "groups": 60.481,
+        "pools": 12.314
+      },
+      "ground": {},
+      "ms": 250.438,
+      "result": {
+        "count": 2,
+        "edge": "south",
+        "member_routes": [
+          [
+            [
+              711,
+              34,
+              1022
+            ],
+            [
+              711,
+              18,
+              987
+            ]
+          ],
+          [
+            [
+              709,
+              34,
+              1022
+            ],
+            [
+              709,
+              18,
+              987
+            ]
+          ]
+        ],
+        "route": [
+          [
+            711,
+            34,
+            1022
+          ],
+          [
+            711,
+            18,
+            987
+          ]
+        ],
+        "status": "ready"
+      },
+      "species": "duck"
+    }
+  ],
+  "schedules": {
+    "history": [
+      {
+        "count": 1,
+        "day": 30.8885783249006,
+        "id": "rabbit_arrival:2520450404:1",
+        "result": "arrived"
+      },
+      {
+        "count": 1,
+        "day": 30.8885783249006,
+        "id": "deer_arrival:2520450404:2",
+        "result": "arrived"
+      },
+      {
+        "count": 0,
+        "day": 30.8885783249006,
+        "id": "wolf_arrival:2520450404:3",
+        "result": "population cap"
+      },
+      {
+        "count": 2,
+        "day": 30.8904180843913,
+        "id": "duck_arrival:2520450404:4",
+        "result": "arrived"
+      }
+    ],
+    "initialized": true,
+    "pressure": {},
+    "rng": "2767147305803717251",
+    "schedules": {
+      "deer_arrival": {
+        "active": {},
+        "next": {
+          "count": 4,
+          "due": 36.9323348098859,
+          "id": "deer_arrival:2520450404:6",
+          "roll": 0.634482443332672,
+          "seed": "3762782672"
+        }
+      },
+      "duck_arrival": {
+        "active": {},
+        "next": {
+          "count": 3,
+          "due": 35.5143465095624,
+          "id": "duck_arrival:2520450404:8",
+          "roll": 0.088665671646595,
+          "seed": "2981176598"
+        }
+      },
+      "rabbit_arrival": {
+        "active": {},
+        "next": {
+          "count": 1,
+          "due": 33.1512164169416,
+          "id": "rabbit_arrival:2520450404:5",
+          "roll": 0.831969499588013,
+          "seed": "2752068540"
+        }
+      },
+      "wolf_arrival": {
+        "active": {},
+        "next": {
+          "count": 2,
+          "due": 38.679552941905,
+          "id": "wolf_arrival:2520450404:7",
+          "roll": 0.504567205905914,
+          "seed": "1801438157"
+        }
+      }
+    },
+    "serial": 8
+  },
+  "seconds": 40.005274,
+  "spikes": [
+    {
+      "frame": {
+        "after_draw_ms": 1.22,
+        "after_process_ms": 0.991,
+        "draw_ms": 7.053,
+        "frame": 378,
+        "labels": {},
+        "phase": "arrivals",
+        "physics_ms": 0.219,
+        "physics_steps": 8,
+        "pipelines": {
+          "canvas": 0,
+          "draw": 0,
+          "mesh": 0,
+          "specialization": 0,
+          "surface": 0
+        },
+        "process_ms": 295.294,
+        "setup_cpu_ms": 3.793,
+        "wall_ms": 304.558
+      },
+      "process": {
+        "AmbientAudio": 0.1,
+        "DebugWorld/@Node@7148": 0.002,
+        "DebugWorld/@Node@7149": 0.002,
+        "DebugWorld/CameraRig": 0.017,
+        "DebugWorld/ConstructionController": 0.006,
+        "DebugWorld/CraftingManager": 0.003,
+        "DebugWorld/DebugLoadingOverlay": 0.001,
+        "DebugWorld/DockUI": 0.005,
+        "DebugWorld/FlagPlacementController": 0.003,
+        "DebugWorld/FurniturePlacementController": 0.088,
+        "DebugWorld/MiningDesignationController": 0.003,
+        "DebugWorld/ObjectExplorerController": 0.002,
+        "DebugWorld/Renderer": 10.88,
+        "DebugWorld/Renderer/UndergroundLighting": 5.76,
+        "DebugWorld/Renderer/Water": 3.841,
+        "DebugWorld/Renderer/Water/@Node3D@1211": 0.019,
+        "DebugWorld/RoomOverlayController": 0.005,
+        "DebugWorld/StockpileDesignationController": 0.003,
+        "DebugWorld/SurfaceDetailManager": 0.003,
+        "DebugWorld/SurfaceFloraSpawner": 0.003,
+        "DebugWorld/TreeFellingController": 0.004,
+        "DebugWorld/WaterDebugPanel": 0.005,
+        "DebugWorld/WildlifeManager": 3.045,
+        "DebugWorld/WorldEventDirector": 255.871,
+        "MoistureRenderer": 1.01,
+        "RoomManager": 0.001,
+        "SaveManager": 0.0,
+        "SkyController": 0.057,
+        "StockpileManager": 0.001,
+        "TaskManager": 0.005,
+        "WaterManager": 11.575,
+        "WeatherManager": 0.002,
+        "WorkFeedback": 0.137,
+        "WorldClock": 0.002
+      },
+      "seconds": 6.306739
+    },
+    {
+      "frame": {
+        "after_draw_ms": 1.235,
+        "after_process_ms": 2.264,
+        "draw_ms": 3.85,
+        "frame": 379,
+        "labels": {},
+        "phase": "arrivals",
+        "physics_ms": 0.164,
+        "physics_steps": 8,
+        "pipelines": {
+          "canvas": 0,
+          "draw": 0,
+          "mesh": 0,
+          "specialization": 0,
+          "surface": 0
+        },
+        "process_ms": 314.442,
+        "setup_cpu_ms": 0.198,
+        "wall_ms": 321.791
+      },
+      "process": {
+        "AmbientAudio": 0.08,
+        "DebugWorld/@Node@7148": 0.002,
+        "DebugWorld/@Node@7149": 0.002,
+        "DebugWorld/CameraRig": 0.025,
+        "DebugWorld/ConstructionController": 5.49,
+        "DebugWorld/CraftingManager": 0.002,
+        "DebugWorld/DebugLoadingOverlay": 0.371,
+        "DebugWorld/DockUI": 0.129,
+        "DebugWorld/FlagPlacementController": 0.002,
+        "DebugWorld/FurniturePlacementController": 0.257,
+        "DebugWorld/MiningDesignationController": 0.005,
+        "DebugWorld/ObjectExplorerController": 0.004,
+        "DebugWorld/Renderer": 21.353,
+        "DebugWorld/Renderer/UndergroundLighting": 7.729,
+        "DebugWorld/Renderer/Water": 3.883,
+        "DebugWorld/Renderer/Water/@Node3D@1211": 1.854,
+        "DebugWorld/RoomOverlayController": 0.004,
+        "DebugWorld/StockpileDesignationController": 0.002,
+        "DebugWorld/SurfaceDetailManager": 0.005,
+        "DebugWorld/SurfaceFloraSpawner": 0.005,
+        "DebugWorld/TreeFellingController": 0.003,
+        "DebugWorld/WaterDebugPanel": 0.009,
+        "DebugWorld/WildlifeManager": 3.529,
+        "DebugWorld/WorldEventDirector": 258.292,
+        "MoistureRenderer": 0.537,
+        "RoomManager": 0.002,
+        "SaveManager": 0.0,
+        "SkyController": 0.065,
+        "StockpileManager": 0.002,
+        "TaskManager": 0.172,
+        "WaterManager": 10.569,
+        "WeatherManager": 0.003,
+        "WorkFeedback": 4.193,
+        "WorldClock": 0.003
+      },
+      "seconds": 6.628529
+    },
+    {
+      "frame": {
+        "after_draw_ms": 0.377,
+        "after_process_ms": 0.451,
+        "draw_ms": 3.608,
+        "frame": 463,
+        "labels": {},
+        "phase": "arrivals",
+        "physics_ms": 0.052,
+        "physics_steps": 2,
+        "pipelines": {
+          "canvas": 0,
+          "draw": 0,
+          "mesh": 0,
+          "specialization": 0,
+          "surface": 0
+        },
+        "process_ms": 24.104,
+        "setup_cpu_ms": 0.484,
+        "wall_ms": 28.54
+      },
+      "process": {
+        "AmbientAudio": 0.056,
+        "DebugWorld/@Node@7148": 0.001,
+        "DebugWorld/@Node@7149": 0.001,
+        "DebugWorld/CameraRig": 0.016,
+        "DebugWorld/ConstructionController": 0.004,
+        "DebugWorld/CraftingManager": 0.001,
+        "DebugWorld/DebugLoadingOverlay": 0.001,
+        "DebugWorld/DockUI": 0.004,
+        "DebugWorld/FlagPlacementController": 0.001,
+        "DebugWorld/FurniturePlacementController": 0.016,
+        "DebugWorld/MiningDesignationController": 0.003,
+        "DebugWorld/ObjectExplorerController": 0.002,
+        "DebugWorld/Renderer": 7.901,
+        "DebugWorld/Renderer/UndergroundLighting": 2.914,
+        "DebugWorld/Renderer/Water": 4.765,
+        "DebugWorld/Renderer/Water/@Node3D@1211": 0.012,
+        "DebugWorld/RoomOverlayController": 0.002,
+        "DebugWorld/StockpileDesignationController": 0.002,
+        "DebugWorld/SurfaceDetailManager": 0.002,
+        "DebugWorld/SurfaceFloraSpawner": 0.003,
+        "DebugWorld/TreeFellingController": 0.002,
+        "DebugWorld/WaterDebugPanel": 0.004,
+        "DebugWorld/WildlifeManager": 2.642,
+        "DebugWorld/WorldEventDirector": 8.536,
+        "MoistureRenderer": 0.011,
+        "RoomManager": 1.562,
+        "SaveManager": 0.0,
+        "SkyController": 0.001,
+        "StockpileManager": 0.001,
+        "TaskManager": 0.008,
+        "WaterManager": 0.009,
+        "WeatherManager": 0.002,
+        "WorkFeedback": 0.337,
+        "WorldClock": 0.004
+      },
+      "seconds": 9.01311
+    }
+  ],
+  "wildlife_sha256": "c52be1e60f8ff5724391c38020fea547a775589040b239c93fa9ebca3a2636d9"
+}

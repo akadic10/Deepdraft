@@ -1,0 +1,22 @@
+[
+  {
+    "exit": 0,
+    "test": "DuckSolidBoundsTest",
+    "clean": true
+  },
+  {
+    "exit": 0,
+    "test": "AnimalNavigationCacheTest",
+    "clean": true
+  },
+  {
+    "exit": 0,
+    "test": "DuckQueryReuseTest",
+    "clean": true
+  },
+  {
+    "exit": 0,
+    "test": "DuckWildlifeTest",
+    "clean": true
+  }
+]

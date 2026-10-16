@@ -1,13 +1,163 @@
 # Deepdraft — Agent Navigation Index
 
-**Session closed (2026-10-14) — resume here:**
-[189 — Performance session handoff](docs/00_dev_roadmap/189_session_handoff_2026_10_14.md)
-records today's completed performance passes, the tested Windows build and
-the next work order for October 15. Start by profiling the measured 250 ms
-lighting hitch, then continue the agreed long-session/event review at 5/20/30
-dwarves. Keep work completion and waiting metrics alongside frame times.
-The final scheduling pass improves throughput but does not establish an FPS
-win. Review findings in 177 remain parked; this closeout is documentation only.
+**Performance work paused (2026-10-15) — current direction:**
+Camera panning and slicing feel substantially better, and several major hitches
+have been reduced. Pause proactive performance targets and retain the existing
+measurements as the baseline. The latest duck change reduces CPU work without
+establishing a reliable overall FPS gain; do not automatically continue through
+the older performance follow-up lists below.
+
+Next focus: gameplay and usability, beginning with a fresh construction workflow
+discussion in [193](docs/00_dev_roadmap/193_arrival_preparation_performance.md).
+The intended direction is to deliver all project materials to a drop box, then
+hammer for a duration that may scale with block count. Discuss batch deliveries
+to address one-stone trips; carrying capacity, multiple builders, completion
+timing and cancellation/material recovery remain open design questions.
+
+Keep routine performance awareness during ordinary play. Revisit profiling for
+a repeatable hitch or clear regression. The longer normal-speed 30-dwarf soak
+through saves, arrivals and seasons remains a later checkpoint; ordinary duck
+flight-planning spikes remain recorded for later investigation. Water appearance
+and performance, and review findings in 177, stay parked. The intended population
+target remains 30 dwarves. The current Windows build and evidence are linked in
+[197](docs/00_dev_roadmap/197_duck_update_performance.md).
+
+**Duck updates optimized (2026-10-15) — retained baseline:**
+[197 — Duck update performance](docs/00_dev_roadmap/197_duck_update_performance.md)
+retains raw-solid/placed-obstacle body clearance through AnimalNavigation's
+bounded, edit-invalidated cache. Normal-speed 30-dwarf profiling with 11 ducks
+reduces total duck CPU 17–18% and total wildlife CPU about 8%. Whole-frame
+controls are mixed; no reliable overall FPS or worst-frame improvement is claimed.
+Ordinary flight planning can still spike to ~17 ms. Duck movement, reactions,
+feeding, animation and offscreen updates keep their existing cadence; live water
+and canopy checks retain their observation rules. All 1,200 differential updates,
+1,017 new clearance assertions, 12 fixtures and 26 final native packaged checks
+pass. The package check compares at existing JSON save precision; its initial
+over-strict assertion and tiny numeric differences are documented in 197.
+Windows build/ZIP refreshed and actual EXE startup passes; restart Play or launch
+the release linked in 197. Only two existing runtime files changed; the original
+save and all water code remain unchanged. Further performance work is paused
+as recorded above; the longer normal-speed 30-dwarf soak is a later checkpoint.
+Construction workflow design is the next discussion, before revisiting its
+waiting/eligibility implementation. Water appearance/performance and findings
+in 177 remain parked. No fog of war or population cap is introduced.
+
+**Shared atmosphere shipped (2026-10-15) — resume here:**
+[196 — Shared atmosphere performance](docs/00_dev_roadmap/196_shared_atmosphere_performance.md)
+replaces fog/sky broadcasts to ~1,300 materials with one scene-owned 320-byte
+texture update at the existing maximum 20 Hz. Two normal-speed 30-dwarf controls
+reduce first-pan means 20.08–21.36→16.16–16.40 ms and later pans
+16.44–17.20→13.04–14.16 ms. First-pan render setup drops ~88%; GPU stays near
+3 ms. Repeating the old path confirms a 20.20 ms first pan. P95 remains above
+the 60 FPS budget, so further spikes remain. Eight old/new shader image pairs
+are pixel-identical. All ten final fixtures, 3,494 native packaged save/reload
+checks and release startup pass. Texture ownership stays local to each scene;
+day/night, weather, camera overrides, room darkness and save schema are preserved.
+Windows build/ZIP refreshed; restart Play or launch the release linked in 196.
+Water work is deferred to a later session (user direction, 2026-10-15): the
+player is unhappy with its current appearance. Revisit the visual direction
+alongside water performance; do not treat today's appearance as an approved target.
+The proposed water-focused 30-dwarf profile is parked too. A longer general
+normal-speed soak through autosaves, arrivals and seasons remains a follow-up.
+Construction/eligibility stays parked for the drop-box and timed-building design
+discussion in 193; findings in 177 remain parked. No fog of war or population cap
+is introduced. Original save and unrelated existing scripts are unchanged.
+
+**Normal-speed rendering profiled (2026-10-15) — resume here:**
+[195 — Normal speed rendering profile](docs/00_dev_roadmap/195_normal_speed_rendering_profile.md)
+uses copied 30-dwarf settlements at x1 calendar speed. First-pan controls average
+20–21 ms/frame; later pans 16–17 ms, with P95 still 31–38 ms. GPU averages about
+3 ms; reducing resolution to 720p barely changes whole-frame time. The broad
+renderer timer includes water and lighting; its own callback is about 0.2 ms
+after mining settles. Shared fog/sky broadcasts to ~1,300 materials are the next
+rendering target: direct calls peak at 6.7 ms and cause extra render setup.
+A controlled, deliberately stale-fog diagnostic lowers mean frames 18.60→15.98 ms
+and render setup 1.15→0.18 ms. This is evidence for sharing live atmosphere data,
+not a shipped optimization or promised gain. Actor-light checks cost ~0.6 ms;
+cavity-shell rebuilds reach 9.6 ms during mining. Six native runs pass; all 337
+production GDScripts and the player save are unchanged after instrumentation.
+The release from 194 remains current. Next: shared scene-owned fog/sky data,
+then the longer soak. Construction/eligibility and findings in 177 stay parked.
+
+**Gradual overnight season changes (2026-10-15) — resume here:**
+[194 — Gradual season transition](docs/00_dev_roadmap/194_gradual_season_transition.md)
+spreads tree/ground-plant art and existing terrain recolours from midnight to
+sunrise. Tree bodies stay alive; logical season/crop rules still turn at midnight.
+Queues share a soft 2 ms art/admission budget; terrain uses normal worker batches
+and existing upload budgets. Pause/speed follow the calendar; paused loads rebuild
+target art within frame budgets. No save schema change or new global class.
+At 5/20/30 dwarves, clock peaks fall from 19–20 to 6–7 ms; all 2,925 trees stay
+present, versus a baseline dip to 14. The 30-dwarf maximum falls 114→82 ms.
+Accelerated-night mean frame times are 3–9% higher: this is a smoother transition,
+not an average-FPS improvement. All 14 fixtures and native packaged mid-night
+save/load, final art and slice checks pass; Windows build/ZIP refreshed.
+Restart Play or launch the new release. Next: profile steady CPU within the
+30-dwarf target, then a longer soak. Construction stays deferred for the later
+drop-box/material-staging and timed-building discussion in 193. Findings in 177
+stay parked; no fog of war or population-cap change is introduced.
+
+**Wildlife arrival hitch reduced (2026-10-15) — resume here:**
+[193 — Arrival preparation performance](docs/00_dev_roadmap/193_arrival_preparation_performance.md)
+identifies duck habitat/flight planning as the main stall. It now resumes across
+main-thread frames under a shared soft 2 ms preparation budget. Peak event CPU
+falls from 254–260 to 13–14 ms at 5/20/30 dwarves; whole-frame peaks fall from
+297–322 to 71–88 ms. Average timings are mixed; this is a hitch improvement.
+The same animals enter, with ducks about 3–4.4 seconds later. Attempts, safety
+checks and save format remain intact. Pending searches restart from saved seeds.
+All 12 fixtures, 45 exact planner comparisons, packaged pending-save recovery
+and release startup pass. Windows build/ZIP refreshed; restart Play or launch it.
+Construction waiting/access and repeated eligibility probes from 191 are deferred
+for a fresh design discussion later (user direction, 2026-10-15; see 193): stage
+all project materials in a drop box, then hammer for a duration possibly scaled
+by block count. Discuss batch deliveries to address one-stone trips before
+optimizing the current workflow. No construction implementation is authorized
+by this handoff. Seasonal hitches and a longer soak remain performance follow-ups.
+The known baseline dwarf teardown error is retained in 193's evidence; final
+runs are clean. Findings in 177 stay parked, and no fog of war or population-cap
+change is introduced.
+
+**Autosave freeze reduced (2026-10-15):**
+[192 — Autosave performance](docs/00_dev_roadmap/192_autosave_performance.md)
+moves formatting, JSON, validated file transactions and private-data cleanup to
+one worker. Capture stays on the main thread; requests fall from 0.77–1.41 s
+to 14.7–17.6 ms. Consecutive 30-dwarf peak frames fall from 1,415 to 80 ms.
+The transaction still takes about 1–2 s; ordinary frame variability remains.
+Eight fixtures, shutdown joining, native packaged saves/backup recovery and
+release startup pass. Windows build/ZIP refreshed; restart Play or launch it.
+Save request booleans now mean accepted; completion signals mean committed.
+Busy saves/loads reject overlapping requests. Snapshot capture is observational.
+Next: wildlife arrival route preparation (up to 348 ms in 191), followed by
+construction waits and post-season drift. Use 5/20/30 dwarves. Findings in 177
+stay parked; no fog of war or population-cap change is introduced.
+
+**First work effect hitch reduced; event review complete (2026-10-15):**
+[191 — Event hitch review](docs/00_dev_roadmap/191_event_hitch_review.md)
+traces the remaining first-mining stall to dust rendering pipeline preparation.
+Shared dust resources and one hidden loading instance remove that compilation
+from the first live impact. Standard 30-dwarf first-pan peaks fall from 215.05
+to 59.64 ms; later pan timings are essentially unchanged. Ten fixtures, three
+native effect checks, packaged copied-save checks and release startup pass.
+Windows build/ZIP refreshed; restart Play or launch the new release.
+Copied 5/20/30-dwarf event runs identify **autosave as the next priority**:
+natural autosave frames reach 1.43–1.54 seconds. Then profile arrival route
+preparation (up to 348 ms in WorldEventDirector), construction waits and the
+modest post-season frame-time drift. The few-minute runs are not a leak proof
+or an hours-long soak. Baseline shutdown errors from 190 recur after sampling
+and remain documented; the final run exits cleanly. Findings in 177 stay parked.
+
+**Lighting cleanup hitch reduced (2026-10-15):**
+[190 — Lighting buffer disposal](docs/00_dev_roadmap/190_lighting_buffer_disposal_performance.md)
+identifies the large hitch as clearing the previous calculation's CPU buffers.
+One worker now disposes of those private buffers while published lighting stays
+available. Native 30-dwarf lighting peaks fall from 231.49 to 5.78 ms; a separate
+168.18 ms frame stall remains. The five-dwarf copied settlement runs essentially
+unchanged. Eight exact lighting comparisons, all 13 fixtures, native packaged-save
+checks and release startup pass. Windows build/ZIP refreshed; restart Play or
+launch the new release. Cleanup still consumes CPU and teardown joins it.
+Next: [189's](docs/00_dev_roadmap/189_session_handoff_2026_10_14.md) long-session/event
+review at 5/20/30 dwarves, tracking completed work and waits alongside frame times.
+The diagnostic run's dwarf shutdown errors are recorded in 190 for later review.
+Findings in 177 remain parked; no fog of war or population cap is introduced.
 
 **Colony size direction (2026-10-14):** The intended maximum is **30 dwarves**.
 Use 5/20/30 dwarves for routine performance reviews, with a busy mature

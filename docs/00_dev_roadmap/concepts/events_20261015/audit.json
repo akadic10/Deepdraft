@@ -1,0 +1,17 @@
+{
+  "source_sha256": {
+    "scripts/components/WorkDustBurst.gd": "ad3a5da61cf5000d208085df2b18657907af15811515a8b3358d8fcc504cb670",
+    "scripts/systems/WorkFeedback.gd": "1fdaa30db6eefca1b4e2ec08a88c91f48c74b1f467a1029034713916fd71da4d",
+    "scripts/components/UndergroundLighting.gd": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+    "scripts/tests/WorkDustReuseTest.gd": "d6e62aba2dff2d87aacbc33ffc3dffc1648fc39d9346d631b870c29bd47b935c",
+    "tools/performance/FrameLifecycleProbe.gd": "5641876a392b83ead5db7bd854d136800c5d958cde36da5125994e9a48956a5d",
+    "tools/performance/EventSpikeBenchmark.gd": "faa3d695676221800b0e50f5530a78cb91ade4e5b68a8f2b0dc0d1bd70698c84",
+    "tools/performance/LongSessionBenchmark.gd": "ecd0566cc5bc276e2cad7267fdc698067dc94928c10eb8f934b8b8aa5bfb630e",
+    "tools/performance/CameraBenchmark.gd": "0f81c1837701bbee9f0ad6fbcc33c9e76893667e31141c76ac4c0ab2a5eeefa9"
+  },
+  "input_save_sha256": "f223eee6dfe52fefe6add9a763362640f02c439fb2f33687f550661fb9cc148b",
+  "original_save_sha256": "f223eee6dfe52fefe6add9a763362640f02c439fb2f33687f550661fb9cc148b",
+  "package": "P:\\Deepdraft\\build\\windows\\releases\\20261015-170106-918-1d28ea4f\\Deepdraft",
+  "zip_sha256": "7c0362b931ecbb11f8bf6a0b9cb8d19b956da68e6b19a2c4c138a169904b23c4",
+  "zip_bytes": 80642045
+}

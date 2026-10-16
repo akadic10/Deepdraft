@@ -1,0 +1,72 @@
+[
+  {
+    "test": "SeasonalRefreshTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "TreeFellingTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "ObjectExplorerTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "JuniperHarvestTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "ShrubPilotTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "ShrubTransplantTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "ShrubRegrowthTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "FlowerPilotTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "ReedPilotTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "TerrainAppearanceTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "WorldTerrainStartupTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "SaveManagerRoundTripTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "WeatherPersistenceTest",
+    "exit": 0,
+    "clean": true
+  },
+  {
+    "test": "SkySceneLifecycleTest",
+    "exit": 0,
+    "clean": true
+  }
+]

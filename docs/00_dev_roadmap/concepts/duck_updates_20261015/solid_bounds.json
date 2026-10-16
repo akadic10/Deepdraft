@@ -1,0 +1,16 @@
+{
+  "cache": {
+    "entries": 2,
+    "evictions": 3975,
+    "hits": 110028,
+    "misses": 15856,
+    "tiles": 1
+  },
+  "checks": 1017,
+  "failures": [],
+  "timings": {
+    "after_usec": 17499,
+    "before_usec": 153342,
+    "queries_each": 12000
+  }
+}

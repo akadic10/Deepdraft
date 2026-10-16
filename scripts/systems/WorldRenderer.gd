@@ -305,6 +305,7 @@ func _ready() -> void:
 ## Join only on teardown/reload, before the generator can replace its immutable
 ## maps. Normal frames only collect jobs that have already completed.
 func finish_pending_overview() -> void:
+	_seasonal_refresh.clear()
 	if _ovt_task >= 0:
 		WorkerThreadPool.wait_for_group_task_completion(_ovt_task)
 	_ovt_task = -1
@@ -321,6 +322,7 @@ func _exit_tree() -> void:
 
 
 func _process(_delta: float) -> void:
+	_seasonal_refresh.drain(_enqueue_seasonal_batch)
 	if not _surface_caves_ready and WorldGenerator._maps_ready:
 		_surface_caves_ready = true
 		InteriorTracker.reveal_surface_caves()
@@ -1658,25 +1660,44 @@ func _invalidate_overview_global() -> void:
 	_overview_tile_nodes.clear()
 
 
-## Re-bake seasonal surface colours when the season turns. Every mesh path reads
-## WorldClock.season at build time (ChunkMesher, regions, overview tiles), so re-queuing
-## the already-built meshes is sufficient — nodes are reused in place (no free, no flicker)
-## and the queues drain at the normal per-frame budget, so the recolour sweeps across the
-## map over a few seconds rather than stalling a frame.
+const SeasonalRefresh = preload("res://scripts/components/SeasonalRefreshQueue.gd")
+var _seasonal_refresh := SeasonalRefresh.new()
+
+## Pace the seasonal recolour through the night. Ordinary edit/slice queues
+## remain immediate and existing meshes stay visible while replacements build.
 func _on_season_changed(_new_season: String) -> void:
 	_added_terrain_dirty = true
-	# Block-face overview tiles (the zoomed-out surface).
-	if not _overview_tile_nodes.is_empty():
-		for key: Vector2i in _overview_tile_nodes.keys():
-			_enqueue_overview_tile(key)
-		_overview_built = false
-	# Streamed surface regions and chunk meshes (the zoomed-in view).
+	var seasonal: Array = []
+	for key: Vector2i in _overview_tile_nodes:
+		seasonal.append([0, key])
 	for rkey: Vector2i in _region_nodes.keys():
-		_enqueue_region(rkey)
+		seasonal.append([1, rkey])
 	for ckey: Vector3i in _chunk_nodes.keys():
-		_enqueue_chunk(ckey)
-	# Cavity shell bakes seasonal colours too (SO-2b).
+		seasonal.append([2, ckey])
+	# Keep normal worker batch sizes: admitting single tiles repeatedly copies
+	# the edit snapshot and recomputes whole-overview statistics for every tile.
+	var batches: Array = []
+	var batch_size := maxi(1, overview_tiles_per_frame)
+	for offset in range(0, seasonal.size(), batch_size):
+		batches.append(seasonal.slice(offset, mini(offset + batch_size, seasonal.size())))
+	_seasonal_refresh.begin(batches, WorldClock)
 	_cavity_shell_dirty = true
+
+
+func _enqueue_seasonal_batch(batch: Array) -> void:
+	for entry: Array in batch: _enqueue_seasonal_mesh(entry)
+
+
+func _enqueue_seasonal_mesh(entry: Array) -> void:
+	match int(entry[0]):
+		0:
+			if _overview_tile_nodes.has(entry[1]):
+				_enqueue_overview_tile(entry[1])
+				_overview_built = false
+		1:
+			if _region_nodes.has(entry[1]): _enqueue_region(entry[1])
+		2:
+			if _chunk_nodes.has(entry[1]): _enqueue_chunk(entry[1])
 
 
 ## Slice-change invalidation for the far field (doc 11 Phase SO): only tiles

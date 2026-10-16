@@ -1,0 +1,394 @@
+{
+  "ablations": false,
+  "animal_navigation_sha256": "a5eb9bd23351e26c36590d74dc856db9c54c27ddb7809a118933509cc7a3f0c6",
+  "camera_origin": "(652.0, 47.0, 499.0)",
+  "camera_zoom": 48.0,
+  "counts": {
+    "dwarves": 30,
+    "furniture": 20,
+    "nodes": 23975,
+    "surface_details": 2137,
+    "trees": 2925,
+    "water_columns": 19322,
+    "wildlife": 79,
+    "wildlife_points_in_camera_frustum": 0,
+    "wildlife_within_100_units_of_camera_target": 0
+  },
+  "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+  "driver": "d3d12",
+  "duck_agent_sha256": "8ab0c8c45c94e5dcabb5ebd1defbc2b0a0072bd96106f8a9dd39b2b1186d8b51",
+  "duck_navigation_sha256": "b776d6d11988ee11b6bcceb3bb4e5d1a2a20f397002ed665ae5a9f070adaddc3",
+  "engine": {
+    "build": "steam",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (steam)",
+    "timestamp": 0
+  },
+  "final_renderer": {
+    "camera_chunk": "(-9999, -9999)",
+    "dirty_queue": 0,
+    "first_visible_mesh_ms": 12297,
+    "initial_load": false,
+    "mesh_nodes": 0,
+    "meshes_built": 2115,
+    "overview_active": true,
+    "overview_build_count": 2115,
+    "overview_build_ms_max": 1,
+    "overview_build_ms_total": 104,
+    "overview_built": true,
+    "overview_complete_ms": 18096,
+    "overview_dirty_tiles": 0,
+    "overview_in_flight": false,
+    "overview_merged_top_faces": 15764,
+    "overview_sampled_top_faces": 1048576,
+    "overview_side_faces": 84057,
+    "overview_sides": true,
+    "overview_stale_results": 2,
+    "overview_startup_center": "(16, 16)",
+    "overview_startup_radius_tiles": 5,
+    "overview_startup_ready_ms": 13448,
+    "overview_startup_tile_goal": 121,
+    "overview_step": 1,
+    "overview_tile_size": 32,
+    "overview_tiles": 1024,
+    "overview_validation_mismatches": 0,
+    "overview_validation_samples": 0,
+    "region_rebuild_count": 0,
+    "region_rebuild_ms_max": 0,
+    "region_rebuild_ms_total": 0,
+    "render_mode": "block-face overview exact",
+    "slice_y": 127,
+    "startup_elapsed_ms": 348853,
+    "terrain_drain_max_ms": 1.901,
+    "terrain_upload_max_ms": 0.187,
+    "terrain_worker_wait_max_ms": 0.002,
+    "unload_radius_chunks": 6,
+    "view_radius_chunks": 5
+  },
+  "fixed_fps": false,
+  "gpu": "AMD Radeon RX 9070 XT",
+  "long_session": {
+    "arrivals_history": [
+      {
+        "count": 1,
+        "day": 31.0208044196759,
+        "id": "rabbit_arrival:2520450404:1",
+        "result": "arrived"
+      },
+      {
+        "count": 1,
+        "day": 31.0208044196759,
+        "id": "deer_arrival:2520450404:2",
+        "result": "arrived"
+      },
+      {
+        "count": 0,
+        "day": 31.0208044196759,
+        "id": "wolf_arrival:2520450404:3",
+        "result": "population cap"
+      },
+      {
+        "count": 2,
+        "day": 31.0225488929012,
+        "id": "duck_arrival:2520450404:4",
+        "result": "arrived"
+      },
+      {
+        "count": 0,
+        "day": 55.9999642645833,
+        "id": "rabbit_arrival:2520450404:5",
+        "result": "missed"
+      },
+      {
+        "count": 0,
+        "day": 55.9999642645833,
+        "id": "deer_arrival:2520450404:6",
+        "result": "missed"
+      },
+      {
+        "count": 0,
+        "day": 55.9999642645833,
+        "id": "wolf_arrival:2520450404:7",
+        "result": "missed"
+      },
+      {
+        "count": 0,
+        "day": 55.9999642645833,
+        "id": "duck_arrival:2520450404:8",
+        "result": "missed"
+      }
+    ],
+    "auto_count": 2,
+    "duration_seconds": 330.041761,
+    "events": [
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 30.864329
+      },
+      {
+        "data": {
+          "main_thread_ms": 804.658,
+          "ok": true
+        },
+        "kind": "explicit_autosave",
+        "seconds": 30.864335
+      },
+      {
+        "data": {},
+        "kind": "prepare_day_boundary",
+        "seconds": 60.013401
+      },
+      {
+        "data": {
+          "day": 4
+        },
+        "kind": "day_changed",
+        "seconds": 60.084403
+      },
+      {
+        "data": {
+          "note": "normal provider eligibility, caps and route rules retained"
+        },
+        "kind": "arrival_opportunities",
+        "seconds": 90.020975
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "east",
+          "id": "rabbit_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.036821
+      },
+      {
+        "data": {
+          "count": 1,
+          "edge": "west",
+          "id": "deer_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 90.045605
+      },
+      {
+        "data": {
+          "count": 2,
+          "edge": "south",
+          "id": "duck_arrival"
+        },
+        "kind": "arrival_finished",
+        "seconds": 92.572078
+      },
+      {
+        "data": {},
+        "kind": "prepare_season_boundary",
+        "seconds": 150.006664
+      },
+      {
+        "data": {
+          "season": "autumn"
+        },
+        "kind": "season_changed",
+        "seconds": 150.097622
+      },
+      {
+        "data": {
+          "day": 1
+        },
+        "kind": "day_changed",
+        "seconds": 150.097746
+      },
+      {
+        "data": {
+          "ok": true
+        },
+        "kind": "autosave_finished",
+        "seconds": 302.245228
+      }
+    ],
+    "failures": [],
+    "final": {
+      "assignments": {
+        "FETCH_BUILD": 4,
+        "HAUL": 18,
+        "MINE": 5
+      },
+      "built": 89,
+      "clock": {
+        "day": 1,
+        "hour": 2.9752137555556,
+        "paused": true,
+        "season": "autumn",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {
+        "FETCH_BUILD": 3,
+        "HAUL": 18,
+        "MINE": 4
+      },
+      "loose": 181,
+      "mined": 2780,
+      "nodes": 24106,
+      "objects": 37433.0,
+      "orphan_nodes": 0.0,
+      "released": {
+        "FETCH_BUILD": 1,
+        "MINE": 1
+      },
+      "resources": 940.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 286.283,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 0,
+          "MINE": 0
+        },
+        "pending_total": 1,
+        "probes_per_sec": 0.0,
+        "wake_count": 16011,
+        "worst_wake_usec": 46255
+      },
+      "static_memory_mb": 471.833634376526,
+      "stored": 143,
+      "video_memory_mb": 959.45703125,
+      "wildlife": 83
+    },
+    "frame_columns": [
+      "seconds",
+      "wall_ms",
+      "process_ms",
+      "after_process_ms",
+      "draw_ms",
+      "after_draw_ms",
+      "setup_cpu_ms"
+    ],
+    "frames": 17279,
+    "initial": {
+      "assignments": {},
+      "built": 86,
+      "clock": {
+        "day": 3,
+        "hour": 21.225374933328,
+        "paused": false,
+        "season": "summer",
+        "speed": 1.0,
+        "year": 1
+      },
+      "completed": {},
+      "loose": 240,
+      "mined": 2716,
+      "nodes": 23975,
+      "objects": 37010.0,
+      "orphan_nodes": 0.0,
+      "released": {},
+      "resources": 832.0,
+      "scheduler": {
+        "active": 0,
+        "blocked": 0,
+        "oldest_pending_age_s": 0.545,
+        "pending_by_type": {
+          "FETCH_BUILD": 1,
+          "HAUL": 4,
+          "MINE": 4
+        },
+        "pending_total": 9,
+        "probes_per_sec": 0.0,
+        "wake_count": 0,
+        "worst_wake_usec": 0
+      },
+      "static_memory_mb": 466.511361122131,
+      "stored": 89,
+      "video_memory_mb": 931.01953125,
+      "wildlife": 79
+    },
+    "lifecycle_errors": [],
+    "workload": {
+      "anchor": "(652, 43, 499)",
+      "construction_blocks": 48,
+      "loose_logs": 80,
+      "loose_stone": 160,
+      "mining_blocks": 64,
+      "note": "Copied developed five-dwarf settlement, expanded roster as requested. Nearby real terrain jobs and fixed supplies; no fabricated floor. Calendar and arrival triggers are artificial, normal work/needs/simulation remain active.",
+      "population": 30
+    }
+  },
+  "markers": true,
+  "moisture_renderer_sha256": "55e4b5ed4c87221ce2b06b4f149acd7fcf959e634c06fd19a68cf18ecd80e881",
+  "note": "Same-priority process brackets include descendants; do not sum nested groups. GPU timestamps can lag. Ablations freeze a subsystem for diagnosis, not a gameplay solution. Sequential phases advance the same world.",
+  "occupancy_registry_sha256": "6946d6785c8028fffd2523bffa685577677c65ec03a60760193b4ae69109e3d6",
+  "phases": {},
+  "ready_renderer": {
+    "camera_chunk": "(-9999, -9999)",
+    "dirty_queue": 0,
+    "first_visible_mesh_ms": 12297,
+    "initial_load": false,
+    "mesh_nodes": 0,
+    "meshes_built": 1027,
+    "overview_active": true,
+    "overview_build_count": 1027,
+    "overview_build_ms_max": 1,
+    "overview_build_ms_total": 52,
+    "overview_built": true,
+    "overview_complete_ms": 18096,
+    "overview_dirty_tiles": 0,
+    "overview_in_flight": false,
+    "overview_merged_top_faces": 15764,
+    "overview_sampled_top_faces": 1048576,
+    "overview_side_faces": 84057,
+    "overview_sides": true,
+    "overview_stale_results": 0,
+    "overview_startup_center": "(16, 16)",
+    "overview_startup_radius_tiles": 5,
+    "overview_startup_ready_ms": 13448,
+    "overview_startup_tile_goal": 121,
+    "overview_step": 1,
+    "overview_tile_size": 32,
+    "overview_tiles": 1024,
+    "overview_validation_mismatches": 0,
+    "overview_validation_samples": 0,
+    "region_rebuild_count": 0,
+    "region_rebuild_ms_max": 0,
+    "region_rebuild_ms_total": 0,
+    "render_mode": "block-face overview exact",
+    "slice_y": 127,
+    "startup_elapsed_ms": 18699,
+    "terrain_drain_max_ms": 1.887,
+    "terrain_upload_max_ms": 0.187,
+    "terrain_worker_wait_max_ms": 0.002,
+    "unload_radius_chunks": 6,
+    "view_radius_chunks": 5
+  },
+  "resolution": [
+    2560,
+    1440
+  ],
+  "room_manager_sha256": "ed0671fcee5dedfa0224e530e42711977aaecf8a45724bb8db2bec4c7aaa5ad0",
+  "room_rebuild_sha256": "eb1fed5b2d8a5971493bb57b7676aff915286efd5ccf1d60c09f23ef184d604b",
+  "sample_seconds_min": 330.0,
+  "saved": true,
+  "scheduled_room_rebuilds": false,
+  "seed": 2520450404,
+  "slice_y": 127,
+  "soil_moisture_sha256": "d83a0cf2713017e6d902107a994a8eff7bd89a4341c1c31d5e9ff78526a9b38a",
+  "underground_lighting_sha256": "ce04b2734063fe6b7779d2137c4c298da098b701b9c7de2349657328cdd50aeb",
+  "vsync": "disabled",
+  "water_builder_sha256": "09c705086262beb5125cc87b6aab3f52383e63cdd280ec0252e2e06b44deba3a",
+  "water_flow_sha256": "607c88150cd3cc574a765785ad546c50dd7ac3366ee6ef840e400cc09e04b322",
+  "water_manager_sha256": "54735ef72efc33dba7233d4e9cf91bebcdc877019e54ad1f8cbd6cd5301f61c8",
+  "water_motion_sha256": "08ecc9333d986e0cc7253165273f9e07f7242187b9811129ef007369d45f3010",
+  "water_renderer_sha256": "90a191576880c9a98bf321a459e750fe997f06062aae3fb6d7dc28f9521361e9",
+  "weather": "base:weather:clear",
+  "weather_override": "base:weather:clear",
+  "wildlife_manager_sha256": "9f6fb2dd95fca0ca6d567dcb300c2658849be522cb4c259be6bbf403a413f69c"
+}

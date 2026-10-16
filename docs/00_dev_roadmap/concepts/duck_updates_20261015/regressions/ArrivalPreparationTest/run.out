@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29817 cliff/shore columns.
+WorldGenerator: spring (573, 102, 496); river 2985 columns, 19 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: seeded layout macro_layout_v1; summit 6 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29555 cliff/shore columns.
+WorldGenerator: spring (272, 102, 572); river 2751 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: seeded layout macro_layout_v1; summit 2 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 25668 cliff/shore columns.
+WorldGenerator: spring (816, 102, 542); river 3630 columns, 19 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: seeded layout macro_layout_v1; summit 8 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 23707 cliff/shore columns.
+WorldGenerator: spring (769, 102, 624); river 2295 columns, 17 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+ARRIVAL_PREPARATION_PASS {"comparisons":45,"failures":[],"max_slice_ms":2.741,"slices":9303}
+WeatherManager: ready (6 weather types, current = base:weather:clear).

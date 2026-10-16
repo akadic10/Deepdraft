@@ -44,11 +44,12 @@ func _run() -> void:
 	_expect(wildlife.get_explorer_data(duck).title=="Wild Duck","duck has shared wildlife inspector")
 	var start: Dictionary = duck.serialize_state()
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
-	_expect(validator._validate(start,"duck","duck").is_empty(),"current duck save is valid")
+	var catalogs: Dictionary=root.get_node("SaveManager")._capture_catalogs()
+	_expect(validator._validate(start,"duck","duck",catalogs).is_empty(),"current duck save is valid")
 	for pair: Array in [["sex","invalid"],["mode","invalid"],["flight_index",-1],["flight",[[0,0]]],["launch_left",-1],["hop_seconds",0],["position",[1,999,1]]]:
 		var malformed := start.duplicate(true)
 		malformed[pair[0]] = pair[1]
-		_expect(not validator._validate(malformed,"duck","duck").is_empty(),"reject invalid duck "+pair[0])
+		_expect(not validator._validate(malformed,"duck","duck",catalogs).is_empty(),"reject invalid duck "+pair[0])
 	clock_node.paused = true
 	wildlife.advance(10,[])
 	_expect(duck.serialize_state()==start,"pause freezes duck decisions, needs and pose")
