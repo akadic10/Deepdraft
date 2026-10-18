@@ -40,6 +40,8 @@ signal block_changed(position: Vector3i, old_id: int, new_id: int)
 var _chunks: Dictionary = {}   # Vector3i(cx, cy, cz)  →  Chunk
 var _mutex:  Mutex
 var _edits: Dictionary = {} # Main-thread edits, reapplied to late streamed chunks.
+var _edit_batch_depth := 0
+var _batched_dirty_chunks: Dictionary = {}
 
 
 func _ready() -> void:
@@ -140,10 +142,17 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 					chunk.blocks[Chunk.local_index(x,y,z)] = WorldGenerator.get_generated_block_id((wx/16)*16+x,(wy/16)*16+y,(wz/16)*16+z)
 		submit_chunk(wx/16,wy/16,wz/16,chunk)
 	var old_id: int = chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)]
+	var cell := Vector3i(wx,wy,wz)
+	var original := WorldGenerator.get_generated_block_id(wx,wy,wz)
 	_mutex.lock()
 	var chunk_key := _chunk_key(wx,wy,wz)
-	if not _edits.has(chunk_key): _edits[chunk_key] = {}
-	_edits[chunk_key][Vector3i(wx,wy,wz)] = id
+	if WorldGenerator._maps_ready and id == original:
+		if _edits.has(chunk_key):
+			_edits[chunk_key].erase(cell)
+			if _edits[chunk_key].is_empty(): _edits.erase(chunk_key)
+	else:
+		if not _edits.has(chunk_key): _edits[chunk_key] = {}
+		_edits[chunk_key][cell] = id
 	_mutex.unlock()
 	chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)] = id
 	# Keep the buried-chunk optimisation honest: has_void is baked at
@@ -206,8 +215,8 @@ func chunk_has_void(cx: int, cy: int, cz: int) -> bool:
 	return chunk.has_void
 
 
-## Marks a chunk as dirty and emits chunk_dirtied.
-## Used by set_block and any system that modifies block data directly.
+## Main-thread invalidation: marks the chunk immediately and emits chunk_dirtied,
+## coalescing repeated notifications while a synchronous edit batch is open.
 func mark_chunk_dirty(cx: int, cy: int, cz: int) -> void:
 	var key := Vector3i(cx, cy, cz)
 	_mutex.lock()
@@ -215,31 +224,77 @@ func mark_chunk_dirty(cx: int, cy: int, cz: int) -> void:
 	_mutex.unlock()
 	if chunk != null:
 		chunk.is_dirty = true
+	if _edit_batch_depth > 0:
+		_batched_dirty_chunks[key] = true
+		return
 	chunk_dirtied.emit(cx, cy, cz)
+
+
+## Main-thread bulk restore boundary. Exact block_changed notifications still
+## fire for every real edit; repeated mesh/nav invalidations coalesce per chunk.
+## No frame may be yielded between begin/end. Nested callers share the batch.
+func begin_edit_batch() -> void:
+	_edit_batch_depth += 1
+
+
+func end_edit_batch() -> void:
+	assert(_edit_batch_depth > 0, "WorldData edit batch ended without begin")
+	_edit_batch_depth -= 1
+	if _edit_batch_depth > 0:
+		return
+	var dirty := _batched_dirty_chunks.keys()
+	_batched_dirty_chunks.clear()
+	for key: Vector3i in dirty:
+		chunk_dirtied.emit(key.x, key.y, key.z)
 
 
 ## Load boundary: discard every materialised chunk before regenerating the
 ## deterministic base world. The generator thread must be stopped first.
 func clear_world() -> void:
 	WaterManager.reset()
+	_edit_batch_depth = 0
+	_batched_dirty_chunks.clear()
 	_mutex.lock()
 	_chunks.clear()
 	_edits.clear()
 	_mutex.unlock()
 
 
-func serialize_solid_edits() -> Array:
+## Current differences from generated terrain, with one value per position.
+## No origin/ownership metadata: all terrain writers share this state.
+func has_terrain_override(cell: Vector3i) -> bool:
+	return _edits.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{}).has(cell)
+
+func has_solid_override(cell: Vector3i) -> bool:
+	return BlockRegistry.is_solid(int(_edits.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{}).get(cell,0)))
+
+func terrain_overrides() -> Dictionary:
+	var result := {}
+	for changes: Dictionary in _edits.values(): result.merge(changes)
+	return result
+
+func serialize_edits(solid_only := false) -> Array:
 	var result: Array = []
 	for changes: Dictionary in _edits.values():
 		for cell: Vector3i in changes:
 			var id := int(changes[cell])
-			if BlockRegistry.is_solid(id):
-				result.append({"cell":[cell.x,cell.y,cell.z],"block":BlockRegistry.get_key(id)})
+			if not solid_only or BlockRegistry.is_solid(id):
+				result.append({"cell":[cell.x,cell.y,cell.z],"block":String(BlockRegistry.get_key(id))})
 	result.sort_custom(func(a: Dictionary,b: Dictionary):
 		for axis in 3:
 			if a.cell[axis]!=b.cell[axis]: return a.cell[axis]<b.cell[axis]
 		return false)
 	return result
+
+func serialize_solid_edits() -> Array:
+	return serialize_edits(true)
+
+func restore_terrain(state: Dictionary) -> void:
+	begin_edit_batch()
+	for entry: Dictionary in state.edits:
+		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
+		set_block(cell.x,cell.y,cell.z,BlockRegistry.get_id(entry.block))
+	end_edit_batch()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

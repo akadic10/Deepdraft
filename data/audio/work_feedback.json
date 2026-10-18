@@ -19,6 +19,11 @@
       "res://assets/audio/work/axe_chop_05.wav",
       "res://assets/audio/work/axe_chop_06.wav"
     ],
+    "hammer": [
+      "res://assets/audio/work/hammer_stone_01.wav", "res://assets/audio/work/hammer_stone_02.wav",
+      "res://assets/audio/work/hammer_stone_03.wav", "res://assets/audio/work/hammer_stone_04.wav",
+      "res://assets/audio/work/hammer_stone_05.wav", "res://assets/audio/work/hammer_stone_06.wav"
+    ],
     "completion": ["res://assets/audio/work/tree_felled.wav"],
     "promotion": ["res://assets/audio/ui/promotion.wav"],
     "mining_stone": [
@@ -77,6 +82,7 @@
       "res://assets/audio/dwarves/snore_03.wav"
     ],
     "profiles": {
+      "hammer": {"level_db": -2.0, "pause_with_simulation": true},
       "snore": {
         "near_radius": 3.0, "far_radius": 22.0,
         "zoom_reference": 18.0, "zoom_exponent": 1.5, "max_zoom": 60.0,

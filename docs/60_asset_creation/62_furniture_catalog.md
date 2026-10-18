@@ -1,5 +1,23 @@
 # 62 — Furniture Catalogue & Stonehearth Comparison
 
+**Grid-corner fences (2026-10-17):** [201](../00_dev_roadmap/201_grid_corner_fences.md)
+replaces the rudimentary fence panel with one rough post (128 triangles).
+Separate two-rail spans (256 triangles) connect neighboring voxel corners at
+consistent heights, with no doubled posts at joins. The 896-triangle gate spans
+two grid edges and shares end posts. Posts are 1.3 voxels high; rails at 0.45/1.0
+voxels match the lower gate. Models and actual-model thumbnails come from the
+existing rudimentary furniture generator and thumbnail tool. The same
+wood palettes apply; no whole floor cells are reserved by fences.
+
+**Log game (2026-10-16):** [200 — Game on a log](../00_dev_roadmap/200_game_on_a_log.md)
+gives the rudimentary Board-game Table a 3×3 game area and a squat bark-covered
+log with end grain, uneven cut edges, a charcoal grid and loose stone counters.
+Two separate log stools snap directly outside opposite sides. The playing
+surface is 0.78 blocks high; dwarf hand reaches follow it. The actual-model
+thumbnail and placement description match. Author with
+`tools/generate_rudimentary_furniture.py`; the two-player happiness rules and
+2-timber/1-stone recipe are unchanged.
+
 **Complete catalogue converted (2026-10-13):**
 [154 — Family conversion](../00_dev_roadmap/154_complete_family_conversion.md)
 integrates 41 faceted GLBs covering all 30 furniture/water-stone definitions,
@@ -78,7 +96,7 @@ Other wall types are deferred, and wall finishes are excluded. See
 | Armor Stand | `base:furniture:armor_stand` | PLAN (doc 52) | Armory — holds one armour set |
 | Tavern Bar | `base:furniture:tavern_bar` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 2-block height including taps; room_anchor/room_type remain future integration data | Tavern room anchor (future); traveler income (doc 51, still unbuilt) |
 | Bench | `base:furniture:bench` | **SHIPPED; oak/iron redesign (doc 31, 2026-10-01)** — 2×1 footprint, 1-block seat height | Tavern seating; sit-down behaviour depends on doc 41 (not yet implemented) |
-| Rudimentary hearth | `base:furniture:hearth` | **SHIPPED; rough fieldstones and exposed logs (doc 30, 2026-10-11)** — 2×2 footprint, 0.75-block uneven rim; 2400 heat units read once by `RoomManager` | Early bedroom heater; two logs + four rough stones at crude workbench (doc 122) |
+| Rudimentary hearth | `base:furniture:hearth` | **SHIPPED; [room heater redesign](../00_dev_roadmap/199_campfire_and_room_hearth.md), 2026-10-16** — 2×2 open-front stone firebox, 1.68-block back, low flames and glowing coals; 1600 heat units counted once | Small-room heater with live room/temperature feedback; two logs + four rough stones at crude workbench |
 | Log door (2 wide) | `base:furniture:door` | **SHIPPED; frameless revision 2026-10-12 ([doc 117](../00_dev_roadmap/117_log_furniture_and_fire_audio.md))** — 2×1; one rough log leaf, wooden battens/pegs/pull, uneven 30–31-voxel top | Opens on approach; walkable; both columns seal rooms |
 | Log door (3 wide) | `base:furniture:log_door_3` | **SHIPPED; frameless** — 3×1; one rough log leaf with wooden fittings | Opens on approach; walkable; all three columns seal rooms |
 | Double log door (4 wide) | `base:furniture:log_door_4` | **SHIPPED; frameless** — 4×1; two rough log leaves with wooden fittings | Leaves swing apart on approach; walkable; all four columns seal rooms |

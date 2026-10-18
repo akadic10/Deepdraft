@@ -1,5 +1,17 @@
 # 127 — Structural stone construction
 
+**Final-state update (2026-10-17):** [212](212_final_terrain_state.md) supersedes
+the completed-block provenance, separate mesh and guaranteed-refund behavior
+described in this historical implementation below. WorldData now stores each
+current terrain value once; WorldRenderer owns its mesh. Construction saves
+only unfinished plans. Natural and placed ordinary stone share the 5% drop rule.
+
+**2026-10-17 update:** [205](205_construction_materials_crates.md) supersedes the
+original one-stone fetch/work loop below. Projects now stage all stone in a
+temporary crate using normal carrying capacity, then hammer progressively at
+three seconds per voxel. Support and placement controls remain in use; 212
+subsequently removes provenance and the construction-specific mining refund.
+
 Implemented scope, 2026-10-12. Mining and building are separate player actions.
 There are no wall coverings and no combined Replace wall command. Additional
 wall types and thin partitions are deferred; the first structural block completes
@@ -33,7 +45,8 @@ This supersedes the unbuilt implementation proposal in milestone 23.
 
 - **Construction → Stone block** starts the tool. Click a solid face to build in
   the adjoining air, or drag a rectangle. Alt + wheel sets height (1–8 blocks);
-  the footprint is limited to 16×16. The active slice clips both preview and order.
+  the footprint is limited to 32×32 as of [209](209_torch_reach_and_construction_size.md).
+  The active slice clips both preview and order.
 - Ctrl + click a blue plan cancels its entire unfinished area; completed blocks
   remain. Escape finishes the tool. Remove completed blocks through normal mining.
 - Click blue cells to inspect their pending area, including while the construction

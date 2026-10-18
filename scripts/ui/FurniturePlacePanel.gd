@@ -325,9 +325,11 @@ func refresh() -> void:
 	_name.text = String(definition.display_name)
 	var footprint: Dictionary = definition.get("footprint", {})
 	_spec.text = "%d × %d" % [int(footprint.get("width", 1)), int(footprint.get("depth", 1))]
+	if definition.has("placement_label"): _spec.text = String(definition.placement_label)
 	if definition.has("seating"):
 		var seating: Dictionary = definition.seating
-		_spec.text += " · %d chair%s" % [int(seating.get("max_chairs", seating.get("slots", []).size())), "" if int(seating.get("max_chairs", 0)) == 1 else "s"]
+		var seats := int(seating.get("max_chairs", seating.get("slots", []).size()))
+		_spec.text += " · %d separate log stools" % seats if definition.has("recreation") else " · %d chair%s" % [seats, "" if seats == 1 else "s"]
 	elif selected_key == "base:furniture:wooden_chair": _spec.text += " · Snaps to tables"
 	elif String(definition.placement) == "wall": _spec.text += " · Wall mounted"
 	_values.Available.text = str(stock.available)
@@ -338,6 +340,7 @@ func refresh() -> void:
 	var placing := controller.active_furniture_key() == selected_key
 	_place.text = "Placing · %d available" % stock.available if placing else "Place item" if stock.available > 0 else "None available"
 	_note.text = "Reserved items are awaiting delivery." if stock.reserved > 0 else "Finished furniture, ready for a home." if stock.available > 0 else "No finished items available."
+	if definition.has("placement_note"): _note.text = String(definition.placement_note)
 	if bool(definition.get("plant", false)):
 		var cutting := bool(definition.get("from_cutting", false))
 		_spec.text = "3 × 3 planting area · Open sky"
@@ -349,6 +352,10 @@ func refresh() -> void:
 			_note.text = "Replant this whole plant. Its shape and seasonal state are preserved." if stock.available > 0 else "Uproot a plant of this type to place it here."
 			_place.text = "Replant" if stock.available > 0 else "No uprooted plants"
 	_hint.text = "Click to place repeatedly · R rotates · Esc finishes" if placing else "Click an available item to start placing."
+	if definition.has("grid_fence"):
+		_hint.text = "Click grid corners · Neighboring posts connect · Esc finishes" if definition.grid_fence.kind=="post" else "Place between grid corners · R rotates · Esc finishes"
+	if definition.has("recreation") and not definition.has("placement_note"):
+		_note.text = "Add two log stools on opposite guides. Completed games restore happiness."
 	if definition.has("water_stone"):
 		_note.text = "Inactive in storage. A dwarf must place it to start the water effect." if stock.available>0 else "Allow and pack a water stone to make it available here."
 	if String(definition.placement) == "ladder":

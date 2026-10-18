@@ -1,0 +1,15 @@
+{
+  "backgrounds": [
+    "res://assets/ui/loading/mountain_settlement.png",
+    "res://assets/ui/loading/underground_settlement.png"
+  ],
+  "panorama_aspect": 3.5555555556,
+  "title": "DEEPDRAFT",
+  "loading_label": "Preparing your settlement",
+  "ready_label": "Your settlement awaits",
+  "ink": "f2eadb",
+  "muted": "c8bda6",
+  "beer": "d89328",
+  "beer_light": "f1be57",
+  "foam": "fff0cd"
+}

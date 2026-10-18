@@ -38,7 +38,8 @@ func _run() -> void:
 	var mined: Array[Vector3i] = []
 	for dx in range(1, 18):
 		for dz in range(9):
-			if dz >= 4 and not (dx >= 10 and dx <= 13 and dz >= 5) and not (dz == 4 and dx in [11, 12]): continue
+			if dz >= 4 and not (dx >= 10 and dx <= 13 and dz >= 5) \
+					and not (dx >= 15 and dz >= 5) and not (dz == 4 and dx in [11, 12, 15, 16]): continue
 			for dy in range(1, 5): mined.append(entrance + Vector3i(dx, dy, dz))
 	current_scene.get_node("MiningDesignationController")._mine_blocks_world(mined)
 	await _settle()
@@ -61,6 +62,7 @@ func _run() -> void:
 	room_tool = current_scene.get_node("RoomOverlayController")
 	room_cell = entrance + Vector3i(12, 1, 6)
 	var door_id := _install("base:furniture:door", entrance + Vector3i(11, 0, 4))
+	_install("base:furniture:door", entrance + Vector3i(15, 0, 4))
 	await _rooms_settle()
 	var manager = root.get_node("RoomManager")
 	var room: Dictionary = manager.get_room_at(room_cell)
@@ -78,6 +80,7 @@ func _run() -> void:
 	room_tool.activate()
 	room_tool._select_room(manager.get_room_id_at(room_cell), room_cell)
 	await _rooms_settle()
+	await _check_selection_feedback(entrance + Vector3i(16,1,6))
 	_expect(room_tool._window_content._lighting.text == "No light sources", "room excludes the corridor light")
 	await _measure("selected_room")
 	_expect(measures.selected_room <= measures.closed_corridor_torch + .055, "selection keeps darkness readable")
@@ -102,9 +105,11 @@ func _run() -> void:
 	_expect(not window._dragging, "drag ends on release")
 	var wm = current_scene.get_node("UIWindowManager")
 	_expect(wm.has_saved_position("room_inspector"), "room position is remembered")
-	room_tool.deactivate()
 	furniture._teardown_installed(door_id, true)
 	await _rooms_settle()
+	_expect(room_tool._selected_room_id == -1 and not room_tool._window_panel.visible, "breaking the selected room's seal clears its inspector and highlight")
+	_expect(room_tool._overlays.values().all(func(entry): return not entry.border.visible), "remaining rooms do not inherit the removed room's highlight")
+	room_tool.deactivate()
 	await _measure("open_corridor_torch")
 	_expect(measures.open_corridor_torch > measures.closed_corridor_torch + .004, "removing door admits corridor light")
 	_expect(manager.get_room_at(room_cell).is_empty(), "removing door breaks the room seal")
@@ -160,6 +165,38 @@ func _find_cliff() -> Vector3i:
 					if generator.get_surface_y(x+dx,z+dz) < y+7: valid = false
 			if valid: return Vector3i(x,y,z)
 	return Vector3i(-1,-1,-1)
+
+
+func _check_selection_feedback(second_cell: Vector3i) -> void:
+	var rooms = root.get_node("RoomManager")
+	var first: int = rooms.get_room_id_at(room_cell)
+	var second: int = rooms.get_room_id_at(second_cell)
+	_expect(second >= 0 and second != first, "adjacent room has its own selection")
+	if second < 0 or second == first: return
+	# Keep the inspector out of the two world-space click targets.
+	room_tool._window_panel.position = Vector2(80,24)
+	var original_root = room_tool._overlay_root
+	var point := camera.unproject_position(Vector3(second_cell)+Vector3(.5,.1,.5))
+	_mouse(point,true); _mouse(point,false)
+	_expect(room_tool._selected_room_id == second, "screen click selects the adjacent room")
+	_expect(room_tool._overlay_root == original_root, "click selection updates immediately without rebuilding room meshes")
+	_expect(room_tool._overlays[second].border.visible and not room_tool._overlays[first].border.visible, "only the clicked room has a floor border")
+	_expect(room_tool._overlays[second].line_material.albedo_color == room_tool.SELECTED_LINE \
+		and room_tool._overlays[first].line_material.albedo_color == room_tool.SEALED_LINE, "selection has distinct gold outlines and restores the previous room's green")
+	await _review_capture("adjacent_room_selected")
+	room_tool._on_slice_changed(second_cell.y-1)
+	_expect(not room_tool._overlays[second].root.is_visible_in_tree(), "highlight respects the slice below its floor")
+	room_tool._on_slice_changed(second_cell.y+3)
+	_expect(room_tool._overlays[second].border.is_visible_in_tree(), "highlight returns with the room when the slice rises")
+	rooms._rebuild_all_rooms()
+	room_tool._rebuild_overlays()
+	_expect(room_tool._selected_room_id == rooms.get_room_id_at(second_cell) \
+		and room_tool._overlays[room_tool._selected_room_id].border.visible, "room rebuild preserves selection by the clicked room cell")
+	room_tool._window_manager.close("room_inspector")
+	_expect(room_tool._selected_room_id == -1 and room_tool._overlays.values().all(func(entry): return not entry.border.visible), "closing the inspector clears the highlight immediately")
+	room_tool._pick_room_at_screen(camera.unproject_position(Vector3(room_cell)+Vector3(.5,.1,.5)))
+	_expect(room_tool._selected_room_id == rooms.get_room_id_at(room_cell), "clicking the first room selects it again")
+	await _review_capture("first_room_selected")
 
 func _install(key: String, origin: Vector3i, yaw: int = 0) -> int:
 	var id: int = furniture._next_installed_id

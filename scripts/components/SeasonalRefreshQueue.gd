@@ -32,6 +32,12 @@ func pending_count() -> int:
 	return _keys.size() - _head
 
 
+func loading_pending_count() -> int:
+	# A natural overnight transition is intentionally calendar-paced. Only a
+	# restored scene's immediate catch-up belongs to startup readiness.
+	return 0 if _paced else pending_count()
+
+
 func drain(refresh: Callable) -> void:
 	last_work_usec = 0
 	if _keys.is_empty(): return

@@ -1,0 +1,130 @@
+{
+  "note": "Native copied-save comparison; 7680x2160, saved camera, slice53/reference47. Vsync disabled, no fixed timestep. Each phase samples12s after20warmup frames. Start and steady paused; active resumes normal simulation. Diagnostic timing wrappers removed afterward. Frozen-controller phase is attribution only, not a shipped change.",
+  "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+  "gpu": "AMD Radeon RX 9070 XT",
+  "resolution": "(7680, 2160)",
+  "frames": {
+    "baseline": {
+      "full_active": {
+        "max": 310.155,
+        "median": 12.38,
+        "p95": 27.323
+      },
+      "full_frozen_controller": {
+        "max": 11.569,
+        "median": 3.662,
+        "p95": 5.118
+      },
+      "full_start": {
+        "max": 318.757,
+        "median": 12.208,
+        "p95": 298.77
+      },
+      "full_steady": {
+        "max": 300.397,
+        "median": 5.413,
+        "p95": 11.161
+      },
+      "off": {
+        "max": 38.168,
+        "median": 6.523,
+        "p95": 12.214
+      }
+    },
+    "optimized": {
+      "full_active": {
+        "max": 34.988,
+        "median": 11.855,
+        "p95": 26.453
+      },
+      "full_frozen_controller": {
+        "max": 8.325,
+        "median": 3.444,
+        "p95": 4.549
+      },
+      "full_start": {
+        "max": 25.011,
+        "median": 4.582,
+        "p95": 11.392
+      },
+      "full_steady": {
+        "max": 11.316,
+        "median": 4.51,
+        "p95": 6.051
+      },
+      "off": {
+        "max": 43.113,
+        "median": 6.593,
+        "p95": 13.014
+      }
+    }
+  },
+  "capture_comparison": {
+    "mean_absolute_channel_difference": 0.16775989422582305,
+    "fraction_pixels_over_8": 0.0012727864583333332,
+    "note": "Same saved paused view; flame/lighting animation is not synchronized. Both captures visually inspected."
+  },
+  "original_saves": [
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\autosave.backup.json",
+      "before": "E593BF289928588DE1275321CB33F3845DB8965D4587FBF0BF859510120202A6",
+      "after": "E593BF289928588DE1275321CB33F3845DB8965D4587FBF0BF859510120202A6",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\autosave.json",
+      "before": "E6540B4FC1B45220876A387567C73836342AAB4D37E88A2C123C47E483BE0D19",
+      "after": "E6540B4FC1B45220876A387567C73836342AAB4D37E88A2C123C47E483BE0D19",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\quicksave.backup.json",
+      "before": "A820D2162D1A5406D18B349932DFC09E7E423AE3A36B19FA51F06B0DA5C58723",
+      "after": "A820D2162D1A5406D18B349932DFC09E7E423AE3A36B19FA51F06B0DA5C58723",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\quicksave.json",
+      "before": "64101240E0CE170FDB3DDAE2417725E4AA8F071860FAD495F502414C6718E5B9",
+      "after": "64101240E0CE170FDB3DDAE2417725E4AA8F071860FAD495F502414C6718E5B9",
+      "unchanged": true
+    }
+  ],
+  "tests": [
+    {
+      "test": "XrayViewTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 31.89,
+      "timeout": false
+    },
+    {
+      "test": "TimeSliceHUDTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 7.38,
+      "timeout": false
+    },
+    {
+      "test": "TerrainExplorerTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.25,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionInputTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 9.75,
+      "timeout": false
+    },
+    {
+      "test": "BedroomLightingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 19.49,
+      "timeout": false
+    }
+  ]
+}

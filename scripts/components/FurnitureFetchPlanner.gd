@@ -4,6 +4,8 @@ extends RefCounted
 ## legs have a proof. Alternative supplies and every legal work side participate.
 static func advance(source: FurnitureGhostComponent, worker: DwarfAgent, context: Dictionary,
 		node_budget: int, deadline: int) -> int:
+	if source.has_method("advance_fetch_plan"):
+		return source.advance_fetch_plan(worker,context,node_budget,deadline)
 	var from := worker.current_cell()
 	if context.is_empty() or context.get("from") != from or not dependencies_current(context) or int(context.get("stock_revision",-1)) != StockpileManager.hauling_revision:
 		context.clear()

@@ -15,7 +15,7 @@ const AUTOSAVE_BACKUP_PATH := "user://saves/autosave.backup.json"
 const AUTOSAVE_TEMP_PATH := "user://saves/autosave.tmp.json"
 const AUTOSAVE_BACKUP_STAGE_PATH := "user://saves/autosave.backup.tmp.json"
 const AUTOSAVE_INTERVAL_SECONDS := 300.0
-const SAVE_SCHEMA_VERSION := 1
+const SAVE_SCHEMA_VERSION := 2
 const OWNER_GROUP := "save_state_owner"
 const FileStore = preload("res://scripts/components/SaveFileStore.gd")
 const SnapshotValidator := preload("res://scripts/components/SaveSnapshotValidator.gd")
@@ -168,7 +168,8 @@ func _capture_snapshot() -> Dictionary:
 	_captured_sections=[]
 	var state: Dictionary={"schema_version":SAVE_SCHEMA_VERSION,"project":"Deepdraft",
 		"saved_at_utc":Time.get_datetime_string_from_system(true,true),"world_seed":WorldGenerator.world_seed,
-		"clock":WorldClock.serialize_state().duplicate(true),"weather":WeatherManager.serialize_state().duplicate(true),"scene":{}}
+		"clock":WorldClock.serialize_state().duplicate(true),"weather":WeatherManager.serialize_state().duplicate(true),
+		"scene":{"terrain":{"edits":WorldData.serialize_edits()},"exploration":InteriorTracker.serialize_exploration()}}
 	for owner in get_tree().get_nodes_in_group(OWNER_GROUP):
 		if not owner.has_method("save_section_key") or not owner.has_method("serialize_state"): continue
 		var key:=String(owner.call("save_section_key"))
@@ -267,7 +268,7 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 
 	var snapshot: Dictionary = selected_result.get("snapshot", {})
 	_load_validated_msec = Time.get_ticks_msec()
-	_pending_restore = snapshot
+	_pending_restore = preload("res://scripts/components/TerrainSaveMigration.gd").upgrade(snapshot)
 	_loading = true
 	_ready_frames = 0
 	_loading_from_backup = use_backup
@@ -347,7 +348,7 @@ func _world_ready_for_autosave() -> bool:
 
 
 func _collect_scene_state() -> Dictionary:
-	var result: Dictionary = {}
+	var result: Dictionary = {"terrain":{"edits":WorldData.serialize_edits()},"exploration":InteriorTracker.serialize_exploration()}
 	for state_owner in get_tree().get_nodes_in_group(OWNER_GROUP):
 		if not state_owner.has_method("save_section_key") or not state_owner.has_method("serialize_state"):
 			continue
@@ -367,6 +368,12 @@ func _restore_pending_snapshot() -> void:
 		var ap := int(a.call("save_restore_priority")) if a.has_method("save_restore_priority") else 100
 		var bp := int(b.call("save_restore_priority")) if b.has_method("save_restore_priority") else 100
 		return ap < bp)
+	# Large settlements restore tens of thousands of mined/constructed blocks
+	# synchronously. Queue one mesh/nav invalidation per chunk, not per voxel,
+	# while preserving exact edits for water, interiors and other live owners.
+	WorldData.begin_edit_batch()
+	WorldData.restore_terrain(scene_state.terrain)
+	InteriorTracker.restore_exploration(scene_state.exploration)
 	for state_owner in owners:
 		if not state_owner.has_method("save_section_key") or not state_owner.has_method("restore_state"):
 			continue
@@ -375,6 +382,7 @@ func _restore_pending_snapshot() -> void:
 			var t_owner := Time.get_ticks_msec()
 			state_owner.call("restore_state", scene_state[key] as Dictionary)
 			owner_lines.append("    %s: %d ms" % [key, Time.get_ticks_msec() - t_owner])
+	WorldData.end_edit_batch()
 
 	var t_owners_end := Time.get_ticks_msec()
 	StockpileManager.rebuild_totals()

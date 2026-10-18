@@ -125,6 +125,9 @@ func pick_at_screen(screen_pos: Vector2, include_terrain: bool = false) -> Dicti
 	var direction := camera.project_ray_normal(screen_pos).normalized()
 	var terrain: Dictionary = _terrain.terrain_hit(start,direction,_slice_y,RAY_MAX) \
 		if include_terrain and is_instance_valid(_terrain) else Picking.terrain_hit(start,direction,_slice_y,RAY_MAX)
+	var underground := get_tree().get_first_node_in_group("underground_view")
+	if underground!=null and underground.is_inspecting():
+		terrain = Picking.terrain_hit(start,direction,_slice_y,RAY_MAX,Callable(),underground.is_terrain_face_visible)
 	var limit := minf(float(terrain.get("distance", RAY_MAX)) + .002, RAY_MAX)
 	var end := start + direction * limit
 	var nearest := limit

@@ -1175,7 +1175,7 @@
   },
   "base:resources:furniture:hearth": {
     "display_name": "Rudimentary hearth (packed)",
-    "description": "Rough fieldstones and logs packed for a simple bedroom hearth.",
+    "description": "Fieldstones and logs packed for a compact stone room heater with an open firebox.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
@@ -1658,6 +1658,63 @@
     "material_group": "wood",
     "appeal": {
       "design": 3,
+      "material_factor": 1
+    }
+  },
+  "base:resources:furniture:log_fence": {
+    "display_name": "Log Fence Post (packed)",
+    "description": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 1,
+      "material_factor": 1
+    }
+  },
+  "base:resources:furniture:log_gate": {
+    "display_name": "Log Gate (packed)",
+    "description": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 4,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 1,
+      "material_factor": 1
+    }
+  },
+  "base:resources:furniture:board_game_table": {
+    "display_name": "Board-game Table (packed)",
+    "description": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 10,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 1,
       "material_factor": 1
     }
   }

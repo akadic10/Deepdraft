@@ -1,0 +1,788 @@
+{
+  "checked": true,
+  "parts": {
+    "wooden_table": {
+      "triangles": 576,
+      "meshes": [
+        "wooden_table"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -0.994
+        ],
+        [
+          1.0,
+          1.75,
+          0.994
+        ]
+      ],
+      "bytes": 77152,
+      "sha256": "d36dc65398a822ef6f0f3dd8b368b4ca308d55acd29dbb4293b098684425360b"
+    },
+    "communal_table": {
+      "triangles": 796,
+      "meshes": [
+        "communal_table"
+      ],
+      "bounds": [
+        [
+          -4.0,
+          0.0,
+          -1.994
+        ],
+        [
+          4.0,
+          1.75,
+          1.9939999999999998
+        ]
+      ],
+      "bytes": 106212,
+      "sha256": "3b034a12dd43fa0e4163bd290ab3d345f210c98b87685615547ec3a12e1fc6e7"
+    },
+    "wooden_chair": {
+      "triangles": 968,
+      "meshes": [
+        "wooden_chair"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          1.375,
+          1.0
+        ]
+      ],
+      "bytes": 128896,
+      "sha256": "6b3c4fcc76228d84bcf2ffd0fbfa6bb9abb8e0fd55da5e30403b22000a55afaa"
+    },
+    "wooden_chair_legacy": {
+      "triangles": 792,
+      "meshes": [
+        "wooden_chair_legacy"
+      ],
+      "bounds": [
+        [
+          -0.5,
+          -5.551115123125783e-17,
+          -0.5
+        ],
+        [
+          0.5,
+          2.0,
+          0.5
+        ]
+      ],
+      "bytes": 105700,
+      "sha256": "6277d5a271369586f0e79a00b20b7ddbacbb274060045964553be6d878abbf9f"
+    },
+    "dwarf_bunk": {
+      "triangles": 792,
+      "meshes": [
+        "dwarf_bunk"
+      ],
+      "bounds": [
+        [
+          -2.0,
+          0.0,
+          -1.0
+        ],
+        [
+          2.0,
+          2.0,
+          1.0
+        ]
+      ],
+      "bytes": 105652,
+      "sha256": "999c61006af592b1d3fb8b5894990c05801f57f5cf636c60c9263a70f2875be7"
+    },
+    "bench": {
+      "triangles": 432,
+      "meshes": [
+        "bench"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          1.0,
+          1.0,
+          0.5
+        ]
+      ],
+      "bytes": 58116,
+      "sha256": "50f4ef44128a902efa95e6789e6ac02b58d698f71743fd15e230457c8c981ae3"
+    },
+    "barrel": {
+      "triangles": 316,
+      "meshes": [
+        "barrel"
+      ],
+      "bounds": [
+        [
+          -0.47,
+          0,
+          -0.47
+        ],
+        [
+          0.47,
+          1.0,
+          0.47
+        ]
+      ],
+      "bytes": 42808,
+      "sha256": "96f42e22d1b48aef8c4e12f7c8487a75a264dc5af41bd22a1fb1e82cce5559a7"
+    },
+    "storage_crate": {
+      "triangles": 532,
+      "meshes": [
+        "storage_crate"
+      ],
+      "bounds": [
+        [
+          -0.49,
+          0.0,
+          -0.49
+        ],
+        [
+          0.49,
+          1.0,
+          0.5
+        ]
+      ],
+      "bytes": 71344,
+      "sha256": "8953e963e32fe4055ee8221db1b0e735b137ebb263d5fba33aa263a1ae451bf8"
+    },
+    "storage_shelf": {
+      "triangles": 464,
+      "meshes": [
+        "storage_shelf"
+      ],
+      "bounds": [
+        [
+          -0.5,
+          0.0,
+          -0.5
+        ],
+        [
+          0.5,
+          2.0,
+          0.5
+        ]
+      ],
+      "bytes": 62364,
+      "sha256": "111dcb4d75fb126d96baeb93ac7cab0e2eecb355f6d21931fcbce6f410a2f777"
+    },
+    "tavern_bar": {
+      "triangles": 440,
+      "meshes": [
+        "tavern_bar"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          1.0,
+          2.0,
+          0.5
+        ]
+      ],
+      "bytes": 59188,
+      "sha256": "d4ee80f2f85f8d4d6aca7c1d242f971c086ac14bac52ab26b941827c7779fcc9"
+    },
+    "trade_counter": {
+      "triangles": 396,
+      "meshes": [
+        "trade_counter"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          1.0,
+          2.0,
+          0.5
+        ]
+      ],
+      "bytes": 53388,
+      "sha256": "627e5c70e0d54b96759affe73f63cca2b5324be9de62aa4eb635de5885bdde7e"
+    },
+    "crude_workbench": {
+      "triangles": 280,
+      "meshes": [
+        "crude_workbench"
+      ],
+      "bounds": [
+        [
+          -0.4704,
+          0.0,
+          -0.42435244785437487
+        ],
+        [
+          0.49,
+          0.875,
+          0.45080000000000003
+        ]
+      ],
+      "bytes": 38116,
+      "sha256": "e45b2ca8ea6246e3a633be723d64a1ae5ecbb39f891705b18f68d970ef3b7cd8"
+    },
+    "brewing_vat": {
+      "triangles": 696,
+      "meshes": [
+        "brewing_vat"
+      ],
+      "bounds": [
+        [
+          -0.9399924800100267,
+          0.0,
+          -0.9999924800100266
+        ],
+        [
+          0.9399924800100267,
+          2.0,
+          0.9800000000000001
+        ]
+      ],
+      "bytes": 93044,
+      "sha256": "45eb18e764d9290e86a08ceaa80fad35ae71256b5f162d1a0f8345376e0f88b1"
+    },
+    "aging_rack": {
+      "triangles": 1032,
+      "meshes": [
+        "aging_rack"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          1.9836,
+          1.0
+        ]
+      ],
+      "bytes": 137340,
+      "sha256": "f0745f273c11b2e41ed9b5b4e87509e722a2d13aeee3eb281f7a58ca8378f181"
+    },
+    "anvil": {
+      "triangles": 420,
+      "meshes": [
+        "anvil"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.995,
+          1.5,
+          0.5
+        ]
+      ],
+      "bytes": 56536,
+      "sha256": "a420422b596728c2ae685f5ce9a756f11dc1b3813e92bfd7534eea022b55438c"
+    },
+    "packed_furniture": {
+      "triangles": 420,
+      "meshes": [
+        "packed_furniture"
+      ],
+      "bounds": [
+        [
+          -0.5,
+          0.0,
+          -0.5
+        ],
+        [
+          0.5,
+          1.0,
+          0.5
+        ]
+      ],
+      "bytes": 56568,
+      "sha256": "6415357dcb6296ba0241a1904abc2a1bae05d2862dc7180ea8cb4567c35a7f08"
+    },
+    "bridge_kit": {
+      "triangles": 856,
+      "meshes": [
+        "bridge_kit"
+      ],
+      "bounds": [
+        [
+          -0.75,
+          0.0,
+          -0.33799999999999997
+        ],
+        [
+          0.75,
+          0.5449999999999999,
+          0.308
+        ]
+      ],
+      "bytes": 114140,
+      "sha256": "c1d42a4e184d367409e4aafbfdaa9b005c532aa1dba1a9a61929a165aa033959"
+    },
+    "ladder_kit": {
+      "triangles": 856,
+      "meshes": [
+        "ladder_kit"
+      ],
+      "bounds": [
+        [
+          -0.625,
+          0.0,
+          -0.33799999999999997
+        ],
+        [
+          0.625,
+          0.5449999999999999,
+          0.308
+        ]
+      ],
+      "bytes": 114140,
+      "sha256": "3668ebd61c0b41c9360a22cfd034afab74503f265dd9dd3896371b4f799da5f8"
+    },
+    "settlement_flag": {
+      "triangles": 616,
+      "meshes": [
+        "settlement_flag"
+      ],
+      "bounds": [
+        [
+          -0.495,
+          0.0,
+          -0.375
+        ],
+        [
+          0.49,
+          3.0,
+          0.375
+        ]
+      ],
+      "bytes": 82444,
+      "sha256": "325b2692ff40dbadc08ef9870fb250a1b8eb96612d55083113e89c3e09e4be4c"
+    },
+    "wet_stone": {
+      "triangles": 64,
+      "meshes": [
+        "wet_stone"
+      ],
+      "bounds": [
+        [
+          -0.5,
+          0,
+          -0.5
+        ],
+        [
+          0.5,
+          1.0,
+          0.5
+        ]
+      ],
+      "bytes": 9540,
+      "sha256": "0b9fbe7153dc7e091bbfa56867989db7ce09a898f80f25463e3201c29a907238"
+    },
+    "dry_stone": {
+      "triangles": 64,
+      "meshes": [
+        "dry_stone"
+      ],
+      "bounds": [
+        [
+          -0.5,
+          0,
+          -0.5
+        ],
+        [
+          0.5,
+          1.0,
+          0.5
+        ]
+      ],
+      "bytes": 9540,
+      "sha256": "d9194e5f5acbc27042e77564d729e8be64a259d5bb29eb32ae3fbb5381c55a8e"
+    },
+    "crude_ladder_1": {
+      "triangles": 512,
+      "meshes": [
+        "crude_ladder_1"
+      ],
+      "bounds": [
+        [
+          -0.366,
+          0.0,
+          -0.35
+        ],
+        [
+          0.366,
+          1.0,
+          -0.06999999999999998
+        ]
+      ],
+      "bytes": 68728,
+      "sha256": "adf7fcea0c5d00dfde2dbb386bd8d5f54cc1afc97b8d77ea1de91d74136e71ec"
+    },
+    "crude_ladder_2": {
+      "triangles": 768,
+      "meshes": [
+        "crude_ladder_2"
+      ],
+      "bounds": [
+        [
+          -0.366,
+          0.0,
+          -0.35
+        ],
+        [
+          0.366,
+          2.0,
+          -0.06999999999999998
+        ]
+      ],
+      "bytes": 102520,
+      "sha256": "b30f07672d3909dfcb2b67652f8e8d91f7f52841730ec29c019a80e6d3d3225e"
+    },
+    "crude_ladder_3": {
+      "triangles": 1024,
+      "meshes": [
+        "crude_ladder_3"
+      ],
+      "bounds": [
+        [
+          -0.366,
+          0.0,
+          -0.35
+        ],
+        [
+          0.366,
+          3.0,
+          -0.06999999999999998
+        ]
+      ],
+      "bytes": 136312,
+      "sha256": "c22a58455a55dad9c2c8ccb6b0a7135ebea6a61fa46fd004e8db8c5ee4b37b74"
+    },
+    "crude_ladder_4": {
+      "triangles": 1280,
+      "meshes": [
+        "crude_ladder_4"
+      ],
+      "bounds": [
+        [
+          -0.366,
+          0.0,
+          -0.35
+        ],
+        [
+          0.366,
+          4.0,
+          -0.06999999999999998
+        ]
+      ],
+      "bytes": 170104,
+      "sha256": "502432dcfa3b5338e228da8cf54f71f29c247aad8219a639b35c7b3d4e7aaaef"
+    },
+    "log_bridge_1": {
+      "triangles": 896,
+      "meshes": [
+        "log_bridge_1"
+      ],
+      "bounds": [
+        [
+          -0.498,
+          -0.605,
+          -2.437082939138018
+        ],
+        [
+          1.4939999999999998,
+          0.0,
+          0.45763493147228324
+        ]
+      ],
+      "bytes": 119440,
+      "sha256": "9dbcb12fcd89678d843edec46233792094db171c133b3628cddc6de81636426e"
+    },
+    "log_bridge_2": {
+      "triangles": 896,
+      "meshes": [
+        "log_bridge_2"
+      ],
+      "bounds": [
+        [
+          -0.498,
+          -0.605,
+          -3.437082939138018
+        ],
+        [
+          1.4939999999999998,
+          0.0,
+          0.45763493147228324
+        ]
+      ],
+      "bytes": 119440,
+      "sha256": "c596f13ec85a4c4c1e1f3e70f4e34d2cd19a475f418981c3733e2057ffa34249"
+    },
+    "log_bridge_3": {
+      "triangles": 896,
+      "meshes": [
+        "log_bridge_3"
+      ],
+      "bounds": [
+        [
+          -0.498,
+          -0.605,
+          -4.437082939138018
+        ],
+        [
+          1.4939999999999998,
+          0.0,
+          0.45763493147228324
+        ]
+      ],
+      "bytes": 119440,
+      "sha256": "0c1ae2a9b662119f6015108da3edd3df4afc6cdcbd8cfb3179c5a09a1598ae1e"
+    },
+    "log_bridge_4": {
+      "triangles": 896,
+      "meshes": [
+        "log_bridge_4"
+      ],
+      "bounds": [
+        [
+          -0.498,
+          -0.605,
+          -5.437082939138018
+        ],
+        [
+          1.4939999999999998,
+          0.0,
+          0.45763493147228324
+        ]
+      ],
+      "bytes": 119440,
+      "sha256": "997514f75c112071d8684b90b013a540fc567290b5d80e15edf18256913e68eb"
+    },
+    "log_bridge_5": {
+      "triangles": 896,
+      "meshes": [
+        "log_bridge_5"
+      ],
+      "bounds": [
+        [
+          -0.498,
+          -0.605,
+          -6.437082939138018
+        ],
+        [
+          1.4939999999999998,
+          0.0,
+          0.45763493147228324
+        ]
+      ],
+      "bytes": 119440,
+      "sha256": "49538e69a4bd603a4e4b96ab1683347d426b1c55721b19486b454574c1079cb9"
+    },
+    "log_door_3": {
+      "triangles": 2612,
+      "meshes": [
+        "leaf_left"
+      ],
+      "bounds": [
+        [
+          -1.495,
+          0.0,
+          -0.42
+        ],
+        [
+          1.495,
+          3.875,
+          0.42
+        ]
+      ],
+      "bytes": 345904,
+      "sha256": "a505f864461a834b522f0c94ecef1e495b74da1bc5f1bb75a98865e029a44f00"
+    },
+    "log_door_4": {
+      "triangles": 4712,
+      "meshes": [
+        "leaf_left",
+        "leaf_right"
+      ],
+      "bounds": [
+        [
+          -1.995,
+          0.0,
+          -0.42000000000000004
+        ],
+        [
+          1.995,
+          3.875,
+          0.42
+        ]
+      ],
+      "bytes": 624024,
+      "sha256": "b3bfd970a5f4285f2c148d89fbc068db76d047aab540fcdebfb7582c466d30d4"
+    },
+    "campfire": {
+      "triangles": 1002,
+      "meshes": [
+        "campfire_body",
+        "campfire_flame"
+      ],
+      "bounds": [
+        [
+          -0.9857614188992504,
+          0.0,
+          -0.9857614188992505
+        ],
+        [
+          0.9857614188992504,
+          1.3214000000000001,
+          0.9857614188992504
+        ]
+      ],
+      "bytes": 134372,
+      "sha256": "1e9a17e62f0ea22bb4e8b213c5c5c5746e8021bba0b30d385ed4e5f37a34ec3d"
+    },
+    "hearth": {
+      "triangles": 2326,
+      "meshes": [
+        "hearth_body",
+        "hearth_flame"
+      ],
+      "bounds": [
+        [
+          -0.9840677794130386,
+          0.0,
+          -0.9786687585005025
+        ],
+        [
+          0.9840677794130386,
+          1.6825,
+          0.92
+        ]
+      ],
+      "bytes": 309080,
+      "sha256": "9de1768c02ce9c070d3ba1c32e3899ab3caec48962c5f02347cda4ea73ef293b"
+    },
+    "brazier": {
+      "triangles": 702,
+      "meshes": [
+        "brazier_body",
+        "brazier_flame"
+      ],
+      "bounds": [
+        [
+          -0.49,
+          0,
+          -0.4903695514453159
+        ],
+        [
+          0.49,
+          1.8554,
+          0.4903695514453159
+        ]
+      ],
+      "bytes": 94736,
+      "sha256": "ec2ec6a82a77cd8cb21161c7ee991315d538963be30566a50da0ddbc0adfd8cb"
+    },
+    "smelter": {
+      "triangles": 1102,
+      "meshes": [
+        "smelter_body",
+        "smelter_flame"
+      ],
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          3.0,
+          1.0
+        ]
+      ],
+      "bytes": 147508,
+      "sha256": "073b269fe0851edb237c317777c35285d373b1ce13d4687750066a8a21e447c2"
+    },
+    "wall_torch": {
+      "triangles": 666,
+      "meshes": [
+        "torch_body",
+        "torch_flame"
+      ],
+      "bounds": [
+        [
+          -0.23252510218372513,
+          0.0,
+          0.0
+        ],
+        [
+          0.21,
+          1.4095,
+          0.6950000000000001
+        ]
+      ],
+      "bytes": 89944,
+      "sha256": "8940c5a857baa43fe3d7f93723220c1ac440ba53f04e1857636686f379adad01"
+    },
+    "wooden_torch": {
+      "triangles": 694,
+      "meshes": [
+        "torch_body",
+        "torch_flame"
+      ],
+      "bounds": [
+        [
+          -0.23252510218372513,
+          0.0,
+          0.01
+        ],
+        [
+          0.17197909310041906,
+          1.4095,
+          0.674633205737401
+        ]
+      ],
+      "bytes": 93636,
+      "sha256": "0ae1f558b059e8b7bfeb1e73c6415843fbc8485cce01ff9b6443f9a5ded1d934"
+    },
+    "log_chair": {
+      "approved_byte_identical": true,
+      "bytes": 30144,
+      "sha256": "2c1d36a1b8ffc4af6c790e22a6b3a8e9a52cdc2805d09aa6f78cccdf9715635c"
+    },
+    "log_bed": {
+      "approved_byte_identical": true,
+      "bytes": 349292,
+      "sha256": "131a7d7cf9d997482cdbc9b0299a4ca1ceb47db03c9aa7dc82d68296c2dcf1a4"
+    },
+    "door": {
+      "approved_byte_identical": true,
+      "bytes": 312104,
+      "sha256": "2a828eb57e430a625cdc305f2f46f6b8b219eb80a1fc6efbdaaa07b8733a230d"
+    }
+  },
+  "effects": "faceted static frames from generate_fire_faceted.py"
+}

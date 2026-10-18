@@ -1,5 +1,14 @@
 {
   "__note": "Illustrated permanent time/Slice controls. Regions exclude atlas spacing; buttons clip to their beveled outlines at draw time.",
+  "xray": {
+    "readability_floor": 0.22,
+    "background_color": "#19252b",
+    "reference_color": "#75d5e699",
+    "reference_width": 0.065,
+    "reference_radius": 160,
+    "mesh_budget_usec": 2500,
+    "visual_budget_usec": 1200
+  },
   "buttons": {
     "pause": {"label": "Pause / resume", "tooltip": "Pause the settlement, or resume at the previous speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [39, 175, 307, 302]},
     "play": {"label": "Normal speed · 1×", "tooltip": "Resume the settlement at normal speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [423, 175, 307, 302]},

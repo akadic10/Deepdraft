@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-17",
+  "runtime": "Godot 4.7.2 native D3D12",
+  "windows_export": false,
+  "isolated_profiles": true,
+  "tests": [
+    {
+      "test": "TerrainSunShadowTest",
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "TerrainSunShadowTest.out.gz",
+      "stderr": "TerrainSunShadowTest.err.gz"
+    },
+    {
+      "test": "RoomLightingTest",
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "RoomLightingTest.out.gz",
+      "stderr": "RoomLightingTest.err.gz"
+    },
+    {
+      "test": "SkySceneLifecycleTest",
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "SkySceneLifecycleTest.out.gz",
+      "stderr": "SkySceneLifecycleTest.err.gz"
+    },
+    {
+      "test": "WorldTerrainStartupTest",
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "WorldTerrainStartupTest.out.gz",
+      "stderr": "WorldTerrainStartupTest.err.gz"
+    },
+    {
+      "test": "SavedShadowReview",
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "SavedShadowReview.out.gz",
+      "stderr": "SavedShadowReview.err.gz"
+    }
+  ],
+  "shadow_measurements": {
+    "failures": [],
+    "measurements": [
+      {
+        "after": {
+          "changed": 0,
+          "maximum": 0.0
+        },
+        "before": {
+          "changed": 100,
+          "maximum": 0.0492815656900406
+        },
+        "cliff_shadow_luminance": 0.206983530391753,
+        "open_luminance": 0.424746671152115,
+        "pitch": 30.0
+      },
+      {
+        "after": {
+          "changed": 0,
+          "maximum": 0.0
+        },
+        "before": {
+          "changed": 44,
+          "maximum": 0.0344447038292885
+        },
+        "cliff_shadow_luminance": 0.206983530391753,
+        "open_luminance": 0.461712943458557,
+        "pitch": 40.0
+      }
+    ]
+  },
+  "source_sha256": "0FD28BCBB406D5D08773DE15BBCFAF5A2442C3F76077E4CF5061B6B748270925"
+}

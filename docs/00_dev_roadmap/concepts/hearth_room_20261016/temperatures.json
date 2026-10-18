@@ -1,0 +1,79 @@
+[
+	{
+		"hour": 2.0,
+		"room": "small bedroom",
+		"season": "spring",
+		"temperature_c": 20.6111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 14.0,
+		"room": "small bedroom",
+		"season": "spring",
+		"temperature_c": 21.6111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 2.0,
+		"room": "small bedroom",
+		"season": "summer",
+		"temperature_c": 22.1111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 14.0,
+		"room": "small bedroom",
+		"season": "summer",
+		"temperature_c": 23.1111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 2.0,
+		"room": "small bedroom",
+		"season": "autumn",
+		"temperature_c": 20.6111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 14.0,
+		"room": "small bedroom",
+		"season": "autumn",
+		"temperature_c": 21.6111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 2.0,
+		"room": "small bedroom",
+		"season": "winter",
+		"temperature_c": 19.1111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 14.0,
+		"room": "small bedroom",
+		"season": "winter",
+		"temperature_c": 20.1111111111111,
+		"volume": 144
+	},
+	{
+		"hour": 14,
+		"room": "minimum thermal mass with torch",
+		"season": "summer",
+		"temperature_c": 25.0859375,
+		"volume": 64
+	},
+	{
+		"hour": 2,
+		"room": "barracks, one hearth",
+		"season": "winter",
+		"temperature_c": 14.25,
+		"volume": 256
+	},
+	{
+		"hour": 2,
+		"room": "barracks, two hearths",
+		"season": "winter",
+		"temperature_c": 20.5,
+		"volume": 256
+	}
+]

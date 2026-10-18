@@ -30,7 +30,8 @@ const ACTIVE_EVENT := {
 }
 const SCENE := {
 	"construction": {"next_id":"positive_int","built":[{"cell":"cell","block":"key"}],
-		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT}]}]},
+		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT}],
+			"?total_blocks":"positive_int","?crate_cell":"cell","?materials":{"*":"positive_int"}}]},
 	"jobs": {"next_order":"positive_int","next_attempt":"positive_int","time":TYPE_FLOAT,
 		"records":{"*":{"key":"key","label":TYPE_STRING,"state":"key","reason":TYPE_STRING,"failures":TYPE_INT,"last_transition":TYPE_FLOAT}},
 		"history":[{"order":"key","state":"key","reason":TYPE_STRING,"attempt":TYPE_INT,"worker":TYPE_INT,"time":TYPE_FLOAT}]},
@@ -86,6 +87,7 @@ const SCENE := {
 		"food": {"value":TYPE_FLOAT,"last_meal":TYPE_STRING,"?last_dining":TYPE_STRING,"hours_since_meal":TYPE_FLOAT,"retry_hours":TYPE_FLOAT},
 		"?mood": {"personal_sleep_hours":TYPE_FLOAT,"bedroom_memory_hours":TYPE_FLOAT,
 			"?dining_outcome":TYPE_STRING,"?dining_memory_hours":TYPE_FLOAT,
+			"?recreation_memory_hours":TYPE_FLOAT,"?recreation_retry_hours":TYPE_FLOAT,
 			"?cold_sleep_hours":TYPE_FLOAT,"?cold_memory_hours":TYPE_FLOAT,
 			"?chilly_sleep_hours":TYPE_FLOAT,"?chilly_memory_hours":TYPE_FLOAT,
 			"?hot_sleep_hours":TYPE_FLOAT,"?hot_memory_hours":TYPE_FLOAT},
@@ -117,7 +119,15 @@ static func _construction_cell(cell: Vector3i) -> bool:
 static func validate_captured(snapshot: Dictionary, schema_version: int, catalogs: Dictionary) -> String:
 	# Check metadata before comparing/casting it. JSON decodes numbers as floats,
 	# so whole finite numbers are accepted where serializers supply integers.
-	var error := _validate(snapshot, SNAPSHOT, "save", catalogs)
+	var rules: Dictionary = SNAPSHOT
+	if _is_integer(snapshot.get("schema_version")) and int(snapshot.schema_version) >= 2:
+		rules = SNAPSHOT.duplicate(true)
+		rules.scene.construction.erase("built")
+		rules.scene.water.erase("terrain")
+		rules.scene.mining.erase("mined_blocks")
+		rules.scene.terrain = {"edits":[{"cell":"cell","block":"key"}]}
+		rules.scene.exploration = {"cells":["cell"],"caves":[TYPE_INT]}
+	var error := _validate(snapshot, rules, "save", catalogs)
 	if not error.is_empty(): return error
 	if snapshot.project != "Deepdraft": return "this file belongs to a different project."
 	if snapshot.schema_version < 1: return "the save schema is missing."
@@ -126,10 +136,26 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	if snapshot.scene.water.layout_version != preload("res://scripts/components/RiverLayout.gd").VERSION:
 		return "this development save uses an outdated river layout; start a new world."
 	if snapshot.clock.hour < 0 or snapshot.clock.speed < 0: return "the saved clock has negative time or speed."
+	if int(snapshot.schema_version) >= 2:
+		if snapshot.scene.construction.has("built") or snapshot.scene.water.has("terrain") or snapshot.scene.mining.has("mined_blocks"):
+			return "save contains obsolete terrain ownership records."
+		var terrain_cells := {}
+		for entry: Dictionary in snapshot.scene.terrain.edits:
+			var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
+			var block: Dictionary = catalogs.blocks.get(entry.block,{})
+			if not _construction_cell(cell) or terrain_cells.has(cell) or block.is_empty() \
+				or (not block.solid and entry.block != "base:terrain:void"):
+				return "save.scene.terrain contains an invalid or duplicate voxel."
+			terrain_cells[cell] = true
+		for packed: Array in snapshot.scene.exploration.cells:
+			if not _construction_cell(Vector3i(packed[0],packed[1],packed[2])):
+				return "save.scene.exploration contains an invalid cell."
+		for cave_id in snapshot.scene.exploration.caves:
+			if cave_id < 0: return "save.scene.exploration contains an invalid cave."
 	var construction: Dictionary = snapshot.scene.construction
 	var construction_cells := {}
 	var construction_ids := {}
-	for entry: Dictionary in construction.built:
+	for entry: Dictionary in construction.get("built",[]):
 		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
 		if not _construction_cell(cell) or construction_cells.has(cell) \
 			or String(catalogs.blocks.get(entry.block,{}).get("kind","")) not in ["rock","constructed_floor"]:
@@ -139,6 +165,14 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		if not catalogs.construction.has(String(order.kind)): return "save.scene.construction has an unknown construction type."
 		if order.id >= construction.next_id or construction_ids.has(order.id) or order.cells.is_empty(): return "save.scene.construction has an invalid order."
 		construction_ids[order.id] = true
+		if int(order.get("total_blocks",order.cells.size())) < order.cells.size():
+			return "save.scene.construction has an invalid total block count."
+		var staged := 0
+		for material: String in order.get("materials",{}):
+			if not material.is_empty() and not catalogs.materials.has(material): return "save.scene.construction has an unknown material."
+			staged += int(order.materials[material])
+		if staged > order.cells.size() or (staged > 0 and order.kind != "stone"):
+			return "save.scene.construction has excess staged materials."
 		for entry: Dictionary in order.cells:
 			var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
 			if not _construction_cell(cell) or construction_cells.has(cell) or entry.work<0: return "save.scene.construction has invalid planned work."
@@ -204,7 +238,7 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		queued[str(p)] = true
 	for list_name: String in ["terrain","test_dam"]:
 		var seen: Dictionary = {}
-		for entry: Dictionary in snapshot.scene.water[list_name]:
+		for entry: Dictionary in snapshot.scene.water.get(list_name,[]):
 			var p: Array = entry.cell
 			if p[0]<0 or p[0]>=1024 or p[1]<4 or p[1]>=128 or p[2]<0 or p[2]>=1024 or seen.has(str(p)): return "save.scene.water has an invalid terrain edit."
 			seen[str(p)] = true

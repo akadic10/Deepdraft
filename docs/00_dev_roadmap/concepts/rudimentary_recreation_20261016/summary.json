@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-16",
+  "fixtures": [
+    {
+      "test": "WorkerCraftingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 9.68,
+      "timeout": false
+    },
+    {
+      "test": "RudimentaryRecreationTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 18.65,
+      "timeout": false
+    },
+    {
+      "test": "FurnitureFacetedArtTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.55,
+      "timeout": false
+    },
+    {
+      "test": "DwarfIdleBehaviorTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.93,
+      "timeout": false
+    },
+    {
+      "test": "DwarfFoodTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 14.05,
+      "timeout": false
+    },
+    {
+      "test": "DwarfDiningTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 15.76,
+      "timeout": false
+    },
+    {
+      "test": "JobLifecycleTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.92,
+      "timeout": false
+    },
+    {
+      "test": "JobPlanningTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 6.88,
+      "timeout": false
+    },
+    {
+      "test": "FurnitureAssignmentTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.92,
+      "timeout": false
+    },
+    {
+      "test": "FurnitureMoveTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 13.17,
+      "timeout": false
+    },
+    {
+      "test": "WorkerCraftingWoodTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 11.4,
+      "timeout": false
+    },
+    {
+      "test": "DwarfSupportTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 2.53,
+      "timeout": false
+    },
+    {
+      "test": "SaveManagerRoundTripTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 72.12,
+      "timeout": false
+    },
+    {
+      "test": "FurniturePlaceTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.58,
+      "timeout": false
+    },
+    {
+      "test": "DwarfInspectorTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.63,
+      "timeout": false
+    }
+  ],
+  "native_recreation": "pass",
+  "package": {
+    "checks": 19,
+    "failures": []
+  },
+  "release_executable_startup": "pass; all 1024 overview tiles built; --quit-after 1200 exited cleanly",
+  "release": "build/windows/releases/20261016-213620-368-10cbc059/Deepdraft/Deepdraft.exe",
+  "zip_bytes": 80758325,
+  "zip_sha256": "b9e985001449ae529781a1842cca16fd4a922875a5162e45c8cf482e38275cbe",
+  "geometry_reproduction": "tools/generate_rudimentary_furniture.py --check passed for all three GLBs",
+  "notes": "Final logs retained compressed. Expected startup/negative save-test warnings remain. No final engine or script errors."
+}

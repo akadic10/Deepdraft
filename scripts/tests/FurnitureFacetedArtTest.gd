@@ -39,7 +39,7 @@ func _run() -> void:
 		if file.begins_with("crude_ladder_"):
 			expect(absf(bounds.end.y-float(file.get_basename().get_slice("_",2)))<.001,file+" section height")
 		model.free()
-	expect(count==41,"all 41 furniture forms")
+	expect(count==44,"all 44 furniture forms")
 	var definitions := 0
 	for key: String in controller.get_defs():
 		if not String(controller.get_defs()[key].model).begins_with(DIRECTORY): continue
@@ -59,10 +59,11 @@ func _run() -> void:
 			model.add_child(hinge); hinge.setup(model,definition.door_animation); hinge.set_process(false)
 			var width := int(definition.footprint.width)
 			expect(hinge._hinges.size()==(2 if width==4 else 1),key+" named leaf count")
-			expect(is_equal_approx(hinge._hinges[0].position.x,-width*.5),key+" outer hinge")
-			expect(is_finite(picking.hit_distance(model,Vector3(.1,2,3),Vector3(.1,2,-3))),key+" closed picking")
+			expect(is_equal_approx(hinge._hinges[0].position.x,-width*.5+float(definition.door_animation.get("hinge_inset",.125))),key+" authored hinge")
+			var hit_height := 1.0 if key=="base:furniture:log_gate" else 2.0
+			expect(is_finite(picking.hit_distance(model,Vector3(.1,hit_height,3),Vector3(.1,hit_height,-3))),key+" closed picking")
 			for i in hinge._hinges.size(): hinge._hinges[i].rotation.y=PI*.5*(1 if i==0 else -1)
-			expect(not is_finite(picking.hit_distance(model,Vector3(.1,2,3),Vector3(.1,2,-3))),key+" clear open doorway")
+			expect(not is_finite(picking.hit_distance(model,Vector3(.1,hit_height,3),Vector3(.1,hit_height,-3))),key+" clear open doorway")
 		if definition.has("light_source"):
 			var light: Dictionary=definition.light_source
 			var flame := model.find_child(light.emissive_mesh,true,false) as MeshInstance3D
@@ -70,13 +71,13 @@ func _run() -> void:
 			var clip: Dictionary=load("res://scripts/components/FurnitureFlameAnimation.gd")._load_clip(light.flame_animation.model)
 			for frame in light.flame_animation.frames: expect(clip.has(frame),key+" frame "+frame)
 		var id := key.get_slice(":",2)
-		if id in ["wooden_chair","log_chair","bench","wooden_table","communal_table","dwarf_bunk","log_bed","crude_workbench"]:
+		if id in ["wooden_chair","log_chair","bench","wooden_table","communal_table","dwarf_bunk","log_bed","crude_workbench","board_game_table"]:
 			var point := Vector3(.11,4,.11)
 			var height: float=4-picking.hit_distance(model,point,point-Vector3(0,6,0))
-			var expected: float=float(definition.crafting_surface_height) if id=="crude_workbench" else {"wooden_chair":.875,"log_chair":.75,"bench":1.0,"wooden_table":1.75,"communal_table":1.75,"dwarf_bunk":1.0,"log_bed":.75}[id]
+			var expected: float=float(definition.crafting_surface_height) if id=="crude_workbench" else float(definition.game_surface_height) if id=="board_game_table" else {"wooden_chair":.875,"log_chair":.75,"bench":1.0,"wooden_table":1.75,"communal_table":1.75,"dwarf_bunk":1.0,"log_bed":.75}[id]
 			expect(absf(height-expected)<(.075 if id=="log_bed" else .001),id+" central contact %.4f"%height)
 		model.free()
-	expect(definitions==30,"all 30 furniture definitions")
+	expect(definitions==33,"all 33 furniture definitions")
 	controller.free()
 	for failure in failures: push_error(failure)
 	print("FURNITURE_FACETED_ART_OK: %d import, palette, footprint, contact, hinge and flame checks"%checks if failures.is_empty() else "FURNITURE_FACETED_ART_FAIL")

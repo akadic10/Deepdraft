@@ -1,0 +1,79 @@
+extends SceneTree
+
+var saves
+var done := false
+var succeeded := false
+var expected := {}
+var first_terrain: Array = []
+var first_exploration: Dictionary = {}
+var slot := "quicksave"
+
+func _init() -> void: _run.call_deferred()
+
+func _run() -> void:
+	if not "/final_terrain_20261017/" in OS.get_user_data_dir().replace("\\","/"): quit(2); return
+	create_timer(350).timeout.connect(func(): push_error("PLAYER_SAVE_TIMEOUT"); quit(1))
+	if "--autosave" in OS.get_cmdline_user_args(): slot = "autosave"
+	var source := "res://tmp/final_terrain_20261017/source/"+slot+".json"
+	var old: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(source))
+	for packed: Array in old.scene.mining.mined_blocks: expected[Vector3i(packed[0],packed[1],packed[2])] = "base:terrain:void"
+	for entries: Array in [old.scene.water.terrain,old.scene.construction.built]:
+		for entry: Dictionary in entries: expected[Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])] = entry.block
+	saves = root.get_node("SaveManager")
+	saves.configure_storage_for_testing("user://isolated")
+	DirAccess.make_dir_recursive_absolute("user://isolated")
+	DirAccess.copy_absolute(source,"user://isolated/"+slot+".json")
+	saves.set_process(false)
+	root.get_node("WorldClock").set_paused(true)
+	change_scene_to_file("res://scenes/main/debug_world.tscn")
+	while current_scene==null: await process_frame
+	while current_scene.get_node("WorldLoadingScreen").visible: await process_frame
+	saves.set_process(true)
+	saves.load_finished.connect(func(ok: bool,_backup: bool): done=true; succeeded=ok)
+	var accepted: bool = saves.request_load_autosave() if slot=="autosave" else saves.request_load()
+	if not accepted: push_error("PLAYER_SAVE_REJECTED"); quit(1); return
+	await _settle_load()
+	if not _verify(): quit(1); return
+	print("PLAYER_LEGACY_TERRAIN_EXACT ",slot," cells=",expected.size())
+	first_terrain = root.get_node("WorldData").serialize_edits()
+	first_exploration = root.get_node("InteriorTracker").serialize_exploration()
+	var snapshot: Dictionary = saves._build_snapshot()
+	if snapshot.schema_version!=2 or snapshot.scene.construction.has("built") or snapshot.scene.water.has("terrain") or snapshot.scene.mining.has("mined_blocks"):
+		push_error("PLAYER_SAVE_HAS_OLD_OWNERSHIP"); quit(1); return
+	if not saves._validate_snapshot(snapshot).is_empty(): push_error(saves._validate_snapshot(snapshot)); quit(1); return
+	print("PLAYER_FINAL_STATE_FORMAT_OK edits=",first_terrain.size())
+	await _capture("legacy")
+	if not saves.request_save(): quit(1); return
+	while saves.is_saving(): await process_frame
+	if not saves.last_save_profile.success: push_error("PLAYER_SAVE_WRITE_FAILED"); quit(1); return
+	done=false; succeeded=false
+	if not saves.request_load(): quit(1); return
+	await _settle_load()
+	if not _verify(): quit(1); return
+	if root.get_node("WorldData").serialize_edits()!=first_terrain or root.get_node("InteriorTracker").serialize_exploration()!=first_exploration:
+		push_error("PLAYER_RESAVE_TERRAIN_OR_EXPLORATION_DIFFERS"); quit(1); return
+	await _capture("resaved")
+	var xray = current_scene.get_node("XrayController")
+	xray.set_mode("full")
+	while not xray._dirty.is_empty() or not xray._job.is_empty() or xray._reference_dirty or not xray._scan.is_empty(): await process_frame
+	await _capture("xray")
+	xray.set_mode("off")
+	print("PLAYER_FINAL_TERRAIN_ROUNDTRIP_OK ",slot)
+	quit(0)
+
+func _settle_load() -> void:
+	while not done: await process_frame
+	if not succeeded: push_error("PLAYER_LOAD_FAILED"); quit(1); return
+	root.get_node("WorldClock").set_paused(true)
+	while current_scene.get_node("WorldLoadingScreen").visible: await process_frame
+
+func _verify() -> bool:
+	for cell: Vector3i in expected:
+		if root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z)!=root.get_node("BlockRegistry").get_id(expected[cell]):
+			push_error("PLAYER_TERRAIN_MISMATCH "+str(cell)); return false
+	return true
+
+func _capture(label: String) -> void:
+	await create_timer(.5).timeout
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://tmp/final_terrain_20261017/"+slot+"_"+label+".png")

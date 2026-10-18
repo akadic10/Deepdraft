@@ -279,7 +279,7 @@ func serialize_state() -> Dictionary:
 		saved_stones[id].intake = SaveManager.pack_v3i(stones[id].intake)
 	return {"layout_version":preload("res://scripts/components/RiverLayout.gd").VERSION,"flow":flow.serialize(),"source_enabled":source_enabled,"outlet_enabled":outlet_enabled,
 		"stones":saved_stones,"next_stone_id":next_stone_id,
-		"elapsed_usec":elapsed_usec,"accumulator_usec":accumulator_usec,"terrain":WorldData.serialize_solid_edits(),"test_dam":test_dam.duplicate(true),"moisture":moisture.serialize()}
+		"elapsed_usec":elapsed_usec,"accumulator_usec":accumulator_usec,"test_dam":test_dam.duplicate(true),"moisture":moisture.serialize()}
 
 ## Private containers captured on the main thread; formatting runs on the worker.
 func capture_save_state() -> Dictionary:
@@ -294,7 +294,7 @@ func capture_save_state() -> Dictionary:
 		"added_units":flow.added_units,"drained_units":flow.drained_units,"extracted_units":flow.extracted_units}
 	return {"layout_version":preload("res://scripts/components/RiverLayout.gd").VERSION,"flow":captured_flow,
 		"source_enabled":source_enabled,"outlet_enabled":outlet_enabled,"stones":saved_stones,"next_stone_id":next_stone_id,
-		"elapsed_usec":elapsed_usec,"accumulator_usec":accumulator_usec,"terrain":WorldData.serialize_solid_edits(),
+		"elapsed_usec":elapsed_usec,"accumulator_usec":accumulator_usec,
 		"test_dam":test_dam.duplicate(true),"moisture":moisture.soils.duplicate(true)}
 
 
@@ -307,9 +307,6 @@ func restore_state(state: Dictionary) -> void:
 		stone.cell = SaveManager.unpack_v3i(stone.cell)
 		stone.intake = SaveManager.unpack_v3i(stone.intake)
 	var previous_wet: Dictionary = flow.mass.duplicate()
-	for entry: Dictionary in state.terrain:
-		var p: Array = entry.cell
-		WorldData.set_block(int(p[0]),int(p[1]),int(p[2]),BlockRegistry.get_id(entry.block))
 	flow.restore(state.flow)
 	source_enabled = state.source_enabled
 	outlet_enabled = state.outlet_enabled

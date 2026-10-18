@@ -71,6 +71,7 @@ var _agents: Dictionary = {}           # dwarf_id -> DwarfAgent (weak by validit
 var _completed_log: Array = []         # ring buffer of dicts, last 200
 var _scan_cursor: Dictionary = {}      # Task.Type -> int (resumable scan position)
 var _haul_match: Dictionary = {}       # one resumable, read-only worker comparison
+var _haul_route_cache: Dictionary = {} # shared read-only geometry, independent of goods/leases
 var _surface_match: Dictionary = {}    # adjacent surface work, including shrub uprooting
 var _move_match: Dictionary = {}       # exact-plant pickup after uprooting
 var _craft_match: Dictionary = {}      # first ingredient pickup, then a free workshop
@@ -177,7 +178,7 @@ func redirect_haul_to_placement(task_id: int, offer: Dictionary) -> bool:
 	var agent: DwarfAgent = _agents.get(int(offer.dwarf_id))
 	if task == null or task.type != Task.Type.FETCH_BUILD or task.assigned_to >= 0: return false
 	if old == null or old.type != Task.Type.HAUL or old.assigned_to != int(offer.dwarf_id) or not is_instance_valid(agent): return false
-	if agent.is_sleeping() or agent.is_eating(): return false
+	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating(): return false
 	var source := get_work_source(task.source_id) as FurnitureGhostComponent
 	if source == null or source.has_committed_item(): return false
 	var item: Node3D = offer.item
@@ -343,7 +344,7 @@ func register_dwarf(agent: DwarfAgent) -> void:
 
 func deregister_dwarf(dwarf_id: int) -> void:
 	var agent: DwarfAgent = _agents.get(dwarf_id)
-	if is_instance_valid(agent) and (_active.has(dwarf_id) or agent.is_eating()): agent.abort_task()
+	if is_instance_valid(agent) and (_active.has(dwarf_id) or agent.is_eating() or agent.is_recreating()): agent.abort_task()
 	if _active.has(dwarf_id):
 		release_dwarf_task(dwarf_id, Task.ReleaseReason.SOURCE_EMPTY, false)
 	_agents.erase(dwarf_id)
@@ -367,6 +368,7 @@ func notify_dwarf_unavailable(dwarf_id: int) -> void:
 ## Clears transient scheduling state before a scene reload. Configuration and
 ## signal connections remain intact because this autoload survives the reload.
 func reset_runtime_state() -> void:
+	_haul_route_cache.clear()
 	_family_frontiers.clear()
 	_family_quanta.clear()
 	_reconcile_cursor = 0
@@ -608,7 +610,7 @@ func _try_assign_type(agent: DwarfAgent, type: int, probes_left: int, t_start: i
 			if is_instance_valid(src) and src.has_method("nearest_stand_target"):
 				var stand: Vector3i = src.nearest_stand_target(dwarf_cell)
 				if stand.x >= 0: target = stand
-			if type==Task.Type.UNINSTALL and src is InstalledFurnitureComponent and String(src.def.get("placement","floor"))=="wall":
+			if type==Task.Type.UNINSTALL and src is InstalledFurnitureComponent and (String(src.def.get("placement","floor"))=="wall" or src.def.has("grid_fence")):
 				for stand: Vector3i in src.wall_work_stands(): goals[stand] = true
 				target = goals.keys()[0] if not goals.is_empty() else Vector3i(-1,-1,-1)
 			_work_probe.clear()
@@ -660,7 +662,7 @@ func _reject_worker_route(task: Task, agent: DwarfAgent, now: int) -> void:
 	_apply_backoff(task, now)
 
 
-## Each matching family owns at most one frontier. Exhausting one wake yields
+## Each matching context owns its frontier. Exhausting one wake yields
 ## and resumes next frame; only a finished failed search applies backoff.
 func _advance_work_probe(context: Dictionary, from: Vector3i, goal: Vector3i, t_start: int, goals: Dictionary = {}) -> int:
 	if not context.has("route_query"): context.route_query = {}
@@ -1045,10 +1047,23 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 		var source: Object = _work_sources.get(task.source_id)
 		var revision := int(source.scheduling_revision()) if is_instance_valid(source) and source.has_method("scheduling_revision") else 0
 		if _haul_match.is_empty() or int(_haul_match.get("idle_version",-1)) != _idle_version or int(_haul_match.get("revision",-1)) != revision:
+			# Needs and inventory changes require fresh quotes, not fresh geometry.
+			# Retain routes and alternatives for unchanged worker positions; each
+			# reused proof still checks its own navigation dependencies below.
+			var routes := {}
+			var deferred := {}
+			if int(_haul_match.get("task_id",-1)) == task.id:
+				for route_key: Array in _haul_match.get("routes",{}):
+					var worker: DwarfAgent = _agents.get(int(route_key[0]))
+					if is_instance_valid(worker) and worker.current_cell() == route_key[1]:
+						routes[route_key] = _haul_match.routes[route_key]
+						if _haul_match.get("deferred",{}).get(worker.dwarf_id,{}).has(route_key[2]):
+							if not deferred.has(worker.dwarf_id): deferred[worker.dwarf_id] = {}
+							deferred[worker.dwarf_id][route_key[2]] = true
 			_haul_match = {"task_id": task.id, "idle_version": _idle_version, "revision": revision,
 				"idle": _idle_dwarves.duplicate(), "index": 0, "query": {}, "candidates": [],
-				"ranked": false, "probe_index": 0, "pickup_ok": false, "eligible": 0,
-				"excluded": {}, "blocked_workers": {}, "failed": false, "pickup_snapshot": {}}
+				"ranked": false, "probe_index": 0, "eligible": 0,
+				"excluded": {}, "deferred": deferred, "blocked_workers": {}, "failed": false, "pickup_snapshot": {}, "routes": routes}
 		while int(_haul_match.index) < _haul_match.idle.size():
 			if not _within_budget(t_start, probes_left): return 0
 			var dwarf_id: int = _haul_match.idle[_haul_match.index]
@@ -1062,7 +1077,8 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			var query: Dictionary = _haul_match.query
 			if query.has("from") and query.from != from: query.clear()
 			query.from = from
-			query.exclude = _haul_match.excluded.get(dwarf_id, {})
+			query.exclude = (_haul_match.excluded.get(dwarf_id, {}) as Dictionary).duplicate()
+			query.exclude.merge(_haul_match.deferred.get(dwarf_id,{}))
 			# Source filtering is identical for every worker in this comparison.
 			# Inventory/idle invalidation above discards the shared snapshot too.
 			query.pickup_snapshot = _haul_match.pickup_snapshot
@@ -1086,29 +1102,40 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			_haul_match.ranked = true
 		var assigned := false
 		var rerank := false
-		while int(_haul_match.probe_index) < _haul_match.candidates.size():
+		while not _haul_match.candidates.is_empty():
 			if not _within_budget(t_start, probes_left): return 0
+			_haul_match.probe_index = int(_haul_match.probe_index) % _haul_match.candidates.size()
 			var candidate: Dictionary = _haul_match.candidates[_haul_match.probe_index]
 			var agent: DwarfAgent = _agents.get(int(candidate.dwarf_id))
 			if not is_instance_valid(agent) or not int(candidate.dwarf_id) in _idle_dwarves:
-				_haul_match.probe_index += 1
-				_haul_match.pickup_ok = false
+				_haul_match.candidates.remove_at(_haul_match.probe_index)
 				continue
 			if agent.current_cell() != candidate.from:
-				_haul_match.clear() # e.g. a developer walk order moved an idle actor
+				_haul_match.idle_version = -1 # Re-rank; retain other workers' unchanged searches.
 				_wake_dirty = true
 				return 0
-			if not bool(_haul_match.pickup_ok):
+			# Each worker/pickup keeps its own search. A hard route gets a bounded
+			# turn, then another candidate can prove a different pickup reachable.
+			# Otherwise a nearby item on another level stalls every ready worker.
+			var route_key := [candidate.dwarf_id,candidate.from,candidate.cell]
+			if not _haul_match.routes.has(route_key): _haul_match.routes[route_key] = {"task_id":task.id}
+			var route: Dictionary = _haul_match.routes[route_key]
+			if not FetchPlanner.dependencies_current(route): route.clear()
+			route.task_id = task.id
+			if not bool(route.get("pickup_ok",false)):
 				probes_left -= 1
 				_probes_total += 1
 				var pickup_goals := {}
 				if source is StorageComponent:
 					for cell: Vector3i in StorageComponent.ground_access_cells(candidate.cell):
 						if NavGrid.is_walkable(cell): pickup_goals[cell] = true
-				var pickup := NavGrid.ProbeResult.UNREACHABLE if source is StorageComponent and pickup_goals.is_empty() else _advance_work_probe(_haul_match, candidate.from, candidate.cell, t_start,pickup_goals)
-				if pickup == NavGrid.ProbeResult.SEARCHING: return 0
+				var pickup := NavGrid.ProbeResult.UNREACHABLE if source is StorageComponent and pickup_goals.is_empty() else _advance_haul_probe(route, agent, candidate.from, candidate.cell, t_start,pickup_goals)
+				if pickup == NavGrid.ProbeResult.SEARCHING:
+					_yield_haul_candidate(route)
+					return 0
 				if pickup != NavGrid.ProbeResult.REACHABLE:
 					_haul_match.failed = true
+					_haul_match.routes.erase(route_key)
 					if is_instance_valid(source) and source.has_method("advance_haul_quote"):
 						var excluded: Dictionary = _haul_match.excluded.get(int(candidate.dwarf_id), {})
 						excluded[candidate.cell] = true
@@ -1116,14 +1143,15 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 						_restart_haul_ranking()
 						rerank = true
 						break
-					_haul_match.probe_index += 1
+					_haul_match.candidates.remove_at(_haul_match.probe_index)
 					continue
-				_haul_match.pickup_ok = true
-				candidate["pickup_stand"] = _haul_match.last_route.path.back()
+				route.pickup_ok = true
+				route["pickup_stand"] = route.last_route.path.back()
+				route.slices = 0
 			if not _within_budget(t_start, probes_left): return 0
 			var destination := task.target_pos
 			if is_instance_valid(source) and source.has_method("nearest_stand_target"):
-				destination = source.nearest_stand_target(candidate.pickup_stand)
+				destination = source.nearest_stand_target(route.pickup_stand)
 			var delivery_goals := {}
 			if source is StorageComponent:
 				for cell: Vector3i in source.delivery_stand_cells(destination):
@@ -1131,17 +1159,21 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			probes_left -= 1
 			_probes_total += 1
 			var has_approach := destination.x >= 0 and (not source is StorageComponent or not delivery_goals.is_empty())
-			var delivery := _advance_work_probe(_haul_match, candidate.pickup_stand, destination, t_start,delivery_goals) if has_approach else NavGrid.ProbeResult.UNREACHABLE
-			if delivery == NavGrid.ProbeResult.SEARCHING: return 0
+			var delivery := _advance_haul_probe(route, agent, route.pickup_stand, destination, t_start,delivery_goals) if has_approach else NavGrid.ProbeResult.UNREACHABLE
+			if delivery == NavGrid.ProbeResult.SEARCHING:
+				_yield_haul_candidate(route)
+				return 0
 			if delivery == NavGrid.ProbeResult.REACHABLE:
 				task.blocked_count = 0
-				task.payload["haul_excluded_cells"] = (_haul_match.excluded.get(agent.dwarf_id, {}) as Dictionary).keys()
+				var excluded: Dictionary = (_haul_match.excluded.get(agent.dwarf_id, {}) as Dictionary).duplicate()
+				excluded.merge(_haul_match.deferred.get(agent.dwarf_id,{}))
+				task.payload["haul_excluded_cells"] = excluded.keys()
 				_haul_match.clear()
 				_assign(task, agent)
 				assigned = true
 				break
-			_haul_match.probe_index += 1
-			_haul_match.pickup_ok = false
+			_haul_match.candidates.remove_at(_haul_match.probe_index)
+			_haul_match.routes.erase(route_key)
 			_haul_match.blocked_workers[int(candidate.dwarf_id)] = true
 			_haul_match.failed = true
 		if assigned: continue # claims changed; rank the next lease against remaining goods
@@ -1149,6 +1181,13 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 		if int(_haul_match.eligible) == 0 and not bool(_haul_match.failed):
 			_haul_match.clear()
 			return probes_left
+		if not _haul_match.deferred.is_empty():
+			# All alternatives had a turn. Resume the retained long searches;
+			# a time slice ending is never proof that an item is unreachable.
+			_haul_match.deferred.clear()
+			_restart_haul_ranking()
+			_wake_dirty = true
+			return 0
 		if _haul_match.candidates.is_empty() and not bool(_haul_match.failed):
 			cancel_task(task.id) # stale lease: no compatible unreserved goods/room
 		else:
@@ -1158,13 +1197,71 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 	return probes_left
 
 
+## Many storage leases ask the same geometry question. Share their bounded
+## search and proof, not inventory quotes or claims. A pickup/deposit elsewhere
+## changes supplies but must not restart a still-valid route for idle workers.
+func _advance_haul_probe(route: Dictionary, agent: DwarfAgent, from: Vector3i,
+		goal: Vector3i, t_start: int, goals: Dictionary = {}) -> int:
+	var key := [from,goal,goals.keys()]
+	if not _haul_route_cache.has(key):
+		var capacity := maxi(1,int(get_config_section("hauling").get("route_cache_entries",64)))
+		if _haul_route_cache.size() >= capacity:
+			_haul_route_cache.erase(_haul_route_cache.keys()[0])
+		_haul_route_cache[key] = {}
+		# Eviction limits sharing, not an individual lease's progress. Its own
+		# unfinished frontier can rejoin the cache on its next scheduling turn.
+		var retained: Dictionary = route.get("route_query",{})
+		if retained.get("start") == from and retained.get("goal") == goal and retained.get("goals",{}) == goals:
+			_haul_route_cache[key]["route_query"] = retained
+	var shared: Dictionary = _haul_route_cache[key]
+	if not FetchPlanner.dependencies_current(shared) \
+			or (shared.has("route_query") and not NavGrid.search_is_current(shared.route_query)) \
+			or (int(shared.get("result",-1)) == NavGrid.ProbeResult.BUDGET_EXHAUSTED and journal.now >= float(shared.get("retry_at",0))):
+		shared.clear()
+	var result := int(shared.get("result",NavGrid.ProbeResult.SEARCHING))
+	if not shared.has("result"):
+		shared["task_id"] = int(route.get("task_id",-1))
+		result = _advance_worker_probe(shared,agent,from,goal,t_start,goals)
+		if result != NavGrid.ProbeResult.SEARCHING:
+			shared["result"] = result
+			shared["retry_at"] = journal.now + _backoff_max_s
+	if result == NavGrid.ProbeResult.SEARCHING:
+		# The planning quantum belongs to this geometry too. Otherwise every
+		# duplicate lease spends another full quantum on the same hard pickup
+		# before any of them considers the next available load.
+		var quantum := int(get_config_section("supervision").get("planning_quantum_slices",8))
+		shared["slices"] = mini(quantum,int(shared.get("slices",0))+1)
+		route["slices"] = int(shared.slices)-1
+		route["route_query"] = shared.route_query
+	else:
+		route.erase("route_query")
+		if not route.has("route_dependencies"): route.route_dependencies = {}
+		route.route_dependencies.merge(shared.get("route_dependencies",{}))
+		route["last_route"] = shared.last_route
+		route["ladder_revision"] = shared.ladder_revision
+		if result == NavGrid.ProbeResult.BUDGET_EXHAUSTED:
+			var task := get_task(int(route.get("task_id",-1)))
+			if task != null: task.wait_reason = "Route search budget exhausted; reachability unknown"
+	return result
+
+
+func _yield_haul_candidate(route: Dictionary) -> void:
+	route["slices"] = int(route.get("slices",0))+1
+	if int(route.slices) >= int(get_config_section("supervision").get("planning_quantum_slices",8)):
+		route.slices = 0
+		var candidate: Dictionary = _haul_match.candidates[_haul_match.probe_index]
+		if not _haul_match.deferred.has(candidate.dwarf_id): _haul_match.deferred[candidate.dwarf_id] = {}
+		_haul_match.deferred[candidate.dwarf_id][candidate.cell] = true
+		_restart_haul_ranking()
+	_wake_dirty = true
+
+
 func _restart_haul_ranking() -> void:
 	_haul_match.index = 0
 	_haul_match.query = {}
 	_haul_match.candidates = []
 	_haul_match.ranked = false
 	_haul_match.probe_index = 0
-	_haul_match.pickup_ok = false
 	_haul_match.eligible = 0
 
 
@@ -1202,7 +1299,7 @@ func _apply_backoff(task: Task, now: int) -> void:
 ## Profession capability and player permissions both apply. Self-care and
 ## carrying supplies within an allowed assignment are never separate gates.
 func _types_for(agent: DwarfAgent) -> Array[int]:
-	if agent.is_sleeping() or agent.is_eating() or not NavGrid.is_navigable(agent.current_cell()): return []
+	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or not NavGrid.is_navigable(agent.current_cell()): return []
 	if agent.promotion_pending(): return []
 	if agent.needs_bridge_exit(): return []
 	var types: Array[int] = [Task.Type.MINE, Task.Type.HAUL, Task.Type.BUILD, Task.Type.FARM,
@@ -1291,7 +1388,7 @@ func _mark_idle(dwarf_id: int) -> void:
 	if not _agents.has(dwarf_id):
 		return
 	if not is_instance_valid(_agents[dwarf_id]) or not _agents[dwarf_id].is_inside_tree(): return
-	if _agents[dwarf_id].promotion_pending() or _agents[dwarf_id].is_sleeping() or _agents[dwarf_id].is_eating(): return
+	if _agents[dwarf_id].promotion_pending() or _agents[dwarf_id].is_sleeping() or _agents[dwarf_id].is_eating() or _agents[dwarf_id].is_recreating(): return
 	if _agents[dwarf_id].has_method("needs_ladder_exit") and _agents[dwarf_id].needs_ladder_exit():
 		return
 	if _agents[dwarf_id].has_method("needs_bridge_exit") and _agents[dwarf_id].needs_bridge_exit(): return
@@ -1499,7 +1596,7 @@ func retry_order(order_key: String, reason: String = "Retry requested") -> void:
 
 func worker_availability(agent: DwarfAgent) -> String:
 	if not is_instance_valid(agent): return "Unavailable"
-	if agent.is_sleeping() or agent.is_eating() or agent.promotion_pending(): return "Self-care"
+	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending(): return "Self-care"
 	if agent.needs_bridge_exit() or agent.needs_ladder_exit(): return "Recovering access"
 	if not NavGrid.is_navigable(agent.current_cell()): return "Trapped: no navigable footing"
 	if _active.has(agent.dwarf_id): return "Working"
@@ -1560,7 +1657,12 @@ func hold_for_planning(agent: DwarfAgent) -> void:
 	if not hold.is_empty() and journal.now < float(hold.until)+2.0: return
 	var duration := float(get_config_section("supervision").get("planning_hold_seconds",4.0))
 	_planning_holds[agent.dwarf_id] = {"until":journal.now+duration}
-	if agent._idle_behavior != null and agent._idle_behavior.state != "leaving_room": agent._idle_behavior.cancel()
+	# Planning needs a stable position, not a fresh idle delay. Restarting a
+	# stationary dwarf's delay on every hold can prevent any leisure between
+	# unsuccessful checks, and unnecessarily makes seated dwarves stand up.
+	# receive_task() cancels all leisure when work is actually assigned.
+	if agent._idle_behavior != null and agent._idle_behavior.owns_walk() and agent._idle_behavior.state != "leaving_room":
+		agent._idle_behavior.cancel()
 
 func planning_held(dwarf_id: int) -> bool:
 	return journal.now < float(_planning_holds.get(dwarf_id,{}).get("until",-1.0))
@@ -1617,7 +1719,7 @@ func _reconcile_workers() -> void:
 		if agent.current_task_id >= 0:
 			# An orphan executor must relinquish its real cargo before rejoining.
 			agent.abort_task()
-		if agent.is_sleeping() or agent.is_eating() or agent.promotion_pending() or agent.needs_bridge_exit() or agent.needs_ladder_exit():
+		if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending() or agent.needs_bridge_exit() or agent.needs_ladder_exit():
 			_remove_idle(id)
 		elif not id in _idle_dwarves:
 			_mark_idle(id)

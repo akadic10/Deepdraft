@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-17",
+  "runtime": "Godot 4.7.2 native windowed source",
+  "isolated_profiles": true,
+  "windows_export": false,
+  "baseline": "Both new regression cases fail before the production fixes; baseline logs included.",
+  "tests": [
+    {
+      "test": "DwarfDiningTest",
+      "passed": true,
+      "exit_code": 0,
+      "marker": "DWARF_DINING_OK: four dining outcomes, seat contention, interruption, emergency crops, claims, conservation, season, saved work, mood, work speed and UI",
+      "stdout": "DwarfDiningTest.out.gz",
+      "stderr": "DwarfDiningTest.err.gz"
+    },
+    {
+      "test": "RudimentaryRecreationTest",
+      "passed": true,
+      "exit_code": 0,
+      "marker": "RUDIMENTARY_RECREATION_OK: crafting, real installation, rotations, navigation, two seats, two players, needs, work, timeout, pause, mood and persistence",
+      "stdout": "RudimentaryRecreationTest.out.gz",
+      "stderr": "RudimentaryRecreationTest.err.gz"
+    },
+    {
+      "test": "DwarfIdleBehaviorTest",
+      "passed": true,
+      "exit_code": 0,
+      "marker": "DWARF_IDLE_OK: work completion, local movement, priorities, pause/speed, seating claims, interruption, teardown, save-safe position and trapped fallback",
+      "stdout": "DwarfIdleBehaviorTest.out.gz",
+      "stderr": "DwarfIdleBehaviorTest.err.gz"
+    },
+    {
+      "test": "DwarfFoodTest",
+      "passed": true,
+      "exit_code": 0,
+      "marker": "DWARF_FOOD_OK: clock, sleep, stored/loose priority, portions, claims, cancellation, save, contention, routes, jobs, containers and UI",
+      "stdout": "DwarfFoodTest.out.gz",
+      "stderr": "DwarfFoodTest.err.gz"
+    },
+    {
+      "test": "JobLifecycleTest",
+      "passed": true,
+      "exit_code": 0,
+      "marker": "JOB_LIFECYCLE_OK",
+      "stdout": "JobLifecycleTest.out.gz",
+      "stderr": "JobLifecycleTest.err.gz"
+    }
+  ]
+}

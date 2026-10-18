@@ -58,7 +58,7 @@ func _run() -> void:
 	_expect(builder.orders[id].source_id==-1 and builder.orders[id]._lease_id==-1,"unavailable profession creates no work source or worker lease")
 	for tick in range(20):
 		builder._process(.1); tasks._run_scheduler(); worker._process(.1)
-	_expect(builder.built.is_empty() and builder.orders.has(id),"workers cannot complete preview flooring")
+	_expect(_finished_floors().is_empty() and builder.orders.has(id),"workers cannot complete preview flooring")
 	_expect(_room().flooring_appeal==0,"blue plans give no appeal")
 	var point := camera.unproject_position(Vector3(planned[1])+Vector3(.5,.95,.5))
 	_click(point)
@@ -70,7 +70,7 @@ func _run() -> void:
 	var handle: int = root.get_node("PlacedEntityRegistry").register_box(planned[1],Vector3i.ONE)
 	_click(explorer._actions.get_child(0).get_global_rect().get_center())
 	await _frames(5)
-	_expect(builder.built.size()==2 and builder.orders[id].cells.size()==1,"DEV Build skips a late obstacle without overwriting it")
+	_expect(_finished_floors().size()==2 and builder.orders[id].cells.size()==1,"DEV Build skips a late obstacle without overwriting it")
 	root.get_node("PlacedEntityRegistry").unregister(handle)
 	_expect(builder.dev_build_order(id)==1 and not builder.orders.has(id),"retry completes only the remaining clear floor")
 	_expect(_room().flooring_appeal==0,"partial finished flooring gives no completion bonus")
@@ -79,7 +79,7 @@ func _run() -> void:
 	var wood: Array[Vector3i] = []
 	var stone: Array[Vector3i] = []
 	for cell: Vector3i in floor_cells:
-		if builder.built.has(cell): continue
+		if _finished_floors().has(cell): continue
 		if cell.x<46: wood.append(cell)
 		else: stone.append(cell)
 	var wood_id: int = builder.create_order(wood,-1,false,"plank_floor")
@@ -124,15 +124,18 @@ func _save_and_mine(cell: Vector3i) -> void:
 	var spare := Vector3i(52,21,44)
 	var id: int = builder.create_order(_cells([spare]),-1,false,"stone_floor")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(builder.serialize_state()))
-	for built_cell: Vector3i in builder.built: world.set_block(built_cell.x,built_cell.y,built_cell.z,blocks.AIR_ID)
+	var terrain: Array = world.serialize_edits()
+	for built_cell: Vector3i in _finished_floors(): world.set_block(built_cell.x,built_cell.y,built_cell.z,blocks.AIR_ID)
+	world.restore_terrain({"edits":terrain})
 	builder.restore_state(saved)
+	_expect(not saved.has("built"),"floor ownership is absent from construction saves")
 	_expect(builder.orders[id].construction_kind=="stone_floor" and builder.orders[id]._lease_id<0,"save restores floor type and its worker lock")
 	_expect(_room().flooring_appeal==5,"restored floor terrain reconstructs room appeal")
 	builder.cancel_order(id)
 	var before := _snapshot_units()
 	var zone_id: int = mining._create_zone(_cells([cell]))
 	_expect(mining.execute_zone_block_mined(zone_id,cell,worker.dwarf_id),"normal mining removes a completed floor")
-	_expect(_snapshot_units()==before and not builder.built.has(cell),"free DEV flooring yields no free resources")
+	_expect(_snapshot_units()==before and not _finished_floors().has(cell),"free DEV flooring yields no free resources")
 	_expect(_room().flooring_appeal==0,"mining one tile revokes completion bonus")
 	var repair: int = builder.create_order(_cells([cell]),-1,false,"stone_floor")
 	builder.dev_build_order(repair)
@@ -213,6 +216,9 @@ func _prepare_room() -> void:
 	_expect(not _room().is_empty(),"excavated 9x9 room remains sealed")
 
 func _rebuild_terrain_visual() -> void:
+	renderer._rebuild_added_terrain()
+	if renderer._added_terrain != null and not renderer._added_terrain.is_inside_tree():
+		renderer._added_terrain.reparent(scene, false)
 	var verts := PackedVector3Array()
 	var norms := PackedVector3Array()
 	var colors := PackedColorArray()
@@ -222,7 +228,7 @@ func _rebuild_terrain_visual() -> void:
 			for y in range(19,24):
 				var cell := Vector3i(x,y,z)
 				var id: int = world.get_terrain_block(x,y,z)
-				if not blocks.is_solid(id) or builder.built.has(cell): continue
+				if not blocks.is_solid(id) or _finished_floors().has(cell): continue
 				for direction: Vector3i in builder.DIRECTIONS:
 					var n := cell+direction
 					if n.y<=23 and blocks.is_solid(world.get_terrain_block(n.x,n.y,n.z)): continue
@@ -252,3 +258,10 @@ func _finish() -> void:
 	for failure: String in failures: push_error(failure)
 	print("FLOOR_CONSTRUCTION_OK" if failures.is_empty() else "FLOOR_CONSTRUCTION_FAIL")
 	quit(0 if failures.is_empty() else 1)
+
+func _finished_floors() -> Dictionary:
+	var result := {}
+	for cell: Vector3i in floor_cells:
+		var id: int = world.get_terrain_block(cell.x,cell.y,cell.z)
+		if blocks.get_def(blocks.get_key(id)).get("kind","")=="constructed_floor": result[cell] = id
+	return result

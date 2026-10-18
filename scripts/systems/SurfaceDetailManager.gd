@@ -74,6 +74,10 @@ func _process(_delta: float) -> void:
 	_update_markers()
 
 
+func is_loading_complete() -> bool:
+	return _initialized and _visual_queue.is_empty() and _seasonal_refresh.loading_pending_count()==0
+
+
 func initialize_layout(reverse_order := false) -> void:
 	if _initialized or _flora == null:
 		return
@@ -945,6 +949,24 @@ func _on_growth_tick(_hour: int) -> void:
 		if not Shrub.is_young(definition, _changes[id]):
 			_growing.erase(id)
 			if not id in _visual_queue: _visual_queue.append(id)
+
+
+## DEV items need the same persistent plant identity as an uprooted bush.
+## Record it as packed before registration so no planted mesh/occupancy appears.
+func dev_spawn_packed_shrub(key: String, floor: Vector3i) -> String:
+	var definition := SurfaceDetailRegistry.get_definition(key)
+	if definition.get("kind") != "shrub" or not definition.has("transplant"): return ""
+	if not NavGrid.is_walkable(floor) or WaterManager.has_standing_water(floor+Vector3i.UP): return ""
+	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	if drops == null or drops.get_item_def(SurfaceDetailRegistry.packed_item(key,0)).is_empty(): return ""
+	var id := "planted:%d:%d" % [WorldGenerator.world_seed, _next_plant_id]
+	_next_plant_id += 1
+	_changes[id] = {"removed": true, "packed": true, "designated": false,
+		"work_seconds": 0.0, "reason": "dev_packed_shrub"}
+	register_record({"id": id, "definition": key, "origin": floor, "yaw": 0,
+		"variant": 0, "player_created": true})
+	drops.restore_loose_item(SurfaceDetailRegistry.packed_item(key,0),Vector3(floor)+Vector3(.5,1,.5),0,1,id)
+	return id
 
 
 func dev_mature_shrub(id: String) -> void:

@@ -255,7 +255,11 @@ func _verify_snapshot_validation() -> String:
 			cases.append({"name": "malformed scene." + section, "snapshot": malformed})
 	for change in [
 		[["scene","construction","orders",1,"kind"],"unknown_floor"],
-		[["scene","construction","built",2,"block"],"base:terrain:ore:iron"],
+		[["scene","terrain","edits",0,"block"],"base:terrain:unknown"],
+		[["scene","construction","orders",0,"materials"],{"":2}],
+		[["scene","construction","orders",0,"materials"],{"":-1}],
+		[["scene","construction","orders",0,"materials"],{"unknown_material":1}],
+		[["scene","construction","orders",0,"total_blocks"],0],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":-1}]],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":1.5}]],
 		[["scene","water","flow","cells"],[{"cell":[1024,18,10],"units":100}]],
@@ -283,6 +287,8 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "dwarves", "roster", 0, "mood", "personal_sleep_hours"], "many"],
 		[["scene", "dwarves", "roster", 0, "mood", "cold_memory_hours"], -1.0],
 		[["scene", "dwarves", "roster", 0, "mood", "hot_sleep_hours"], "many"],
+		[["scene", "dwarves", "roster", 0, "mood", "recreation_memory_hours"], -1.0],
+		[["scene", "dwarves", "roster", 0, "mood", "recreation_retry_hours"], "many"],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 999999],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 0],
 		[["scene","furniture","moves","next_id"],1],
@@ -290,8 +296,8 @@ func _verify_snapshot_validation() -> String:
 		[["scene","furniture","moves","records","furniture_move:1","installed_id"],999999],
 		[["scene","furniture","moves","records","furniture_move:2","installed_id"],401],
 		[["scene","furniture","ghosts",0,"move_id"],"furniture_move:999"],
-		[["scene", "mining", "mined_blocks"], [[1, 2]]],
-		[["scene", "mining", "mined_blocks"], [[1, 2.5, 3]]],
+		[["scene", "exploration", "cells"], [[1, 2]]],
+		[["scene", "exploration", "cells"], [[1, 2.5, 3]]],
 		[["scene", "wildlife", "rabbits"], [{}]],
 		[["scene", "wildlife", "ducks"], [{}]],
 		[["scene", "wildlife", "duck_initialized"], "true"],
@@ -492,8 +498,8 @@ func _build_nonempty_colony_state() -> String:
 			"work_seconds": .75, "action": "harvest", "harvest_work_cycle": "3:autumn", "fell_work_seconds": .5, "designated": true},
 	]})
 
+	mining._mine_block_world(mined_cell)
 	mining.call("restore_state", {
-		"mined_blocks": [_pack_v3i(mined_cell)],
 		"zones": [{ "id": 101, "blocks": [_pack_v3i(designated_cell)] }],
 	})
 	# Backfill, freestanding stone, an order to mine that backfill, and unfinished
@@ -502,12 +508,12 @@ func _build_nonempty_colony_state() -> String:
 	if construction == null: return "construction save owner missing"
 	var standing_stone := _surface_cell(16,4)+Vector3i.UP
 	var pending_stone := _surface_cell(18,4)+Vector3i.UP
-	construction.restore_state({"next_id":703,"built":[
+	root.get_node("WorldData").restore_terrain({"edits":[
 		{"cell":_pack_v3i(mined_cell),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(mined_cell)))},
 		{"cell":_pack_v3i(standing_stone),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(standing_stone)))},
 		{"cell":_pack_v3i(_surface_cell(16,6)+Vector3i.UP),"block":"base:construction:floor:plank"},
-		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:floor:stone"}],
-		"orders":[{"id":701,"kind":"stone","cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]},
+		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:floor:stone"}]})
+	construction.restore_state({"next_id":703,"orders":[{"id":701,"kind":"stone","materials":{"":1},"total_blocks":1,"cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]},
 			{"id":702,"kind":"stone_floor","cells":[{"cell":_pack_v3i(_surface_cell(20,6)+Vector3i.UP),"work":0.0}]}]})
 	var rebuilt_targets: Array[Vector3i] = [mined_cell]
 	mining._create_zone(rebuilt_targets,102)
@@ -600,7 +606,7 @@ func _build_nonempty_colony_state() -> String:
 			"sleeping": true,
 			"sleep_hours_left": 2.5,
 			"food": {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1},
-			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0},
+			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"recreation_retry_hours":2.5},
 			"carried_items": [],
 		}],
 	})
@@ -959,18 +965,20 @@ func _verify_restored_state(expected_seed: int) -> String:
 	for key in expected_keys:
 		if not scene_state.has(key):
 			return "restored scene is missing section %s" % key
-	if (scene_state["mining"] as Dictionary).get("mined_blocks", []).size() != 2:
-		return "mined blocks did not round-trip"
+	if scene_state.mining.has("mined_blocks") or scene_state.terrain.edits.is_empty():
+		return "final terrain was not saved independently"
 	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 5:
 		return "forestry progress/designations/removals did not round-trip"
 	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 2:
 		return "mining zones did not round-trip"
 	var construction_state: Dictionary = scene_state.construction
-	if construction_state.built.size()!=4 or construction_state.orders.size()!=2 or not is_equal_approx(construction_state.orders[0].cells[0].work,.65):
+	if construction_state.has("built") or construction_state.orders.size()!=2 or not is_equal_approx(construction_state.orders[0].cells[0].work,.65):
 		return "built stone/floors or unfinished construction did not round-trip"
 	if construction_state.orders[1].kind!="stone_floor" or _owner("construction").orders[702]._lease_id>=0:
 		return "floor construction type or profession lock did not round-trip"
-	for entry: Dictionary in construction_state.built:
+	if int(construction_state.orders[0].get("materials",{}).get("",0))!=1:
+		return "staged construction stone did not round-trip"
+	for entry: Dictionary in scene_state.terrain.edits:
 		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
 		if root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z)!=root.get_node("BlockRegistry").get_id(entry.block):
 			return "constructed terrain was not restored after mining"
@@ -997,8 +1005,8 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "dwarf roster/runtime state did not round-trip"
 	if roster[0].food != {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1}:
 		return "food need, last meal, dining arrangement or retry did not round-trip"
-	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0}:
-		return "personal-bedroom sleep progress or dining/thermal happiness did not round-trip"
+	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"recreation_retry_hours":2.5}:
+		return "personal-bedroom sleep progress or dining/thermal/recreation happiness did not round-trip"
 	if furniture_state.installed.filter(func(piece): return piece.get("assigned_dwarf_id",-1)==0).size()!=1:
 		return "personal bed assignment did not round-trip"
 	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:
@@ -1032,7 +1040,7 @@ func _weather_forecast() -> Array[String]:
 
 
 func _collect_scene_state() -> Dictionary:
-	var result: Dictionary = {}
+	var result: Dictionary = {"terrain":{"edits":root.get_node("WorldData").serialize_edits()},"exploration":root.get_node("InteriorTracker").serialize_exploration()}
 	for state_owner in get_nodes_in_group(OWNER_GROUP):
 		if state_owner.has_method("save_section_key") and state_owner.has_method("serialize_state"):
 			result[String(state_owner.call("save_section_key"))] = state_owner.call("serialize_state")

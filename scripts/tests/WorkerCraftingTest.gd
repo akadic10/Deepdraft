@@ -19,6 +19,9 @@ func _setup_crafting_fixture() -> void:
 	root.get_node("WorldGenerator")._maps_ready = true
 	root.get_node("WorldGenerator").heightmap.resize(1024*1024)
 	root.get_node("WorldGenerator").heightmap.fill(20)
+	# Final-state terrain writes compare against this fixture's generated world.
+	root.get_node("WorldGenerator").waterline_map.resize(1024*1024)
+	root.get_node("WorldGenerator").waterline_map.fill(-1)
 	root.get_node("WorldGenerator")._cache_block_ids()
 	_build_review_world()
 	# This fixture advances actual workers/scheduler deterministically; storage

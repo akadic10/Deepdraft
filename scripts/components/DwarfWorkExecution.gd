@@ -58,6 +58,10 @@ static func sample(agent: DwarfAgent) -> Dictionary:
 	else:
 		remaining = agent._exec_timer
 		seconds = remaining
+		if phase == DwarfAgent.TaskPhase.FETCH_WORKING:
+			var source := agent._fetch_source()
+			if source != null and source.has_method("commit_staged_build"):
+				unit = str(source.target)
 	if agent._move_path.is_empty() and phase not in [DwarfAgent.TaskPhase.FETCH_PLANNING,DwarfAgent.TaskPhase.FELL_FINDING]:
 		seconds /= maxf(.1,agent._food.work_multiplier())
 	return {"step":step,"unit":unit,"remaining":remaining,"expected_seconds":seconds}
@@ -112,10 +116,20 @@ func tick(agent: DwarfAgent, delta: float) -> bool:
 			if not craft.can_complete_build():
 				agent._fetch_fail_release()
 				return true
+			var before := float(craft.progress)/DwarfAgent.ConstructionPose.CYCLE_SECONDS
 			agent._exec_timer = craft.advance_install(work_delta)
 			var face: Vector3i = craft.work_facing(agent.current_cell())
 			agent.rotation.y = atan2(face.x, face.z)
-			agent._carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
+			if craft.has_method("commit_staged_build"):
+				var contact := agent._construction_work_pose(craft)
+				var after := float(craft.progress)/DwarfAgent.ConstructionPose.CYCLE_SECONDS
+				# Actual clamped progress crosses contact once. Stalls coalesce hits;
+				# resuming a partially built block cannot replay an earlier impact.
+				if floori(after-DwarfAgent.ConstructionPose.CONTACT_PHASE) > floori(before-DwarfAgent.ConstructionPose.CONTACT_PHASE) \
+						and agent.is_visible_in_tree():
+					WorkFeedback.play_hammer(contact,int(craft.target.y))
+			else:
+				agent._carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
 			if agent._exec_timer <= 0.0: agent._fetch_complete()
 			return true
 		if craft != null and craft.has_method("advance_craft"):

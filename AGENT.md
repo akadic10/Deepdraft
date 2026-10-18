@@ -1,5 +1,224 @@
 # Deepdraft — Agent Navigation Index
 
+**Windows playtest policy (2026-10-16):** The user explicitly requested removal
+of the generated Windows playtest folder and does not want unsolicited exports.
+Do not create, rebuild, update or package a Windows playtest unless the user
+explicitly asks for it. Ordinary feature work and validation use the source
+project. Generated `build/windows/` outputs were moved to the Recycle Bin; older
+build links and export notes below are historical, not instructions to recreate
+them. This policy takes precedence over earlier export guidance.
+
+**End-of-day handoff (2026-10-17):** [220 — Session handoff](docs/00_dev_roadmap/220_session_handoff_2026_10_17.md)
+is the current resume point: completed gameplay/save/worker changes, final X-ray
+measurements and cache checks, reproduction limits, and parked work. Restart Play
+and review the final slice toggles in the existing save. Await the player's next
+priority; do not automatically resume the broader performance/water backlog.
+This closeout changes documentation only; no export, commit or overnight task.
+
+**X-ray slice reuse (2026-10-17):** [219 — X-ray slice cache](docs/00_dev_roadmap/219_xray_slice_cache.md)
+keeps unaffected chunks visible and restores cached meshes immediately when
+toggling slices or returning to a recent height. Three variants per chunk bound
+memory; terrain/season changes invalidate geometry and water refreshes lazily.
+Same-height notifications and unchanged X-ray Off/On no longer rebuild the view.
+Native cache/lifecycle tests and copied-save checks are recorded in 219.
+Restart Play; saves are unchanged and no Windows export was produced.
+
+**X-ray performance (2026-10-17):** [218 — X-ray performance](docs/00_dev_roadmap/218_xray_performance.md)
+removes physical-terrain rebuilds triggered by inspection chunk uploads,
+reuses Full/Flat meshes, and updates only water for water changes. In the copied
+save at 7680×2160, worst first-build frames fall from 319 to 25 ms; the active
+sample falls from 310 to 35 ms. Appearance and original saves are preserved.
+See 218 for measurement limits and native regressions. Restart Play; no export.
+
+**Moving dwarves and slices (2026-10-17):** [217 — Dwarf slice visibility](docs/00_dev_roadmap/217_dwarf_slice_visibility.md)
+fixes workers staying invisible after walking downstairs into the selected slice.
+The player's queued torch Move physically uses the stairs and lower-room work
+positions, but previously ran with the worker hidden. Transform notifications
+now update visibility before rendering, including ascent and paused restoration.
+Reach/occlusion rules and saves are unchanged. Restart Play; no Windows export.
+
+**Idle planning interruption (2026-10-17):** [216 — Idle planning](docs/00_dev_roadmap/216_idle_planning_interruption.md)
+preserves stationary idle timers and chair poses when considering work. Repeated
+unsuccessful checks no longer restart leisure forever; real assignments still
+interrupt immediately. The reported Sollin freeze does not reproduce on a fresh
+load: the copied save has usable routes and both lights can be installed.
+See 216 for the reproduced idle bug and the limits of the save observation.
+Original saves are untouched. Restart Play and reload; no Windows export.
+
+**Shared hauling routes (2026-10-17):** [215 — Shared hauling routes](docs/00_dev_roadmap/215_shared_hauling_routes.md)
+fixes the newer saved colony's repeated idle delay. Storage leases share bounded
+route searches and planning quanta; inventory changes retain valid geometry.
+Four awake dwarves receive jobs within 6.5 seconds in the copied-save check,
+with ongoing deliveries, exact goods conservation and ten native regressions.
+Navigation edits invalidate proofs; claims, needs and CPU limits remain intact.
+Original saves are unchanged. Restart Play and load the save; no Windows export.
+
+**Dwarf need indicators (2026-10-17):** [214 — Need indicators](docs/00_dev_roadmap/214_dwarf_need_indicators.md)
+adds one projected plate, exhaustion or unhappy-face badge above troubled dwarves.
+The inspector and Colony detail card explain the same issue and how to help.
+Serious/unresolved needs drive the display; normal meals and sleep retain their
+existing behavior. Badges respect zoom, terrain, slices, loading and pause.
+Native UI/needs tests, three aspect captures and a copied-save check are recorded
+in 214. Existing saves need no migration. Restart Play; no Windows export.
+
+**Hauling route fairness (2026-10-17):** [213 — Hauling route fairness](docs/00_dev_roadmap/213_hauling_route_fairness.md)
+addresses the player's multilevel-save stall. Difficult lower-level pickups now
+yield to alternative reachable loads, including for a lone worker; unchanged route searches survive
+availability churn from personal needs. Matching still respects proximity,
+filters, claims and the existing CPU/probe budgets. The saved colony also has
+no edible stored/loose food, a separate cause of work interruptions. Validation
+and copied-save evidence are in 213. Restart Play; no Windows export.
+
+**Final terrain state (2026-10-17):** [212 — Final terrain state](docs/00_dev_roadmap/212_final_terrain_state.md)
+removes completed stone/floor provenance. Schema 2 stores each current terrain
+override once, with exploration separate; unchanged cells regenerate from the
+seed. Valid schema-1 saves migrate in memory. Copied player quicksave/autosave
+load, re-save and reload with exact terrain/exploration preservation; original
+files are unchanged. Floor art/appeal and construction plans remain. Ordinary
+stone shares the natural 5% mining return. Restart Play; no Windows export.
+
+**Large-save load crash (2026-10-17):** [211 — Terrain restore batching](docs/00_dev_roadmap/211_large_save_terrain_restore.md)
+fixes the native crash reproduced with the player's larger settlement. SaveManager
+now coalesces repeated terrain invalidations per chunk during synchronous restore;
+every exact block edit and discovery update still occurs. Copied quicksave and
+autosave loads pass, with original save files preserved. A 65,536-edit regression,
+save/load round trips and X-ray checks pass. Large restores still take time behind
+the loading screen. Its original format is superseded by 212; batching remains.
+No Windows export.
+
+**Underground X-ray (2026-10-17):** [210 — X-ray and level reference](docs/00_dev_roadmap/210_underground_xray_and_level_reference.md)
+adds Full/Flat underground inspection beside the slice tower. Pin the lower
+level before raising the slice to retain dashed room/stair references. Working
+tools restore real terrain and current-slice picking, while keeping the guide;
+closing them resumes inspection. Only discovered interiors appear, construction
+updates the shell, and floods retain discovery. Native stacked-room/input/aspect,
+terrain-selection, construction, bedroom-lighting and save/load tests pass.
+View preferences are transient; the saved slice contract remains unchanged.
+Restart Play; no new autoload/global class and no Windows export.
+
+**Torch reach and larger construction (2026-10-17):** [209 — Torch reach and construction](docs/00_dev_roadmap/209_torch_reach_and_construction_size.md)
+extends wall/log torch radii from 12 to 20 voxels, spreading the existing smooth
+falloff over a longer distance. Native rendered profiles confirm a gentler outer
+gradient and preserved wall shadows; the full bedroom lighting regression passes.
+Stone and both floor tools now allow 32×32 drags, verified through actual input
+in both directions with oversized endpoints. Restart Play; no Windows export.
+
+**Optional mining guide (2026-10-17):** [208 — Mining guide](docs/00_dev_roadmap/208_optional_mining_area_guide.md)
+removes automatic per-voxel terrain outlines. Mine blocks now offers an
+off-by-default **32×32 mining guide** toggle. Thick world-aligned ribbons follow
+visible terrain, cliffs, slicing and mined/planned cuts; they hide outside mining
+and retain the toggle choice when reopening the tool. Sparse geometry expands
+coverage for ultrawide displays. Native input, geometry and 16:9/21:9/32:9 layout
+checks plus construction/mining feedback regressions are recorded in 208.
+Restart Play; no Windows playtest was created or updated.
+
+**DEV construction and bushes (2026-10-17):** [207 — DEV actions](docs/00_dev_roadmap/207_construction_and_bush_dev_actions.md)
+adds **DEV: Finish construction** to selected stone blueprints/materials crates
+and **Spawn Bushes** to Development. Instant completion uses staged stone and
+supplies missing materials, safely releasing active workers; obstructed blocks
+stay pending. Spawned blueberry, elderberry and strawberry bushes use real
+packed art and persistent identities for hauling, Place → Plants and save/load.
+Native lifecycle, planting, menu-layout and regression checks are recorded in
+207. Restart Play; no Windows playtest was created or updated.
+
+**Loading screen (2026-10-17):** [206 — Panoramic loading screen](docs/00_dev_roadmap/206_panorama_loading_screen.md)
+covers the world and HUD with a random choice of mountain or underground-settlement
+concept art and a beer-filling progress indicator. Each startup/save reload chooses
+once; the original mountain art is preserved. 16:9, 21:9 and 32:9 use the same vertical framing;
+wider displays reveal more landscape on either side. Reveal waits for all 1,024
+overview tiles, water/lighting/scenery queues and save restoration. A transient
+clock hold freezes simulation without changing saved pause/speed preferences.
+Input, native aspect captures, first-frame coverage and save/reload are tested.
+Restart Play. No Windows playtest was created or updated.
+
+**Staged construction (2026-10-17):** [205 — Construction materials crates](docs/00_dev_roadmap/205_construction_materials_crates.md)
+implements the approved project workflow. Dwarves deliver normal-capacity bundles
+to an automatic temporary crate, then one builder hammers each voxel for three
+seconds at normal labor speed. Up to two delivery workers use the existing carry
+budget (currently four stones). Staged stock and partial work survive interruption
+and save/load; cancellation returns unused stone. Inspector progress, crate art,
+hammer poses and fifteen native source fixtures are covered. The hammer follow-up
+aligns the striking end to each face, adjusts its held scale/stance, and adds six
+contact-timed stone knocks through Effects audio. Five targeted native pose,
+construction, crafting and recorded-audio checks pass. The continuity follow-up
+keeps the same assignment and planted stance across reachable blocks, completing
+a four-block column without intermediate idle frames, steps or pose resets.
+Blocked targets still replan, and partial work survives interruption. Restart Play.
+No Windows playtest was created or updated.
+
+**Terrain sun shadows (2026-10-17):** [204 — Terrain sun shadows](docs/00_dev_roadmap/204_terrain_sun_shadows.md)
+fixes strawberry/prop shadows projecting through solid cliffs onto lower ground.
+The sun now includes the existing terrain render layer in its caster mask.
+Plants retain their shadows; visible cliffs and walls now block sunlight too.
+Native shadow, room-lighting, sky-lifecycle and terrain slice/save/reload checks
+pass, with a copied-save rendering comparison. Restart Play. No Windows export.
+
+**Dining and game partners (2026-10-17):** [203 — Dining rest and game partners](docs/00_dev_roadmap/203_dining_rest_and_game_partners.md)
+keeps a diner seated after a successful meal, handing the chair to interruptible
+idle rest with no standing frame or second sit-down. Empty hands lower smoothly.
+Board-game eligibility now uses the six-hour cooldown, not the twelve-hour
+happiness thought, so available recent players can join. Five native source
+fixtures pass. Restart Play; no Windows playtest was created or updated.
+
+**Room selection (2026-10-17):** [202 — Selected room highlight](docs/00_dev_roadmap/202_selected_room_highlight.md)
+gives the clicked room a gold outline, a clear floor perimeter and a subtle floor
+tint. Only the selected room changes; switching rooms or closing the inspector
+updates immediately. Slice visibility, room rebuilds and seal loss retain the
+selection lifecycle. The highlight leaves room darkness readable. Restart Play.
+
+**Grid-corner fences (2026-10-17):** [201 — Grid-corner fences](docs/00_dev_roadmap/201_grid_corner_fences.md)
+replaces the old two-post panel with one Log Fence Post placed at a voxel corner.
+Two rails appear between adjacent same-height posts; corners and junctions share
+posts. Gates span two grid edges and share their end posts. Thin barriers block
+crossings without reserving neighboring floor cells, including route smoothing
+and ground-animal movement. Plans preview connections; installed posts make them
+physical. Crafting, Move, uninstall and current save/restore are covered by native
+checks. Posts are now 1.3 voxels high, with rails at 0.45 and 1.0; gate geometry
+and collision heights match the approved lower fence. Old panel layouts adopt
+the current post definition and may need moving.
+Restart Play. No Windows playtest was created or updated.
+
+**Rudimentary log game (2026-10-16):** [200 — Game on a log](docs/00_dev_roadmap/200_game_on_a_log.md)
+replaces the fitted board-game table with a squat bark-covered log, rough cut rim,
+end grain, charcoal grid and loose stone counters. Its game area is now 3×3;
+two independently placed stools sit immediately outside opposite sides (3×5
+including the stool tiles, plus dwarf clearance). Native surface-relative hand
+reaches, current save/restore and placement labels follow the new geometry.
+Existing tables use the current layout on reload under the development-save
+policy; reposition their stools onto the new guides if needed. Restart Play.
+
+**Hearth room heater (2026-10-16):** [199 — Campfire and room hearth](docs/00_dev_roadmap/199_campfire_and_room_hearth.md)
+keeps the campfire's outdoor ring and 3×3 camp area, while the hearth becomes a
+2×2 open-front fieldstone heater with lower flames and glowing coals. Place
+labels explain both footprints. The hearth inspector reports its enclosed room,
+live temperature/comfort and individual heat contribution, or why no room is
+heated. Output is now 1600 heat units: one heats a small bedroom without tiny-room
+overheating; larger winter rooms may need more. Existing furniture keys, physical
+footprints, crafting costs and save format are retained. Restart Play to load the
+new model, thumbnail and balance. No Windows playtest was created.
+
+**Fullscreen startup (2026-10-16):** Player-requested display change sets
+`window/size/mode=3` (borderless fullscreen). The viewport renders at the display
+resolution; 2560×1440 remains only the windowed fallback. Native source and
+exported-package checks confirm 7680×2160 window, viewport and render texture
+with stretch disabled. Details are recorded in
+[198's fullscreen follow-up](docs/00_dev_roadmap/198_rudimentary_recreation.md#fullscreen-follow-up).
+Restart Play. Screenshot fixtures that need a
+fixed window size should launch with `--windowed`.
+
+**Rudimentary recreation shipped (2026-10-16):**
+[198 — Rudimentary fences, gates and board games](docs/00_dev_roadmap/198_rudimentary_recreation.md)
+adds Worker-crafted log fences, automatic log gates and a board-game table with
+two independently placed log stools. Two-dwarf games provide +8 happiness for
+12 game hours; transient games release safely for needs, movement, furniture
+changes and scene teardown. Mood memory/cooldown save with backward-compatible
+optional fields. Place has a Recreation category and opposite stool guides.
+The scene owns matchmaking; no global class or autoload was added. Native art,
+job/needs/furniture regressions and save/reload validation are recorded in 198,
+along with the screenshot. Restart Play to use it.
+Construction staging subsequently shipped in 205. Performance targets, water
+and findings in 177 remain parked as described below.
+
 **Performance work paused (2026-10-15) — current direction:**
 Camera panning and slicing feel substantially better, and several major hitches
 have been reduced. Pause proactive performance targets and retain the existing
@@ -7,12 +226,11 @@ measurements as the baseline. The latest duck change reduces CPU work without
 establishing a reliable overall FPS gain; do not automatically continue through
 the older performance follow-up lists below.
 
-Next focus: gameplay and usability, beginning with a fresh construction workflow
-discussion in [193](docs/00_dev_roadmap/193_arrival_preparation_performance.md).
-The intended direction is to deliver all project materials to a drop box, then
-hammer for a duration that may scale with block count. Discuss batch deliveries
-to address one-stone trips; carrying capacity, multiple builders, completion
-timing and cancellation/material recovery remain open design questions.
+Current focus: gameplay and usability. The construction workflow discussed in
+[193](docs/00_dev_roadmap/193_arrival_preparation_performance.md) was approved and
+implemented in [205](docs/00_dev_roadmap/205_construction_materials_crates.md):
+temporary crates, existing carry capacity, one builder and progressive completion
+with three seconds of work per voxel. Continue from fresh player feedback.
 
 Keep routine performance awareness during ordinary play. Revisit profiling for
 a repeatable hitch or clear regression. The longer normal-speed 30-dwarf soak

@@ -1,5 +1,22 @@
 # 13 — Architecture
 
+**Underground inspection ownership (2026-10-17):** `XrayController` is
+scene-owned, wired to the renderer, slice controller, dock and placement tools.
+`XrayGeometry` builds presentation geometry from `InteriorTracker`, which owns
+discovered air and construction invalidation. The camera temporarily selects
+inspection layer 19; terrain remains a shadow caster and simulation source.
+Existing slice save state remains authoritative; X-ray/reference state is
+transient. JSON tuning uses UIRegistry's existing time/slice definitions. See
+[210](../00_dev_roadmap/210_underground_xray_and_level_reference.md).
+
+**Loading presentation (2026-10-17, 206):** scene-owned `WorldLoadingScreen`
+gates first startup and reloaded scenes on full terrain, water, light and scenery
+readiness. Its CanvasLayer hides gameplay UI and blocks input. WorldClock holds
+transient owner-keyed loading pauses separately from the saved player preference;
+generation and presentation queues keep running. Reveal/teardown release the hold.
+UIRegistry owns the loading screen JSON. No new autoload or global class. See
+[206](../00_dev_roadmap/206_panorama_loading_screen.md).
+
 **Food and dining (2026-10-12, 131):** per-dwarf `DwarfFoodBehavior` orchestrates
 storage-first meals. `DwarfForaging` uses SurfaceDetailManager's transient crop
 claims, saved harvest work and shared crop commit. `DwarfDining` uses furniture
@@ -25,17 +42,23 @@ dwarves remain the sole owners of physical goods. No new autoload or global
 class is introduced. See [132](../00_dev_roadmap/132_furniture_move.md).
 
 **Structural construction (2026-10-12):** `BlockRegistry` loads
-`data/construction/blocks.json`. Scene-owned `ConstructionController` owns completed
-block provenance, pending areas, meshes and the `construction` save section
-(priority 15). Preloaded `ConstructionWork` reuses the furniture fetch contract
-for physical stone delivery and retained per-block work. No new autoload or
+`data/construction/blocks.json`. Scene-owned `ConstructionController` owns
+unfinished areas, preview meshes and the `construction` save section
+(priority 15). Since 2026-10-17, preloaded `ConstructionMaterials` extends normal
+storage hauling for a project-owned temporary crate, while `ConstructionWork`
+uses a work-only branch of the furniture fetch contract for retained per-block
+hammering. Saved orders optionally include total blocks, crate location and actual
+staged materials; runtime claims/routes rebuild. ColonyInventory includes staged
+stock as reserved, never available to other consumers. No new autoload or
 global class is introduced. `WorldData` holds solidity; the existing mining,
 navigation, room and terrain-lighting systems consume it. See
-[127 — Structural stone](../00_dev_roadmap/127_structural_stone_construction.md).
+[127 — Structural stone](../00_dev_roadmap/127_structural_stone_construction.md) and
+[205 — Staged construction](../00_dev_roadmap/205_construction_materials_crates.md).
 
 **Permanent floors (2026-10-12, roadmap 128):** the same owner holds typed plank
 and stone floor plans, with normal worker work disabled. Their inspector's DEV
-Build commits validated terrain cells. Preloaded `ConstructionFloorArt` caches
+Build commits validated terrain cells. WorldRenderer now owns their presentation;
+preloaded `ConstructionFloorArt` caches
 the authored GLBs' boundary faces and appends only exposed faces to the terrain
 batch. BlockRegistry owns their construction data and block IDs. RoomManager
 owns `data/rooms/appeal.json`, deriving finished floor coverage and its +5 room
@@ -49,7 +72,7 @@ and analytic soil moisture. WorldGenerator owns `water.json`; WaterFlow and
 SoilMoisture are pure preloaded components. WaterRenderer, MoistureRenderer and
 WaterSound are scene-owned presentation. WorldData exposes `get_terrain_block`
 (raw, generated fallback) and `get_live_block` (including current water). The
-`water` save owner restores at priority 11, after mining changes terrain. New
+`water` save owner restores at priority 11, after SaveManager restores final terrain. New
 planting/navigation avoid standing water; existing plants are not flood-damaged.
 
 **Item permissions and water stones (2026-10-10):** `ItemPermission` supplies the
@@ -334,7 +357,7 @@ signal task_added / task_assigned / task_released / task_completed / task_failed
 ```
 
 ### `InteriorTracker` *(doc 11 Phase X0, piggybacked on mining — doc 16 Phase 4)*
-Data-only interior-column bookkeeping for the future X-Ray mode. Mining (real and DEV) calls `on_blocks_mined()` after the void write; the tracker walks air upward (cap 4) into per-chunk interior sets. Never serialised — rebuilt from the mined set on load.
+Data-only interior and exploration bookkeeping for X-ray. Mining (real and DEV) calls `on_blocks_mined()` after the void write; the tracker walks air upward (cap 4) and discovers adjacent caves. Known cells and cave IDs save separately from terrain; interior air indexes rebuild from that knowledge and current block values. Filling a known cell preserves its exploration without preserving a mined/built history.
 
 ### `RoomManager` *(doc 34 temperature system, doc 22 doors — 2026-08-03)*
 Sealed-room detection and temperature. Not fed by a signal subscription — `FurniturePlacementController` (a scene node, not an autoload, so the dependency has to run this direction) calls `on_furniture_changed(key, cells, def, installed)` directly on every door/heat-source furniture install and uninstall — `cells` is the piece's full footprint (doc 22b, 2026-08-06: doors widened to 2×1, so every occupied cell, not just the origin, is registered as a sealing boundary). Also listens to `WorldData.chunk_dirtied` (any block edit — throttled, full-rebuild-on-dirty, see the script header) and `WorldClock.hour_changed` (cheap per-room formula recompute, no flood-fill). Public read API: `get_room_at(cell) -> Dictionary` (empty if not sealed), `get_stats()`. Never serialised — same DERIVABLE-state precedent as `InteriorTracker`; furniture restore re-installing every door through the normal path rebuilds rooms automatically on load.
@@ -427,8 +450,11 @@ Saving is observational: `serialize_state()` must not pause the simulation, rele
 task, clear a reservation, move an entity, or otherwise change gameplay. Loading is a
 world-replacement boundary: `SaveManager` validates the snapshot, resets transient
 autoload state, reloads the current scene with the saved seed, waits for deterministic
-generation to finish, restores owners in priority order, rebuilds stockpile totals, and
-finally restores clock/weather. Full schema and lifecycle: `00_dev_roadmap/20_save_load.md`.
+generation to finish, restores final terrain and exploration, then owners in
+priority order, rebuilds stockpile totals, and
+finally restores clock/weather. Schema 2 removes completed block provenance;
+validated schema-1 terrain migrates in memory through `TerrainSaveMigration`.
+Full schema and lifecycle: `00_dev_roadmap/20_save_load.md`.
 
 `SurfaceFloraSpawner` saves only changed trees in the required `flora` section:
 species/stage identity, floor origin, partial felling work, designation and felled

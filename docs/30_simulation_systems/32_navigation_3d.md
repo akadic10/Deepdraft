@@ -1,5 +1,14 @@
 # 32 — 3D Navigation
 
+**Grid-edge fences (2026-10-17):** [201](../00_dev_roadmap/201_grid_corner_fences.md)
+adds thin post/rail barriers to `PlacedEntityRegistry`. These do not make either
+adjacent floor tile unwalkable. A* transitions, flat route smoothing and live
+dwarf movement sweep against the barriers, including diagonal post corners.
+Ground-animal clearance and hops use the same barriers. Gate openings remain
+passable under the existing door convention. Creation/removal emits the normal
+occupancy invalidation signal; plans have no physical barrier. Terrain cells
+remain owned by WorldData, and three-block dwarf clearance is unchanged.
+
 **Wall-light access (2026-10-12):** Both torches install and uninstall from a
 reachable walkable floor beneath/beside the bracket, up to five blocks below
 its cell. Normal three-block clearance and a clear reach to the mount are

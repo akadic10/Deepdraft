@@ -22,6 +22,9 @@ var _roster_filters: Array[Dictionary] = []
 var _storage_categories: Array[Dictionary] = []
 var _sky_dial: Dictionary = {}
 var _time_slice: Dictionary = {}
+var _loading_screen: Dictionary = {}
+var _dwarf_indicators: Dictionary = {}
+var _need_icons: Dictionary = {}
 
 # ── Internal tables ───────────────────────────────────────────────────────────
 # Ordered list of validated navigation buttons.
@@ -43,7 +46,48 @@ func _ready() -> void:
 	_load_storage_categories()
 	_load_sky_dial()
 	_load_time_slice()
+	_load_loading_screen()
+	_load_dwarf_indicators()
 	print("UIRegistry: loaded %d dock items." % _dock_items.size())
+
+
+func _load_loading_screen() -> void:
+	var file := FileAccess.open("res://data/ui/loading_screen.json",FileAccess.READ)
+	if file == null:
+		push_error("UIRegistry: missing loading screen definition")
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary or not parsed.get("backgrounds") is Array or parsed.backgrounds.is_empty():
+		push_error("UIRegistry: loading screen needs a nonempty backgrounds list")
+		return
+	for path in parsed.backgrounds:
+		if not path is String or path.is_empty():
+			push_error("UIRegistry: loading screen background paths must be nonempty strings")
+			return
+	_loading_screen = parsed
+
+
+func get_loading_screen() -> Dictionary:
+	return _loading_screen
+
+
+func _load_dwarf_indicators() -> void:
+	var file := FileAccess.open("res://data/ui/dwarf_indicators.json",FileAccess.READ)
+	var parsed = JSON.parse_string(file.get_as_text()) if file != null else null
+	if not parsed is Dictionary or not parsed.get("icons") is Dictionary:
+		push_error("UIRegistry: invalid dwarf indicator definition")
+		return
+	_dwarf_indicators = parsed
+	for kind: String in ["food","rest","mood"]:
+		_need_icons[kind] = load(String(parsed.icons[kind])) as Texture2D
+
+
+func get_dwarf_indicators() -> Dictionary:
+	return _dwarf_indicators
+
+
+func get_need_icon(kind: String) -> Texture2D:
+	return _need_icons.get(kind)
 
 
 # ── Loaders ───────────────────────────────────────────────────────────────────

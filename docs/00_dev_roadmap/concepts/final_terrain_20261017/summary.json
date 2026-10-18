@@ -1,0 +1,159 @@
+{
+  "date": "2026-10-17",
+  "engine": "Godot 4.7.2 native source project",
+  "schema": 2,
+  "tests": [
+    {
+      "test": "ConstructionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 13.92,
+      "timeout": false,
+      "run": "focused"
+    },
+    {
+      "test": "ConstructionInputTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 9.72,
+      "timeout": false,
+      "run": "floor_final"
+    },
+    {
+      "test": "FloorConstructionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.34,
+      "timeout": false,
+      "run": "floor_final"
+    },
+    {
+      "test": "TerrainExplorerTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.2,
+      "timeout": false,
+      "run": "focused"
+    },
+    {
+      "test": "SaveManagerRoundTripTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 63.02,
+      "timeout": false,
+      "run": "final"
+    },
+    {
+      "test": "ConstructionStagingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 27.47,
+      "timeout": false,
+      "run": "regression"
+    },
+    {
+      "test": "ConstructionContinuityTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 9.18,
+      "timeout": false,
+      "run": "regression"
+    },
+    {
+      "test": "ConstructionDevTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 6.47,
+      "timeout": false,
+      "run": "regression"
+    },
+    {
+      "test": "ConstructionAudioTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.1,
+      "timeout": false,
+      "run": "regression"
+    },
+    {
+      "test": "XrayViewTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 33.62,
+      "timeout": false,
+      "run": "regression"
+    },
+    {
+      "test": "FinalTerrainStateTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 12.69,
+      "timeout": false,
+      "run": "final"
+    },
+    {
+      "test": "TerrainEditBatchTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 2.22,
+      "timeout": false,
+      "run": "final"
+    }
+  ],
+  "player_saves": [
+    {
+      "slot": "quicksave",
+      "passed": true,
+      "legacy_positions_verified": 56777,
+      "final_overrides": 44958,
+      "checks": [
+        "legacy load",
+        "schema-2 save",
+        "schema-2 reload",
+        "exact terrain and exploration",
+        "X-ray capture"
+      ]
+    },
+    {
+      "slot": "autosave",
+      "passed": true,
+      "legacy_positions_verified": 56777,
+      "final_overrides": 45008,
+      "checks": [
+        "legacy load",
+        "schema-2 save",
+        "schema-2 reload",
+        "exact terrain and exploration",
+        "X-ray capture"
+      ]
+    }
+  ],
+  "original_saves": [
+    {
+      "file": "autosave.backup.json",
+      "sha256": "0E5813FD1C61733EBB81536716D5F12577363511D55C05B77E22D6AAAF15A149",
+      "unchanged": true
+    },
+    {
+      "file": "autosave.json",
+      "sha256": "E481FEC60462AC3F47282FE0E47DD6A820E06A4ABA7752BC575A838725A36C8B",
+      "unchanged": true
+    },
+    {
+      "file": "quicksave.backup.json",
+      "sha256": "155E78AD3EDF3EF0DFAF3F8D279265C65154C80BE827814E33E0629DF1878E5D",
+      "unchanged": true
+    },
+    {
+      "file": "quicksave.json",
+      "sha256": "226070E45CED9669F706BCC73F3D5C6AFE14A723BA3EE1DF44E8D7DF8C8BABA4",
+      "unchanged": true
+    }
+  ],
+  "visual_review": [
+    "quicksave_resaved.png",
+    "autosave_xray.png",
+    "complete_room.png"
+  ],
+  "windows_export_created": false
+}

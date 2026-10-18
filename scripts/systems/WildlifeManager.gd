@@ -69,6 +69,10 @@ func _process(delta: float) -> void:
 		for dwarf: Node3D in director.get_roster(): threats.append(dwarf.global_position)
 	advance(delta, threats)
 
+func is_loading_complete() -> bool:
+	return initialized and deer_initialized and wolf_initialized and duck_initialized
+
+
 func advance(delta: float, threats: Array) -> void:
 	if WorldClock.paused or WorldClock.speed <= 0: return
 	if profile_updates: last_update_ms.clear()

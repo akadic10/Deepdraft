@@ -1,13 +1,14 @@
 # 11 — Game Design Overview
 
-**Implementation checkpoint — 2026-10-10:** the current playable foundation
-includes seasonal day/night and weather, finite spring-fed rivers/lakes,
-waterfalls, flooding, soil moisture, movable wet/dry stones with Allow/Disallow,
-and rabbit/deer/wolf/duck wildlife. Ducks swim, visit banks and make short flights.
-Gems drop as finished voxel goods; no Jeweller or polishing stage is planned.
-Farming, physical brewing-water hauling and the production/trade loop described
-below remain design goals. See [112 — Session handoff](../00_dev_roadmap/112_session_handoff_2026_10_10.md)
-for the completed work and current limits.
+**Implementation checkpoint — 2026-10-17:** the playable foundation includes
+seasonal weather, finite water, wildlife, underground rooms, rudimentary
+furniture/recreation, staged stone construction with hammer work, dwarf need
+indicators, fullscreen panoramic loading, and discovered-interior Full/Flat
+X-ray with cached slice views. Save schema 2 records final terrain overrides
+and exploration separately. See [220 — Session handoff](../00_dev_roadmap/220_session_handoff_2026_10_17.md)
+for current behavior, validation, remaining limits and the next resume point.
+Farming, physical brewing-water hauling and the production/trade loop below
+remain design goals. Gems remain finished drops without a Jeweller/polishing stage.
 
 1. Core Vision
 

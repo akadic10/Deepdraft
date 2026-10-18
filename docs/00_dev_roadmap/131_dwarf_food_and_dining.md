@@ -132,6 +132,12 @@ Leisure and dining share an exclusive seat claim; table access positions are
 claimed separately. Removing a table preserves a usable chair; losing the seat
 falls back without losing the carried meal. Cancel/load releases transient claims.
 
+**2026-10-17 completion fix:** A successful seated meal transfers the same chair
+claim and seated pose to ordinary idle rest, while releasing the dining-table
+claim. Empty hands lower over the existing seat transition interval. The dwarf
+stays available for work and later stands through the normal transition; needs,
+movement, removal and load can still release the seat. See [203](203_dining_rest_and_game_partners.md).
+
 Initial dining balance:
 
 | Arrangement | Thought | Happiness |

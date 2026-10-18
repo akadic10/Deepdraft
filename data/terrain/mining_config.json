@@ -9,6 +9,11 @@
     "max_horizontal": 8,
     "max_vertical": 8
   },
+  "area_guide": {
+    "cell_size": 32,
+    "line_width": 0.16,
+    "color": "#edbd71b8"
+  },
   "zone": {
     "max_workers": 4
   },

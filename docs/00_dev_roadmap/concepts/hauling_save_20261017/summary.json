@@ -1,0 +1,126 @@
+{
+  "date": "2026-10-17",
+  "scope": "Source-project hauling scheduler; no export and no original player-save writes.",
+  "native_regressions": [
+    {
+      "test": "HaulingRouteFairnessTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 10.39,
+      "timeout": false
+    },
+    {
+      "test": "HaulingSelectionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 13.55,
+      "timeout": false
+    },
+    {
+      "test": "HaulingCapacityTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.36,
+      "timeout": false
+    },
+    {
+      "test": "StorageFilterTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 6.57,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionStagingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 29.75,
+      "timeout": false
+    },
+    {
+      "test": "PlacementHaulPriorityTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 27.48,
+      "timeout": false
+    },
+    {
+      "test": "JobPlanningTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 12.27,
+      "timeout": false
+    },
+    {
+      "test": "WorkerCraftingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 17.81,
+      "timeout": false
+    },
+    {
+      "test": "JobLifecycleTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.77,
+      "timeout": false
+    }
+  ],
+  "original_saves": [
+    {
+      "file": "autosave.backup.json",
+      "sha256_before": "86813627699f0f1faf1553352edd7ea2583cba9b9b6f80da136721657c7abb32",
+      "sha256_after": "86813627699f0f1faf1553352edd7ea2583cba9b9b6f80da136721657c7abb32",
+      "unchanged": true
+    },
+    {
+      "file": "autosave.json",
+      "sha256_before": "e4a3c577bb715ffebcdac3a3bc886a725032b9752d7223449c27a194e5c04d66",
+      "sha256_after": "e4a3c577bb715ffebcdac3a3bc886a725032b9752d7223449c27a194e5c04d66",
+      "unchanged": true
+    },
+    {
+      "file": "quicksave.backup.json",
+      "sha256_before": "226070e45ced9669f706bcc73f3d5c6afe14a723ba3ee1df44e8d7df8c8baba4",
+      "sha256_after": "226070e45ced9669f706bcc73f3d5c6afe14a723ba3ee1df44e8d7df8c8baba4",
+      "unchanged": true
+    },
+    {
+      "file": "quicksave.json",
+      "sha256_before": "4aa3a35d58d41720c460f582cc7fc7dcf166cfe08f7958cb7d976adfeea206c8",
+      "sha256_after": "4aa3a35d58d41720c460f582cc7fc7dcf166cfe08f7958cb7d976adfeea206c8",
+      "unchanged": true
+    }
+  ],
+  "baseline": {
+    "seconds_observed": 60,
+    "stored_before": 62,
+    "stored_after": 62
+  },
+  "player_quicksave": {
+    "seconds_observed": 120,
+    "stored_before": 62,
+    "stored_after": 67,
+    "total_units_preserved": 89,
+    "sampled_stored_counts": [
+      62,
+      62,
+      62,
+      62,
+      62,
+      63,
+      63,
+      63,
+      67,
+      67,
+      67,
+      67
+    ],
+    "lifecycle_errors": [],
+    "notes": [
+      "Normal food/sleep simulation remains active.",
+      "The saved colony has no edible loose or stored food.",
+      "Both runs used identical paused read-only reachability diagnostics before observation."
+    ]
+  }
+}

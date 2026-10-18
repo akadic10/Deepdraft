@@ -25,6 +25,13 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 	for category: String in physical:
 		for entry: Dictionary in physical[category]:
 			_material(_row(result, entry.key), CraftMaterials.of_item(entry.node), int(entry.count))
+	for construction in items.get_tree().get_nodes_in_group("construction"):
+		var staged: Dictionary = construction.staged_inventory()
+		for key: String in staged:
+			for material: String in staged[key]:
+				var amount := int(staged[key][material])
+				_row(result,key).stored += amount
+				_material(_row(result,key),material,amount)
 	var catalog := furniture.get_catalog_stock() if is_instance_valid(furniture) else {}
 	var furniture_by_item := {}
 	if is_instance_valid(furniture):

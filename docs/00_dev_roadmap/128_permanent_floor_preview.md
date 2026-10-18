@@ -1,5 +1,9 @@
 # 128 — Permanent floor preview
 
+**2026-10-17:** [212](212_final_terrain_state.md) removes completed-floor ownership.
+The current block type preserves appearance, support and room appeal; both floors
+save only in the unified final terrain map. Construction retains pending plans.
+
 Implemented 2026-10-12. The player approved permanent floors that replace a full
 supporting voxel: mine an extra layer, then fill it to restore the original
 walking height. Mining and construction stay separate. Wall finishes remain
@@ -12,7 +16,8 @@ separate future category.
 [138 — Illustrated Construction](138_illustrated_construction.md) replaces the
 original voxel thumbnails with matching Hearth & iron illustrations, preview
 flask badges and hover/focus descriptions. Click or drag across cleared space to
-plan one layer, up to 16×16 cells. The tiles require solid ground immediately
+plan one layer, up to 32×32 cells after [209](209_torch_reach_and_construction_size.md).
+The tiles require solid ground immediately
 below them; they cannot bridge a gap. Escape ends the tool. Existing terrain
 must be mined separately, and floors cannot overwrite it.
 
@@ -28,7 +33,8 @@ discovery, actors, loose goods, furniture, storage, other structures and support
 at commit. Blocked cells remain pending with a reason; retry or cancel them.
 Normal mining removes finished floors. These free preview floors return no
 materials, avoiding a free-resource loop. Normal stone-block construction still
-requires one delivered rough stone and refunds that stone when mined.
+requires one delivered rough stone; mining it now uses the same 5% rough-stone
+chance as natural stone.
 
 **2026-10-12 playtest fixes:** idle dwarves can take a normal adjacent step up
 out of a shallow unfinished floor tile; retry DEV Build once they move clear.
@@ -58,8 +64,8 @@ stone uses a repeating staggered slab pattern. Pattern phase is anchored to the
 world grid, so separately built areas join consistently after saving or repair.
 `tools/GenerateFloorIcons.gd` renders their menu icons through Godot.
 
-`ConstructionFloorArt` caches the six boundary faces from each GLB. Construction
-batches exposed faces into its existing terrain mesh, excluding internal faces.
+`ConstructionFloorArt` caches the six boundary faces from each GLB. WorldRenderer
+batches exposed faces into the shared terrain mesh, excluding internal faces.
 There are no per-tile scene nodes or physics colliders. Floors share live terrain
 lighting, shadow layers and slice clipping; artificial slice caps remain dimmed.
 
@@ -81,7 +87,8 @@ aggregate furniture appeal and appeal-based happiness remain later systems.
 
 BlockRegistry owns the construction definitions and two constructed-floor block
 identities. They are never generated in natural terrain. ConstructionController
-keeps completed cell/block provenance and each pending order's construction kind.
+keeps each pending order's construction kind. Completed floors save once in
+`scene.terrain.edits`, with no provenance.
 Restoration writes actual solid terrain before furniture and dwarves, preserving
 navigation, room sealing and pattern phase. SaveSnapshotValidator accepts only
 known construction types and registered rock/floor block identities. Development

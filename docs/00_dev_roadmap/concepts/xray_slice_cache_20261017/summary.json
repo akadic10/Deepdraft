@@ -1,0 +1,148 @@
+{
+  "save_check": {
+    "cache_entries": 70,
+    "chunks": 56,
+    "failures": [],
+    "first_off": {
+      "queued": 14,
+      "retained": 42
+    },
+    "resolution": "(7680, 2160)",
+    "toggles": [
+      {
+        "iteration": 0,
+        "job": false,
+        "mode": "on",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 0,
+        "job": false,
+        "mode": "off",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 1,
+        "job": false,
+        "mode": "on",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 1,
+        "job": false,
+        "mode": "off",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 2,
+        "job": false,
+        "mode": "on",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 2,
+        "job": false,
+        "mode": "off",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 3,
+        "job": false,
+        "mode": "on",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 3,
+        "job": false,
+        "mode": "off",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      },
+      {
+        "iteration": 0,
+        "job": false,
+        "mode": "xray_on",
+        "queued": 0,
+        "same_meshes": true,
+        "visible": 56
+      }
+    ]
+  },
+  "tests": [
+    {
+      "test": "XrayViewTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 72.51,
+      "timeout": false
+    },
+    {
+      "test": "TimeSliceHUDTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.99,
+      "timeout": false
+    },
+    {
+      "test": "TerrainExplorerTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.3,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionInputTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 8.02,
+      "timeout": false
+    }
+  ],
+  "original_saves": [
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\autosave.backup.json",
+      "before": "E593BF289928588DE1275321CB33F3845DB8965D4587FBF0BF859510120202A6",
+      "after": "E593BF289928588DE1275321CB33F3845DB8965D4587FBF0BF859510120202A6",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\autosave.json",
+      "before": "E6540B4FC1B45220876A387567C73836342AAB4D37E88A2C123C47E483BE0D19",
+      "after": "E6540B4FC1B45220876A387567C73836342AAB4D37E88A2C123C47E483BE0D19",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\quicksave.backup.json",
+      "before": "A820D2162D1A5406D18B349932DFC09E7E423AE3A36B19FA51F06B0DA5C58723",
+      "after": "A820D2162D1A5406D18B349932DFC09E7E423AE3A36B19FA51F06B0DA5C58723",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\akadi\\AppData\\Roaming\\Godot\\app_userdata\\Deepdraft\\saves\\quicksave.json",
+      "before": "64101240E0CE170FDB3DDAE2417725E4AA8F071860FAD495F502414C6718E5B9",
+      "after": "64101240E0CE170FDB3DDAE2417725E4AA8F071860FAD495F502414C6718E5B9",
+      "unchanged": true
+    }
+  ],
+  "notes": [
+    "Transient per-chunk cache; at most three variants, including active.",
+    "First uncached toggle can build affected chunks; repeated unchanged toggles reuse cached geometry.",
+    "Normal terrain still updates for a genuine cutoff change. No broad frame-time claim.",
+    "All native runs used isolated APPDATA and LOCALAPPDATA. Original saves were never loaded for writing."
+  ]
+}

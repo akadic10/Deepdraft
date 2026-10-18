@@ -10,6 +10,9 @@ const BOULDER_A := "boulder:1234:fixture:a"
 const BOULDER_B := "boulder:1234:fixture:b"
 const BOULDER_OUTSIDE := "boulder:1234:fixture:outside"
 
+class GuideSlice extends Node:
+	var slice_y := 127
+
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Orders test timed out"); quit(1))
@@ -99,6 +102,7 @@ func _run() -> void:
 	await _settle()
 	_expect(mining.is_active() and orders._banner.visible and not mining._hint_window.visible, "mining uses the shared banner")
 	_expect(orders.is_open() and orders._buttons.mine_precision.button_pressed, "shelf stays open and marks the active tool")
+	await _test_mining_guide()
 	_click(orders._buttons.mine_precision.get_global_rect().get_center())
 	_expect(mining.is_active(), "reselecting mining does not toggle it off")
 	_test_mining_zoom()
@@ -502,13 +506,112 @@ func _detail_pick_point(id: String) -> Vector2:
 	return Vector2(-1,-1)
 
 
+func _test_mining_guide() -> void:
+	# The fixture camera is detached from its rig; place the guide's pivot over
+	# the same review patch, as it is during actual play.
+	var original_pivot: Vector3 = rig.position
+	rig.position = Vector3(40,25,40)
+	_expect(not mining.is_mining_guide_enabled() and mining._terrain_grid_node.mesh==null and not mining._terrain_grid_node.visible,"mining opens without the old voxel grid or optional guide")
+	_expect(orders._mining_guide.visible and not orders._mining_guide.button_pressed,"mining controls expose an off-by-default guide toggle")
+	var before: int = mining._zones.size()
+	await _capture_guide("off")
+	_click(orders._mining_guide.get_global_rect().get_center())
+	await _settle()
+	_expect(mining.is_mining_guide_enabled() and mining._terrain_grid_node.visible and mining._terrain_grid_node.mesh!=null,"real toggle click enables the guide")
+	_expect(mining._zones.size()==before,"clicking guide controls never designates terrain")
+	_check_guide_mesh()
+	await _capture_guide("on")
+	var mesh: Mesh = mining._terrain_grid_node.mesh
+	mining._rebuild_terrain_grid()
+	_expect(mining._terrain_grid_node.mesh==mesh,"stationary guide reuses mesh")
+	var pivot: Vector3 = rig.position
+	rig.position += Vector3(16,0,16)
+	mining._rebuild_terrain_grid()
+	_expect(mining._terrain_grid_node.mesh!=mesh,"panning refreshes nearby coverage")
+	_check_guide_mesh()
+	var normal_radius: int = mining._terrain_grid_radius()
+	root.size = Vector2i(2560,720)
+	await _settle()
+	_expect(mining._terrain_grid_radius()==normal_radius*2,"32:9 receives wider guide coverage at the same zoom")
+	root.size = Vector2i(1280,720)
+	await _settle()
+	rig.position = pivot
+	# The visible slice replaces the natural top, while designated/mined cells
+	# lower that top. No single-voxel outlines return in either case.
+	var slice := GuideSlice.new()
+	mining._renderer = slice
+	slice.slice_y = 16
+	mining._on_visible_volume_changed()
+	var vertices: PackedVector3Array = mining._terrain_grid_node.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	_expect(Array(vertices).all(func(v): return is_equal_approx(v.y,17+mining.TERRAIN_GRID_OFFSET)),"guide follows sliced terrain height")
+	var cell := Vector3i(32,16,40)
+	mining._mined_blocks[cell] = true
+	mining._grid_dirty = true
+	mining._process(0)
+	vertices = mining._terrain_grid_node.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	_expect(Array(vertices).any(func(v): return is_equal_approx(v.y,16+mining.TERRAIN_GRID_OFFSET)),"mining updates the guide's newly exposed floor")
+	mining._mined_blocks.erase(cell)
+	mining._renderer = null
+	slice.free()
+	# A natural cliff is crossed by a thick continuous vertical stripe.
+	var generator = root.get_node("WorldGenerator")
+	var index := 32*1024+40
+	generator.heightmap[index] = 24
+	var stripe: PackedVector3Array = []
+	var colors: PackedColorArray = []
+	mining._append_area_guide(Vector2i(32,40),true,127,stripe,colors)
+	_expect(Array(stripe).any(func(v): return is_equal_approx(v.y,25+mining.TERRAIN_GRID_OFFSET)),"ribbon follows raised terrain")
+	_expect(Array(stripe).any(func(v): return is_equal_approx(v.z,41+mining.TERRAIN_GRID_OFFSET) and is_equal_approx(v.y,21)),"cliff stripe joins the two surface heights")
+	generator.heightmap[index] = 20
+	dock._request_order_tool("chop")
+	await _settle()
+	_expect(not orders._mining_guide.visible and not mining._terrain_grid_node.visible and mining._terrain_grid_node.mesh==null,"leaving mining hides guide and frees its mesh")
+	dock._request_order_tool("mine_precision")
+	await _settle()
+	_expect(orders._mining_guide.button_pressed and mining._terrain_grid_node.mesh!=null,"reopening mining retains the chosen guide setting")
+	_click(orders._mining_guide.get_global_rect().get_center())
+	await _settle()
+	_expect(not mining.is_mining_guide_enabled() and mining._terrain_grid_node.mesh==null,"toggle off removes all guide geometry")
+	mining._rebuild_terrain_grid(true)
+	_expect(mining._terrain_grid_node.mesh==null,"terrain notifications cannot rebuild a disabled guide")
+	orders._mining_guide.release_focus()
+	rig.position = original_pivot
+
+
+func _check_guide_mesh() -> void:
+	var mesh: Mesh = mining._terrain_grid_node.mesh
+	_expect(mesh.surface_get_primitive_type(0)==Mesh.PRIMITIVE_TRIANGLES,"guide uses thick ribbons rather than one-pixel lines")
+	var vertices: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var aligned := true
+	for i in range(0,vertices.size(),6):
+		var a := vertices[i]
+		var b := vertices[i+1]
+		var c := vertices[i+2]
+		var middle := (a+c)*.5
+		var dx := absf(middle.x-roundf(middle.x/32)*32)
+		var dz := absf(middle.z-roundf(middle.z/32)*32)
+		aligned = aligned and minf(dx,dz)<=.041 and absf(a.distance_to(b)-.08)<.0001
+	_expect(aligned,"all ribbons follow exact world 32-block boundaries at the configured thickness")
+	_expect(not mining._terrain_grid_material.no_depth_test and mining._terrain_grid_node.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"guide is occluded by terrain and casts no shadows")
+
+
+func _capture_guide(state: String) -> void:
+	if "--capture" not in OS.get_cmdline_user_args() and "--guide-capture" not in OS.get_cmdline_user_args(): return
+	DirAccess.make_dir_recursive_absolute("res://tmp/mining_guide_20261017")
+	_motion(Vector2(12,120))
+	await _settle()
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://tmp/mining_guide_20261017/guide_%s.png" % state)
+
+
 func _check_layouts() -> void:
-	for viewport_size in [Vector2i(960,540),Vector2i(1280,720),Vector2i(2560,1440)]:
+	for viewport_size in [Vector2i(960,540),Vector2i(1280,720),Vector2i(1680,720),Vector2i(2560,720),Vector2i(2560,1440)]:
 		root.size = viewport_size
 		dock._request_order_tool("mine_precision")
 		orders.set_open(true, "orders")
 		await _settle()
 		var bounds := Rect2(Vector2.ZERO, Vector2(viewport_size))
+		_expect(orders._banner.get_global_rect().encloses(orders._mining_guide.get_global_rect()),"mining guide toggle fits inside controls at " + str(viewport_size))
 		for control: Control in [orders._shelf, orders._banner, dock._dock_panel]:
 			_expect(bounds.encloses(control.get_global_rect()), "Orders control fits " + str(viewport_size))
 		_expect(orders._shelf.get_global_rect().end.y <= dock._dock_panel.position.y - 8, "shelf leaves gap above dock")
@@ -559,8 +662,12 @@ func _check_layouts() -> void:
 		explorer._window.position = Vector2(viewport_size.x - explorer._window.size.x - 24,24)
 		orders.refresh()
 		await _settle()
+		# Inspector content measures asynchronously. Refresh against its final
+		# rectangle instead of relying on six native frames reaching the 10 Hz UI tick.
+		orders.refresh()
+		await _settle()
 		for panel: Control in [orders._shelf,orders._banner]:
-			_expect(not panel.get_global_rect().intersects(explorer._window.get_global_rect()), "order controls leave inspector accessible at " + str(viewport_size))
+			_expect(not panel.get_global_rect().intersects(explorer._window.get_global_rect()), "order controls leave inspector accessible at %s: panel %s, inspector %s, tracked %s" % [viewport_size,panel.get_global_rect(),explorer._window.get_global_rect(),orders.inspector==explorer._window])
 		_expect(not dock._dock_panel.get_global_rect().intersects(explorer._window.get_global_rect()), "compact tree inspector clears the dock")
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw

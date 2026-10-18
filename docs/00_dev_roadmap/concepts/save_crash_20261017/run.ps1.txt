@@ -1,0 +1,13 @@
+param([string]$Run='baseline',[string]$Script='res://tmp/save_crash_20261017/LoadCopiedSave.gd',[switch]$Autosave)
+$ErrorActionPreference='Stop'
+$runDir = Join-Path 'P:/Deepdraft/tmp/save_crash_20261017' $Run
+New-Item -ItemType Directory -Force -Path $runDir | Out-Null
+$env:APPDATA = Join-Path $runDir 'appdata'
+$env:LOCALAPPDATA = Join-Path $runDir 'localappdata'
+$timer = [Diagnostics.Stopwatch]::StartNew()
+$launchArguments = @('--path','P:/Deepdraft','--windowed','--resolution','1280x720','--script',$Script)
+if ($Autosave) { $launchArguments += @('--','--autosave') }
+$process = Start-Process -FilePath 'S:/STEAM/steamapps/common/Godot Engine/godot.windows.opt.tools.64.exe' -ArgumentList $launchArguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runDir 'game.out') -RedirectStandardError (Join-Path $runDir 'game.err')
+while (-not $process.WaitForExit(1000)) { if ($timer.Elapsed.TotalSeconds -gt 170) { $process.Kill(); $process.WaitForExit(); break } }
+[ordered]@{run=$Run;exit=$process.ExitCode;seconds=[Math]::Round($timer.Elapsed.TotalSeconds,2)} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $runDir 'result.json')
+Get-Content -LiteralPath (Join-Path $runDir 'result.json')

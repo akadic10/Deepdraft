@@ -1,5 +1,12 @@
 # 11 - Slice & X-Ray: Deepdraft Implementation Plan
 
+**X-ray shipped (2026-10-17):** [210](210_underground_xray_and_level_reference.md)
+implements Full/Flat inspection from discovered interiors, live construction
+updates and a pinned lower-level guide. It supersedes this plan's mutual
+exclusion: slice height stays available in X-ray, and working tools restore the
+actual terrain while retaining the projected guide. The historical phases below
+are context, not a fresh implementation checklist.
+
 **UI/stepping follow-up (2026-10-12):** [142](142_fixed_time_slice_hud.md)
 supersedes this historical plan's movable palette and boundary-snapping steps.
 The live UI is a permanent bottom-right tower with exact ±1/±4 steps; first-use

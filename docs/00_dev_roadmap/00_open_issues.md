@@ -8,6 +8,24 @@
 
 ---
 
+**2026-10-17 closeout:** Current resume point:
+[220 — Session handoff](220_session_handoff_2026_10_17.md).
+
+| Recent report | Disposition |
+|---|---|
+| Existing save crashes while a new game works | Reproduced and fixed in [211](211_large_save_terrain_restore.md); final-state schema and compatibility checks in [212](212_final_terrain_state.md). |
+| Dwarves idle while goods need hauling | Route starvation and repeated planning work corrected in [213](213_hauling_route_fairness.md) and [215](215_shared_hauling_routes.md). New cases require current-save evidence; legitimate food/need interruptions are separate. |
+| Sollin remains motionless | Exact persistent freeze not reproduced after fresh load. A separate reproducible idle-timer/pose interruption bug was fixed in [216](216_idle_planning_interruption.md). |
+| Torch moved from upstairs | Exact copied-save trace used stairs and valid lower-room contact. Stale worker visibility fixed in [217](217_dwarf_slice_visibility.md); through-floor reach was not reproduced. |
+| X-ray severe stalls | Reproduced and corrected in [218](218_xray_performance.md), with native before/after measurements and their limits. |
+| X-ray completely rebuilds on slice toggles | Recent variants now retained in [219](219_xray_slice_cache.md). Repeated copied-save toggles queued zero mesh rebuilds; final player review remains pending. |
+
+Other completed gameplay reports are summarized in 220. Historical issues
+001/002 below remain presumed closed by the player's earlier instruction;
+these newer reports do not establish a shared cause or reopen them. The
+[177 review](177_project_review_deferred_2026_10_14.md) remains parked. This index
+does not authorize automatic investigations or unattended work.
+
 **2026-10-13 playtest fixes:** The following reports have reproduced causes and
 implemented fixes, with automated/native evidence in their milestone docs:
 

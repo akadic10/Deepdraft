@@ -126,6 +126,10 @@ func play_chop(position: Vector3, floor_y: int) -> bool:
 	return _play("chop",position,floor_y)
 
 
+func play_hammer(position: Vector3, floor_y: int) -> bool:
+	return _play("hammer",position,floor_y)
+
+
 ## A colony notification, audible even when the appointment was made while
 ## paused or its dwarf is outside the current view/slice. One voice bounds spam.
 ## Uses the same player volume/mute controls as the rest of the Work bus.

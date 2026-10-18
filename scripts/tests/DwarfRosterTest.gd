@@ -14,6 +14,9 @@ func _run() -> void:
 	generator._maps_ready = true
 	generator.heightmap.resize(1024 * 1024)
 	generator.heightmap.fill(20)
+	generator.waterline_map.resize(1024 * 1024)
+	generator.waterline_map.fill(-1)
+	generator._cache_block_ids()
 	manager = load("res://scripts/ui/UIWindowManager.gd").new()
 	manager.name = "Windows"
 	scene.add_child(manager)

@@ -430,10 +430,24 @@ func _sum_heat(cells: Dictionary) -> int:
 
 ## Sheltered rock climate and installed heating; tuning is owned by this autoload.
 func _recompute_temp(room: Dictionary) -> void:
-	var heat_bonus := float(room.heat_units)/maxf(float(room.volume),float(temperature_config.minimum_heated_volume))
+	var heat_bonus := heating_contribution(int(room.heat_units), int(room.volume))
 	room["heat_bonus_c"] = heat_bonus
 	room["temp_c"] = ambient_temperature(float(room.seasonal_influence))+heat_bonus
 	room["is_frozen_vault"] = float(room.temp_c)<=0.0
+
+
+## Single source and room totals share the same volume-normalized heating rule.
+func heating_contribution(heat_units: int, room_volume: int) -> float:
+	return float(heat_units) / maxf(float(room_volume), float(temperature_config.minimum_heated_volume))
+
+
+## Read-only inspector view. Re-resolve by air cell after every room rebuild.
+func heat_source_status(air_cell: Vector3i, heat_units: int) -> Dictionary:
+	var room := get_room_at(air_cell)
+	if room.is_empty(): return {}
+	return {"room_id": get_room_id_at(air_cell), "room_label": room_label(room),
+		"temperature_c": float(room.temp_c), "comfort": comfort_label(float(room.temp_c)),
+		"contribution_c": heating_contribution(heat_units, int(room.volume))}
 
 func temperature_at(air_cell: Vector3i) -> float:
 	var room := get_room_at(air_cell)

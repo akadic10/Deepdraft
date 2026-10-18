@@ -55,6 +55,7 @@ func _run() -> void:
 	var cancel := camera.unproject_position(Vector3(45.5,21.5,42.5))
 	_mouse_button(cancel,true,true); _mouse_button(cancel,false,true)
 	_expect(builder.orders.is_empty(),"Ctrl click cancels an unfinished area")
+	await _check_large_drags()
 	var wheel := InputEventMouseButton.new()
 	wheel.position = a; wheel.button_index = MOUSE_BUTTON_WHEEL_UP; wheel.pressed = true; wheel.alt_pressed = true
 	root.push_input(wheel,true)
@@ -71,12 +72,16 @@ func _run() -> void:
 		for y in range(21,25):
 			var cell := Vector3i(x,y,42)
 			built.append({"cell":[x,y,42],"block":String(blocks.get_key(root.get_node("WorldGenerator").construction_stone_id(cell)))})
-	builder.restore_state({"next_id":20,"built":built,"orders":[]})
+	world.restore_terrain({"edits":built})
+	builder.restore_state({"next_id":20,"orders":[]})
+	renderer._rebuild_added_terrain()
 	builder.renderer.slice_y = 127
 	furniture._slice_y = 127
 	builder._dirty = true
 	renderer._rebuild_added_terrain()
-	_expect(renderer._added_terrain==null,"generic positive-terrain renderer does not duplicate constructed faces")
+	_expect(renderer._added_terrain!=null and renderer._added_terrain.mesh!=null,"terrain renderer owns completed block faces")
+	# This fixture leaves the renderer detached to avoid starting worldgen.
+	renderer._added_terrain.reparent(scene, false)
 	_move(camera.unproject_position(Vector3(45.5,22.5,43)))
 	builder._update_preview(camera.unproject_position(Vector3(45.5,22.5,43)))
 	_expect(builder._hover==Vector3i(45,22,43),"wall-side picking targets adjacent cleared air")
@@ -98,6 +103,47 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 
+func _check_large_drags() -> void:
+	# Use clear terrain away from the furniture fixture. Exercise real preview
+	# and release input, including reverse drags and endpoints beyond the cap.
+	var original_transform := camera.transform
+	var original_projection := camera.projection
+	var original_size := camera.size
+	explorer.clear_selection()
+	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	camera.size = 56
+	camera.position = Vector3(100,80,100)
+	camera.rotation_degrees = Vector3(-90,0,0)
+	await _frames(3)
+	for kind in ["stone","plank_floor","stone_floor"]:
+		if not builder.is_active() or builder._kind!=kind:
+			builder._on_tool_requested("construct_"+kind)
+		for reverse in [false,true]:
+			var start := Vector3(80.5,21,80.5) if not reverse else Vector3(119.5,21,119.5)
+			var finish := Vector3(119.5,21,119.5) if not reverse else Vector3(80.5,21,80.5)
+			var a := camera.unproject_position(start)
+			var b := camera.unproject_position(finish)
+			_move(a); _mouse_button(a,true); _move(b)
+			var preview: Array = builder._preview_cells.duplicate()
+			_expect(preview.size()==32*32,"%s preview spans 32 by 32, reverse=%s" % [kind,reverse])
+			_mouse_button(b,false)
+			_expect(builder.orders.size()==1,"large drag creates one construction order")
+			if builder.orders.is_empty(): continue
+			var id: int = builder.orders.keys()[0]
+			var cells: Array = builder.orders[id].cells
+			_expect(cells==preview,"large order matches its capped preview")
+			var low := 88 if reverse else 80
+			var high := 119 if reverse else 111
+			_expect(cells.has(Vector3i(low,21,low)) and cells.has(Vector3i(high,21,high)),"large drag includes both corners")
+			_expect(cells.all(func(cell: Vector3i): return cell.x>=low and cell.x<=high and cell.z>=low and cell.z<=high),"oversized drag stops at 32 on both axes")
+			builder.cancel_order(id)
+	camera.transform = original_transform
+	camera.projection = original_projection
+	camera.size = original_size
+	builder._on_tool_requested("construct_stone")
+	await _frames(3)
+
+
 func _check_construction_menu() -> void:
 	var original_size := root.size
 	for resolution in [Vector2i(960,540), Vector2i(1280,720), Vector2i(2560,1440)]:
@@ -113,6 +159,8 @@ func _check_construction_menu() -> void:
 			_expect(is_equal_approx(button.size.x, button.size.y) and button.size.x >= 56, "Construction icons stay square")
 		await _capture_menu_art("construction_%d" % resolution.x)
 		var stone = dock._panel_body.get_child(0)
+		_move(Vector2(12,120))
+		await _frames(3)
 		_move(stone.get_global_rect().get_center())
 		await create_timer(.4).timeout
 		_expect(stone._info != null and stone._info.visible and stone.description.contains("1 rough stone"), "stone hover explains real material cost")
@@ -188,7 +236,7 @@ func _check_plan_inspector(id: int) -> void:
 	await _frames(5)
 	_expect(explorer.is_object_selected(builder,id) and manager.is_open("object_explorer"),"active construction tool opens clicked plan")
 	_expect(builder.orders.size()==1 and not builder._dragging,"inspecting a plan does not start another designation")
-	_expect(explorer._row_values[1].text=="3" and explorer._row_values[2].text=="3 rough stone","inspector shows remaining blocks and required stone")
+	_expect(explorer._row_values[1].text=="3" and explorer._row_values[2].text=="0 / 3 stone delivered","inspector shows remaining blocks and delivered stone")
 	_expect(explorer._outline.visible and explorer._outline_bounds.size.is_equal_approx(Vector3(3,1,1)),"selected area has a visible outline")
 	await _capture_ui("construction_inspector")
 	_click(explorer._window.position+Vector2(100,16))

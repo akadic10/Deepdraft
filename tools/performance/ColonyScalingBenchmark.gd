@@ -12,6 +12,7 @@ var activity := {}
 var activity_frames := 0
 var observed_frames := 0
 var mining: Node
+var build_targets: Array[Vector3i] = []
 var construction: Node
 var director: Node
 var phase_started_usec := 0
@@ -64,6 +65,7 @@ func _prepare_workload() -> void:
 				dig.append(cell)
 			for z in range(11,15): cells.append(at+Vector3i(x,0,z))
 		for z in range(3,15): build.append(at+Vector3i(17,1,z))
+		build_targets.append_array(build)
 		mining._create_zone(dig)
 		if construction.create_order(build)<0: push_error("Scaling construction rejected"); quit(2); return
 		var zone=load("res://scripts/components/StockpileZoneComponent.gd").new()
@@ -179,6 +181,6 @@ func _record_activity() -> void:
 func _work_stats() -> Dictionary:
 	var stored:=0
 	for zone in yard_zones: stored+=zone.stored_count()
-	return {"mined":mining._mined_blocks.size(),"built":construction.built.size(),"stored":stored,
+	return {"mined":mining._mined_blocks.size(),"built":build_targets.filter(func(cell): return root.get_node("BlockRegistry").is_solid(root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z))).size(),"stored":stored,
 		"active":root.get_node("TaskManager")._active.size(),"idle":root.get_node("TaskManager")._idle_dwarves.size(),
 		"navigation":root.get_node("NavGrid").get_stats()}

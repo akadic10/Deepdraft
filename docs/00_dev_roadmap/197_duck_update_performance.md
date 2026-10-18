@@ -1,5 +1,11 @@
 # 197 — Duck update performance · 2026-10-15
 
+**October 17 follow-up:** The construction workflow discussed below is now
+implemented in [205](205_construction_materials_crates.md). The current resume
+point is [220 — Session handoff](220_session_handoff_2026_10_17.md), including the
+subsequent user-reported X-ray fixes. Broader proactive performance work and the
+water investigation remain parked; this note does not resume either backlog.
+
 **Current direction, 2026-10-15:** pause proactive performance work and retain
 these measurements as the baseline. Camera panning and slicing now feel much
 better. Shift to gameplay and usability, starting with the fresh construction

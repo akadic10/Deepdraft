@@ -159,6 +159,13 @@ restore final bytes afterward, with no overlapping game/test process.
 
 ## Next construction discussion: project material staging
 
+**Resolved, 2026-10-17:** the user approved temporary materials crates and the
+existing dwarf carry capacity. [205](205_construction_materials_crates.md)
+implements staging, up to two haulers, one builder, three seconds of hammering
+per voxel, progressive completion and unused-material refunds. The discussion
+below records the earlier deferral; it no longer blocks this approved feature.
+The longer 30-dwarf performance soak remains a later checkpoint.
+
 **Priority update, 2026-10-15:** proactive performance work is now paused after
 [197](197_duck_update_performance.md). The next focus is gameplay and usability,
 beginning with this workflow in a fresh discussion. Retain the existing

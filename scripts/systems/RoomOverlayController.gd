@@ -9,7 +9,7 @@ extends Node3D
 ## Overlays render with NO depth test (the
 ## mining ghost-layer treatment): a room reads through the mountain whether
 ## or not the slice is cut down to it — that IS the point of the tool. Green
-## = sealed; icy blue = Frozen Vault.
+## = sealed; icy blue = Frozen Vault; gold = the selected room.
 ##
 ## Clicking marches the mouse ray through the world and selects the first
 ## room whose interior air it crosses (cells above the slice plane are
@@ -43,12 +43,14 @@ const WINDOW_REFRESH_S := 0.5        # temp drifts hourly at most — 2 Hz is pl
 
 ## Green — deliberately distinct from every other overlay family: mining
 ## zones own yellow, stockpile zones own blue-cyan, furniture ghosts own
-## cyan/red validity tints. Frozen Vaults stay icy blue.
+## cyan/red validity tints. Frozen Vaults stay icy blue until selected.
 const SEALED_FILL := Color(0.30, 0.80, 0.45, 0.003)
 const SEALED_LINE := Color(0.45, 1.00, 0.60, 0.95)
 const FROZEN_FILL := Color(0.42, 0.68, 0.95, 0.003)
 const FROZEN_LINE := Color(0.62, 0.86, 1.00, 0.95)
-const SELECTED_FILL_ALPHA := 0.006  # floor only; never brighten the whole volume
+const SELECTED_FILL := Color(1.00, 0.72, 0.25, 0.008) # floor only; preserve room darkness
+const SELECTED_LINE := Color(1.00, 0.82, 0.38, 1.00)
+const SELECTED_EDGE_WIDTH := 0.06
 const SHELL_INSET := 0.04            # pull shell faces inside the cell boundary
                                      # (they'd otherwise sit exactly on the wall
                                      # faces and z-fight where depth applies)
@@ -187,6 +189,7 @@ func _on_room_changed(_room_id: int) -> void:
 
 func _clear_overlays() -> void:
 	if _overlay_root != null and is_instance_valid(_overlay_root):
+		_overlay_root.hide()
 		_overlay_root.queue_free()
 	_overlay_root = null
 	_overlays.clear()
@@ -208,6 +211,7 @@ func _rebuild_overlays() -> void:
 	for room_id: int in rooms.keys():
 		var room: Dictionary = rooms[room_id]
 		_overlays[room_id] = _build_room_overlay(room_id, room)
+		_apply_room_selection(room_id)
 	_apply_slice_visibility()
 	_refresh_window()
 
@@ -218,14 +222,13 @@ func _rebuild_overlays() -> void:
 func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 	var cells: Dictionary = room.get("cells", {})
 	var is_frozen: bool = bool(room.get("is_frozen_vault", false))
-	var fill_color: Color = FROZEN_FILL if is_frozen else SEALED_FILL
-	var line_color: Color = FROZEN_LINE if is_frozen else SEALED_LINE
-	if room_id == _selected_room_id:
-		fill_color.a = SELECTED_FILL_ALPHA
+	var fill_material := _room_material(FROZEN_FILL if is_frozen else SEALED_FILL)
+	var line_material := _room_material(FROZEN_LINE if is_frozen else SEALED_LINE)
+	line_material.render_priority = 11
 
 	var fill_verts := PackedVector3Array()
-	var fill_colors := PackedColorArray()
 	var fill_indices := PackedInt32Array()
+	var border_verts := PackedVector3Array()
 	var edge_count: Dictionary = {}     # edge key -> [count, Vector3 a, Vector3 b]
 	var base_y := SLICE_OFF_Y
 	for cell: Vector3i in cells.keys():
@@ -242,8 +245,16 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 				var i0 := fill_verts.size()
 				for corner: Vector3 in corners:
 					fill_verts.append(corner)
-					fill_colors.append(fill_color)
 				fill_indices.append_array(PackedInt32Array([i0, i0 + 1, i0 + 2, i0, i0 + 2, i0 + 3]))
+				# An inward strip follows the actual floor boundary, including
+				# concave rooms. Its width remains readable at colony zoom.
+				var neighbors := [Vector3i.FORWARD, Vector3i.RIGHT, Vector3i.BACK, Vector3i.LEFT]
+				for edge in range(4):
+					if cells.has(cell + neighbors[edge]): continue
+					var a: Vector3 = corners[edge]
+					var b: Vector3 = corners[(edge + 1) % 4]
+					var inward := (b-a).normalized().cross(Vector3.UP) * SELECTED_EDGE_WIDTH
+					border_verts.append_array(PackedVector3Array([a,b,b+inward,a,b+inward,a+inward]))
 			# Outline edges are counted at the TRUE cell boundary (inset 0),
 			# so the two perpendicular faces meeting at a corner contribute
 			# IDENTICAL endpoints and merge into ONE drawn line (Alen,
@@ -254,7 +265,6 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 				_count_edge(edge_count, line_corners[e], line_corners[(e + 1) % 4], face)
 
 	var line_verts := PackedVector3Array()
-	var line_colors := PackedColorArray()
 	for key: String in edge_count.keys():
 		var entry: Array = edge_count[key]
 		var faces: Dictionary = entry[2]
@@ -266,8 +276,6 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 			continue
 		line_verts.append(entry[0])
 		line_verts.append(entry[1])
-		line_colors.append(line_color)
-		line_colors.append(line_color)
 
 	var root := Node3D.new()
 	root.name = "Room%d" % room_id
@@ -277,12 +285,11 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 		var arrays: Array = []
 		arrays.resize(Mesh.ARRAY_MAX)
 		arrays[Mesh.ARRAY_VERTEX] = fill_verts
-		arrays[Mesh.ARRAY_COLOR] = fill_colors
 		arrays[Mesh.ARRAY_INDEX] = fill_indices
 		fill_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		var fill_node := MeshInstance3D.new()
 		fill_node.mesh = fill_mesh
-		fill_node.material_override = _material
+		fill_node.material_override = fill_material
 		fill_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(fill_node)
 	if not line_verts.is_empty():
@@ -290,14 +297,43 @@ func _build_room_overlay(room_id: int, room: Dictionary) -> Dictionary:
 		var line_arrays: Array = []
 		line_arrays.resize(Mesh.ARRAY_MAX)
 		line_arrays[Mesh.ARRAY_VERTEX] = line_verts
-		line_arrays[Mesh.ARRAY_COLOR] = line_colors
 		line_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, line_arrays)
 		var line_node := MeshInstance3D.new()
 		line_node.mesh = line_mesh
-		line_node.material_override = _material
+		line_node.material_override = line_material
 		line_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(line_node)
-	return { "root": root, "base_y": base_y }
+	var border := MeshInstance3D.new()
+	border.name = "SelectedFloorBorder"
+	if not border_verts.is_empty():
+		var border_mesh := ArrayMesh.new()
+		var arrays: Array = []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = border_verts
+		border_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		border.mesh = border_mesh
+	border.material_override = line_material
+	border.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(border)
+	return {"root":root, "base_y":base_y, "frozen":is_frozen,
+		"fill_material":fill_material, "line_material":line_material, "border":border}
+
+
+func _room_material(color: Color) -> StandardMaterial3D:
+	var material := _material.duplicate() as StandardMaterial3D
+	material.vertex_color_use_as_albedo = false
+	material.albedo_color = color
+	return material
+
+
+## Selection changes only two rooms' materials; topology rebuilds stay throttled.
+func _apply_room_selection(room_id: int) -> void:
+	if not _overlays.has(room_id): return
+	var entry: Dictionary = _overlays[room_id]
+	var selected := room_id == _selected_room_id
+	entry.fill_material.albedo_color = SELECTED_FILL if selected else FROZEN_FILL if entry.frozen else SEALED_FILL
+	entry.line_material.albedo_color = SELECTED_LINE if selected else FROZEN_LINE if entry.frozen else SEALED_LINE
+	entry.border.visible = selected
 
 
 ## Four corners of `face` of the unit cell at `cell`, pulled `inset` inward
@@ -389,7 +425,8 @@ func _select_room(room_id: int, cell: Vector3i) -> void:
 	_selected_room_id = room_id
 	_selected_cell = cell
 	if previous != room_id:
-		_overlays_dirty = true   # retint selected/deselected fills on the throttle
+		_apply_room_selection(previous)
+		_apply_room_selection(room_id)
 	_open_window()
 	_refresh_window()
 
@@ -415,9 +452,10 @@ func _build_window() -> void:
 
 func _on_window_state_changed(id: String, open: bool) -> void:
 	if id == WINDOW_ID and not open:
+		var previous := _selected_room_id
 		_selected_room_id = -1
 		_selected_cell = Vector3i(-1, -1, -1)
-		_overlays_dirty = true
+		_apply_room_selection(previous)
 
 
 func _open_window() -> void:

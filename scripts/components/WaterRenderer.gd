@@ -58,6 +58,9 @@ func _ready() -> void:
 	stones.terrain = terrain
 	add_child(stones)
 
+func is_loading_complete() -> bool:
+	return WaterManager.initialized and not _view_dirty and _pending.is_empty() and _jobs.is_empty() and _revision==WaterManager.revision and _slice==terrain.slice_y
+
 func _process(_delta: float) -> void:
 	if profile_updates: last_update_ms.clear()
 	var started := Time.get_ticks_usec() if profile_updates else 0

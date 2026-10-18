@@ -8,8 +8,10 @@ var save_calls := [0, 0, 0]
 class SpawnProbe extends Node:
 	var drops := 0
 	var furniture := 0
+	var bushes := 0
 	func dev_spawn_drops() -> void: drops += 1
 	func dev_spawn_furniture() -> void: furniture += 1
+	func dev_spawn_bushes() -> void: bushes += 1
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Remaining menus timed out"); quit(1))
@@ -29,9 +31,10 @@ func _run() -> void:
 	var probe := SpawnProbe.new()
 	scene.add_child(probe)
 	dock._stockpile_controller = probe
-	for id in ["spawn_drops", "spawn_furniture"]:
+	for id in ["spawn_drops", "spawn_furniture", "spawn_bushes"]:
 		dock._dispatch_menu_entry({"id": id, "label": "Renamed action", "action": "panel_action", "target": "storage_zone"})
-	_expect(probe.drops == 1 and probe.furniture == 1, "development spawn commands route by stable identity")
+	_expect(probe.drops == 1 and probe.furniture == 1 and probe.bushes == 1, "development spawn commands route by stable identity")
+	_expect(root.get_node("UIRegistry").get_menu("development").items.any(func(entry): return entry.id=="spawn_bushes"),"Development contains Spawn Bushes")
 	dock._stockpile_controller = null
 	_expect(not manager.has_window("clock") and dock._sky_dial != null, "permanent Sky Dial replaces the clock window")
 	var time_buttons: Array = manager.get_ui_window("time_weather_dev").find_children("*", "Button", true, false)
@@ -65,7 +68,7 @@ func _run() -> void:
 			var bounds := Rect2(Vector2.ZERO, Vector2(viewport_size))
 			_expect(bounds.encloses(dock._panel_container.get_global_rect()), "illustrated menu fits: " + target + str(viewport_size))
 			for button in dock._panel_body.get_children():
-				_expect(button.text.is_empty() and button.icon is AtlasTexture, "menu entry uses art: " + target)
+				_expect(button.text.is_empty() and button.icon != null, "menu entry uses art: " + target)
 				_expect(dock._panel_scroll.get_global_rect().encloses(button.get_global_rect()), "menu entry remains reachable: " + target)
 			var first = dock._panel_body.get_child(0)
 			first.grab_focus()

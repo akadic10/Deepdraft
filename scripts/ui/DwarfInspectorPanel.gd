@@ -43,6 +43,10 @@ var _scroll: ScrollContainer
 var _tabs: Array[Button] = []
 var _portrait_frame: PanelContainer
 var _footer_hint: Label
+var _concern_box: HBoxContainer
+var _concern_icon: TextureRect
+var _concern_title: Label
+var _concern_help: Label
 
 
 func _ready() -> void:
@@ -101,6 +105,21 @@ func _ready() -> void:
 	card.add_child(activity_box)
 	_label(activity_box, "RIGHT NOW", 11, UITheme.HEARTH_COPPER)
 	_activity = _label(activity_box, "", 18)
+	_concern_box = HBoxContainer.new()
+	_concern_box.add_theme_constant_override("separation",8)
+	activity_box.add_child(_concern_box)
+	_concern_icon = TextureRect.new()
+	_concern_icon.custom_minimum_size = Vector2(32,36)
+	_concern_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_concern_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_concern_icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_concern_box.add_child(_concern_icon)
+	var concern_text := VBoxContainer.new()
+	concern_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_concern_box.add_child(concern_text)
+	_concern_title = _label(concern_text,"",14,UITheme.HEARTH_COPPER)
+	_concern_help = _label(concern_text,"",12,UITheme.HEARTH_MUTED)
+	_concern_box.hide()
 	var destination_box := _section(_overview, "DESTINATION")
 	_destination = _label(destination_box, "", 14)
 	var rest_box := _section(_overview, "REST")
@@ -171,6 +190,12 @@ func show_data(data: Dictionary, following: bool) -> void:
 	_activity.text = String(data.activity)
 	_explanation.text = String(data.explanation)
 	_activity.tooltip_text = String(data.explanation)
+	var concern: Dictionary = data.get("concern",{})
+	_concern_box.visible = not concern.is_empty()
+	if not concern.is_empty():
+		_concern_icon.texture = UIRegistry.get_need_icon(concern.kind)
+		_concern_title.text = "%s · %s" % [concern.title,concern.reason]
+		_concern_help.text = concern.help
 	_destination.text = String(data.destination)
 	var rest_percent := roundi(float(data.rest) * 100)
 	_rest_label.text = "Rest  %d%% · %s" % [rest_percent, "Sleeping" if data.sleeping else ("Tired" if rest_percent <= 25 else "Awake")]

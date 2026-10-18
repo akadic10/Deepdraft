@@ -20,8 +20,7 @@ extends Node
 ##     slice_single_up (Ctrl+]), slice_single_down (Ctrl+[) — registered in
 ##     project.godot [input] (ownership note: AGENT.md, approved 2026-06-05).
 ##   - The fixed TimeSliceHUD presents controls/readout; this node owns no UI.
-##   - Mutual exclusion (S7): the future X-Ray tool calls deactivate_if_active();
-##     exclusion is enforced at the tool layer, never in the renderer.
+##   - X-ray inspection keeps this plane and its controls available (doc 210).
 ##
 ## Scene wiring: @export paths (Scene Decoupling Contract). DockUI registers
 ## this controller with the fixed utility HUD on _ready.
@@ -187,8 +186,7 @@ func deactivate() -> void:
 	slice_active_changed.emit(false)
 
 
-## Mutual exclusion hook (S7): the future X-Ray tool calls this before
-## activating itself. Exclusion lives at the tool layer, not the renderer.
+## Convenience for callers explicitly leaving slice view.
 func deactivate_if_active() -> void:
 	deactivate()
 

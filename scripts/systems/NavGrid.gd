@@ -386,6 +386,7 @@ func line_walkable_flat_from(position: Vector3, b: Vector3i, radius: float = 0.3
 	# interrupted actor may already be within the corner margin of its edge;
 	# requiring that margin here would prevent it from moving back to safety.
 	if a == b: return true
+	if PlacedEntityRegistry.barrier_blocks_segment(position,Vector3(b)+Vector3(.5,1,.5),radius,float(CLEARANCE)): return false
 	var from := Vector2(position.x, position.z)
 	var to := Vector2(float(b.x) + 0.5, float(b.z) + 0.5)
 	var length := from.distance_to(to)
@@ -511,6 +512,7 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 
 		var g_cur: float = g[current]
 		for neighbor: Vector3i in _ladder_neighbors(current, query.get("route_start",start), query.get("route_goal",goal)):
+			if not edge_clear(current,neighbor): continue
 			if floor_filter.is_valid() and not floor_filter.call(neighbor): continue
 			if not _bridge_entry_allowed(neighbor,query.get("route_start",start)): continue
 			if closed.has(neighbor): continue
@@ -533,6 +535,7 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 				if closed.has(neighbor) or not is_walkable(neighbor):
 					continue
 				if not _bridge_entry_allowed(neighbor,query.get("route_start",start)): continue
+				if not edge_clear(current,neighbor): continue
 				var step_cost := COST_LATERAL
 				if dy > 0:
 					step_cost = COST_UP
@@ -561,6 +564,7 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 				continue
 			if not is_walkable(Vector3i(current.x, current.y, current.z + dir.y)):
 				continue
+			if not edge_clear(current,neighbor): continue
 			var g_new := g_cur + COST_DIAGONAL
 			if g.has(neighbor) and g_new >= float(g[neighbor]):
 				continue
@@ -569,6 +573,10 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 			query.tie += 1
 			_heap_push(heap, [g_new + _search_heuristic(query, neighbor), query.tie, neighbor])
 	query.status = ProbeResult.UNREACHABLE
+
+## Grid-edge fences block transitions without reserving either floor tile.
+func edge_clear(from: Vector3i, to: Vector3i) -> bool:
+	return not PlacedEntityRegistry.barrier_blocks_segment(Vector3(from)+Vector3(.5,1,.5),Vector3(to)+Vector3(.5,1,.5))
 
 
 ## Multi-position work searches use distance to the goals' bounding box: a

@@ -24,19 +24,26 @@ static func run(tree: SceneTree, saves: Node) -> String:
 	var capture: Dictionary=saves._capture_snapshot()
 	Preparation.finish(capture,saves._captured_sections)
 	if JSON.stringify(expected.scene)!=JSON.stringify(capture.scene): return "worker preparation differs from synchronous serializers"
-	# Frozen former validator is an independent oracle for the unchanged format.
+	# Frozen former validator remains an independent oracle for legacy reads.
 	var old:=GDScript.new()
 	old.source_code=FileAccess.get_file_as_string("res://docs/00_dev_roadmap/concepts/autosave_20261015/SaveSnapshotValidator.gd.before.txt")
 	if old.reload()!=OK: return "frozen validator failed to compile"
 	var canonical: Dictionary=JSON.parse_string(JSON.stringify(expected))
 	var catalogs: Dictionary=saves._capture_catalogs()
-	var cases: Array=[canonical]
-	for field in canonical.scene:
-		var invalid: Dictionary=canonical.duplicate(true)
+	var legacy: Dictionary=canonical.duplicate(true)
+	legacy.schema_version=1
+	legacy.scene.erase("terrain"); legacy.scene.erase("exploration")
+	legacy.scene.mining.mined_blocks=[]
+	legacy.scene.water.terrain=[]
+	legacy.scene.construction.built=[]
+	var cases: Array=[legacy]
+	for field in legacy.scene:
+		var invalid: Dictionary=legacy.duplicate(true)
 		invalid.scene.erase(field)
 		cases.append(invalid)
 	for state in cases:
-		if old.validate(state,1)!=Store.Validator.validate_captured(state,1,catalogs): return "captured validator changed a validation result"
+		if old.validate(state,1)!=Store.Validator.validate_captured(state,2,catalogs): return "captured validator changed a legacy validation result"
+	if not Store.Validator.validate_captured(canonical,2,catalogs).is_empty(): return "current final-terrain snapshot rejected"
 	var owner:=AliasedOwner.new()
 	tree.root.add_child(owner)
 	owner.add_to_group("save_state_owner")
@@ -63,6 +70,7 @@ static func run(tree: SceneTree, saves: Node) -> String:
 	for mode in ["write","stage","installed"]:
 		for generation in [1,2]:
 			var good:=Store.new()
+			good.schema_version=2
 			good.directory=directory; good.paths=paths; good.catalogs=catalogs.duplicate(true)
 			good.snapshot=canonical.duplicate(true); good.snapshot.clock.day=generation
 			var task:=WorkerThreadPool.add_task(good.run)
@@ -72,6 +80,7 @@ static func run(tree: SceneTree, saves: Node) -> String:
 		var primary:=FileAccess.get_file_as_bytes(paths.primary)
 		var backup:=FileAccess.get_file_as_bytes(paths.backup)
 		var fault:=FaultStore.new()
+		fault.schema_version=2
 		fault.directory=directory; fault.paths=paths; fault.catalogs=catalogs.duplicate(true)
 		fault.snapshot=canonical.duplicate(true); fault.snapshot.clock.day=3
 		fault.fail_write=mode=="write"

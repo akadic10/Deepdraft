@@ -28,7 +28,11 @@ var hour:   float  = 0.0       # 0.0–23.999… (24-hour clock)
 # ── Speed / pause ─────────────────────────────────────────────────────────────
 ## Multiplies real time. 0 = frozen. 1 = ×1 (24-minute day). Set via set_speed().
 var speed:  float = 1.0
-var paused: bool  = false
+var _player_paused := false
+var _loading_holds: Dictionary = {}
+var paused: bool:
+	get: return _player_paused or not _loading_holds.is_empty()
+	set(value): _player_paused = value
 ## Transient notification context. Restored presentation catches up within frame
 ## budgets, even when loading a paused night; never saved as simulation state.
 var restoring_state: bool = false
@@ -120,6 +124,17 @@ func set_paused(value: bool) -> void:
 	paused = value
 
 
+## Scene-owned loading presentation freezes simulation without changing saved
+## player pause/speed preferences. Its owner releases on reveal or scene exit.
+func hold_for_loading(owner: Node, held: bool) -> void:
+	if held: _loading_holds[owner.get_instance_id()] = true
+	else: _loading_holds.erase(owner.get_instance_id())
+
+
+func is_loading_held() -> bool:
+	return not _loading_holds.is_empty()
+
+
 ## In-game hours that elapse per real second at the current speed (0 while
 ## paused). For agent behaviours timed in game hours outside this autoload
 ## (e.g. sleep-lite, doc 16 Phase 5) — they multiply their _process delta by
@@ -131,7 +146,7 @@ func game_hours_per_real_second() -> float:
 
 
 func toggle_pause() -> void:
-	paused = not paused
+	paused = not _player_paused
 
 
 func serialize_state() -> Dictionary:
@@ -141,7 +156,7 @@ func serialize_state() -> Dictionary:
 		"year": year,
 		"hour": hour,
 		"speed": speed,
-		"paused": paused,
+		"paused": _player_paused,
 	}
 
 

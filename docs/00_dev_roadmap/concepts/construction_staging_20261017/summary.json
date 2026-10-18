@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-17",
+  "engine": "Godot 4.7.2 native source, D3D12",
+  "passed": 15,
+  "failed": 0,
+  "script_runtime_errors": 0,
+  "carry_capacity_changed": false,
+  "carry_capacity": 4,
+  "max_project_haulers": 2,
+  "max_project_builders": 1,
+  "work_seconds_per_voxel_normal_labor": 3,
+  "results": [
+    {
+      "test": "ConstructionStagingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 25.7,
+      "timeout": false,
+      "stdout": "ConstructionStagingTest.out.gz",
+      "stderr": "ConstructionStagingTest.err.gz"
+    },
+    {
+      "test": "ConstructionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 14.43,
+      "timeout": false,
+      "stdout": "ConstructionTest.out.gz",
+      "stderr": "ConstructionTest.err.gz"
+    },
+    {
+      "test": "ConstructionInputTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 8.09,
+      "timeout": false,
+      "stdout": "ConstructionInputTest.out.gz",
+      "stderr": "ConstructionInputTest.err.gz"
+    },
+    {
+      "test": "ConstructionObstacleReuseTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.79,
+      "timeout": false,
+      "stdout": "ConstructionObstacleReuseTest.out.gz",
+      "stderr": "ConstructionObstacleReuseTest.err.gz"
+    },
+    {
+      "test": "FloorConstructionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.47,
+      "timeout": false,
+      "stdout": "FloorConstructionTest.out.gz",
+      "stderr": "FloorConstructionTest.err.gz"
+    },
+    {
+      "test": "HaulingCapacityTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.66,
+      "timeout": false,
+      "stdout": "HaulingCapacityTest.out.gz",
+      "stderr": "HaulingCapacityTest.err.gz"
+    },
+    {
+      "test": "HaulingAnimationTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.85,
+      "timeout": false,
+      "stdout": "HaulingAnimationTest.out.gz",
+      "stderr": "HaulingAnimationTest.err.gz"
+    },
+    {
+      "test": "HaulingSelectionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 11.26,
+      "timeout": false,
+      "stdout": "HaulingSelectionTest.out.gz",
+      "stderr": "HaulingSelectionTest.err.gz"
+    },
+    {
+      "test": "JobLifecycleTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.79,
+      "timeout": false,
+      "stdout": "JobLifecycleTest.out.gz",
+      "stderr": "JobLifecycleTest.err.gz"
+    },
+    {
+      "test": "JobPlanningTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 10.58,
+      "timeout": false,
+      "stdout": "JobPlanningTest.out.gz",
+      "stderr": "JobPlanningTest.err.gz"
+    },
+    {
+      "test": "LadderTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 17.66,
+      "timeout": false,
+      "stdout": "LadderTest.out.gz",
+      "stderr": "LadderTest.err.gz"
+    },
+    {
+      "test": "WorkerCraftingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 12.46,
+      "timeout": false,
+      "stdout": "WorkerCraftingTest.out.gz",
+      "stderr": "WorkerCraftingTest.err.gz"
+    },
+    {
+      "test": "ColonyInventoryTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 4.5,
+      "timeout": false,
+      "stdout": "ColonyInventoryTest.out.gz",
+      "stderr": "ColonyInventoryTest.err.gz"
+    },
+    {
+      "test": "SaveManagerRoundTripTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 60.6,
+      "timeout": false,
+      "stdout": "SaveManagerRoundTripTest.out.gz",
+      "stderr": "SaveManagerRoundTripTest.err.gz"
+    },
+    {
+      "test": "ConstructionPresentationTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.43,
+      "timeout": false,
+      "stdout": "ConstructionPresentationTest.out.gz",
+      "stderr": "ConstructionPresentationTest.err.gz"
+    }
+  ],
+  "images": [
+    "hammer_40.png",
+    "hammer_72.png"
+  ],
+  "notes": [
+    "Latest successful results selected across the initial batch and targeted reruns.",
+    "Native fixture scenes emit the known missing Environment warning before their presentation setup.",
+    "SaveManagerRoundTripTest includes expected warnings for intentional corrupt-primary backup recovery.",
+    "Earlier fixture setup errors and intermediate material typo are documented in milestone 205.",
+    "No Windows export or playtest package was created or updated."
+  ]
+}

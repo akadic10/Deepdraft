@@ -1,5 +1,11 @@
 # 60 — Hauling worker selection
 
+**2026-10-17 follow-up:** [213](213_hauling_route_fairness.md) adds bounded turns
+between worker/pickup searches. Nearby difficult routes no longer block other
+reachable loads (including a lone worker's alternatives), and personal-need availability changes preserve
+unchanged route progress. Normal proximity ordering remains the first choice;
+an unfinished long search can yield before proving its candidate reachable.
+
 Implemented 2026-10-06 after the player observed Thoa finish a tree and remain
 idle while more distant dwarves collected its lumber.
 

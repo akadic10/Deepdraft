@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-17",
+  "mode": "native source project; isolated save directories",
+  "tests": [
+    {
+      "test": "LoadingArtworkTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 6.35,
+      "timeout": false
+    },
+    {
+      "test": "WorldLoadingScreenTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 36.26,
+      "timeout": false
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets\\ui\\loading\\mountain_settlement.png",
+      "size": [
+        2103,
+        748
+      ],
+      "sha256": "1dbb06e75125e3f4ec0da2cebf70969f82aeb5c3f9a7aabc97cc3123d8ca1a90"
+    },
+    {
+      "path": "assets\\ui\\loading\\underground_settlement.png",
+      "size": [
+        2103,
+        748
+      ],
+      "sha256": "c638ffe8a93706bbcc047f1ea5fb1b67b83e3b01aaf3a2ec7db7101ba4792da6"
+    }
+  ],
+  "reviewed_captures": [
+    "underground_settlement_1280x720.png",
+    "underground_settlement_1680x720.png",
+    "underground_settlement_2560x720.png"
+  ],
+  "selection": "Uniform private RNG choice once per startup or save reload; repeats allowed.",
+  "original_art_unchanged": true,
+  "windows_export_created_or_updated": false
+}

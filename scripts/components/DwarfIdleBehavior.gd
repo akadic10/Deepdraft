@@ -21,6 +21,8 @@ var _chair_index := 0
 var _sitting_blend := 0.0
 var _seat_check_revision := -1
 var _focus_fire_id := -1
+var _relax_hands: Array[Vector3] = []
+var _relax_elapsed := 0.0
 
 func _init(owner: DwarfAgent) -> void:
 	agent = owner
@@ -42,8 +44,29 @@ func cancel() -> void:
 	_chairs = []
 	_privacy.reset()
 	_sitting_blend = 0.0
+	_relax_hands.clear()
 	if walking: agent.stop_walking()
 	agent._reset_part_offsets()
+
+## Dining already owns this chair and is fully seated. Keep the claim and pose
+## while returning to interruptible idle rest, then lower the empty hands.
+func continue_seated(occupied: InstalledFurnitureComponent, controller: Node, access: Vector3i) -> void:
+	seat = occupied
+	_furniture = controller
+	home = agent.current_cell()
+	goal = access
+	state = "sitting"
+	timer = _range("sit_min_s","sit_max_s")
+	elapsed = 0.0
+	_chairs = []
+	_privacy.reset()
+	_sitting_blend = 1.0
+	_seat_check_revision = -1
+	_focus_fire_id = -1
+	_relax_hands.assign([agent._hand_l.position,agent._hand_r.position])
+	_relax_elapsed = 0.0
+	agent._reset_part_offsets()
+	_pose()
 
 func _release_seat() -> void:
 	if seat != null and seat.idle_seat_owner == agent.dwarf_id:
@@ -56,6 +79,11 @@ func tick(delta: float) -> bool:
 	# External/DEV walks retain control. Sleep, ladders and tasks are handled
 	# before this method; cargo must never be taken on a leisure walk.
 	if not agent._carried_entries.is_empty() or (agent.is_walking() and not owns_walk()): return false
+	# Planning retains stationary leisure, but furniture removal, changed
+	# access and privacy still invalidate the chair immediately.
+	if state in ["to_seat","sitting","standing_up"] and not _seat_valid():
+		cancel()
+		return true
 	if TaskManager.planning_held(agent.dwarf_id) and Privacy.allowed(agent.current_cell(),agent.dwarf_id): return true
 	if home.x < 0:
 		home = agent.current_cell()
@@ -70,9 +98,6 @@ func tick(delta: float) -> bool:
 		home = agent.current_cell()
 		state = "leaving_room"
 		_privacy.leave(agent,delta)
-		return true
-	if state in ["to_seat","sitting","standing_up"] and not _seat_valid():
-		cancel()
 		return true
 	if state=="stepping_up":
 		if not NavGrid.is_walkable(goal) or not Privacy.segment(agent.current_cell(),goal,agent.dwarf_id):
@@ -90,6 +115,7 @@ func tick(delta: float) -> bool:
 	if state in ["sitting","standing_up"]:
 		var step := delta / maxf(.05,float(config.get("seat_transition_s",.5)))
 		_sitting_blend = move_toward(_sitting_blend,0.0 if state=="standing_up" else 1.0,step)
+		_relax_elapsed += delta
 		_pose()
 		timer -= delta
 		if state=="sitting" and timer <= 0: state = "standing_up"
@@ -193,6 +219,7 @@ func _find_seat_step() -> void:
 		return
 	var candidate: InstalledFurnitureComponent = _chairs[_chair_index]
 	_chair_index += 1
+	if _furniture._seating.is_recreation_seat(candidate): return
 	if candidate.flagged_uninstall or candidate.idle_seat_owner >= 0 or not is_instance_valid(candidate.node): return
 	if not Seating.is_chair(candidate.def) or not candidate.def.seating_chair.has("rest_pose"): return
 	if not Privacy.allowed(candidate.origin_cell,agent.dwarf_id): return
@@ -282,6 +309,11 @@ func _pose() -> void:
 		"left_foot":agent._foot_l,"right_foot":agent._foot_r}
 	for key: String in parts:
 		if is_instance_valid(parts[key]): parts[key].position = (base+_vector(pose[key]))*_sitting_blend
+	if not _relax_hands.is_empty():
+		var blend := smoothstep(0.0,maxf(.05,float(config.get("seat_transition_s",.5))),_relax_elapsed)
+		agent._hand_l.position = _relax_hands[0].lerp(agent._hand_l.position,blend)
+		agent._hand_r.position = _relax_hands[1].lerp(agent._hand_r.position,blend)
+		if blend >= 1.0: _relax_hands.clear()
 	if is_instance_valid(agent._head):
 		agent._head.position = (base+_vector(pose.body)+Vector3(0,sin(elapsed*1.8)*.012,0))*_sitting_blend
 		var look := 0.0

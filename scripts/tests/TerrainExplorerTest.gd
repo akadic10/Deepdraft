@@ -44,6 +44,7 @@ func _run() -> void:
 		_expect(explorer.pick_at_screen(point).is_empty(),"designation object picking does not acquire terrain fallback")
 		for row in explorer._row_values: _expect(not ":terrain:" in row.text,"player facts contain no technical IDs")
 	# Planning a hole never earns discovery, even if a valuable block lies behind it.
+	root.get_node("InteriorTracker")._known_cells.erase(CELL)
 	renderer._mined_blocks.erase(surface)
 	_expect(not "Jade" in JSON.stringify(terrain.get_explorer_data(hit)),"planned wall does not reveal gems")
 	renderer._mined_blocks[surface] = true
@@ -57,6 +58,7 @@ func _run() -> void:
 	renderer.slice_y = 127; explorer._on_slice_changed(127)
 	# The player ray passes through visible cuts instead of stopping at unmined plan data.
 	world.set_block(surface.x,surface.y,surface.z,rock)
+	world._edits.get(Vector3i(surface.x>>4,surface.y>>4,surface.z>>4),{}).erase(surface)
 	var ray: Dictionary = terrain.terrain_hit(Vector3(CELL)+Vector3(.5,.5,8),Vector3.FORWARD,127,20)
 	_expect(Vector3i(ray.x,ray.y,ray.z)==CELL,"visible cut ray reaches the rear face")
 	world.set_block(surface.x,surface.y,surface.z,blocks.AIR_ID)
@@ -68,16 +70,16 @@ func _run() -> void:
 	_expect(terrain.get_explorer_data(hit).is_empty() and not manager.is_open("object_explorer"),"mined-away block closes its inspector")
 	# Natural cave voids stay solid-looking until their connected air is discovered.
 	var column: int = CELL.x*1024+CELL.z
+	world._edits.get(Vector3i(CELL.x>>4,CELL.y>>4,CELL.z>>4),{}).erase(CELL)
 	generator._cave_layout.columns[column] = Vector3i(CELL.y-1,CELL.y,0)
 	var concealed: Dictionary = terrain.terrain_hit(Vector3(CELL)+Vector3(.5,.5,8),Vector3.FORWARD,127,20)
 	_expect(Vector3i(concealed.x,concealed.y,concealed.z)==CELL and terrain.get_explorer_data(concealed).title=="Stone","undiscovered cave air cannot be inspected through")
 	generator._cave_layout.columns.erase(column)
 	# Constructed stone and floors identify the finished material, including slice caps.
 	for key in ["base:terrain:rock:rock01","base:construction:floor:plank","base:construction:floor:stone"]:
-		world.set_block(CELL.x,CELL.y,CELL.z,blocks.get_id(key)); renderer.built_blocks[CELL] = key
+		world.set_block(CELL.x,CELL.y,CELL.z,blocks.get_id(key))
 		var data: Dictionary = terrain.get_explorer_data(hit)
-		_expect(data.rows[3][1]=="Constructed" and data.title==("Stone block" if key.contains(":rock:") else blocks.get_def(key).inspection.name),"constructed material is identified")
-	renderer.built_blocks.clear()
+		_expect(data.rows.size()==3 and data.title==blocks.get_def(key).inspection.name,"material is identified without construction origin")
 	# Furniture remains the first selection in front of a terrain surface.
 	var floor := Vector3i(63,20,63)
 	furniture._install("base:furniture:barrel",furniture.get_defs()["base:furniture:barrel"],floor,0)

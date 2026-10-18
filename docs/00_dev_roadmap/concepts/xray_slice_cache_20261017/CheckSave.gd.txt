@@ -1,0 +1,72 @@
+extends SceneTree
+var loaded := false
+var xray
+var report := {"toggles":[],"failures":[]}
+func _init() -> void:
+	_run.call_deferred()
+func _run() -> void:
+	if not "/xray_slice_cache_20261017/" in OS.get_user_data_dir().replace("\\","/"): quit(2); return
+	create_timer(300).timeout.connect(func(): push_error("CACHE_CHECK_TIMEOUT"); quit(1))
+	var saves=root.get_node("SaveManager")
+	var clock_node=root.get_node("WorldClock")
+	saves.configure_storage_for_testing("user://isolated")
+	DirAccess.make_dir_recursive_absolute("user://isolated")
+	DirAccess.copy_absolute("res://tmp/xray_slice_cache_20261017/source/quicksave.json","user://isolated/quicksave.json")
+	var placeholder=Node3D.new()
+	placeholder.scene_file_path="res://scenes/main/debug_world.tscn"
+	root.add_child(placeholder); current_scene=placeholder
+	saves.load_finished.connect(func(ok: bool,_backup: bool): loaded=true; assert(ok))
+	assert(saves.request_load())
+	while not loaded: await process_frame
+	clock_node.set_paused(true); saves.set_process(false)
+	while current_scene.get_node("WorldLoadingScreen").visible: await process_frame
+	current_scene.get_node("CameraRig").set_process(false)
+	xray=current_scene.get_node("XrayController")
+	var slice=current_scene.get_node("SliceController")
+	slice.show_at_height(47); xray.pin_reference(); slice.show_at_height(53)
+	xray.set_mode("full")
+	await _settle()
+	var initial=_meshes()
+	report.resolution=str(root.size)
+	report.chunks=initial.size()
+	slice.deactivate()
+	var retained=0
+	for key in initial:
+		if xray._chunks.has(key) and xray._chunks[key].full.mesh==initial[key]: retained+=1
+	report.first_off={"retained":retained,"queued":xray._dirty.size()}
+	await _settle()
+	var whole=_meshes()
+	for i in 4:
+		slice.activate()
+		_check("on",i,initial)
+		await _settle()
+		slice.deactivate()
+		_check("off",i,whole)
+		await _settle()
+	slice.activate()
+	await _settle()
+	xray.set_mode("off"); xray.set_mode("full")
+	_check("xray_on",0,initial)
+	await _settle()
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("user://restored.png")
+	report.cache_entries=0
+	for cache in xray._chunk_cache.values(): report.cache_entries+=cache.size()
+	FileAccess.open("user://report.json",FileAccess.WRITE).store_string(JSON.stringify(report,"\t"))
+	print("XRAY_CACHE_SAVE_OK ",JSON.stringify(report))
+	quit(0 if report.failures.is_empty() else 1)
+func _check(label: String, iteration: int, expected: Dictionary) -> void:
+	var visible=0
+	for entry in xray._chunks.values():
+		if entry.full.visible: visible+=1
+	var result={"mode":label,"iteration":iteration,"queued":xray._dirty.size(),"job":not xray._job.is_empty(),"same_meshes":_meshes()==expected,"visible":visible}
+	report.toggles.append(result)
+	if result.queued!=0 or result.job or not result.same_meshes or visible!=expected.size(): report.failures.append(result)
+func _meshes() -> Dictionary:
+	var result={}
+	for key in xray._chunks: result[key]=xray._chunks[key].full.mesh
+	return result
+func _settle() -> void:
+	for i in 5: await process_frame
+	while not xray._dirty.is_empty() or not xray._job.is_empty() or not xray._scan.is_empty() or xray._reference_dirty: await process_frame
+	for i in 5: await process_frame

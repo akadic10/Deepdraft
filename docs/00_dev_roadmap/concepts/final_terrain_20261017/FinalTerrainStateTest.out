@@ -1,0 +1,33 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 235324211).
+WorldRenderer: generation started (seed 235324211).
+FurniturePlacementController: 42 placeable defs loaded.
+ItemDropManager: loaded 101 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 27336 cliff/shore columns.
+WorldGenerator: spring (414, 102, 528); river 4938 columns, 15 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldRenderer: first chunk_dirtied received (32,1,32).
+FINAL_TERRAIN_STATE_OK
+SurfaceFloraSpawner: maps ready, scatter armed (seed=235324211, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 235324211, "accepted": 2213, "rejections": { "density": 20453, "tree": 1175, "edge": 1123, "shelf": 436, "water": 125, "moisture": 3120, "ground": 843, "height": 3484, "shore": 28840, "cliff_foot": 3332, "cliff_falloff": 165, "detail_overlap": 214 }, "layout_ms": 588.891, "categories": { "boulder": 77, "scree": 220, "blueberry": 305, "elderberry": 312, "wild_strawberry": 473, "flowers": 812, "reeds": 14 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 9 ducks.
+WorldGenerator: stopped in 7.2 s.

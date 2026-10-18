@@ -186,7 +186,7 @@ func _reload_check(save: Node, expected: Dictionary = {}) -> void:
 		"furniture":_same_save_value(actual.scene.furniture,expected.scene.furniture),
 		"wildlife":_same_save_value(actual.scene.wildlife,expected.scene.wildlife),
 		"clock":_same_save_value(actual.clock,expected.clock),
-		"terrain_edits":_same_save_value(actual.scene.water.terrain,expected.scene.water.terrain),
+		"terrain_edits":_same_save_value(actual.scene.terrain,expected.scene.terrain),
 		"valid_snapshot":validation.is_empty()}
 	checks["dwarf_identity_and_appearance"]=checks.dwarf_count
 	if checks.dwarf_count:

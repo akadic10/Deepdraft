@@ -25,6 +25,9 @@
 [ext_resource type="Script" path="res://scripts/ui/WaterDebugPanel.gd" id="22_water"]
 [ext_resource type="Script" uid="uid://c3nv0xasxktrf" path="res://scripts/systems/ConstructionController.gd" id="23_construction"]
 [ext_resource type="Script" path="res://scripts/ui/TerrainExplorerProvider.gd" id="24_terrain_explorer"]
+[ext_resource type="Script" path="res://scripts/ui/WorldLoadingScreen.gd" id="25_loading"]
+[ext_resource type="Script" uid="uid://cb6brkkvx3ufx" path="res://scripts/systems/XrayController.gd" id="26_xray"]
+[ext_resource type="Script" path="res://scripts/ui/DwarfNeedIndicators.gd" id="27_needs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -185,3 +188,21 @@ dock_ui_path = NodePath("../DockUI")
 flora_path = NodePath("../SurfaceFloraSpawner")
 explorer_path = NodePath("../ObjectExplorerController")
 details_path = NodePath("../SurfaceDetailManager")
+
+[node name="DwarfNeedIndicators" type="CanvasLayer" parent="."]
+script = ExtResource("27_needs")
+dwarf_director_path = NodePath("../DwarfDirector")
+
+[node name="WorldLoadingScreen" type="CanvasLayer" parent="."]
+script = ExtResource("25_loading")
+renderer_path = NodePath("../Renderer")
+flora_path = NodePath("../SurfaceFloraSpawner")
+details_path = NodePath("../SurfaceDetailManager")
+wildlife_path = NodePath("../WildlifeManager")
+
+[node name="XrayController" type="Node3D" parent="."]
+script = ExtResource("26_xray")
+renderer_path = NodePath("../Renderer")
+slice_path = NodePath("../SliceController")
+dock_path = NodePath("../DockUI")
+tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../ConstructionController"), NodePath("../FurniturePlacementController"), NodePath("../StockpileDesignationController"), NodePath("../FlagPlacementController"), NodePath("../TreeFellingController")])

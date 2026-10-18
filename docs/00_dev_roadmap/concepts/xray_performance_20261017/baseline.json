@@ -1,0 +1,272 @@
+{
+	"camera": "[X: (1.0, 0.0, 0.0), Y: (0.0, 1.0, 0.0), Z: (0.0, 0.0, 1.0), O: (263.6998, 38.2912, 544.1775)]",
+	"cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+	"gpu": "AMD Radeon RX 9070 XT",
+	"phases": {
+		"full_active": {
+			"chunks": 56,
+			"detail": {
+				"XrayController/_commit_chunk": {
+					"max": 0.084,
+					"median": 0,
+					"p95": 0
+				},
+				"XrayController/_commit_chunk/calls": {
+					"max": 4,
+					"median": 0,
+					"p95": 0
+				},
+				"XrayController/_process": {
+					"max": 2.311,
+					"median": 1.637,
+					"p95": 1.735
+				},
+				"XrayController/_process/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_sync_visibility": {
+					"max": 0.232,
+					"median": 0.061,
+					"p95": 0.09
+				},
+				"XrayController/_sync_visibility/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_update_visuals": {
+					"max": 2.088,
+					"median": 1.565,
+					"p95": 1.634
+				},
+				"XrayController/_update_visuals/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_water_changed": {
+					"max": 0.783,
+					"median": 0,
+					"p95": 0.611
+				},
+				"XrayController/_water_changed/calls": {
+					"max": 1,
+					"median": 0,
+					"p95": 1
+				}
+			},
+			"dirty": 0,
+			"frame": {
+				"max": 310.155,
+				"median": 12.38,
+				"p95": 27.323
+			},
+			"frames": 794,
+			"gpu": {
+				"max": 12.3009996414185,
+				"median": 6.15999984741211,
+				"p95": 8.06599998474121
+			},
+			"moving": 110,
+			"render_cpu": {
+				"max": 4.88899993896484,
+				"median": 2.45799994468689,
+				"p95": 3.25999999046326
+			},
+			"scan": 0,
+			"visuals": 5873
+		},
+		"full_frozen_controller": {
+			"chunks": 56,
+			"detail": {},
+			"dirty": 0,
+			"frame": {
+				"max": 11.569,
+				"median": 3.662,
+				"p95": 5.118
+			},
+			"frames": 3118,
+			"gpu": {
+				"max": 3.96099996566772,
+				"median": 3.33500003814697,
+				"p95": 3.46900010108948
+			},
+			"moving": 110,
+			"render_cpu": {
+				"max": 2.92899990081787,
+				"median": 1.99899995326996,
+				"p95": 2.30100011825562
+			},
+			"scan": 0,
+			"visuals": 5873
+		},
+		"full_start": {
+			"chunks": 41,
+			"detail": {
+				"XrayController/_commit_chunk": {
+					"max": 0.358,
+					"median": 0,
+					"p95": 0.237
+				},
+				"XrayController/_commit_chunk/calls": {
+					"max": 3,
+					"median": 0,
+					"p95": 1
+				},
+				"XrayController/_process": {
+					"max": 4.412,
+					"median": 4.088,
+					"p95": 4.193
+				},
+				"XrayController/_process/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_sync_visibility": {
+					"max": 0.087,
+					"median": 0.029,
+					"p95": 0.075
+				},
+				"XrayController/_sync_visibility/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_update_visuals": {
+					"max": 1.855,
+					"median": 1.536,
+					"p95": 1.603
+				},
+				"XrayController/_update_visuals/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				}
+			},
+			"dirty": 262,
+			"frame": {
+				"max": 318.757,
+				"median": 12.208,
+				"p95": 298.77
+			},
+			"frames": 215,
+			"gpu": {
+				"max": 11.0719995498657,
+				"median": 4.59000015258789,
+				"p95": 7.5
+			},
+			"moving": 110,
+			"render_cpu": {
+				"max": 3.98699998855591,
+				"median": 2.1340000629425,
+				"p95": 3.43799996376038
+			},
+			"scan": 0,
+			"visuals": 5873
+		},
+		"full_steady": {
+			"chunks": 56,
+			"detail": {
+				"XrayController/_commit_chunk": {
+					"max": 0.38,
+					"median": 0,
+					"p95": 0
+				},
+				"XrayController/_commit_chunk/calls": {
+					"max": 249,
+					"median": 0,
+					"p95": 0
+				},
+				"XrayController/_process": {
+					"max": 4.718,
+					"median": 1.586,
+					"p95": 4.092
+				},
+				"XrayController/_process/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_sync_visibility": {
+					"max": 0.177,
+					"median": 0.052,
+					"p95": 0.065
+				},
+				"XrayController/_sync_visibility/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				},
+				"XrayController/_update_visuals": {
+					"max": 1.846,
+					"median": 1.525,
+					"p95": 1.568
+				},
+				"XrayController/_update_visuals/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				}
+			},
+			"dirty": 0,
+			"frame": {
+				"max": 300.397,
+				"median": 5.413,
+				"p95": 11.161
+			},
+			"frames": 1338,
+			"gpu": {
+				"max": 11.7910003662109,
+				"median": 3.23300004005432,
+				"p95": 5.7350001335144
+			},
+			"moving": 110,
+			"render_cpu": {
+				"max": 3.81200003623962,
+				"median": 2.13299989700317,
+				"p95": 2.69000005722046
+			},
+			"scan": 0,
+			"visuals": 5873
+		},
+		"off": {
+			"chunks": 0,
+			"detail": {
+				"XrayController/_process": {
+					"max": 0.007,
+					"median": 0.001,
+					"p95": 0.001
+				},
+				"XrayController/_process/calls": {
+					"max": 1,
+					"median": 1,
+					"p95": 1
+				}
+			},
+			"dirty": 56,
+			"frame": {
+				"max": 38.168,
+				"median": 6.523,
+				"p95": 12.214
+			},
+			"frames": 1596,
+			"gpu": {
+				"max": 19.3880004882813,
+				"median": 6.18100023269653,
+				"p95": 7.06699991226196
+			},
+			"moving": 0,
+			"render_cpu": {
+				"max": 4.53900003433228,
+				"median": 2.3840000629425,
+				"p95": 2.98200011253357
+			},
+			"scan": 0,
+			"visuals": 0
+		}
+	},
+	"resolution": "(7680, 2160)"
+}

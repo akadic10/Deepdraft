@@ -234,9 +234,9 @@ func _resumable_ranking() -> void:
 	stockpiles._process(.25)
 	for i in range(30):
 		tasks._run_scheduler()
-		if bool(tasks._haul_match.get("pickup_ok", false)): break
+		if _has_proven_haul_pickup(): break
 		await process_frame
-	_expect(older.current_task_id < 0 and bool(tasks._haul_match.get("pickup_ok", false)), "pickup and destination probes can span wakes without premature assignment")
+	_expect(older.current_task_id < 0 and _has_proven_haul_pickup(), "pickup and destination probes can span wakes without premature assignment")
 	tasks.notify_dwarf_idle(worker.dwarf_id)
 	await _dispatch()
 	_expect(worker.current_task_id >= 0 and older.current_task_id < 0, "newly idle cutter joins a comparison that was already in progress")
@@ -247,6 +247,10 @@ func _resumable_ranking() -> void:
 	_expect(zone.advance_haul_quote(worker.current_cell(), query, Time.get_ticks_usec() + 100000), "pickup quote resumes to completion")
 	_expect(query.cell == Vector3i(40,20,40), "resumed quote identifies actual pickup")
 	_stages += 1
+
+
+func _has_proven_haul_pickup() -> bool:
+	return tasks._haul_match.get("routes",{}).values().any(func(route: Dictionary): return bool(route.get("pickup_ok",false)))
 
 
 func _relocation_distance() -> void:

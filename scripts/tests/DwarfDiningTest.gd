@@ -21,6 +21,7 @@ func _run() -> void:
 
 func _clear_layout() -> void:
 	worker._food.cancel()
+	worker._idle_behavior.cancel()
 	for piece in furniture._installed.values(): furniture.dev_remove_installed(piece.installed_id)
 	_clear_food()
 	worker._food.last_meal = ""
@@ -44,10 +45,28 @@ func _arrangements() -> void:
 		_expect(await _meal_start(),expected+": reaches eating")
 		_expect(worker._food._dining.outcome()==expected,expected+": chooses the best actual arrangement")
 		if seat != null: _expect(seat.idle_seat_owner==worker.dwarf_id,"meal claims the seat")
+		worker._process(.75)
+		var seated_body: Vector3 = worker._body.position
+		var seated_feet: Vector3 = worker._foot_l.position
 		await _finish_food()
 		_expect(worker._food.last_dining==expected,"completed meal records "+expected)
 		_expect(is_equal_approx(worker._mood.value(),.5-float(worker._mood.config.dining.get(expected,0))),"exactly one dining penalty")
-		if seat != null: _expect(seat.idle_seat_owner<0,"finished meal releases seat")
+		if seat != null:
+			_expect(seat.idle_seat_owner==worker.dwarf_id and worker._idle_behavior.state=="sitting","finished meal hands the occupied seat to idle rest")
+			_expect(worker._body.position.is_equal_approx(seated_body) and worker._foot_l.position.is_equal_approx(seated_feet),"completion frame preserves the seated body and feet")
+			worker._process(.05)
+			_expect(worker._body.position.is_equal_approx(seated_body),"next idle frame stays seated without a second sit-down")
+			_expect(worker.dwarf_id in tasks._idle_dwarves,"resting after eating remains available for work")
+			worker._idle_behavior.timer = 0
+			worker._process(.05)
+			worker._process(.05)
+			_expect(not worker._body.position.is_zero_approx() and worker._body.position.length()<seated_body.length(),"rest ends with a gradual stand-up")
+			for i in 12:
+				worker._process(.05)
+				if seat.idle_seat_owner<0: break
+			_expect(seat.idle_seat_owner<0 and worker._body.position.is_zero_approx(),"standing releases the meal's seat")
+		for piece in furniture._installed.values():
+			_expect(piece.dining_claims.is_empty(),"finished meal releases its dining-table claim")
 	# The back of a chair beside a table does not count as dining at that table.
 	_clear_layout()
 	_piece(CHAIR,Vector3i(45,20,40),2)
@@ -57,11 +76,16 @@ func _arrangements() -> void:
 	await _finish_food()
 	for key: String in [STOOL,LOG_BENCH]:
 		_clear_layout()
-		_piece(key,Vector3i(45,20,40))
+		var seat = _piece(key,Vector3i(45,20,40))
 		_piece(TABLE,Vector3i(45,20,42))
 		_expect(await _meal_start(),"simple seat reaches eating")
 		_expect(worker._food._dining.outcome()=="proper",key+" can dine at a properly spaced table")
+		worker._process(.75)
+		var seated_body: Vector3 = worker._body.position
 		await _finish_food()
+		_expect(worker._body.position.is_equal_approx(seated_body) and seat.idle_seat_owner==worker.dwarf_id,key+" keeps its meal pose and claim on completion")
+		_expect(worker.walk_to(Vector3i(40,20,39)),"player movement can interrupt rest after eating")
+		_expect(seat.idle_seat_owner<0 and not worker._idle_behavior.active() and worker._body.position.is_zero_approx(),"movement after a meal releases the transferred seat and pose")
 
 func _interruptions() -> void:
 	_clear_layout()

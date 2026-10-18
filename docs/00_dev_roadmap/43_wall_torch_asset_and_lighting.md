@@ -2,6 +2,12 @@
 
 Status: **INSTALLED AND VERIFIED — 2026-10-02.**
 
+**2026-10-17:** [209 — Torch reach](209_torch_reach_and_construction_size.md)
+extends both torch types from a 12- to a 20-voxel light radius. Existing energy
+(wall 3.2, log 2.6) and attenuation (0.6) retain the warm centre while spreading
+the outer fade across more floor. Native profiles verify the gentler gradient;
+terrain and closed doors still block light. Heat remains wall 100 / log 75 units.
+
 **2026-10-12:** [129 — Wall mount heights](129_wall_mount_heights.md) adds
 player-selected heights for both torch types, shared five-block worker reach,
 and pending plans that wait when access is lost. The lifecycle below reflects
@@ -33,6 +39,10 @@ enabled. `SkyController` excludes that layer only from the sun's shadow-caster m
 preserving the prior daylight appearance and avoiding a new map-wide sun-shadow pass.
 Local lights include it, so actual rock walls block torchlight. Normal camera and
 light cull masks include this layer. No rendering settings in `project.godot` change.
+
+The sun exclusion above is historical: [204 — Terrain sun shadows](204_terrain_sun_shadows.md)
+removes it on 2026-10-17 because it let plant shadows pass through solid cliffs.
+Local-light shadow behavior is retained.
 
 The torch is always lit when installed. Fuel, ignition/extinguishing and burn-out
 are not implemented. Heat is the existing room simulation,

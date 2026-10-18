@@ -1,21 +1,25 @@
 {
   "__comment": [
-    "Rudimentary hearth — rough fieldstones, exposed logs and coals (doc 30, 2026-10-11).",
-    "Authored at 8 voxels per block, 0.125 export scale baked into the GLB.",
-    "Uneven stones reach 0.75 blocks; fire fits inside the existing 2x2x2 placement/collision envelope.",
-    "RoomManager reads heat_source.heat_units. A multi-cell hearth contributes 2400 units once, at its origin.",
-    "Named body/flame meshes preserve the fieldstones and logs while ten stepped voxel fire frames animate.",
+    "Rudimentary room heater — rough stacked fieldstone back and cheeks, open front, logs and glowing coals (doc 199).",
+    "Faceted world-unit geometry is authored by generate_furniture_faceted.py; the opening faces local +Z.",
+    "The stone back reaches 1.68 blocks inside the unchanged 2x2x2 collision envelope.",
+    "RoomManager counts 1600 heat units once at the origin. Small sealed bedrooms stay comfortable through the seasons.",
+    "Named body/flame meshes and ten low faceted flame frames preserve installed lighting and animation.",
     "Installed hearths emit warm, gently flickering light. Ghosts and packed items remain unlit.",
     "The shared packed-furniture item and floor-placement behavior are unchanged."
   ],
   "furniture_key": "base:furniture:hearth",
   "furniture_category": "hearth",
   "display_name": "Rudimentary hearth",
-  "description": "Rough fieldstones bank a bed of coals and unsawn logs. Warms a small bedroom; larger halls need more heat.",
+  "description": "A compact stone room heater with an open firebox. Warms a small enclosed bedroom; larger rooms may need more heat. Face the opening into the room.",
   "model": "res://assets/models/furniture/hearth.glb",
   "item_key": "base:resources:furniture:hearth",
   "placement": "floor",
   "yaw_steps": 4,
+  "show_placement_area": true,
+  "placement_label": "2 × 2 room heater",
+  "placement_note": "Place inside an enclosed room. R turns the opening to face inward.",
+  "room_heater": true,
   "footprint": {
     "width": 2,
     "depth": 2
@@ -43,8 +47,8 @@
     "attenuation": 1.2,
     "position": [
       0,
-      1.375,
-      0
+      1.0,
+      0.22
     ],
     "shadows": true,
     "body_shadows": true,
@@ -85,7 +89,7 @@
     }
   },
   "heat_source": {
-    "heat_units": 2400
+    "heat_units": 1600
   },
   "fire_sound": "campfire"
 }

@@ -35,10 +35,6 @@ static func water(state: Dictionary) -> Dictionary:
 	return state
 
 static func mining(state: Dictionary) -> Dictionary:
-	var keys: Array=state.mined_blocks
-	keys.sort_custom(func(a: Vector3i,b: Vector3i): return a.x<b.x or (a.x==b.x and (a.y<b.y or (a.y==b.y and a.z<b.z))))
-	var mined: Array=[]
-	for p: Vector3i in keys: mined.append([p.x,p.y,p.z])
 	var zones: Array=[]
 	var ids: Array=state.zones.keys()
 	ids.sort()
@@ -46,7 +42,7 @@ static func mining(state: Dictionary) -> Dictionary:
 		var blocks: Array=[]
 		for p: Vector3i in state.zones[id]: blocks.append([p.x,p.y,p.z])
 		zones.append({"id":int(id),"blocks":blocks})
-	return {"mined_blocks":mined,"zones":zones}
+	return {"zones":zones}
 
 static func items(state: Dictionary) -> Dictionary:
 	state.loose.sort_custom(func(a: Dictionary,b: Dictionary):

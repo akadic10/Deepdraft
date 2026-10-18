@@ -1,13 +1,13 @@
 param(
     [Parameter(Mandatory=$true)][string]$Godot,
     [string[]]$Tests = @('JobLifecycleTest','JobPlanningTest','JobMixedWorldTest',
-        'FurnitureAssignmentTest','FurniturePlacementAnimationTest','FurnitureMoveTest','SettlementFlagMoveTest','WallMountHeightTest',
+        'FurnitureAssignmentTest','FurniturePlacementAnimationTest','FurnitureMoveTest','HearthRoomTest','SettlementFlagMoveTest','WallMountHeightTest',
         'LadderSchedulingTest','LadderTest','LadderMiningTest',
-        'CraftingSelectionTest','WorkerCraftingTest','WorkerCraftingWoodTest',
+        'CraftingSelectionTest','WorkerCraftingTest','WorkerCraftingWoodTest','RudimentaryRecreationTest',
         'HaulingSelectionTest','HaulingAnimationTest','SurfaceWorkSelectionTest',
         'TreeFellingTest','MinerProfessionTest','PlacementHaulPriorityTest',
         'ShrubMoveHandoffTest','DwarfSupportTest','DwarfIdleBehaviorTest','DwarfFoodTest','DwarfDiningTest','ShrubRegrowthTest',
-        'BridgeCornerWalkingTest','NavigationRegressionTest','ConstructionTest','ConstructionInputTest','FloorConstructionTest','SaveManagerRoundTripTest'),
+        'BridgeCornerWalkingTest','NavigationRegressionTest','ConstructionTest','ConstructionStagingTest','ConstructionContinuityTest','ConstructionDevTest','ConstructionInputTest','FloorConstructionTest','SaveManagerRoundTripTest'),
     [string]$LogDirectory = ''
 )
 $ErrorActionPreference = 'Stop'

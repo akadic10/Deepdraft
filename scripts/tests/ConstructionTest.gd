@@ -3,6 +3,7 @@ extends "res://scripts/tests/HaulingAnimationTest.gd"
 var construction
 var mine
 var nav
+var _terrain_before := {}
 
 func _run() -> void:
 	create_timer(100).timeout.connect(func(): push_error("Construction test timed out"); quit(1))
@@ -19,6 +20,7 @@ func _run() -> void:
 	construction.mining = mine
 	scene.add_child(construction)
 	construction.set_process(false)
+	_terrain_before = world.terrain_overrides()
 	var first := Vector3i(44,21,40)
 	var upper := first+Vector3i.UP
 	var id: int = construction.create_order(_cells([first,upper]))
@@ -29,11 +31,11 @@ func _run() -> void:
 	for tick in range(1200):
 		await _tick()
 		if construction.orders.is_empty(): break
-		if construction.built.size()==1 and not saw_partial_area:
+		if _completed_cells().size()==1 and not saw_partial_area:
 			var data: Dictionary = construction.get_explorer_data(id)
-			_expect(data.rows[1][1]=="1" and data.rows[2][1]=="1 rough stone","inspector counts shrink as actual blocks finish")
+			_expect(data.rows[1][1]=="1" and data.rows[2][1]=="2 / 2 stone delivered","inspector retains delivered total as actual blocks finish")
 			saw_partial_area = true
-	_expect(construction.built.size()==2 and construction.orders.is_empty(),"worker constructs both blocks using real routes and delivery")
+	_expect(_completed_cells().size()==2 and construction.orders.is_empty(),"worker constructs both blocks using real routes and delivery")
 	_expect(saw_partial_area and construction.get_explorer_data(id).is_empty(),"completed area releases its inspector subject")
 	_expect(_snapshot_units()==6,"each block consumes exactly one rough stone")
 	_expect(world.get_terrain_block(first.x,first.y,first.z)==root.get_node("WorldGenerator").construction_stone_id(first),"built block uses authored stone layer identity")
@@ -60,6 +62,13 @@ func _cells(values: Array) -> Array[Vector3i]:
 	result.assign(values)
 	return result
 
+func _snapshot_units() -> int:
+	var total := super._snapshot_units()
+	if is_instance_valid(construction):
+		for order in construction.orders.values():
+			if order.materials != null: total += order.materials.count()
+	return total
+
 func _tick() -> void:
 	construction._process(.04)
 	tasks._run_scheduler()
@@ -76,13 +85,13 @@ func _interruption_test() -> void:
 	var before := _snapshot_units()
 	var cell := Vector3i(48,21,42)
 	var id: int = construction.create_order(_cells([cell]))
-	if await _wait_phase(worker.TaskPhase.FETCH_TO_GHOST):
+	if await _wait_phase(worker.TaskPhase.HAUL_TO_ZONE):
 		var data: Dictionary = construction.get_explorer_data(id)
-		_expect(data.rows[0][1]=="Carrying stone" and data.rows[3][1]==worker.dwarf_name,"inspector reflects the real carrier")
+		_expect(data.rows[0][1]=="Delivering materials" and data.rows[6][1]==worker.dwarf_name,"inspector reflects the real carrier")
 		var state: Dictionary = construction.serialize_state()
 		_expect(state.orders.size()==1 and worker.serialize_state().carried_items.size()==1,"save records pending area and real cargo separately")
 		construction.perform_explorer_action(id,"cancel")
-		_expect(_snapshot_units()==before and not construction.built.has(cell),"cancel after pickup preserves all stone and builds nothing")
+		_expect(_snapshot_units()==before and not _completed_cells().has(cell),"cancel after pickup preserves all stone and builds nothing")
 	else: _expect(false,"construction reaches carry phase")
 	await process_frame
 
@@ -99,7 +108,7 @@ func _blocked_commit_test() -> void:
 		_expect(data.rows[0][1]=="Building" and data.rows[4][1]=="%d%%" % roundi(progress/float(construction.definition.work_seconds)*100.0),"inspector reports actual work progress")
 		var handle: int = root.get_node("PlacedEntityRegistry").register_box(cell,Vector3i.ONE)
 		worker._process(3.0)
-		_expect(not construction.built.has(cell) and _snapshot_units()==before,"late obstacle rejects commit without consuming stone")
+		_expect(not _completed_cells().has(cell) and _snapshot_units()==before,"late obstacle rejects commit without consuming stone")
 		_expect(is_equal_approx(order.work_progress.get(cell,0.0),progress),"interruption retains partial construction work")
 		root.get_node("PlacedEntityRegistry").unregister(handle)
 		construction.cancel_order(id)
@@ -108,13 +117,16 @@ func _blocked_commit_test() -> void:
 
 func _mining_test(cell: Vector3i) -> void:
 	var before := _snapshot_units()
-	mine._mined_blocks[cell] = true # Original excavation history survives backfill.
+	# Compare the shared loot rule using the same random roll as natural stone.
+	seed(123)
+	var expected_drop := int(randf() <= .05)
+	seed(123)
 	_expect(mine._filter_mineable_blocks(_cells([cell])).has(cell),"rebuilt terrain can be designated for mining")
 	var id: int = mine._create_zone(_cells([cell]))
 	_expect(mine.execute_zone_block_mined(id,cell,worker.dwarf_id),"normal mining removes a constructed block")
-	_expect(not construction.built.has(cell) and _snapshot_units()==before+1,"constructed mining refunds one stone once")
+	_expect(not _completed_cells().has(cell) and _snapshot_units()==before+expected_drop,"placed stone uses the natural stone drop table")
 	_expect(world.get_terrain_block(cell.x,cell.y,cell.z)==blocks.AIR_ID,"mined constructed block becomes real air")
-	_expect(not construction.mined_refund(cell),"second removal cannot duplicate refund")
+	_expect(not mine.execute_zone_block_mined(id,cell,worker.dwarf_id),"second completion cannot duplicate drops")
 	await process_frame
 
 func _save_test() -> void:
@@ -122,9 +134,11 @@ func _save_test() -> void:
 	var id: int = construction.create_order(_cells([cell]))
 	construction.orders[id].work_progress[cell] = .75
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(construction.serialize_state()))
-	for built_cell: Vector3i in construction.built: world.set_block(built_cell.x,built_cell.y,built_cell.z,blocks.AIR_ID)
+	var terrain: Array = world.serialize_edits()
+	for built_cell: Vector3i in _completed_cells(): world.set_block(built_cell.x,built_cell.y,built_cell.z,blocks.AIR_ID)
+	world.restore_terrain({"edits":terrain})
 	construction.restore_state(saved)
-	_expect(construction.built.size()==saved.built.size(),"constructed terrain restores from permanent keys")
+	_expect(not saved.has("built") and world.serialize_edits()==terrain,"completed terrain restores independently of unfinished jobs")
 	_expect(is_equal_approx(construction.orders[id].work_progress[cell],.75),"pending work restores without transient reservations")
 	_expect(construction.orders[id]._carried_by.is_empty(),"restored plan does not manufacture carried stone")
 	construction.cancel_order(id)
@@ -134,12 +148,12 @@ func _supply_test() -> void:
 	var cell := Vector3i(47,21,46)
 	var id: int = construction.create_order(_cells([cell]))
 	for tick in range(30): await _tick()
-	_expect(construction.orders.has(id) and not construction.built.has(cell),"missing stone leaves a persistent unbuilt order")
+	_expect(construction.orders.has(id) and not _completed_cells().has(cell),"missing stone leaves a persistent unbuilt order")
 	drops.restore_loose_item(STONE,Vector3(40.5,21,40.5),0,1)
 	var item = drops._loose.keys()[0]
 	item.set_meta("disallowed",true)
 	for tick in range(30): await _tick()
-	_expect(not construction.built.has(cell) and drops.quantity_of(item)==1,"disallowed stone is never consumed")
+	_expect(not _completed_cells().has(cell) and drops.quantity_of(item)==1,"disallowed stone is never consumed")
 	construction.cancel_order(id)
 	item.set_meta("disallowed",false)
 	drops.take(item); item.free()
@@ -155,7 +169,7 @@ func _supply_test() -> void:
 	for tick in range(800):
 		await _tick()
 		if not construction.orders.has(id): break
-	_expect(construction.built.has(cell) and zone.stored_count()==1,"stored stone is physically delivered and consumed one unit at a time")
+	_expect(_completed_cells().has(cell) and zone.stored_count()==1,"stored stone is physically delivered and consumed one unit at a time")
 	stockpiles.deregister_zone(zone)
 
 func _room_test() -> void:
@@ -179,4 +193,12 @@ func _room_test() -> void:
 		await _tick()
 		if not construction.orders.has(id): break
 	rooms._rebuild_all_rooms()
-	_expect(construction.built.has(hole) and not rooms.get_room_at(Vector3i(62,21,62)).is_empty(),"worker-built terrain seals the real room")
+	_expect(_completed_cells().has(hole) and not rooms.get_room_at(Vector3i(62,21,62)).is_empty(),"worker-built terrain seals the real room")
+
+## Test-only comparison with the fixture's initial world; no production owner list.
+func _completed_cells() -> Dictionary:
+	var result := {}
+	for cell: Vector3i in world.terrain_overrides():
+		var id: int = world.get_terrain_block(cell.x,cell.y,cell.z)
+		if blocks.is_solid(id) and _terrain_before.get(cell,0)!=id: result[cell] = id
+	return result

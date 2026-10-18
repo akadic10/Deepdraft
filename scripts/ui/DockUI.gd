@@ -48,6 +48,7 @@ var _window_manager: UIWindowManager = null
 var _world_info_overlay: CanvasLayer
 var _block_inspector_overlay: CanvasLayer
 var _slice_controller: Node = null
+var _xray_controller: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
@@ -505,6 +506,7 @@ func _build_time_slice_hud() -> void:
 	_speed_buttons = _time_slice_hud.speed_buttons
 	_slice_button = _time_slice_hud.slice_button
 	if _slice_controller != null: _time_slice_hud.bind_slice(_slice_controller)
+	if _xray_controller != null: _time_slice_hud.bind_xray(_xray_controller)
 	get_viewport().size_changed.connect(_position_time_slice_hud)
 	_position_dock()
 	_update_navigation_status()
@@ -717,7 +719,7 @@ func _dispatch_command(id: String) -> bool:
 		"load_autosave":
 			_close_action_panel()
 			load_autosave_requested.emit()
-		"spawn_drops", "spawn_furniture":
+		"spawn_drops", "spawn_furniture", "spawn_bushes":
 			if _stockpile_controller != null:
 				_stockpile_controller.call("dev_" + id)
 		"arrival_status_development":
@@ -804,6 +806,9 @@ func _dispatch_panel_action(target: String, label: String) -> void:
 	if target == "storage_zone" and label == "DEV: Spawn Drops":
 		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_drops"):
 			_stockpile_controller.call("dev_spawn_drops")
+		return
+	if target == "storage_zone" and label == "DEV: Spawn Bushes":
+		_dispatch_command("spawn_bushes")
 		return
 	if target == "storage_zone" and label == "DEV: Spawn Furniture":
 		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_furniture"):
@@ -1085,6 +1090,13 @@ func register_slice_controller(controller: Node) -> void:
 			controller.connect("slice_active_changed", refresh)
 
 
+func register_xray_controller(controller: Node) -> void:
+	_xray_controller = controller
+	if _time_slice_hud != null:
+		_time_slice_hud.bind_xray(controller)
+		_position_time_slice_hud.call_deferred()
+
+
 func _toggle_slice_tool() -> void:
 	if _slice_controller == null:
 		push_warning("DockUI: slice button pressed but no SliceController is registered.")
@@ -1345,7 +1357,7 @@ func _panel_actions(target: String) -> Array[String]:
 		"build":
 			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Log Bench", "📥 Hearth", "📥 Log Door (2 wide)", "📥 Trade Counter", "📥 Personal Dining Table", "📥 Communal Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "📥 Brazier", "Cancel"]
 		"storage_zone":
-			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "Cancel"]
+			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "DEV: Spawn Bushes", "Cancel"]
 		"farm":
 			return ["Cave Plot", "Surface Plot", "Plant Crop", "Harvest"]
 		"military":

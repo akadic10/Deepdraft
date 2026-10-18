@@ -1,5 +1,9 @@
 # 30 — Rudimentary hearth
 
+**Superseded 2026-10-16:** [199 — Campfire and room hearth](199_campfire_and_room_hearth.md)
+records the current faceted 2×2 open-front room heater and 1600-unit heating
+balance. This document retains the earlier voxel design as historical context.
+
 **Installed 2026-10-11.** The early hearth is a rough fire bed banked with
 fieldstones. It replaces the dressed stone bowl and iron grate, retaining the
 existing furniture, packed-item and recipe keys. Current saves load the current

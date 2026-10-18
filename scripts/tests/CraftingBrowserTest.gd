@@ -13,7 +13,7 @@ func _run() -> void:
 		dock.open_crafting(PREFIX+"campfire")
 		await _frames(10)
 		_expect(panel._browser.is_visible_in_tree() and not panel._orders_view.is_visible_in_tree(),"recipe browsing hides the order list")
-		_expect(panel._category_groups.size()==6 and panel._category_groups.has("Rooms"),"six recipe categories include log doors in Rooms")
+		_expect(panel._category_groups.size()==7 and panel._category_groups.has("Rooms") and panel._category_groups.has("Recreation"),"seven recipe categories include room furnishings and recreation")
 		for key: String in panel._buttons:
 			var button: Button = panel._buttons[key]
 			_expect(button.icon!=null and button.text.is_empty() and button.size.x<=56,"compact illustrated recipe: "+key)
@@ -39,7 +39,7 @@ func _run() -> void:
 			event.pressed = true
 			Input.parse_input_event(event)
 		await _frames(5)
-		_expect(panel._search.text=="ACCESS" and _visible_recipes().size()==2,"case-insensitive category search finds ladder and bridge")
+		_expect(panel._search.text=="ACCESS" and _visible_recipes().size()==4,"case-insensitive category search finds ladder, bridge, fence and gate")
 		_expect(panel._category_groups.Access.visible and not panel._category_groups.Lighting.visible,"search hides empty categories")
 		_click(panel._buttons[PREFIX+"log_bridge"].get_global_rect().get_center())
 		await _frames(4)

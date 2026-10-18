@@ -1,0 +1,36 @@
+{
+  "furniture_key": "base:furniture:log_gate",
+  "furniture_category": "access",
+  "display_name": "Log Gate",
+  "description": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
+  "model": "res://assets/models/furniture/log_gate.glb",
+  "item_key": "base:resources:furniture:log_gate",
+  "placement": "grid_fence",
+  "placement_label": "2 grid edges · R rotates",
+  "placement_note": "Leave the middle grid corner free for the gate opening. Its end posts join neighboring fence posts automatically.",
+  "grid_fence": {"kind":"gate", "span":2, "post_radius":0.12, "height":1.3},
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "blocks_movement": false,
+  "collision_regions": [],
+  "room_anchor": false,
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 1,
+    "material_factor": 1
+  },
+  "door_animation": {
+    "width": 2,
+    "double": false,
+    "hinge_inset": 0.14,
+    "open_degrees": 90,
+    "open_seconds": 0.3,
+    "close_seconds": 0.55,
+    "hold_seconds": 0.7,
+    "approach_distance": 2.8
+  }
+}

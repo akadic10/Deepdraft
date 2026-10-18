@@ -840,6 +840,7 @@ func _domains_dict(domain_names: Array) -> Dictionary:
 
 func get_spawn_stats() -> Dictionary:
 	return {
+		"ready": _ready_to_spawn and _pending.is_empty() and _seasonal_refresh.loading_pending_count()==0,
 		"spawned": _spawned_count,
 		"species": _species.size(),
 		"loaded_columns": _loaded_columns.size(),

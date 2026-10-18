@@ -1,0 +1,5550 @@
+{
+  "initial": {
+    "frontiers": [],
+    "idle": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "nav_revision": 7532,
+    "stock": {
+      "cells": 323,
+      "containers": 0,
+      "stored": 62,
+      "zones": 4
+    },
+    "stock_revision": 115,
+    "tasks": [
+      {
+        "blocked": 0,
+        "id": 1,
+        "source": 1000002,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 2,
+        "source": 1000002,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 3,
+        "source": 1000002,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 4,
+        "source": 1000002,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 5,
+        "source": 1000003,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 6,
+        "source": 1000003,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 7,
+        "source": 1000003,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 8,
+        "source": 1000003,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 9,
+        "source": 1000004,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 10,
+        "source": 1000004,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 11,
+        "source": 1000004,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 12,
+        "source": 1000004,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 13,
+        "source": 1000005,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 14,
+        "source": 1000005,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 15,
+        "source": 1000005,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      },
+      {
+        "blocked": 0,
+        "id": 16,
+        "source": 1000005,
+        "status": 0,
+        "type": 1,
+        "wait": "Waiting for assessment",
+        "worker": -1
+      }
+    ],
+    "total_units": 89,
+    "wake_count": 0,
+    "workers": [
+      {
+        "cargo": 0,
+        "cell": "(283, 43, 565)",
+        "food": 0.250524602681283,
+        "food_message": "",
+        "food_state": "",
+        "id": 0,
+        "name": "Guntris",
+        "phase": 0,
+        "sleeping": true,
+        "task": -1,
+        "walkable": true
+      },
+      {
+        "cargo": 0,
+        "cell": "(279, 43, 524)",
+        "food": 0.0,
+        "food_message": "",
+        "food_state": "",
+        "id": 1,
+        "name": "Ildgra",
+        "phase": 0,
+        "sleeping": false,
+        "task": -1,
+        "walkable": true
+      },
+      {
+        "cargo": 0,
+        "cell": "(260, 43, 553)",
+        "food": 0.176524602681303,
+        "food_message": "",
+        "food_state": "",
+        "id": 2,
+        "name": "Brynvin",
+        "phase": 0,
+        "sleeping": false,
+        "task": -1,
+        "walkable": true
+      },
+      {
+        "cargo": 0,
+        "cell": "(270, 43, 516)",
+        "food": 0.239524602681305,
+        "food_message": "",
+        "food_state": "",
+        "id": 3,
+        "name": "Sollin",
+        "phase": 0,
+        "sleeping": false,
+        "task": -1,
+        "walkable": true
+      },
+      {
+        "cargo": 0,
+        "cell": "(286, 43, 547)",
+        "food": 0.102524602681312,
+        "food_message": "",
+        "food_state": "",
+        "id": 4,
+        "name": "Birna",
+        "phase": 0,
+        "sleeping": false,
+        "task": -1,
+        "walkable": true
+      }
+    ]
+  },
+  "pickups": [
+    {
+      "cell": "(239, 43, 534)",
+      "expanded": 312,
+      "key": "base:resources:furniture:aging_rack",
+      "route_status": 1,
+      "stands": "[(239, 43, 533), (238, 43, 534), (240, 43, 534), (239, 43, 535)]"
+    },
+    {
+      "cell": "(237, 43, 535)",
+      "expanded": 341,
+      "key": "base:resources:furniture:anvil",
+      "route_status": 1,
+      "stands": "[(237, 43, 534), (236, 43, 535), (238, 43, 535), (237, 43, 536)]"
+    },
+    {
+      "cell": "(240, 43, 537)",
+      "expanded": 318,
+      "key": "base:resources:furniture:barrel",
+      "route_status": 1,
+      "stands": "[(240, 43, 536), (239, 43, 537), (241, 43, 537), (240, 43, 538)]"
+    },
+    {
+      "cell": "(240, 43, 532)",
+      "expanded": 272,
+      "key": "base:resources:furniture:brazier",
+      "route_status": 1,
+      "stands": "[(240, 43, 531), (239, 43, 532), (241, 43, 532), (240, 43, 533)]"
+    },
+    {
+      "cell": "(237, 43, 535)",
+      "expanded": 341,
+      "key": "base:resources:furniture:communal_table",
+      "route_status": 1,
+      "stands": "[(237, 43, 534), (236, 43, 535), (238, 43, 535), (237, 43, 536)]"
+    },
+    {
+      "cell": "(239, 43, 532)",
+      "expanded": 279,
+      "key": "base:resources:furniture:door",
+      "route_status": 1,
+      "stands": "[(239, 43, 531), (238, 43, 532), (240, 43, 532), (239, 43, 533)]"
+    },
+    {
+      "cell": "(238, 43, 537)",
+      "expanded": 342,
+      "key": "base:resources:furniture:trade_counter",
+      "route_status": 1,
+      "stands": "[(238, 43, 536), (237, 43, 537), (239, 43, 537), (238, 43, 538)]"
+    },
+    {
+      "cell": "(237, 43, 532)",
+      "expanded": 293,
+      "key": "base:resources:furniture:wall_torch",
+      "route_status": 1,
+      "stands": "[(237, 43, 531), (236, 43, 532), (238, 43, 532), (237, 43, 533)]"
+    },
+    {
+      "cell": "(237, 43, 534)",
+      "expanded": 330,
+      "key": "base:resources:furniture:wooden_chair",
+      "route_status": 1,
+      "stands": "[(237, 43, 533), (236, 43, 534), (238, 43, 534), (237, 43, 535)]"
+    },
+    {
+      "cell": "(248, 37, 513)",
+      "expanded": 6064,
+      "key": "base:resources:furniture:wooden_torch",
+      "route_status": 3,
+      "stands": "[(247, 36, 513), (249, 38, 513), (248, 37, 514)]"
+    },
+    {
+      "cell": "(251, 38, 517)",
+      "expanded": 6064,
+      "key": "base:resources:furniture:wooden_torch",
+      "route_status": 3,
+      "stands": "[(251, 38, 516), (250, 38, 517), (252, 38, 517), (251, 37, 518)]"
+    },
+    {
+      "cell": "(238, 43, 532)",
+      "expanded": 286,
+      "key": "base:resources:ore:copper",
+      "route_status": 1,
+      "stands": "[(238, 43, 531), (237, 43, 532), (239, 43, 532), (238, 43, 533)]"
+    },
+    {
+      "cell": "(238, 43, 532)",
+      "expanded": 286,
+      "key": "base:resources:ore:copper",
+      "route_status": 1,
+      "stands": "[(238, 43, 531), (237, 43, 532), (239, 43, 532), (238, 43, 533)]"
+    },
+    {
+      "cell": "(241, 43, 534)",
+      "expanded": 294,
+      "key": "base:resources:ore:copper",
+      "route_status": 1,
+      "stands": "[(241, 43, 533), (240, 43, 534), (242, 43, 534), (241, 43, 535)]"
+    },
+    {
+      "cell": "(239, 43, 537)",
+      "expanded": 330,
+      "key": "base:resources:ore:iron",
+      "route_status": 1,
+      "stands": "[(239, 43, 536), (238, 43, 537), (240, 43, 537), (239, 43, 538)]"
+    },
+    {
+      "cell": "(240, 43, 533)",
+      "expanded": 289,
+      "key": "base:resources:ore:tin",
+      "route_status": 1,
+      "stands": "[(240, 43, 532), (239, 43, 533), (241, 43, 533), (240, 43, 534)]"
+    },
+    {
+      "cell": "(299, 43, 449)",
+      "expanded": 1019,
+      "key": "base:resources:seed:pine_cone",
+      "route_status": 1,
+      "stands": "[(299, 43, 448), (298, 43, 449), (300, 43, 449), (299, 43, 450)]"
+    },
+    {
+      "cell": "(237, 43, 537)",
+      "expanded": 354,
+      "key": "base:resources:soil:cave_soil",
+      "route_status": 1,
+      "stands": "[(237, 43, 536), (236, 43, 537), (238, 43, 537), (237, 43, 538)]"
+    },
+    {
+      "cell": "(239, 43, 537)",
+      "expanded": 330,
+      "key": "base:resources:stone:rough_stone",
+      "route_status": 1,
+      "stands": "[(239, 43, 536), (238, 43, 537), (240, 43, 537), (239, 43, 538)]"
+    },
+    {
+      "cell": "(289, 43, 474)",
+      "expanded": 589,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(289, 43, 473), (288, 43, 474), (290, 43, 474), (289, 43, 475)]"
+    },
+    {
+      "cell": "(289, 43, 474)",
+      "expanded": 589,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(289, 43, 473), (288, 43, 474), (290, 43, 474), (289, 43, 475)]"
+    },
+    {
+      "cell": "(299, 43, 449)",
+      "expanded": 1019,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(299, 43, 448), (298, 43, 449), (300, 43, 449), (299, 43, 450)]"
+    },
+    {
+      "cell": "(299, 43, 449)",
+      "expanded": 1019,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(299, 43, 448), (298, 43, 449), (300, 43, 449), (299, 43, 450)]"
+    },
+    {
+      "cell": "(299, 43, 449)",
+      "expanded": 1019,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(299, 43, 448), (298, 43, 449), (300, 43, 449), (299, 43, 450)]"
+    },
+    {
+      "cell": "(299, 43, 449)",
+      "expanded": 1019,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(299, 43, 448), (298, 43, 449), (300, 43, 449), (299, 43, 450)]"
+    },
+    {
+      "cell": "(299, 43, 449)",
+      "expanded": 1019,
+      "key": "base:resources:wood:pine_log",
+      "route_status": 1,
+      "stands": "[(299, 43, 448), (298, 43, 449), (300, 43, 449), (299, 43, 450)]"
+    }
+  ],
+  "routes": [
+    {
+      "drop_manager": true,
+      "from": "(283, 43, 565)",
+      "leases": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "path_size": 58,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(265, 43, 521)",
+      "walkable": true,
+      "worker": "Guntris",
+      "zone": 2
+    },
+    {
+      "drop_manager": true,
+      "from": "(283, 43, 565)",
+      "leases": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "path_size": 58,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(283, 43, 521)",
+      "walkable": true,
+      "worker": "Guntris",
+      "zone": 3
+    },
+    {
+      "drop_manager": true,
+      "from": "(283, 43, 565)",
+      "leases": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "path_size": 47,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(283, 43, 542)",
+      "walkable": true,
+      "worker": "Guntris",
+      "zone": 4
+    },
+    {
+      "drop_manager": true,
+      "from": "(283, 43, 565)",
+      "leases": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "path_size": 42,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(265, 43, 542)",
+      "walkable": true,
+      "worker": "Guntris",
+      "zone": 5
+    },
+    {
+      "drop_manager": true,
+      "from": "(279, 43, 524)",
+      "leases": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "path_size": 15,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(265, 43, 521)",
+      "walkable": true,
+      "worker": "Ildgra",
+      "zone": 2
+    },
+    {
+      "drop_manager": true,
+      "from": "(279, 43, 524)",
+      "leases": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "path_size": 4,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(279, 43, 521)",
+      "walkable": true,
+      "worker": "Ildgra",
+      "zone": 3
+    },
+    {
+      "drop_manager": true,
+      "from": "(279, 43, 524)",
+      "leases": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "path_size": 11,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(279, 43, 534)",
+      "walkable": true,
+      "worker": "Ildgra",
+      "zone": 4
+    },
+    {
+      "drop_manager": true,
+      "from": "(279, 43, 524)",
+      "leases": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "path_size": 15,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(265, 43, 534)",
+      "walkable": true,
+      "worker": "Ildgra",
+      "zone": 5
+    },
+    {
+      "drop_manager": true,
+      "from": "(260, 43, 553)",
+      "leases": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "path_size": 39,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(260, 43, 521)",
+      "walkable": true,
+      "worker": "Brynvin",
+      "zone": 2
+    },
+    {
+      "drop_manager": true,
+      "from": "(260, 43, 553)",
+      "leases": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "path_size": 39,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(278, 43, 521)",
+      "walkable": true,
+      "worker": "Brynvin",
+      "zone": 3
+    },
+    {
+      "drop_manager": true,
+      "from": "(260, 43, 553)",
+      "leases": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "path_size": 23,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(278, 43, 542)",
+      "walkable": true,
+      "worker": "Brynvin",
+      "zone": 4
+    },
+    {
+      "drop_manager": true,
+      "from": "(260, 43, 553)",
+      "leases": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "path_size": 28,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(260, 43, 542)",
+      "walkable": true,
+      "worker": "Brynvin",
+      "zone": 5
+    },
+    {
+      "drop_manager": true,
+      "from": "(270, 43, 516)",
+      "leases": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "path_size": 6,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(265, 43, 516)",
+      "walkable": true,
+      "worker": "Sollin",
+      "zone": 2
+    },
+    {
+      "drop_manager": true,
+      "from": "(270, 43, 516)",
+      "leases": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "path_size": 9,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(278, 43, 516)",
+      "walkable": true,
+      "worker": "Sollin",
+      "zone": 3
+    },
+    {
+      "drop_manager": true,
+      "from": "(270, 43, 516)",
+      "leases": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "path_size": 19,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(278, 43, 534)",
+      "walkable": true,
+      "worker": "Sollin",
+      "zone": 4
+    },
+    {
+      "drop_manager": true,
+      "from": "(270, 43, 516)",
+      "leases": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "path_size": 19,
+      "quote_cell": "(251, 38, 517)",
+      "room": true,
+      "target": "(265, 43, 534)",
+      "walkable": true,
+      "worker": "Sollin",
+      "zone": 5
+    },
+    {
+      "drop_manager": true,
+      "from": "(286, 43, 547)",
+      "leases": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "path_size": 42,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(265, 43, 521)",
+      "walkable": true,
+      "worker": "Birna",
+      "zone": 2
+    },
+    {
+      "drop_manager": true,
+      "from": "(286, 43, 547)",
+      "leases": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "path_size": 42,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(286, 43, 521)",
+      "walkable": true,
+      "worker": "Birna",
+      "zone": 3
+    },
+    {
+      "drop_manager": true,
+      "from": "(286, 43, 547)",
+      "leases": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "path_size": 34,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(286, 43, 542)",
+      "walkable": true,
+      "worker": "Birna",
+      "zone": 4
+    },
+    {
+      "drop_manager": true,
+      "from": "(286, 43, 547)",
+      "leases": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "path_size": 26,
+      "quote_cell": "(240, 43, 537)",
+      "room": true,
+      "target": "(265, 43, 542)",
+      "walkable": true,
+      "worker": "Birna",
+      "zone": 5
+    }
+  ],
+  "samples": [
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 1
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 7
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 11
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 4,
+          "probe": 0,
+          "revision": 115,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 13
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 11,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 11,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 16
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1,
+        3
+      ],
+      "nav_revision": 7727,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 62,
+        "zones": 4
+      },
+      "stock_revision": 115,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 13,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 735,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.238005738931284,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.164005738931304,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(270, 43, 516)",
+          "food": 0.227005738931306,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0900057389313128,
+          "food_message": "",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 1
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 7
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 4,
+          "probe": 0,
+          "revision": 115,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 13
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 17,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 17,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 16
+        }
+      ],
+      "idle": [
+        3,
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 7847,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 62,
+        "zones": 4
+      },
+      "stock_revision": 115,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 13,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 1465,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.225491936014617,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.151491936014637,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(270, 43, 516)",
+          "food": 0.214491936014639,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0774919360146468,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 20,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 20,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 20,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 20,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 20,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 20,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 7
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 21,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 13
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 0,
+          "probe": 0,
+          "revision": 116,
+          "task": 14
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 22,
+          "index": 3,
+          "probe": 0,
+          "revision": 116,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 22,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 19,
+          "index": 0,
+          "probe": 0,
+          "revision": 115,
+          "task": 16
+        }
+      ],
+      "idle": [
+        2,
+        1,
+        4
+      ],
+      "nav_revision": 7937,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 62,
+        "zones": 4
+      },
+      "stock_revision": 116,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 13,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 2164,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.212976853792395,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.138976853792415,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(266, 43, 519)",
+          "food": 0.201976853792417,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 5,
+          "sleeping": false,
+          "task": 1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0649768537924255,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 7
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 8
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 3,
+          "probe": 0,
+          "revision": 119,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 13
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 3,
+          "probe": 0,
+          "revision": 119,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 16
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 28,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 28,
+          "index": 0,
+          "probe": 0,
+          "revision": 119,
+          "task": 1
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 8117,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 62,
+        "zones": 4
+      },
+      "stock_revision": 119,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 13,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 2839,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.200470436014616,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.126470436014636,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(246, 43, 530)",
+          "food": 0.189470436014638,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 5,
+          "sleeping": false,
+          "task": 14,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0524704360146475,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 7
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 3,
+          "probe": 0,
+          "revision": 120,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 10
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 3,
+          "probe": 0,
+          "revision": 120,
+          "task": 11
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 3,
+          "probe": 0,
+          "revision": 120,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 13
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 0,
+          "probe": 0,
+          "revision": 120,
+          "task": 16
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 34,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 34,
+          "index": 3,
+          "probe": 0,
+          "revision": 120,
+          "task": 1
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 8177,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 62,
+        "zones": 4
+      },
+      "stock_revision": 120,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 13,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 3555,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.187970096847949,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.113970096847971,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 1,
+          "cell": "(257, 43, 530)",
+          "food": 0.176970096847972,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 6,
+          "sleeping": false,
+          "task": 14,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0399700968479803,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 38,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 39,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 40,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 40,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 16
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 40,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 1
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 40,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 40,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 40,
+          "index": 0,
+          "probe": 0,
+          "revision": 132,
+          "task": 17
+        }
+      ],
+      "idle": [
+        2,
+        1,
+        4
+      ],
+      "nav_revision": 8267,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 63,
+        "zones": 4
+      },
+      "stock_revision": 132,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 17,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 4240,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.175461306014616,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.101461306014638,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(254, 43, 529)",
+          "food": 0.164461306014639,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 5,
+          "sleeping": false,
+          "task": 7,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0274613060146467,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 6
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 3,
+          "probe": 0,
+          "revision": 147,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 146,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 146,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 146,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 146,
+          "task": 12
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 3,
+          "probe": 0,
+          "revision": 147,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 1
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 17
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 46,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 46,
+          "index": 0,
+          "probe": 0,
+          "revision": 147,
+          "task": 7
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 8402,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 63,
+        "zones": 4
+      },
+      "stock_revision": 147,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 17,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 4893,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.16295507809795,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.0889550780979727,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 2,
+          "cell": "(240, 43, 532)",
+          "food": 0.151955078097972,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 5,
+          "sleeping": false,
+          "task": 16,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0149550780979798,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 5
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 3,
+          "probe": 0,
+          "revision": 149,
+          "task": 6
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 3,
+          "probe": 0,
+          "revision": 149,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 1
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 3,
+          "probe": 0,
+          "revision": 149,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 17
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 52,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 52,
+          "index": 0,
+          "probe": 0,
+          "revision": 149,
+          "task": 7
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 8492,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 63,
+        "zones": 4
+      },
+      "stock_revision": 149,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 17,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 5614,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.150453074903505,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.0764530749035286,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 4,
+          "cell": "(257, 43, 529)",
+          "food": 0.139453074903527,
+          "food_message": "No reachable food; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 6,
+          "sleeping": false,
+          "task": 16,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0024530749035354,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 2
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 56,
+          "index": 3,
+          "probe": 0,
+          "revision": 175,
+          "task": 3
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 57,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 4
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 57,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 5
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 57,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 6
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 57,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 8
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 57,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 9
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 54,
+          "index": 0,
+          "probe": 0,
+          "revision": 166,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 54,
+          "index": 0,
+          "probe": 0,
+          "revision": 166,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 54,
+          "index": 0,
+          "probe": 0,
+          "revision": 166,
+          "task": 12
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 15
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 1
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 14
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 7
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 16
+        },
+        {
+          "candidates": 4,
+          "current_idle_version": 57,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 55,
+          "index": 4,
+          "probe": 0,
+          "revision": 175,
+          "task": 18
+        }
+      ],
+      "idle": [
+        2,
+        1,
+        3,
+        4
+      ],
+      "nav_revision": 8552,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 67,
+        "zones": 4
+      },
+      "stock_revision": 175,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 18,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 6352,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.137946824903504,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.0639468249035299,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(257, 43, 536)",
+          "food": 0.126946824903527,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 12
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 3,
+          "probe": 0,
+          "revision": 179,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 7
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 16
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 18
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 64,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 64,
+          "index": 0,
+          "probe": 0,
+          "revision": 179,
+          "task": 1
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 8717,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 67,
+        "zones": 4
+      },
+      "stock_revision": 179,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 18,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 7107,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.125440132984313,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.0514401329843374,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(243, 43, 533)",
+          "food": 0.114440132984335,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 5,
+          "sleeping": false,
+          "task": 9,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 10
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 12
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 14
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 3,
+          "probe": 0,
+          "revision": 180,
+          "task": 7
+        },
+        {
+          "candidates": 3,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 3,
+          "probe": 0,
+          "revision": 180,
+          "task": 16
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 18
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 70,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 70,
+          "index": 0,
+          "probe": 0,
+          "revision": 180,
+          "task": 1
+        }
+      ],
+      "idle": [
+        4,
+        2,
+        1
+      ],
+      "nav_revision": 8837,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 67,
+        "zones": 4
+      },
+      "stock_revision": 180,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 18,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 7852,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.112939817264617,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(279, 43, 524)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.0389398172646393,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 1,
+          "cell": "(257, 43, 529)",
+          "food": 0.101939817264639,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 6,
+          "sleeping": false,
+          "task": 9,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    },
+    {
+      "frontiers": [
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 75,
+          "index": 0,
+          "probe": 0,
+          "revision": 186,
+          "task": 2
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 75,
+          "index": 0,
+          "probe": 0,
+          "revision": 186,
+          "task": 3
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 4
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 5
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 6
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 8
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 11
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 15
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 14
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 7
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 16
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 73,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 18
+        },
+        {
+          "candidates": 0,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 74,
+          "index": 0,
+          "probe": 0,
+          "revision": 185,
+          "task": 1
+        },
+        {
+          "candidates": 2,
+          "current_idle_version": 75,
+          "excluded": "{  }",
+          "expanded": null,
+          "idle_version": 75,
+          "index": 2,
+          "probe": 0,
+          "revision": 186,
+          "task": 9
+        }
+      ],
+      "idle": [
+        2,
+        4
+      ],
+      "nav_revision": 8942,
+      "stock": {
+        "cells": 323,
+        "containers": 0,
+        "stored": 67,
+        "zones": 4
+      },
+      "stock_revision": 186,
+      "tasks": [
+        {
+          "blocked": 0,
+          "id": 1,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 2,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 3,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 4,
+          "source": 1000002,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 5,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 6,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 7,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 8,
+          "source": 1000003,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 9,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 10,
+          "source": 1000004,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 1
+        },
+        {
+          "blocked": 0,
+          "id": 11,
+          "source": 1000004,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 12,
+          "source": 1000004,
+          "status": 2,
+          "type": 1,
+          "wait": "",
+          "worker": 3
+        },
+        {
+          "blocked": 0,
+          "id": 14,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 15,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 16,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Worker attending to needs",
+          "worker": -1
+        },
+        {
+          "blocked": 0,
+          "id": 18,
+          "source": 1000005,
+          "status": 0,
+          "type": 1,
+          "wait": "Waiting for assessment",
+          "worker": -1
+        }
+      ],
+      "total_units": 89,
+      "wake_count": 8579,
+      "workers": [
+        {
+          "cargo": 0,
+          "cell": "(283, 43, 565)",
+          "food": 0.100439286847951,
+          "food_message": "",
+          "food_state": "",
+          "id": 0,
+          "name": "Guntris",
+          "phase": 0,
+          "sleeping": true,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 1,
+          "cell": "(264, 43, 529)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 1,
+          "name": "Ildgra",
+          "phase": 15,
+          "sleeping": false,
+          "task": 10,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(260, 43, 553)",
+          "food": 0.0264392868479722,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 2,
+          "name": "Brynvin",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(246, 43, 531)",
+          "food": 0.0894392868479735,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 3,
+          "name": "Sollin",
+          "phase": 5,
+          "sleeping": false,
+          "task": 12,
+          "walkable": true
+        },
+        {
+          "cargo": 0,
+          "cell": "(286, 43, 547)",
+          "food": 0.0,
+          "food_message": "No reachable food or nearby ripe berries; will try again.",
+          "food_state": "",
+          "id": 4,
+          "name": "Birna",
+          "phase": 0,
+          "sleeping": false,
+          "task": -1,
+          "walkable": true
+        }
+      ]
+    }
+  ]
+}

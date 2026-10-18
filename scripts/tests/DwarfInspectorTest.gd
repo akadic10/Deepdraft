@@ -15,6 +15,7 @@ func _run() -> void:
 	root.get_node("WorldGenerator").heightmap.fill(20)
 	root.get_node("WorldGenerator").waterline_map.resize(1024 * 1024)
 	root.get_node("WorldGenerator").waterline_map.fill(-1)
+	root.get_node("WorldGenerator")._cache_block_ids()
 	manager = load("res://scripts/ui/UIWindowManager.gd").new()
 	manager.name = "Windows"
 	scene.add_child(manager)

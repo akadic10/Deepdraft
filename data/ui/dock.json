@@ -161,7 +161,7 @@
             504,
             450
           ],
-          "tooltip": "Requires 1 rough stone per full block. Build in cleared space; the stone matches the natural rock layer. Click or drag; Alt + wheel adjusts height.",
+          "tooltip": "Requires 1 rough stone per full block. Haulers fill a temporary materials crate using their normal carrying capacity, then a builder hammers each block for 3 seconds. Click or drag; Alt + wheel adjusts height.",
           "action": "activate_tool",
           "target": "construct_stone"
         },
@@ -780,6 +780,14 @@
             288
           ],
           "tooltip": "Spawn test furniture items near the camera."
+        },
+        {
+          "id": "spawn_bushes",
+          "label": "Spawn Bushes",
+          "action": "panel_action",
+          "target": "storage_zone",
+          "icon": "res://assets/ui/items/base_resources_plant_blueberry_bush.png",
+          "tooltip": "DEV: Spawn an uprooted blueberry, elderberry and strawberry bush near the camera. Dwarves can haul them or replant them through Place → Plants."
         },
         {
           "id": "time_weather_development",

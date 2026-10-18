@@ -263,11 +263,15 @@ func _finish_meal() -> void:
 	portion.queue_free()
 	portion = null
 	_items.loose_items_changed.emit()
-	cancel("",true,false)
+	_end_meal("",true,false,true)
 
 func cancel(reason := "Meal interrupted; will try again.", resume := true, retry := true) -> void:
+	_end_meal(reason,resume,retry)
+
+func _end_meal(reason: String, resume: bool, retry: bool, rest_seated := false) -> void:
 	if not active(): return
 	state = "" # Stop callbacks before releasing paths or inventory.
+	var seated: bool = rest_seated and _dining != null and _dining.continue_seated()
 	release_reservation()
 	_foraging = null
 	_dining = null
@@ -278,7 +282,7 @@ func cancel(reason := "Meal interrupted; will try again.", resume := true, retry
 	_query = {}; _quote = {}; _route = {}; _excluded = {}; _token = {}
 	_source = null
 	agent.stop_walking()
-	agent._reset_part_offsets()
+	if not seated: agent._reset_part_offsets()
 	message = reason
 	retry_hours = float(config.retry_hours) if retry else 0.0
 	if resume and not agent.is_sleeping(): TaskManager.notify_dwarf_idle(agent.dwarf_id)

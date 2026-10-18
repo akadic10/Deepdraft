@@ -588,6 +588,30 @@ func dev_spawn_drops() -> void:
 	_dev_spawn_mix(DEV_DROP_MIX)
 
 
+## One mature uprooted bush of each registered species, ready for normal
+## hauling and Place → Plants. Keep their saved identity with the flora owner.
+func dev_spawn_bushes() -> void:
+	var center := _screen_center_surface_cell()
+	var plants := get_tree().get_first_node_in_group("surface_details")
+	if center.x < 0 or plants == null: return
+	var floors: Array[Vector3i] = []
+	for ring in range(4):
+		for dx in range(-ring,ring+1):
+			for dz in range(-ring,ring+1):
+				if maxi(absi(dx),absi(dz)) != ring: continue
+				var floor := center+Vector3i(dx,0,dz)
+				if NavGrid.is_walkable(floor) and not WaterManager.has_standing_water(floor+Vector3i.UP): floors.append(floor)
+	var keys: Array = SurfaceDetailRegistry.definitions.keys()
+	keys.sort()
+	var count := 0
+	for key: String in keys:
+		if SurfaceDetailRegistry.get_definition(key).get("kind") != "shrub": continue
+		if floors.is_empty(): break
+		if not String(plants.dev_spawn_packed_shrub(key,floors.pop_front())).is_empty(): count += 1
+	if _dock_ui != null:
+		_dock_ui.show_persistence_status("Spawned %d uprooted bushes near the view centre. Replant through Place → Plants." % count if count>0 else "No clear, dry ground near the view centre for bushes.")
+
+
 func _dev_spawn_mix(mix: Dictionary) -> void:
 	var center := _screen_center_surface_cell()
 	if center.x < 0:

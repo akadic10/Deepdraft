@@ -1,8 +1,7 @@
 extends Node
 
-## X0 — Interior region tracker (doc 11 §Phase X0, piggybacked on mining
-## execution per doc 16 Phase 4). DATA ONLY: the future X-Ray render mode
-## (X1/X2) consumes these sets read-only; nothing renders from here.
+## Discovered interior regions. DATA ONLY: XrayController consumes these
+## sets read-only; nothing renders from here (docs 11 and 210).
 ##
 ## Autoload, registered after TaskManager. Producers: real mining execution
 ## and the DEV instant-mine button (same pipeline minus the dwarf) — both call
@@ -13,24 +12,56 @@ extends Node
 ## clearance envelope) and add those cells to the per-chunk interior set.
 ## Mining adjacent to natural cave air discovers its connected finite system.
 ## That air joins the interior set and emits caves_discovered for rendering
-## and lighting. Block placement (future) subtracts and locally recomputes.
+## and lighting. Block placement subtracts occupied air and dirties nearby shells.
 ##
-## PERSISTENCE (doc 11 X0): the interior set is DERIVABLE from the mined set.
-## The save system persists mined blocks only and rebuilds interiors on load —
-## never serialise these tables.
+## Exploration is saved separately from current terrain. Filling explored space
+## never forgets it, and restoring discovery never changes a voxel.
 
 const INTERIOR_HEIGHT := 4
 const NEIGHBORS := [Vector3i.LEFT, Vector3i.RIGHT, Vector3i.UP, Vector3i.DOWN, Vector3i.FORWARD, Vector3i.BACK]
 signal caves_discovered(cells: Array[Vector3i])
 var _discovered_caves: Dictionary = {}
+var _known_cells: Dictionary = {}
 
 var _interior: Dictionary = {}      # chunk Vector3i -> Dictionary[cell Vector3i -> true]
 var _xray_dirty: Dictionary = {}    # chunk Vector3i -> true (X1 consumer drains; 3×3×3 rule)
 var _cell_count: int = 0
+var revision := 0
 
 
 func _ready() -> void:
+	WorldData.block_changed.connect(_on_block_changed)
 	print("InteriorTracker: ready (X0 data-only).")
+
+
+func contains_air(cell: Vector3i) -> bool:
+	return _interior.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{}).has(cell) and _is_air(cell)
+
+
+func get_interior_chunks() -> Array:
+	return _interior.keys()
+
+
+func get_interior_cells(chunk: Vector3i) -> Array:
+	return _interior.get(chunk,{}).keys()
+
+
+func _on_block_changed(cell: Vector3i, _old: int, new_id: int) -> void:
+	_known_cells[cell] = true
+	var chunk := Vector3i(cell.x>>4,cell.y>>4,cell.z>>4)
+	if BlockRegistry.is_solid(new_id) and _interior.get(chunk,{}).erase(cell):
+		_cell_count -= 1
+		if _interior[chunk].is_empty(): _interior.erase(chunk)
+		_mark_dirty_neighbourhood(cell)
+		return
+	# A new step changes adjoining floors/walls even when the edited block
+	# itself was never registered as interior (e.g. replacing a natural floor).
+	for offset: Vector3i in NEIGHBORS:
+		var neighbour := cell+offset
+		if _interior.get(Vector3i(neighbour.x>>4,neighbour.y>>4,neighbour.z>>4),{}).has(neighbour):
+			_mark_dirty_neighbourhood(cell)
+			return
+	if _xray_dirty.has(chunk): revision += 1
 
 
 ## Registers freshly mined blocks. Call AFTER the void has been written to
@@ -38,6 +69,7 @@ func _ready() -> void:
 func on_blocks_mined(blocks: Array[Vector3i]) -> void:
 	var discovered: Array[Vector3i] = []
 	for block: Vector3i in blocks:
+		_known_cells[block] = true
 		_add_column(block)
 		_mark_dirty_neighbourhood(block)
 		for direction: Vector3i in NEIGHBORS:
@@ -82,19 +114,21 @@ func get_stats() -> Dictionary:
 	}
 
 
-## X1 hook (future): the dirty chunk set, cleared on read.
+## XrayController consumes the dirty chunk set, cleared on read.
 func take_dirty_chunks() -> Array:
 	var keys := _xray_dirty.keys()
 	_xray_dirty.clear()
 	return keys
 
 
-## Interior cells are derived from mined blocks and rebuilt during restore.
+## Interior air is derived from saved exploration and current terrain on restore.
 func clear_runtime_state() -> void:
 	_interior.clear()
 	_xray_dirty.clear()
 	_cell_count = 0
 	_discovered_caves.clear()
+	_known_cells.clear()
+	revision += 1
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────
@@ -110,6 +144,8 @@ func _add_column(pos: Vector3i) -> void:
 
 
 func _add_cell(cell: Vector3i) -> void:
+	_known_cells[cell] = true
+	if not _is_air(cell): return
 	var chunk_key := Vector3i(cell.x >> 4, cell.y >> 4, cell.z >> 4)
 	if not _interior.has(chunk_key):
 		_interior[chunk_key] = {}
@@ -123,16 +159,42 @@ func _add_cell(cell: Vector3i) -> void:
 ## World truth: WorldData where the chunk exists (mining materialises chunks
 ## before writing void), the deterministic generated block elsewhere.
 func _is_air(pos: Vector3i) -> bool:
-	if WorldData.chunk_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4):
-		return BlockRegistry.is_transparent(WorldData.get_block(pos.x, pos.y, pos.z))
-	return BlockRegistry.is_transparent(WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z))
+	# Water occupies discovered space without erasing its discovery. Inspect
+	# the underlying terrain, not WorldData's live water overlay.
+	return BlockRegistry.is_transparent(WorldData.get_terrain_block(pos.x,pos.y,pos.z))
 
 
 ## 3×3×3 chunk neighbourhood goes x-ray-dirty (shell inflation crosses chunk
 ## borders — doc 11 X0).
 func _mark_dirty_neighbourhood(pos: Vector3i) -> void:
+	revision += 1
 	var c := Vector3i(pos.x >> 4, pos.y >> 4, pos.z >> 4)
 	for dx: int in [-1, 0, 1]:
 		for dy: int in [-1, 0, 1]:
 			for dz: int in [-1, 0, 1]:
 				_xray_dirty[Vector3i(c.x + dx, c.y + dy, c.z + dz)] = true
+
+func is_known(cell: Vector3i) -> bool:
+	return _known_cells.has(cell)
+
+func serialize_exploration() -> Dictionary:
+	var cells: Array = []
+	for cell: Vector3i in _known_cells: cells.append([cell.x,cell.y,cell.z])
+	cells.sort_custom(func(a: Array,b: Array): return a[0]<b[0] or (a[0]==b[0] and (a[1]<b[1] or (a[1]==b[1] and a[2]<b[2]))))
+	var caves := _discovered_caves.keys()
+	caves.sort()
+	return {"cells":cells,"caves":caves}
+
+func restore_exploration(state: Dictionary) -> void:
+	# Legacy mining records supply exploration seeds only, never terrain writes.
+	if state.has("legacy_mined"):
+		var seeds: Array[Vector3i] = []
+		for packed: Array in state.legacy_mined: seeds.append(Vector3i(packed[0],packed[1],packed[2]))
+		on_blocks_mined(seeds)
+	for packed: Array in state.cells: _add_cell(Vector3i(packed[0],packed[1],packed[2]))
+	for cave_id in state.caves:
+		if _discovered_caves.has(int(cave_id)): continue
+		_discovered_caves[int(cave_id)] = true
+		var cells := WorldGenerator.get_cave_air_cells(int(cave_id))
+		for cell: Vector3i in cells: _add_cell(cell)
+		caves_discovered.emit(cells)

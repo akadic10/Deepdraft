@@ -1,7 +1,9 @@
 extends Node3D
 
-## Shared read-only view of ConstructionController's authoritative placed cells.
-var built_blocks: Dictionary = {}
+## Coalesced final-state terrain invalidations; no construction ownership.
+var _terrain_changes: Dictionary = {}
+var _floor_art = preload("res://scripts/components/ConstructionFloorArt.gd").new()
+var underground_view: Node
 
 ## Manages one MeshInstance3D per chunk and rebuilds meshes as chunks change.
 ##
@@ -24,6 +26,7 @@ var built_blocks: Dictionary = {}
 			_enqueue_regions_for_slice_change(old_y, v)
 			_enqueue_overview_tiles_for_slice_change(old_y, v)
 			_visible_volume_dirty = true   # VisibleVolume contract (doc 11 Phase 3)
+			_cavity_shell_dirty = true     # Physical shell clips only to this plane.
 		_begin_slice_timing(old_y, v)
 
 ## XZ chunk radius around the camera that is allowed to build terrain meshes.
@@ -107,6 +110,7 @@ const SLICE_CUT_DIM: float = 0.5
 ## banding is not resolvable, so >1 cuts side-face generation calls proportionally.
 var _material: Material
 var underground_lighting: Node
+var _water_view: Node3D
 var _overview_node: MeshInstance3D = null
 ## Full-world scheduling is separate from local dirty work. Discovery/mining
 ## can enqueue tiles before the first frame or after global invalidation.
@@ -266,6 +270,7 @@ func _ready() -> void:
 	var water_view := preload("res://scripts/components/WaterRenderer.gd").new()
 	water_view.name = "Water"
 	water_view.terrain = self
+	_water_view = water_view
 	add_child(water_view)
 	var moisture_view := preload("res://scripts/components/MoistureRenderer.gd").new()
 	moisture_view.terrain = self
@@ -275,7 +280,7 @@ func _ready() -> void:
 	# No CONNECT_DEFERRED — signal is already emitted on the main thread
 	# via WorldData._deferred_emit_chunk_dirtied, so immediate connection is safe.
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
-	WorldData.block_changed.connect(func(_pos: Vector3i,_old: int,_new: int): _added_terrain_dirty = true)
+	WorldData.block_changed.connect(_terrain_block_changed)
 	InteriorTracker.caves_discovered.connect(add_discovered_cave_blocks)
 
 	# Seasonal surface palettes (surface_palettes.json) are baked into vertex colours at
@@ -322,6 +327,7 @@ func _exit_tree() -> void:
 
 
 func _process(_delta: float) -> void:
+	_flush_terrain_changes()
 	_seasonal_refresh.drain(_enqueue_seasonal_batch)
 	if not _surface_caves_ready and WorldGenerator._maps_ready:
 		_surface_caves_ready = true
@@ -341,7 +347,9 @@ func _process(_delta: float) -> void:
 	if _visible_volume_dirty:
 		_visible_volume_dirty = false
 		visible_volume_changed.emit()
-		_cavity_shell_dirty = true   # re-clip cavity faces against the new plane (SO-2b)
+		# X-ray chunk uploads change inspection/overlay visibility, not physical
+		# terrain. Rebuilding the whole cavity here stalls every shell upload.
+		# Slice changes and terrain edits invalidate the cavity independently.
 
 	# Drain the coalesced shell flag BEFORE the overview early-return so both
 	# render branches get the rebuild; any number of same-frame shell mutations
@@ -741,6 +749,7 @@ func set_visual_cut_blocks(blocks: Dictionary) -> void:
 	_visual_cut_blocks.merge(_mined_blocks)
 	_visual_cut_blocks.merge(_discovered_cave_blocks)
 	_visual_cut_blocks.merge(_debug_cave_blocks)
+	_visual_cut_blocks.merge(WorldData.terrain_overrides())
 	_cut_chunks.clear()
 	for block: Vector3i in _visual_cut_blocks.keys():
 		_track_cut_chunk(block, 1)
@@ -771,7 +780,7 @@ func remove_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 func _remove_unowned_cut_blocks(blocks: Array[Vector3i]) -> void:
 	var changed: Array[Vector3i] = []
 	for block: Vector3i in blocks:
-		if _planned_cut_blocks.has(block) or _mined_blocks.has(block) or _discovered_cave_blocks.has(block) or _debug_cave_blocks.has(block): continue
+		if WorldData.has_terrain_override(block) or _planned_cut_blocks.has(block) or _mined_blocks.has(block) or _discovered_cave_blocks.has(block) or _debug_cave_blocks.has(block): continue
 		if not _visual_cut_blocks.has(block):
 			continue
 		_visual_cut_blocks.erase(block)
@@ -843,7 +852,7 @@ func clear_debug_cave_blocks() -> void:
 
 
 func is_revealed_air(block: Vector3i) -> bool:
-	return _mined_blocks.has(block) or _discovered_cave_blocks.has(block)
+	return not BlockRegistry.is_solid(WorldData.get_terrain_block(block.x,block.y,block.z)) and (_mined_blocks.has(block) or _discovered_cave_blocks.has(block) or InteriorTracker.contains_air(block))
 
 
 ## Rebuilds the cavity-shell mesh (doc 11 SO-2b + defect fixes 2026-06-05):
@@ -884,7 +893,7 @@ func _rebuild_cavity_shell() -> void:
 	var col_tops: Dictionary = {}   # per-rebuild cache: Vector2i -> effective top
 
 	for block: Vector3i in _visual_cut_blocks.keys():
-		if built_blocks.has(block): continue
+		if WorldData.has_solid_override(block): continue
 		if block.y > slice_y:
 			continue   # cavity above the plane — hidden with everything else
 		if block.y > _cavity_column_top(block.x, block.z, col_tops):
@@ -892,7 +901,7 @@ func _rebuild_cavity_shell() -> void:
 		var mined := is_revealed_air(block) or _debug_cave_blocks.has(block)
 		for dir: Vector3i in _SHELL_DIRS:
 			var n: Vector3i = block + dir
-			if built_blocks.has(n): continue # Dedicated construction mesh owns this face.
+			if WorldData.has_solid_override(n): continue # Current terrain mesh owns overrides.
 			if _visual_cut_blocks.has(n):
 				continue   # open continuation of the cavity (plan or hole)
 			if n.y > slice_y:
@@ -1962,6 +1971,7 @@ func _drain_overview_tile_queue() -> void:
 	_ovt_mined = _mined_blocks.duplicate()
 	_ovt_mined.merge(_discovered_cave_blocks)
 	_ovt_mined.merge(_debug_cave_blocks)
+	_ovt_mined.merge(WorldData.terrain_overrides())
 	_ovt_season = WorldClock.season
 	_ovt_slice = slice_y
 	_ovt_epoch = _overview_epoch
@@ -2644,32 +2654,32 @@ func _region_reaches_above(key: Vector2i, plane_y: int) -> bool:
 
 # ── VisibleVolume contract (doc 11 Phase 3, ref doc 10 rule S5) ───────────────
 # THE shared visibility interface for every overlay system (mining overlays
-# first; water, entities, and the X-Ray interior set later). Composition order
-# when X-Ray lands: clip plane first, then the x-ray set — same as Stonehearth's
+# first; X-ray inspection now composes the discovered shell). Composition order:
+# clip plane first, then the x-ray set — same as Stonehearth's
 # intersect_region_with_visible_volume. Consumers connect to
 # visible_volume_changed (emitted at most once per frame, flushed in _process)
 # and rebuild reactively; polling is a contract violation.
 
 ## Emitted at most once per frame after any visibility-state change (slice step;
-## later: x-ray toggles / interior-set changes). Connect overlays here.
+## x-ray toggles / interior-set changes). Connect overlays here.
 signal visible_volume_changed
 
 var _visible_volume_dirty: bool = false
 
 
 ## True if a world block position is inside the visible volume.
-## Today: the slice plane. Phase X3 composes the x-ray interior set here.
+## Slice plane first, then the discovered shell while inspecting underground.
 func is_block_visible(pos: Vector3i) -> bool:
-	return pos.y <= slice_y
+	return pos.y <= slice_y and (not is_instance_valid(underground_view) or underground_view.is_terrain_visible(pos))
 
 
 ## Returns the subset of blocks inside the visible volume (order preserved).
 func filter_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
-	if slice_y >= WORLD_SIZE_Y - 1:
+	if slice_y >= WORLD_SIZE_Y - 1 and (not is_instance_valid(underground_view) or not underground_view.is_inspecting()):
 		return blocks   # slice off — everything visible, skip the scan
 	var out: Array[Vector3i] = []
 	for block: Vector3i in blocks:
-		if block.y <= slice_y:
+		if is_block_visible(block):
 			out.append(block)
 	return out
 
@@ -2893,20 +2903,43 @@ func _print_startup_performance_report() -> void:
 	print("  meshes_built_counter: %d" % _meshes_built)
 
 
+## The generated overview is immutable; mask every current override and draw
+## solid overrides with their block's own art. This cache records no ownership.
+func _terrain_block_changed(cell: Vector3i, _old: int, _new: int) -> void:
+	_terrain_changes[cell] = true
+	_added_terrain_dirty = true
+
+func _flush_terrain_changes() -> void:
+	if _terrain_changes.is_empty(): return
+	var changed: Array[Vector3i] = []
+	changed.assign(_terrain_changes.keys())
+	_terrain_changes.clear()
+	for cell: Vector3i in changed:
+		var edited := WorldData.has_terrain_override(cell)
+		var solid := BlockRegistry.is_solid(WorldData.get_terrain_block(cell.x,cell.y,cell.z))
+		if edited and not solid: _mined_blocks[cell] = true
+		else: _mined_blocks.erase(cell)
+		var cut := edited or _planned_cut_blocks.has(cell) or _discovered_cave_blocks.has(cell) or _debug_cave_blocks.has(cell)
+		if cut and not _visual_cut_blocks.has(cell):
+			_visual_cut_blocks[cell] = true
+			_track_cut_chunk(cell,1)
+		elif not cut and _visual_cut_blocks.erase(cell): _track_cut_chunk(cell,-1)
+		_shell_exact_ids.erase(cell)
+	_invalidate_visual_cut_blocks(changed)
+
 var _added_terrain: MeshInstance3D
 var _added_terrain_dirty := false
 var _added_terrain_slice := -1
 
-## Positive terrain edits (e.g. a dam) sit above the immutable overview bed.
-## Mining still uses the existing revealed-air/cavity pipeline.
+## Solid final-state overrides, including both authored floor types. All writers
+## use this same mesh; construction retains only previews and unfinished plans.
 func _rebuild_added_terrain() -> void:
 	_added_terrain_dirty = false
 	_added_terrain_slice = slice_y
 	var cells: Array = []
 	for entry: Dictionary in WorldData.serialize_solid_edits():
 		var cell := SaveManager.unpack_v3i(entry.cell)
-		if built_blocks.has(cell): continue # Construction's culled mesh owns these faces.
-		if cell.y>slice_y or BlockRegistry.is_solid(WorldGenerator.get_generated_block_id(cell.x,cell.y,cell.z)): continue
+		if cell.y>slice_y: continue
 		cells.append(entry)
 	if _added_terrain == null:
 		if cells.is_empty(): return
@@ -2922,12 +2955,18 @@ func _rebuild_added_terrain() -> void:
 	for entry: Dictionary in cells:
 		var cell := SaveManager.unpack_v3i(entry.cell)
 		var color := BlockRegistry.get_terrain_color(BlockRegistry.get_id(entry.block),WorldClock.season)
+		var definition := BlockRegistry.get_def(entry.block)
+		var floor_def := BlockRegistry.get_construction_def(String(definition.get("construction","")))
 		for direction: Vector3i in _SHELL_DIRS:
 			var neighbour := cell+direction
 			var solid := BlockRegistry.is_solid(WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z))
 			if neighbour.y <= slice_y and solid: continue
 			var cut := direction == Vector3i.UP and cell.y == slice_y and solid
-			_add_shell_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
+			if not floor_def.is_empty():
+				var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
+				_floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,cut,verts,norms,colors,indices)
+			else:
+				_add_shell_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
 	_added_terrain.mesh = null
 	if not verts.is_empty():
 		var arrays := []
@@ -2940,9 +2979,20 @@ func _rebuild_added_terrain() -> void:
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 		_added_terrain.mesh = mesh
 
+func is_loading_complete() -> bool:
+	if _initial_load or _cavity_shell_dirty or _added_terrain_dirty or not _terrain_changes.is_empty(): return false
+	if _block_face_overview_active():
+		if not _overview_built or not _dirty_overview_tiles.is_empty() or _ovt_building: return false
+	elif not _dirty_region_queue.is_empty(): return false
+	return _seasonal_refresh.loading_pending_count()==0 \
+		and is_instance_valid(underground_lighting) and not underground_lighting.is_updating() \
+		and is_instance_valid(_water_view) and _water_view.is_loading_complete()
+
+
 func get_render_stats() -> Dictionary:
 	var overview_active := _block_face_overview_active()
 	return {
+		"loading_complete": is_loading_complete(),
 		"camera_chunk": _camera_chunk,
 		"view_radius_chunks": view_radius_chunks,
 		"unload_radius_chunks": unload_radius_chunks,

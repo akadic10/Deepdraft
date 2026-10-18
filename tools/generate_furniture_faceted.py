@@ -378,16 +378,52 @@ def anvil():
     return m
 
 
-def hearth(camp=False):
-    m=Mesh(); radius=.77 if camp else .76
+def campfire():
+    m=Mesh(); radius=.77
     for i in range(8):
-        angle=i*math.tau/8+.14; height=.30 if camp else .55
+        angle=i*math.tau/8+.14; height=.30
         m.box((math.cos(angle)*radius,height/2,math.sin(angle)*radius),
               (.42,height,.39),P['stone_light' if i%3==0 else 'stone'],.085,yaw=angle)
     for turn in [-.39,1.03]:
         log=Mesh(); timber(log,(-.59,.15,0),(.59,.15,0),(.13,.14),WOOD)
-        append(m,transformed(log,(0,.06 if camp else .17,0),turn))
+        append(m,transformed(log,(0,.06,0),turn))
     m.box((0,.08,0),(.75,.16,.68),P['soot'],.06)
+    return m
+
+
+def hearth():
+    """A rough U-shaped stone firebox, open toward +Z, inside a 2x2 base."""
+    m=Mesh()
+    # Split flagstones ground the firebox without a dressed masonry plinth.
+    for x,z,w,d,h in [(-.48,-.42,.96,1.02,.18),(.48,-.43,.94,1.00,.20),
+                       (-.51,.53,.90,.77,.16),(.45,.53,1.00,.78,.18)]:
+        m.box((x,h/2,z),(w,h,d),P['stone_dark'],.065)
+    # Staggered fieldstones form a tall back and shorter cheeks. Broad uneven
+    # pieces keep the starter tier legible at colony zoom without tiny mortar.
+    def fieldstone(center,size,color,variant):
+        w,h,d=size; rock=Mesh(); cut=min(w,d)*.23
+        lean=.025 if variant%2 else -.025
+        loft(rock,[(0,w*.42,d*.43,0,cut),
+                   (h*.23,w*.50,d*.50,0,cut*.85),
+                   (h*.77,w*.47,d*.46,lean,cut*1.15),
+                   (h,w*.40,d*.39,lean,cut)],color)
+        append(m,transformed(rock,(center[0],center[1]-h/2,center[2]),
+                             .018 if variant%2 else -.018))
+    for row,(y,h) in enumerate([(.39,.45),(.86,.52),(1.38,.56)]):
+        stones=[(-.64,.63),(.0,.64),(.64,.63)] if row!=1 else [(-.47,.94),(.47,.94)]
+        for i,(x,w) in enumerate(stones):
+            fieldstone((x,y, -.75),(w,h+(.045 if i==1 else -.015),.43),
+                       P['stone_light' if (row+i)%4==0 else 'stone'],row+i)
+    for side in [-1,1]:
+        for row,(y,h) in enumerate([(.39,.43),(.81,.43),(1.20,.36)]):
+            for i,z in enumerate([-.30,.31]):
+                fieldstone((side*.77,y+(.018 if i==0 else 0),z),
+                           (.42,h+(.045 if i==0 else -.025),.62),
+                           P['stone_light' if (row+i+side)%4==0 else 'stone'],row+i+side)
+    m.box((0,.235,.08),(1.12,.12,1.10),P['soot'],.055)
+    for z,y,turn in [(-.12,.33,.07),(.31,.35,-.10)]:
+        log=Mesh(); timber(log,(-.53,0,0),(.53,0,0),(.12,.13),WOOD)
+        append(m,transformed(log,(0,y,z),turn))
     return m
 
 
@@ -491,7 +527,7 @@ def models():
     for span in range(1,6): single['log_bridge_'+str(span)]=bridge(span)
     result={name:{name:m} for name,m in single.items()}
     for width in [3,4]: result['log_door_'+str(width)]=door(width)
-    for name,body,flame in [('campfire',hearth(True),'campfire_flame'),('hearth',hearth(),'hearth_flame'),
+    for name,body,flame in [('campfire',campfire(),'campfire_flame'),('hearth',hearth(),'hearth_flame'),
                             ('brazier',brazier(),'brazier_flame'),('smelter',smelter(),'smelter_flame'),
                             ('wall_torch',torch(),'torch_flame'),('wooden_torch',torch(True),'torch_flame')]:
         result[name]={('torch_body' if 'torch' in name else name+'_body'):body,

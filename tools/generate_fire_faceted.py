@@ -67,6 +67,11 @@ def flame_mesh(name,phase=0.0):
                     t=max(0,min(1,(level-low)/(high-low)))
                     mesh.colors[i]=tuple(x*(1-t)+y*t for x,y in zip(PALETTE[a],PALETTE[b]))+(1.,)
                     break
+    if name=='hearth':
+        # Low glowing coals share the flame's emissive material and remain
+        # fixed through every frame, immediately above the charred log bed.
+        for x,z in [(-.30,.19),(-.05,.29),(.23,.22),(-.20,-.10),(.14,-.07)]:
+            mesh.box((x,anchor[1]+.025,z),(.18,.05,.14),PALETTE['ember'],.018)
     return mesh
 
 

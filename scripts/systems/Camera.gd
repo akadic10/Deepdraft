@@ -148,8 +148,9 @@ func _audio_surface_block(cell: Vector3i) -> int:
 
 func _process(delta: float) -> void:
 	_update_follow()
-	_handle_pan(delta)
-	_handle_drag()
+	if not WorldClock.is_loading_held():
+		_handle_pan(delta)
+		_handle_drag()
 	_smooth_transforms(delta)
 	_enforce_camera_floor()
 	_update_slice()

@@ -1,0 +1,129 @@
+{
+  "date": "2026-10-17",
+  "source_project_only": true,
+  "native_tests": [
+    {
+      "test": "DwarfNeedIndicatorsTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.83,
+      "timeout": false
+    },
+    {
+      "test": "DwarfInspectorTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.49,
+      "timeout": false
+    },
+    {
+      "test": "DwarfRosterTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 6.05,
+      "timeout": false
+    },
+    {
+      "test": "DwarfFoodTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 16.76,
+      "timeout": false
+    },
+    {
+      "test": "DwarfRestTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.83,
+      "timeout": false
+    }
+  ],
+  "captures": [
+    {
+      "file": "needs_1280x720.png",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "needs_1680x720.png",
+      "width": 1680,
+      "height": 720
+    },
+    {
+      "file": "needs_2560x720.png",
+      "width": 2560,
+      "height": 720
+    },
+    {
+      "file": "player_save.png",
+      "width": 7680,
+      "height": 2160
+    }
+  ],
+  "player_save": {
+    "loaded": true,
+    "loading_hidden": true,
+    "states": [
+      {
+        "concern": {},
+        "food": 0.250524602681283,
+        "name": "Guntris"
+      },
+      {
+        "concern": {
+          "help": "Keep harvested food accessible. This dwarf will look for a portion.",
+          "kind": "food",
+          "reason": "Needs a meal",
+          "title": "Famished"
+        },
+        "food": 0.0,
+        "name": "Ildgra"
+      },
+      {
+        "concern": {},
+        "food": 0.176524602681303,
+        "name": "Brynvin"
+      },
+      {
+        "concern": {},
+        "food": 0.239524602681305,
+        "name": "Sollin"
+      },
+      {
+        "concern": {
+          "help": "Keep harvested food accessible. This dwarf will look for a portion.",
+          "kind": "food",
+          "reason": "Needs a meal",
+          "title": "Famished"
+        },
+        "food": 0.102524602681312,
+        "name": "Birna"
+      }
+    ],
+    "visible_badges": 1
+  },
+  "original_save_integrity": [
+    {
+      "file": "autosave.backup.json",
+      "sha256": "86813627699f0f1faf1553352edd7ea2583cba9b9b6f80da136721657c7abb32",
+      "unchanged": true
+    },
+    {
+      "file": "autosave.json",
+      "sha256": "e4a3c577bb715ffebcdac3a3bc886a725032b9752d7223449c27a194e5c04d66",
+      "unchanged": true
+    },
+    {
+      "file": "quicksave.backup.json",
+      "sha256": "226070e45ced9669f706bcc73f3d5c6afe14a723ba3ee1df44e8d7df8c8baba4",
+      "unchanged": true
+    },
+    {
+      "file": "quicksave.json",
+      "sha256": "4aa3a35d58d41720c460f582cc7fc7dcf166cfe08f7958cb7d976adfeea206c8",
+      "unchanged": true
+    }
+  ],
+  "review": "Inspected native 16:9 and 32:9 fixture captures plus the actual saved settlement; all three aspect ratios have layout assertions.",
+  "fixture_repair": "DwarfRosterTest now supplies the waterline map required by milestone 212 final-state terrain reads."
+}

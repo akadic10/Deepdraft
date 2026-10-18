@@ -90,6 +90,7 @@ func on_task_gone(task_id: int, _dwarf_id: int) -> void:
 ## Scheduler probe target / dwarf walk target: the nearest walkable cell
 ## bordering the footprint (the footprint itself is occupied once installed).
 func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
+	if def.has("grid_fence"): return preload("GridFence.gd").nearest_stand(def,origin_cell,yaw_steps,dwarf_cell)
 	if String(def.get("placement", "floor")) == "wall":
 		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(def,origin_cell,yaw_steps,dwarf_cell)
 	var best := Vector3i(-1, -1, -1)
@@ -109,10 +110,12 @@ func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
 
 ## Wall removal can use any reachable floor within bracket reach.
 func wall_work_stands() -> Array[Vector3i]:
+	if def.has("grid_fence"): return preload("GridFence.gd").work_stands(def,origin_cell,yaw_steps)
 	return preload("res://scripts/components/WallFurnitureMount.gd").work_stands(def,origin_cell,yaw_steps)
 
 
 func can_uninstall_from(cell: Vector3i) -> bool:
+	if def.has("grid_fence"): return cell in wall_work_stands()
 	return String(def.get("placement","floor")) != "wall" or cell in wall_work_stands()
 
 

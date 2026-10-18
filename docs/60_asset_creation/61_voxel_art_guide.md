@@ -249,13 +249,14 @@ Colors follow the existing linear vertex-color item material. This is a local
 authoring exception; the established terrain, timber and furniture scales stay
 in effect.
 
-**Rudimentary hearth (2026-10-11):** `tools/generate_hearth_redesign.py` now authors
-a low open-front fire bed, uneven dry-stacked fieldstones, exposed unsawn logs
-and coals. No dressed masonry, cut plinth, grate or iron straps. Eight voxels/block,
-baked 0.125 scale, linear vertex colors and unchanged 2×2×2 gameplay envelope.
-Stones rise at most 0.75 blocks; ten stepped fire silhouettes keep the body static.
-The placed model, animated clip and catalog icon share the design. Native renders
-and verification are recorded in [30 — Hearth visual redesign](../00_dev_roadmap/30_hearth_visual_redesign.md).
+**Rudimentary hearth (2026-10-16):** the current faceted generators
+`tools/generate_furniture_faceted.py` and `tools/generate_fire_faceted.py` author
+a compact room heater with rough stacked fieldstones, an open front, logs and
+glowing coals. The back reaches 1.68 blocks inside the unchanged 2×2×2 gameplay
+envelope. Ten low flame frames share the production model's first frame. The
+model, animated clip and catalog icon follow the shared art standard (63).
+See [199 — Campfire and room hearth](../00_dev_roadmap/199_campfire_and_room_hearth.md).
+The voxel generator and [30](../00_dev_roadmap/30_hearth_visual_redesign.md) are historical.
 
 Deepdraft is flat-shaded, chunky, and readable at RTS zoom. Every asset must serve those three goals before anything else.
 

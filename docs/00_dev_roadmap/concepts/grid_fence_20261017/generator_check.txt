@@ -1,0 +1,4 @@
+log_fence 128 triangles verified
+log_gate 896 triangles verified
+parts/log_fence_rails 256 triangles verified
+board_game_table 968 triangles verified

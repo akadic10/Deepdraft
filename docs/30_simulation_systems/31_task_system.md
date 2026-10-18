@@ -1,5 +1,20 @@
 # 31 — Task System
 
+**Shared hauling geometry (2026-10-17, 215):** identical pickup/delivery searches
+and their planning quanta are shared across storage leases in a bounded cache.
+Inventory changes refresh quotes without discarding valid navigation progress;
+terrain/occupancy/ladder changes still invalidate proofs. Physical claims and
+capacity remain source-owned. See [215](../00_dev_roadmap/215_shared_hauling_routes.md)
+for the newer player-save reproduction and delivery/ownership checks.
+
+**Hauling fairness (2026-10-17, 213):** pickup/delivery searches retain one
+context per worker/start/pickup within a lease. Long searches yield after the
+existing planning quantum so reachable alternatives can run. Idle-pool changes
+re-rank workers while preserving unchanged searches; repeated personal-need
+checks cannot continually erase progress. Proximity, navigation validation,
+budgets and contact-time inventory ownership remain authoritative. See
+[213](../00_dev_roadmap/213_hauling_route_fairness.md).
+
 **Furniture Move (2026-10-12, 132):** installed furniture posts its normal
 UNINSTALL job after the player confirms a destination. The destination reserves
 the resulting exact item and posts FETCH_BUILD when it exists. The packer gets
@@ -16,13 +31,16 @@ reconciliation paths exclude active eaters. Failure releases claims, preserves
 cargo and returns the dwarf to work until the game-time retry. There is no public
 EAT job. The reliability gate now includes food and shrub regrowth (29 fixtures).
 
-**Stone construction (2026-10-12):** an area owns one `ConstructionWork` source
-and at most one FETCH_BUILD lease. Its cells are internal work units, not tasks.
-The shared planner proves pickup and a legal adjacent work stand before claiming
-stone; stored goods use normal withdrawal. Occupancy/support are checked again
-before consumption. Release preserves partial work and physical cargo; successful
-completion consumes exactly one stone and writes terrain, then posts the next
-unit. Missing supplies leave the order available for diagnostics/retry. See 127.
+**Stone construction (2026-10-17):** an area owns `ConstructionWork` and a
+`ConstructionMaterials` storage destination. Up to two HAUL leases stage real
+stone in its temporary crate using the existing carrying budget. Loose goods
+reuse normal bundles; stored portions are reserved, collected at legal source
+stands and deposited together. Once all remaining stone is delivered, one
+FETCH_BUILD lease proves access and performs three seconds of hammer work per
+voxel at normal labor speed, without another pickup. Final support/occupancy and
+worker contact checks precede consumption. Release preserves project stock and
+per-cell progress. Cancellation refunds unused stock; completed blocks remain.
+Cells are internal units, not tasks. See [205](../00_dev_roadmap/205_construction_materials_crates.md).
 
 **Shared lifecycle implemented (2026-10-11):**
 [126 — Job lifecycle and recovery](../00_dev_roadmap/126_job_lifecycle_and_recovery.md)
@@ -130,6 +148,15 @@ in an installed wooden chair without creating an IDLE lease or leaving
 before the work executor starts. Existing priority, profession, permission and
 proximity rules remain responsible for selecting workers. Sleep still removes
 a dwarf from availability. See [99 — Idle activity](../00_dev_roadmap/99_dwarf_idle_activity.md).
+
+**2026-10-17 planning hold correction:** read-only work checks retain stationary
+leisure timers and seated poses. Only an owned leisure walk is cancelled to
+stabilize the route start, with the existing privacy-exit exception. Repeated
+unproductive holds must allow idle progress between checks; they cannot restart
+the start delay forever. Actual assignments still cancel leisure and release
+chairs through `receive_task`. Active bounded route searches retain their
+progress-based hold extension. See
+[216 — Idle planning](../00_dev_roadmap/216_idle_planning_interruption.md).
 
 **HARVEST_TREE live (2026-10-09):** appended priority-50 hand-picking work for
 juniper. The existing adjacent-work source respects the actual trunk footprint

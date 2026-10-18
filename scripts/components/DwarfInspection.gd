@@ -45,6 +45,9 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 	if agent.is_eating():
 		data.group = "resting"
 		data.summary = "Eating" if agent._food.state == "eating" else "Getting food"
+	if agent.is_recreating():
+		data.group = "resting"
+		data.summary = data.activity
 	return data
 
 
@@ -166,7 +169,15 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		explanation = leisure.explanation
 		destination = location(leisure.destination) if leisure.destination.x >= 0 else "No destination"
 	if ladder_build != null and ladder_build.has_method("advance_install"):
-		activity = "Installing a ladder section" if phase == Phase.FETCH_WORKING else "Carrying a ladder section" if phase == Phase.FETCH_TO_GHOST else "Collecting a ladder section"
+		if ladder_build.has_method("commit_staged_build"):
+			activity = "Building stone blocks" if phase == Phase.FETCH_WORKING else "Going to build"
+			explanation = "Hammering the structure using stone already delivered to its materials crate."
+		else:
+			activity = "Installing a ladder section" if phase == Phase.FETCH_WORKING else "Carrying a ladder section" if phase == Phase.FETCH_TO_GHOST else "Collecting a ladder section"
+	var delivery := agent._haul_source()
+	if delivery != null and delivery.has_method("site_supported"):
+		activity = "Delivering construction materials" if phase in [Phase.HAUL_TO_ZONE,Phase.HAUL_DEPOSIT] else "Collecting construction materials"
+		explanation = "Filling the project's temporary materials crate using the normal carrying limit."
 	var ladder_removal := agent._uninstall_source()
 	if ladder_removal != null and ladder_removal.has_method("advance_removal"):
 		activity = "Dismantling a ladder" if phase == Phase.UNINSTALL_WORKING else "Going to dismantle a ladder"
@@ -183,6 +194,11 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		if is_instance_valid(agent._equipment.item):
 			destination = _item_name(agent, agent._equipment.item.get_meta("item_key", "")) + "\n" + location(agent._item_floor_cell(agent._equipment.item))
 	var load_used := 0
+	if agent.is_recreating():
+		var game: Dictionary = agent._recreation.describe(agent)
+		activity = game.activity
+		explanation = game.explanation
+		destination = location(game.destination)
 	var food: Dictionary = agent._food.describe()
 	if agent.is_eating():
 		activity = food.activity
@@ -213,6 +229,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		"equipment_details": equipment_details(agent),
 		"location": location(agent.current_cell()), "rest": clampf(agent.sleep, 0.0, 1.0),
 		"food": food,
+		"concern": preload("DwarfConcern.gd").describe(agent),
 		"sleeping": agent.is_sleeping(), "cargo": items, "load": load_used,
 		"capacity": capacity, "traits": ", ".join(trait_names) if not trait_names.is_empty() else "No distinctive traits",
 		"trait_details": trait_details,

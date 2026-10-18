@@ -1,0 +1,74 @@
+{
+  "checked": true,
+  "static_furniture": 6,
+  "animation_libraries": 5,
+  "frames": 42,
+  "exports": {
+    "assets/models/furniture/animations/campfire_flame.glb": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377276,
+      "sha256": "e32da7b73ad6035a626661dfc9bc4b30228fdcc6c5d60fe2b1397ce478c09fe5"
+    },
+    "assets/models/furniture/campfire.glb": {
+      "triangles": 1002,
+      "meshes": 2,
+      "bytes": 134372,
+      "sha256": "1e9a17e62f0ea22bb4e8b213c5c5c5746e8021bba0b30d385ed4e5f37a34ec3d"
+    },
+    "assets/models/furniture/animations/hearth_flame.glb": {
+      "triangles": 5700,
+      "meshes": 10,
+      "bytes": 761632,
+      "sha256": "3a12d9a141a27e608ce494a7b4308745a1f3c100046545c360655b0ea934df0b"
+    },
+    "assets/models/furniture/hearth.glb": {
+      "triangles": 2326,
+      "meshes": 2,
+      "bytes": 309080,
+      "sha256": "9de1768c02ce9c070d3ba1c32e3899ab3caec48962c5f02347cda4ea73ef293b"
+    },
+    "assets/models/furniture/animations/brazier_flame.glb": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377252,
+      "sha256": "049a079b0301ede35006b9fb61c89a548c05f36d68618b6d491bab68130599a0"
+    },
+    "assets/models/furniture/brazier.glb": {
+      "triangles": 702,
+      "meshes": 2,
+      "bytes": 94736,
+      "sha256": "ec2ec6a82a77cd8cb21161c7ee991315d538963be30566a50da0ddbc0adfd8cb"
+    },
+    "assets/models/furniture/animations/smelter_flame.glb": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377268,
+      "sha256": "135c0b273f274f0629961a8e645dbaef29993c40a24939547393c67fa99b0b65"
+    },
+    "assets/models/furniture/smelter.glb": {
+      "triangles": 1102,
+      "meshes": 2,
+      "bytes": 147508,
+      "sha256": "073b269fe0851edb237c317777c35285d373b1ce13d4687750066a8a21e447c2"
+    },
+    "assets/models/furniture/animations/wall_torch_flame.glb": {
+      "triangles": 2800,
+      "meshes": 8,
+      "bytes": 377228,
+      "sha256": "3e3e784a100e65862cbb2b27d8d87dbb5ab944163a413ad5bd0edf04da3cdfea"
+    },
+    "assets/models/furniture/wall_torch.glb": {
+      "triangles": 666,
+      "meshes": 2,
+      "bytes": 89944,
+      "sha256": "8940c5a857baa43fe3d7f93723220c1ac440ba53f04e1857636686f379adad01"
+    },
+    "assets/models/furniture/wooden_torch.glb": {
+      "triangles": 694,
+      "meshes": 2,
+      "bytes": 93636,
+      "sha256": "0ae1f558b059e8b7bfeb1e73c6415843fbc8485cce01ff9b6443f9a5ded1d934"
+    }
+  }
+}

@@ -14,6 +14,8 @@ const AUDIO_OUT := "res://tmp/worker_crafting_review/audio"
 func _run() -> void:
 	create_timer(80).timeout.connect(func(): push_error("Crafting audio test timed out"); quit(1))
 	await _setup_crafting_fixture()
+	# Native pointer rays can leave the fixture's loaded chunks during preview.
+	root.get_node("WorldGenerator")._build_noise_instances()
 	feedback = root.get_node("WorkFeedback")
 	feedback.set_process(false)
 	feedback._sync_scene()

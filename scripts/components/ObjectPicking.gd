@@ -11,7 +11,8 @@ func hit_distance(node: Node3D, start: Vector3, end: Vector3) -> float:
 	var nearest := INF
 	if node is MeshInstance3D:
 		var visual := node as MeshInstance3D
-		if visual.mesh != null:
+		var camera := node.get_viewport().get_camera_3d()
+		if visual.mesh != null and (camera==null or visual.layers&camera.cull_mask!=0):
 			var inverse := visual.global_transform.affine_inverse()
 			var local_start := inverse * start
 			var local_end := inverse * end
@@ -66,7 +67,7 @@ static func _collect_bounds(node: Node, boxes: Array[AABB]) -> void:
 ## Shared slice-aware terrain DDA. Returns the hit solid cell and entering face.
 ## Optional sampling lets inspection follow rendered cuts without changing work rays.
 static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
-		max_distance: float = 600.0, sample_block: Callable = Callable()) -> Dictionary:
+		max_distance: float = 600.0, sample_block: Callable = Callable(), visible_face: Callable = Callable()) -> Dictionary:
 	var pos := Vector3i(floori(origin.x), floori(origin.y), floori(origin.z))
 	var step := Vector3i(1 if direction.x > 0 else -1,
 		1 if direction.y > 0 else -1, 1 if direction.z > 0 else -1)
@@ -83,7 +84,8 @@ static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 			return {}
 		if pos.x >= 0 and pos.x < WorldGenerator.WORLD_SIZE_X \
 				and pos.z >= 0 and pos.z < WorldGenerator.WORLD_SIZE_Z \
-				and pos.y <= mini(slice_y, WorldGenerator.WORLD_SIZE_Y - 1):
+				and pos.y <= mini(slice_y, WorldGenerator.WORLD_SIZE_Y - 1) \
+				and (not visible_face.is_valid() or visible_face.call(pos,normal)):
 			var block_id: int
 			if sample_block.is_valid():
 				block_id = sample_block.call(pos)

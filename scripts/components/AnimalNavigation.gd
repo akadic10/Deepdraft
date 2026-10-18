@@ -120,6 +120,7 @@ static func solid_bounds_clear(low: Vector3i, high: Vector3i) -> bool:
 	return result
 
 static func _solid_bounds_uncached(low: Vector3i, high: Vector3i) -> bool:
+	if PlacedEntityRegistry.barriers_overlap(AABB(Vector3(low),Vector3(high-low+Vector3i.ONE)).grow(-.001)): return false
 	for x in range(low.x,high.x+1):
 		for y in range(low.y,high.y+1):
 			for z in range(low.z,high.z+1):
@@ -145,6 +146,7 @@ static func clear(cell: Vector3i, height: int, width: int = 1) -> bool:
 	return result
 
 static func _clear_uncached(cell: Vector3i, height: int, width: int) -> bool:
+	if PlacedEntityRegistry.barriers_overlap(AABB(Vector3(cell)+Vector3(.2,0,.2),Vector3(width-.4,height,width-.4))): return false
 	for x in range(width):
 		for z in range(width):
 			for y in range(height):
@@ -175,6 +177,7 @@ static func can_hop(from: Vector3i, to: Vector3i, height: int = 2, width: int = 
 	# Larger visual bodies retain two-cell strides and the existing speed/reach.
 	if (from.x != to.x and from.z != to.z) or absi(from.x-to.x) + absi(from.z-to.z) != stride(width,from.y!=to.y) or absi(from.y-to.y) > 1: return false
 	if not standable(from, height, width) or not standable(to, height, width): return false
+	if PlacedEntityRegistry.barrier_blocks_segment(centre(from,width),centre(to,width),width*.5-.2,float(height)): return false
 	var top_y := maxi(from.y, to.y)
 	return clear(Vector3i(from.x, top_y, from.z), height, width) and clear(Vector3i(to.x, top_y, to.z), height, width)
 
@@ -197,6 +200,7 @@ static func centre(cell: Vector3i, width: int = 1) -> Vector3:
 	return Vector3(cell) + Vector3(width * 0.5, 0, width * 0.5)
 
 static func sight_clear(from: Vector3, to: Vector3) -> bool:
+	if PlacedEntityRegistry.barrier_blocks_segment(from+Vector3.UP*.5,to+Vector3.UP*.5,0,0): return false
 	var count := maxi(1,ceili(from.distance_to(to)*4))
 	for i in range(count+1):
 		var cell := Vector3i((from.lerp(to,float(i)/count)+Vector3.UP*.5).floor())

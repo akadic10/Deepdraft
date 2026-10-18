@@ -1,0 +1,208 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 3863156650).
+WorldRenderer: generation started (seed 3863156650).
+FurniturePlacementController: 42 placeable defs loaded.
+ItemDropManager: loaded 101 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 2 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 24244 cliff/shore columns.
+WorldGenerator: spring (400, 102, 322); river 3500 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: stopped in 7.3 s.
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+WorldGenerator metrics:
+  domains: mountain 16.3%, valley 23.9%, lowland 59.8%
+  height: min 11, max 115, avg 30.8
+  top surface: grass 80.4%, dirt 0.8%, rock 16.1%, water 2.7%
+  surface domains: mountain rock 98.7%; valley grass 95.7% dirt 3.5% rock 0.0%
+  finished terrain: summit 2156 columns, detailed 24188, dry shore 743
+  water: lake (846, 56) y18 floor 11-17 depth 7 columns 23983; tarn (400, 80) y54 floor 47-52 depth 7 columns 874; banks 6139
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 3968477758).
+WorldRenderer: generation started (seed 3968477758).
+FurniturePlacementController: 42 placeable defs loaded.
+ItemDropManager: loaded 101 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 3 macro cells; water bodies 1.
+WorldGenerator: edge detail -> pushed 26935 cliff/shore columns.
+WorldGenerator: spring (285, 102, 752); river 5345 columns, 19 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SliceTiming: slice 127 -> 41 — 0 regions + 2 tiles queued, 0 region nodes, 0 tile nodes, generator idle.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=3968477758, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 3968477758, "accepted": 2160, "rejections": { "density": 20009, "tree": 1222, "edge": 1116, "shelf": 431, "water": 142, "moisture": 3001, "ground": 1162, "height": 3645, "shore": 28853, "cliff_foot": 3362, "cliff_falloff": 193, "detail_overlap": 227 }, "layout_ms": 592.585, "categories": { "boulder": 78, "scree": 168, "blueberry": 277, "elderberry": 332, "wild_strawberry": 478, "flowers": 816, "reeds": 11 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 7 ducks.
+StockpileDesignationController: zone 2 created (80 cells at Y 43).
+StockpileDesignationController: zone 3 created (81 cells at Y 43).
+StockpileDesignationController: zone 4 created (81 cells at Y 43).
+StockpileDesignationController: zone 5 created (81 cells at Y 43).
+FurniturePlacementController: ghost 4 (base:furniture:wall_torch) at (245, 37, 525) yaw 0.
+FurniturePlacementController: ghost 6 (base:furniture:wall_torch) at (251, 37, 525) yaw 0.
+FurniturePlacementController: installed base:furniture:wooden_torch at (274, 44, 513).
+FurniturePlacementController: installed base:furniture:wooden_torch at (286, 44, 525).
+FurniturePlacementController: installed base:furniture:wooden_torch at (286, 44, 530).
+FurniturePlacementController: installed base:furniture:wooden_torch at (257, 44, 525).
+FurniturePlacementController: installed base:furniture:wooden_torch at (269, 44, 513).
+FurniturePlacementController: installed base:furniture:wooden_torch at (257, 44, 530).
+FurniturePlacementController: installed base:furniture:wooden_torch at (269, 44, 542).
+FurniturePlacementController: installed base:furniture:wooden_torch at (274, 44, 542).
+FurniturePlacementController: installed base:furniture:crude_workbench at (261, 43, 517).
+FurniturePlacementController: installed base:furniture:wooden_torch at (269, 44, 561).
+FurniturePlacementController: installed base:furniture:wooden_torch at (274, 44, 561).
+FurniturePlacementController: installed base:furniture:wooden_torch at (273, 44, 557).
+FurniturePlacementController: installed base:furniture:wooden_torch at (274, 44, 558).
+FurniturePlacementController: installed base:furniture:wooden_torch at (269, 44, 558).
+FurniturePlacementController: installed base:furniture:wooden_torch at (270, 44, 557).
+FurniturePlacementController: installed base:furniture:wooden_torch at (273, 44, 562).
+FurniturePlacementController: installed base:furniture:wooden_torch at (270, 44, 562).
+FurniturePlacementController: installed base:furniture:wooden_torch at (286, 44, 550).
+FurniturePlacementController: installed base:furniture:wooden_torch at (257, 44, 550).
+FurniturePlacementController: installed base:furniture:wooden_torch at (286, 44, 569).
+FurniturePlacementController: installed base:furniture:wooden_torch at (257, 44, 569).
+FurniturePlacementController: installed base:furniture:log_door_3 at (275, 43, 549).
+FurniturePlacementController: installed base:furniture:log_door_3 at (275, 43, 568).
+FurniturePlacementController: installed base:furniture:log_door_3 at (268, 43, 568).
+FurniturePlacementController: installed base:furniture:log_door_3 at (268, 43, 549).
+FurniturePlacementController: installed base:furniture:wooden_torch at (254, 44, 525).
+FurniturePlacementController: installed base:furniture:wooden_torch at (254, 44, 530).
+FurniturePlacementController: installed base:furniture:wooden_torch at (242, 44, 542).
+FurniturePlacementController: installed base:furniture:wooden_torch at (237, 44, 542).
+FurniturePlacementController: installed base:furniture:wooden_torch at (289, 44, 525).
+FurniturePlacementController: installed base:furniture:wooden_torch at (301, 44, 542).
+FurniturePlacementController: installed base:furniture:wooden_torch at (306, 44, 542).
+FurniturePlacementController: installed base:furniture:wooden_torch at (289, 44, 530).
+FurniturePlacementController: installed base:furniture:log_bed at (284, 43, 552).
+FurniturePlacementController: installed base:furniture:log_bed at (257, 43, 552).
+FurniturePlacementController: installed base:furniture:log_bed at (257, 43, 564).
+FurniturePlacementController: installed base:furniture:log_bed at (284, 43, 564).
+FurniturePlacementController: installed base:furniture:board_game_table at (247, 43, 535).
+FurniturePlacementController: installed base:furniture:log_chair at (246, 43, 536).
+FurniturePlacementController: installed base:furniture:log_chair at (250, 43, 536).
+FurniturePlacementController: installed base:furniture:wooden_torch at (286, 44, 582).
+FurniturePlacementController: installed base:furniture:wooden_torch at (257, 44, 582).
+FurniturePlacementController: installed base:furniture:settlement_flag at (281, 43, 530).
+FurniturePlacementController: installed base:furniture:log_bed at (257, 43, 584).
+FurniturePlacementController: installed base:furniture:log_bed at (284, 43, 584).
+FurniturePlacementController: installed base:furniture:wooden_torch at (270, 44, 589).
+FurniturePlacementController: installed base:furniture:log_door_3 at (268, 43, 581).
+FurniturePlacementController: installed base:furniture:wooden_torch at (270, 44, 594).
+FurniturePlacementController: installed base:furniture:wooden_torch at (273, 44, 594).
+FurniturePlacementController: installed base:furniture:log_door_3 at (275, 43, 581).
+FurniturePlacementController: installed base:furniture:wooden_torch at (273, 44, 589).
+FurniturePlacementController: installed base:furniture:wooden_torch at (274, 44, 590).
+FurniturePlacementController: installed base:furniture:wooden_torch at (274, 44, 593).
+FurniturePlacementController: installed base:furniture:wooden_torch at (269, 44, 590).
+FurniturePlacementController: installed base:furniture:wooden_torch at (289, 44, 557).
+FurniturePlacementController: installed base:furniture:wooden_torch at (289, 44, 562).
+FurniturePlacementController: installed base:furniture:wooden_torch at (254, 44, 557).
+FurniturePlacementController: installed base:furniture:wooden_torch at (254, 44, 562).
+FurniturePlacementController: installed base:furniture:wooden_torch at (254, 44, 589).
+FurniturePlacementController: installed base:furniture:wooden_torch at (254, 44, 594).
+FurniturePlacementController: installed base:furniture:wooden_torch at (269, 44, 593).
+FurniturePlacementController: installed base:furniture:communal_table at (293, 43, 532).
+FurniturePlacementController: installed base:furniture:wooden_chair at (291, 43, 538).
+FurniturePlacementController: installed base:furniture:wooden_chair at (291, 43, 532).
+FurniturePlacementController: installed base:furniture:wooden_chair at (297, 43, 538).
+FurniturePlacementController: installed base:furniture:wooden_chair at (297, 43, 532).
+FurniturePlacementController: installed base:furniture:wooden_chair at (294, 43, 540).
+FurniturePlacementController: installed base:furniture:wooden_chair at (294, 43, 530).
+FurniturePlacementController: installed base:furniture:hearth at (266, 43, 554).
+FurniturePlacementController: installed base:furniture:hearth at (276, 43, 554).
+FurniturePlacementController: installed base:furniture:wall_torch at (289, 49, 530).
+FurniturePlacementController: installed base:furniture:wall_torch at (289, 49, 525).
+FurniturePlacementController: installed base:furniture:wall_torch at (286, 49, 525).
+FurniturePlacementController: installed base:furniture:wall_torch at (286, 49, 530).
+FurniturePlacementController: installed base:furniture:hearth at (266, 43, 564).
+FurniturePlacementController: installed base:furniture:hearth at (276, 43, 564).
+FurniturePlacementController: installed base:furniture:hearth at (276, 43, 586).
+FurniturePlacementController: installed base:furniture:hearth at (266, 43, 586).
+FurniturePlacementController: installed base:furniture:wall_torch at (251, 37, 518).
+FurniturePlacementController: installed base:furniture:wall_torch at (245, 37, 518).
+WorldRenderer: first chunk_dirtied received (14,2,32).
+LoadPerformance:
+  total_request_to_restored: 46.445 s
+  read_validate: 1078 ms
+  reload_regen_wait: 11.429 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 33934 ms
+    jobs: 0 ms
+    mining: 80 ms
+    water: 483 ms
+    construction: 0 ms
+    flora: 1 ms
+    surface_details: 67 ms
+    settlement_flag: 0 ms
+    stockpiles: 27 ms
+    furniture: 280 ms
+    ladders: 0 ms
+    bridges: 0 ms
+    items: 0 ms
+    dwarves: 27 ms
+    wildlife: 16 ms
+    world_events: 0 ms
+    worker_crafting: 0 ms
+    camera: 0 ms
+    slice: 2 ms
+  totals_clock_weather: 4 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldRenderer: first visible overview tile after 40.266 s at tile (16, 16).
+WorldGenerator metrics:
+  domains: mountain 18.6%, valley 26.4%, lowland 55.1%
+  height: min 11, max 115, avg 32.5
+  top surface: grass 78.0%, dirt 0.9%, rock 18.3%, water 2.7%
+  surface domains: mountain rock 98.7%; valley grass 96.2% dirt 3.6% rock 0.0%
+  finished terrain: summit 3200 columns, detailed 26883, dry shore 494
+  water: lake (537, 43) y18 floor 11-17 depth 7 columns 23058; tarn (0, 0) y0 floor 0-0 depth 0 columns 0; banks 7260
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 45.785 s
+  first_visible_terrain: 40.266 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=41
+  world_maps: ready=true  precompute=4.623 s  ready_at=4.625 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.447 s
+    edge_detail: 0.248 s
+    layout_validation: 0.783 s
+    river: 0.034 s
+    caves: 2.988 s
+    tile_ranges: 0.076 s
+    generation_metrics: 2.742 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.006 s  avg=0.05 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=45.775 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->8689, sides 48765, validation mismatches 0/0) in 52.16 s since startup.
+SliceTiming: slice 127 -> 41 DONE — 1024 regions+tiles rebuilt (2 queued at start) over 570 frames, 47.032 s total, worst frame 32 ms.
+IDLE_INITIAL {"at":0.0,"frontiers":[],"idle":[0,1,2,3],"stock":{"cells":323,"containers":0,"stored":116,"zones":4},"stock_revision":91,"tasks":[{"blocked":0,"id":1,"source":10000002,"status":0,"type":7,"wait":"Waiting for assessment","worker":-1},{"blocked":0,"id":2,"source":10000003,"status":0,"type":7,"wait":"Waiting for assessment","worker":-1},{"blocked":0,"id":3,"source":1000002,"status":0,"type":1,"wait":"Waiting for assessment","worker":-1},{"blocked":0,"id":4,"source":1000003,"status":0,"type":1,"wait":"Waiting for assessment","worker":-1},{"blocked":0,"id":5,"source":1000004,"status":0,"type":1,"wait":"Waiting for assessment","worker":-1},{"blocked":0,"id":6,"source":1000005,"status":0,"type":1,"wait":"Waiting for assessment","worker":-1}],"total_units":117,"wake_count":0,"workers":[{"bridge_exit":false,"cargo":0,"cell":"(282, 43, 523)","food":0.484687362162291,"food_state":"","held":false,"home":"(-1, -1, -1)","id":0,"idle":"waiting","idle_elapsed":0.0,"idle_timer":0.0,"ladder_exit":false,"name":"Guntris","phase":0,"position":"(282.5, 44.0, 523.5)","recreating":false,"sleeping":false,"task":-1,"walkable":true,"walking":false},{"bridge_exit":false,"cargo":0,"cell":"(261, 43, 533)","food":0.391801163412268,"food_state":"","held":false,"home":"(-1, -1, -1)","id":1,"idle":"waiting","idle_elapsed":0.0,"idle_timer":0.0,"ladder_exit":false,"name":"Ildgra","phase":0,"position":"(261.1735, 44.0, 533.3952)","recreating":false,"sleeping":false,"task":-1,"walkable":true,"walking":false},{"bridge_exit":false,"cargo":0,"cell":"(263, 43, 535)","food":0.387786523732481,"food_state":"","held":false,"home":"(-1, -1, -1)","id":2,"idle":"waiting","idle_elapsed":0.0,"idle_timer":0.0,"ladder_exit":false,"name":"Brynvin","phase":0,"position":"(263.5, 44.0, 535.5)","recreating":false,"sleeping":false,"task":-1,"walkable":true,"walking":false},{"bridge_exit":false,"cargo":0,"cell":"(244, 36, 519)","food":0.450786523732488,"food_state":"","held":false,"home":"(-1, -1, -1)","id":3,"idle":"waiting","idle_elapsed":0.0,"idle_timer":0.0,"ladder_exit":false,"name":"Sollin","phase":0,"position":"(244.5, 37.0, 519.5)","recreating":false,"sleeping":false,"task":-1,"walkable":true,"walking":false},{"bridge_exit":false,"cargo":0,"cell":"(283, 43, 553)","food":0.406654871745605,"food_state":"","held":false,"home":"(-1, -1, -1)","id":4,"idle":"waiting","idle_elapsed":0.0,"idle_timer":0.0,"ladder_exit":false,"name":"Birna","phase":0,"position":"(283.5, 44.0, 553.5)","recreating":false,"sleeping":true,"task":-1,"walkable":true,"walking":false}]}
+IDLE_SAMPLE 4 stored=112 events=3
+IDLE_SAMPLE 9 stored=113 events=4
+FurniturePlacementController: installed base:furniture:wall_torch at (251, 37, 525).
+FurniturePlacementController: installed base:furniture:wall_torch at (245, 37, 525).
+IDLE_SAMPLE 14 stored=113 events=6
+IDLE_SAMPLE 19 stored=113 events=6
+IDLE_SAMPLE 24 stored=113 events=6
+IDLE_SAMPLE 29 stored=112 events=6
+IDLE_DIAGNOSTIC_OK
+WorldGenerator: stopped in 116.2 s.

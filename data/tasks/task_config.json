@@ -146,6 +146,10 @@
       "cold_penalty": 0.2,
       "chilly_penalty": 0.05,
       "hot_penalty": 0.15
+    },
+    "recreation": {
+      "bonus": 0.08,
+      "duration_hours": 12.0
     }
   },
   "readability": {
@@ -155,11 +159,23 @@
     "refresh_seconds": 0.2
   },
   "hauling": {
+    "__comment_route_cache": "Bounded shared pickup/delivery searches. Identical geometry resumes across leases and stock changes; navigation changes invalidate proofs. Evicted leases retain their own unfinished frontier.",
+    "route_cache_entries": 64,
     "max_haulers_per_zone": 4,
     "carry_speed_mult_heavy": 0.7,
     "carry_capacity": 4,
     "pouch_bundle_radius": 8,
     "pickup_time_s": 0.75,
     "deposit_time_s": 0.65
+  },
+  "recreation": {
+    "search_radius": 24.0,
+    "search_budget_usec": 500,
+    "search_nodes": 400,
+    "search_seconds": 3.0,
+    "wait_seconds": 30.0,
+    "play_seconds": 20.0,
+    "retry_hours": 0.5,
+    "cooldown_hours": 6.0
   }
 }

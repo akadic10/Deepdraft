@@ -74,7 +74,7 @@ func _run() -> void:
 	for i in range(12): await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(FLOOR_OUTPUT+"mountain_flooring_inspector.png")
-	FileAccess.open(FLOOR_OUTPUT+"world_checks.json",FileAccess.WRITE).store_string(JSON.stringify({"entrance":str(entrance),"built":builder.built.size(),"flooring_appeal":room.get("flooring_appeal",0),"failures":failures},"  "))
+	FileAccess.open(FLOOR_OUTPUT+"world_checks.json",FileAccess.WRITE).store_string(JSON.stringify({"entrance":str(entrance),"built":int(room.get("finished_floor_tiles",0)),"flooring_appeal":room.get("flooring_appeal",0),"failures":failures},"  "))
 	for failure: String in failures: push_error(failure)
 	print("FLOOR_WORLD_OK" if failures.is_empty() else "FLOOR_WORLD_FAIL")
 	quit(0 if failures.is_empty() else 1)

@@ -28,8 +28,8 @@ func _init(dwarf: DwarfAgent) -> void:
 	for piece: InstalledFurnitureComponent in furniture._installed.values():
 		if not _installed(piece) or Vector3(piece.origin_cell-agent.current_cell()).length() > radius+4: continue
 		if not Privacy.allowed(piece.origin_cell,agent.dwarf_id): continue
-		if piece.def.has("seating"): tables.append(piece)
-		if Seating.is_chair(piece.def): pieces.append(piece)
+		if piece.def.has("seating") and not piece.def.has("recreation"): tables.append(piece)
+		if Seating.is_chair(piece.def) and not furniture._seating.is_recreation_seat(piece): pieces.append(piece)
 	# Tables alone are considered after all seat arrangements.
 	pieces.append_array(tables)
 
@@ -191,6 +191,14 @@ func outcome() -> String:
 	if not valid(): fallback()
 	if choice.get("seat") != null: return "proper" if choice.get("table") != null else "seat_only"
 	return "table_only" if choice.get("table") != null else "neither"
+
+## A completed meal can become ordinary idle rest in the same chair. Transfer
+## the exclusive claim before cleanup; the table claim still belongs to dining.
+func continue_seated() -> bool:
+	if state != "ready" or not valid() or choice.get("seat") == null or agent._idle_behavior == null: return false
+	agent._idle_behavior.continue_seated(choice.seat,furniture,goal)
+	choice.erase("seat")
+	return true
 
 func release() -> void:
 	var seat = choice.get("seat")

@@ -36,6 +36,10 @@ enum ToolState { INACTIVE, HOVER, DRAGGING }
 signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
 var _shared_order_ui := false
+var _mining_guide_enabled := false
+var _guide_spacing := 32
+var _guide_width := 0.16
+var _guide_color := Color("edbd71b8")
 var _pointer_screen := Vector2.INF
 
 var _state: ToolState = ToolState.INACTIVE
@@ -76,7 +80,7 @@ var _selected_zone_id: int = -1
 ## overview mode, where most block data is generated on demand) and become
 ## transparent to this controller's raycast/grid/designation so the player can
 ## designate the newly exposed blocks and dig deeper iteratively.
-var _mined_blocks: Dictionary = {}   # Vector3i -> true
+var _mined_blocks: Dictionary = {}   # Vector3i -> true (current excavated air; transient)
 
 var _terrain_grid_node: MeshInstance3D
 var _preview_fill_node: MeshInstance3D
@@ -130,6 +134,10 @@ var _last_grid_radius := -1
 
 
 func _ready() -> void:
+	WorldData.block_changed.connect(func(cell: Vector3i,_old: int,new_id: int):
+		if BlockRegistry.is_solid(new_id): _mined_blocks.erase(cell)
+		_grid_dirty = true)
+
 	add_to_group(SaveManager.OWNER_GROUP)
 	_load_config()
 	_camera_rig = get_node_or_null(camera_path) as Camera
@@ -292,7 +300,6 @@ func _on_tool_requested(tool_id: String) -> void:
 		_deactivate_tool()
 		return
 	_state = ToolState.HOVER
-	_terrain_grid_node.visible = true
 	_preview_node.visible = true
 	_preview_exposed_node.visible = true
 	if _hint_window != null:
@@ -305,6 +312,16 @@ func _on_tool_requested(tool_id: String) -> void:
 
 func is_active() -> bool:
 	return _state != ToolState.INACTIVE
+
+
+func is_mining_guide_enabled() -> bool:
+	return _mining_guide_enabled
+
+
+func set_mining_guide_enabled(enabled: bool) -> void:
+	if _mining_guide_enabled == enabled: return
+	_mining_guide_enabled = enabled
+	_rebuild_terrain_grid(true)
 
 
 func _deactivate_tool() -> void:
@@ -350,6 +367,10 @@ func _load_config() -> void:
 	_vertical_size = int(precision.get("default_size", FALLBACK_DEFAULT_SIZE))
 	_max_horizontal = int(precision.get("max_horizontal", FALLBACK_MAX_HORIZONTAL))
 	_max_vertical = int(precision.get("max_vertical", FALLBACK_MAX_VERTICAL))
+	var guide: Dictionary = root.get("area_guide", {})
+	_guide_spacing = maxi(1,int(guide.get("cell_size",32)))
+	_guide_width = clampf(float(guide.get("line_width",.16)),.02,.5)
+	_guide_color = Color(String(guide.get("color","edbd71b8")))
 	_max_drag_length = int(dig_tool.get("max_drag_length", FALLBACK_MAX_DRAG_LENGTH))
 	var zone_cfg: Dictionary = root.get("zone", {})
 	_zone_max_workers = int(zone_cfg.get("max_workers", FALLBACK_ZONE_MAX_WORKERS))
@@ -360,7 +381,7 @@ func _load_config() -> void:
 
 
 func _build_materials() -> void:
-	_terrain_grid_material = _line_material(Color(0, 0, 0, 0.28), false)
+	_terrain_grid_material = _line_material(Color.WHITE, false)
 	# Layered overlay treatment (doc 05, Stonehearth parity): the original no-depth
 	# materials became the faint GHOST layer (full volume, visible through terrain at
 	# low alpha); the *_exposed_* variants are depth-TESTED at the original strength,
@@ -405,7 +426,7 @@ func _solid_material(color: Color, no_depth: bool) -> StandardMaterial3D:
 
 func _build_preview_nodes() -> void:
 	_terrain_grid_node = MeshInstance3D.new()
-	_terrain_grid_node.name = "MiningTerrainGrid"
+	_terrain_grid_node.name = "MiningAreaGuide"
 	_terrain_grid_node.material_override = _terrain_grid_material
 	_terrain_grid_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_terrain_grid_node.visible = false
@@ -575,6 +596,10 @@ func _build_hint_window() -> void:
 
 
 func _rebuild_terrain_grid(force: bool = false) -> void:
+	_terrain_grid_node.visible = is_active() and _mining_guide_enabled
+	if not _terrain_grid_node.visible:
+		_terrain_grid_node.mesh = null
+		return
 	if _camera_rig == null or not WorldGenerator.has_method("get_visible_surface_y"):
 		return
 	if WorldGenerator.has_method("get_streaming_stats"):
@@ -602,22 +627,19 @@ func _rebuild_terrain_grid(force: bool = false) -> void:
 
 	var verts: PackedVector3Array = []
 	var cols: PackedColorArray = []
-	var color := Color(0, 0, 0, 0.28)
 	var x0 := clampi(center.x - radius, 0, WORLD_SIZE_X - 1)
 	var x1 := clampi(center.x + radius, 0, WORLD_SIZE_X - 1)
 	var z0 := clampi(center.y - radius, 0, WORLD_SIZE_Z - 1)
 	var z1 := clampi(center.y + radius, 0, WORLD_SIZE_Z - 1)
 
-	for x in range(x0, x1 + 1):
-		for z in range(z0, z1 + 1):
-			var top_y := _effective_grid_top(x, z, slice_y)
-			if top_y < 0:
-				continue
-			_append_top_face_grid(x, top_y, z, color, verts, cols)
-			_append_visible_side_grid(x, top_y, z, Vector2i(-1, 0), slice_y, color, verts, cols)
-			_append_visible_side_grid(x, top_y, z, Vector2i(1, 0), slice_y, color, verts, cols)
-			_append_visible_side_grid(x, top_y, z, Vector2i(0, -1), slice_y, color, verts, cols)
-			_append_visible_side_grid(x, top_y, z, Vector2i(0, 1), slice_y, color, verts, cols)
+	# Only visit columns touching a world-aligned area boundary. There are no
+	# per-voxel outlines, and panning never shifts the guide's origin.
+	for x in range(ceili(float(x0)/_guide_spacing)*_guide_spacing,x1+2,_guide_spacing):
+		for z in range(z0,z1+1):
+			_append_area_guide(Vector2i(x,z),true,slice_y,verts,cols)
+	for z in range(ceili(float(z0)/_guide_spacing)*_guide_spacing,z1+2,_guide_spacing):
+		for x in range(x0,x1+1):
+			_append_area_guide(Vector2i(x,z),false,slice_y,verts,cols)
 
 	if verts.is_empty():
 		_terrain_grid_node.mesh = null
@@ -628,15 +650,19 @@ func _rebuild_terrain_grid(force: bool = false) -> void:
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_COLOR] = cols
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arrays)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	_terrain_grid_node.mesh = mesh
 
 
 func _terrain_grid_radius() -> int:
-	if _camera_rig == null or _camera_rig.spring_arm == null:
-		return TERRAIN_GRID_MIN_RADIUS
-	var zoom := _camera_rig.spring_arm.spring_length
-	return clampi(ceili(zoom * 0.9), TERRAIN_GRID_MIN_RADIUS, TERRAIN_GRID_MAX_RADIUS)
+	var radius := TERRAIN_GRID_MIN_RADIUS
+	if _camera_rig != null and _camera_rig.spring_arm != null:
+		radius = clampi(ceili(_camera_rig.spring_arm.spring_length * .9),TERRAIN_GRID_MIN_RADIUS,TERRAIN_GRID_MAX_RADIUS)
+	# Wider displays reveal more terrain. Sparse area lines can cover that
+	# extra width without restoring the old per-voxel mesh cost.
+	var viewport := get_viewport().get_visible_rect().size
+	var aspect_scale := maxf(1.0,(viewport.x/maxf(1.0,viewport.y))/(16.0/9.0))
+	return mini(WORLD_SIZE_X,ceili(radius*aspect_scale))
 
 
 ## Effective visible top for the mining grid (doc 11 Phase 2b): the natural
@@ -657,110 +683,42 @@ func _effective_grid_top(x: int, z: int, slice_y: int) -> int:
 	return top_y
 
 
-func _append_visible_side_grid(
-		x: int,
-		top_y: int,
-		z: int,
-		dir: Vector2i,
-		slice_y: int,
-		color: Color,
-		verts: PackedVector3Array,
-		cols: PackedColorArray) -> void:
-
-	var nx := x + dir.x
-	var nz := z + dir.y
-	var neighbor_top := -1
-	if nx >= 0 and nx < WORLD_SIZE_X and nz >= 0 and nz < WORLD_SIZE_Z:
-		# Effective (slice- and cut-aware) neighbour top, so cut walls grid from
-		# the cut lip down and flat plane-cut floors emit no side faces between
-		# equal tops (doc 11 Phase 2b).
-		neighbor_top = _effective_grid_top(nx, nz, slice_y)
-	if neighbor_top >= top_y:
-		return
-
-	var bottom_y := maxi(neighbor_top + 1, 0)
-	var top_limit := mini(top_y, slice_y)
-	for y in range(bottom_y, top_limit + 1):
-		_append_side_face_grid(x, y, z, dir, color, verts, cols)
-
-
-func _append_top_face_grid(
-		x: int,
-		y: int,
-		z: int,
-		color: Color,
-		verts: PackedVector3Array,
-		cols: PackedColorArray) -> void:
-
-	var top := float(y + 1) + TERRAIN_GRID_OFFSET
-	var a := Vector3(float(x), top, float(z))
-	var b := Vector3(float(x + 1), top, float(z))
-	var c := Vector3(float(x + 1), top, float(z + 1))
-	var d := Vector3(float(x), top, float(z + 1))
-	_append_grid_line(a, b, color, verts, cols)
-	_append_grid_line(b, c, color, verts, cols)
-	_append_grid_line(c, d, color, verts, cols)
-	_append_grid_line(d, a, color, verts, cols)
+## Thick surface ribbons, split at the boundary so unequal neighboring tops
+## each receive their own half. Perpendicular cliffs get one continuous stripe,
+## never a box around every block. Depth testing keeps buried guides hidden.
+func _append_area_guide(boundary: Vector2i, along_z: bool, slice_y: int,
+		verts: PackedVector3Array, cols: PackedColorArray) -> void:
+	var across := float(boundary.x if along_z else boundary.y)
+	var along := float(boundary.y if along_z else boundary.x)
+	for side in [-1,0]:
+		var cell := boundary+Vector2i(side,0) if along_z else boundary+Vector2i(0,side)
+		if cell.x<0 or cell.y<0 or cell.x>=WORLD_SIZE_X or cell.y>=WORLD_SIZE_Z: continue
+		var top := _effective_grid_top(cell.x,cell.y,slice_y)
+		if top<0: continue
+		var a := across-_guide_width*.5 if side<0 else across
+		var b := across if side<0 else across+_guide_width*.5
+		var y := float(top+1)+TERRAIN_GRID_OFFSET
+		_append_guide_quad(_guide_point(a,y,along,along_z),_guide_point(b,y,along,along_z),
+			_guide_point(b,y,along+1,along_z),_guide_point(a,y,along+1,along_z),verts,cols)
+		var next := cell+Vector2i(0,1) if along_z else cell+Vector2i(1,0)
+		if next.x>=WORLD_SIZE_X or next.y>=WORLD_SIZE_Z: continue
+		var next_top := _effective_grid_top(next.x,next.y,slice_y)
+		if next_top<0 or next_top==top: continue
+		var face := along+1+TERRAIN_GRID_OFFSET*(1.0 if top>next_top else -1.0)
+		var low := float(mini(top,next_top)+1)
+		var high := float(maxi(top,next_top)+1)
+		_append_guide_quad(_guide_point(a,low,face,along_z),_guide_point(b,low,face,along_z),
+			_guide_point(b,high,face,along_z),_guide_point(a,high,face,along_z),verts,cols)
 
 
-func _append_side_face_grid(
-		x: int,
-		y: int,
-		z: int,
-		dir: Vector2i,
-		color: Color,
-		verts: PackedVector3Array,
-		cols: PackedColorArray) -> void:
-
-	var y0 := float(y)
-	var y1 := float(y + 1)
-	var a: Vector3
-	var b: Vector3
-	var c: Vector3
-	var d: Vector3
-
-	if dir.x < 0:
-		var fx := float(x) - TERRAIN_GRID_OFFSET
-		a = Vector3(fx, y0, float(z))
-		b = Vector3(fx, y1, float(z))
-		c = Vector3(fx, y1, float(z + 1))
-		d = Vector3(fx, y0, float(z + 1))
-	elif dir.x > 0:
-		var fx := float(x + 1) + TERRAIN_GRID_OFFSET
-		a = Vector3(fx, y0, float(z + 1))
-		b = Vector3(fx, y1, float(z + 1))
-		c = Vector3(fx, y1, float(z))
-		d = Vector3(fx, y0, float(z))
-	elif dir.y < 0:
-		var fz := float(z) - TERRAIN_GRID_OFFSET
-		a = Vector3(float(x + 1), y0, fz)
-		b = Vector3(float(x + 1), y1, fz)
-		c = Vector3(float(x), y1, fz)
-		d = Vector3(float(x), y0, fz)
-	else:
-		var fz := float(z + 1) + TERRAIN_GRID_OFFSET
-		a = Vector3(float(x), y0, fz)
-		b = Vector3(float(x), y1, fz)
-		c = Vector3(float(x + 1), y1, fz)
-		d = Vector3(float(x + 1), y0, fz)
-
-	_append_grid_line(a, b, color, verts, cols)
-	_append_grid_line(b, c, color, verts, cols)
-	_append_grid_line(c, d, color, verts, cols)
-	_append_grid_line(d, a, color, verts, cols)
+func _guide_point(across: float, height: float, along: float, along_z: bool) -> Vector3:
+	return Vector3(across,height,along) if along_z else Vector3(along,height,across)
 
 
-func _append_grid_line(
-		a: Vector3,
-		b: Vector3,
-		color: Color,
-		verts: PackedVector3Array,
-		cols: PackedColorArray) -> void:
-
-	verts.append(a)
-	verts.append(b)
-	cols.append(color)
-	cols.append(color)
+func _append_guide_quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,
+		verts: PackedVector3Array,cols: PackedColorArray) -> void:
+	verts.append_array([a,b,c,a,c,d])
+	for i in range(6): cols.append(_guide_color)
 
 
 func _update_hover_preview(force: bool = false) -> void:
@@ -937,9 +895,6 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 		# excluded from the DESIGNATION, not just the display (WYSIWYG).
 		if not _visible_in_slice(block):
 			continue
-		# DEV-mined blocks are gone — air cannot be designated.
-		if _mined_blocks.has(block) and not _constructed(block):
-			continue
 		var block_id := _designation_block_id_at(block)
 		if not BlockRegistry.is_solid(block_id):
 			continue
@@ -952,21 +907,13 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 
 
 func _block_id_at(pos: Vector3i) -> int:
-	var id := WorldData.get_block(pos.x, pos.y, pos.z)
-	if not BlockRegistry.is_transparent(id):
-		return id
-	# Actual solid writes win over excavation history; mined air must never
-	# fall back to the original generated rock or its resource yields.
-	if _mined_blocks.has(pos): return BlockRegistry.AIR_ID
-	if WorldGenerator.has_method("get_generated_block_id"):
-		return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
-	return id
+	return WorldData.get_live_block(pos.x,pos.y,pos.z)
 
 
 ## Picking/planning must agree with the concealed slice, even when actual
 ## generated air exists behind it. Revealed air is removed from plans later.
 func _designation_block_id_at(pos: Vector3i) -> int:
-	if _constructed(pos): return WorldData.get_terrain_block(pos.x,pos.y,pos.z)
+	if InteriorTracker.is_known(pos): return WorldData.get_terrain_block(pos.x,pos.y,pos.z)
 	var cave_id := WorldGenerator.get_cave_id(pos)
 	if cave_id >= 0 and not InteriorTracker.is_cave_discovered(cave_id):
 		return WorldGenerator.get_overview_strata_block_id(pos.x, pos.y, pos.z)
@@ -1100,7 +1047,7 @@ func _raycast_voxel(screen_pos: Vector2) -> Dictionary:
 	while travelled <= max_distance:
 		# DEV-mined blocks are air: the ray passes through so the freshly
 		# exposed blocks behind/beneath them can be designated (iterative digs).
-		if _in_bounds(pos) and _visible_in_slice(pos) and (not _mined_blocks.has(pos) or _constructed(pos)):
+		if _in_bounds(pos) and _visible_in_slice(pos):
 			var block_id := _designation_block_id_at(pos)
 			if BlockRegistry.is_solid(block_id):
 				var def := BlockRegistry.get_def(BlockRegistry.get_key(block_id))
@@ -2127,8 +2074,6 @@ func _ensure_chunk_real(block: Vector3i) -> void:
 ## ItemDropManager. randf chance rolls are runtime behaviour, not worldgen —
 ## Hard Rule 8 (deterministic terrain identity) does not apply to drops.
 func _spawn_block_drops(pre_block_id: int, block: Vector3i) -> void:
-	var construction := get_tree().get_first_node_in_group("construction")
-	if construction != null and construction.mined_refund(block): return
 	var manager := _drop_manager()
 	if manager == null:
 		return
@@ -2149,11 +2094,6 @@ func _drop_manager() -> Node:
 	if _drop_manager_node == null or not is_instance_valid(_drop_manager_node):
 		_drop_manager_node = get_tree().get_first_node_in_group("item_drop_manager")
 	return _drop_manager_node
-
-
-func _constructed(cell: Vector3i) -> bool:
-	var construction := get_tree().get_first_node_in_group("construction")
-	return construction != null and construction.built.has(cell)
 
 
 ## Cancels a finished zone's still-PENDING leases; assigned leases complete
@@ -2311,11 +2251,6 @@ func save_restore_priority() -> int:
 
 
 func serialize_state() -> Dictionary:
-	var mined: Array = []
-	var mined_keys: Array = _mined_blocks.keys()
-	mined_keys.sort_custom(_sort_v3i)
-	for value in mined_keys:
-		mined.append(SaveManager.pack_v3i(value as Vector3i))
 	var saved_zones: Array = []
 	var ids: Array = _zones.keys()
 	ids.sort()
@@ -2326,25 +2261,21 @@ func serialize_state() -> Dictionary:
 		for block: Vector3i in zone.get("blocks", []):
 			blocks.append(SaveManager.pack_v3i(block))
 		saved_zones.append({ "id": zone_id, "blocks": blocks })
-	return { "mined_blocks": mined, "zones": saved_zones }
+	return { "zones": saved_zones }
 
 
 func capture_save_state() -> Dictionary:
 	var zones := {}
 	for id in _zones: zones[id]=_zones[id].get("blocks",[]).duplicate()
-	return {"mined_blocks":_mined_blocks.keys(),"zones":zones}
+	return {"zones":zones}
 
 
 func restore_state(state: Dictionary) -> void:
-	# Collect every valid mined block first, then commit them as ONE batch —
-	# per-block _mine_block_world calls here made loading O(n²) in mined
-	# blocks (each call notified the renderer/InteriorTracker individually).
-	var restored: Array[Vector3i] = []
-	for packed in state.get("mined_blocks", []):
-		var block := SaveManager.unpack_v3i(packed)
-		if _in_bounds(block) and block.y > BEDROCK_MAX_Y and not _mined_blocks.has(block):
-			restored.append(block)
-	_mine_blocks_world(restored)
+	# Terrain is restored once by SaveManager before any scene owners.
+	_mined_blocks.clear()
+	for cell: Vector3i in WorldData.terrain_overrides():
+		if not BlockRegistry.is_solid(WorldData.get_terrain_block(cell.x,cell.y,cell.z)):
+			_mined_blocks[cell] = true
 	for raw in state.get("zones", []):
 		if not (raw is Dictionary):
 			continue

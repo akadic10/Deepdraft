@@ -41,7 +41,7 @@ func _validate_snapshot(state: Dictionary) -> String:
 	var error:=Validator.validate_captured(state,schema_version,catalogs)
 	if not error.is_empty(): return error
 	for section: String in ["terrain","test_dam"]:
-		for entry: Dictionary in state.scene.water[section]:
+		for entry: Dictionary in state.scene.water.get(section,[]):
 			if not catalogs.blocks.has(entry.block): return "save.scene.water contains an unknown terrain block."
 			if section=="terrain" and not catalogs.blocks[entry.block].solid: return "save.scene.water contains a non-solid terrain edit."
 	return ""

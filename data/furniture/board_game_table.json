@@ -1,0 +1,64 @@
+{
+  "furniture_key": "base:furniture:board_game_table",
+  "furniture_category": "recreation",
+  "display_name": "Board-game Table",
+  "description": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+  "model": "res://assets/models/furniture/board_game_table.glb",
+  "item_key": "base:resources:furniture:board_game_table",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 3,
+    "depth": 3
+  },
+  "placement_label": "3 × 3 log game area",
+  "placement_note": "Place two separate log stools on the opposite guides outside the game area. Completed games restore happiness.",
+  "show_placement_area": true,
+  "blocks_movement": true,
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        3,
+        0.85,
+        3
+      ]
+    }
+  ],
+  "room_anchor": false,
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 2,
+    "material_factor": 1
+  },
+  "recreation": "board_game",
+  "game_surface_height": 0.78,
+  "seating": {
+    "chair_key": "base:furniture:log_chair",
+    "snap_radius": 1.5,
+    "slots": [
+      {
+        "id": "north",
+        "chair_origin": [
+          1,
+          -1
+        ],
+        "yaw": 0
+      },
+      {
+        "id": "south",
+        "chair_origin": [
+          1,
+          3
+        ],
+        "yaw": 2
+      }
+    ],
+    "max_chairs": 2
+  }
+}

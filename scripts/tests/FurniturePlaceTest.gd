@@ -19,6 +19,9 @@ func _run() -> void:
 	root.get_node("WorldGenerator").world_seed = 1234
 	root.get_node("WorldGenerator").heightmap.resize(1024 * 1024)
 	root.get_node("WorldGenerator").heightmap.fill(20)
+	# Cursor rays can reach unloaded columns outside the fixture's floor chunks.
+	root.get_node("WorldGenerator").waterline_map.resize(1024 * 1024)
+	root.get_node("WorldGenerator").waterline_map.fill(-1)
 	scene = Node3D.new()
 	root.add_child(scene)
 	current_scene = scene

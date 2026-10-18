@@ -26,6 +26,18 @@
       "tooltip": "Tables, chairs, stools and benches."
     },
     {
+      "id": "recreation",
+      "label": "Recreation",
+      "icon": "res://assets/ui/dock/categories_atlas.png",
+      "icon_region": [
+        318,
+        54,
+        294,
+        290
+      ],
+      "tooltip": "Games and places to relax together."
+    },
+    {
       "id": "storage",
       "label": "Storage",
       "icon": "res://assets/ui/dock/categories_atlas.png",
@@ -95,7 +107,7 @@
         294,
         290
       ],
-      "tooltip": "Ladders and bridges."
+      "tooltip": "Ladders, bridges, fences and gates."
     },
     {
       "id": "water",
@@ -305,6 +317,21 @@
       "key": "base:furniture:log_bed",
       "category": "rooms",
       "label": "Log bed"
+    },
+    {
+      "key": "base:furniture:log_fence",
+      "category": "access",
+      "label": "Log Fence Post"
+    },
+    {
+      "key": "base:furniture:log_gate",
+      "category": "access",
+      "label": "Log Gate"
+    },
+    {
+      "key": "base:furniture:board_game_table",
+      "category": "recreation",
+      "label": "Board-game Table"
     }
   ]
 }

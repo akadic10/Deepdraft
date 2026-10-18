@@ -1,5 +1,34 @@
 # 41 — Dwarf Agents
 
+**2026-10-17 — Moving between slices:** Dwarves refresh slice visibility on
+global transform changes, before rendering. Ordinary stairs/ladder travel now
+shows a worker entering the selected level and conceals one leaving it, without
+another slice-button click. Paused restoration also refreshes. This corrects
+invisible downstairs torch work in the player's save; navigation and wall reach
+are unchanged. See [217](../00_dev_roadmap/217_dwarf_slice_visibility.md).
+
+**2026-10-17 — Visible needs:** [214](../00_dev_roadmap/214_dwarf_need_indicators.md)
+adds overhead food, exhaustion and unhappy-face badges for serious or unresolved
+needs. `DwarfConcern` supplies one read-only reason/action to both the projected
+2D display and shared inspector. Normal food/rest/mood simulation and save fields
+are unchanged; low happiness names the strongest active negative thought.
+
+**2026-10-17 — Construction:** Workers deliver normal-capacity bundles to a
+temporary project crate before building. `DwarfConstructionPose` uses the existing
+stone-hammer model with two floating hands and a target-face contact point.
+The striking end aligns squarely with the surface: low blocks are hit from above,
+raised blocks on their near face. A smaller held scale and close-target stance
+keep the swing readable. Hammer knocks follow actual contact crossings through
+the existing Effects audio, including pause, speed, distance and slice rules;
+project completion and interruption restore the ordinary pose and stow the hammer.
+Finishing an individual block keeps the same assignment and stance when more
+supported blocks are reachable from the current cell. The builder finishes the
+current column before turning to other reachable work; only exhausted or blocked
+access returns to planning. Supervision tracks each block as a separate work unit.
+`DwarfWorkExecution` applies the existing labor-speed factor to three seconds per
+voxel. Carry capacity and item carry costs are unchanged. See
+[205](../00_dev_roadmap/205_construction_materials_crates.md).
+
 **2026-10-14 — Colony size:** The intended maximum is **30 dwarves**.
 Use 5/20/30 as the routine performance cases and test mature-colony work and
 needs at 30. Larger development populations are stress tests. This is design
@@ -145,6 +174,13 @@ that DEV Build skipped while occupied. The inspector calls this **Stepping up**.
 Chair claims are exclusive and transient; entry uses authored access cells and
 the seated pose uses existing body parts, preserving 1×1×3 walking clearance.
 Inspection labels the actual activity while the roster retains idle availability.
+Completed seated meals also continue into this rest without standing and sitting
+again. Dining transfers its exclusive seat claim; its table claim is released.
+The empty hands relax smoothly, and work or needs can interrupt normally.
+Read-only job planning preserves stationary idle timers and chair poses; actual
+assignment still interrupts them. This prevents repeated unsuccessful checks
+from restarting the wait before wandering indefinitely. See
+[216 — Idle planning](../00_dev_roadmap/216_idle_planning_interruption.md).
 See [99 — Idle activity](../00_dev_roadmap/99_dwarf_idle_activity.md).
 
 ## Lost footing — fixed 2026-10-11

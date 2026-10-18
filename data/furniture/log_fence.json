@@ -1,0 +1,26 @@
+{
+  "furniture_key": "base:furniture:log_fence",
+  "furniture_category": "access",
+  "display_name": "Log Fence Post",
+  "description": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
+  "model": "res://assets/models/furniture/log_fence.glb",
+  "item_key": "base:resources:furniture:log_fence",
+  "placement": "grid_fence",
+  "placement_label": "Grid-corner post",
+  "placement_note": "Place one post at each grid corner along your fence. Rails appear when neighboring posts are installed; one timber per post.",
+  "grid_fence": {"kind":"post", "post_radius":0.12, "height":1.3, "rail_model":"res://assets/models/furniture/parts/log_fence_rails.glb"},
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 1,
+    "depth": 1
+  },
+  "blocks_movement": true,
+  "collision_regions": [],
+  "room_anchor": false,
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 1,
+    "material_factor": 1
+  }
+}

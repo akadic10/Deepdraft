@@ -1,9 +1,8 @@
 extends Node3D
 
-## Owns structural orders, completed terrain provenance and construction data.
+## Owns unfinished structural orders. Completed blocks belong to WorldData.
 const Work = preload("res://scripts/components/ConstructionWork.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
-const FloorArt = preload("res://scripts/components/ConstructionFloorArt.gd")
 const INVALID := Vector3i(-1,-1,-1)
 const DIRECTIONS := [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.UP,Vector3i.DOWN,Vector3i.FORWARD,Vector3i.BACK]
 @export var mining_path: NodePath
@@ -12,7 +11,6 @@ const DIRECTIONS := [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.UP,Vector3i.DOWN,Vect
 @export var dock_path: NodePath
 signal tool_active_changed(active: bool)
 var definition: Dictionary = {}
-var built: Dictionary = {} # cell -> permanent natural-rock or constructed-floor key
 var orders: Dictionary = {}
 var next_id := 1
 var mining: Node
@@ -31,14 +29,12 @@ var _drag_plane_y := 0.0
 var _height := 1
 var _preview: MeshInstance3D
 var _plans: MeshInstance3D
-var _solid: MeshInstance3D
 var _hint_layer: CanvasLayer
 var _hint: Label
 var _preview_cells: Array[Vector3i] = []
 var _feedback := ""
 var _preview_elapsed := 0.0
 var _kind := "stone"
-var _floor_art = FloorArt.new()
 var _dev_feedback: Dictionary = {}
 
 func _ready() -> void:
@@ -56,11 +52,6 @@ func _ready() -> void:
 		dock.register_construction_controller(self)
 	if renderer != null:
 		renderer.visible_volume_changed.connect(func(): _dirty = true; _dragging = false)
-		renderer.built_blocks = built
-	_solid = MeshInstance3D.new()
-	_solid.name = "ConstructedBlocks"
-	preload("res://scripts/components/TerrainLighting.gd").configure_mesh(_solid)
-	add_child(_solid)
 	_plans = _make_overlay("ConstructionPlans",Color(.25,.8,1,.26))
 	_preview = _make_overlay("ConstructionPreview",Color(.35,1,.55,.4))
 	_hint_layer = CanvasLayer.new()
@@ -80,10 +71,9 @@ func _ready() -> void:
 	TaskManager.task_cancelled.connect(func(task: Task): _task_gone(task,task.assigned_to))
 	TaskManager.task_failed.connect(func(task: Task,_why: String): _task_gone(task,task.assigned_to))
 	TaskManager.task_released.connect(_task_released)
-	WorldData.chunk_dirtied.connect(_terrain_changed,CONNECT_DEFERRED)
 
 func _exit_tree() -> void:
-	for id: int in orders.keys(): cancel_order(id)
+	for id: int in orders.keys(): cancel_order(id,false)
 
 func _make_overlay(label: String, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -98,23 +88,14 @@ func _make_overlay(label: String, color: Color) -> MeshInstance3D:
 	add_child(node)
 	return node
 
-func _terrain_changed(x: int,y: int,z: int) -> void:
-	# Only adjoining solid edits change built faces. Water changes neither those
-	# faces nor plan geometry; work/preview validation reads current water directly.
-	if _dirty: return
-	for cell: Vector3i in built:
-		if absi((cell.x>>4)-x)<=1 and absi((cell.y>>4)-y)<=1 and absi((cell.z>>4)-z)<=1:
-			_dirty = true
-			return
-
 func _process(delta: float) -> void:
 	if _dirty:
 		_dirty = false
-		for cell: Vector3i in built.keys():
-			if WorldData.get_terrain_block(cell.x,cell.y,cell.z) != BlockRegistry.get_id(built[cell]): built.erase(cell)
 		_rebuild_visuals()
 	if not SaveManager.is_loading():
-		for order in orders.values(): order.update_lease()
+		for order in orders.values():
+			if order.materials != null: order.materials.tick_site(delta,_slice_y())
+			order.update_lease()
 	if _active:
 		_preview_elapsed += delta
 		if _preview_elapsed >= .1: _update_preview()
@@ -243,6 +224,12 @@ func pick_explorer_object(start: Vector3,end: Vector3) -> Dictionary:
 	var result := {}
 	var distance := start.distance_to(end)
 	for id: int in orders:
+		var materials = orders[id].materials
+		if materials != null and is_instance_valid(materials.visual) and materials.visual.visible:
+			var point = AABB(Vector3(materials.crate_cell)+Vector3(.05,1,.05),Vector3(.9,.6,.9)).intersects_segment(start,end)
+			if point != null and start.distance_to(point)<distance:
+				distance = start.distance_to(point)
+				result = {"id":id,"distance":distance}
 		for cell: Vector3i in orders[id].cells:
 			if cell.y > _slice_y(): continue
 			var point = AABB(Vector3(cell),Vector3.ONE).intersects_segment(start,end)
@@ -271,26 +258,38 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			"details":"Mine one layer deeper, then fill the cleared space. DEV Build instantly builds clear, supported tiles without materials. These preview floors yield no items when mined.\n"+String(_dev_feedback.get(object_id,"")),
 			"actions":[{"id":"dev_build","text":"DEV Build","variant":"dev"},{"id":"cancel","text":"Cancel construction","variant":"danger"}]}
 	var task := TaskManager.get_task(order._lease_id)
-	var worker: DwarfAgent = TaskManager._agents.get(task.assigned_to) if task != null else null
-	var status := "Waiting for worker"
-	var details := "Each block uses one rough stone. Cancelling removes unfinished plans; completed stone stays."
-	if is_instance_valid(worker):
-		match worker._task_phase:
-			DwarfAgent.TaskPhase.FETCH_TO_GHOST: status = "Carrying stone"
-			DwarfAgent.TaskPhase.FETCH_WORKING, DwarfAgent.TaskPhase.FETCH_DEPOSIT: status = "Building"
-			_: status = "Collecting stone"
-	elif task != null:
-		status = "Needs attention" if task.recovery_paused else "Waiting"
-		details = task.wait_reason+"\n\n"+details
+	var worker: DwarfAgent = TaskManager._agents.get(order.builder_id)
+	var materials = order.materials
+	var status := "Waiting for stone"
+	var details := "Deliver all materials to the temporary crate, then hammer each block. Cancelling returns unused stone; completed blocks remain."
+	var haulers: Array[String] = []
+	for dwarf_id: int in materials._pulls:
+		var hauler: DwarfAgent = TaskManager._agents.get(dwarf_id)
+		if is_instance_valid(hauler): haulers.append(hauler.dwarf_name)
+	if materials.crate_cell == INVALID or materials.delivery_stand_cells(materials.crate_cell).is_empty():
+		status = "No delivery access"
+	elif is_instance_valid(worker):
+		status = "Building" if worker._task_phase == DwarfAgent.TaskPhase.FETCH_WORKING else "Going to build"
+	elif order.ready_for_staged_work():
+		status = "Waiting for builder"
+		if task != null and task.blocked_count > 0:
+			status = "No construction access"
+			details = task.wait_reason+"\n\n"+details
+	elif not haulers.is_empty(): status = "Delivering materials"
+	if task != null and task.recovery_paused: status = "Needs attention"
 	var progress := "—"
 	if order.cells.has(order.target):
 		progress = "%d%%" % roundi(clampf(float(order.work_progress.get(order.target,0.0))/float(definition.work_seconds),0.0,1.0)*100.0)
 	return {"title":"Stone block area","kind":"Construction plan",
 		"rows":[["Status",status],["Blocks left",str(order.cells.size())],
-			["Stone needed","%d rough stone" % order.cells.size()],
+			["Materials","%d / %d stone delivered" % [materials.count()+order.total_blocks-order.cells.size(),order.total_blocks]],
 			["Worker",worker.dwarf_name if is_instance_valid(worker) else "None assigned"],
-			["Current block",progress]],
-		"details":details,"actions":[{"id":"cancel","text":"Cancel construction","variant":"danger"}]}
+			["Current block",progress],["On the way","%d stone" % materials.in_transit()],
+			["Delivery workers",", ".join(haulers) if not haulers.is_empty() else "None assigned"],
+			["Completed","%d / %d blocks" % [order.total_blocks-order.cells.size(),order.total_blocks]],
+			["Work remaining","%.1f seconds at normal speed" % order.total_remaining_work()]],
+		"details":details+"\nDEV finish uses delivered stone and supplies any missing materials instantly. Occupied or unsupported blocks stay pending.\n"+String(_dev_feedback.get(object_id,"")),
+		"actions":[{"id":"dev_build","text":"DEV: Finish construction","variant":"dev"},{"id":"cancel","text":"Cancel construction","variant":"danger"}]}
 
 func perform_explorer_action(object_id: Variant,action_id: String) -> void:
 	if action_id == "cancel": cancel_order(int(object_id))
@@ -374,15 +373,79 @@ func create_order(requested: Array[Vector3i], saved_id := -1, restoring := false
 	order.construction_kind = kind
 	order.setup(id,kind,def,cells[0]-Vector3i.UP,0)
 	order.cells = cells
+	order.total_blocks = cells.size()
 	order.drop_manager = drops
 	orders[id] = order
 	if bool(def.get("worker_enabled",true)):
 		order.source_id = TaskManager.allocate_source_id()
 		_sources[order.source_id] = id
 		TaskManager.register_work_source(order.source_id,order)
-	if not SaveManager.is_loading(): order.update_lease()
+		order.initialize_materials()
+		order.materials.source_id = TaskManager.allocate_source_id()
+		_sources[order.materials.source_id] = id
+		TaskManager.register_work_source(order.materials.source_id,order.materials)
+		if not SaveManager.is_loading() and not restoring: place_materials_crate(order.materials)
+	if not SaveManager.is_loading() and not restoring: order.update_lease()
 	_dirty = true
 	return id
+
+## Automatic packaging on a clear, flat patch. Keep an open ring around it;
+## never occupy stairs, storage, access structures, doors or any blueprint.
+func _crate_site_clear(floor: Vector3i) -> bool:
+	if floor == INVALID or not NavGrid.is_walkable(floor): return false
+	for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
+		var around := floor+offset
+		if not NavGrid.is_walkable(around): return false
+		for dy in range(1,4):
+			for order in orders.values():
+				if order.cells.has(around+Vector3i(0,dy,0)): return false
+	if not build_reason(floor+Vector3i.UP,true,false).is_empty(): return false
+	var area := AABB(Vector3(floor)+Vector3(0,1,0),Vector3.ONE)
+	return not PlacedEntityRegistry.barriers_overlap(area)
+
+func place_materials_crate(materials: RefCounted) -> void:
+	if is_instance_valid(materials.visual): return
+	var order: RefCounted = materials.project()
+	var chosen: Vector3i = materials.crate_cell
+	if not _crate_site_clear(chosen):
+		chosen = INVALID
+		var origin: Vector3i = order.origin_cell
+		var radius := int(order.def.get("materials_crate_radius",6))
+		for ring in range(1,radius+1):
+			for dx in range(-ring,ring+1):
+				for dz in range(-ring,ring+1):
+					if maxi(absi(dx),absi(dz)) != ring: continue
+					for dy in [0,-1,1,-2,2]:
+						var candidate := origin+Vector3i(dx,dy,dz)
+						if _crate_site_clear(candidate):
+							chosen = candidate
+							break
+					if chosen != INVALID: break
+				if chosen != INVALID: break
+			if chosen != INVALID: break
+	if chosen == INVALID:
+		materials.crate_cell = INVALID
+		return
+	materials.crate_cell = chosen
+	var scene := load(String(order.def.materials_crate_model)) as PackedScene
+	materials.visual = scene.instantiate()
+	materials.visual.name = "ConstructionMaterials%d" % order.ghost_id
+	# Generated meshes carry their wood colors in vertices, like loose goods.
+	# Share the drop owner's material so enclosed rooms use the same lighting.
+	drops._apply_material(materials.visual,drops._material)
+	add_child(materials.visual)
+	materials.visual.position = Vector3(chosen)+Vector3(.5,1,.5)
+	materials.occupancy = PlacedEntityRegistry.register_box(chosen+Vector3i.UP,Vector3i.ONE)
+	materials.visual.visible = chosen.y+1 <= _slice_y()
+
+func staged_inventory() -> Dictionary:
+	var result := {}
+	for order in orders.values():
+		if order.materials == null: continue
+		if not result.has(order.item_key): result[order.item_key] = {}
+		for material: String in order.materials.staged:
+			result[order.item_key][material] = int(result[order.item_key].get(material,0))+int(order.materials.staged[material])
+	return result
 
 func commit_block(order: RefCounted) -> void:
 	if not bool(order.def.get("worker_enabled",true)): return
@@ -392,7 +455,6 @@ func commit_block(order: RefCounted) -> void:
 
 func _place_block(cell: Vector3i, key: String) -> void:
 	mining._ensure_chunk_real(cell)
-	built[cell] = key
 	WorldData.set_block(cell.x,cell.y,cell.z,BlockRegistry.get_id(key))
 	NavGrid.refresh_mined_block(cell)
 	if renderer != null: renderer._cavity_shell_dirty = true
@@ -400,24 +462,40 @@ func _place_block(cell: Vector3i, key: String) -> void:
 
 func dev_build_order(id: int) -> int:
 	var order = orders.get(id)
-	if order == null or not _is_floor(order.construction_kind): return 0
+	if order == null: return 0
+	# Abort before changing the blueprint: haulers drop carried supplies and
+	# builders release their tool/stance through the ordinary task lifecycle.
+	if order.source_id >= 0: TaskManager.cancel_source_tasks(order.source_id)
+	if order.materials != null: TaskManager.cancel_source_tasks(order.materials.source_id)
 	var count := 0
 	var reason := ""
-	for cell: Vector3i in order.cells.duplicate():
-		var invalid := build_reason(cell,false,true,order.construction_kind)
-		if cell.y > _slice_y(): invalid = "Raise the slice to show the remaining tiles"
-		if not invalid.is_empty():
-			reason = invalid
-			continue
-		_place_block(cell,String(order.def.block_key))
-		order.cells.erase(cell)
-		count += 1
-	_dev_feedback[id] = "Built %d tiles. %s" % [count,reason]
+	var obstacles := obstacle_snapshot()
+	var progressed := true
+	# A supported end can be later in cell order; repeat only while new
+	# adjoining blocks allow more of the original blueprint to finish.
+	while progressed:
+		progressed = false
+		reason = ""
+		for cell: Vector3i in order.cells.duplicate():
+			var invalid := build_reason(cell,false,true,order.construction_kind,obstacles)
+			if cell.y > _slice_y(): invalid = "Raise the slice to show the remaining blocks"
+			if not invalid.is_empty():
+				reason = invalid
+				continue
+			var key: String = String(order.def.block_key) if _is_floor(order.construction_kind) else BlockRegistry.get_key(WorldGenerator.construction_stone_id(cell))
+			_place_block(cell,key)
+			if order.materials != null: order.materials.consume_one()
+			order.cells.erase(cell)
+			order.work_progress.erase(cell)
+			count += 1
+			progressed = true
+	_dev_feedback[id] = "Finished %d blocks. %s" % [count,reason]
 	if order.cells.is_empty(): cancel_order(id)
+	else: order.update_lease()
 	_dirty = true
 	return count
 
-func cancel_order(id: int) -> void:
+func cancel_order(id: int, refund_materials := true) -> void:
 	var order = orders.get(id)
 	if order == null: return
 	orders.erase(id)
@@ -427,68 +505,31 @@ func cancel_order(id: int) -> void:
 		_sources.erase(order.source_id)
 		TaskManager.unregister_work_source(order.source_id)
 	order.release_claim()
+	if order.materials != null:
+		var materials = order.materials
+		TaskManager.cancel_source_tasks(materials.source_id)
+		materials.release_storage_claims()
+		_sources.erase(materials.source_id)
+		TaskManager.unregister_work_source(materials.source_id)
+		if refund_materials: materials.refund()
+		materials.remove_visual()
 	_dirty = true
 
 func _task_gone(task: Task, dwarf: int) -> void:
 	var order = orders.get(_sources.get(task.source_id,-1))
 	if order == null: return
-	order.on_task_gone(task.id,dwarf)
+	var source := TaskManager.get_work_source(task.source_id)
+	if source != null: source.on_task_gone(task.id,dwarf)
 	if order.cells.is_empty(): cancel_order(order.ghost_id)
 	_dirty = true
 
 func _task_released(task: Task,dwarf: int,_why: int) -> void:
 	var order = orders.get(_sources.get(task.source_id,-1))
-	if order != null: order.cancel_fetch(dwarf)
-
-func mined_refund(cell: Vector3i) -> bool:
-	if not built.has(cell): return false
-	var floor_block: bool = BlockRegistry.get_def(built[cell]).get("kind","") == "constructed_floor"
-	built.erase(cell)
-	# DEV floors have consumed no materials and must not create free inventory.
-	if drops != null and not floor_block: drops.spawn_drop(String(definition.item_key),1,cell)
-	_dirty = true
-	return true
+	if order != null:
+		if task.source_id == order.source_id: order.cancel_fetch(dwarf)
+		else: order.materials.cancel_haul(dwarf)
 
 func _rebuild_visuals() -> void:
-	if renderer != null:
-		renderer._cavity_shell_dirty = true
-		_solid.material_override = renderer._material
-		var verts := PackedVector3Array()
-		var norms := PackedVector3Array()
-		var colors := PackedColorArray()
-		var indices := PackedInt32Array()
-		var visible_y := _slice_y()
-		for cell: Vector3i in built:
-			if cell.y > visible_y: continue
-			var stone_color := BlockRegistry.get_terrain_color(BlockRegistry.get_id(built[cell]),WorldClock.season)
-			var block_def := BlockRegistry.get_def(built[cell])
-			var floor_def := BlockRegistry.get_construction_def(String(block_def.get("construction","")))
-			for direction: Vector3i in DIRECTIONS:
-				var neighbour := cell+direction
-				var neighbour_solid := BlockRegistry.is_solid(WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z))
-				if neighbour.y <= visible_y and neighbour_solid: continue
-				if not floor_def.is_empty():
-					var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
-					_floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,
-						direction == Vector3i.UP and cell.y == visible_y and neighbour_solid,verts,norms,colors,indices)
-					continue
-				var face_color := stone_color
-				# A hidden solid above makes this an artificial slice cap, just
-				# like adjoining natural rock. Real exposed tops stay undimmed.
-				if direction == Vector3i.UP and cell.y == visible_y and neighbour_solid:
-					face_color = renderer.slice_cut_color(stone_color)
-				renderer._add_shell_face(cell,-direction,face_color,verts,norms,colors,indices)
-		_solid.mesh = null
-		if not verts.is_empty():
-			var arrays := []
-			arrays.resize(Mesh.ARRAY_MAX)
-			arrays[Mesh.ARRAY_VERTEX] = verts
-			arrays[Mesh.ARRAY_NORMAL] = norms
-			arrays[Mesh.ARRAY_COLOR] = colors
-			arrays[Mesh.ARRAY_INDEX] = indices
-			var mesh := ArrayMesh.new()
-			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-			_solid.mesh = mesh
 	if mining != null:
 		var pending: Array[Vector3i] = []
 		for order in orders.values():
@@ -500,29 +541,30 @@ func save_section_key() -> String: return "construction"
 func save_restore_priority() -> int: return 15
 
 func serialize_state() -> Dictionary:
-	var saved_blocks := []
-	for cell: Vector3i in built: saved_blocks.append({"cell":SaveManager.pack_v3i(cell),"block":built[cell]})
 	var saved_orders := []
 	for order in orders.values():
 		var pending := []
 		for cell: Vector3i in order.cells: pending.append({"cell":SaveManager.pack_v3i(cell),"work":float(order.work_progress.get(cell,0.0))})
-		saved_orders.append({"id":order.ghost_id,"kind":order.construction_kind,"cells":pending})
-	return {"built":saved_blocks,"orders":saved_orders,"next_id":next_id}
+		var entry := {"id":order.ghost_id,"kind":order.construction_kind,"cells":pending,"total_blocks":order.total_blocks}
+		if order.materials != null:
+			entry["materials"] = order.materials.staged.duplicate()
+			if order.materials.crate_cell != INVALID: entry["crate_cell"] = SaveManager.pack_v3i(order.materials.crate_cell)
+		saved_orders.append(entry)
+	return {"orders":saved_orders,"next_id":next_id}
 
 func restore_state(state: Dictionary) -> void:
-	for id: int in orders.keys(): cancel_order(id)
-	built.clear()
+	for id: int in orders.keys(): cancel_order(id,false)
 	next_id = int(state.next_id)
-	for entry: Dictionary in state.built:
-		var cell := SaveManager.unpack_v3i(entry.cell)
-		mining._ensure_chunk_real(cell)
-		built[cell] = String(entry.block)
-		WorldData.set_block(cell.x,cell.y,cell.z,BlockRegistry.get_id(entry.block))
-		NavGrid.refresh_mined_block(cell)
 	for entry: Dictionary in state.orders:
 		var cells: Array[Vector3i] = []
 		for pending: Dictionary in entry.cells: cells.append(SaveManager.unpack_v3i(pending.cell))
 		var id := create_order(cells,int(entry.id),true,String(entry.kind))
 		if id >= 0:
+			orders[id].total_blocks = int(entry.get("total_blocks",cells.size()))
+			if orders[id].materials != null:
+				orders[id].materials.staged = entry.get("materials",{}).duplicate()
+				# Restore the location after furniture/storage owners load too.
+				orders[id].materials.crate_cell = SaveManager.unpack_v3i(entry.crate_cell) if entry.has("crate_cell") else INVALID
+				if not SaveManager.is_loading(): place_materials_crate(orders[id].materials)
 			for pending: Dictionary in entry.cells: orders[id].work_progress[SaveManager.unpack_v3i(pending.cell)] = float(pending.work)
 	_dirty = true

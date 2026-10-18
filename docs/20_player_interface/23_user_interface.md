@@ -1,5 +1,34 @@
 # 23 — User Interface
 
+**Dwarf concern badges (2026-10-17, 214):** serious hunger, exhaustion and low
+happiness show one small icon above the animated head. The inspector's Right now
+card gives the reason and an action. A scene-owned CanvasLayer projects the
+icons, respects terrain/slices/loading, and fades them at distant zooms. See
+[214](../00_dev_roadmap/214_dwarf_need_indicators.md) for thresholds and validation.
+
+**Optional mining guide (2026-10-17, 208):** Mine blocks no longer automatically
+outlines individual terrain voxels. Its mode controls contain an off-by-default
+**32×32 mining guide** toggle. Thick boundaries aid alignment, retaining the
+choice when switching tools; the guide is visible only during mining. Native
+input and 16:9/21:9/32:9 layouts are covered in
+[208](../00_dev_roadmap/208_optional_mining_area_guide.md).
+
+**DEV construction and plants (2026-10-17, 207):** select a stone blueprint or
+its materials crate for **DEV: Finish construction**. Development now also has
+**Spawn Bushes**, creating one uprooted bush of each berry species near the view
+centre, ready for hauling or **Place → Plants**. See
+[207](../00_dev_roadmap/207_construction_and_bush_dev_actions.md).
+
+**Panoramic loading (2026-10-17, 206):** `WorldLoadingScreen` hides the game HUD
+and consumes controls until the full terrain overview, water/lighting/scenery
+queues and save restoration are complete. A fixed-height panorama reveals more
+of its sides at 21:9 and 32:9 than at 16:9. A small beer mug and slim progress bar
+track actual generation work. Each startup or save reload randomly chooses the
+mountain or underground-settlement panorama, holding that image until reveal.
+UIRegistry owns the artwork list in `data/ui/loading_screen.json`;
+the historical DebugLoadingOverlay remains World info. See
+[206](../00_dev_roadmap/206_panorama_loading_screen.md).
+
 **Audio preferences (2026-10-13):** Menu → Audio opens separate Ambience and
 Effects sliders with mute buttons and Restore defaults. Preferences persist
 across settlements. Ambience includes the new weather/season-aware woodland
@@ -84,9 +113,9 @@ with harvesting/storage-access guidance. The larger tab redesign remains stage 3
 in [131](../00_dev_roadmap/131_dwarf_food_and_dining.md).
 
 **Development menu (2026-10-12):** Development is its own dock entry at the far
-right, after Menu. It opens directly with no parent/back link. Its nine actions
+right, after Menu. It opens directly with no parent/back link. Its ten actions
 are Block inspector, World Build, Cave explorer, Dwarf tools, Water tools,
-Arrival status, Spawn Drops, Spawn Furniture and Time & weather. The last panel
+Arrival status, Spawn Drops, Spawn Furniture, Spawn Bushes and Time & weather. The last panel
 owns +1 Hour, +1 Season and weather cycling; the player clock shows facts only.
 Block Inspector moved here in 130; World Build and time/weather tests in 140.
 All 15 cycling locator commands and their runtime handlers/state
@@ -461,8 +490,8 @@ in `00_dev_roadmap/20_save_load.md`.
 Some `toggle_window` targets are intercepted in `DockUI._toggle_window` and routed to a real
 system instead of a generic window: `world_info` / `block_inspector` toggle their overlay
 CanvasLayers, `slice` toggles the **Slice tool**
-(see below), and `rooms` toggles the **Rooms tool** (see below). `xray` remains a stub
-until the X-Ray tool exists (`11_slice_xray_plan.md` §4).
+(see below), and `rooms` toggles the **Rooms tool** (see below). X-ray now has
+dedicated controls beside the slice tower (210); it is not a generic window.
 
 ### Developer cave explorer (2026-10-07)
 
@@ -500,8 +529,24 @@ Clamps: Y4 floor (Bedrock Protocol — one mineable layer always visible) to Y12
 First activation seeds the plane from the camera's surface column; afterwards the height is
 fully manual and remembered across toggles. Its active state, current height, seeded flag,
 and last manual height persist in the version-1 quick save.
-Activating Slice will force the future X-Ray tool off, and vice versa — mutual exclusion
-lives in the tool layer, never the renderer.
+X-ray keeps the slice plane and its controls available; the earlier mutual
+exclusion proposal is superseded by 210.
+
+### Underground X-ray and lower-level reference (2026-10-17)
+
+Beside the slice tower, **X-ray** toggles discovered underground inspection.
+**Full** shows floors and walls; **Flat** keeps floors with three blocks of
+headroom and low wall sections. Undiscovered caves and hidden deposits stay
+concealed. Turning it on initially pins the current level. **Pin this level**
+updates that reference; raise the slice to see dashed cyan room perimeters and
+step boundaries projected onto the current plane. **Lower level** hides/shows
+that guide independently. The readout distinguishes View/Work and Reference.
+
+Mining, construction and other placement tools automatically restore normal
+terrain and clicks at the selected work level while retaining the reference.
+Closing the tool returns to Full/Flat. The guide cannot be selected or mined.
+These view preferences are transient; existing slice save state is unchanged.
+See [210](../00_dev_roadmap/210_underground_xray_and_level_reference.md).
 
 ### The Rooms Tool (shipped 2026-08-07 — doc 22 close-out follow-up)
 
@@ -512,7 +557,11 @@ contract). While active, every sealed room draws a **volume outline** with a fai
 floor tint: **green** for sealed rooms, **icy blue** for Frozen Vaults. Coplanar
 interior edges are deduped. The 2026-10-06 follow-up removed filled walls and ceilings:
 their stacked, unshaded green faces made unlit rooms appear bright. Floor opacity
-is only 0.3%, or 0.6% when selected, so the actual room lighting remains legible.
+is only 0.3%, or 0.8% when selected, so the actual room lighting remains legible.
+The 2026-10-17 selection update gives the clicked room a gold volume outline,
+a stronger border following its actual floor perimeter and a subtle gold floor
+tint. Other rooms keep their normal colours. Clicks and closing the inspector
+update those materials immediately; selection does not rebuild all room meshes.
 Overlays render with **no depth test** (the mining ghost-layer treatment), so a room
 reads through the mountain whether or not the slice is cut down to it; rooms above the
 slice plane hide (the flora convention).

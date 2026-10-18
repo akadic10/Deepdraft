@@ -121,10 +121,47 @@ func _run() -> void:
 	await _test_invalidated_destination()
 	_test_seasonal_shelf()
 	await _test_fresh_restore(snapshot,plan_snapshot,cargo)
+	await _test_dev_spawns()
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_transplants()
 	for message: String in failures: push_error(message)
 	print("SHRUB_TRANSPLANT_OK" if failures.is_empty() else "SHRUB_TRANSPLANT_FAIL: %s" % str(failures))
 	quit(0 if failures.is_empty() else 1)
+
+
+func _test_dev_spawns() -> void:
+	# Exercise the actual Development command and view-centre drop location.
+	camera.position = Vector3(37.5,38,45.5)
+	camera.look_at(Vector3(37.5,21,36.5))
+	dock._stockpile_controller = zone_controller
+	var before: int = details._records.size()
+	dock._dispatch_command("spawn_bushes")
+	_expect(details._records.size()==before+3,"DEV creates one packed bush of each species")
+	var identities: Array[String] = []
+	for id: String in details._records:
+		if details._changes.get(id,{}).get("reason") != "dev_packed_shrub": continue
+		identities.append(id)
+		_expect(details._changes[id].packed and details._changes[id].removed and details._records[id].node==null,"DEV bush has no duplicate planted visual")
+		var item = drops.nearest_loose_of_key(root.get_node("SurfaceDetailRegistry").packed_item(details._records[id].definition,0),Vector3i(37,20,36),{},id)
+		_expect(item != null and String(item.get_meta("visual_path","")).contains("packed"),"DEV bush uses actual transport artwork")
+	var state: Dictionary = JSON.parse_string(JSON.stringify(details.serialize_state()))
+	details.restore_state(state)
+	for id: String in identities:
+		_expect(details._records.has(id) and details._changes[id].packed,"DEV plant identity survives save/restore")
+	var blue := ""
+	for id: String in identities:
+		if details._records[id].definition==BLUE_KEY: blue=id
+	furniture.activate_for(BLUE_KEY,true)
+	furniture._hover_cell = Vector3i(36,20,52)
+	furniture._hover_valid = furniture._placement_valid(furniture._hover_cell)
+	_expect(furniture._hover_valid,"DEV bush can be selected through normal Place catalog")
+	furniture._confirm_ghost()
+	furniture.deactivate()
+	_expect(await _wait_for(func(): return worker._task_phase==worker.TaskPhase.FETCH_TO_GHOST),"dwarf picks up a spawned bush for transport")
+	_expect(worker.serialize_state().carried_items.any(func(e): return e.get("instance_id","")==blue),"dwarf carries the DEV bush's persistent identity")
+	_expect(await _wait_for(func(): return not details._changes[blue].packed),"dwarf replants spawned bush through normal work")
+	_expect(details._records[blue].origin==Vector3i(36,20,52),"spawned bush finishes at requested location")
+	dock._dispatch_command("spawn_bushes")
+	_expect(details._records.size()==before+6,"repeat DEV spawns allocate fresh identities after restore")
 
 
 func _move(id: String, target: Vector3i) -> int:

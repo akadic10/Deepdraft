@@ -2,13 +2,15 @@
   "furniture_key": "base:furniture:campfire",
   "furniture_category": "lighting",
   "display_name": "Campfire",
-  "description": "A rough stone ring and split logs, centered in a 3 Ã— 3 camp space. Warm, animated light for the first camp; always lit while installed.",
+  "description": "A low outdoor stone-ring fire centered in a 3 × 3 camp area. Place stools around its edges to gather by the light; always lit while installed.",
   "model": "res://assets/models/furniture/campfire.glb",
   "item_key": "base:resources:furniture:campfire",
   "placement": "floor",
   "yaw_steps": 4,
   "placement_anchor": "center",
   "show_placement_area": true,
+  "placement_label": "3 × 3 camp area",
+  "placement_note": "Outdoor gathering fire. The stone ring is about 2 × 2; the full 3 × 3 camp area stays clear. Place stools around its edges.",
   "footprint": {
     "width": 3,
     "depth": 3

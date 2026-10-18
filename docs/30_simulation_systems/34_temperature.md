@@ -69,14 +69,17 @@ are future extensions. The current normal mountain has no automatic frozen zone.
 | Log torch | 75 |
 | Wall torch | 100 |
 | Campfire | 900 |
-| Rudimentary hearth | 2400 |
+| Rudimentary hearth | 1600 |
 | Brazier | 3200 |
 
-A stone hearth is available in Rudimentary → Camp furnishings: two matching logs,
-four rough stones and 18 seconds at a crude workbench. It warms an ordinary
-256–324-block starter bedroom to roughly 19–21°C. Larger halls need more heat;
-small rooms can overheat. Torches principally supply light. The 128-block minimum
-thermal mass moderates tiny rooms. Ghosts, packed and carried pieces emit no
+A stone hearth is available in Rudimentary → Rooms: two matching logs,
+four rough stones and 18 seconds at a crude workbench. The compact 2×2 open-front
+heater warms a 6×6 room with four air blocks of height (144-cell volume) to
+19.1–23.1°C across seasonal extremes. One hearth plus a log torch in the minimum
+128-cell thermal mass reaches at most about 25.1°C. A larger 8×8×4 winter room
+is 14.25°C with one hearth and 20.5°C with two. Multiple heaters can still
+overheat a small room; there is no thermostat. Torches principally supply light.
+See [199](../00_dev_roadmap/199_campfire_and_room_hearth.md). Ghosts, packed and carried pieces emit no
 heat; removal and save reconstruction update installed contributions exactly once.
 Fuel use, ignition and exhaust are not implemented yet.
 
@@ -100,6 +103,10 @@ injuries, sickness, hunger and thirst remain separate future systems.
 Both room inspectors show the actual temperature label, computed heating bonus,
 volume, doors and seasonal influence. Mean floor level is diagnostic information,
 not a cold-zone label. Dwarf Overview and Details show happiness and active thoughts.
+The installed hearth's Object explorer also identifies its current room and
+temperature, and shows only that hearth's contribution. Outside a detected room
+it explains that walls, a roof and a door are needed. These values are read from
+RoomManager's current derived room map; topology and hour changes refresh them.
 
 ## Future consumers
 

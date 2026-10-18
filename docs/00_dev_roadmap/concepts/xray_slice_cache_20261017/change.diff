@@ -1,0 +1,329 @@
+--- scripts/systems/XrayController.gd (turn start)
++++ scripts/systems/XrayController.gd
+@@ -4,6 +4,7 @@
+ ## Normal terrain continues to supply shadows and all simulation data.
+ const XRAY_LAYER := 1 << 18
+ const TERRAIN_LAYER := 1 << 19
++const CACHED_LEVELS_PER_CHUNK := 3
+ const Geometry = preload("res://scripts/components/XrayGeometry.gd")
+ @export var renderer_path: NodePath
+ @export var slice_path: NodePath
+@@ -21,6 +22,7 @@
+ var _tools: Array[Node] = []
+ var _geometry := Geometry.new()
+ var _chunks: Dictionary = {}
++var _chunk_cache: Dictionary = {} # Chunk -> ordered recent slice variants.
+ var _dirty: Dictionary = {}
+ var _job := {}
+ var _revision := -1
+@@ -28,6 +30,7 @@
+ var _reference_dirty := true
+ var _reference_job := {}
+ var _reference: MeshInstance3D
++var _reference_mesh_level := -1
+ var _camera: Camera3D
+ var _camera_mask := 0
+ var _camera_environment: Environment
+@@ -98,10 +101,10 @@
+ 		last_mode = mode
+ 		if slice!=null and not slice.is_active(): slice.activate()
+ 		if reference_y<0: pin_reference()
+-		# Both inspection meshes already exist. Only re-entry needs a refresh
+-		# for edits and nodes that may have changed while inspection was off.
++		# Refresh changed world data, retaining geometry for unchanged chunks.
+ 		if was_off:
+-			_invalidate_all()
++			_refresh_interiors()
++			_select_level(int(renderer.slice_y))
+ 			if _scan.is_empty(): _scan.append(get_tree().current_scene)
+ 	if renderer!=null: renderer._visible_volume_dirty = true
+ 	_sync_working()
+@@ -139,18 +142,61 @@
+ 	changed.emit()
+ 
+ func _slice_changed(height: int) -> void:
+-	_level = height
+-	_invalidate_all()
++	_refresh_interiors()
++	_select_level(height)
+ 	changed.emit()
++
++func _variant_level(key: Vector3i, level: int) -> int:
++	# Fully hidden/full chunks share one variant across distant slice heights.
++	# One level beyond the chunk also distinguishes water cut at its top edge
++	# from a live surface above it (which belongs to the next chunk).
++	return clampi(level,key.y*16-1,key.y*16+16)
++
++func _select_level(level: int) -> void:
++	if level==_level: return
++	_level = level
++	_job.clear()
++	_dirty.clear()
++	for entry in _chunks.values(): _hide_entry(entry)
++	_chunks.clear()
++	for key: Vector3i in InteriorTracker.get_interior_chunks():
++		var variant := _variant_level(key,level)
++		var cache: Dictionary = _chunk_cache.get(key,{})
++		if cache.has(variant):
++			var entry: Dictionary = cache[variant]
++			cache.erase(variant)
++			cache[variant] = entry # Most recently used; active variant stays last.
++			_chunks[key] = entry
++			if entry.water_dirty: _dirty[key] = "water"
++		else: _dirty[key] = true
++	_reference_dirty = true
++	_reference_job.clear()
++	# Keep the previous outline aligned while refreshing its columns.
++	if _reference.mesh!=null: _reference.position.y = level-_reference_mesh_level
++	if renderer!=null: renderer._visible_volume_dirty = true
++	_sync_visibility()
++
++func _hide_entry(entry: Dictionary) -> void:
++	entry.full.hide()
++	entry.flat.hide()
++	entry.water.hide()
++
++func _free_entry(entry: Dictionary) -> void:
++	_hide_entry(entry)
++	entry.full.queue_free()
++	entry.flat.queue_free()
++	entry.water.queue_free()
++
++func _invalidate_chunk(key: Vector3i) -> void:
++	for entry in _chunk_cache.get(key,{}).values(): _free_entry(entry)
++	_chunk_cache.erase(key)
++	_chunks.erase(key)
++	_dirty[key] = true
+ 
+ func _invalidate_all() -> void:
+ 	_job.clear()
+-	for key in _chunks: _dirty[key] = true
++	for key in _chunk_cache.keys(): _invalidate_chunk(key)
+ 	for key in InteriorTracker.get_interior_chunks(): _dirty[key] = true
+-	for entry in _chunks.values():
+-		entry.full.hide()
+-		entry.flat.hide()
+-		entry.water.hide()
+ 	_reference.mesh = null
+ 	_reference_dirty = true
+ 	_reference_job.clear()
+@@ -160,34 +206,21 @@
+ 	if mode=="off": return
+ 	_sync_camera()
+ 	if renderer==null: return
+-	if _revision!=InteriorTracker.revision:
+-		_revision = InteriorTracker.revision
+-		for key in InteriorTracker.take_dirty_chunks(): _dirty[key] = true
+-		# A cleared/new world must retire old meshes too.
+-		for key in _chunks:
+-			if InteriorTracker.get_interior_cells(key).is_empty(): _dirty[key] = true
+-		if not _job.is_empty():
+-			_dirty[_job.key] = true
+-			_job.clear()
+-		_reference_dirty = true
+-		_reference_job.clear()
+-		_visual_cursor = 0
++	_refresh_interiors()
+ 	var level := int(renderer.slice_y)
+-	if level!=_level:
+-		_level = level
+-		_invalidate_all()
++	_select_level(level)
+ 	var deadline := Time.get_ticks_usec()+int(_config.get("mesh_budget_usec",2500))
+ 	while Time.get_ticks_usec()<deadline and (not _job.is_empty() or not _dirty.is_empty()):
+ 		if _job.is_empty():
+ 			var key: Vector3i = _dirty.keys()[0]
+ 			var water_only: bool = _dirty[key] is String
+ 			_dirty.erase(key)
+-			_job = {"key":key,"cells":InteriorTracker.get_interior_cells(key),"cursor":0,"water_only":water_only,
++			_job = {"key":key,"level":_variant_level(key,level),"cells":InteriorTracker.get_interior_cells(key),"cursor":0,"water_only":water_only,
+ 				"full":_geometry.arrays(),"flat":_geometry.arrays(),"water":_geometry.arrays(),"floors":{},"full_cells":{},"flat_cells":{}}
+ 		if _job.cursor<_job.cells.size():
+ 			if not _job.water_only:
+-				_geometry.append_air(_job.cells[_job.cursor],level,renderer,_job.full,_job.flat,_job.floors,_job.full_cells,_job.flat_cells)
+-			_geometry.append_water(_job.cells[_job.cursor],level,_job.water)
++				_geometry.append_air(_job.cells[_job.cursor],_job.level,renderer,_job.full,_job.flat,_job.floors,_job.full_cells,_job.flat_cells)
++			_geometry.append_water(_job.cells[_job.cursor],_job.level,_job.water)
+ 			_job.cursor += 1
+ 		else:
+ 			_commit_chunk()
+@@ -196,27 +229,50 @@
+ 	_sync_visibility()
+ 	if is_inspecting(): _update_visuals()
+ 
++func _refresh_interiors() -> void:
++	if _revision==InteriorTracker.revision: return
++	_revision = InteriorTracker.revision
++	for key in InteriorTracker.take_dirty_chunks(): _invalidate_chunk(key)
++	# Clearing/restoring a world also retires dormant variants.
++	for key in _chunk_cache.keys():
++		if InteriorTracker.get_interior_cells(key).is_empty(): _invalidate_chunk(key)
++	if not _job.is_empty() and _dirty.has(_job.key) and _dirty[_job.key] is bool:
++		_job.clear()
++	_reference.mesh = null
++	_reference_dirty = true
++	_reference_job.clear()
++	_visual_cursor = 0
++	if renderer!=null: renderer._visible_volume_dirty = true
++
+ func _commit_chunk() -> void:
+ 	var key: Vector3i = _job.key
+ 	if _job.water_only and _chunks.has(key):
+ 		# Keep terrain, selection sets and the lower-level guide unchanged.
+ 		# Flowing water does not invalidate any of those, or the normal renderer.
+ 		_chunks[key].water.mesh = _geometry.mesh(_job.water)
++		_chunks[key].water_dirty = _dirty.has(key)
+ 		_job.clear()
+ 		return
+-	if _chunks.has(key):
+-		_chunks[key].full.queue_free()
+-		_chunks[key].flat.queue_free()
+-		_chunks[key].water.queue_free()
+-		_chunks.erase(key)
+ 	if _job.cells.is_empty():
+ 		_job.clear()
+ 		return
+ 	var full := _shell_node(_geometry.mesh(_job.full))
+ 	var flat := _shell_node(_geometry.mesh(_job.flat))
+ 	var water := _shell_node(_geometry.mesh(_job.water))
+-	_chunks[key] = {"full":full,"flat":flat,"water":water,"floors":_job.floors,
++	var entry := {"full":full,"flat":flat,"water":water,"floors":_job.floors,
++		"water_dirty":_dirty.has(key),
+ 		"full_cells":_job.full_cells,"flat_cells":_job.flat_cells}
++	var cache: Dictionary = _chunk_cache.get(key,{})
++	if cache.has(_job.level):
++		_free_entry(cache[_job.level])
++		cache.erase(_job.level)
++	cache[_job.level] = entry
++	while cache.size()>CACHED_LEVELS_PER_CHUNK:
++		var oldest: int = cache.keys()[0]
++		_free_entry(cache[oldest])
++		cache.erase(oldest)
++	_chunk_cache[key] = cache
++	_chunks[key] = entry
+ 	_reference_dirty = _reference_dirty or not _job.water_only
+ 	if not _job.water_only: _reference_job.clear()
+ 	_job.clear()
+@@ -272,6 +328,8 @@
+ 			job.outline_index += 1
+ 		else:
+ 			_reference.mesh = _geometry.mesh(job.data)
++			_reference.position.y = 0
++			_reference_mesh_level = int(renderer.slice_y)
+ 			_reference_job.clear()
+ 			_reference_dirty = false
+ 			return
+@@ -300,11 +358,17 @@
+ 	return _geometry.has_floor_headroom(air)
+ 
+ func _water_changed(cells: Array) -> void:
+-	if mode=="off": return # Enabling always rebuilds from current world truth.
++	if _chunk_cache.is_empty() and _job.is_empty(): return
++	var affected := {}
+ 	for cell: Vector3i in cells:
+ 		for y in range(8):
+ 			var key := Vector3i(cell.x>>4,y,cell.z>>4)
+-			if not _chunks.has(key): continue
++			if _chunk_cache.has(key) or (not _job.is_empty() and _job.key==key): affected[key] = true
++	for key in affected:
++		# Inactive variants (including while X-ray is off) cannot retain stale
++		# pool heights. Refresh their water lazily when selected again.
++		for entry in _chunk_cache.get(key,{}).values(): entry.water_dirty = true
++		if _chunks.has(key) or (not _job.is_empty() and _job.key==key):
+ 			_dirty[key] = _dirty.get(key,"water")
+ 	# Do not cancel an in-flight mesh for flowing water. Its dirty key causes
+ 	# one subsequent refresh, so continuous flow cannot starve the initial build.
+--- scripts/tests/XrayViewTest.gd (turn start)
++++ scripts/tests/XrayViewTest.gd
+@@ -93,6 +93,7 @@
+ 	_expect(not xray.is_terrain_visible(base+Vector3i(30,0,30)),"unexcavated rock is absent from X-ray")
+ 	var full_vertices := _vertex_count("full")
+ 	await _review_capture("stacked_full")
++	await _check_slice_cache()
+ 	var full_meshes := _shell_meshes("full")
+ 	var flat_meshes := _shell_meshes("flat")
+ 	physical_shell = renderer._cavity_shell_node.mesh
+@@ -136,6 +137,27 @@
+ 	water._flush_changes()
+ 	await _xray_settle()
+ 	_expect(_vertex_count("water")==0,"draining the pool removes its inspection surface")
++	# A dormant slice variant must see water changes when revisited.
++	var pool_level: int = slice.get_slice_y()
++	slice.show_at_height(pool.y)
++	await _xray_settle()
++	slice.show_at_height(pool_level)
++	await _xray_settle()
++	water.flow.add_at(pool,.5,pool.y+1)
++	water._flush_changes()
++	await _xray_settle()
++	slice.show_at_height(pool.y)
++	await _xray_settle()
++	_expect(_vertex_count("water")>0,"cached lower slice refreshes water added while it was dormant")
++	xray.set_mode("off")
++	water.flow.remove_at(pool,.5,pool.y)
++	water._flush_changes()
++	xray.set_mode("flat")
++	await _xray_settle()
++	_expect(_vertex_count("water")==0,"water draining while X-ray is off invalidates cached water")
++	slice.show_at_height(pool_level)
++	await _xray_settle()
++	_expect(_vertex_count("water")==0,"other cached slices also retire drained water")
+ 	# Working tools restore actual terrain and normal picking, while the guide
+ 	# stays visual-only and cannot alter the mined or construction data.
+ 	mining._on_tool_requested("mine_precision")
+@@ -176,6 +198,13 @@
+ 	await _xray_settle()
+ 	_expect(not xray.is_terrain_visible(added),"removed construction retires its shell face")
+ 	_expect(renderer._cavity_shell_node.mesh!=physical_shell,"actual slice and terrain changes still rebuild the physical shell")
++	xray.set_mode("off")
++	builder._place_block(added,rock_key)
++	xray.set_mode("flat")
++	await _xray_settle()
++	_expect(xray.is_terrain_visible(added),"terrain edited while X-ray is off refreshes cached geometry")
++	mining._mine_blocks_world(removed)
++	await _xray_settle()
+ 	_click_hud(hud.reference_toggle)
+ 	await process_frame
+ 	_expect(not xray._reference.visible,"lower reference can be hidden independently")
+@@ -218,3 +247,41 @@
+ 	var result := {}
+ 	for key in xray._chunks: result[key] = xray._chunks[key][kind].mesh
+ 	return result
++
++func _check_slice_cache() -> void:
++	var height: int = slice.get_slice_y()
++	var meshes := _shell_meshes("full")
++	var reference: Mesh = xray._reference.mesh
++	slice.show_at_height(height)
++	_expect(xray._dirty.is_empty() and xray._job.is_empty() and xray._reference.mesh==reference,"same-height slice notification does not invalidate geometry")
++	slice.deactivate()
++	var retained := 0
++	for key in meshes:
++		if xray._variant_level(key,height)==xray._variant_level(key,127):
++			retained += 1
++			_expect(xray._chunks.has(key) and xray._chunks[key].full.mesh==meshes[key],"slice off immediately retains an unaffected chunk")
++	_expect(retained>0,"fixture includes fully visible chunks below the cutoff")
++	await _xray_settle()
++	var all_meshes := _shell_meshes("full")
++	for i in 3:
++		slice.activate()
++		_expect(xray._dirty.is_empty() and xray._job.is_empty(),"returning to the cached slice schedules zero mesh rebuilds")
++		_expect(_shell_meshes("full")==meshes,"slice on restores the exact previous meshes immediately")
++		for key in xray._chunks:
++			_expect(xray._chunks[key].full.visible,"restored chunks are visible before another frame")
++		slice.deactivate()
++		_expect(xray._dirty.is_empty() and _shell_meshes("full")==all_meshes,"repeated slice off reuses the full-height view")
++	slice.activate()
++	await _xray_settle()
++	xray.set_mode("off")
++	xray.set_mode("full")
++	_expect(xray._dirty.is_empty() and _shell_meshes("full")==meshes,"X-ray off/on reuses unchanged geometry")
++	await _xray_settle()
++	# Several intermediate heights cannot grow the cache indefinitely.
++	for offset in [1,2,3,4]:
++		slice.show_at_height(height+offset)
++		await _xray_settle()
++		for cache in xray._chunk_cache.values():
++			_expect(cache.size()<=xray.CACHED_LEVELS_PER_CHUNK,"slice cache stays bounded")
++	slice.show_at_height(height)
++	await _xray_settle()

@@ -99,6 +99,7 @@ static func regions_intersect(a: Dictionary, b: Dictionary) -> bool:
 
 
 func _obstacles(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Dictionary]:
+	if def.has("grid_fence"): return controller._fences.obstacles(def,origin,yaw)
 	var result: Array[Dictionary] = []
 	if not def.has("seating_obstacles"):
 		return [{"bounds": controller._visual_bounds(def, origin, yaw)}]
@@ -214,6 +215,14 @@ func installed_seats(table_id: int) -> Array[Dictionary]:
 			slot["chair_id"] = id
 			result.append(slot)
 	return result
+
+
+func is_recreation_seat(piece) -> bool:
+	for table in controller._installed.values():
+		if table.flagged_uninstall or not table.def.has("recreation"): continue
+		for slot in slots_for_layout(table.def,table.origin_cell,table.yaw_steps):
+			if matches_slot(piece,slot): return true
+	return false
 
 
 static func matches_slot(chair, slot: Dictionary) -> bool:

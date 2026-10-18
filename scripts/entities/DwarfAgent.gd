@@ -19,6 +19,7 @@ extends CharacterBody3D
 const LOGICAL_HEIGHT := 3.0    # blocks — collision + future nav clearance
 const FellingPose = preload("res://scripts/components/DwarfFellingPose.gd")
 const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
+const ConstructionPose = preload("res://scripts/components/DwarfConstructionPose.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
 const IdleBehavior = preload("res://scripts/components/DwarfIdleBehavior.gd")
 const RestBehavior = preload("res://scripts/components/DwarfRestBehavior.gd")
@@ -117,6 +118,7 @@ var _fell_stand_index := 0
 var _fell_contact := Vector3.ZERO
 var _felling_pose: RefCounted
 var _mining_pose: RefCounted
+var _construction_pose: RefCounted
 var _mine_contact := Vector3.ZERO
 
 ## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
@@ -144,6 +146,7 @@ var _sleep_drain: float = SLEEP_DRAIN_PER_S   # per-dwarf jittered rate (setup()
 var _sleeping: bool = false
 var _sleep_hours_left: float = 0.0
 var _mood: RefCounted
+var _recreation: RefCounted
 var _food: RefCounted
 
 ## Fired when a walk order finishes (arrived) or fails (no path / cleared).
@@ -210,6 +213,8 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_apply_tints()
 	_felling_pose = FellingPose.new()
 	_felling_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
+	_construction_pose = ConstructionPose.new()
+	_construction_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
 	_mining_pose = MiningPose.new()
 	_mining_pose.setup(_body,_head,_hand_l,_hand_r,_foot_l,_foot_r)
 	_carry_pose = CarryPose.new()
@@ -265,6 +270,9 @@ func _process(delta: float) -> void:
 		_equipment.tick(delta)
 		return
 	if _food.begin_if_needed(): return
+	if is_recreating():
+		_recreation.tick_actor(self,delta * WorldClock.speed)
+		return
 	if current_task_id < 0 and _task_phase == TaskPhase.NONE and _idle_behavior != null:
 		if _idle_behavior.tick(delta * WorldClock.speed): return
 	if _work_execution.tick(self,delta * WorldClock.speed): return
@@ -287,7 +295,7 @@ func receive_task(task_id: int, target_pos: Vector3i, carried_item: Node3D = nul
 	var assignment := TaskManager.get_task(task_id)
 	if assignment == null or assignment.attempt == null: return
 	_work_execution.bind(assignment)
-	if _sleeping or promotion_pending() or is_eating():
+	if _sleeping or promotion_pending() or is_eating() or is_recreating():
 		# Race guard (should not happen — sleepers leave the idle pool): an
 		# assignment landing in the frame the dwarf fell asleep bounces straight
 		# back to PENDING; releasing is always cheap and legal (§2.8).
@@ -416,6 +424,7 @@ func allows_task(type: int) -> bool:
 
 
 func _release_for_assignment_change() -> void:
+	if is_recreating(): _recreation.cancel()
 	if current_task_id < 0: return
 	abort_task()
 	_work_execution.release(dwarf_id, Task.ReleaseReason.PLAYER, not _sleeping)
@@ -423,6 +432,7 @@ func _release_for_assignment_change() -> void:
 
 ## Called by TaskManager when the task is cancelled out from under us.
 func abort_task() -> void:
+	if is_recreating(): _recreation.cancel(dwarf_id)
 	if is_eating(): _food.cancel("Meal interrupted; food is preserved.", false)
 	if promotion_pending(): _equipment.cancel()
 	if _idle_behavior != null: _idle_behavior.cancel()
@@ -444,6 +454,9 @@ func abort_task() -> void:
 
 
 func _on_walk_finished(success: bool) -> void:
+	if is_recreating():
+		_recreation.walk_finished(self,success)
+		return
 	if is_eating():
 		_food.walk_finished(success)
 		return
@@ -529,6 +542,7 @@ func _on_walk_finished(success: bool) -> void:
 ## touched; partial swing progress is discarded — the block keeps full
 ## durability (swings only commit at zero).
 func _begin_sleep() -> void:
+	if is_recreating(): _recreation.cancel(dwarf_id)
 	if is_eating(): _food.cancel("Meal interrupted for rest.", false)
 	if promotion_pending(): _equipment.cancel("Promotion cancelled for sleep. The tool is available again.", false)
 	if _idle_behavior != null: _idle_behavior.cancel()
@@ -587,6 +601,10 @@ func is_sleeping() -> bool:
 	return _sleeping
 
 
+func is_recreating() -> bool:
+	return _recreation != null
+
+
 func is_resting() -> bool:
 	return _sleeping and _rest_behavior != null and _rest_behavior.state == "sleeping"
 
@@ -637,6 +655,7 @@ func serialize_state() -> Dictionary:
 
 
 func restore_saved_runtime(state: Dictionary) -> void:
+	if is_recreating(): _recreation.cancel(dwarf_id)
 	if is_eating(): _food.cancel("", false)
 	if _idle_behavior != null: _idle_behavior.cancel()
 	if _rest_behavior != null: _rest_behavior.cancel()
@@ -659,6 +678,9 @@ func restore_saved_runtime(state: Dictionary) -> void:
 ## reason PLAYER and return to the idle pool immediately. Returns false if
 ## there was nothing to interrupt.
 func dev_force_interrupt() -> bool:
+	if is_recreating():
+		_recreation.cancel()
+		return true
 	if is_eating():
 		_food.cancel()
 		return true
@@ -1263,6 +1285,9 @@ func _fetch_begin() -> void:
 		current_task_id = -1
 		_work_execution.release(dwarf_id,Task.ReleaseReason.MATERIAL_UNAVAILABLE)
 		return
+	if bool(pull.get("work_only",false)):
+		_fetch_travel_to_ghost()
+		return
 	_fetch_item = pull["item"]
 	_fetch_picked_up = false
 	_fetch_heavy = bool(pull.get("heavy", false))
@@ -1343,6 +1368,20 @@ func _fetch_complete() -> void:
 	if source == null:
 		_fetch_fail_release()
 		return
+	if source.has_method("commit_staged_build"):
+		if not _work_execution.commit(dwarf_id,"build:%s" % source.target,func(): return source.commit_staged_build(dwarf_id)):
+			_fetch_fail_release()
+			return
+		if source.continue_staged_build(dwarf_id):
+			_task_phase = TaskPhase.FETCH_WORKING
+			_exec_timer = float(source.remaining_work())
+			return
+		source.cancel_fetch(dwarf_id)
+		_reset_part_offsets()
+		_fetch_source_id = -1
+		current_task_id = -1
+		_work_execution.complete(dwarf_id)
+		return
 	if source.has_method("needs_ingredient_delivery") and bool(source.call("needs_ingredient_delivery")):
 		var unit := "ingredient:%d" % _fetch_item.get_instance_id() if is_instance_valid(_fetch_item) else "missing ingredient"
 		if not _work_execution.commit(dwarf_id,unit,func(): return bool(source.stage_ingredient(dwarf_id))):
@@ -1410,6 +1449,9 @@ func _begin_fetch_work() -> void:
 		return
 	_task_phase = TaskPhase.FETCH_WORKING
 	_exec_timer = float(source.remaining_work())
+	if source.has_method("commit_staged_build"):
+		_reset_part_offsets()
+		_construction_work_pose(source)
 	if source.has_method("advance_plant"):
 		_plant_animation_duration = _exec_timer
 		_reset_part_offsets()
@@ -1423,6 +1465,17 @@ func _begin_fetch_work() -> void:
 ## owned by the worker until the final valid-site commit, including saves.
 func _plant_pose(source: RefCounted, phase: float) -> void:
 	_carry_pose.lower(phase, _carried_entries, to_local(source.work_surface()))
+
+func _construction_work_pose(source: RefCounted) -> Vector3:
+	var face: Vector3i = source.work_facing(current_cell())
+	rotation.y = atan2(face.x,face.z)
+	var contact := ConstructionPose.contact_point(source.target,global_position,global_basis.z)
+	var inward := -ConstructionPose.contact_normal(source.target,contact)
+	# Use the near side's horizontal clearance for the entire work session,
+	# including low blocks struck on top. Higher targets must not move the feet.
+	_construction_pose.prepare_stance(to_local(MiningPose.contact_point(source.target,global_position,global_basis.z)))
+	_construction_pose.apply(float(source.progress)/ConstructionPose.CYCLE_SECONDS,to_local(contact),global_basis.inverse()*inward)
+	return contact
 
 
 func _craft_pose(source: RefCounted) -> Vector3:
@@ -1442,6 +1495,7 @@ func _craft_pose(source: RefCounted) -> Vector3:
 ## Any fetch failure: Rule 12 teardown + release with backoff.
 func _fetch_fail_release(reason: int = Task.ReleaseReason.PATH_INVALID) -> void:
 	_finish_fetch_state()
+	_reset_part_offsets()
 	if current_task_id < 0:
 		return
 	current_task_id = -1
@@ -1719,6 +1773,7 @@ func _process_ladder_exit(delta: float) -> void:
 ## Orders a walk to a goal floor cell. Returns true if a path was found and
 ## the walk began; emits walk_finished(success) when it ends either way.
 func walk_to(goal_cell: Vector3i) -> bool:
+	if is_recreating(): _recreation.cancel()
 	if is_eating(): _food.cancel("Meal interrupted by movement.")
 	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
 	if _idle_behavior != null and _idle_behavior.active(): _idle_behavior.cancel()
@@ -1742,6 +1797,7 @@ func walk_to(goal_cell: Vector3i) -> bool:
 ## Leisure uses only short, fully checked flat segments. No global A* search
 ## or ladder route is needed, and normal work can replace this path immediately.
 func walk_nearby(goal_cell: Vector3i) -> void:
+	if is_recreating(): _recreation.cancel()
 	if is_eating(): _food.cancel("Meal interrupted by movement.")
 	if promotion_pending(): _equipment.cancel("Promotion cancelled by movement.")
 	_reset_part_offsets()
@@ -1862,6 +1918,7 @@ func _move_segment_clear(cell: Vector3i) -> bool:
 	var here := current_cell()
 	if here.y == cell.y and NavGrid.is_walkable(here) and NavGrid.is_walkable(cell):
 		return NavGrid.line_walkable_flat_from(global_position,cell)
+	if PlacedEntityRegistry.barrier_blocks_segment(global_position,Vector3(cell)+Vector3(.5,1,.5)): return false
 	# Steps and ladder entry/exit stay waypoint-exact. During a vertical step,
 	# current_cell() can briefly be between the two supporting floor heights.
 	return absi(here.x-cell.x)+absi(here.z-cell.z) <= 1
@@ -1869,6 +1926,9 @@ func _move_segment_clear(cell: Vector3i) -> bool:
 
 func _repath_walk() -> void:
 	var goal: Vector3i = _move_path.back()
+	if is_recreating():
+		_recreation.cancel()
+		return
 	if _idle_behavior != null and _idle_behavior.owns_walk():
 		walk_nearby(goal)
 	else:
@@ -1924,6 +1984,8 @@ func _reset_part_offsets() -> void:
 		_felling_pose.reset()
 	if _mining_pose != null:
 		_mining_pose.reset()
+	if _construction_pose != null:
+		_construction_pose.reset()
 	if _carry_pose != null:
 		_carry_pose.reset()
 	for part in [_body, _head, _hand_l, _hand_r, _foot_l, _foot_r]:
@@ -2106,16 +2168,29 @@ func _relaxed_stance() -> void:
 
 
 func _exit_tree() -> void:
+	if is_recreating(): _recreation.cancel(dwarf_id)
 	if _food != null: _food.release_reservation()
 	if _rest_behavior != null: _rest_behavior.cancel()
 	if _idle_behavior != null: _idle_behavior.cancel()
 	if _equipment != null: _equipment.release_reservation()
 
 
-# ── Slice culling hook (doc 11 Phase 5 pattern — DwarfDirector drives this) ───
+# ── Slice culling: director selects the cut; movement refreshes visibility ───
 
 var _slice_y := 127
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE:
+		set_notify_transform(true)
+	elif what == NOTIFICATION_TRANSFORM_CHANGED and is_inside_tree():
+		# Stair/ladder travel can cross the slice without changing the slice
+		# control. Refresh before rendering, including restored/paused moves.
+		_update_slice_visibility()
+
 func apply_slice(slice_y: int) -> void:
 	_slice_y = slice_y
-	visible = int(floor(global_position.y)) <= slice_y
+	_update_slice_visibility()
+
+func _update_slice_visibility() -> void:
+	var within_slice := floori(global_position.y) <= _slice_y
+	if visible != within_slice: visible = within_slice

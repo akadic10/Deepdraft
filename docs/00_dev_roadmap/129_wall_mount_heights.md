@@ -2,6 +2,12 @@
 
 Implemented 2026-10-12 for the log torch and iron wall torch.
 
+**2026-10-17:** [217 — Dwarf slice visibility](217_dwarf_slice_visibility.md)
+traces the reported upstairs torch Move in the player's pending-order save.
+The worker physically descends and uses a valid lower-room stand, but previously
+remained invisible after crossing the selected slice. Actor visibility now
+follows movement; the reach and obstruction rules below remain unchanged.
+
 ## Player behavior
 
 Choose a light in Place and point at the desired wall block. The preview takes

@@ -49,6 +49,10 @@ func _setup_fixture() -> void:
 	gen.world_seed = 1234
 	gen.heightmap.resize(1024 * 1024)
 	gen.heightmap.fill(20)
+	# Final-state terrain writes compare edits against the synthetic world.
+	gen.waterline_map.resize(1024 * 1024)
+	gen.waterline_map.fill(-1)
+	gen._cache_block_ids()
 	gen._maps_ready = true
 	_season("summer")
 	scene = Node3D.new()

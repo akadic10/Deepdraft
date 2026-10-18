@@ -58,6 +58,7 @@ var _preferred_fetch: Dictionary = {}
 var _delivery_stands: Dictionary = {}
 
 func work_stands(_from: Vector3i) -> Array[Vector3i]:
+	if def.has("grid_fence"): return preload("GridFence.gd").work_stands(def,origin_cell,yaw_steps)
 	if String(def.get("placement","floor")) == "wall":
 		return preload("res://scripts/components/WallFurnitureMount.gd").work_stands(def,origin_cell,yaw_steps)
 	var result: Array[Vector3i] = []
@@ -79,6 +80,7 @@ func delivery_stand(dwarf_id: int, from: Vector3i) -> Vector3i:
 
 
 func can_build_from(cell: Vector3i) -> bool:
+	if def.has("grid_fence"): return cell in work_stands(cell)
 	return String(def.get("placement","floor")) != "wall" or cell in work_stands(cell)
 
 
@@ -94,6 +96,7 @@ func setup(id: int, key: String, definition: Dictionary, cell: Vector3i, yaw: in
 ## Floor cells covered by the footprint (v1 pieces are all 1×1; width/depth
 ## swap under odd yaw steps so the math stays correct for future 2×1 pieces).
 func footprint_cells() -> Array[Vector3i]:
+	if def.has("grid_fence"): return []
 	if String(def.get("placement", "floor")) == "wall":
 		return []
 	var fp: Dictionary = def.get("footprint", {})
@@ -234,6 +237,7 @@ func on_task_gone(task_id: int, dwarf_id: int) -> void:
 ## subsequent probe failed — each install silently ate a worker until the
 ## whole crew stood frozen inside furniture. Build from beside, like mining.
 func nearest_stand_target(dwarf_cell: Vector3i) -> Vector3i:
+	if def.has("grid_fence"): return preload("GridFence.gd").nearest_stand(def,origin_cell,yaw_steps,dwarf_cell)
 	if String(def.get("placement", "floor")) == "wall":
 		return preload("res://scripts/components/WallFurnitureMount.gd").nearest_stand(def,origin_cell,yaw_steps,dwarf_cell)
 	var best := Vector3i(-1, -1, -1)
@@ -264,6 +268,7 @@ func _cell_in_footprint(cell: Vector3i) -> bool:
 ## rather than an arbitrary point along the worker's last walking direction.
 ## Wall pieces use a raised handoff just in front of their actual mount.
 func placement_contact(from: Vector3) -> Vector3:
+	if def.has("grid_fence"): return preload("GridFence.gd").position(def,origin_cell,yaw_steps)
 	if String(def.get("placement", "floor")) == "wall":
 		var mount = preload("res://scripts/components/WallFurnitureMount.gd")
 		return mount.position_for(def, origin_cell, yaw_steps) - Vector3(mount.back(yaw_steps)) * .5

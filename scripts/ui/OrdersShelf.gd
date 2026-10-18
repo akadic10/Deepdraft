@@ -21,6 +21,7 @@ var _banner_layout: BoxContainer
 var _banner_actions: HBoxContainer
 var _title: Label
 var _hint: Label
+var _mining_guide: CheckButton
 var _icon: TextureRect
 var _undo: Button
 var _toast: PanelContainer
@@ -106,6 +107,17 @@ func _ready() -> void:
 	_hint.add_theme_color_override("font_color", UITheme.HEARTH_MUTED)
 	_hint.add_theme_font_size_override("font_size", 13)
 	text.add_child(_hint)
+	_mining_guide = CheckButton.new()
+	_mining_guide.name = "MiningAreaGuideToggle"
+	_mining_guide.text = "32×32 mining guide"
+	_mining_guide.tooltip_text = "Show thicker boundaries every 32 blocks while mining. A visual guide; mining still selects individual blocks."
+	_mining_guide.add_theme_font_size_override("font_size",13)
+	_mining_guide.hide()
+	_mining_guide.toggled.connect(func(enabled: bool):
+		var mining: Node = _controllers.get("mine_precision")
+		if is_instance_valid(mining): mining.set_mining_guide_enabled(enabled)
+	)
+	text.add_child(_mining_guide)
 	_banner_actions = HBoxContainer.new()
 	_banner_actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_banner_layout.add_child(_banner_actions)
@@ -193,6 +205,9 @@ func refresh() -> void:
 	for id: String in _buttons:
 		if _buttons[id].toggle_mode: _buttons[id].set_pressed_no_signal(active == id)
 	_banner.visible = not active.is_empty()
+	_mining_guide.visible = active == "mine_precision"
+	if _mining_guide.visible:
+		_mining_guide.set_pressed_no_signal(_controllers[active].is_mining_guide_enabled())
 	if not active.is_empty():
 		var entry: Dictionary = _entries[active]
 		_title.text = entry.label

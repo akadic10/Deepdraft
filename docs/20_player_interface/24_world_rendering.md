@@ -1,5 +1,56 @@
 # 24 — World Rendering & Atmosphere
 
+**X-ray slice reuse (2026-10-17):**
+[219](../00_dev_roadmap/219_xray_slice_cache.md) retains three recent variants
+per chunk. Slice toggles immediately reuse cached geometry and keep unaffected
+chunks visible; only uncached or edited geometry is rebuilt. Cached water and
+terrain correctly refresh after changes made in another view or while Off.
+
+**X-ray update performance (2026-10-17):**
+[218](../00_dev_roadmap/218_xray_performance.md) separates inspection visibility
+notifications from physical cavity rebuilds. Actual slice/terrain edits still
+update the physical shell; X-ray chunk uploads do not. Full/Flat switches reuse
+meshes, and water updates retain terrain and reference geometry. Copied-save
+measurements at 7680×2160 remove the repeated approximately 300 ms stalls.
+
+**Moving dwarf visibility (2026-10-17):**
+[217](../00_dev_roadmap/217_dwarf_slice_visibility.md) refreshes actor slice
+visibility on transform changes. Moving down into a cutaway no longer leaves
+the dwarf invisible until the player changes slices. Upward crossings, paused
+restoration and whole-world view use the same existing feet-height threshold.
+
+**Underground X-ray (2026-10-17):**
+[210](../00_dev_roadmap/210_underground_xray_and_level_reference.md) adds a
+scene-owned discovered-interior shell on camera layer 19. Full emits inward
+walls and floors; Flat retains usable floors and low wall sections. Real terrain
+continues supplying shadows and world data. The inspection camera uses a dark
+background and a modest shell readability floor; normal lighting returns while
+working or when X-ray is off. Interior water uses still surfaces at the live
+solver height, clipped to discovered space. Normal water rendering is unchanged.
+Pinned floor perimeters and stair boundaries project as dashed, non-interactive
+cyan ribbons onto the active slice; no individual-voxel grid is added. Shell
+updates are incremental, and construction removes occupied interior air.
+
+**Torch reach (2026-10-17):** [209](../00_dev_roadmap/209_torch_reach_and_construction_size.md)
+extends wall and log torch radii from 12 to 20 voxels. The existing 0.6 attenuation
+now fades across a wider area, reducing the measured outer brightness gradient
+by over half. Energy, warm colour, flicker and terrain/door shadowing are retained.
+Native rendered profiles and the full-world bedroom lighting regression pass.
+
+**Optional mining guide (2026-10-17):**
+[208](../00_dev_roadmap/208_optional_mining_area_guide.md) removes the automatic
+per-voxel mining grid. The optional 32×32 guide uses thick, depth-tested ribbons
+only at world-aligned area boundaries, following visible tops and cliff steps.
+It shares the existing slice/cut invalidation and has no mesh while disabled.
+
+**Terrain sun shadows (2026-10-17):**
+[204](../00_dev_roadmap/204_terrain_sun_shadows.md) includes terrain in the sun's
+shadow-caster mask. Excluding it let plants on plateaus project isolated shadows
+through solid cliffs onto lower ground. Visible terrain now blocks sunlight as
+well as local lights; plants keep their normal shadows. Existing slice visibility
+controls the rendered casters, while physical roof/door skylight remains derived
+from world data. No mesh rebuild, material, sunlight intensity or save changes.
+
 **Shared live atmosphere (2026-10-15):**
 [196](../00_dev_roadmap/196_shared_atmosphere_performance.md) replaces repeated
 fog/sky uniform broadcasts with one scene-owned 20×1 RGBA float texture
@@ -270,10 +321,10 @@ When the player is working inside a carved underground chamber and the slice rem
 **Wall torch lighting shipped 2026-10-02** ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
 Installed torches add bounded warm omni lights and 200 heat units. All four terrain
 mesh paths (chunk, region, overview and cavity shell) now cast local-light shadows,
-so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain;
-the sun excludes that layer from its **shadow-caster** mask while retaining its
-normal light mask. Thus terrain still receives daylight and the existing sun-shadow
-behavior is preserved. Camera cull masks include layer 20. A torch is hidden with
+so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain.
+Since the [2026-10-17 fix](../00_dev_roadmap/204_terrain_sun_shadows.md), the sun also
+includes that layer in its **shadow-caster** mask, preventing plant/prop shadows
+from passing through cliffs. Camera and normal light masks include layer 20. A torch is hidden with
 its light when the slice cuts below its flame, preventing illumination over a
 sliced-away wall. Terrain identity, material colors and discovery rules are unchanged.
 

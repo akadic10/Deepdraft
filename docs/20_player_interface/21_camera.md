@@ -1,5 +1,13 @@
 # 21 — Camera
 
+**Underground inspection (2026-10-17):**
+[210](../00_dev_roadmap/210_underground_xray_and_level_reference.md) adds
+Full/Flat X-ray beside the slice tower. The plane and ±1/±4 controls remain
+available. Pin a lower level, then raise the plane for projected room/stair
+references. Working tools restore normal terrain and picking automatically;
+closing them resumes inspection. The original camera mask and environment
+restore on exit. RTS movement and saved slice state are unchanged.
+
 ## Overview
 
 The camera is a top-down god-view with **no direct character control**. All navigation is panning,
@@ -14,6 +22,10 @@ truth) and are hot-editable without touching GDScript. Logic is in `Camera.gd`, 
 Keyboard pan and edge scrolling pause while a LineEdit or TextEdit has focus,
 so typing in the Colony roster search or moving its caret cannot move the world.
 Normal camera movement resumes when text entry loses focus.
+
+The loading screen also suspends keyboard/edge pan and drag polling while its
+transient WorldClock hold is active. Camera settling, floor enforcement and slice
+initialization continue so the final frame is ready before reveal (206).
 
 ## Camera Rig Structure
 

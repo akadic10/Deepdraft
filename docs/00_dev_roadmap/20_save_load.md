@@ -1,5 +1,21 @@
 # 20 — Save / Load Persistence
 
+**Final terrain state (2026-10-17, 212):** schema 2 saves one current block value
+per changed position in `scene.terrain`, and knowledge separately in
+`scene.exploration`. Completed stone/floors have no ownership record. Valid
+schema-1 saves migrate in memory after validation, preserving the old restore
+precedence; loading never rewrites the source file. The next save writes schema 2.
+See [212](212_final_terrain_state.md) for compatibility and player-save evidence.
+
+**Large terrain restores (2026-10-17, 211):** scene owners restore inside one
+synchronous `WorldData.begin_edit_batch()` / `end_edit_batch()` boundary.
+Block data and exact `block_changed` events update immediately; repeated
+`chunk_dirtied` notifications coalesce per chunk until all owners finish.
+This prevents large mined/built saves flooding deferred terrain consumers.
+Never yield a frame inside this boundary. Generation notifications and normal
+gameplay edits retain their existing behavior. The batching change itself did not alter the format; 212 adds schema 2.
+See [211 — Terrain restore batching](211_large_save_terrain_restore.md).
+
 **Dining (2026-10-12, 131 stage 2):** food saves the last dining arrangement;
 mood saves one outcome and its remaining game hours. Validation checks the
 arrangement and nonnegative timers. Emergency foraging saves partial work in
@@ -30,14 +46,12 @@ days. Packing credits only planted growth, replanting resumes from that credit,
 and off-season time contributes zero. Current save/load is required; old
 development saves without food state need no migration.
 
-**Structural construction (2026-10-12):** required section `construction` saves
-completed cell/permanent-rock-key pairs, unfinished area IDs/cells, partial work
-and the next ID. Priority 15 restores built terrain after mining removals/water
-and before furniture/dwarves. Mining orders may target a backfilled cell in the
-removal history. Stone in transit remains dwarf-owned cargo and restores through
-the normal loose-item recovery path; reservations and worker assignment rebuild.
-WorldData's positive edits also remain in the water terrain snapshot; construction
-alone owns plans and refund provenance. Old development saves need no migration.
+**Structural construction (updated 2026-10-17):** `construction` saves only
+unfinished area IDs/cells, staged materials, partial work and the next ID.
+Completed blocks belong to `scene.terrain`. Terrain restores before priority-15
+construction plans and before furniture/dwarves. Stone in transit remains
+dwarf-owned cargo and restores through normal loose-item recovery; reservations
+and worker assignment rebuild. Mining uses each current block's resource rules.
 
 **2026-10-10 item permissions:** loose items, carried cargo and physical storage
 stacks save a boolean `disallowed`. Container entries preserve all stacks, even
@@ -64,8 +78,8 @@ of every materialised chunk or runtime object.
 1. `world_seed` regenerates the untouched terrain, water bodies, strata, resource layout,
    and seed-derived surface flora.
 2. Player/colony state is serialised by the system that owns it.
-3. Runtime integer block IDs never enter the save. Mining removals need only coordinates;
-   solid terrain writes use namespaced block keys in the water owner's terrain deltas.
+3. Runtime integer block IDs never enter the save. `scene.terrain.edits` stores
+   coordinates and namespaced block keys for final solid or air overrides.
 4. Tasks, leases, reservations, paths, meshes, occupancy indexes, and interior indexes are
    transient or derived and rebuild after load.
 5. Saving must not pause time, release work, change an assignment, clear a reservation,
@@ -74,7 +88,7 @@ of every materialised chunk or runtime object.
 
 The manual slot is `user://saves/quicksave.json`; the automatic slot is
 `user://saves/autosave.json`. Each retains one previous valid generation at the matching
-`.backup.json` path. The current `schema_version` is `1` for both slots.
+`.backup.json` path. The current `schema_version` is `2` for both slots; valid version-1 files remain readable.
 
 ---
 
@@ -85,7 +99,7 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project": "Deepdraft",
   "saved_at_utc": "2026-07-18T12:00:00Z",
   "world_seed": 123456789,
@@ -102,8 +116,10 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
     "rng_state": "1234"
   },
   "scene": {
-    "mining": {"mined_blocks": [], "zones": []},
-    "construction": {"next_id": 1, "built": [], "orders": []},
+    "terrain": {"edits": []},
+    "exploration": {"cells": [], "caves": []},
+    "mining": {"zones": []},
+    "construction": {"next_id": 1, "orders": []},
     "water": {
       "layout_version": 5,
       "flow": {
@@ -112,7 +128,7 @@ The manual slot is `user://saves/quicksave.json`; the automatic slot is
       },
       "source_enabled": true, "outlet_enabled": true,
       "elapsed_usec": 0, "accumulator_usec": 0,
-      "terrain": [], "test_dam": [], "moisture": []
+      "test_dam": [], "moisture": []
     },
     "flora": {"trees": []},
     "surface_details": {"changes": [], "planted": [], "next_plant_id": 1},
@@ -141,7 +157,8 @@ The metadata fields identify the project, schema, creation time, and determinist
 contributed by registered owners through the ownership contract below.
 All current sections and their required fields must be present. The example shows
 empty collections for an unsettled world; an empty `scene` or owner dictionary is
-not a usable snapshot. Old development saves do not receive compatibility migrations.
+not a usable snapshot. The explicit schema-1 terrain migration in 212 preserves
+the player's existing saves; unrelated older incomplete development formats remain unsupported.
 
 Weather's `rng_state` is a decimal string, restored directly to an integer.
 JSON numbers cannot preserve every bit of a 64-bit RNG state; storing one as a
@@ -188,10 +205,12 @@ synchronous. See [192 — Autosave performance](192_autosave_performance.md).
 
 | Priority | Section | Owner | Authoritative content |
 |---:|---|---|---|
-| 10 | `mining` | `MiningDesignationController` | Mined block coordinates and outstanding mining-zone block sets |
-| 11 | `water` | `WaterManager` | Integer water-volume deltas, active flow, displacement, spring/outlet state, moisture history and solid terrain edits |
+| Before owners | `terrain` | `WorldData` via SaveManager | Unique final block overrides from the generated world |
+| Before owners | `exploration` | `InteriorTracker` via SaveManager | Known cells and discovered cave IDs |
+| 10 | `mining` | `MiningDesignationController` | Outstanding mining-zone block sets |
+| 11 | `water` | `WaterManager` | Integer water-volume deltas, active flow, displacement, spring/outlet state, moisture history |
 | 15 | `flora` | `SurfaceFloraSpawner` | Changed trees, felling/harvest work and completed crop cycles |
-| 15 | `construction` | `ConstructionController` | Built cell/key provenance, unfinished areas and partial work; independent of flora |
+| 15 | `construction` | `ConstructionController` | Unfinished areas, staged materials and partial work; independent of flora |
 | 16 | `surface_details` | `SurfaceDetailManager` | Removed/changed details, transplanted shrubs and growth state |
 | 20 | `settlement_flag` | `FlagPlacementController` | Founded state and last installed anchor; physical flag belongs to furniture/items |
 | 30 | `stockpiles` | `StockpileDesignationController` | Zone IDs/cells, filters, and stored item keys/counts |
@@ -263,14 +282,16 @@ happens only on load; pressing Save does not drop the live carried item.
 8. Rebind scene-dependent autoload services such as `SkyController`.
 9. Wait until the generator reports maps ready and no generation work remains, followed by
    two quiet frames for scene owners and deferred hookups.
-10. Restore scene owners in priority order.
+10. Restore final terrain once, then exploration and scene owners in priority
+    order within a synchronous terrain-edit batch. Flush one dirty notification
+    per affected chunk.
 11. Rebuild `StockpileManager` totals, then restore clock and weather last.
 12. Clear the pending snapshot and show **Game loaded.** Backup recovery is reported
     explicitly when that path was needed.
 
 The derived systems rebuild naturally: installed entities repopulate occupancy,
-designations/work sources post fresh leases, dwarves register with `TaskManager`, mined
-blocks rebuild interior data, and renderer/nav caches follow their normal invalidation
+designations/work sources post fresh leases, dwarves register with `TaskManager`,
+exploration and terrain rebuild interior air, and renderer/nav caches follow normal invalidation
 paths.
 
 ---
@@ -281,7 +302,7 @@ paths.
 |---|---|
 | World seed | Untouched terrain and seed-derived flora |
 | Calendar, speed/pause, weather and weather RNG | Render meshes and dirty queues |
-| Mined coordinates and mining designations | Task objects, statuses, assignments, leases, and backoff |
+| Final terrain overrides, exploration and mining designations | Task objects, statuses, assignments, leases, and backoff |
 | Settlement flag and dwarf roster | Item/block/task reservations |
 | Ground stockpiles and stored contents | Navigation walkability/path caches |
 | Furniture ghosts, installed pieces, uninstall flags, container inventories | `PlacedEntityRegistry` occupancy index |

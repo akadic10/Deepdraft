@@ -1,5 +1,12 @@
 # 189 — Performance session handoff · 2026-10-14
 
+**Historical handoff, superseded by [220](220_session_handoff_2026_10_17.md).**
+The priorities and release paths below describe October 14. Later performance
+work is recorded in 190–197; gameplay and X-ray changes continue through 219.
+The player subsequently removed Windows playtest outputs and prohibited
+unsolicited exports. Do not follow the packaging instructions below without a
+new explicit request. Broader performance and water work remain parked.
+
 Resume point for **October 15**. Camera panning and slicing now feel much
 smoother to the player. Today's performance passes are implemented and packaged.
 The next investigation is **lighting hitches**, followed by the agreed

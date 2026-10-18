@@ -12,6 +12,7 @@ var assignments := {}
 var completions := {}
 var released := {}
 var workload := {}
+var build_targets: Array[Vector3i] = []
 var session_start := 0
 var events_done := {}
 var auto_count := 0
@@ -46,6 +47,7 @@ func _prepare_workload() -> void:
 	var mining=scene.get_node("MiningDesignationController")
 	dig=mining._filter_mineable_blocks(dig)
 	if build.size()<16 or dig.size()<16 or floor_cells.is_empty(): push_error("Insufficient workload space"); quit(2); return
+	build_targets = build.duplicate()
 	construction.create_order(build)
 	mining._create_zone(dig)
 	var drops=scene.get_node("ItemDropManager")
@@ -184,7 +186,7 @@ func _state() -> Dictionary:
 		"orphan_nodes":Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT),
 		"video_memory_mb":RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED)/1048576.0,
 		"mined":scene.get_node("MiningDesignationController")._mined_blocks.size(),
-		"built":scene.get_node("ConstructionController").built.size(),"stored":stored,
+		"built":build_targets.filter(func(cell): return root.get_node("BlockRegistry").is_solid(root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z))).size(),"stored":stored,
 		"loose":scene.get_node("ItemDropManager")._loose.size(),"wildlife":scene.get_node("WildlifeManager").animals.size(),
 		"scheduler":root.get_node("TaskManager").get_scheduler_stats(),"assignments":assignments.duplicate(),
 		"completed":completions.duplicate(),"released":released.duplicate(),"clock":clock_node.serialize_state()}

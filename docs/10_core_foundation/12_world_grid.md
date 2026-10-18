@@ -1,8 +1,19 @@
 # 12 — World Grid
 
+**Bulk restore notifications (2026-10-17):** WorldData can batch main-thread
+terrain invalidations across a synchronous restore. `set_block` still writes
+every voxel, records persistence deltas, marks chunk dirtiness and emits exact
+`block_changed` events immediately. Only repeated `chunk_dirtied` notifications
+coalesce, flushing once per affected chunk at the outermost `end_edit_batch`.
+Begin/end must not span a frame; normal edits and generator submission keep
+their existing notification paths. World reset clears pending batch state.
+See [211](../00_dev_roadmap/211_large_save_terrain_restore.md).
+
 **Construction (2026-10-12):** full 1×1×1 stone voxels are real terrain writes.
-Construction materializes the original chunk before editing, preserves mining
-history and tracks built provenance separately. Existing natural rock keys supply
+Construction materializes the original chunk before editing. Since 212 it
+retains no completed-block provenance: WorldData stores only the current value
+at each changed cell. Returning to the generated value removes the override.
+Exploration is saved separately and never writes terrain. Existing natural rock keys supply
 the layer's appearance and solidity; no special constructed block type is added.
 Completed terrain blocks/supports movement and seals rooms. Plans do not. See 127.
 
@@ -10,7 +21,9 @@ Completed terrain blocks/supports movement and seals rooms. Plans do not. See 12
 `base:construction:floor:plank` and `base:construction:floor:stone`, fill full
 support cells after excavation. Natural generation never emits them. Their
 8×8×8 art voxels are presentation detail, not a finer navigation grid or a thin
-surface overlay. Terrain solidity and permanent string-key save rules still apply.
+surface overlay. Terrain solidity and permanent string-key save rules still apply. These block
+types retain their art and room bonus without tracking who placed them. See
+[212](../00_dev_roadmap/212_final_terrain_state.md).
 
 ## Map Dimensions
 

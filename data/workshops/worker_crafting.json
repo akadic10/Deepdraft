@@ -78,8 +78,8 @@
       "id": "base:recipe:worker:campfire",
       "name": "Campfire",
       "output_plural": "campfires",
-      "description": "A low ring of rough stones around split timber. Gives warm, flickering light once placed.",
-      "purpose": "Always lit when installed. No fuel upkeep yet.",
+      "description": "A low outdoor stone-ring fire, centered in a 3 × 3 camp area. Place log stools around its edges to gather by the light.",
+      "purpose": "Outdoor gathering and light. Always lit when installed; no fuel upkeep yet.",
       "category": "Lighting",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -100,8 +100,8 @@
       "id": "base:recipe:worker:hearth",
       "name": "Rudimentary hearth",
       "output_plural": "hearths",
-      "description": "A rough fieldstone hearth for warm starter bedrooms. Two matching logs and four rough stones.",
-      "purpose": "Warms a small sealed bedroom. Always lit when installed; no fuel upkeep yet.",
+      "description": "A compact 2 × 2 stone room heater with a stacked back, open firebox and glowing coals. Two matching logs and four rough stones.",
+      "purpose": "Warms a small enclosed bedroom. Face the opening into the room; larger rooms may need more heat. Always lit when installed; no fuel upkeep yet.",
       "category": "Rooms",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -317,6 +317,66 @@
       "output_count": 1,
       "furniture": "base:furniture:log_bed",
       "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_fence",
+      "name": "Log Fence Post",
+      "output_plural": "log fence posts",
+      "description": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
+      "purpose": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
+      "category": "Access",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_fence",
+      "output_count": 1,
+      "furniture": "base:furniture:log_fence",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_gate",
+      "name": "Log Gate",
+      "output_plural": "log gates",
+      "description": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
+      "purpose": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
+      "category": "Access",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_gate",
+      "output_count": 1,
+      "furniture": "base:furniture:log_gate",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:board_game_table",
+      "name": "Board-game Table",
+      "output_plural": "board-game tables",
+      "description": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+      "purpose": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+      "category": "Recreation",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "work_seconds": 18,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:board_game_table",
+      "output_count": 1,
+      "furniture": "base:furniture:board_game_table",
+      "material_group": "wood",
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ]
     }
   ],
   "sections": [

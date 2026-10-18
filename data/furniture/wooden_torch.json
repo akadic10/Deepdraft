@@ -36,7 +36,7 @@
   "light_source": {
     "color": "#FFC078",
     "energy": 2.6,
-    "range": 12.0,
+    "range": 20.0,
     "attenuation": 0.6,
     "size": 0.25,
     "position": [

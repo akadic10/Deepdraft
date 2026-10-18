@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-17",
+  "mode": "Native source-project fixtures, isolated save directories",
+  "tests": [
+    {
+      "test": "ConstructionContinuityTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 9.62,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionStagingTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 27.12,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionAudioTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 3.99,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionPresentationTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 5.51,
+      "timeout": false
+    },
+    {
+      "test": "ConstructionTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 12.42,
+      "timeout": false
+    },
+    {
+      "test": "SaveManagerRoundTripTest",
+      "passed": true,
+      "exit": 0,
+      "seconds": 60.4,
+      "timeout": false
+    }
+  ],
+  "column_blocks": 4,
+  "internal_transitions": 3,
+  "same_task": true,
+  "same_root_and_feet": true,
+  "trace": "transitions.json",
+  "save_schema_changed": false,
+  "windows_export_created_or_updated": false
+}

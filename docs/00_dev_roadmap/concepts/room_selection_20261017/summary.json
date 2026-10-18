@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-17",
+  "fixture": "RoomLightingTest",
+  "result": "passed",
+  "checks": [
+    "Actual screen click between adjacent rooms",
+    "Immediate single-room gold selection",
+    "Previous room returns to normal colour",
+    "Inspector close clears highlight",
+    "Slice hiding/restoration",
+    "Selection survives room topology recalculation",
+    "Seal loss removes selection",
+    "Dark-room luminance",
+    "Native fog and interior/corridor lights",
+    "Inspector dragging and compact layouts"
+  ],
+  "native_report": {
+    "entrance": "(692, 17, 544)",
+    "failures": [],
+    "luminance": {
+      "closed_corridor_torch": 0.0190572552382946,
+      "closed_unlit": 0.0190572552382946,
+      "closed_unlit_far_camera": 0.0190572552382946,
+      "far_day_outdoor_delta": 0.00392153859138489,
+      "far_night_outdoor_delta": 0.00392153859138489,
+      "legacy_fog_room": 0.166425108909607,
+      "lit_room": 0.246389086842537,
+      "open_corridor_torch": 0.179291704297066,
+      "outdoor_fog_current": 0.28560471534729,
+      "outdoor_fog_legacy": 0.288692563772202,
+      "selected_room": 0.0660329461097717
+    }
+  },
+  "selected_floor_alpha": 0.008,
+  "selected_border_width_blocks": 0.06,
+  "git_diff_check": "passed",
+  "source_project_only": true,
+  "windows_playtest_created_or_updated": false,
+  "notes": [
+    "Existing pre-scene sky/weather warnings only; no script or ERROR lines.",
+    "Initial review reduced the floor alpha from 0.035 after excessive dark-room brightening.",
+    "The click fixture keeps the room window away from targets and leaves space for its existing drag test."
+  ]
+}
