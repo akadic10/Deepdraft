@@ -2,10 +2,6 @@
   "version": 1,
   "note": "Offline art only. World-unit geometry; standard 63. ItemDropManager and DwarfAssets own runtime definitions.",
   "stone": {
-    "granite_block": "7C8489",
-    "basalt_block": "58616A",
-    "limestone_block": "A4A599",
-    "marble_block": "B5B9B6",
     "rough_stone": "798187"
   },
   "soil": {

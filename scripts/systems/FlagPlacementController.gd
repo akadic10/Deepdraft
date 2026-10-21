@@ -160,6 +160,7 @@ func _ensure_ghost() -> void:
 		_ghost_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 		_ghost_material.no_depth_test = false
 		_apply_material(visual, _ghost_material)
+		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(visual,false)
 		_ghost.add_child(visual)
 	add_child(_ghost)
 
@@ -270,6 +271,7 @@ func _instance_flag_visual() -> Node3D:
 	var visual := packed.instantiate() as Node3D
 	if visual == null:
 		return null
+	preload("res://scripts/components/VoxelShadowSetup.gd").configure(visual)
 	# Project-standard world-object material (vertex colour, lit, double-sided)
 	# for the PLACED flag; the ghost overrides this with its tinted material.
 	var mat := StandardMaterial3D.new()
@@ -283,6 +285,7 @@ func _instance_flag_visual() -> Node3D:
 
 
 func _apply_material(node: Node, mat: Material) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D:
 		(node as MeshInstance3D).material_override = mat
 	for child in node.get_children():

@@ -110,7 +110,11 @@ func _setup_camera() -> void:
 
 func _capture_pose(label: String) -> void:
 	if not "--capture" in OS.get_cmdline_user_args(): return
+	var capture_output := "res://tmp/shrub_planting_review/"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): capture_output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(capture_output))
 	await process_frame
 	await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/shrub_planting_review/" + label + ".png")
+	_expect(root.get_texture().get_image().save_png(capture_output+label+".png")==OK,"save planting capture: "+label)

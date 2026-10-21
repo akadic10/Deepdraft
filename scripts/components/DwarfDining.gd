@@ -22,7 +22,9 @@ var radius := 16.0
 
 func _init(dwarf: DwarfAgent) -> void:
 	agent = dwarf
-	radius = float(agent._food.config.desperate_dining_distance if agent._food.famished() else agent._food.config.dining_distance)
+	# Dining starts only after collecting a real portion. Hunger must not hide
+	# nearby seats now that food is secured; search and travel remain bounded.
+	radius = float(agent._food.config.dining_distance)
 	furniture = agent.get_tree().get_first_node_in_group("furniture_controller")
 	if furniture == null: return
 	for piece: InstalledFurnitureComponent in furniture._installed.values():
@@ -180,12 +182,14 @@ func pose(seconds: float) -> Vector3:
 	if seat == null: return Vector3.ZERO
 	var blend := smoothstep(0.0,.5,seconds)
 	var base := agent.to_local(seat.node.global_position)
-	var pose_data: Dictionary = seat.def.seating_chair.rest_pose
-	for pair in [[agent._body,"body"],[agent._head,"body"],[agent._foot_l,"left_foot"],[agent._foot_r,"right_foot"]]:
-		var values: Array = pose_data[pair[1]]
+	var settings: Dictionary = furniture._seating.chair_settings(seat)
+	var pose_data: Dictionary = settings.rest_pose
+	for pair in [[agent._body,"body"],[agent._head,"head"],[agent._foot_l,"left_foot"],[agent._foot_r,"right_foot"]]:
+		var values: Array = pose_data.get(pair[1],pose_data.body)
 		if is_instance_valid(pair[0]): pair[0].position = (base+Vector3(values[0],values[1],values[2]))*blend
 	var body: Array = pose_data.body
-	return (base+Vector3(body[0],body[1],body[2]))*blend
+	# The meal's detached hands follow the surface without lifting the seated torso.
+	return (base+Vector3(body[0],body[1]+float(settings.get("meal_hand_lift",0)),body[2]))*blend
 
 func outcome() -> String:
 	if not valid(): fallback()

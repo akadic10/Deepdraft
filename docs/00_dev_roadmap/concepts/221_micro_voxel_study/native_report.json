@@ -1,0 +1,291 @@
+{
+	"assets": [
+		{
+			"id": "dwarf",
+			"size": [
+				2.15999746322632,
+				3.32000017166138,
+				1.48499989509583
+			],
+			"style": 0,
+			"surfaces": 10,
+			"triangles": 2572
+		},
+		{
+			"id": "stool",
+			"size": [
+				0.911399960517883,
+				0.75,
+				0.871215343475342
+			],
+			"style": 0,
+			"surfaces": 1,
+			"triangles": 220
+		},
+		{
+			"id": "barrel",
+			"size": [
+				0.939999997615814,
+				1.0,
+				0.939999997615814
+			],
+			"style": 0,
+			"surfaces": 1,
+			"triangles": 316
+		},
+		{
+			"id": "bush",
+			"size": [
+				1.87010478973389,
+				1.60720002651215,
+				1.65266084671021
+			],
+			"style": 0,
+			"surfaces": 1,
+			"triangles": 2780
+		},
+		{
+			"id": "deer",
+			"size": [
+				1.45633924007416,
+				3.76916933059692,
+				1.97601819038391
+			],
+			"style": 0,
+			"surfaces": 9,
+			"triangles": 1308
+		},
+		{
+			"id": "pine",
+			"size": [
+				9.27706909179688,
+				20.0,
+				9.37817001342773
+			],
+			"style": 0,
+			"surfaces": 1,
+			"triangles": 4732
+		},
+		{
+			"id": "dwarf",
+			"max_grid_error_cells": 0.000401686003897339,
+			"max_normal_error": 0.000125841877888888,
+			"size": [
+				2.0,
+				3.3125,
+				1.375
+			],
+			"style": 1,
+			"surfaces": 10,
+			"triangles": 1458
+		},
+		{
+			"id": "stool",
+			"max_grid_error_cells": 0.000285057700239122,
+			"max_normal_error": 0.000140702701173723,
+			"size": [
+				0.875,
+				0.75,
+				0.875
+			],
+			"style": 1,
+			"surfaces": 1,
+			"triangles": 196
+		},
+		{
+			"id": "barrel",
+			"max_grid_error_cells": 0.000344253960065544,
+			"max_normal_error": 0.000125841877888888,
+			"size": [
+				0.875,
+				1.0,
+				0.875
+			],
+			"style": 1,
+			"surfaces": 1,
+			"triangles": 354
+		},
+		{
+			"id": "bush",
+			"max_grid_error_cells": 0.000609014939982444,
+			"max_normal_error": 0.000125841877888888,
+			"size": [
+				1.6875,
+				1.6875,
+				1.5
+			],
+			"style": 1,
+			"surfaces": 1,
+			"triangles": 1842
+		},
+		{
+			"id": "deer",
+			"max_grid_error_cells": 0.000454957626061514,
+			"max_normal_error": 0.000125841877888888,
+			"size": [
+				1.5,
+				3.8125,
+				2.0
+			],
+			"style": 1,
+			"surfaces": 9,
+			"triangles": 2774
+		},
+		{
+			"id": "pine",
+			"max_grid_error_cells": 0.00544732343405485,
+			"max_normal_error": 0.000125841877888888,
+			"size": [
+				8.125,
+				20.0,
+				7.9375
+			],
+			"style": 1,
+			"surfaces": 1,
+			"triangles": 7560
+		}
+	],
+	"checks": [
+		{
+			"message": "bounded underground lighting settled",
+			"ok": true
+		},
+		{
+			"message": "0/dwarf imported geometry",
+			"ok": true
+		},
+		{
+			"message": "0/stool imported geometry",
+			"ok": true
+		},
+		{
+			"message": "0/barrel imported geometry",
+			"ok": true
+		},
+		{
+			"message": "0/bush imported geometry",
+			"ok": true
+		},
+		{
+			"message": "0/deer imported geometry",
+			"ok": true
+		},
+		{
+			"message": "0/pine imported geometry",
+			"ok": true
+		},
+		{
+			"message": "1/dwarf imported geometry",
+			"ok": true
+		},
+		{
+			"message": "dwarf imported 1:16 grid within compression precision; axis normals and unit scale",
+			"ok": true
+		},
+		{
+			"message": "dwarf grounded height contract",
+			"ok": true
+		},
+		{
+			"message": "1/stool imported geometry",
+			"ok": true
+		},
+		{
+			"message": "stool imported 1:16 grid within compression precision; axis normals and unit scale",
+			"ok": true
+		},
+		{
+			"message": "stool grounded height contract",
+			"ok": true
+		},
+		{
+			"message": "1/barrel imported geometry",
+			"ok": true
+		},
+		{
+			"message": "barrel imported 1:16 grid within compression precision; axis normals and unit scale",
+			"ok": true
+		},
+		{
+			"message": "barrel grounded height contract",
+			"ok": true
+		},
+		{
+			"message": "1/bush imported geometry",
+			"ok": true
+		},
+		{
+			"message": "bush imported 1:16 grid within compression precision; axis normals and unit scale",
+			"ok": true
+		},
+		{
+			"message": "1/deer imported geometry",
+			"ok": true
+		},
+		{
+			"message": "deer imported 1:16 grid within compression precision; axis normals and unit scale",
+			"ok": true
+		},
+		{
+			"message": "1/pine imported geometry",
+			"ok": true
+		},
+		{
+			"message": "pine imported 1:16 grid within compression precision; axis normals and unit scale",
+			"ok": true
+		},
+		{
+			"message": "pine grounded height contract",
+			"ok": true
+		},
+		{
+			"message": "voxel head/body retain cubic cells",
+			"ok": true
+		},
+		{
+			"message": "production proportions restored after assembly",
+			"ok": true
+		},
+		{
+			"message": "poses and comparisons leave fixture terrain unchanged",
+			"ok": true
+		}
+	],
+	"driver": "d3d12",
+	"population": [
+		{
+			"draw_calls": 366.0,
+			"frame_median_ms": 8.302,
+			"frame_p95_ms": 8.661,
+			"gpu_median_ms": 0.99099999666214,
+			"gpu_p95_ms": 1.06400001049042,
+			"note": "Render-only static snapshots; VSync retained. Not a simulation or low-end hardware benchmark.",
+			"objects": 504,
+			"render_cpu_median_ms": 0.646000027656555,
+			"rendered_primitives": 1214310.0,
+			"samples": 120,
+			"style": 0
+		},
+		{
+			"draw_calls": 366.0,
+			"frame_median_ms": 8.293,
+			"frame_p95_ms": 8.633,
+			"gpu_median_ms": 1.02499997615814,
+			"gpu_p95_ms": 1.09500002861023,
+			"note": "Render-only static snapshots; VSync retained. Not a simulation or low-end hardware benchmark.",
+			"objects": 504,
+			"render_cpu_median_ms": 0.63400000333786,
+			"rendered_primitives": 2371240.0,
+			"samples": 120,
+			"style": 1
+		}
+	],
+	"renderer": "AMD Radeon RX 9070 XT",
+	"rendering_method": "forward_plus",
+	"resolution": [
+		1600,
+		1000
+	],
+	"terrain_fingerprint": "d471bfb28f9c45f61e598f936d723f88c0aedcdd8bd87a3b8e50a1c6af4dc372",
+	"vsync": 1
+}

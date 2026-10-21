@@ -1,0 +1,22 @@
+{
+  "description": "Small non-casting 1:16 actor overlays and cached food servings, authored in integer cells. Neutral fruit cells receive the existing food serving tint. No quantities or nutrition are owned here.",
+  "palette": {"neutral":"FFFFFF","crease":"A0A0A0","wood":"63502B","leaf":"70854A"},
+  "parts": {
+    "eyelids": [
+      ["box",[-9,-5,40,43,9,10],"neutral"],
+      ["box",[5,9,40,43,9,10],"neutral"],
+      ["box",[-9,-5,40,41,10,11],"crease"],
+      ["box",[5,9,40,41,10,11],"crease"]
+    ],
+    "serving_berries": [
+      ["box",[-2,0,-1,1,-1,1],"neutral"],
+      ["box",[0,2,-1,1,-1,1],"neutral"],
+      ["box",[-1,1,1,3,0,2],"neutral"]
+    ],
+    "serving_apple": [
+      ["cutbox",[-2,2,-2,2,-2,2,1],"neutral"],
+      ["box",[0,1,2,4,0,1],"wood"],
+      ["box",[1,3,3,4,0,1],"leaf"]
+    ]
+  }
+}

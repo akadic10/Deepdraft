@@ -2,7 +2,6 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 var Mount
 const SITE := Vector3i(60,20,60)
-const IRON := "base:furniture:wall_torch"
 const OUT := "res://tmp/wall_height_20261012/"
 var nav
 var edits: Array[Vector3i] = []
@@ -67,23 +66,22 @@ func _wheel(point: Vector2, up: bool) -> void:
 	root.push_input(event,true)
 
 func _aim_cases() -> void:
-	for key in [TORCH,IRON]:
-		for yaw in range(4):
-			for height in range(1,6):
-				await _clean(yaw)
-				var point := _aim(key,height,yaw)
-				var def: Dictionary = furniture.get_defs()[key]
-				_expect(furniture._hover_valid and furniture._yaw==yaw,"valid wall cursor at height %d, yaw %d, %s" % [height,yaw,key])
-				_expect(Mount.mount_cell(def,furniture._hover_cell)==SITE+Vector3i.UP*height,"cursor preserves the exact selected wall cell")
-				_click_at(point)
-				_expect(furniture._ghosts.size()==1,"real click creates the height-selected plan")
-				if furniture._ghosts.is_empty(): continue
-				var ghost = furniture._ghosts.values()[0]
-				_expect(ghost.node.position.y==SITE.y+height+.5,"preview and placed ghost agree on height")
-				var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
-				furniture.cancel_ghost(ghost.ghost_id)
-				furniture.restore_state(saved)
-				_expect(furniture._ghosts.values()[0].node.position.y==SITE.y+height+.5,"pending mount height survives serialization")
+	for yaw in range(4):
+		for height in range(1,6):
+			await _clean(yaw)
+			var point := _aim(TORCH,height,yaw)
+			var def: Dictionary = furniture.get_defs()[TORCH]
+			_expect(furniture._hover_valid and furniture._yaw==yaw,"valid wall cursor at height %d, yaw %d" % [height,yaw])
+			_expect(Mount.mount_cell(def,furniture._hover_cell)==SITE+Vector3i.UP*height,"cursor preserves the exact selected wall cell")
+			_click_at(point)
+			_expect(furniture._ghosts.size()==1,"real click creates the height-selected plan")
+			if furniture._ghosts.is_empty(): continue
+			var ghost = furniture._ghosts.values()[0]
+			_expect(ghost.node.position.y==SITE.y+height+.5,"preview and placed ghost agree on height")
+			var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
+			furniture.cancel_ghost(ghost.ghost_id)
+			furniture.restore_state(saved)
+			_expect(furniture._ghosts.values()[0].node.position.y==SITE.y+height+.5,"pending mount height survives serialization")
 	await _clean()
 	var point := _aim(TORCH,2,0)
 	_wheel(point,true)
@@ -98,14 +96,14 @@ func _aim_cases() -> void:
 
 func _access_cases() -> void:
 	await _clean()
-	_aim(IRON,6,0)
+	_aim(TORCH,6,0)
 	_expect(not furniture._hover_valid and furniture._invalid_reason=="access","sixth block needs an elevated work floor")
 	_edit(SITE+Vector3i(0,1,1),true)
-	var point := _aim(IRON,6,0)
+	var point := _aim(TORCH,6,0)
 	_expect(furniture._hover_valid,"raised work floor enables higher mount")
 	var high_origin: Vector3i = furniture._hover_cell
 	_edit(SITE+Vector3i(0,5,0),true)
-	_expect(not Mount.work_stands(furniture.get_defs()[IRON],high_origin,0).has(SITE+Vector3i(0,1,1)),"intervening ceiling blocks reaching up from the raised work floor")
+	_expect(not Mount.work_stands(furniture.get_defs()[TORCH],high_origin,0).has(SITE+Vector3i(0,1,1)),"intervening ceiling blocks reaching up from the raised work floor")
 	await _clean()
 	point = _aim(TORCH,2,0)
 	_edit(SITE+Vector3i(0,3,0),true)
@@ -117,7 +115,7 @@ func _access_cases() -> void:
 	point = _aim(TORCH,3,0)
 	_expect(not furniture._hover_valid and furniture._invalid_reason=="overlap","different heights still reject overlapping lights")
 	await _clean()
-	point = _aim(IRON,5,0)
+	point = _aim(TORCH,5,0)
 	_click_at(point)
 	var ghost = furniture._ghosts.values()[0]
 	var pos: Vector3 = ghost.node.position
@@ -130,14 +128,14 @@ func _access_cases() -> void:
 	_expect(not ghost.work_stands(SITE).is_empty(),"restoring work floor makes the same plan usable")
 
 func _worker_cases() -> void:
-	for key in [TORCH,IRON]:
-		await _clean()
-		drops.restore_loose_item(String(furniture.get_defs()[key].item_key),Vector3(58.5,21,62.5),0,1)
-		var point := _aim(key,5,0)
+	for yaw in range(4):
+		await _clean(yaw)
+		drops.restore_loose_item(String(furniture.get_defs()[TORCH].item_key),Vector3(58.5,21,62.5),0,1)
+		var point := _aim(TORCH,5,yaw)
 		_click_at(point)
 		furniture.deactivate()
 		clock_node.set_paused(false)
-		_expect(await _installed(key),"actual worker fetches and installs at maximum reach")
+		_expect(await _installed(TORCH),"actual worker fetches and installs at maximum reach, yaw %d" % yaw)
 		if furniture._installed.is_empty(): continue
 		var piece = furniture._installed.values()[0]
 		var position: Vector3 = piece.node.position

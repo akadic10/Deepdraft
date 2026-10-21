@@ -1,0 +1,6 @@
+{
+  "pid": 14120,
+  "output": "P:\\Deepdraft\\tmp\\settlement_art_20261013\\furniture_fences",
+  "started": "2026-10-18T10:16:34.5828723-04:00",
+  "script": "res://scripts/tests/GridFenceTest.gd"
+}

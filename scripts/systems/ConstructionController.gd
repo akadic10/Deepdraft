@@ -429,6 +429,7 @@ func place_materials_crate(materials: RefCounted) -> void:
 	materials.crate_cell = chosen
 	var scene := load(String(order.def.materials_crate_model)) as PackedScene
 	materials.visual = scene.instantiate()
+	preload("res://scripts/components/VoxelShadowSetup.gd").configure(materials.visual)
 	materials.visual.name = "ConstructionMaterials%d" % order.ghost_id
 	# Generated meshes carry their wood colors in vertices, like loose goods.
 	# Share the drop owner's material so enclosed rooms use the same lighting.

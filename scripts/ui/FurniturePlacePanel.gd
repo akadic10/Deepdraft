@@ -330,7 +330,7 @@ func refresh() -> void:
 		var seating: Dictionary = definition.seating
 		var seats := int(seating.get("max_chairs", seating.get("slots", []).size()))
 		_spec.text += " · %d separate log stools" % seats if definition.has("recreation") else " · %d chair%s" % [seats, "" if seats == 1 else "s"]
-	elif selected_key == "base:furniture:wooden_chair": _spec.text += " · Snaps to tables"
+	elif selected_key == "base:furniture:log_chair": _spec.text += " · Snaps to tables"
 	elif String(definition.placement) == "wall": _spec.text += " · Wall mounted"
 	_values.Available.text = str(stock.available)
 	_values.Reserved.text = str(stock.reserved)
@@ -355,7 +355,7 @@ func refresh() -> void:
 	if definition.has("grid_fence"):
 		_hint.text = "Click grid corners · Neighboring posts connect · Esc finishes" if definition.grid_fence.kind=="post" else "Place between grid corners · R rotates · Esc finishes"
 	if definition.has("recreation") and not definition.has("placement_note"):
-		_note.text = "Add two log stools on opposite guides. Completed games restore happiness."
+		_note.text = "Add log stools on the opposite guides. Play alone with one stool, or together with two for more happiness."
 	if definition.has("water_stone"):
 		_note.text = "Inactive in storage. A dwarf must place it to start the water effect." if stock.available>0 else "Allow and pack a water stone to make it available here."
 	if String(definition.placement) == "ladder":

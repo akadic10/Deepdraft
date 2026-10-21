@@ -1,8 +1,11 @@
 extends "res://scripts/tests/FurniturePilotArtTest.gd"
 
 const DIRECTORY := "res://assets/models/furniture/"
+const VoxelShadows=preload("res://scripts/components/VoxelShadowSetup.gd")
+var staged: Array[PackedScene]=[]
 
 func _run() -> void:
+	if "--staged" in OS.get_cmdline_user_args(): staged=preload("res://tools/voxel_assets/StagedAssets.gd").install("furniture")
 	create_timer(60).timeout.connect(func(): push_error("Furniture catalogue art timeout"); quit(1))
 	for id in ["SaveManager","TaskManager","WorldClock","RoomManager","StockpileManager"]:
 		root.get_node(id).set_process(false)
@@ -18,6 +21,7 @@ func _run() -> void:
 		count+=1
 		var model: Node3D=load(DIRECTORY+file).instantiate()
 		scene.add_child(model)
+		expect(VoxelShadows.configure(model)>0,file+" proxy pairs")
 		expect(model.transform.is_equal_approx(Transform3D.IDENTITY),file+" unit root")
 		expect(model.find_children("*","CollisionObject3D",true,false).is_empty(),file+" no embedded collision")
 		for mesh: MeshInstance3D in model.find_children("*","MeshInstance3D",true,false):
@@ -39,7 +43,7 @@ func _run() -> void:
 		if file.begins_with("crude_ladder_"):
 			expect(absf(bounds.end.y-float(file.get_basename().get_slice("_",2)))<.001,file+" section height")
 		model.free()
-	expect(count==44,"all 44 furniture forms")
+	expect(count==29,"all 29 retained furniture forms")
 	var definitions := 0
 	for key: String in controller.get_defs():
 		if not String(controller.get_defs()[key].model).begins_with(DIRECTORY): continue
@@ -71,32 +75,34 @@ func _run() -> void:
 			var clip: Dictionary=load("res://scripts/components/FurnitureFlameAnimation.gd")._load_clip(light.flame_animation.model)
 			for frame in light.flame_animation.frames: expect(clip.has(frame),key+" frame "+frame)
 		var id := key.get_slice(":",2)
-		if id in ["wooden_chair","log_chair","bench","wooden_table","communal_table","dwarf_bunk","log_bed","crude_workbench","board_game_table"]:
+		if id in ["log_chair","bench","log_table","log_bed","crude_workbench","board_game_table"]:
 			var point := Vector3(.11,4,.11)
 			var height: float=4-picking.hit_distance(model,point,point-Vector3(0,6,0))
-			var expected: float=float(definition.crafting_surface_height) if id=="crude_workbench" else float(definition.game_surface_height) if id=="board_game_table" else {"wooden_chair":.875,"log_chair":.75,"bench":1.0,"wooden_table":1.75,"communal_table":1.75,"dwarf_bunk":1.0,"log_bed":.75}[id]
-			expect(absf(height-expected)<(.075 if id=="log_bed" else .001),id+" central contact %.4f"%height)
+			var expected: float=float(definition.crafting_surface_height) if id=="crude_workbench" else float(definition.game_surface_height) if id=="board_game_table" else float(definition.dining_surface_height) if id=="log_table" else {"log_chair":.875,"bench":1.0,"log_bed":.75}[id]
+			# Non-grid legacy presentation contacts round by at most half a cell.
+			expect(absf(expected-snappedf(expected,1.0/16))<=1.0/32,id+" bounded contact quantization")
+			expect(absf(height-snappedf(expected,1.0/16))<(.075 if id=="log_bed" else .001),id+" central contact %.4f"%height)
 		model.free()
-	expect(definitions==33,"all 33 furniture definitions")
+	expect(definitions==19,"all 19 retained furniture definitions")
 	controller.free()
 	for failure in failures: push_error(failure)
-	print("FURNITURE_FACETED_ART_OK: %d import, palette, footprint, contact, hinge and flame checks"%checks if failures.is_empty() else "FURNITURE_FACETED_ART_FAIL")
+	print("FURNITURE_VOXEL_ART_OK: %d import, palette, footprint, contact, hinge and flame checks"%checks if failures.is_empty() else "FURNITURE_VOXEL_ART_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _bounds(model: Node3D) -> AABB:
 	var bounds := AABB(); var first := true
-	for mesh: MeshInstance3D in model.find_children("*","MeshInstance3D",true,false):
+	for mesh: MeshInstance3D in VoxelShadows.visual_meshes(model):
 		var box: AABB=model.global_transform.affine_inverse()*mesh.global_transform*mesh.get_aabb()
 		bounds=box if first else bounds.merge(box); first=false
 	return bounds
 
 func _palette(controller: Node,materials: Node,key: String,definition: Dictionary,original: Node3D) -> void:
 	var hashes := {}
-	var originals := original.find_children("*","MeshInstance3D",true,false)
+	var originals := VoxelShadows.visual_meshes(original)
 	for wood in ["pine","oak","juniper","applewood"]:
 		var model: Node3D=controller._instance_model(key,controller._make_solid_material())
 		materials.apply_palette(model,definition,"base:material:"+wood)
-		var meshes := model.find_children("*","MeshInstance3D",true,false)
+		var meshes := VoxelShadows.visual_meshes(model)
 		var swatches: Array=[]
 		var profile: Dictionary=materials.palettes[definition.material_palette]
 		for role in profile.colors:

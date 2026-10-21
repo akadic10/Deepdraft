@@ -688,6 +688,7 @@ func _visual_bounds(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
 
 
 func _collect_mesh_bounds(node: Node, parent_transform: Transform3D, boxes: Array[AABB]) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	var mesh_transform := parent_transform
 	if node is Node3D:
 		mesh_transform = parent_transform * (node as Node3D).transform
@@ -973,7 +974,7 @@ func _make_solid_material() -> StandardMaterial3D:
 	mat.vertex_color_use_as_albedo = true
 	mat.roughness = 1.0
 	mat.metallic = 0.0
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.cull_mode = BaseMaterial3D.CULL_BACK
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	return mat
 
@@ -991,6 +992,8 @@ func _instance_model(furniture_key: String, override: Material, definition: Dict
 		return null
 	var node := scene.instantiate() as Node3D
 	_apply_material(node, override)
+	var is_preview := override is BaseMaterial3D and (override as BaseMaterial3D).transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
+	preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(node, not is_preview)
 	var plant := bool(def.get("plant", false))
 	var ghost_area := bool(def.get("show_placement_area", false)) and override is BaseMaterial3D \
 		and (override as BaseMaterial3D).transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
@@ -1014,6 +1017,7 @@ func _instance_model(furniture_key: String, override: Material, definition: Dict
 
 
 func _apply_material(node: Node, mat: Material) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D:
 		(node as MeshInstance3D).material_override = mat
 	for child in node.get_children():
@@ -1899,9 +1903,9 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			var seat_count := get_dining_seats(piece.installed_id).filter(func(slot): return not _installed[slot.chair_id].flagged_uninstall).size()
 			var game = _games.games.get(piece.installed_id)
 			rows.append(["Log stools", "%d / 2 installed" % seat_count])
-			rows.append(["Game", "Playing" if game != null and game.playing else "Waiting for a partner" if game != null else "Needs two opposite log stools" if seat_count<2 else "Ready for two dwarves"])
+			rows.append(["Game", "Playing together" if game != null and game.together else "Playing alone · partner welcome" if game != null and game.playing else "Going to play" if game != null else "Needs a log stool" if seat_count==0 else "Ready for solo or shared play"])
 			var effect: Dictionary = TaskManager.get_config_section("mood").recreation
-			rows.append(["Happiness", "+%d for %.0f game hours after a completed game" % [roundi(float(effect.bonus)*100),float(effect.duration_hours)]])
+			rows.append(["Happiness", "Solo +%d · Together +%d for %.0f game hours after a completed game" % [roundi(float(effect.solo_bonus)*100),roundi(float(effect.bonus)*100),float(effect.duration_hours)]])
 		if piece.def.has("sleep_surface"):
 			var assigned: DwarfAgent = TaskManager._agents.get(piece.assigned_dwarf_id)
 			rows.append(["Assigned to", assigned.dwarf_name if is_instance_valid(assigned) else "Unassigned"])

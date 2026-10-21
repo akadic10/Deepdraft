@@ -55,7 +55,13 @@ func _run() -> void:
 	scene.add_child(camera)
 	camera.current = true
 	root.size = Vector2i(1280,800)
-	root.get_node("WorldGenerator")._maps_ready = true
+	# Terrain edits now compare with generated terrain; prepare the flat baseline
+	# before publishing readiness, as in the real world and tree-felling fixture.
+	var generator = root.get_node("WorldGenerator")
+	generator._cache_block_ids()
+	generator.heightmap.resize(1024*1024)
+	generator.heightmap.fill(20)
+	generator._maps_ready = true
 	_aim_above(Vector3(40.5,21,40.5))
 	await process_frame
 	_expect(explorer.select_object(details,BLUE), "ordinary explorer selects shrubs")

@@ -1,0 +1,1383 @@
+{
+  "family": "dwarves",
+  "grid": 16,
+  "complete": true,
+  "assets": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4939,
+          "visual_triangles": 624,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8681919416886009,
+            "triangles": 242
+          },
+          "min": [
+            -0.8125,
+            0.625,
+            -0.375
+          ],
+          "max": [
+            0.8125,
+            1.8125,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 81648,
+      "sha256": "11336b76901b386386a801f47d1c717931b677a57934e5e1c9943d5deab6beb1",
+      "path": "assets/models/characters/dwarves/body/body_base.glb",
+      "authoring": {
+        "part": "body/body_base",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 239,
+          "visual_triangles": 84,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6443514644351465,
+            "triangles": 60
+          },
+          "min": [
+            0.8125,
+            1.0625,
+            0.0
+          ],
+          "max": [
+            1.25,
+            1.5,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 15196,
+      "sha256": "64ecfeeb73d70d4129a3081618c7b4220c0a7d807d6219334a99e25d0abc2fb1",
+      "path": "assets/models/characters/dwarves/body/hand.glb",
+      "authoring": {
+        "part": "body/hand",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 876,
+          "visual_triangles": 192,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8127853881278538,
+            "triangles": 46
+          },
+          "min": [
+            0.25,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.75,
+            0.6875,
+            0.5625
+          ]
+        }
+      ],
+      "bytes": 23844,
+      "sha256": "1f63e837130fb9341dc00e088060fa8f7b9e7288bf50c466eb8497a6a31414ee",
+      "path": "assets/models/characters/dwarves/body/foot.glb",
+      "authoring": {
+        "part": "body/foot",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 32,
+          "visual_triangles": 48,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 48
+          },
+          "min": [
+            -0.5625,
+            2.5,
+            0.5625
+          ],
+          "max": [
+            0.5625,
+            2.6875,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 10780,
+      "sha256": "d842973c038005d276dec6e285d69c92f3d35113e158bc1669fb80b5f957bed6",
+      "path": "assets/models/characters/dwarves/body/eyes.glb",
+      "authoring": {
+        "part": "body/eyes",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 7276,
+          "visual_triangles": 426,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8938977460142936,
+            "triangles": 226
+          },
+          "min": [
+            -0.9375,
+            1.875,
+            -0.5
+          ],
+          "max": [
+            0.9375,
+            3.125,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 61956,
+      "sha256": "bcb1247ea8cd62e6b16556081036a1d84fc663c1ed71b0fb0b1baf8addb055f8",
+      "path": "assets/models/characters/dwarves/body/head_young.glb",
+      "authoring": {
+        "part": "body/head_young",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 7288,
+          "visual_triangles": 424,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8924259055982436,
+            "triangles": 242
+          },
+          "min": [
+            -0.9375,
+            1.875,
+            -0.5
+          ],
+          "max": [
+            0.9375,
+            3.125,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 63244,
+      "sha256": "5e2130541dd15fe4ea00252213992c4db7544e97a6aba7b25bfd6b03f422ae75",
+      "path": "assets/models/characters/dwarves/body/head_adult.glb",
+      "authoring": {
+        "part": "body/head_adult",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 7288,
+          "visual_triangles": 436,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8924259055982436,
+            "triangles": 242
+          },
+          "min": [
+            -0.9375,
+            1.875,
+            -0.5
+          ],
+          "max": [
+            0.9375,
+            3.125,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 64352,
+      "sha256": "e8d0927e940466936b2a3f2e2d81e82fbcf099e957b9d3a7b3c678027fd27e53",
+      "path": "assets/models/characters/dwarves/body/head_middle.glb",
+      "authoring": {
+        "part": "body/head_middle",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 7296,
+          "visual_triangles": 466,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8914473684210527,
+            "triangles": 242
+          },
+          "min": [
+            -0.9375,
+            1.875,
+            -0.5
+          ],
+          "max": [
+            0.9375,
+            3.125,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 67108,
+      "sha256": "1795635197dd2f9a3a43b69d9a07fae6821f9ba4e76d2eebfd9070bca9193e47",
+      "path": "assets/models/characters/dwarves/body/head_elder.glb",
+      "authoring": {
+        "part": "body/head_elder",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3474,
+          "visual_triangles": 486,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7818077144502015,
+            "triangles": 228
+          },
+          "min": [
+            -0.8125,
+            2.3125,
+            -0.6875
+          ],
+          "max": [
+            0.8125,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 67676,
+      "sha256": "ccba2e50496ca199b87cbe1e0de77a73758b2f32687c20254d300b3d1d21b2e5",
+      "path": "assets/models/characters/dwarves/hair/hair_m_short_back.glb",
+      "authoring": {
+        "part": "hair/hair_m_short_back",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1928,
+          "visual_triangles": 218,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 214
+          },
+          "min": [
+            -0.75,
+            2.6875,
+            -0.5625
+          ],
+          "max": [
+            0.75,
+            3.1875,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 41716,
+      "sha256": "cac6a53c65b273c9b6aa966a58f6496c917fd7bc294f46f2c949dbd3a9e8b7af",
+      "path": "assets/models/characters/dwarves/hair/hair_m_shaved.glb",
+      "authoring": {
+        "part": "hair/hair_m_shaved",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4395,
+          "visual_triangles": 598,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7108077360637087,
+            "triangles": 224
+          },
+          "min": [
+            -0.9375,
+            2.0625,
+            -0.8125
+          ],
+          "max": [
+            0.9375,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 77612,
+      "sha256": "2d12840cd674fc6c632ec8864d9ef74400c1680c1b7d7cbc76b05bbe23d9320d",
+      "path": "assets/models/characters/dwarves/hair/hair_m_wild_loose.glb",
+      "authoring": {
+        "part": "hair/hair_m_wild_loose",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4055,
+          "visual_triangles": 632,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7615289765721331,
+            "triangles": 350
+          },
+          "min": [
+            -0.8125,
+            1.5,
+            -0.875
+          ],
+          "max": [
+            0.8125,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 92328,
+      "sha256": "dbb425f4ed86521a44d095079fc54f6d2e6a463ea896e4ed6d04df90997b38e8",
+      "path": "assets/models/characters/dwarves/hair/hair_m_braided_back.glb",
+      "authoring": {
+        "part": "hair/hair_m_braided_back",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3784,
+          "visual_triangles": 524,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7822410147991543,
+            "triangles": 218
+          },
+          "min": [
+            -0.8125,
+            2.5,
+            -1.0
+          ],
+          "max": [
+            0.8125,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 70236,
+      "sha256": "fbefe2223f8ab23ce07939aadcbd2fa0e88c7a00cab5f3d68f7f495d5910a671",
+      "path": "assets/models/characters/dwarves/hair/hair_f_bun.glb",
+      "authoring": {
+        "part": "hair/hair_f_bun",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3924,
+          "visual_triangles": 644,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7767584097859327,
+            "triangles": 246
+          },
+          "min": [
+            -1.0,
+            1.5,
+            -0.625
+          ],
+          "max": [
+            0.8125,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 83856,
+      "sha256": "381ce70f59205ba8caa1d65f7506cbb34f0c85af6c466f3cd8dc4bf1fec2ef42",
+      "path": "assets/models/characters/dwarves/hair/hair_f_braid_side.glb",
+      "authoring": {
+        "part": "hair/hair_f_braid_side",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4183,
+          "visual_triangles": 656,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.755438680372938,
+            "triangles": 360
+          },
+          "min": [
+            -0.8125,
+            1.25,
+            -0.875
+          ],
+          "max": [
+            0.8125,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 95456,
+      "sha256": "eb6f5f1dc89de344754e549bba2c695a892d2c3fe73bdd5f6b324a7a5dec4899",
+      "path": "assets/models/characters/dwarves/hair/hair_f_braid_long.glb",
+      "authoring": {
+        "part": "hair/hair_f_braid_long",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3245,
+          "visual_triangles": 442,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7765793528505393,
+            "triangles": 188
+          },
+          "min": [
+            -0.8125,
+            2.375,
+            -0.625
+          ],
+          "max": [
+            0.8125,
+            3.3125,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 59948,
+      "sha256": "241d6da37a1b74de4294edfd4371277559a1634692fa642f127dcce3bc933be3",
+      "path": "assets/models/characters/dwarves/hair/hair_f_short_practical.glb",
+      "authoring": {
+        "part": "hair/hair_f_short_practical",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4376,
+          "visual_triangles": 716,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7330895795246801,
+            "triangles": 382
+          },
+          "min": [
+            -0.875,
+            1.5,
+            -0.625
+          ],
+          "max": [
+            0.875,
+            3.3125,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 103000,
+      "sha256": "487fd14c68f512cccaddbb97285b432725b04b3766b5ffa65e2d96dff751fd05",
+      "path": "assets/models/characters/dwarves/hair/hair_f_twin_braids.glb",
+      "authoring": {
+        "part": "hair/hair_f_twin_braids",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4932,
+          "visual_triangles": 608,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7234387672343877,
+            "triangles": 292
+          },
+          "min": [
+            -0.8125,
+            1.625,
+            -1.0
+          ],
+          "max": [
+            0.8125,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 84780,
+      "sha256": "de582baddeded9a4d864488c31d9760022fd44f068c7b65f8ce9af8d4612b725",
+      "path": "assets/models/characters/dwarves/hair/hair_f_half_up.glb",
+      "authoring": {
+        "part": "hair/hair_f_half_up",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 5472,
+          "visual_triangles": 688,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7105263157894737,
+            "triangles": 262
+          },
+          "min": [
+            -0.9375,
+            1.5625,
+            -0.8125
+          ],
+          "max": [
+            0.9375,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 89388,
+      "sha256": "093985fb4f402687bfee06764830a5c3bb0927311de0c80a34b6dfcae5b0eb0a",
+      "path": "assets/models/characters/dwarves/hair/hair_f_loose_long.glb",
+      "authoring": {
+        "part": "hair/hair_f_loose_long",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2104,
+          "visual_triangles": 326,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7347908745247148,
+            "triangles": 156
+          },
+          "min": [
+            -0.8125,
+            2.6875,
+            -0.6875
+          ],
+          "max": [
+            0.75,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 46324,
+      "sha256": "2d74d1a2295bbeef5a27fd4e69d386b1bff5d83729b5fb13854b9c1f2cce6c43",
+      "path": "assets/models/characters/dwarves/hair/hair_f_shaved_sides.glb",
+      "authoring": {
+        "part": "hair/hair_f_shaved_sides",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2622,
+          "visual_triangles": 342,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7963386727688787,
+            "triangles": 140
+          },
+          "min": [
+            -0.8125,
+            2.5625,
+            -0.625
+          ],
+          "max": [
+            0.8125,
+            3.25,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 46320,
+      "sha256": "5294271acda2d6704c80863af2b5921be31f23b0fecffbd7c1f3c551abcb9d55",
+      "path": "assets/models/characters/dwarves/hair/hair_f_cropped.glb",
+      "authoring": {
+        "part": "hair/hair_f_cropped",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4136,
+          "visual_triangles": 604,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7408123791102514,
+            "triangles": 232
+          },
+          "min": [
+            -0.9375,
+            2.0625,
+            -0.75
+          ],
+          "max": [
+            0.9375,
+            3.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 78888,
+      "sha256": "9113d260403a586b7f2fe088a547710da49ddae42dd07ace1b4605ef3dbda82a",
+      "path": "assets/models/characters/dwarves/hair/hair_f_wild.glb",
+      "authoring": {
+        "part": "hair/hair_f_wild",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1475,
+          "visual_triangles": 528,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 498
+          },
+          "min": [
+            -0.8125,
+            1.25,
+            0.3125
+          ],
+          "max": [
+            0.8125,
+            2.4375,
+            0.875
+          ]
+        }
+      ],
+      "bytes": 96380,
+      "sha256": "b388422023bb087115c6cd74568cee5e178f5d9949916250589aa246f56a67d8",
+      "path": "assets/models/characters/dwarves/beards/beard_full_long.glb",
+      "authoring": {
+        "part": "beards/beard_full_long",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1325,
+          "visual_triangles": 584,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 554
+          },
+          "min": [
+            -0.8125,
+            1.375,
+            0.3125
+          ],
+          "max": [
+            0.8125,
+            2.4375,
+            0.875
+          ]
+        }
+      ],
+      "bytes": 106692,
+      "sha256": "b427a585b66a63c44b6b74c5db558dbf7fcc43ca3c3b1cc679b628e6b771a637",
+      "path": "assets/models/characters/dwarves/beards/beard_full_braided.glb",
+      "authoring": {
+        "part": "beards/beard_full_braided",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 876,
+          "visual_triangles": 430,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 404
+          },
+          "min": [
+            -0.8125,
+            1.8125,
+            0.3125
+          ],
+          "max": [
+            0.8125,
+            2.4375,
+            0.875
+          ]
+        }
+      ],
+      "bytes": 78720,
+      "sha256": "cf9527db1db465b06a2dd684b8eaa3e94532e4c89012f1933fed300442d35473",
+      "path": "assets/models/characters/dwarves/beards/beard_short_trimmed.glb",
+      "authoring": {
+        "part": "beards/beard_short_trimmed",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1459,
+          "visual_triangles": 536,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 502
+          },
+          "min": [
+            -0.8125,
+            1.4375,
+            0.3125
+          ],
+          "max": [
+            0.8125,
+            2.4375,
+            0.875
+          ]
+        }
+      ],
+      "bytes": 97488,
+      "sha256": "a1dcd640cf75b02f5a241a24fb06e9ae82c2cc40ac490e69cfa7ac0ccaf118d8",
+      "path": "assets/models/characters/dwarves/beards/beard_forked.glb",
+      "authoring": {
+        "part": "beards/beard_forked",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 476,
+          "visual_triangles": 296,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 296
+          },
+          "min": [
+            -0.8125,
+            1.875,
+            0.3125
+          ],
+          "max": [
+            0.8125,
+            2.4375,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 56444,
+      "sha256": "e09cadd3afb54788572a94a9ce8b8f2b722c057ac943deb2d967a04e0b3affa4",
+      "path": "assets/models/characters/dwarves/beards/beard_mutton_chops.glb",
+      "authoring": {
+        "part": "beards/beard_mutton_chops",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 282,
+          "visual_triangles": 304,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 292
+          },
+          "min": [
+            -0.6875,
+            1.75,
+            0.5
+          ],
+          "max": [
+            0.6875,
+            2.375,
+            0.875
+          ]
+        }
+      ],
+      "bytes": 56796,
+      "sha256": "b9ef90bdf8dc353b551e1fee4c81ee0b037cc35163c8352211a476af7ea290d9",
+      "path": "assets/models/characters/dwarves/beards/beard_goatee.glb",
+      "authoring": {
+        "part": "beards/beard_goatee",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1173,
+          "visual_triangles": 520,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 480
+          },
+          "min": [
+            -0.8125,
+            1.25,
+            0.3125
+          ],
+          "max": [
+            0.8125,
+            2.4375,
+            0.875
+          ]
+        }
+      ],
+      "bytes": 93992,
+      "sha256": "19405112e9071763aeafb876e4e2443747d259e587c7af71bf992adf61c557b8",
+      "path": "assets/models/characters/dwarves/beards/beard_braided_long.glb",
+      "authoring": {
+        "part": "beards/beard_braided_long",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 96,
+          "visual_triangles": 48,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.625,
+            "triangles": 40
+          },
+          "min": [
+            -0.625,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.625,
+            2.875,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 10052,
+      "sha256": "841080a9db82c0360c3ca670d6b2893a0e9073290cc81e6b463659ee4300b10e",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_m_thick_flat.glb",
+      "authoring": {
+        "part": "eyebrows/brows_m_thick_flat",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 111,
+          "visual_triangles": 100,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 100
+          },
+          "min": [
+            -0.6875,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.6875,
+            2.9375,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 20372,
+      "sha256": "ef8409e53fa645e93226a913c67f2add71cf3271030b8fcf6a81771a45e5a269",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_m_bushy.glb",
+      "authoring": {
+        "part": "eyebrows/brows_m_bushy",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 66,
+          "visual_triangles": 78,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 76
+          },
+          "min": [
+            -0.625,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.625,
+            2.875,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 16132,
+      "sha256": "5a4c2acac9b6b0a546892c1aabff9a313fa126b84c3925bd3a4607762096df67",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_m_arched.glb",
+      "authoring": {
+        "part": "eyebrows/brows_m_arched",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 150,
+          "visual_triangles": 36,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.72,
+            "triangles": 36
+          },
+          "min": [
+            -0.625,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.625,
+            2.875,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 8576,
+      "sha256": "315df66285da4f7e955d714334d0c90e2f05779fa2c2c9c14270fb6dec3201a4",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_m_unibrow.glb",
+      "authoring": {
+        "part": "eyebrows/brows_m_unibrow",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 45,
+          "visual_triangles": 80,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 72
+          },
+          "min": [
+            -0.625,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.625,
+            2.875,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 15952,
+      "sha256": "50d291d4047744ce2f4d3845b13c2a035269a3c08f335e401b2abd2aec952b40",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_f_thin_arched.glb",
+      "authoring": {
+        "part": "eyebrows/brows_f_thin_arched",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 72,
+          "visual_triangles": 46,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6666666666666666,
+            "triangles": 32
+          },
+          "min": [
+            -0.625,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.625,
+            2.875,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 9132,
+      "sha256": "7af06c4877279520b1c4fa3013958a9805a9d4de475c9affc9e9188ebbc3b31f",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_f_thick_flat.glb",
+      "authoring": {
+        "part": "eyebrows/brows_f_thick_flat",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 111,
+          "visual_triangles": 100,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 100
+          },
+          "min": [
+            -0.6875,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.6875,
+            2.9375,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 20372,
+      "sha256": "13a8d6f945986ef769cdf44d2bd3606a418ca5c59060b8e17267d5fad06ef41d",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_f_bushy.glb",
+      "authoring": {
+        "part": "eyebrows/brows_f_bushy",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 48,
+          "visual_triangles": 88,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 72
+          },
+          "min": [
+            -0.625,
+            2.6875,
+            0.5625
+          ],
+          "max": [
+            0.625,
+            2.9375,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 16692,
+      "sha256": "659b53ad6b88e6c54b0f3fe2f340983a810442efc0703eab9cc3e841d41d868b",
+      "path": "assets/models/characters/dwarves/eyebrows/brows_f_sharp_angled.glb",
+      "authoring": {
+        "part": "eyebrows/brows_f_sharp_angled",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 5,
+          "visual_triangles": 28,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8,
+            "triangles": 24
+          },
+          "min": [
+            0.4375,
+            2.1875,
+            0.5625
+          ],
+          "max": [
+            0.5625,
+            2.4375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 6740,
+      "sha256": "343359ca129c876295a71c2e46cbec9a806dc05bc99247f7f67b63bd4d338507",
+      "path": "assets/models/characters/dwarves/scars/scar_cheek_slash.glb",
+      "authoring": {
+        "part": "scars/scar_cheek_slash",
+        "baked_proportions": true,
+        "portrait_only": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3,
+          "visual_triangles": 12,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            -0.4375,
+            2.75,
+            0.5625
+          ],
+          "max": [
+            -0.375,
+            2.9375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 4156,
+      "sha256": "02b42ab8f7640b0b2ef9d62395e7ea3465b3dd0c44dd51127228b850e07de9e1",
+      "path": "assets/models/characters/dwarves/scars/scar_brow_notch.glb",
+      "authoring": {
+        "part": "scars/scar_brow_notch",
+        "baked_proportions": true,
+        "portrait_only": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4,
+          "visual_triangles": 12,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            -0.125,
+            2.5625,
+            0.6875
+          ],
+          "max": [
+            0.125,
+            2.625,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 4156,
+      "sha256": "1894aae1f414b79dea05392795ff670aa145f82874a847856e1be76e6774f058",
+      "path": "assets/models/characters/dwarves/scars/scar_nose_bridge.glb",
+      "authoring": {
+        "part": "scars/scar_nose_bridge",
+        "baked_proportions": true,
+        "portrait_only": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 10,
+          "visual_triangles": 28,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 28
+          },
+          "min": [
+            0.0,
+            1.9375,
+            0.4375
+          ],
+          "max": [
+            0.0625,
+            2.1875,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 7100,
+      "sha256": "d581a336fab36721c25dbec404acc5c18013fadcf47b0056148ec9a183dbb48c",
+      "path": "assets/models/characters/dwarves/scars/scar_chin_split.glb",
+      "authoring": {
+        "part": "scars/scar_chin_split",
+        "baked_proportions": true,
+        "portrait_only": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 432,
+          "visual_triangles": 96,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 56
+          },
+          "min": [
+            -0.125,
+            -0.25,
+            -0.25
+          ],
+          "max": [
+            0.125,
+            1.375,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 15948,
+      "sha256": "18de3f07d4cb0f66b9169482edf4704d0bebe7d2e9845c4b06502b9cca2c86b5",
+      "path": "assets/models/characters/dwarves/tools/felling_axe.glb",
+      "authoring": {
+        "part": "tools/felling_axe",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 402,
+          "visual_triangles": 142,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 110
+          },
+          "min": [
+            -0.125,
+            -0.25,
+            -0.875
+          ],
+          "max": [
+            0.125,
+            1.8125,
+            0.9375
+          ]
+        }
+      ],
+      "bytes": 25156,
+      "sha256": "8e1fc9c644c7d30ef42d690fc22703be69923787ec45ae4e81d330019b491973",
+      "path": "assets/models/characters/dwarves/tools/mining_pickaxe.glb",
+      "authoring": {
+        "part": "tools/mining_pickaxe",
+        "baked_proportions": true,
+        "portrait_only": false
+      }
+    }
+  ]
+}

@@ -52,7 +52,9 @@ func _run() -> void:
 
 	# Use a reproducible world with known flora and wildlife arrival corridors.
 	node_added.connect(func(node: Node):
-		if node.name == "Renderer" and node.get_script() != null: node.set("world_seed", 1234))
+		if node.name == "Renderer" and node.get_script() != null: node.set("world_seed", 1234)
+		if node.name == "FurniturePlacementController" and node.get_script() != null:
+			node.ready.connect(func(): preload("res://scripts/tests/TestStorageFixture.gd").install(node)))
 	var scene_error := change_scene_to_file("res://scenes/main/debug_world.tscn")
 	if scene_error != OK:
 		_fail("could not load debug_world.tscn (%s)" % error_string(scene_error))
@@ -152,7 +154,7 @@ func _run() -> void:
 	# Furniture added after the save must leave no stale light-blocking doors
 	# or heat/light registrations when an earlier world is restored.
 	var later_furniture := _owner("furniture")
-	for pair in [["base:furniture:door", 36], ["base:furniture:brazier", 38]]:
+	for pair in [["base:furniture:door", 36], ["base:furniture:campfire", 38]]:
 		later_furniture.call("_install", pair[0], later_furniture.call("get_defs")[pair[0]], _surface_cell(pair[1], 0), 0)
 	_load_completed = false
 	_load_succeeded = false
@@ -289,6 +291,8 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "dwarves", "roster", 0, "mood", "hot_sleep_hours"], "many"],
 		[["scene", "dwarves", "roster", 0, "mood", "recreation_memory_hours"], -1.0],
 		[["scene", "dwarves", "roster", 0, "mood", "recreation_retry_hours"], "many"],
+		[["scene", "dwarves", "roster", 0, "mood", "solo_recreation_memory_hours"], -1.0],
+		[["scene", "dwarves", "roster", 0, "mood", "solo_recreation_memory_hours"], "many"],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 999999],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 0],
 		[["scene","furniture","moves","next_id"],1],
@@ -482,7 +486,7 @@ func _build_nonempty_colony_state() -> String:
 	var item_cell := _surface_cell(10, 0)
 	var mined_cell := _surface_cell(12, 0)
 	var designated_cell := _surface_cell(14, 0)
-	# Five authoritative forestry states, including picked/partial juniper crops.
+	# Seven authoritative forestry states, including picked/partial juniper and apple crops.
 	# The focused felling/harvest tests cover real
 	# workers/visuals; this regression verifies the actual save/reload pipeline.
 	flora.call("restore_state", {"trees": [
@@ -496,6 +500,10 @@ func _build_nonempty_colony_state() -> String:
 			"work_seconds": 0.0, "action": "harvest", "harvested_cycle": "3:autumn", "harvest_work_cycle": "3:autumn", "designated": false},
 		{"species": "base:flora:juniper_tree", "stage": "ancient", "origin": _pack_v3i(_surface_cell(36, 0)),
 			"work_seconds": .75, "action": "harvest", "harvest_work_cycle": "3:autumn", "fell_work_seconds": .5, "designated": true},
+		{"species": "base:flora:apple_tree", "stage": "mature", "origin": _pack_v3i(_surface_cell(40, 0)),
+			"work_seconds": 0.0, "action": "harvest", "harvested_cycle": "3:autumn", "harvest_work_cycle": "3:autumn", "designated": false},
+		{"species": "base:flora:apple_tree", "stage": "ancient", "origin": _pack_v3i(_surface_cell(44, 0)),
+			"work_seconds": 1.5, "action": "harvest", "harvest_work_cycle": "3:autumn", "fell_work_seconds": .5, "designated": true},
 	]})
 
 	mining._mine_block_world(mined_cell)
@@ -542,13 +550,13 @@ func _build_nonempty_colony_state() -> String:
 	furniture.call("restore_state", {
 		"ghosts": [{
 			"id": 301,
-			"key": "base:furniture:storage_shelf",
+			"key": "base:furniture:bench",
 			"origin": _pack_v3i(ghost_cell),
 			"yaw": 1,
 		}],
 		"installed": [{
 			"id": 401,
-			"key": "base:furniture:barrel",
+			"key": "test:furniture:storage",
 			"origin": _pack_v3i(furniture_cell),
 			"yaw": 0,
 			"flagged_uninstall": false,
@@ -559,7 +567,7 @@ func _build_nonempty_colony_state() -> String:
 			"id": 402, "key": "base:furniture:door", "material_id":"base:material:oak",
 			"origin": _pack_v3i(_surface_cell(32, 0)), "yaw": 0,
 		}, {
-			"id": 403, "key": "base:furniture:brazier",
+			"id": 403, "key": "base:furniture:campfire",
 			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0,
 		}, {
 			"id": 406, "key": "base:furniture:log_bed", "assigned_dwarf_id": 0,
@@ -606,7 +614,7 @@ func _build_nonempty_colony_state() -> String:
 			"sleeping": true,
 			"sleep_hours_left": 2.5,
 			"food": {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1},
-			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"recreation_retry_hours":2.5},
+			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5},
 			"carried_items": [],
 		}],
 	})
@@ -815,7 +823,7 @@ func _add_transplant_fixtures(details: Node, stockpiles: Node, furniture: Node, 
 	var ground := _surface_cell(18,0)
 	stockpiles.restore_state({"zones":[{"id":202,"cells":[_pack_v3i(ground)],"stacks":[
 		{"cell":_pack_v3i(ground),"item":key,"count":1,"instance_id":ids[1]}]}]})
-	furniture.restore_state({"installed":[{"id":404,"key":"base:furniture:storage_chest",
+	furniture.restore_state({"installed":[{"id":404,"key":"test:furniture:storage",
 		"origin":_pack_v3i(_surface_cell(40,0)),"inventory":{key:1},
 		"instances":[{"item":key,"count":1,"instance_id":ids[2]}]}],
 		"ghosts":[{"id":302,"key":"base:flora:blueberry_bush","origin":_pack_v3i(_surface_cell(44,0)),
@@ -836,7 +844,7 @@ func _add_flower_fixtures(details: Node, stockpiles: Node, furniture: Node, item
 	stockpiles.restore_state({"zones":[{"id":203,"cells":[_pack_v3i(ground)],"stacks":[
 		{"cell":_pack_v3i(ground),"item":item_key,"count":1,"instance_id":ids[3]}]}]})
 	item_key = registry.packed_item("base:detail:flowers", int(details._records[ids[4]].variant))
-	furniture.restore_state({"installed":[{"id":405,"key":"base:furniture:storage_chest",
+	furniture.restore_state({"installed":[{"id":405,"key":"test:furniture:storage",
 		"origin":_pack_v3i(_surface_cell(40,5)),"inventory":{item_key:1},
 		"instances":[{"item":item_key,"count":1,"instance_id":ids[4]}]}]})
 	for i in [5,6]:
@@ -967,7 +975,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 			return "restored scene is missing section %s" % key
 	if scene_state.mining.has("mined_blocks") or scene_state.terrain.edits.is_empty():
 		return "final terrain was not saved independently"
-	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 5:
+	if (scene_state["flora"] as Dictionary).get("trees", []).size() != 7:
 		return "forestry progress/designations/removals did not round-trip"
 	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 2:
 		return "mining zones did not round-trip"
@@ -996,7 +1004,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if rooms.get_door_boundaries().size() != 10 or int(rooms.get_stats().doors) != 1:
 		return "door light boundaries did not rebuild from saved furniture"
 	var light_cells := {_surface_cell(34, 0) + Vector3i.UP: true}
-	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 3200:
+	if rooms.count_room_lights(light_cells) != 1 or rooms._sum_heat(light_cells) != 900:
 		return "installed light/heat duplicated across world reload"
 	if (scene_state["items"] as Dictionary).get("loose", []).size() != 13:
 		return "loose items did not round-trip"
@@ -1005,7 +1013,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "dwarf roster/runtime state did not round-trip"
 	if roster[0].food != {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1}:
 		return "food need, last meal, dining arrangement or retry did not round-trip"
-	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"recreation_retry_hours":2.5}:
+	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5}:
 		return "personal-bedroom sleep progress or dining/thermal/recreation happiness did not round-trip"
 	if furniture_state.installed.filter(func(piece): return piece.get("assigned_dwarf_id",-1)==0).size()!=1:
 		return "personal bed assignment did not round-trip"

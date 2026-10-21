@@ -38,6 +38,7 @@ func _ensure_tool(scene: PackedScene, node_name: String) -> bool:
 		# Undo the right hand's reflection for the tool, not for the hand.
 		tool.transform = Transform3D((_rest[_right] as Transform3D).basis.inverse(),PALM)
 		_material(tool)
+		preload("res://scripts/components/VoxelShadowSetup.gd").configure(tool)
 	return true
 
 
@@ -64,6 +65,7 @@ func _orientation(pitch: float, yaw: float) -> Quaternion:
 
 
 func _material(node: Node) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D:
 		var material := StandardMaterial3D.new()
 		material.vertex_color_use_as_albedo = true

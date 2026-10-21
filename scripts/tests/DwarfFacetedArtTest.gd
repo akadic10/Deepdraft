@@ -1,5 +1,8 @@
 extends "res://scripts/tests/DwarfPilotArtTest.gd"
 
+## Historical entry point retained; current geometry contract is 1:16 voxels.
+const Shadows = preload("res://scripts/components/VoxelShadowSetup.gd")
+
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Dwarf roster art timeout"); quit(1))
 	for id in ["SaveManager","WorldClock","TaskManager","RoomManager","StockpileManager","SkyController","WeatherManager"]:
@@ -19,11 +22,13 @@ func _run() -> void:
 		var part := packed.instantiate() as Node3D
 		expect(part.transform.is_equal_approx(Transform3D.IDENTITY),"part has baked unit origin")
 		expect(part.find_children("*","CollisionObject3D",true,false).is_empty(),"art adds no collision")
-		var meshes := part.find_children("*","MeshInstance3D",true,false)
-		expect(meshes.size()==1,"one mesh per part")
+		var meshes := Shadows.visual_meshes(part)
+		expect(meshes.size()==1 and Shadows.configure(part)==1,"one visual and paired proxy per part")
 		for mesh: MeshInstance3D in meshes:
 			expect(mesh.transform.is_equal_approx(Transform3D.IDENTITY),"shared frame")
 			expect(mesh.mesh.get_surface_count()==1,"one surface per part")
+			expect(mesh.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"detailed part never casts")
+			expect(Shadows.proxy_for_visual(mesh).cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY,"coarse part only casts")
 			var colors: PackedColorArray=mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
 			var opaque := not colors.is_empty()
 			for color in colors:
@@ -50,6 +55,7 @@ func _run() -> void:
 						expect(actor.has_node("MeshHead/MeshBrows") and actor.has_node("MeshHead/MeshEyes"),"face slots")
 						expect(not actor.has_node("MeshHead/MeshScar"),"scar excluded from world actor")
 						expect(actor.get_node("LogicalBox").shape.size==Vector3(1,3,1),"logical footprint")
+						expect(actor._head.scale==Vector3.ONE and actor._body.scale==Vector3.ONE,"baked proportions preserve cubic cells")
 						expect(actor._hand_r.scale.x==-1 and actor._foot_r.scale.x==-1,"right-side mirrors")
 						var saved: Dictionary=actor.serialize_state().appearance
 						expect(saved.hair_style==hair.id and saved.beard_style==beard and saved.age_tier==age and saved.eyebrow_style==brow.id,"save appearance IDs")
@@ -93,7 +99,7 @@ func _run() -> void:
 				texture.free()
 		actor.free()
 	for error in failures: push_error(error)
-	print("DWARF_FACETED_ART_OK: %d checks, 41 imported models, 800 appearances, 22 pose cases"%checks if failures.is_empty() else "DWARF_FACETED_ART_FAIL")
+	print("DWARF_VOXEL_ART_OK: %d checks, 41 imported models, 800 appearances, 22 pose cases"%checks if failures.is_empty() else "DWARF_VOXEL_ART_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _check_mirrored_limb_geometry(actor: Node3D, registry: Node) -> void:

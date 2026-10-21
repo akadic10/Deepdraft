@@ -268,7 +268,8 @@ func _ui_and_persistence() -> void:
 	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
 	explorer.window_manager_path = NodePath("../Windows")
 	scene.add_child(explorer)
-	for key in ["base:furniture:storage_chest", "base:furniture:barrel", "base:furniture:storage_shelf"]:
+	preload("res://scripts/tests/TestStorageFixture.gd").install(furniture)
+	for key in [preload("res://scripts/tests/TestStorageFixture.gd").KEY]:
 		var id: int = furniture._next_installed_id
 		furniture._install(key, furniture.get_defs()[key], Vector3i(65 + id*3,20,48), 0)
 		var piece = furniture._installed[id]
@@ -284,6 +285,7 @@ func _ui_and_persistence() -> void:
 	var restored = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	scene.add_child(restored)
 	restored.set_process(false)
+	preload("res://scripts/tests/TestStorageFixture.gd").install(restored)
 	restored.restore_state(furniture_save)
 	for piece in restored._installed.values():
 		_expect(piece.storage.accepts_key(LOG) and piece.storage.accepts_key(STONE) and not piece.storage.accepts_key(PINE), "container rules restore through owner")

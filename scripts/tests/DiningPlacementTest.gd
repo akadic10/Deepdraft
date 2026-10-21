@@ -23,7 +23,11 @@ func _run() -> void:
 	scene.add_child(furniture)
 	furniture.set_process(false)
 	furniture._process(0)
-	root.get_node("WorldGenerator")._maps_ready = true
+	var generator = root.get_node("WorldGenerator")
+	generator.heightmap.resize(1024*1024);generator.heightmap.fill(20)
+	generator.waterline_map.resize(1024*1024);generator.waterline_map.fill(-1)
+	generator._cache_block_ids()
+	generator._maps_ready = true
 	camera = Camera3D.new()
 	scene.add_child(camera)
 	camera.current = true
@@ -241,24 +245,29 @@ func _run() -> void:
 	furniture._confirm_ghost()
 	var fetch = furniture._ghosts[fetch_id]
 	items.spawn_drop(table_def.item_key,1,Vector3i(68,21,60))
-	fetch._ensure_claim()
-	var pull: Dictionary = fetch.reserve_fetch(100,Vector3i(69,20,60))
-	_expect(not pull.is_empty() and pull.heavy, "new communal crate has a heavy fetch lease")
-	if not pull.is_empty():
-		dwarf._fetch_source_id = fetch.source_id
-		dwarf._fetch_item = pull.item
-		dwarf._fetch_heavy = pull.heavy
-		dwarf._fetch_pickup()
-		_expect(not dwarf._fetch_picked_up, "communal pickup waits for hand contact")
-		dwarf._process_item_handling(dwarf._handling_duration*.5)
-		_expect(dwarf._fetch_picked_up, "communal crate transfers at hand contact")
-		var build_id: int = furniture._next_installed_id
-		dwarf._begin_fetch_deposit()
-		dwarf._process_item_handling(dwarf._handling_duration)
-		_expect(furniture._installed.has(build_id) and not furniture._ghosts.has(fetch_id), "dwarf completes communal table")
-		_expect(dwarf._carried_entries.is_empty(), "build consumes communal crate")
+	# Use the real task attempt: completion rejects unbound/manual workers.
+	var tasks = root.get_node("TaskManager")
+	root.get_node("WorldClock").set_paused(false)
+	dwarf.sleep=1;dwarf._food.value=1
+	tasks.register_dwarf(dwarf)
+	var build_id: int=furniture._next_installed_id
+	var saw_pickup:=false;var saw_contact:=false;var heavy:=false
+	for tick in 1600:
+		tasks._process(.05);dwarf._process(.05)
+		if dwarf._task_phase==dwarf.TaskPhase.FETCH_PICKUP:
+			if not dwarf._fetch_picked_up:saw_pickup=true
+			else:saw_contact=true
+			heavy=heavy or dwarf._fetch_heavy
+		await process_frame
+		if furniture._installed.has(build_id):break
+	_expect(saw_pickup,"communal pickup waits for hand contact")
+	_expect(saw_contact and heavy,"heavy communal crate transfers at hand contact")
+	_expect(furniture._installed.has(build_id) and not furniture._ghosts.has(fetch_id),"dwarf completes communal table through a real task attempt")
+	_expect(dwarf._carried_entries.is_empty(),"build consumes communal crate")
+	if furniture._installed.has(build_id):
 		furniture.dev_remove_installed(build_id)
-		_expect(items.nearest_loose_of_key(table_def.item_key,Vector3i(70,20,60)) != null, "uninstall refunds communal crate")
+		_expect(items.nearest_loose_of_key(table_def.item_key,Vector3i(70,20,60))!=null,"uninstall refunds communal crate")
+	tasks.deregister_dwarf(dwarf.dwarf_id)
 	dwarf.queue_free()
 	if "--capture" in OS.get_cmdline_user_args():
 		items.visible = false

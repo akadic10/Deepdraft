@@ -1,0 +1,1584 @@
+[
+  {
+    "path": "assets/ui/furniture/aging_rack.png",
+    "sha256": "d3652dd8a630f0a1473479cfce3ddf37851494edd21d54a4e4ebba789b826e1b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      40,
+      26,
+      176,
+      166
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/anvil.png",
+    "sha256": "622ffe99bdb370cb4691d6afe4c28423d2f40553d859d2cd71e02e269d16a126",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      53,
+      29,
+      171,
+      160
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/barrel.png",
+    "sha256": "9b27d68cbd86921ebeed47334a3a2729bd52b0b9d84c372a81042337202a6c12",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      55,
+      22,
+      161,
+      158
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/bench.png",
+    "sha256": "96a789d193fc7efbf93b8c687ff4a8acb917247bcb7c4010c10af52ec94ed7aa",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      23,
+      16,
+      193,
+      158
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/blueberry_bush.png",
+    "sha256": "a67c1030cefdbd675422d00c851cb2b64874e6393f64bb0292c89301a0783ece",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      50,
+      35,
+      172,
+      140
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/blueberry_cutting.png",
+    "sha256": "15153b91f6b80d7018349242f547b6f11df3d5cec53800053dc9181313ac8f62",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      47,
+      31,
+      175,
+      143
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/board_game_table.png",
+    "sha256": "0db66a26c3e99246dd6c0a4dc25b067c30fdb763e27daf65e99fe111473baa19",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      42,
+      48,
+      174,
+      137
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/brazier.png",
+    "sha256": "701088e7ffcd72f435933d7722a01236f9330d50e5a5a11dc46ac914163c2bbd",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      72,
+      34,
+      144,
+      156
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/brewing_vat.png",
+    "sha256": "af746572e70ae1af8bf2d5d01037f77cc9db2c378dec8124fd93c833b16f6d24",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      60,
+      23,
+      160,
+      157
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/campfire.png",
+    "sha256": "ddc0503771eb4add4386e93c1c5d8b6dafcc008a120a49e84e5e88056b81d982",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      52,
+      172,
+      155
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/communal_table.png",
+    "sha256": "4180bd42c950243f716fa6a380772958f16fce6105625bc75809b38e7ed508d5",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      16,
+      34,
+      200,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/crude_ladder.png",
+    "sha256": "e4816486226fdeaa425bfaa53a0a9913625ff4f87863eea085e32295f379a142",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      93,
+      13,
+      123,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/crude_workbench.png",
+    "sha256": "1fbe3946805c5f656b3bfaa723bd5b0b2221b059ff58e17f6e7574baca019bdb",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      50,
+      24,
+      166,
+      158
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/door.png",
+    "sha256": "a107a78d18d08fc6c68b65f267a9f40c8a198125acb6046fb7c02ed5e8849c20",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      74,
+      22,
+      142,
+      162
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/dry_stone.png",
+    "sha256": "2f45bc9d4667a6609ef3f5bb388884c3c5ab4e8068a9ff9da1230bec9a59c16b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      54,
+      27,
+      162,
+      157
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/dwarf_bunk.png",
+    "sha256": "3d0a825c82f2856442bc068f1d0af207a1b5ee611ca71ed43b29db09d1efc8e8",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      17,
+      13,
+      199,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/elderberry_bush.png",
+    "sha256": "3246011cfb34e0ea4ffeaf4a06440ecc066a59467a92facd494c3681ae1d5618",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      57,
+      35,
+      155,
+      143
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/elderberry_cutting.png",
+    "sha256": "8fdfc7a1e0a1ce1db3721350b7b93cbb43e971fa9881d35fa80d0a1fcae2a7e2",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      65,
+      34,
+      163,
+      141
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/flowers_1.png",
+    "sha256": "b698bef1fb165e00cdd824219abc8d4ff73d404586e71669db29e5e382201ad3",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      59,
+      42,
+      162,
+      156
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/flowers_2.png",
+    "sha256": "f88a519a4148553298bbbd1757340b66fa5178fdf90ff92307430e00e4a036aa",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      48,
+      33,
+      172,
+      152
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/flowers_3.png",
+    "sha256": "295ec96620a9e1cad5b52d81db2ffd89dcc511ae6c6669cd8a02ccc20ad962f3",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      57,
+      51,
+      157,
+      148
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/hearth.png",
+    "sha256": "0c5418cfb1dd8482e774027c6bb78b92f570159cef06da2e8d65a1eb3e011cab",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      35,
+      15,
+      181,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_bed.png",
+    "sha256": "efd73efdeddcd12eb2021add0e71f30b9dfad4240b32a544058fdbb428da7aa1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      44,
+      198,
+      141
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_bridge.png",
+    "sha256": "d8a0c34aec75b2ecb0c9fd2281df2b2029741fc82358ded83516698a497ff64c",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      16,
+      40,
+      200,
+      143
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_chair.png",
+    "sha256": "3e30bf28eff3e50d2d235709321b82a7fc68278d07a351d17f5dc38739749301",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      46,
+      20,
+      170,
+      157
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_door_3.png",
+    "sha256": "83673980678ae131c84cfae6a5ee2a667d33b8e828820f6a90dd5cb56e1a88c1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      21,
+      153,
+      162
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_door_4.png",
+    "sha256": "ff049d3be12c05c5e2e7a75c3d0b1280c4eefd69bbb6dc3ce3c9712cf6c4923c",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      54,
+      21,
+      162,
+      163
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_fence.png",
+    "sha256": "55736aa311106c0426cd778c8cbe08b79166969934eec7746f103f99ed25e347",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      92,
+      15,
+      124,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/log_gate.png",
+    "sha256": "cfd7a58ea159d368d0c3a7dd2a0137bbc41e3a4ab48d98dd4f34ec225560282c",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      35,
+      15,
+      181,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/settlement_flag.png",
+    "sha256": "eddd117903bc563e9a1f4678d57344dfb830a5022f7473da0056f51d2ca1e175",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      82,
+      20,
+      134,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/smelter.png",
+    "sha256": "3d7195940b4103323bffba0eebe9dade334c27e43bb15abae018708e4dfd5883",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      56,
+      25,
+      160,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/storage_chest.png",
+    "sha256": "8475765681d12b31415d6175cd31bc42541590b27702129481c1a59e0e38be6b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      38,
+      19,
+      178,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/storage_shelf.png",
+    "sha256": "7c33727bac673e6726c384ed2636671f5aaa128ae168bf1d1a5d223cde430444",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      14,
+      153,
+      166
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/tavern_bar.png",
+    "sha256": "331bab6afcdc69cd2b9e4a1b55bd5263e91162ba215685ac3b873453b2e6c3ad",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      46,
+      13,
+      170,
+      166
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/trade_counter.png",
+    "sha256": "3eaaa291c3885f9ef3cfaba8a2731b8248b6ad151a7d10c2bb30094a2486ed53",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      46,
+      13,
+      170,
+      166
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wall_torch.png",
+    "sha256": "4ccf5dfd049eb891f35d08dc7cff24f1b0eeb17f7590b674245f32b24a1a8a92",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      74,
+      33,
+      137,
+      145
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wet_stone.png",
+    "sha256": "8de01af0a5c3bce55179a75c6fce61384eb5ec19d3886fcc948d25a1d8c74d04",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      54,
+      27,
+      162,
+      157
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wild_strawberry_bush.png",
+    "sha256": "7d76d5b9865c532a940d685bd5a1262fa90caebfa9fc1d185569a2b17dada3d6",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      38,
+      37,
+      173,
+      136
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wild_strawberry_cutting.png",
+    "sha256": "9b1fda20586f88cd811d6ef690800cffcc2674092d3fc0ec11687755f485e538",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      25,
+      13,
+      158,
+      134
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wooden_chair.png",
+    "sha256": "c41f4757379017230dc43320edd49ab3e58705afd16fb20d9c5f43196134df0e",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      22,
+      14,
+      194,
+      166
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wooden_table.png",
+    "sha256": "5d6f07a08b7c0c16818fc63718e0f3352068741711a54824ab65f4d49c0f4355",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      32,
+      14,
+      184,
+      161
+    ]
+  },
+  {
+    "path": "assets/ui/furniture/wooden_torch.png",
+    "sha256": "c80b64ede6cff7d3e990be5f7b6f8ef7b46898172e2e62ce9cb154f65f0b754a",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      76,
+      33,
+      135,
+      161
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_items_special_settlement_flag.png",
+    "sha256": "007c090294c5a4ab6f8abc1e9bce7530eeb2aa1775770fae18e4985279f952c7",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      38,
+      13,
+      178,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_currency_gold_coin.png",
+    "sha256": "ba3437175e5617a596210ec832c9083588782447c134ee632c84674acc7fb187",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      37,
+      57,
+      179,
+      137
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_aged_stout.png",
+    "sha256": "a95ecaff949918e3df15279b189d8a20641c08793053b35aba86a38040ed0a0d",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_ale.png",
+    "sha256": "2d36e48d63bedf7fe662b9b1f9afa5e68f1a9cbc4387095b86566db44f08c688",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_cider.png",
+    "sha256": "31a7ca58d208f6c8daf99fcc5dde3922dd46b26ea858c115205616d586953e78",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_gin.png",
+    "sha256": "b48843cf3cb3033ed0702f77afdaa2c862f9e81c9700e5b809d95cb1eab56d96",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      59,
+      25,
+      163,
+      152
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_mead.png",
+    "sha256": "d421d256780f4a40a0dcf6728b89ce0af448d9c10944981fe840f9ddfdfeb5dd",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_reserve_gin.png",
+    "sha256": "bfe6aed0301838c710bb911e65e158aa9342d936dbcacda54e04c0014c884ea1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      59,
+      25,
+      163,
+      152
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_stout.png",
+    "sha256": "acaaf138b15af9c14db2da1c27178bb83200aed35d15a071767e86a55040fecb",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_vintage_wine.png",
+    "sha256": "4916ce6f88880c159fab850103eaa5ababddbe069faacd1c48b86902cbf37514",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_drink_wine.png",
+    "sha256": "2b738b84ef5d7c5676040111cc366ea9c7f1830e79b81e9488dcddbe71a81cce",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      63,
+      24,
+      158,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_apple.png",
+    "sha256": "bbefd7ee0a1b3ae807c15841bc2dc7b17273343e997702fb0d23ece121c1c6d8",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_blueberry.png",
+    "sha256": "a96b6cc51a896958e4a83d573267d62e60bef98f607260cce482d48e20255e59",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_elderberry.png",
+    "sha256": "6581522621d186d7fffa31e5d03bc369a51b4df09fabf292f664df997389f47c",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_grape.png",
+    "sha256": "1e4fd0b6e80368f1c87cf4f0a467ab5037db7e1e4766b5a3597fdc1e7933150d",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      60,
+      43,
+      174,
+      156
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_hops.png",
+    "sha256": "a7a427b260d284e7c4ab69aaeb20b49aa9fdd565d15d4cd6c70c0773a23e29a5",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      60,
+      43,
+      174,
+      156
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_juniper_berry.png",
+    "sha256": "fd4a194efb3f5b90ceeae6c03e34b780f0df6f739f534531725ffbb19d7a4041",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_pig_tail.png",
+    "sha256": "b281485dba3d148d6a6d6342e3f8c000271db4fd4b8eede7545a60e7b7babca9",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      26,
+      39,
+      200,
+      154
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_plump_helmet.png",
+    "sha256": "bf4a0d192bf14eaab9b8f17adc3d5e2c964269a790eb4139ada0bc7b0b9bf9bd",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      37,
+      30,
+      179,
+      140
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_flora_wild_strawberry.png",
+    "sha256": "a616c6fe3215f044da16d0dfc7e5e9f34a75ab7717e59cc08b559e3cb60b16e6",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_gem_amethyst_raw.png",
+    "sha256": "20277128c25d5cc0d36d36bc3611fe9b84829d2615280c33a0bae573dc4e037d",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      52,
+      38,
+      164,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_gem_diamond_raw.png",
+    "sha256": "8c2e4592d77b382a48d68b86c3583547c8b93c8e9c411d9b185eb184ea632b0a",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      52,
+      38,
+      164,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_gem_emerald_raw.png",
+    "sha256": "4f5dd6800612364a86add7785ed3a19bb6f41e6f285389af5566daa6ce126ca9",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      52,
+      38,
+      164,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_gem_jade_raw.png",
+    "sha256": "7eab7e9e774699626ef21a7d8252538615bb7c6b7bde192d979586d588c917c7",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      52,
+      38,
+      164,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_gem_ruby_raw.png",
+    "sha256": "6f6600d9dd0d8e9f0b34edade402ec53dd1eb683c7fb7fb699a515c735185394",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      52,
+      38,
+      164,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_gem_sapphire_raw.png",
+    "sha256": "4d2531b2814385b4b36131230445e2fd71aef3e13683653e2ac81e1f92698fab",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      52,
+      38,
+      164,
+      144
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_misc_cloth.png",
+    "sha256": "adbd2fee1bc2386d5ca706eccb856e282112ac5aaba7ae71bbfce966da38498c",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      28,
+      25,
+      188,
+      163
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_misc_fossil_fragment.png",
+    "sha256": "5d5da86d5c9897f3c9822742b184981ba08a50e6406d4b3f6d3fb679703295b1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      31,
+      50,
+      185,
+      140
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_misc_honey.png",
+    "sha256": "2c2a8d31d133dca30664bb7bf7e0b3bdb9e9089154e5e355c43ddf51bb62cbf6",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      60,
+      24,
+      170,
+      148
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_misc_water_bucket.png",
+    "sha256": "d13f80b6e576d1e9d7414d31559dc362079e8610752c83ec01efffe53fc11b8f",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      57,
+      26,
+      159,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_ore_coal.png",
+    "sha256": "0f3860bfdec3ab0701b0369369c867616806f2804044ac8e812ccd332f9a8b81",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_ore_copper.png",
+    "sha256": "bf8a6fc5a04ef7041f4062ab23660cf2e5e842b0bfb93292d0a164635030ef4a",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_ore_gold.png",
+    "sha256": "ddbc7d8ef067fd4dc115acb96d1e965d745590675b43a8566a9b5c3979faa929",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_ore_iron.png",
+    "sha256": "038cb93a7764b3b29cb3d83c0d48492f2db22e3845c56a618fbb1d966d6fe85b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_ore_silver.png",
+    "sha256": "eb40d8d60793a480fd6898635728409cf5102f2fb7eece1ba54ddf7700588a52",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_ore_tin.png",
+    "sha256": "7d628ed7b4eb8cf724f321502d137fee8ec5f43de333f1f2713f48cb68319317",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_plant_blueberry_bush.png",
+    "sha256": "40dff228ffddccd3970a9bbb0aa6a9decc66820161321f25284f56f8ff6db6b1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      56,
+      33,
+      165,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_plant_elderberry_bush.png",
+    "sha256": "446e4442bccb97875d66aff9f0d2bc5751afb8fda684af31bc39c7c9871a122b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      61,
+      33,
+      152,
+      155
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_plant_flowers_1.png",
+    "sha256": "5c0e8c8a2116309fc93e99be4d31473fcfc9beb2746d1789a7bc70884c67aa2b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      32,
+      42,
+      184,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_plant_flowers_2.png",
+    "sha256": "6687238f27e9df1c597d5c3291d13b268735bcb145978ef23a7b21c990a4e92a",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      32,
+      32,
+      184,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_plant_flowers_3.png",
+    "sha256": "ed62d992b37a37547b0078c40f5f6c499a67d2548286ee8740e21fd61e21a095",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      34,
+      47,
+      182,
+      165
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_plant_wild_strawberry_bush.png",
+    "sha256": "7571e72b58297918a0de87c1bfa871a87c49609f6ff7f8438309f529cc07eadd",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      38,
+      23,
+      173,
+      142
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_apple_seed.png",
+    "sha256": "e8acc6fe0ea9c3f0bd4173c44bf71d87846b6f7031012f15455404ec254a3a16",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_blueberry_cutting.png",
+    "sha256": "30b66b538c379e1461ec57fa372d89f90fb283b61858ae4e5da8e200529031ca",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_elderberry_cutting.png",
+    "sha256": "1b18796f5c274e4a1ef23fe82094e767c5fe73805c2fef5ce21240a2740c1a2d",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_grape_cutting.png",
+    "sha256": "5e9cdc5a93331488e9f934c1d078da3e822946373e93577186735b339d4680a7",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_hops_cutting.png",
+    "sha256": "871959ff58d60401733e2382ab26e67d8256a23c54096eba4aa6a36185e63e66",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_juniper_seed.png",
+    "sha256": "8b4f67c6f862a516be9dd1aab91146d69591dbc416288649826fc98827f03e29",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_oak_acorn.png",
+    "sha256": "8b6b24cca4c58d66c1408ae6053a5cec2cf3bd4e6aa02cd0083335e65c3202bc",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_pig_tail_seed.png",
+    "sha256": "fd6a2b7924188b7c5ab82d24d332319773fc14d80f5537fb0c0e99c894e2138f",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_pine_cone.png",
+    "sha256": "68fb4db7aaad141e69e112a6812ea7abe9270165342d8e585b7af28c4acb5cb6",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_seed_strawberry_cutting.png",
+    "sha256": "b2f5462d031ff4891460e122e6196cada138b82abdfb1180d4bfc34be739d6c4",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      18,
+      13,
+      198,
+      167
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_soil_cave_soil.png",
+    "sha256": "bfc6b7af52de40870fd222977a4d8ff4ee866f8feb20eb0a026273199ce66434",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      27,
+      27,
+      189,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_soil_dark_soil.png",
+    "sha256": "86bf66ebc0c50f3dfb69adcf2c9c0bfea0a980fd9348762ab3f88f6b48cbea91",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      27,
+      27,
+      189,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_soil_light_soil.png",
+    "sha256": "e69bd7adffa10e97d419997737406a8c05e10f149c38a625c8599f82ef802ff1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      27,
+      27,
+      189,
+      153
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_stone_basalt.png",
+    "sha256": "36861d36a703a015ab67efdc4eb4706566e6569b5d279d443d1cb9ff7bef38d6",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      42,
+      19,
+      173,
+      164
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_stone_granite.png",
+    "sha256": "1e4bd1e20f8a3d1edaf24e69fd00c9226d7e52bf48c80e71fba18bfbb50c44ad",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      42,
+      19,
+      173,
+      164
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_stone_limestone.png",
+    "sha256": "c456573b4984ce462cd3b2b745eda86d657de591fb90bb7495c82b2b948b95ce",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      42,
+      19,
+      173,
+      164
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_stone_marble.png",
+    "sha256": "07230f66539d440d13a8c86374121beefe0e6cd526c7a6cfd5d6e40cf4f7a457",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      42,
+      19,
+      173,
+      164
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_stone_rough_stone.png",
+    "sha256": "faa65114671c1aff7fd895daaa86e30f4526c14610bef113054fe208d3745db1",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      44,
+      29,
+      172,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_tools_carpentry_kit.png",
+    "sha256": "710a5382e5bdfc44b6dbaa33153c73e9f11353bd1732448e44e3fc8e4acbbfef",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      25,
+      60,
+      189,
+      150
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_tools_hunting_spear.png",
+    "sha256": "71e52119442099b214311932dce07d92f2231fdaea7c3fefdbf5332ab11116dc",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      21,
+      43,
+      195,
+      149
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_tools_stone_hammer.png",
+    "sha256": "9b5b847d8c4c6d39bd0bb1c2b49b0c065c5e6161e89d7839c14b091c5acfbd80",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      27,
+      55,
+      161,
+      164
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_tools_stone_hoe.png",
+    "sha256": "ba32fc160758b7785285ed1cc644dfc3960544080df84c815e928b9deddc0b49",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      21,
+      61,
+      173,
+      151
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_water_dry_stone.png",
+    "sha256": "2f45bc9d4667a6609ef3f5bb388884c3c5ab4e8068a9ff9da1230bec9a59c16b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      54,
+      27,
+      162,
+      157
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_water_wet_stone.png",
+    "sha256": "8de01af0a5c3bce55179a75c6fce61384eb5ec19d3886fcc948d25a1d8c74d04",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      54,
+      27,
+      162,
+      157
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_wood_apple_wood.png",
+    "sha256": "c5d6a450dcdab842a9cbc3116bde848dd422b2b6f47a1220cb0fcfaee27a584b",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      30,
+      17,
+      186,
+      163
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_wood_juniper_log.png",
+    "sha256": "20fcc01174e9afe086cdd3aa75e723c4b66ebb9f36fdd8e5f9261286ba68c477",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      30,
+      17,
+      186,
+      163
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_wood_oak_log.png",
+    "sha256": "11616735d17e6e28f6bdfb30bcb549c973474c97ef7e7dcc429d713e2336b961",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      30,
+      17,
+      186,
+      163
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_wood_oak_stave.png",
+    "sha256": "376646fcf938245082a967832f5fde17f715510de9ce8e0c3ded70d8692b6793",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      16,
+      30,
+      200,
+      150
+    ]
+  },
+  {
+    "path": "assets/ui/items/base_resources_wood_pine_log.png",
+    "sha256": "47b97686d48d61bab01246c69f954987f7cab5777608684b6467bcd5b81f7f22",
+    "size": [
+      216,
+      180
+    ],
+    "alpha_bounds": [
+      30,
+      17,
+      186,
+      163
+    ]
+  }
+]

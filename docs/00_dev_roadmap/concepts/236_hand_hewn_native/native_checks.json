@@ -1,0 +1,146 @@
+{
+	"assets": [
+		{
+			"asset": "dining_table_oak",
+			"max_import_grid_error_cells": 0.000976681709289551,
+			"shadow_triangles": 126,
+			"size": "(2.875, 1.25, 2.875)",
+			"visible_triangles": 2492
+		},
+		{
+			"asset": "log_stool_oak",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 92,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 548
+		},
+		{
+			"asset": "game_table_oak",
+			"max_import_grid_error_cells": 0.000966978725045919,
+			"shadow_triangles": 142,
+			"size": "(2.875, 1.3125, 2.875)",
+			"visible_triangles": 2566
+		},
+		{
+			"asset": "workbench_oak",
+			"max_import_grid_error_cells": 0.000987233011983335,
+			"shadow_triangles": 150,
+			"size": "(2.875, 1.0, 2.875)",
+			"visible_triangles": 2502
+		},
+		{
+			"asset": "timber_oak",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 98,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 542
+		},
+		{
+			"asset": "dining_table_pine",
+			"max_import_grid_error_cells": 0.000976681709289551,
+			"shadow_triangles": 126,
+			"size": "(2.875, 1.25, 2.875)",
+			"visible_triangles": 2492
+		},
+		{
+			"asset": "log_stool_pine",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 92,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 548
+		},
+		{
+			"asset": "game_table_pine",
+			"max_import_grid_error_cells": 0.000966978725045919,
+			"shadow_triangles": 142,
+			"size": "(2.875, 1.3125, 2.875)",
+			"visible_triangles": 2566
+		},
+		{
+			"asset": "workbench_pine",
+			"max_import_grid_error_cells": 0.000987233011983335,
+			"shadow_triangles": 150,
+			"size": "(2.875, 1.0, 2.875)",
+			"visible_triangles": 2502
+		},
+		{
+			"asset": "timber_pine",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 98,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 542
+		},
+		{
+			"asset": "dining_table_juniper",
+			"max_import_grid_error_cells": 0.000976681709289551,
+			"shadow_triangles": 126,
+			"size": "(2.875, 1.25, 2.875)",
+			"visible_triangles": 2492
+		},
+		{
+			"asset": "log_stool_juniper",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 92,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 548
+		},
+		{
+			"asset": "game_table_juniper",
+			"max_import_grid_error_cells": 0.000966978725045919,
+			"shadow_triangles": 142,
+			"size": "(2.875, 1.3125, 2.875)",
+			"visible_triangles": 2566
+		},
+		{
+			"asset": "workbench_juniper",
+			"max_import_grid_error_cells": 0.000987233011983335,
+			"shadow_triangles": 150,
+			"size": "(2.875, 1.0, 2.875)",
+			"visible_triangles": 2502
+		},
+		{
+			"asset": "timber_juniper",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 98,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 542
+		},
+		{
+			"asset": "dining_table_applewood",
+			"max_import_grid_error_cells": 0.000976681709289551,
+			"shadow_triangles": 126,
+			"size": "(2.875, 1.25, 2.875)",
+			"visible_triangles": 2492
+		},
+		{
+			"asset": "log_stool_applewood",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 92,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 548
+		},
+		{
+			"asset": "game_table_applewood",
+			"max_import_grid_error_cells": 0.000966978725045919,
+			"shadow_triangles": 142,
+			"size": "(2.875, 1.3125, 2.875)",
+			"visible_triangles": 2566
+		},
+		{
+			"asset": "workbench_applewood",
+			"max_import_grid_error_cells": 0.000987233011983335,
+			"shadow_triangles": 150,
+			"size": "(2.875, 1.0, 2.875)",
+			"visible_triangles": 2502
+		},
+		{
+			"asset": "timber_applewood",
+			"max_import_grid_error_cells": 0.00032690865918994,
+			"shadow_triangles": 98,
+			"size": "(0.875, 0.875, 0.875)",
+			"visible_triangles": 542
+		}
+	],
+	"checks": 260,
+	"failures": []
+}

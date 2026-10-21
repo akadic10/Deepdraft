@@ -1,0 +1,243 @@
+{
+  "__comment": "Hand-hewn chibi tree family: substantial foliage masses, distinct species silhouettes, forked trunks and long bark plates. Native 1:16 cells, existing heights, footprint clearance and seasonal/picked identities.",
+  "pine": {
+    "seed": 701,
+    "bark": [
+      "51412d",
+      "5a4632",
+      "63523e"
+    ],
+    "summer": [
+      "314b35",
+      "405c37",
+      "52683b",
+      "5e7542",
+      "75854a"
+    ],
+    "winter": [
+      "33483d",
+      "405744",
+      "50664e",
+      "607656",
+      "718361"
+    ],
+    "snow": "cad8d2",
+    "sapling": {
+      "height": 8.0,
+      "radius": 1.65,
+      "trunk_radius": 0.32,
+      "tiers": 3,
+      "limbs": 5
+    },
+    "mature": {
+      "height": 20.0,
+      "radius": 4.1,
+      "trunk_radius": 0.94,
+      "tiers": 4,
+      "limbs": 7
+    },
+    "ancient": {
+      "height": 27.0,
+      "radius": 5.5,
+      "trunk_radius": 1.42,
+      "tiers": 5,
+      "limbs": 7
+    },
+    "form": {
+      "fork_height": 0.3,
+      "lean": 0.08,
+      "cluster_depth": 0.8
+    },
+    "wood_step": {
+      "sapling": 1,
+      "mature": 2,
+      "ancient": 4
+    }
+  },
+  "apple": {
+    "seed": 709,
+    "bark": [
+      "61462f",
+      "664b34",
+      "705741"
+    ],
+    "spring": [
+      "466139",
+      "55733e",
+      "65834a",
+      "779052",
+      "879d62"
+    ],
+    "summer": [
+      "3c5531",
+      "4b6536",
+      "60783f",
+      "71884b",
+      "849654"
+    ],
+    "autumn": [
+      "77623a",
+      "94783e",
+      "aa8948",
+      "b59b51",
+      "c6aa67"
+    ],
+    "blossom": [
+      "ead6cd",
+      "f0e5cf",
+      "c99496"
+    ],
+    "fruit": [
+      "913e32",
+      "ae4d39",
+      "c76643"
+    ],
+    "sapling": {
+      "height": 6.0,
+      "radius": 1.55,
+      "trunk_radius": 0.33,
+      "limbs": 3,
+      "accent_size": 0.26
+    },
+    "mature": {
+      "height": 12.0,
+      "radius": 4.5,
+      "trunk_radius": 1.4,
+      "limbs": 5,
+      "accent_size": 0.56
+    },
+    "ancient": {
+      "height": 18.0,
+      "radius": 7.0,
+      "trunk_radius": 2.35,
+      "limbs": 6,
+      "accent_size": 0.65
+    },
+    "wood_step": {
+      "sapling": 1,
+      "mature": 2,
+      "ancient": 4
+    },
+    "form": {
+      "fork_height": 0.3,
+      "lean": 0.12,
+      "cluster_depth": 0.86
+    }
+  },
+  "juniper": {
+    "seed": 713,
+    "bark": [
+      "5e4c38",
+      "675440",
+      "74614a"
+    ],
+    "summer": [
+      "314e40",
+      "405e47",
+      "506d4e",
+      "617a58",
+      "74876a"
+    ],
+    "winter": [
+      "364d43",
+      "425b4c",
+      "536c59",
+      "637d67",
+      "738b75"
+    ],
+    "snow": "cbdad6",
+    "fruit": [
+      "374b67",
+      "4a6380",
+      "748b9c"
+    ],
+    "sapling": {
+      "height": 5.0,
+      "radius": 1.05,
+      "trunk_radius": 0.24,
+      "limbs": 3,
+      "accent_size": 0.18
+    },
+    "mature": {
+      "height": 12.0,
+      "radius": 3.1,
+      "trunk_radius": 0.44,
+      "limbs": 5,
+      "accent_size": 0.27
+    },
+    "ancient": {
+      "height": 16.0,
+      "radius": 4.4,
+      "trunk_radius": 0.92,
+      "limbs": 6,
+      "accent_size": 0.34
+    },
+    "wood_step": {
+      "sapling": 1,
+      "mature": 2,
+      "ancient": 4
+    },
+    "form": {
+      "fork_height": 0.28,
+      "lean": 0.2,
+      "cluster_depth": 1.05
+    }
+  },
+  "oak": {
+    "seed": 702,
+    "bark": [
+      "51412d",
+      "604a33",
+      "6b5540"
+    ],
+    "spring": [
+      "48613a",
+      "58723d",
+      "6c8547",
+      "7d9450",
+      "8d9d5d"
+    ],
+    "summer": [
+      "374c32",
+      "475e36",
+      "596d3d",
+      "697d44",
+      "7c8b50"
+    ],
+    "autumn": [
+      "805532",
+      "a66c36",
+      "b8813d",
+      "c39849",
+      "cfac63"
+    ],
+    "sapling": {
+      "height": 7.0,
+      "radius": 1.7,
+      "trunk_radius": 0.34,
+      "limbs": 3
+    },
+    "mature": {
+      "height": 17.0,
+      "radius": 4.8,
+      "trunk_radius": 1.44,
+      "limbs": 5
+    },
+    "ancient": {
+      "height": 24.0,
+      "radius": 7.2,
+      "trunk_radius": 2.4,
+      "limbs": 6
+    },
+    "wood_step": {
+      "sapling": 1,
+      "mature": 2,
+      "ancient": 4
+    },
+    "form": {
+      "fork_height": 0.32,
+      "lean": -0.15,
+      "cluster_depth": 0.95
+    }
+  }
+}

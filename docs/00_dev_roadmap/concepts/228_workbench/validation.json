@@ -1,0 +1,202 @@
+{
+  "status": "pass",
+  "source_sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+  "native_checks": {
+    "workbench_staged_gallery": "VOXEL_GALLERY_PASS 50",
+    "workbench_family_test": "FURNITURE_VOXEL_ART_OK: 864",
+    "workbench_manifest_test": "VOXEL_MANIFEST_PASS 731",
+    "workbench_stump_test": "CRAFTING_STUMP_OK",
+    "workbench_crafting_test": "WORKER_CRAFTING_OK",
+    "workbench_material_test": "CRAFT_MATERIAL_OK",
+    "workbench_profession_fixed": "PROFESSION_CRAFTING_OK",
+    "workbench_move_test": "FURNITURE_MOVE_OK",
+    "workbench_review_complete": "WORKBENCH_REVIEW_OK",
+    "workbench_thumbnail": "FURNITURE_THUMBNAILS_OK: 1",
+    "workbench_benchmark": "WORKBENCH_BENCHMARK_OK"
+  },
+  "source_tests": {
+    "workbench": 2,
+    "furniture": 4
+  },
+  "unchanged_furniture_models": 49,
+  "before": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2412,
+        "visual_triangles": 722,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.7960199004975125,
+          "triangles": 108
+        },
+        "min": [
+          -0.5,
+          0.0,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          0.875,
+          0.5
+        ]
+      }
+    ],
+    "bytes": 78320,
+    "sha256": "11f36d8306c6d679297353aa6bfa65e09234f5e0c1e878d3b90a7aeeecf61d9f",
+    "path": "assets/models/furniture/crude_workbench.glb",
+    "authoring": {
+      "piece": "crude_workbench"
+    }
+  },
+  "after": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 26495,
+        "visual_triangles": 860,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7832421211549349,
+          "triangles": 192
+        },
+        "min": [
+          -1.3125,
+          0.0,
+          -1.3125
+        ],
+        "max": [
+          1.3125,
+          1.25,
+          1.3125
+        ]
+      }
+    ],
+    "bytes": 98768,
+    "sha256": "aaa767c096cffde2ace2e081cd2f80608b1b248a7c8f6e565ec4838c442ac120",
+    "path": "assets/models/furniture/crude_workbench.glb",
+    "authoring": {
+      "piece": "crude_workbench",
+      "source": {
+        "source": "data/art/sources/log_logchair.vox",
+        "sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+        "model_index": 0,
+        "size": [
+          16,
+          16,
+          16
+        ],
+        "cells": 2072,
+        "palette_source": "camp_log",
+        "note": "Exact player stump occupancy at 1:16; bark on the horizontal perimeter, exposed cut wood and growth rings inside. Uses existing semantic wood material roles."
+      },
+      "workbench": {
+        "source_profile": "data/art/voxel_log_chair.json",
+        "horizontal_cell_scale": 3,
+        "height_cells": 20,
+        "palette_source": "camp_log",
+        "scars": [
+          {
+            "from": [
+              -9,
+              -7
+            ],
+            "to": [
+              5,
+              -10
+            ],
+            "width": 1,
+            "depth": 1
+          },
+          {
+            "from": [
+              3,
+              4
+            ],
+            "to": [
+              11,
+              9
+            ],
+            "width": 1,
+            "depth": 1
+          },
+          {
+            "from": [
+              -13,
+              8
+            ],
+            "to": [
+              -8,
+              6
+            ],
+            "width": 1,
+            "depth": 1
+          },
+          {
+            "from": [
+              6,
+              -3
+            ],
+            "to": [
+              12,
+              -2
+            ],
+            "width": 1,
+            "depth": 1
+          },
+          {
+            "from": [
+              -18,
+              -2
+            ],
+            "to": [
+              -8,
+              1
+            ],
+            "width": 1,
+            "depth": 2
+          }
+        ],
+        "rim_chips": [
+          {
+            "min": [
+              18,
+              17,
+              -5
+            ],
+            "max": [
+              22,
+              20,
+              -1
+            ]
+          },
+          {
+            "min": [
+              -21,
+              18,
+              3
+            ],
+            "max": [
+              -17,
+              20,
+              7
+            ]
+          },
+          {
+            "min": [
+              -5,
+              18,
+              18
+            ],
+            "max": [
+              -1,
+              20,
+              22
+            ]
+          }
+        ],
+        "note": "A broad 3x3 stump based on the player log: 2.625 units across, 1.25 high, with shallow axe grooves and chipped bark rim. Blemishes are fixed authored geometry, not simulated wear."
+      }
+    }
+  }
+}

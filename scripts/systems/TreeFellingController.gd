@@ -331,7 +331,7 @@ func get_order_hint() -> String:
 		return "Click marked work, or drag across blocks, trees, stones and plants.\nStockpiles and placed furniture are kept."
 	if _stone_mode and _detail_tool != "clear_stones":
 		if _dragging and _box_select: return "%d plant%s in area · Release to mark.\nEsc cancels the selection." % [_preview_count(), "" if _preview_count() == 1 else "s"]
-		return "Click ripe shrubs or junipers, or drag an area.\nWorkers pick berries and keep the plants." if _detail_tool == "harvest_plants" else "Click shrubs, flowers or reeds, or drag an area.\nShrubs yield a cutting; flowers and reeds yield no items."
+		return "Click ripe shrubs, apple trees or junipers, or drag an area.\nWorkers gather fruit and keep the plants." if _detail_tool == "harvest_plants" else "Click shrubs, flowers or reeds, or drag an area.\nShrubs yield a cutting; flowers and reeds yield no items."
 	if _stone_mode:
 		if _dragging and _box_select: return "%d stone%s in area · Release to mark.\nEsc cancels the selection." % [_preview_stones.size(), "" if _preview_stones.size() == 1 else "s"]
 		return "Click a boulder or loose-stone clump, or drag an area.\nWorkers break boulders and gather loose stones."
@@ -348,7 +348,7 @@ func get_order_summary() -> String:
 	if _stone_mode:
 		if _dragging and _box_select:
 			return "%d %s in area · Release to mark" % [_preview_count(), "stones" if _detail_tool == "clear_stones" else "plants"]
-		if _detail_tool == "harvest_plants": return "Click or drag over ripe shrubs and junipers."
+		if _detail_tool == "harvest_plants": return "Click or drag over ripe shrubs, apple trees and junipers."
 		if _detail_tool == "clear_shrubs": return "Click or drag over shrubs, flowers or reeds."
 		return "Click or drag over boulders and loose stone."
 	if _dragging and _box_select: return "%d trees in area · Release to mark" % _preview_trees.size()

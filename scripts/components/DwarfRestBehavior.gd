@@ -300,22 +300,18 @@ func _apply_pose() -> void:
 
 func _build_eyelids() -> void:
 	if not is_instance_valid(agent._head) or agent.appearance == null: return
-	_eyelids = Node3D.new()
+	_eyelids = DwarfAssets.rest_eyelids.instantiate() as Node3D
 	_eyelids.name = "RestEyelids"
 	agent._head.add_child(_eyelids)
 	var skin: Color = DwarfAssets.SKIN_TONES.get(agent.appearance.skin_tone,Color.WHITE)
-	for side in [-1,1]:
-		for crease in [false,true]:
-			var lid := MeshInstance3D.new()
-			var mesh := BoxMesh.new()
-			mesh.size = Vector3(.26,.025 if crease else .13,.045)
-			lid.mesh = mesh
-			lid.position = Vector3(float(side)*.4375,2.51 if crease else 2.5625,.631 if crease else .61)
-			var material := StandardMaterial3D.new()
-			material.albedo_color = skin.darkened(.38 if crease else .06)
-			material.roughness = 1.0
-			lid.material_override = material
-			_eyelids.add_child(lid)
+	preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(_eyelids,false)
+	for lid in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(_eyelids):
+		var material := StandardMaterial3D.new()
+		material.vertex_color_use_as_albedo=true
+		material.albedo_color=skin
+		material.roughness=1.0
+		lid.material_override=material
+		lid.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_eyes(false)
 
 func _eyes(closed: bool) -> void:

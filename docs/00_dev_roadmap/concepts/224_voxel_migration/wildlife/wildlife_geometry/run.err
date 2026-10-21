@@ -1,0 +1,73 @@
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/DeerAgent.gd:33)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] add_deer (res://scripts/systems/WildlifeManager.gd:273)
+       [4] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/DeerAgent.gd:33)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] add_deer (res://scripts/systems/WildlifeManager.gd:273)
+       [4] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/DeerAgent.gd:33)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] add_deer (res://scripts/systems/WildlifeManager.gd:273)
+       [4] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/DeerAgent.gd:33)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] add_deer (res://scripts/systems/WildlifeManager.gd:273)
+       [4] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/WolfAgent.gd:41)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] configure (res://scripts/entities/WolfAgent.gd:13)
+       [4] add_wolf (res://scripts/systems/WildlifeManager.gd:282)
+       [5] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/WolfAgent.gd:41)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] configure (res://scripts/entities/WolfAgent.gd:13)
+       [4] add_wolf (res://scripts/systems/WildlifeManager.gd:282)
+       [5] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/WolfAgent.gd:41)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] configure (res://scripts/entities/WolfAgent.gd:13)
+       [4] add_wolf (res://scripts/systems/WildlifeManager.gd:282)
+       [5] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: Adding 'Lower' as child to 'Knee' will make owner 'leg2' inconsistent. Consider unsetting the owner beforehand.
+   at: add_child (scene/main/node.cpp:1728)
+   GDScript backtrace (most recent call first):
+       [0] build (res://scripts/components/RigidAnimalLeg.gd:16)
+       [1] _build_visual (res://scripts/entities/WolfAgent.gd:41)
+       [2] configure (res://scripts/entities/GrazerAgent.gd:44)
+       [3] configure (res://scripts/entities/WolfAgent.gd:13)
+       [4] add_wolf (res://scripts/systems/WildlifeManager.gd:282)
+       [5] _run (res://scripts/tests/WildlifeFacetedArtTest.gd:36)
+WARNING: SkyController: WorldEnvironment has no Environment resource.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:170)
+       [1] _ready (res://scripts/systems/SkyController.gd:73)

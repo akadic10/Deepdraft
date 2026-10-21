@@ -1,14 +1,14 @@
 {
   "__comment": [
-    "Bench - cheap mass seating for the tavern hall (doc 21, doc 62 candidate list).",
-    "Follows the doc 19 placement schema (item_key/placement/yaw_steps). Plain",
+    "Chibi split-log bench: exactly two floor cells, 2x1 or 1x2 when rotated.",
+    "Native 1:16 hand-hewn wood; the seat contact remains one block high.",
     "One usable dwarf seat, with authored seated clearance and side/rear access.",
     "The two-block bench supports one broad dwarf; separate benches can share a table."
   ],
   "furniture_key": "base:furniture:bench",
   "furniture_category": "seating",
   "display_name": "Log bench",
-  "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating.",
+  "description": "A thick split-log seat on chunky timber feet, with rough bark, worn cut grain and a drying split.",
   "model": "res://assets/models/furniture/bench.glb",
   "item_key": "base:resources:furniture:bench",
   "placement": "floor",
@@ -35,20 +35,22 @@
   "room_anchor": false,
   "seating_chair": {
     "rest_pose": {
-      "body": [0, 0.125, 0],
-      "left_hand": [-0.1, 0.125, 0.4],
-      "right_hand": [0.1, 0.125, 0.4],
-      "left_foot": [-0.125, 0.125, 0.6],
-      "right_foot": [0.125, 0.125, 0.6]
+      "body": [0, 0.375, 0],
+      "left_hand": [-0.5625, 0.125, 0.8125],
+      "right_hand": [0.5625, 0.125, 0.8125],
+      "left_foot": [-0.125, 0, 0.8125],
+      "right_foot": [0.125, 0, 0.8125]
     },
     "clearance_regions": [
-      {"shape":"cylinder", "min":[-0.375,1.35,-0.875], "max":[2.375,3.625,1.875]},
-      {"min":[0.25,0.875,1.125], "max":[1.75,1.375,1.75]}
+      {"shape":"cylinder", "min":[-0.375,1.6,-0.875], "max":[2.375,3.875,1.875]},
+      {"min":[0.125,1,0], "max":[1.875,2.25,1.0625]},
+      {"min":[0.25,0,1.0625], "max":[1.75,1.625,1.875]},
+      {"shape":"cylinder", "min":[-0.1875,1.35,-0.6875], "max":[2.1875,2.8,1.6875]}
     ],
     "access_cells": [[-1,0],[2,0],[0,-1],[1,-1]]
   },
   "material_group": "wood",
-  "material_palette": "oak_log",
+  "material_palette": "hand_hewn_timber",
   "appeal": {
     "design": 2,
     "material_factor": 1

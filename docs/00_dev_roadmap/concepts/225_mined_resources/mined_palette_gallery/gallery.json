@@ -1,0 +1,37 @@
+{
+  "count": 14,
+  "failures": [],
+  "hashes": {
+    "assets/models/items/ore/coal.glb": "070a2793b3ac2ddfa7241ad3ef4f40f3c31de82b6afc1136fedce406894581c1",
+    "assets/models/items/ore/copper_ore.glb": "a16d469af3dde7a08b06bee6220b461c30ccc244323a31340bb899f4717e4390",
+    "assets/models/items/ore/gold_ore.glb": "c2776c69e0b39236f49ce64ac727b6ad01cca726274c6693c55ca16960e47a56",
+    "assets/models/items/ore/iron_ore.glb": "312296f4b9b516ec773aab59849182ad9b58ab7f1b511e40e61b193fb7115907",
+    "assets/models/items/ore/silver_ore.glb": "22aba496625ebc38436dd61a6e89e40d2bdf50d9ab402d17a9c3ff3e7e5f22d4",
+    "assets/models/items/ore/tin_ore.glb": "ff6b6759d1e52b3646683bfbe8bc8a8b5fdc8fe04b5fb26d0d3cd3ce6fb5b57e",
+    "assets/models/items/soil/cave_soil.glb": "a9e894f084d33a8ae1300e02a3d5f9df4e628df00e4d1ed69ea4680d84cf93de",
+    "assets/models/items/soil/dark_soil.glb": "b4b42c011e9762abc34189f493492169913a0f707cca067972cb47153883070a",
+    "assets/models/items/soil/light_soil.glb": "daa58d228dd4c1930d6fe074f92f3e722132d8d8dcd634bf4345c2281aceed17",
+    "assets/models/items/stone/basalt_block.glb": "756ad6802d6c608ede9e995219a2d8d055fe62cfc1f0cc9c338741456ea7836a",
+    "assets/models/items/stone/granite_block.glb": "65652cc234d42f6803c566f1407ed5aad534ea1358b07375533a1b3b1d4fd9ed",
+    "assets/models/items/stone/limestone_block.glb": "4b28dc4243ac14c662bc3d7b1ae507063b6d0dc924696f08a3984af3098b510a",
+    "assets/models/items/stone/marble_block.glb": "c07ae67f2fef37eea9ebe9b882d5aa4c45cd733f2f7527b4e8c93da9f62cc3f3",
+    "assets/models/items/stone/rough_stone.glb": "db42192f0f7b84bc763388484e71f40e536a83e2e160c919d4896f363162e9a4"
+  },
+  "paths": [
+    "res://assets/models/items/ore/coal.glb",
+    "res://assets/models/items/ore/copper_ore.glb",
+    "res://assets/models/items/ore/gold_ore.glb",
+    "res://assets/models/items/ore/iron_ore.glb",
+    "res://assets/models/items/ore/silver_ore.glb",
+    "res://assets/models/items/ore/tin_ore.glb",
+    "res://assets/models/items/soil/cave_soil.glb",
+    "res://assets/models/items/soil/dark_soil.glb",
+    "res://assets/models/items/soil/light_soil.glb",
+    "res://assets/models/items/stone/basalt_block.glb",
+    "res://assets/models/items/stone/granite_block.glb",
+    "res://assets/models/items/stone/limestone_block.glb",
+    "res://assets/models/items/stone/marble_block.glb",
+    "res://assets/models/items/stone/rough_stone.glb"
+  ],
+  "source": "res://"
+}

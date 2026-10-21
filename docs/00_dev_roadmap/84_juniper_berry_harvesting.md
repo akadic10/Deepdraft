@@ -1,5 +1,9 @@
 # 84 — Harvest berries from standing junipers
 
+**Later implementation (2026-10-19):** [252 — Apple harvesting](252_apple_harvesting.md)
+adds manual apple picking to this shared system. The apple deferral below records
+the boundary of the original juniper milestone; automatic orders remain deferred.
+
 Implemented 2026-10-09 after the player noticed juniper's Fruit field displayed
 N/A despite berries appearing among its felling drops, and approved perennial
 harvesting similar to berry shrubs.

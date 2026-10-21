@@ -4,6 +4,8 @@ var Inventory
 const STONE := "base:resources:stone:rough_stone"
 const IRON := "base:resources:ore:iron"
 const ACORN := "base:resources:seed:oak_acorn"
+const ACTIVE_TABLE := "base:furniture:log_table"
+const StorageFixture = preload("res://scripts/tests/TestStorageFixture.gd")
 var inventory
 var rig
 var stock_controller
@@ -127,7 +129,15 @@ func _run() -> void:
 	dock._open_inventory()
 	await _settle()
 	# Containers count their contents; their display nodes never add inventory.
-	furniture._install("base:furniture:storage_shelf", furniture.get_defs()["base:furniture:storage_shelf"], Vector3i(44,20,44), 0)
+	# Storage furniture is retired; preserve container/UI coverage with the
+	# existing test-only fixture, including real rendered contents and merging.
+	StorageFixture.install(furniture)
+	var storage_def: Dictionary=furniture.get_defs()[StorageFixture.KEY]
+	storage_def.storage={"capacity":8,"render_contents":true,
+		"anchors":[[0.25,0.25,0.25],[0.75,0.25,0.25],[0.25,0.75,0.25],[0.75,0.75,0.25],
+		[0.25,0.25,0.75],[0.75,0.25,0.75],[0.25,0.75,0.75],[0.75,0.75,0.75]],
+		"anchor_max_size":[0.3125,0.3125,0.3125]}
+	furniture._install(StorageFixture.KEY,storage_def,Vector3i(44,20,44),0)
 	var installed = furniture._installed.values()[0]
 	var container = installed.storage
 	container.restore_inventory({ACORN: 20}, items)
@@ -138,7 +148,7 @@ func _run() -> void:
 	inventory.selected_key = ACORN; inventory.refresh()
 	_click(inventory._inspect.get_global_rect().get_center())
 	await _settle()
-	_expect(not manager.is_open("inventory") and explorer._object_id == "installed:%d" % installed.installed_id, "Inspect storage selects real installed shelf")
+	_expect(not manager.is_open("inventory") and explorer._object_id == "installed:%d" % installed.installed_id, "Inspect storage selects installed test container")
 	explorer.clear_selection()
 	dock._open_inventory()
 	await _settle()
@@ -162,7 +172,7 @@ func _run() -> void:
 	# Existing model thumbnails; no invented replacements.
 	for key in [STONE, IRON, ACORN]:
 		_expect(inventory._tiles[key].image.texture.resource_path == Inventory.thumbnail_path(key), "real model thumbnail for " + key)
-	var item_key: String = furniture.get_defs()[TABLE].item_key
+	var item_key: String = furniture.get_defs()[ACTIVE_TABLE].item_key
 	items.restore_loose_item(item_key, Vector3(37.5,21,33.5), 0)
 	await _settle()
 	_click(inventory._tiles[item_key].button.get_global_rect().get_center())
@@ -173,8 +183,8 @@ func _run() -> void:
 		root.get_texture().get_image().save_png("res://tmp/inventory_review/inventory_furniture.png")
 	_click(dock._button_by_target.place.get_global_rect().get_center())
 	await _settle()
-	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
-	_expect(manager.is_open("place") and not manager.is_open("inventory") and furniture.active_furniture_key() == TABLE, "Place dock remains the entry to furniture placement")
+	_click(catalog._tiles[ACTIVE_TABLE].button.get_global_rect().get_center())
+	_expect(manager.is_open("place") and not manager.is_open("inventory") and furniture.active_furniture_key() == ACTIVE_TABLE, "Place dock remains the entry to furniture placement")
 	_expect(furniture._ghosts.is_empty(), "Place selection never places behind UI")
 	_place_at(Vector3i(42,20,40))
 	dock._open_inventory()

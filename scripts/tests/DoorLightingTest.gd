@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Native-renderer regression: each side of a thin door must sample its own
 ## side of the room seal, including rotated doors and animated leaves.
-const OUTPUT := "res://tmp/door_lighting_20261011/"
+var output := "res://tmp/door_lighting_20261011/"
 var lighting_script
 var failures: Array[String] = []
 var measurements: Array[Dictionary] = []
@@ -19,7 +19,11 @@ func _init() -> void:
 
 func _run() -> void:
 	create_timer(180).timeout.connect(func(): push_error("Door lighting test timed out"); quit(1))
-	if not "/door_lighting_20261011/" in OS.get_user_data_dir().replace("\\", "/"):
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
+	var profile := OS.get_user_data_dir().replace("\\", "/")
+	var isolated := ProjectSettings.globalize_path(output).replace("\\", "/")+"profile/"
+	if not profile.begins_with(isolated) and not (output=="res://tmp/door_lighting_20261011/" and "/door_lighting_20261011/" in profile):
 		push_error("DoorLightingTest requires isolated APPDATA"); quit(1); return
 	for id in ["SaveManager", "WorldClock", "TaskManager", "RoomManager", "StockpileManager", "SkyController", "WeatherManager"]:
 		root.get_node(id).set_process(false)
@@ -54,13 +58,13 @@ func _run() -> void:
 	furniture = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	stage.add_child(furniture)
 	furniture.set_process(false)
-	DirAccess.make_dir_recursive_absolute(OUTPUT)
+	DirAccess.make_dir_recursive_absolute(output)
 	for width in [4, 2, 3]:
 		for yaw in range(4):
 			await _door_case(width, yaw)
 			if "--baseline" in OS.get_cmdline_user_args(): break
 		if "--baseline" in OS.get_cmdline_user_args(): break
-	FileAccess.open(OUTPUT + "checks.json", FileAccess.WRITE).store_string(JSON.stringify({"failures": failures, "measurements": measurements}, "  "))
+	FileAccess.open(output + "checks.json", FileAccess.WRITE).store_string(JSON.stringify({"failures": failures, "measurements": measurements}, "  "))
 	print("DoorLightingTest: ", "PASS" if failures.is_empty() else str(failures))
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
@@ -94,6 +98,15 @@ func _door_case(width: int, yaw: int) -> void:
 		model = piece.node
 		model.get_node("DoorAnimation").set_process(false)
 		await _settle()
+	# Compare doorway illumination independently of authored bark darkness.
+	# Both actual/reference samples use the same neutral surface and shader.
+	for mesh in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(model):
+		var material := mesh.material_override as ShaderMaterial
+		if material!=null:
+			material=material.duplicate()
+			material.set_shader_parameter("vertex_color",false)
+			material.set_shader_parameter("tint",Color(.65,.65,.65))
+			mesh.material_override=material
 	_expect(field.sky_at(Vector3i(model.to_global(Vector3(0, 2, -1)).floor())) == 1.0, "outside is daylight: %d/%d" % [width, yaw])
 	_expect(field.sky_at(Vector3i(model.to_global(Vector3(0, 2, 2)).floor())) == 0.0, "room remains sealed: %d/%d" % [width, yaw])
 	var values := {"width": width, "yaw": yaw}
@@ -156,7 +169,7 @@ func _capture(label: String) -> Image:
 	for i in range(3): await process_frame
 	await RenderingServer.frame_post_draw
 	var capture := root.get_texture().get_image()
-	if "--capture" in OS.get_cmdline_user_args() or "--baseline" in OS.get_cmdline_user_args(): capture.save_png(OUTPUT + label + ".png")
+	if "--capture" in OS.get_cmdline_user_args() or "--baseline" in OS.get_cmdline_user_args(): assert(capture.save_png(output + label + ".png")==OK)
 	return capture
 
 func _sample(capture: Image, point: Vector3) -> float:

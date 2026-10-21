@@ -842,6 +842,7 @@ func _build_drop_node(item_key: String, scene: PackedScene) -> Node3D:
 		node = mesh_instance
 	node.name = "Drop_%s_%d" % [item_key.get_slice(":", item_key.get_slice_count(":") - 1), _drop_count]
 	_apply_material(node, _material_for(item_key))
+	preload("res://scripts/components/VoxelShadowSetup.gd").configure(node)
 	return node
 
 
@@ -861,6 +862,7 @@ func _material_for(item_key: String) -> Material:
 
 
 func _apply_material(node: Node, material: Material) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D:
 		(node as MeshInstance3D).material_override = material
 	for child in node.get_children():

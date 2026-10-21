@@ -214,20 +214,20 @@ func _test_fetch_from_stockpile() -> void:
 		drops.take(node)
 		node.free()
 	# Use the real furniture ghost's storage-withdraw path.
-	var key := "base:resources:furniture:barrel"
+	var key := "base:resources:furniture:log_chair"
 	var loader = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	loader._load_defs()
 	var defs: Dictionary = loader.get_defs()
 	loader.free()
-	if not defs.has("base:furniture:barrel"):
-		_expect(false, "barrel definition available")
+	if not defs.has("base:furniture:log_chair"):
+		_expect(false, "buildable log stool definition available")
 		return
-	key = String(defs["base:furniture:barrel"].item_key)
+	key = String(defs["base:furniture:log_chair"].item_key)
 	zone.cell_stacks[Vector3i(40,20,44)] = {"item": key, "count": 1}
 	drops.restore_stored_item(key, Vector3i(40,20,44))
 	stockpiles._totals[key] = 1
 	var ghost = load("res://scripts/components/FurnitureGhostComponent.gd").new()
-	ghost.setup(1, "base:furniture:barrel", defs["base:furniture:barrel"], Vector3i(45,20,44), 0)
+	ghost.setup(1, "base:furniture:log_chair", defs["base:furniture:log_chair"], Vector3i(45,20,44), 0)
 	ghost.source_id = tasks.allocate_source_id()
 	ghost.drop_manager = drops
 	tasks.register_work_source(ghost.source_id, ghost)

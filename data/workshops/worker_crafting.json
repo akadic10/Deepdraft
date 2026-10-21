@@ -140,6 +140,25 @@
       "material_group": "wood"
     },
     {
+      "id": "base:recipe:worker:log_table",
+      "name": "Log dining table",
+      "output_plural": "log dining tables",
+      "description": "A broad log slice joined to a narrow central pedestal. Made from two matching logs.",
+      "purpose": "Add separate log stools at the four guides for seated dining.",
+      "category": "Dining",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "work_seconds": 16,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:log_table",
+      "output_count": 1,
+      "furniture": "base:furniture:log_table",
+      "material_group": "wood"
+    },
+    {
       "id": "base:recipe:worker:stone_hoe",
       "name": "Stone hoe",
       "output_plural": "stone hoes",
@@ -360,8 +379,8 @@
       "id": "base:recipe:worker:board_game_table",
       "name": "Board-game Table",
       "output_plural": "board-game tables",
-      "description": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
-      "purpose": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+      "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one log stool for solo play, or two opposite stools to play together for more happiness.",
+      "purpose": "A game scratched into a rough-cut log, with loose stones for counters. Add one log stool for solo play, or two opposite stools to play together for more happiness.",
       "category": "Recreation",
       "ingredient_tag": "timber",
       "default_ingredients": [

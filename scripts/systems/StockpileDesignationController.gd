@@ -62,29 +62,11 @@ const DEV_DROP_MIX: Dictionary = {
 	"base:resources:soil:cave_soil": 1,
 }
 
-## DEV: one packed furniture item of each kind (doc 19 Phase 0 - the v1 item
-## source until crafting/trade produce furniture for real; doc 21 adds the
-## tavern set; doc 22 adds the door; art docs 37–40 add counter/table/chair/bed;
-## art doc 42 adds the brewing vat).
+## DEV: a small sample of currently craftable furniture only.
 const DEV_FURNITURE_MIX: Dictionary = {
-	"base:resources:furniture:barrel": 1,
-	"base:resources:furniture:storage_chest": 1,
-	"base:resources:furniture:storage_shelf": 1,
-	"base:resources:furniture:tavern_bar": 1,
 	"base:resources:furniture:bench": 1,
 	"base:resources:furniture:hearth": 1,
 	"base:resources:furniture:door": 1,
-	"base:resources:furniture:trade_counter": 1,
-	"base:resources:furniture:wooden_table": 1,
-	"base:resources:furniture:wooden_chair": 1,
-	"base:resources:furniture:communal_table": 1,
-	"base:resources:furniture:dwarf_bunk": 1,
-	"base:resources:furniture:brewing_vat": 1,
-	"base:resources:furniture:wall_torch": 4,
-	"base:resources:furniture:anvil": 1,
-	"base:resources:furniture:smelter": 1,
-	"base:resources:furniture:aging_rack": 1,
-	"base:resources:furniture:brazier": 1,
 }
 
 signal zone_created(zone_id: int)

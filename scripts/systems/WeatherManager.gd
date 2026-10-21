@@ -157,6 +157,11 @@ func _apply(id: String) -> void:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+func reset_for_new_game() -> void:
+	_seed_rng()
+	_switch_weather_for_current_season()
+
+
 func current_definition() -> Dictionary:
 	return _weather_by_id.get(_current_id, {})
 

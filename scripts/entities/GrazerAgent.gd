@@ -3,6 +3,7 @@ extends Node3D
 ## no tasks, inventories, starvation, breeding or off-screen respawn.
 const Navigation = preload("res://scripts/components/AnimalNavigation.gd")
 const Lighting = preload("res://scripts/components/UndergroundLighting.gd")
+const VoxelShadows = preload("res://scripts/components/VoxelShadowSetup.gd")
 
 var animal_id := ""
 var definition: Dictionary
@@ -48,11 +49,12 @@ func _build_visual(_models: Dictionary) -> void:
 	pass # Species supplies articulated model parts.
 
 func _materials(node: Node) -> void:
+	if VoxelShadows.is_proxy(node): return
 	if node is MeshInstance3D:
 		var material := StandardMaterial3D.new()
 		material.vertex_color_use_as_albedo = true
 		material.roughness = 1.0
-		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		material.cull_mode = BaseMaterial3D.CULL_BACK if VoxelShadows.proxy_for_visual(node)!=null else BaseMaterial3D.CULL_DISABLED
 		node.material_override = material
 	for child in node.get_children(): _materials(child)
 

@@ -1,0 +1,127 @@
+{
+  "family": "construction",
+  "grid": 16,
+  "complete": true,
+  "assets": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4096,
+          "visual_triangles": 74,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "bytes": 9836,
+      "sha256": "eab9c1e88f63462d56521770393884a0be899ccdea886267a6e744109a1423b3",
+      "path": "assets/models/construction/plank_floor.glb",
+      "authoring": {
+        "structural": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4096,
+          "visual_triangles": 76,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "bytes": 10028,
+      "sha256": "41a8857ff41b9111883b7c358ec0941ed811dcedfb077388e5d62567fd15c9d8",
+      "path": "assets/models/construction/plank_floor_alternate.glb",
+      "authoring": {
+        "structural": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4096,
+          "visual_triangles": 66,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "bytes": 9100,
+      "sha256": "8f79dd528350f509ee64470e2f0f64e2b163a5a72ff372d9e2ffdfee2d5d41ee",
+      "path": "assets/models/construction/stone_floor.glb",
+      "authoring": {
+        "structural": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 324,
+          "visual_triangles": 100,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 92
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 19636,
+      "sha256": "1b61b4c2bce649593c9962760971a3e1e36644b540db7ed94976e665d280b415",
+      "path": "assets/models/construction/materials_crate.glb",
+      "authoring": {
+        "structural": false
+      }
+    }
+  ]
+}

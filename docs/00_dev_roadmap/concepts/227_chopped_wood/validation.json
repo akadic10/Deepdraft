@@ -1,0 +1,325 @@
+{
+  "status": "pass",
+  "source_sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+  "native_checks": {
+    "timber_staged_gallery": "VOXEL_GALLERY_PASS 92",
+    "timber_item_test_fixed": "ITEM_VOXEL_ART_OK",
+    "timber_manifest_test": "VOXEL_MANIFEST_PASS 1013",
+    "timber_hauling_test": "HAULING_CAPACITY_OK",
+    "timber_support_test": "LOOSE_ITEM_SUPPORT_OK",
+    "timber_craft_test": "CRAFT_MATERIAL_OK",
+    "timber_production_review_fixed": "TIMBER_REVIEW_OK",
+    "timber_thumbnails": "INVENTORY_THUMBNAILS_OK: 4",
+    "timber_benchmark_final": "TIMBER_BENCHMARK_OK"
+  },
+  "source_tests": {
+    "goods": 5,
+    "chair": 3
+  },
+  "unchanged_item_models": 88,
+  "unchanged_furniture_models": 50,
+  "before": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 720,
+          "visual_triangles": 160,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8,
+            "triangles": 36
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.25,
+            0.5,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 19976,
+      "sha256": "9c57674bdaadd0815ef1203c09706a9e3ed6d7f6b114915468fbbfb2c8fd2cb6",
+      "path": "assets/models/items/wood/oak_log.glb",
+      "authoring": {
+        "item": "oak_log"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 720,
+          "visual_triangles": 160,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8,
+            "triangles": 36
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.25,
+            0.5,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 19976,
+      "sha256": "edb56572215514d3af403ee354c2b9437c855a76b9c8c7b2f16c3b65b42169e0",
+      "path": "assets/models/items/wood/pine_log.glb",
+      "authoring": {
+        "item": "pine_log"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 720,
+          "visual_triangles": 160,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8,
+            "triangles": 36
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.25,
+            0.5,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 19980,
+      "sha256": "9adac9ed280a97ab0c1b299226751116597c2206ab52a6d17afe3c03d4e7d06a",
+      "path": "assets/models/items/wood/apple_wood.glb",
+      "authoring": {
+        "item": "apple_wood"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 720,
+          "visual_triangles": 160,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8,
+            "triangles": 36
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.25,
+            0.5,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 19980,
+      "sha256": "b967e41d05549d0083306e73c1596980f6475d299b30cadf5da8b98ec0ba1958",
+      "path": "assets/models/items/wood/juniper_log.glb",
+      "authoring": {
+        "item": "juniper_log"
+      }
+    }
+  ],
+  "after": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2072,
+          "visual_triangles": 402,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8378378378378378,
+            "triangles": 84
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 46680,
+      "sha256": "f99cba2c64e015fe85ee62eb6fcc2573e3efc753c18c831cee3c0b0740b59f6c",
+      "path": "assets/models/items/wood/oak_log.glb",
+      "authoring": {
+        "item": "oak_log",
+        "source": {
+          "source": "data/art/sources/log_logchair.vox",
+          "sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+          "model_index": 0,
+          "size": [
+            16,
+            16,
+            16
+          ],
+          "cells": 2072,
+          "palette_source": "camp_log",
+          "note": "Exact player stump occupancy at 1:16; bark on the horizontal perimeter, exposed cut wood and growth rings inside. Uses existing semantic wood material roles."
+        },
+        "material": "base:material:oak",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2072,
+          "visual_triangles": 402,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8378378378378378,
+            "triangles": 84
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 46684,
+      "sha256": "aa82752bcd90e6310b930c7b9778505fd05436c9b67ff7389086cdf13765a17f",
+      "path": "assets/models/items/wood/pine_log.glb",
+      "authoring": {
+        "item": "pine_log",
+        "source": {
+          "source": "data/art/sources/log_logchair.vox",
+          "sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+          "model_index": 0,
+          "size": [
+            16,
+            16,
+            16
+          ],
+          "cells": 2072,
+          "palette_source": "camp_log",
+          "note": "Exact player stump occupancy at 1:16; bark on the horizontal perimeter, exposed cut wood and growth rings inside. Uses existing semantic wood material roles."
+        },
+        "material": "base:material:pine",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2072,
+          "visual_triangles": 402,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8378378378378378,
+            "triangles": 84
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 46684,
+      "sha256": "c873e4cd6353075d6ac6e459c8e7c2ef659c545585c69dee3a7d510a023108a9",
+      "path": "assets/models/items/wood/apple_wood.glb",
+      "authoring": {
+        "item": "apple_wood",
+        "source": {
+          "source": "data/art/sources/log_logchair.vox",
+          "sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+          "model_index": 0,
+          "size": [
+            16,
+            16,
+            16
+          ],
+          "cells": 2072,
+          "palette_source": "camp_log",
+          "note": "Exact player stump occupancy at 1:16; bark on the horizontal perimeter, exposed cut wood and growth rings inside. Uses existing semantic wood material roles."
+        },
+        "material": "base:material:applewood",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2072,
+          "visual_triangles": 402,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8378378378378378,
+            "triangles": 84
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 46684,
+      "sha256": "e854281746c2d53e6db671fc45ffca3114a7d1bf761b8ff499910e945e625fec",
+      "path": "assets/models/items/wood/juniper_log.glb",
+      "authoring": {
+        "item": "juniper_log",
+        "source": {
+          "source": "data/art/sources/log_logchair.vox",
+          "sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+          "model_index": 0,
+          "size": [
+            16,
+            16,
+            16
+          ],
+          "cells": 2072,
+          "palette_source": "camp_log",
+          "note": "Exact player stump occupancy at 1:16; bark on the horizontal perimeter, exposed cut wood and growth rings inside. Uses existing semantic wood material roles."
+        },
+        "material": "base:material:juniper",
+        "orientation": "horizontal_z"
+      }
+    }
+  ]
+}

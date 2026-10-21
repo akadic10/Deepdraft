@@ -94,6 +94,7 @@ var _handling_lifted := false
 var _haul_source_id: int = -1
 var _haul_items: Array[Node3D] = []  # this round's bundle, visit order
 var _haul_index: int = 0             # next bundle item to fetch
+var _handling_fruit_topup := false
 var _haul_deposit: Vector3i = Vector3i(-1, -1, -1)
 var _haul_failures: int = 0
 var _haul_exclude: Dictionary = {}   # Node3D -> true; this-round item blacklist
@@ -946,6 +947,10 @@ func _haul_pull_next() -> void:
 		current_task_id = -1
 		_work_execution.complete(dwarf_id)
 		return
+	var task := TaskManager.get_task(current_task_id)
+	if source is StorageComponent and task != null:
+		source.plan_fruit_haul(dwarf_id,task.payload.get("haul_delivery_path",[]),_haul_exclude,
+			task.payload.get("haul_pickup_path",[]))
 	_haul_items = pull["items"]
 	_haul_index = 0
 	_haul_deposit = pull["deposit_target"]
@@ -970,12 +975,30 @@ func _haul_walk_current() -> void:
 				_drop_carried_at_feet()
 				_haul_cancel_pull()
 				_haul_count_failure()
+			elif _task_phase==TaskPhase.HAUL_TO_ZONE and delivery_source is StorageComponent:
+				# Reconsider matching fruit on the actual delivery path after pickups.
+				# This runs at handling boundaries, never as a per-frame item scan.
+				if delivery_source.plan_fruit_haul(dwarf_id,_move_path,_haul_exclude):
+					_clear_path()
+					_haul_walk_current()
 		return
 	var item := _haul_items[_haul_index]
 	if item == null or not is_instance_valid(item):
 		_haul_skip_current()
 		return
 	var source := _haul_source()
+	if source is StorageComponent:
+		var planned: Array[Vector3i] = source.fruit_pickup_path(dwarf_id,_haul_index)
+		if not planned.is_empty() and planned.front()==current_cell() and planned.back() in source.pickup_stand_cells(dwarf_id,_haul_index):
+			_reset_part_offsets()
+			_move_path=planned
+			_move_index=0
+			_move_validation_index=-1
+			_ladder_path_revision=NavGrid.ladder_revision
+			_walk_cycle=0.0
+			_shortcut_timer=0.0
+			_task_phase=TaskPhase.HAUL_TO_ITEM
+			return
 	if source == null or not _walk_to_handling_stand(source.call("pickup_stand_cells", dwarf_id, _haul_index), TaskPhase.HAUL_TO_ITEM):
 		_haul_skip_current()
 
@@ -986,6 +1009,8 @@ func _haul_pickup_current() -> void:
 		_haul_skip_current()
 		return
 	_begin_item_pickup(_haul_items[_haul_index], TaskPhase.HAUL_PICKUP)
+	var source := _haul_source()
+	_handling_fruit_topup = source is StorageComponent and source.is_fruit_topup(dwarf_id)
 
 
 func _haul_take_current() -> bool:
@@ -1001,9 +1026,12 @@ func _haul_take_current() -> bool:
 		_haul_skip_current()   # item vanished / raced — bundle continues
 		return false
 	var key := String(node.get_meta("item_key", ""))
-	_carried_entries.append([node, key])
-	add_child(node)
-	node.transform = _handling_start
+	if not _carried_entries.any(func(entry: Array): return entry[0]==node):
+		_carried_entries.append([node, key])
+		add_child(node)
+		node.transform = _handling_start
+	else:
+		_carry_pose.clear_items() # Contents may have selected a fuller basket model.
 	_handling_item = node # A partial produce-crate pickup can return a new node.
 	return true
 
@@ -1216,7 +1244,10 @@ func _process_item_handling(delta: float) -> void:
 			if not took:
 				return
 			_handling_lifted = true
-		_carry_pose.pickup(phase, _handling_item, _handling_start, _carried_entries, _handling_lifted)
+		if _handling_fruit_topup:
+			_carry_pose.gather_into(phase,_handling_start,_carried_entries)
+		else:
+			_carry_pose.pickup(phase, _handling_item, _handling_start, _carried_entries, _handling_lifted)
 	else:
 		rotation.y = lerp_angle(_handling_yaw_from, _handling_yaw_to, smoothstep(0.0, .35, phase))
 		_carry_pose.lower(phase, _carried_entries, to_local(_handling_target))
@@ -1239,6 +1270,7 @@ func _process_item_handling(delta: float) -> void:
 
 
 func _clear_item_handling() -> void:
+	_handling_fruit_topup = false
 	_handling_item = null
 	_handling_elapsed = 0.0
 	_handling_lifted = false
@@ -2010,8 +2042,8 @@ func _build_parts() -> void:
 	_hand_r = _attach(self, "MeshHandR", DwarfAssets.hand, true)
 	_foot_l = _attach(self, "MeshFootL", DwarfAssets.foot)
 	_foot_r = _attach(self, "MeshFootR", DwarfAssets.foot, true)
-	# Capture these presentation scales in the work rigs' rest transforms.
-	# Shared authoring coordinates, palms and all vertical anchors stay intact.
+	# Production voxel widths are baked (unit factors); capture the same authored
+	# frame in every work/rest rig. Palms and vertical anchors stay intact.
 	if _body != null: _body.scale.x = proportions.body_width
 	if _head != null: _head.scale.x = proportions.head_width
 	_relaxed_stance()
@@ -2051,6 +2083,7 @@ func _attach(parent: Node3D, part_name: String, packed: PackedScene, mirror: boo
 			mesh.mesh = DwarfAssets.mirrored_limb_mesh(mesh.mesh)
 			mesh.transform = mesh.transform * reflection
 	parent.add_child(instance)
+	preload("res://scripts/components/VoxelShadowSetup.gd").configure(instance)
 	return instance
 
 
@@ -2122,13 +2155,14 @@ func _apply_tints() -> void:
 func _tint(node: Node, color: Color, recurse_children: bool = true) -> void:
 	if node == null:
 		return
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D:
 		var mat := StandardMaterial3D.new()
 		mat.vertex_color_use_as_albedo = true
 		mat.albedo_color = color
 		mat.roughness = 1.0
 		mat.metallic = 0.0
-		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mat.cull_mode = BaseMaterial3D.CULL_BACK if preload("res://scripts/components/VoxelShadowSetup.gd").proxy_for_visual(node)!=null else BaseMaterial3D.CULL_DISABLED
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 		(node as MeshInstance3D).material_override = mat
 	for child in node.get_children():

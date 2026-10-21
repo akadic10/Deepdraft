@@ -26,6 +26,7 @@ var _outgoing: Dictionary = {}
 
 var _lease_ids: Dictionary = {}               # task_id -> true (live HAUL leases)
 var _pulls: Dictionary = {}                   # dwarf_id -> {items, deposits, cargo, picked}
+const FruitPlanner = preload("res://scripts/components/FruitHaulPlanner.gd")
 
 
 # ── Subclass surface (abstract — override all of these) ───────────────────────
@@ -473,11 +474,13 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 		var cost := _carry_cost(key)
 		if cost > remaining:
 			continue
-		var token: Variant = _reserve_deposit(key, main_cell, dwarf_id, int(drop_manager.call("quantity_of", item)), CraftMaterials.of_item(item))
+		var amount := int(drop_manager.quantity_of(item))
+		var fruit_item: bool = _item_capacity(key)>1 and not drop_manager.food_definition(key).is_empty() and not item.has_meta("instance_id")
+		var token: Variant = _reserve_fruit_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item)) if fruit_item else _reserve_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item))
 		if token == null:
 			continue
 		if not bool(drop_manager.call("reserve", item, dwarf_id)):
-			_release_deposit(token)
+			_release_haul_deposit(token)
 			continue   # raced another hauler; try the next candidate
 		reserved_items.append(item)
 		deposits[item] = token
@@ -492,11 +495,94 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 
 	var ordered := _visit_order(reserved_items, dwarf_cell)
 	_pulls[dwarf_id] = { "items": ordered, "deposits": deposits, "cargo": {}, "picked": {} }
+	# One edible produce basket may collect matching contents from other baskets.
+	# Physical carry cost and non-food crates retain their existing rules.
+	var main_key: String = drop_manager.item_key_of(main)
+	if ordered.size()==1 and _item_capacity(main_key)>1 and not drop_manager.food_definition(main_key).is_empty() and not main.has_meta("instance_id"):
+		_pulls[dwarf_id]["fruit"] = {"key":main_key,"material":CraftMaterials.of_item(main),
+			"basket":null,"paths":{},"detour":0}
 	return {
 		"items": ordered,
 		"deposit_target": _deposit_walk_target(deposits[ordered[0]]),
 		"carry_mult": carry_speed_mult_heavy if any_heavy else 1.0,
 	}
+
+
+## All claims are made before pickup. Each source and destination retains its
+## exact quantity, even though several sources become one physical carried node.
+func plan_fruit_haul(dwarf_id: int, route: Array[Vector3i], exclude: Dictionary,
+		pickup_path: Array[Vector3i] = []) -> bool:
+	var pull: Dictionary = _pulls.get(dwarf_id,{})
+	if not pull.has("fruit") or route.is_empty(): return false
+	var fruit: Dictionary = pull.fruit
+	if not accepts_key(fruit.key): return false
+	if not pickup_path.is_empty() and (pickup_path.back()!=route.front() or not route.front() in pickup_stand_cells(dwarf_id,0)): return false
+	var config := TaskManager.get_config_section("hauling")
+	var deadline := Time.get_ticks_usec()+int(config.get("fruit_planning_budget_usec",750))
+	var omitted := exclude.duplicate()
+	var count := 0
+	for item in pull.deposits:
+		omitted[item]=true
+		if bool(pull.deposits[item].active): count+=int(pull.deposits[item].count)
+	if not pickup_path.is_empty(): fruit.paths[pull.items[0]]=pickup_path
+	var added := false
+	while count < _item_capacity(fruit.key) and Time.get_ticks_usec()<deadline:
+		var remaining_detour := maxi(0,int(config.get("fruit_detour_blocks",8))-int(fruit.detour))
+		var choice := FruitPlanner.candidate(drop_manager,fruit.key,fruit.material,route,omitted,remaining_detour,deadline,config)
+		if choice.is_empty(): break
+		var item: Node3D = choice.item
+		omitted[item]=true
+		var amount := mini(_item_capacity(fruit.key)-count,int(drop_manager.quantity_of(item)))
+		var token = _reserve_fruit_deposit(fruit.key,drop_manager.item_floor_cell(item),dwarf_id,amount,fruit.material)
+		if token==null: break
+		if not drop_manager.reserve(item,dwarf_id):
+			_release_haul_deposit(token)
+			continue
+		pull.items.append(item)
+		pull.deposits[item]=token
+		fruit.paths[item]=choice.pickup
+		fruit.detour+=int(choice.detour)
+		count+=int(token.count)
+		route=choice.onward
+		added=true
+	return added
+
+
+func fruit_pickup_path(dwarf_id: int, index: int) -> Array[Vector3i]:
+	var pull: Dictionary = _pulls.get(dwarf_id,{})
+	if not pull.has("fruit") or index<0 or index>=pull.items.size(): return []
+	# Dictionary.get's untyped [] cannot be returned as Array[Vector3i]. A
+	# retry can legitimately have no cached route and must use normal pathing.
+	if not pull.fruit.paths.has(pull.items[index]): return []
+	return pull.fruit.paths[pull.items[index]]
+
+
+func is_fruit_topup(dwarf_id: int) -> bool:
+	return is_instance_valid(_pulls.get(dwarf_id,{}).get("fruit",{}).get("basket"))
+
+
+static func cargo_deposits(token: Dictionary) -> Array:
+	return token.get("parts",[token])
+
+
+func _reserve_fruit_deposit(key: String, near: Vector3i, owner: int, amount: int, material: String) -> Variant:
+	var parts: Array = []
+	var remaining := amount
+	while remaining>0:
+		var token = _reserve_deposit(key,near,owner,remaining,material)
+		if token==null: break
+		parts.append(token)
+		remaining-=int(token.count)
+	if parts.is_empty(): return null
+	var group: Dictionary=parts[0].duplicate()
+	group["parts"]=parts
+	group.count=amount-remaining
+	return group
+
+
+func _release_haul_deposit(token: Dictionary) -> void:
+	for part: Dictionary in cargo_deposits(token): _release_deposit(part)
+	if token.has("parts"): token.active=false
 
 
 ## Read-only placement offers from this haul. A relocation marker represents
@@ -536,7 +622,7 @@ func cancel_haul(dwarf_id: int) -> void:
 	_pulls.erase(dwarf_id)
 	_release_transfer(pull)
 	for token: Variant in pull["deposits"].values():
-		_release_deposit(token)
+		_release_haul_deposit(token)
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return
 	var items: Array = pull["items"]
@@ -567,8 +653,24 @@ func take_item(dwarf_id: int, index: int) -> Node3D:
 	if not accepts_key(String(pull.deposits[item].item)): return null
 	var cargo: Node3D = _take_relocation(pull.transfer, dwarf_id) if pull.has("transfer") else drop_manager.call("take_quantity", item, int(pull.deposits[item].count), dwarf_id)
 	if cargo != null:
-		pull.cargo[cargo] = pull.deposits[item]
 		pull.picked[item] = true
+		if pull.has("fruit"):
+			var basket: Node3D = pull.fruit.basket
+			if is_instance_valid(basket):
+				var group: Dictionary = pull.cargo[basket]
+				group.parts.append_array(cargo_deposits(pull.deposits[item]))
+				group.count+=int(pull.deposits[item].count)
+				drop_manager.set_quantity(basket,int(group.count))
+				pull.items[index]=basket # Retain a live, already-picked identity in the visit list.
+				pull.picked[basket]=true
+				cargo.queue_free()
+				return basket
+			pull.fruit.basket=cargo
+			var group: Dictionary = pull.deposits[item].duplicate()
+			group["parts"]=cargo_deposits(pull.deposits[item]).duplicate()
+			pull.cargo[cargo]=group
+		else:
+			pull.cargo[cargo] = pull.deposits[item]
 	return cargo
 
 
@@ -586,7 +688,7 @@ func skip_item(dwarf_id: int, index: int) -> void:
 				and drop_manager != null and is_instance_valid(drop_manager):
 			drop_manager.call("unreserve", item, dwarf_id)
 		if pull.deposits.has(item):
-			_release_deposit(pull.deposits[item])
+			_release_haul_deposit(pull.deposits[item])
 
 
 ## Step 4: multi-deposit. `carried` = [[node, item_key], ...].
@@ -603,16 +705,28 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 		var token: Dictionary = pull.cargo[entry[0]]
 		if String(token.item) != String(entry[1]) or int(token.count) != int(drop_manager.call("quantity_of", entry[0])):
 			return false
+		var total := 0
+		for part: Dictionary in cargo_deposits(token):
+			if not bool(part.active) or part.item!=token.item or part.get("material_id","")!=CraftMaterials.of_item(entry[0]): return false
+			total+=int(part.count)
+		if total!=int(token.count): return false
 	for entry: Array in carried:
 		var node: Node3D = entry[0]
 		var key: String = entry[1]
 		var token: Dictionary = pull.cargo[node]
-		if node.has_meta("instance_id"): token["instance_id"] = node.get_meta("instance_id")
-		token["material_id"] = CraftMaterials.of_item(node)
-		_commit_one(token, key)
-		_place_visual(node, token)
-		if changed_callback.is_valid():
-			changed_callback.call(key, int(token.count))
+		var parts := cargo_deposits(token)
+		for i in parts.size():
+			var part: Dictionary = parts[i]
+			var portion: Node3D = node
+			if i < parts.size()-1:
+				portion=drop_manager.create_item_visual(key,int(part.count),"",CraftMaterials.of_item(node))
+			else:
+				drop_manager.set_quantity(portion,int(part.count))
+			if node.has_meta("instance_id"): part["instance_id"] = node.get_meta("instance_id")
+			part["material_id"] = CraftMaterials.of_item(node)
+			_commit_one(part, key)
+			_place_visual(portion, part)
+			if changed_callback.is_valid(): changed_callback.call(key, int(part.count))
 	cancel_haul(dwarf_id)
 	changed.emit()
 	return not carried.is_empty()

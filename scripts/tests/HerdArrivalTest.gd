@@ -132,7 +132,7 @@ func _test_wide_obstructions() -> void:
 	var at := _unpack(batch.member_routes[0][2])+Vector3i(1, 2, 1)
 	_materialize(at)
 	var old: int = navigation.block_at(at)
-	world.set_block(at.x, at.y, at.z, root.get_node("BlockRegistry").get_id("base:terrain:stone:granite"))
+	world.set_block(at.x, at.y, at.z, root.get_node("BlockRegistry").get_id("base:terrain:rock:rock01"))
 	_check(wildlife.spawn_arrival_member(settings, batch, events) == "blocked", "deer checks upper clearance in its second footprint column")
 	world.set_block(at.x, at.y, at.z, old)
 	at = _unpack(batch.member_routes[0][2])+Vector3i(1, -1, 1)

@@ -1,0 +1,110 @@
+[
+  {
+    "asset": "barrel.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "b140f139c1835b038166ae9c7fd9f745cdceeaace96bf39fad48816f4cad1b53",
+    "new_sha256": "b356cacb37c3a206c467f5580033a527c5b02306cdae5865ae3da26fc732c19f"
+  },
+  {
+    "asset": "bush.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "11a4d45784348b14347515847f35bd446f416b0135a80c2428b65b3727f1de17",
+    "new_sha256": "8cdf7c7019511fdff9c6076e83cd1249360e50d841d0795515a803e322ae02be"
+  },
+  {
+    "asset": "deer/antlers.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "3647076b082808d6d828ef29750afaddb98453979bc8b5f8e1d78ddf9947ab74",
+    "new_sha256": "3429e2312dd1e0c0de0ddda29560ec1b29a814be1c5af2a64d3ab4d0b1979b12"
+  },
+  {
+    "asset": "deer/body.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "4f73f556c15807ac36d9084c0d8d04ebe148b3cccd067a6c9a0afa3f589b1c9d",
+    "new_sha256": "99a32a66a50dd1192291633d51743317d0531b3c8a26db901308ed3a16ccbcea"
+  },
+  {
+    "asset": "deer/ears.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "cbe4a2c8ccfb2fc24705403e389d6f1dc78ddf10b053902eb8d46b7b8ea37bae",
+    "new_sha256": "621e1a60f0c96ec71aa236429ce3d5720265ac002c45f96e863a65f1103f8077"
+  },
+  {
+    "asset": "deer/head.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "249789ca261ae5aac6f332bddca4c238b8018469ec68d17166ca3cc3ff0e3afe",
+    "new_sha256": "f89e90005636742c22c393ba569354519defeeead016f64bd1ca37c483533b11"
+  },
+  {
+    "asset": "deer/leg.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "84c863741d603cd28e8cb5581f5b399d99d888ca5e7f91d7a3f9f03c71476e64",
+    "new_sha256": "e3071249a6196123d93957483fcfa57447cf5410d741e21516164db54dc13aa1"
+  },
+  {
+    "asset": "deer/neck.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "77301c7b0bbdaf2c9b17b830c5afbdd230b973c70356168e2f68e2e752434abc",
+    "new_sha256": "9365a5e639bc0536a265670b0002394251aeadb5b46a225e0972a1c7ef5ac208"
+  },
+  {
+    "asset": "dwarf/beard.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "f1d15372e228add489bd99a3d140dcb9cc1cf13149e4c7e1f30dc0385498cbd4",
+    "new_sha256": "a7dfe9fddfea42cc65ffe2fc221aa6841850bb049b59e3323e1145e9fd94bb64"
+  },
+  {
+    "asset": "dwarf/body.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "f74103d2218d4b4404238c5265fc05d70da467e42e1d555ae24d7024e1474481",
+    "new_sha256": "7347cf510485759a39136de86f08742910461117ae99b6e7e512ab94acdc5676"
+  },
+  {
+    "asset": "dwarf/brows.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "4a82a19e307b841e45c4505686c864b0b62366b864ec6e498468c9c207d5d093",
+    "new_sha256": "d808974a1d623be7c73072bc34370ef229b25e9c838dc7fb4b996189f8f3584b"
+  },
+  {
+    "asset": "dwarf/eyes.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "df8df7298444de79384e19644cfd59c018227e78cd4f0a564d365a168087e704",
+    "new_sha256": "a6f05bb7ac852893aefffebc64e2b9339d1e32cff075d1308b0fb0edd2e835c5"
+  },
+  {
+    "asset": "dwarf/foot.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "62334f51a3d0e6d2c3f582b9f5790ede110a2ea63d4694574c43a57b749bcd34",
+    "new_sha256": "566d7751e92c51cf52880d77f2fc49aeaae3f0f9a39c9fb04c24c7104fbfe442"
+  },
+  {
+    "asset": "dwarf/hair.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "debea39a327d7f9f204615576ea580d50b63b448f0c2f70b1a0d765b5d35c9c5",
+    "new_sha256": "fcf49f389ad811bcd19958a3c56bff31a57f0831e895c84247d4b5f2aa496d80"
+  },
+  {
+    "asset": "dwarf/hand.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "00529e0d080ca33e4770c27e0d749b6f593172e39f24c50455a9ff6cd924d19f",
+    "new_sha256": "778160e19758b0434a5092b985476f223bab6288b3eec4ece967c1c969014c86"
+  },
+  {
+    "asset": "dwarf/head.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "ddc6bb9fe1fe9bdec47940caa1ab1598fb559da8b99b09eff477e1fdaf489243",
+    "new_sha256": "5e8538b38e83bb3412083aefd0ae52b0e3b174b8617fb9941ed0c29523174bce"
+  },
+  {
+    "asset": "pine.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "8e79d9926e861401c49f88af1ebc680636148c0ca78d7a8c9197bde2baa9a81f",
+    "new_sha256": "7795a1f87ad01aba22e7b468507d258a62f9b9778aeda3f771160eb55f8b4fb2"
+  },
+  {
+    "asset": "stool.glb",
+    "visual_attributes_and_indices_identical": true,
+    "old_sha256": "82cb150c339788b4b6e87637066e2487b45eeab5466ffb6744e6d17d86e2404a",
+    "new_sha256": "8ea22eea01427aa1a748655d6e7d63d183df2d377a480db77c2b4b8d1334d1d8"
+  }
+]

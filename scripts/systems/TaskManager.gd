@@ -691,12 +691,16 @@ func _advance_worker_probe(context: Dictionary, agent: DwarfAgent, from: Vector3
 		goal: Vector3i, t_start: int, goals: Dictionary = {}) -> int:
 	var before := int(context.get("route_query",{}).get("expanded",0))
 	var result := _advance_work_probe(context,from,goal,t_start,goals)
+	_extend_planning_hold(agent, context.get("route_query",{}), before, result)
+	return result
+
+
+func _extend_planning_hold(agent: DwarfAgent, query: Dictionary, before: int, result: int) -> void:
 	if result == NavGrid.ProbeResult.SEARCHING \
-			and int(context.get("route_query",{}).get("expanded",0)) > before \
+			and int(query.get("expanded",0)) > before \
 			and planning_held(agent.dwarf_id):
 		_planning_holds[agent.dwarf_id].until = journal.now \
 			+ float(get_config_section("supervision").get("planning_hold_seconds",4.0))
-	return result
 
 
 ## One search accepts any exact mining position. Disconnected shelves cannot
@@ -713,8 +717,12 @@ func _advance_mining_probe(task: Task, agent: DwarfAgent, source: Object, t_star
 		_work_probe.merge({"key":key, "goals":goals, "route_query":{}})
 	if _work_probe.goals.is_empty(): return NavGrid.ProbeResult.UNREACHABLE
 	query = _work_probe.route_query
+	var before := int(query.get("expanded",0))
 	var result := RouteProbe.advance(query, from, _work_probe.goals.keys()[0],
 		_probe_node_cap, t_start + _budget_usec, false, _work_probe.goals)
+	# Leisure must not move the start of a mining route that is still making
+	# progress, even when the search spans several planning-hold periods.
+	_extend_planning_hold(agent, query, before, result)
 	if result == NavGrid.ProbeResult.REACHABLE:
 		var candidate: Dictionary = _work_probe.goals[query.path.back()]
 		if not source.mining_candidate_available(candidate):
@@ -1147,6 +1155,7 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 					continue
 				route.pickup_ok = true
 				route["pickup_stand"] = route.last_route.path.back()
+				route["pickup_path"] = route.last_route.path
 				route.slices = 0
 			if not _within_budget(t_start, probes_left): return 0
 			var destination := task.target_pos
@@ -1168,6 +1177,8 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 				var excluded: Dictionary = (_haul_match.excluded.get(agent.dwarf_id, {}) as Dictionary).duplicate()
 				excluded.merge(_haul_match.deferred.get(agent.dwarf_id,{}))
 				task.payload["haul_excluded_cells"] = excluded.keys()
+				task.payload["haul_pickup_path"] = route.pickup_path
+				task.payload["haul_delivery_path"] = route.last_route.path
 				_haul_match.clear()
 				_assign(task, agent)
 				assigned = true

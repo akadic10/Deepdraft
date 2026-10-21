@@ -1,6 +1,7 @@
 extends SceneTree
 
-## Imported-asset and live-spawner contracts for the complete clustered tree family.
+## Imported-asset and live-spawner contracts for the complete voxel tree family.
+const Shadows = preload("res://scripts/components/VoxelShadowSetup.gd")
 var failures: Array[String] = []
 var checks := 0
 var model_count := 0
@@ -87,11 +88,14 @@ func _check_asset(flora: Node, path: String, footprint: int, stage: String) -> v
 	var model := packed.instantiate() as Node3D
 	_expect(model.transform.is_equal_approx(Transform3D.IDENTITY),"root unit transform")
 	_expect(model.find_children("*","CollisionObject3D",true,false).is_empty(),"authored canopy has no physics")
-	var meshes := model.find_children("*","MeshInstance3D",true,false)
-	if model is MeshInstance3D: meshes.append(model)
-	_expect(meshes.size() == 1,"one mesh per model")
+	var meshes := Shadows.visual_meshes(model)
+	_expect(meshes.size() == 1,"one greedy visual mesh per model")
+	_expect(Shadows.configure(model)==1,"one imported shadow proxy pair")
 	flora._apply_material_recursive(model)
 	for instance: MeshInstance3D in meshes:
+		var proxy := Shadows.proxy_for_visual(instance)
+		_expect(instance.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"visual shadow casting disabled")
+		_expect(proxy!=null and proxy.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY,"proxy casts shadows only")
 		_expect(instance.material_override == flora._tree_material,"shared production material")
 		_expect(instance.mesh.get_surface_count() == 1,"one surface/material per model")
 		var bounds := instance.mesh.get_aabb()
@@ -101,9 +105,14 @@ func _check_asset(flora: Node, path: String, footprint: int, stage: String) -> v
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
 		var bad_low_vertices := 0
+		var off_grid := 0
 		for vertex: Vector3 in vertices:
 			if stage != "sapling" and vertex.y < 3.99 and (absf(vertex.x) > footprint*.5+.001 or absf(vertex.z) > footprint*.5+.001): bad_low_vertices += 1
+			# Godot packs imported positions; the source audit checks exact 1:16.
+			for axis in range(3):
+				if absf(vertex[axis]*16-roundf(vertex[axis]*16))>.02: off_grid+=1
 		_expect(bad_low_vertices == 0,"three-block walking clearance under overhang")
+		_expect(off_grid==0,"imported voxel grid survives mesh quantization")
 		var opaque := true
 		for color: Color in colors:
 			if color.a < .999: opaque = false

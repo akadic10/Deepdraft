@@ -1,0 +1,70 @@
+{
+  "seasonal_refresh": [
+    {
+      "season": "spring",
+      "hour": 6.0,
+      "before_ms": 9024,
+      "after_ms": 9909,
+      "delta_ms": 885
+    },
+    {
+      "season": "summer",
+      "hour": 14.0,
+      "before_ms": 8975,
+      "after_ms": 9171,
+      "delta_ms": 196
+    },
+    {
+      "season": "autumn",
+      "hour": 19.0,
+      "before_ms": 9002,
+      "after_ms": 9179,
+      "delta_ms": 177
+    },
+    {
+      "season": "winter",
+      "hour": 2.0,
+      "before_ms": 8822,
+      "after_ms": 9262,
+      "delta_ms": 440
+    }
+  ],
+  "source_sha256": "64101240e0ce170fdb3ddae2417725e4aa8f071860fad495f502414c6718e5b9",
+  "startup": {
+    "old_source_complete": {
+      "ready_s": [
+        8.987,
+        10.272
+      ],
+      "overview_s": [
+        13.35,
+        15.14
+      ]
+    },
+    "voxel_complete_world": {
+      "ready_s": [
+        9.434,
+        10.204
+      ],
+      "overview_s": [
+        13.83,
+        15.17
+      ]
+    },
+    "voxel_complete_repeat": {
+      "ready_s": [
+        9.073,
+        10.553
+      ],
+      "overview_s": [
+        13.44,
+        15.47
+      ]
+    }
+  },
+  "limits": [
+    "Season times are complete renderer settle plus capture encoding, not an isolated mesh-generation benchmark.",
+    "One copied-save run per revision; the existing terrain and seasonal work queues dominate these waits.",
+    "Startup values are initial generation followed by benchmark save/reload, from identical seeded full-world runs."
+  ]
+}

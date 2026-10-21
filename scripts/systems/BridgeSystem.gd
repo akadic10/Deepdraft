@@ -344,6 +344,7 @@ func _refresh(route: Dictionary) -> void:
 func make_visual(span: int, material: Material = null) -> Node3D:
 	var path := String(definition.model).get_base_dir().path_join("log_bridge_%d.glb" % clampi(span,1,int(definition.bridge.max_span)))
 	var model: Node3D = load(path).instantiate()
+	preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(model,not (material is BaseMaterial3D and material.transparency!=BaseMaterial3D.TRANSPARENCY_DISABLED))
 	get_parent()._apply_material(model,material if material != null else get_parent()._make_solid_material())
 	return model
 

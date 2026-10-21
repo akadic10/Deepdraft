@@ -2,7 +2,7 @@
   "__comment": [
     "Apple tree — deciduous fruit tree, primary source of apples for mountain_cider.",
     "THREE growth stages: sapling (clutter) → mature (3×3) → ancient (5×5, world-gen only).",
-    "PERENNIAL FRUIT: authored autumn yields remain future gameplay; worker apple harvesting is not enabled yet.",
+    "PERENNIAL FRUIT: mature and ancient trees can be gathered once each autumn without felling.",
     "Fruit harvest is NON-DESTRUCTIVE — tree persists. Chop harvest gives wood + seeds only.",
     "Four seasonal models: spring (blossom), summer (leafy), autumn (gold/rust), winter (bare).",
     "Footprint follows the spreading-tree rule — see 42_farming_brewing.md § Surface Trees.",
@@ -108,6 +108,9 @@
           "yield_item": "base:resources:flora:apple",
           "yield_min": 4,
           "yield_max": 6,
+          "work_seconds": 4.0,
+          "action_label": "Gather apples",
+          "yield_label": "apples",
           "post_harvest": "persist"
         },
         "harvest": {
@@ -164,6 +167,9 @@
           "yield_item": "base:resources:flora:apple",
           "yield_min": 7,
           "yield_max": 10,
+          "work_seconds": 6.0,
+          "action_label": "Gather apples",
+          "yield_label": "apples",
           "post_harvest": "persist"
         },
         "harvest": {

@@ -57,7 +57,9 @@ func _build_visual(models: Dictionary) -> void:
 			body.add_child(wing)
 			var mesh: Node3D = models[variant+"_wing"].instantiate()
 			wing.add_child(mesh)
-			mesh.scale.x = side
+			if side<0:
+				for instance: MeshInstance3D in mesh.find_children("*","MeshInstance3D",true,false):
+					instance.mesh=preload("res://scripts/components/RigidMeshReflection.gd").mirrored(instance.mesh)
 			wing.set_meta("side",side)
 			_wings.append(wing)
 	for side in [-1,1]:
@@ -313,11 +315,11 @@ func _pose() -> void:
 	var wings_open := airborne and flight_index>1 and flight_index<flight.size()-1
 	for wing in _wings:
 		var side := int(wing.get_meta("side"))
-		wing.scale.x = 1.0 if wings_open else .43
-		wing.rotation.z = side*(sin(pose_time*18)*.7 if activity!="Landing" else .06) if wings_open else -side*(1.1+sin(pose_time*18)*.1 if launch_left>0 else 1.1)
+		wing.position=Vector3(side*.25,.65,0) if wings_open else Vector3(side*.25,.5,-.35)
+		wing.basis=Basis(Vector3.FORWARD,-side*(sin(pose_time*18)*.7 if activity!="Landing" else .06)) if wings_open else Basis(Vector3.UP,-side*PI*.5)*Basis(Vector3.RIGHT,-PI*.5)
 	for i in _feet.size():
-		_feet[i].position.y = .21 if airborne else 0.0
 		_feet[i].rotation.x = .8 if airborne else sin(pose_time*(20 if launch_left>0 else 12)+i*PI)*.5 if moving else 0.0
+		_feet[i].position.y = .21 if airborne else absf(sin(_feet[i].rotation.x))*.125
 	update_effect_visibility()
 	if is_instance_valid(_wake):
 		_wake.position = position+Vector3.UP*(float(definition.navigation.submerge)+.025)

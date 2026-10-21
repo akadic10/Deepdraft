@@ -2,7 +2,7 @@
   "furniture_key": "base:furniture:board_game_table",
   "furniture_category": "recreation",
   "display_name": "Board-game Table",
-  "description": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+  "description": "A rough log table with a scratched board and loose stone counters. Add a log stool to play alone, or two opposite stools to play together for more happiness.",
   "model": "res://assets/models/furniture/board_game_table.glb",
   "item_key": "base:resources:furniture:board_game_table",
   "placement": "floor",
@@ -12,32 +12,82 @@
     "depth": 3
   },
   "placement_label": "3 × 3 log game area",
-  "placement_note": "Place two separate log stools on the opposite guides outside the game area. Completed games restore happiness.",
+  "placement_note": "Place log stools on the opposite guides outside the game area. Solo play restores some happiness; playing together restores more.",
   "show_placement_area": true,
   "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
+        1,
         0,
-        0,
-        0
+        1
       ],
       "max": [
-        3,
-        0.85,
-        3
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "min": [
+        0.0625,
+        1,
+        0.0625
+      ],
+      "max": [
+        2.9375,
+        1.5,
+        2.9375
       ]
     }
   ],
   "room_anchor": false,
   "material_group": "wood",
-  "material_palette": "oak_log",
+  "material_palette": "hand_hewn_timber",
   "appeal": {
     "design": 2,
     "material_factor": 1
   },
   "recreation": "board_game",
-  "game_surface_height": 0.78,
+  "game_surface_height": 1.5,
+  "seating_obstacles": [
+    {
+      "min": [
+        1,
+        0,
+        1
+      ],
+      "max": [
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "min": [
+        0.0625,
+        1,
+        0.0625
+      ],
+      "max": [
+        2.9375,
+        1.5,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        0.8125,
+        1.5,
+        0.8125
+      ],
+      "max": [
+        2.25,
+        1.5625,
+        2.25
+      ]
+    }
+  ],
   "seating": {
     "chair_key": "base:furniture:log_chair",
     "snap_radius": 1.5,
@@ -59,6 +109,94 @@
         "yaw": 2
       }
     ],
-    "max_chairs": 2
+    "max_chairs": 2,
+    "chair_profile": {
+      "meal_hand_lift": 0.25,
+      "face_nearby_fire": false,
+      "rest_pose": {
+        "right_hand": [
+          0.5625,
+          0.5625,
+          0.8125
+        ],
+        "left_foot": [
+          0.3125,
+          0,
+          0.25
+        ],
+        "left_hand": [
+          -0.5625,
+          0.5625,
+          0.8125
+        ],
+        "body": [
+          0,
+          0.25,
+          0
+        ],
+        "right_foot": [
+          -0.3125,
+          0,
+          0.25
+        ],
+        "head": [
+          0,
+          0.375,
+          0
+        ]
+      },
+      "clearance_regions": [
+        {
+          "shape": "cylinder",
+          "min": [
+            -0.875,
+            1.6,
+            -0.875
+          ],
+          "max": [
+            1.875,
+            3.875,
+            1.875
+          ]
+        },
+        {
+          "min": [
+            -0.1875,
+            0.875,
+            -0.0625
+          ],
+          "max": [
+            1.1875,
+            2.125,
+            1.0625
+          ]
+        },
+        {
+          "min": [
+            -0.25,
+            1.5625,
+            1.125
+          ],
+          "max": [
+            1.25,
+            2.0625,
+            1.75
+          ]
+        },
+        {
+          "shape": "cylinder",
+          "min": [
+            -0.6875,
+            1.525,
+            -0.6875
+          ],
+          "max": [
+            1.6875,
+            2.8,
+            1.6875
+          ]
+        }
+      ]
+    }
   }
 }

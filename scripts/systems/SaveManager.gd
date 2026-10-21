@@ -41,6 +41,8 @@ var _loading_from_backup: bool = false
 var _loading_autosave: bool = false
 var _clock_was_paused_before_load: bool = false
 var _autosave_elapsed_seconds: float = 0.0
+var _startup_checked := false
+var _starting_new_game := false
 # ── LoadPerformance stamps ────────────────────────────────────────────────────
 # Times the load pipeline: request → read/validate → scene reload + regen wait
 # → per-owner restore. Printed by _print_load_performance at restore end. The
@@ -112,14 +114,93 @@ func register_dock(dock: Node) -> void:
 		dock.connect("load_game_requested", request_load)
 	if not dock.is_connected("load_autosave_requested", request_load_autosave):
 		dock.connect("load_autosave_requested", request_load_autosave)
-	if _loading:
+	if not dock.is_connected("new_game_requested", request_new_game):
+		dock.connect("new_game_requested", request_new_game)
+	if _starting_new_game:
+		_notify("Starting a new game…")
+	elif _loading:
 		_notify("Loading autosave…" if _loading_autosave else "Loading quick save…")
 
 
 func generation_seed_for_new_scene(fallback: int) -> int:
+	# Resolve startup before generation so only the selected world's seed is built.
+	# Ordinary scene reloads never auto-resume again.
+	if not _startup_checked:
+		_startup_checked = true
+		_load_request_msec = Time.get_ticks_msec()
+		var latest := _latest_valid_save()
+		if not latest.is_empty():
+			_prepare_restore(latest.snapshot, latest.autosave, latest.backup)
+	if _starting_new_game:
+		WorldClock.reset_for_new_game()
+		return 0 # WorldGenerator chooses a fresh seed.
 	if _loading and not _pending_restore.is_empty():
 		return int(_pending_restore.get("world_seed", fallback))
 	return fallback
+
+
+## Read only committed slots, newest first. Startup recovery never rewrites a
+## damaged primary; manual Load retains its existing repair behavior.
+func _latest_valid_save() -> Dictionary:
+	var candidates: Array[Dictionary] = []
+	for slot in [{"paths": _quick_save_paths(), "autosave": false},
+			{"paths": _autosave_paths(), "autosave": true}]:
+		for key in ["primary", "backup"]:
+			var path := String(slot.paths[key])
+			if FileAccess.file_exists(path):
+				candidates.append({"path": path, "autosave": slot.autosave,
+					"backup": key == "backup", "time": _save_timestamp(path),
+					"modified": FileAccess.get_modified_time(path)})
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if a.time != b.time: return a.time > b.time
+		if a.backup != b.backup: return not a.backup
+		if a.modified != b.modified: return a.modified > b.modified
+		return not a.autosave and b.autosave)
+	for candidate in candidates:
+		var result := _read_snapshot(candidate.path)
+		if result.get("ok", false):
+			candidate["snapshot"] = result.snapshot
+			return candidate
+		push_warning("SaveManager: skipping %s at startup: %s" % [candidate.path, result.get("error", "invalid save")])
+	if not candidates.is_empty():
+		_notify("No valid save could be loaded; starting a new world. Existing saves are unchanged.", true)
+	return {}
+
+
+func _save_timestamp(path: String) -> int:
+	# Our JSON writer places this metadata before the large scene payload. Avoid
+	# parsing several complete colonies just to order four files.
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file != null:
+		var header := file.get_buffer(8192).get_string_from_ascii()
+		file.close()
+		var pattern := RegEx.create_from_string('"saved_at_utc"\\s*:\\s*"(\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2})"')
+		var found := pattern.search(header)
+		if found != null:
+			return Time.get_unix_time_from_datetime_string(found.get_string(1))
+	# Older/noncanonical files remain loadable; validation still happens below.
+	return FileAccess.get_modified_time(path)
+
+
+func request_new_game() -> bool:
+	if is_saving() or _loading:
+		_notify("A save or load is still finishing; try New Game again shortly.")
+		return false
+	_startup_checked = true
+	_starting_new_game = true
+	_loading = true
+	_pending_restore.clear()
+	_autosave_elapsed_seconds = 0.0
+	_clock_was_paused_before_load = WorldClock.paused
+	WorldClock.set_paused(true)
+	_notify("Starting a new game…")
+	if not _reload_world_scene():
+		_starting_new_game = false
+		_loading = false
+		WorldClock.set_paused(_clock_was_paused_before_load)
+		_notify("New Game failed: the world scene could not be reloaded.", true)
+		return false
+	return true
 
 
 ## Slice height stored in the pending restore snapshot, or `fallback` when no
@@ -266,7 +347,21 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 			push_warning("SaveManager: %s backup is valid but primary repair failed: %s" \
 				% [slot_name, repair_error])
 
-	var snapshot: Dictionary = selected_result.get("snapshot", {})
+	_prepare_restore(selected_result.get("snapshot", {}), is_autosave, use_backup)
+	if not _reload_world_scene():
+		_loading = false
+		_pending_restore.clear()
+		WorldClock.set_paused(_clock_was_paused_before_load)
+		_loading_from_backup = false
+		_loading_autosave = false
+		_notify("Load failed: the world scene could not be reloaded.", true)
+		load_finished.emit(false, use_backup)
+		return false
+	return true
+
+
+func _prepare_restore(snapshot: Dictionary, is_autosave: bool, use_backup: bool) -> void:
+	_startup_checked = true
 	_load_validated_msec = Time.get_ticks_msec()
 	_pending_restore = preload("res://scripts/components/TerrainSaveMigration.gd").upgrade(snapshot)
 	_loading = true
@@ -279,6 +374,9 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 	else:
 		_notify("Recovering backup save…" if use_backup else "Loading quick save…")
 	WorldClock.set_paused(true)
+
+
+func _reload_world_scene() -> bool:
 	TaskManager.reset_runtime_state()
 	StockpileManager.reset_runtime_state()
 	InteriorTracker.clear_runtime_state()
@@ -295,14 +393,6 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 	if reload_error != OK:
 		if scene_tree.scene_changed.is_connected(scene_changed_callback):
 			scene_tree.scene_changed.disconnect(scene_changed_callback)
-		_loading = false
-		_pending_restore.clear()
-		WorldClock.set_paused(_clock_was_paused_before_load)
-		var failed_from_backup := _loading_from_backup
-		_loading_from_backup = false
-		_loading_autosave = false
-		_notify("Load failed: the world scene could not be reloaded.", true)
-		load_finished.emit(false, failed_from_backup)
 		return false
 	return true
 
@@ -310,6 +400,11 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 func _on_scene_reloaded() -> void:
 	if _loading:
 		SkyController.rebind_to_current_scene()
+	if _starting_new_game:
+		WeatherManager.reset_for_new_game()
+		_starting_new_game = false
+		_loading = false
+		_notify("New game started.")
 
 
 func _process(delta: float) -> void:
@@ -368,12 +463,17 @@ func _restore_pending_snapshot() -> void:
 		var ap := int(a.call("save_restore_priority")) if a.has_method("save_restore_priority") else 100
 		var bp := int(b.call("save_restore_priority")) if b.has_method("save_restore_priority") else 100
 		return ap < bp)
-	# Large settlements restore tens of thousands of mined/constructed blocks
-	# synchronously. Queue one mesh/nav invalidation per chunk, not per voxel,
-	# while preserving exact edits for water, interiors and other live owners.
+	# Install final terrain without running live water displacement per voxel.
+	# Water's owner restores authoritative volumes/queues and rebuilds derived
+	# topology once. Other exact edits and coalesced mesh/nav updates remain.
 	WorldData.begin_edit_batch()
+	WaterManager.begin_terrain_restore()
+	var t_terrain := Time.get_ticks_msec()
 	WorldData.restore_terrain(scene_state.terrain)
+	owner_lines.append("    terrain: %d ms" % (Time.get_ticks_msec() - t_terrain))
+	var t_exploration := Time.get_ticks_msec()
 	InteriorTracker.restore_exploration(scene_state.exploration)
+	owner_lines.append("    exploration: %d ms" % (Time.get_ticks_msec() - t_exploration))
 	for state_owner in owners:
 		if not state_owner.has_method("save_section_key") or not state_owner.has_method("restore_state"):
 			continue
@@ -382,6 +482,7 @@ func _restore_pending_snapshot() -> void:
 			var t_owner := Time.get_ticks_msec()
 			state_owner.call("restore_state", scene_state[key] as Dictionary)
 			owner_lines.append("    %s: %d ms" % [key, Time.get_ticks_msec() - t_owner])
+	assert(not WaterManager.restoring, "Saved water must finish the terrain restore boundary")
 	WorldData.end_edit_batch()
 
 	var t_owners_end := Time.get_ticks_msec()
@@ -455,7 +556,12 @@ func _capture_catalogs() -> Dictionary:
 		if not BlockRegistry.get_construction_def(key).is_empty(): construction[key]=true
 	var materials := {"":true}
 	for key in CraftMaterials.definitions: materials[key]=true
-	return {"blocks":blocks,"construction":construction,"materials":materials}
+	var retired := {}
+	var policy: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/content_retirements.json"))
+	for key: String in policy.furniture: retired[key] = true
+	var retired_items := {}
+	for key: String in policy.get("items", []): retired_items[key] = true
+	return {"blocks":blocks,"construction":construction,"materials":materials,"retired_furniture":retired,"retired_items":retired_items}
 
 
 func _file_store() -> RefCounted:

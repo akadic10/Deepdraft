@@ -1,5 +1,14 @@
 # 13 — Architecture
 
+**Retired furniture saves (2026-10-18, 234):** SaveManager owns
+`data/content_retirements.json` and passes its explicit identity set into the
+private SaveFileStore transaction. `RetiredFurnitureMigration` is a pure,
+preloaded component with no scene or file access. It removes retired furniture
+and packed items, preserving ordinary container contents and their identities.
+Reads validate before migration; changed results are validated again. Writes
+normalize private copies of affected owners. No new autoload, global class or
+save schema is introduced. See [234](../00_dev_roadmap/234_retired_uncraftable_furniture.md).
+
 **Underground inspection ownership (2026-10-17):** `XrayController` is
 scene-owned, wired to the renderer, slice controller, dock and placement tools.
 `XrayGeometry` builds presentation geometry from `InteriorTracker`, which owns
@@ -411,6 +420,21 @@ authoritative scene deltas while leaving tasks, reservations, navigation data, r
 meshes, and other derived caches transient. The autosave timer advances only when world
 generation is complete and no save or load is running.
 
+At launch, the renderer asks SaveManager for its seed before generation. On this
+first request only, SaveManager selects the newest valid quick save, autosave or
+matching backup by `saved_at_utc` (file modification time is a fallback for old
+metadata). It reads bounded headers to rank candidates, then validates in order.
+Temporary transaction files are excluded. The selected world generates once and
+uses the existing owner-restore pipeline behind the loading screen. Startup
+fallback never repairs or overwrites files. With no valid save, generation starts
+normally. Manual Load keeps its explicit slot and backup-repair behavior.
+
+The gear menu's **New Game** uses the same scene-replacement/reset boundary,
+bypasses startup resume, chooses a fresh seed and resets the configured calendar,
+speed, pause and seeded weather. It discards unsaved session state and leaves
+existing save files intact. Normal five-minute autosaving resumes in the new
+world. Save/load/New Game cannot overlap an active save or restore.
+
 Writes use a shared transactional path: its private `SaveFileStore` writes and validates a temporary
 snapshot, rotates only the selected slot's valid primary to its own backup, then promotes
 and revalidates the new primary. An invalid primary cannot displace a valid backup, and
@@ -455,6 +479,14 @@ priority order, rebuilds stockpile totals, and
 finally restores clock/weather. Schema 2 removes completed block provenance;
 validated schema-1 terrain migrates in memory through `TerrainSaveMigration`.
 Full schema and lifecycle: `00_dev_roadmap/20_save_load.md`.
+
+Terrain installation opens `WaterManager.begin_terrain_restore()` before applying
+final block values. Water records affected columns without simulating intermediate
+displacement; its priority-11 `restore_state()` installs saved mass, active/displaced
+queues and moisture, rebuilds derived caches, and closes the boundary. This entire
+phase is synchronous. Ordinary gameplay edits retain immediate water responses;
+other terrain listeners still receive exact block events and coalesced chunk updates.
+See [247 — Saved-world loading](../00_dev_roadmap/247_saved_world_loading.md).
 
 `SurfaceFloraSpawner` saves only changed trees in the required `flora` section:
 species/stage identity, floor origin, partial felling work, designation and felled
@@ -546,7 +578,7 @@ On application startup, autoloads run their `_ready()` in registration order, be
 5. **`WorkFeedback._ready()`** — loads `data/audio/work_feedback.json`, caches its audio streams and configures the work-audio bus.
 6. **`WorldData._ready()`** — allocates its `Mutex`. Chunks are **not** pre-allocated; they are created lazily on first write or handed over by the generator via `submit_chunk()`.
 7. **`WorldGenerator._ready()`** — allocates its request mutex and waits. Generation is **not** kicked off at boot; the renderer in the main scene calls `generate(seed)` explicitly, after which the generator builds the 2D maps and then services `request_chunk_column()` calls.
-8. **The remaining autoloads** (`WaterManager` → `SaveManager`) follow in registration order. Each loads only its owned configuration where applicable; `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load. `SaveManager` performs no save-file read at boot—the file is opened only when the player requests Load.
+8. **The remaining autoloads** (`WaterManager` → `SaveManager`) follow in registration order. Each loads only its owned configuration where applicable; `NavGrid` and `TaskManager` read `data/tasks/task_config.json` tunables via TaskManager's config load. Once the main scene's renderer requests its initial seed, `SaveManager` selects the newest valid save and prepares restoration before generation begins.
 
 No static game-data JSON is read with raw `FileAccess` outside its owning registry/system — all block data access goes through `BlockRegistry`, all block storage through `WorldData` (see the Registry Pattern in `AGENT.md`). Runtime user-save JSON is the separate responsibility of `SaveManager` and its private `SaveFileStore` transaction helper.
 

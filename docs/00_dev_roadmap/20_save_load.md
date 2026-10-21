@@ -1,5 +1,38 @@
 # 20 — Save / Load Persistence
 
+**Fruit hauling (2026-10-19, 253):** consolidation keeps the existing physical
+ownership boundary. At each pickup contact a claimed portion leaves its source
+and joins the one carried basket. Snapshots retain the exact carried count and
+source remainders; restored cargo drops at the carrier’s saved feet as before.
+Route proofs, top-up visits and grouped destination reservations are transient.
+No schema change, migration or original-save rewrite is required. See
+[253](253_fruit_hauling.md).
+
+**Apple harvesting (2026-10-19, 252):** apple picking uses the existing forestry
+action, independent felling/harvest work, harvested cycle and work cycle fields.
+The tree/year hash chooses a stable yield within its authored range; reloading
+or interrupting work cannot reroll it. No schema change or migration is needed.
+Existing unpicked mature/ancient apples become eligible in autumn, while felled
+records remain felled. Full save/backup tests include picked and partial apple
+crops alongside junipers. See [252](252_apple_harvesting.md).
+
+**Unused stone retirement (2026-10-19, 251):** the explicit item list in
+`data/content_retirements.json` removes the four unused stone types from loose,
+stored and carried goods and storage/Move filters. Validation precedes cleanup;
+changed reads are validated again, and writes clean private owner copies.
+Unknown/modded items and other goods remain intact. There is no schema change
+or automatic source-file rewrite. All four current player-save copies validate
+unchanged; injected retired items roundtrip through the real transaction with
+only those items/filters removed. See [251](251_retired_stone_types.md).
+
+**Solo recreation (2026-10-19, 249):** optional, nonnegative
+`mood.solo_recreation_memory_hours` stores an earned solo thought while positive.
+Absence means no solo memory; `recreation_memory_hours` still means shared play.
+The independent timers prevent a solo game extending the stronger social bonus;
+only the stronger active thought contributes. Existing saves need no migration.
+Games, participants and stool claims remain transient. Full save/backup recovery
+and malformed-timer checks cover the new field. See [249](249_solo_games_and_partner_search.md).
+
 **Final terrain state (2026-10-17, 212):** schema 2 saves one current block value
 per changed position in `scene.terrain`, and knowledge separately in
 `scene.exploration`. Completed stone/floors have no ownership record. Valid

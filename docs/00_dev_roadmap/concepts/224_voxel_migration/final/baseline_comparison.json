@@ -1,0 +1,1172 @@
+{
+  "labels": [
+    "voxel_before_complete",
+    "voxel_complete_world"
+  ],
+  "conditions": {
+    "resolution": [
+      1600,
+      1000
+    ],
+    "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+    "adapter": "AMD Radeon RX 9070 XT",
+    "fixed_simulation_fps": 60
+  },
+  "logical_fixture_sha256": "0f4cd69500fa6deb91c020ee780132da4ee1e944585e10e5744b3707b73a6c67",
+  "mesh_instance_counts": [
+    7493,
+    13750
+  ],
+  "views": {
+    "active_close": {
+      "active": true,
+      "frame_ms": {
+        "p50": {
+          "before": 10.54,
+          "after": 13.344,
+          "delta": 2.8040000000000003
+        },
+        "p95": {
+          "before": 20.751,
+          "after": 25.794,
+          "delta": 5.042999999999999
+        },
+        "p99": {
+          "before": 25.991,
+          "after": 30.456,
+          "delta": 4.465
+        },
+        "max": {
+          "before": 27.333,
+          "after": 35.052,
+          "delta": 7.719000000000001
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 1.25699996948242,
+          "after": 1.36300003528595,
+          "delta": 0.10600006580352983
+        },
+        "p95": {
+          "before": 1.73199999332428,
+          "after": 2.08999991416931,
+          "delta": 0.3579999208450302
+        },
+        "p99": {
+          "before": 2.24200010299683,
+          "after": 2.28600001335144,
+          "delta": 0.04399991035460982
+        },
+        "max": {
+          "before": 2.43700003623962,
+          "after": 2.29699993133545,
+          "delta": -0.14000010490416992
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 1.11500000953674,
+          "after": 1.52199995517731,
+          "delta": 0.40699994564056996
+        },
+        "p95": {
+          "before": 1.27199995517731,
+          "after": 1.81200003623962,
+          "delta": 0.54000008106231
+        },
+        "p99": {
+          "before": 1.52799999713898,
+          "after": 1.94000005722046,
+          "delta": 0.41200006008148016
+        },
+        "max": {
+          "before": 1.6690000295639,
+          "after": 2.50699996948242,
+          "delta": 0.8379999399185201
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 8.002,
+          "after": 9.999,
+          "delta": 1.9969999999999999
+        },
+        "p95": {
+          "before": 17.972,
+          "after": 21.818,
+          "delta": 3.846
+        },
+        "p99": {
+          "before": 23.219,
+          "after": 26.953,
+          "delta": 3.733999999999998
+        },
+        "max": {
+          "before": 24.917,
+          "after": 31.731,
+          "delta": 6.814
+        }
+      },
+      "draws": {
+        "before": 445,
+        "after": 471,
+        "delta": 26
+      },
+      "primitives": {
+        "before": 224708,
+        "after": 319586,
+        "delta": 94878
+      },
+      "static_memory_bytes": {
+        "before": 489991078,
+        "after": 532259745,
+        "delta": 42268667
+      },
+      "video_memory_bytes": {
+        "before": 869179392.0,
+        "after": 888512512.0,
+        "delta": 19333120.0
+      }
+    },
+    "active_neighborhood": {
+      "active": true,
+      "frame_ms": {
+        "p50": {
+          "before": 9.572,
+          "after": 11.004,
+          "delta": 1.4320000000000004
+        },
+        "p95": {
+          "before": 19.762,
+          "after": 23.888,
+          "delta": 4.126000000000001
+        },
+        "p99": {
+          "before": 23.062,
+          "after": 27.063,
+          "delta": 4.000999999999998
+        },
+        "max": {
+          "before": 26.259,
+          "after": 30.009,
+          "delta": 3.75
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 1.58000004291534,
+          "after": 1.42999994754791,
+          "delta": -0.1500000953674301
+        },
+        "p95": {
+          "before": 2.28999996185303,
+          "after": 1.89999997615814,
+          "delta": -0.3899999856948899
+        },
+        "p99": {
+          "before": 2.4210000038147,
+          "after": 2.51300001144409,
+          "delta": 0.09200000762939009
+        },
+        "max": {
+          "before": 2.48499989509583,
+          "after": 2.60800004005432,
+          "delta": 0.12300014495848988
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 1.15499997138977,
+          "after": 1.43400001525879,
+          "delta": 0.2790000438690199
+        },
+        "p95": {
+          "before": 1.25199997425079,
+          "after": 1.75100004673004,
+          "delta": 0.49900007247925005
+        },
+        "p99": {
+          "before": 1.65199995040894,
+          "after": 1.90900003910065,
+          "delta": 0.2570000886917101
+        },
+        "max": {
+          "before": 1.71599996089935,
+          "after": 2.13700008392334,
+          "delta": 0.4210001230239899
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 6.908,
+          "after": 7.902,
+          "delta": 0.9939999999999998
+        },
+        "p95": {
+          "before": 16.987,
+          "after": 20.283,
+          "delta": 3.296000000000003
+        },
+        "p99": {
+          "before": 20.054,
+          "after": 23.373,
+          "delta": 3.3190000000000026
+        },
+        "max": {
+          "before": 22.149,
+          "after": 26.822,
+          "delta": 4.672999999999998
+        }
+      },
+      "draws": {
+        "before": 480,
+        "after": 510,
+        "delta": 30
+      },
+      "primitives": {
+        "before": 415536,
+        "after": 776836,
+        "delta": 361300
+      },
+      "static_memory_bytes": {
+        "before": 486714330,
+        "after": 528727413,
+        "delta": 42013083
+      },
+      "video_memory_bytes": {
+        "before": 869048320.0,
+        "after": 907845632.0,
+        "delta": 38797312.0
+      }
+    },
+    "active_night": {
+      "active": true,
+      "frame_ms": {
+        "p50": {
+          "before": 11.429,
+          "after": 14.674,
+          "delta": 3.244999999999999
+        },
+        "p95": {
+          "before": 20.707,
+          "after": 25.434,
+          "delta": 4.727
+        },
+        "p99": {
+          "before": 24.524,
+          "after": 31.655,
+          "delta": 7.131
+        },
+        "max": {
+          "before": 28.302,
+          "after": 33.43,
+          "delta": 5.128
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 1.17900002002716,
+          "after": 1.44400000572205,
+          "delta": 0.2649999856948899
+        },
+        "p95": {
+          "before": 1.61899995803833,
+          "after": 2.09899997711182,
+          "delta": 0.4800000190734899
+        },
+        "p99": {
+          "before": 2.05299997329712,
+          "after": 2.19199991226196,
+          "delta": 0.13899993896483975
+        },
+        "max": {
+          "before": 2.25099992752075,
+          "after": 2.24200010299683,
+          "delta": -0.008999824523920008
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 0.949000000953674,
+          "after": 1.14400005340576,
+          "delta": 0.19500005245208596
+        },
+        "p95": {
+          "before": 1.47800004482269,
+          "after": 1.50100004673004,
+          "delta": 0.023000001907349965
+        },
+        "p99": {
+          "before": 1.54999995231628,
+          "after": 1.63800001144409,
+          "delta": 0.08800005912781006
+        },
+        "max": {
+          "before": 1.6139999628067,
+          "after": 1.94500005245209,
+          "delta": 0.33100008964538996
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 8.964,
+          "after": 11.74,
+          "delta": 2.776
+        },
+        "p95": {
+          "before": 18.202,
+          "after": 22.375,
+          "delta": 4.172999999999998
+        },
+        "p99": {
+          "before": 22.05,
+          "after": 27.929,
+          "delta": 5.878999999999998
+        },
+        "max": {
+          "before": 25.501,
+          "after": 31.194,
+          "delta": 5.692999999999998
+        }
+      },
+      "draws": {
+        "before": 480,
+        "after": 510,
+        "delta": 30
+      },
+      "primitives": {
+        "before": 415536,
+        "after": 776602,
+        "delta": 361066
+      },
+      "static_memory_bytes": {
+        "before": 497873020,
+        "after": 543384104,
+        "delta": 45511084
+      },
+      "video_memory_bytes": {
+        "before": 870883328.0,
+        "after": 889757696.0,
+        "delta": 18874368.0
+      }
+    },
+    "active_overview": {
+      "active": true,
+      "frame_ms": {
+        "p50": {
+          "before": 12.079,
+          "after": 16.418,
+          "delta": 4.338999999999999
+        },
+        "p95": {
+          "before": 22.153,
+          "after": 27.855,
+          "delta": 5.702000000000002
+        },
+        "p99": {
+          "before": 26.035,
+          "after": 33.787,
+          "delta": 7.751999999999999
+        },
+        "max": {
+          "before": 33.122,
+          "after": 44.976,
+          "delta": 11.854
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 2.84899997711182,
+          "after": 3.18899989128113,
+          "delta": 0.3399999141693102
+        },
+        "p95": {
+          "before": 4.05399990081787,
+          "after": 4.80499982833862,
+          "delta": 0.7509999275207502
+        },
+        "p99": {
+          "before": 4.40000009536743,
+          "after": 4.9689998626709,
+          "delta": 0.5689997673034703
+        },
+        "max": {
+          "before": 4.61800003051758,
+          "after": 5.36399984359741,
+          "delta": 0.7459998130798304
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 1.59200000762939,
+          "after": 2.02600002288818,
+          "delta": 0.43400001525878995
+        },
+        "p95": {
+          "before": 1.70700001716614,
+          "after": 2.48200011253357,
+          "delta": 0.7750000953674299
+        },
+        "p99": {
+          "before": 2.07599997520447,
+          "after": 2.75999999046326,
+          "delta": 0.68400001525879
+        },
+        "max": {
+          "before": 2.59599995613098,
+          "after": 3.01799988746643,
+          "delta": 0.4219999313354501
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 8.916,
+          "after": 12.001,
+          "delta": 3.084999999999999
+        },
+        "p95": {
+          "before": 18.544,
+          "after": 23.06,
+          "delta": 4.515999999999998
+        },
+        "p99": {
+          "before": 22.602,
+          "after": 28.773,
+          "delta": 6.170999999999999
+        },
+        "max": {
+          "before": 29.939,
+          "after": 36.654,
+          "delta": 6.715000000000003
+        }
+      },
+      "draws": {
+        "before": 671,
+        "after": 713,
+        "delta": 42
+      },
+      "primitives": {
+        "before": 1764650,
+        "after": 3817690,
+        "delta": 2053040
+      },
+      "static_memory_bytes": {
+        "before": 495393404,
+        "after": 537957716,
+        "delta": 42564312
+      },
+      "video_memory_bytes": {
+        "before": 889495552.0,
+        "after": 889757696.0,
+        "delta": 262144.0
+      }
+    },
+    "active_pan": {
+      "active": true,
+      "frame_ms": {
+        "p50": {
+          "before": 12.028,
+          "after": 15.687,
+          "delta": 3.658999999999999
+        },
+        "p95": {
+          "before": 21.689,
+          "after": 26.693,
+          "delta": 5.004000000000001
+        },
+        "p99": {
+          "before": 25.188,
+          "after": 31.682,
+          "delta": 6.494
+        },
+        "max": {
+          "before": 32.06,
+          "after": 39.116,
+          "delta": 7.055999999999997
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 1.51600003242493,
+          "after": 1.84800004959106,
+          "delta": 0.3320000171661299
+        },
+        "p95": {
+          "before": 2.38899993896484,
+          "after": 2.62800002098084,
+          "delta": 0.23900008201599965
+        },
+        "p99": {
+          "before": 2.53299999237061,
+          "after": 2.71900010108948,
+          "delta": 0.1860001087188703
+        },
+        "max": {
+          "before": 2.59699988365173,
+          "after": 3.39400005340576,
+          "delta": 0.7970001697540301
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 1.23800003528595,
+          "after": 1.74300003051758,
+          "delta": 0.50499999523163
+        },
+        "p95": {
+          "before": 1.33599996566772,
+          "after": 1.87999999523163,
+          "delta": 0.54400002956391
+        },
+        "p99": {
+          "before": 1.65699994564056,
+          "after": 1.98000001907349,
+          "delta": 0.32300007343293013
+        },
+        "max": {
+          "before": 1.9559999704361,
+          "after": 2.10700011253357,
+          "delta": 0.1510001420974698
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 9.17,
+          "after": 11.941,
+          "delta": 2.771000000000001
+        },
+        "p95": {
+          "before": 18.954,
+          "after": 22.428,
+          "delta": 3.474
+        },
+        "p99": {
+          "before": 22.133,
+          "after": 24.706,
+          "delta": 2.5730000000000004
+        },
+        "max": {
+          "before": 27.107,
+          "after": 33.747,
+          "delta": 6.640000000000001
+        }
+      },
+      "draws": {
+        "before": 518,
+        "after": 559,
+        "delta": 41
+      },
+      "primitives": {
+        "before": 564840,
+        "after": 1112048,
+        "delta": 547208
+      },
+      "static_memory_bytes": {
+        "before": 501649844,
+        "after": 546195628,
+        "delta": 44545784
+      },
+      "video_memory_bytes": {
+        "before": 870555648.0,
+        "after": 890347520.0,
+        "delta": 19791872.0
+      }
+    },
+    "active_slice": {
+      "active": true,
+      "frame_ms": {
+        "p50": {
+          "before": 11.001,
+          "after": 14.282,
+          "delta": 3.2810000000000006
+        },
+        "p95": {
+          "before": 21.199,
+          "after": 25.867,
+          "delta": 4.667999999999999
+        },
+        "p99": {
+          "before": 26.219,
+          "after": 32.474,
+          "delta": 6.2549999999999955
+        },
+        "max": {
+          "before": 34.442,
+          "after": 47.662,
+          "delta": 13.219999999999999
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 1.49699997901917,
+          "after": 1.54100000858307,
+          "delta": 0.044000029563900034
+        },
+        "p95": {
+          "before": 2.35800004005432,
+          "after": 2.51200008392334,
+          "delta": 0.1540000438690199
+        },
+        "p99": {
+          "before": 2.56299996376038,
+          "after": 2.64599990844727,
+          "delta": 0.08299994468689009
+        },
+        "max": {
+          "before": 2.63000011444092,
+          "after": 2.70300006866455,
+          "delta": 0.0729999542236297
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 1.10800004005432,
+          "after": 1.57500004768372,
+          "delta": 0.4670000076294001
+        },
+        "p95": {
+          "before": 1.31200003623962,
+          "after": 1.73500001430511,
+          "delta": 0.42299997806549006
+        },
+        "p99": {
+          "before": 1.66799998283386,
+          "after": 1.96700000762939,
+          "delta": 0.29900002479553
+        },
+        "max": {
+          "before": 1.87000000476837,
+          "after": 2.26300001144409,
+          "delta": 0.39300000667572
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 8.443,
+          "after": 10.815,
+          "delta": 2.372
+        },
+        "p95": {
+          "before": 18.726,
+          "after": 22.062,
+          "delta": 3.336000000000002
+        },
+        "p99": {
+          "before": 23.848,
+          "after": 29.794,
+          "delta": 5.9460000000000015
+        },
+        "max": {
+          "before": 32.301,
+          "after": 45.026,
+          "delta": 12.725000000000001
+        }
+      },
+      "draws": {
+        "before": 493,
+        "after": 523,
+        "delta": 30
+      },
+      "primitives": {
+        "before": 488942,
+        "after": 950566,
+        "delta": 461624
+      },
+      "static_memory_bytes": {
+        "before": 500322976,
+        "after": 546596156,
+        "delta": 46273180
+      },
+      "video_memory_bytes": {
+        "before": 863215616.0,
+        "after": 902012928.0,
+        "delta": 38797312.0
+      }
+    },
+    "paused_close": {
+      "active": false,
+      "frame_ms": {
+        "p50": {
+          "before": 2.58,
+          "after": 2.902,
+          "delta": 0.32200000000000006
+        },
+        "p95": {
+          "before": 8.279,
+          "after": 8.75,
+          "delta": 0.4710000000000001
+        },
+        "p99": {
+          "before": 10.551,
+          "after": 10.731,
+          "delta": 0.17999999999999972
+        },
+        "max": {
+          "before": 13.291,
+          "after": 12.706,
+          "delta": -0.5850000000000009
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 0.889999985694885,
+          "after": 0.892000019550323,
+          "delta": 0.0020000338554380104
+        },
+        "p95": {
+          "before": 1.06299996376038,
+          "after": 0.898999989032745,
+          "delta": -0.16399997472763495
+        },
+        "p99": {
+          "before": 1.08299994468689,
+          "after": 0.908999979496002,
+          "delta": -0.17399996519088812
+        },
+        "max": {
+          "before": 1.10300004482269,
+          "after": 1.00399994850159,
+          "delta": -0.09900009632109996
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 0.717999994754791,
+          "after": 0.768999993801117,
+          "delta": 0.05099999904632602
+        },
+        "p95": {
+          "before": 0.777999997138977,
+          "after": 1.16799998283386,
+          "delta": 0.38999998569488303
+        },
+        "p99": {
+          "before": 0.836000025272369,
+          "after": 1.25600004196167,
+          "delta": 0.42000001668930087
+        },
+        "max": {
+          "before": 1.08700001239777,
+          "after": 1.35300004482269,
+          "delta": 0.2660000324249199
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 1.241,
+          "after": 1.38,
+          "delta": 0.1389999999999998
+        },
+        "p95": {
+          "before": 6.878,
+          "after": 7.123,
+          "delta": 0.2450000000000001
+        },
+        "p99": {
+          "before": 7.164,
+          "after": 9.279,
+          "delta": 2.115
+        },
+        "max": {
+          "before": 9.5,
+          "after": 10.352,
+          "delta": 0.8520000000000003
+        }
+      },
+      "draws": {
+        "before": 436,
+        "after": 484,
+        "delta": 48
+      },
+      "primitives": {
+        "before": 227840,
+        "after": 322252,
+        "delta": 94412
+      },
+      "static_memory_bytes": {
+        "before": 476030181,
+        "after": 518055328,
+        "delta": 42025147
+      },
+      "video_memory_bytes": {
+        "before": 846700544.0,
+        "after": 866033664.0,
+        "delta": 19333120.0
+      }
+    },
+    "paused_neighborhood": {
+      "active": false,
+      "frame_ms": {
+        "p50": {
+          "before": 2.617,
+          "after": 2.988,
+          "delta": 0.371
+        },
+        "p95": {
+          "before": 8.405,
+          "after": 8.992,
+          "delta": 0.5870000000000015
+        },
+        "p99": {
+          "before": 9.531,
+          "after": 11.869,
+          "delta": 2.337999999999999
+        },
+        "max": {
+          "before": 13.345,
+          "after": 15.808,
+          "delta": 2.462999999999999
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 1.13999998569489,
+          "after": 1.27300000190735,
+          "delta": 0.13300001621246005
+        },
+        "p95": {
+          "before": 1.15299999713898,
+          "after": 1.2849999666214,
+          "delta": 0.1319999694824201
+        },
+        "p99": {
+          "before": 1.15900003910065,
+          "after": 1.61800003051758,
+          "delta": 0.4589999914169298
+        },
+        "max": {
+          "before": 1.16499996185303,
+          "after": 1.80900001525879,
+          "delta": 0.6440000534057599
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 0.777999997138977,
+          "after": 0.896000027656555,
+          "delta": 0.1180000305175779
+        },
+        "p95": {
+          "before": 0.829999983310699,
+          "after": 1.25499999523163,
+          "delta": 0.42500001192093095
+        },
+        "p99": {
+          "before": 0.861999988555908,
+          "after": 1.37100005149841,
+          "delta": 0.509000062942502
+        },
+        "max": {
+          "before": 1.30799996852875,
+          "after": 1.46700000762939,
+          "delta": 0.1590000391006401
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 1.242,
+          "after": 1.367,
+          "delta": 0.125
+        },
+        "p95": {
+          "before": 6.908,
+          "after": 7.14,
+          "delta": 0.23199999999999932
+        },
+        "p99": {
+          "before": 7.111,
+          "after": 9.148,
+          "delta": 2.037
+        },
+        "max": {
+          "before": 11.392,
+          "after": 14.017,
+          "delta": 2.625
+        }
+      },
+      "draws": {
+        "before": 476,
+        "after": 524,
+        "delta": 48
+      },
+      "primitives": {
+        "before": 512220,
+        "after": 982428,
+        "delta": 470208
+      },
+      "static_memory_bytes": {
+        "before": 476212469,
+        "after": 518252480,
+        "delta": 42040011
+      },
+      "video_memory_bytes": {
+        "before": 847159296.0,
+        "after": 866492416.0,
+        "delta": 19333120.0
+      }
+    },
+    "paused_night": {
+      "active": false,
+      "frame_ms": {
+        "p50": {
+          "before": 2.414,
+          "after": 2.72,
+          "delta": 0.30600000000000005
+        },
+        "p95": {
+          "before": 8.154,
+          "after": 8.599,
+          "delta": 0.4450000000000003
+        },
+        "p99": {
+          "before": 9.435,
+          "after": 10.976,
+          "delta": 1.5410000000000004
+        },
+        "max": {
+          "before": 12.922,
+          "after": 15.766,
+          "delta": 2.8439999999999994
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 0.847000002861023,
+          "after": 0.950999975204468,
+          "delta": 0.10399997234344505
+        },
+        "p95": {
+          "before": 0.851000010967255,
+          "after": 0.959999978542328,
+          "delta": 0.10899996757507302
+        },
+        "p99": {
+          "before": 0.851999998092651,
+          "after": 0.970000028610229,
+          "delta": 0.11800003051757801
+        },
+        "max": {
+          "before": 0.85699999332428,
+          "after": 0.982999980449677,
+          "delta": 0.12599998712539695
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 0.575999975204468,
+          "after": 0.595000028610229,
+          "delta": 0.019000053405761053
+        },
+        "p95": {
+          "before": 0.884999990463257,
+          "after": 1.0440000295639,
+          "delta": 0.1590000391006431
+        },
+        "p99": {
+          "before": 1.05499994754791,
+          "after": 1.12100005149841,
+          "delta": 0.06600010395050004
+        },
+        "max": {
+          "before": 1.07700002193451,
+          "after": 1.29100000858307,
+          "delta": 0.21399998664856001
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 1.259,
+          "after": 1.38,
+          "delta": 0.121
+        },
+        "p95": {
+          "before": 6.918,
+          "after": 7.224,
+          "delta": 0.30600000000000005
+        },
+        "p99": {
+          "before": 7.951,
+          "after": 9.367,
+          "delta": 1.4160000000000013
+        },
+        "max": {
+          "before": 10.822,
+          "after": 14.53,
+          "delta": 3.708
+        }
+      },
+      "draws": {
+        "before": 462,
+        "after": 510,
+        "delta": 48
+      },
+      "primitives": {
+        "before": 416304,
+        "after": 776752,
+        "delta": 360448
+      },
+      "static_memory_bytes": {
+        "before": 476701042,
+        "after": 518827669,
+        "delta": 42126627
+      },
+      "video_memory_bytes": {
+        "before": 847159296.0,
+        "after": 866492416.0,
+        "delta": 19333120.0
+      }
+    },
+    "paused_overview": {
+      "active": false,
+      "frame_ms": {
+        "p50": {
+          "before": 2.982,
+          "after": 3.612,
+          "delta": 0.6299999999999999
+        },
+        "p95": {
+          "before": 8.791,
+          "after": 9.224,
+          "delta": 0.43299999999999983
+        },
+        "p99": {
+          "before": 9.839,
+          "after": 11.256,
+          "delta": 1.4169999999999998
+        },
+        "max": {
+          "before": 10.525,
+          "after": 12.842,
+          "delta": 2.317
+        }
+      },
+      "gpu_ms": {
+        "p50": {
+          "before": 2.44400000572205,
+          "after": 2.7039999961853,
+          "delta": 0.2599999904632502
+        },
+        "p95": {
+          "before": 2.45300006866455,
+          "after": 3.09699988365173,
+          "delta": 0.64399981498718
+        },
+        "p99": {
+          "before": 2.45700001716614,
+          "after": 3.1949999332428,
+          "delta": 0.7379999160766602
+        },
+        "max": {
+          "before": 2.46199989318848,
+          "after": 3.59100008010864,
+          "delta": 1.1290001869201598
+        }
+      },
+      "render_cpu_ms": {
+        "p50": {
+          "before": 1.10099995136261,
+          "after": 1.10099995136261,
+          "delta": 0.0
+        },
+        "p95": {
+          "before": 1.21700000762939,
+          "after": 1.53199994564056,
+          "delta": 0.3149999380111699
+        },
+        "p99": {
+          "before": 1.37100005149841,
+          "after": 1.62300002574921,
+          "delta": 0.2519999742508001
+        },
+        "max": {
+          "before": 1.63100004196167,
+          "after": 1.84500002861023,
+          "delta": 0.21399998664856001
+        }
+      },
+      "scene_process_ms": {
+        "p50": {
+          "before": 1.219,
+          "after": 1.328,
+          "delta": 0.10899999999999999
+        },
+        "p95": {
+          "before": 6.892,
+          "after": 7.161,
+          "delta": 0.26899999999999924
+        },
+        "p99": {
+          "before": 7.054,
+          "after": 8.367,
+          "delta": 1.3130000000000006
+        },
+        "max": {
+          "before": 8.09,
+          "after": 10.167,
+          "delta": 2.077
+        }
+      },
+      "draws": {
+        "before": 653,
+        "after": 713,
+        "delta": 60
+      },
+      "primitives": {
+        "before": 1765418,
+        "after": 3817770,
+        "delta": 2052352
+      },
+      "static_memory_bytes": {
+        "before": 476693850,
+        "after": 518820481,
+        "delta": 42126631
+      },
+      "video_memory_bytes": {
+        "before": 847159296.0,
+        "after": 866492416.0,
+        "delta": 19333120.0
+      }
+    }
+  },
+  "save_reload": {
+    "checks": {
+      "clock": true,
+      "dwarf_count": true,
+      "dwarf_identity_and_appearance": true,
+      "furniture": true,
+      "stone_conservation": true,
+      "terrain_edits": true,
+      "valid_snapshot": true,
+      "wildlife": true
+    },
+    "counts": {
+      "deer": 30,
+      "duck": 11,
+      "dwarves": 24,
+      "furniture": 48,
+      "lights": 8,
+      "mesh_instances": 13853,
+      "rabbit": 47,
+      "trees": 2953,
+      "wolf": 4
+    },
+    "elapsed_ms": 16076.217,
+    "stone_units": 96,
+    "validation_error": ""
+  },
+  "behavior_observations": {
+    "carrying_dwarf_frames": 12068,
+    "moving_animal_frames": 73062,
+    "moving_dwarf_frames": 15510,
+    "open_door_frames": 1483,
+    "seated_dwarf_frames": 14495,
+    "sleeping_dwarf_frames": 21600
+  },
+  "limits": [
+    "One hardware configuration; no minimum hardware claim.",
+    "Paused samples isolate rendering; wall-budgeted active simulation may diverge despite identical starting state.",
+    "Draw counts are measured outcomes: introducing separate proxies can increase draws while reducing caster triangles.",
+    "One run per revision; repeat differences near measurement noise."
+  ]
+}

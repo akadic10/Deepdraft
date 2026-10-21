@@ -11,6 +11,9 @@ var upper := Vector3i(48,32,46)
 func _run() -> void:
 	create_timer(120).timeout.connect(func(): push_error("Ladder test timed out"); quit(1))
 	await _setup_crafting_fixture()
+	# The synthetic world edits buried support below its surface. Seed the
+	# baseline resource fields used by WorldData's terrain override comparison.
+	root.get_node("WorldGenerator")._build_noise_instances()
 	ladders = furniture._ladders
 	ladders.set_process(false)
 	nav = root.get_node("NavGrid")

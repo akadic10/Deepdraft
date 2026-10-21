@@ -1,0 +1,88 @@
+{
+  "family": "presentation",
+  "grid": 16,
+  "complete": true,
+  "assets": [
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 32,
+          "visual_triangles": 44,
+          "shadow": null,
+          "min": [
+            -0.5625,
+            2.5,
+            0.5625
+          ],
+          "max": [
+            0.5625,
+            2.6875,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 5220,
+      "sha256": "5687e973aacda46f3c66ef938e2004260d6c1d1d48c84afe8ddf0efbabe4d68b",
+      "path": "assets/models/presentation/eyelids.glb",
+      "authoring": {
+        "presentation": "eyelids",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 24,
+          "visual_triangles": 28,
+          "shadow": null,
+          "min": [
+            -0.125,
+            -0.0625,
+            -0.0625
+          ],
+          "max": [
+            0.125,
+            0.1875,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 3756,
+      "sha256": "808104921a3bcf065bdfe9213f166c4becaa0be65fcf9395cf03c5f58feb8f66",
+      "path": "assets/models/presentation/serving_berries.glb",
+      "authoring": {
+        "presentation": "serving_berries",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 52,
+          "visual_triangles": 60,
+          "shadow": null,
+          "min": [
+            -0.125,
+            -0.125,
+            -0.125
+          ],
+          "max": [
+            0.1875,
+            0.25,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 6700,
+      "sha256": "e658b500709aecdf3ee76824db79395b5f8afdd18605a7870acb9e6390344592",
+      "path": "assets/models/presentation/serving_apple.glb",
+      "authoring": {
+        "presentation": "serving_apple",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
+    }
+  ]
+}

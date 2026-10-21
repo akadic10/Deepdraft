@@ -1,0 +1,254 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 1234).
+WorldRenderer: generation started (seed 1234).
+FurniturePlacementController: 42 placeable defs loaded.
+ItemDropManager: loaded 101 item definitions.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+WorldGenerator: seeded layout macro_layout_v1; summit 6 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29555 cliff/shore columns.
+WorldGenerator: spring (272, 102, 572); river 2751 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=1234, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 1234, "accepted": 2114, "rejections": { "density": 19622, "tree": 1274, "edge": 1125, "shelf": 447, "water": 158, "moisture": 2917, "ground": 1097, "height": 4306, "shore": 28717, "cliff_foot": 3311, "cliff_falloff": 193, "detail_overlap": 242 }, "layout_ms": 818.407, "categories": { "boulder": 58, "scree": 192, "blueberry": 275, "elderberry": 353, "wild_strawberry": 441, "flowers": 780, "reeds": 15 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 11 ducks.
+WorldRenderer: first visible overview tile after 8.397 s at tile (16, 16).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 9.245 s
+  first_visible_terrain: 8.397 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=6.612 s  ready_at=6.612 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.660 s
+    edge_detail: 0.321 s
+    layout_validation: 1.170 s
+    river: 0.020 s
+    caves: 4.272 s
+    tile_ranges: 0.109 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.009 s  avg=0.07 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=9.243 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 21.7%, valley 25.6%, lowland 52.8%
+  height: min 11, max 115, avg 34.1
+  top surface: grass 75.3%, dirt 0.9%, rock 21.5%, water 2.3%
+  surface domains: mountain rock 99.0%; valley grass 96.0% dirt 3.5% rock 0.0%
+  finished terrain: summit 6252 columns, detailed 29487, dry shore 1219
+  water: lake (819, 528) y18 floor 11-17 depth 7 columns 20422; tarn (336, 848) y54 floor 47-52 depth 7 columns 887; banks 6831
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->14900, sides 79874, validation mismatches 0/0) in 13.66 s since startup.
+FurniturePlacementController: installed base:furniture:log_bed at (536, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (543, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (550, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (557, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (564, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (571, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (578, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (536, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (543, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (550, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (557, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (564, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (571, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (578, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (536, 19, 118).
+FurniturePlacementController: installed base:furniture:log_bed at (543, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (550, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (557, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (564, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (571, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (578, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (536, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (543, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (550, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (557, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (564, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (571, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (578, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (536, 19, 132).
+FurniturePlacementController: installed base:furniture:log_chair at (543, 19, 132).
+FurniturePlacementController: installed base:furniture:log_chair at (550, 19, 132).
+FurniturePlacementController: installed base:furniture:log_chair at (557, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (564, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (571, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (578, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (536, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (543, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (550, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (557, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (564, 19, 139).
+FurniturePlacementController: installed base:furniture:campfire at (571, 19, 139).
+FurniturePlacementController: installed base:furniture:campfire at (578, 19, 139).
+FurniturePlacementController: installed base:furniture:campfire at (536, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (543, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (550, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (557, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (564, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (571, 19, 146).
+StockpileDesignationController: zone 1 created (48 cells at Y 19).
+SETTLEMENT_SAMPLE paused_close {"active":false,"camera_position":"(530.1896, 64.58627, 170.5863)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":48.0,"completed_tasks":0,"draws":436,"frame_ms":{"max":13.95,"p50":2.848,"p95":8.598,"p99":10.949},"gpu_ms":{"max":1.10000002384186,"p50":0.921999990940094,"p95":0.936999976634979,"p99":0.949000000953674},"primitives":316568,"render_cpu_ms":{"max":1.34300005435944,"p50":0.785000026226044,"p95":1.18299996852875,"p99":1.25300002098084},"sample_frames":600,"scene_process_ms":{"max":11.501,"p50":1.332,"p95":7.047,"p99":9.376},"slice_y":127,"static_memory_bytes":510623240,"stored_stacks":0,"video_memory_bytes":877895680.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE paused_neighborhood {"active":false,"camera_position":"(497.895, 110.7214, 216.7214)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":100.0,"completed_tasks":0,"draws":476,"frame_ms":{"max":14.318,"p50":3.005,"p95":8.766,"p99":10.941},"gpu_ms":{"max":1.64900004863739,"p50":1.29499995708466,"p95":1.31900000572205,"p99":1.32799994945526},"primitives":968606,"render_cpu_ms":{"max":1.55099999904633,"p50":0.845000028610229,"p95":1.24800002574921,"p99":1.35500001907349},"sample_frames":600,"scene_process_ms":{"max":12.451,"p50":1.337,"p95":7.054,"p99":8.833},"slice_y":127,"static_memory_bytes":510795024,"stored_stacks":0,"video_memory_bytes":858890240.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE paused_overview {"active":false,"camera_position":"(423.369, 217.1871, 323.1871)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":220.0,"completed_tasks":0,"draws":653,"frame_ms":{"max":14.264,"p50":3.768,"p95":9.461,"p99":11.939},"gpu_ms":{"max":3.53099989891052,"p50":2.79699993133545,"p95":3.19099998474121,"p99":3.27300000190735},"primitives":3767452,"render_cpu_ms":{"max":2.05900001525879,"p50":1.22000002861023,"p95":1.72099995613098,"p99":1.8400000333786},"sample_frames":600,"scene_process_ms":{"max":11.334,"p50":1.3,"p95":7.118,"p99":9.239},"slice_y":127,"static_memory_bytes":511380833,"stored_stacks":0,"video_memory_bytes":858890240.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE paused_night {"active":false,"camera_position":"(507.2108, 97.41319, 203.4132)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":85.0,"completed_tasks":0,"draws":462,"frame_ms":{"max":13.239,"p50":2.592,"p95":8.343,"p99":10.405},"gpu_ms":{"max":1.32700002193451,"p50":0.947000026702881,"p95":0.955999970436096,"p99":0.97299998998642},"primitives":762878,"render_cpu_ms":{"max":1.30900001525879,"p50":0.603999972343445,"p95":1.02600002288818,"p99":1.12300002574921},"sample_frames":600,"scene_process_ms":{"max":11.326,"p50":1.319,"p95":6.987,"p99":8.352},"slice_y":127,"static_memory_bytes":511388021,"stored_stacks":0,"video_memory_bytes":858890240.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE active_neighborhood {"active":true,"camera_position":"(507.2108, 97.41319, 203.4132)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":85.0,"completed_tasks":0,"draws":480,"frame_ms":{"max":33.291,"p50":10.23,"p95":22.328,"p99":26.898},"gpu_ms":{"max":2.61199998855591,"p50":1.49199998378754,"p95":1.93499994277954,"p99":2.58699989318848},"primitives":762110,"render_cpu_ms":{"max":2.28699994087219,"p50":1.26199996471405,"p95":1.86000001430511,"p99":1.97599995136261},"sample_frames":600,"scene_process_ms":{"max":30.089,"p50":7.341,"p95":18.904,"p99":23.36},"slice_y":127,"static_memory_bytes":521628937,"stored_stacks":0,"video_memory_bytes":880779264.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE active_close {"active":true,"camera_position":"(530.1896, 64.58627, 170.5863)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":48.0,"completed_tasks":4,"draws":445,"frame_ms":{"max":33.337,"p50":12.284,"p95":24.042,"p99":27.676},"gpu_ms":{"max":2.40300011634827,"p50":1.4539999961853,"p95":2.17000007629395,"p99":2.38000011444092},"primitives":313436,"render_cpu_ms":{"max":2.18899989128113,"p50":1.34700000286102,"p95":1.96599996089935,"p99":2.0239999294281},"sample_frames":600,"scene_process_ms":{"max":29.362,"p50":9.076,"p95":20.819,"p99":23.786},"slice_y":127,"static_memory_bytes":524849105,"stored_stacks":16,"video_memory_bytes":880910336.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE active_overview {"active":true,"camera_position":"(423.369, 217.1871, 323.1871)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":220.0,"completed_tasks":4,"draws":671,"frame_ms":{"max":34.479,"p50":14.628,"p95":26.397,"p99":30.281},"gpu_ms":{"max":5.2189998626709,"p50":3.27600002288818,"p95":4.78499984741211,"p99":5.06899976730347},"primitives":3766684,"render_cpu_ms":{"max":2.82399988174438,"p50":2.13000011444092,"p95":2.625,"p99":2.69700002670288},"sample_frames":600,"scene_process_ms":{"max":30.663,"p50":10.32,"p95":21.751,"p99":25.913},"slice_y":127,"static_memory_bytes":531003447,"stored_stacks":16,"video_memory_bytes":881500160.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE active_night {"active":true,"camera_position":"(507.2108, 97.41319, 203.4132)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":85.0,"completed_tasks":7,"draws":480,"frame_ms":{"max":34.609,"p50":13.094,"p95":24.189,"p99":27.123},"gpu_ms":{"max":2.39400005340576,"p50":1.29100000858307,"p95":2.17400002479553,"p99":2.28500008583069},"primitives":762110,"render_cpu_ms":{"max":1.68900001049042,"p50":1.03900003433228,"p95":1.51800000667572,"p99":1.59099996089935},"sample_frames":600,"scene_process_ms":{"max":31.588,"p50":10.062,"p95":21.454,"p99":23.853},"slice_y":127,"static_memory_bytes":533956355,"stored_stacks":28,"video_memory_bytes":901619712.0,"warmup_frames":120}
+SETTLEMENT_SAMPLE active_pan {"active":true,"camera_position":"(497.6437, 110.7214, 240.7201)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":100.0,"completed_tasks":8,"draws":518,"frame_ms":{"max":37.97,"p50":14.49,"p95":25.997,"p99":29.796},"gpu_ms":{"max":3.26200008392334,"p50":1.67599999904633,"p95":2.65300011634827,"p99":2.79800009727478},"primitives":1092286,"render_cpu_ms":{"max":2.69899988174438,"p50":1.90900003910065,"p95":2.07800006866455,"p99":2.20300006866455},"sample_frames":600,"scene_process_ms":{"max":32.416,"p50":10.666,"p95":21.814,"p99":26.131},"slice_y":127,"static_memory_bytes":536432779,"stored_stacks":32,"video_memory_bytes":881827840.0,"warmup_frames":120}
+SliceTiming: slice 127 -> 43 — 0 regions + 355 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 43 -> 23 — 0 regions + 609 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 43 -> 23 DONE — 609 regions+tiles rebuilt (609 queued at start) over 716 frames, 3.058 s total, worst frame 2 ms.
+SliceTiming: slice 23 -> 20 — 0 regions + 609 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 23 -> 20 DONE — 609 regions+tiles rebuilt (609 queued at start) over 714 frames, 2.881 s total, worst frame 2 ms.
+SliceTiming: slice 20 -> 23 — 0 regions + 609 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 20 -> 23 DONE — 609 regions+tiles rebuilt (609 queued at start) over 705 frames, 2.892 s total, worst frame 2 ms.
+SETTLEMENT_SAMPLE active_slice {"active":true,"camera_position":"(497.895, 109.7214, 216.7214)","camera_rotation":"(-0.686358, -0.610726, 0.0)","camera_size":100.0,"completed_tasks":8,"draws":493,"frame_ms":{"max":38.096,"p50":13.247,"p95":25.194,"p99":32.784},"gpu_ms":{"max":2.89299988746643,"p50":1.57400000095367,"p95":2.67300009727478,"p99":2.78099989891052},"primitives":935958,"render_cpu_ms":{"max":2.00699996948242,"p50":1.62399995326996,"p95":1.90600001811981,"p99":1.96300005912781},"sample_frames":600,"scene_process_ms":{"max":35.349,"p50":9.777,"p95":21.684,"p99":30.481},"slice_y":23,"static_memory_bytes":535724559,"stored_stacks":32,"video_memory_bytes":874946560.0,"warmup_frames":120}
+SliceTiming: slice 23 -> 127 — 0 regions + 609 tiles queued, 0 region nodes, 1024 tile nodes, generator idle.
+SliceTiming: slice 23 -> 127 DONE — 609 regions+tiles rebuilt (609 queued at start) over 673 frames, 3.569 s total, worst frame 2 ms.
+SaveManager: validated quick save written.
+WorldGenerator: stopped in 104.6 s.
+WorldGenerator: world_complete signal firing.
+Camera: ready (FOV 45°, zoom 2–180 m).
+UIWindowManager: ready (0 remembered window positions).
+WorldGenerator: starting generation (seed 1234).
+WorldRenderer: generation started (seed 1234).
+FurniturePlacementController: 42 placeable defs loaded.
+ItemDropManager: loaded 101 item definitions.
+WorldGenerator: seeded layout macro_layout_v1; summit 6 macro cells; water bodies 2.
+WorldGenerator: edge detail -> pushed 29555 cliff/shore columns.
+WorldGenerator: spring (272, 102, 572); river 2751 columns, 18 falls.
+WorldGenerator: 9 cave systems (including exposed spring when present).
+WorldGenerator: terrain maps ready; waiting for chunk column requests.
+SurfaceFloraSpawner: maps ready, scatter armed (seed=1234, species=["pine", "oak", "apple", "juniper"], cell=14, whole_map=true, columns=4096).
+Surface details: { "seed": 1234, "accepted": 2114, "rejections": { "density": 19622, "tree": 1274, "edge": 1125, "shelf": 447, "water": 158, "moisture": 2917, "ground": 1097, "height": 4306, "shore": 28717, "cliff_foot": 3311, "cliff_falloff": 193, "detail_overlap": 242 }, "layout_ms": 779.276, "categories": { "boulder": 58, "scree": 192, "blueberry": 275, "elderberry": 353, "wild_strawberry": 441, "flowers": 780, "reeds": 15 } }
+Wildlife: 48 rabbits, 18 deer, 4 wolves, 11 ducks.
+StockpileDesignationController: zone 1 created (48 cells at Y 19).
+FurniturePlacementController: installed base:furniture:log_bed at (536, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (543, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (550, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (557, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (564, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (571, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (578, 19, 104).
+FurniturePlacementController: installed base:furniture:log_bed at (536, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (543, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (550, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (557, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (564, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (571, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (578, 19, 111).
+FurniturePlacementController: installed base:furniture:log_bed at (536, 19, 118).
+FurniturePlacementController: installed base:furniture:log_bed at (543, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (550, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (557, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (564, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (571, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (578, 19, 118).
+FurniturePlacementController: installed base:furniture:log_chair at (536, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (543, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (550, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (557, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (564, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (571, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (578, 19, 125).
+FurniturePlacementController: installed base:furniture:log_chair at (536, 19, 132).
+FurniturePlacementController: installed base:furniture:log_chair at (543, 19, 132).
+FurniturePlacementController: installed base:furniture:log_chair at (550, 19, 132).
+FurniturePlacementController: installed base:furniture:log_chair at (557, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (564, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (571, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (578, 19, 132).
+FurniturePlacementController: installed base:furniture:door at (536, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (543, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (550, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (557, 19, 139).
+FurniturePlacementController: installed base:furniture:door at (564, 19, 139).
+FurniturePlacementController: installed base:furniture:campfire at (571, 19, 139).
+FurniturePlacementController: installed base:furniture:campfire at (578, 19, 139).
+FurniturePlacementController: installed base:furniture:campfire at (536, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (543, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (550, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (557, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (564, 19, 146).
+FurniturePlacementController: installed base:furniture:campfire at (571, 19, 146).
+LoadPerformance:
+  total_request_to_restored: 9.946 s
+  read_validate: 173 ms
+  reload_regen_wait: 8.470 s (map precompute + quiet frames — see StartupPerformance)
+  restore_owners: 1297 ms
+    jobs: 1 ms
+    mining: 0 ms
+    water: 560 ms
+    construction: 0 ms
+    flora: 0 ms
+    surface_details: 51 ms
+    settlement_flag: 0 ms
+    stockpiles: 7 ms
+    furniture: 605 ms
+    ladders: 0 ms
+    bridges: 0 ms
+    items: 2 ms
+    dwarves: 33 ms
+    wildlife: 36 ms
+    world_events: 0 ms
+    worker_crafting: 0 ms
+    camera: 0 ms
+    slice: 1 ms
+  totals_clock_weather: 6 ms
+  note: post-restore overview tile rebuild reported by SliceTiming.
+SaveManager: quick save restored.
+WorldRenderer: first visible overview tile after 9.559 s at tile (16, 16).
+WorldRenderer: startup overview radius ready (128/121 tiles built, queue=896).
+StartupPerformance:
+  total_to_initial_load: 10.625 s
+  first_visible_terrain: 9.559 s
+  mode: block-face overview exact  camera_chunk=(-9999, -9999)  slice=127
+  world_maps: ready=true  precompute=6.540 s  ready_at=6.543 s
+  map_phases:
+    noise_instances: 0.000 s
+    seeded_layout: 0.492 s
+    edge_detail: 0.368 s
+    layout_validation: 1.183 s
+    river: 0.031 s
+    caves: 4.287 s
+    tile_ranges: 0.106 s
+  columns: filled=0  chunks=0  total=0.000 s  avg=0.00 ms  max=0 ms  requested=0  queue=0
+  region_meshes: count=0  nodes=0  total=0.000 s  avg=0.00 ms  max=0 ms
+  overview_tiles: count=128  nodes=128  total=0.007 s  avg=0.05 ms  max=1 ms  active=true
+  overview_startup: center=(16, 16)  radius_tiles=5  goal=121  queue_remaining=896
+  overview_state: startup_ready=true  startup_ready_at=10.615 s  full_complete=false  full_complete_at=0.000 s
+  meshes_built_counter: 128
+WorldGenerator metrics:
+  domains: mountain 21.7%, valley 25.6%, lowland 52.8%
+  height: min 11, max 115, avg 34.1
+  top surface: grass 75.3%, dirt 0.9%, rock 21.5%, water 2.3%
+  surface domains: mountain rock 99.0%; valley grass 96.0% dirt 3.5% rock 0.0%
+  finished terrain: summit 6252 columns, detailed 29487, dry shore 1219
+  water: lake (819, 528) y18 floor 11-17 depth 7 columns 20422; tarn (336, 848) y54 floor 47-52 depth 7 columns 887; banks 6831
+  layout: macro_layout_v1; attempts 1; fallback false
+WorldRenderer: built block-face overview tiles (1024 tiles, step=1, tops 1048576->14900, sides 79874, validation mismatches 0/0) in 15.56 s since startup.
+SETTLEMENT_BENCHMARK_PASS res://tmp/settlement_art_20261013/voxel_flora_repeat/
+WorldGenerator: stopped in 16.2 s.
+WorldGenerator: world_complete signal firing.

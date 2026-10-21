@@ -15,6 +15,7 @@ func _run() -> void:
 	_access_and_rotations()
 	_saved_layout_roundtrip()
 	_create_partner()
+	await _play_at_each_rotation()
 	await _partners_with_memory()
 	await _games_and_interruptions()
 	for failure in failures: push_error(failure)
@@ -39,7 +40,8 @@ func _craft_and_place() -> void:
 	_piece(BENCH,Vector3i(45,20,42))
 	drops.spawn_drop(PINE,4,Vector3i(42,21,40))
 	drops.spawn_drop(STONE,1,Vector3i(42,21,41))
-	var positions := [Vector3i(47,20,45),Vector3i(49,20,45),Vector3i(46,20,38)]
+	# The enlarged workbench also fills the south boundary beside the old fence site.
+	var positions := [Vector3i(44,20,46),Vector3i(49,20,45),Vector3i(46,20,38)]
 	var index := 0
 	for key: String in [FENCE,GATE,GAME]:
 		worker._food.value = 1.0
@@ -105,12 +107,16 @@ func _saved_layout_roundtrip() -> void:
 		_expect(table.cells.size()==9 and furniture.get_dining_seats(id).size()==2,"3x3 game and both stool associations survive reload")
 		_expect(JSON.parse_string(JSON.stringify(furniture.serialize_state()))==saved,"saved IDs, material, positions, yaw and layout version remain stable")
 		var bounds: AABB = furniture._visual_bounds(table.def,table.origin_cell,table.yaw_steps)
-		_expect(AABB(Vector3(origin+Vector3i.UP),Vector3(3,1,3)).encloses(bounds),"log stays inside its game area")
+		_expect(bounds.size.is_equal_approx(Vector3(2.875,1.5625,2.875)),"native 46-cell outline, 24-cell shared dining-table height and one-cell counters survive every saved rotation")
+		_expect(AABB(Vector3(origin+Vector3i.UP),Vector3(3,1.5625,3)).encloses(bounds),"log and counters stay inside their game area")
 		_clear_layout()
 
 func _create_partner() -> void:
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
-	extra_worker = factory.spawn(factory.generate(142,{}),142)
+	var data: Dictionary = factory.generate(142,{})
+	data.gender="male"
+	data.appearance.beard_style="full_long"
+	extra_worker = factory.spawn(data,142)
 	scene.add_child(extra_worker)
 	extra_worker.set_process(false)
 	tasks.register_dwarf(extra_worker)
@@ -127,10 +133,10 @@ func _reset_players() -> void:
 	worker.position = Vector3(43.5,21,39.5)
 	extra_worker.position = Vector3(51.5,21,46.5)
 
-func _layout(count := 2) -> void:
+func _layout(count := 2, yaw := 0) -> void:
 	_clear_layout()
 	_reset_players()
-	table = _piece(GAME,Vector3i(46,20,42))
+	table = _piece(GAME,Vector3i(46,20,42),yaw)
 	var slots: Array = furniture._seating.slots_for(table)
 	for i in count: chairs.append(_piece(STOOL,slots[i].origin,slots[i].yaw))
 
@@ -139,6 +145,27 @@ func _game_tick(seconds := .1) -> void:
 	worker._process(seconds)
 	extra_worker._process(seconds)
 	await process_frame
+
+func _play_at_each_rotation() -> void:
+	for yaw in 4:
+		_layout(2,yaw)
+		_expect(await _playing(),"two players reach the resized game table at yaw %d"%yaw)
+		if not worker.is_recreating(): continue
+		var game = worker._recreation
+		for index in game.players.size():
+			game.elapsed = 1.0+index*2.0
+			var player: Dictionary = game.players[index]
+			game._pose(player)
+			# The hand node mirrors its source +X palm into the actor's -X side.
+			var palm: Vector3 = table.node.to_local(player.agent._hand_r.to_global(Vector3(1.0625,1.25,.1875)))
+			_expect(absf(palm.x)<.8 and absf(palm.z)<.8,"playing hand reaches the marked board at every rotation")
+			_expect(palm.y>1.5625 and palm.y<2.0,"playing palm clears the new top and raised counters")
+			var picking = load("res://scripts/components/ObjectPicking.gd")
+			for part in [player.agent._head,player.agent._body,player.agent._hand_l,player.agent._hand_r]:
+				var bounds: AABB = picking.world_bounds(part)
+				for obstacle in furniture._seating._obstacles(table.def,table.origin_cell,table.yaw_steps):
+					_expect(not bounds.grow(-.001).intersects(obstacle.bounds.grow(-.001)),"playing %s clears slab/counters: %s vs %s"%[part.name,bounds,obstacle.bounds])
+	_clear_layout()
 
 func _partners_with_memory() -> void:
 	_layout()
@@ -158,7 +185,7 @@ func _partners_with_memory() -> void:
 		await _game_tick()
 		third._process(.1)
 		if worker.is_recreating() and worker._recreation.players[0].arrived: break
-	_expect(worker.is_recreating() and worker._recreation.describe(worker).activity=="Waiting for a game partner","first dwarf waits while both potential partners are cooling down")
+	_expect(worker.is_recreating() and worker._recreation.describe(worker).activity=="Playing a board game alone","first dwarf plays alone while both potential partners are cooling down")
 	for agent in [extra_worker,third]:
 		agent._mood.recreation_retry_hours = 0
 		agent._mood.recreation_memory_hours = 5
@@ -167,7 +194,7 @@ func _partners_with_memory() -> void:
 	for i in 180:
 		await _game_tick()
 		third._process(.1)
-		if worker.is_recreating() and worker._recreation.playing:
+		if worker.is_recreating() and worker._recreation.together:
 			started = true
 			break
 	_expect(started,"waiting player recruits one of two available dwarves with recent game memories")
@@ -187,20 +214,20 @@ func _partners_with_memory() -> void:
 func _playing() -> bool:
 	for i in range(250):
 		await _game_tick()
-		if worker.is_recreating() and worker._recreation.playing: return true
+		if worker.is_recreating() and worker._recreation.together: return true
 	return false
 
 func _games_and_interruptions() -> void:
-	_layout(1)
+	_layout(0)
 	for i in range(40): await _game_tick()
-	_expect(not worker.is_recreating() and furniture._games.games.is_empty(),"one stool cannot start a game")
+	_expect(not worker.is_recreating() and furniture._games.games.is_empty(),"no stool cannot start a game")
 	_layout()
 	_expect(await _playing(),"two dwarves reach opposite stools and begin playing")
 	if not worker.is_recreating(): return
 	var game = worker._recreation
 	var rows: Dictionary = {}
 	for row in furniture.get_explorer_data("installed:%d" % table.installed_id).rows: rows[row[0]] = row[1]
-	_expect(rows.get("Happiness","").contains("+8 for 12 game hours"),"game inspector formats the earned happiness")
+	_expect(rows.get("Happiness","").contains("Solo +4 · Together +8 for 12 game hours"),"game inspector distinguishes both happiness rewards")
 	var inspection = load("res://scripts/components/DwarfInspection.gd")
 	_expect(inspection.describe(worker).activity=="Playing a board game" and inspection.roster_state(worker).group=="resting","inspector and roster identify recreation")
 	_expect(extra_worker._recreation==game and worker.dwarf_id not in tasks._idle_dwarves,"shared game keeps both workers out of scheduler")
@@ -243,7 +270,7 @@ func _games_and_interruptions() -> void:
 	_layout()
 	extra_worker._mood.recreation_retry_hours = 6
 	for i in range(400): await _game_tick()
-	_expect(not worker.is_recreating() and worker._mood.recreation_retry_hours>0 and worker._mood.recreation_memory_hours==0,"lone player times out with retry delay and no reward")
+	_expect(not worker.is_recreating() and worker._mood.recreation_retry_hours>5 and worker._mood.solo_recreation_memory_hours>11 and is_equal_approx(worker._mood.value(),.54),"lone player completes solo play for four happiness points")
 	for cause: String in ["stool","table","sleep","hunger","movement","save","blocked","support","profession"]:
 		_layout()
 		_expect(await _playing(),cause+": starts game")

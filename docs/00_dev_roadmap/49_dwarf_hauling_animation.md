@@ -1,5 +1,15 @@
 # 49 — Dwarf pickup, carry and stockpile delivery
 
+**Fruit consolidation (2026-10-19, 253):** a single edible produce basket can
+collect matching item/material contents from other allowed, unclaimed baskets
+along the delivery route. It remains one physical four-point object, capped at
+the item capacity (24 for current fruit). Optional planning runs at assignment
+and pickup boundaries with at most eight additional walking steps. Contact
+transfers exact reserved portions into the held basket while one hand supports
+it; destination claims may span partial and empty slots. Seeds, furniture,
+other non-food crates and harvest/haul priorities retain their existing rules.
+See [253](253_fruit_hauling.md) for cancellation, save and worker checks.
+
 Implemented 2026-10-05; adjacent-cell handling approved in player visual review.
 
 ## Motion

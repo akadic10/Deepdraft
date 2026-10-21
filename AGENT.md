@@ -1,5 +1,336 @@
 # Deepdraft — Agent Navigation Index
 
+**Fruit hauling (2026-10-19):** [253 — Fruit consolidation](docs/00_dev_roadmap/253_fruit_hauling.md)
+lets a worker fill one carried basket with matching allowed fruit along a proven
+delivery route, up to its normal 24-unit capacity and eight extra walking steps.
+Exact source and destination claims survive partial pickups, cancellation and
+saves. Harvest/haul priorities and the four-point carry budget stay unchanged.
+The three-tree reproduction falls from three deliveries to two; a route with
+three nearby baskets delivers all 22 apples together. Power-loss recovery found
+and fixed the missing cached-route fallback. Checks and evidence are recorded
+in 253 and `tmp/fruit_hauling_fix_20261019/`. Restart Play.
+
+**Apple picking (2026-10-19):** [252 — Apple harvesting](docs/00_dev_roadmap/252_apple_harvesting.md)
+connects the existing apple fruit definitions to standing-tree harvest jobs.
+Inspector **Gather apples** and **Orders → Harvest plants** pick 4–6 mature or
+7–10 ancient apples once each autumn, in four/six seconds. Trees remain standing;
+picked fruit disappears and returns next autumn. Hungry dwarves eat the real
+gathered fruit through normal food behavior. Partial work and picked crops use
+the existing save fields. Worker, food, UI, tree art, juniper, felling and full
+save checks pass; a copy of the player's save shows the new action. Evidence and
+backups: `tmp/apple_harvest_20261019/`. Original saves unchanged. Restart Play.
+
+**Unused stone types removed (2026-10-19):** [251 — Stone retirement](docs/00_dev_roadmap/251_retired_stone_types.md)
+removes granite, basalt, limestone and marble, their four GLBs, thumbnails,
+generated VOXs and active art definitions. Rough Stone is the ordinary stone
+item; terrain, recipes and all 382 surviving production GLBs remain unchanged.
+Explicit save retirement cleans old item/filter references while preserving
+other goods. All four player-save copies validate unchanged; injected legacy
+items are removed correctly on read/write. Asset, save, inventory and arrival
+checks pass. Evidence/backups: `tmp/retired_stones_20261019/`. Restart Play.
+
+**Standing art direction — 1:16 chibi voxels (2026-10-18):** Author non-terrain
+solid assets on a native grid of **16 micro-voxels per world-block edge**
+(one cell = 1/16 block = 0.0625 Godot unit). Use **chibi / stylized proportions**:
+chunky expressive characters, substantial timber and stone, broad clustered
+foliage, deliberate asymmetry and a few readable imperfections. The existing
+simple world voxels remain the backdrop. Preserve approved dimensions, gameplay
+contacts, material variants, greedy meshes and shadow-only proxies. The
+[art direction and original concept](docs/60_asset_creation/64_hand_hewn_art_direction.md)
+set the visual target; [63 — Shared art standard](docs/60_asset_creation/63_shared_art_standard.md)
+owns the technical rules. Earlier low-poly instructions are historical.
+
+**Famished dining range (2026-10-19):** [250 — Dining range](docs/00_dev_roadmap/250_famished_dining_range.md)
+keeps the normal 16-block route limit after food is collected, even when famished.
+The obsolete six-block exception is removed; bounded search and all claims remain.
+In the copied player save Birna carries food to stool 97 at table 94, sits with
+the torso resting on the seat and completes a proper meal without the −8 penalty.
+Dining, food and idle regressions pass, including real meals beyond six blocks
+and fallback beyond sixteen. Native evidence and backups are in
+`tmp/dining_fix_20261019/`. Original saves are unchanged. Restart Play.
+
+**Solo games and partner search (2026-10-19):** [249 — Recreation](docs/00_dev_roadmap/249_solo_games_and_partner_search.md)
+reproduces Sollin's partner wait in a copy of the player save. Eligible companions
+and reachable 29–31-block routes were excluded by the 24-block search limit.
+An occupied table now recruits within 48 routed blocks under the same bounded
+search budget. One dwarf starts playing immediately with one stool: a completed
+solo game gives +4 happiness; a full shared game gives +8, each for 12 game hours.
+Only the stronger thought contributes. Late partners, cooldown, interruption,
+legacy/current saves and worker release pass focused and full save checks. The
+copied colony completes a Sollin/Guntris game. Evidence is in
+`tmp/recreation_fix_20261019/`. Original saves are unchanged. Restart Play.
+
+**Chibi log bench (2026-10-19):** [248 — Log bench](docs/00_dev_roadmap/248_chibi_log_bench.md)
+replaces the plain slab with a split-log seat, uneven bark, end grain and stout
+cross-log supports. The footprint remains exactly two floor cells (2×1 / 1×2),
+with a one-block-high seat and all four woods. The old seated pose sank the
+chibi torso into the wood and clipped its boots; corrected poses and clearance
+pass four rotations, save restoration and worker Move. Only the bench GLB and
+thumbnail change; source tests, native gallery and deterministic rebuilding pass.
+Editable VOXs are in `VoxelFeed/colored/log_bench/`; evidence and backups are in
+`tmp/log_bench_20261019/`. Restart Play. No player-save writes, export or commit.
+
+**Saved-world loading (2026-10-19):** [247 — Loading performance](docs/00_dev_roadmap/247_saved_world_loading.md)
+adds a synchronous terrain/water restore boundary, immutable overview snapshot
+reuse and a larger underground-lighting budget behind the loading cover. The
+copied player save loads in 26.943 s versus 71.510 s with the original code; the
+matching fresh world takes 15.596 s. Colony state, continued water simulation,
+all terrain meshes and lighting bytes match. Focused save/water/rendering checks
+pass; test limitations and evidence are in 247 and `tmp/load_fix_20261019/`.
+Original player saves are unchanged. Restart Play. No export or commit.
+
+**Mining planning stall (2026-10-19):** [246 — Mining planning holds](docs/00_dev_roadmap/246_mining_planning_hold.md)
+extends mining's temporary leisure hold while a bounded route search advances,
+preventing strolling from repeatedly discarding its starting position. The mixed
+scenario now clears all seven job families; idle and hauling regressions pass.
+Three fixtures use current log furniture and test-only storage. Idle planning is
+included in the default reliability gate. Evidence and task-start backups are in
+`tmp/mining_stall_fix_20261019/`. Restart Play to use the scheduler correction.
+
+**Chibi buildable furniture (2026-10-18):** [245 — Furniture extension](docs/00_dev_roadmap/245_chibi_buildable_furniture.md)
+completes all three approved groups: beds/doors, fences/gates/bridges, and
+torches/campfires including the stone hearth. Sixteen GLBs use clipped timber,
+stronger braces/bindings, uneven end cuts and chipped stone; ten thumbnails are
+refreshed. Native 1:16 cells, four wood palettes, sleep/deck contacts, hinges,
+footprints, lights and saved identities remain. The other 370 production GLBs,
+all flame libraries and furniture definitions are byte-identical. Source, native
+art, sleeping, doors, fences, bridges, heating, lighting and hauling checks pass,
+along with deterministic regeneration and matched full-world/save checks. Draw
+counts match and paused GPU timings are nearly unchanged. Native previews,
+geometry costs and fixture corrections are in 245. Verified recovery, three
+group checkpoints and completion files are in `tmp/chibi_furniture_20261018/`.
+Restart Play and load the existing save. No player-save writes, export or commit.
+Animals, then tools/carried goods are suggested future passes; await direction.
+
+**Chibi timber refinement (2026-10-18):** [244 — Timber art](docs/00_dev_roadmap/244_chibi_timber_refinement.md)
+refines dining/game tables, stools, the solid workbench and sideways timber with
+unequal bark plates, chipped shoulders, incomplete grain and a deeper split.
+All four woods retain native 1:16 cells, the eight-cell slab, shared table body,
+four-stool 5×5 layout and existing contacts. Eight GLBs and thumbnails change;
+the other 378 production GLBs and gameplay definitions are byte-identical.
+Source/import/palette, dining/game/crafting/stool/hauling and regeneration checks
+pass, along with matched full-world/save checks. Geometry increases; paused GPU
+timings are nearly unchanged and draw counts match. Native previews, measured
+costs and test-fixture fixes are in 244. Verified recovery/source/completion
+checkpoints are in `tmp/timber_refinement_20261018/`. Restart Play and load the
+existing save. No player-save writes, export or commit. Suggested next family:
+remaining buildable furniture, starting with beds and doors; await direction.
+
+**Chibi plant refinement (2026-10-18):** [243 — Wild-plant art](docs/00_dev_roadmap/243_chibi_plant_refinement.md)
+installs all 76 blueberry/elderberry/strawberry, wildflower and reed models with
+broader foliage, exposed fruit, substantial flowers and thicker blades. All
+young, seasonal, picked and packed forms preserve 1:16 cells, clearances and
+gameplay identity. Six inventory thumbnails are refreshed; the other 310
+production GLBs and gameplay definitions are byte-identical. Source, native
+import/shadow, growth/harvest/Move/storage/planting, regeneration and matched
+world/save checks pass. Geometry increases; paused close rendering is nearly
+unchanged and the measured overview adds 0.086 ms GPU median. Native previews,
+costs, test-fixture repairs and limits are in 243. Recovery, source and verified
+completion checkpoints are in `tmp/chibi_plants_20261018/`. Restart Play and load
+the existing save. No player-save writes, Windows export or commit.
+
+**Chibi tree refinement (2026-10-18):** [242 — Tree art](docs/00_dev_roadmap/242_chibi_tree_refinement.md)
+installs all 94 pine/oak/apple/juniper variants with substantial offset crowns,
+fuller pine boughs, dense junipers, bark plates/knots and visible fruit/blossoms.
+All growth stages, seasons and picked forms retain their IDs, 1:16 grid, height
+envelopes, trunk footprints, walking clearance and shadow-only proxies. The four
+gameplay definitions and other 292 production GLBs are byte-identical. Source,
+native import/material/season, felling/hauling, berry harvest and reproducibility
+checks pass, along with a matched 2,953-tree world/save comparison. GPU cost falls
+in the measured views; frame p95 is similar/slightly higher, not an overall FPS
+speedup claim. Native previews, costs and limits are in 242. Recovery, source and
+completion checkpoints are in `tmp/chibi_trees_20261018/`. Restart Play and load
+the existing save. No player-save writes, Windows export or commit.
+
+**Chibi dwarf refinement (2026-10-18):** [241 — Dwarf art](docs/00_dev_roadmap/241_chibi_dwarf_refinement.md)
+replaces layered hair caps with broad locks/fringes, strengthens all seven beard
+styles, sculpts faces/brows and adds sleeves, collars, cuffs and belt detail.
+All appearance IDs, 1:16 scale, logical clearance and rigid contacts remain.
+The full 43-model family is rebuilt; 38 GLBs change and all other 348 production
+models are byte-identical. Native roster, portraits, work/rest, hauling, dining,
+game and lighting checks pass, as does the matched full-world/save comparison.
+Real Godot captures and measured geometry/rendering costs are in 241. Recovery
+and completion files are in `tmp/chibi_dwarves_20261018/`. The original concept
+remains the higher artistic target. Restart Play and load the existing save.
+No player-save writes, export or commit.
+
+**Resume latest save / New Game (2026-10-18):** [240 — Testing startup](docs/00_dev_roadmap/240_startup_resume_and_new_game.md)
+automatically restores the newest valid quick save/autosave or backup before
+world generation. The gear menu now offers New Game, which resets the world,
+calendar and seeded weather without writing save files. Normal autosaving
+continues afterward. Native startup/menu/fresh-world/manual-load checks, save
+selection/recovery, dock lifecycle and the full save/worker suite pass. Recovery
+and completion checkpoints are in `tmp/startup_resume_20261018/`. Restart Play.
+No player-save writes, export or commit.
+
+**Thicker log tabletops (2026-10-18):** [239 — Table proportions](docs/00_dev_roadmap/239_thicker_log_tabletops.md)
+doubles the shared dining/game slab from four to eight native 1:16 cells above
+the unchanged sixteen-cell pedestal. Both bodies are now 24 cells high; game
+counters sit at Y24. The 3×3 footprint and four-stool 5×5 dining layout remain.
+Matching hand, meal and head poses clear the thicker top while the torso stays
+on the unchanged stool. Two production GLBs, their thumbnails, four-wood study
+models and editable VOXs are updated. Native previews and validation evidence
+are in 239; recovery/completion files are in `tmp/thicker_tables_20261018/`.
+Restart Play and load the existing save. No player-save writes, export or commit.
+
+**Chunky stone, ore and soil installed (2026-10-18):** [238 — Resource art](docs/00_dev_roadmap/238_chunky_mined_resources.md)
+replaces all fourteen rounded loose-resource models with the approved fractured
+stone, mineral-deposit and clumped-soil designs. Native 1:16 cells, 0.75-unit
+envelopes, item identities, carrying/storage and shadow-only proxies remain.
+Fourteen thumbnails and editable VOXs are updated; the other 372 production
+GLBs and the player's original VOX are unchanged. Source/import/manifest,
+mining/support/hauling/inventory, native carrying and matched full-world/save
+checks pass. Two outdated test fixtures now use current furniture/test storage.
+The accepted concept is linked from [64 — Art direction](docs/60_asset_creation/64_hand_hewn_art_direction.md).
+Native previews and measured costs are recorded in 238; verified recovery and
+completion checkpoints are in `tmp/chunky_resources_20261018/`. Restart Play and
+load the existing save. No player-save writes, Windows export or commit.
+
+**Accepted interim timber installed (2026-10-18):** [237 — Production installation](docs/00_dev_roadmap/237_hand_hewn_timber_activation.md)
+installs the native dining/game tables, stools, workbench and sideways timber in
+normal Play, including all four woods and refreshed thumbnails. The original
+[concept and art direction](docs/60_asset_creation/64_hand_hewn_art_direction.md)
+remain the higher visual target: the player accepted these models for now,
+not as matching the concept's quality. Shared generators preserve 1:16 cells,
+approved contacts, the four-stool 5×5 layout and shadow-only proxies. Eight GLBs
+change; the other 378 are byte-identical. Source, imported palettes, gameplay,
+deterministic regeneration and paired full-world/save checks pass. Recovery and
+completion checkpoints are in `tmp/hand_hewn_activation_20261018/`. Restart Play
+and load the existing save. Player saves are untouched; no export or commit.
+
+**Native timber concept preview (2026-10-18; subsequently installed by 237):** [236 — Hand-hewn study](docs/00_dev_roadmap/236_native_hand_hewn_timber_study.md)
+provides an isolated native preview of dining/game tables, log stools, workbench
+and sideways timber in four woods. Twenty greedy GLBs and editable VOXs preserve
+1:16 cells, approved dimensions, the shared table body and 5×5 dining layout.
+Separate shadow proxies, deterministic regeneration, VOX roundtrips and 260
+native import/material/scale checks pass. Run `Launch Hand-Hewn Timber Study.cmd`
+for wood, light, camera and current/study comparison controls. Actual world-block
+floor and current dwarf provide context. This is a review proposal; normal Play,
+production palettes and player saves are unchanged. No export or commit.
+
+**Unavailable furniture removed (2026-10-18):** [234 — Furniture retirement](docs/00_dev_roadmap/234_retired_uncraftable_furniture.md)
+removes fifteen uncraftable designs, their packed items, Place/DEV entries,
+production art and generation paths. Settlement flag and wet/dry stones remain,
+along with all sixteen craftable furniture designs. The log torch owns its
+unchanged flame under a new filename. Validated save migration removes retired
+pieces and preserves surviving container goods. All four real save slots are
+cleaned; original saves and before/after source checkpoints are retained in
+`tmp/retired_furniture_20261018/`. Native migration, art/fire, placement, dining,
+recreation, full save/worker recovery and copied player-save roundtrips pass.
+There are 33 furniture GLBs and 386 production models. Restart Play and load.
+No export or commit. Await the player's next design priority.
+
+**Organic logs and shared game/dining table (2026-10-18):** [233 — Organic logs](docs/00_dev_roadmap/233_organic_logs.md)
+adds bounded bark relief, knots, warped growth rings and real drying splits to the
+log stools, both tables, workbench and four sideways wood resources. The game
+table now reuses the exact dining body, with a scratched board and six counters.
+Native 1:16 dimensions and the four-stool 5×5 dining layout remain. All four woods,
+real dining/play/crafting, native art/proxy checks and deterministic rebuild pass.
+Eight GLBs, eight thumbnails and twelve editable VOXs are updated. Native previews,
+measured render cost and a verified recovery/completion checkpoint are saved.
+Restart Play. Original VOXs and player saves are unchanged.
+
+
+**Closer dining stools (2026-10-18):** [232 — Compact dining layout](docs/00_dev_roadmap/232_compact_log_dining.md)
+moves each of the four log-table stool guides inward exactly one world voxel.
+The unchanged 3×3 table and four separate one-tile stools now occupy 5×5 in total.
+Table-local resting hands clear the slab; ordinary stool poses remain available
+elsewhere. Four rotations, snapping, simultaneous dining, Move/save and seating
+regressions pass. Native preview and checkpoint saved. Restart Play, then Move
+previously placed stools onto the closer guides.
+
+**Player log dining table (2026-10-18):** [231 — Log dining table](docs/00_dev_roadmap/231_log_dining_table.md)
+combines the exact `log_top.vox` tabletop with a centered round 16×16×16-cell
+pedestal on a 3×3 footprint. Native 1:16 scale, four wood colors, separate stool
+guides, two-log crafting, Move and save/restore pass. The table is 20 cells tall
+including its four-cell top. Greedy visual and shadow-only proxy, editable VOXs,
+thumbnail, native previews and a verified checkpoint are saved. All other 50
+furniture GLBs remain unchanged. Restart Play.
+
+**Matching log game table (2026-10-18):** [230 — Game table](docs/00_dev_roadmap/230_matching_log_game_table.md)
+uses the workbench's exact 46×46-cell outline and 16-cell height at 1:16. The
+scratched board and six stone counters sit on its intact top; all four woods
+match the shared log palette. Separate low-rim/counter seating bounds retain the
+two existing stools. Imported art, native two-player play in four rotations,
+crafting/placement/interruption/save checks and regeneration pass. Native previews,
+thumbnail and checkpoint saved. Other 49 furniture models unchanged. Restart Play.
+
+**Corrected workbench voxel scale (2026-10-18):** [229 — Native voxel scale](docs/00_dev_roadmap/229_workbench_voxel_scale.md)
+replaces the enlarged log-chair cells from 228 with the player's exact workbench
+outline. The 46×46 occupied cross-section stays at 1:16 and is extruded to 16 cells
+high (2.875×1×2.875 units). Four woods, finer rings, wear and shadow-only proxies
+are installed; the 3×3 footprint and four-sided crafting remain. Source/import,
+16 crafting batches, Move/save checks and byte-identical rebuild pass. Native
+previews, editable VOXs and checkpoint saved. Restart Play; original VOX unchanged.
+
+**Large worn workbench (2026-10-18):** [228 — Rudimentary workbench](docs/00_dev_roadmap/228_large_worn_workbench.md)
+expands the crude workbench to a real 3×3 footprint, using a broad version of the
+player log with matching four-wood colors, shallow axe scars and chipped edges.
+Its top is 1.25 units high; crafting contact moves toward the approaching worker.
+Sixteen directional batches, imported art, crafting/materials, camp placement,
+Move and save/restore checks pass. Thumbnail, native review and checkpoint saved.
+Existing benches use the larger layout at their saved anchor. Restart Play;
+no player-save write, Windows export or commit.
+
+**Matching chopped wood (2026-10-18):** [227 — Sideways timber](docs/00_dev_roadmap/227_player_chopped_wood.md)
+uses the log stool's exact shape, size and species colors for all four harvested
+woods, quarter-turned onto their sides. Ground storage and carrying preserve
+unit scale; shelves retain normal display fitting. Four thumbnails, native
+storage/carry previews, source/import checks and hauling/crafting regressions
+pass. Other items and furniture are unchanged. Restart Play to review.
+
+**Player-authored log stool (2026-10-18):** [226 — Log stool shape and wood colors](docs/00_dev_roadmap/226_player_log_chair.md)
+uses the exact 2,072-cell shape from `VoxelFeed/log_logchair.vox`, with bark sides,
+a bark rim, cut wood and growth rings. Pine/oak/juniper/applewood use existing
+material selection. The 0.875-unit seat has matching seated poses and clearance;
+crafting, dining, four rotations, campfire fit and save/restore checks pass.
+Greedy geometry, an 84-triangle shadow proxy, editable VOX variants and the
+thumbnail are installed. Other furniture models and the original VOX are unchanged.
+Restart Play to review; no export or player-save change.
+
+**Player-authored mined resources (2026-10-18):** [225 — Stone, ore and soil](docs/00_dev_roadmap/225_player_mined_resource_shape.md)
+replaces 14 loose-resource models with the exact shape from
+`VoxelFeed/stone_ore_dirt.vox`, using distinct mineral/stone/soil palettes. All
+1,088 occupied voxels are preserved; editable colored VOX copies and refreshed
+thumbnails are saved. The original source is unchanged. Native item/import,
+mining, hauling, support and inventory checks pass; greedy visuals and 108-triangle
+shadow-only proxies remain active. Restart Play to review. No export or save change.
+
+**Voxel migration COMPLETE (2026-10-18):** [224 — Execution checkpoints](docs/00_dev_roadmap/224_voxel_migration_progress.md)
+is the current art handoff. All 403 production models, defined growth/season/
+appearance/quantity states, rigid poses and 113 thumbnails are migrated. Greedy
+visuals and paired shadow proxies are active in normal Play. Family suites,
+byte-identical rebuild, native whole-world repeats and both copied player saves
+pass. Performance costs and explicit effect exceptions are recorded in checkpoint
+9. Original saves are unchanged; recovery and final checkpoint are retained.
+Restart Play to review. No Windows export, commit or unrelated cleanup was done.
+Await the player's next priority; do not automatically resume the older backlog.
+
+**Full voxel migration plan (2026-10-18):** [223 — Migration plan](docs/00_dev_roadmap/223_full_voxel_visual_migration_plan.md)
+maps 386 existing production GLBs plus 14 already-missing crop models, complete
+growth/season/appearance/packed states, UI previews, shadow integration and tests.
+The user subsequently authorized execution; 224 tracks implementation. This
+document records the agreed sequence and scope.
+
+**Voxel shadows (2026-10-18):** [222 — Shadow proxies](docs/00_dev_roadmap/222_voxel_shadow_proxies.md)
+adds coarser shadow-only siblings to all 18 voxel study GLBs while preserving
+every visual geometry payload. Godot setup disables detailed casting and binds
+proxies to the existing part pivots. The pine casts 79% fewer triangles. Twelve
+Python tests, 51 native checks, production lighting/readability regressions and
+paired captures pass. The study now has Proxy / Detailed shadows controls.
+At that checkpoint normal Play remained faceted; 224 now supersedes that status.
+No save change or Windows export was part of the study.
+
+**Micro-voxel exploration (2026-10-18):** [221 — 1:16 art study](docs/00_dev_roadmap/221_micro_voxel_art_study.md)
+records the original exploration. A separate native viewer compares a voxel dwarf,
+mature pine, blueberry bush, deer, log stool and barrel with current art. It uses
+an opt-in greedy exporter, actual rigs, shared palettes and existing lighting.
+Six mesher tests, reproducible GLBs, 26 native checks and a render-only 504-object
+sample are recorded in 221. Open `Launch Micro Voxel Study.cmd` for review.
+At that checkpoint production art and saves were unchanged; 224 records the
+subsequent completed migration.
+The gameplay/backlog handoff below remains valid. No export or new global class.
+
 **Windows playtest policy (2026-10-16):** The user explicitly requested removal
 of the generated Windows playtest folder and does not want unsolicited exports.
 Do not create, rebuild, update or package a Windows playtest unless the user
@@ -9,7 +340,7 @@ build links and export notes below are historical, not instructions to recreate
 them. This policy takes precedence over earlier export guidance.
 
 **End-of-day handoff (2026-10-17):** [220 — Session handoff](docs/00_dev_roadmap/220_session_handoff_2026_10_17.md)
-is the current resume point: completed gameplay/save/worker changes, final X-ray
+is the gameplay resume point: completed gameplay/save/worker changes, final X-ray
 measurements and cache checks, reproduction limits, and parked work. Restart Play
 and review the final slice toggles in the existing save. Await the player's next
 priority; do not automatically resume the broader performance/water backlog.
@@ -1630,6 +1961,7 @@ verification. Visibility only; dwarf work is unchanged.
 | [`61_voxel_art_guide.md`](docs/60_asset_creation/61_voxel_art_guide.md) | Find existing asset specifications, naming, historical voxel pipelines and family dimensions. Read 63 first for the current shared art direction and export rules. |
 | [`62_furniture_catalog.md`](docs/60_asset_creation/62_furniture_catalog.md) | Plan a furniture or decoration milestone, or pick the next asset batch. Full Deepdraft furniture inventory (status per piece) compared against Stonehearth's catalogue (enumerated from source 2026-07-11), with the variant strategy and archetype gap list. |
 | [`63_shared_art_standard.md`](docs/60_asset_creation/63_shared_art_standard.md) | Author, review or convert world art. Approved form/palette rules, world-unit exports, material ownership, family anchors, acceptance workflow and integration status. |
+| [`64_hand_hewn_art_direction.md`](docs/60_asset_creation/64_hand_hewn_art_direction.md) | Review the original canonical concept and the artistic gap before any future visual revision. The provisionally accepted native timber models do not replace this target. |
 
 
 ---
@@ -1790,7 +2122,7 @@ Workshop, recipe, flora, and visitor data is loaded by the Autoload that owns th
 
 ```gdscript
 # Correct
-var block = BlockRegistry.get("dwarf:stone_granite")
+var block = BlockRegistry.get_def("base:terrain:rock:rock01")
 
 # Never do this in a non-registry script
 var f = FileAccess.open("res://data/terrain/terrain_blocks.json", FileAccess.READ)

@@ -55,6 +55,9 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _compare(label: String) -> void:
+	# Alternate ordinary gameplay and the loading cover. The same solver must
+	# publish identical samples/texture bytes at either scheduling budget.
+	root.get_node("WorldClock").hold_for_loading(root, comparisons % 2 == 0)
 	for i in 6000:
 		old_field._process(.016)
 		new_field._process(.016)
@@ -69,6 +72,7 @@ func _compare(label: String) -> void:
 		for layer in mini(old_field._images[page].size(),new_field._images[page].size()):
 			_expect(old_field._images[page][layer].get_data()==new_field._images[page][layer].get_data(),label+": exact texture bytes")
 	comparisons+=1
+	root.get_node("WorldClock").hold_for_loading(root, false)
 
 func _pending_disposal() -> void:
 	# Deterministically hold the sole cleanup slot; edits must coalesce without

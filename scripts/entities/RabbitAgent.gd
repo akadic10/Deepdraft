@@ -19,7 +19,7 @@ func _build_visual(models: Dictionary) -> void:
 
 func _pose() -> void:
 	visual.position.y = sin(hop_progress * PI) * float(definition.navigation.hop_height) if hop_progress < 1 else 0.0
-	visual.scale.y = 0.72 if activity == "Sleeping" else 1.0
+	# Rest is expressed by the head and ears, preserving rigid voxel proportions.
 	head.rotation.x = -0.48 + sin(pose_time * 7) * 0.05 if activity == "Grazing" else -0.16 if activity == "Sleeping" else 0.0
 	ears.rotation.x = 0.9 if activity == "Sleeping" else sin(pose_time * 1.4) * 0.045
 

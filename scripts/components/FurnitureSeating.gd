@@ -5,7 +5,11 @@ extends RefCounted
 var controller
 var snap: Dictionary = {}
 var guides: Array[Node3D] = []
-var dirty := true
+var _chair_settings_cache: Dictionary = {}
+var dirty := true:
+	set(value):
+		dirty = value
+		if value: _chair_settings_cache.clear()
 var aim := Vector3i(-1, -1, -1)
 
 func _init(owner) -> void:
@@ -50,6 +54,36 @@ func slots_for_layout(def: Dictionary, origin: Vector3i, table_yaw: int) -> Arra
 
 static func is_chair(def: Dictionary) -> bool:
 	return not (def.get("seating_chair", {}) as Dictionary).is_empty()
+
+
+## Optional table-local posture. Derived from real/planned slots, never written
+## into the shared stool definition or serialized as another furniture variant.
+func chair_definition(def: Dictionary, origin: Vector3i, yaw: int, layout: Dictionary = {}) -> Dictionary:
+	if not is_chair(def): return def
+	var candidates: Array[Dictionary] = []
+	if not layout.is_empty(): candidates.append(layout)
+	for pieces: Dictionary in [controller._installed, controller._ghosts]:
+		for piece in pieces.values():
+			if piece.def.get("seating", {}).has("chair_profile"):
+				candidates.append({"def":piece.def,"origin":piece.origin_cell,"yaw":piece.yaw_steps})
+	for table in candidates:
+		var profile: Dictionary = table.def.get("seating", {}).get("chair_profile", {})
+		if profile.is_empty(): continue
+		for slot in slots_for_layout(table.def, table.origin, table.yaw):
+			if slot.key != def.furniture_key or slot.origin != origin or slot.yaw != posmod(yaw,4): continue
+			var result := def.duplicate()
+			var settings: Dictionary = def.seating_chair.duplicate(true)
+			settings.merge(profile,true)
+			result["seating_chair"] = settings
+			return result
+	return def
+
+
+func chair_settings(piece) -> Dictionary:
+	var id: int = piece.get_instance_id()
+	if not _chair_settings_cache.has(id):
+		_chair_settings_cache[id] = chair_definition(piece.def,piece.origin_cell,piece.yaw_steps).seating_chair
+	return _chair_settings_cache[id]
 
 
 static func clearance_yaw(piece) -> int:
@@ -130,6 +164,8 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 	if exceeds_capacity(def, origin, yaw, skip):
 		return "seat_capacity"
 	var chair := is_chair(def)
+	var layout := {"def":def,"origin":origin,"yaw":yaw} if def.has("seating") else {}
+	if chair: def = chair_definition(def,origin,yaw)
 	var obstacles := _obstacles(def, origin, yaw)
 	var spaces: Array[Dictionary] = []
 	if chair: spaces = clearance_regions(def, origin, yaw)
@@ -143,7 +179,8 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 			if chair and _overlap(spaces, _obstacles(piece.def, piece.origin_cell, piece.yaw_steps)):
 				return "seat_clearance"
 			if is_chair(piece.def):
-				var other := clearance_regions(piece.def, piece.origin_cell, clearance_yaw(piece))
+				var other_def := chair_definition(piece.def,piece.origin_cell,clearance_yaw(piece),layout)
+				var other := clearance_regions(other_def, piece.origin_cell, clearance_yaw(piece))
 				if _overlap(other, obstacles) or (chair and _overlap(other, spaces)):
 					return "seat_clearance"
 	if not chair:

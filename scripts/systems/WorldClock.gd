@@ -47,6 +47,7 @@ var _day_length:   Dictionary = {}   # mean_hours / amplitude_hours / *_solstice
 
 # ── Internal ──────────────────────────────────────────────────────────────────
 var _last_hour_int: int = -1
+var _start_state: Dictionary = {}
 
 ## Fired once per whole in-game hour boundary (new_hour is 0–23).
 ## Sky/temperature systems connect here for hourly recomputes.
@@ -62,6 +63,7 @@ signal season_changed(new_season: String)
 
 func _ready() -> void:
 	_load_config()
+	_start_state = serialize_state()
 	_last_hour_int = int(floor(hour))
 	print("WorldClock: year %d, %s, day %d, %s (1 day = %.0f real min)." % [
 		year, season, day, time_string(),
@@ -158,6 +160,10 @@ func serialize_state() -> Dictionary:
 		"speed": speed,
 		"paused": _player_paused,
 	}
+
+
+func reset_for_new_game() -> void:
+	restore_state(_start_state)
 
 
 func restore_state(state: Dictionary) -> void:

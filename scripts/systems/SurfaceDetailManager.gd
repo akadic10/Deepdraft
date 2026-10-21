@@ -234,7 +234,7 @@ func _spawn_visual(id: String) -> void:
 	var visual := packed.instantiate() as Node3D
 	visual.rotation.y = int(record.yaw) * PI * .5
 	body.add_child(visual)
-	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false): mesh.material_override = _material
+	for mesh in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(body): mesh.material_override = _material
 	if blocking:
 		var shape := CollisionShape3D.new()
 		var box := BoxShape3D.new()

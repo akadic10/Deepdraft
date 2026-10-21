@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon RX 9070 XT
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+SkyController: day/night driver active (res://data/sky/sky_settings.json).
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+FurniturePlacementController: 42 placeable defs loaded.
+IMPORTED_GRID dwarf vertex_error_cells=0.0004016860039 normal_error=0.00012584187789 cubic=true
+IMPORTED_GRID stool vertex_error_cells=0.00028505770024 normal_error=0.00014070270117 cubic=true
+IMPORTED_GRID barrel vertex_error_cells=0.00034425396007 normal_error=0.00012584187789 cubic=true
+IMPORTED_GRID bush vertex_error_cells=0.00060901493998 normal_error=0.00012584187789 cubic=true
+IMPORTED_GRID deer vertex_error_cells=0.00045495762606 normal_error=0.00012584187789 cubic=true
+IMPORTED_GRID pine vertex_error_cells=0.00544732343405 normal_error=0.00012584187789 cubic=true
+MICRO_VOXEL_STUDY_READY: toggle matched current / 1:16 views; isolated profile
+MICRO_VOXEL_STUDY_CAPTURE_OK: native matched views, poses, population; 0 failed checks

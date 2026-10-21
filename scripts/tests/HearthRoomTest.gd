@@ -46,7 +46,8 @@ func _run() -> void:
 		_expect(heater.node.get_node_or_null("PlacementArea") == null, "installed heater has no preview outline")
 		var art = heater.node.find_child("hearth_body", true, false)
 		var fire = heater.node.find_child("hearth_flame", true, false)
-		_expect(art.mesh.get_aabb().end.y > fire.mesh.get_aabb().end.y + .4, "low fire sits below the stone back")
+		var body_mesh: MeshInstance3D = preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(art)[0]
+		_expect(body_mesh.mesh.get_aabb().end.y > fire.mesh.get_aabb().end.y + .4, "low fire sits below the stone back")
 		if yaw == 3: break
 		furniture._teardown_installed(heater.installed_id, false)
 		_expect(int(_small_room().heat_units) == 0, "removal clears heat once")

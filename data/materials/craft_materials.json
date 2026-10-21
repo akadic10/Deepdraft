@@ -19,7 +19,17 @@
         "grain_light": "CDB17B",
         "cut": "E4CF97",
         "ring": "B5A06C",
-        "heart": "D7BC80"
+        "heart": "D7BC80",
+        "hewn_bark_dark": "493C2B",
+        "hewn_bark": "685137",
+        "hewn_bark_light": "876B43",
+        "hewn_peel": "AD8D51",
+        "hewn_cut": "DFBD7D",
+        "hewn_cut_light": "E8CA91",
+        "hewn_cut_shade": "D3AE6A",
+        "hewn_grain": "C4A162",
+        "hewn_knot": "9C7A40",
+        "hewn_crack": "493827"
       }
     },
     "base:material:oak": {
@@ -40,7 +50,17 @@
         "grain_light": "B58A5A",
         "cut": "DABE84",
         "ring": "AE8C54",
-        "heart": "CCAA6D"
+        "heart": "CCAA6D",
+        "hewn_bark_dark": "463022",
+        "hewn_bark": "65442C",
+        "hewn_bark_light": "825B36",
+        "hewn_peel": "A27643",
+        "hewn_cut": "D4A264",
+        "hewn_cut_light": "DEAF72",
+        "hewn_cut_shade": "CA975A",
+        "hewn_grain": "B88A50",
+        "hewn_knot": "966835",
+        "hewn_crack": "4A3022"
       }
     },
     "base:material:juniper": {
@@ -61,7 +81,17 @@
         "grain_light": "B08B78",
         "cut": "CEB199",
         "ring": "9E7A65",
-        "heart": "B9977B"
+        "heart": "B9977B",
+        "hewn_bark_dark": "403634",
+        "hewn_bark": "5A4841",
+        "hewn_bark_light": "786054",
+        "hewn_peel": "9D7C67",
+        "hewn_cut": "C9A084",
+        "hewn_cut_light": "D7B298",
+        "hewn_cut_shade": "BC9176",
+        "hewn_grain": "AF8268",
+        "hewn_knot": "835A45",
+        "hewn_crack": "44332B"
       }
     },
     "base:material:applewood": {
@@ -82,7 +112,17 @@
         "grain_light": "C08D65",
         "cut": "DABE92",
         "ring": "AF895B",
-        "heart": "CCA477"
+        "heart": "CCA477",
+        "hewn_bark_dark": "483129",
+        "hewn_bark": "674234",
+        "hewn_bark_light": "895B43",
+        "hewn_peel": "AA7751",
+        "hewn_cut": "D7A571",
+        "hewn_cut_light": "E2B785",
+        "hewn_cut_shade": "CC9865",
+        "hewn_grain": "BB8857",
+        "hewn_knot": "945E3B",
+        "hewn_crack": "493126"
       }
     },
     "base:material:iron": {
@@ -149,6 +189,20 @@
         "wood": "94643F",
         "grain": "C39B67",
         "bark": "65462F"
+      }
+    },
+    "hand_hewn_timber": {
+      "colors": {
+        "hewn_bark_dark": "463022",
+        "hewn_bark": "65442C",
+        "hewn_bark_light": "825B36",
+        "hewn_peel": "A27643",
+        "hewn_cut": "D4A264",
+        "hewn_cut_light": "DEAF72",
+        "hewn_cut_shade": "CA975A",
+        "hewn_grain": "B88A50",
+        "hewn_knot": "966835",
+        "hewn_crack": "4A3022"
       }
     }
   }

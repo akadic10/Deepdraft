@@ -99,9 +99,8 @@ Merchants prioritise goods in this order:
 |---|---|---|
 | 1 | Dwarven alcohol | Ale, stout, mead, wine, gin, aged variants |
 | 2 | Precious gems | Jade, amethyst, ruby, sapphire, emerald, diamond — finished when mined |
-| 3 | Luxury stone | Marble blocks |
-| 4 | Precious metals | Gold ore, silver ore |
-| 5 | Crafted goods | Forged equipment and furniture |
+| 3 | Precious metals | Gold ore, silver ore |
+| 4 | Crafted goods | Forged equipment and furniture |
 
 Merchants will not buy raw stone, soil, or basic ore — only processed or high-value goods.
 

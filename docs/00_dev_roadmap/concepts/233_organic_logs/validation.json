@@ -1,0 +1,59 @@
+{
+  "native_runs": [
+    {
+      "run": "organic_furniture_gallery",
+      "marker": "VOXEL_GALLERY_PASS 51"
+    },
+    {
+      "run": "organic_items_gallery",
+      "marker": "VOXEL_GALLERY_PASS 92"
+    },
+    {
+      "run": "organic_furniture_test",
+      "marker": "FURNITURE_VOXEL_ART_OK"
+    },
+    {
+      "run": "organic_items_test",
+      "marker": "ITEM_VOXEL_ART_OK"
+    },
+    {
+      "run": "organic_game_test",
+      "marker": "RUDIMENTARY_RECREATION_OK"
+    },
+    {
+      "run": "organic_dining_test",
+      "marker": "LOG_DINING_TABLE_OK"
+    },
+    {
+      "run": "organic_stool_test",
+      "marker": "LOG_STOOL_OK"
+    },
+    {
+      "run": "organic_crafting_test",
+      "marker": "CRAFTING_STUMP_OK"
+    },
+    {
+      "run": "organic_furniture_manifest",
+      "marker": "VOXEL_MANIFEST_PASS 742"
+    },
+    {
+      "run": "organic_items_manifest",
+      "marker": "VOXEL_MANIFEST_PASS 1013"
+    },
+    {
+      "run": "organic_furniture_thumbs",
+      "marker": "FURNITURE_THUMBNAILS_OK: 4"
+    },
+    {
+      "run": "organic_items_thumbs",
+      "marker": "INVENTORY_THUMBNAILS_OK: 4"
+    },
+    {
+      "run": "organic_benchmark",
+      "marker": "ORGANIC_LOG_BENCHMARK_OK"
+    }
+  ],
+  "errors": [],
+  "python_tests": 45,
+  "deterministic_models": 143
+}

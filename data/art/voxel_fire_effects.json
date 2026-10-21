@@ -1,0 +1,136 @@
+{
+  "description": "Offline 1:16 voxel flame art. Solid tapered tongues, fixed integer-cell roots and warm palette steps. Existing furniture definitions own light, heat and animation timing; anchors and envelopes quantize to the grid at export.",
+  "palette": {
+    "ember": "E95B18",
+    "orange": "FF8A26",
+    "gold": "FFBD49",
+    "hot": "FFE18A",
+    "core": "FFF0BB"
+  },
+  "families": {
+    "campfire": {
+      "anchor": [
+        0,
+        0.375,
+        0
+      ],
+      "size": [
+        0.74,
+        1.04,
+        0.66
+      ],
+      "bounds": [
+        [
+          -0.5,
+          0.375,
+          -0.5
+        ],
+        [
+          0.5,
+          1.5,
+          0.5
+        ]
+      ]
+    },
+    "hearth": {
+      "anchor": [
+        0,
+        0.46,
+        0.1
+      ],
+      "size": [
+        0.74,
+        0.63,
+        0.62
+      ],
+      "bounds": [
+        [
+          -0.5,
+          0.46,
+          -0.4
+        ],
+        [
+          0.5,
+          1.15,
+          0.5
+        ]
+      ]
+    },
+    "wooden_torch": {
+      "anchor": [
+        -0.03,
+        1.0,
+        0.5
+      ],
+      "size": [
+        0.46,
+        0.45,
+        0.4
+      ],
+      "bounds": [
+        [
+          -0.375,
+          1.0,
+          0.25
+        ],
+        [
+          0.25,
+          1.5,
+          0.75
+        ]
+      ]
+    }
+  },
+  "tongues": [
+    {
+      "offset": [
+        0,
+        0
+      ],
+      "width": 0.38,
+      "height": 0.91,
+      "phase": 0.0,
+      "core": false
+    },
+    {
+      "offset": [
+        -0.23,
+        -0.04
+      ],
+      "width": 0.23,
+      "height": 0.69,
+      "phase": 2.1,
+      "core": false
+    },
+    {
+      "offset": [
+        0.23,
+        0.07
+      ],
+      "width": 0.22,
+      "height": 0.76,
+      "phase": 4.2,
+      "core": false
+    },
+    {
+      "offset": [
+        -0.045,
+        0.22
+      ],
+      "width": 0.23,
+      "height": 0.48,
+      "phase": 1.2,
+      "core": true
+    },
+    {
+      "offset": [
+        0.035,
+        -0.21
+      ],
+      "width": 0.22,
+      "height": 0.51,
+      "phase": 3.4,
+      "core": true
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "furniture": [
+    "assets/models/furniture/log_table.glb",
+    "assets/models/furniture/animations/wooden_torch_flame.glb"
+  ]
+}

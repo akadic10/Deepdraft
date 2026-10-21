@@ -52,7 +52,7 @@ static func run(tree: SceneTree, saves: Node) -> String:
 	saves.save_finished.connect(callback)
 	if not saves.request_save(): owner.free(); return "async fixture save rejected"
 	var same_scene:=tree.current_scene
-	if saves.request_save() or saves.request_autosave() or saves.request_load() or saves.request_load_autosave(): return "overlapping operation accepted"
+	if saves.request_save() or saves.request_autosave() or saves.request_load() or saves.request_load_autosave() or saves.request_new_game(): return "overlapping operation accepted"
 	if saves.configure_storage_for_testing("user://must_not_switch"): return "storage switched during write"
 	if tree.current_scene!=same_scene: return "busy load changed the world"
 	owner.data.nested[0].value=99

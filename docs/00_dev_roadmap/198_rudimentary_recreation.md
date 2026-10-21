@@ -1,5 +1,10 @@
 # Rudimentary fences, gates and board games
 
+**Recreation revision:** [249 — Solo games and partner search](249_solo_games_and_partner_search.md)
+supersedes the two-player-only rules below. One stool supports solo play for +4
+happiness, while shared games give +8. Occupied tables recruit within 48 routed
+blocks. The historical release and original validation remain below.
+
 **Fence revision:** [201 — Grid-corner fences](201_grid_corner_fences.md)
 replaces the 2×1 panel below with individual corner posts and automatic rails.
 Gates now span two grid edges with shared end posts. Ground animals respect the

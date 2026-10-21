@@ -11,6 +11,7 @@ var food: RefCounted
 var dining_outcome := ""
 var dining_memory_hours := 0.0
 var recreation_memory_hours := 0.0
+var solo_recreation_memory_hours := 0.0
 var recreation_retry_hours := 0.0
 
 func _init() -> void:
@@ -18,6 +19,7 @@ func _init() -> void:
 
 func tick(hours: float) -> void:
 	recreation_memory_hours = maxf(0.0,recreation_memory_hours-hours)
+	solo_recreation_memory_hours = maxf(0.0,solo_recreation_memory_hours-hours)
 	recreation_retry_hours = maxf(0.0,recreation_retry_hours-hours)
 	dining_memory_hours = maxf(0.0,dining_memory_hours-hours)
 	bedroom_memory_hours = maxf(0.0,bedroom_memory_hours-hours)
@@ -41,10 +43,17 @@ func finish_sleep() -> void:
 	personal_sleep_hours = 0.0
 
 func value() -> float:
-	return clampf(float(config.baseline)+(float(config.personal_bedroom.bonus) if bedroom_memory_hours>0 else 0.0)+(float(config.recreation.bonus) if recreation_memory_hours>0 else 0.0)-_thermal_penalty()-_dining_penalty()-(food.mood_penalty() if food != null else 0.0),0.0,1.0)
+	return clampf(float(config.baseline)+(float(config.personal_bedroom.bonus) if bedroom_memory_hours>0 else 0.0)+_recreation_bonus()-_thermal_penalty()-_dining_penalty()-(food.mood_penalty() if food != null else 0.0),0.0,1.0)
 
-func record_recreation() -> void:
-	recreation_memory_hours = float(config.recreation.duration_hours)
+func _recreation_bonus() -> float:
+	return maxf(float(config.recreation.bonus) if recreation_memory_hours>0 else 0.0,
+		float(config.recreation.solo_bonus) if solo_recreation_memory_hours>0 else 0.0)
+
+func record_recreation(together := true) -> void:
+	# Separate timers prevent solo play from downgrading or extending an earned
+	# social memory. Only the strongest current recreation thought contributes.
+	if together: recreation_memory_hours = float(config.recreation.duration_hours)
+	else: solo_recreation_memory_hours = float(config.recreation.duration_hours)
 
 func record_dining(outcome: String) -> void:
 	dining_outcome = outcome
@@ -82,6 +91,8 @@ func describe() -> Dictionary:
 	var thoughts: PackedStringArray = []
 	if recreation_memory_hours>0:
 		thoughts.append("Played a board game with a friend · +%d happiness\n%.1f game hours remaining" % [roundi(float(config.recreation.bonus)*100),recreation_memory_hours])
+	elif solo_recreation_memory_hours>0:
+		thoughts.append("Played a board game on my own · +%d happiness\n%.1f game hours remaining" % [roundi(float(config.recreation.solo_bonus)*100),solo_recreation_memory_hours])
 	if food != null and food.hungry():
 		thoughts.append("%s · −%d happiness\nWork speed −%d%% until fed" % ["Famished" if food.famished() else "Hungry",roundi(food.mood_penalty()*100),roundi((1.0-food.work_multiplier())*100)])
 	if _dining_penalty()>0:
@@ -98,6 +109,7 @@ func describe() -> Dictionary:
 func serialize() -> Dictionary:
 	var data := {"personal_sleep_hours":personal_sleep_hours,"bedroom_memory_hours":bedroom_memory_hours,"dining_outcome":dining_outcome,"dining_memory_hours":dining_memory_hours}
 	data.recreation_memory_hours = recreation_memory_hours
+	if solo_recreation_memory_hours>0: data.solo_recreation_memory_hours = solo_recreation_memory_hours
 	data.recreation_retry_hours = recreation_retry_hours
 	for kind: String in thermal_hours:
 		data[kind+"_sleep_hours"] = thermal_hours[kind]
@@ -106,6 +118,7 @@ func serialize() -> Dictionary:
 
 func restore(data: Dictionary) -> void:
 	recreation_memory_hours = clampf(float(data.get("recreation_memory_hours",0.0)),0.0,float(config.recreation.duration_hours))
+	solo_recreation_memory_hours = clampf(float(data.get("solo_recreation_memory_hours",0.0)),0.0,float(config.recreation.duration_hours))
 	recreation_retry_hours = clampf(float(data.get("recreation_retry_hours",0.0)),0.0,float(TaskManager.get_config_section("recreation").cooldown_hours))
 	dining_outcome = String(data.get("dining_outcome",""))
 	dining_memory_hours = clampf(float(data.get("dining_memory_hours",0.0)),0.0,float(config.dining.duration_hours))

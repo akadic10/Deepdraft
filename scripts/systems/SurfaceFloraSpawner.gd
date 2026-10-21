@@ -463,6 +463,7 @@ func _instance_tree(species_name: String, model_path: String, stage_name: String
 		return null
 	visual.scale = Vector3.ONE * instance_scale
 	_apply_material_recursive(visual)
+	preload("res://scripts/components/VoxelShadowSetup.gd").configure(visual)
 	root.add_child(visual)
 
 	if not is_clutter:
@@ -559,7 +560,7 @@ static func resolve_tree_model_for_season(
 	var fruit: Dictionary = stage_data.get("fruit_harvest", {})
 	if stage_data.has("picked_models") and (picked or season != String(fruit.get("harvest_season", ""))):
 		models = stage_data.picked_models
-	if season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
+	if not picked and season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
 		return resolve_tree_model(models["autumn_fruiting"], world_pos)
 	var value = models.get(season, models.get("summer", ""))
 	if value is String and value == "":
@@ -715,6 +716,7 @@ func _load_scene(path: String) -> PackedScene:
 
 
 func _apply_material_recursive(node: Node) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D:
 		(node as MeshInstance3D).material_override = _tree_material
 	for child in node.get_children():
@@ -948,7 +950,11 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 		details = "Seasonal fruit: %s." % _explorer_item_name(String(species_fruit.get("yield_item", "")))
 		if float(species_fruit.get("work_seconds", 0)) > 0:
 			details += " Pick once per harvest season; the tree stays standing."
-			if not fruit.is_empty(): details += "\nHarvest: %d berries · %.0f seconds." % [int(fruit.yield_count), float(fruit.work_seconds)]
+			if not fruit.is_empty():
+				var amount := str(int(fruit.get("yield_count", fruit.get("yield_min", 1))))
+				if not fruit.has("yield_count") and int(fruit.get("yield_max",1)) != int(fruit.get("yield_min",1)):
+					amount += "–%d" % int(fruit.yield_max)
+				details += "\nHarvest: %s %s · %.0f seconds." % [amount, String(fruit.get("yield_label","berries")), float(fruit.work_seconds)]
 	if not possible.is_empty():
 		if not details.is_empty():
 			details += "\n\n"
@@ -970,7 +976,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 				elif task.status == Task.Status.ASSIGNED:
 					status = "Dwarf approaching"
 				elif task.status == Task.Status.IN_PROGRESS:
-					status = "Picking berries" if harvesting else "Chopping"
+					status = "Picking %s" % String(fruit.get("yield_label","berries")) if harvesting else "Chopping"
 	if progress > 0.0:
 		status += " · %d%%" % mini(99, floori(progress / maxf(duration, .001) * 100.0))
 	if harvesting:
@@ -980,7 +986,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 	if marked:
 		actions.append({"id": "cancel_felling", "text": "Cancel harvest" if harvesting else "Cancel felling"})
 	else:
-		if can_harvest_tree(tree_id): actions.append({"id": "harvest", "text": "Harvest berries"})
+		if can_harvest_tree(tree_id): actions.append({"id": "harvest", "text": String(fruit.get("action_label","Harvest berries"))})
 		actions.append({"id": "fell", "text": "Fell tree"})
 	return {"title": String(tree["name"]).capitalize() + " tree", "kind": "Tree",
 		"rows": [
@@ -1142,6 +1148,7 @@ func _ensure_felling_source(tree_id: Vector2i) -> void:
 	var source := FellingSource.new()
 	var harvest := String(state.get("action", "fell")) == "harvest"
 	source.task_type = Task.Type.HARVEST_TREE if harvest else Task.Type.FELL_TREE
+	if harvest: source.fruit_label = String(stage.fruit_harvest.get("yield_label","berries"))
 	source.source_id = TaskManager.allocate_source_id()
 	source.origin = state["origin"]
 	source.footprint = _footprint_for(species["placement"], String(state["stage"]))
@@ -1242,9 +1249,19 @@ func _complete_tree_harvest(dwarf_id: int, tree_id: Vector2i) -> bool:
 	_clear_felling_marker(tree_id)
 	_refresh_tree_crop_visual(tree_id)
 	# The trunk stays solid: put the crate on the worker's accessible side.
-	drops.call("spawn_drop", String(fruit.yield_item), int(fruit.yield_count), dwarf.current_cell() + Vector3i.UP)
+	drops.call("spawn_drop", String(fruit.yield_item), _tree_fruit_yield(tree_id), dwarf.current_cell() + Vector3i.UP)
 	tree_felling_changed.emit(tree_id)
 	return true
+
+
+func _tree_fruit_yield(tree_id: Vector2i) -> int:
+	var fruit := _tree_fruit(tree_id)
+	if fruit.has("yield_count"): return int(fruit.yield_count)
+	var minimum := maxi(1, int(fruit.get("yield_min",1)))
+	var maximum := maxi(minimum, int(fruit.get("yield_max",minimum)))
+	# One deterministic crop per tree/year. Reloads and interrupted work cannot
+	# reroll a yield; no additional save field or global RNG state is needed.
+	return minimum + _hash(tree_id.x,tree_id.y,19001+WorldClock.year) % (maximum-minimum+1)
 
 
 func _refresh_tree_crop_visual(tree_id: Vector2i) -> void:
@@ -1261,6 +1278,7 @@ func _refresh_tree_crop_visual(tree_id: Vector2i) -> void:
 	var visual := packed.instantiate() as Node3D
 	visual.scale = Vector3.ONE * godot_units_per_block / maxf(voxels_per_block, .0001)
 	_apply_material_recursive(visual)
+	preload("res://scripts/components/VoxelShadowSetup.gd").configure(visual)
 	# Replace only the art. Occupancy, collision body and reservations stay intact.
 	var old := node.get_child(0)
 	node.remove_child(old)

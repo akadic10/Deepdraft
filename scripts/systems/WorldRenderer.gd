@@ -166,6 +166,9 @@ var _cut_chunks: Dictionary = {}
 # Set on the main thread before each batch so workers never read the live
 # _visual_cut_blocks while mining could mutate it.
 var _ovt_cut: Dictionary = {}
+## Invalidate on input changes; reuse immutable dictionaries across tile batches.
+## Replacement is allowed only after every reader of the previous batch finishes.
+var _overview_snapshot_dirty := true
 # Group-task scratch for the threaded overview build (main thread sets these
 # before dispatch; workers read _ovt_batch/_ovt_season read-only and write their
 # own disjoint _ovt_results slot).
@@ -1049,6 +1052,7 @@ func _track_cut_chunk(block: Vector3i, delta: int) -> void:
 func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	if blocks.is_empty():
 		return
+	_overview_snapshot_dirty = true
 	_cavity_shell_dirty = true   # designations and mined holes both shape the shell (SO-2b A)
 	if _block_face_overview_active():
 		_enqueue_overview_tiles_for_blocks(blocks)
@@ -1636,6 +1640,7 @@ func _free_region_node(key: Vector2i) -> void:
 # -- Block-face overview ------------------------------------------------------
 
 func _invalidate_overview_global() -> void:
+	_overview_snapshot_dirty = true
 	_overview_epoch += 1
 	_overview_revisions.clear()
 	_overview_initialized = false
@@ -1967,11 +1972,7 @@ func _drain_overview_tile_queue() -> void:
 	# Read-only-during-build state, set once on the main thread before any worker
 	# runs. Never replace these snapshots until this batch has been consumed.
 	_cache_overview_side_colors(WorldClock.season)
-	_ovt_cut = _visual_cut_blocks.duplicate()
-	_ovt_mined = _mined_blocks.duplicate()
-	_ovt_mined.merge(_discovered_cave_blocks)
-	_ovt_mined.merge(_debug_cave_blocks)
-	_ovt_mined.merge(WorldData.terrain_overrides())
+	_refresh_overview_snapshots()
 	_ovt_season = WorldClock.season
 	_ovt_slice = slice_y
 	_ovt_epoch = _overview_epoch
@@ -2000,6 +2001,17 @@ func _drain_overview_tile_queue() -> void:
 		for i in batch.size(): _overview_build_worker(i)
 		_consume_overview_results(drain_started)
 	_terrain_drain_max_usec = maxi(_terrain_drain_max_usec, Time.get_ticks_usec()-drain_started)
+
+
+func _refresh_overview_snapshots() -> void:
+	assert(not _ovt_building and _ovt_task < 0, "Overview snapshots still have active readers")
+	if not _overview_snapshot_dirty: return
+	_ovt_cut = _visual_cut_blocks.duplicate()
+	_ovt_mined = _mined_blocks.duplicate()
+	_ovt_mined.merge(_discovered_cave_blocks)
+	_ovt_mined.merge(_debug_cave_blocks)
+	_ovt_mined.merge(WorldData.terrain_overrides())
+	_overview_snapshot_dirty = false
 
 
 func _overview_result_is_current(index: int) -> bool:

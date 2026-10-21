@@ -88,6 +88,7 @@ const SCENE := {
 		"?mood": {"personal_sleep_hours":TYPE_FLOAT,"bedroom_memory_hours":TYPE_FLOAT,
 			"?dining_outcome":TYPE_STRING,"?dining_memory_hours":TYPE_FLOAT,
 			"?recreation_memory_hours":TYPE_FLOAT,"?recreation_retry_hours":TYPE_FLOAT,
+			"?solo_recreation_memory_hours":TYPE_FLOAT,
 			"?cold_sleep_hours":TYPE_FLOAT,"?cold_memory_hours":TYPE_FLOAT,
 			"?chilly_sleep_hours":TYPE_FLOAT,"?chilly_memory_hours":TYPE_FLOAT,
 			"?hot_sleep_hours":TYPE_FLOAT,"?hot_memory_hours":TYPE_FLOAT},

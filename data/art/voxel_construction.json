@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "note": "Native 1:16 solid boundary tiles; full unit occupancy and placement coordinates preserved. Materials crate shares the native loose-goods shell.",
+  "plank": ["926941", "A67C52", "B58A5A", "AD8052", "976D44", "B08759"],
+  "stone": ["757D84", "989FA5", "8E969D", "A1A7AC", "878F96", "92999F"]
+}

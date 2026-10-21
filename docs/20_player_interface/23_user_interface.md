@@ -451,6 +451,17 @@ category definitions also carry atlas metadata through UIRegistry.
 
 ### Save / Load Menu
 
+Launching the game automatically resumes the newest valid quick save or autosave,
+including backup recovery when needed. If no valid save exists, it opens a fresh
+world. Selection happens before world generation and the loading screen remains
+until restoration is complete.
+
+The gear/options **Colony menu → New Game** action starts a fresh world with the
+configured starting calendar and new seed. It discards unsaved progress without
+deleting existing saves; its tooltip states this. `new_game_requested` uses the
+same close-before-signal lifecycle as Load. Normal autosaving continues after
+five minutes in the new world, and Save / Load remains available below it.
+
 **Menu → Save / Load** opens an illustrated child row with Back above
 the dock. Hover/focus names identify **Save game**, **Load game**, and
 **Load autosave**. Stable action IDs route the callbacks. `DockUI` emits
@@ -465,7 +476,7 @@ is covered by `DockPersistenceLifecycleTest` and menu-driven scene reloads in
 
 The manual quick save lives at `user://saves/quicksave.json`; a separate automatic save is
 written every five minutes of ready, non-generating world time to
-`user://saves/autosave.json`. Both use schema version 1, validate a temporary snapshot
+`user://saves/autosave.json`. Both use schema version 2, validate a temporary snapshot
 before replacement, and retain one matching backup. If a selected primary is corrupt,
 Load recovers that slot's backup and repairs its primary automatically. Autosaving shows a
 brief **Autosaved.** toast and never replaces the player's manual save.
@@ -809,7 +820,7 @@ selection and Locate actions. The assignment controls below remain future design
 A scrollable log in the right panel below the labor window. Shows the last 50 completed and in-progress tasks with timestamps.
 
 ```
-[12:04]  ⛏  Urist mines Granite (Level 7)       ✓ done
+[12:04]  ⛏  Urist mines Stone (Level 7)       ✓ done
 [12:05]  📦  Bomrek hauls Stone × 8 to Stockpile  ⟳ in progress
 [12:05]  🍺  Dastot brews Longbeard Ale            ⟳ in progress
 ```

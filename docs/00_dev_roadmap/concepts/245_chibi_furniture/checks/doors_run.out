@@ -1,0 +1,43 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+BlockRegistry: loaded 43 block types.
+WorldClock: year 1, summer, day 1, 08:00 (1 day = 24 real min).
+WorldData: ready.
+WorldGenerator: ready.
+PlacedEntityRegistry: ready.
+NavGrid: ready.
+TaskManager: ready (budget 1000 us, 8 probes/wake, heartbeat 0.50 s).
+InteriorTracker: ready (X0 data-only).
+RoomManager: ready (doc 34/22).
+StockpileManager: ready (max haulers/zone 4, heavy carry ×0.70).
+UIRegistry: loaded 10 dock items.
+DwarfAssets: parts loaded; pools — names ok, appearance ok, traits ok.
+ItemDropManager: loaded 87 item definitions.
+WeatherManager: ready (6 weather types, current = base:weather:clear).
+UIWindowManager: ready (0 remembered window positions).
+FurniturePlacementController: 28 placeable defs loaded.
+FurniturePlacementController: installed base:furniture:crude_workbench at (45, 20, 42).
+FurniturePlacementController: ghost 1 (base:furniture:door) at (58, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:door at (58, 20, 46).
+FurniturePlacementController: installed base:furniture:door at (58, 20, 46).
+FurniturePlacementController: installed base:furniture:door at (105, 20, 40).
+FurniturePlacementController: installed base:furniture:door at (105, 20, 48).
+FurniturePlacementController: installed base:furniture:door at (105, 20, 56).
+FurniturePlacementController: installed base:furniture:door at (105, 20, 64).
+FurniturePlacementController: ghost 2 (base:furniture:log_door_3) at (70, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:log_door_3 at (70, 20, 46).
+FurniturePlacementController: installed base:furniture:log_door_3 at (70, 20, 46).
+FurniturePlacementController: installed base:furniture:log_door_3 at (105, 20, 40).
+FurniturePlacementController: installed base:furniture:log_door_3 at (105, 20, 48).
+FurniturePlacementController: installed base:furniture:log_door_3 at (105, 20, 56).
+FurniturePlacementController: installed base:furniture:log_door_3 at (105, 20, 64).
+FurniturePlacementController: ghost 3 (base:furniture:log_door_4) at (82, 20, 46) yaw 0.
+FurniturePlacementController: installed base:furniture:log_door_4 at (82, 20, 46).
+FurniturePlacementController: installed base:furniture:log_door_4 at (82, 20, 46).
+FurniturePlacementController: installed base:furniture:log_door_4 at (105, 20, 40).
+FurniturePlacementController: installed base:furniture:log_door_4 at (105, 20, 48).
+FurniturePlacementController: installed base:furniture:log_door_4 at (105, 20, 56).
+FurniturePlacementController: installed base:furniture:log_door_4 at (105, 20, 64).
+FurniturePlacementController: ghost 4 (base:furniture:bench) at (52, 20, 42) yaw 0.
+FurniturePlacementController: installed base:furniture:bench at (52, 20, 42).
+LogFurnitureTest: PASS

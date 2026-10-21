@@ -246,7 +246,7 @@ func _find_seat_step() -> void:
 ## Pick once per visit, keeping backed chairs aligned with their furniture.
 ## Round stools prefer the nearest visible fire only if the seated pose fits.
 func _seat_facing(candidate: InstalledFurnitureComponent) -> Dictionary:
-	if bool(candidate.def.seating_chair.get("face_nearby_fire",false)):
+	if bool(_furniture._seating.chair_settings(candidate).get("face_nearby_fire",false)):
 		var fires: Array = []
 		var radius := float(config.get("seat_focus_radius",6))
 		for piece: InstalledFurnitureComponent in _furniture._installed.values():
@@ -304,7 +304,9 @@ func _vector(values: Array) -> Vector3:
 ## furniture. Each seat definition supplies its supported torso and resting limbs.
 func _pose() -> void:
 	var base := agent.to_local(seat.node.global_position)
-	var pose: Dictionary = seat.def.seating_chair.rest_pose
+	# Art viewers also supply a lightweight owner for the existing rest pose.
+	var settings: Dictionary = _furniture._seating.chair_settings(seat) if _furniture is FurniturePlacementController else seat.def.seating_chair
+	var pose: Dictionary = settings.rest_pose
 	var parts := {"body":agent._body,"left_hand":agent._hand_l,"right_hand":agent._hand_r,
 		"left_foot":agent._foot_l,"right_foot":agent._foot_r}
 	for key: String in parts:
@@ -315,7 +317,7 @@ func _pose() -> void:
 		agent._hand_r.position = _relax_hands[1].lerp(agent._hand_r.position,blend)
 		if blend >= 1.0: _relax_hands.clear()
 	if is_instance_valid(agent._head):
-		agent._head.position = (base+_vector(pose.body)+Vector3(0,sin(elapsed*1.8)*.012,0))*_sitting_blend
+		agent._head.position = (base+_vector(pose.get("head",pose.body))+Vector3(0,sin(elapsed*1.8)*.012,0))*_sitting_blend
 		var look := 0.0
 		var fire = _furniture._installed.get(_focus_fire_id)
 		if fire != null and not fire.flagged_uninstall and is_instance_valid(fire.node):

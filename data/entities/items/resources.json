@@ -23,67 +23,6 @@
     "                  used by stockpile zone filters and crafting ingredient queries"
   ],
   "__comment_stone": "Raw stone blocks â€” heavy, common, used for construction",
-  "base:resources:stone:granite": {
-    "display_name": "Granite",
-    "description": "A rough block of dense igneous stone, useful for construction.",
-    "model": "res://assets/models/items/stone/granite_block.glb",
-    "stack_max": 10,
-    "carry_cost": 1,
-    "weight_class": "heavy",
-    "base_trade_value": 2,
-    "material_tags": [
-      "stone",
-      "igneous",
-      "building_material",
-      "stockpile_stone"
-    ]
-  },
-  "base:resources:stone:basalt": {
-    "display_name": "Basalt",
-    "description": "A dark volcanic stone, harder than granite.",
-    "model": "res://assets/models/items/stone/basalt_block.glb",
-    "stack_max": 10,
-    "carry_cost": 1,
-    "weight_class": "heavy",
-    "base_trade_value": 2,
-    "material_tags": [
-      "stone",
-      "igneous",
-      "building_material",
-      "stockpile_stone"
-    ]
-  },
-  "base:resources:stone:limestone": {
-    "display_name": "Limestone",
-    "description": "A pale sedimentary stone, easy to cut and shape.",
-    "model": "res://assets/models/items/stone/limestone_block.glb",
-    "stack_max": 10,
-    "carry_cost": 1,
-    "weight_class": "heavy",
-    "base_trade_value": 2,
-    "material_tags": [
-      "stone",
-      "sedimentary",
-      "building_material",
-      "stockpile_stone"
-    ]
-  },
-  "base:resources:stone:marble": {
-    "display_name": "Marble",
-    "description": "A lustrous metamorphic stone prized for its elegance.",
-    "model": "res://assets/models/items/stone/marble_block.glb",
-    "stack_max": 10,
-    "carry_cost": 1,
-    "weight_class": "heavy",
-    "base_trade_value": 8,
-    "material_tags": [
-      "stone",
-      "metamorphic",
-      "building_material",
-      "luxury",
-      "stockpile_stone"
-    ]
-  },
   "base:resources:stone:rough_stone": {
     "display_name": "Rough Stone",
     "description": "A rough-hewn chunk of mountain stone. Dwarves use it to wall up and backfill unwanted openings.",
@@ -511,7 +450,14 @@
   },
   "__comment_flora": "Harvested plant matter â€” crops, berries, seeds",
   "base:resources:flora:elderberry": {
-    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"643d7a"}},
+    "food": {
+      "edible": true,
+      "nutrition": 0.6,
+      "serving": {
+        "shape": "berries",
+        "color": "643d7a"
+      }
+    },
     "display_name": "Elderberry",
     "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
     "model": "res://assets/models/items/crates/elderberry_low.glb",
@@ -533,7 +479,14 @@
     ]
   },
   "base:resources:flora:blueberry": {
-    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"506dad"}},
+    "food": {
+      "edible": true,
+      "nutrition": 0.6,
+      "serving": {
+        "shape": "berries",
+        "color": "506dad"
+      }
+    },
     "display_name": "Blueberry",
     "description": "Sweet high-altitude berries with a clean finish. Prized for mead and summer ales.",
     "model": "res://assets/models/items/crates/blueberry_low.glb",
@@ -555,7 +508,14 @@
     ]
   },
   "base:resources:flora:wild_strawberry": {
-    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"ca4342"}},
+    "food": {
+      "edible": true,
+      "nutrition": 0.6,
+      "serving": {
+        "shape": "berries",
+        "color": "ca4342"
+      }
+    },
     "display_name": "Wild Strawberry",
     "description": "Tiny and intensely sweet. Merchants go quiet when they see a basket of these.",
     "model": "res://assets/models/items/crates/wild_strawberry_low.glb",
@@ -578,7 +538,14 @@
     ]
   },
   "base:resources:flora:juniper_berry": {
-    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"berries","color":"67728c"}},
+    "food": {
+      "edible": true,
+      "nutrition": 0.6,
+      "serving": {
+        "shape": "berries",
+        "color": "67728c"
+      }
+    },
     "display_name": "Juniper Berry",
     "description": "Tart blue-black berries with a resinous bite. Prized for gin-style brewing.",
     "model": "res://assets/models/items/crates/juniper_berry_low.glb",
@@ -629,7 +596,14 @@
     ]
   },
   "base:resources:flora:apple": {
-    "food": {"edible": true, "nutrition": 0.6, "serving":{"shape":"apple","color":"b34d35"}},
+    "food": {
+      "edible": true,
+      "nutrition": 0.6,
+      "serving": {
+        "shape": "apple",
+        "color": "b34d35"
+      }
+    },
     "display_name": "Apple",
     "description": "A crisp mountain apple. Sweet enough to eat raw, better pressed into cider.",
     "model": "res://assets/models/items/crates/apple_low.glb",
@@ -1098,62 +1072,6 @@
     ]
   },
   "__comment_furniture": "Furniture items - the carryable forms of placeable furniture (doc 19). Fetched by FETCH_BUILD leases and restocked on uninstall. ONE-BOX RULE (Alen, 2026-07-11): packed furniture shares packed_furniture.glb - the ghost says which piece it becomes. Redesigned 2026-10-11 as a full 8x8x8-voxel wooden shipping crate (one world block).",
-  "base:resources:furniture:barrel": {
-    "display_name": "Barrel (packed)",
-    "description": "A hooped oak barrel, packed flat and ready to set up wherever it is needed.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 8,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:storage_chest": {
-    "display_name": "Storage Chest (packed)",
-    "description": "A heavy plank chest with its iron corner fittings bundled inside.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 12,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:storage_shelf": {
-    "display_name": "Shelf Kit",
-    "description": "Plank shelving and oak uprights lashed into a carrying bundle, brackets included.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 10,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:tavern_bar": {
-    "display_name": "Tavern Bar (packed)",
-    "description": "A long oak counter and its iron tap fittings, broken down for hauling.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 16,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
   "base:resources:furniture:bench": {
     "display_name": "Log bench (packed)",
     "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating. Packed in a wooden crate.",
@@ -1206,90 +1124,6 @@
       "material_factor": 1
     }
   },
-  "base:resources:furniture:trade_counter": {
-    "display_name": "Trade Counter (packed)",
-    "description": "Dressed counter stones and iron fittings secured in a carrying crate.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 20,
-    "material_tags": [
-      "stone",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:wooden_table": {
-    "display_name": "Personal Dining Table (packed)",
-    "description": "Broad oak planks, trestles and iron corner fittings secured for hauling.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 12,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:communal_table": {
-    "display_name": "Communal Dining Table (packed)",
-    "description": "Long oak planks and trestles for an eight-place tavern table, secured for hauling.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 32,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:wooden_chair": {
-    "display_name": "Wooden Chair (packed)",
-    "description": "One oak chair, disassembled and secured in a carrying crate.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 8,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:dwarf_bunk": {
-    "display_name": "Dwarven Bed (packed)",
-    "description": "Oak bed timbers, linen bedding and iron fittings packed for hauling.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 18,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:brewing_vat": {
-    "display_name": "Brewing Vat (packed)",
-    "description": "Oak vat staves, iron hoops and a copper tap secured in a carrying crate.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 24,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
   "base:resources:furniture:crude_workbench": {
     "display_name": "Crude Workbench (packed)",
     "description": "A rough crafting stump packed for installation. Workers can use it from any open side.",
@@ -1327,80 +1161,6 @@
       "design": 0.5,
       "material_factor": 0.25
     }
-  },
-  "base:resources:furniture:wall_torch": {
-    "display_name": "Wall Torch (packed)",
-    "description": "An iron bracket and unlit wooden torch packed for installation on a wall.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 4,
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:anvil": {
-    "display_name": "Anvil (packed)",
-    "description": "An iron anvil, stone pedestal and hold-down clamps secured for hauling.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 24,
-    "material_tags": [
-      "stone",
-      "metal",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:smelter": {
-    "display_name": "Smelter (packed)",
-    "description": "Dressed furnace stones, iron fittings and a grate packed for installation.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 32,
-    "material_tags": [
-      "stone",
-      "metal",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:aging_rack": {
-    "display_name": "Aging Rack (packed)",
-    "description": "Two oak casks, iron hoops and a timber cradle packed for installation.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 28,
-    "material_tags": [
-      "wood",
-      "metal",
-      "furniture",
-      "stockpile_furniture"
-    ]
-  },
-  "base:resources:furniture:brazier": {
-    "display_name": "Brazier (packed)",
-    "description": "An iron fire bowl and stone pedestal packed for installation.",
-    "model": "res://assets/models/furniture/packed_furniture.glb",
-    "stack_max": 5,
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "base_trade_value": 20,
-    "material_tags": [
-      "stone",
-      "metal",
-      "furniture",
-      "stockpile_furniture"
-    ]
   },
   "__comment_currency": "Currency â€” gold coins earned through trade with merchants and travelers",
   "base:resources:currency:gold_coin": {
@@ -1701,12 +1461,31 @@
   },
   "base:resources:furniture:board_game_table": {
     "display_name": "Board-game Table (packed)",
-    "description": "A game scratched into a rough-cut log, with loose stones for counters. Add two separate log stools for a game together that restores happiness.",
+    "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one log stool for solo play, or two opposite stools to play together for more happiness.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "stack_max": 5,
     "carry_cost": 4,
     "weight_class": "heavy",
     "base_trade_value": 10,
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood",
+    "appeal": {
+      "design": 1,
+      "material_factor": 1
+    }
+  },
+  "base:resources:furniture:log_table": {
+    "display_name": "Log Dining Table (packed)",
+    "description": "A cut-log tabletop and narrow central pedestal. Place the table and add log stools separately.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "stack_max": 5,
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "base_trade_value": 8,
     "material_tags": [
       "wood",
       "furniture",

@@ -1,5 +1,13 @@
 # 12 — World Grid
 
+**World scale versus art scale (2026-10-18):** One world-block edge is one Godot
+unit. Non-terrain solid assets use **1:16 chibi voxel art**: sixteen micro-voxel
+cells per block edge, so each cell is 0.0625 Godot unit. This is a visual authoring
+grid; terrain simulation, navigation and occupancy retain world-block resolution.
+The physical metre mapping below is separate from engine units. See the
+[shared art standard](../60_asset_creation/63_shared_art_standard.md) and
+[chibi art direction](../60_asset_creation/64_hand_hewn_art_direction.md).
+
 **Bulk restore notifications (2026-10-17):** WorldData can batch main-thread
 terrain invalidations across a synchronous restore. `set_block` still writes
 every voxel, records persistence deltas, marks chunk dirtiness and emits exact
@@ -20,7 +28,7 @@ Completed terrain blocks/supports movement and seals rooms. Plans do not. See 12
 **Permanent floors (roadmap 128):** two additional construction-only block keys,
 `base:construction:floor:plank` and `base:construction:floor:stone`, fill full
 support cells after excavation. Natural generation never emits them. Their
-8×8×8 art voxels are presentation detail, not a finer navigation grid or a thin
+current 1:16 art cells are presentation detail, not a finer navigation grid or a thin
 surface overlay. Terrain solidity and permanent string-key save rules still apply. These block
 types retain their art and room bonus without tracking who placed them. See
 [212](../00_dev_roadmap/212_final_terrain_state.md).

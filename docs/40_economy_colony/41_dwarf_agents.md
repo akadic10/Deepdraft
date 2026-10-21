@@ -1,5 +1,20 @@
 # 41 — Dwarf Agents
 
+**2026-10-19 — Dining while famished:** [250](../00_dev_roadmap/250_famished_dining_range.md)
+retains the normal 16-block dining range after a dwarf collects food, including
+when famished. The two-second bounded search and existing route/seat claims
+remain. The former six-block exception skipped Birna's nearby free dining stool
+in the player save. Stored food, emergency foraging and need thresholds retain
+their existing priorities.
+
+**2026-10-19 — Solo and shared recreation:** [249](../00_dev_roadmap/249_solo_games_and_partner_search.md)
+lets a dwarf play immediately at one game stool for +4 happiness after a full
+game. A partner can join; both must play a fresh full game for +8 each. The
+thoughts last 12 game hours and contribute only the stronger bonus. An occupied
+table searches up to 48 routed blocks for a companion under the existing bounded
+probe budget. The six-hour cooldown and needs/work/privacy rules still apply.
+Separate optional solo memory persists without changing old social memories.
+
 **2026-10-17 — Moving between slices:** Dwarves refresh slice visibility on
 global transform changes, before rendering. Ordinary stairs/ladder travel now
 shows a worker entering the selected level and conceals one leaving it, without

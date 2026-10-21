@@ -124,8 +124,10 @@ at a properly positioned table. Claim the seat for the meal. If the complete
 arrangement is unavailable, prefer a seat alone, then a table alone, then ground
 eating. Bound travel/search time; a desperate dwarf should eat promptly. Dining
 uses real furniture geometry and access, not simply a table somewhere nearby.
-The initial limits are 16 blocks of travel, six when famished, and two simulation
-seconds of incremental search. Backed chairs/benches must face the tabletop;
+The limits are 16 blocks of travel at either hunger tier and two simulation
+seconds of incremental search. The old six-block famished exception was removed
+in [250](250_famished_dining_range.md): a dwarf already carrying food should
+still use nearby dining furniture. Backed chairs/benches must face the tabletop;
 round stools may turn toward it. Headroom, access, bedroom privacy and furniture
 removal are checked. A two-block log bench supplies one broad dwarf seat.
 Leisure and dining share an exclusive seat claim; table access positions are

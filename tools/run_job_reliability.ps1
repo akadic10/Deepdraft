@@ -3,11 +3,11 @@ param(
     [string[]]$Tests = @('JobLifecycleTest','JobPlanningTest','JobMixedWorldTest',
         'FurnitureAssignmentTest','FurniturePlacementAnimationTest','FurnitureMoveTest','HearthRoomTest','SettlementFlagMoveTest','WallMountHeightTest',
         'LadderSchedulingTest','LadderTest','LadderMiningTest',
-        'CraftingSelectionTest','WorkerCraftingTest','WorkerCraftingWoodTest','RudimentaryRecreationTest',
-        'HaulingSelectionTest','HaulingAnimationTest','SurfaceWorkSelectionTest',
-        'TreeFellingTest','MinerProfessionTest','PlacementHaulPriorityTest',
-        'ShrubMoveHandoffTest','DwarfSupportTest','DwarfIdleBehaviorTest','DwarfFoodTest','DwarfDiningTest','ShrubRegrowthTest',
-        'BridgeCornerWalkingTest','NavigationRegressionTest','ConstructionTest','ConstructionStagingTest','ConstructionContinuityTest','ConstructionDevTest','ConstructionInputTest','FloorConstructionTest','SaveManagerRoundTripTest'),
+        'CraftingSelectionTest','WorkerCraftingTest','WorkerCraftingWoodTest','RudimentaryRecreationTest','RecreationSoloTest',
+        'HaulingSelectionTest','HaulingAnimationTest','HaulingCapacityTest','FruitHaulingTest','SurfaceWorkSelectionTest',
+        'TreeFellingTest','AppleHarvestTest','JuniperHarvestTest','MinerProfessionTest','PlacementHaulPriorityTest',
+        'ShrubMoveHandoffTest','DwarfSupportTest','DwarfIdleBehaviorTest','DwarfIdlePlanningTest','DwarfFoodTest','DwarfDiningTest','ShrubRegrowthTest',
+        'BridgeCornerWalkingTest','NavigationRegressionTest','ConstructionTest','ConstructionStagingTest','ConstructionContinuityTest','ConstructionDevTest','ConstructionInputTest','FloorConstructionTest','RetiredStoneMigrationTest','SaveManagerRoundTripTest'),
     [string]$LogDirectory = ''
 )
 $ErrorActionPreference = 'Stop'

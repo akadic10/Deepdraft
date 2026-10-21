@@ -33,7 +33,7 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 		var plant_task := TaskManager.get_task(agent.current_task_id)
 		if plant_task != null and plant_task.type == Task.Type.CLEAR_PLANT: data.summary = "Clearing plants"
 	var live_task := TaskManager.get_task(agent.current_task_id)
-	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting berries"
+	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting " + _tree_fruit_label(live_task)
 	if live_task != null and live_task.type == Task.Type.UPROOT_SHRUB: data.summary = "Uprooting shrub"
 	var fetch := agent._fetch_source()
 	if fetch != null and fetch.has_method("advance_plant"): data.summary = "Planting cutting" if bool(fetch.def.get("from_cutting", false)) else "Replanting shrub"
@@ -113,8 +113,9 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 				explanation = "Completing the assigned job."
 		destination = _destination(agent, task)
 		if task.type == Task.Type.HARVEST_TREE:
-			activity = "Harvesting juniper berries" if phase == Phase.FELL_WORKING else "Going to harvest berries"
-			explanation = "Picking this season's berries; the tree stays standing."
+			var fruit_label := _tree_fruit_label(task)
+			activity = ("Harvesting " if phase == Phase.FELL_WORKING else "Going to harvest ") + fruit_label
+			explanation = "Picking this season's %s; the tree stays standing." % fruit_label
 		if gathering_stone:
 			activity = "Gathering loose stones" if phase == Phase.FELL_WORKING else "Going to gather stones"
 			explanation = "Collecting the clump by hand. Partial work is retained." if phase == Phase.FELL_WORKING else "Walking to an accessible side of the clump."
@@ -337,3 +338,8 @@ static func _cargo(agent: DwarfAgent) -> Array[Dictionary]:
 static func task_is_shrub(agent: DwarfAgent) -> bool:
 	var task := TaskManager.get_task(agent.current_task_id)
 	return task != null and task.type in [Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB]
+
+
+static func _tree_fruit_label(task: Task) -> String:
+	var source := TaskManager.get_work_source(task.source_id)
+	return String(source.fruit_label) if source != null else "fruit"

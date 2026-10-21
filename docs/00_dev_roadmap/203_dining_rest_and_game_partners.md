@@ -1,5 +1,10 @@
 # Dining rest and game partners
 
+The later [249 — Solo games and partner search](249_solo_games_and_partner_search.md)
+reproduces another wait caused by the local distance limit, broadens companion
+search, and adds a smaller solo reward. The cooldown/memory separation below
+remains in effect.
+
 2026-10-17. The player reported a standing frame between finishing a seated meal
 and sitting again, plus a dwarf waiting at a game with two available companions.
 

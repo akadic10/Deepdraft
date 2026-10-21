@@ -2,6 +2,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const STUMP_OUT := "res://tmp/worker_crafting_review/stump"
 const STUMP_CELL := Vector3i(45,20,42)
+const STUMP_CENTER := Vector3i(46,20,43)
 const SIDES := [Vector3i(0,0,-1),Vector3i(1,0,0),Vector3i(0,0,1),Vector3i(-1,0,0)]
 const SIDE_NAMES := ["North","East","South","West"]
 
@@ -13,7 +14,7 @@ func _run() -> void:
 	root.get_node("SkyController").set_process(false)
 	root.size = Vector2i(640,480)
 	camera.size = 6.7
-	var center := Vector3(STUMP_CELL)+Vector3(.5,2,.5)
+	var center := Vector3(STUMP_CENTER)+Vector3(.5,2,.5)
 	camera.position = center+Vector3(8,7,10)
 	camera.look_at(center)
 	var layer := CanvasLayer.new()
@@ -25,27 +26,31 @@ func _run() -> void:
 	var review := Image.create(1280,960,false,Image.FORMAT_RGBA8)
 	var definition: Dictionary = furniture.get_defs()[BENCH]
 	for yaw in range(4):
-		# Existing saved benches use the same identity/origin. Loading now
-		# releases the old second tile instead of adding occupied terrain.
+		# Existing saved benches retain identity/origin and use the new 3x3 layout.
 		furniture.restore_state({"installed":[{"id":1,"key":BENCH,
 			"origin":[45,20,42],"yaw":yaw,"layout_version":1}]})
 		var bench = furniture._installed[1]
 		var model_bounds: AABB = furniture._visual_bounds(definition,STUMP_CELL,yaw)
-		_expect(model_bounds.size.x<=1.001 and model_bounds.size.z<=1.001 and model_bounds.size.y<=1.001,"imported stump fits its collision at every rotation")
-		_expect(bench.cells==[STUMP_CELL],"restored stump occupies one tile at yaw %d" % yaw)
-		_expect(not root.get_node("NavGrid").is_walkable(STUMP_CELL),"stump blocks its own tile")
+		_expect(model_bounds.size.is_equal_approx(Vector3(2.875,1.0,2.875)),"player outline remains 46 cells across and 16 high at every rotation")
+		_expect(bench.cells.size()==9,"restored stump occupies nine tiles at yaw %d" % yaw)
+		for x in 3:
+			for z in 3:
+				var cell:=STUMP_CELL+Vector3i(x,0,z)
+				_expect(cell in bench.cells and not root.get_node("NavGrid").is_walkable(cell),"stump blocks every footprint tile")
 		for direction: Vector3i in SIDES:
-			_expect(root.get_node("NavGrid").is_walkable(STUMP_CELL+direction),"all four neighboring tiles remain open")
+			for offset in range(-1,2):
+				_expect(root.get_node("NavGrid").is_walkable(STUMP_CENTER+direction*2+Vector3i(direction.z,0,direction.x)*offset),"all twelve perimeter approaches remain open")
 		for side in range(4):
 			var direction: Vector3i = SIDES[side]
-			worker.position = Vector3(STUMP_CELL+direction*3)+Vector3(.5,1,.5)
-			drops.spawn_drop(PINE,1,STUMP_CELL+direction*2+Vector3i.UP)
+			worker.position = Vector3(STUMP_CENTER+direction*4)+Vector3(.5,1,.5)
+			drops.spawn_drop(PINE,1,STUMP_CENTER+direction*3+Vector3i.UP)
 			var id: int = crafting.queue_order(TORCH_RECIPE,1)
 			_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"Worker reaches stump from %s at yaw %d" % [SIDE_NAMES[side],yaw])
 			var order = crafting.get_order(id)
-			_expect(order.work_cell==STUMP_CELL+direction,"crafting uses approached side independently of stump rotation")
+			_expect(order.work_cell==STUMP_CENTER+direction*2,"crafting uses approached side independently of stump rotation")
 			worker._process(.63)
 			var surface: Vector3 = order.work_surface()
+			_expect(is_equal_approx(Vector2(surface.x-bench.node.global_position.x,surface.z-bench.node.global_position.z).length(),.625),"crafting contact moves toward the approaching Worker")
 			var toward: Vector3 = surface-worker.global_position
 			toward.y = 0
 			_expect(worker.global_basis.z.dot(toward.normalized())>.999,"Worker faces the stump")
@@ -69,23 +74,25 @@ func _run() -> void:
 	_expect(_count(TORCH_ITEM)==64,"sixteen directional batches consume sixteen logs and produce 64 torches")
 	# Start on the opposite side from the ingredient. Reconsider the stand
 	# after pickup rather than walking around to the old assignment position.
-	worker.position = Vector3(STUMP_CELL+Vector3i(0,0,-3))+Vector3(.5,1,.5)
-	drops.spawn_drop(PINE,1,STUMP_CELL+Vector3i(0,1,3))
+	worker.position = Vector3(STUMP_CENTER+Vector3i(0,0,-4))+Vector3(.5,1,.5)
+	drops.spawn_drop(PINE,1,STUMP_CENTER+Vector3i(0,1,4))
 	var id: int = crafting.queue_order(TORCH_RECIPE,1)
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"opposite-side pickup reaches stump")
-	_expect(crafting.get_order(id).work_cell==STUMP_CELL+Vector3i(0,0,1),"post-pickup position selects the near side")
+	_expect(crafting.get_order(id).work_cell==STUMP_CENTER+Vector3i(0,0,2),"post-pickup position selects the near side")
 	crafting.remove_order(id)
 	# A wall on three sides still leaves a usable workshop at its open edge.
 	for item in drops._loose.keys():
 		if drops.item_key_of(item)==PINE: drops.take(item); item.free()
 	for direction: Vector3i in [SIDES[0],SIDES[2],SIDES[3]]:
-		for y in range(1,4): world.set_block(STUMP_CELL.x+direction.x,20+y,STUMP_CELL.z+direction.z,blocks.get_id("base:terrain:rock:rock01"))
+		for offset in range(-1,2):
+			var cell:=STUMP_CENTER+direction*2+Vector3i(direction.z,0,direction.x)*offset
+			for y in range(1,4):world.set_block(cell.x,20+y,cell.z,blocks.get_id("base:terrain:rock:rock01"))
 	await _frames(3)
-	worker.position = Vector3(STUMP_CELL+Vector3i(3,0,0))+Vector3(.5,1,.5)
-	drops.spawn_drop(PINE,1,STUMP_CELL+Vector3i(2,1,0))
+	worker.position = Vector3(STUMP_CENTER+Vector3i(4,0,0))+Vector3(.5,1,.5)
+	drops.spawn_drop(PINE,1,STUMP_CENTER+Vector3i(3,1,0))
 	id = crafting.queue_order(TORCH_RECIPE,1)
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"stump remains usable with three blocked sides")
-	_expect(crafting.get_order(id).work_cell==STUMP_CELL+Vector3i(1,0,0),"only clear side is used")
+	_expect(crafting.get_order(id).work_cell==STUMP_CENTER+Vector3i(2,0,0),"only clear side is used")
 	crafting.remove_order(id)
 	if "--capture" in OS.get_cmdline_user_args():
 		DirAccess.make_dir_recursive_absolute(STUMP_OUT)

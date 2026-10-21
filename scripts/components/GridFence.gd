@@ -171,6 +171,7 @@ func _rail_visual(a: Vector3i, b: Vector3i, owner, solid: bool) -> Node3D:
 	var node: Node3D = load(String(controller._defs["base:furniture:log_fence"].grid_fence.rail_model)).instantiate()
 	var material = controller._make_solid_material() if solid else controller._make_ghost_material()
 	controller._apply_material(node,material)
+	preload("VoxelShadowSetup.gd").set_casting(node,solid)
 	owner.node.add_child(node)
 	node.global_position = (Vector3(a)+Vector3(b))*.5+Vector3.UP
 	node.global_rotation = Vector3(0,0 if a.z==b.z else PI*.5,0)
@@ -240,6 +241,7 @@ func preview(def: Dictionary, origin: Vector3i, yaw: int, node: Node3D, material
 			if not vertices.has(point+offset) or _gate_covers(point,point+offset): continue
 			var rail: Node3D = load(String(controller._defs["base:furniture:log_fence"].grid_fence.rail_model)).instantiate()
 			controller._apply_material(rail,material)
+			preload("VoxelShadowSetup.gd").set_casting(rail,false)
 			node.add_child(rail)
 			rail.set_meta("fence_preview",true)
 			rail.global_position = Vector3(point)+Vector3(offset)*.5+Vector3.UP

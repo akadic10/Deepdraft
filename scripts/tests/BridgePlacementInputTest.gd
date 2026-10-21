@@ -1,16 +1,20 @@
 extends "res://scripts/tests/LogBridgeTest.gd"
 
-const OUTPUT := "res://tmp/bridge_placement_20261011/"
+var bridge_output := "res://tmp/bridge_placement_20261011/"
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Bridge input test timed out"); quit(1))
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): bridge_output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
 	await _setup_crafting_fixture()
+	# Match LogBridgeTest: synthetic terrain edits still query seeded resources.
+	root.get_node("WorldGenerator")._build_noise_instances()
 	bridges = furniture._bridges
 	bridges.set_process(false)
 	furniture._ladders.set_process(false)
 	nav = root.get_node("NavGrid")
 	await _river()
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(bridge_output))
 	drops.spawn_drop(KIT,1,Vector3i(41,21,45))
 	camera.position = Vector3(60,29,64)
 	camera.look_at(Vector3(46,20,48))
@@ -88,7 +92,7 @@ func _run() -> void:
 		furniture._update_hover(true,bank_screen)
 		await _frames(4)
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png(OUTPUT+"auto_aligned.png")
+		assert(root.get_texture().get_image().save_png(bridge_output+"auto_aligned.png")==OK)
 		manager.close("place")
 		furniture.activate_for(BRIDGE,true)
 	# The preview may anchor on the opposite bank from the workers and kit.

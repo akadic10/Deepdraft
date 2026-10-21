@@ -1,0 +1,6 @@
+{
+  "pid": 7976,
+  "output": "P:\\Deepdraft\\tmp\\settlement_art_20261013\\furniture_move",
+  "started": "2026-10-18T10:16:34.5263681-04:00",
+  "script": "res://scripts/tests/FurnitureMoveTest.gd"
+}

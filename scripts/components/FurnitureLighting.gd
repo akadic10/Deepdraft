@@ -48,3 +48,4 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 			node.add_child(animation)
 			if not animation.setup(node, mesh, light, material, animation_def):
 				animation.queue_free() # retain the static glow if a custom clip is invalid
+	preload("VoxelShadowSetup.gd").set_casting(node, bool(light_def.get("body_shadows", false)))

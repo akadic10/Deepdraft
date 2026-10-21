@@ -20,6 +20,7 @@ func _run() -> void:
 	for x in range(32,64):
 		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass_01"))
 	var gen = root.get_node("WorldGenerator")
+	gen._cache_block_ids() # Live terrain edits query the baseline even in this flat fixture.
 	gen.world_seed = 1234
 	gen.heightmap.resize(1024 * 1024)
 	gen.heightmap.fill(20)
@@ -203,7 +204,9 @@ func _test_storage() -> void:
 	var item = zone.withdraw_nearest("base:resources:plant:elderberry_bush",cells[0],999)
 	drops.unreserve(item,999)
 	# Real container deposit/withdraw, including opaque storage, save and dump.
-	furniture._install("base:furniture:storage_chest",furniture.get_defs()["base:furniture:storage_chest"],Vector3i(56,20,46),0)
+	var fixture = preload("res://scripts/tests/TestStorageFixture.gd")
+	fixture.install(furniture)
+	furniture._install(fixture.KEY,furniture.get_defs()[fixture.KEY],Vector3i(56,20,46),0)
 	var chest = furniture._installed.values().back().storage
 	var token = chest._reserve_deposit(drops.item_key_of(item),cells[0],999,1)
 	token["instance_id"] = item.get_meta("instance_id")
@@ -258,7 +261,9 @@ func _test_seasonal_shelf() -> void:
 	var item: Node3D = drops.nearest_loose_of_key("base:resources:plant:wild_strawberry_bush",Vector3i(55,20,53))
 	var shelf = load("res://scripts/components/ContainerStorageComponent.gd").new()
 	var cells: Array[Vector3i] = [Vector3i(58,20,38)]
-	shelf.setup_container(furniture.get_defs()["base:furniture:storage_shelf"],cells)
+	# Exercise the real display component without restoring retired furniture.
+	shelf.setup_container({"storage":{"capacity":1,"render_contents":true,
+		"anchors":[[.5,.8,.5]],"anchor_scale":.5,"anchor_max_size":[.6,.7,.6]}},cells)
 	shelf.drop_manager = drops
 	shelf.display_parent = Node3D.new()
 	scene.add_child(shelf.display_parent)

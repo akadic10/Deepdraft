@@ -8,8 +8,12 @@ var door
 var lamp
 var room_probe := Vector3i(62,21,62)
 var room_meshes: Array[Node3D] = []
+var bedroom_output := "res://tmp/bedroom_20261011/"
 
 func _run() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): bedroom_output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
+	DirAccess.make_dir_recursive_absolute(bedroom_output)
 	create_timer(150).timeout.connect(func(): push_error("Bedroom timeout"); quit(1))
 	await _setup_crafting_fixture()
 	rooms = root.get_node("RoomManager")
@@ -38,7 +42,7 @@ func _run() -> void:
 	lamp = _put("wooden_torch",Vector3i(68,20,64))
 	var room := _room_data()
 	_expect(room.get("room_type")=="bedroom" and room.bed_count==1 and room.light_count==1 and room.door_cells.size()==1,"bed + door + light + sealed enclosure creates bedroom")
-	for key in ["wooden_torch","wall_torch","campfire"]:
+	for key in ["wooden_torch","campfire"]:
 		var def: Dictionary = furniture.get_defs()["base:furniture:"+key]
 		_expect(is_equal_approx(float(def.light_source.energy),2.6 if key=="wooden_torch" else 3.2),"doubled firelight: "+key)
 	# Every required component must remain present.
@@ -166,7 +170,7 @@ func _capture_bed() -> void:
 	camera.look_at(Vector3(65,22,64.5))
 	await _frames(5)
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/bedroom_20261011/bedroom.png")
+	assert(root.get_texture().get_image().save_png(bedroom_output+"bedroom.png")==OK)
 	manager.visible = true
 	var room_tool = load("res://scripts/systems/RoomOverlayController.gd").new()
 	room_tool.window_manager_path = NodePath("../Windows")
@@ -181,7 +185,7 @@ func _capture_bed() -> void:
 		_expect(rect.position.x>=0 and rect.position.y>=0 and rect.end.x<=resolution.x and rect.end.y<=resolution.y,"bedroom inspector fits %s" % resolution)
 		_expect(room_tool._window_content._status.text=="BEDROOM · SEALED" and room_tool._window_content._beds.text=="1","room inspector explains bedroom classification")
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://tmp/bedroom_20261011/room_ui_%d.png" % resolution.x)
+		assert(root.get_texture().get_image().save_png(bedroom_output+"room_ui_%d.png" % resolution.x)==OK)
 	room_tool.deactivate()
 	room_tool.free()
 	manager.visible = false
@@ -194,12 +198,12 @@ func _capture_rotation(yaw: int) -> void:
 	camera.look_at(bed.node.global_position+Vector3.UP)
 	await _frames(4)
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/bedroom_20261011/rotation_%d.png" % yaw)
+	assert(root.get_texture().get_image().save_png(bedroom_output+"rotation_%d.png" % yaw)==OK)
 	if yaw==0:
 		for mesh in worker.find_children("OccludedSilhouette","MeshInstance3D",true,false): mesh.visible = false
 		await _frames(3)
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://tmp/bedroom_20261011/rotation_no_silhouette.png")
+		assert(root.get_texture().get_image().save_png(bedroom_output+"rotation_no_silhouette.png")==OK)
 		for mesh in worker.find_children("OccludedSilhouette","MeshInstance3D",true,false): mesh.visible = true
 
 func _box(pos: Vector3, size: Vector3, color: Color) -> void:

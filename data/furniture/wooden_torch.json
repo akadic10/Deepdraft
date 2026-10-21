@@ -48,7 +48,7 @@
     "emissive_mesh": "torch_flame",
     "emission_energy": 1.0,
     "flame_animation": {
-      "model": "res://assets/models/furniture/animations/wall_torch_flame.glb",
+      "model": "res://assets/models/furniture/animations/wooden_torch_flame.glb",
       "frames": [
         "flame_00",
         "flame_01",

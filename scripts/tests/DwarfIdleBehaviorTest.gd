@@ -1,7 +1,8 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 var inspection
-const CHAIR := "base:furniture:wooden_chair"
+const CHAIR := "base:furniture:log_chair"
+const TABLE := "base:furniture:log_table"
 
 func _run() -> void:
 	create_timer(100).timeout.connect(func(): push_error("Idle behavior timed out"); quit(1))
@@ -122,7 +123,7 @@ func _chairs_and_interruptions() -> void:
 	extra_worker.free()
 	extra_worker = null
 	# A separately built table must not prevent use of its correctly facing chair.
-	furniture._install("base:furniture:wooden_table",furniture.get_defs()["base:furniture:wooden_table"],Vector3i(47,20,46),0)
+	furniture._install(TABLE,furniture.get_defs()[TABLE],Vector3i(46,20,45),0)
 	_expect(await _seat_phase(worker,"sitting"),"standalone chair remains usable when a table is built in front")
 	worker._idle_behavior.timer = .1
 	_expect(await _seat_phase(worker,"waiting"),"normal rest finishes with a stand-up transition and releases the chair")

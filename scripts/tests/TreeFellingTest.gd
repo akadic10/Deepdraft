@@ -211,6 +211,13 @@ func _setup_fixture() -> void:
 	tasks = root.get_node("TaskManager")
 	tasks.set_process(false)
 	root.get_node("WorldGenerator").world_seed = 1234
+	# This flat synthetic world still services baseline queries during real edits.
+	var generator = root.get_node("WorldGenerator")
+	generator._cache_block_ids()
+	generator.heightmap.resize(1024*1024)
+	generator.heightmap.fill(20)
+	generator.waterline_map.resize(1024*1024)
+	generator.waterline_map.fill(-1)
 	world = root.get_node("WorldData")
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()

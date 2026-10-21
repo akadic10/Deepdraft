@@ -99,7 +99,7 @@ func delivery_stand_cells(target: Vector3i, dwarf_id: int = -1) -> Array[Vector3
 	# may appear under the worker's boots when the atomic commit spreads them.
 	if _pulls.has(dwarf_id):
 		for token: Dictionary in _pulls[dwarf_id].cargo.values():
-			stands.erase(token.slot)
+			for part: Dictionary in cargo_deposits(token): stands.erase(part.slot)
 	return stands
 
 

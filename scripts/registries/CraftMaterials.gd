@@ -65,6 +65,7 @@ func apply_palette(root: Node, definition: Dictionary, id: String) -> void:
 
 
 func _apply_node(node: Node, profile: String, id: String, target: Dictionary) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D and node.mesh is ArrayMesh:
 		var original: ArrayMesh = node.mesh
 		var cache_key := "%d:%s:%s" % [original.get_instance_id(), profile, id]

@@ -1,0 +1,48 @@
+{
+  "adapter": "AMD Radeon RX 9070 XT",
+  "forms": 1,
+  "limits": "Render-only matched camera/material/light; no simulation or terrain. Both GLB revisions decoded identically with LOD disabled. Not a full-game benchmark.",
+  "objects": 64,
+  "resolution": [
+    1600,
+    1000
+  ],
+  "results": [
+    {
+      "draws": 6.0,
+      "frame_p95_ms": 0.613,
+      "gpu_p50_ms": 0.296000003814697,
+      "gpu_p95_ms": 0.310000002384186,
+      "primitives": 53124.0,
+      "render_cpu_p50_ms": 0.0599999986588955,
+      "revision": "previous"
+    },
+    {
+      "draws": 6.0,
+      "frame_p95_ms": 0.609,
+      "gpu_p50_ms": 0.324000000953674,
+      "gpu_p95_ms": 0.333000004291534,
+      "primitives": 67332.0,
+      "render_cpu_p50_ms": 0.0590000003576279,
+      "revision": "player_shape"
+    },
+    {
+      "draws": 6.0,
+      "frame_p95_ms": 0.583,
+      "gpu_p50_ms": 0.307000011205673,
+      "gpu_p95_ms": 0.310999989509583,
+      "primitives": 53124.0,
+      "render_cpu_p50_ms": 0.0579999983310699,
+      "revision": "previous"
+    },
+    {
+      "draws": 6.0,
+      "frame_p95_ms": 0.596,
+      "gpu_p50_ms": 0.324999988079071,
+      "gpu_p95_ms": 0.331999987363815,
+      "primitives": 67332.0,
+      "render_cpu_p50_ms": 0.0579999983310699,
+      "revision": "player_shape"
+    }
+  ]
+}

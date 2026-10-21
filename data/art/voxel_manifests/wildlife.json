@@ -1,0 +1,698 @@
+{
+  "family": "wildlife",
+  "grid": 16,
+  "complete": true,
+  "assets": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3456,
+          "visual_triangles": 894,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8842592592592593,
+            "triangles": 300
+          },
+          "min": [
+            -0.4375,
+            1.1875,
+            -0.6875
+          ],
+          "max": [
+            0.4375,
+            2.0625,
+            1.0
+          ]
+        }
+      ],
+      "bytes": 111828,
+      "sha256": "82814f8c18129e333a39dc53ff1c09b41286a51c013f3b369d2a027aa38190f5",
+      "path": "assets/models/animals/deer/body.glb",
+      "authoring": {
+        "part": "deer/body",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1262,
+          "visual_triangles": 348,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8114104595879557,
+            "triangles": 128
+          },
+          "min": [
+            -0.25,
+            1.25,
+            -0.6875
+          ],
+          "max": [
+            0.25,
+            2.8125,
+            -0.125
+          ]
+        }
+      ],
+      "bytes": 45756,
+      "sha256": "7ebcac4e5beb8fa8b6bc9da3dff09b618dd9b07f17806c678169fa414d453a61",
+      "path": "assets/models/animals/deer/neck.glb",
+      "authoring": {
+        "part": "deer/neck",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 488,
+          "visual_triangles": 352,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 352
+          },
+          "min": [
+            -0.3125,
+            2.375,
+            -1.0
+          ],
+          "max": [
+            0.3125,
+            2.9375,
+            -0.1875
+          ]
+        }
+      ],
+      "bytes": 66740,
+      "sha256": "aa1685beef73482331c1dede53b7cc4171ab8b7df68c295b23fd6fb49349d3ab",
+      "path": "assets/models/animals/deer/head.glb",
+      "authoring": {
+        "part": "deer/head",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 230,
+          "visual_triangles": 286,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 286
+          },
+          "min": [
+            -0.6875,
+            2.75,
+            -0.5
+          ],
+          "max": [
+            0.6875,
+            3.125,
+            -0.1875
+          ]
+        }
+      ],
+      "bytes": 54588,
+      "sha256": "177dea8d41721e062633da85333556de815eefcf9780d7c755987b13f083e057",
+      "path": "assets/models/animals/deer/ears.glb",
+      "authoring": {
+        "part": "deer/ears",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 282,
+          "visual_triangles": 638,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 638
+          },
+          "min": [
+            -0.75,
+            2.875,
+            -0.6875
+          ],
+          "max": [
+            0.75,
+            3.8125,
+            -0.125
+          ]
+        }
+      ],
+      "bytes": 119376,
+      "sha256": "34b31cd515cb23ba6fa7fd7a8feaac7fcaeeb3515c62415ae687c8966eea4f51",
+      "path": "assets/models/animals/deer/antlers.glb",
+      "authoring": {
+        "part": "deer/antlers",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "Upper",
+          "cells": 184,
+          "visual_triangles": 28,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.9565217391304348,
+            "triangles": 12
+          },
+          "min": [
+            -0.125,
+            -0.625,
+            -0.125
+          ],
+          "max": [
+            0.125,
+            0.1875,
+            0.125
+          ]
+        },
+        {
+          "name": "Lower",
+          "cells": 64,
+          "visual_triangles": 48,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 48
+          },
+          "min": [
+            -0.125,
+            -1.25,
+            -0.125
+          ],
+          "max": [
+            0.125,
+            -0.625,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 16256,
+      "sha256": "b25ed60aa952bcd77758d7b1f1c1b8be8adccc4334d2f33073592458f64cb87e",
+      "path": "assets/models/animals/deer/leg.glb",
+      "authoring": {
+        "part": "deer/leg",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 694,
+          "visual_triangles": 250,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.69164265129683,
+            "triangles": 152
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.625,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 38944,
+      "sha256": "ad93f24d0af0ac0aab674d0b8df2cc824d9fa9be79de05d74d7229df990c667d",
+      "path": "assets/models/animals/rabbit/body.glb",
+      "authoring": {
+        "part": "rabbit/body",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 244,
+          "visual_triangles": 148,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 140
+          },
+          "min": [
+            -0.25,
+            0.5,
+            -0.5
+          ],
+          "max": [
+            0.25,
+            0.875,
+            0.0
+          ]
+        }
+      ],
+      "bytes": 28440,
+      "sha256": "2f79ec15e6a4eca93c9110bde469b7b2c0ef1ec843d18f33cad798547aeb65ab",
+      "path": "assets/models/animals/rabbit/head.glb",
+      "authoring": {
+        "part": "rabbit/head",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 126,
+          "visual_triangles": 108,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 108
+          },
+          "min": [
+            -0.3125,
+            0.8125,
+            -0.25
+          ],
+          "max": [
+            0.3125,
+            1.5,
+            -0.0625
+          ]
+        }
+      ],
+      "bytes": 21832,
+      "sha256": "8dee99a1a121a43bff0bdbc065906b32a56b1035ba3d58291f832baed483027b",
+      "path": "assets/models/animals/rabbit/ears.glb",
+      "authoring": {
+        "part": "rabbit/ears",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 9524,
+          "visual_triangles": 1520,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6619067618647627,
+            "triangles": 146
+          },
+          "min": [
+            -0.625,
+            0.8125,
+            -1.1875
+          ],
+          "max": [
+            0.625,
+            2.0,
+            1.0
+          ]
+        }
+      ],
+      "bytes": 155244,
+      "sha256": "89b4193ba4770e7a05da999e2b32e22ebdb201983cfe618f0be9ce4d5054de87",
+      "path": "assets/models/animals/wolf/body.glb",
+      "authoring": {
+        "part": "wolf/body",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1958,
+          "visual_triangles": 660,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 656
+          },
+          "min": [
+            -0.5,
+            1.4375,
+            -1.875
+          ],
+          "max": [
+            0.5,
+            2.0625,
+            -0.4375
+          ]
+        }
+      ],
+      "bytes": 123048,
+      "sha256": "ee1a3a4694b4c180d245927e84deaa0b0b2da58274f085734686910981ab9c32",
+      "path": "assets/models/animals/wolf/head.glb",
+      "authoring": {
+        "part": "wolf/head",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 420,
+          "visual_triangles": 286,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7619047619047619,
+            "triangles": 130
+          },
+          "min": [
+            -0.5,
+            1.8125,
+            -0.9375
+          ],
+          "max": [
+            0.5,
+            2.4375,
+            -0.5625
+          ]
+        }
+      ],
+      "bytes": 40236,
+      "sha256": "6f49e92acaa925cf583b7912bb13059d38c3a1f75fc7dcb401ef4845458d3a7c",
+      "path": "assets/models/animals/wolf/ears.glb",
+      "authoring": {
+        "part": "wolf/ears",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 952,
+          "visual_triangles": 484,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7226890756302521,
+            "triangles": 152
+          },
+          "min": [
+            -0.25,
+            0.75,
+            0.6875
+          ],
+          "max": [
+            0.25,
+            1.5625,
+            1.75
+          ]
+        }
+      ],
+      "bytes": 60472,
+      "sha256": "782da4a90dc32caa3b67506c9d0c46d25e88a05932c24b993942c39ae6a1d50d",
+      "path": "assets/models/animals/wolf/tail.glb",
+      "authoring": {
+        "part": "wolf/tail",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "Upper",
+          "cells": 304,
+          "visual_triangles": 48,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9473684210526315,
+            "triangles": 48
+          },
+          "min": [
+            -0.1875,
+            -0.5,
+            -0.1875
+          ],
+          "max": [
+            0.1875,
+            0.1875,
+            0.1875
+          ]
+        },
+        {
+          "name": "Lower",
+          "cells": 216,
+          "visual_triangles": 50,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9629629629629629,
+            "triangles": 48
+          },
+          "min": [
+            -0.1875,
+            -1.0,
+            -0.25
+          ],
+          "max": [
+            0.1875,
+            -0.5,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 21616,
+      "sha256": "222a289f961c06a742526efa5327029e235fc8653c88ffb298ef5a8af189904d",
+      "path": "assets/models/animals/wolf/leg.glb",
+      "authoring": {
+        "part": "wolf/leg",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 884,
+          "visual_triangles": 360,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7330316742081447,
+            "triangles": 100
+          },
+          "min": [
+            -0.3125,
+            0.25,
+            -0.4375
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.5625
+          ]
+        }
+      ],
+      "bytes": 44292,
+      "sha256": "b75a0b97e7c120913f0f80a5286c3890d6b1ffe39048402fb6af3efb1cbd2725",
+      "path": "assets/models/animals/duck/male_body.glb",
+      "authoring": {
+        "part": "duck/male_body",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 178,
+          "visual_triangles": 144,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 110
+          },
+          "min": [
+            -0.25,
+            0.625,
+            -0.5
+          ],
+          "max": [
+            0.25,
+            1.125,
+            -0.0625
+          ]
+        }
+      ],
+      "bytes": 25328,
+      "sha256": "cfb05b3ea72b827d09e4edad3e4ab7917559cd9d15de1055b324cd8597f2f744",
+      "path": "assets/models/animals/duck/male_head.glb",
+      "authoring": {
+        "part": "duck/male_head",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 169,
+          "visual_triangles": 130,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 124
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            1.0,
+            0.1875,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 25320,
+      "sha256": "a61f4dac8c7e24320219e5ea59a841fb6bfb3d3e9b5b88b38af6cfa5f3caf59d",
+      "path": "assets/models/animals/duck/male_wing.glb",
+      "authoring": {
+        "part": "duck/male_wing",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 884,
+          "visual_triangles": 360,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7330316742081447,
+            "triangles": 100
+          },
+          "min": [
+            -0.3125,
+            0.25,
+            -0.4375
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.5625
+          ]
+        }
+      ],
+      "bytes": 44296,
+      "sha256": "b49726500ffa893c28b4db9dce5fc753a1f94ccb351edd34ee05be922aae2ffb",
+      "path": "assets/models/animals/duck/female_body.glb",
+      "authoring": {
+        "part": "duck/female_body",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 178,
+          "visual_triangles": 112,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 110
+          },
+          "min": [
+            -0.25,
+            0.625,
+            -0.5
+          ],
+          "max": [
+            0.25,
+            1.125,
+            -0.0625
+          ]
+        }
+      ],
+      "bytes": 22384,
+      "sha256": "7c9684671e4d05ab3d24acb17fd9726850e55691c4747fe55cc3391e6f5f591f",
+      "path": "assets/models/animals/duck/female_head.glb",
+      "authoring": {
+        "part": "duck/female_head",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 169,
+          "visual_triangles": 130,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 124
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            1.0,
+            0.1875,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 25324,
+      "sha256": "cd183e6069b13ae229ca42b624d689a09364389b420c2cf7adbe239bcb6bc428",
+      "path": "assets/models/animals/duck/female_wing.glb",
+      "authoring": {
+        "part": "duck/female_wing",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 18,
+          "visual_triangles": 50,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 50
+          },
+          "min": [
+            -0.125,
+            0.0,
+            -0.125
+          ],
+          "max": [
+            0.125,
+            0.25,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 11144,
+      "sha256": "696f976181ae21e322056cf3c66d56b198ed17761b2e4e954a7b01874b535aee",
+      "path": "assets/models/animals/duck/foot.glb",
+      "authoring": {
+        "part": "duck/foot",
+        "baked_proportions": true
+      }
+    }
+  ]
+}

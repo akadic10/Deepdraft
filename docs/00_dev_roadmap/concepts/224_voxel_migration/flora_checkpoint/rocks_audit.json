@@ -1,0 +1,9 @@
+{
+  "family": "rocks",
+  "assets": 6,
+  "visual_triangles": 10862,
+  "shadow_triangles": 2040,
+  "bytes": 1198820,
+  "fine_shadow_fallbacks": [],
+  "shadow_triangle_reduction": 0.8121892837414841
+}

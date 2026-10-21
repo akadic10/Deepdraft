@@ -1,0 +1,21 @@
+{
+  "__comment": "Offline 1:16 art for already-defined crop paths. No farming gameplay, recipes or growth rules are introduced.",
+  "plump_helmet": {
+    "palette": {"stem":"D5C7A7","cap":"82506F","speck":"BB8EAA"},
+    "heights": {"sprouting":0.5,"mature":1.5},
+    "clump": [[-0.24,-0.18],[0.28,0.18],[-0.18,0.32]]
+  },
+  "pig_tail_plant": {
+    "palette": {"stem":"6A7B49","leaf":"7A8E52","autumn":"B29A62","fiber":"D3C6A4"},
+    "heights": {"seedling":0.5,"mature":1.5},
+    "clump": [[-0.25,-0.22],[0.25,-0.12],[0.0,0.25]]
+  },
+  "hops_plant": {
+    "palette": {"wood":"7A6044","stem":"5A7045","leaf":"71874F","autumn":"AD9258","fruit":"9BA765"},
+    "heights": {"seedling":0.625,"climbing":1.75,"mature":2.625}
+  },
+  "grape_vine": {
+    "palette": {"wood":"7A6044","stem":"62583E","leaf":"60834A","autumn":"B39757","fruit":"6C4D77","bud":"D3C2A1"},
+    "heights": {"cutting":0.625,"fruiting":1.75}
+  }
+}

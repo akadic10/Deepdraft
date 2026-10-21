@@ -10,7 +10,8 @@
     "leg": "res://assets/models/animals/wolf/leg.glb"
   },
   "population": {"count": 4, "salt": 541903, "attempts": 4000, "min_spacing": 128, "max_ground_y": 43, "prey_min_distance": 18, "prey_max_distance": 36, "initial_hunger": [0.45, 0.72]},
-  "visual_scale": [1.65, 1.3, 1.75],
+  "visual_scale": [1.0, 1.0, 1.0],
+  "visual_pose": {"head": [0, 1.4625, -0.875], "tail": [0, 1.1375, 0.875], "hip_x": 0.4125, "hip_y": 1.0, "hip_z": 0.65625, "knee_y": -0.5, "rest_y": -0.559, "hop_amplitude": 1.3, "fold_angle": 1.4},
   "navigation": {"footprint": 4, "clearance": 3, "home_radius": 32, "hop_height": 0.025, "hop_seconds": 0.95, "flee_hop_seconds": 0.3, "fall_speed": 6},
   "behavior": {
     "threat_radius": 8, "safe_radius": 14, "calm_seconds": 5,

@@ -1,7 +1,7 @@
 {
-  "description": "Approved Balanced presentation, milestone 165. Part meshes retain their shared rig coordinates; logical clearance stays 1x1x3.",
-  "body_width": 0.8,
-  "head_width": 0.93,
+  "description": "The approved 1:16 voxel shapes bake the Balanced body/head widths into cubic cells. Runtime rig scale is unit; shared anchors and logical clearance remain 1x1x3.",
+  "body_width": 1.0,
+  "head_width": 1.0,
   "relaxed_hand_inset": 0.22,
   "relaxed_foot_inset": 0.06
 }

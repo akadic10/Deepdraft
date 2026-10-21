@@ -30,10 +30,8 @@ func _build_visual(models: Dictionary) -> void:
 	ears.add_child(ear_mesh)
 	ear_mesh.position = -head_origin - ears.position
 	for pivot: Vector3 in [Vector3(-.35,1.25,-.5),Vector3(.35,1.25,-.5),Vector3(-.35,1.25,.5),Vector3(.35,1.25,.5)]:
-		var leg := Node3D.new()
-		leg.position = pivot
+		var leg := preload("res://scripts/components/RigidAnimalLeg.gd").build(models.leg,pivot,-.625)
 		visual.add_child(leg)
-		leg.add_child((models.leg as PackedScene).instantiate())
 		legs.append(leg)
 
 func _can_enter(at: Vector3i) -> bool:
@@ -72,9 +70,10 @@ func _pose() -> void:
 	for i in range(legs.size()):
 		var leg := legs[i]
 		var diagonal := 1.0 if i in [0,3] else -1.0
-		leg.rotation.x = diagonal * .6 if sleeping else sin(hop_progress*TAU)*diagonal*.38 if moving else 0.0
-		# Keep a walking hoof above its support plane as the leg swings.
-		leg.scale.y = .32 if sleeping else 1.0
+		var folded := -1.0 if i<2 else 1.0
+		# Fold rigid voxel legs along the body; never compress their cells.
+		leg.rotation.x = folded * 1.35 if sleeping else sin(hop_progress*TAU)*diagonal*.38 if moving else 0.0
+		leg.get_node("Knee").rotation.x=-folded*2.7 if sleeping else 0.0
 
 func serialize_state() -> Dictionary:
 	var result := super.serialize_state()

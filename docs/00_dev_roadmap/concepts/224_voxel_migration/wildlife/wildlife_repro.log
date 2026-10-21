@@ -1,0 +1,22 @@
+assets/models/animals/deer/body.glb 894 visual / 300 shadow triangles
+assets/models/animals/deer/neck.glb 348 visual / 128 shadow triangles
+assets/models/animals/deer/head.glb 352 visual / 352 shadow triangles
+assets/models/animals/deer/ears.glb 286 visual / 286 shadow triangles
+assets/models/animals/deer/antlers.glb 638 visual / 638 shadow triangles
+assets/models/animals/deer/leg.glb 76 visual / 60 shadow triangles
+assets/models/animals/rabbit/body.glb 250 visual / 152 shadow triangles
+assets/models/animals/rabbit/head.glb 148 visual / 140 shadow triangles
+assets/models/animals/rabbit/ears.glb 108 visual / 108 shadow triangles
+assets/models/animals/wolf/body.glb 1520 visual / 146 shadow triangles
+assets/models/animals/wolf/head.glb 660 visual / 656 shadow triangles
+assets/models/animals/wolf/ears.glb 286 visual / 130 shadow triangles
+assets/models/animals/wolf/tail.glb 484 visual / 152 shadow triangles
+assets/models/animals/wolf/leg.glb 98 visual / 96 shadow triangles
+assets/models/animals/duck/male_body.glb 360 visual / 100 shadow triangles
+assets/models/animals/duck/male_head.glb 144 visual / 110 shadow triangles
+assets/models/animals/duck/male_wing.glb 130 visual / 124 shadow triangles
+assets/models/animals/duck/female_body.glb 360 visual / 100 shadow triangles
+assets/models/animals/duck/female_head.glb 112 visual / 110 shadow triangles
+assets/models/animals/duck/female_wing.glb 130 visual / 124 shadow triangles
+assets/models/animals/duck/foot.glb 50 visual / 50 shadow triangles
+VOXEL_BUILD_OK wildlife verified 21

@@ -1,0 +1,8355 @@
+{
+  "description": "Native 1:16 solid furniture authoring. Exact semantic palettes, preserved functional contact planes and named rigid parts. Flame libraries are built from voxel_fire_effects.json.",
+  "palette": {
+    "stone": "797E79",
+    "stone_dark": "555E5E",
+    "stone_light": "979E94",
+    "soot": "343937",
+    "iron": "A2A69A",
+    "iron_dark": "343D40",
+    "iron_light": "899497",
+    "linen": "C3B696",
+    "linen_shadow": "B2A385",
+    "blanket": "537B78",
+    "copper": "B97F54",
+    "liquid": "554A33",
+    "rope": "AE986A",
+    "flag": "7F3E36",
+    "flag_light": "9B5144",
+    "flag_mark": "D3B980",
+    "w:bark_dark": "412A1C",
+    "w:bark": "5A381F",
+    "w:wood_dark": "6C4528",
+    "w:wood": "7A5230",
+    "w:wood_light": "91633B",
+    "w:grain": "A67C52",
+    "w:grain_light": "B58A5A",
+    "w:cut": "DABE84",
+    "w:ring": "AE8C54",
+    "w:heart": "CCAA6D",
+    "skin": "FFFFFF",
+    "skin_shadow": "E3D5C9",
+    "eye": "E4F2FF",
+    "pupil": "15212B",
+    "hair": "FFFFFF",
+    "hair_shadow": "D1C5BB",
+    "tunic": "567777",
+    "tunic_dark": "435E60",
+    "trousers": "4D5353",
+    "leather": "71513A",
+    "leather_light": "87664A",
+    "leather_dark": "48372E",
+    "sole": "35322E",
+    "bark": "5A4632",
+    "bark_dark": "51412D",
+    "pine_dark": "314B35",
+    "pine": "405C37",
+    "pine_mid": "52683B",
+    "pine_light": "5E7542",
+    "leaf_dark": "435E36",
+    "leaf": "56713E",
+    "leaf_light": "6D874B",
+    "berry": "424D82",
+    "berry_light": "6774A0",
+    "coat": "A36B3D",
+    "back": "AE7949",
+    "shade": "8D5A36",
+    "cream": "DDCEAB",
+    "ear": "BA9779",
+    "hoof": "44372E",
+    "nose": "372C26",
+    "antler": "9D8764",
+    "hoop": "484C4C",
+    "camp_log:bark": "684827",
+    "camp_log:bark_dark": "4A3018",
+    "camp_log:wood": "94643F",
+    "camp_log:grain": "AD8250",
+    "camp_log:cut": "C5A46A",
+    "oak_log:bark_dark": "412A1C",
+    "oak_log:bark": "5A381F",
+    "oak_log:wood_dark": "6C4528",
+    "oak_log:wood": "7A5230",
+    "oak_log:wood_light": "91633B",
+    "oak_log:grain": "A67C52",
+    "oak_log:grain_light": "B58A5A",
+    "oak_log:cut": "DABE84",
+    "oak_log:ring": "AE8C54",
+    "oak_log:heart": "CCAA6D",
+    "hay0": "756339",
+    "hay1": "988047",
+    "hay2": "B49B58",
+    "hay3": "CBB575",
+    "hay4": "DECB91",
+    "wet": "56615e"
+  },
+  "pieces": {
+    "log_bed": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -1.4375,
+            0.1875,
+            -1.5
+          ],
+          "b": [
+            -1.4375,
+            0.1875,
+            1.5
+          ],
+          "radius": [
+            0.1875,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.4375,
+            0.1875,
+            -1.5
+          ],
+          "b": [
+            1.4375,
+            0.1875,
+            1.5
+          ],
+          "radius": [
+            0.1875,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -2,
+            0.4375,
+            -1.1875
+          ],
+          "b": [
+            2,
+            0.4375,
+            -1.1875
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            -2,
+            0.4375,
+            1.1875
+          ],
+          "b": [
+            2,
+            0.4375,
+            1.1875
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.625,
+            0.0
+          ],
+          "size": [
+            3.5,
+            0.25,
+            2.125
+          ],
+          "color": "hay1",
+          "cut": 0.1875
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.0,
+            0.71875,
+            -0.28125
+          ],
+          "size": [
+            1.25,
+            0.0625,
+            1.3125
+          ],
+          "color": "hay2",
+          "cut": 0.125,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            0.71875,
+            0.25
+          ],
+          "size": [
+            1.875,
+            0.0625,
+            1.25
+          ],
+          "color": "hay3",
+          "cut": 0.125,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.0625,
+            0.71875,
+            -0.34375
+          ],
+          "size": [
+            1.125,
+            0.0625,
+            1.0625
+          ],
+          "color": "hay2",
+          "cut": 0.125,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.15625,
+            0.8125,
+            0.0
+          ],
+          "size": [
+            1.0625,
+            0.125,
+            1.625
+          ],
+          "color": "hay2",
+          "cut": 0.1875
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.15625,
+            0.90625,
+            -0.03125
+          ],
+          "size": [
+            0.8125,
+            0.0625,
+            1.1875
+          ],
+          "color": "hay3",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.25,
+            0.90625,
+            -0.34375
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.15625,
+            0.90625,
+            -0.21875
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay4",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.25,
+            0.90625,
+            -0.09375
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.125,
+            0.90625,
+            0.21875
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.03125,
+            0.90625,
+            0.34375
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay4",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.125,
+            0.90625,
+            0.46875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.1875,
+            0.71875,
+            -0.59375
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.09375,
+            0.71875,
+            -0.46875
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay4",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.1875,
+            0.71875,
+            -0.34375
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.625,
+            0.71875,
+            0.46875
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.71875,
+            0.71875,
+            0.59375
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay4",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.625,
+            0.71875,
+            0.71875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.1875,
+            0.71875,
+            -0.34375
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.28125,
+            0.71875,
+            -0.21875
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay4",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.1875,
+            0.71875,
+            -0.09375
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            0.71875,
+            0.09375
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.34375,
+            0.71875,
+            0.21875
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay4",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            0.71875,
+            0.34375
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.4375,
+            0.625,
+            -0.96875
+          ],
+          "size": [
+            0.375,
+            0.125,
+            0.1875
+          ],
+          "color": "hay2",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.875,
+            0.6875,
+            -0.96875
+          ],
+          "size": [
+            0.375,
+            0.125,
+            0.1875
+          ],
+          "color": "hay2",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            1.46875,
+            0.625,
+            0.9375
+          ],
+          "size": [
+            0.5625,
+            0.125,
+            0.25
+          ],
+          "color": "hay2",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.6875,
+            0.625,
+            0.96875
+          ],
+          "size": [
+            0.5,
+            0.125,
+            0.1875
+          ],
+          "color": "hay2",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.65625,
+            0.71875,
+            -0.3125
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.25
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.625,
+            0.71875,
+            0.40625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.09375,
+            0.71875,
+            0.96875
+          ],
+          "size": [
+            0.3125,
+            0.0625,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.4375,
+            0.4375,
+            -1.1875
+          ],
+          "size": [
+            0.125,
+            0.5,
+            0.5
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.4375,
+            0.4375,
+            1.1875
+          ],
+          "size": [
+            0.125,
+            0.5,
+            0.5
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.4375,
+            0.4375,
+            -1.1875
+          ],
+          "size": [
+            0.125,
+            0.5,
+            0.5
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.4375,
+            0.4375,
+            1.1875
+          ],
+          "size": [
+            0.125,
+            0.5,
+            0.5
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.90625,
+            0.5625,
+            -1.3125
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.125
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.9375,
+            0.59375,
+            1.3125
+          ],
+          "size": [
+            0.125,
+            0.1875,
+            0.125
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        }
+      ]
+    },
+    "bench": {
+      "main": [
+        {
+          "op": "log_bench_vox"
+        }
+      ]
+    },
+    "crude_workbench": {
+      "main": [
+        {
+          "op": "hand_hewn_vox",
+          "kind": "workbench"
+        }
+      ]
+    },
+    "board_game_table": {
+      "main": [
+        {
+          "op": "hand_hewn_vox",
+          "kind": "game_table"
+        }
+      ]
+    },
+    "settlement_flag": {
+      "main": [
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.15625,
+            0
+          ],
+          "size": [
+            0.875,
+            0.3125,
+            0.75
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.25,
+            0
+          ],
+          "b": [
+            -0.375,
+            3,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            2.6875,
+            0
+          ],
+          "b": [
+            0.5,
+            2.6875,
+            0
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.1875,
+            1.875,
+            0.0625
+          ],
+          "size": [
+            0.1875,
+            1.5,
+            0.125
+          ],
+          "color": "flag",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            1.875,
+            0
+          ],
+          "size": [
+            0.1875,
+            1.375,
+            0.125
+          ],
+          "color": "flag_light",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.1875,
+            1.875,
+            0.0625
+          ],
+          "size": [
+            0.1875,
+            1.5,
+            0.125
+          ],
+          "color": "flag_light",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.375,
+            1.875,
+            0
+          ],
+          "size": [
+            0.1875,
+            1.375,
+            0.125
+          ],
+          "color": "flag",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            1.625,
+            0.09375
+          ],
+          "size": [
+            0.1875,
+            0.1875,
+            0.0625
+          ],
+          "color": "flag_mark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            1.8125,
+            0.09375
+          ],
+          "size": [
+            0.375,
+            0.1875,
+            0.0625
+          ],
+          "color": "flag_mark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            2,
+            0.09375
+          ],
+          "size": [
+            0.1875,
+            0.1875,
+            0.0625
+          ],
+          "color": "flag_mark",
+          "cut": 0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "packed_furniture": {
+      "main": [
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.5,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "color": "w:wood",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.4375,
+            0.5,
+            -0.4375
+          ],
+          "size": [
+            0.125,
+            1,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.4375,
+            0.5,
+            0.4375
+          ],
+          "size": [
+            0.125,
+            1,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.4375,
+            0.5,
+            -0.4375
+          ],
+          "size": [
+            0.125,
+            1,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.4375,
+            0.5,
+            0.4375
+          ],
+          "size": [
+            0.125,
+            1,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.125,
+            -0.46875
+          ],
+          "size": [
+            0.875,
+            0.125,
+            0.0625
+          ],
+          "color": "w:wood_dark",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.125,
+            0.46875
+          ],
+          "size": [
+            0.875,
+            0.125,
+            0.0625
+          ],
+          "color": "w:wood_dark",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.875,
+            -0.46875
+          ],
+          "size": [
+            0.875,
+            0.125,
+            0.0625
+          ],
+          "color": "w:wood_dark",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.875,
+            0.46875
+          ],
+          "size": [
+            0.875,
+            0.125,
+            0.0625
+          ],
+          "color": "w:wood_dark",
+          "cut": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.1875,
+            -0.46875
+          ],
+          "b": [
+            0.375,
+            0.8125,
+            -0.46875
+          ],
+          "radius": [
+            0.0625,
+            0.03125
+          ],
+          "color": "w:wood_light",
+          "round": false
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.1875,
+            0.46875
+          ],
+          "b": [
+            0.375,
+            0.8125,
+            0.46875
+          ],
+          "radius": [
+            0.0625,
+            0.03125
+          ],
+          "color": "w:wood_light",
+          "round": false
+        }
+      ]
+    },
+    "ladder_kit": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.625,
+            0.09375,
+            -0.25
+          ],
+          "b": [
+            0.625,
+            0.09375,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.625,
+            0.09375,
+            0.25
+          ],
+          "b": [
+            0.625,
+            0.09375,
+            0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.625,
+            0.28125,
+            -0.25
+          ],
+          "b": [
+            0.625,
+            0.28125,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.625,
+            0.28125,
+            0.25
+          ],
+          "b": [
+            0.625,
+            0.28125,
+            0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.625,
+            0.46875,
+            -0.25
+          ],
+          "b": [
+            0.625,
+            0.46875,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.625,
+            0.46875,
+            0.25
+          ],
+          "b": [
+            0.625,
+            0.46875,
+            0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.375,
+            0.5,
+            0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.6875
+          ],
+          "color": "rope",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.375,
+            0.5,
+            0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.6875
+          ],
+          "color": "rope",
+          "cut": 0
+        }
+      ]
+    },
+    "bridge_kit": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.09375,
+            -0.25
+          ],
+          "b": [
+            0.75,
+            0.09375,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.09375,
+            0.25
+          ],
+          "b": [
+            0.75,
+            0.09375,
+            0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.28125,
+            -0.25
+          ],
+          "b": [
+            0.75,
+            0.28125,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.28125,
+            0.25
+          ],
+          "b": [
+            0.75,
+            0.28125,
+            0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.46875,
+            -0.25
+          ],
+          "b": [
+            0.75,
+            0.46875,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.46875,
+            0.25
+          ],
+          "b": [
+            0.75,
+            0.46875,
+            0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.375,
+            0.5,
+            0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.6875
+          ],
+          "color": "rope",
+          "cut": 0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.375,
+            0.5,
+            0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.6875
+          ],
+          "color": "rope",
+          "cut": 0
+        }
+      ]
+    },
+    "crude_ladder_1": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            -0.3125,
+            1,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            0.3125,
+            1,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        }
+      ]
+    },
+    "crude_ladder_2": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            -0.3125,
+            2,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            0.3125,
+            2,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            1.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            1.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        }
+      ]
+    },
+    "crude_ladder_3": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            -0.3125,
+            3,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            0.3125,
+            3,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            1.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            1.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            2.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            2.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            2.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            2.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        }
+      ]
+    },
+    "crude_ladder_4": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            -0.3125,
+            4,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.3125,
+            0,
+            -0.1875
+          ],
+          "b": [
+            0.3125,
+            4,
+            -0.1875
+          ],
+          "radius": [
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            0.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            0.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            1.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            1.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            2.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            2.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            2.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            2.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            3.3125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            3.3125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            3.8125,
+            -0.125
+          ],
+          "b": [
+            0.375,
+            3.8125,
+            -0.125
+          ],
+          "radius": [
+            0.0625,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        }
+      ]
+    },
+    "log_bridge_1": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            -0.25,
+            -0.25,
+            -2.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1,
+          "bank_span": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            0.25,
+            -0.25,
+            -2.3125
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3,
+          "bank_span": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            0.75,
+            -0.25,
+            -2.25
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5,
+          "bank_span": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            1.25,
+            -0.25,
+            -2.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 7,
+          "bank_span": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            0
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            0
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            -2
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            -2
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -0.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -0.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -0.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -0.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "log_bridge_2": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            -0.25,
+            -0.25,
+            -3.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2,
+          "bank_span": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            0.25,
+            -0.25,
+            -3.3125
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4,
+          "bank_span": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            0.75,
+            -0.25,
+            -3.25
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 6,
+          "bank_span": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            1.25,
+            -0.25,
+            -3.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 8,
+          "bank_span": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            0
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            0
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            -3
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            -3
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -1.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -1.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -1.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -1.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "log_bridge_3": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            -0.25,
+            -0.25,
+            -4.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3,
+          "bank_span": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            0.25,
+            -0.25,
+            -4.3125
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5,
+          "bank_span": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            0.75,
+            -0.25,
+            -4.25
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 7,
+          "bank_span": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            1.25,
+            -0.25,
+            -4.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 9,
+          "bank_span": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            0
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            0
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 6
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            -4
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            -4
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 6
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -2.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -2.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -2.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -2.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "log_bridge_4": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            -0.25,
+            -0.25,
+            -5.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4,
+          "bank_span": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            0.25,
+            -0.25,
+            -5.3125
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 6,
+          "bank_span": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            0.75,
+            -0.25,
+            -5.25
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 8,
+          "bank_span": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            1.25,
+            -0.25,
+            -5.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 10,
+          "bank_span": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            0
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            0
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 7
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            -5
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            -5
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 7
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -3.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -3.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -3.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -3.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "log_bridge_5": {
+      "main": [
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            -0.25,
+            -0.25,
+            -6.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5,
+          "bank_span": 5
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            0.25,
+            -0.25,
+            -6.3125
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 7,
+          "bank_span": 5
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            -0.25,
+            0.375
+          ],
+          "b": [
+            0.75,
+            -0.25,
+            -6.25
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 9,
+          "bank_span": 5
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            -0.25,
+            0.3125
+          ],
+          "b": [
+            1.25,
+            -0.25,
+            -6.375
+          ],
+          "radius": [
+            0.25,
+            0.25
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 11,
+          "bank_span": 5
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            0
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            0
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 8
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            -0.46875,
+            -6
+          ],
+          "b": [
+            1.5,
+            -0.46875,
+            -6
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 8
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.25,
+            -0.03125,
+            -4.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.25,
+            -0.03125,
+            -4.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            -0.03125,
+            -4.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -0.625
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.25,
+            -0.03125,
+            -4.875
+          ],
+          "size": [
+            0.25,
+            0.0625,
+            0.4375
+          ],
+          "color": "w:wood_dark",
+          "cut": 0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "log_chair": {
+      "main": [
+        {
+          "op": "hand_hewn_vox",
+          "kind": "log_stool"
+        }
+      ]
+    },
+    "log_table": {
+      "main": [
+        {
+          "op": "hand_hewn_vox",
+          "kind": "dining_table"
+        }
+      ]
+    },
+    "door": {
+      "leaf_left": [
+        {
+          "op": "box",
+          "center": [
+            0,
+            1.8125,
+            0
+          ],
+          "size": [
+            2,
+            3.625,
+            0.125
+          ],
+          "color": "w:bark_dark",
+          "cut": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0,
+            0
+          ],
+          "b": [
+            -0.75,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            0,
+            0
+          ],
+          "b": [
+            -0.25,
+            3.875,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            0,
+            0
+          ],
+          "b": [
+            0.25,
+            3.8125,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            0,
+            0
+          ],
+          "b": [
+            0.75,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.75,
+            -0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.8125,
+            -0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            -0.75,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            0.75,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0,
+            -0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0625,
+            -0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            -0.75,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            0.75,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.625,
+            1.5,
+            -0.1875
+          ],
+          "b": [
+            0.625,
+            1.5,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.625,
+            1.875,
+            -0.1875
+          ],
+          "b": [
+            0.625,
+            1.875,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.625,
+            1.6875,
+            -0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.75,
+            0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.8125,
+            0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0.75,
+            0.25
+          ],
+          "b": [
+            -0.75,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            0.75,
+            0.25
+          ],
+          "b": [
+            0.75,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0,
+            0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0625,
+            0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            3.0,
+            0.25
+          ],
+          "b": [
+            -0.75,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            3.0,
+            0.25
+          ],
+          "b": [
+            0.75,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.625,
+            1.5,
+            0.1875
+          ],
+          "b": [
+            0.625,
+            1.5,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.625,
+            1.875,
+            0.1875
+          ],
+          "b": [
+            0.625,
+            1.875,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.625,
+            1.6875,
+            0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.8125,
+            0.9375,
+            -0.25
+          ],
+          "b": [
+            0.8125,
+            2.8125,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.9375,
+            3.6875,
+            0
+          ],
+          "size": [
+            0.125,
+            0.25,
+            0.375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            3.8125,
+            0.0625
+          ],
+          "size": [
+            0.0625,
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        }
+      ]
+    },
+    "log_door_3": {
+      "leaf_left": [
+        {
+          "op": "box",
+          "center": [
+            0,
+            1.8125,
+            0
+          ],
+          "size": [
+            3,
+            3.625,
+            0.125
+          ],
+          "color": "w:bark_dark",
+          "cut": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.25,
+            0,
+            0
+          ],
+          "b": [
+            -1.25,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0,
+            0
+          ],
+          "b": [
+            -0.75,
+            3.875,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            0,
+            0
+          ],
+          "b": [
+            -0.25,
+            3.8125,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            0,
+            0
+          ],
+          "b": [
+            0.25,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            0,
+            0
+          ],
+          "b": [
+            0.75,
+            3.875,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            0,
+            0
+          ],
+          "b": [
+            1.25,
+            3.8125,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.75,
+            -0.25
+          ],
+          "size": [
+            3,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.8125,
+            -0.3125
+          ],
+          "size": [
+            2.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.25,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            -1.25,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            1.25,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0,
+            -0.25
+          ],
+          "size": [
+            3,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0625,
+            -0.3125
+          ],
+          "size": [
+            2.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.25,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            -1.25,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            1.25,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.125,
+            1.5,
+            -0.1875
+          ],
+          "b": [
+            1.125,
+            1.5,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.125,
+            1.875,
+            -0.1875
+          ],
+          "b": [
+            1.125,
+            1.875,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.125,
+            1.6875,
+            -0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.75,
+            0.25
+          ],
+          "size": [
+            3,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.8125,
+            0.3125
+          ],
+          "size": [
+            2.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.25,
+            0.75,
+            0.25
+          ],
+          "b": [
+            -1.25,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            0.75,
+            0.25
+          ],
+          "b": [
+            1.25,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0,
+            0.25
+          ],
+          "size": [
+            3,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            3.0625,
+            0.3125
+          ],
+          "size": [
+            2.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.25,
+            3.0,
+            0.25
+          ],
+          "b": [
+            -1.25,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            3.0,
+            0.25
+          ],
+          "b": [
+            1.25,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.125,
+            1.5,
+            0.1875
+          ],
+          "b": [
+            1.125,
+            1.5,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.125,
+            1.875,
+            0.1875
+          ],
+          "b": [
+            1.125,
+            1.875,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.125,
+            1.6875,
+            0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.3125,
+            0.9375,
+            -0.25
+          ],
+          "b": [
+            1.3125,
+            2.8125,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.4375,
+            3.6875,
+            0
+          ],
+          "size": [
+            0.125,
+            0.25,
+            0.375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            3.8125,
+            0.0625
+          ],
+          "size": [
+            0.0625,
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        }
+      ]
+    },
+    "log_door_4": {
+      "leaf_left": [
+        {
+          "op": "box",
+          "center": [
+            -1,
+            1.8125,
+            0
+          ],
+          "size": [
+            2,
+            3.625,
+            0.125
+          ],
+          "color": "w:bark_dark",
+          "cut": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.75,
+            0,
+            0
+          ],
+          "b": [
+            -1.75,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.25,
+            0,
+            0
+          ],
+          "b": [
+            -1.25,
+            3.875,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.75,
+            0,
+            0
+          ],
+          "b": [
+            -0.75,
+            3.8125,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            0,
+            0
+          ],
+          "b": [
+            -0.25,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            0.75,
+            -0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            0.8125,
+            -0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.75,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            -1.75,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            -0.25,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            3.0,
+            -0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            3.0625,
+            -0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.75,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            -1.75,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            -0.25,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.5,
+            -0.1875
+          ],
+          "b": [
+            -0.375,
+            1.5,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.875,
+            -0.1875
+          ],
+          "b": [
+            -0.375,
+            1.875,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.375,
+            1.6875,
+            -0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            0.75,
+            0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            0.8125,
+            0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.75,
+            0.75,
+            0.25
+          ],
+          "b": [
+            -1.75,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            0.75,
+            0.25
+          ],
+          "b": [
+            -0.25,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            3.0,
+            0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -1,
+            3.0625,
+            0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.75,
+            3.0,
+            0.25
+          ],
+          "b": [
+            -1.75,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.25,
+            3.0,
+            0.25
+          ],
+          "b": [
+            -0.25,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.5,
+            0.1875
+          ],
+          "b": [
+            -0.375,
+            1.5,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.375,
+            1.875,
+            0.1875
+          ],
+          "b": [
+            -0.375,
+            1.875,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.375,
+            1.6875,
+            0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            -1.8125,
+            0.9375,
+            -0.25
+          ],
+          "b": [
+            -0.1875,
+            2.8125,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.9375,
+            3.6875,
+            0
+          ],
+          "size": [
+            0.125,
+            0.25,
+            0.375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.9375,
+            3.8125,
+            0.0625
+          ],
+          "size": [
+            0.0625,
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        }
+      ],
+      "leaf_right": [
+        {
+          "op": "box",
+          "center": [
+            1,
+            1.8125,
+            0
+          ],
+          "size": [
+            2,
+            3.625,
+            0.125
+          ],
+          "color": "w:bark_dark",
+          "cut": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            0,
+            0
+          ],
+          "b": [
+            0.25,
+            3.875,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.75,
+            0,
+            0
+          ],
+          "b": [
+            0.75,
+            3.8125,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 6
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.25,
+            0,
+            0
+          ],
+          "b": [
+            1.25,
+            3.75,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 7
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.75,
+            0,
+            0
+          ],
+          "b": [
+            1.75,
+            3.875,
+            0
+          ],
+          "radius": [
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 8
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            0.75,
+            -0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            0.8125,
+            -0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            0.25,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.75,
+            0.75,
+            -0.25
+          ],
+          "b": [
+            1.75,
+            0.75,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            3.0,
+            -0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            3.0625,
+            -0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            0.25,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.75,
+            3.0,
+            -0.25
+          ],
+          "b": [
+            1.75,
+            3.0,
+            -0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.375,
+            1.5,
+            -0.1875
+          ],
+          "b": [
+            0.375,
+            1.5,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.375,
+            1.875,
+            -0.1875
+          ],
+          "b": [
+            0.375,
+            1.875,
+            -0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.375,
+            1.6875,
+            -0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            0.75,
+            0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            0.8125,
+            0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            0.75,
+            0.25
+          ],
+          "b": [
+            0.25,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.75,
+            0.75,
+            0.25
+          ],
+          "b": [
+            1.75,
+            0.75,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            3.0,
+            0.25
+          ],
+          "size": [
+            2,
+            0.3125,
+            0.125
+          ],
+          "color": "w:wood_dark",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            1,
+            3.0625,
+            0.3125
+          ],
+          "size": [
+            1.75,
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.25,
+            3.0,
+            0.25
+          ],
+          "b": [
+            0.25,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            1.75,
+            3.0,
+            0.25
+          ],
+          "b": [
+            1.75,
+            3.0,
+            0.375
+          ],
+          "radius": [
+            0.0625,
+            0.0625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.375,
+            1.5,
+            0.1875
+          ],
+          "b": [
+            0.375,
+            1.5,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.375,
+            1.875,
+            0.1875
+          ],
+          "b": [
+            0.375,
+            1.875,
+            0.375
+          ],
+          "radius": [
+            0.047,
+            0.047
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.375,
+            1.6875,
+            0.375
+          ],
+          "size": [
+            0.1875,
+            0.5,
+            0.125
+          ],
+          "color": "w:wood_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.1875,
+            0.9375,
+            -0.25
+          ],
+          "b": [
+            1.8125,
+            2.8125,
+            -0.25
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0625,
+            3.6875,
+            0
+          ],
+          "size": [
+            0.125,
+            0.25,
+            0.375
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            1.0625,
+            3.8125,
+            0.0625
+          ],
+          "size": [
+            0.0625,
+            0.25,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0,
+          "mode": "subtract"
+        }
+      ]
+    },
+    "campfire": {
+      "campfire_body": [
+        {
+          "op": "box",
+          "center": [
+            -0.0625,
+            0.1875,
+            -0.75
+          ],
+          "size": [
+            0.75,
+            0.375,
+            0.5
+          ],
+          "color": "stone",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.28125,
+            0.34375,
+            -0.78125
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.3125
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.21875,
+            0.3125,
+            -0.90625
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.625,
+            0.15625,
+            -0.5625
+          ],
+          "size": [
+            0.5,
+            0.3125,
+            0.5
+          ],
+          "color": "stone_light",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            0.53125,
+            0.28125,
+            -0.59375
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.3125
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.78125,
+            0.21875,
+            0.0625
+          ],
+          "size": [
+            0.4375,
+            0.4375,
+            0.625
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.71875,
+            0.40625,
+            0.03125
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.4375
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.90625,
+            0.375,
+            -0.15625
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.5625,
+            0.1875,
+            0.65625
+          ],
+          "size": [
+            0.5,
+            0.375,
+            0.4375
+          ],
+          "color": "stone",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            0.46875,
+            0.34375,
+            0.625
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.25
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.03125,
+            0.15625,
+            0.78125
+          ],
+          "size": [
+            0.6875,
+            0.3125,
+            0.4375
+          ],
+          "color": "stone_light",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.21875,
+            0.28125,
+            0.75
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.25
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.21875,
+            0.25,
+            0.65625
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.59375,
+            0.21875,
+            0.5625
+          ],
+          "size": [
+            0.5625,
+            0.4375,
+            0.5
+          ],
+          "color": "stone",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.71875,
+            0.40625,
+            0.53125
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.3125
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.78125,
+            0.1875,
+            -0.03125
+          ],
+          "size": [
+            0.4375,
+            0.375,
+            0.6875
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.84375,
+            0.34375,
+            -0.0625
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.5
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.65625,
+            0.3125,
+            -0.28125
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.625,
+            0.15625,
+            -0.625
+          ],
+          "size": [
+            0.5,
+            0.3125,
+            0.5
+          ],
+          "color": "stone",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.71875,
+            0.28125,
+            -0.65625
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.3125
+          ],
+          "color": "stone_light",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.15625,
+            0.0
+          ],
+          "size": [
+            1.0,
+            0.1875,
+            1.25
+          ],
+          "color": "stone_dark",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.0625,
+            0.0
+          ],
+          "size": [
+            0.875,
+            0.125,
+            0.875
+          ],
+          "color": "soot",
+          "cut": 0.125
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.552636596401731,
+            0.1875,
+            0.2336510053851903
+          ],
+          "b": [
+            0.552636596401731,
+            0.1875,
+            -0.2336510053851903
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 4
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.3241813835208838,
+            0.1875,
+            -0.5048825908847379
+          ],
+          "b": [
+            0.3241813835208838,
+            0.1875,
+            0.5048825908847379
+          ],
+          "radius": [
+            0.15625,
+            0.15625
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.28125,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.1875,
+            0.5
+          ],
+          "color": "soot",
+          "cut": 0.0625,
+          "mode": "paint"
+        }
+      ]
+    },
+    "hearth": {
+      "hearth_body": [
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.09375,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.1875,
+            2.0
+          ],
+          "color": "stone_dark",
+          "cut": 0.125
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.625,
+            0.4375,
+            -0.75
+          ],
+          "size": [
+            0.625,
+            0.5,
+            0.375
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.03125,
+            0.4375,
+            -0.75
+          ],
+          "size": [
+            0.5625,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.59375,
+            0.4375,
+            -0.75
+          ],
+          "size": [
+            0.6875,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.71875,
+            0.9375,
+            -0.75
+          ],
+          "size": [
+            0.4375,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.1875,
+            0.9375,
+            -0.75
+          ],
+          "size": [
+            0.625,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.53125,
+            0.9375,
+            -0.75
+          ],
+          "size": [
+            0.8125,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.59375,
+            1.4375,
+            -0.75
+          ],
+          "size": [
+            0.6875,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.09375,
+            1.4375,
+            -0.75
+          ],
+          "size": [
+            0.6875,
+            0.5,
+            0.375
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.6875,
+            1.4375,
+            -0.75
+          ],
+          "size": [
+            0.5,
+            0.5,
+            0.375
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            0.375,
+            -0.25
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.625
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            0.375,
+            0.375
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.625
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            0.75,
+            -0.3125
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.5
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            0.75,
+            0.3125
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.75
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            1.125,
+            -0.1875
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.75
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            1.125,
+            0.4375
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.5
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.75,
+            1.3125,
+            0.0625
+          ],
+          "size": [
+            0.375,
+            0.125,
+            1.125
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            0.375,
+            -0.25
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.625
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            0.375,
+            0.375
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.625
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            0.75,
+            -0.3125
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.5
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            0.75,
+            0.3125
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.75
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            1.125,
+            -0.1875
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.75
+          ],
+          "color": "stone",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            1.125,
+            0.4375
+          ],
+          "size": [
+            0.375,
+            0.375,
+            0.5
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.75,
+            1.3125,
+            0.0625
+          ],
+          "size": [
+            0.375,
+            0.125,
+            1.125
+          ],
+          "color": "stone_light",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.84375,
+            1.625,
+            -0.84375
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.4375,
+            1.65625,
+            -0.84375
+          ],
+          "size": [
+            0.125,
+            0.0625,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.84375,
+            1.625,
+            -0.65625
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.84375,
+            1.34375,
+            0.5
+          ],
+          "size": [
+            0.1875,
+            0.0625,
+            0.25
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.84375,
+            1.3125,
+            0.59375
+          ],
+          "size": [
+            0.1875,
+            0.125,
+            0.1875
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.25,
+            0.0625
+          ],
+          "size": [
+            0.875,
+            0.125,
+            1.125
+          ],
+          "color": "soot",
+          "cut": 0.0625
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.875,
+            -0.59375
+          ],
+          "size": [
+            0.625,
+            0.75,
+            0.0625
+          ],
+          "color": "stone_dark",
+          "cut": 0.0625,
+          "mode": "paint"
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5625,
+            0.34375,
+            -0.125
+          ],
+          "b": [
+            0.5625,
+            0.34375,
+            -0.125
+          ],
+          "radius": [
+            0.125,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5625,
+            0.34375,
+            0.3125
+          ],
+          "b": [
+            0.5625,
+            0.34375,
+            0.3125
+          ],
+          "radius": [
+            0.125,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.375,
+            0.09375
+          ],
+          "size": [
+            0.5,
+            0.125,
+            0.6875
+          ],
+          "color": "soot",
+          "cut": 0.0625,
+          "mode": "paint"
+        }
+      ]
+    },
+    "wooden_torch": {
+      "torch_body": [
+        {
+          "op": "beam",
+          "a": [
+            0,
+            0,
+            0.5
+          ],
+          "b": [
+            0,
+            1,
+            0.5
+          ],
+          "radius": [
+            0.1875,
+            0.1875
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            0,
+            0.375,
+            0
+          ],
+          "b": [
+            0,
+            0.375,
+            0.5
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 5
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.6875,
+            0.5
+          ],
+          "size": [
+            0.375,
+            0.125,
+            0.375
+          ],
+          "color": "rope",
+          "cut": 0.0
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.78125,
+            0.5
+          ],
+          "size": [
+            0.375,
+            0.0625,
+            0.375
+          ],
+          "color": "w:bark_dark",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.0,
+            0.6875,
+            0.65625
+          ],
+          "size": [
+            0.125,
+            0.125,
+            0.0625
+          ],
+          "color": "hay1",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0,
+            0.9375,
+            0.5
+          ],
+          "size": [
+            0.375,
+            0.125,
+            0.375
+          ],
+          "color": "soot",
+          "cut": 0.0625
+        }
+      ]
+    },
+    "dry_stone": {
+      "main": [
+        {
+          "op": "profile",
+          "rings": [
+            [
+              0,
+              0.4375,
+              0.4375,
+              0,
+              0
+            ],
+            [
+              0.1875,
+              0.5,
+              0.5,
+              0,
+              0
+            ],
+            [
+              0.75,
+              0.4375,
+              0.5,
+              0,
+              0
+            ],
+            [
+              1,
+              0.375,
+              0.375,
+              0,
+              0
+            ]
+          ],
+          "color": "stone"
+        }
+      ]
+    },
+    "wet_stone": {
+      "main": [
+        {
+          "op": "profile",
+          "rings": [
+            [
+              0,
+              0.4375,
+              0.4375,
+              0,
+              0
+            ],
+            [
+              0.1875,
+              0.5,
+              0.5,
+              0,
+              0
+            ],
+            [
+              0.75,
+              0.4375,
+              0.5,
+              0,
+              0
+            ],
+            [
+              1,
+              0.375,
+              0.375,
+              0,
+              0
+            ]
+          ],
+          "color": "wet"
+        }
+      ]
+    },
+    "log_fence": {
+      "post": [
+        {
+          "op": "beam",
+          "a": [
+            0,
+            0,
+            0
+          ],
+          "b": [
+            0,
+            1.3125,
+            0
+          ],
+          "radius": [
+            0.125,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.09375,
+            1.28125,
+            -0.0625
+          ],
+          "size": [
+            0.0625,
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        }
+      ]
+    },
+    "log_gate": {
+      "post_left": [
+        {
+          "op": "beam",
+          "a": [
+            -1,
+            0,
+            0
+          ],
+          "b": [
+            -1,
+            1.3125,
+            0
+          ],
+          "radius": [
+            0.125,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            -1.09375,
+            1.28125,
+            -0.0625
+          ],
+          "size": [
+            0.0625,
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        }
+      ],
+      "post_right": [
+        {
+          "op": "beam",
+          "a": [
+            1,
+            0,
+            0
+          ],
+          "b": [
+            1,
+            1.3125,
+            0
+          ],
+          "radius": [
+            0.125,
+            0.125
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "box",
+          "center": [
+            0.90625,
+            1.28125,
+            -0.0625
+          ],
+          "size": [
+            0.0625,
+            0.0625,
+            0.125
+          ],
+          "color": "w:wood",
+          "cut": 0.0,
+          "mode": "subtract"
+        }
+      ],
+      "leaf_left": [
+        {
+          "op": "beam",
+          "a": [
+            -0.875,
+            0.4375,
+            0
+          ],
+          "b": [
+            0.875,
+            0.4375,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.875,
+            1,
+            0
+          ],
+          "b": [
+            0.875,
+            1,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.8125,
+            0.25,
+            0
+          ],
+          "b": [
+            -0.8125,
+            1.125,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 0
+        },
+        {
+          "op": "beam",
+          "a": [
+            0.8125,
+            0.25,
+            0
+          ],
+          "b": [
+            0.8125,
+            1.125,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 1
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.8125,
+            0.375,
+            0
+          ],
+          "b": [
+            0.8125,
+            1.0625,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.78125,
+            0.4375,
+            0.0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.25
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            -0.78125,
+            1.0,
+            0.0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.25
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.78125,
+            0.4375,
+            0.0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.25
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        },
+        {
+          "op": "box",
+          "center": [
+            0.78125,
+            1.0,
+            0.0
+          ],
+          "size": [
+            0.0625,
+            0.125,
+            0.25
+          ],
+          "color": "rope",
+          "cut": 0.0,
+          "mode": "paint"
+        }
+      ]
+    },
+    "parts/log_fence_rails": {
+      "rails": [
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            0.4375,
+            0
+          ],
+          "b": [
+            0.5,
+            0.4375,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 2
+        },
+        {
+          "op": "beam",
+          "a": [
+            -0.5,
+            1,
+            0
+          ],
+          "b": [
+            0.5,
+            1,
+            0
+          ],
+          "radius": [
+            0.09375,
+            0.09375
+          ],
+          "color": "w:wood",
+          "round": true,
+          "colors": [
+            "w:bark",
+            "w:wood_dark",
+            "w:bark",
+            "w:bark_dark",
+            "w:wood",
+            "w:bark"
+          ],
+          "cap": "w:cut",
+          "hewn": 3
+        }
+      ]
+    }
+  }
+}

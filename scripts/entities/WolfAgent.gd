@@ -19,7 +19,8 @@ func _build_visual(models: Dictionary) -> void:
 	visual.scale=Vector3(size[0],size[1],size[2])
 	visual.add_child((models.body as PackedScene).instantiate())
 	head = Node3D.new()
-	head.position = Vector3(0,1.125,-.5)
+	var pose: Dictionary=definition.visual_pose
+	head.position = Vector3(pose.head[0],pose.head[1],pose.head[2])
 	visual.add_child(head)
 	var face := (models.head as PackedScene).instantiate() as Node3D
 	head.add_child(face)
@@ -30,16 +31,15 @@ func _build_visual(models: Dictionary) -> void:
 	ears.add_child(ear_mesh)
 	ear_mesh.position = -head.position
 	tail = Node3D.new()
-	tail.position = Vector3(0,.875,.5)
+	tail.position = Vector3(pose.tail[0],pose.tail[1],pose.tail[2])
 	visual.add_child(tail)
 	var brush := (models.tail as PackedScene).instantiate() as Node3D
 	tail.add_child(brush)
 	brush.position = -tail.position
-	for pivot: Vector3 in [Vector3(-.25,.75,-.375),Vector3(.25,.75,-.375),Vector3(-.25,.75,.375),Vector3(.25,.75,.375)]:
-		var leg := Node3D.new()
-		leg.position = pivot
+	for side: Vector2 in [Vector2(-1,-1),Vector2(1,-1),Vector2(-1,1),Vector2(1,1)]:
+		var pivot:=Vector3(side.x*float(pose.hip_x),float(pose.hip_y),side.y*float(pose.hip_z))
+		var leg := preload("res://scripts/components/RigidAnimalLeg.gd").build(models.leg,pivot,float(pose.knee_y))
 		visual.add_child(leg)
-		leg.add_child((models.leg as PackedScene).instantiate())
 		legs.append(leg)
 
 func can_graze() -> bool:
@@ -113,15 +113,15 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 func _pose() -> void:
 	var resting := activity == "Sleeping"
 	var moving := hop_progress < 1
-	visual.position.y = -.43 if resting else sin(hop_progress*PI)*float(definition.navigation.hop_height) if moving else 0.0
-	visual.position.y *= visual.scale.y
+	visual.position.y = float(definition.visual_pose.rest_y) if resting else sin(hop_progress*PI)*float(definition.navigation.hop_height)*float(definition.visual_pose.hop_amplitude) if moving else 0.0
 	head.rotation.x = -.45 + sin(pose_time*6)*.045 if activity == "Eating" else -.12 if resting else 0.0
 	ears.rotation.x = .3 if resting else sin(pose_time*1.3)*.025
 	tail.rotation.y = sin(pose_time*2)*.09 if moving else .35 if resting else 0.0
 	for i in range(legs.size()):
 		var diagonal := 1.0 if i in [0,3] else -1.0
-		legs[i].rotation.x = diagonal*.65 if resting else sin(hop_progress*TAU)*diagonal*.38 if moving else 0.0
-		legs[i].scale.y = .4 if resting else 1.0
+		var folded := -1.0 if i<2 else 1.0
+		legs[i].rotation.x = folded*float(definition.visual_pose.fold_angle) if resting else sin(hop_progress*TAU)*diagonal*.38 if moving else 0.0
+		legs[i].get_node("Knee").rotation.x=-folded*float(definition.visual_pose.fold_angle)*2 if resting else 0.0
 
 func serialize_state() -> Dictionary:
 	var result := super.serialize_state()

@@ -22,7 +22,9 @@ func _run() -> void:
 	for key: String in definitions:
 		if not only.is_empty() and not key in only.split(","): continue
 		var definition: Dictionary = definitions[key]
-		if "stockpile_furniture" in definition.get("material_tags", []): continue
+		# Storage inspectors still prefer any existing item-path thumbnail (the
+		# settlement flag). Refresh that legacy path along with ordinary goods.
+		if "stockpile_furniture" in definition.get("material_tags", []) and not FileAccess.file_exists(OUT+key.replace(":","_")+".png"): continue
 		if not ResourceLoader.exists(String(definition.get("model", ""))): continue
 		var viewport := SubViewport.new()
 		viewport.size = Vector2i(216, 180)
@@ -45,10 +47,11 @@ func _run() -> void:
 		light.light_energy = 1.2
 		scene.add_child(light)
 		var model: Node3D = registry.create_item_visual(key)
+		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(model, false)
 		scene.add_child(model)
 		var bounds := AABB()
 		var first := true
-		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(model):
 			var box: AABB = model.global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 			bounds = box if first else bounds.merge(box)
 			first = false

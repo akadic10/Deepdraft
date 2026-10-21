@@ -109,7 +109,9 @@ func _storage_roundtrip() -> void:
 	details.designate_uproot(FLOWER)
 	_expect(await _advance_until(func(): return details._changes[FLOWER].packed), "standalone flower Uproot packs clump")
 	var item: Node3D = drops.nearest_loose_of_key(FLOWER_ITEM,Vector3i(44,20,47))
-	furniture._install("base:furniture:storage_chest",furniture.get_defs()["base:furniture:storage_chest"],Vector3i(55,20,46),0)
+	var fixture = preload("res://scripts/tests/TestStorageFixture.gd")
+	fixture.install(furniture)
+	furniture._install(fixture.KEY,furniture.get_defs()[fixture.KEY],Vector3i(55,20,46),0)
 	var chest = furniture._installed.values().back().storage
 	chest.drop_manager = drops
 	var token = chest._reserve_deposit(FLOWER_ITEM,Vector3i(44,20,47),999,1)
@@ -137,6 +139,10 @@ func _storage_roundtrip() -> void:
 
 
 func _capture_flowers() -> void:
+	var capture_output := "res://tmp/plant_habitat_review/"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): capture_output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(capture_output))
 	root.size = Vector2i(1280,800)
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-55,-30,0)
@@ -172,14 +178,14 @@ func _capture_flowers() -> void:
 	furniture._position_preview(furniture._hover_cell)
 	for i in range(8): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/plant_habitat_review/planting_spacing.png")
+	_expect(root.get_texture().get_image().save_png(capture_output+"planting_spacing.png")==OK,"save valid placement capture")
 	furniture._hover_cell = Vector3i(48,20,44)
 	furniture._hover_valid = furniture._placement_valid(furniture._hover_cell)
 	_expect(not furniture._hover_valid, "native preview rejects adjacent planted clump")
 	furniture._position_preview(furniture._hover_cell)
 	for i in range(4): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/plant_habitat_review/planting_spacing_blocked.png")
+	_expect(root.get_texture().get_image().save_png(capture_output+"planting_spacing_blocked.png")==OK,"save blocked placement capture")
 	furniture.deactivate()
 	for id: String in details._records.keys():
 		if id.contains(":art:"): details._remove(id,"test_cleanup")

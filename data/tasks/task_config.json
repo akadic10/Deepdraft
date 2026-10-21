@@ -40,7 +40,6 @@
     "search_nodes": 64,
     "forage_distance": 24,
     "dining_distance": 16,
-    "desperate_dining_distance": 6,
     "dining_search_seconds": 2.0,
     "hungry_work_multiplier": 0.9,
     "famished_work_multiplier": 0.75,
@@ -92,7 +91,7 @@
   "zone_source": {
     "max_workers": 4
   },
-  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip, replacing the old physical-item pouch_capacity limit. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
+  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip, replacing the old physical-item pouch_capacity limit. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
   "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Bridges/ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
   "furniture": {
     "uninstall_time_s": 2.0,
@@ -149,6 +148,7 @@
     },
     "recreation": {
       "bonus": 0.08,
+      "solo_bonus": 0.04,
       "duration_hours": 12.0
     }
   },
@@ -165,11 +165,17 @@
     "carry_speed_mult_heavy": 0.7,
     "carry_capacity": 4,
     "pouch_bundle_radius": 8,
+    "fruit_detour_blocks": 8,
+    "fruit_planning_budget_usec": 750,
+    "fruit_probe_nodes": 128,
+    "fruit_route_cells": 512,
+    "fruit_candidate_limit": 16,
     "pickup_time_s": 0.75,
     "deposit_time_s": 0.65
   },
   "recreation": {
     "search_radius": 24.0,
+    "partner_search_radius": 48.0,
     "search_budget_usec": 500,
     "search_nodes": 400,
     "search_seconds": 3.0,

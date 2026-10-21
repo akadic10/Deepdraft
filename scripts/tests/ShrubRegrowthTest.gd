@@ -10,6 +10,7 @@ func _run() -> void:
 	root.get_node("WorldGenerator").world_seed=1234
 	_build_floor()
 	var generator=root.get_node("WorldGenerator")
+	generator._cache_block_ids() # Synthetic terrain still needs the production material lookup.
 	generator.heightmap.resize(1024*1024); generator.heightmap.fill(20); generator._maps_ready=true
 	scene=Node3D.new(); root.add_child(scene); current_scene=scene
 	drops=load("res://scripts/systems/ItemDropManager.gd").new(); scene.add_child(drops)

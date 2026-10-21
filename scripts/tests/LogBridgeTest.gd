@@ -12,6 +12,8 @@ var far_bank := Vector3i(49,20,48)
 func _run() -> void:
 	create_timer(150).timeout.connect(func(): push_error("Log bridge timed out"); quit(1))
 	await _setup_crafting_fixture()
+	# Terrain edits below the synthetic surface compare against seeded resources.
+	root.get_node("WorldGenerator")._build_noise_instances()
 	bridges = furniture._bridges
 	bridges.set_process(false)
 	_expect(dock._place_catalog._tiles.has(BRIDGE), "Place catalog exposes the bridge under Access")

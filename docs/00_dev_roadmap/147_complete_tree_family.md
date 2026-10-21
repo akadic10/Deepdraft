@@ -1,5 +1,9 @@
 # 147 — Complete clustered tree family
 
+**Later implementation (2026-10-19):** [252 — Apple harvesting](252_apple_harvesting.md)
+adds worker apple picking and saved picked visuals. The future-gameplay statement
+below describes the original art pass, before that implementation.
+
 **Implemented: 2026-10-13.** After approving the pine/oak pilot in
 [146](146_tree_art_pilot.md), the user requested the remaining trees. Apple and
 juniper now use the same flat planes, closed beveled foliage masses, shaped wood

@@ -3,19 +3,19 @@
 > **Scope:** Trees, bushes, cave flora, farm crops, furniture, workshop props, decorative/world objects.
 > For dwarf body parts, see [`41b_dwarf_appearance_glb.md`](../40_economy_colony/41b_dwarf_appearance_glb.md).
 
-**Current authoring standard (2026-10-13):** Start with
-[63 — Shared world art standard](63_shared_art_standard.md) for new art and
-planned conversions. It consolidates the approved environment, dwarf, deer and
-furniture direction: broad facets, selective bevels, restrained colors and
-world-unit exports. This document remains the asset inventory and historical
-voxel construction reference. Its fixed voxel resolutions, legacy palettes and
-cube-based modeling instructions do not override 63; existing gameplay bounds,
-anchors, IDs and state contracts still apply. [154 — Complete conversion](../00_dev_roadmap/154_complete_family_conversion.md)
-integrates all dwarf appearances, live wildlife and furniture forms. Their
-production generators are `generate_dwarf_faceted.py`, `generate_wildlife_faceted.py`
-and `generate_furniture_faceted.py`. [156 — Cleanup](../00_dev_roadmap/156_legacy_art_cleanup.md)
-removes the original voxel files and duplicate pilots; dated images and metrics
-remain the comparison evidence. See 63 for current production folder paths.
+**Current authoring standard (2026-10-18): 1:16 chibi voxel art.** Start with
+[63 — Shared world art standard](63_shared_art_standard.md) for the production
+pipeline and [64 — Art direction](64_hand_hewn_art_direction.md) for the original
+concept and shape language. One object cell is 1/16 of a world block on each
+axis: sixteen cells span one block edge, not one entire object. Keep chunky,
+expressive proportions, broad material shapes and deliberate imperfections.
+Use `data/art/voxel_*.json` and `tools/voxel_assets/` to bake greedy meshes with
+separate shadow-only proxies. World terrain keeps its existing simple voxels.
+
+This document retains the historical inventory and construction notes below.
+Earlier low-poly/faceted generators, fixed voxel resolutions and legacy palettes
+are superseded by 63 and 64. Preserve current gameplay bounds, anchors, IDs and
+all growth, seasonal, material and packed variants when revising a family.
 
 [155 — Resource drops and work tools](../00_dev_roadmap/155_resource_drops_and_work_tools.md)
 integrates the remaining 92 item forms and both animated tools. Use
@@ -265,7 +265,7 @@ Deepdraft is flat-shaded, chunky, and readable at RTS zoom. Every asset must ser
 | Pillar | What it means in practice |
 |---|---|
 | **Dwarven weight** | Dwarven bodies and crafted objects feel substantial: thick table legs, stout barrels and broad boots. Preserve species-specific plant and animal proportions; the accepted trees use tapered trunks and distinct crowns. |
-| **Stone and iron first** | The dominant materials of the WORLD are grey granite, dark iron, and amber torch-light — halls, industry, and monuments are stone and iron. **Furniture is woodwork (Alen, 2026-07-11):** beds, chairs, benches, tables, shelves — anything dwarves use rather than work — is wood, warm against the stone. Wood is plentiful on the surface (the map is forested); it is the natural furniture material, not a luxury. Stone/iron furniture is reserved for industrial anchors (anvil, trade counter, workshop bodies) and monuments (rune shelf, standing stones). |
+| **Stone and iron first** | The dominant materials of the WORLD are grey stone, dark iron, and amber torch-light — halls, industry, and monuments are stone and iron. **Furniture is woodwork (Alen, 2026-07-11):** beds, chairs, benches, tables, shelves — anything dwarves use rather than work — is wood, warm against the stone. Wood is plentiful on the surface (the map is forested); it is the natural furniture material, not a luxury. Stone/iron furniture is reserved for industrial anchors (anvil, trade counter, workshop bodies) and monuments (rune shelf, standing stones). |
 | **Mushroom magic** | The underground is alive with bioluminescence. Cave flora glows — not neon, but a soft, cold blue-violet that contrasts sharply with the warm stone environment. This is the game's primary visual signature. |
 | **Weather and age** | Use restrained recess tones, sparse grain and selected chips to describe material and wear. Let scene lighting reveal the broad facets; mandatory bright top bands or per-face noise are not part of the current standard. |
 

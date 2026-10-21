@@ -102,6 +102,16 @@ func climb(entries: Array, cycle: float) -> void:
 			.65 + i * .3 - box.position.y, -.5 - box.end.z))
 
 
+func gather_into(phase: float, source: Transform3D, entries: Array) -> void:
+	if entries.is_empty(): return
+	hold(entries)
+	var grips := _bundle_grips(entries)
+	var reach := smoothstep(0.0,CONTACT_PHASE,phase) if phase<CONTACT_PHASE else 1.0-smoothstep(CONTACT_PHASE,1.0,phase)
+	# One hand supports the existing basket while the other gathers its contents.
+	grips[1]=grips[1].lerp(source.origin+Vector3(0,.35,0),reach)
+	_hands(grips)
+
+
 func pickup(phase: float, item: Node3D, start: Transform3D, entries: Array, lifted: bool) -> void:
 	if not is_instance_valid(item):
 		return

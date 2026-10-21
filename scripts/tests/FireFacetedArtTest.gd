@@ -3,18 +3,20 @@ extends SceneTree
 ## Imported fire clips and the real installed lighting/animation owner.
 var failures: Array[String]=[]
 var checks := 0
+var staged: Array[PackedScene]=[]
 
 func _init() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
+	if "--staged" in OS.get_cmdline_user_args(): staged=preload("res://tools/voxel_assets/StagedAssets.gd").install("furniture")
 	for id in ["SaveManager","TaskManager","WorldClock","RoomManager"]: root.get_node(id).set_process(false)
 	root.get_node("WorldGenerator").world_seed=1234
 	var scene := Node3D.new(); root.add_child(scene); current_scene=scene
 	var controller = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	controller._load_defs()
 	var libraries := {}; var frames := 0; var sources := 0
-	for id: String in ["campfire","hearth","brazier","smelter","wall_torch","wooden_torch"]:
+	for id: String in ["campfire","hearth","wooden_torch"]:
 		var key := "base:furniture:"+id
 		var definition: Dictionary=controller.get_defs()[key]
 		var config: Dictionary=definition.light_source.flame_animation
@@ -42,13 +44,15 @@ func _run() -> void:
 			var vertices: PackedVector3Array=arrays[Mesh.ARRAY_VERTEX]
 			var normals: PackedVector3Array=arrays[Mesh.ARRAY_NORMAL]
 			var colors: PackedColorArray=arrays[Mesh.ARRAY_COLOR]
-			var sloped := 0; var opaque := true; var base := {}
+			var axial := true; var opaque := true; var base := {}; var on_grid:=true
 			var bottom := flame.mesh.get_aabb().position.y
 			for i in vertices.size():
-				if normals[i].abs().dot(Vector3.ONE)>1.05: sloped+=1
+				if normals[i].abs().dot(Vector3.ONE)>1.005: axial=false
+				for axis in 3:
+					if absf(vertices[i][axis]*16-roundf(vertices[i][axis]*16))>.02: on_grid=false
 				if colors[i].a<.999: opaque=false
 				if absf(vertices[i].y-bottom)<.0001: base[vertices[i]]=true
-			_expect(sloped>vertices.size()/2,id+" curved faceted surfaces instead of cube faces")
+			_expect(axial and on_grid,id+" baked 1:16 voxel faces")
 			_expect(opaque and colors.size()==vertices.size() and flame.mesh.get_surface_count()==1,id+" one opaque vertex-color surface")
 			if frame==0: roots=base
 			else: _expect(_same_roots(base,roots),id+" flame roots stay fixed")
@@ -65,10 +69,10 @@ func _run() -> void:
 		animation.set_process(false)
 		if not libraries.has(config.model): frames+=config.frames.size(); libraries[config.model]=true
 		sources+=1; model.free()
-	_expect(sources==6 and libraries.size()==5 and frames==42,"six sources, five libraries, 42 unique frames")
+	_expect(sources==3 and libraries.size()==3 and frames==26,"three sources, three libraries, 26 unique frames")
 	controller.free()
 	for failure in failures: push_error(failure)
-	print("FIRE_FACETED_ART_OK: %d imported-frame, shading, root, timing and visibility checks"%checks if failures.is_empty() else "FIRE_FACETED_ART_FAIL")
+	print("FIRE_VOXEL_ART_OK: %d imported-frame, shading, root, timing and visibility checks"%checks if failures.is_empty() else "FIRE_VOXEL_ART_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _expect(condition: bool,message: String) -> void:

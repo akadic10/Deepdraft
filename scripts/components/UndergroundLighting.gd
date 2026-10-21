@@ -5,10 +5,15 @@ extends Node
 ## air supplies boundary conditions, including around corners and between floors.
 ## Sparse GPU pages cover the full 1024 x 128 x 1024 world without a dense volume.
 const SHADER = preload("res://scripts/shaders/underground_lighting.gdshader")
+const CLOSED_SHADER = preload("res://scripts/shaders/underground_lighting_closed.gdshader")
+const VoxelShadows = preload("res://scripts/components/VoxelShadowSetup.gd")
 const DIRECTIONS := [Vector3i.LEFT, Vector3i.RIGHT, Vector3i.UP, Vector3i.DOWN, Vector3i.FORWARD, Vector3i.BACK]
 const TILE := 32
 const PAGE_LAYERS := 1024
 const FRAME_BUDGET_USEC := 2500
+## The loading cover holds simulation until this field is complete. Drain more
+## work per covered frame; retain the small budget during ordinary gameplay.
+const LOADING_FRAME_BUDGET_USEC := 12000
 var reach := 12
 var readability := 0.008
 var _fog_parameters: Dictionary = {}
@@ -111,7 +116,8 @@ func _process(delta: float) -> void:
 		_fog_elapsed = 0.0
 		_sync_fog()
 	var start := Time.get_ticks_usec()
-	while is_updating() and Time.get_ticks_usec() - start < FRAME_BUDGET_USEC:
+	var budget := LOADING_FRAME_BUDGET_USEC if WorldClock.is_loading_held() else FRAME_BUDGET_USEC
+	while is_updating() and Time.get_ticks_usec() - start < budget:
 		# At most one retired job may await disposal. Keep new edits coalesced
 		# until it finishes instead of blocking or accumulating old buffers.
 		if _phase == "idle" and _cleanup_task >= 0: break
@@ -179,7 +185,7 @@ func actor_sky_at(position: Vector3) -> float:
 
 func _bind_actor(mesh: MeshInstance3D) -> void:
 	var material := mesh.get_active_material(0) as ShaderMaterial
-	if material == null or material.shader != SHADER: return
+	if material == null or material.shader not in [SHADER,CLOSED_SHADER]: return
 	var parent := mesh.get_parent()
 	while parent != null and not parent is DwarfAgent: parent = parent.get_parent()
 	if parent == null or mesh.get_viewport() != get_viewport(): return
@@ -433,7 +439,7 @@ func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMateri
 	var id := "%d:%s" % [source.get_instance_id(), glossy]
 	if _material_cache.has(id): return _material_cache[id]
 	var material := ShaderMaterial.new()
-	material.shader = SHADER
+	material.shader = CLOSED_SHADER if source.cull_mode==BaseMaterial3D.CULL_BACK else SHADER
 	material.set_shader_parameter("tint",source.albedo_color)
 	material.set_shader_parameter("vertex_color",source.vertex_color_use_as_albedo)
 	material.set_shader_parameter("surface_roughness", source.roughness if glossy else 1.0)
@@ -450,9 +456,12 @@ func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMateri
 
 
 static func bind_world_tree(node: Node) -> void:
-	if not node.is_inside_tree(): return
+	if not node.is_inside_tree():
+		VoxelShadows.configure(node)
+		return
 	var lighting_owner := node.get_tree().get_first_node_in_group("underground_lighting")
 	if lighting_owner != null: lighting_owner.bind_tree(node)
+	else: VoxelShadows.configure(node)
 
 
 static func bind_door_tree(node: Node3D, width: float) -> void:
@@ -469,6 +478,7 @@ static func bind_door_tree(node: Node3D, width: float) -> void:
 
 
 func bind_tree(node: Node) -> void:
+	VoxelShadows.configure(node)
 	node.set_meta("underground_lit",true)
 	if node is MeshInstance3D: _bind_mesh(node)
 	for mesh: MeshInstance3D in node.find_children("*","MeshInstance3D",true,false): _bind_mesh(mesh)
@@ -476,6 +486,8 @@ func bind_tree(node: Node) -> void:
 
 func _bind_mesh(mesh: MeshInstance3D) -> void:
 	if mesh.mesh == null: return
+	# Proxies need neither atmospheric shading nor per-actor light samples.
+	if VoxelShadows.is_proxy(mesh): return
 	for surface in range(mesh.mesh.get_surface_count()):
 		var source := mesh.get_active_material(surface) as BaseMaterial3D
 		if source == null or source.emission_enabled or source.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED or source.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED: continue
@@ -497,6 +509,7 @@ func _bind_added(reference: WeakRef) -> void:
 	var parent: Node = node
 	while parent != null:
 		if parent.has_meta("underground_lit"):
+			if VoxelShadows.is_part_name(node.name,VoxelShadows.VISUAL) or VoxelShadows.is_part_name(node.name,VoxelShadows.PROXY): VoxelShadows.configure(node.get_parent())
 			_bind_mesh(node)
 			return
 		parent = parent.get_parent()

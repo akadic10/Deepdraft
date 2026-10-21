@@ -25,6 +25,8 @@ static func attach(dwarf: DwarfAgent) -> void:
 	helper._refresh_seconds = float(config.get("refresh_seconds",.2))
 	for source: MeshInstance3D in dwarf.find_children("*","MeshInstance3D",true,false):
 		if source.mesh == null: continue
+		# A shadow-only proxy must never gain a visible occlusion silhouette.
+		if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(source): continue
 		# Eyes and eyelids need no extra silhouette over their own head.
 		if source.get_parent().name in ["MeshEyes","RestEyelids"]: continue
 		var ghost := MeshInstance3D.new()

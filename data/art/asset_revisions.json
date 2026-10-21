@@ -1,13 +1,14 @@
 {
   "assets/models/furniture/crude_workbench.glb": {
-    "milestone": "docs/00_dev_roadmap/159_crude_workbench_stump.md",
-    "reason": "User-requested rough stump replaces the fitted plank bench; working top matches existing 0.875 height.",
-    "previous_sha256": "5ca996ee7074e63ce3fcaa59da80bdd8cfd294d9f74ced90ddc3b47b08d97c0e",
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "628e13e75a284441de8a35669519dd6e5d549d2b2170652b51d171749a501bf9",
     "metrics": {
-      "triangles": 280,
-      "meshes": 1,
-      "bytes": 38116,
-      "sha256": "e45b2ca8ea6246e3a633be723d64a1ae5ecbb39f891705b18f68d970ef3b7cd8"
+      "triangles": 2974,
+      "shadow_triangles": 282,
+      "meshes": 2,
+      "bytes": 301540,
+      "sha256": "1d8c9005878d8b7b17bdd4dc65569415fb2b99fa4cf4749b8e13bb777888c457"
     }
   },
   "assets/models/furniture/animations/campfire_flame.glb": {
@@ -22,14 +23,15 @@
     }
   },
   "assets/models/furniture/campfire.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "e19e6b6bf7ac11fbf337b712e2ec4ab852ec9c6348c8a9a8607fe57cb6819514",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "e2c79bdbcfd51f56f124881fcfd1fd138fe6df534003bed245a3c12ab31853e2",
     "metrics": {
-      "triangles": 1002,
-      "meshes": 2,
-      "bytes": 134372,
-      "sha256": "1e9a17e62f0ea22bb4e8b213c5c5c5746e8021bba0b30d385ed4e5f37a34ec3d"
+      "triangles": 2010,
+      "shadow_triangles": 490,
+      "meshes": 3,
+      "bytes": 233012,
+      "sha256": "c05c8cc43a9d696da570baeef4f78531357edd1309f40260ed9fc038b884f673"
     }
   },
   "assets/models/furniture/animations/hearth_flame.glb": {
@@ -44,146 +46,387 @@
     }
   },
   "assets/models/furniture/hearth.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "f9e0bb31e20e33a2b336b7455a10759f4fa1245ccc9660a750604888dc7533b8",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "c9e0d9f707763670fba2c96c19c7d50aaea5b9cc591b3d3b7b114ca39d60b18e",
     "metrics": {
-      "triangles": 1002,
-      "meshes": 2,
-      "bytes": 134360,
-      "sha256": "bedb799a6f09f32bfa42dc54c7e9c42949a2e10bff45244531f4f7e26137cabb"
-    }
-  },
-  "assets/models/furniture/animations/brazier_flame.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "a9d0adef217ed8ef317be2c8fa7fe2c6c6138e55f22285cb386712855a8dbe1c",
-    "metrics": {
-      "triangles": 2800,
-      "meshes": 8,
-      "bytes": 377252,
-      "sha256": "049a079b0301ede35006b9fb61c89a548c05f36d68618b6d491bab68130599a0"
-    }
-  },
-  "assets/models/furniture/brazier.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "4c773426fa792e673f4c220e69d5f822d96923f0b34b8ee8e3f852c49c0fa110",
-    "metrics": {
-      "triangles": 702,
-      "meshes": 2,
-      "bytes": 94736,
-      "sha256": "ec2ec6a82a77cd8cb21161c7ee991315d538963be30566a50da0ddbc0adfd8cb"
-    }
-  },
-  "assets/models/furniture/animations/smelter_flame.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "56e42b333bb19606d51573db17a7d815b9f3b709337e134301b86e206f3c651e",
-    "metrics": {
-      "triangles": 2800,
-      "meshes": 8,
-      "bytes": 377268,
-      "sha256": "135c0b273f274f0629961a8e645dbaef29993c40a24939547393c67fa99b0b65"
-    }
-  },
-  "assets/models/furniture/smelter.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "24d492cc525f087bf3cccb44aecec9a28c30474b9ec71eab23216447092d54d5",
-    "metrics": {
-      "triangles": 1102,
-      "meshes": 2,
-      "bytes": 147508,
-      "sha256": "073b269fe0851edb237c317777c35285d373b1ce13d4687750066a8a21e447c2"
-    }
-  },
-  "assets/models/furniture/animations/wall_torch_flame.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "dd7baef58691badf63a280043bbf09a61d709d8f2cb670b532a73da890720672",
-    "metrics": {
-      "triangles": 2800,
-      "meshes": 8,
-      "bytes": 377228,
-      "sha256": "3e3e784a100e65862cbb2b27d8d87dbb5ab944163a413ad5bd0edf04da3cdfea"
-    }
-  },
-  "assets/models/furniture/wall_torch.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "c6f02842dfbd97db3bf76595f9f8ebf283ded074879ba37fe11a3f736d2a3dec",
-    "metrics": {
-      "triangles": 666,
-      "meshes": 2,
-      "bytes": 89944,
-      "sha256": "8940c5a857baa43fe3d7f93723220c1ac440ba53f04e1857636686f379adad01"
+      "triangles": 1350,
+      "shadow_triangles": 212,
+      "meshes": 3,
+      "bytes": 146688,
+      "sha256": "ad1305837023845223a441bd14ccdd0fc655ecaf91253239df38283485afdedf"
     }
   },
   "assets/models/furniture/wooden_torch.glb": {
-    "milestone": "docs/00_dev_roadmap/160_faceted_fire.md",
-    "reason": "Faceted flame replacement, preserving furniture bodies and existing clip identities/timing.",
-    "previous_sha256": "c60e9996852faf825981a173d23055f32662e6baee4e91e98ad48a57e2a3cdfe",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "6cbf95d816f279b4a1fa636e56745f794f8892425967d862a17a52ef972615c4",
     "metrics": {
-      "triangles": 694,
-      "meshes": 2,
-      "bytes": 93636,
-      "sha256": "0ae1f558b059e8b7bfeb1e73c6415843fbc8485cce01ff9b6443f9a5ded1d934"
+      "triangles": 498,
+      "shadow_triangles": 74,
+      "meshes": 3,
+      "bytes": 55596,
+      "sha256": "b8b03e55cbaec1cb6c45f8a013f37c8d3b92192506086c19b12c96b97f15919b"
     }
   },
   "assets/models/furniture/log_bridge_2.glb": {
-    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
-    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
-    "previous_sha256": "66dcd9825a26fb8d23d1d6db70a8c79d1f41b24748a562153d5fd056f1fac6d7",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "005972afb0ae634d8358e489ef38304268d3ebedda298019e0ada98b5758d16b",
     "metrics": {
-      "triangles": 896,
-      "meshes": 1,
-      "bytes": 119440,
-      "sha256": "c596f13ec85a4c4c1e1f3e70f4e34d2cd19a475f418981c3733e2057ffa34249"
+      "triangles": 1500,
+      "shadow_triangles": 198,
+      "meshes": 2,
+      "bytes": 158188,
+      "sha256": "bf0deb3a8818b5de50437a89331a9db591b6adeda6f1e91a1521697a73863ec5"
     }
   },
   "assets/models/furniture/log_bridge_5.glb": {
-    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
-    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
-    "previous_sha256": "44bca44eb15ca3417a852fde77a27b2764b7dc0b0e5d0b52c82b689aa1bca923",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "330fd3e1374f1ddb8f5a677a53afb3d45371c0a8ac46d00e118091c81cfefc41",
     "metrics": {
-      "triangles": 896,
-      "meshes": 1,
-      "bytes": 119440,
-      "sha256": "49538e69a4bd603a4e4b96ab1683347d426b1c55721b19486b454574c1079cb9"
+      "triangles": 2004,
+      "shadow_triangles": 198,
+      "meshes": 2,
+      "bytes": 204556,
+      "sha256": "743f61b7623a56c858f58e4664ec8f5ad7ba3068cab4f9421be9e932414fe506"
     }
   },
   "assets/models/furniture/log_bridge_1.glb": {
-    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
-    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
-    "previous_sha256": "c370527328e28e480017b6bda1f995a21320bb714320aec069f5aea0f3124549",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "ca3aa4edc8d29f7e77cac5d8cb737fb8473d855f753127ce9c722bb908bf6a99",
     "metrics": {
-      "triangles": 896,
-      "meshes": 1,
-      "bytes": 119440,
-      "sha256": "9dbcb12fcd89678d843edec46233792094db171c133b3628cddc6de81636426e"
+      "triangles": 1380,
+      "shadow_triangles": 198,
+      "meshes": 2,
+      "bytes": 147148,
+      "sha256": "0095c7f6e51531ef80ff1d5c8c9a71db1a7194b2449fea8a0dc16da66290e9bf"
     }
   },
   "assets/models/furniture/log_bridge_4.glb": {
-    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
-    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
-    "previous_sha256": "73e429ffb4cb5617eef63cb16e83ce99466ab91529bb955ab2384dc6458d96fe",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "46fb02f3aacff467629efe5559dce5a7b4af6f072b340e0075ad0b3de9c57464",
     "metrics": {
-      "triangles": 896,
-      "meshes": 1,
-      "bytes": 119440,
-      "sha256": "997514f75c112071d8684b90b013a540fc567290b5d80e15edf18256913e68eb"
+      "triangles": 1766,
+      "shadow_triangles": 198,
+      "meshes": 2,
+      "bytes": 182660,
+      "sha256": "b6d9495f581bd384973031e6e64d6306093e4ff8800ed036a56813666b03f0df"
     }
   },
   "assets/models/furniture/log_bridge_3.glb": {
-    "milestone": "docs/00_dev_roadmap/172_rudimentary_log_bridge.md",
-    "reason": "User-requested whole bark-covered trunks replace the pale sawn-plank deck. Same bank anchors and walking plane.",
-    "previous_sha256": "88501250457b1fcbc6d157c1fce63ac9fd0c16d03f3c7124806670fc395cb03c",
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "ac228873d82c9571bb1bece5adb6f1b3e7a558dd601b5aabf257d5683283265d",
     "metrics": {
-      "triangles": 896,
-      "meshes": 1,
-      "bytes": 119440,
-      "sha256": "0c1ae2a9b662119f6015108da3edd3df4afc6cdcbd8cfb3179c5a09a1598ae1e"
+      "triangles": 1720,
+      "shadow_triangles": 198,
+      "meshes": 2,
+      "bytes": 178428,
+      "sha256": "4dc9a735d97cb96ed6fe4f9c4d21807b18a754b991b2553ae997439a0fff2b8f"
+    }
+  },
+  "assets/models/furniture/board_game_table.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "3c1f81a1dd105c9ed713f994d6c8d62183c936c5a77c3e36f7d64b78de508da0",
+    "metrics": {
+      "triangles": 3266,
+      "shadow_triangles": 208,
+      "meshes": 2,
+      "bytes": 321600,
+      "sha256": "6d25b2eaf56ec7530094f80edf554ad13271a6ed1e36f333c93ba64733263525"
+    }
+  },
+  "assets/models/furniture/log_chair.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "96a4f62443600b89775c404c9473db7e2f37aaaa543e40386d1a51419c014481",
+    "metrics": {
+      "triangles": 676,
+      "shadow_triangles": 176,
+      "meshes": 2,
+      "bytes": 80360,
+      "sha256": "b45d3dede3c1920656fa9619b74ca5e7984342579331bd2231b676481b445ca6"
+    }
+  },
+  "assets/models/furniture/log_table.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "a7594701b3c978c8222b24edcc7ca6a61305f2ccf4786d5bfb5202df863d0905",
+    "metrics": {
+      "triangles": 3212,
+      "shadow_triangles": 196,
+      "meshes": 2,
+      "bytes": 315516,
+      "sha256": "7716baf427617d8b232432f44774903f3483702c9051aca543af5f7f3d55b933"
+    }
+  },
+  "assets/models/items/wood/apple_wood.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "aa153034427c8778b45b3bd44a7b5ce9f1258699dd379838c759f8a091cf7058",
+    "metrics": {
+      "triangles": 680,
+      "shadow_triangles": 148,
+      "meshes": 2,
+      "bytes": 78156,
+      "sha256": "f5791da93fe3c06284ff6e43a9c67b9ed04ac5c5ee12db377757e2022858ed2f"
+    }
+  },
+  "assets/models/items/wood/juniper_log.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "872ee0782f544786832adcf1e2eb3dfdf5c4a07518a97f7e82596b976283ab7f",
+    "metrics": {
+      "triangles": 680,
+      "shadow_triangles": 148,
+      "meshes": 2,
+      "bytes": 78156,
+      "sha256": "0f6df3fd3e9bd306a2d3dfe140c8ce376047b63b2633c3a5126a4a9b8d2c1696"
+    }
+  },
+  "assets/models/items/wood/oak_log.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "1a7ed9c8669bd0cacf6addef798cc3d8ed98939171b093c9dc9d42eda633cf31",
+    "metrics": {
+      "triangles": 680,
+      "shadow_triangles": 148,
+      "meshes": 2,
+      "bytes": 78152,
+      "sha256": "ef763dc4f2a0381d297899c1806a0ac9ecbc452a365fc0d2062668ec20dbdd12"
+    }
+  },
+  "assets/models/items/wood/pine_log.glb": {
+    "milestone": "docs/00_dev_roadmap/244_chibi_timber_refinement.md",
+    "reason": "Hand-hewn refinement: staggered bark plates, chipped shoulders, incomplete grain and deeper drying split; approved dimensions and gameplay preserved.",
+    "previous_sha256": "1145f176b0d62b2208a88f5f9d1bba3f24a157550770d56103f3d7691c7c6711",
+    "metrics": {
+      "triangles": 680,
+      "shadow_triangles": 148,
+      "meshes": 2,
+      "bytes": 78152,
+      "sha256": "7780d7a51508302c183e2b573ca8c5edd03a5644eb6d2977c71613ddf7b7d618"
+    }
+  },
+  "assets/models/items/stone/rough_stone.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "db42192f0f7b84bc763388484e71f40e536a83e2e160c919d4896f363162e9a4",
+    "metrics": {
+      "triangles": 410,
+      "shadow_triangles": 158,
+      "meshes": 2,
+      "bytes": 54220,
+      "sha256": "5bbf38a7d18d496bbc66645ab775936a3f778639a23b70eb8e4dd773a0ff03ad"
+    }
+  },
+  "assets/models/items/soil/cave_soil.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "a9e894f084d33a8ae1300e02a3d5f9df4e628df00e4d1ed69ea4680d84cf93de",
+    "metrics": {
+      "triangles": 608,
+      "shadow_triangles": 142,
+      "meshes": 2,
+      "bytes": 70968,
+      "sha256": "0ede1bdfb181c4052577355433bcb405f2e10ec4928e609f34219e298a3b29ef"
+    }
+  },
+  "assets/models/items/soil/light_soil.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "daa58d228dd4c1930d6fe074f92f3e722132d8d8dcd634bf4345c2281aceed17",
+    "metrics": {
+      "triangles": 608,
+      "shadow_triangles": 142,
+      "meshes": 2,
+      "bytes": 70968,
+      "sha256": "ccf68d283f588ac6cf41c2b56ffeaa9123e39b6a6e86ea54c11d54a7c7c7419f"
+    }
+  },
+  "assets/models/items/soil/dark_soil.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "b4b42c011e9762abc34189f493492169913a0f707cca067972cb47153883070a",
+    "metrics": {
+      "triangles": 608,
+      "shadow_triangles": 142,
+      "meshes": 2,
+      "bytes": 70968,
+      "sha256": "b32ec593ab2f03afbc6e8f8e2aa70ce4afbbc4ee77f3df9d72c17dd0cfb14b72"
+    }
+  },
+  "assets/models/items/ore/copper_ore.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "a16d469af3dde7a08b06bee6220b461c30ccc244323a31340bb899f4717e4390",
+    "metrics": {
+      "triangles": 524,
+      "shadow_triangles": 130,
+      "meshes": 2,
+      "bytes": 62136,
+      "sha256": "4c6efc687b7ba6f8fe746ca280a4d4538bacef4ccba376c7e67bad991d769081"
+    }
+  },
+  "assets/models/items/ore/tin_ore.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "ff6b6759d1e52b3646683bfbe8bc8a8b5fdc8fe04b5fb26d0d3cd3ce6fb5b57e",
+    "metrics": {
+      "triangles": 524,
+      "shadow_triangles": 130,
+      "meshes": 2,
+      "bytes": 62136,
+      "sha256": "ce487773596bd6124b7f2f1780aac350946cefba3af463ad1e5003a873f49eea"
+    }
+  },
+  "assets/models/items/ore/iron_ore.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "312296f4b9b516ec773aab59849182ad9b58ab7f1b511e40e61b193fb7115907",
+    "metrics": {
+      "triangles": 524,
+      "shadow_triangles": 130,
+      "meshes": 2,
+      "bytes": 62136,
+      "sha256": "a87d5f4fcf29e6b273396835d0d7d4ccf2dc182ad13104e11489b3ea50f78710"
+    }
+  },
+  "assets/models/items/ore/silver_ore.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "22aba496625ebc38436dd61a6e89e40d2bdf50d9ab402d17a9c3ff3e7e5f22d4",
+    "metrics": {
+      "triangles": 524,
+      "shadow_triangles": 130,
+      "meshes": 2,
+      "bytes": 62136,
+      "sha256": "2885bafcd370e81425ecb877f03eca3c1363cc76e4a41f3ce190a724488e331c"
+    }
+  },
+  "assets/models/items/ore/gold_ore.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "c2776c69e0b39236f49ce64ac727b6ad01cca726274c6693c55ca16960e47a56",
+    "metrics": {
+      "triangles": 524,
+      "shadow_triangles": 130,
+      "meshes": 2,
+      "bytes": 62136,
+      "sha256": "f93025c645af9cfa392e0fce29cf6da77e44045a55bc8a22482a95fe059af70b"
+    }
+  },
+  "assets/models/items/ore/coal.glb": {
+    "milestone": "docs/00_dev_roadmap/238_chunky_mined_resources.md",
+    "reason": "Approved chunky resource concept: three compact fractured/clumped shapes, broad material deposits, unchanged 1:16 grid and 0.75-unit envelope.",
+    "previous_sha256": "070a2793b3ac2ddfa7241ad3ef4f40f3c31de82b6afc1136fedce406894581c1",
+    "metrics": {
+      "triangles": 508,
+      "shadow_triangles": 130,
+      "meshes": 2,
+      "bytes": 60660,
+      "sha256": "5062aeadd212fb745f3b43d68832a46382d5f0fc32d657751f81cfc82ae8848c"
+    }
+  },
+  "assets/models/furniture/log_bed.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "6ffe5dbcc67b7b8aa5ac543d67ff9d3874f7a1a6bc51e645e13f0b909c9cb119",
+    "metrics": {
+      "triangles": 1452,
+      "shadow_triangles": 324,
+      "meshes": 2,
+      "bytes": 165352,
+      "sha256": "552912208a25b69bfbf198ec8b7b289936e9da6ddd43fe7ea7dc5fda51f94118"
+    }
+  },
+  "assets/models/furniture/bridge_kit.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "53bf8ea824884e6477404fd1bdf1e4058d4e7f4007ebc8030ba74773b0a6a0d9",
+    "metrics": {
+      "triangles": 848,
+      "shadow_triangles": 162,
+      "meshes": 2,
+      "bytes": 94888,
+      "sha256": "a401d792862f69092c25900bed9ba3f21f638977402f64a1dc19b414bb754127"
+    }
+  },
+  "assets/models/furniture/door.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "a7c8f28478e458e87c4186321c6253edc81cafb394f5a8d94b0c2064586fb73d",
+    "metrics": {
+      "triangles": 2068,
+      "shadow_triangles": 492,
+      "meshes": 2,
+      "bytes": 237556,
+      "sha256": "a79ad63890d80a215f00f3c7c41b5235290fc82d186ed01017cd3a668519da66"
+    }
+  },
+  "assets/models/furniture/log_door_3.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "c9d314a2026db31f5fc839b6749ef4c004a11197b284d1596b12918d819054eb",
+    "metrics": {
+      "triangles": 2696,
+      "shadow_triangles": 644,
+      "meshes": 2,
+      "bytes": 309328,
+      "sha256": "b49b6cebe35f226e52b7baedad4638a929d2026dfe67ed4beab7eaada947dd23"
+    }
+  },
+  "assets/models/furniture/log_door_4.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "33d199c018fa07e1d8e0ab19f8c7a9e57b0897cba36d1d7c2f5dbdeb768f49b8",
+    "metrics": {
+      "triangles": 4132,
+      "shadow_triangles": 990,
+      "meshes": 4,
+      "bytes": 475072,
+      "sha256": "24d6fdfeb44df9accbbc4cc5509f550f352cf5ed4bae2ce157e908ff5a11efde"
+    }
+  },
+  "assets/models/furniture/log_fence.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "038ad208536e9c38b5204d51a8182fbd005cb11d67cf6c9f4707657d02546fa8",
+    "metrics": {
+      "triangles": 130,
+      "shadow_triangles": 28,
+      "meshes": 2,
+      "bytes": 16532,
+      "sha256": "b5f44323201df05b6d4cf1f12d6a686ef5dbbc21b603d0f53a9fdfac9da8d9a0"
+    }
+  },
+  "assets/models/furniture/log_gate.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "35936ceecaea35386156355a9c1970ebfcc0cd0a43de8942b14dce0b36c53f29",
+    "metrics": {
+      "triangles": 1144,
+      "shadow_triangles": 434,
+      "meshes": 6,
+      "bytes": 150796,
+      "sha256": "e618b31d55761ae4d689168b5d27b963d901290302fdc895e1a8c8e109a011c4"
+    }
+  },
+  "assets/models/furniture/parts/log_fence_rails.glb": {
+    "milestone": "docs/00_dev_roadmap/245_chibi_buildable_furniture.md",
+    "reason": "Chibi furniture extension: substantial hand-hewn timber, broader bindings and chipped stone; unchanged native 1:16 grid, footprints, contact surfaces, moving pivots and gameplay identity.",
+    "previous_sha256": "3b04df28e3ef05f9ea8ecce7c4f549c47fba7f73db3960acf42b9f51e80d0518",
+    "metrics": {
+      "triangles": 324,
+      "shadow_triangles": 72,
+      "meshes": 2,
+      "bytes": 38444,
+      "sha256": "47a3f6176d97fc2b67737cf37ea63cd3f970b703c78fff611d0c500ee305a1be"
     }
   }
 }

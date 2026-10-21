@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Native GPU comparison through the production underground material and
 ## furniture light attachment. Freeze flicker to measure distance falloff.
-const OUTPUT := "res://tmp/torch_reach_20261017/"
+var output := "res://tmp/torch_reach_20261017/"
 const FurnitureLight = preload("res://scripts/components/FurnitureLighting.gd")
 var stage: Node3D
 var camera: Camera3D
@@ -15,6 +15,8 @@ func _init() -> void:
 
 func _run() -> void:
 	create_timer(60).timeout.connect(func(): push_error("Torch reach timed out"); quit(1))
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
 	for id in ["SaveManager","WorldClock","TaskManager","RoomManager","StockpileManager","SkyController","WeatherManager"]:
 		root.get_node(id).set_process(false)
 	root.get_node("WorldClock").set_paused(true)
@@ -41,10 +43,11 @@ func _run() -> void:
 	camera.rotation_degrees = Vector3(-90,0,0)
 	stage.add_child(camera)
 	camera.current = true
-	DirAccess.make_dir_recursive_absolute(OUTPUT)
+	DirAccess.make_dir_recursive_absolute(output)
 	var unlit := await _capture("unlit")
 	var baseline := _sample(unlit,Vector3(0,0,16))
-	for key in ["wooden_torch","wall_torch"]:
+	# The metal wall torch was retired; exercise the surviving buildable torch.
+	for key in ["wooden_torch"]:
 		var definition: Dictionary = furniture.get_defs()["base:furniture:"+key]
 		var torch: Node3D = load(definition.model).instantiate()
 		stage.add_child(torch)
@@ -81,7 +84,7 @@ func _run() -> void:
 			"new_max_edge_drop":new_drop,"behind_wall":blocked}
 		wall.free()
 		torch.free()
-	FileAccess.open(OUTPUT+"checks.json",FileAccess.WRITE).store_string(JSON.stringify({"measures":measures,"failures":failures},"  ")+"\n")
+	FileAccess.open(output+"checks.json",FileAccess.WRITE).store_string(JSON.stringify({"measures":measures,"failures":failures},"  ")+"\n")
 	for failure in failures: push_error(failure)
 	print("TORCH_REACH_OK" if failures.is_empty() else "TORCH_REACH_FAIL")
 	quit(0 if failures.is_empty() else 1)
@@ -104,7 +107,7 @@ func _capture(label: String) -> Image:
 	for i in range(5): await process_frame
 	await RenderingServer.frame_post_draw
 	var capture := root.get_texture().get_image()
-	capture.save_png(OUTPUT+label+".png")
+	assert(capture.save_png(output+label+".png")==OK)
 	return capture
 
 func _sample(capture: Image, position: Vector3) -> float:

@@ -1,0 +1,124 @@
+{
+  "changed_models": [
+    "assets/models/furniture/board_game_table.glb",
+    "assets/models/furniture/crude_workbench.glb",
+    "assets/models/furniture/log_chair.glb",
+    "assets/models/furniture/log_table.glb",
+    "assets/models/items/wood/apple_wood.glb",
+    "assets/models/items/wood/juniper_log.glb",
+    "assets/models/items/wood/oak_log.glb",
+    "assets/models/items/wood/pine_log.glb"
+  ],
+  "unchanged_models": 592,
+  "source_vox_unchanged": {
+    "VoxelFeed\\log_logchair.vox": true,
+    "VoxelFeed\\log_top.vox": true,
+    "VoxelFeed\\workbench_example.vox": true
+  },
+  "geometry": [
+    {
+      "path": "assets/models/furniture/crude_workbench.glb",
+      "before": {
+        "visual_triangles": 2132,
+        "shadow_triangles": 228,
+        "bytes": 219108
+      },
+      "organic": {
+        "visual_triangles": 2664,
+        "shadow_triangles": 260,
+        "bytes": 270996
+      }
+    },
+    {
+      "path": "assets/models/furniture/board_game_table.glb",
+      "before": {
+        "visual_triangles": 2010,
+        "shadow_triangles": 108,
+        "bytes": 196848
+      },
+      "organic": {
+        "visual_triangles": 2486,
+        "shadow_triangles": 144,
+        "bytes": 243952
+      }
+    },
+    {
+      "path": "assets/models/furniture/log_chair.glb",
+      "before": {
+        "visual_triangles": 402,
+        "shadow_triangles": 84,
+        "bytes": 46684
+      },
+      "organic": {
+        "visual_triangles": 490,
+        "shadow_triangles": 84,
+        "bytes": 54784
+      }
+    },
+    {
+      "path": "assets/models/furniture/log_table.glb",
+      "before": {
+        "visual_triangles": 1846,
+        "shadow_triangles": 120,
+        "bytes": 182856
+      },
+      "organic": {
+        "visual_triangles": 2232,
+        "shadow_triangles": 144,
+        "bytes": 220576
+      }
+    },
+    {
+      "path": "assets/models/items/wood/oak_log.glb",
+      "before": {
+        "visual_triangles": 402,
+        "shadow_triangles": 84,
+        "bytes": 46680
+      },
+      "organic": {
+        "visual_triangles": 490,
+        "shadow_triangles": 96,
+        "bytes": 55884
+      }
+    },
+    {
+      "path": "assets/models/items/wood/pine_log.glb",
+      "before": {
+        "visual_triangles": 402,
+        "shadow_triangles": 84,
+        "bytes": 46684
+      },
+      "organic": {
+        "visual_triangles": 490,
+        "shadow_triangles": 96,
+        "bytes": 55884
+      }
+    },
+    {
+      "path": "assets/models/items/wood/apple_wood.glb",
+      "before": {
+        "visual_triangles": 402,
+        "shadow_triangles": 84,
+        "bytes": 46684
+      },
+      "organic": {
+        "visual_triangles": 490,
+        "shadow_triangles": 96,
+        "bytes": 55888
+      }
+    },
+    {
+      "path": "assets/models/items/wood/juniper_log.glb",
+      "before": {
+        "visual_triangles": 402,
+        "shadow_triangles": 84,
+        "bytes": 46684
+      },
+      "organic": {
+        "visual_triangles": 490,
+        "shadow_triangles": 96,
+        "bytes": 55888
+      }
+    }
+  ]
+}

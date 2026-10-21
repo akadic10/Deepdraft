@@ -1,5 +1,18 @@
 # 62 — Furniture Catalogue & Stonehearth Comparison
 
+**Current furniture direction (2026-10-18): 1:16 chibi voxel art.** Furniture
+uses sixteen native cells per world-block edge, with chunky timber/stone forms,
+readable joinery and a few large signs of wear. Follow
+[64 — Art direction and original concept](64_hand_hewn_art_direction.md) and
+[63 — Technical standard](63_shared_art_standard.md). The current timber family
+is recorded in [244](../00_dev_roadmap/244_chibi_timber_refinement.md); beds, doors,
+fences, gates, bridges and fires are recorded in
+[245](../00_dev_roadmap/245_chibi_buildable_furniture.md). Retain approved footprints,
+contacts, wood variants and shadow proxies. Dated entries below describe earlier
+revisions; their triangle counts and old generators are historical. The unavailable
+designs removed in [234](../00_dev_roadmap/234_retired_uncraftable_furniture.md)
+remain retired.
+
 **Grid-corner fences (2026-10-17):** [201](../00_dev_roadmap/201_grid_corner_fences.md)
 replaces the rudimentary fence panel with one rough post (128 triangles).
 Separate two-rail spans (256 triangles) connect neighboring voxel corners at

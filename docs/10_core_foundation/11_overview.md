@@ -14,6 +14,16 @@ remain design goals. Gems remain finished drops without a Jeweller/polishing sta
 
 **Deepdraft** is a modern, high-performance voxel colony management simulation focused on a subterranean dwarven settlement. The player acts as a high-level overseer, issuing global commands, managing production infrastructure, and orchestrating trade rather than directly controlling a single avatar.
 
+**Visual direction — 2026-10-18:** **Chibi / stylized voxel art at a native 1:16
+object-to-world ratio.** Each object cell is 1/16 of a world block along each
+axis; sixteen cells span one world-block edge. Characters use expressive faces
+and chunky hands, boots and beards. Nature and objects use broad shapes,
+substantial materials and a few deliberate imperfections. The existing simple
+world voxels provide the backdrop. The original
+[hand-hewn concept](../60_asset_creation/64_hand_hewn_art_direction.md) remains
+the visual target; [63](../60_asset_creation/63_shared_art_standard.md) defines
+the technical authoring, material and shadow rules.
+
 **Colony scale — 2026-10-14:** The intended maximum is **30 dwarves**.
 Design progression and performance around that population, including a mature
 settlement's rooms, loose goods, production and wildlife. Routine benchmarks
@@ -59,7 +69,7 @@ To ensure structural focus and guarantee optimal performance targets, the engine
 
 1. **RTS Perspective Only**: Gameplay is strictly viewed through a top-down, smooth-orbiting god-view camera rig equipped with vertical layer slicing. Direct keyboard WASD character manipulation or third-person traversal is entirely excluded.
 2. **Uniform Data Grid**: The underlying world simulation tracks space via a uniform 0.5m data array matrix. Individual terrain tiles do not utilize separate textures or polygon meshes; they are generated dynamically as flat-shaded, single-color voxel cubes.
-3. **Entity Decoupling**: Untouched environment blocks are represented entirely as basic color indices inside a flat 1D data array. Highly detailed, high-density micro-voxel assets imported from MagicaVoxel exist purely as free-floating item drop entities or moving character scenes spawned _after_ a grid tile changes.
+3. **Entity Decoupling**: Terrain remains on the world-block simulation grid. Characters, flora, wildlife, furniture and loose goods use separate 1:16 voxel art baked into optimized meshes. Their finer visual cells do not create a finer terrain, navigation or occupancy grid; existing gameplay definitions own those dimensions.
 4. **Absolute Safety Nets**: The baseline array floor layers (Y = 0..3) consist of un-minable bedrock across the entire 1024 × 1024 plane, preventing physics logic loops or characters clipping into an empty void.
 
 ---

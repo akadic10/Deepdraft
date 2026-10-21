@@ -423,7 +423,7 @@
             276,
             254
           ],
-          "tooltip": "Click ripe shrubs or junipers, or drag an area. Workers pick berries and keep the plants for later harvests.",
+          "tooltip": "Click ripe shrubs, apple trees or junipers, or drag an area. Workers gather fruit and keep the plants for later harvests.",
           "action": "activate_tool",
           "target": "harvest_plants"
         },
@@ -578,6 +578,15 @@
     "system": {
       "title": "Colony menu",
       "items": [
+        {
+          "id": "new_game",
+          "label": "New Game",
+          "action": "panel_action",
+          "target": "system",
+          "icon": "res://assets/ui/dock/colony_atlas.png",
+          "icon_region": [798, 36, 494, 450],
+          "tooltip": "Start a fresh world. Unsaved progress is discarded; existing save files are kept."
+        },
         {
           "id": "save_load",
           "label": "Save / Load",

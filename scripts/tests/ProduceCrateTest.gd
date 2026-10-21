@@ -143,10 +143,10 @@ func _run() -> void:
 	drops._on_slice_changed(127)
 
 	_fresh_drops()
-	var furniture = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	scene.add_child(furniture)
-	var def: Dictionary = furniture.get_defs()["base:furniture:storage_shelf"]
-	furniture.free()
+	# Exercise visible container slots without depending on retired furniture.
+	var anchors: Array = []
+	for i in 8: anchors.append([float(i%4),float(i/4),0.0])
+	var def := {"storage":{"capacity":8,"render_contents":true,"anchors":anchors}}
 	var shelf = load("res://scripts/components/ContainerStorageComponent.gd").new()
 	var shelf_cells: Array[Vector3i] = [Vector3i(50,20,50)]
 	shelf.setup_container(def,shelf_cells)

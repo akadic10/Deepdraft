@@ -21,7 +21,7 @@
       ],
       "max": [
         1,
-        0.75,
+        0.875,
         1
       ]
     }
@@ -32,7 +32,7 @@
     "rest_pose": {
       "right_hand": [
         0.5625,
-        -0.125,
+        0.0,
         0.8125
       ],
       "left_foot": [
@@ -42,12 +42,12 @@
       ],
       "left_hand": [
         -0.5625,
-        -0.125,
+        0.0,
         0.8125
       ],
       "body": [
         0,
-        0.125,
+        0.25,
         0
       ],
       "right_foot": [
@@ -61,36 +61,36 @@
         "shape": "cylinder",
         "min": [
           -0.875,
-          1.35,
+          1.475,
           -0.875
         ],
         "max": [
           1.875,
-          3.625,
+          3.75,
           1.875
         ]
       },
       {
         "min": [
           -0.1875,
-          0.75,
+          0.875,
           -0.0625
         ],
         "max": [
           1.1875,
-          2.0,
+          2.125,
           1.0625
         ]
       },
       {
         "min": [
           -0.25,
-          0.875,
+          1.0,
           1.125
         ],
         "max": [
           1.25,
-          1.375,
+          1.5,
           1.75
         ]
       },
@@ -98,12 +98,12 @@
         "shape": "cylinder",
         "min": [
           -0.6875,
-          1.1,
+          1.225,
           -0.6875
         ],
         "max": [
           1.6875,
-          2.55,
+          2.675,
           1.6875
         ]
       }
@@ -130,7 +130,7 @@
   "__comment": "One-tile stool: hands rest together in front, boots beside the stump, torso supported by its cut top. Occupants can face a nearby fire independently of stool yaw. Rounded head/hair and beard clearance permits gentle head turns; low body/hand regions clear the fire. Clearance coordinates are relative to the footprint corner, like collision regions.",
   "layout_version": 2,
   "material_group": "wood",
-  "material_palette": "camp_log",
+  "material_palette": "hand_hewn_timber",
   "appeal": {
     "design": 1,
     "material_factor": 1

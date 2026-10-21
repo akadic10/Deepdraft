@@ -4,6 +4,7 @@ extends RefCounted
 ## mutable field until its task has completed and the main thread joins it.
 const Validator = preload("res://scripts/components/SaveSnapshotValidator.gd")
 const Preparation = preload("res://scripts/components/SaveSnapshotPreparation.gd")
+const Retirement = preload("res://scripts/components/RetiredFurnitureMigration.gd")
 var directory := ""
 var paths: Dictionary = {}
 var catalogs: Dictionary = {}
@@ -33,7 +34,7 @@ func _record(stage: String, started: int) -> void:
 
 func _encode(state: Dictionary) -> String:
 	var started:=Time.get_ticks_usec()
-	var result:=JSON.stringify(state,"\t")
+	var result:=JSON.stringify(Retirement.cleaned_copy(state,catalogs.get("retired_furniture",{}),catalogs.get("retired_items",{})),"\t")
 	_record("encode_json",started)
 	return result
 
@@ -47,6 +48,9 @@ func _validate_snapshot(state: Dictionary) -> String:
 	return ""
 
 func _commit_snapshot(snapshot: Dictionary, paths: Dictionary) -> String:
+	# Reject corrupt input before migration; migration must never conceal it.
+	var validation_error := _validate_snapshot(snapshot)
+	if not validation_error.is_empty(): return "save validation failed: " + validation_error
 	var dir_error := DirAccess.make_dir_recursive_absolute(
 		directory)
 	if dir_error != OK and dir_error != ERR_ALREADY_EXISTS:
@@ -200,7 +204,12 @@ func _read_snapshot(path: String) -> Dictionary:
 	_record("validate",started)
 	if not validation_error.is_empty():
 		return { "ok": false, "missing": false, "error": validation_error }
-	return { "ok": true, "missing": false, "error": "", "snapshot": snapshot }
+	var retirement_report := Retirement.apply(snapshot,catalogs.get("retired_furniture",{}),catalogs.get("retired_items",{}))
+	if retirement_report.values().any(func(count): return count != 0):
+		validation_error = _validate_snapshot(snapshot)
+		if not validation_error.is_empty():
+			return { "ok": false, "missing": false, "error": "retirement migration: " + validation_error }
+	return { "ok": true, "missing": false, "error": "", "snapshot": snapshot, "retirement": retirement_report }
 
 
 func _remove_if_exists(path: String) -> String:

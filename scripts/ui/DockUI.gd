@@ -8,6 +8,7 @@ signal tool_requested(tool_id: String)
 signal save_game_requested()
 signal load_game_requested()
 signal load_autosave_requested()
+signal new_game_requested()
 
 const DOCK_BOTTOM_MARGIN := 24.0
 const PANEL_TOP_MARGIN := 76.0
@@ -71,24 +72,9 @@ var _persistence_toast_until_msec: int = 0
 ## Legacy build-label bindings for older callers/art fixtures. The live Place
 ## catalog uses namespaced keys and UIRegistry.get_place_catalog() (doc 54).
 const FURNITURE_PANEL_ITEMS: Dictionary = {
-	"📥 Barrel": "base:furniture:barrel",
-	"📥 Storage Chest": "base:furniture:storage_chest",
-	"📥 Storage Shelf": "base:furniture:storage_shelf",
-	"📥 Tavern Bar": "base:furniture:tavern_bar",
 	"📥 Log Bench": "base:furniture:bench",
 	"📥 Hearth": "base:furniture:hearth",
 	"📥 Log Door (2 wide)": "base:furniture:door",
-	"📥 Trade Counter": "base:furniture:trade_counter",
-	"📥 Personal Dining Table": "base:furniture:wooden_table",
-	"📥 Communal Dining Table": "base:furniture:communal_table",
-	"📥 Wooden Chair": "base:furniture:wooden_chair",
-	"📥 Dwarven Bed": "base:furniture:dwarf_bunk",
-	"📥 Brewing Vat": "base:furniture:brewing_vat",
-	"📥 Wall Torch": "base:furniture:wall_torch",
-	"📥 Anvil": "base:furniture:anvil",
-	"📥 Smelter": "base:furniture:smelter",
-	"📥 Aging Rack": "base:furniture:aging_rack",
-	"📥 Brazier": "base:furniture:brazier",
 }
 
 ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
@@ -710,6 +696,9 @@ func _dispatch_menu_entry(entry: Dictionary) -> void:
 func _dispatch_command(id: String) -> bool:
 	# Finish local UI work before a listener can synchronously reload the scene.
 	match id:
+		"new_game":
+			_close_action_panel()
+			new_game_requested.emit()
 		"save_game":
 			_close_action_panel()
 			save_game_requested.emit()
@@ -1355,7 +1344,10 @@ func _panel_actions(target: String) -> Array[String]:
 		"chop":
 			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
 		"build":
-			return ["📥 Barrel", "📥 Storage Chest", "📥 Storage Shelf", "📥 Tavern Bar", "📥 Log Bench", "📥 Hearth", "📥 Log Door (2 wide)", "📥 Trade Counter", "📥 Personal Dining Table", "📥 Communal Dining Table", "📥 Wooden Chair", "📥 Dwarven Bed", "📥 Brewing Vat", "📥 Wall Torch", "📥 Anvil", "📥 Smelter", "📥 Aging Rack", "📥 Brazier", "Cancel"]
+			var actions: Array[String] = []
+			actions.assign(FURNITURE_PANEL_ITEMS.keys())
+			actions.append("Cancel")
+			return actions
 		"storage_zone":
 			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "DEV: Spawn Bushes", "Cancel"]
 		"farm":

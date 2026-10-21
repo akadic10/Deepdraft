@@ -26,6 +26,7 @@ func _load_faces(path: String) -> void:
 	_faces[path] = faces
 
 func _collect(node: Node3D, parent: Transform3D, faces: Dictionary) -> void:
+	if preload("VoxelShadowSetup.gd").is_proxy(node): return
 	var transform := parent*node.transform
 	if node is MeshInstance3D:
 		for surface in range(node.mesh.get_surface_count()):

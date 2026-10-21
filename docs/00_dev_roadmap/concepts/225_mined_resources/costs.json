@@ -1,0 +1,184 @@
+[
+  {
+    "path": "assets/models/items/stone/granite_block.glb",
+    "before": {
+      "visual_triangles": 48,
+      "shadow_triangles": 48,
+      "bytes": 10788
+    },
+    "after": {
+      "visual_triangles": 748,
+      "shadow_triangles": 108,
+      "bytes": 80724
+    }
+  },
+  {
+    "path": "assets/models/items/stone/basalt_block.glb",
+    "before": {
+      "visual_triangles": 48,
+      "shadow_triangles": 48,
+      "bytes": 10788
+    },
+    "after": {
+      "visual_triangles": 810,
+      "shadow_triangles": 108,
+      "bytes": 86428
+    }
+  },
+  {
+    "path": "assets/models/items/stone/limestone_block.glb",
+    "before": {
+      "visual_triangles": 48,
+      "shadow_triangles": 48,
+      "bytes": 10792
+    },
+    "after": {
+      "visual_triangles": 810,
+      "shadow_triangles": 108,
+      "bytes": 86428
+    }
+  },
+  {
+    "path": "assets/models/items/stone/marble_block.glb",
+    "before": {
+      "visual_triangles": 48,
+      "shadow_triangles": 48,
+      "bytes": 10788
+    },
+    "after": {
+      "visual_triangles": 866,
+      "shadow_triangles": 108,
+      "bytes": 91580
+    }
+  },
+  {
+    "path": "assets/models/items/stone/rough_stone.glb",
+    "before": {
+      "visual_triangles": 488,
+      "shadow_triangles": 144,
+      "bytes": 60116
+    },
+    "after": {
+      "visual_triangles": 810,
+      "shadow_triangles": 108,
+      "bytes": 86424
+    }
+  },
+  {
+    "path": "assets/models/items/soil/cave_soil.glb",
+    "before": {
+      "visual_triangles": 248,
+      "shadow_triangles": 60,
+      "bytes": 30292
+    },
+    "after": {
+      "visual_triangles": 704,
+      "shadow_triangles": 108,
+      "bytes": 76672
+    }
+  },
+  {
+    "path": "assets/models/items/soil/light_soil.glb",
+    "before": {
+      "visual_triangles": 248,
+      "shadow_triangles": 60,
+      "bytes": 30292
+    },
+    "after": {
+      "visual_triangles": 704,
+      "shadow_triangles": 108,
+      "bytes": 76672
+    }
+  },
+  {
+    "path": "assets/models/items/soil/dark_soil.glb",
+    "before": {
+      "visual_triangles": 248,
+      "shadow_triangles": 60,
+      "bytes": 30292
+    },
+    "after": {
+      "visual_triangles": 704,
+      "shadow_triangles": 108,
+      "bytes": 76672
+    }
+  },
+  {
+    "path": "assets/models/items/ore/copper_ore.glb",
+    "before": {
+      "visual_triangles": 798,
+      "shadow_triangles": 144,
+      "bytes": 88636
+    },
+    "after": {
+      "visual_triangles": 934,
+      "shadow_triangles": 108,
+      "bytes": 97832
+    }
+  },
+  {
+    "path": "assets/models/items/ore/tin_ore.glb",
+    "before": {
+      "visual_triangles": 798,
+      "shadow_triangles": 144,
+      "bytes": 88632
+    },
+    "after": {
+      "visual_triangles": 934,
+      "shadow_triangles": 108,
+      "bytes": 97832
+    }
+  },
+  {
+    "path": "assets/models/items/ore/iron_ore.glb",
+    "before": {
+      "visual_triangles": 798,
+      "shadow_triangles": 144,
+      "bytes": 88636
+    },
+    "after": {
+      "visual_triangles": 934,
+      "shadow_triangles": 108,
+      "bytes": 97832
+    }
+  },
+  {
+    "path": "assets/models/items/ore/silver_ore.glb",
+    "before": {
+      "visual_triangles": 798,
+      "shadow_triangles": 144,
+      "bytes": 88636
+    },
+    "after": {
+      "visual_triangles": 934,
+      "shadow_triangles": 108,
+      "bytes": 97832
+    }
+  },
+  {
+    "path": "assets/models/items/ore/gold_ore.glb",
+    "before": {
+      "visual_triangles": 798,
+      "shadow_triangles": 144,
+      "bytes": 88636
+    },
+    "after": {
+      "visual_triangles": 934,
+      "shadow_triangles": 108,
+      "bytes": 97832
+    }
+  },
+  {
+    "path": "assets/models/items/ore/coal.glb",
+    "before": {
+      "visual_triangles": 798,
+      "shadow_triangles": 144,
+      "bytes": 88632
+    },
+    "after": {
+      "visual_triangles": 824,
+      "shadow_triangles": 108,
+      "bytes": 87708
+    }
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "count": 6,
+  "failures": [],
+  "hashes": {
+    "assets/models/rocks/boulders/boulder_1.glb": "2540843e3c19452547b0f8f020aa41c124de0e915ea9c5ec1ae08218199e7b8b",
+    "assets/models/rocks/boulders/boulder_2.glb": "6c74e92a952794b4c8d98bada2a8bc8ec1f0257cbab42f14ee00a6d882c8a4cc",
+    "assets/models/rocks/boulders/boulder_3.glb": "3c215585f27e51d472dd1ef23319dba9e2626d517801e676b6558a65cd671d67",
+    "assets/models/rocks/scree/scree_1.glb": "ec22b3c570caa5126ab41adcb4c2053d2e8eaf1b9f4773af2eaeab20271c972b",
+    "assets/models/rocks/scree/scree_2.glb": "6c6d4736453ec3718792538e32bc8232d980ca9515f3c264d2c95d8a9d7ff83f",
+    "assets/models/rocks/scree/scree_3.glb": "f2c797271510895e8b164fddbe5b769ffc20abf1bb90dce3dd3aaf064f0b9162"
+  },
+  "paths": [
+    "res://tmp/voxel_migration_20261018/staged/assets/models/rocks/boulders/boulder_1.glb",
+    "res://tmp/voxel_migration_20261018/staged/assets/models/rocks/boulders/boulder_2.glb",
+    "res://tmp/voxel_migration_20261018/staged/assets/models/rocks/boulders/boulder_3.glb",
+    "res://tmp/voxel_migration_20261018/staged/assets/models/rocks/scree/scree_1.glb",
+    "res://tmp/voxel_migration_20261018/staged/assets/models/rocks/scree/scree_2.glb",
+    "res://tmp/voxel_migration_20261018/staged/assets/models/rocks/scree/scree_3.glb"
+  ],
+  "source": "res://tmp/voxel_migration_20261018/staged/"
+}

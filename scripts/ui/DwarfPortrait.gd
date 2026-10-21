@@ -43,7 +43,7 @@ static func create_model(viewport: SubViewport, agent: DwarfAgent) -> Node3D:
 		for silhouette: Node in copy.find_children("OccludedSilhouette","MeshInstance3D",true,false): silhouette.free()
 		# Portraits use their own studio lighting, even when the selected dwarf
 		# stands underground. Keep the original tint without the world light field.
-		for mesh: MeshInstance3D in copy.find_children("*","MeshInstance3D",true,false):
+		for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(copy):
 			var material := mesh.material_override
 			if material != null and material.has_meta("underground_source_material"):
 				mesh.material_override = material.get_meta("underground_source_material")
@@ -58,10 +58,11 @@ static func create_model(viewport: SubViewport, agent: DwarfAgent) -> Node3D:
 			scar.name = "MeshScar"
 			model.add_child(scar)
 			scar.scale.x = agent.proportions.head_width
-			for mesh: MeshInstance3D in scar.find_children("*","MeshInstance3D",true,false):
+			for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(scar):
 				var material := StandardMaterial3D.new()
 				material.vertex_color_use_as_albedo = true
 				material.roughness = 1.0
 				mesh.material_override = material
+	preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(model, false)
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	return model

@@ -43,7 +43,8 @@ func _run() -> void:
 	_expect(manager.is_open("place") and furniture.active_furniture_key()==CAMP and dock._place_catalog.selected_key==CAMP,"Craft Place finished item opens the campfire preview and detail")
 	furniture.deactivate()
 	manager.close("place")
-	for entry in [[CAMP,Vector3i(48,20,46)],[LOG_CHAIR,Vector3i(48,20,42)]]:
+	# Leave seated head/body clearance beside the expanded 3x3 workbench.
+	for entry in [[CAMP,Vector3i(48,20,46)],[LOG_CHAIR,Vector3i(50,20,42)]]:
 		clock_node.set_paused(true)
 		dock._place_catalog.show_all = false
 		dock._place_catalog._all_toggle.set_pressed_no_signal(false)

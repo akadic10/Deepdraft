@@ -219,7 +219,8 @@ func work_surface() -> Vector3:
 			var toward := (agent.global_position-center) if agent != null else Vector3.FORWARD
 			toward.y = 0
 			toward = toward.normalized()
-			return center + Vector3(toward.x*.125, float(bench.def.get("crafting_surface_height",1.0)), toward.z*.125)
+			var reach: float = float(bench.def.get("crafting_surface_radius",.125))
+			return center + Vector3(toward.x*reach, float(bench.def.get("crafting_surface_height",1.0)), toward.z*reach)
 	return agent.to_global(Vector3(0,0,1.35)) if agent != null else Vector3(work_cell)+Vector3(.5,1,.5)
 
 func capture_item_properties(cargo: Node3D) -> void:

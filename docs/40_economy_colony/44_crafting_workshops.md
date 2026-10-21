@@ -1,5 +1,15 @@
 # 44 — Crafting Workshops
 
+**Log dining table (2026-10-18):** Craft → Rudimentary → Dining now offers a
+Log Dining Table for two matching logs and 16 seconds at a crude workbench.
+Its 3×3 footprint combines the player's cut-log tabletop and a one-block log
+pedestal. Pine, Oak, Juniper and Applewood follow normal material selection,
+packed delivery, installation, Move and saving. Four separate log stools fit
+the displayed guides, one tile closer than the initial layout, so table and
+four stools together occupy 5×5. Stools are crafted independently. See
+[232 — Compact dining](../00_dev_roadmap/232_compact_log_dining.md) and
+[231 — Log dining table](../00_dev_roadmap/231_log_dining_table.md).
+
 **Recipe categories (2026-10-13):** Rudimentary groups items by their use, matching
 the Place catalogue: Rooms contains the log bed, hearth and three doors; Dining
 contains the log stool and bench; Lighting contains the log torch and campfire.
@@ -70,7 +80,9 @@ No fuel upkeep or specialist jobs are enabled. See
 
 **Implemented starter crafting (2026-10-07):** Workers can make a crude workbench
 without an existing workshop, install it, then craft batches of wooden torches.
-The bench is a rough 1×1 stump usable from any open cardinal side. Its first
+The bench is now a rough **3×3 stump** usable from any open side (updated
+2026-10-18; [229](../00_dev_roadmap/229_workbench_voxel_scale.md)). Its 1-unit top
+has a worker-facing crafting contact 0.625 units from the center. Its first
 packed form is crafted at the timber pickup spot; the settlement flag is not a
 workshop. Both recipes use axe animation and contact-timed wood sounds.
 The Craft cabinet supports finite batches, spare-stock targets and per-order

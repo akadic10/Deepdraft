@@ -1,0 +1,12 @@
+{
+  "family": "trees",
+  "assets": 94,
+  "visual_triangles": 786526,
+  "shadow_triangles": 307966,
+  "bytes": 100881804,
+  "fine_shadow_fallbacks": [
+    "assets/models/flora/trees/oak/oak_sapling_winter.glb:main",
+    "assets/models/flora/trees/apple/apple_sapling_winter.glb:main"
+  ],
+  "shadow_triangle_reduction": 0.6084477817643663
+}

@@ -1,6 +1,7 @@
 extends SceneTree
 
 ## Real imported models, registry coverage and presentation-state integration.
+const Shadows = preload("res://scripts/components/VoxelShadowSetup.gd")
 var failures: Array[String] = []
 var checks := 0
 var paths := {}
@@ -51,8 +52,11 @@ func _run() -> void:
 					_expect(record.occupancy < 0 and record.node.find_children("*","CollisionShape3D",true,false).is_empty(),"overhang never gains collision")
 					var bounds: AABB = details.get_explorer_bounds(id)
 					_expect(is_equal_approx(bounds.position.y,21) and bounds.size.y <= float(definition.height)+.001,"grounding and authored clearance in every rotation")
-					for mesh: MeshInstance3D in record.node.find_children("*","MeshInstance3D",true,false):
+					for mesh in Shadows.visual_meshes(record.node):
 						_expect(mesh.material_override == details._material,"shared production plant material")
+						_expect(mesh.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"live plant visual does not cast")
+						var proxy := Shadows.proxy_for_visual(mesh)
+						_expect(proxy!=null and proxy.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY,"live plant proxy is shadow-only")
 					if definition.kind == "shrub":
 						details._changes[id] = {"planted_at":clock_node.elapsed_days(),"growth_credit":0.0}
 						details._spawn_visual(id)
@@ -105,9 +109,9 @@ func _check_asset(path: String) -> void:
 	var model := packed.instantiate() as Node3D
 	_expect(model.transform.is_equal_approx(Transform3D.IDENTITY),"unit root transform")
 	_expect(model.find_children("*","CollisionObject3D",true,false).is_empty(),"no embedded physics")
-	var meshes := model.find_children("*","MeshInstance3D",true,false)
-	if model is MeshInstance3D: meshes.append(model)
-	_expect(meshes.size() == 1,"one mesh per plant")
+	var meshes := Shadows.visual_meshes(model)
+	_expect(meshes.size() == 1,"one greedy visual mesh per plant")
+	_expect(Shadows.configure(model)==1,"one imported proxy per plant")
 	for instance: MeshInstance3D in meshes:
 		_expect(instance.transform.is_equal_approx(Transform3D.IDENTITY),"baked world scale")
 		_expect(instance.mesh.get_surface_count() == 1,"one surface per plant")

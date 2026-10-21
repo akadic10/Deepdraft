@@ -1,0 +1,2759 @@
+{
+  "family": "items",
+  "grid": 16,
+  "complete": true,
+  "assets": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 918,
+          "visual_triangles": 410,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6710239651416122,
+            "triangles": 158
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 54220,
+      "sha256": "5bbf38a7d18d496bbc66645ab775936a3f778639a23b70eb8e4dd773a0ff03ad",
+      "path": "assets/models/items/stone/rough_stone.glb",
+      "authoring": {
+        "item": "rough_stone",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 914,
+          "visual_triangles": 608,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.612691466083151,
+            "triangles": 142
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 70968,
+      "sha256": "0ede1bdfb181c4052577355433bcb405f2e10ec4928e609f34219e298a3b29ef",
+      "path": "assets/models/items/soil/cave_soil.glb",
+      "authoring": {
+        "item": "cave_soil",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 914,
+          "visual_triangles": 608,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.612691466083151,
+            "triangles": 142
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 70968,
+      "sha256": "ccf68d283f588ac6cf41c2b56ffeaa9123e39b6a6e86ea54c11d54a7c7c7419f",
+      "path": "assets/models/items/soil/light_soil.glb",
+      "authoring": {
+        "item": "light_soil",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 914,
+          "visual_triangles": 608,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.612691466083151,
+            "triangles": 142
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 70968,
+      "sha256": "b32ec593ab2f03afbc6e8f8e2aa70ce4afbbc4ee77f3df9d72c17dd0cfb14b72",
+      "path": "assets/models/items/soil/dark_soil.glb",
+      "authoring": {
+        "item": "dark_soil",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 898,
+          "visual_triangles": 524,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6414253897550112,
+            "triangles": 130
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 62136,
+      "sha256": "4c6efc687b7ba6f8fe746ca280a4d4538bacef4ccba376c7e67bad991d769081",
+      "path": "assets/models/items/ore/copper_ore.glb",
+      "authoring": {
+        "item": "copper_ore",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 898,
+          "visual_triangles": 524,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6414253897550112,
+            "triangles": 130
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 62136,
+      "sha256": "ce487773596bd6124b7f2f1780aac350946cefba3af463ad1e5003a873f49eea",
+      "path": "assets/models/items/ore/tin_ore.glb",
+      "authoring": {
+        "item": "tin_ore",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 898,
+          "visual_triangles": 524,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6414253897550112,
+            "triangles": 130
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 62136,
+      "sha256": "a87d5f4fcf29e6b273396835d0d7d4ccf2dc182ad13104e11489b3ea50f78710",
+      "path": "assets/models/items/ore/iron_ore.glb",
+      "authoring": {
+        "item": "iron_ore",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 898,
+          "visual_triangles": 524,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6414253897550112,
+            "triangles": 130
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 62136,
+      "sha256": "2885bafcd370e81425ecb877f03eca3c1363cc76e4a41f3ce190a724488e331c",
+      "path": "assets/models/items/ore/silver_ore.glb",
+      "authoring": {
+        "item": "silver_ore",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 898,
+          "visual_triangles": 524,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6414253897550112,
+            "triangles": 130
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 62136,
+      "sha256": "f93025c645af9cfa392e0fce29cf6da77e44045a55bc8a22482a95fe059af70b",
+      "path": "assets/models/items/ore/gold_ore.glb",
+      "authoring": {
+        "item": "gold_ore",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 898,
+          "visual_triangles": 508,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.6414253897550112,
+            "triangles": 130
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.75,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 60660,
+      "sha256": "5062aeadd212fb745f3b43d68832a46382d5f0fc32d657751f81cfc82ae8848c",
+      "path": "assets/models/items/ore/coal.glb",
+      "authoring": {
+        "item": "coal",
+        "source": {
+          "source": "data/art/voxel_mined_resources.json",
+          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+          "grid": 16,
+          "extent_cells": [
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 700,
+          "visual_triangles": 602,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 524
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 105572,
+      "sha256": "ecb25db23a52cba31972e02233d04b427e9d17d89af269102505fc17a5975a92",
+      "path": "assets/models/items/gem/jade_raw.glb",
+      "authoring": {
+        "item": "jade_raw"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 700,
+          "visual_triangles": 602,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 524
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 105576,
+      "sha256": "6122403fa0638ea63fa001aca6ff5e0e3f810d3a35d6270237e4f38f577e893d",
+      "path": "assets/models/items/gem/amethyst_raw.glb",
+      "authoring": {
+        "item": "amethyst_raw"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 700,
+          "visual_triangles": 602,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 524
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 105572,
+      "sha256": "0edc713df002d71b021f95d84382dbb0140e0e5e62a30f79f1cc45526e83c855",
+      "path": "assets/models/items/gem/ruby_raw.glb",
+      "authoring": {
+        "item": "ruby_raw"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 700,
+          "visual_triangles": 602,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 524
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 105576,
+      "sha256": "f5c686756110a36b4afa365c52d1b1f4bac93c81f0ad86e91caa343c29a93dca",
+      "path": "assets/models/items/gem/sapphire_raw.glb",
+      "authoring": {
+        "item": "sapphire_raw"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 700,
+          "visual_triangles": 602,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 524
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 105572,
+      "sha256": "0a8470a06ade6bf880188f6bb2a16c898456d823ece79e5f93686387a836069f",
+      "path": "assets/models/items/gem/emerald_raw.glb",
+      "authoring": {
+        "item": "emerald_raw"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 700,
+          "visual_triangles": 602,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 524
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 105572,
+      "sha256": "c440c8c7411f2a236668ddb154c067da79bc83b58e20c49412a6fc63c7f1301b",
+      "path": "assets/models/items/gem/diamond_raw.glb",
+      "authoring": {
+        "item": "diamond_raw"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2254,
+          "visual_triangles": 680,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8660159716060337,
+            "triangles": 148
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 78152,
+      "sha256": "ef763dc4f2a0381d297899c1806a0ac9ecbc452a365fc0d2062668ec20dbdd12",
+      "path": "assets/models/items/wood/oak_log.glb",
+      "authoring": {
+        "item": "oak_log",
+        "source": "data/art/voxel_hand_hewn_timber.json",
+        "material": "base:material:oak",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2254,
+          "visual_triangles": 680,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8660159716060337,
+            "triangles": 148
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 78152,
+      "sha256": "7780d7a51508302c183e2b573ca8c5edd03a5644eb6d2977c71613ddf7b7d618",
+      "path": "assets/models/items/wood/pine_log.glb",
+      "authoring": {
+        "item": "pine_log",
+        "source": "data/art/voxel_hand_hewn_timber.json",
+        "material": "base:material:pine",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2254,
+          "visual_triangles": 680,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8660159716060337,
+            "triangles": 148
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 78156,
+      "sha256": "f5791da93fe3c06284ff6e43a9c67b9ed04ac5c5ee12db377757e2022858ed2f",
+      "path": "assets/models/items/wood/apple_wood.glb",
+      "authoring": {
+        "item": "apple_wood",
+        "source": "data/art/voxel_hand_hewn_timber.json",
+        "material": "base:material:applewood",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2254,
+          "visual_triangles": 680,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8660159716060337,
+            "triangles": 148
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.4375,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 78156,
+      "sha256": "0f6df3fd3e9bd306a2d3dfe140c8ce376047b63b2633c3a5126a4a9b8d2c1696",
+      "path": "assets/models/items/wood/juniper_log.glb",
+      "authoring": {
+        "item": "juniper_log",
+        "source": "data/art/voxel_hand_hewn_timber.json",
+        "material": "base:material:juniper",
+        "orientation": "horizontal_z"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 112,
+          "visual_triangles": 12,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            -0.125,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.125,
+            0.125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 4148,
+      "sha256": "8c8bbb7626953db55612379267c62558a4efb85668398ca709ead930d8ec84a7",
+      "path": "assets/models/items/wood/oak_stave.glb",
+      "authoring": {
+        "item": "oak_stave"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 347,
+          "visual_triangles": 302,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 272
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 54776,
+      "sha256": "3e075fa07a0b42d6ed9250a40a9a8e0bb9fe333b664195019bdee9b9e3dddff7",
+      "path": "assets/models/items/crates/apple_low.glb",
+      "authoring": {
+        "item": "apple_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 612,
+          "visual_triangles": 488,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 428
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 86244,
+      "sha256": "7f49adffe711188f5fccba99a20c6dbb6f532f054f447f859d85795606201a64",
+      "path": "assets/models/items/crates/apple_half.glb",
+      "authoring": {
+        "item": "apple_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 598,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 494
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 102444,
+      "sha256": "17aedde930e00c96c70739fc7b68380b7bea5538a872b301040e000350d3ca0a",
+      "path": "assets/models/items/crates/apple_full.glb",
+      "authoring": {
+        "item": "apple_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 344,
+          "visual_triangles": 278,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 270
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 52388,
+      "sha256": "07a27f852773eb327b7d5a47d4fcce5c859c287e1a947ee24fb2b5f7e4b09222",
+      "path": "assets/models/items/crates/blueberry_low.glb",
+      "authoring": {
+        "item": "blueberry_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 606,
+          "visual_triangles": 440,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8316831683168316,
+            "triangles": 36
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 45764,
+      "sha256": "6c673158ddf488fc32893825c15f6ca0e66956e1a3739bda3116d328d07f807c",
+      "path": "assets/models/items/crates/blueberry_half.glb",
+      "authoring": {
+        "item": "blueberry_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 787,
+          "visual_triangles": 526,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 494
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 95824,
+      "sha256": "8de7119601a0fd7785c77e34ab5336dd20c6016df349e5014c4c1646b8d01893",
+      "path": "assets/models/items/crates/blueberry_full.glb",
+      "authoring": {
+        "item": "blueberry_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 344,
+          "visual_triangles": 278,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 270
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 52388,
+      "sha256": "4506078ca73b97fe7b622219b8f9875f71872f47cc0ff664d821ced1078f3553",
+      "path": "assets/models/items/crates/elderberry_low.glb",
+      "authoring": {
+        "item": "elderberry_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 606,
+          "visual_triangles": 440,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8316831683168316,
+            "triangles": 36
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 45764,
+      "sha256": "f93e98c6f9197260c77f710d93fd16795dcb4b54cd6c56c7c4c324cc249abb15",
+      "path": "assets/models/items/crates/elderberry_half.glb",
+      "authoring": {
+        "item": "elderberry_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 787,
+          "visual_triangles": 526,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 494
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 95824,
+      "sha256": "9e5c3d69d39a7069ea1b0a081df78fae6d11690b9bf16ebc3ac4b9d58686b756",
+      "path": "assets/models/items/crates/elderberry_full.glb",
+      "authoring": {
+        "item": "elderberry_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 344,
+          "visual_triangles": 278,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 270
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 52392,
+      "sha256": "446efbff46ab3658e6811aeb642fe5b690b2c1cbb4066f4f3ca887ac72d8deb0",
+      "path": "assets/models/items/crates/juniper_berry_low.glb",
+      "authoring": {
+        "item": "juniper_berry_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 606,
+          "visual_triangles": 440,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8316831683168316,
+            "triangles": 36
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 45768,
+      "sha256": "8d4283ca6a5e04a2026d6d3468fd4559d9a4f8866a3e7fb6d6b61a62b22a53c4",
+      "path": "assets/models/items/crates/juniper_berry_half.glb",
+      "authoring": {
+        "item": "juniper_berry_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 787,
+          "visual_triangles": 526,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 494
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 95828,
+      "sha256": "cb9674482149e7aa07724f39d4477e4deccbd9f61d0f48b39c22fa0cf70c3713",
+      "path": "assets/models/items/crates/juniper_berry_full.glb",
+      "authoring": {
+        "item": "juniper_berry_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 347,
+          "visual_triangles": 302,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 272
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 54784,
+      "sha256": "1425495e114d804460ab0199a5385a370a3ef48c687679dc7ee54bb8ce575dfe",
+      "path": "assets/models/items/crates/wild_strawberry_low.glb",
+      "authoring": {
+        "item": "wild_strawberry_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 612,
+          "visual_triangles": 488,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 428
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 86252,
+      "sha256": "cb0b3dfceaf8e19cfeaf6b645c4a4d95a38b582c3d1150cb33ac3de450ad95de",
+      "path": "assets/models/items/crates/wild_strawberry_half.glb",
+      "authoring": {
+        "item": "wild_strawberry_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 598,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 494
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 102452,
+      "sha256": "cd71d8b220b1ae74417031e69c6d308c84ed9d590d456921b5d8410e16a35a93",
+      "path": "assets/models/items/crates/wild_strawberry_full.glb",
+      "authoring": {
+        "item": "wild_strawberry_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 339,
+          "visual_triangles": 180,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 172
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 34356,
+      "sha256": "3b1fc835b1930b51e5e4722af250a63d07b1280ebb62d3393d5c40ac583b0c62",
+      "path": "assets/models/items/crates/apple_seed_low.glb",
+      "authoring": {
+        "item": "apple_seed_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 594,
+          "visual_triangles": 250,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8484848484848485,
+            "triangles": 36
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 28280,
+      "sha256": "795d8cd00e9585d81c7dc97ec751f5e4072de5d3f24ba6f0a18a1cfe991cca84",
+      "path": "assets/models/items/crates/apple_seed_half.glb",
+      "authoring": {
+        "item": "apple_seed_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 769,
+          "visual_triangles": 320,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 312
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 60112,
+      "sha256": "6a034d4641594d687ff3224ac04c2a1bee028c3e054896adedf6bf6d8888ca20",
+      "path": "assets/models/items/crates/apple_seed_full.glb",
+      "authoring": {
+        "item": "apple_seed_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 339,
+          "visual_triangles": 180,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 172
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 34356,
+      "sha256": "d42f7e152043e9da96dafe7f7501f7ed958cba457dd6620dd9b96533873e44ab",
+      "path": "assets/models/items/crates/juniper_seed_low.glb",
+      "authoring": {
+        "item": "juniper_seed_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 594,
+          "visual_triangles": 250,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8484848484848485,
+            "triangles": 36
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 28280,
+      "sha256": "4ab4f38fd38f1dafd63aaabf8c8f7f1400d150059dd32486cc66cb2237cb3322",
+      "path": "assets/models/items/crates/juniper_seed_half.glb",
+      "authoring": {
+        "item": "juniper_seed_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 769,
+          "visual_triangles": 320,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 312
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 60116,
+      "sha256": "19194481f6e173d5353e252d66576a1d87510069b0f548ee027ff9d9ed4247cf",
+      "path": "assets/models/items/crates/juniper_seed_full.glb",
+      "authoring": {
+        "item": "juniper_seed_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 339,
+          "visual_triangles": 180,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 172
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 34360,
+      "sha256": "98bc3a91b9333937c8c84b77c5917eab6084e048b6261f63fbc328f581e2c6fa",
+      "path": "assets/models/items/crates/pig_tail_seed_low.glb",
+      "authoring": {
+        "item": "pig_tail_seed_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 594,
+          "visual_triangles": 250,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8484848484848485,
+            "triangles": 36
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 28284,
+      "sha256": "9b284fb2577333d9eec4d11dd5aac93f0db5667a1dab81d42d73de936dcaf7b8",
+      "path": "assets/models/items/crates/pig_tail_seed_half.glb",
+      "authoring": {
+        "item": "pig_tail_seed_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 769,
+          "visual_triangles": 320,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 312
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 60116,
+      "sha256": "fb08c3c904b065a0ac33ff89b64f779ce9c306b1468dafef0f60ee94401d60e5",
+      "path": "assets/models/items/crates/pig_tail_seed_full.glb",
+      "authoring": {
+        "item": "pig_tail_seed_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 360,
+          "visual_triangles": 160,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 132
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 28836,
+      "sha256": "e5879dab602a17e9a2703eb158d6de3729394435356837abd6919f66dee2c8b7",
+      "path": "assets/models/items/crates/oak_acorn_low.glb",
+      "authoring": {
+        "item": "oak_acorn_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 636,
+          "visual_triangles": 236,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8679245283018868,
+            "triangles": 98
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 32700,
+      "sha256": "a61eaab3f70ce23eef9ee620350195041d2c5869a8dbd1445101d0100773dbfa",
+      "path": "assets/models/items/crates/oak_acorn_half.glb",
+      "authoring": {
+        "item": "oak_acorn_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 832,
+          "visual_triangles": 296,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7884615384615384,
+            "triangles": 72
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 35828,
+      "sha256": "0391c6188d7a950943cc69390b32119b9a7e904728347dab088d6ef36a168e3c",
+      "path": "assets/models/items/crates/oak_acorn_full.glb",
+      "authoring": {
+        "item": "oak_acorn_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 372,
+          "visual_triangles": 204,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 136
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 33252,
+      "sha256": "d8b2da05471cba40a86ca5ff2c77d3bbc984b288a42850f67f57d06408e7576e",
+      "path": "assets/models/items/crates/pine_cone_low.glb",
+      "authoring": {
+        "item": "pine_cone_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 660,
+          "visual_triangles": 322,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8242424242424242,
+            "triangles": 66
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 37664,
+      "sha256": "9e857a72bf55552c2305b976340568113aceae7614da45c250c14dd697c6e9ec",
+      "path": "assets/models/items/crates/pine_cone_half.glb",
+      "authoring": {
+        "item": "pine_cone_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 868,
+          "visual_triangles": 428,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7741935483870968,
+            "triangles": 72
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 47976,
+      "sha256": "6c312c94c00d6b5f20d56d02df9cb26a230b080e1b16c56779fdba2057169b9d",
+      "path": "assets/models/items/crates/pine_cone_full.glb",
+      "authoring": {
+        "item": "pine_cone_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 346,
+          "visual_triangles": 220,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 218
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 42276,
+      "sha256": "59f2b85c1656842fa2ccb53ce8f548d2d085d5a72c09bbfad840881c07a21634",
+      "path": "assets/models/items/crates/blueberry_cutting_low.glb",
+      "authoring": {
+        "item": "blueberry_cutting_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 610,
+          "visual_triangles": 356,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 364
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 68220,
+      "sha256": "e0ceeddaa0b718f9a8f5ee674847ccbdabdd0d3a0aa32bfd4c3c9b726790109e",
+      "path": "assets/models/items/crates/blueberry_cutting_half.glb",
+      "authoring": {
+        "item": "blueberry_cutting_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 478,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 488
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 90860,
+      "sha256": "ddeebb13a2e65affdf26114e614adf1371514b6b845a64462cd41fb508b52a2a",
+      "path": "assets/models/items/crates/blueberry_cutting_full.glb",
+      "authoring": {
+        "item": "blueberry_cutting_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 346,
+          "visual_triangles": 220,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 218
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 42276,
+      "sha256": "5d65df7b1e7b3557e0baa58ac67eb042a00acac6286beed122b491044e53b241",
+      "path": "assets/models/items/crates/elderberry_cutting_low.glb",
+      "authoring": {
+        "item": "elderberry_cutting_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 610,
+          "visual_triangles": 356,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 364
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 68220,
+      "sha256": "f98d5e7f11272072924e8d6e4375885524d0c61985e39fa1c2a10ad8aa369346",
+      "path": "assets/models/items/crates/elderberry_cutting_half.glb",
+      "authoring": {
+        "item": "elderberry_cutting_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 478,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 488
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 90860,
+      "sha256": "a3dc49664fb852c7a7a7ecd3b247d1242430535f3e8730760808aa2c9393f0c6",
+      "path": "assets/models/items/crates/elderberry_cutting_full.glb",
+      "authoring": {
+        "item": "elderberry_cutting_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 346,
+          "visual_triangles": 220,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 218
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 42272,
+      "sha256": "d4770548ca19c4c46d942d5677788a3c4290ca6370a10146dce69a905fb25b7d",
+      "path": "assets/models/items/crates/grape_cutting_low.glb",
+      "authoring": {
+        "item": "grape_cutting_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 610,
+          "visual_triangles": 356,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 364
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 68216,
+      "sha256": "91246a2705f2d7ff229302fab40aa5c2aa431cffcf2c7bb120d7b777900a7f5c",
+      "path": "assets/models/items/crates/grape_cutting_half.glb",
+      "authoring": {
+        "item": "grape_cutting_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 478,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 488
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 90856,
+      "sha256": "c9ecfb3f5f5ca3c76b267b58d4eddf44f86d87d4e55241ee56f162f849292ca1",
+      "path": "assets/models/items/crates/grape_cutting_full.glb",
+      "authoring": {
+        "item": "grape_cutting_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 346,
+          "visual_triangles": 220,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 218
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 42272,
+      "sha256": "1dd6f5172e7fb0eb3b362d05a9f45e85323e1803d8aa01c85e53e658b947b8bc",
+      "path": "assets/models/items/crates/hops_cutting_low.glb",
+      "authoring": {
+        "item": "hops_cutting_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 610,
+          "visual_triangles": 356,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 364
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 68212,
+      "sha256": "98943de3ad6d882b48c7b4b4076a827a52d3305a5ac6c4165db4e9a41a67c515",
+      "path": "assets/models/items/crates/hops_cutting_half.glb",
+      "authoring": {
+        "item": "hops_cutting_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 478,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 488
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 90856,
+      "sha256": "075d1be4bd24fb8fb01b8fae3b165f1733d5b7f557b61c1434e52dc50ef9f78e",
+      "path": "assets/models/items/crates/hops_cutting_full.glb",
+      "authoring": {
+        "item": "hops_cutting_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 346,
+          "visual_triangles": 220,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 218
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 42276,
+      "sha256": "50b08f3e397bed11b6321bda1dbd4fcdbbd91314a56cb70765454fa7b3e3970e",
+      "path": "assets/models/items/crates/strawberry_cutting_low.glb",
+      "authoring": {
+        "item": "strawberry_cutting_low"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 610,
+          "visual_triangles": 356,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 364
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 68220,
+      "sha256": "e5279d6ac7ac6b955aff2c018792d958379c933856baa1c257e1bb2bfdce12ed",
+      "path": "assets/models/items/crates/strawberry_cutting_half.glb",
+      "authoring": {
+        "item": "strawberry_cutting_half"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 796,
+          "visual_triangles": 478,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 488
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 90860,
+      "sha256": "79033cb06774f4c20cc992e7258531970523d8f2a720fe09527eb7ed9f1a6411",
+      "path": "assets/models/items/crates/strawberry_cutting_full.glb",
+      "authoring": {
+        "item": "strawberry_cutting_full"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 303,
+          "visual_triangles": 78,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 78
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.875
+          ],
+          "max": [
+            0.375,
+            0.375,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 16308,
+      "sha256": "6cfbcd1fc5d53b43f203f1eaca24ced7a95b3c9b4c60b74ceb8721da7d603fc6",
+      "path": "assets/models/items/tools/stone_hoe.glb",
+      "authoring": {
+        "item": "stone_hoe"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 588,
+          "visual_triangles": 80,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 68
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.375,
+            0.5625,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 15580,
+      "sha256": "9a7f2b27edf77a3811f01622d22f60e33d008396dcab93ba0b39feedc901d18f",
+      "path": "assets/models/items/tools/stone_hammer.glb",
+      "authoring": {
+        "item": "stone_hammer"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 184,
+          "visual_triangles": 68,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 60
+          },
+          "min": [
+            -0.125,
+            0.0,
+            -1.125
+          ],
+          "max": [
+            0.125,
+            0.25,
+            1.1875
+          ]
+        }
+      ],
+      "bytes": 13736,
+      "sha256": "8f060c9e8b6a38dee766e8503f8eb20b6bf931141db8348d9dcf20e33f1eb773",
+      "path": "assets/models/items/tools/hunting_spear.glb",
+      "authoring": {
+        "item": "hunting_spear"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 460,
+          "visual_triangles": 114,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7565217391304347,
+            "triangles": 78
+          },
+          "min": [
+            -0.5625,
+            0.0,
+            -0.625
+          ],
+          "max": [
+            0.5,
+            0.375,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 19624,
+      "sha256": "16d85de9507b43f2b30cef1663e527e152f0a700ef7705d96356ab68287be170",
+      "path": "assets/models/items/tools/carpentry_kit.glb",
+      "authoring": {
+        "item": "carpentry_kit"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 979,
+          "visual_triangles": 512,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8907048008171604,
+            "triangles": 124
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 60488,
+      "sha256": "08aa7338b7a379d91a7982fadcababd35904d0d82aa9c29cdf6a0a399bb899ee",
+      "path": "assets/models/items/drink/ale_barrel.glb",
+      "authoring": {
+        "item": "ale_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 979,
+          "visual_triangles": 512,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8907048008171604,
+            "triangles": 124
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 60492,
+      "sha256": "50edc43139355dbdd5f59ed5e58b7535b7c83d62fb68d6cd1f6f4735d8d68bba",
+      "path": "assets/models/items/drink/mead_barrel.glb",
+      "authoring": {
+        "item": "mead_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 979,
+          "visual_triangles": 512,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8907048008171604,
+            "triangles": 124
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 60492,
+      "sha256": "51a5414b80c4477c2d395c85f9365680d0b8bf85aa6f7674ab7b628cb7631c76",
+      "path": "assets/models/items/drink/stout_barrel.glb",
+      "authoring": {
+        "item": "stout_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 979,
+          "visual_triangles": 512,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8907048008171604,
+            "triangles": 124
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 60492,
+      "sha256": "5f4f02c855c16ac2ed8f33f41eff243dddec076f6d7b47a367a821360ea562bb",
+      "path": "assets/models/items/drink/cider_barrel.glb",
+      "authoring": {
+        "item": "cider_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 979,
+          "visual_triangles": 538,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8907048008171604,
+            "triangles": 124
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 62884,
+      "sha256": "7fa85a420353ab1897d78ee3090aa29724ae6de590883b8cb83bca53697fc382",
+      "path": "assets/models/items/drink/wine_barrel.glb",
+      "authoring": {
+        "item": "wine_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 819,
+          "visual_triangles": 504,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8791208791208791,
+            "triangles": 124
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 59752,
+      "sha256": "f2d520a68b894b0df78dcd4f7df493bf63ac9c125e38b02e2a8986d55319d1b8",
+      "path": "assets/models/items/drink/gin_cask.glb",
+      "authoring": {
+        "item": "gin_cask"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 987,
+          "visual_triangles": 482,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9159067882472138,
+            "triangles": 120
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 57364,
+      "sha256": "804c6f1a8b1ed7e792dd68d9ee3438f580ed82b4360c2174e0d7eca7b7112744",
+      "path": "assets/models/items/drink/aged_stout_barrel.glb",
+      "authoring": {
+        "item": "aged_stout_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 987,
+          "visual_triangles": 506,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9159067882472138,
+            "triangles": 120
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 59580,
+      "sha256": "c94d947ffb87b38ec3340b6230231af22997aed6945de6eef93d9e810c0aaafe",
+      "path": "assets/models/items/drink/vintage_wine_barrel.glb",
+      "authoring": {
+        "item": "vintage_wine_barrel"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 827,
+          "visual_triangles": 472,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.909310761789601,
+            "triangles": 120
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.6875,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 56444,
+      "sha256": "2d2cdef507f3ad6cc7743dc5122d7701551418e4f4d1f38cda4883c606b0962c",
+      "path": "assets/models/items/drink/reserve_gin_cask.glb",
+      "authoring": {
+        "item": "reserve_gin_cask"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 512,
+          "visual_triangles": 128,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.75,
+            "triangles": 48
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 18148,
+      "sha256": "b38eab3fbca6466d33bc2541dd281f9d040bef4cf54b866f0f1683ade9de14c4",
+      "path": "assets/models/items/misc/cloth_bolt.glb",
+      "authoring": {
+        "item": "cloth_bolt"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 444,
+          "visual_triangles": 494,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 440
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.75,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 87908,
+      "sha256": "92b6f047c112857d93539aa7b138a84327c1bd230087b00c904f9c9d60a82cf8",
+      "path": "assets/models/items/misc/water_bucket.glb",
+      "authoring": {
+        "item": "water_bucket"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 454,
+          "visual_triangles": 282,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 258
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.25,
+            0.5625,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 51636,
+      "sha256": "f92aac498d2ad0717971c9b7dd9b0363509e06c11ea5b957b84b78008f3b863a",
+      "path": "assets/models/items/misc/honey_jar.glb",
+      "authoring": {
+        "item": "honey_jar"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 235,
+          "visual_triangles": 118,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.851063829787234,
+            "triangles": 62
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.1875,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 18532,
+      "sha256": "3c003704dc697bf6f787e76842624c3963a20772a3c91cc002f6816ba8a05ed1",
+      "path": "assets/models/items/misc/fossil_fragment.glb",
+      "authoring": {
+        "item": "fossil_fragment"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 536,
+          "visual_triangles": 364,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 352
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 67840,
+      "sha256": "cc978ca7363e379986e409ccd8d46fc0f15666c843eb59511f2ba4747f8ab6cc",
+      "path": "assets/models/items/flora/plump_helmet.glb",
+      "authoring": {
+        "item": "plump_helmet"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 153,
+          "visual_triangles": 152,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 148
+          },
+          "min": [
+            -0.3125,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 29556,
+      "sha256": "f7e688fc9887004d883117f7653d3041dcb46ef72639abeaad0fe129a2064ffa",
+      "path": "assets/models/items/flora/pig_tail.glb",
+      "authoring": {
+        "item": "pig_tail"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 220,
+          "visual_triangles": 268,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 268
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.25,
+            0.5625,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 51264,
+      "sha256": "eab97e4a3976a6b67ee9b7f3b1f21c9c1f39f46439340856101e3a9720e089e2",
+      "path": "assets/models/items/flora/hops.glb",
+      "authoring": {
+        "item": "hops"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 220,
+          "visual_triangles": 268,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 268
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.25,
+            0.5625,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 51264,
+      "sha256": "91108334eb88855fdce0de817dd7893381f30d51cbde305613b1546b030886a1",
+      "path": "assets/models/items/flora/grape.glb",
+      "authoring": {
+        "item": "grape"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 58,
+          "visual_triangles": 100,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 100
+          },
+          "min": [
+            -0.25,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.25,
+            0.125,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 20352,
+      "sha256": "df302dbe85ff5e0657d10703512f25a18d2e448f9f5705d9ba4ae8c49c81a355",
+      "path": "assets/models/items/currency/gold_coin.glb",
+      "authoring": {
+        "item": "gold_coin"
+      }
+    }
+  ]
+}

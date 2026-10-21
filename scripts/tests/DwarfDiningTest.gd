@@ -1,7 +1,7 @@
 extends "res://scripts/tests/DwarfFoodTest.gd"
 
-const CHAIR := "base:furniture:wooden_chair"
-const TABLE := "base:furniture:wooden_table"
+const CHAIR := "base:furniture:log_chair"
+const TABLE := "base:furniture:log_table"
 const STOOL := "base:furniture:log_chair"
 const LOG_BENCH := "base:furniture:bench"
 var details
@@ -11,6 +11,7 @@ func _run() -> void:
 	create_timer(150).timeout.connect(func(): push_error("Dining test timed out"); quit(1))
 	await _setup_crafting_fixture()
 	await _arrangements()
+	await _famished_seating_range()
 	await _interruptions()
 	await _foraging()
 	_effects_and_save()
@@ -41,7 +42,7 @@ func _arrangements() -> void:
 		_clear_layout()
 		var seat = null
 		if expected in ["proper","seat_only"]: seat = _piece(CHAIR,Vector3i(45,20,40))
-		if expected in ["proper","table_only"]: _piece(TABLE,Vector3i(45,20,42))
+		if expected in ["proper","table_only"]: _piece(TABLE,Vector3i(44,20,41))
 		_expect(await _meal_start(),expected+": reaches eating")
 		_expect(worker._food._dining.outcome()==expected,expected+": chooses the best actual arrangement")
 		if seat != null: _expect(seat.idle_seat_owner==worker.dwarf_id,"meal claims the seat")
@@ -67,17 +68,20 @@ func _arrangements() -> void:
 			_expect(seat.idle_seat_owner<0 and worker._body.position.is_zero_approx(),"standing releases the meal's seat")
 		for piece in furniture._installed.values():
 			_expect(piece.dining_claims.is_empty(),"finished meal releases its dining-table claim")
-	# The back of a chair beside a table does not count as dining at that table.
+	# The current buildable log stool is backless and may face the table from
+	# either stored rotation. The removed backed chair is no longer a fixture.
 	_clear_layout()
 	_piece(CHAIR,Vector3i(45,20,40),2)
-	_piece(TABLE,Vector3i(45,20,42))
+	_piece(TABLE,Vector3i(44,20,41))
 	_expect(await _meal_start(),"reversed chair remains usable")
-	_expect(worker._food._dining.outcome()!="proper","backed chair must face table; obstructed seating falls back")
+	_expect(worker._food._dining.outcome()=="proper","backless stool can turn toward its table")
 	await _finish_food()
 	for key: String in [STOOL,LOG_BENCH]:
 		_clear_layout()
 		var seat = _piece(key,Vector3i(45,20,40))
-		_piece(TABLE,Vector3i(45,20,42))
+		# The bench uses its ordinary posture; only the matching stool gets the
+		# table's compact raised-head profile. Leave its normal extra clearance.
+		_piece(TABLE,Vector3i(44,20,42 if key==LOG_BENCH else 41))
 		_expect(await _meal_start(),"simple seat reaches eating")
 		_expect(worker._food._dining.outcome()=="proper",key+" can dine at a properly spaced table")
 		worker._process(.75)
@@ -87,10 +91,47 @@ func _arrangements() -> void:
 		_expect(worker.walk_to(Vector3i(40,20,39)),"player movement can interrupt rest after eating")
 		_expect(seat.idle_seat_owner<0 and not worker._idle_behavior.active() and worker._body.position.is_zero_approx(),"movement after a meal releases the transferred seat and pose")
 
+func _famished_seating_range() -> void:
+	_clear_layout()
+	# Keep both near and distant furniture genuinely walkable, so rejection
+	# outside the dining limit cannot pass merely because terrain is missing.
+	var rock: int = blocks.get_id("base:terrain:rock:rock01")
+	for x in range(38,66):
+		for z in range(38,49):
+			world.set_block(x,20,z,rock)
+			for y in range(21,25): world.set_block(x,y,z,0)
+	await _frames(2)
+	for start_food: float in [.3,.05]:
+		_clear_layout()
+		var seat = _piece(CHAIR,Vector3i(50,20,41))
+		var table = _piece(TABLE,Vector3i(49,20,42))
+		_store(BLUEBERRY,4)
+		_hungry(worker)
+		worker._food.value = start_food
+		_expect(await _food_phase("dining"),"hungry/famished dwarf collects a real portion before dining")
+		var pickup: Vector3i = worker.current_cell()
+		_expect(worker._carried_entries.size()==1 and _food_total(BLUEBERRY)==4,"dining search owns one uneaten portion")
+		_expect(await _food_phase("eating"),"hungry/famished dwarf reaches dining seat")
+		var dining = worker._food._dining
+		_expect(dining.choice.get("seat")==seat and dining.choice.get("table")==table,"both hunger tiers choose the free seat and table beyond six blocks")
+		_expect(Vector3(worker.current_cell()-pickup).length()>6 and seat.idle_seat_owner==worker.dwarf_id,"dwarf actually carries food beyond the old limit and claims the chair")
+		await _finish_food()
+		_expect(worker._food.last_dining=="proper" and _food_total(BLUEBERRY)==3,"proper meal consumes exactly one berry without a dining penalty")
+	_clear_layout()
+	_piece(CHAIR,Vector3i(62,20,41))
+	_piece(TABLE,Vector3i(61,20,42))
+	_store(BLUEBERRY,4)
+	_hungry(worker)
+	worker._food.value = .05
+	_expect(await _food_phase("eating"),"famished dwarf still eats promptly when dining is too far away")
+	_expect(worker._food._dining.outcome()=="neither","the sixteen-block limit still excludes distant furniture")
+	await _finish_food()
+	_expect(_food_total(BLUEBERRY)==3,"distance fallback also consumes exactly one berry")
+
 func _interruptions() -> void:
 	_clear_layout()
 	var chair = _piece(CHAIR,Vector3i(45,20,40))
-	var table = _piece(TABLE,Vector3i(45,20,42))
+	var table = _piece(TABLE,Vector3i(44,20,41))
 	_expect(await _meal_start(),"first dwarf starts proper meal")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	second = factory.spawn(factory.generate(142,{}),142)
@@ -112,7 +153,7 @@ func _interruptions() -> void:
 	_expect(worker._body.position.is_zero_approx(),"interrupted seating restores body")
 	_clear_layout()
 	chair = _piece(CHAIR,Vector3i(45,20,40))
-	table = _piece(TABLE,Vector3i(45,20,42))
+	table = _piece(TABLE,Vector3i(44,20,41))
 	_expect(await _meal_start(),"new proper meal")
 	furniture.dev_remove_installed(table.installed_id)
 	worker._process(.1)
@@ -230,7 +271,7 @@ func _effects_and_save() -> void:
 func _presentation() -> void:
 	_clear_layout()
 	_piece(CHAIR,Vector3i(45,20,40))
-	_piece(TABLE,Vector3i(45,20,42))
+	_piece(TABLE,Vector3i(44,20,41))
 	_expect(await _meal_start(),"visual fixture reaches real dining")
 	worker._process(.9)
 	_expect(is_instance_valid(worker._food._serving) and worker._food._serving.visible and not worker._food.portion.visible,"visible serving replaces shipping-crate artwork")

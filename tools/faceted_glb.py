@@ -33,6 +33,8 @@ def source_mesh(path,name):
 
 def write_parts(path,parts):
     """Unit roots; every dictionary key becomes a named MeshInstance3D."""
+    from asset_ownership import guard_legacy_write
+    guard_legacy_write(path)
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
     doc={'asset':{'version':'2.0','generator':'Deepdraft faceted furniture'},'scene':0,
          'scenes':[{'nodes':[0]}],'nodes':[{'name':path.stem,'children':[]}],

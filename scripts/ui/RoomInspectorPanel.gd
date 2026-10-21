@@ -83,7 +83,7 @@ func show_room(room: Dictionary) -> void:
 	_zone.text = RoomManager.comfort_label(float(room.temp_c))
 	var count := RoomManager.count_room_lights(room.get("cells", {}))
 	_lighting.text = "No light sources" if count == 0 else "%d light source%s" % [count, "" if count == 1 else "s"]
-	_lighting_hint.text = "Place a torch or brazier inside to light this room." if count == 0 else "Installed lights illuminate the space around them."
+	_lighting_hint.text = "Place a log torch or hearth inside to light this room." if count == 0 else "Installed lights illuminate the space around them."
 	var volume := int(room.get("volume", 0))
 	_volume.text = "%d blocks" % volume
 	_doors.text = str(room.get("door_cells", {}).size())

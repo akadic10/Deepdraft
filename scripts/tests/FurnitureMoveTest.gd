@@ -3,7 +3,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 const FROM := Vector3i(44,20,40)
 const TO := Vector3i(53,20,44)
 const JUNIPER := "base:material:juniper"
-const CHEST := "base:furniture:storage_chest"
+const StorageFixture := preload("res://scripts/tests/TestStorageFixture.gd")
 const BED := "base:furniture:log_bed"
 
 func _run() -> void:
@@ -139,7 +139,8 @@ func _blocked_destination() -> void:
 
 func _settings_and_crafting() -> void:
 	await _clean()
-	var chest = _install_piece(CHEST)
+	StorageFixture.install(furniture)
+	var chest = _install_piece(StorageFixture.KEY)
 	chest.storage.set_all_accepted(false); chest.storage.set_item_accepted(PINE,true)
 	chest.storage.restore_inventory({PINE:2},drops)
 	stockpiles.rebuild_totals()
@@ -177,7 +178,7 @@ func _settings_and_crafting() -> void:
 
 func _wall_move() -> void:
 	await _clean()
-	var key: String="base:furniture:wall_torch"
+	var key: String=TORCH
 	var definition: Dictionary=furniture.get_defs()[key]
 	var mount=load("res://scripts/components/WallFurnitureMount.gd")
 	for origin in [FROM,TO]:

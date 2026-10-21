@@ -49,6 +49,7 @@ func reset() -> void:
 	stones.clear()
 	next_stone_id = 1
 	initialized = false
+	restoring = false
 	flow = null
 	moisture = null
 	_moisture_heads.clear()
@@ -231,6 +232,12 @@ func _spaces(col: Vector2i) -> Array:
 func _on_block_changed(cell: Vector3i, _old: int, _new: int) -> void:
 	if not initialized: return
 	var col := Vector2i(cell.x,cell.z)
+	if restoring:
+		# Final terrain is being installed before authoritative saved water.
+		# Keep the topology dependency, without displacing/reflowing water that
+		# restore_state will replace. Normal gameplay retains the path below.
+		edited_columns[col] = true
+		return
 	# Cache the OLD topology before enabling scans of the edited terrain.
 	flow.spans(col)
 	edited_columns[col] = true
@@ -298,6 +305,15 @@ func capture_save_state() -> Dictionary:
 		"test_dam":test_dam.duplicate(true),"moisture":moisture.soils.duplicate(true)}
 
 
+## Synchronous save-load boundary, paired with restore_state after terrain.
+## No simulation/frame may run between these calls. Other terrain consumers
+## still receive exact block changes and coalesced chunk invalidations.
+func begin_terrain_restore() -> void:
+	initialize()
+	assert(initialized and not restoring, "Water terrain restore requires an initialized world")
+	restoring = true
+
+
 func restore_state(state: Dictionary) -> void:
 	initialize()
 	restoring = true
@@ -313,6 +329,7 @@ func restore_state(state: Dictionary) -> void:
 	elapsed_usec = int(state.elapsed_usec)
 	accumulator_usec = int(state.accumulator_usec)
 	test_dam = state.test_dam.duplicate(true)
+	_soil_kinds.clear()
 	_rebuild_moisture()
 	moisture.restore(state.moisture)
 	_nav_tops.clear()

@@ -1,0 +1,316 @@
+{
+  "version": 3,
+  "note": "Native 1:16 loose goods. Approved chunky stone, ore and soil use three sculpted shapes at the established 0.75-unit size. Timber shares the accepted hand-hewn stool shape. Greedy visuals and separate shadow-only proxies.",
+  "stone": [
+    "rough_stone"
+  ],
+  "soil": [
+    "cave_soil",
+    "light_soil",
+    "dark_soil"
+  ],
+  "ore": [
+    "copper_ore",
+    "tin_ore",
+    "iron_ore",
+    "silver_ore",
+    "gold_ore",
+    "coal"
+  ],
+  "gems": {
+    "jade_raw": [
+      "245C45",
+      "53AD79",
+      "91DDA2",
+      "B2E5B2",
+      "E2F4CC"
+    ],
+    "amethyst_raw": [
+      "492473",
+      "8950BE",
+      "B789EC",
+      "D5B0F3",
+      "F0DCFF"
+    ],
+    "ruby_raw": [
+      "6F1234",
+      "CC2452",
+      "F65F79",
+      "F9909C",
+      "FFE0D6"
+    ],
+    "sapphire_raw": [
+      "192E78",
+      "345ED1",
+      "669FFA",
+      "A2C6FF",
+      "E1EDFF"
+    ],
+    "emerald_raw": [
+      "064C3C",
+      "13966B",
+      "38DCA1",
+      "80ECC0",
+      "D6FFDC"
+    ],
+    "diamond_raw": [
+      "567F9C",
+      "A4D4E8",
+      "D6F5FF",
+      "FFF6DE",
+      "FFFFFF"
+    ]
+  },
+  "timber": {
+    "oak_log": "base:material:oak",
+    "pine_log": "base:material:pine",
+    "apple_wood": "base:material:applewood",
+    "juniper_log": "base:material:juniper"
+  },
+  "crate_contents": {
+    "apple": [
+      "fruit",
+      "B94835",
+      "DE6942"
+    ],
+    "blueberry": [
+      "berry",
+      "405F9C",
+      "778BBC"
+    ],
+    "elderberry": [
+      "berry",
+      "543B68",
+      "84608E"
+    ],
+    "juniper_berry": [
+      "berry",
+      "576D91",
+      "93A5BD"
+    ],
+    "wild_strawberry": [
+      "strawberry",
+      "B73537",
+      "E76750"
+    ],
+    "apple_seed": [
+      "seed",
+      "603922",
+      "9A653D"
+    ],
+    "juniper_seed": [
+      "seed",
+      "916D44",
+      "C4A573"
+    ],
+    "pig_tail_seed": [
+      "seed",
+      "98864E",
+      "C6B974"
+    ],
+    "oak_acorn": [
+      "acorn",
+      "AE773D",
+      "D1A268"
+    ],
+    "pine_cone": [
+      "cone",
+      "664128",
+      "A77A49"
+    ],
+    "blueberry_cutting": [
+      "cutting",
+      "3F6845",
+      "739754"
+    ],
+    "elderberry_cutting": [
+      "cutting",
+      "48643D",
+      "94A958"
+    ],
+    "grape_cutting": [
+      "cutting",
+      "4C6339",
+      "889B4D"
+    ],
+    "hops_cutting": [
+      "cutting",
+      "65823B",
+      "A6B95C"
+    ],
+    "strawberry_cutting": [
+      "cutting",
+      "386448",
+      "6F9650"
+    ]
+  },
+  "palette": {
+    "crate_shadow": "624A35",
+    "crate_board": "957552",
+    "crate_edge": "BB9569",
+    "stem": "594430",
+    "leaf": "64854A",
+    "linen": "C5B99A",
+    "linen_shadow": "9B8D73",
+    "clay": "A56F49",
+    "honey": "CF9D43",
+    "water": "6493A2",
+    "iron": "7D8A8E",
+    "iron_dark": "465158",
+    "steel_edge": "CFD6D1",
+    "leather": "66432D",
+    "tool_wood": "A2794D",
+    "gold": "D4AA4B",
+    "gold_dark": "A57A29"
+  },
+  "drink_marks": {
+    "ale_barrel": "BE974C",
+    "mead_barrel": "D2AF58",
+    "stout_barrel": "61574B",
+    "cider_barrel": "B46546",
+    "wine_barrel": "865168",
+    "gin_cask": "82978D",
+    "aged_stout_barrel": "61574B",
+    "vintage_wine_barrel": "865168",
+    "reserve_gin_cask": "82978D"
+  },
+  "mined_shape": {
+    "source": "data/art/voxel_mined_resources.json",
+    "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
+    "grid": 16,
+    "extent_cells": [
+      12,
+      12,
+      12
+    ]
+  },
+  "mined_styles": {
+    "rough_stone": {
+      "pattern": "stone",
+      "palette": {
+        "body": "88898B",
+        "shade": "70767D",
+        "light": "ACAAA4",
+        "accent": "97938A",
+        "cleft": "555D65"
+      },
+      "shape": "stone"
+    },
+    "cave_soil": {
+      "pattern": "soil",
+      "palette": {
+        "body": "78604C",
+        "shade": "5F4B3C",
+        "light": "95775A",
+        "accent": "B4A081",
+        "cleft": "483E34"
+      },
+      "shape": "soil"
+    },
+    "light_soil": {
+      "pattern": "soil",
+      "palette": {
+        "body": "AE8652",
+        "shade": "8B6A42",
+        "light": "C5A26B",
+        "accent": "DED0A9",
+        "cleft": "6B5238"
+      },
+      "shape": "soil"
+    },
+    "dark_soil": {
+      "pattern": "soil",
+      "palette": {
+        "body": "795236",
+        "shade": "5D3F2E",
+        "light": "986A40",
+        "accent": "B79B6D",
+        "cleft": "423127"
+      },
+      "shape": "soil"
+    },
+    "copper_ore": {
+      "pattern": "ore",
+      "palette": {
+        "body": "747B80",
+        "shade": "606B73",
+        "light": "A3A29B",
+        "cleft": "414D56",
+        "mineral": "A35C31",
+        "mineral_light": "D98A49"
+      },
+      "shape": "ore"
+    },
+    "tin_ore": {
+      "pattern": "ore",
+      "palette": {
+        "body": "77746B",
+        "shade": "666660",
+        "light": "A3A29B",
+        "cleft": "414D56",
+        "mineral": "8C998C",
+        "mineral_light": "BAC7B2"
+      },
+      "shape": "ore"
+    },
+    "iron_ore": {
+      "pattern": "ore",
+      "palette": {
+        "body": "70747B",
+        "shade": "5B626B",
+        "light": "A3A29B",
+        "cleft": "414D56",
+        "mineral": "79452F",
+        "mineral_light": "A9653E"
+      },
+      "shape": "ore"
+    },
+    "silver_ore": {
+      "pattern": "ore",
+      "palette": {
+        "body": "666F80",
+        "shade": "535E70",
+        "light": "A3A29B",
+        "cleft": "414D56",
+        "mineral": "A9B9CE",
+        "mineral_light": "DEE5EE"
+      },
+      "shape": "ore"
+    },
+    "gold_ore": {
+      "pattern": "ore",
+      "palette": {
+        "body": "747477",
+        "shade": "5F6268",
+        "light": "A3A29B",
+        "cleft": "414D56",
+        "mineral": "AE7A22",
+        "mineral_light": "E7B63B"
+      },
+      "shape": "ore"
+    },
+    "coal": {
+      "pattern": "coal",
+      "palette": {
+        "body": "29343D",
+        "shade": "1E2831",
+        "light": "485763",
+        "accent": "39454F",
+        "cleft": "182028"
+      },
+      "shape": "ore"
+    }
+  },
+  "mined_original_source": {
+    "source": "data/art/sources/stone_ore_dirt.vox",
+    "sha256": "d7e8b2e4f829d3fd7bbf2850b696d171e4c4d052eb66a784ad6422d53d5c6c1a",
+    "model_index": 0,
+    "size": [
+      16,
+      16,
+      16
+    ],
+    "cells": 1088,
+    "note": "Exact player-authored occupancy; source Z up maps to Godot Y up; centered and grounded with integer translation only. Four other saved models are not the stone shape."
+  }
+}

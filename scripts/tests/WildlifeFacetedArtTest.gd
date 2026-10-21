@@ -1,4 +1,5 @@
 extends "res://scripts/tests/DeerPilotArtTest.gd"
+const VoxelShadows = preload("res://scripts/components/VoxelShadowSetup.gd")
 
 func _run() -> void:
 	create_timer(60).timeout.connect(func(): push_error("Wildlife art timeout"); quit(1))
@@ -8,6 +9,7 @@ func _run() -> void:
 	var scene := Node3D.new(); root.add_child(scene); current_scene=scene
 	var wildlife=load("res://scripts/systems/WildlifeManager.gd").new()
 	scene.add_child(wildlife); wildlife.set_process(false)
+	if "--staged" in OS.get_cmdline_user_args(): preload("res://tools/voxel_assets/WildlifeGallery.gd").stage_models(wildlife)
 	var count := 0
 	for table in [wildlife._models,wildlife._deer_models,wildlife._wolf_models,wildlife._duck_models]:
 		for part: PackedScene in table.values():
@@ -16,8 +18,10 @@ func _run() -> void:
 			var asset := part.instantiate() as Node3D
 			expect(asset.transform.is_equal_approx(Transform3D.IDENTITY),"unit root")
 			expect(asset.find_children("*","CollisionObject3D",true,false).is_empty(),"no embedded collision")
-			var meshes := asset.find_children("*","MeshInstance3D",true,false)
-			expect(meshes.size()==1,"one mesh per part")
+			var pairs:=2 if part.resource_path.ends_with("/leg.glb") else 1
+			expect(VoxelShadows.configure(asset)==pairs,"one visual/proxy pair per rigid segment")
+			var meshes := VoxelShadows.visual_meshes(asset)
+			expect(meshes.size()==pairs,"one visual mesh per rigid segment")
 			for mesh: MeshInstance3D in meshes:
 				expect(mesh.transform.is_equal_approx(Transform3D.IDENTITY),"baked part origin")
 				expect(mesh.mesh.get_surface_count()==1,"one surface")
@@ -30,6 +34,9 @@ func _run() -> void:
 	expect(count==21,"all 21 parts")
 	for species in ["rabbit","deer","wolf","duck"]:
 		var actor: Node3D=wildlife.call("add_"+species,species+":geometry",Vector3i(40,21,40),155)
+		if species in ["deer","wolf"]:
+			for leg: Node3D in actor.legs:
+				expect(leg.get_node("Knee").get_child_count()==1,species+" movable lower leg")
 		var before: Dictionary=actor.serialize_state()
 		for activity in ["Idle","Wandering","Grazing" if species!="wolf" else "Eating","Sleeping"]:
 			var low := INF
@@ -40,8 +47,11 @@ func _run() -> void:
 				if species=="duck": actor.mode="land"
 				actor._pose()
 				var meshes: Array[Node]=[]
-				for mesh in actor.visual.find_children("*","MeshInstance3D",true,false):
+				for mesh in VoxelShadows.visual_meshes(actor.visual):
 					if mesh.is_visible_in_tree(): meshes.append(mesh)
+				for part: Node3D in actor.visual.find_children("*","Node3D",true,false):
+					expect(part.scale.is_equal_approx(Vector3.ONE),species+" rigid part "+String(part.name))
+				expect(actor.visual.scale.is_equal_approx(Vector3.ONE),species+" unit visual root")
 				var bounds := _local_bounds(actor,meshes)
 				low=minf(low,bounds.position.y); high=maxf(high,bounds.end.y)
 			expect(low>=-.025,species+" ground clearance "+activity+" %.4f"%low)
@@ -49,5 +59,5 @@ func _run() -> void:
 		actor.restore_state(before)
 		expect(actor.serialize_state()==before,species+" exact current-state restore")
 	for error in failures: push_error(error)
-	print("WILDLIFE_FACETED_ART_OK: %d imported and sampled live-pose checks"%checks if failures.is_empty() else "WILDLIFE_FACETED_ART_FAIL")
+	print("WILDLIFE_VOXEL_ART_OK: %d imported and sampled live-pose checks"%checks if failures.is_empty() else "WILDLIFE_VOXEL_ART_FAIL")
 	quit(0 if failures.is_empty() else 1)

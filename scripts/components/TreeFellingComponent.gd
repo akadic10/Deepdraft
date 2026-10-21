@@ -5,6 +5,7 @@ extends RefCounted
 # Boulders share the adjacent-work lease/release contract, with their own type
 # and tombstone field; presentation/loot remain with the owning system.
 var task_type: int = Task.Type.FELL_TREE
+var fruit_label := "fruit"
 var removed_key := "felled"
 var source_id := -1
 var lease_id := -1

@@ -1,0 +1,108 @@
+{
+  "status": "pass",
+  "source_sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+  "source_cells": 2072,
+  "source_tests": {
+    "test_log_chair.py": {
+      "tests": 3,
+      "result": "OK"
+    },
+    "test_furniture.py": {
+      "tests": 4,
+      "result": "OK"
+    }
+  },
+  "native_checks": {
+    "chair_staged_gallery": "VOXEL_GALLERY_PASS 50",
+    "chair_family_test": "FURNITURE_VOXEL_ART_OK: 864",
+    "chair_manifest_test": "VOXEL_MANIFEST_PASS 731",
+    "chair_material_test": "CRAFT_MATERIAL_OK",
+    "chair_dining_test": "DWARF_DINING_OK",
+    "chair_seating_test": "LOG_STOOL_OK",
+    "chair_campfire_test": "CAMPFIRE_STOOL_OK",
+    "chair_production_review": "LOG_CHAIR_REVIEW_OK",
+    "chair_thumbnail": "FURNITURE_THUMBNAILS_OK: 1",
+    "chair_benchmark": "LOG_CHAIR_BENCHMARK_OK"
+  },
+  "unchanged_furniture_glbs": 49,
+  "before": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 1664,
+        "visual_triangles": 196,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.9615384615384616,
+          "triangles": 68
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.75,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 26252,
+    "sha256": "3af678d5b927bd7126c937945e9b2612f0f25c1d3907f86875635c5a053e9d6d",
+    "path": "assets/models/furniture/log_chair.glb",
+    "authoring": {
+      "piece": "log_chair"
+    }
+  },
+  "after": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2072,
+        "visual_triangles": 402,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.972972972972973,
+          "triangles": 84
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 46684,
+    "sha256": "0660fd759ce48da277ab096afbdc5ed374f2fe6f7507d97f6216f701172faa3d",
+    "path": "assets/models/furniture/log_chair.glb",
+    "authoring": {
+      "piece": "log_chair",
+      "source": {
+        "source": "data/art/sources/log_logchair.vox",
+        "sha256": "5b189c644c1fd1f0f7f7e73cf0e0e9545cfe8bb2609195352bc121280eda768b",
+        "model_index": 0,
+        "size": [
+          16,
+          16,
+          16
+        ],
+        "cells": 2072,
+        "palette_source": "camp_log",
+        "note": "Exact player stump occupancy at 1:16; bark on the horizontal perimeter, exposed cut wood and growth rings inside. Uses existing semantic wood material roles."
+      }
+    }
+  },
+  "byte_identical_rebuild": "VOXEL_BUILD_OK furniture verified 50",
+  "editable_variants": {
+    "applewood.vox": "f6d187509992bdbe3faf157aa6496bd2a0adf4770e9e145b9d76b8d3c1d11625",
+    "juniper.vox": "3bdbfd7674c31e1b9083f1a47332728b580d3d70c7dc19a0eec70fe0ed91eb22",
+    "oak.vox": "752820d1ec58f51a4973b3cf6431953437c17a8d9111da0ab398cec796779265",
+    "pine.vox": "dfdfb9c1e64b9756469d4658402d2fb8fe4599506ec0b61500153d7941880386"
+  }
+}

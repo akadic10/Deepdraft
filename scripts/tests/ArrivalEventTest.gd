@@ -163,7 +163,7 @@ func _run() -> void:
 	var blocker := _cell(2)
 	var old_block: int = navigation.block_at(blocker)
 	_materialize(blocker)
-	world.set_block(blocker.x, blocker.y, blocker.z, root.get_node("BlockRegistry").get_id("base:terrain:stone:granite"))
+	world.set_block(blocker.x, blocker.y, blocker.z, root.get_node("BlockRegistry").get_id("base:terrain:rock:rock01"))
 	# Clock must be within the stored opportunity for this route check.
 	clock_node.restore_state({"year": 1, "season": "summer", "day": 1, "hour": 8.0, "speed": 1.0, "paused": false})
 	events.schedules.rabbit_arrival.active.due = clock_node.elapsed_days()
@@ -194,7 +194,7 @@ func _test_blocked_edges() -> void:
 	# A narrow flat edge strip surrounded by void. A wall, water or missing
 	# support across the strip must prevent entry, without unrelated detours.
 	var grass: int = root.get_node("BlockRegistry").get_id("base:terrain:surface:grass_01")
-	var stone: int = root.get_node("BlockRegistry").get_id("base:terrain:stone:granite")
+	var stone: int = root.get_node("BlockRegistry").get_id("base:terrain:rock:rock01")
 	for x in range(0, 64):
 		for z in range(400, 416):
 			for y in range(16, 32): world.set_block(x, y, z, 0)

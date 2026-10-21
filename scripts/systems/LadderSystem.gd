@@ -267,6 +267,7 @@ func make_visual(height: int, built: int, ghost_material: Material = null, mater
 	for offset in range(0, height, section_height()):
 		var packed: PackedScene = load(String(definition.ladder.models[str(section_height())]))
 		var mesh: Node3D = packed.instantiate()
+		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(mesh,offset<built)
 		mesh.position.y = offset
 		root_node.add_child(mesh)
 		if offset >= built:

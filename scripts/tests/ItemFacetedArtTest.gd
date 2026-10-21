@@ -8,11 +8,13 @@ var items
 var definitions: Dictionary
 var inspected := {}
 var keys: Array[String]=[]
+var staged_assets: Array[PackedScene] = []
 
 func _init() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
+	if "--staged" in OS.get_cmdline_user_args(): staged_assets=preload("res://tools/voxel_assets/StagedAssets.gd").install("items")
 	create_timer(90).timeout.connect(func(): push_error("Item art test timed out"); quit(1))
 	for id in ["SaveManager","WorldClock","TaskManager","RoomManager","StockpileManager","SkyController","WeatherManager"]:
 		root.get_node(id).set_process(false)
@@ -46,20 +48,22 @@ func _run() -> void:
 			var models: Array=definition.crate_models
 			_expect((bounds_by_stage[models[2]] as AABB).size.y>(bounds_by_stage[models[0]] as AABB).size.y,"full crate visibly higher "+key)
 		if definition.get("material_palette","")=="starter_tool": _wood_variants(key,definition)
-	_expect(keys.size()==62 and inspected.size()==92,"all 62 definitions / 92 presentations imported")
+	_expect(keys.size()==58 and inspected.size()==88,"all 58 definitions / 88 presentations imported")
 	_expect(items._missing_models.is_empty(),"zero fallback models")
 	_work_tools()
 	_carry()
+	_timber_storage()
 	DirAccess.make_dir_recursive_absolute("res://tmp/item_art_20261013")
 	var report := {"checks":checks,"failures":failures,"items":keys.size(),"presentations":inspected.size()}
 	FileAccess.open("res://tmp/item_art_20261013/imported_checks.json",FileAccess.WRITE).store_string(JSON.stringify(report,"  "))
 	for failure in failures: push_error(failure)
-	if failures.is_empty(): print("ITEM_FACETED_ART_OK: ",JSON.stringify(report))
+	if failures.is_empty(): print("ITEM_VOXEL_ART_OK: ",JSON.stringify(report))
 	quit(0 if failures.is_empty() else 1)
 
 func _inspect(prop: Node3D,path: String) -> AABB:
-	var meshes := prop.find_children("*","MeshInstance3D",true,false)
-	if prop is MeshInstance3D: meshes.push_front(prop)
+	var shadows = preload("res://scripts/components/VoxelShadowSetup.gd")
+	var meshes := shadows.visual_meshes(prop)
+	_expect(shadows.configure(prop)==1,"one visual/proxy pair "+path)
 	_expect(prop.transform.is_equal_approx(Transform3D.IDENTITY),"unit export "+path)
 	_expect(meshes.size()==1 and meshes[0].mesh is ArrayMesh,"one actual mesh "+path)
 	var mesh: MeshInstance3D=meshes[0]
@@ -77,7 +81,11 @@ func _inspect(prop: Node3D,path: String) -> AABB:
 			valid=valid and vertices[i].is_finite() and absf(normals[i].length()-1)<.001
 			radial=maxf(radial,Vector2(vertices[i].x,vertices[i].z).length())
 		_expect(valid,"finite vertices / unit normals "+path)
-		if "/crates/" in path or "/wood/" in path: _expect(radial<=.501,"one-tile yaw footprint "+path)
+		if "/crates/" in path or path.ends_with("/oak_stave.glb"):
+			_expect(radial<=.501,"one-tile yaw footprint "+path)
+		elif "/wood/" in path:
+			# Full-size player logs use aligned stockpile slots; loose drops may yaw.
+			_expect(bounds.size.is_equal_approx(Vector3.ONE*.875),"exact player log size "+path)
 		inspected[path]=true
 	return bounds
 
@@ -111,6 +119,7 @@ func _wood_variants(key: String,definition: Dictionary) -> void:
 
 func _colors(node: Node) -> PackedColorArray:
 	var result := PackedColorArray()
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return result
 	if node is MeshInstance3D: result.append_array(node.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR])
 	for child in node.get_children(): result.append_array(_colors(child))
 	return result
@@ -123,8 +132,12 @@ func _work_tools() -> void:
 		_expect(prop.transform.is_equal_approx(Transform3D.IDENTITY),"tool grip origin retained")
 		var mesh: MeshInstance3D=prop.find_children("*","MeshInstance3D",true,false)[0]
 		var vertices: PackedVector3Array=mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var indices: PackedInt32Array=mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX]
 		var error := INF
-		for vertex in vertices: error=minf(error,vertex.distance_to(spec[1]))
+		# Greedy faces can contain the contact inside a triangle instead of at a vertex.
+		for i in range(0,indices.size(),3):
+			var point = Geometry3D.ray_intersects_triangle(spec[1]+Vector3(0,0,.1),Vector3.FORWARD,vertices[indices[i]],vertices[indices[i+1]],vertices[indices[i+2]])
+			if point!=null: error=minf(error,point.distance_to(spec[1]))
 		_expect(error<.001,"actual geometry contains fixed impact point")
 		var box := mesh.get_aabb()
 		_expect(box.has_point(Vector3.ZERO) and box.has_point(Vector3(0,.625,0)),"shaft covers both grip anchors")
@@ -156,6 +169,18 @@ func _carry() -> void:
 		for entry in entries: entry[0].free()
 		dwarf._carry_pose.clear_items()
 	dwarf.free()
+
+func _timber_storage() -> void:
+	for name in ["pine_log","oak_log","juniper_log","apple_wood"]:
+		var key: String="base:resources:wood:"+name
+		var prop: Node3D=items.create_item_visual(key)
+		scene.add_child(prop);prop.rotation.y=.7;prop.scale=Vector3.ONE*.3
+		items.place_stored(prop,Vector3i(40,20,40))
+		var bounds: AABB=load("res://scripts/components/ObjectPicking.gd").world_bounds(prop)
+		_expect(prop.rotation.is_zero_approx() and prop.scale.is_equal_approx(Vector3.ONE),"stockpile preserves sideways model at unit scale "+name)
+		_expect(bounds.size.is_equal_approx(Vector3.ONE*.875) and absf(bounds.position.y-21)<.001,"full-size grounded stored log "+name)
+		_expect(bounds.position.x>=40 and bounds.end.x<=41 and bounds.position.z>=40 and bounds.end.z<=41,"stored log remains inside its tile "+name)
+		prop.free()
 
 func _expect(ok: bool,message: String) -> void:
 	checks+=1

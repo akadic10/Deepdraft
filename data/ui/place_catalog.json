@@ -38,18 +38,6 @@
       "tooltip": "Games and places to relax together."
     },
     {
-      "id": "storage",
-      "label": "Storage",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        622,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Shelves, chests and barrels."
-    },
-    {
       "id": "lighting",
       "label": "Lighting",
       "icon": "res://assets/ui/dock/categories_atlas.png",
@@ -129,14 +117,9 @@
       "label": "Settlement flag"
     },
     {
-      "key": "base:furniture:wooden_table",
+      "key": "base:furniture:log_table",
       "category": "dining",
-      "label": "Personal table"
-    },
-    {
-      "key": "base:furniture:wooden_chair",
-      "category": "dining",
-      "label": "Wooden chair"
+      "label": "Log Dining Table"
     },
     {
       "key": "base:furniture:log_chair",
@@ -144,34 +127,9 @@
       "label": "Log stool"
     },
     {
-      "key": "base:furniture:communal_table",
-      "category": "dining",
-      "label": "Communal table"
-    },
-    {
       "key": "base:furniture:bench",
       "category": "dining",
       "label": "Log bench"
-    },
-    {
-      "key": "base:furniture:tavern_bar",
-      "category": "dining",
-      "label": "Tavern bar"
-    },
-    {
-      "key": "base:furniture:barrel",
-      "category": "storage",
-      "label": "Barrel"
-    },
-    {
-      "key": "base:furniture:storage_chest",
-      "category": "storage",
-      "label": "Storage chest"
-    },
-    {
-      "key": "base:furniture:storage_shelf",
-      "category": "storage",
-      "label": "Storage shelf"
     },
     {
       "key": "base:furniture:wooden_torch",
@@ -182,16 +140,6 @@
       "key": "base:furniture:campfire",
       "category": "lighting",
       "label": "Campfire"
-    },
-    {
-      "key": "base:furniture:wall_torch",
-      "category": "lighting",
-      "label": "Wall torch"
-    },
-    {
-      "key": "base:furniture:brazier",
-      "category": "lighting",
-      "label": "Brazier"
     },
     {
       "key": "base:furniture:door",
@@ -209,44 +157,14 @@
       "label": "Double log door (4 wide)"
     },
     {
-      "key": "base:furniture:dwarf_bunk",
-      "category": "rooms",
-      "label": "Dwarven bed"
-    },
-    {
       "key": "base:furniture:hearth",
       "category": "rooms",
       "label": "Rudimentary hearth"
     },
     {
-      "key": "base:furniture:trade_counter",
-      "category": "workshops",
-      "label": "Trade counter"
-    },
-    {
-      "key": "base:furniture:brewing_vat",
-      "category": "workshops",
-      "label": "Brewing vat"
-    },
-    {
       "key": "base:furniture:crude_workbench",
       "category": "workshops",
       "label": "Crude workbench"
-    },
-    {
-      "key": "base:furniture:anvil",
-      "category": "workshops",
-      "label": "Anvil"
-    },
-    {
-      "key": "base:furniture:smelter",
-      "category": "workshops",
-      "label": "Smelter"
-    },
-    {
-      "key": "base:furniture:aging_rack",
-      "category": "workshops",
-      "label": "Aging rack"
     },
     {
       "key": "base:flora:blueberry_bush",

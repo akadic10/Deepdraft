@@ -2,7 +2,7 @@ extends "res://scripts/tests/HaulingAnimationTest.gd"
 
 const ORE := "base:resources:ore:iron"
 const COAL := "base:resources:ore:coal"
-const PACKED := "base:resources:furniture:barrel"
+const PACKED := "base:resources:furniture:log_table"
 const OWNER := 901
 
 

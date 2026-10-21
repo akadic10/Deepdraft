@@ -102,6 +102,14 @@ See [80 — Shrub cutting growth](../00_dev_roadmap/80_shrub_cutting_growth.md).
 
 ## Agricultural Cycles
 
+**Apple harvesting — live 2026-10-19:** inspector **Gather apples** and **Orders →
+Harvest plants** gather fruit without felling. Mature trees yield 4–6 apples in
+four seconds; ancient trees yield 7–10 in six seconds, once each autumn. Saplings
+are too young. The fruit disappears after picking and returns next autumn;
+partial work and picked state survive saving. Gathered apples enter normal
+hauling and hungry dwarves can eat them. These are player-designated jobs, with
+no automatic annual orders. See [252 — Apple harvesting](../00_dev_roadmap/252_apple_harvesting.md).
+
 **Juniper harvesting — live 2026-10-09:** standing mature and ancient junipers
 yield 2 and 4 berries respectively once each autumn, after three seconds of hand
 picking. Saplings are too young. Inspector **Harvest berries** and **Orders →
@@ -371,11 +379,12 @@ Multi-cell plant visual meshes (e.g. a tall mushroom tree that visually spans 2�
 
 Surface trees are **world objects, not farm crops**. They are the only surface entities that carry real `StaticBody3D` + `CollisionShape3D` collision. Dwarves path *around* them; they do not walk through.
 
-**Runtime status (2026-10-04):** tree inspection and single/batch tree felling are live via
-the existing Chop → Chop Trees menu and explorer actions. Per-stage work durations,
+**Runtime status (2026-10-19):** tree inspection and single/batch tree felling are live via
+**Orders → Chop trees** and explorer actions. Per-stage work durations,
 partial progress, designations and felled records persist; authored felling drops
-enter the normal hauling system. Growth timers, annual fruit gathering and forestry
-zones remain planned. See doc 48 for behavior and acceptance coverage.
+enter the normal hauling system. Manual annual apple and juniper picking is live
+through **Orders → Harvest plants** and explorer actions. Growth timers and forestry
+zones remain planned. See docs 48, 84 and 252 for behavior and acceptance coverage.
 
 ### Collision Rule
 
@@ -402,28 +411,43 @@ All trees share the same three-stage pattern:
 
 **Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 2×2. Full schema: `data/entities/flora/juniper_tree.json`.
 
-**Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Apple has perennial fruit definitions and autumn visuals; its worker harvest remains planned. Juniper now has playable perennial picking, described above. Full apple schema: `data/entities/flora/apple_tree.json`.
+**Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Mature and ancient trees support perennial autumn picking, described above, with distinct ripe and picked visuals. Full apple schema: `data/entities/flora/apple_tree.json`.
 
 **Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner` (see `docs/00_dev_roadmap/13_flora_scatter_pine.md`). Full schema: `data/entities/flora/pine_tree.json`.
 
 ### Fruit Trees
 
-**Implementation boundary:** juniper's player-designated annual picking is live
-in milestone 84. The automatic apple harvest behavior below remains a design
-target; this change does not add apple worker jobs or automatic harvesting.
+**Implementation boundary:** player-designated annual picking is live for
+juniper (84) and apple (252). Neither species automatically queues harvest orders.
 
 A fruit tree has two independent harvest mechanisms:
 
-**1. Fruit harvest (non-destructive, annual):** Defined by a `fruit_harvest` block on the stage. Each autumn, the tree auto-enters a FRUITING state and a harvest task is queued. A dwarf picks the fruit and deposits it in the nearest food stockpile. The tree persists (`post_harvest: "persist"`). No player action needed beyond having idle dwarves.
+**1. Fruit harvest (non-destructive, annual):** Defined by a `fruit_harvest` block
+on the stage. Each autumn, eligible trees become ready to harvest. The player
+designates picking through the inspector or Harvest plants click/drag tool. A
+dwarf gathers fruit by hand at a reachable side of the trunk and leaves the
+crop there for ordinary hauling or eating. The tree persists
+(`post_harvest: "persist"`). Cancel/Undo releases the worker without losing the
+current crop's partial work. The same tree cannot be picked twice that autumn;
+the next year's crop starts with fresh work. No automatic annual orders are posted.
 
-For world-spawned apple trees, `SurfaceFloraSpawner.resolve_tree_model_for_season()` treats autumn stages with a `fruit_harvest` block as fruiting and resolves `autumn_fruiting` when that model key exists. Later harvest-state persistence can replace this with per-entity pending/harvested state, but the visual fruiting model must remain reachable through the canonical resolver.
+For world-spawned apple trees, `SurfaceFloraSpawner.resolve_tree_model_for_season()`
+selects `autumn_fruiting` only while that autumn's crop is unpicked. After picking,
+it uses the matching ordinary autumn model without fruit. Saved crop state drives
+the choice after reload or streaming; the trunk body and occupancy remain intact.
 
 **2. Chop harvest (destructive):** Works the same as any other tree — dwarf fells the tree, yielding wood and a seed drop. Apples come exclusively from the non-destructive fruit harvest, not the fell.
 
 | Species | Fruit item | Season | Mature yield | Ancient yield |
 |---|---|---|---|---|
 | Apple | `base:resources:flora:apple` | Autumn | 4–6 | 7–10 |
-| Juniper (live manual picking) | `base:resources:flora:juniper_berry` | Autumn | 2 | 4 |
+| Juniper | `base:resources:flora:juniper_berry` | Autumn | 2 | 4 |
+
+Apple yields use a deterministic tree/year hash within the authored inclusive
+range. Picking takes four seconds for mature apples and six for ancient apples;
+juniper picking takes three seconds at either adult stage. These values live in
+JSON. Hungry dwarves eat gathered fruit through the normal food system; emergency
+self-foraging of standing plants still targets nearby ripe berry shrubs.
 
 > **Agent note**: Trees are the **only** surface entities with real collision shapes. Giving a `CollisionShape3D` to any farm crop violates the Single-Tile Asset Overflow Rule above.
 

@@ -6,6 +6,7 @@ var _triangles: Dictionary = {}
 
 
 func hit_distance(node: Node3D, start: Vector3, end: Vector3) -> float:
+	if preload("VoxelShadowSetup.gd").is_proxy(node): return INF
 	if not is_instance_valid(node) or not node.is_visible_in_tree():
 		return INF
 	var nearest := INF
@@ -43,6 +44,7 @@ static func world_bounds(node: Node3D) -> AABB:
 ## Animated actors can retain hidden tools. Only visible geometry belongs in
 ## their selection bounds; collision and navigation boxes remain unchanged.
 static func visible_world_bounds(node: Node3D) -> AABB:
+	if preload("VoxelShadowSetup.gd").is_proxy(node): return AABB()
 	if not node.is_visible_in_tree():
 		return AABB()
 	var result := AABB()
@@ -57,6 +59,7 @@ static func visible_world_bounds(node: Node3D) -> AABB:
 
 
 static func _collect_bounds(node: Node, boxes: Array[AABB]) -> void:
+	if preload("VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
 		var visual := node as MeshInstance3D
 		boxes.append(visual.global_transform * visual.get_aabb())

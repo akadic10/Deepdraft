@@ -1,0 +1,469 @@
+{
+  "family": "crops",
+  "grid": 16,
+  "complete": true,
+  "assets": [
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 168,
+          "visual_triangles": 300,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 284
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.5,
+            0.625,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 55684,
+      "sha256": "9070f26041ab56ae964e4c30b10b028a1b417e801436e28bc766e676c0a1d0a2",
+      "path": "assets/models/flora/crops/grape/grape_cutting.glb",
+      "authoring": {
+        "species": "grape_vine",
+        "stage": "cutting",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 544,
+          "visual_triangles": 894,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 850
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            0.5,
+            1.75,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 162416,
+      "sha256": "26129f60f44f5eb95b366f689efa08515922d420b527f31f8e2ef5861d8dbac1",
+      "path": "assets/models/flora/crops/grape/grape_budding.glb",
+      "authoring": {
+        "species": "grape_vine",
+        "stage": "fruiting",
+        "season": "spring",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 773,
+          "visual_triangles": 1092,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1040
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5,
+            1.75,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 198124,
+      "sha256": "e6bf8b0785a9cd35a8f25809dba45f8cb606793dbfa304c0db516a9788f18998",
+      "path": "assets/models/flora/crops/grape/grape_fruiting.glb",
+      "authoring": {
+        "species": "grape_vine",
+        "stage": "fruiting",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 773,
+          "visual_triangles": 1092,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1040
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5,
+            1.75,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 198124,
+      "sha256": "5536d5ab949a5dce2b91e16ce633867a5d96c74d01885eb366d99d70c2fea9e3",
+      "path": "assets/models/flora/crops/grape/grape_harvest.glb",
+      "authoring": {
+        "species": "grape_vine",
+        "stage": "fruiting",
+        "season": "autumn",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 191,
+          "visual_triangles": 398,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 398
+          },
+          "min": [
+            -0.1875,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            0.1875,
+            1.75,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 75208,
+      "sha256": "d5b7b4c4f391e5a6399cd42bcc34638793ee563c2bbb1ba37a50bf3649242621",
+      "path": "assets/models/flora/crops/grape/grape_dormant.glb",
+      "authoring": {
+        "species": "grape_vine",
+        "stage": "fruiting",
+        "season": "winter",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 168,
+          "visual_triangles": 300,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 284
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.25
+          ],
+          "max": [
+            0.5,
+            0.625,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 55684,
+      "sha256": "929581d42ca3fe1138f04e0ae3a103566293a835333fc3c47b8308e0d8f0c1ac",
+      "path": "assets/models/flora/crops/hops/hops_seedling.glb",
+      "authoring": {
+        "species": "hops_plant",
+        "stage": "seedling",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 527,
+          "visual_triangles": 860,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 816
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            0.5,
+            1.75,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 156164,
+      "sha256": "9119bfa0f6b3e4e5442ba953151348dd5900896f689e7116d635f32cafd0f3a8",
+      "path": "assets/models/flora/crops/hops/hops_climbing.glb",
+      "authoring": {
+        "species": "hops_plant",
+        "stage": "climbing",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 840,
+          "visual_triangles": 1222,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1166
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5,
+            2.625,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 221676,
+      "sha256": "5bd22ded3e3d011b081679d7ad143755ed13c3b501c8ae6dd6d7b67da27a4adf",
+      "path": "assets/models/flora/crops/hops/hops_mature.glb",
+      "authoring": {
+        "species": "hops_plant",
+        "stage": "mature",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 840,
+          "visual_triangles": 1222,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1166
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5,
+            2.625,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 221684,
+      "sha256": "02239633117701b2f722d695da07ff0d2e6beb36be143c527cf3da7d430a43f7",
+      "path": "assets/models/flora/crops/hops/hops_mature_autumn.glb",
+      "authoring": {
+        "species": "hops_plant",
+        "stage": "mature",
+        "season": "autumn",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 268,
+          "visual_triangles": 534,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 492
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5625,
+            0.5625,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 96376,
+      "sha256": "f40d88de865b90fb666280913e9c06e4a109206ea3ec6cdf0219fa0d36c50b80",
+      "path": "assets/models/flora/crops/pig_tail/pig_tail_seedling.glb",
+      "authoring": {
+        "species": "pig_tail_plant",
+        "stage": "seedling",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 499,
+          "visual_triangles": 736,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 606
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5,
+            1.8125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 125448,
+      "sha256": "b6daa85036a099cdf73ed39c7be81ff10cc1dc43e3b97efc8c2745b15da73af3",
+      "path": "assets/models/flora/crops/pig_tail/pig_tail_mature.glb",
+      "authoring": {
+        "species": "pig_tail_plant",
+        "stage": "mature",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 499,
+          "visual_triangles": 626,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 606
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5625
+          ],
+          "max": [
+            0.5,
+            1.8125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 115332,
+      "sha256": "1a67f657b89533e276560e3c37707bfa57b4f50c6e87c27569ec15c087b88961",
+      "path": "assets/models/flora/crops/pig_tail/pig_tail_mature_autumn.glb",
+      "authoring": {
+        "species": "pig_tail_plant",
+        "stage": "mature",
+        "season": "autumn",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 224,
+          "visual_triangles": 200,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 162
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.4375,
+            0.5,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 35280,
+      "sha256": "cada5ab783600601ae5ce9ea6a9fd16161ecddec5380e2e3d5669aff63dddd72",
+      "path": "assets/models/flora/crops/plump_helmet/plump_helmet_sprouting.glb",
+      "authoring": {
+        "species": "plump_helmet",
+        "stage": "sprouting",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3417,
+          "visual_triangles": 1018,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7199297629499561,
+            "triangles": 388
+          },
+          "min": [
+            -0.75,
+            0.0,
+            -0.6875
+          ],
+          "max": [
+            0.6875,
+            1.5,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 131336,
+      "sha256": "93344058de81d8d623ab2710503513e4eedf98a05dc091b28b2eb37e203c2371",
+      "path": "assets/models/flora/crops/plump_helmet/plump_helmet_mature.glb",
+      "authoring": {
+        "species": "plump_helmet",
+        "stage": "mature",
+        "season": "summer",
+        "integration": "art_and_data_only"
+      }
+    }
+  ]
+}

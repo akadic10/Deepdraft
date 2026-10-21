@@ -79,7 +79,7 @@ func _run() -> void:
 		expect(mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]==source_colors,part+" shared source unchanged")
 		if part=="log_chair":
 			var hit: float=picking.hit_distance(original,Vector3(0,2,0),Vector3(0,-1,0))
-			expect(absf((2-hit)-.75)<.001,"selectable seat top at .75")
+			expect(absf((2-hit)-.875)<.001,"player-authored selectable seat top at .875")
 		if part=="log_bed":
 			var hit: float=picking.hit_distance(original,Vector3(.2,2,.2),Vector3(.2,-1,.2))
 			expect(2-hit>=.70 and 2-hit<=.80,"central bedding supports existing .75 sleep surface")

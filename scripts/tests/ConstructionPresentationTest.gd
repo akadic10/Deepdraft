@@ -62,8 +62,22 @@ func _run() -> void:
 	environment.environment.fog_enabled = false
 	order.materials.tick_site(0,127)
 	_expect(order.materials._contents.get_child_count()==3,"crate visibly contains staged stones")
-	for mesh in order.materials.visual.find_children("*","MeshInstance3D",true,false):
+	for mesh in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(order.materials.visual):
 		_expect(mesh.material_override!=null,"crate and contents have their world materials")
+	for proxy in order.materials.visual.find_children("VoxelShadowProxy*","MeshInstance3D",true,false):
+		_expect(proxy.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY,"crate/content proxies cast shadows only")
+	var hammer: Node3D=worker._construction_pose.HAMMER.instantiate()
+	var hammer_mesh: MeshInstance3D=preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(hammer)[0]
+	var hammer_arrays: Array=hammer_mesh.mesh.surface_get_arrays(0)
+	var hammer_vertices: PackedVector3Array=hammer_arrays[Mesh.ARRAY_VERTEX]
+	var hammer_indices: PackedInt32Array=hammer_arrays[Mesh.ARRAY_INDEX]
+	var contact: Vector3=worker._construction_pose.MODEL_POINT
+	var contact_on_surface := false
+	for i in range(0,hammer_indices.size(),3):
+		var hit_point=Geometry3D.ray_intersects_triangle(contact+Vector3.RIGHT*.1,Vector3.LEFT,hammer_vertices[hammer_indices[i]],hammer_vertices[hammer_indices[i+1]],hammer_vertices[hammer_indices[i+2]])
+		if hit_point!=null and hit_point.distance_to(contact)<.001: contact_on_surface=true
+	_expect(contact_on_surface,"construction contact lies on the actual imported voxel hammer head")
+	hammer.free()
 	construction._rebuild_visuals()
 	# Opaque reference block makes the strike readable without three overlaid
 	# blueprint faces hiding the tool in these close-up animation captures.

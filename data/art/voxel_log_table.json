@@ -1,0 +1,16 @@
+{
+  "source": "data/art/sources/log_top.vox",
+  "sha256": "db7eadf244cb19a77dbf01e331d725515d7c4e04f0d7d205d38c039cc4703dd6",
+  "model_index": 0,
+  "size": [
+    48,
+    48,
+    20
+  ],
+  "cells": 6464,
+  "base_diameter_cells": 16,
+  "base_height_cells": 16,
+  "palette_source": "camp_log",
+  "note": "Player source defines the approved envelope at 1:16. Deterministic organic detail carves bark flutes, drying cracks and small imperfections within that envelope; dimensions and supported contact heights are preserved. Original VOX remains unchanged.",
+  "organic_detail": "data/art/voxel_log_detail.json"
+}

@@ -37,15 +37,18 @@ func installed(piece) -> bool:
 	return piece != null and is_instance_valid(piece.node) and not piece.flagged_uninstall \
 		and furniture._installed.get(piece.installed_id) == piece
 
+func _search_radius(table) -> float:
+	# Once somebody has committed to a table, include companions across the
+	# colony and the detour around the opposite stool, not just immediate leisure.
+	return float(config.partner_search_radius if games.has(table.installed_id) else config.search_radius)
+
 func seats(table) -> Array:
 	if not installed(table): return []
 	var slots: Array = furniture.get_dining_seats(table.installed_id)
-	if slots.size() != 2: return []
 	var result: Array = []
 	for slot: Dictionary in slots:
 		var seat = furniture._installed.get(slot.chair_id)
-		if not installed(seat): return []
-		result.append(seat)
+		if installed(seat): result.append(seat)
 	return result
 
 func tick(seconds: float) -> void:
@@ -62,11 +65,11 @@ func tick(seconds: float) -> void:
 				return
 			var table = tables.pop_front()
 			var chairs := seats(table)
-			if chairs.size() != 2: return
+			if chairs.is_empty(): return
 			for chair in chairs:
 				if chair.idle_seat_owner >= 0: continue
 				for agent in TaskManager._agents.values():
-					if eligible(agent) and Vector3(agent.current_cell()-chair.origin_cell).length() <= float(config.search_radius):
+					if eligible(agent) and Vector3(agent.current_cell()-chair.origin_cell).length() <= _search_radius(table):
 						candidates.append({"table":table,"seat":chair,"agent":agent})
 			return
 		choice = candidates.pop_front()
@@ -75,7 +78,7 @@ func tick(seconds: float) -> void:
 	var table = choice.table
 	var seat = choice.seat
 	var agent = choice.agent
-	if not eligible(agent) or seats(table).size() != 2 or not installed(seat) or seat.idle_seat_owner >= 0:
+	if not eligible(agent) or seat not in seats(table) or seat.idle_seat_owner >= 0:
 		choice = {}; return
 	if not furniture._seating.placement_reason(seat.def,seat.origin_cell,seat.yaw_steps,seat).is_empty():
 		choice = {}; return
@@ -89,7 +92,7 @@ func tick(seconds: float) -> void:
 	var result := Route.advance(route,agent.current_cell(),goals.keys()[0],int(config.search_nodes),
 		Time.get_ticks_usec()+int(config.search_budget_usec),false,goals)
 	if result == NavGrid.ProbeResult.SEARCHING: return
-	if result == NavGrid.ProbeResult.REACHABLE and Travel.path_length(agent.current_cell(),route.path) <= float(config.search_radius):
+	if result == NavGrid.ProbeResult.REACHABLE and Travel.path_length(agent.current_cell(),route.path) <= _search_radius(table):
 		var previous: Vector3i = agent.current_cell()
 		var private_route := true
 		for cell: Vector3i in route.path:
@@ -110,6 +113,7 @@ class Game extends RefCounted:
 	var players: Array[Dictionary] = []
 	var elapsed := 0.0
 	var playing := false
+	var together := false
 	var ended := false
 	var revision := -1
 
@@ -135,7 +139,8 @@ class Game extends RefCounted:
 	func valid() -> bool:
 		if ended or not is_instance_valid(controller): return false
 		var manager = controller._games
-		if manager.seats(table).size() != 2: return false
+		if not manager.installed(table): return false
+		var available: Array = manager.seats(table)
 		for cell: Vector3i in table.cells:
 			if not BlockRegistry.is_solid(NavGrid._block_id(cell.x,cell.y,cell.z)): return false
 		for player in players:
@@ -143,7 +148,7 @@ class Game extends RefCounted:
 			var seat = player.seat
 			if not is_instance_valid(agent) or agent.is_queued_for_deletion() or agent._recreation != self: return false
 			if agent.is_sleeping() or agent.is_eating() or agent.promotion_pending() or agent._food.hungry() or agent.sleep <= DwarfAgent.SLEEP_THRESHOLD: return false
-			if not manager.installed(seat) or seat.idle_seat_owner != agent.dwarf_id: return false
+			if seat not in available or seat.idle_seat_owner != agent.dwarf_id: return false
 			if not NavGrid.is_walkable(player.goal) or not Privacy.allowed(seat.origin_cell,agent.dwarf_id): return false
 			for cell: Vector3i in seat.cells:
 				if not BlockRegistry.is_solid(NavGrid._block_id(cell.x,cell.y,cell.z)): return false
@@ -153,11 +158,20 @@ class Game extends RefCounted:
 
 	func tick(seconds: float) -> void:
 		if not valid(): cancel(); return
-		if not playing and players.size() == 2 and players.all(func(p): return p.arrived and p.blend >= 1.0):
+		var ready := 0
+		for player in players:
+			if player.arrived and player.blend >= 1.0: ready += 1
+		if (not playing and ready>0) or (not together and ready==2):
 			playing = true
+			together = ready==2
+			# Both players must actually play a full shared game for the larger
+			# reward. Travelling to a nearly finished solo game earns nothing.
 			elapsed = 0.0
 		elapsed += seconds
-		if playing and elapsed >= float(config.play_seconds): cancel(-1,true)
+		var duration := float(config.play_seconds)
+		# Give an already recruited partner bounded time to reach the spare stool.
+		if playing and not together and players.size()==2: duration = maxf(duration,float(config.wait_seconds))
+		if playing and elapsed >= duration: cancel(-1,true)
 		elif not playing and elapsed >= float(config.wait_seconds): cancel()
 
 	func tick_actor(agent: DwarfAgent, seconds: float) -> void:
@@ -184,19 +198,20 @@ class Game extends RefCounted:
 		var agent: DwarfAgent = player.agent
 		var seat: InstalledFurnitureComponent = player.seat
 		var base := agent.to_local(seat.node.global_position)
-		var pose: Dictionary = seat.def.seating_chair.rest_pose
+		var pose: Dictionary = controller._seating.chair_settings(seat).rest_pose
 		var blend := smoothstep(0,1,player.blend)
-		for pair in [[agent._body,"body"],[agent._head,"body"],[agent._hand_l,"left_hand"],[agent._hand_r,"right_hand"],[agent._foot_l,"left_foot"],[agent._foot_r,"right_foot"]]:
-			var values: Array = pose[pair[1]]
+		for pair in [[agent._body,"body"],[agent._head,"head"],[agent._hand_l,"left_hand"],[agent._hand_r,"right_hand"],[agent._foot_l,"left_foot"],[agent._foot_r,"right_foot"]]:
+			var values: Array = pose.get(pair[1],pose.body)
 			if is_instance_valid(pair[0]): pair[0].position = (base+Vector3(values[0],values[1],values[2]))*blend
 		if playing:
 			# Alternating detached-hand reaches; no arm/leg geometry or inventory pieces.
-			var turn := int(elapsed/2.0)%2 == players.find(player)
+			var turn := not together or int(elapsed/2.0)%2 == players.find(player)
 			var reach := sin(fmod(elapsed,2.0)*PI/2.0) if turn else 0.0
 			# Target the log's surface from either seat and in every rotation.
 			# The mirrored palm uses the shared dwarf authoring anchor.
 			var palm := Vector3(-1.0625,1.25,.1875)
-			var target := agent.to_local(table.node.global_position) + Vector3(-.5,float(table.def.game_surface_height)+.28,-.5)
+			# Six cells clear the palm's thickness and the raised one-cell counters.
+			var target := agent.to_local(table.node.global_position) + Vector3(-.5,float(table.def.game_surface_height)+.375,-.5)
 			agent._hand_r.position = agent._hand_r.position.lerp((target-palm)*blend,reach)
 			agent._hand_r.position.y += sin(reach*PI)*.08*blend
 			agent._head.rotation.x = .06+reach*.035
@@ -204,8 +219,8 @@ class Game extends RefCounted:
 	func describe(agent: DwarfAgent) -> Dictionary:
 		for player in players:
 			if player.agent == agent:
-				return {"activity":"Playing a board game" if playing else "Waiting for a game partner" if player.arrived else "Going to play",
-					"explanation":"A short game together restores happiness. Food and sleep take priority.","destination":player.goal}
+				return {"activity":"Going to play" if not player.arrived else "Playing a board game" if together else "Playing a board game alone",
+					"explanation":"Playing alone restores some happiness; playing with a partner restores more. Food and sleep take priority.","destination":player.goal}
 		return {}
 
 	func cancel(excluded_dwarf_id := -1, completed := false) -> void:
@@ -220,8 +235,9 @@ class Game extends RefCounted:
 				seat.idle_seat_owner = -1
 				seat.idle_seat_yaw_steps = -1
 			agent._recreation = null
-			agent._mood.recreation_retry_hours = float(config.cooldown_hours if completed else config.retry_hours)
-			if completed: agent._mood.record_recreation()
+			var earned: bool = completed and player.arrived and player.blend >= 1.0
+			agent._mood.recreation_retry_hours = float(config.cooldown_hours if earned else config.retry_hours)
+			if earned: agent._mood.record_recreation(together)
 			agent.stop_walking()
 			agent._reset_part_offsets()
 			if agent.dwarf_id != excluded_dwarf_id: TaskManager.notify_dwarf_idle(agent.dwarf_id)

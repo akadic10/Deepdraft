@@ -4,15 +4,16 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## Exercise both menu routes and callbacks already queued before that reload.
 func _run() -> void:
 	await _setup_crafting_fixture()
-	for signal_name in ["save_game_requested", "load_game_requested", "load_autosave_requested"]:
+	for signal_name in ["save_game_requested", "load_game_requested", "load_autosave_requested", "new_game_requested"]:
 		for connection: Dictionary in dock.get_signal_connection_list(signal_name):
 			dock.disconnect(signal_name, connection.callable)
 		dock.connect(signal_name, _detach_on_request)
-	var commands := ["save_game", "load_game", "load_autosave"]
+	var commands := ["save_game", "load_game", "load_autosave", "new_game"]
 	var captions := ["💾 Save Game", "📂 Load Game", "🕒 Load Autosave"]
 	for legacy in [false, true]:
 		for i in commands.size():
-			dock._open_action_panel("save_load")
+			if legacy and commands[i] == "new_game": continue
+			dock._open_action_panel("system" if commands[i] == "new_game" else "save_load")
 			await _frames(2)
 			dock.call_deferred("_layout_action_panel")
 			dock.call_deferred("_position_action_panel")

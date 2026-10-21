@@ -26,6 +26,13 @@ func _run() -> void:
 	root.get_node("TaskManager").set_process(false)
 	root.get_node("RoomManager").set_process(false)
 	root.get_node("WorldGenerator").world_seed = 1234
+	# Synthetic terrain still needs valid baseline maps for set_block queries.
+	var generator = root.get_node("WorldGenerator")
+	generator._cache_block_ids()
+	generator.heightmap.resize(1024 * 1024)
+	generator.heightmap.fill(20)
+	generator.waterline_map.resize(1024 * 1024)
+	generator.waterline_map.fill(-1)
 	world = root.get_node("WorldData")
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
@@ -133,7 +140,9 @@ func _run() -> void:
 	explorer._on_slice_changed(127)
 
 	# Furniture uses the same window and its existing authoritative actions.
-	var key := "base:furniture:barrel"
+	var storage_fixture = load("res://scripts/tests/TestStorageFixture.gd")
+	storage_fixture.install(furniture)
+	var key: String = storage_fixture.KEY
 	furniture._install(key, furniture.get_defs()[key], Vector3i(14,20,14), 0)
 	var piece = furniture._installed.values()[0]
 	_aim_above(piece.node.position)
@@ -175,10 +184,11 @@ func _run() -> void:
 	var apple_id := tree_ids[7] # species order: pine, oak, apple, juniper; mature.
 	_expect(explorer.select_object(flora, apple_id), "select apple for season transition")
 	flora._ready_to_spawn = true
+	root.get_node("WorldClock").season = "autumn"
 	flora._on_season_changed("autumn")
 	explorer._refresh_selected()
 	_expect(manager.is_open("object_explorer") and explorer._object_id == apple_id, "selection survives queued season refresh")
-	_expect(explorer._row_values[1].text == "In season", "season updates the fruit row")
+	_expect(explorer._row_values[1].text == "Ready to harvest", "season updates the fruit row")
 	await process_frame
 	var replacement: Node3D = flora._trees[apple_id].node
 	flora._refresh_tree_crop_visual(apple_id)

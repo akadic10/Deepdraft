@@ -4,13 +4,16 @@ const STOOL := "base:furniture:log_chair"
 const STOOL_ITEM := "base:resources:furniture:log_chair"
 var picking
 var seating
+var capture_output := "res://tmp/log_stool_review"
 
 func _run() -> void:
 	create_timer(60).timeout.connect(func(): push_error("Log stool test timed out"); quit(1))
 	await _setup_crafting_fixture()
 	picking = load("res://scripts/components/ObjectPicking.gd")
 	seating = load("res://scripts/components/FurnitureSeating.gd")
-	DirAccess.make_dir_recursive_absolute("res://tmp/log_stool_review")
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--output="): capture_output=arg.trim_prefix("--output=")
+	DirAccess.make_dir_recursive_absolute(capture_output)
 	_configure(worker)
 	worker._idle_behavior.config.seat_chance = 1.0
 	var definition: Dictionary = furniture.get_defs()[STOOL]
@@ -20,7 +23,7 @@ func _run() -> void:
 		furniture._install(STOOL,definition,origin,yaw)
 		var stool = furniture._installed.values()[0]
 		var bounds: AABB = picking.world_bounds(stool.node)
-		_expect(bounds.size.is_equal_approx(Vector3(1,.75,1)),"stump is one tile wide, .75 blocks tall and has no raised back/arms")
+		_expect(bounds.size.is_equal_approx(Vector3(.875,.875,.875)),"player stump preserves its 14-cell diameter and height without raised back/arms")
 		_expect(stool.cells.size()==1 and not root.get_node("NavGrid").is_walkable(origin),"stool occupies exactly one ground tile")
 		for cell in seating.access_cells(definition,origin,yaw):
 			_expect(root.get_node("NavGrid").is_walkable(cell),"all four adjacent approach tiles remain walkable")
@@ -68,4 +71,5 @@ func _run() -> void:
 func _stool_capture(name: String) -> void:
 	await _frames(3)
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://tmp/log_stool_review/"+name+".png")
+	var result := root.get_texture().get_image().save_png(capture_output.path_join(name+".png"))
+	_expect(result==OK,"native stool capture saved: "+name)

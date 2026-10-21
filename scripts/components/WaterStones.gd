@@ -55,6 +55,7 @@ func _sync() -> void:
 			var definition: Dictionary = WorldGenerator.water_profile.stones[record.kind]
 			var model := load(String(definition.model)) as PackedScene
 			var node := model.instantiate() as Node3D
+			preload("res://scripts/components/VoxelShadowSetup.gd").configure(node)
 			node.name = String(definition.display_name).replace(" ","")
 			_apply_material(node)
 			add_child(node)
@@ -81,6 +82,7 @@ func _forget(id: String) -> void:
 		stones.erase(id)
 
 func _apply_material(node: Node) -> void:
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return
 	if node is MeshInstance3D: node.material_override = _material
 	for child in node.get_children(): _apply_material(child)
 

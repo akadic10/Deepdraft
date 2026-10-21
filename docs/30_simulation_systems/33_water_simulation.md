@@ -282,6 +282,17 @@ lake, blocked-channel bank overflow, an excavation breach, drainage, submerged
 source shutoff, pause/speed behavior, and exact save/load restoration. Review the
 spring, calm channels, falls and rising floodwater in the native renderer.
 
+## Saved-world restoration
+
+SaveManager opens a synchronous terrain restore context before installing final
+terrain differences. During that context WaterManager records edited columns but
+does not run per-voxel flow displacement, irrigation or notifications. Its existing
+owner restore then installs authoritative saved volumes and queues, clears topology
+and soil-kind caches, rebuilds moisture contacts and navigation tops, and notifies
+consumers once. The context ends before simulation resumes and is cleared by reset.
+Live mining, construction, dam breaches and water conservation use the normal path.
+The save format is unchanged. See [247 — Saved-world loading](../00_dev_roadmap/247_saved_world_loading.md).
+
 ## Stonehearth reference reviewed
 
 The local `P:\stonehearth` base-game source was inspected on 2026-10-10:

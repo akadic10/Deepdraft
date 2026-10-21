@@ -652,6 +652,19 @@ Mining cuts are **renderer state** (Stonehearth's model — designation never mu
   per edit — it was split into per-zone overlay nodes with localized rebuilds (see
   `43_mining_materials.md` §Mining Zone Entity).
 
+## Loading and overview snapshots
+
+Overview workers reuse immutable cut/mined/discovery/terrain dictionaries while
+their inputs remain unchanged. Local cut/terrain/discovery changes and global
+invalidations mark these snapshots dirty. A replacement is made only after the
+previous batch has been consumed; existing per-tile revisions and global epochs
+still reject stale results. Slice/season values remain captured per batch.
+
+Underground lighting uses a 12 ms work budget while WorldClock is held by the
+loading cover, returning to 2.5 ms during play. The solver, published samples,
+texture data and readiness gate are unchanged. See
+[247 — Saved-world loading](../00_dev_roadmap/247_saved_world_loading.md).
+
 ## Debug Overlay & Block Inspector
 
 Player terrain inspection lives in Object explorer: click an exposed face for

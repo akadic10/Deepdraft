@@ -1,6 +1,7 @@
 extends SceneTree
 
 ## Imported stone variants, exact mesh picking, collision and slice contracts.
+const Shadows = preload("res://scripts/components/VoxelShadowSetup.gd")
 var failures: Array[String] = []
 var checks := 0
 
@@ -41,9 +42,9 @@ func _run() -> void:
 			var asset := packed.instantiate() as Node3D
 			_expect(asset.transform.is_equal_approx(Transform3D.IDENTITY),"unit model root")
 			_expect(asset.find_children("*","CollisionObject3D",true,false).is_empty(),"asset has no embedded collision")
-			var meshes := asset.find_children("*","MeshInstance3D",true,false)
-			if asset is MeshInstance3D: meshes.append(asset)
-			_expect(meshes.size() == 1,"single mesh")
+			var meshes := Shadows.visual_meshes(asset)
+			_expect(meshes.size() == 1,"single greedy visual mesh")
+			_expect(Shadows.configure(asset)==1,"single imported shadow proxy")
 			for mesh: MeshInstance3D in meshes:
 				_expect(mesh.mesh.get_surface_count() == 1 and mesh.transform.is_equal_approx(Transform3D.IDENTITY),"one surface in baked world units")
 				var colors: PackedColorArray = mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
@@ -74,8 +75,10 @@ func _run() -> void:
 					for z in range(int(width)):
 						_expect(root.get_node("NavGrid").is_walkable(Vector3i(40+x,20,40+z)) == (category == "scree"),"correct navigation across whole footprint")
 				var hit_point := Vector3.ZERO
-				for mesh: MeshInstance3D in record.node.find_children("*","MeshInstance3D",true,false):
+				for mesh in Shadows.visual_meshes(record.node):
 					_expect(mesh.material_override == details._material,"shared lit stone material")
+					_expect(mesh.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"visual casting disabled")
+					_expect(Shadows.proxy_for_visual(mesh).cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY,"shadow-only proxy")
 					var faces := mesh.mesh.get_faces()
 					for i in range(0,faces.size(),3):
 						var center := (faces[i]+faces[i+1]+faces[i+2])/3.0

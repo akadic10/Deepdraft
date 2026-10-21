@@ -1,5 +1,20 @@
 # 31 — Task System
 
+**Fruit hauling (2026-10-19, 253):** HAUL reuses the scheduler’s successful
+pickup/delivery proofs to plan bounded matching-fruit top-ups. Storage owns
+exact source and destination claims, and the worker transfers contents only at
+hand contact. Planning also runs at completed-pickup boundaries; it is not a
+per-frame loose-item scan. A missing proof or exhausted optional budget falls
+back to ordinary delivery. HARVEST_TREE 50 and HAUL 40 remain unchanged. See
+[253](../00_dev_roadmap/253_fruit_hauling.md).
+
+**Mining planning holds (2026-10-19, 246):** mining renews the temporary leisure
+hold while its bounded route search expands nodes, using the same helper as
+pickup/delivery planning. This prevents strolling from repeatedly changing a
+long search's start cell. Checks without progress still allow the hold to expire;
+budgets, priorities and navigation invalidation remain unchanged. See
+[246](../00_dev_roadmap/246_mining_planning_hold.md).
+
 **Shared hauling geometry (2026-10-17, 215):** identical pickup/delivery searches
 and their planning quanta are shared across storage leases in a bounded cache.
 Inventory changes refresh quotes without discarding valid navigation progress;
@@ -159,7 +174,7 @@ progress-based hold extension. See
 [216 — Idle planning](../00_dev_roadmap/216_idle_planning_interruption.md).
 
 **HARVEST_TREE live (2026-10-09):** appended priority-50 hand-picking work for
-juniper. The existing adjacent-work source respects the actual trunk footprint
+juniper, extended to apples in 252. The existing adjacent-work source respects the actual trunk footprint
 and nearest eligible worker selection. One source per marked tree prevents
 simultaneous picking/felling. Separate progress and saved crop cycles prevent
 work transfer or duplicate yields; leaving the season cancels harvest leases.
@@ -271,7 +286,7 @@ through a Labor window remain planned.
 |---|---|---|
 | `MINE` | 50 | Core progression, moderate urgency |
 | `FELL_TREE` | 50 | Player-designated raw timber supply |
-| `HARVEST_TREE` | 50 | Pick a standing juniper's seasonal berries |
+| `HARVEST_TREE` | 50 | Pick seasonal fruit from a standing juniper or apple tree |
 | `CLEAR_BOULDER` | 50 | Clear a marked surface stone; modest rough-stone yield |
 | `GATHER_SCREE` | 50 | Gather a walkable loose-stone clump; one rough stone |
 | `CRAFT` | 46 | Worker bench/torch orders; after mining/felling, before placement/hauling |

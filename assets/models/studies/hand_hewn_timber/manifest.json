@@ -1,0 +1,522 @@
+{
+  "dining_table_oak": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17893,
+        "visual_triangles": 3212,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7556027496786453,
+          "triangles": 196
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 315520,
+    "sha256": "ad4f5507e3bb9c62adaf470f5b5a52adcc72d04d0af2351641d8d432d0463606"
+  },
+  "log_stool_oak": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 676,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8855368234250222,
+          "triangles": 176
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 80364,
+    "sha256": "ce47cb8538ab476c5de3bb7663f58aa1ce139780088a54e507a062a7d9f7ba97"
+  },
+  "game_table_oak": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17989,
+        "visual_triangles": 3266,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7524598365667908,
+          "triangles": 208
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5625,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 321596,
+    "sha256": "f33127e3f50aa91cc6a194060351de0f70a402a5f6de6c321626384f3e7b537f"
+  },
+  "workbench_oak": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 30813,
+        "visual_triangles": 2974,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.8209521955018986,
+          "triangles": 282
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.0,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 301536,
+    "sha256": "0f6c9919e9227d66cecde1290f35d3e28e9a2dfa15ef95ee8b55d1762a918f2a"
+  },
+  "timber_oak": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 680,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8660159716060337,
+          "triangles": 148
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 78156,
+    "sha256": "5f2fec1cab60348e7a8a8de657cc081c0039d2574a4272b1f319d67fcbef8483"
+  },
+  "dining_table_pine": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17893,
+        "visual_triangles": 3212,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7556027496786453,
+          "triangles": 196
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 315524,
+    "sha256": "ce42df691d4186db631f8b239e73d171c2f0ada98831e6cb1ac39b5ef7e6c2c2"
+  },
+  "log_stool_pine": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 676,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8855368234250222,
+          "triangles": 176
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 80368,
+    "sha256": "4a2c5a87d6e7ae2566ff0681e193ec5dbd3b3806c735830292d484ad1064bfed"
+  },
+  "game_table_pine": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17989,
+        "visual_triangles": 3266,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7524598365667908,
+          "triangles": 208
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5625,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 321600,
+    "sha256": "9048d76e29496584cf340e7ff1ab012539aa3103b8ab5e8c56a566ee9e520845"
+  },
+  "workbench_pine": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 30813,
+        "visual_triangles": 2974,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.8209521955018986,
+          "triangles": 282
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.0,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 301540,
+    "sha256": "c03ba25b96e4d8af2f62fc8d4b3ae7347c8b38432326b563df1e531a9868f3f7"
+  },
+  "timber_pine": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 680,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8660159716060337,
+          "triangles": 148
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 78156,
+    "sha256": "b976bb2db6b133f59776a6776d141fa9fa42c404519801dd369d98fa1e858f9e"
+  },
+  "dining_table_juniper": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17893,
+        "visual_triangles": 3212,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7556027496786453,
+          "triangles": 196
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 315524,
+    "sha256": "dab55ce409fac2a085d36a96bae8d2fc6ba29aafdae28a5af4b74dbc82d94313"
+  },
+  "log_stool_juniper": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 676,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8855368234250222,
+          "triangles": 176
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 80368,
+    "sha256": "ab43ce621ce146e8898a45354fc37f6198cef743ebe53cab128655e885e00a57"
+  },
+  "game_table_juniper": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17989,
+        "visual_triangles": 3266,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7524598365667908,
+          "triangles": 208
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5625,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 321600,
+    "sha256": "c7991354a70d83eb82a38628f724493e6f73e5f632ec278845d8a697c62e8db5"
+  },
+  "workbench_juniper": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 30813,
+        "visual_triangles": 2974,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.8209521955018986,
+          "triangles": 282
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.0,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 301540,
+    "sha256": "c6863beeefc9f1e70833969ce269244cc3cdc6ae18cd5cf785aac80a6610bd5a"
+  },
+  "timber_juniper": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 680,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8660159716060337,
+          "triangles": 148
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 78160,
+    "sha256": "e7cecc9cda4ae7184b7086e44de97de64249242cb0777a5b822bdc411aa458f5"
+  },
+  "dining_table_applewood": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17893,
+        "visual_triangles": 3212,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7556027496786453,
+          "triangles": 196
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 315528,
+    "sha256": "dbc52a6683f8319344e05584614ad9096b22611b5ff31382c0a53f73ed5b216f"
+  },
+  "log_stool_applewood": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 676,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8855368234250222,
+          "triangles": 176
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 80372,
+    "sha256": "76b7e3197b1851184849e2b0c845ff9c9c2de5329df3c355586ce4901e9bc51b"
+  },
+  "game_table_applewood": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 17989,
+        "visual_triangles": 3266,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.7524598365667908,
+          "triangles": 208
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.5625,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 321604,
+    "sha256": "3750fef2a808d754ddb59a7ea37a7c509db0cbe43276299ddbc8e1dcaeccbfa0"
+  },
+  "workbench_applewood": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 30813,
+        "visual_triangles": 2974,
+        "shadow": {
+          "stride": 4,
+          "retained_volume": 0.8209521955018986,
+          "triangles": 282
+        },
+        "min": [
+          -1.4375,
+          0.0,
+          -1.4375
+        ],
+        "max": [
+          1.4375,
+          1.0,
+          1.4375
+        ]
+      }
+    ],
+    "bytes": 301544,
+    "sha256": "1a3c0fb725bf3b8962a084b334dacb004b9320f3b98866799b26ed774dc242d5"
+  },
+  "timber_applewood": {
+    "parts": [
+      {
+        "name": "main",
+        "cells": 2254,
+        "visual_triangles": 680,
+        "shadow": {
+          "stride": 2,
+          "retained_volume": 0.8660159716060337,
+          "triangles": 148
+        },
+        "min": [
+          -0.4375,
+          0.0,
+          -0.4375
+        ],
+        "max": [
+          0.4375,
+          0.875,
+          0.4375
+        ]
+      }
+    ],
+    "bytes": 78160,
+    "sha256": "a266714cdcaf95070bd8b36875a04d388a59392c7cee0cf2090c35b08f6be500"
+  }
+}

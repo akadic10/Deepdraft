@@ -6,9 +6,7 @@ extends RefCounted
 static func fit(node: Node3D, anchor_max_size: Vector3, anchor_scale: float) -> void:
 	if anchor_max_size.x <= 0 or anchor_max_size.y <= 0 or anchor_max_size.z <= 0:
 		return
-	var meshes: Array[Node] = node.find_children("*", "MeshInstance3D", true, false)
-	if node is MeshInstance3D:
-		meshes.append(node)
+	var meshes := preload("VoxelShadowSetup.gd").visual_meshes(node)
 	var bounds := AABB()
 	var found := false
 	var inverse := node.global_transform.affine_inverse()

@@ -2,7 +2,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const SITE := Vector3i(52,20,46)
 const LOG_BENCH := "base:furniture:bench"
-const WALL := "base:furniture:wall_torch"
+const WALL := "base:furniture:wooden_torch"
 const OUT := "res://tmp/furniture_placement_animation_20261011/"
 var checked := 0
 var support_cells: Array[Vector3i] = []
@@ -79,8 +79,12 @@ func _place_case(key: String,yaw: int) -> void:
 	var wall := String(ghost.def.get("placement","floor"))=="wall"
 	if wall:
 		_expect(is_equal_approx(contact.y,float(SITE.y)+float(ghost.def.wall_mount.origin_offset_y)),"wall handoff rises to mount height")
+	elif ghost.def.has("grid_fence"):
+		var expected := Vector3(SITE)+Vector3.UP
+		if ghost.def.grid_fence.kind=="gate": expected += Vector3.RIGHT if yaw%2==0 else Vector3.BACK
+		_expect(contact.is_equal_approx(expected),"fence handoff reaches its grid corner or gate midpoint: "+key)
 	else:
-		_expect(ghost.footprint_cells().has(Vector3i(floori(contact.x),roundi(contact.y)-1,floori(contact.z))),"set-down lands inside designated rotated footprint")
+		_expect(ghost.footprint_cells().has(Vector3i(floori(contact.x),roundi(contact.y)-1,floori(contact.z))),"set-down lands inside designated rotated footprint: %s yaw %d contact %s" % [key,yaw,contact])
 		_expect(not ghost.footprint_cells().has(worker.current_cell()),"installer stays beside finished furniture")
 	await _capture_pose(key,yaw,"arrival")
 	worker._process(.15)
@@ -143,7 +147,7 @@ func _floor_excavation() -> void:
 	var nav = root.get_node("NavGrid")
 	var rooms = root.get_node("RoomManager")
 	var stone: int = blocks.get_id("base:terrain:rock:rock01")
-	for key in [TORCH,WALL]:
+	for key in [TORCH]:
 		for yaw in range(4):
 			await _cleanup()
 			var definition: Dictionary = furniture.get_defs()[key]
