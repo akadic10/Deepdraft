@@ -7,27 +7,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 3456,
-          "visual_triangles": 894,
+          "cells": 3656,
+          "visual_triangles": 452,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8842592592592593,
-            "triangles": 300
+            "stride": 4,
+            "retained_volume": 0.6586433260393874,
+            "triangles": 44
           },
           "min": [
             -0.4375,
-            1.1875,
-            -0.6875
+            0.5625,
+            -0.5625
           ],
           "max": [
             0.4375,
-            2.0625,
-            1.0
+            1.5,
+            0.75
           ]
         }
       ],
-      "bytes": 111828,
-      "sha256": "82814f8c18129e333a39dc53ff1c09b41286a51c013f3b369d2a027aa38190f5",
+      "bytes": 54972,
+      "sha256": "4f6d8ce48af12ddc358e8b4bf2e17883f885fdccb8b385eca6e7111830ccf67c",
       "path": "assets/models/animals/deer/body.glb",
       "authoring": {
         "part": "deer/body",
@@ -38,27 +39,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1262,
-          "visual_triangles": 348,
+          "cells": 240,
+          "visual_triangles": 28,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8114104595879557,
-            "triangles": 128
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
           },
           "min": [
-            -0.25,
-            1.25,
-            -0.6875
+            -0.1875,
+            1.125,
+            -0.5625
           ],
           "max": [
-            0.25,
-            2.8125,
-            -0.125
+            0.1875,
+            1.625,
+            -0.25
           ]
         }
       ],
-      "bytes": 45756,
-      "sha256": "7ebcac4e5beb8fa8b6bc9da3dff09b618dd9b07f17806c678169fa414d453a61",
+      "bytes": 6212,
+      "sha256": "920f474541c99d1a7f976059141e0e43bebacc3169747fbf88bb55ae25541d81",
       "path": "assets/models/animals/deer/neck.glb",
       "authoring": {
         "part": "deer/neck",
@@ -69,27 +71,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 488,
-          "visual_triangles": 352,
+          "cells": 1524,
+          "visual_triangles": 268,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 352
+            "stride": 2,
+            "retained_volume": 0.8188976377952756,
+            "triangles": 68
           },
           "min": [
-            -0.3125,
-            2.375,
-            -1.0
+            -0.375,
+            1.5,
+            -1.125
           ],
           "max": [
-            0.3125,
-            2.9375,
-            -0.1875
+            0.375,
+            2.25,
+            -0.0625
           ]
         }
       ],
-      "bytes": 66740,
-      "sha256": "aa1685beef73482331c1dede53b7cc4171ab8b7df68c295b23fd6fb49349d3ab",
+      "bytes": 37300,
+      "sha256": "bec7fca2408e50caf9075d2c2be2eb78d859886563437eb6f3f0d906e9fda274",
       "path": "assets/models/animals/deer/head.glb",
       "authoring": {
         "part": "deer/head",
@@ -100,27 +103,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 230,
-          "visual_triangles": 286,
+          "cells": 168,
+          "visual_triangles": 102,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 286
+            "stride": 4,
+            "retained_volume": 0.6071428571428571,
+            "triangles": 48
           },
           "min": [
-            -0.6875,
-            2.75,
-            -0.5
+            -0.8125,
+            2.0,
+            -0.375
           ],
           "max": [
-            0.6875,
-            3.125,
+            0.8125,
+            2.3125,
             -0.1875
           ]
         }
       ],
-      "bytes": 54588,
-      "sha256": "177dea8d41721e062633da85333556de815eefcf9780d7c755987b13f083e057",
+      "bytes": 17536,
+      "sha256": "22d6c705492154b80e4f58b8cde2b665eb0a99e94c6772fdb0e722b4ce1ed95e",
       "path": "assets/models/animals/deer/ears.glb",
       "authoring": {
         "part": "deer/ears",
@@ -131,27 +135,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 282,
-          "visual_triangles": 638,
+          "cells": 176,
+          "visual_triangles": 324,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 638
+            "triangles": 142
           },
           "min": [
-            -0.75,
-            2.875,
-            -0.6875
+            -0.4375,
+            2.25,
+            -0.625
           ],
           "max": [
-            0.75,
-            3.8125,
+            0.4375,
+            2.875,
             -0.125
           ]
         }
       ],
-      "bytes": 119376,
-      "sha256": "34b31cd515cb23ba6fa7fd7a8feaac7fcaeeb3515c62415ae687c8966eea4f51",
+      "bytes": 50168,
+      "sha256": "e40bdbf4c02b8e59aa90c2560afd6a28d4fdda2f347f2c9d02561b6f76af8b31",
       "path": "assets/models/animals/deer/antlers.glb",
       "authoring": {
         "part": "deer/antlers",
@@ -162,47 +167,49 @@
       "parts": [
         {
           "name": "Upper",
-          "cells": 184,
-          "visual_triangles": 28,
+          "cells": 84,
+          "visual_triangles": 68,
+          "occlusion": true,
           "shadow": {
-            "stride": 4,
-            "retained_volume": 0.9565217391304348,
-            "triangles": 12
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 36
           },
           "min": [
             -0.125,
-            -0.625,
+            -0.3125,
             -0.125
           ],
           "max": [
             0.125,
-            0.1875,
+            0.125,
             0.125
           ]
         },
         {
           "name": "Lower",
-          "cells": 64,
-          "visual_triangles": 48,
+          "cells": 72,
+          "visual_triangles": 56,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 48
+            "triangles": 28
           },
           "min": [
             -0.125,
-            -1.25,
+            -0.625,
             -0.125
           ],
           "max": [
             0.125,
-            -0.625,
+            -0.3125,
             0.125
           ]
         }
       ],
-      "bytes": 16256,
-      "sha256": "b25ed60aa952bcd77758d7b1f1c1b8be8adccc4334d2f33073592458f64cb87e",
+      "bytes": 23336,
+      "sha256": "0e266b018009ed479ec61c406d1b7688d923eae01543aba7527149f0d53cc9ae",
       "path": "assets/models/animals/deer/leg.glb",
       "authoring": {
         "part": "deer/leg",
@@ -213,27 +220,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 694,
-          "visual_triangles": 250,
+          "cells": 934,
+          "visual_triangles": 692,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.69164265129683,
-            "triangles": 152
+            "retained_volume": 0.6852248394004282,
+            "triangles": 154
           },
           "min": [
-            -0.3125,
+            -0.375,
             0.0,
-            -0.3125
+            -0.375
           ],
           "max": [
-            0.3125,
+            0.375,
             0.625,
             0.5
           ]
         }
       ],
-      "bytes": 38944,
-      "sha256": "ad93f24d0af0ac0aab674d0b8df2cc824d9fa9be79de05d74d7229df990c667d",
+      "bytes": 91012,
+      "sha256": "96d8556396d2198c42c18f80ee9e091e0d1f1b9b89ebaad83ff0bbcbda2f6e14",
       "path": "assets/models/animals/rabbit/body.glb",
       "authoring": {
         "part": "rabbit/body",
@@ -244,27 +252,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 244,
-          "visual_triangles": 148,
+          "cells": 850,
+          "visual_triangles": 244,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 140
+            "stride": 2,
+            "retained_volume": 0.9411764705882353,
+            "triangles": 36
           },
           "min": [
-            -0.25,
-            0.5,
+            -0.4375,
+            0.375,
             -0.5
           ],
           "max": [
-            0.25,
-            0.875,
+            0.4375,
+            1.0,
             0.0
           ]
         }
       ],
-      "bytes": 28440,
-      "sha256": "2f79ec15e6a4eca93c9110bde469b7b2c0ef1ec843d18f33cad798547aeb65ab",
+      "bytes": 31752,
+      "sha256": "14fa1fd387eb4f84c57d9172d4e44845e9c9fc74e8b51d700fa52c31eefdcb97",
       "path": "assets/models/animals/rabbit/head.glb",
       "authoring": {
         "part": "rabbit/head",
@@ -275,27 +284,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 126,
-          "visual_triangles": 108,
+          "cells": 138,
+          "visual_triangles": 82,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 108
+            "stride": 2,
+            "retained_volume": 0.8695652173913043,
+            "triangles": 32
           },
           "min": [
             -0.3125,
-            0.8125,
-            -0.25
+            1.0,
+            -0.3125
           ],
           "max": [
-            0.3125,
+            0.5,
             1.5,
-            -0.0625
+            -0.125
           ]
         }
       ],
-      "bytes": 21832,
-      "sha256": "8dee99a1a121a43bff0bdbc065906b32a56b1035ba3d58291f832baed483027b",
+      "bytes": 13884,
+      "sha256": "16b857d300e7a4b9d27e5908fa4f839cb685a25cac6af1c4fd69c0ffebc8c526",
       "path": "assets/models/animals/rabbit/ears.glb",
       "authoring": {
         "part": "rabbit/ears",
@@ -306,27 +316,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 9524,
-          "visual_triangles": 1520,
+          "cells": 5434,
+          "visual_triangles": 484,
+          "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6619067618647627,
-            "triangles": 146
+            "retained_volume": 0.8362164151637835,
+            "triangles": 60
           },
           "min": [
-            -0.625,
-            0.8125,
-            -1.1875
+            -0.5,
+            0.4375,
+            -0.875
           ],
           "max": [
-            0.625,
-            2.0,
-            1.0
+            0.5,
+            1.375,
+            0.75
           ]
         }
       ],
-      "bytes": 155244,
-      "sha256": "89b4193ba4770e7a05da999e2b32e22ebdb201983cfe618f0be9ce4d5054de87",
+      "bytes": 59892,
+      "sha256": "9eb8baab5442d00bd584b34cfdd5475ebdf98674ffbf140f10cb7990be861e99",
       "path": "assets/models/animals/wolf/body.glb",
       "authoring": {
         "part": "wolf/body",
@@ -337,27 +348,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1958,
-          "visual_triangles": 660,
+          "cells": 3242,
+          "visual_triangles": 474,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 656
+            "stride": 4,
+            "retained_volume": 0.6958667489204194,
+            "triangles": 68
           },
           "min": [
-            -0.5,
-            1.4375,
-            -1.875
+            -0.5625,
+            0.9375,
+            -1.9375
           ],
           "max": [
-            0.5,
-            2.0625,
-            -0.4375
+            0.5625,
+            1.8125,
+            -0.625
           ]
         }
       ],
-      "bytes": 123048,
-      "sha256": "ee1a3a4694b4c180d245927e84deaa0b0b2da58274f085734686910981ab9c32",
+      "bytes": 59568,
+      "sha256": "201254a9445db53d7894e85542aba88e2391a460964e166dec3183f17dda74c0",
       "path": "assets/models/animals/wolf/head.glb",
       "authoring": {
         "part": "wolf/head",
@@ -368,27 +380,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 420,
-          "visual_triangles": 286,
+          "cells": 200,
+          "visual_triangles": 172,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7619047619047619,
-            "triangles": 130
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 84
           },
           "min": [
             -0.5,
             1.8125,
-            -0.9375
+            -1.0625
           ],
           "max": [
             0.5,
-            2.4375,
-            -0.5625
+            2.375,
+            -0.8125
           ]
         }
       ],
-      "bytes": 40236,
-      "sha256": "6f49e92acaa925cf583b7912bb13059d38c3a1f75fc7dcb401ef4845458d3a7c",
+      "bytes": 28408,
+      "sha256": "7e53292603900d7ea5bbda27cab6ead2a15ad4777153359b74caab7fb51a7976",
       "path": "assets/models/animals/wolf/ears.glb",
       "authoring": {
         "part": "wolf/ears",
@@ -399,27 +412,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 952,
-          "visual_triangles": 484,
+          "cells": 404,
+          "visual_triangles": 144,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7226890756302521,
-            "triangles": 152
+            "retained_volume": 0.693069306930693,
+            "triangles": 56
           },
           "min": [
-            -0.25,
-            0.75,
-            0.6875
+            -0.1875,
+            0.9375,
+            0.75
           ],
           "max": [
-            0.25,
-            1.5625,
-            1.75
+            0.1875,
+            1.625,
+            1.5625
           ]
         }
       ],
-      "bytes": 60472,
-      "sha256": "782da4a90dc32caa3b67506c9d0c46d25e88a05932c24b993942c39ae6a1d50d",
+      "bytes": 22812,
+      "sha256": "981b30092b8b9348257687a40346858ff1bd936db7a4d8972a54e6154a09dc80",
       "path": "assets/models/animals/wolf/tail.glb",
       "authoring": {
         "part": "wolf/tail",
@@ -430,47 +444,49 @@
       "parts": [
         {
           "name": "Upper",
-          "cells": 304,
-          "visual_triangles": 48,
+          "cells": 192,
+          "visual_triangles": 68,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.9473684210526315,
-            "triangles": 48
+            "retained_volume": 1.0,
+            "triangles": 36
           },
           "min": [
             -0.1875,
-            -0.5,
+            -0.25,
             -0.1875
           ],
           "max": [
             0.1875,
-            0.1875,
+            0.125,
             0.1875
           ]
         },
         {
           "name": "Lower",
-          "cells": 216,
-          "visual_triangles": 50,
+          "cells": 138,
+          "visual_triangles": 60,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.9629629629629629,
-            "triangles": 48
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 36
           },
           "min": [
             -0.1875,
-            -1.0,
+            -0.5,
             -0.25
           ],
           "max": [
             0.1875,
-            -0.5,
+            -0.25,
             0.1875
           ]
         }
       ],
-      "bytes": 21616,
-      "sha256": "222a289f961c06a742526efa5327029e235fc8653c88ffb298ef5a8af189904d",
+      "bytes": 24508,
+      "sha256": "6b88ab25a71f93a4821aded84385ebdff42ff49edc580beacdc424afb3945c34",
       "path": "assets/models/animals/wolf/leg.glb",
       "authoring": {
         "part": "wolf/leg",
@@ -481,27 +497,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 884,
-          "visual_triangles": 360,
+          "cells": 898,
+          "visual_triangles": 332,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7330316742081447,
-            "triangles": 100
+            "retained_volume": 0.7884187082405345,
+            "triangles": 78
           },
           "min": [
             -0.3125,
-            0.25,
-            -0.4375
+            0.1875,
+            -0.375
           ],
           "max": [
             0.3125,
-            0.8125,
-            0.5625
+            0.75,
+            0.625
           ]
         }
       ],
-      "bytes": 44292,
-      "sha256": "b75a0b97e7c120913f0f80a5286c3890d6b1ffe39048402fb6af3efb1cbd2725",
+      "bytes": 45144,
+      "sha256": "fc8fa4cf200bface6234e32697e75856ee0aa89a57ddf7d9bc5bab11b3c90c05",
       "path": "assets/models/animals/duck/male_body.glb",
       "authoring": {
         "part": "duck/male_body",
@@ -512,27 +529,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 178,
-          "visual_triangles": 144,
+          "cells": 690,
+          "visual_triangles": 290,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 110
+            "stride": 2,
+            "retained_volume": 0.6956521739130435,
+            "triangles": 78
           },
           "min": [
-            -0.25,
+            -0.375,
             0.625,
-            -0.5
+            -0.75
           ],
           "max": [
-            0.25,
-            1.125,
-            -0.0625
+            0.375,
+            1.1875,
+            0.0
           ]
         }
       ],
-      "bytes": 25328,
-      "sha256": "cfb05b3ea72b827d09e4edad3e4ab7917559cd9d15de1055b324cd8597f2f744",
+      "bytes": 40600,
+      "sha256": "de1253802e39ce98deac762063a53213fd6bc027ae7c5e9dd284aff3e5640746",
       "path": "assets/models/animals/duck/male_head.glb",
       "authoring": {
         "part": "duck/male_head",
@@ -543,12 +561,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 169,
-          "visual_triangles": 130,
+          "cells": 237,
+          "visual_triangles": 58,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 124
+            "stride": 2,
+            "retained_volume": 0.919831223628692,
+            "triangles": 24
           },
           "min": [
             0.0,
@@ -556,14 +575,14 @@
             -0.1875
           ],
           "max": [
-            1.0,
+            0.8125,
             0.1875,
             0.25
           ]
         }
       ],
-      "bytes": 25320,
-      "sha256": "a61f4dac8c7e24320219e5ea59a841fb6bfb3d3e9b5b88b38af6cfa5f3caf59d",
+      "bytes": 10556,
+      "sha256": "f6a8f620433c3bf54e462f60885e2f309c291877c8256656b690e2df0a9990e2",
       "path": "assets/models/animals/duck/male_wing.glb",
       "authoring": {
         "part": "duck/male_wing",
@@ -574,27 +593,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 884,
-          "visual_triangles": 360,
+          "cells": 898,
+          "visual_triangles": 332,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7330316742081447,
-            "triangles": 100
+            "retained_volume": 0.7884187082405345,
+            "triangles": 78
           },
           "min": [
             -0.3125,
-            0.25,
-            -0.4375
+            0.1875,
+            -0.375
           ],
           "max": [
             0.3125,
-            0.8125,
-            0.5625
+            0.75,
+            0.625
           ]
         }
       ],
-      "bytes": 44296,
-      "sha256": "b49726500ffa893c28b4db9dce5fc753a1f94ccb351edd34ee05be922aae2ffb",
+      "bytes": 45148,
+      "sha256": "2f93dc45d3489c23de955b2ce5047574297040e3b939535e0507689f211e0e27",
       "path": "assets/models/animals/duck/female_body.glb",
       "authoring": {
         "part": "duck/female_body",
@@ -605,27 +625,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 178,
-          "visual_triangles": 112,
+          "cells": 690,
+          "visual_triangles": 290,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 110
+            "stride": 2,
+            "retained_volume": 0.6956521739130435,
+            "triangles": 78
           },
           "min": [
-            -0.25,
+            -0.375,
             0.625,
-            -0.5
+            -0.75
           ],
           "max": [
-            0.25,
-            1.125,
-            -0.0625
+            0.375,
+            1.1875,
+            0.0
           ]
         }
       ],
-      "bytes": 22384,
-      "sha256": "7c9684671e4d05ab3d24acb17fd9726850e55691c4747fe55cc3391e6f5f591f",
+      "bytes": 40604,
+      "sha256": "a52733952045c8e5c476595f0df2ea129fa83b4596041dde2d0665bd41beef31",
       "path": "assets/models/animals/duck/female_head.glb",
       "authoring": {
         "part": "duck/female_head",
@@ -636,12 +657,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 169,
-          "visual_triangles": 130,
+          "cells": 237,
+          "visual_triangles": 58,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 124
+            "stride": 2,
+            "retained_volume": 0.919831223628692,
+            "triangles": 24
           },
           "min": [
             0.0,
@@ -649,14 +671,14 @@
             -0.1875
           ],
           "max": [
-            1.0,
+            0.8125,
             0.1875,
             0.25
           ]
         }
       ],
-      "bytes": 25324,
-      "sha256": "cd183e6069b13ae229ca42b624d689a09364389b420c2cf7adbe239bcb6bc428",
+      "bytes": 10560,
+      "sha256": "ddcdfba74b4c4f5b1ef05fae064bc5759dfdb91fa10b172a061f3c0baeb67d6d",
       "path": "assets/models/animals/duck/female_wing.glb",
       "authoring": {
         "part": "duck/female_wing",
@@ -667,27 +689,92 @@
       "parts": [
         {
           "name": "main",
-          "cells": 18,
-          "visual_triangles": 50,
+          "cells": 336,
+          "visual_triangles": 260,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8571428571428571,
+            "triangles": 72
+          },
+          "min": [
+            -0.4375,
+            0.3125,
+            -0.1875
+          ],
+          "max": [
+            0.4375,
+            0.6875,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 36832,
+      "sha256": "acb1c9c7baabfb798a69c7e6ad168ca3c99db17dc6aa22b2bb4cc488404131df",
+      "path": "assets/models/animals/duck/male_wing_folded.glb",
+      "authoring": {
+        "part": "duck/male_wing_folded",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 336,
+          "visual_triangles": 260,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8571428571428571,
+            "triangles": 72
+          },
+          "min": [
+            -0.4375,
+            0.3125,
+            -0.1875
+          ],
+          "max": [
+            0.4375,
+            0.6875,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 36832,
+      "sha256": "822c8b63d255d33b24978ad2c144c0539bd3b021c800fcb6b836357ac7a08842",
+      "path": "assets/models/animals/duck/female_wing_folded.glb",
+      "authoring": {
+        "part": "duck/female_wing_folded",
+        "baked_proportions": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 34,
+          "visual_triangles": 66,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 50
+            "triangles": 40
           },
           "min": [
             -0.125,
             0.0,
-            -0.125
+            -0.3125
           ],
           "max": [
             0.125,
             0.25,
-            0.125
+            0.0625
           ]
         }
       ],
-      "bytes": 11144,
-      "sha256": "696f976181ae21e322056cf3c66d56b198ed17761b2e4e954a7b01874b535aee",
+      "bytes": 12896,
+      "sha256": "3446915753fa612d44ef08d31d220b7dffeeb796c9cb69035aefd9748d15aa4f",
       "path": "assets/models/animals/duck/foot.glb",
       "authoring": {
         "part": "duck/foot",

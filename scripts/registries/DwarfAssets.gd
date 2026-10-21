@@ -46,6 +46,18 @@ const EYE_COLORS := {
 	"red":   Color(0.80, 0.10, 0.10),
 }
 
+## Hearthblock tunic colours (doc 256): sRGB tunic / dark (hem, cuffs) / light
+## (placket). The body and cuff meshes are baked in teal and recoloured per dwarf,
+## one shared mesh per colour. Order is the by-ID assignment, so neighbours differ.
+const CLOTHING := {
+	"teal":  {"tunic": "3F7C76", "tunic_dark": "2D5D59", "tunic_light": "5C9B91"},
+	"rust":  {"tunic": "A9563B", "tunic_dark": "84412C", "tunic_light": "C47050"},
+	"moss":  {"tunic": "6F8C3E", "tunic_dark": "536A2E", "tunic_light": "8CA851"},
+	"slate": {"tunic": "4E6B8F", "tunic_dark": "3A516D", "tunic_light": "6B89AD"},
+	"ochre": {"tunic": "B08B3A", "tunic_dark": "86692B", "tunic_light": "C9A655"},
+	"plum":  {"tunic": "7B4F72", "tunic_dark": "5C3A55", "tunic_light": "98698E"},
+}
+
 # ── Part tables (doc 41b §GLB File Inventory) — PackedScenes ─────────────────
 
 var heads: Dictionary = {
@@ -141,6 +153,19 @@ func _ready() -> void:
 
 
 # ── Part queries ──────────────────────────────────────────────────────────────
+
+## A saved clothing id, or one assigned from the dwarf's id so earlier saves and
+## new dwarves both get varied, stable colours without changing any other roll.
+func clothing_for(appearance: DwarfAppearanceData, dwarf_id: int) -> String:
+	if appearance != null and CLOTHING.has(appearance.clothing): return appearance.clothing
+	return CLOTHING.keys()[posmod(dwarf_id, CLOTHING.size())]
+
+
+## Recolours the baked teal tunic and cuffs under `root` to `clothing`.
+func dress(root: Node, clothing: String) -> void:
+	if clothing == "teal" or not CLOTHING.has(clothing): return
+	CraftMaterials.apply_colors(root, {"colors": CLOTHING.teal}, "clothing:" + clothing, CLOTHING[clothing])
+
 
 func hair_for(appearance: DwarfAppearanceData) -> PackedScene:
 	var table: Dictionary = hair_male if appearance.gender == "male" else hair_female

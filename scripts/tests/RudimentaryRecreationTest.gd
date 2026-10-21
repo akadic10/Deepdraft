@@ -160,11 +160,10 @@ func _play_at_each_rotation() -> void:
 			var palm: Vector3 = table.node.to_local(player.agent._hand_r.to_global(Vector3(1.0625,1.25,.1875)))
 			_expect(absf(palm.x)<.8 and absf(palm.z)<.8,"playing hand reaches the marked board at every rotation")
 			_expect(palm.y>1.5625 and palm.y<2.0,"playing palm clears the new top and raised counters")
-			var picking = load("res://scripts/components/ObjectPicking.gd")
+			# Posed faces, not combined boxes: a long beard hangs in front of the edge (doc 256).
 			for part in [player.agent._head,player.agent._body,player.agent._hand_l,player.agent._hand_r]:
-				var bounds: AABB = picking.world_bounds(part)
 				for obstacle in furniture._seating._obstacles(table.def,table.origin_cell,table.yaw_steps):
-					_expect(not bounds.grow(-.001).intersects(obstacle.bounds.grow(-.001)),"playing %s clears slab/counters: %s vs %s"%[part.name,bounds,obstacle.bounds])
+					_expect(not preload("res://scripts/tests/VoxelFaceClearance.gd").meets(part,obstacle.bounds.grow(-.001)),"playing %s clears slab/counters: %s"%[part.name,obstacle.bounds])
 	_clear_layout()
 
 func _partners_with_memory() -> void:

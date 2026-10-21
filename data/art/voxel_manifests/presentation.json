@@ -7,23 +7,23 @@
       "parts": [
         {
           "name": "Overlay",
-          "cells": 32,
-          "visual_triangles": 44,
+          "cells": 24,
+          "visual_triangles": 40,
           "shadow": null,
           "min": [
             -0.5625,
-            2.5,
-            0.5625
+            2.3125,
+            0.625
           ],
           "max": [
             0.5625,
-            2.6875,
+            2.5625,
             0.6875
           ]
         }
       ],
-      "bytes": 5220,
-      "sha256": "5687e973aacda46f3c66ef938e2004260d6c1d1d48c84afe8ddf0efbabe4d68b",
+      "bytes": 4852,
+      "sha256": "c392db06113caf89307bb9a6495daa16144e039f37b77a8a5411f12bceefe5d3",
       "path": "assets/models/presentation/eyelids.glb",
       "authoring": {
         "presentation": "eyelids",

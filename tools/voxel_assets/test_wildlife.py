@@ -4,6 +4,7 @@ from common import read_json,linear,Voxels
 from wildlife import assets
 from coverage import expected_paths
 from micro_voxel_study.generate import solid
+import hearthblock
 
 
 class WildlifeTests(unittest.TestCase):
@@ -17,22 +18,21 @@ class WildlifeTests(unittest.TestCase):
                 self.assertTrue(part.voxels.cells,path)
                 self.assertTrue(part.shadow,path)
 
-    def test_deer_pilot_solids_and_knee_join(self):
-        profile=read_json('data/art/micro_voxel_study.json')
-        palette={key:linear(value) for key,value in profile['palette'].items()}
+    def test_deer_solids_and_knee_join(self):
+        # The Hearthblock deer (doc 256) replaced the 2026-10-09 deer pilot with the
+        # owner's approval; production must equal its authored cells.
         for name in ('body','head','neck','ears','antlers','leg'):
-            vox=Voxels()
-            for shape in profile['parts']['deer/'+name]: solid(vox,shape,palette)
             actual={p:c for part in self.parts['assets/models/animals/deer/'+name+'.glb'].values() for p,c in part.voxels.cells.items()}
-            self.assertEqual(actual,vox.cells,name)
-        for species,knee in [('deer',-10),('wolf',-8)]:
+            self.assertEqual(actual,hearthblock.model('deer/'+name).cells,name)
+        for species in ('deer','wolf'):
+            knee=round(read_json(f'data/entities/animals/{species}.json')['visual_pose']['knee_y']*16)
             parts=self.parts['assets/models/animals/'+species+'/leg.glb']
             upper=parts['Upper'].voxels.cells; lower=parts['Lower'].voxels.cells
             self.assertFalse(set(upper)&set(lower))
             self.assertTrue(any((x,knee-1,z) in lower for x,y,z in upper if y==knee))
 
     def test_sex_variants_and_ground_contact(self):
-        for name in ('body','head','wing'):
+        for name in ('body','head','wing','wing_folded'):
             male=self.parts['assets/models/animals/duck/male_'+name+'.glb']['main'].voxels.cells
             female=self.parts['assets/models/animals/duck/female_'+name+'.glb']['main'].voxels.cells
             self.assertEqual(set(male),set(female))

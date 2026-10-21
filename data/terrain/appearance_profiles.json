@@ -1,5 +1,5 @@
 {
-  "__comment": "Terrain-only appearance. IDs 1..7 are packed in mesh vertex alpha as id/16; slice caps add 8 to the tag for quiet detail. Opaque imported art retains alpha=1 and opts out. Colours remain in terrain_blocks and surface_palettes. All widths are world-block units.",
+  "__comment": "Terrain-only appearance. IDs 1..7 are packed in mesh vertex alpha as id/16; slice caps add 8 to the tag for quiet detail. Opaque imported art retains alpha=1 and opts out. Colours remain in terrain_blocks and surface_palettes. All widths are world-block units. Hearthblock dressing (doc 256): stone, grass and earth get a one-cell darker edge, a fine seam, ±5% block variation, quiet two-cell flecks and, on about one block in eight, a stepped crack (stone, earth) or a worn patch (grass), all on the 1:16 grid; their old soft seam is replaced by the fine seam.",
   "kind_profiles": {
     "rock": "stone", "grass": "grass", "dirt": "earth", "bedrock": "bedrock",
     "copper_ore": "mineral", "tin_ore": "mineral", "iron_ore": "mineral",
@@ -7,9 +7,12 @@
     "gem": "mineral"
   },
   "profiles": {
-    "stone": {"id": 1, "cell_variation": 0.065, "patch_variation": 0.06, "seam_strength": 0.065, "bevel_width": 0.06, "normal_strength": 0.34, "geometry_depth": 0.035},
-    "grass": {"id": 2, "cell_variation": 0.025, "patch_variation": 0.07, "seam_strength": 0.025, "bevel_width": 0.08, "normal_strength": 0.20, "geometry_depth": 0.025},
-    "earth": {"id": 3, "cell_variation": 0.045, "patch_variation": 0.065, "seam_strength": 0.045, "bevel_width": 0.07, "normal_strength": 0.28, "geometry_depth": 0.03},
+    "stone": {"id": 1, "cell_variation": 0.05, "patch_variation": 0.06, "seam_strength": 0.0, "bevel_width": 0.06, "normal_strength": 0.34, "geometry_depth": 0.035,
+      "dressing": {"edge": 0.09, "seam": 0.12, "flecks": 0.05, "crack": 0.125}},
+    "grass": {"id": 2, "cell_variation": 0.05, "patch_variation": 0.07, "seam_strength": 0.0, "bevel_width": 0.08, "normal_strength": 0.20, "geometry_depth": 0.025,
+      "dressing": {"edge": 0.06, "seam": 0.08, "flecks": 0.045, "worn": 0.125}},
+    "earth": {"id": 3, "cell_variation": 0.05, "patch_variation": 0.065, "seam_strength": 0.0, "bevel_width": 0.07, "normal_strength": 0.28, "geometry_depth": 0.03,
+      "dressing": {"edge": 0.08, "seam": 0.10, "flecks": 0.05, "crack": 0.125}},
     "bedrock": {"id": 4, "cell_variation": 0.035, "patch_variation": 0.035, "seam_strength": 0.055, "bevel_width": 0.045, "normal_strength": 0.32, "geometry_depth": 0.03},
     "mineral": {"id": 5, "cell_variation": 0.035, "patch_variation": 0.035, "seam_strength": 0.075, "bevel_width": 0.055, "normal_strength": 0.40, "geometry_depth": 0.035}
   },

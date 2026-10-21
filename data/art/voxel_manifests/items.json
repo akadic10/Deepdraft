@@ -7,17 +7,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 918,
-          "visual_triangles": 410,
+          "cells": 1015,
+          "visual_triangles": 508,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6710239651416122,
-            "triangles": 158
+            "retained_volume": 0.780295566502463,
+            "triangles": 90
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -26,33 +27,25 @@
           ]
         }
       ],
-      "bytes": 54220,
-      "sha256": "5bbf38a7d18d496bbc66645ab775936a3f778639a23b70eb8e4dd773a0ff03ad",
+      "bytes": 65260,
+      "sha256": "beb9f9b83b4bcdad5b620746b45f84bfcf61b767e119bcb908825ac6c7b1e1db",
       "path": "assets/models/items/stone/rough_stone.glb",
       "authoring": {
         "item": "rough_stone",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 914,
-          "visual_triangles": 608,
+          "cells": 924,
+          "visual_triangles": 532,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.612691466083151,
-            "triangles": 142
+            "retained_volume": 0.7965367965367965,
+            "triangles": 88
           },
           "min": [
             -0.375,
@@ -61,38 +54,30 @@
           ],
           "max": [
             0.375,
-            0.75,
+            0.625,
             0.375
           ]
         }
       ],
-      "bytes": 70968,
-      "sha256": "0ede1bdfb181c4052577355433bcb405f2e10ec4928e609f34219e298a3b29ef",
+      "bytes": 67668,
+      "sha256": "7046e89a90f88133843893f67c02922438e74bdd1cfea9fea6c22ab25868b0f3",
       "path": "assets/models/items/soil/cave_soil.glb",
       "authoring": {
         "item": "cave_soil",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 914,
-          "visual_triangles": 608,
+          "cells": 924,
+          "visual_triangles": 532,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.612691466083151,
-            "triangles": 142
+            "retained_volume": 0.7965367965367965,
+            "triangles": 88
           },
           "min": [
             -0.375,
@@ -101,38 +86,30 @@
           ],
           "max": [
             0.375,
-            0.75,
+            0.625,
             0.375
           ]
         }
       ],
-      "bytes": 70968,
-      "sha256": "ccf68d283f588ac6cf41c2b56ffeaa9123e39b6a6e86ea54c11d54a7c7c7419f",
+      "bytes": 67668,
+      "sha256": "2a733a92032d87326c5c28c6269f84282ef1dfebe91595d2d36345a577d7a4cf",
       "path": "assets/models/items/soil/light_soil.glb",
       "authoring": {
         "item": "light_soil",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 914,
-          "visual_triangles": 608,
+          "cells": 924,
+          "visual_triangles": 532,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.612691466083151,
-            "triangles": 142
+            "retained_volume": 0.7965367965367965,
+            "triangles": 88
           },
           "min": [
             -0.375,
@@ -141,43 +118,35 @@
           ],
           "max": [
             0.375,
-            0.75,
+            0.625,
             0.375
           ]
         }
       ],
-      "bytes": 70968,
-      "sha256": "b32ec593ab2f03afbc6e8f8e2aa70ce4afbbc4ee77f3df9d72c17dd0cfb14b72",
+      "bytes": 67668,
+      "sha256": "2071c83e55f45b49f8fa8692f0337bb2ecb8cdf1f42db12b955aa8d3f492f878",
       "path": "assets/models/items/soil/dark_soil.glb",
       "authoring": {
         "item": "dark_soil",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 898,
-          "visual_triangles": 524,
+          "cells": 1029,
+          "visual_triangles": 678,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6414253897550112,
-            "triangles": 130
+            "retained_volume": 0.7735665694849369,
+            "triangles": 100
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -186,38 +155,30 @@
           ]
         }
       ],
-      "bytes": 62136,
-      "sha256": "4c6efc687b7ba6f8fe746ca280a4d4538bacef4ccba376c7e67bad991d769081",
+      "bytes": 84540,
+      "sha256": "008d9d6322f009af747a77f3045d39e9b07420dd27652eb765ba4650012854f9",
       "path": "assets/models/items/ore/copper_ore.glb",
       "authoring": {
         "item": "copper_ore",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 898,
-          "visual_triangles": 524,
+          "cells": 1029,
+          "visual_triangles": 678,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6414253897550112,
-            "triangles": 130
+            "retained_volume": 0.7735665694849369,
+            "triangles": 100
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -226,38 +187,30 @@
           ]
         }
       ],
-      "bytes": 62136,
-      "sha256": "ce487773596bd6124b7f2f1780aac350946cefba3af463ad1e5003a873f49eea",
+      "bytes": 84536,
+      "sha256": "fe941399d8b326dec4e3ee579010a5e9adb5041221ea3f05590da3ee4b328d9d",
       "path": "assets/models/items/ore/tin_ore.glb",
       "authoring": {
         "item": "tin_ore",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 898,
-          "visual_triangles": 524,
+          "cells": 1029,
+          "visual_triangles": 678,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6414253897550112,
-            "triangles": 130
+            "retained_volume": 0.7735665694849369,
+            "triangles": 100
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -266,38 +219,30 @@
           ]
         }
       ],
-      "bytes": 62136,
-      "sha256": "a87d5f4fcf29e6b273396835d0d7d4ccf2dc182ad13104e11489b3ea50f78710",
+      "bytes": 84540,
+      "sha256": "54e5806193bdf9867ec5246303f96d0a524f73a771d9697503f90d05dd99092f",
       "path": "assets/models/items/ore/iron_ore.glb",
       "authoring": {
         "item": "iron_ore",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 898,
-          "visual_triangles": 524,
+          "cells": 1029,
+          "visual_triangles": 678,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6414253897550112,
-            "triangles": 130
+            "retained_volume": 0.7735665694849369,
+            "triangles": 100
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -306,38 +251,30 @@
           ]
         }
       ],
-      "bytes": 62136,
-      "sha256": "2885bafcd370e81425ecb877f03eca3c1363cc76e4a41f3ce190a724488e331c",
+      "bytes": 84540,
+      "sha256": "374acde0b47823b08631ae28a93b1dc7cd8c390527500af381ff60cd9a68c075",
       "path": "assets/models/items/ore/silver_ore.glb",
       "authoring": {
         "item": "silver_ore",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 898,
-          "visual_triangles": 524,
+          "cells": 1029,
+          "visual_triangles": 678,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6414253897550112,
-            "triangles": 130
+            "retained_volume": 0.7735665694849369,
+            "triangles": 100
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -346,38 +283,30 @@
           ]
         }
       ],
-      "bytes": 62136,
-      "sha256": "f93025c645af9cfa392e0fce29cf6da77e44045a55bc8a22482a95fe059af70b",
+      "bytes": 84540,
+      "sha256": "be899e3dc28194c9f2c8c3749b1bf0f26588fd31433e37fabf9ca24c386c6466",
       "path": "assets/models/items/ore/gold_ore.glb",
       "authoring": {
         "item": "gold_ore",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 898,
+          "cells": 1015,
           "visual_triangles": 508,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6414253897550112,
-            "triangles": 130
+            "retained_volume": 0.780295566502463,
+            "triangles": 90
           },
           "min": [
             -0.375,
             0.0,
-            -0.375
+            -0.3125
           ],
           "max": [
             0.375,
@@ -386,213 +315,217 @@
           ]
         }
       ],
-      "bytes": 60660,
-      "sha256": "5062aeadd212fb745f3b43d68832a46382d5f0fc32d657751f81cfc82ae8848c",
+      "bytes": 65252,
+      "sha256": "4dadebe8f40910bba7f745a252c59aeb4f61faf2ceea6230694a67c5a9437ad0",
       "path": "assets/models/items/ore/coal.glb",
       "authoring": {
         "item": "coal",
-        "source": {
-          "source": "data/art/voxel_mined_resources.json",
-          "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-          "grid": 16,
-          "extent_cells": [
-            12,
-            12,
-            12
-          ]
-        }
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 700,
-          "visual_triangles": 602,
+          "cells": 276,
+          "visual_triangles": 348,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 524
+            "triangles": 130
           },
           "min": [
-            -0.375,
+            -0.3125,
             0.0,
-            -0.375
+            -0.1875
           ],
           "max": [
-            0.375,
-            0.6875,
-            0.375
+            0.3125,
+            0.75,
+            0.1875
           ]
         }
       ],
-      "bytes": 105572,
-      "sha256": "ecb25db23a52cba31972e02233d04b427e9d17d89af269102505fc17a5975a92",
+      "bytes": 51656,
+      "sha256": "a7eab64a931b2cea26458e0f9c3697a1f1088a2791c45650824c385247baeecb",
       "path": "assets/models/items/gem/jade_raw.glb",
       "authoring": {
-        "item": "jade_raw"
+        "item": "jade_raw",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 700,
-          "visual_triangles": 602,
+          "cells": 276,
+          "visual_triangles": 348,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 524
+            "triangles": 130
           },
           "min": [
-            -0.375,
+            -0.3125,
             0.0,
-            -0.375
+            -0.1875
           ],
           "max": [
-            0.375,
-            0.6875,
-            0.375
+            0.3125,
+            0.75,
+            0.1875
           ]
         }
       ],
-      "bytes": 105576,
-      "sha256": "6122403fa0638ea63fa001aca6ff5e0e3f810d3a35d6270237e4f38f577e893d",
+      "bytes": 51660,
+      "sha256": "790b34b6fc8f9e3a0dae56145808deeb2721c657e3c2713eef89ae30169d2d58",
       "path": "assets/models/items/gem/amethyst_raw.glb",
       "authoring": {
-        "item": "amethyst_raw"
+        "item": "amethyst_raw",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 700,
-          "visual_triangles": 602,
+          "cells": 276,
+          "visual_triangles": 348,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 524
+            "triangles": 130
           },
           "min": [
-            -0.375,
+            -0.3125,
             0.0,
-            -0.375
+            -0.1875
           ],
           "max": [
-            0.375,
-            0.6875,
-            0.375
+            0.3125,
+            0.75,
+            0.1875
           ]
         }
       ],
-      "bytes": 105572,
-      "sha256": "0edc713df002d71b021f95d84382dbb0140e0e5e62a30f79f1cc45526e83c855",
+      "bytes": 51656,
+      "sha256": "a5763e0e266db2d68aa40b1469deec91dcc39e6b29d68ab2815aa0d8b728f65f",
       "path": "assets/models/items/gem/ruby_raw.glb",
       "authoring": {
-        "item": "ruby_raw"
+        "item": "ruby_raw",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 700,
-          "visual_triangles": 602,
+          "cells": 276,
+          "visual_triangles": 348,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 524
+            "triangles": 130
           },
           "min": [
-            -0.375,
+            -0.3125,
             0.0,
-            -0.375
+            -0.1875
           ],
           "max": [
-            0.375,
-            0.6875,
-            0.375
+            0.3125,
+            0.75,
+            0.1875
           ]
         }
       ],
-      "bytes": 105576,
-      "sha256": "f5c686756110a36b4afa365c52d1b1f4bac93c81f0ad86e91caa343c29a93dca",
+      "bytes": 51660,
+      "sha256": "ccc69f87c8b6d83930a86a5625d0b66403244d2a516e4de8e239eb5252b81bdd",
       "path": "assets/models/items/gem/sapphire_raw.glb",
       "authoring": {
-        "item": "sapphire_raw"
+        "item": "sapphire_raw",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 700,
-          "visual_triangles": 602,
+          "cells": 276,
+          "visual_triangles": 348,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 524
+            "triangles": 130
           },
           "min": [
-            -0.375,
+            -0.3125,
             0.0,
-            -0.375
+            -0.1875
           ],
           "max": [
-            0.375,
-            0.6875,
-            0.375
+            0.3125,
+            0.75,
+            0.1875
           ]
         }
       ],
-      "bytes": 105572,
-      "sha256": "0a8470a06ade6bf880188f6bb2a16c898456d823ece79e5f93686387a836069f",
+      "bytes": 51660,
+      "sha256": "93029c574db197953e28ad21043cd79be621b94409bbb0806e712a8880b28908",
       "path": "assets/models/items/gem/emerald_raw.glb",
       "authoring": {
-        "item": "emerald_raw"
+        "item": "emerald_raw",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 700,
-          "visual_triangles": 602,
+          "cells": 276,
+          "visual_triangles": 348,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 524
+            "triangles": 130
           },
           "min": [
-            -0.375,
+            -0.3125,
             0.0,
-            -0.375
+            -0.1875
           ],
           "max": [
-            0.375,
-            0.6875,
-            0.375
+            0.3125,
+            0.75,
+            0.1875
           ]
         }
       ],
-      "bytes": 105572,
-      "sha256": "c440c8c7411f2a236668ddb154c067da79bc83b58e20c49412a6fc63c7f1301b",
+      "bytes": 51660,
+      "sha256": "fbaa1dd841b3b8330c301ee6c60db2971ea5185173170ddccbc8224f4048ee6b",
       "path": "assets/models/items/gem/diamond_raw.glb",
       "authoring": {
-        "item": "diamond_raw"
+        "item": "diamond_raw",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 2254,
-          "visual_triangles": 680,
+          "cells": 1972,
+          "visual_triangles": 476,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8660159716060337,
-            "triangles": 148
+            "retained_volume": 0.7910750507099391,
+            "triangles": 138
           },
           "min": [
             -0.4375,
@@ -606,12 +539,12 @@
           ]
         }
       ],
-      "bytes": 78152,
-      "sha256": "ef763dc4f2a0381d297899c1806a0ac9ecbc452a365fc0d2062668ec20dbdd12",
+      "bytes": 66220,
+      "sha256": "43bdc2e7afea70c17120df64c196d4953b885231e570533fd55d47734024721f",
       "path": "assets/models/items/wood/oak_log.glb",
       "authoring": {
         "item": "oak_log",
-        "source": "data/art/voxel_hand_hewn_timber.json",
+        "source": "tools/voxel_assets/hearthblock_goods.py",
         "material": "base:material:oak",
         "orientation": "horizontal_z"
       }
@@ -620,12 +553,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2254,
-          "visual_triangles": 680,
+          "cells": 1972,
+          "visual_triangles": 476,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8660159716060337,
-            "triangles": 148
+            "retained_volume": 0.7910750507099391,
+            "triangles": 138
           },
           "min": [
             -0.4375,
@@ -639,12 +573,12 @@
           ]
         }
       ],
-      "bytes": 78152,
-      "sha256": "7780d7a51508302c183e2b573ca8c5edd03a5644eb6d2977c71613ddf7b7d618",
+      "bytes": 66220,
+      "sha256": "e3c3e34642fd1f199ad5582fb5287e139c4eaa4cea6dc45e2aff921381cd66f1",
       "path": "assets/models/items/wood/pine_log.glb",
       "authoring": {
         "item": "pine_log",
-        "source": "data/art/voxel_hand_hewn_timber.json",
+        "source": "tools/voxel_assets/hearthblock_goods.py",
         "material": "base:material:pine",
         "orientation": "horizontal_z"
       }
@@ -653,12 +587,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2254,
-          "visual_triangles": 680,
+          "cells": 1972,
+          "visual_triangles": 476,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8660159716060337,
-            "triangles": 148
+            "retained_volume": 0.7910750507099391,
+            "triangles": 138
           },
           "min": [
             -0.4375,
@@ -672,12 +607,12 @@
           ]
         }
       ],
-      "bytes": 78156,
-      "sha256": "f5791da93fe3c06284ff6e43a9c67b9ed04ac5c5ee12db377757e2022858ed2f",
+      "bytes": 66224,
+      "sha256": "e45fcfca0404e7bedaf92ed7bb7ad75d88c32418e3c926a903100ab27d969e39",
       "path": "assets/models/items/wood/apple_wood.glb",
       "authoring": {
         "item": "apple_wood",
-        "source": "data/art/voxel_hand_hewn_timber.json",
+        "source": "tools/voxel_assets/hearthblock_goods.py",
         "material": "base:material:applewood",
         "orientation": "horizontal_z"
       }
@@ -686,12 +621,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2254,
-          "visual_triangles": 680,
+          "cells": 1972,
+          "visual_triangles": 476,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8660159716060337,
-            "triangles": 148
+            "retained_volume": 0.7910750507099391,
+            "triangles": 138
           },
           "min": [
             -0.4375,
@@ -705,12 +641,12 @@
           ]
         }
       ],
-      "bytes": 78156,
-      "sha256": "0f6df3fd3e9bd306a2d3dfe140c8ce376047b63b2633c3a5126a4a9b8d2c1696",
+      "bytes": 66224,
+      "sha256": "68eaf2f9af0b6450492054c000d874414643cd402bfcf32d79a02b733e5b65f8",
       "path": "assets/models/items/wood/juniper_log.glb",
       "authoring": {
         "item": "juniper_log",
-        "source": "data/art/voxel_hand_hewn_timber.json",
+        "source": "tools/voxel_assets/hearthblock_goods.py",
         "material": "base:material:juniper",
         "orientation": "horizontal_z"
       }
@@ -749,12 +685,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 347,
-          "visual_triangles": 302,
+          "cells": 429,
+          "visual_triangles": 796,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 272
+            "triangles": 278
           },
           "min": [
             -0.375,
@@ -768,23 +705,25 @@
           ]
         }
       ],
-      "bytes": 54776,
-      "sha256": "3e075fa07a0b42d6ed9250a40a9a8e0bb9fe333b664195019bdee9b9e3dddff7",
+      "bytes": 113668,
+      "sha256": "b99c673a814d4d3ca22b74c2ca31add6daabfd528c6e06500c539d0abc946303",
       "path": "assets/models/items/crates/apple_low.glb",
       "authoring": {
-        "item": "apple_low"
+        "item": "apple_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 612,
-          "visual_triangles": 488,
+          "cells": 603,
+          "visual_triangles": 894,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 428
+            "triangles": 310
           },
           "min": [
             -0.375,
@@ -798,23 +737,25 @@
           ]
         }
       ],
-      "bytes": 86244,
-      "sha256": "7f49adffe711188f5fccba99a20c6dbb6f532f054f447f859d85795606201a64",
+      "bytes": 127192,
+      "sha256": "95c6ed7fb043b6b87580ada25c9bb206056022b01fd64d1d2070afa674399843",
       "path": "assets/models/items/crates/apple_half.glb",
       "authoring": {
-        "item": "apple_half"
+        "item": "apple_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 796,
-          "visual_triangles": 598,
+          "cells": 729,
+          "visual_triangles": 1052,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 494
+            "triangles": 356
           },
           "min": [
             -0.375,
@@ -828,23 +769,25 @@
           ]
         }
       ],
-      "bytes": 102444,
-      "sha256": "17aedde930e00c96c70739fc7b68380b7bea5538a872b301040e000350d3ca0a",
+      "bytes": 148496,
+      "sha256": "8b21a301333d3f2f77da8057801a8c4b06e3c7782b73783999f533894ecd416e",
       "path": "assets/models/items/crates/apple_full.glb",
       "authoring": {
-        "item": "apple_full"
+        "item": "apple_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 344,
-          "visual_triangles": 278,
+          "cells": 375,
+          "visual_triangles": 744,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 270
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -858,23 +801,25 @@
           ]
         }
       ],
-      "bytes": 52388,
-      "sha256": "07a27f852773eb327b7d5a47d4fcce5c859c287e1a947ee24fb2b5f7e4b09222",
+      "bytes": 108240,
+      "sha256": "d7361dee316f7caa1b906523e74a86b08b7961d0230efd80ce8d37558271cd1c",
       "path": "assets/models/items/crates/blueberry_low.glb",
       "authoring": {
-        "item": "blueberry_low"
+        "item": "blueberry_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 606,
-          "visual_triangles": 440,
+          "cells": 498,
+          "visual_triangles": 900,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8316831683168316,
-            "triangles": 36
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 354
           },
           "min": [
             -0.375,
@@ -888,23 +833,25 @@
           ]
         }
       ],
-      "bytes": 45764,
-      "sha256": "6c673158ddf488fc32893825c15f6ca0e66956e1a3739bda3116d328d07f807c",
+      "bytes": 131900,
+      "sha256": "f72a244ff8f45b27ca9e8623d9ff8c6d1a8be9336572386536101d331a219449",
       "path": "assets/models/items/crates/blueberry_half.glb",
       "authoring": {
-        "item": "blueberry_half"
+        "item": "blueberry_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 787,
-          "visual_triangles": 526,
+          "cells": 617,
+          "visual_triangles": 968,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 494
+            "triangles": 416
           },
           "min": [
             -0.375,
@@ -918,23 +865,25 @@
           ]
         }
       ],
-      "bytes": 95824,
-      "sha256": "8de7119601a0fd7785c77e34ab5336dd20c6016df349e5014c4c1646b8d01893",
+      "bytes": 144952,
+      "sha256": "b3f6971057aeb83ef8616aee6f0c4c684700135d61c53d6e0ffc7a9dbc553130",
       "path": "assets/models/items/crates/blueberry_full.glb",
       "authoring": {
-        "item": "blueberry_full"
+        "item": "blueberry_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 344,
-          "visual_triangles": 278,
+          "cells": 375,
+          "visual_triangles": 744,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 270
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -948,23 +897,25 @@
           ]
         }
       ],
-      "bytes": 52388,
-      "sha256": "4506078ca73b97fe7b622219b8f9875f71872f47cc0ff664d821ced1078f3553",
+      "bytes": 108240,
+      "sha256": "30509785083d8ac1bed7b50152bfccc1c1bb405b676d62aeada7acfc9aae73d2",
       "path": "assets/models/items/crates/elderberry_low.glb",
       "authoring": {
-        "item": "elderberry_low"
+        "item": "elderberry_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 606,
-          "visual_triangles": 440,
+          "cells": 498,
+          "visual_triangles": 900,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8316831683168316,
-            "triangles": 36
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 354
           },
           "min": [
             -0.375,
@@ -978,23 +929,25 @@
           ]
         }
       ],
-      "bytes": 45764,
-      "sha256": "f93e98c6f9197260c77f710d93fd16795dcb4b54cd6c56c7c4c324cc249abb15",
+      "bytes": 131904,
+      "sha256": "457eed84220612566f2774744c3a19712d97a5c7e7a136acdd6685618c664b97",
       "path": "assets/models/items/crates/elderberry_half.glb",
       "authoring": {
-        "item": "elderberry_half"
+        "item": "elderberry_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 787,
-          "visual_triangles": 526,
+          "cells": 617,
+          "visual_triangles": 968,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 494
+            "triangles": 416
           },
           "min": [
             -0.375,
@@ -1008,23 +961,25 @@
           ]
         }
       ],
-      "bytes": 95824,
-      "sha256": "9e5c3d69d39a7069ea1b0a081df78fae6d11690b9bf16ebc3ac4b9d58686b756",
+      "bytes": 144952,
+      "sha256": "48f2969e744b8e98943f24734ea92dcda921dddab47448b428f5c3688f9a8316",
       "path": "assets/models/items/crates/elderberry_full.glb",
       "authoring": {
-        "item": "elderberry_full"
+        "item": "elderberry_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 344,
-          "visual_triangles": 278,
+          "cells": 375,
+          "visual_triangles": 744,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 270
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -1038,23 +993,25 @@
           ]
         }
       ],
-      "bytes": 52392,
-      "sha256": "446efbff46ab3658e6811aeb642fe5b690b2c1cbb4066f4f3ca887ac72d8deb0",
+      "bytes": 108244,
+      "sha256": "12c1a7ab5dd8c1458b6b7cb07f6d6ffc0d84ee6e71809f4f1641803ec385bc96",
       "path": "assets/models/items/crates/juniper_berry_low.glb",
       "authoring": {
-        "item": "juniper_berry_low"
+        "item": "juniper_berry_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 606,
-          "visual_triangles": 440,
+          "cells": 498,
+          "visual_triangles": 900,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8316831683168316,
-            "triangles": 36
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 354
           },
           "min": [
             -0.375,
@@ -1068,23 +1025,25 @@
           ]
         }
       ],
-      "bytes": 45768,
-      "sha256": "8d4283ca6a5e04a2026d6d3468fd4559d9a4f8866a3e7fb6d6b61a62b22a53c4",
+      "bytes": 131904,
+      "sha256": "81a9061d044a4bd8c52b3440ffbd2eb1a85312e50945170bb7cbdd91ac56eba0",
       "path": "assets/models/items/crates/juniper_berry_half.glb",
       "authoring": {
-        "item": "juniper_berry_half"
+        "item": "juniper_berry_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 787,
-          "visual_triangles": 526,
+          "cells": 617,
+          "visual_triangles": 968,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 494
+            "triangles": 416
           },
           "min": [
             -0.375,
@@ -1098,23 +1057,25 @@
           ]
         }
       ],
-      "bytes": 95828,
-      "sha256": "cb9674482149e7aa07724f39d4477e4deccbd9f61d0f48b39c22fa0cf70c3713",
+      "bytes": 144956,
+      "sha256": "3aeec4cf1ab1eb0d8df96ffe4b00b718fa0b3e42b2735f1b95555c5e3392e868",
       "path": "assets/models/items/crates/juniper_berry_full.glb",
       "authoring": {
-        "item": "juniper_berry_full"
+        "item": "juniper_berry_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 347,
-          "visual_triangles": 302,
+          "cells": 384,
+          "visual_triangles": 738,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 272
+            "triangles": 244
           },
           "min": [
             -0.375,
@@ -1128,23 +1089,25 @@
           ]
         }
       ],
-      "bytes": 54784,
-      "sha256": "1425495e114d804460ab0199a5385a370a3ef48c687679dc7ee54bb8ce575dfe",
+      "bytes": 104284,
+      "sha256": "5b19a744d9a55b97813e2b4c0ab5e93754056f08559c6be1b8353362e31d219c",
       "path": "assets/models/items/crates/wild_strawberry_low.glb",
       "authoring": {
-        "item": "wild_strawberry_low"
+        "item": "wild_strawberry_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 612,
-          "visual_triangles": 488,
+          "cells": 516,
+          "visual_triangles": 896,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 428
+            "triangles": 284
           },
           "min": [
             -0.375,
@@ -1153,28 +1116,30 @@
           ],
           "max": [
             0.375,
-            0.5,
+            0.4375,
             0.3125
           ]
         }
       ],
-      "bytes": 86252,
-      "sha256": "cb0b3dfceaf8e19cfeaf6b645c4a4d95a38b582c3d1150cb33ac3de450ad95de",
+      "bytes": 125032,
+      "sha256": "8bc6214584c1ab61ba9f6e390678ef0baebec30c2a2585ff447087c5e87a2425",
       "path": "assets/models/items/crates/wild_strawberry_half.glb",
       "authoring": {
-        "item": "wild_strawberry_half"
+        "item": "wild_strawberry_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 796,
-          "visual_triangles": 598,
+          "cells": 642,
+          "visual_triangles": 938,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 494
+            "triangles": 318
           },
           "min": [
             -0.375,
@@ -1183,28 +1148,30 @@
           ],
           "max": [
             0.375,
-            0.625,
+            0.5625,
             0.3125
           ]
         }
       ],
-      "bytes": 102452,
-      "sha256": "cd71d8b220b1ae74417031e69c6d308c84ed9d590d456921b5d8410e16a35a93",
+      "bytes": 132700,
+      "sha256": "3190447aa46cce3a5156fd5f23677222cd894574dd822e328224c23d2e0f58b6",
       "path": "assets/models/items/crates/wild_strawberry_full.glb",
       "authoring": {
-        "item": "wild_strawberry_full"
+        "item": "wild_strawberry_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 339,
-          "visual_triangles": 180,
+          "cells": 363,
+          "visual_triangles": 720,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 172
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -1218,23 +1185,25 @@
           ]
         }
       ],
-      "bytes": 34356,
-      "sha256": "3b1fc835b1930b51e5e4722af250a63d07b1280ebb62d3393d5c40ac583b0c62",
+      "bytes": 105648,
+      "sha256": "1302012c5fbc0ec955bca577ecadd7e014efab61019db99f972fd389be5155d1",
       "path": "assets/models/items/crates/apple_seed_low.glb",
       "authoring": {
-        "item": "apple_seed_low"
+        "item": "apple_seed_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 594,
-          "visual_triangles": 250,
+          "cells": 474,
+          "visual_triangles": 856,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8484848484848485,
-            "triangles": 36
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 356
           },
           "min": [
             -0.375,
@@ -1248,23 +1217,25 @@
           ]
         }
       ],
-      "bytes": 28280,
-      "sha256": "795d8cd00e9585d81c7dc97ec751f5e4072de5d3f24ba6f0a18a1cfe991cca84",
+      "bytes": 127336,
+      "sha256": "41623a90d3ecf03593850a0a7210d781a09e472d7fa3e964dd476d56169d5727",
       "path": "assets/models/items/crates/apple_seed_half.glb",
       "authoring": {
-        "item": "apple_seed_half"
+        "item": "apple_seed_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 769,
-          "visual_triangles": 320,
+          "cells": 583,
+          "visual_triangles": 888,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 312
+            "triangles": 416
           },
           "min": [
             -0.375,
@@ -1278,23 +1249,25 @@
           ]
         }
       ],
-      "bytes": 60112,
-      "sha256": "6a034d4641594d687ff3224ac04c2a1bee028c3e054896adedf6bf6d8888ca20",
+      "bytes": 136304,
+      "sha256": "0ecee1bd415468b0877cb48d645929a2ad160dfdd5e1065167034c049a131515",
       "path": "assets/models/items/crates/apple_seed_full.glb",
       "authoring": {
-        "item": "apple_seed_full"
+        "item": "apple_seed_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 339,
-          "visual_triangles": 180,
+          "cells": 363,
+          "visual_triangles": 720,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 172
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -1308,23 +1281,25 @@
           ]
         }
       ],
-      "bytes": 34356,
-      "sha256": "d42f7e152043e9da96dafe7f7501f7ed958cba457dd6620dd9b96533873e44ab",
+      "bytes": 105652,
+      "sha256": "a6be814daffe6301713b06a14c0482a258ab9b83d1ff7c2d3711d35ac3bf89da",
       "path": "assets/models/items/crates/juniper_seed_low.glb",
       "authoring": {
-        "item": "juniper_seed_low"
+        "item": "juniper_seed_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 594,
-          "visual_triangles": 250,
+          "cells": 474,
+          "visual_triangles": 856,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8484848484848485,
-            "triangles": 36
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 356
           },
           "min": [
             -0.375,
@@ -1338,23 +1313,25 @@
           ]
         }
       ],
-      "bytes": 28280,
-      "sha256": "4ab4f38fd38f1dafd63aaabf8c8f7f1400d150059dd32486cc66cb2237cb3322",
+      "bytes": 127336,
+      "sha256": "f6702fea904eec914d0a6fa5ee3ffd6f713e062971c2bb4262a7915ae41a78c4",
       "path": "assets/models/items/crates/juniper_seed_half.glb",
       "authoring": {
-        "item": "juniper_seed_half"
+        "item": "juniper_seed_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 769,
-          "visual_triangles": 320,
+          "cells": 583,
+          "visual_triangles": 888,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 312
+            "triangles": 416
           },
           "min": [
             -0.375,
@@ -1368,11 +1345,12 @@
           ]
         }
       ],
-      "bytes": 60116,
-      "sha256": "19194481f6e173d5353e252d66576a1d87510069b0f548ee027ff9d9ed4247cf",
+      "bytes": 136308,
+      "sha256": "e0a592a5abda508a15e0940f8a211654885d206147a1063b90223f8471b97f38",
       "path": "assets/models/items/crates/juniper_seed_full.glb",
       "authoring": {
-        "item": "juniper_seed_full"
+        "item": "juniper_seed_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
@@ -1469,12 +1447,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 360,
-          "visual_triangles": 160,
+          "cells": 387,
+          "visual_triangles": 776,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 132
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -1488,23 +1467,89 @@
           ]
         }
       ],
-      "bytes": 28836,
-      "sha256": "e5879dab602a17e9a2703eb158d6de3729394435356837abd6919f66dee2c8b7",
+      "bytes": 111696,
+      "sha256": "20852c1ef7d85276d65f734fd7806073f4c730d9a85df43a9898624793bf0a4d",
       "path": "assets/models/items/crates/oak_acorn_low.glb",
       "authoring": {
-        "item": "oak_acorn_low"
+        "item": "oak_acorn_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 636,
-          "visual_triangles": 236,
+          "cells": 522,
+          "visual_triangles": 982,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8679245283018868,
-            "triangles": 98
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 356
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 140936,
+      "sha256": "28f616ff6669a1fe33281b94168b0abb0706aed7bd7d3f8c148d3447ac0e5123",
+      "path": "assets/models/items/crates/oak_acorn_half.glb",
+      "authoring": {
+        "item": "oak_acorn_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 651,
+          "visual_triangles": 1058,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 416
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 154668,
+      "sha256": "9d458610fc94de4facedaef478e7396fbfc71d9f3eef6091a0947cfb5f1b9377",
+      "path": "assets/models/items/crates/oak_acorn_full.glb",
+      "authoring": {
+        "item": "oak_acorn_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 387,
+          "visual_triangles": 784,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 280
           },
           "min": [
             -0.375,
@@ -1518,23 +1563,25 @@
           ]
         }
       ],
-      "bytes": 32700,
-      "sha256": "a61eaab3f70ce23eef9ee620350195041d2c5869a8dbd1445101d0100773dbfa",
-      "path": "assets/models/items/crates/oak_acorn_half.glb",
+      "bytes": 112560,
+      "sha256": "8a3cab63adf17f204d56f2e014ee09e4c8c07f163c35a553c9a551eca2796932",
+      "path": "assets/models/items/crates/pine_cone_low.glb",
       "authoring": {
-        "item": "oak_acorn_half"
+        "item": "pine_cone_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 832,
-          "visual_triangles": 296,
+          "cells": 522,
+          "visual_triangles": 986,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7884615384615384,
-            "triangles": 72
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 356
           },
           "min": [
             -0.375,
@@ -1543,16 +1590,49 @@
           ],
           "max": [
             0.375,
-            0.5625,
+            0.5,
             0.3125
           ]
         }
       ],
-      "bytes": 35828,
-      "sha256": "0391c6188d7a950943cc69390b32119b9a7e904728347dab088d6ef36a168e3c",
-      "path": "assets/models/items/crates/oak_acorn_full.glb",
+      "bytes": 141368,
+      "sha256": "3be20e9cfe2c78d475bccc03cc97a352b420df8b3406027b1860dd58361a8fc7",
+      "path": "assets/models/items/crates/pine_cone_half.glb",
       "authoring": {
-        "item": "oak_acorn_full"
+        "item": "pine_cone_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 651,
+          "visual_triangles": 1066,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 416
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 155532,
+      "sha256": "9999423f163392b0c7d69b3ed167e3d8147afc2aa0ddd246554b9716875c951c",
+      "path": "assets/models/items/crates/pine_cone_full.glb",
+      "authoring": {
+        "item": "pine_cone_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
@@ -1560,11 +1640,12 @@
         {
           "name": "main",
           "cells": 372,
-          "visual_triangles": 204,
+          "visual_triangles": 824,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 136
+            "triangles": 334
           },
           "min": [
             -0.375,
@@ -1578,113 +1659,25 @@
           ]
         }
       ],
-      "bytes": 33252,
-      "sha256": "d8b2da05471cba40a86ca5ff2c77d3bbc984b288a42850f67f57d06408e7576e",
-      "path": "assets/models/items/crates/pine_cone_low.glb",
-      "authoring": {
-        "item": "pine_cone_low"
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 660,
-          "visual_triangles": 322,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8242424242424242,
-            "triangles": 66
-          },
-          "min": [
-            -0.375,
-            0.0,
-            -0.3125
-          ],
-          "max": [
-            0.375,
-            0.5,
-            0.3125
-          ]
-        }
-      ],
-      "bytes": 37664,
-      "sha256": "9e857a72bf55552c2305b976340568113aceae7614da45c250c14dd697c6e9ec",
-      "path": "assets/models/items/crates/pine_cone_half.glb",
-      "authoring": {
-        "item": "pine_cone_half"
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 868,
-          "visual_triangles": 428,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7741935483870968,
-            "triangles": 72
-          },
-          "min": [
-            -0.375,
-            0.0,
-            -0.3125
-          ],
-          "max": [
-            0.375,
-            0.625,
-            0.3125
-          ]
-        }
-      ],
-      "bytes": 47976,
-      "sha256": "6c312c94c00d6b5f20d56d02df9cb26a230b080e1b16c56779fdba2057169b9d",
-      "path": "assets/models/items/crates/pine_cone_full.glb",
-      "authoring": {
-        "item": "pine_cone_full"
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 346,
-          "visual_triangles": 220,
-          "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 218
-          },
-          "min": [
-            -0.375,
-            0.0,
-            -0.3125
-          ],
-          "max": [
-            0.375,
-            0.4375,
-            0.3125
-          ]
-        }
-      ],
-      "bytes": 42276,
-      "sha256": "59f2b85c1656842fa2ccb53ce8f548d2d085d5a72c09bbfad840881c07a21634",
+      "bytes": 121860,
+      "sha256": "3aa50f178ec6b224f4ae606d158fb5358d45b35d529af93ac355902d6b976619",
       "path": "assets/models/items/crates/blueberry_cutting_low.glb",
       "authoring": {
-        "item": "blueberry_cutting_low"
+        "item": "blueberry_cutting_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 610,
-          "visual_triangles": 356,
+          "cells": 492,
+          "visual_triangles": 1066,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 364
+            "triangles": 452
           },
           "min": [
             -0.375,
@@ -1698,23 +1691,25 @@
           ]
         }
       ],
-      "bytes": 68220,
-      "sha256": "e0ceeddaa0b718f9a8f5ee674847ccbdabdd0d3a0aa32bfd4c3c9b726790109e",
+      "bytes": 158852,
+      "sha256": "76c1c6688ba153e937e2be2eb6ccace50acb4f6e6880d0cd4bd2e4cbf101d720",
       "path": "assets/models/items/crates/blueberry_cutting_half.glb",
       "authoring": {
-        "item": "blueberry_cutting_half"
+        "item": "blueberry_cutting_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 796,
-          "visual_triangles": 478,
+          "cells": 612,
+          "visual_triangles": 1170,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 488
+            "triangles": 532
           },
           "min": [
             -0.375,
@@ -1728,23 +1723,25 @@
           ]
         }
       ],
-      "bytes": 90860,
-      "sha256": "ddeebb13a2e65affdf26114e614adf1371514b6b845a64462cd41fb508b52a2a",
+      "bytes": 177452,
+      "sha256": "0c2ec523b0afd567df4e7d736fd4807177baab664a46356ad1d13e400112d657",
       "path": "assets/models/items/crates/blueberry_cutting_full.glb",
       "authoring": {
-        "item": "blueberry_cutting_full"
+        "item": "blueberry_cutting_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 346,
-          "visual_triangles": 220,
+          "cells": 372,
+          "visual_triangles": 824,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 218
+            "triangles": 334
           },
           "min": [
             -0.375,
@@ -1758,23 +1755,25 @@
           ]
         }
       ],
-      "bytes": 42276,
-      "sha256": "5d65df7b1e7b3557e0baa58ac67eb042a00acac6286beed122b491044e53b241",
+      "bytes": 121860,
+      "sha256": "4d79836610f4aef2492d3e581989641068fb9611224548be831732d0acdd1400",
       "path": "assets/models/items/crates/elderberry_cutting_low.glb",
       "authoring": {
-        "item": "elderberry_cutting_low"
+        "item": "elderberry_cutting_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 610,
-          "visual_triangles": 356,
+          "cells": 492,
+          "visual_triangles": 1066,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 364
+            "triangles": 452
           },
           "min": [
             -0.375,
@@ -1788,23 +1787,25 @@
           ]
         }
       ],
-      "bytes": 68220,
-      "sha256": "f98d5e7f11272072924e8d6e4375885524d0c61985e39fa1c2a10ad8aa369346",
+      "bytes": 158852,
+      "sha256": "54c04333da2b5524e762cbfb794318ad7dfc2c1985e472dfedaba7393b3c5eda",
       "path": "assets/models/items/crates/elderberry_cutting_half.glb",
       "authoring": {
-        "item": "elderberry_cutting_half"
+        "item": "elderberry_cutting_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 796,
-          "visual_triangles": 478,
+          "cells": 612,
+          "visual_triangles": 1170,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 488
+            "triangles": 532
           },
           "min": [
             -0.375,
@@ -1818,11 +1819,12 @@
           ]
         }
       ],
-      "bytes": 90860,
-      "sha256": "a3dc49664fb852c7a7a7ecd3b247d1242430535f3e8730760808aa2c9393f0c6",
+      "bytes": 177452,
+      "sha256": "848a38cc260da596e001fa780deba24544c33577b5ca78ad38ddcb9fa2bcafdc",
       "path": "assets/models/items/crates/elderberry_cutting_full.glb",
       "authoring": {
-        "item": "elderberry_cutting_full"
+        "item": "elderberry_cutting_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
@@ -2009,12 +2011,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 346,
-          "visual_triangles": 220,
+          "cells": 372,
+          "visual_triangles": 824,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 218
+            "triangles": 334
           },
           "min": [
             -0.375,
@@ -2028,23 +2031,25 @@
           ]
         }
       ],
-      "bytes": 42276,
-      "sha256": "50b08f3e397bed11b6321bda1dbd4fcdbbd91314a56cb70765454fa7b3e3970e",
+      "bytes": 121860,
+      "sha256": "5dc02afa10d025cc69cf1f292a467f0f84c6e77d98ac2ac377d1cd850ff90255",
       "path": "assets/models/items/crates/strawberry_cutting_low.glb",
       "authoring": {
-        "item": "strawberry_cutting_low"
+        "item": "strawberry_cutting_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 610,
-          "visual_triangles": 356,
+          "cells": 492,
+          "visual_triangles": 1066,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 364
+            "triangles": 452
           },
           "min": [
             -0.375,
@@ -2058,23 +2063,25 @@
           ]
         }
       ],
-      "bytes": 68220,
-      "sha256": "e5279d6ac7ac6b955aff2c018792d958379c933856baa1c257e1bb2bfdce12ed",
+      "bytes": 158852,
+      "sha256": "2cfe22a51485497e4edee32ed44e15295bf446e51050a05f8a9ad4c34d0e273a",
       "path": "assets/models/items/crates/strawberry_cutting_half.glb",
       "authoring": {
-        "item": "strawberry_cutting_half"
+        "item": "strawberry_cutting_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 796,
-          "visual_triangles": 478,
+          "cells": 612,
+          "visual_triangles": 1170,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 488
+            "triangles": 532
           },
           "min": [
             -0.375,
@@ -2088,23 +2095,25 @@
           ]
         }
       ],
-      "bytes": 90860,
-      "sha256": "79033cb06774f4c20cc992e7258531970523d8f2a720fe09527eb7ed9f1a6411",
+      "bytes": 177452,
+      "sha256": "9706c3178b443905d0e1773a7098e33afe11f39c0478ee02372a9d861c564e77",
       "path": "assets/models/items/crates/strawberry_cutting_full.glb",
       "authoring": {
-        "item": "strawberry_cutting_full"
+        "item": "strawberry_cutting_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 303,
-          "visual_triangles": 78,
+          "cells": 278,
+          "visual_triangles": 210,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 78
+            "triangles": 74
           },
           "min": [
             -0.375,
@@ -2113,33 +2122,35 @@
           ],
           "max": [
             0.375,
-            0.375,
+            0.25,
             0.8125
           ]
         }
       ],
-      "bytes": 16308,
-      "sha256": "6cfbcd1fc5d53b43f203f1eaca24ced7a95b3c9b4c60b74ceb8721da7d603fc6",
+      "bytes": 31592,
+      "sha256": "d0a7503c6225049ba81d31fc78d8b82785b6c320ecf0c4e048abf759d3e67e15",
       "path": "assets/models/items/tools/stone_hoe.glb",
       "authoring": {
-        "item": "stone_hoe"
+        "item": "stone_hoe",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 588,
-          "visual_triangles": 80,
+          "cells": 606,
+          "visual_triangles": 312,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 68
+            "triangles": 76
           },
           "min": [
             -0.375,
             0.0,
-            -0.5625
+            -0.625
           ],
           "max": [
             0.375,
@@ -2148,53 +2159,57 @@
           ]
         }
       ],
-      "bytes": 15580,
-      "sha256": "9a7f2b27edf77a3811f01622d22f60e33d008396dcab93ba0b39feedc901d18f",
+      "bytes": 42800,
+      "sha256": "ef9f882ad6d0d1c34480102d5df4fe97cf65c611c59973548c6229e65b9da06d",
       "path": "assets/models/items/tools/stone_hammer.glb",
       "authoring": {
-        "item": "stone_hammer"
+        "item": "stone_hammer",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 184,
-          "visual_triangles": 68,
+          "cells": 173,
+          "visual_triangles": 184,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 60
+            "triangles": 82
           },
           "min": [
             -0.125,
             0.0,
-            -1.125
+            -1.0625
           ],
           "max": [
             0.125,
-            0.25,
-            1.1875
+            0.1875,
+            1.125
           ]
         }
       ],
-      "bytes": 13736,
-      "sha256": "8f060c9e8b6a38dee766e8503f8eb20b6bf931141db8348d9dcf20e33f1eb773",
+      "bytes": 29528,
+      "sha256": "b7c9264cf04ecd5df5a618a9f054191f2e30c94d9c3ad1db0a40c8f11b803240",
       "path": "assets/models/items/tools/hunting_spear.glb",
       "authoring": {
-        "item": "hunting_spear"
+        "item": "hunting_spear",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {
       "parts": [
         {
           "name": "main",
-          "cells": 460,
-          "visual_triangles": 114,
+          "cells": 554,
+          "visual_triangles": 416,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7565217391304347,
-            "triangles": 78
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 140
           },
           "min": [
             -0.5625,
@@ -2202,17 +2217,18 @@
             -0.625
           ],
           "max": [
-            0.5,
+            0.5625,
             0.375,
             0.625
           ]
         }
       ],
-      "bytes": 19624,
-      "sha256": "16d85de9507b43f2b30cef1663e527e152f0a700ef7705d96356ab68287be170",
+      "bytes": 59924,
+      "sha256": "4078f772ab2bf1b8fb7406a7ac3fa64490a2583dc34018994c7a79688fa55388",
       "path": "assets/models/items/tools/carpentry_kit.glb",
       "authoring": {
-        "item": "carpentry_kit"
+        "item": "carpentry_kit",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
     {

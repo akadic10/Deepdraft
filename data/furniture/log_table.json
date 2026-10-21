@@ -2,7 +2,7 @@
   "furniture_key": "base:furniture:log_table",
   "furniture_category": "dining",
   "display_name": "Log Dining Table",
-  "description": "A broad cut-log top on a narrow bark-covered pedestal. Four separate log stools fit around it in a 5 × 5 dining layout.",
+  "description": "Two halves of one split log, laid riven face up on two short logs crossed in a notch. Four separate log stools fit around it in a 5 × 5 dining layout.",
   "model": "res://assets/models/furniture/log_table.glb",
   "item_key": "base:resources:furniture:log_table",
   "placement": "floor",
@@ -134,7 +134,7 @@
         "body": [
           0,
           0.25,
-          0
+          -0.1875
         ],
         "right_foot": [
           -0.3125,
@@ -144,7 +144,7 @@
         "head": [
           0,
           0.375,
-          0
+          -0.1875
         ]
       },
       "clearance_regions": [
@@ -165,7 +165,7 @@
           "min": [
             -0.1875,
             0.875,
-            -0.0625
+            -0.25
           ],
           "max": [
             1.1875,

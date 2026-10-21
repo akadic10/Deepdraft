@@ -633,6 +633,7 @@ func serialize_state() -> Dictionary:
 			"eyebrow_style": appearance.eyebrow_style,
 			"beard_style": appearance.beard_style,
 			"scar": appearance.scar,
+			"clothing": appearance.clothing,
 		}
 	return {
 		"id": dwarf_id,
@@ -1988,8 +1989,8 @@ func _walk_bob(moved: float) -> void:
 		_head.rotation = Vector3(lean*.35,-wave*.018,wave*.01)
 		var pivot := Vector3(0,2.45,0)
 		_head.position = pivot+Vector3(wave*.02,bounce*.65,0)-_head.basis*pivot
-	if _hand_l != null: _hand_l.position = Vector3(-proportions.relaxed_hand_inset,bounce+.025, wave*amp*.75)
-	if _hand_r != null: _hand_r.position = Vector3(proportions.relaxed_hand_inset,bounce+.025,-wave*amp*.75)
+	if _hand_l != null: _hand_l.position = _relaxed_hand(-1)+Vector3(0,bounce+.025, wave*amp*.75)
+	if _hand_r != null: _hand_r.position = _relaxed_hand(1)+Vector3(0,bounce+.025,-wave*amp*.75)
 
 
 func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
@@ -2129,7 +2130,6 @@ func set_name_label_visible(show_label: bool) -> void:
 func _apply_tints() -> void:
 	var skin: Color = DwarfAssets.SKIN_TONES.get(appearance.skin_tone, Color.WHITE)
 	var hair: Color = DwarfAssets.HAIR_COLORS.get(appearance.hair_color, Color.WHITE)
-	var eye: Color = DwarfAssets.EYE_COLORS.get(appearance.eye_color, Color.WHITE)
 
 	# Body and feet are BAKED since the doc-17 regen (clothed tunic torso,
 	# leather boots) — tint WHITE to keep the standard material while leaving
@@ -2137,12 +2137,23 @@ func _apply_tints() -> void:
 	_tint(_body, Color.WHITE)
 	_tint(_hand_l, skin)
 	_tint(_hand_r, skin)
+	# The Hearthblock mitten's tunic cuff is a separate baked-cloth mesh (doc 256).
+	for hand: Node3D in [_hand_l, _hand_r]:
+		if hand != null: _tint(hand.find_child("cuff", true, false), Color.WHITE)
+	# Each dwarf's own tunic colour, on the torso and both cuffs (doc 256); the
+	# skin mittens keep their shared mirrored meshes.
+	appearance.clothing = DwarfAssets.clothing_for(appearance, dwarf_id)
+	for part: Node in [_body, _hand_l.find_child("cuff", true, false) if _hand_l != null else null,
+			_hand_r.find_child("cuff", true, false) if _hand_r != null else null]:
+		if part != null: DwarfAssets.dress(part, appearance.clothing)
 	_tint(_foot_l, Color.WHITE)
 	_tint(_foot_r, Color.WHITE)
 	if _head != null:
 		# The head mesh itself is skin; children carry their own tints.
 		_tint(_head, skin, false)
-		_tint(_head.get_node_or_null("MeshEyes"), eye)
+		# Hearthblock bead eyes keep their dark bead and white glint in the world;
+		# portraits show the eye colour on the glint (DwarfPortrait, doc 256).
+		_tint(_head.get_node_or_null("MeshEyes"), Color.WHITE)
 		_tint(_head.get_node_or_null("MeshHair"), hair)
 		_tint(_head.get_node_or_null("MeshBeard"), hair)   # beard follows hair colour (doc 41b)
 		_tint(_head.get_node_or_null("MeshBrows"), hair)
@@ -2188,15 +2199,22 @@ func _idle_bob() -> void:
 		_head.position.y = breathe * 1.4
 		_head.rotation.y = sway * 0.6
 	if _hand_l != null:
-		_hand_l.position.y = breathe + sin(t * 2.2 + 0.9) * 0.010
+		_hand_l.position.y = _relaxed_hand(-1).y + breathe + sin(t * 2.2 + 0.9) * 0.010
 	if _hand_r != null:
-		_hand_r.position.y = breathe + sin(t * 2.2 + 2.1) * 0.010
+		_hand_r.position.y = _relaxed_hand(1).y + breathe + sin(t * 2.2 + 2.1) * 0.010
 	# Feet stay planted while idle; they animate when walking (nav phase).
 
 
+## Relaxed hands hang under the sleeves as on the Hearthblock proposal: in, down
+## and back from the authored palm, which work poses still grip at (doc 256).
+func _relaxed_hand(side: int) -> Vector3:
+	return Vector3(side * float(proportions.relaxed_hand_inset), -float(proportions.get("relaxed_hand_drop", 0.0)),
+			-float(proportions.get("relaxed_hand_back", 0.0)))
+
+
 func _relaxed_stance() -> void:
-	if _hand_l != null: _hand_l.position.x = -proportions.relaxed_hand_inset
-	if _hand_r != null: _hand_r.position.x = proportions.relaxed_hand_inset
+	if _hand_l != null: _hand_l.position = _relaxed_hand(-1)
+	if _hand_r != null: _hand_r.position = _relaxed_hand(1)
 	if _foot_l != null: _foot_l.position.x = -proportions.relaxed_foot_inset
 	if _foot_r != null: _foot_r.position.x = proportions.relaxed_foot_inset
 

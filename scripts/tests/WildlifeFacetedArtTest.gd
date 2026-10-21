@@ -31,7 +31,7 @@ func _run() -> void:
 					if color.a<.999: opaque=false
 				expect(opaque,"opaque vertex colors")
 			asset.free()
-	expect(count==21,"all 21 parts")
+	expect(count==23,"all 23 parts")
 	for species in ["rabbit","deer","wolf","duck"]:
 		var actor: Node3D=wildlife.call("add_"+species,species+":geometry",Vector3i(40,21,40),155)
 		if species in ["deer","wolf"]:
@@ -51,7 +51,10 @@ func _run() -> void:
 					if mesh.is_visible_in_tree(): meshes.append(mesh)
 				for part: Node3D in actor.visual.find_children("*","Node3D",true,false):
 					expect(part.scale.is_equal_approx(Vector3.ONE),species+" rigid part "+String(part.name))
-				expect(actor.visual.scale.is_equal_approx(Vector3.ONE),species+" unit visual root")
+				# Squash and stretch (doc 256) scales only the root, keeping its volume.
+				var root_scale: Vector3=actor.visual.scale
+				expect(absf(root_scale.x*root_scale.y*root_scale.z-1.0)<.002 and is_equal_approx(root_scale.x,root_scale.z) and absf(root_scale.y-1.0)<=.2,species+" volume-kept squash")
+				if activity!="Wandering": expect(root_scale.is_equal_approx(Vector3.ONE),species+" unit visual root at rest")
 				var bounds := _local_bounds(actor,meshes)
 				low=minf(low,bounds.position.y); high=maxf(high,bounds.end.y)
 			expect(low>=-.025,species+" ground clearance "+activity+" %.4f"%low)

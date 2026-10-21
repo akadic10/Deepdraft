@@ -15,6 +15,11 @@ extends Node
 
 const SETTINGS_PATH := "res://data/sky/sky_settings.json"
 const SKY_SHADER := preload("res://scripts/shaders/diorama_sky.gdshader")
+const WORLD_SCENE_PATH := "res://scenes/main/debug_world.tscn"
+
+## Emitted after the Hearthblock look is applied or removed, and after each scene
+## bind, so scene-owned materials, lights and overlays can follow it.
+signal hearthblock_lighting_changed(active: bool)
 
 # ── Tuning (safe to tweak; calibrate against screenshots) ─────────────────────
 const SUN_ENERGY_SCALE   := 1.5    # light_energy = colour_brightness × this
@@ -63,10 +68,12 @@ var _active_weather: Dictionary = {}
 var _darken: float = 1.0
 var _c_stars: Array = []
 var _atmosphere: Dictionary = {}
+var _hearthblock_enabled: bool = false
 
 
 func _ready() -> void:
 	_settings = _load_settings()
+	_hearthblock_enabled = bool(_settings.get("hearthblock_lighting", {}).get("enabled", false))
 	_clock = get_node_or_null("/root/WorldClock")
 	# Autoloads run _ready BEFORE the main scene exists; wait one frame, then bind + start driving.
 	await get_tree().process_frame
@@ -455,6 +462,85 @@ func _apply_static_base() -> void:
 		_sky_mat.set_shader_parameter("gradient_curves", Vector2(float(curves[0]), float(curves[1])))
 		for key in ["star_brightness", "star_scale", "sun_radius", "moon_radius"]:
 			if diorama.has(key): _sky_mat.set_shader_parameter(key, float(diorama[key]))
+	_apply_hearthblock_environment()
+	hearthblock_lighting_changed.emit(hearthblock_active())
+
+
+# ── Hearthblock lighting (docs/00_dev_roadmap/255_hearthblock_lighting_pass.md) ─
+
+## Data for the lighting pass; empty when the block is absent.
+func hearthblock_settings() -> Dictionary:
+	return _settings.get("hearthblock_lighting", {}).duplicate(true)
+
+
+## The switch itself, independent of which scene is current.
+func is_hearthblock_enabled() -> bool:
+	return _hearthblock_enabled
+
+
+## True only in the main world scene while the switch is on. Previews, galleries
+## and isolated test scenes keep their authored look.
+func hearthblock_active() -> bool:
+	if not _hearthblock_enabled or not _settings.has("hearthblock_lighting"):
+		return false
+	var scene := get_tree().current_scene if is_inside_tree() else null
+	return is_instance_valid(scene) and scene.scene_file_path == WORLD_SCENE_PATH
+
+
+func set_hearthblock_lighting(enabled: bool) -> void:
+	if enabled == _hearthblock_enabled:
+		return
+	_hearthblock_enabled = enabled
+	_apply_hearthblock_environment()
+	# Loaded at runtime: FurnitureLighting refers back to this autoload.
+	load("res://scripts/components/FurnitureLighting.gd").apply_look(get_tree())
+	hearthblock_lighting_changed.emit(hearthblock_active())
+
+
+## Tone mapping and glow on the bound world Environment. The scene's authored
+## values are kept on the resource and restored exactly when the look is off.
+func _apply_hearthblock_environment() -> void:
+	if _env == null:
+		return
+	if not _env.has_meta("authored_hearthblock_look"):
+		var levels: Array[float] = []
+		for i in range(7): levels.append(_env.get_glow_level(i))
+		_env.set_meta("authored_hearthblock_look", {
+			"tonemap_mode": _env.tonemap_mode, "tonemap_exposure": _env.tonemap_exposure,
+			"tonemap_white": _env.tonemap_white, "glow_enabled": _env.glow_enabled,
+			"glow_intensity": _env.glow_intensity, "glow_strength": _env.glow_strength,
+			"glow_bloom": _env.glow_bloom, "glow_blend_mode": _env.glow_blend_mode,
+			"glow_hdr_threshold": _env.glow_hdr_threshold, "glow_hdr_scale": _env.glow_hdr_scale,
+			"glow_levels": levels,
+		})
+	var authored: Dictionary = _env.get_meta("authored_hearthblock_look")
+	if not hearthblock_active():
+		for key: String in authored:
+			if key != "glow_levels": _env.set(key, authored[key])
+		for i in range(7): _env.set_glow_level(i, float(authored.glow_levels[i]))
+		return
+	var look := hearthblock_settings()
+	_env.tonemap_mode = {
+		"linear": Environment.TONE_MAPPER_LINEAR, "filmic": Environment.TONE_MAPPER_FILMIC,
+		"aces": Environment.TONE_MAPPER_ACES, "agx": Environment.TONE_MAPPER_AGX,
+	}.get(String(look.get("tonemap", "aces")), Environment.TONE_MAPPER_ACES)
+	_env.tonemap_exposure = float(look.get("exposure", 1.0))
+	_env.tonemap_white = float(look.get("white", 1.0))
+	var glow: Dictionary = look.get("glow", {})
+	_env.glow_enabled = not glow.is_empty()
+	if glow.is_empty():
+		return
+	_env.glow_intensity = float(glow.get("intensity", 0.8))
+	_env.glow_strength = float(glow.get("strength", 1.0))
+	_env.glow_bloom = float(glow.get("bloom", 0.0))
+	_env.glow_hdr_threshold = float(glow.get("hdr_threshold", 1.0))
+	_env.glow_hdr_scale = float(glow.get("hdr_scale", 2.0))
+	_env.glow_blend_mode = {
+		"additive": Environment.GLOW_BLEND_MODE_ADDITIVE, "screen": Environment.GLOW_BLEND_MODE_SCREEN,
+		"softlight": Environment.GLOW_BLEND_MODE_SOFTLIGHT, "mix": Environment.GLOW_BLEND_MODE_MIX,
+	}.get(String(glow.get("blend", "screen")), Environment.GLOW_BLEND_MODE_SCREEN)
+	var glow_levels: Array = glow.get("levels", [])
+	for i in range(mini(7, glow_levels.size())): _env.set_glow_level(i, float(glow_levels[i]))
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

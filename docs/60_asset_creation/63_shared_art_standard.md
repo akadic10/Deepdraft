@@ -1,5 +1,10 @@
 # 63 — Shared world art standard
 
+> **2026-10-20:** the visual target has moved to the Hearthblock direction; see the
+> update at the top of [64](64_hand_hewn_art_direction.md). The technical rules below
+> are unchanged. World lighting presentation is owned by `SkyController`'s
+> `hearthblock_lighting` block ([255](../00_dev_roadmap/255_hearthblock_lighting_pass.md)).
+
 **Current direction (2026-10-18): 1:16 chibi / stylized voxel craft on the existing
 simple world blocks.** [64 — Hand-hewn art direction](64_hand_hewn_art_direction.md)
 and its original concept image are the visual authority. The player accepted

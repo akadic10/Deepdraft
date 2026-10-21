@@ -31,10 +31,12 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://assets/ui/construction")
 	for name in ["plank_floor","stone_floor"]:
 		var model: Node3D = load("res://assets/models/construction/%s.glb" % name).instantiate()
+		# Only the visual meshes: the coarse shadow proxy would otherwise draw over them.
+		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(model,false)
 		var material := StandardMaterial3D.new()
 		material.vertex_color_use_as_albedo = true
 		material.cull_mode = BaseMaterial3D.CULL_DISABLED
-		for mesh: MeshInstance3D in model.find_children("*","MeshInstance3D",true,false): mesh.material_override = material
+		for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(model): mesh.material_override = material
 		stage.add_child(model)
 		for frame in range(6): await process_frame
 		await RenderingServer.frame_post_draw

@@ -2,5 +2,9 @@
   "furniture": [
     "assets/models/furniture/log_table.glb",
     "assets/models/furniture/animations/wooden_torch_flame.glb"
+  ],
+  "wildlife": [
+    "assets/models/animals/duck/male_wing_folded.glb",
+    "assets/models/animals/duck/female_wing_folded.glb"
   ]
 }

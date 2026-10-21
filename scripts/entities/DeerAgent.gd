@@ -8,14 +8,17 @@ var legs: Array[Node3D] = []
 var neck: Node3D
 
 func _build_visual(models: Dictionary) -> void:
+	# Rig numbers live in deer.json (visual_pose); parts keep standing coordinates.
+	var pose: Dictionary = definition.visual_pose
+	visual.position.z = float(pose.get("shift_z", 0.0))
 	visual.add_child((models.body as PackedScene).instantiate())
 	neck = Node3D.new()
-	neck.position = Vector3(0,1.5,-.3)
+	neck.position = _point(pose.neck)
 	visual.add_child(neck)
 	var neck_mesh := (models.neck as PackedScene).instantiate() as Node3D
 	neck.add_child(neck_mesh)
 	neck_mesh.position = -neck.position
-	var head_origin := Vector3(0,2.65,-.55)
+	var head_origin := _point(pose.head)
 	head = Node3D.new()
 	head.position = head_origin - neck.position
 	neck.add_child(head)
@@ -24,13 +27,14 @@ func _build_visual(models: Dictionary) -> void:
 		head.add_child(mesh)
 		mesh.position = -head_origin
 	ears = Node3D.new()
-	ears.position = Vector3(0,2.65,-0.45) - head_origin
+	ears.position = _point(pose.ears) - head_origin
 	head.add_child(ears)
 	var ear_mesh := (models.ears as PackedScene).instantiate() as Node3D
 	ears.add_child(ear_mesh)
 	ear_mesh.position = -head_origin - ears.position
-	for pivot: Vector3 in [Vector3(-.35,1.25,-.5),Vector3(.35,1.25,-.5),Vector3(-.35,1.25,.5),Vector3(.35,1.25,.5)]:
-		var leg := preload("res://scripts/components/RigidAnimalLeg.gd").build(models.leg,pivot,-.625)
+	for side: Vector2 in [Vector2(-1,-1),Vector2(1,-1),Vector2(-1,1),Vector2(1,1)]:
+		var pivot := Vector3(side.x*float(pose.hip_x),float(pose.hip_y),side.y*float(pose.hip_z))
+		var leg := preload("res://scripts/components/RigidAnimalLeg.gd").build(models.leg,pivot,float(pose.knee_y))
 		visual.add_child(leg)
 		legs.append(leg)
 
@@ -61,7 +65,8 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 func _pose() -> void:
 	var sleeping := activity == "Sleeping"
 	var moving := hop_progress < 1
-	visual.position.y = -0.85 if sleeping else sin(hop_progress*PI)*float(definition.navigation.hop_height) if moving else 0.0
+	visual.position.y = float(definition.visual_pose.rest_y) if sleeping else sin(hop_progress*PI)*float(definition.navigation.hop_height) if moving else 0.0
+	_squash_stretch(hop_progress if moving and not sleeping else 1.0)
 	# Lower the neck, counter-rotate the head: muzzle reaches grass while the
 	# antlers stay above it. Rest folds the legs without shrinking the torso.
 	neck.rotation.x = -2.3 if activity == "Grazing" else .15 if sleeping else 0.0

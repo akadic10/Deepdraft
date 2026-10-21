@@ -111,17 +111,26 @@ func get_appearance_profile(id: int) -> Dictionary:
 func configure_terrain_material(material: ShaderMaterial) -> void:
 	var surface: Array[Vector4] = []
 	var shape: Array[Vector4] = []
+	var dressing: Array[Vector4] = []
 	surface.resize(8)
 	shape.resize(8)
+	dressing.resize(8)
 	surface.fill(Vector4.ZERO)
 	shape.fill(Vector4.ZERO)
+	dressing.fill(Vector4.ZERO)
 	for profile: Dictionary in _appearance.profiles.values():
 		var tag := int(profile.id)
 		surface[tag] = Vector4(profile.cell_variation, profile.patch_variation, profile.seam_strength, profile.bevel_width)
 		shape[tag] = Vector4(profile.normal_strength, profile.geometry_depth, 0, 0)
+		# Hearthblock dressing (doc 256): crack chance positive, worn chance negative.
+		var dress: Dictionary = profile.get("dressing", {})
+		if not dress.is_empty():
+			var marks := float(dress.get("crack", 0.0)) - float(dress.get("worn", 0.0))
+			dressing[tag] = Vector4(dress.get("edge", 0.0), dress.get("seam", 0.0), dress.get("flecks", 0.0), marks)
 	material.set_shader_parameter("terrain_surface", true)
 	material.set_shader_parameter("terrain_profiles", surface)
 	material.set_shader_parameter("terrain_shapes", shape)
+	material.set_shader_parameter("terrain_dressing", dressing)
 	material.set_shader_parameter("terrain_detail_range", Vector3(_appearance.detail_fade.near, _appearance.detail_fade.far, _appearance.detail_fade.patch_scale))
 
 

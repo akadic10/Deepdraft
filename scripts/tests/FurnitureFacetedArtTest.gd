@@ -115,10 +115,26 @@ func _palette(controller: Node,materials: Node,key: String,definition: Dictionar
 			var before: Array=originals[i].mesh.surface_get_arrays(0)
 			var after: Array=meshes[i].mesh.surface_get_arrays(0)
 			expect(before[Mesh.ARRAY_VERTEX]==after[Mesh.ARRAY_VERTEX] and before[Mesh.ARRAY_INDEX]==after[Mesh.ARRAY_INDEX],key+" unchanged geometry "+wood)
+			var shades=before[Mesh.ARRAY_TEX_UV2]
 			for j in before[Mesh.ARRAY_COLOR].size():
 				var expected: Color=before[Mesh.ARRAY_COLOR][j]
-				for swatch in swatches:
-					if _close(expected,swatch[0]) or _close(expected,swatch[1]): expected=swatch[2]; changed+=1; break
+				var shade := 1.0 if shades==null or j>=shades.size() else float(shades[j].x)
+				if shade<.999:
+					# Baked occlusion (doc 256): a darkened wood swatch becomes the same
+					# darkened target wood; every other color stays exactly as authored.
+					var best := 1.5/255.0
+					var shaded := expected
+					for swatch in swatches:
+						var source: Color=swatch[0]
+						var error := maxf(absf(expected.r-source.r*shade),maxf(absf(expected.g-source.g*shade),absf(expected.b-source.b*shade)))
+						if error<best:
+							var goal: Color=swatch[2]
+							best=error; shaded=Color(goal.r*shade,goal.g*shade,goal.b*shade)
+					if shaded!=expected: changed+=1
+					expected=shaded
+				else:
+					for swatch in swatches:
+						if _close(expected,swatch[0]) or _close(expected,swatch[1]): expected=swatch[2]; changed+=1; break
 				var packed := Color(floorf(expected.r*255)/255,floorf(expected.g*255)/255,floorf(expected.b*255)/255)
 				if not _close(after[Mesh.ARRAY_COLOR][j],expected) and not _close(after[Mesh.ARRAY_COLOR][j],packed): correct=false
 				digest.append(after[Mesh.ARRAY_COLOR][j])

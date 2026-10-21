@@ -48,6 +48,17 @@ static func create_model(viewport: SubViewport, agent: DwarfAgent) -> Node3D:
 			if material != null and material.has_meta("underground_source_material"):
 				mesh.material_override = material.get_meta("underground_source_material")
 		model.add_child(copy)
+	# World bead eyes are untinted; the portrait shows the saved eye colour on
+	# the white glint (the dark bead barely changes under the tint).
+	var eyes := model.find_child("MeshEyes", true, false)
+	if eyes != null and agent.appearance != null:
+		var colour: Color = agent.get_node("/root/DwarfAssets").EYE_COLORS.get(agent.appearance.eye_color, Color.WHITE)
+		for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(eyes):
+			var material := StandardMaterial3D.new()
+			material.vertex_color_use_as_albedo = true
+			material.albedo_color = colour
+			material.roughness = 1.0
+			mesh.material_override = material
 	# The world actor deliberately omits scars; add the saved appearance overlay
 	# only to the portrait's independent model, using the existing asset owner.
 	if agent.appearance != null and agent.appearance.scar != "none":

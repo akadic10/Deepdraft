@@ -6,9 +6,15 @@ from coverage import expected_paths
 from micro_voxel_study.generate import solid
 
 
+def _merged(parts):
+    vox=Voxels()
+    for part in parts.values(): vox.cells.update(part.voxels.cells)
+    return vox
+
+
 class DwarfTests(unittest.TestCase):
     @classmethod
-    def setUpClass(cls): cls.parts={p:(parts['main'].voxels,meta) for p,parts,meta in assets()}
+    def setUpClass(cls): cls.parts={p:(_merged(parts),meta) for p,parts,meta in assets()}
 
     def test_coverage_and_identity(self):
         self.assertEqual(set(self.parts),expected_paths('dwarves'))
@@ -18,21 +24,20 @@ class DwarfTests(unittest.TestCase):
             self.assertEqual(len(set(cells)),expected,'variants must remain distinct: '+folder)
 
     def test_fixed_rig_contacts(self):
-        # The new sculpt may change faces/clothes/hair. Preserve the actual rig
-        # interfaces instead of requiring the old pilot's entire silhouette.
-        pilot=read_json('data/art/micro_voxel_study.json')
-        colors={k:linear(v) for k,v in pilot['palette'].items()}
-        for name in ('hand','foot','eyes'):
-            vox=Voxels()
-            for shape in pilot['parts']['dwarf/'+name]: solid(vox,shape,colors)
-            authored=self.parts['assets/models/characters/dwarves/body/'+name+'.glb'][0].cells
-            if name=='eyes':
-                self.assertEqual(vox.cells,authored,'eye/eyelid assembly stays fixed')
-            else:
-                self.assertLessEqual(set(vox.cells),set(authored),name+' keeps the original contact solids')
-                for axis in range(3):
-                    self.assertEqual(min(p[axis] for p in vox.cells),min(p[axis] for p in authored),name+' lower envelope')
-                    self.assertEqual(max(p[axis] for p in vox.cells),max(p[axis] for p in authored),name+' upper envelope')
+        # Gameplay contacts, not the old shapes (owner rule, 2026-10-21): every work
+        # pose grips the palm at (17, 20, 3), the sole stands on the ground, the boots
+        # keep a gap at the relaxed stance and the closed lids cover the bead eyes.
+        hand=self.parts['assets/models/characters/dwarves/body/hand.glb'][0].cells
+        self.assertTrue(all((x,y,z) in hand for x in range(15,19) for y in range(18,22) for z in range(1,5)),'the mitten surrounds the palm grip')
+        foot=self.parts['assets/models/characters/dwarves/body/foot.glb'][0].cells
+        self.assertEqual(min(p[1] for p in foot),0,'the sole stands on the ground')
+        inset=read_json('data/entities/dwarves/proportions.json')['relaxed_foot_inset']*16
+        self.assertGreaterEqual(min(p[0] for p in foot)-inset,1,'the boots keep a gap at the relaxed stance')
+        authored=self.parts['assets/models/characters/dwarves/body/eyes.glb'][0].cells
+        lids=Voxels()
+        for shape in read_json('data/art/voxel_presentation.json')['parts']['eyelids']: solid(lids,shape,{'neutral':(1,1,1),'crease':(.5,.5,.5)})
+        self.assertTrue({(x,y) for x,y,z in authored}<={(x,y) for x,y,z in lids.cells},'eyelids cover the eyes')
+        self.assertTrue(all((x,y,z) in lids.cells for x,y,z in authored),'closed lids sit exactly over the open eyes')
         # Eyes must remain visible on every head, including bald dwarves.
         eyes=self.parts['assets/models/characters/dwarves/body/eyes.glb'][0].cells
         eye_front={}

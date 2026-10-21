@@ -1,7 +1,9 @@
 {
-  "description": "The approved 1:16 voxel shapes bake the Balanced body/head widths into cubic cells. Runtime rig scale is unit; shared anchors and logical clearance remain 1x1x3.",
+  "description": "The approved 1:16 voxel shapes bake the Balanced body/head widths into cubic cells. Runtime rig scale is unit; shared anchors and logical clearance remain 1x1x3. The relaxed hand hangs under the sleeve as on the Hearthblock proposal (doc 256): moved in, down and back from the authored palm at (17, 20, 3) cells.",
   "body_width": 1.0,
   "head_width": 1.0,
-  "relaxed_hand_inset": 0.22,
+  "relaxed_hand_inset": 0.1875,
+  "relaxed_hand_drop": 0.3125,
+  "relaxed_hand_back": 0.1875,
   "relaxed_foot_inset": 0.06
 }

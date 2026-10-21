@@ -7,12 +7,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 499,
-          "visual_triangles": 716,
+          "cells": 631,
+          "visual_triangles": 746,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 696
+            "triangles": 314
           },
           "min": [
             -0.4375,
@@ -21,13 +22,13 @@
           ],
           "max": [
             0.4375,
-            0.9375,
+            0.75,
             0.4375
           ]
         }
       ],
-      "bytes": 131904,
-      "sha256": "215dd6c000f07ba745253fbaa86438cbeacad98073eda637a05f345a6698a58c",
+      "bytes": 111592,
+      "sha256": "a38d7345237379e809422b6d5402275ec7e469c11b7a35b06b5dee49c5e01094",
       "path": "assets/models/flora/bushes/blueberry/blueberry_young_spring.glb",
       "authoring": {
         "species": "blueberry",
@@ -39,12 +40,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5011,
-          "visual_triangles": 1498,
+          "cells": 5411,
+          "visual_triangles": 2362,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.789463181001796,
-            "triangles": 554
+            "retained_volume": 0.7643688782110516,
+            "triangles": 422
           },
           "min": [
             -0.8125,
@@ -53,13 +55,13 @@
           ],
           "max": [
             0.8125,
-            1.625,
+            1.5625,
             0.875
           ]
         }
       ],
-      "bytes": 190780,
-      "sha256": "55dcdf59b9481a96e3e9962ce32cb41efb044ad4cab13319c09e8b56eea60c74",
+      "bytes": 296064,
+      "sha256": "6f503558a8f59a4f765d6b67a80a7da2d347024c338781f106f7df2b9e2486a6",
       "path": "assets/models/flora/bushes/blueberry/blueberry_spring.glb",
       "authoring": {
         "species": "blueberry",
@@ -73,12 +75,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6256,
-          "visual_triangles": 1644,
+          "cells": 6658,
+          "visual_triangles": 2680,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6950127877237852,
-            "triangles": 600
+            "retained_volume": 0.7858215680384499,
+            "triangles": 432
           },
           "min": [
             -0.8125,
@@ -87,13 +90,13 @@
           ],
           "max": [
             0.8125,
-            1.9375,
+            1.875,
             0.875
           ]
         }
       ],
-      "bytes": 208452,
-      "sha256": "98be443b057addc267020ec7fe59b462bb88fdc7fdf4557de66ffb45f1669c4e",
+      "bytes": 331328,
+      "sha256": "5f60425f5c4803b5cbbc3ae263cc543cc318b46eca51d4d4e9e144c73fd13209",
       "path": "assets/models/flora/bushes/blueberry/blueberry_packed_spring.glb",
       "authoring": {
         "species": "blueberry",
@@ -107,12 +110,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 499,
-          "visual_triangles": 716,
+          "cells": 631,
+          "visual_triangles": 746,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 696
+            "triangles": 314
           },
           "min": [
             -0.4375,
@@ -121,13 +125,13 @@
           ],
           "max": [
             0.4375,
-            0.9375,
+            0.75,
             0.4375
           ]
         }
       ],
-      "bytes": 131904,
-      "sha256": "f39993c3f88e2c85fec85074886638ab367c8d94f1f84f949aa11a18868b0174",
+      "bytes": 111592,
+      "sha256": "3bf8190a761be278cdbb8c89973b087103a8a497ed4719ea536e463d59608160",
       "path": "assets/models/flora/bushes/blueberry/blueberry_young_summer.glb",
       "authoring": {
         "species": "blueberry",
@@ -139,27 +143,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5101,
-          "visual_triangles": 1318,
+          "cells": 5445,
+          "visual_triangles": 2442,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7771025289158988,
-            "triangles": 600
+            "retained_volume": 0.7632690541781451,
+            "triangles": 452
           },
           "min": [
-            -1.0,
+            -0.9375,
             0.0,
-            -0.75
+            -0.625
           ],
           "max": [
-            1.0,
-            1.5,
-            0.9375
+            0.9375,
+            1.4375,
+            1.0
           ]
         }
       ],
-      "bytes": 178436,
-      "sha256": "16d13243c06b83c5efac60ec0bba1bca9493d1a830abdcfa79bb7c61c1025d8c",
+      "bytes": 307460,
+      "sha256": "9795ad416af81bf70d50430b8e5fc390404569b1cf8705568daae06a4202cc82",
       "path": "assets/models/flora/bushes/blueberry/blueberry_summer.glb",
       "authoring": {
         "species": "blueberry",
@@ -173,27 +178,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6346,
-          "visual_triangles": 1464,
+          "cells": 6692,
+          "visual_triangles": 2760,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6946107784431138,
-            "triangles": 642
+            "retained_volume": 0.7627017334130305,
+            "triangles": 432
           },
           "min": [
-            -1.0,
+            -0.9375,
             0.0,
-            -0.75
+            -0.625
           ],
           "max": [
-            1.0,
-            1.8125,
-            0.9375
+            0.9375,
+            1.75,
+            1.0
           ]
         }
       ],
-      "bytes": 195744,
-      "sha256": "b337238bb958fbf672fe7be8185c3d76ea601250a9827b711d442108cf783c11",
+      "bytes": 339964,
+      "sha256": "4dbecdd8410f6ca6e268e4d1fcc9338b8cb871e25387ccf193296677d7c3bd10",
       "path": "assets/models/flora/bushes/blueberry/blueberry_packed_summer.glb",
       "authoring": {
         "species": "blueberry",
@@ -207,12 +213,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4894,
-          "visual_triangles": 1146,
+          "cells": 5373,
+          "visual_triangles": 1990,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8017981201471189,
-            "triangles": 518
+            "retained_volume": 0.7839195979899497,
+            "triangles": 416
           },
           "min": [
             -0.8125,
@@ -221,13 +228,13 @@
           ],
           "max": [
             0.8125,
-            1.5,
+            1.4375,
             0.875
           ]
         }
       ],
-      "bytes": 155084,
-      "sha256": "8b39a9f26838c9bf1fe3ef9e67755126d1b9dc857913e735f61ab9b3bddf2b64",
+      "bytes": 255340,
+      "sha256": "9824060b45db84ed0d7e5a3044508fdbb5d2c571081df33fead89484cdea0895",
       "path": "assets/models/flora/bushes/blueberry/blueberry_summer_picked.glb",
       "authoring": {
         "species": "blueberry",
@@ -241,12 +248,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6139,
-          "visual_triangles": 1292,
+          "cells": 6620,
+          "visual_triangles": 2308,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7082586740511484,
-            "triangles": 564
+            "retained_volume": 0.7903323262839879,
+            "triangles": 432
           },
           "min": [
             -0.8125,
@@ -255,13 +263,13 @@
           ],
           "max": [
             0.8125,
-            1.8125,
+            1.75,
             0.875
           ]
         }
       ],
-      "bytes": 172764,
-      "sha256": "cc33f998c988614c67d247ce5d39fc10d371b2905f4edbd0788ba0b659126478",
+      "bytes": 291160,
+      "sha256": "c6a87cdedc86b64120b9588f68e4554fe6c1b6b223897d770730cb07ac736917",
       "path": "assets/models/flora/bushes/blueberry/blueberry_packed_summer_picked.glb",
       "authoring": {
         "species": "blueberry",
@@ -275,12 +283,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 499,
-          "visual_triangles": 716,
+          "cells": 631,
+          "visual_triangles": 746,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 696
+            "triangles": 314
           },
           "min": [
             -0.4375,
@@ -289,13 +298,13 @@
           ],
           "max": [
             0.4375,
-            0.9375,
+            0.75,
             0.4375
           ]
         }
       ],
-      "bytes": 131904,
-      "sha256": "e5c7c9d2bc130a43fada241a5e03998594accf538ea7dcc5a592a6eb3451f9ad",
+      "bytes": 111592,
+      "sha256": "96516363471b4ee3d99153c35d76282d5484594a6ee7daffd50f04c8df149077",
       "path": "assets/models/flora/bushes/blueberry/blueberry_young_autumn.glb",
       "authoring": {
         "species": "blueberry",
@@ -307,12 +316,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4894,
-          "visual_triangles": 1146,
+          "cells": 5373,
+          "visual_triangles": 1990,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8017981201471189,
-            "triangles": 518
+            "retained_volume": 0.7839195979899497,
+            "triangles": 416
           },
           "min": [
             -0.8125,
@@ -321,13 +331,13 @@
           ],
           "max": [
             0.8125,
-            1.5,
+            1.4375,
             0.875
           ]
         }
       ],
-      "bytes": 155076,
-      "sha256": "24acce2286f3ff7a8d9b261101d9cc493e9a388ef103fd3089866058911f64ae",
+      "bytes": 255332,
+      "sha256": "d11888d0d918caadb417ce9b02842855c69517d70ffc9a46cfe0ec00485da389",
       "path": "assets/models/flora/bushes/blueberry/blueberry_autumn.glb",
       "authoring": {
         "species": "blueberry",
@@ -341,12 +351,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6139,
-          "visual_triangles": 1292,
+          "cells": 6620,
+          "visual_triangles": 2308,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7082586740511484,
-            "triangles": 564
+            "retained_volume": 0.7903323262839879,
+            "triangles": 432
           },
           "min": [
             -0.8125,
@@ -355,13 +366,13 @@
           ],
           "max": [
             0.8125,
-            1.8125,
+            1.75,
             0.875
           ]
         }
       ],
-      "bytes": 172756,
-      "sha256": "9af1ac9953c007dfb0f98be079cb116bf6a829cf5a413052c6a9a69126c30328",
+      "bytes": 291152,
+      "sha256": "c475a622a3c109ad7e7473fe39dc3ef9825d784bf2a932bc952d2dc7e1849e41",
       "path": "assets/models/flora/bushes/blueberry/blueberry_packed_autumn.glb",
       "authoring": {
         "species": "blueberry",
@@ -375,27 +386,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 151,
-          "visual_triangles": 240,
+          "cells": 167,
+          "visual_triangles": 512,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 240
+            "triangles": 304
           },
           "min": [
             -0.3125,
             0.0,
-            -0.1875
+            -0.25
           ],
           "max": [
             0.375,
-            0.75,
+            0.875,
             0.3125
           ]
         }
       ],
-      "bytes": 46140,
-      "sha256": "9e924dcc6b7461e4eb2002f2b1af58ed7c6e3003f311bca309c68a7e5e1e3978",
+      "bytes": 85392,
+      "sha256": "5db7cbec62fff12337fec844f6bcaa99e73fb079bdc3a7914d41076caad29a2d",
       "path": "assets/models/flora/bushes/blueberry/blueberry_young_winter.glb",
       "authoring": {
         "species": "blueberry",
@@ -407,27 +419,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 479,
-          "visual_triangles": 588,
+          "cells": 403,
+          "visual_triangles": 1276,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 588
+            "triangles": 758
           },
           "min": [
             -0.5,
             0.0,
-            -0.3125
+            -0.375
           ],
           "max": [
             0.5625,
-            1.3125,
+            1.4375,
             0.625
           ]
         }
       ],
-      "bytes": 110180,
-      "sha256": "02969bd3cb8fe478de34f43aca4667564b56c15e452327429310d078390afdbd",
+      "bytes": 209680,
+      "sha256": "50cc449743ec09bcc5325ab1c8def2f2204de4cb992028d4636f76ca6b46eadf",
       "path": "assets/models/flora/bushes/blueberry/blueberry_winter.glb",
       "authoring": {
         "species": "blueberry",
@@ -441,12 +454,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1724,
-          "visual_triangles": 734,
+          "cells": 1650,
+          "visual_triangles": 1594,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6821345707656613,
-            "triangles": 172
+            "retained_volume": 0.6496969696969697,
+            "triangles": 176
           },
           "min": [
             -0.5,
@@ -455,13 +469,13 @@
           ],
           "max": [
             0.5625,
-            1.625,
+            1.75,
             0.625
           ]
         }
       ],
-      "bytes": 85324,
-      "sha256": "6ce9e1bfbae75fdbbe4d4d840f020b9ca5d0473714649d257783f16f881cd5bd",
+      "bytes": 190468,
+      "sha256": "99734b26af94b2e72ffe2a4483e3342e71007dad47d3bd083ed5f38f7314c392",
       "path": "assets/models/flora/bushes/blueberry/blueberry_packed_winter.glb",
       "authoring": {
         "species": "blueberry",
@@ -475,12 +489,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 785,
-          "visual_triangles": 718,
+          "cells": 925,
+          "visual_triangles": 850,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6063694267515923,
-            "triangles": 252
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 320
           },
           "min": [
             -0.5,
@@ -489,13 +504,13 @@
           ],
           "max": [
             0.5625,
-            1.0,
+            0.8125,
             0.5
           ]
         }
       ],
-      "bytes": 91216,
-      "sha256": "a689db6b6b9c6e7ce43c8a71cccb938f0af2a61ab047de5df52a4363b0eeafd0",
+      "bytes": 123372,
+      "sha256": "b0907f3858575fff90ae8a79aff61fee4cbd9080a53f7e3c279970a75ca91d4c",
       "path": "assets/models/flora/bushes/elderberry/elderberry_young_spring.glb",
       "authoring": {
         "species": "elderberry",
@@ -507,12 +522,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 8325,
-          "visual_triangles": 2478,
+          "cells": 9014,
+          "visual_triangles": 3982,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6793993993993994,
-            "triangles": 870
+            "retained_volume": 0.7317506101619703,
+            "triangles": 656
           },
           "min": [
             -1.0625,
@@ -521,13 +537,13 @@
           ],
           "max": [
             1.0625,
-            2.5,
+            2.4375,
             0.875
           ]
         }
       ],
-      "bytes": 310012,
-      "sha256": "d1fbbe3e3267c04951ff29a1d6d4434fae2d947a807a56347a23a858c8afa9c3",
+      "bytes": 492560,
+      "sha256": "f65f453c7c2e1998a216445844b5b00e4f09ee4b737ba977370bfe65d8c4d39d",
       "path": "assets/models/flora/bushes/elderberry/elderberry_spring.glb",
       "authoring": {
         "species": "elderberry",
@@ -541,12 +557,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 9571,
-          "visual_triangles": 2626,
+          "cells": 10262,
+          "visual_triangles": 4286,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7159126528053495,
-            "triangles": 916
+            "retained_volume": 0.7339699863574352,
+            "triangles": 618
           },
           "min": [
             -1.0625,
@@ -555,13 +572,13 @@
           ],
           "max": [
             1.0625,
-            2.8125,
+            2.75,
             0.875
           ]
         }
       ],
-      "bytes": 327872,
-      "sha256": "002d6b43cf35a756a37bc3bf86ee85f083d5c32c628e584634732e22dde87cd9",
+      "bytes": 521900,
+      "sha256": "122a245030ca05494bf7efd5f6e65eb75afc7e97be571f39facffd0fb43db1b4",
       "path": "assets/models/flora/bushes/elderberry/elderberry_packed_spring.glb",
       "authoring": {
         "species": "elderberry",
@@ -575,12 +592,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 785,
-          "visual_triangles": 718,
+          "cells": 925,
+          "visual_triangles": 850,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6063694267515923,
-            "triangles": 252
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 320
           },
           "min": [
             -0.5,
@@ -589,13 +607,13 @@
           ],
           "max": [
             0.5625,
-            1.0,
+            0.8125,
             0.5
           ]
         }
       ],
-      "bytes": 91216,
-      "sha256": "4512f4684dca16426bf0212ea672fc2a54c12f0adbf6abcb168e36961d485011",
+      "bytes": 123372,
+      "sha256": "c67e9161cd1e8cc5cc1247bef85afe16f2e3fdb99f70f4ad724ca8adfc775c2c",
       "path": "assets/models/flora/bushes/elderberry/elderberry_young_summer.glb",
       "authoring": {
         "species": "elderberry",
@@ -607,12 +625,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 8325,
-          "visual_triangles": 2478,
+          "cells": 9014,
+          "visual_triangles": 3982,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6793993993993994,
-            "triangles": 870
+            "retained_volume": 0.7317506101619703,
+            "triangles": 656
           },
           "min": [
             -1.0625,
@@ -621,13 +640,13 @@
           ],
           "max": [
             1.0625,
-            2.5,
+            2.4375,
             0.875
           ]
         }
       ],
-      "bytes": 310012,
-      "sha256": "71a3920f084786f5a97970b14e35288853c429e53a7bdf86358ab838835bc09a",
+      "bytes": 492560,
+      "sha256": "6112fb02df932b012afdb56f41855e9c79509fc7eed226fd01331216a22b802d",
       "path": "assets/models/flora/bushes/elderberry/elderberry_summer.glb",
       "authoring": {
         "species": "elderberry",
@@ -641,12 +660,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 9571,
-          "visual_triangles": 2626,
+          "cells": 10262,
+          "visual_triangles": 4286,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7159126528053495,
-            "triangles": 916
+            "retained_volume": 0.7339699863574352,
+            "triangles": 618
           },
           "min": [
             -1.0625,
@@ -655,13 +675,13 @@
           ],
           "max": [
             1.0625,
-            2.8125,
+            2.75,
             0.875
           ]
         }
       ],
-      "bytes": 327872,
-      "sha256": "a8cab91c78ec8cc8e75c43db5840ece9d593e000c3985bb054992b3091cc9a28",
+      "bytes": 521900,
+      "sha256": "7070fc4fe85d3847448be9f84a0b19bbb318256468de00756aeb68a059739a4e",
       "path": "assets/models/flora/bushes/elderberry/elderberry_packed_summer.glb",
       "authoring": {
         "species": "elderberry",
@@ -675,12 +695,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 785,
-          "visual_triangles": 718,
+          "cells": 925,
+          "visual_triangles": 850,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6063694267515923,
-            "triangles": 252
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 320
           },
           "min": [
             -0.5,
@@ -689,13 +710,13 @@
           ],
           "max": [
             0.5625,
-            1.0,
+            0.8125,
             0.5
           ]
         }
       ],
-      "bytes": 91216,
-      "sha256": "116520e4a8b52ad32650efdff7206b78cc15a3b941aa7c68ecbd5e50bf4f5e94",
+      "bytes": 123372,
+      "sha256": "f5f2dc883037bf0b3a187088ab592b0f21f735eb768290337c604f91a40f4db6",
       "path": "assets/models/flora/bushes/elderberry/elderberry_young_autumn.glb",
       "authoring": {
         "species": "elderberry",
@@ -707,27 +728,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 8598,
-          "visual_triangles": 2330,
+          "cells": 9183,
+          "visual_triangles": 4102,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6689927890207025,
-            "triangles": 926
+            "retained_volume": 0.7191549602526407,
+            "triangles": 724
           },
           "min": [
-            -1.3125,
+            -1.1875,
             0.0,
-            -0.875
+            -0.9375
           ],
           "max": [
-            1.25,
-            2.375,
-            1.0625
+            1.1875,
+            2.3125,
+            1.0
           ]
         }
       ],
-      "bytes": 301548,
-      "sha256": "2522416b1d310ab1187afb389b88cef451e838193a4b006f09c812bcfaa22f6d",
+      "bytes": 511772,
+      "sha256": "075751c0d4530f34dbb5b94afe8a13a118561061c62f16f7a06b9ff31d2b520e",
       "path": "assets/models/flora/bushes/elderberry/elderberry_autumn.glb",
       "authoring": {
         "species": "elderberry",
@@ -741,27 +763,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 9844,
-          "visual_triangles": 2478,
+          "cells": 10431,
+          "visual_triangles": 4406,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7058106460788297,
-            "triangles": 954
+            "retained_volume": 0.7151759179369188,
+            "triangles": 740
           },
           "min": [
-            -1.3125,
+            -1.1875,
             0.0,
-            -0.875
+            -0.9375
           ],
           "max": [
-            1.25,
-            2.6875,
-            1.0625
+            1.1875,
+            2.625,
+            1.0
           ]
         }
       ],
-      "bytes": 317748,
-      "sha256": "cde84952496cf6237e57009d25d82bffe444cdf53d50ce4d8d88361ec13e6420",
+      "bytes": 546080,
+      "sha256": "8525d470e44527a6edb431e9868d58eebe7e2b54cbc1bb9845ccc713b2402ed5",
       "path": "assets/models/flora/bushes/elderberry/elderberry_packed_autumn.glb",
       "authoring": {
         "species": "elderberry",
@@ -775,12 +798,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 8070,
-          "visual_triangles": 1950,
+          "cells": 8843,
+          "visual_triangles": 3258,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6889714993804213,
-            "triangles": 794
+            "retained_volume": 0.7472577179690151,
+            "triangles": 572
           },
           "min": [
             -1.0625,
@@ -789,13 +813,13 @@
           ],
           "max": [
             1.0625,
-            2.375,
+            2.3125,
             0.875
           ]
         }
       ],
-      "bytes": 254452,
-      "sha256": "799bab23a4f3ec3c3149cec2e0bcbb01a5da7df6b161f0614c9e2d7326d0dcc0",
+      "bytes": 406644,
+      "sha256": "670e9ed88032ceeccbbdbf397d272e7fd576a14668dab8bd2dc87caf488b7020",
       "path": "assets/models/flora/bushes/elderberry/elderberry_autumn_picked.glb",
       "authoring": {
         "species": "elderberry",
@@ -809,12 +833,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 9316,
-          "visual_triangles": 2098,
+          "cells": 10091,
+          "visual_triangles": 3562,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7273507943323315,
-            "triangles": 820
+            "retained_volume": 0.7384798335150133,
+            "triangles": 596
           },
           "min": [
             -1.0625,
@@ -823,13 +848,13 @@
           ],
           "max": [
             1.0625,
-            2.6875,
+            2.625,
             0.875
           ]
         }
       ],
-      "bytes": 270472,
-      "sha256": "36a91c64fe024a47f9b17c33609f8c5dab2c89aa1cc81653798c5348d7f8c7c8",
+      "bytes": 441688,
+      "sha256": "e609d6f7354ecf61e0f3191a39c41c9d9d1f648dda7410d86217ca9156f7dbca",
       "path": "assets/models/flora/bushes/elderberry/elderberry_packed_autumn_picked.glb",
       "authoring": {
         "species": "elderberry",
@@ -843,27 +868,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 157,
-          "visual_triangles": 234,
+          "cells": 172,
+          "visual_triangles": 552,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 234
+            "triangles": 318
           },
           "min": [
             -0.375,
             0.0,
-            -0.1875
+            -0.25
           ],
           "max": [
             0.4375,
-            0.8125,
+            0.9375,
             0.3125
           ]
         }
       ],
-      "bytes": 45040,
-      "sha256": "1858d4ee926e04be7507436cd1ccf92a98d520eee1a14956181684e0839fe221",
+      "bytes": 91004,
+      "sha256": "9742c1609987975dec3d10b5d96b3ebddd319d0093e11de69b80a2aafdc46f51",
       "path": "assets/models/flora/bushes/elderberry/elderberry_young_winter.glb",
       "authoring": {
         "species": "elderberry",
@@ -875,27 +901,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 898,
-          "visual_triangles": 940,
+          "cells": 718,
+          "visual_triangles": 1938,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 940
+            "triangles": 1070
           },
           "min": [
             -0.6875,
             0.0,
-            -0.4375
+            -0.5
           ],
           "max": [
             0.75,
-            2.1875,
+            2.3125,
             0.5625
           ]
         }
       ],
-      "bytes": 174956,
-      "sha256": "74b7ef25505af2517595dd3bcfd2d9e377881c243b236aa398902ee769669a02",
+      "bytes": 309884,
+      "sha256": "af215b06bf5ac66d905d81829e7856a35ecf71d07e641a276a831dfe05b1c7f8",
       "path": "assets/models/flora/bushes/elderberry/elderberry_winter.glb",
       "authoring": {
         "species": "elderberry",
@@ -909,12 +936,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2144,
-          "visual_triangles": 1088,
+          "cells": 1966,
+          "visual_triangles": 2242,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6007462686567164,
-            "triangles": 236
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1172
           },
           "min": [
             -0.6875,
@@ -923,13 +951,13 @@
           ],
           "max": [
             0.75,
-            2.5,
+            2.625,
             0.5625
           ]
         }
       ],
-      "bytes": 123792,
-      "sha256": "507ccc43edc58f7f1397eb49803ab800b08e855abb6edd4e232cf2d571c7284f",
+      "bytes": 352104,
+      "sha256": "55e7bf620a3e259d7df2577467208ee5a347263a40d40dea5b07015fdfdd692a",
       "path": "assets/models/flora/bushes/elderberry/elderberry_packed_winter.glb",
       "authoring": {
         "species": "elderberry",
@@ -943,27 +971,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 70,
-          "visual_triangles": 162,
+          "cells": 46,
+          "visual_triangles": 216,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 156
+            "triangles": 152
           },
           "min": [
-            -0.125,
+            -0.3125,
             0.0,
-            -0.1875
+            -0.3125
           ],
           "max": [
+            0.125,
             0.3125,
-            0.375,
-            0.25
+            0.3125
           ]
         }
       ],
-      "bytes": 31236,
-      "sha256": "f50c1a8b376b43f9f842ba85bb333f02ff12c891b5cc763b904dcf93ab423149",
+      "bytes": 39444,
+      "sha256": "788fb1749c14b0d5c05e9b5d523d26bdbdd529c3814a6c83f1e966e87fc6774c",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_spring.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -975,17 +1004,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 871,
-          "visual_triangles": 1776,
+          "cells": 506,
+          "visual_triangles": 2048,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1644
+            "triangles": 1364
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -994,8 +1024,8 @@
           ]
         }
       ],
-      "bytes": 316640,
-      "sha256": "dcf023bf79a17742111167f4fda453814669b90f5a8e4760c9f05589a95db9f6",
+      "bytes": 348824,
+      "sha256": "c0da392fe086591662d9be654ed06e516f48e7d888fcd46c28e9cd3b987a28f4",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_spring.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1009,17 +1039,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2119,
-          "visual_triangles": 1884,
+          "cells": 1754,
+          "visual_triangles": 2414,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1728
+            "triangles": 1446
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1028,8 +1059,8 @@
           ]
         }
       ],
-      "bytes": 334308,
-      "sha256": "ff757389a890fee183160087cbcc4539c33d303341cc3c5405f1c60dca85c7e2",
+      "bytes": 395900,
+      "sha256": "a3f2875e2d28e7d0ca04994cc0b883e1532eb61d915db5e17ed83b8ae795e437",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_spring.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1043,17 +1074,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 770,
-          "visual_triangles": 1654,
+          "cells": 405,
+          "visual_triangles": 1810,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1552
+            "triangles": 1222
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1062,8 +1094,8 @@
           ]
         }
       ],
-      "bytes": 296960,
-      "sha256": "2475c6df8171633df19013ff439bcf452a17e97f48b9c71c7e508eddecbf590a",
+      "bytes": 310060,
+      "sha256": "54c804057b8febc1ac413988f7486172da3241c265348f13cdf9e6728bb18fb6",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_spring_picked.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1077,17 +1109,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2018,
-          "visual_triangles": 1764,
+          "cells": 1653,
+          "visual_triangles": 2176,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1636
+            "triangles": 1304
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1096,8 +1129,8 @@
           ]
         }
       ],
-      "bytes": 314812,
-      "sha256": "2554d26fb69b7adc8a095b1230b37c66515d7db7ff439313286395c6a11d6d6d",
+      "bytes": 357140,
+      "sha256": "0788567a154652dd8392bdda5a94479f8fac8114de220c6260fa7f9f06239c54",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_spring_picked.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1111,27 +1144,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 70,
-          "visual_triangles": 162,
+          "cells": 46,
+          "visual_triangles": 216,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 156
+            "triangles": 152
           },
           "min": [
-            -0.125,
+            -0.3125,
             0.0,
-            -0.1875
+            -0.3125
           ],
           "max": [
+            0.125,
             0.3125,
-            0.375,
-            0.25
+            0.3125
           ]
         }
       ],
-      "bytes": 31236,
-      "sha256": "2eccea2b8c3dfc26a58346849ded61d2c97a439812f6125907f627ce4e96d522",
+      "bytes": 39444,
+      "sha256": "8179c324e177d0587659c79280e41e6e64267cb21ef1c1d6257f370b2d42873f",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_summer.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1143,17 +1177,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 739,
-          "visual_triangles": 1360,
+          "cells": 447,
+          "visual_triangles": 1584,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1252
+            "triangles": 1082
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1162,8 +1197,8 @@
           ]
         }
       ],
-      "bytes": 242300,
-      "sha256": "b84168abb2a27c116bbdf055ce660f17af831cb2f9260a7d20d6d2ca4021499a",
+      "bytes": 272764,
+      "sha256": "582713baf3193134f4d7632f66593342ac0caa1160fbda6a16f6e080911a944f",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_summer.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1177,17 +1212,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1987,
-          "visual_triangles": 1468,
+          "cells": 1695,
+          "visual_triangles": 1950,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6059386009058882,
-            "triangles": 346
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1164
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1196,8 +1232,8 @@
           ]
         }
       ],
-      "bytes": 168884,
-      "sha256": "6daad7ff83234dc9ed37bb3fcffea7f0b889224499f0e5b959b77b556d5e30a1",
+      "bytes": 319844,
+      "sha256": "f1f3bb81d270b95cdc373e72bac2759e9eb7f2f4150f2cc2cb0071397798c4b2",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1211,17 +1247,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 638,
-          "visual_triangles": 1238,
+          "cells": 346,
+          "visual_triangles": 1366,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1160
+            "triangles": 952
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1230,8 +1267,8 @@
           ]
         }
       ],
-      "bytes": 222620,
-      "sha256": "880a52315f5cf896c6638ced5bc99ba1b5da8dead0de8e20287b52621a5e3de1",
+      "bytes": 237268,
+      "sha256": "8c72ad34ae242877f1fcde6602dcecb23aaa6b40eeaa3c90a00f2fb6cf09e92e",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_summer_picked.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1245,17 +1282,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1886,
-          "visual_triangles": 1348,
+          "cells": 1594,
+          "visual_triangles": 1732,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6129374337221634,
-            "triangles": 322
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 1034
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
@@ -1264,8 +1302,8 @@
           ]
         }
       ],
-      "bytes": 155644,
-      "sha256": "611bb196c016483428f3d907e93e8a458a257356fe3a7f2412938b3176becb50",
+      "bytes": 284348,
+      "sha256": "9cc7e846ec0d14cc57a87d1b5f91404cd8a24da94e65146a2b6f93db6ecdca86",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer_picked.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1279,27 +1317,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 70,
-          "visual_triangles": 162,
+          "cells": 46,
+          "visual_triangles": 216,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 156
+            "triangles": 152
           },
           "min": [
-            -0.125,
+            -0.3125,
             0.0,
-            -0.1875
+            -0.3125
           ],
           "max": [
+            0.125,
             0.3125,
-            0.375,
-            0.25
+            0.3125
           ]
         }
       ],
-      "bytes": 31236,
-      "sha256": "2984ec6c621a5ddd2d070309be79a3bd8b5b2705eed53f14c1d630007c6f91ef",
+      "bytes": 39444,
+      "sha256": "1063644f46595ca4c15b3ed0370e932e0e2903e580ba6228b9ef4735c99e1829",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_autumn.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1311,27 +1350,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 623,
-          "visual_triangles": 1140,
+          "cells": 320,
+          "visual_triangles": 1190,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1094
+            "triangles": 868
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
-            0.375,
+            0.3125,
             0.75
           ]
         }
       ],
-      "bytes": 207524,
-      "sha256": "b8778ba88279f975ae4e786ace34694f1c9f07a76758281302e5677c8ff156f8",
+      "bytes": 210524,
+      "sha256": "c2ba00b812dc91fb10a3ed19fd5e6c3c7e3a277c187c63ee8821c247daed4a9d",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_autumn.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1345,27 +1385,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1871,
-          "visual_triangles": 1250,
+          "cells": 1568,
+          "visual_triangles": 1556,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6135756280064136,
-            "triangles": 298
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 950
           },
           "min": [
-            -0.625,
+            -0.6875,
             0.0,
-            -0.625
+            -0.6875
           ],
           "max": [
             0.8125,
-            0.6875,
+            0.625,
             0.75
           ]
         }
       ],
-      "bytes": 144412,
-      "sha256": "1638c279bbeadec3ff6242f5ae3ac1c82d76340f4741b197cee80d16ffe139df",
+      "bytes": 257604,
+      "sha256": "d6285fc8e2fff22099cd8c3a1ac270bc0f7453fa7503fe8842e389ec66e535c5",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_autumn.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1379,27 +1420,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 66,
-          "visual_triangles": 166,
+          "cells": 43,
+          "visual_triangles": 188,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 160
+            "triangles": 142
           },
           "min": [
-            -0.125,
+            -0.3125,
             0.0,
-            -0.1875
+            -0.3125
           ],
           "max": [
-            0.3125,
-            0.3125,
-            0.25
+            0.125,
+            0.25,
+            0.3125
           ]
         }
       ],
-      "bytes": 31976,
-      "sha256": "e6a45c3c41f229a022e403ad3e5e9d73039292538e56860d6f0da55ac6c85572",
+      "bytes": 35496,
+      "sha256": "9787848eba36dd24031216f7a29e42d4410590487c20ac8fcdc49ddd2fb8c304",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_winter.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1411,27 +1453,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 399,
-          "visual_triangles": 936,
+          "cells": 204,
+          "visual_triangles": 950,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 904
+            "triangles": 736
           },
           "min": [
-            -0.5,
+            -0.625,
             0.0,
-            -0.5
+            -0.625
           ],
           "max": [
             0.6875,
-            0.3125,
+            0.25,
             0.625
           ]
         }
       ],
-      "bytes": 171272,
-      "sha256": "014d39a51f838e29259375c37ce9d65ba7bec2f832fb2c929bedfe2de85fc912",
+      "bytes": 172452,
+      "sha256": "8bf4e2bb215d46010fbffcec6a010223d4289311283582fb9c84a1dbea0148ab",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_winter.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1445,27 +1488,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1647,
-          "visual_triangles": 1046,
+          "cells": 1452,
+          "visual_triangles": 1316,
+          "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.6168791742562234,
-            "triangles": 104
+            "retained_volume": 0.6900826446280992,
+            "triangles": 100
           },
           "min": [
-            -0.5,
+            -0.625,
             0.0,
-            -0.5
+            -0.625
           ],
           "max": [
             0.6875,
-            0.625,
+            0.5625,
             0.625
           ]
         }
       ],
-      "bytes": 107784,
-      "sha256": "5e73a1a6b1751cf2cd24c454d82c2409b02c2c315fcceb74c2fbf5e5049e4720",
+      "bytes": 153472,
+      "sha256": "13e313de229a8452fe02c1d1b03e80409400f93a1e2414c5aa45e27e5a36fd9b",
       "path": "assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_winter.glb",
       "authoring": {
         "species": "wild_strawberry",
@@ -1479,27 +1523,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 440,
-          "visual_triangles": 868,
+          "cells": 296,
+          "visual_triangles": 716,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 844
+            "triangles": 376
           },
           "min": [
             -0.625,
             0.0,
-            -0.4375
+            -0.5
           ],
           "max": [
-            0.5625,
-            0.875,
+            0.4375,
+            0.8125,
             0.625
           ]
         }
       ],
-      "bytes": 159496,
-      "sha256": "422da1cb9fcdbe700ca9ba6037fbcae35da9f56cbf9c591d6bc7c2ca2b358b3c",
+      "bytes": 114048,
+      "sha256": "e1a43efd2a186329df0df0462517e6d6967f7f64d5c96923145c8c82bd83e4b7",
       "path": "assets/models/flora/flowers/flowers_1_spring.glb",
       "authoring": {
         "species": "flowers",
@@ -1512,12 +1557,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1667,
-          "visual_triangles": 992,
+          "cells": 1523,
+          "visual_triangles": 1054,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 936
+            "triangles": 468
           },
           "min": [
             -0.625,
@@ -1526,13 +1572,13 @@
           ],
           "max": [
             0.625,
-            1.0625,
+            1.0,
             0.625
           ]
         }
       ],
-      "bytes": 179376,
-      "sha256": "993ed2a550f8c3cbc320d8c02c47f85954246cd77ee59604c44a5b36c1422774",
+      "bytes": 159024,
+      "sha256": "50a4ac80222653ec0211f2b3af5ee26a6968eaf99f9748c1df15c5366108b86f",
       "path": "assets/models/flora/flowers/flowers_1_packed_spring.glb",
       "authoring": {
         "species": "flowers",
@@ -1545,27 +1591,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 518,
-          "visual_triangles": 1038,
+          "cells": 352,
+          "visual_triangles": 904,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1026
+            "triangles": 488
           },
           "min": [
             -0.625,
             0.0,
-            -0.4375
+            -0.5
           ],
           "max": [
             0.5625,
-            0.875,
+            0.8125,
             0.625
           ]
         }
       ],
-      "bytes": 191880,
-      "sha256": "e6cab3394e63136b942b855878932ea93b0435c6a087c5896b76b90e3a175a0a",
+      "bytes": 144660,
+      "sha256": "b9010a5ac5625b885ae0d32d8a6d07f76309ed9898826b063f679d099db117f5",
       "path": "assets/models/flora/flowers/flowers_1_summer.glb",
       "authoring": {
         "species": "flowers",
@@ -1578,12 +1625,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1745,
-          "visual_triangles": 1162,
+          "cells": 1579,
+          "visual_triangles": 1242,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1118
+            "triangles": 580
           },
           "min": [
             -0.625,
@@ -1592,13 +1640,13 @@
           ],
           "max": [
             0.625,
-            1.0625,
+            1.0,
             0.625
           ]
         }
       ],
-      "bytes": 211760,
-      "sha256": "ad9e9e563be3f0b837ce72b6ce4503f73b22cc30450989d085149cf0e61a2ffa",
+      "bytes": 189636,
+      "sha256": "19b98a0f7835f2c831baf06ce4fee1903f3c90ab5a6ad57341964398ee1534f8",
       "path": "assets/models/flora/flowers/flowers_1_packed_summer.glb",
       "authoring": {
         "species": "flowers",
@@ -1611,12 +1659,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 350,
-          "visual_triangles": 672,
+          "cells": 304,
+          "visual_triangles": 792,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 646
+            "triangles": 408
           },
           "min": [
             -0.625,
@@ -1624,14 +1673,14 @@
             -0.4375
           ],
           "max": [
-            0.5625,
+            0.5,
             0.8125,
             0.625
           ]
         }
       ],
-      "bytes": 123248,
-      "sha256": "d4987dee3d3125b4cf36667015967a085af810319982e47e71c245ed025ab771",
+      "bytes": 125200,
+      "sha256": "8002897aa83649ca24440bfd3daf9f8a3ad3a8420121b38e80d9892b23270b9e",
       "path": "assets/models/flora/flowers/flowers_1_autumn.glb",
       "authoring": {
         "species": "flowers",
@@ -1644,12 +1693,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1577,
-          "visual_triangles": 796,
+          "cells": 1531,
+          "visual_triangles": 1130,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 738
+            "triangles": 500
           },
           "min": [
             -0.625,
@@ -1663,8 +1713,8 @@
           ]
         }
       ],
-      "bytes": 143116,
-      "sha256": "06cbc2f3ea4c03bd91c574128fbbcff494bed4f209f2bd80191efc76d3d7c920",
+      "bytes": 170180,
+      "sha256": "65d8ebe020e063e4113f4cc38c7977f2ac0a3242d16692e78bee2842fbbd6422",
       "path": "assets/models/flora/flowers/flowers_1_packed_autumn.glb",
       "authoring": {
         "species": "flowers",
@@ -1677,27 +1727,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 104,
-          "visual_triangles": 152,
+          "cells": 88,
+          "visual_triangles": 148,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 152
+            "triangles": 96
           },
           "min": [
-            -0.4375,
+            -0.5,
             0.0,
             -0.375
           ],
           "max": [
             0.4375,
             0.3125,
-            0.4375
+            0.5
           ]
         }
       ],
-      "bytes": 29944,
-      "sha256": "b31c8bfe137ad4277b1a5e5fd9f5e9bf66bd5e3e2166899bf0017c34f78bb1a9",
+      "bytes": 26924,
+      "sha256": "09616835b3be72005a654fc68ce8881a6481029adb2d685cedb523d210ad2b0d",
       "path": "assets/models/flora/flowers/flowers_1_winter.glb",
       "authoring": {
         "species": "flowers",
@@ -1710,12 +1761,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1331,
-          "visual_triangles": 276,
+          "cells": 1315,
+          "visual_triangles": 494,
+          "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 244
+            "stride": 2,
+            "retained_volume": 0.6083650190114068,
+            "triangles": 64
           },
           "min": [
             -0.625,
@@ -1729,8 +1781,8 @@
           ]
         }
       ],
-      "bytes": 49812,
-      "sha256": "eba15ae618220b7806b3fab0b663db25c703cabb217fbef9b0dd2d9bb860a600",
+      "bytes": 61360,
+      "sha256": "1920ef0cd725d6ecdf4d4c0e4eea59f2fad9c3efc50a666b0b8a6a0d0f654d9d",
       "path": "assets/models/flora/flowers/flowers_1_packed_winter.glb",
       "authoring": {
         "species": "flowers",
@@ -1743,27 +1795,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 445,
-          "visual_triangles": 858,
+          "cells": 322,
+          "visual_triangles": 808,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 836
+            "triangles": 440
           },
           "min": [
-            -0.625,
+            -0.5625,
             0.0,
-            -0.5
+            -0.625
           ],
           "max": [
-            0.5,
-            0.875,
-            0.625
+            0.5625,
+            0.8125,
+            0.5
           ]
         }
       ],
-      "bytes": 157828,
-      "sha256": "5082416420b98b87dba2dc7232b44bd44fab979a4e15f5eb2768314a08791aec",
+      "bytes": 129876,
+      "sha256": "58676ee2b66f92b9bbb392ff1e4e8b8fb712fa14811d14152f3260219c123582",
       "path": "assets/models/flora/flowers/flowers_2_spring.glb",
       "authoring": {
         "species": "flowers",
@@ -1776,12 +1829,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1672,
-          "visual_triangles": 982,
+          "cells": 1549,
+          "visual_triangles": 1178,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 928
+            "triangles": 536
           },
           "min": [
             -0.625,
@@ -1790,13 +1844,13 @@
           ],
           "max": [
             0.625,
-            1.0625,
+            1.0,
             0.625
           ]
         }
       ],
-      "bytes": 177720,
-      "sha256": "5e74937f6170215f8c1f5d6265aa2c4940e46d5d7db34a604e981f5d97bb82a8",
+      "bytes": 178676,
+      "sha256": "8acbbeb8ddf6c65b7ddc2cad0549fea10f4d123e7b9c0abb5c59d25b26cb738a",
       "path": "assets/models/flora/flowers/flowers_2_packed_spring.glb",
       "authoring": {
         "species": "flowers",
@@ -1809,27 +1863,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 523,
-          "visual_triangles": 1026,
+          "cells": 402,
+          "visual_triangles": 1112,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1010
+            "triangles": 624
           },
           "min": [
-            -0.625,
+            -0.5625,
             0.0,
-            -0.5
+            -0.625
           ],
           "max": [
-            0.5,
+            0.5625,
             0.875,
             0.625
           ]
         }
       ],
-      "bytes": 189292,
-      "sha256": "86bead011c137a6affa40c9b358bda3e674dbcf6f4c9ad4c02b734d366e77880",
+      "bytes": 179644,
+      "sha256": "a8d56008c440aa46a19d1106a3a98a7d880c13d25378628107f687f15087b63e",
       "path": "assets/models/flora/flowers/flowers_2_summer.glb",
       "authoring": {
         "species": "flowers",
@@ -1842,12 +1897,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1750,
-          "visual_triangles": 1150,
+          "cells": 1629,
+          "visual_triangles": 1482,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1102
+            "triangles": 720
           },
           "min": [
             -0.625,
@@ -1861,8 +1917,8 @@
           ]
         }
       ],
-      "bytes": 209184,
-      "sha256": "def8434d7df3c97752c9d3eda1e848d6598a5edd24b4436e8dc1699485c0dfba",
+      "bytes": 228444,
+      "sha256": "6cdff4014c823ff7b7714799542bec656c75a7fde958ecaad4dc7e1b22fb803c",
       "path": "assets/models/flora/flowers/flowers_2_packed_summer.glb",
       "authoring": {
         "species": "flowers",
@@ -1875,27 +1931,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 354,
-          "visual_triangles": 682,
+          "cells": 306,
+          "visual_triangles": 776,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 664
+            "triangles": 400
           },
           "min": [
-            -0.625,
+            -0.5,
             0.0,
-            -0.5
+            -0.625
           ],
           "max": [
-            0.5,
+            0.5625,
             0.8125,
-            0.625
+            0.5625
           ]
         }
       ],
-      "bytes": 125812,
-      "sha256": "78800ff0ddcd8377f980253ad8014d50771d17ec1e6af220707021d655c74dec",
+      "bytes": 122736,
+      "sha256": "99a292062690a03c4ab7982d5e6d7af53adcaf47d81bce9055a3dce304d68284",
       "path": "assets/models/flora/flowers/flowers_2_autumn.glb",
       "authoring": {
         "species": "flowers",
@@ -1908,12 +1965,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1581,
-          "visual_triangles": 806,
+          "cells": 1533,
+          "visual_triangles": 1146,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 756
+            "triangles": 496
           },
           "min": [
             -0.625,
@@ -1927,8 +1985,8 @@
           ]
         }
       ],
-      "bytes": 145692,
-      "sha256": "f47b3fc95ddb9bf515cfb320761f5a200f0c8f5724d4b2b2036dd813f717ca4c",
+      "bytes": 171536,
+      "sha256": "3543282321da1840d28981bd56104d909b4658db44932b7232c76dc561c0fdcc",
       "path": "assets/models/flora/flowers/flowers_2_packed_autumn.glb",
       "authoring": {
         "species": "flowers",
@@ -1941,12 +1999,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 104,
-          "visual_triangles": 144,
+          "cells": 88,
+          "visual_triangles": 148,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 144
+            "triangles": 96
           },
           "min": [
             -0.4375,
@@ -1954,14 +2013,14 @@
             -0.4375
           ],
           "max": [
-            0.375,
+            0.4375,
             0.3125,
-            0.4375
+            0.5
           ]
         }
       ],
-      "bytes": 28472,
-      "sha256": "4bfd88e905863c0034c68b84ad5bf9c7a69d4a459ad5cef12b783c7ccd5653c2",
+      "bytes": 26932,
+      "sha256": "07baddb0a116a3b1485c90d8d79eb1d99da02e56f2b8f786621f0ff4727286dd",
       "path": "assets/models/flora/flowers/flowers_2_winter.glb",
       "authoring": {
         "species": "flowers",
@@ -1974,12 +2033,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1331,
-          "visual_triangles": 268,
+          "cells": 1315,
+          "visual_triangles": 510,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6010518407212622,
-            "triangles": 76
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 188
           },
           "min": [
             -0.625,
@@ -1993,8 +2053,8 @@
           ]
         }
       ],
-      "bytes": 33620,
-      "sha256": "b499a1164fbb0dad59e7be5e04cf3a52edfe76299a9f8a026ae3f082a1e62f96",
+      "bytes": 74500,
+      "sha256": "8b2cb6d0eb1b3198fc086a22bcf96ff837b56a3f8def93cfe38f5df9851b5b12",
       "path": "assets/models/flora/flowers/flowers_2_packed_winter.glb",
       "authoring": {
         "species": "flowers",
@@ -2007,27 +2067,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 438,
-          "visual_triangles": 868,
+          "cells": 298,
+          "visual_triangles": 684,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 842
+            "triangles": 362
           },
           "min": [
             -0.625,
             0.0,
-            -0.5625
+            -0.625
           ],
           "max": [
-            0.6875,
-            0.875,
+            0.625,
+            0.8125,
             0.625
           ]
         }
       ],
-      "bytes": 159312,
-      "sha256": "01e5ed1baf0e112e74777e6c41fd331d000e8ad2ca60e2df02c6e7f4ff975f7b",
+      "bytes": 109304,
+      "sha256": "6a1f0207fa262c9e3e1d5dff9dbebea229dce5fadbf1c678911b8d4e4229727b",
       "path": "assets/models/flora/flowers/flowers_3_spring.glb",
       "authoring": {
         "species": "flowers",
@@ -2040,144 +2101,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1665,
-          "visual_triangles": 992,
+          "cells": 1525,
+          "visual_triangles": 1032,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 934
-          },
-          "min": [
-            -0.625,
-            0.0,
-            -0.625
-          ],
-          "max": [
-            0.6875,
-            1.0625,
-            0.625
-          ]
-        }
-      ],
-      "bytes": 179192,
-      "sha256": "2ebe0c7644168fa370bb59a778a78442951fe73e5627c381204a276ba5794705",
-      "path": "assets/models/flora/flowers/flowers_3_packed_spring.glb",
-      "authoring": {
-        "species": "flowers",
-        "variant": 2,
-        "season": "spring",
-        "packed": true
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 516,
-          "visual_triangles": 1038,
-          "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 1024
-          },
-          "min": [
-            -0.625,
-            0.0,
-            -0.5625
-          ],
-          "max": [
-            0.6875,
-            0.875,
-            0.625
-          ]
-        }
-      ],
-      "bytes": 191696,
-      "sha256": "9a985e6f9d9a9d87c4ffa65223017ac36a38386fed479e40dbc78bb071ed327a",
-      "path": "assets/models/flora/flowers/flowers_3_summer.glb",
-      "authoring": {
-        "species": "flowers",
-        "variant": 2,
-        "season": "summer",
-        "packed": false
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 1743,
-          "visual_triangles": 1162,
-          "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 1116
-          },
-          "min": [
-            -0.625,
-            0.0,
-            -0.625
-          ],
-          "max": [
-            0.6875,
-            1.0625,
-            0.625
-          ]
-        }
-      ],
-      "bytes": 211576,
-      "sha256": "1aa280200fb92fbad1f862670209f2a7e12f6d10328325045428a0fefda703ab",
-      "path": "assets/models/flora/flowers/flowers_3_packed_summer.glb",
-      "authoring": {
-        "species": "flowers",
-        "variant": 2,
-        "season": "summer",
-        "packed": true
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 348,
-          "visual_triangles": 694,
-          "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 670
-          },
-          "min": [
-            -0.625,
-            0.0,
-            -0.5625
-          ],
-          "max": [
-            0.625,
-            0.8125,
-            0.625
-          ]
-        }
-      ],
-      "bytes": 127476,
-      "sha256": "388394da75fb76a505500d31ec298bc8ec8d2879a3e38ae7ef4919aa007f6aa8",
-      "path": "assets/models/flora/flowers/flowers_3_autumn.glb",
-      "authoring": {
-        "species": "flowers",
-        "variant": 2,
-        "season": "autumn",
-        "packed": false
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 1575,
-          "visual_triangles": 818,
-          "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 762
+            "triangles": 454
           },
           "min": [
             -0.625,
@@ -2191,8 +2121,144 @@
           ]
         }
       ],
-      "bytes": 147348,
-      "sha256": "b1c01bd75fb826f5faa6275e483e3fb851c60ba896c5c9cc627277c0d91c7bfd",
+      "bytes": 155360,
+      "sha256": "b7883bf7c4cc155b1e59fa8a94b879a18edf923bc73a7882be6ba00853bef6fa",
+      "path": "assets/models/flora/flowers/flowers_3_packed_spring.glb",
+      "authoring": {
+        "species": "flowers",
+        "variant": 2,
+        "season": "spring",
+        "packed": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 354,
+          "visual_triangles": 876,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 474
+          },
+          "min": [
+            -0.625,
+            0.0,
+            -0.625
+          ],
+          "max": [
+            0.625,
+            0.8125,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 140348,
+      "sha256": "8b465a9a2d55e07ed5f0ad114997457879280d3102a314520a938542dd791bbb",
+      "path": "assets/models/flora/flowers/flowers_3_summer.glb",
+      "authoring": {
+        "species": "flowers",
+        "variant": 2,
+        "season": "summer",
+        "packed": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1581,
+          "visual_triangles": 1224,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 566
+          },
+          "min": [
+            -0.625,
+            0.0,
+            -0.625
+          ],
+          "max": [
+            0.625,
+            1.0,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 186404,
+      "sha256": "8fd6e65b4b1380d177d39d456160069d3e37d1dcdb29ee8a110edf82f613cd4e",
+      "path": "assets/models/flora/flowers/flowers_3_packed_summer.glb",
+      "authoring": {
+        "species": "flowers",
+        "variant": 2,
+        "season": "summer",
+        "packed": true
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 306,
+          "visual_triangles": 764,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 394
+          },
+          "min": [
+            -0.625,
+            0.0,
+            -0.625
+          ],
+          "max": [
+            0.625,
+            0.8125,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 120888,
+      "sha256": "6056fb1e4fff519dacd9f759f6a9db66d6f55cbf95de5f24176ac73cdbda8c77",
+      "path": "assets/models/flora/flowers/flowers_3_autumn.glb",
+      "authoring": {
+        "species": "flowers",
+        "variant": 2,
+        "season": "autumn",
+        "packed": false
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1533,
+          "visual_triangles": 1112,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 486
+          },
+          "min": [
+            -0.625,
+            0.0,
+            -0.625
+          ],
+          "max": [
+            0.625,
+            1.0,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 166944,
+      "sha256": "c06ee6974d3735a592ba4b8e680d8c71699044e79535db4b2732d77aa54937d8",
       "path": "assets/models/flora/flowers/flowers_3_packed_autumn.glb",
       "authoring": {
         "species": "flowers",
@@ -2205,27 +2271,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 104,
-          "visual_triangles": 144,
+          "cells": 88,
+          "visual_triangles": 148,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 144
+            "triangles": 96
           },
           "min": [
-            -0.4375,
+            -0.5,
             0.0,
             -0.4375
           ],
           "max": [
-            0.5,
+            0.4375,
             0.3125,
-            0.4375
+            0.5
           ]
         }
       ],
-      "bytes": 28468,
-      "sha256": "a1876a72c3525ba7e66697585e7ab6a82901cb44787413b39aec1b5e92fb58bd",
+      "bytes": 26924,
+      "sha256": "b062fa2ff2dae99d68c9a263f829a62f6319a29d187c93f5fbdfd1d20dc7fb0d",
       "path": "assets/models/flora/flowers/flowers_3_winter.glb",
       "authoring": {
         "species": "flowers",
@@ -2238,12 +2305,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1331,
-          "visual_triangles": 268,
+          "cells": 1315,
+          "visual_triangles": 530,
+          "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.6010518407212622,
-            "triangles": 84
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 188
           },
           "min": [
             -0.625,
@@ -2257,8 +2325,8 @@
           ]
         }
       ],
-      "bytes": 34356,
-      "sha256": "c50ed5978a54b3fe8d0ec5611fdc54fc61330715f5cb509b7d7bad6e2aa7e9fa",
+      "bytes": 76660,
+      "sha256": "64f765fe92bba88ce27606f7c0be68ac8782bb4319b896e08929f45a611228b2",
       "path": "assets/models/flora/flowers/flowers_3_packed_winter.glb",
       "authoring": {
         "species": "flowers",
@@ -2271,27 +2339,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 800,
-          "visual_triangles": 816,
+          "cells": 386,
+          "visual_triangles": 512,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 758
+            "triangles": 328
           },
           "min": [
-            -0.5625,
+            -0.4375,
             0.0,
-            -0.4375
+            -0.3125
           ],
           "max": [
-            0.5,
+            0.3125,
             1.125,
-            0.75
+            0.5
           ]
         }
       ],
-      "bytes": 146792,
-      "sha256": "ee8d8b71aec210d5c13d5899c1dd7d25ce18cc0f15ab1014aa6ffffff695a0f5",
+      "bytes": 87596,
+      "sha256": "677342ae7119611ba48812172e1ab6d18314c97a6b41dff1a8673fc29c27eb29",
       "path": "assets/models/flora/reeds/reeds_1_spring.glb",
       "authoring": {
         "species": "reeds",
@@ -2303,27 +2372,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1007,
-          "visual_triangles": 974,
+          "cells": 612,
+          "visual_triangles": 732,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 916
+            "triangles": 402
           },
           "min": [
-            -0.5625,
+            -0.4375,
             0.0,
-            -0.4375
+            -0.375
           ],
           "max": [
-            0.5,
+            0.3125,
             1.375,
-            0.75
+            0.5
           ]
         }
       ],
-      "bytes": 175864,
-      "sha256": "fa85bcd83b45168198ffa1750b1e52dafff760f792f6b3e73102e88986f42a9a",
+      "bytes": 118164,
+      "sha256": "2b6dac8ef4467cbb78999058b1f36bfa8312a01e7629df0162ebffe5793358ec",
       "path": "assets/models/flora/reeds/reeds_1_summer.glb",
       "authoring": {
         "species": "reeds",
@@ -2335,27 +2405,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1007,
-          "visual_triangles": 974,
+          "cells": 612,
+          "visual_triangles": 732,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 916
+            "triangles": 402
           },
           "min": [
-            -0.5625,
+            -0.4375,
             0.0,
-            -0.4375
+            -0.375
           ],
           "max": [
-            0.5,
+            0.3125,
             1.375,
-            0.75
+            0.5
           ]
         }
       ],
-      "bytes": 175864,
-      "sha256": "0a317b5a88fc3032e3a3cb021dcfe6e32e059ab4cc0e9ac75219f053ef733aab",
+      "bytes": 118164,
+      "sha256": "5692244f6f14fbdd6fc3a7ea23ccfd3aef66990ccf93147a39ed271b57b82bc4",
       "path": "assets/models/flora/reeds/reeds_1_autumn.glb",
       "authoring": {
         "species": "reeds",
@@ -2367,27 +2438,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 568,
-          "visual_triangles": 518,
+          "cells": 334,
+          "visual_triangles": 328,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 518
+            "triangles": 212
           },
           "min": [
-            -0.5,
+            -0.3125,
             0.0,
             -0.3125
           ],
           "max": [
-            0.5,
+            0.3125,
             1.375,
             0.375
           ]
         }
       ],
-      "bytes": 97288,
-      "sha256": "4729bf60ea36ff63f82ad7eff2334fb1acb65470824d2f7b6572cdd777626a76",
+      "bytes": 57044,
+      "sha256": "25e4bd301af49280abacc74d1e978dd8efafc11b8cca79198179bb77598312f1",
       "path": "assets/models/flora/reeds/reeds_1_winter.glb",
       "authoring": {
         "species": "reeds",
@@ -2399,27 +2471,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1053,
-          "visual_triangles": 922,
+          "cells": 562,
+          "visual_triangles": 516,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 868
+            "triangles": 328
           },
           "min": [
-            -0.5625,
+            -0.3125,
             0.0,
             -0.4375
           ],
           "max": [
-            0.5,
+            0.4375,
             1.625,
-            0.75
+            0.4375
           ]
         }
       ],
-      "bytes": 166664,
-      "sha256": "45c6a78dfa7e851d329a4d0b86cf682567d294385edd36f61a6da5730fe46dbf",
+      "bytes": 88032,
+      "sha256": "8fc8f6fa5691550a22ca8a80995635bf63d27acb0c4ff73e019c59100c6438c9",
       "path": "assets/models/flora/reeds/reeds_2_spring.glb",
       "authoring": {
         "species": "reeds",
@@ -2431,27 +2504,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1262,
-          "visual_triangles": 1034,
+          "cells": 780,
+          "visual_triangles": 674,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1004
+            "triangles": 392
           },
           "min": [
-            -0.5625,
+            -0.375,
             0.0,
             -0.4375
           ],
           "max": [
-            0.5,
+            0.4375,
             1.875,
-            0.75
+            0.4375
           ]
         }
       ],
-      "bytes": 189480,
-      "sha256": "b3f5b56d4d23bb5b109307d4595ebb06a41c78522c309f48cc50b99311d92f70",
+      "bytes": 110988,
+      "sha256": "c8a80989303745d0ecd99a06f71a4e6ccbfe25726ae2c529af9bc300cb7aba29",
       "path": "assets/models/flora/reeds/reeds_2_summer.glb",
       "authoring": {
         "species": "reeds",
@@ -2463,27 +2537,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1262,
-          "visual_triangles": 1034,
+          "cells": 780,
+          "visual_triangles": 674,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 1004
+            "triangles": 392
           },
           "min": [
-            -0.5625,
+            -0.375,
             0.0,
             -0.4375
           ],
           "max": [
-            0.5,
+            0.4375,
             1.875,
-            0.75
+            0.4375
           ]
         }
       ],
-      "bytes": 189480,
-      "sha256": "e069de82a9329dfa7d8051eb3bba933e4d0c0b70e945296f94fb6e63765fec49",
+      "bytes": 110988,
+      "sha256": "32f8484699774909c77638add2c3ea4bdc48483f20d27fde71b76dc3c4d6ddcc",
       "path": "assets/models/flora/reeds/reeds_2_autumn.glb",
       "authoring": {
         "species": "reeds",
@@ -2495,27 +2570,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 764,
-          "visual_triangles": 546,
+          "cells": 486,
+          "visual_triangles": 332,
+          "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 546
+            "triangles": 212
           },
           "min": [
-            -0.5,
+            -0.3125,
             0.0,
             -0.3125
           ],
           "max": [
-            0.5,
+            0.4375,
             1.875,
             0.375
           ]
         }
       ],
-      "bytes": 102440,
-      "sha256": "45cf8eaf8d27de70bed9d8257ff15ffb1ffb7568b99807cded223a4b303d78b8",
+      "bytes": 57476,
+      "sha256": "b676cdacfbc237302c0778953d0de033cad1c4ff9461fed9eadac7196f9eb86d",
       "path": "assets/models/flora/reeds/reeds_2_winter.glb",
       "authoring": {
         "species": "reeds",

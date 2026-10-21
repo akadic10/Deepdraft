@@ -3,6 +3,26 @@
     "entrance_reach_blocks": 12,
     "readability_floor": 0.008
   },
+  "__comment_hearthblock_lighting": [
+    "Hearthblock lighting pass (docs/00_dev_roadmap/255_hearthblock_lighting_pass.md). Applies only in the main world scene.",
+    "enabled is the startup default; Development > Hearthblock lighting flips it at runtime. Off restores every value above and in the scene exactly.",
+    "Colors are sRGB (stockpile colors are converted for their linear vertex overlay). underground_fill lifts sealed air above black with a dim cool tint; view_fill lights actor/prop faces turned toward the camera underground.",
+    "flame_gain lifts flame meshes above 1.0 so only fire reaches the glow threshold. slice_cap_tint darkens cut terrain caps toward warm rock."
+  ],
+  "hearthblock_lighting": {
+    "enabled": true,
+    "tonemap": "aces",
+    "exposure": 1.1,
+    "white": 6.0,
+    "glow": {"intensity": 0.5, "strength": 1.0, "bloom": 0.0, "hdr_threshold": 1.0, "hdr_scale": 2.0, "blend": "screen", "levels": [0.0, 0.0, 1.0, 1.0, 0.6, 0.0, 0.0]},
+    "underground_fill": {"readability_floor": 0.035, "tint": [0.62, 0.69, 0.82]},
+    "view_fill": 0.06,
+    "light_colors": {"base:furniture:wooden_torch": "#FFB266", "base:furniture:campfire": "#FFA85A", "base:furniture:hearth": "#FFAA5E"},
+    "flame_gain": 1.4,
+    "slice_cap_tint": [0.72, 0.63, 0.55],
+    "stockpile_fill": [0.35, 0.28, 0.2, 0.3],
+    "stockpile_edge": [0.7, 0.55, 0.36, 0.9]
+  },
   "__comment": [
     "SkyController owns this data. Calendar events drive full-sphere atmosphere and existing world lights.",
     "diorama owns backdrop/haze presentation. starfield_brightness owns the calendar fade. Celestial ambient_color curves are historical metadata, not applied.",

@@ -4,6 +4,8 @@ extends "res://tools/DwarfRedesignPreview.gd"
 ## Run tools/dwarf_roster_review.tscn with -- --capture (GPU) or -- --check
 ## (headless). Never enters the colony scene or writes a game save.
 
+var _preview_count := 0
+
 func _ready() -> void:
 	SkyController.set_process(false)
 	WorldClock.set_process(false)
@@ -51,6 +53,9 @@ func _make_actor(spec: Array) -> DwarfAgent:
 	ap.hair_color = spec[5]
 	ap.eyebrow_style = spec[6]
 	ap.eye_color = "blue"
+	# Every preview actor shares id 0, so cycle the tunic colours explicitly (doc 256).
+	ap.clothing = DwarfAssets.CLOTHING.keys()[_preview_count % DwarfAssets.CLOTHING.size()]
+	_preview_count += 1
 	var actor := DwarfAgent.new()
 	actor.setup(0, {"name": "Art review", "gender": ap.gender, "appearance": ap})
 	actor.set_process(false)

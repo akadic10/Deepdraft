@@ -4,6 +4,7 @@ import random
 from common import Voxels,Part,box,branch_blocks,linear,palette_snow,read_json
 
 STAGES=('sapling','mature','ancient')
+HEARTHBLOCK=('oak','pine','apple','juniper')   # Hearthblock square trees (doc 256)
 NEIGHBORS=((1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1))
 
 
@@ -41,6 +42,73 @@ def crown(vox, at, width, depth, colors, turn=0):
         for dx in range(step):
             for dy in range(step):
                 for dz in range(step): vox.cells[x*step+dx,y*step+dy,z*step+dz]=color
+
+
+def _upsample(vox, coarse, step):
+    for (x,y,z),color in coarse.cells.items():
+        for dx in range(step):
+            for dy in range(step):
+                for dz in range(step): vox.cells[x*step+dx,y*step+dy,z*step+dz]=color
+
+
+def square_crown(vox, at, width, depth, colors, turn=0):
+    """Hearthblock crown: square tiers, dark skirt below and a light cap on top,
+    plus two offset square clumps that break the outline (doc 256)."""
+    step=4 if width>=2 else 2
+    coarse=Voxels()
+    def clump(dx,dy,dz,w,hh,d,color,cut=.06):
+        box(coarse,((at[0]+dx)/step,(at[1]+dy)/step,(at[2]+dz)/step),(w/step,hh/step,d/step),color,cut=w*cut/step)
+    clump(0,-depth*.30,0,width*.80,depth*.22,width*.74,colors[0])
+    clump(0,0,0,width,depth*.42,width*.92,colors[1])
+    clump(0,depth*.30,0,width*.62,depth*.22,width*.56,colors[2])
+    for side,(a,b) in enumerate(((.46,.40),(-.38,-.44))):
+        angle=turn+side*2.2
+        clump(math.cos(angle)*width*a,depth*(.06 if side==0 else -.10),math.sin(angle)*width*abs(b),
+              width*.40,depth*.34,width*.38,colors[2 if side==0 else 1],.04)
+    _upsample(vox,coarse,step)
+
+
+def square_pine(vox, h, r, tiers, lean, variant, colors):
+    """Hearthblock pine crown (doc 256): square bough plates, each lit on top with a
+    dark underside, over a narrower core that the next plate overhangs; a small
+    square spire on top. One coarse step of stagger per plate keeps it hand-made."""
+    step=4 if r>=2 else 2
+    unit=step/16
+    coarse=Voxels()
+    def slab(cx,cz,y0,y1,w,color):
+        box(coarse,(cx/step,(y0+y1)/2/step,cz/step),(w/step,(y1-y0)/step,w/step),color,cut=w*.04/step)
+    base,top=h*.24,h*.84
+    spacing=(top-base)/tiers
+    for k in range(tiers):
+        t=k/max(1,tiers-1)
+        w=r*1.4*(1-.62*t)
+        y=base+k*spacing
+        dx,dz=((1,0),(0,1),(-1,0),(0,-1))[(k+variant)%4]
+        cx=r*lean*t+dx*unit; cz=dz*unit
+        slab(cx,cz,y,y+spacing*.16,w,colors[0])                 # dark underside
+        slab(cx,cz,y+spacing*.16,y+spacing*.62,w,colors[2])     # the lit bough plate
+        slab(cx,cz,y+spacing*.62,y+spacing*1.2,w*.74,colors[1])    # core under the next plate
+    w=r*1.4*.30
+    slab(r*lean,0,top,top+(h-top)*.55,w,colors[3])              # a chunky square spire
+    slab(r*lean,0,top+(h-top)*.55,h,w*.5,colors[4])
+    _upsample(vox,coarse,step)
+
+
+def square_timber(wood, a, b, r0, r1, color, step):
+    """Hearthblock wood: a squared limb that steps along its path with a square
+    section, face-connected like branch_blocks but with flat sides (doc 256)."""
+    coarse=Voxels()
+    length=math.dist(a,b)
+    count=max(2,math.ceil(length*16/step/max(1,min(r0,r1)*16/step))+1)
+    for i in range(count):
+        t=i/(count-1)
+        c=[(a[k]+(b[k]-a[k])*t)*16/step for k in range(3)]
+        half=max(.5,(r0+(r1-r0)*t)*16/step)
+        lo=[math.floor(c[k]-half) for k in range(3)]; hi=[max(lo[k]+1,math.ceil(c[k]+half)) for k in range(3)]
+        for x in range(lo[0],hi[0]):
+            for y in range(lo[1],hi[1]):
+                for z in range(lo[2],hi[2]): coarse.cells[x,y,z]=color
+    _upsample(wood,coarse,step)
 
 
 def _wood_palette(wood, bark, trunk, h, variant):
@@ -108,7 +176,11 @@ def tree_layers(profile,species,stage,variant,season,picked,footprint):
     color_season='autumn' if season=='autumn_fruiting' else season
     colors=[linear(v) for v in p.get(color_season,p['summer'])]
     wood=Voxels(); leaves=Voxels(); accents=Voxels()
-    def timber(a,b,r0,r1): branch_blocks(wood,a,b,r0,r1,bark,step)
+    square=species in HEARTHBLOCK
+    def timber(a,b,r0,r1):
+        if square: square_timber(wood,a,b,r0,r1,bark,step)
+        else: branch_blocks(wood,a,b,r0,r1,bark,step)
+    crown=square_crown if square else globals()['crown']
     knee=(r*.035,h*form['fork_height'],r*-.025)
     shoulder=(r*form['lean'],h*.62,r*.06)
     tip=(r*(form['lean']-.08),h*.94,-r*.09)
@@ -121,7 +193,9 @@ def tree_layers(profile,species,stage,variant,season,picked,footprint):
                trunk*.38,max(.0625,trunk*.10))
     centers=[]
     evergreen=species in ('pine','juniper')
-    if species=='pine':
+    if species=='pine' and square:
+        square_pine(leaves,h,r,dims['tiers'],form['lean'],variant,colors)
+    elif species=='pine':
         for tier in range(dims['tiers']):
             t=tier/max(1,dims['tiers']-1)
             y=h*(.37+.51*t)
@@ -211,5 +285,7 @@ def assets(only=None):
                         if stage!='sapling':
                             limit=footprint*8
                             assert all(p[1]>=64 or (-limit<=p[0]<limit and -limit<=p[2]<limit) for p in vox.cells),path+' walking clearance'
+                        # No baked occlusion on trees: on their large stepped faces it triples the
+                        # triangles, and sun, shadow and the tiered values already give depth (doc 256).
                         yield path.removeprefix('res://'),{'main':Part(vox)},dict(species=species,stage=stage,
                             season=season,variant=variant,picked=group=='picked_models')

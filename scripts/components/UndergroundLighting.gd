@@ -54,6 +54,7 @@ func _ready() -> void:
 	var tuning: Dictionary = SkyController.underground_settings()
 	reach = clampi(int(tuning.get("entrance_reach_blocks", 12)), 1, 16)
 	readability = clampf(float(tuning.get("readability_floor", 0.008)), 0, 0.2)
+	SkyController.hearthblock_lighting_changed.connect(_on_hearthblock_lighting_changed)
 	_table = Image.create(32,128,false,Image.FORMAT_RF)
 	_table.fill(Color.BLACK)
 	_table_texture = ImageTexture.create_from_image(_table)
@@ -445,6 +446,7 @@ func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMateri
 	material.set_shader_parameter("surface_roughness", source.roughness if glossy else 1.0)
 	material.set_shader_parameter("surface_specular", source.metallic_specular if glossy else 0.0)
 	material.set_shader_parameter("readability_floor",readability)
+	_apply_hearthblock_look(material)
 	material.set_shader_parameter("sky_table",_table_texture)
 	for i in range(4): material.set_shader_parameter("sky_page_"+str(i),_pages[i])
 	material.set_shader_parameter("atmosphere_data", _atmosphere.texture)
@@ -453,6 +455,29 @@ func make_material(source: BaseMaterial3D, glossy: bool = false) -> ShaderMateri
 	material.set_meta("underground_source_material",source)
 	_material_cache[id] = material
 	return material
+
+
+## Hearthblock lighting: a dim cool floor for sealed air, a camera-facing fill on
+## closed actor/prop materials, and darker cut caps on terrain. Off restores the
+## previous values; the shader defaults are identical to the old shader.
+func _apply_hearthblock_look(material: ShaderMaterial) -> void:
+	var look: Dictionary = SkyController.hearthblock_settings() if SkyController.hearthblock_active() else {}
+	var fill: Dictionary = look.get("underground_fill", {})
+	material.set_shader_parameter("readability_floor", clampf(float(fill.get("readability_floor", readability)), 0, 0.2))
+	material.set_shader_parameter("readability_tint", _look_color(fill.get("tint", []), Color.WHITE))
+	material.set_shader_parameter("view_fill", float(look.get("view_fill", 0.0)) if material.shader == CLOSED_SHADER else 0.0)
+	material.set_shader_parameter("slice_cap_tint", _look_color(look.get("slice_cap_tint", []), Color.WHITE))
+
+
+func _on_hearthblock_lighting_changed(_active: bool) -> void:
+	for material: ShaderMaterial in _material_cache.values():
+		_apply_hearthblock_look(material)
+
+
+static func _look_color(value: Variant, fallback: Color) -> Color:
+	if value is Array and (value as Array).size() >= 3:
+		return Color(float(value[0]), float(value[1]), float(value[2]))
+	return fallback
 
 
 static func bind_world_tree(node: Node) -> void:

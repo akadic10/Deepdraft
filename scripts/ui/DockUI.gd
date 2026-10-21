@@ -716,6 +716,11 @@ func _dispatch_command(id: String) -> bool:
 			if events != null:
 				show_persistence_status(events.dev_status())
 				_persistence_toast_until_msec = Time.get_ticks_msec() + 6000
+		"hearthblock_lighting_development":
+			# A/B review of the lighting pass; the choice lasts until the game closes.
+			SkyController.set_hearthblock_lighting(not SkyController.is_hearthblock_enabled())
+			show_persistence_status("Hearthblock lighting " + ("on" if SkyController.is_hearthblock_enabled() else "off"))
+			_persistence_toast_until_msec = Time.get_ticks_msec() + 4000
 		_:
 			return false
 	return true

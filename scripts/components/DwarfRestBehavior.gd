@@ -277,13 +277,38 @@ func _part(node: Node3D, center: Vector3, target: Vector3, rotation: Vector3, mi
 	if node==agent._head: reflection=Basis.from_scale(Vector3(agent.proportions.head_width,1,1))
 	node.transform = Transform3D(basis*reflection,anchor.lerp(target,weight)-basis*anchor)
 
+## A lying head rests on its lowest cell, so a back bun or a deep knot lifts it
+## slightly instead of sinking into the bed or floor (doc 256). Each dwarf's
+## head never changes shape, so the height is measured once.
+var _lying_head_rest := -1.0
+
+func _lying_head_height() -> float:
+	if _lying_head_rest >= 0.0: return _lying_head_rest
+	_lying_head_rest = .96
+	if not is_instance_valid(agent._head): return _lying_head_rest
+	var turn := Basis(Quaternion.from_euler(Vector3(-PI*.5+.05,0,0)))
+	var width := Basis.from_scale(Vector3(agent.proportions.head_width,1,1))
+	var lowest := INF
+	for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(agent._head):
+		if mesh.mesh == null: continue
+		var frame := Transform3D.IDENTITY
+		var node: Node = mesh
+		while node != agent._head and node is Node3D:
+			frame = (node as Node3D).transform * frame
+			node = node.get_parent()
+		for vertex: Vector3 in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			lowest = minf(lowest,(turn*(width*(frame*vertex)-Vector3(0,2.45,0))).y)
+	# Breathing lowers the head by up to .0104 below its rest height.
+	if lowest < INF: _lying_head_rest = maxf(.96,.012-lowest)
+	return _lying_head_rest
+
 func _apply_pose() -> void:
 	var breath := sin(elapsed*TAU/4.6)*.026
 	var nod := sin(elapsed*TAU/9.2)*.025
 	var compact := cells.is_empty()
 	if pose == "lying":
 		_part(agent._body,Vector3(0,1.15,0),Vector3(0,.49+breath,.65),Vector3(-PI*.5,0,0))
-		_part(agent._head,Vector3(0,2.45,0),Vector3(0,.96+breath*.4,-.55),Vector3(-PI*.5+.05,nod,0))
+		_part(agent._head,Vector3(0,2.45,0),Vector3(0,_lying_head_height()+breath*.4,-.55),Vector3(-PI*.5+.05,nod,0))
 		_part(agent._hand_l,Vector3(1.0625,1.25,.1875),Vector3(.49,.89+breath,.55),Vector3(-.8,0,-.15))
 		_part(agent._hand_r,Vector3(1.0625,1.25,.1875),Vector3(-.49,.89+breath,.55),Vector3(-.8,0,.15),true)
 		_part(agent._foot_l,Vector3(.5,.2,.15),Vector3(.46,.385,1.57),Vector3(-.35,0,-.12))

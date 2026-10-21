@@ -46,7 +46,7 @@ class RetirementTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest(), row['sha256'], row['path'])
         actual = {p.relative_to(ROOT).as_posix() for p in (ROOT/'assets/models').rglob('*.glb') if '/studies/' not in p.as_posix()}
         self.assertEqual(actual, owned)
-        self.assertEqual(len(actual), 382)
+        self.assertEqual(len(actual), 384)   # + the duck's two folded-wing meshes (doc 256)
 
     def test_remaining_definitions_have_all_assets_and_packed_items(self):
         items = read_json('data/entities/items/resources.json')

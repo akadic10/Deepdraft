@@ -93,6 +93,7 @@ func _wood_variants(key: String,definition: Dictionary) -> void:
 	var materials=root.get_node("CraftMaterials")
 	var original: Node3D=load(definition.model).instantiate()
 	var colors := _colors(original)
+	var shades := _shades(original)
 	var variants := []
 	for wood in ["pine","oak","juniper","applewood"]:
 		var prop: Node3D=items.create_item_visual(key,1,"","base:material:"+wood)
@@ -109,7 +110,9 @@ func _wood_variants(key: String,definition: Dictionary) -> void:
 			for swatch: String in materials.palettes.starter_tool.colors.values():
 				var source := Color(swatch).srgb_to_linear()
 				source=Color(floorf(source.r*255)/255,floorf(source.g*255)/255,floorf(source.b*255)/255)
-				if colors[i].is_equal_approx(source): is_wood=true
+				# Baked corner shade (doc 256): a wood vertex is its swatch at that vertex's shade.
+				var shade: float = shades[i]
+				if absf(colors[i].r-source.r*shade)<=1.5/255 and absf(colors[i].g-source.g*shade)<=1.5/255 						and absf(colors[i].b-source.b*shade)<=1.5/255: is_wood=true
 			roles_ok=roles_ok and ((colors[i]!=changed[i]) if is_wood else (colors[i]==changed[i]))
 		_expect(roles_ok and retained>0 and retained<colors.size(),"only semantic wood changes "+key+" "+wood)
 		variants.append(changed); prop.free()
@@ -122,6 +125,17 @@ func _colors(node: Node) -> PackedColorArray:
 	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return result
 	if node is MeshInstance3D: result.append_array(node.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR])
 	for child in node.get_children(): result.append_array(_colors(child))
+	return result
+
+func _shades(node: Node) -> PackedFloat32Array:
+	var result := PackedFloat32Array()
+	if preload("res://scripts/components/VoxelShadowSetup.gd").is_proxy(node): return result
+	if node is MeshInstance3D:
+		var arrays: Array = node.mesh.surface_get_arrays(0)
+		var uv2 = arrays[Mesh.ARRAY_TEX_UV2]
+		for i in (arrays[Mesh.ARRAY_COLOR] as PackedColorArray).size():
+			result.append(1.0 if uv2 == null or i >= uv2.size() else float(uv2[i].x))
+	for child in node.get_children(): result.append_array(_shades(child))
 	return result
 
 func _work_tools() -> void:

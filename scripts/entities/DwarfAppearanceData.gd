@@ -16,3 +16,4 @@ extends Resource
 @export var eyebrow_style: String = "thick_flat"  # gender-specific eyebrow id
 @export var beard_style: String = ""         # male only; "" = no beard
 @export var scar: String = "none"            # "none" | "cheek_slash" | "brow_notch" | "nose_bridge" | "chin_split"
+@export var clothing: String = ""            # DwarfAssets.CLOTHING id; "" = assigned from the dwarf id (doc 256)

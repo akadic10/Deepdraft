@@ -89,7 +89,25 @@ def mesh_from_voxels(vox: Voxels):
     return positions, normals, colors, indices
 
 
-def greedy_mesh_from_voxels(vox: Voxels, occluders=()):
+def _corner_levels(front, corners, u, v, solid):
+    """Classic voxel corner occlusion for one face: 0 (both sides solid) .. 3 (open).
+
+    `front` is the empty cell the face looks into; each corner checks the two
+    side cells and the diagonal cell beside it in that layer.
+    """
+    levels = []
+    for corner in corners:
+        su = 1 if corner[u] else -1
+        sv = 1 if corner[v] else -1
+        side_u = list(front); side_u[u] += su
+        side_v = list(front); side_v[v] += sv
+        diagonal = list(side_u); diagonal[v] += sv
+        a, b, c = solid(tuple(side_u)), solid(tuple(side_v)), solid(tuple(diagonal))
+        levels.append(0 if a and b else 3 - (a + b + c))
+    return tuple(levels)
+
+
+def greedy_mesh_from_voxels(vox: Voxels, occluders=(), occlusion=None):
     """Merge exposed, coplanar, identically colored cell faces into rectangles.
 
     Geometry and colors match mesh_from_voxels exactly. This is opt-in so the
@@ -97,10 +115,23 @@ def greedy_mesh_from_voxels(vox: Voxels, occluders=()):
     independent of cell insertion order. Optional occluders are cells in other
     rigidly attached parts (e.g. hair/head), never independently moving limbs.
     No smooth normals or voxel nodes.
+
+    `occlusion` (opt-in) bakes corner occlusion into vertex colors:
+    {'curve': [l0, l1, l2, l3], 'ground': y, 'wall': z}. Cells below `ground`
+    or behind `wall` count as solid for shading only, never for face culling.
+    Faces merge only when color and all four corner levels agree, which keeps
+    the interpolated shading exact; the quad diagonal follows the brighter pair.
     """
-    positions, normals, colors, indices = [], [], [], []
+    positions, normals, colors, indices, shades = [], [], [], [], []
     cells = vox.cells
     occupied = cells if not occluders else cells.keys() | set(occluders)
+    curve = occlusion['curve'] if occlusion else None
+    ground = occlusion.get('ground') if occlusion else None
+    wall = occlusion.get('wall') if occlusion else None
+
+    def solid(p):
+        return p in occupied or (ground is not None and p[1] < ground) or (wall is not None and p[2] < wall)
+
     for direction, (normal, corners) in _FACES.items():
         axis = next(i for i, v in enumerate(direction) if v)
         u, v = [i for i in range(3) if i != axis]
@@ -111,7 +142,10 @@ def greedy_mesh_from_voxels(vox: Voxels, occluders=()):
             if neighbor in occupied:
                 continue
             plane = cell[axis] + (1 if direction[axis] > 0 else 0)
-            planes.setdefault(plane, {})[(cell[u], cell[v])] = tuple(color)
+            key = tuple(color)
+            if curve:
+                key = (key, _corner_levels(neighbor, corners, u, v, solid))
+            planes.setdefault(plane, {})[(cell[u], cell[v])] = key
         for plane, mask in sorted(planes.items()):
             for start in sorted(mask):
                 if start not in mask:
@@ -132,11 +166,26 @@ def greedy_mesh_from_voxels(vox: Voxels, occluders=()):
                 origin[u], origin[v] = x, y
                 size[u], size[v] = width, height
                 base = len(positions)
-                for corner in corners:
+                levels = None
+                if curve:
+                    color, levels = color
+                for index, corner in enumerate(corners):
                     positions.append(tuple(origin[i] + corner[i] * size[i] for i in range(3)))
                     normals.append(normal)
-                    colors.append((*color[:3], 1.0))
-                indices.extend([base, base + 1, base + 2, base, base + 2, base + 3])
+                    if levels:
+                        shade = curve[levels[index]]
+                        shades.append(shade)
+                        colors.append((color[0] * shade, color[1] * shade, color[2] * shade, 1.0))
+                    else:
+                        colors.append((*color[:3], 1.0))
+                if levels and levels[0] + levels[2] < levels[1] + levels[3]:
+                    indices.extend([base + 1, base + 2, base + 3, base + 1, base + 3, base])
+                else:
+                    indices.extend([base, base + 1, base + 2, base, base + 2, base + 3])
+    if curve:
+        # TEXCOORD_1.x carries each vertex's shade so runtime wood recoloring can
+        # match the unshaded swatch exactly (value ramps collide once darkened).
+        return positions, normals, colors, indices, shades
     return positions, normals, colors, indices
 
 
@@ -153,7 +202,8 @@ def _pad4(b: bytes, fill=b"\x00") -> bytes:
 def write_glb(path: Path, name: str, mesh, export_scale: float = 1.0):
     from asset_ownership import guard_legacy_write
     guard_legacy_write(path)
-    positions, normals, colors, indices = mesh
+    positions, normals, colors, indices = mesh[:4]
+    shades = mesh[4] if len(mesh) > 4 else None
     if not positions:
         raise ValueError(f"{name}: empty mesh")
 
@@ -184,6 +234,7 @@ def write_glb(path: Path, name: str, mesh, export_scale: float = 1.0):
     v_nrm = add_view(nrm_b, 34962)
     v_col = add_view(col_b, 34962)
     v_idx = add_view(idx_b, 34963)
+    v_shade = add_view(b"".join(struct.pack("<2f", s, 0.0) for s in shades), 34962) if shades else None
 
     mins = [min(p[i] for p in scaled_positions) for i in range(3)]
     maxs = [max(p[i] for p in scaled_positions) for i in range(3)]
@@ -220,6 +271,9 @@ def write_glb(path: Path, name: str, mesh, export_scale: float = 1.0):
         "bufferViews": views,
         "buffers": [{"byteLength": len(blob)}],
     }
+    if shades:
+        gltf["meshes"][0]["primitives"][0]["attributes"]["TEXCOORD_1"] = len(gltf["accessors"])
+        gltf["accessors"].append({"bufferView": v_shade, "componentType": 5126, "count": len(shades), "type": "VEC2"})
 
     json_b = _pad4(json.dumps(gltf, separators=(",", ":")).encode("utf-8"), b" ")
     bin_b = _pad4(blob)

@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 import log_bench
+import hearthblock
 from common import linear, read_json
 from furniture import assets
 from hand_hewn_timber import connected
@@ -28,8 +29,9 @@ class LogBenchTests(unittest.TestCase):
         self.assertEqual(definition['footprint'],{'width':2,'depth':1})
         self.assertEqual(definition['material_palette'],'hand_hewn_timber')
         _,parts,metadata = next(assets(only='/bench.glb'))
-        self.assertEqual(parts['main'].voxels.cells,log_bench.model().cells)
-        self.assertEqual(metadata['source'],'data/art/voxel_log_bench.json')
+        # Hearthblock Tier 1 bench (doc 256); its seat contracts are in test_hearthblock.
+        self.assertEqual(parts['main'].voxels.cells,hearthblock.model('log_bench').cells)
+        self.assertEqual(metadata['source'],'data/art/voxel_hearthblock.json')
         source = read_json('data/materials/craft_materials.json')['source_palettes']['hand_hewn_timber']['colors']
         for wood,palette in log_bench.TIMBER['palettes'].items():
             expected = {p:linear(palette[role]) for p,role in log_bench.roles().items()}

@@ -114,6 +114,7 @@ class Part:
     voxels: Voxels
     shadow: bool = True
     occluders: object = None
+    occlusion: object = None  # opt-in baked corner occlusion settings (voxel_occlusion.json)
 
 
 def _write_doc(path, doc, blob):
@@ -135,7 +136,7 @@ def export_asset(path, parts, stride=4, coverage=.6):
     for name,part in parts.items():
         vox=part.voxels
         if not vox.cells: raise ValueError(f'{path}: {name} is empty')
-        visual=greedy_mesh_from_voxels(vox,part.occluders)
+        visual=greedy_mesh_from_voxels(vox,part.occluders,part.occlusion)
         if not visual[0]: raise ValueError(f'{path}: {name} has no visible surface')
         first=len(meshes)+1
         meshes[f'{name}_visual']=visual
@@ -148,6 +149,7 @@ def export_asset(path, parts, stride=4, coverage=.6):
         descriptors.append((name,part.shadow,children))
         positions=visual[0]
         report.append({'name':name,'cells':len(vox),'visual_triangles':len(visual[3])//3,
+                       **({'occlusion':True} if part.occlusion else {}),
                        'shadow':proxy_info,'min':[min(p[i] for p in positions)/GRID for i in range(3)],
                        'max':[max(p[i] for p in positions)/GRID for i in range(3)]})
     write_glb_meshes(path,path.stem,meshes,1/GRID)

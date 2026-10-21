@@ -18,6 +18,7 @@ var shore_left := 0.0
 var _bodies: Dictionary = {}
 var _heads: Dictionary = {}
 var _wings: Array[Node3D] = []
+var _folded: Array[Node3D] = []
 var _feet: Array[Node3D] = []
 var _wake: Node3D
 var _foam: Array[MeshInstance3D] = []
@@ -39,21 +40,27 @@ func configure(data: Dictionary, id: String, origin: Vector3i, seed_value: int, 
 
 func _build_visual(models: Dictionary) -> void:
 	sex = "male" if rng.randf()<.5 else "female"
+	# Rig numbers live in duck.json (visual_pose); parts keep standing coordinates.
+	var pose: Dictionary = definition.visual_pose
 	for variant in ["male","female"]:
 		var body := Node3D.new()
 		visual.add_child(body)
 		body.add_child(models[variant+"_body"].instantiate())
 		_bodies[variant] = body
 		var joint := Node3D.new()
-		joint.position = Vector3(0,.65,-.22)
+		joint.position = _point(pose.head)
 		body.add_child(joint)
 		var model: Node3D = models[variant+"_head"].instantiate()
 		joint.add_child(model)
 		model.position = -joint.position
 		_heads[variant] = joint
+		# Folded wings are their own mesh on the flanks; the open pair only flies.
+		var folded: Node3D = models[variant+"_wing_folded"].instantiate()
+		body.add_child(folded)
+		_folded.append(folded)
 		for side in [-1,1]:
 			var wing := Node3D.new()
-			wing.position = Vector3(side*.25,.65,0)
+			wing.position = Vector3(side*float(pose.wing[0]),float(pose.wing[1]),float(pose.wing[2]))
 			body.add_child(wing)
 			var mesh: Node3D = models[variant+"_wing"].instantiate()
 			wing.add_child(mesh)
@@ -65,7 +72,7 @@ func _build_visual(models: Dictionary) -> void:
 	for side in [-1,1]:
 		var foot := Node3D.new()
 		visual.add_child(foot)
-		foot.position = Vector3(side*.15,0,.02)
+		foot.position = Vector3(side*float(pose.feet[0]),float(pose.feet[1]),float(pose.feet[2]))
 		foot.add_child(models.foot.instantiate())
 		_feet.append(foot)
 	# World effects are siblings, so they never become inspector bounds/outline.
@@ -307,19 +314,23 @@ func _pose() -> void:
 	var moving := hop_progress<1 or launch_left>0
 	visual.position.y = sin(pose_time*2.2)*.025 if mode=="water" else 0.0
 	visual.rotation.z = sin(pose_time*12)*.035 if moving and mode=="land" else 0.0
+	_squash_stretch(hop_progress if mode=="land" and launch_left<=0 else 1.0)
 	for joint: Node3D in _heads.values():
-		joint.rotation.x = .65+sin(pose_time*6)*.12 if activity=="Grazing" else .25 if activity=="Sleeping" else 0.0
+		# Ducks face -Z, so a negative pitch dips the bill to feed (it used to lift it).
+		joint.rotation.x = -.65+sin(pose_time*6)*.12 if activity=="Grazing" else .25 if activity=="Sleeping" else 0.0
 		joint.rotation.y = 1.5+sin(pose_time*3)*.15 if activity=="Preening" else .9 if activity=="Sleeping" else 0.0
 	# Keep the wings tucked through the narrow launch/landing sections; those
 	# are swept for the body footprint, while cruise uses the full wingspan.
 	var wings_open := airborne and flight_index>1 and flight_index<flight.size()-1
 	for wing in _wings:
 		var side := int(wing.get_meta("side"))
-		wing.position=Vector3(side*.25,.65,0) if wings_open else Vector3(side*.25,.5,-.35)
-		wing.basis=Basis(Vector3.FORWARD,-side*(sin(pose_time*18)*.7 if activity!="Landing" else .06)) if wings_open else Basis(Vector3.UP,-side*PI*.5)*Basis(Vector3.RIGHT,-PI*.5)
+		wing.visible = wings_open
+		wing.basis=Basis(Vector3.FORWARD,-side*(sin(pose_time*18)*.7 if activity!="Landing" else .06)) if wings_open else Basis.IDENTITY
+	for folded in _folded: folded.visible = not wings_open
 	for i in _feet.size():
 		_feet[i].rotation.x = .8 if airborne else sin(pose_time*(20 if launch_left>0 else 12)+i*PI)*.5 if moving else 0.0
-		_feet[i].position.y = .21 if airborne else absf(sin(_feet[i].rotation.x))*.125
+		# A swinging paddle lifts by its reach ahead of the pivot, so its toes stay above ground.
+		_feet[i].position.y = .21 if airborne else absf(sin(_feet[i].rotation.x))*float(definition.visual_pose.get("foot_reach",.125))
 	update_effect_visibility()
 	if is_instance_valid(_wake):
 		_wake.position = position+Vector3.UP*(float(definition.navigation.submerge)+.025)

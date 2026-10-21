@@ -450,7 +450,7 @@ func _check_axe_grips() -> void:
 func _check_stowed_axe(reason: String) -> void:
 	_expect(not worker._felling_pose.axe.visible, "%s stows axe" % reason)
 	_expect(worker._hand_r.scale.is_equal_approx(Vector3(-1,1,1)) and worker._foot_r.scale.is_equal_approx(Vector3(-1,1,1)), "%s preserves mirrored hands and boots" % reason)
-	var offsets := {worker._hand_l:Vector3(-.22,0,0),worker._hand_r:Vector3(.22,0,0),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
+	var offsets := {worker._hand_l:worker._relaxed_hand(-1),worker._hand_r:worker._relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
 	for part in [worker._body,worker._head,worker._hand_l,worker._hand_r,worker._foot_l,worker._foot_r]:
 		_expect(part.position.is_equal_approx(offsets.get(part,Vector3.ZERO)) and part.rotation.is_zero_approx(), "%s restores Balanced part offsets" % reason)
 

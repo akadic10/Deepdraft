@@ -8,6 +8,7 @@ import workbench
 import log_table
 import hand_hewn_timber
 import log_bench
+import hearthblock
 
 
 def flame(name,phase=0):
@@ -50,9 +51,12 @@ def assets(only=None):
         if only and only not in path: continue
         parts={}
         for key,shapes in piece.items():
-            vox=Voxels()
+            vox=Voxels(); occlusion=None
             for shape in shapes:
-                if shape['op']=='log_bench_vox':
+                if shape['op']=='hearthblock_vox':
+                    vox.cells.update(hearthblock.model(shape['model']).cells)
+                    occlusion=hearthblock.occlusion(shape['model'])
+                elif shape['op']=='log_bench_vox':
                     vox.cells.update(log_bench.model().cells)
                 elif shape['op']=='hand_hewn_vox':
                     vox.cells.update(hand_hewn_timber.model(shape['kind']).cells)
@@ -65,7 +69,7 @@ def assets(only=None):
                 elif shape['op']=='pilot':
                     for p in shape['shapes']: solid(vox,p,palette)
                 else: apply(vox,shape,palette)
-            parts[key]=Part(vox)
+            parts[key]=Part(vox,occlusion=occlusion)
         definition_path=ROOT/('data/furniture/'+name+'.json')
         if definition_path.is_file():
             definition=read_json(str(definition_path))
@@ -73,10 +77,13 @@ def assets(only=None):
                 light=definition['light_source']
                 parts[light['emissive_mesh']]=Part(flame(name),shadow=False)
         metadata=dict(piece=name)
-        if name in ['log_chair','log_table','board_game_table','crude_workbench']:
+        if any(shape['op']=='hearthblock_vox' for shapes in piece.values() for shape in shapes):
+            metadata['source']='data/art/voxel_hearthblock.json'
+            metadata['direction']='docs/00_dev_roadmap/256_hearthblock_art_pilot.md'
+        elif name in ['log_chair','log_table','board_game_table','crude_workbench']:
             metadata['source']='data/art/voxel_hand_hewn_timber.json'
             metadata['direction']='docs/60_asset_creation/64_hand_hewn_art_direction.md'
-        if name=='bench':
+        elif name=='bench':
             metadata['source']='data/art/voxel_log_bench.json'
             metadata['direction']='docs/60_asset_creation/64_hand_hewn_art_direction.md'
         yield path,parts,metadata

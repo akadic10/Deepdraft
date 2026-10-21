@@ -68,6 +68,10 @@ func _ready() -> void:
 		_shell_material = renderer._material.duplicate() if renderer._material!=null else null
 		if _shell_material is ShaderMaterial:
 			_shell_material.set_shader_parameter("readability_floor",float(_config.get("readability_floor",.12)))
+			# The inspection shell keeps its own neutral look under Hearthblock lighting.
+			_shell_material.set_shader_parameter("readability_tint",Color.WHITE)
+			_shell_material.set_shader_parameter("view_fill",0.0)
+			_shell_material.set_shader_parameter("slice_cap_tint",Color.WHITE)
 	_view_environment = Environment.new()
 	_view_environment.background_mode = Environment.BG_COLOR
 	_view_environment.background_color = Color(String(_config.get("background_color","#19252b")))

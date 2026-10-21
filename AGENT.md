@@ -1,5 +1,47 @@
 # Deepdraft — Agent Navigation Index
 
+**Hearthblock art (2026-10-20):** [256 — Hearthblock art](docs/00_dev_roadmap/256_hearthblock_art_pilot.md)
+puts the square-chibi Hearthblock style in the game: all wooden furniture as **Tier 1 ·
+Axe-Hewn** pieces (plus hearth, kits, flag) and every dwarf appearance (square heads,
+bead eyes, all 14 hairstyles, 7 beards, 8 brows), with baked corner occlusion. Author in
+`tools/hearthblock/art/*.mjs`, regenerate `data/art/voxel_hearthblock.json` with
+`write_data.py`, install through `build.py`. Occlusion is opt-in in `voxel_glb.py`;
+shaded vertices carry their shade in UV2 so `CraftMaterials` still recolors every wood.
+Dwarves have the proposal's cuffed mittens (the cuff is a separate untinted mesh) and
+cuffed boots, belt-length beards and a real back bun. Nothing on the head rises above
+y 54, and `test_log_table` checks every head cell against the tabletop: seated at a
+table, dwarves sit 3 cells back. A lying head rests on its lowest cell. All animals
+(rabbit, deer, wolf, ducks) are re-proportioned chibi. Their joints live in each
+animal's `visual_pose` data, and their visual roots squash and stretch. Owner rule (2026-10-21): old
+joints, pivots, envelopes and shape pins must not constrain the art. Change the rig
+data and the tests instead, but keep real gameplay contracts: navigation footprint and
+clearance, seat and sleep heights, door openings, tool grip and ground contact. All trees and wild plants are Hearthblock too: square crowns and pine plates in
+`trees.py`, notched clumps in `plants.py`. Trees skip baked occlusion for cost. The 25
+stored goods the game can produce are Hearthblock too (`hearthblock_goods.py`), as
+are the boulders, scree, plank floor and materials crate. Dwarves wear one of six
+tunic colours (`DwarfAssets.CLOTHING`, saved as appearance `clothing`, recoloured by
+`CraftMaterials.apply_colors`). The work tools are Hearthblock. Stone, grass and dirt
+terrain is "dressed" in `terrain_appearance.gdshaderinc` with one-cell edges, seams,
+flecks and occasional cracks or worn patches; the values are in
+`appearance_profiles.json` → `dressing`. After model changes, re-render the menu
+pictures with `FurnitureCatalogThumbnails.gd`, `InventoryCatalogThumbnails.gd` and
+`GenerateFloorIcons.gd`. Goods
+not yet in the game (drinks, staves, cloth, honey, grapes, ...) and crops keep the old
+style.
+
+**Hearthblock lighting (2026-10-20):** [255 — Lighting pass](docs/00_dev_roadmap/255_hearthblock_lighting_pass.md)
+is step 1 of the owner's new Hearthblock art direction (cozy square-chibi; the old
+hand-hewn concept is no longer authoritative). In the main world only: ACES tone
+mapping, glow that only fire reaches, a dim cool fill for sealed air, a camera-facing
+fill on actors/props underground, warmer fire lights, darker warm slice caps and
+burlap stockpile overlays. **Development → Hearthblock lighting** flips it at runtime;
+off restores the previous look exactly. All values are in `data/sky/sky_settings.json`.
+No models, gameplay, definitions or saves change. A copied-save review passes the
+on/off/exact-restore contract; GPU +0.43 ms at 3840×1080, mostly glow. Captures and
+evidence are in 255 and `tmp/hearthblock_lighting_20261020/`.
+Furniture tiers (Tier 1 axe-hewn now, Tier 2 carpenter later) are saved as studies in
+`VoxelFeed/studies/hearthblock/`; not installed. Restart Play. No export or commit.
+
 **Fruit hauling (2026-10-19):** [253 — Fruit consolidation](docs/00_dev_roadmap/253_fruit_hauling.md)
 lets a worker fill one carried basket with matching allowed fruit along a proven
 delivery route, up to its normal 24-unit capacity and eight extra walking steps.

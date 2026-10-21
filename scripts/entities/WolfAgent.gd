@@ -114,6 +114,7 @@ func _pose() -> void:
 	var resting := activity == "Sleeping"
 	var moving := hop_progress < 1
 	visual.position.y = float(definition.visual_pose.rest_y) if resting else sin(hop_progress*PI)*float(definition.navigation.hop_height)*float(definition.visual_pose.hop_amplitude) if moving else 0.0
+	_squash_stretch(hop_progress if moving and not resting else 1.0)
 	head.rotation.x = -.45 + sin(pose_time*6)*.045 if activity == "Eating" else -.12 if resting else 0.0
 	ears.rotation.x = .3 if resting else sin(pose_time*1.3)*.025
 	tail.rotation.y = sin(pose_time*2)*.09 if moving else .35 if resting else 0.0

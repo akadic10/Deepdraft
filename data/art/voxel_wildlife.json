@@ -1285,6 +1285,8 @@
         "duck:ring"
       ]
     ],
+    "duck/male_wing_folded": [],
+    "duck/female_wing_folded": [],
     "duck/foot": [
       [
         "box",

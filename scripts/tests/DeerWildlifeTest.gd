@@ -49,7 +49,8 @@ func _run() -> void:
 	camera.set_meta("work_zoom",12.0)
 	await process_frame
 	var box: AABB = wildlife.get_explorer_bounds(deer)
-	_expect(box.position.y == 21 and box.size.y > 3 and box.size.y < 4 and box.size.x <= 2 and box.size.z <= 2,"deer stands inside its wider four-cell envelope")
+	# Chibi deer (doc 256) stands below 3 blocks; it still needs its 4-block clearance.
+	_expect(box.position.y == 21 and box.size.y > 2.5 and box.size.y < 4 and box.size.x <= 2 and box.size.z <= 2,"deer stands inside its wider four-cell envelope")
 	_expect(wildlife.pick_explorer_object(box.get_center()+Vector3.UP*10,box.get_center()-Vector3.UP*3).get("id") == deer,"deer meshes are selectable")
 	var events: Array = []
 	var feedback := root.get_node("WorkFeedback")

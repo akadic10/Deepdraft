@@ -8,7 +8,7 @@
         {
           "name": "main",
           "cells": 4096,
-          "visual_triangles": 74,
+          "visual_triangles": 164,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
@@ -26,8 +26,8 @@
           ]
         }
       ],
-      "bytes": 9836,
-      "sha256": "eab9c1e88f63462d56521770393884a0be899ccdea886267a6e744109a1423b3",
+      "bytes": 18124,
+      "sha256": "b06520bb156c8aca46eb4626cf4a7b043d0dcea64a21d0a778de626fce3f7885",
       "path": "assets/models/construction/plank_floor.glb",
       "authoring": {
         "structural": true
@@ -38,7 +38,7 @@
         {
           "name": "main",
           "cells": 4096,
-          "visual_triangles": 76,
+          "visual_triangles": 160,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
@@ -56,8 +56,8 @@
           ]
         }
       ],
-      "bytes": 10028,
-      "sha256": "41a8857ff41b9111883b7c358ec0941ed811dcedfb077388e5d62567fd15c9d8",
+      "bytes": 17764,
+      "sha256": "510be3c3920b80d26c90feeb82e6ecf79f274227d1da5b1917e5159a13cb3601",
       "path": "assets/models/construction/plank_floor_alternate.glb",
       "authoring": {
         "structural": true
@@ -97,12 +97,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 324,
-          "visual_triangles": 100,
+          "cells": 300,
+          "visual_triangles": 340,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 92
+            "triangles": 192
           },
           "min": [
             -0.375,
@@ -116,8 +116,8 @@
           ]
         }
       ],
-      "bytes": 19636,
-      "sha256": "1b61b4c2bce649593c9962760971a3e1e36644b540db7ed94976e665d280b415",
+      "bytes": 50920,
+      "sha256": "ca282f1f5dcf9d4fa42e51003f54a50064ac0957250f5aba0ce4146cb97fffeb",
       "path": "assets/models/construction/materials_crate.glb",
       "authoring": {
         "structural": false

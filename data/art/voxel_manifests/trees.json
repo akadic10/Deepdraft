@@ -7,27 +7,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 49074,
-          "visual_triangles": 2062,
+          "cells": 53311,
+          "visual_triangles": 488,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.8000978114683946,
-            "triangles": 680
+            "retained_volume": 0.786329275384067,
+            "triangles": 126
           },
           "min": [
-            -1.125,
+            -1.0,
             0.0,
-            -1.375
+            -1.125
           ],
           "max": [
-            1.75,
+            1.25,
             8.0,
-            1.375
+            1.125
           ]
         }
       ],
-      "bytes": 254244,
-      "sha256": "04e799c4ec97562979e130a4cb9db02861fde2a208b585e6f43f078a7f4820fb",
+      "bytes": 58448,
+      "sha256": "49f1143cd4b04a53ec9f3bccadfcd6ce2170d38f08fd0a62fe822f7547f7d678",
       "path": "assets/models/flora/trees/pine/pine_sapling.glb",
       "authoring": {
         "species": "pine",
@@ -41,27 +41,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 49074,
-          "visual_triangles": 2554,
+          "cells": 53311,
+          "visual_triangles": 604,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.8000978114683946,
-            "triangles": 680
+            "retained_volume": 0.786329275384067,
+            "triangles": 126
           },
           "min": [
-            -1.125,
+            -1.0,
             0.0,
-            -1.375
+            -1.125
           ],
           "max": [
-            1.75,
+            1.25,
             8.0,
-            1.375
+            1.125
           ]
         }
       ],
-      "bytes": 299516,
-      "sha256": "e2a788d67ca5e573e351e1a90bcebf0c94e81c8b4a214bfb0afdebcabddb9bf6",
+      "bytes": 69132,
+      "sha256": "d725cb06b67333030881751f5d896afb943b9a4253eb9f35a3f5de485557454f",
       "path": "assets/models/flora/trees/pine/pine_sapling_winter.glb",
       "authoring": {
         "species": "pine",
@@ -75,27 +75,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 918568,
-          "visual_triangles": 3462,
+          "cells": 801640,
+          "visual_triangles": 884,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9840011844523214,
-            "triangles": 2196
+            "retained_volume": 0.9922059777456215,
+            "triangles": 330
           },
           "min": [
-            -3.0,
+            -2.5,
             0.0,
-            -3.5
+            -2.75
           ],
           "max": [
-            4.0,
+            3.0,
             20.0,
-            3.75
+            2.75
           ]
         }
       ],
-      "bytes": 522508,
-      "sha256": "ea12c6e437d278ca9b79a6e028c4729ffbf89398dd9354d7bfe35a5f5ef37f7e",
+      "bytes": 113648,
+      "sha256": "dcd6c931fba7d514a41fdc4cb1ef3fb6904d3945e78c41c87c7dffc08bb2fbf4",
       "path": "assets/models/flora/trees/pine/pine_mature.glb",
       "authoring": {
         "species": "pine",
@@ -109,27 +109,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 928784,
-          "visual_triangles": 3502,
+          "cells": 803752,
+          "visual_triangles": 910,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9844786301228272,
-            "triangles": 2198
+            "retained_volume": 0.9922264579123908,
+            "triangles": 332
           },
           "min": [
-            -3.75,
+            -2.75,
             0.0,
-            -3.75
+            -2.5
           ],
           "max": [
-            3.75,
+            2.75,
             20.0,
             3.0
           ]
         }
       ],
-      "bytes": 526380,
-      "sha256": "7a03d7b0cacaf3c61977756cc38c7e03c1bcd054ca5dc1bc236921aa3bdc1d1a",
+      "bytes": 116228,
+      "sha256": "a0aa088fed19b4339ad0465e12e3eb8fbd782061b7ec7068efe3d3ea02f6e7d1",
       "path": "assets/models/flora/trees/pine/pine_mature_2.glb",
       "authoring": {
         "species": "pine",
@@ -143,27 +143,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 936744,
-          "visual_triangles": 3342,
+          "cells": 802408,
+          "visual_triangles": 878,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.984174972030779,
-            "triangles": 2178
+            "retained_volume": 0.9922134375529655,
+            "triangles": 316
           },
           "min": [
-            -4.25,
+            -3.0,
             0.0,
-            -3.25
+            -2.75
           ],
           "max": [
-            3.25,
+            2.5,
             20.0,
-            3.75
+            2.75
           ]
         }
       ],
-      "bytes": 509820,
-      "sha256": "ad9f2bce9dc3eaca816f4478365ca2cb8dcff48855e3b2e8f12a6f423ea55306",
+      "bytes": 111812,
+      "sha256": "de6991a328d05a02ddcd274dea9c3bac135b6cebaf844faf3a57bdbf46b5f2d3",
       "path": "assets/models/flora/trees/pine/pine_mature_3.glb",
       "authoring": {
         "species": "pine",
@@ -177,27 +177,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 918568,
-          "visual_triangles": 4492,
+          "cells": 801640,
+          "visual_triangles": 1034,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9840011844523214,
-            "triangles": 2196
+            "retained_volume": 0.9922059777456215,
+            "triangles": 330
           },
           "min": [
-            -3.0,
+            -2.5,
             0.0,
-            -3.5
+            -2.75
           ],
           "max": [
-            4.0,
+            3.0,
             20.0,
-            3.75
+            2.75
           ]
         }
       ],
-      "bytes": 617280,
-      "sha256": "42b6fdec8dc5237456b8c47c47f84a1a8f1914235574891bc3d284471b7679b4",
+      "bytes": 127460,
+      "sha256": "96665e8cc633067e92462d8fec446408f01f1c8f8f713fbaaa67217ce6d54877",
       "path": "assets/models/flora/trees/pine/pine_mature_winter.glb",
       "authoring": {
         "species": "pine",
@@ -211,27 +211,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 928784,
-          "visual_triangles": 4588,
+          "cells": 803752,
+          "visual_triangles": 1064,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9844786301228272,
-            "triangles": 2198
+            "retained_volume": 0.9922264579123908,
+            "triangles": 332
           },
           "min": [
-            -3.75,
+            -2.75,
             0.0,
-            -3.75
+            -2.5
           ],
           "max": [
-            3.75,
+            2.75,
             20.0,
             3.0
           ]
         }
       ],
-      "bytes": 626300,
-      "sha256": "96f18eec7cdbf25ab3586e3bd7374cb40ba967e600bd59f7fd29a1ee86ac85a8",
+      "bytes": 130404,
+      "sha256": "866fd5edb955cc1b74c0dca5ee03f1129fa2ba97c92f2f33916089887bbb3975",
       "path": "assets/models/flora/trees/pine/pine_mature_winter_2.glb",
       "authoring": {
         "species": "pine",
@@ -245,27 +245,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 936744,
-          "visual_triangles": 4308,
+          "cells": 802408,
+          "visual_triangles": 1026,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.984174972030779,
-            "triangles": 2178
+            "retained_volume": 0.9922134375529655,
+            "triangles": 316
           },
           "min": [
-            -4.25,
+            -3.0,
             0.0,
-            -3.25
+            -2.75
           ],
           "max": [
-            3.25,
+            2.5,
             20.0,
-            3.75
+            2.75
           ]
         }
       ],
-      "bytes": 598704,
-      "sha256": "3323293c43b6f1de525ab43cc1313a829b2e0f6f300f375a8e8372426189f510",
+      "bytes": 125436,
+      "sha256": "5de9f85a5c8219bc29f41505ccb96a87159b1223593928966f385c86f102ee79",
       "path": "assets/models/flora/trees/pine/pine_mature_winter_3.glb",
       "authoring": {
         "species": "pine",
@@ -279,27 +279,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2414904,
-          "visual_triangles": 4164,
+          "cells": 1975360,
+          "visual_triangles": 1152,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9955244597714857,
-            "triangles": 3136
+            "retained_volume": 1.0,
+            "triangles": 438
           },
           "min": [
-            -4.0,
+            -3.5,
             0.0,
-            -4.75
+            -3.75
           ],
           "max": [
-            5.5,
+            4.0,
             27.0,
-            4.75
+            3.75
           ]
         }
       ],
-      "bytes": 673576,
-      "sha256": "205b939c64a706dd9c09f2d1937ddb2c52cf88f8303cee14018135d2f49de8c1",
+      "bytes": 148248,
+      "sha256": "64afa7bac37638d888ebb784eade980b688fe63677c01ac02c6840439b6efd20",
       "path": "assets/models/flora/trees/pine/pine_ancient.glb",
       "authoring": {
         "species": "pine",
@@ -313,27 +313,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2407464,
-          "visual_triangles": 4232,
+          "cells": 1971520,
+          "visual_triangles": 1208,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9960489544184253,
-            "triangles": 3220
+            "retained_volume": 1.0,
+            "triangles": 406
           },
           "min": [
-            -4.75,
+            -3.75,
             0.0,
-            -5.25
+            -3.5
           ],
           "max": [
-            5.0,
+            3.75,
             27.0,
-            4.5
+            4.0
           ]
         }
       ],
-      "bytes": 687568,
-      "sha256": "0383248c7ed64e4be946503dcb8360d1274f2f94f15fcbbeda0e7189fff37694",
+      "bytes": 150456,
+      "sha256": "da3598fe398ea8aa963e19e8edaf961e751adab047d5bfce313e0c0796f55a8e",
       "path": "assets/models/flora/trees/pine/pine_ancient_2.glb",
       "authoring": {
         "species": "pine",
@@ -347,27 +347,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2463544,
-          "visual_triangles": 4322,
+          "cells": 1970752,
+          "visual_triangles": 1218,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9958985916224756,
-            "triangles": 3342
+            "retained_volume": 1.0,
+            "triangles": 420
           },
           "min": [
-            -5.75,
+            -4.0,
             0.0,
-            -4.5
+            -3.75
           ],
           "max": [
-            4.25,
+            3.5,
             27.0,
-            5.0
+            3.75
           ]
         }
       ],
-      "bytes": 707072,
-      "sha256": "5905ef67009f52af9c119a8369ec12149049e3d94bf9ac6c9ea14b8be865cde1",
+      "bytes": 152668,
+      "sha256": "4752e8be772e82460d6c19139c70ea4687539b2dc291ee9bc412876bc94239ce",
       "path": "assets/models/flora/trees/pine/pine_ancient_3.glb",
       "authoring": {
         "species": "pine",
@@ -381,27 +381,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2414904,
-          "visual_triangles": 5572,
+          "cells": 1975360,
+          "visual_triangles": 1358,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9955244597714857,
-            "triangles": 3136
+            "retained_volume": 1.0,
+            "triangles": 438
           },
           "min": [
-            -4.0,
+            -3.5,
             0.0,
-            -4.75
+            -3.75
           ],
           "max": [
-            5.5,
+            4.0,
             27.0,
-            4.75
+            3.75
           ]
         }
       ],
-      "bytes": 803128,
-      "sha256": "97cf4a1977e4e50639f029a23a95ba579b7b7b5967c454695e4f9f86dacf9052",
+      "bytes": 167208,
+      "sha256": "01d09ae045de48df0ef16d65c1ae71d17f796776a7cdf32a7519f1bed966f743",
       "path": "assets/models/flora/trees/pine/pine_ancient_winter.glb",
       "authoring": {
         "species": "pine",
@@ -415,27 +415,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2407464,
-          "visual_triangles": 5588,
+          "cells": 1971520,
+          "visual_triangles": 1390,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9960489544184253,
-            "triangles": 3220
+            "retained_volume": 1.0,
+            "triangles": 406
           },
           "min": [
-            -4.75,
+            -3.75,
             0.0,
-            -5.25
+            -3.5
           ],
           "max": [
-            5.0,
+            3.75,
             27.0,
-            4.5
+            4.0
           ]
         }
       ],
-      "bytes": 812328,
-      "sha256": "19478df93ff26d02fa80b186a77323a27ae7e99ad7fe78d8690eb7a6aef25d5c",
+      "bytes": 167208,
+      "sha256": "72c417b897cbbec47c8bdda591f38ef248898abdc0f3f35c880bf596ce9f4ecf",
       "path": "assets/models/flora/trees/pine/pine_ancient_winter_2.glb",
       "authoring": {
         "species": "pine",
@@ -449,27 +449,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2463544,
-          "visual_triangles": 5712,
+          "cells": 1970752,
+          "visual_triangles": 1408,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9958985916224756,
-            "triangles": 3342
+            "retained_volume": 1.0,
+            "triangles": 420
           },
           "min": [
-            -5.75,
+            -4.0,
             0.0,
-            -4.5
+            -3.75
           ],
           "max": [
-            4.25,
+            3.5,
             27.0,
-            5.0
+            3.75
           ]
         }
       ],
-      "bytes": 834960,
-      "sha256": "cee90db3e53b1cac93b25da5ba33d9f052e77ff0ad8378fd2860188ef415c5ff",
+      "bytes": 170156,
+      "sha256": "748e3cc429d123e8840db97b28833972ea3b97e84c44428954b7a2113971e328",
       "path": "assets/models/flora/trees/pine/pine_ancient_winter_3.glb",
       "authoring": {
         "species": "pine",
@@ -483,27 +483,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 70664,
-          "visual_triangles": 1772,
+          "cells": 77102,
+          "visual_triangles": 1154,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9274312238197668,
-            "triangles": 700
+            "retained_volume": 0.9338279162667635,
+            "triangles": 340
           },
           "min": [
             -2.0,
             0.0,
-            -1.875
+            -2.0
           ],
           "max": [
-            2.0,
-            7.0,
+            2.25,
+            6.75,
             1.5
           ]
         }
       ],
-      "bytes": 229400,
-      "sha256": "df3c253b70044f2f3fbda97204b60451eef55243721f1fff08a0958a5335e0d4",
+      "bytes": 139420,
+      "sha256": "3325edfe792c3a699d175526e9b375e6fcdaf1ea96b25e28e3f5ae9f002f76ad",
       "path": "assets/models/flora/trees/oak/oak_sapling_spring.glb",
       "authoring": {
         "species": "oak",
@@ -517,27 +517,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 70664,
-          "visual_triangles": 1772,
+          "cells": 77102,
+          "visual_triangles": 1154,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9274312238197668,
-            "triangles": 700
+            "retained_volume": 0.9338279162667635,
+            "triangles": 340
           },
           "min": [
             -2.0,
             0.0,
-            -1.875
+            -2.0
           ],
           "max": [
-            2.0,
-            7.0,
+            2.25,
+            6.75,
             1.5
           ]
         }
       ],
-      "bytes": 229392,
-      "sha256": "3ae5267197cd237003ab028a6bc1220aa8e2ac559f18f06fc2e24e6882bfbd66",
+      "bytes": 139412,
+      "sha256": "31408e823a3849a8a7f066f522abb7ccf17860aa9625d2573fd48ea680f7f202",
       "path": "assets/models/flora/trees/oak/oak_sapling.glb",
       "authoring": {
         "species": "oak",
@@ -551,27 +551,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 70664,
-          "visual_triangles": 1772,
+          "cells": 77102,
+          "visual_triangles": 1154,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9274312238197668,
-            "triangles": 700
+            "retained_volume": 0.9338279162667635,
+            "triangles": 340
           },
           "min": [
             -2.0,
             0.0,
-            -1.875
+            -2.0
           ],
           "max": [
-            2.0,
-            7.0,
+            2.25,
+            6.75,
             1.5
           ]
         }
       ],
-      "bytes": 229400,
-      "sha256": "673182c7859cec0453f27e07ebe2ea3d734699ddb9569fcc87ca61a6f7f0d88e",
+      "bytes": 139420,
+      "sha256": "1c634e5bd25dde7a1ef73f209f96f8c78db78e767dc144a1924fba0eb8e3baf1",
       "path": "assets/models/flora/trees/oak/oak_sapling_autumn.glb",
       "authoring": {
         "species": "oak",
@@ -585,27 +585,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4378,
-          "visual_triangles": 3060,
+          "cells": 8928,
+          "visual_triangles": 2486,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 2918
+            "stride": 2,
+            "retained_volume": 0.7217741935483871,
+            "triangles": 788
           },
           "min": [
-            -1.5,
+            -1.5625,
             0.0,
-            -1.4375
+            -1.5
           ],
           "max": [
-            1.375,
-            6.625,
+            1.4375,
+            6.6875,
             1.25
           ]
         }
       ],
-      "bytes": 551968,
-      "sha256": "68da424bfe557d25c1055fa9ca0ea1916e861faaa2e416479859f8862a29baff",
+      "bytes": 303200,
+      "sha256": "01cc4960b2a039be85ea2a50a720b62a319fdc9957ed078f3b5b65943c15dd0f",
       "path": "assets/models/flora/trees/oak/oak_sapling_winter.glb",
       "authoring": {
         "species": "oak",
@@ -619,27 +619,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1921328,
-          "visual_triangles": 4488,
+          "cells": 2042344,
+          "visual_triangles": 2416,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899819291656604,
-            "triangles": 2322
+            "retained_volume": 0.9899840575338924,
+            "triangles": 1042
           },
           "min": [
-            -5.75,
+            -6.0,
             0.0,
-            -5.25
+            -5.5
           ],
           "max": [
-            5.25,
-            17.0,
-            5.0
+            5.75,
+            16.5,
+            5.25
           ]
         }
       ],
-      "bytes": 628508,
-      "sha256": "d3ed0b7aa6a2e63840ccc9c4980e618353697eb18dae43fb6358e67583a61dda",
+      "bytes": 320116,
+      "sha256": "625950696101b01dfa4cfa1f63b669e8528b37dae4346bc6f5caf4a182d3ab3c",
       "path": "assets/models/flora/trees/oak/oak_mature_spring.glb",
       "authoring": {
         "species": "oak",
@@ -653,27 +653,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1835216,
-          "visual_triangles": 4314,
+          "cells": 1977712,
+          "visual_triangles": 2202,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899477772643656,
-            "triangles": 2244
+            "retained_volume": 0.9903969839895799,
+            "triangles": 954
           },
           "min": [
-            -6.0,
+            -6.25,
             0.0,
-            -4.75
+            -5.0
           ],
           "max": [
-            4.5,
-            17.0,
-            5.25
+            5.0,
+            16.5,
+            5.5
           ]
         }
       ],
-      "bytes": 605324,
-      "sha256": "742635f51030dc90d9627e2b99fe6f01ccde492c09e3c9040d312bc71668af58",
+      "bytes": 292332,
+      "sha256": "cc3b0e5e81dd8ed686e370771bc7cd068d0c9800f245c8c410c5cb02d562f765",
       "path": "assets/models/flora/trees/oak/oak_mature_spring_2.glb",
       "authoring": {
         "species": "oak",
@@ -687,27 +687,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1817016,
-          "visual_triangles": 4488,
+          "cells": 1957360,
+          "visual_triangles": 2182,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9892262918983652,
-            "triangles": 2216
+            "retained_volume": 0.9894470102587158,
+            "triangles": 956
           },
           "min": [
-            -5.25,
+            -5.5,
             0.0,
-            -5.25
+            -5.5
           ],
           "max": [
-            5.25,
-            17.0,
-            5.25
+            5.75,
+            16.5,
+            5.5
           ]
         }
       ],
-      "bytes": 618760,
-      "sha256": "569af16397d7a863c8a8a9a96c66dbfc9a3258b55114171e3fd2cbaa0c4fdb26",
+      "bytes": 290676,
+      "sha256": "b3078a2fd99aa175165a91e80eed3b5c915793a723759e4f0408581463cb0a1c",
       "path": "assets/models/flora/trees/oak/oak_mature_spring_3.glb",
       "authoring": {
         "species": "oak",
@@ -721,27 +721,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1921328,
-          "visual_triangles": 4488,
+          "cells": 2042344,
+          "visual_triangles": 2416,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899819291656604,
-            "triangles": 2322
+            "retained_volume": 0.9899840575338924,
+            "triangles": 1042
           },
           "min": [
-            -5.75,
+            -6.0,
             0.0,
-            -5.25
+            -5.5
           ],
           "max": [
-            5.25,
-            17.0,
-            5.0
+            5.75,
+            16.5,
+            5.25
           ]
         }
       ],
-      "bytes": 628500,
-      "sha256": "3e438ca73f5b769d78bbe08a356016acbf6ae53e019e6b96b2655b83c66ba897",
+      "bytes": 320108,
+      "sha256": "fc74c95189721e2e9401b000ce5e4dce8febecc68c26b687278c1b5128decad3",
       "path": "assets/models/flora/trees/oak/oak_mature.glb",
       "authoring": {
         "species": "oak",
@@ -755,27 +755,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1835216,
-          "visual_triangles": 4314,
+          "cells": 1977712,
+          "visual_triangles": 2202,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899477772643656,
-            "triangles": 2244
+            "retained_volume": 0.9903969839895799,
+            "triangles": 954
           },
           "min": [
-            -6.0,
+            -6.25,
             0.0,
-            -4.75
+            -5.0
           ],
           "max": [
-            4.5,
-            17.0,
-            5.25
+            5.0,
+            16.5,
+            5.5
           ]
         }
       ],
-      "bytes": 605316,
-      "sha256": "151bffc050d83390e3aec8d6e5227a0f8de22d4d7d6a6c708180509e2a009906",
+      "bytes": 292324,
+      "sha256": "5fd4a89bb02d59e9a9d611376fdc319dd474a9aeb8eb9dac07d3336c4459221c",
       "path": "assets/models/flora/trees/oak/oak_mature_2.glb",
       "authoring": {
         "species": "oak",
@@ -789,27 +789,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1817016,
-          "visual_triangles": 4488,
+          "cells": 1957360,
+          "visual_triangles": 2182,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9892262918983652,
-            "triangles": 2216
+            "retained_volume": 0.9894470102587158,
+            "triangles": 956
           },
           "min": [
-            -5.25,
+            -5.5,
             0.0,
-            -5.25
+            -5.5
           ],
           "max": [
-            5.25,
-            17.0,
-            5.25
+            5.75,
+            16.5,
+            5.5
           ]
         }
       ],
-      "bytes": 618752,
-      "sha256": "709e26f02265a0eb8909bdec9340c6e3290eff332a45301bce169018b7c625dd",
+      "bytes": 290668,
+      "sha256": "4a1f81b834685634c9a4b5d018e82b36a428d4b623a519988febff134b5d459e",
       "path": "assets/models/flora/trees/oak/oak_mature_3.glb",
       "authoring": {
         "species": "oak",
@@ -823,27 +823,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1921328,
-          "visual_triangles": 4488,
+          "cells": 2042344,
+          "visual_triangles": 2416,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899819291656604,
-            "triangles": 2322
+            "retained_volume": 0.9899840575338924,
+            "triangles": 1042
           },
           "min": [
-            -5.75,
+            -6.0,
             0.0,
-            -5.25
+            -5.5
           ],
           "max": [
-            5.25,
-            17.0,
-            5.0
+            5.75,
+            16.5,
+            5.25
           ]
         }
       ],
-      "bytes": 628508,
-      "sha256": "756c34749a9ba968e14eb3c665caa9cebb2b5baac2d646822a6e2574195acfd7",
+      "bytes": 320116,
+      "sha256": "e5cb1f51f67b9b8f9055e0c670e5ff3566eb299bae1a189ee36b20cf7555758a",
       "path": "assets/models/flora/trees/oak/oak_mature_autumn.glb",
       "authoring": {
         "species": "oak",
@@ -857,27 +857,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1835216,
-          "visual_triangles": 4314,
+          "cells": 1977712,
+          "visual_triangles": 2202,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899477772643656,
-            "triangles": 2244
+            "retained_volume": 0.9903969839895799,
+            "triangles": 954
           },
           "min": [
-            -6.0,
+            -6.25,
             0.0,
-            -4.75
+            -5.0
           ],
           "max": [
-            4.5,
-            17.0,
-            5.25
+            5.0,
+            16.5,
+            5.5
           ]
         }
       ],
-      "bytes": 605324,
-      "sha256": "f030e748e2455f1e50c3d237e0dcc6bffb997390f3a55b34b0158ec8c5099d3d",
+      "bytes": 292332,
+      "sha256": "ceeca64167f57b602fffa4bd81637916277580936c66771302d822431a7b25f3",
       "path": "assets/models/flora/trees/oak/oak_mature_autumn_2.glb",
       "authoring": {
         "species": "oak",
@@ -891,27 +891,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1817016,
-          "visual_triangles": 4488,
+          "cells": 1957360,
+          "visual_triangles": 2182,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9892262918983652,
-            "triangles": 2216
+            "retained_volume": 0.9894470102587158,
+            "triangles": 956
           },
           "min": [
-            -5.25,
+            -5.5,
             0.0,
-            -5.25
+            -5.5
           ],
           "max": [
-            5.25,
-            17.0,
-            5.25
+            5.75,
+            16.5,
+            5.5
           ]
         }
       ],
-      "bytes": 618760,
-      "sha256": "5b06f34d49f471a37021d3c3aac1ca4a64f2d69374b742fcedd1330f46846e78",
+      "bytes": 290676,
+      "sha256": "cbf68961b6140fd3c7501d08864981f8b547aacaab17f6461068767688f3122a",
       "path": "assets/models/flora/trees/oak/oak_mature_autumn_3.glb",
       "authoring": {
         "species": "oak",
@@ -925,27 +925,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 183152,
-          "visual_triangles": 9570,
+          "cells": 317120,
+          "visual_triangles": 6174,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 1.0,
-            "triangles": 8192
+            "stride": 4,
+            "retained_volume": 0.841271442986882,
+            "triangles": 1610
           },
           "min": [
-            -4.125,
+            -4.25,
             0.0,
-            -3.875
+            -4.0
           ],
           "max": [
             3.5,
             16.125,
-            3.75
+            4.0
           ]
         }
       ],
-      "bytes": 1636112,
-      "sha256": "2a11762db5bc589eebc45238a28449641a89622d9e01662dbae294548bd3f86a",
+      "bytes": 718120,
+      "sha256": "72518a2750a09fb9b550feb72a8a2cd100902d7e955737d12adc78aa58c64e3a",
       "path": "assets/models/flora/trees/oak/oak_mature_winter.glb",
       "authoring": {
         "species": "oak",
@@ -959,27 +959,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 181440,
-          "visual_triangles": 9546,
+          "cells": 314728,
+          "visual_triangles": 6038,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 1.0,
-            "triangles": 8052
+            "stride": 4,
+            "retained_volume": 0.8345491980376706,
+            "triangles": 1524
           },
           "min": [
-            -4.0,
+            -4.125,
             0.0,
-            -3.875
+            -4.0
           ],
           "max": [
-            3.25,
+            3.375,
             16.125,
-            3.625
+            3.75
           ]
         }
       ],
-      "bytes": 1621028,
-      "sha256": "a491d2f75cf53967be67bfa5459a365542b8fb553764cf6993b1a7098cdb4d09",
+      "bytes": 697700,
+      "sha256": "c8280d380bf25441fafd3b3c365ec57bc50a2638405c2d16b3727e2b4ab03deb",
       "path": "assets/models/flora/trees/oak/oak_mature_winter_2.glb",
       "authoring": {
         "species": "oak",
@@ -993,27 +993,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 182296,
-          "visual_triangles": 9448,
+          "cells": 315840,
+          "visual_triangles": 6168,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 1.0,
-            "triangles": 8098
+            "stride": 4,
+            "retained_volume": 0.8388044579533941,
+            "triangles": 1576
           },
           "min": [
-            -3.875,
+            -4.0,
             0.0,
             -3.75
           ],
           "max": [
-            3.5,
+            3.625,
             16.125,
-            3.75
+            3.875
           ]
         }
       ],
-      "bytes": 1616240,
-      "sha256": "91ad2e3a8793c45697d2a72c281a5cc9b884f5f5ba8545c4bf2034453894e7fa",
+      "bytes": 714448,
+      "sha256": "5e62abf12c735d0c57f7e821f4ecceb9851f08c13b47dc94b8690272a2f55dcb",
       "path": "assets/models/flora/trees/oak/oak_mature_winter_3.glb",
       "authoring": {
         "species": "oak",
@@ -1027,27 +1027,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6525504,
-          "visual_triangles": 5110,
+          "cells": 6998848,
+          "visual_triangles": 2974,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3888
+            "triangles": 1562
           },
           "min": [
-            -9.0,
+            -9.5,
             0.0,
-            -8.25
+            -8.5
           ],
           "max": [
-            7.75,
-            24.0,
-            7.0
+            8.5,
+            23.5,
+            7.5
           ]
         }
       ],
-      "bytes": 829808,
-      "sha256": "86ea2a38bec4b71ea03798d9e8048e0b3eee7aab2064d208b64f6de295aadf4e",
+      "bytes": 419288,
+      "sha256": "da39bae8a723be5970befd790c7a47a67144b712b0e6b15f365d89644863caef",
       "path": "assets/models/flora/trees/oak/oak_ancient_spring.glb",
       "authoring": {
         "species": "oak",
@@ -1061,27 +1061,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6317248,
-          "visual_triangles": 4866,
+          "cells": 6772736,
+          "visual_triangles": 3074,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3690
+            "triangles": 1600
           },
           "min": [
-            -8.25,
+            -9.0,
             0.0,
-            -7.0
+            -7.25
           ],
           "max": [
-            8.0,
-            24.0,
-            7.5
+            8.5,
+            23.5,
+            8.0
           ]
         }
       ],
-      "bytes": 789140,
-      "sha256": "9940c4501a71e38c68008b43301a3f0007368cd259c161aea52a1b889902ef7d",
+      "bytes": 431988,
+      "sha256": "25db070cbdd35aa120096b537471e12a16459b1eb765190e7506fb78966f6851",
       "path": "assets/models/flora/trees/oak/oak_ancient_spring_2.glb",
       "authoring": {
         "species": "oak",
@@ -1095,27 +1095,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6581888,
-          "visual_triangles": 5308,
+          "cells": 6946560,
+          "visual_triangles": 3346,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 4098
+            "triangles": 1776
           },
           "min": [
-            -8.25,
+            -9.0,
             0.0,
-            -8.5
+            -8.75
           ],
           "max": [
-            8.25,
-            24.0,
-            7.25
+            9.0,
+            23.5,
+            7.5
           ]
         }
       ],
-      "bytes": 867348,
-      "sha256": "75171d6a3de2858bdf6058898ae80167f6e350cc42ce2186e1c3498d5edc17d8",
+      "bytes": 473208,
+      "sha256": "40c7b04d7d08487b5da60a3b23690beae2f7f053fd53294413986bf39ed733a9",
       "path": "assets/models/flora/trees/oak/oak_ancient_spring_3.glb",
       "authoring": {
         "species": "oak",
@@ -1129,27 +1129,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6525504,
-          "visual_triangles": 5110,
+          "cells": 6998848,
+          "visual_triangles": 2974,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3888
+            "triangles": 1562
           },
           "min": [
-            -9.0,
+            -9.5,
             0.0,
-            -8.25
+            -8.5
           ],
           "max": [
-            7.75,
-            24.0,
-            7.0
+            8.5,
+            23.5,
+            7.5
           ]
         }
       ],
-      "bytes": 829800,
-      "sha256": "2e5aea02b7c9a546828ad470fe07b07ec0ae1e7c88049e04258b92330401f943",
+      "bytes": 419280,
+      "sha256": "b440d8d20c94da2b6fd5faa80d8ae64d9431c09b60e082f13c1761a8a6182afd",
       "path": "assets/models/flora/trees/oak/oak_ancient.glb",
       "authoring": {
         "species": "oak",
@@ -1163,27 +1163,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6317248,
-          "visual_triangles": 4866,
+          "cells": 6772736,
+          "visual_triangles": 3074,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3690
+            "triangles": 1600
           },
           "min": [
-            -8.25,
+            -9.0,
             0.0,
-            -7.0
+            -7.25
           ],
           "max": [
-            8.0,
-            24.0,
-            7.5
+            8.5,
+            23.5,
+            8.0
           ]
         }
       ],
-      "bytes": 789132,
-      "sha256": "aa42cef36e4fb3a8b1b2c5ebad650277ee664e0ca829484081fce020b2d51602",
+      "bytes": 431980,
+      "sha256": "4a6bd883f647079d9b9a65190d4da8ef55c8287252f22185f58e3aa7c2c5b712",
       "path": "assets/models/flora/trees/oak/oak_ancient_2.glb",
       "authoring": {
         "species": "oak",
@@ -1197,27 +1197,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6581888,
-          "visual_triangles": 5308,
+          "cells": 6946560,
+          "visual_triangles": 3346,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 4098
+            "triangles": 1776
           },
           "min": [
-            -8.25,
+            -9.0,
             0.0,
-            -8.5
+            -8.75
           ],
           "max": [
-            8.25,
-            24.0,
-            7.25
+            9.0,
+            23.5,
+            7.5
           ]
         }
       ],
-      "bytes": 867340,
-      "sha256": "71bdeaf4691b784880c5dbc812cdfca1314ed2c07876c9aadf317449b7f3be9b",
+      "bytes": 473200,
+      "sha256": "fc17ab15dbb22ac20e3724a28776cdf774ba59cd4eb57d74690d761eb883cdf3",
       "path": "assets/models/flora/trees/oak/oak_ancient_3.glb",
       "authoring": {
         "species": "oak",
@@ -1231,27 +1231,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6525504,
-          "visual_triangles": 5110,
+          "cells": 6998848,
+          "visual_triangles": 2974,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3888
+            "triangles": 1562
           },
           "min": [
-            -9.0,
+            -9.5,
             0.0,
-            -8.25
+            -8.5
           ],
           "max": [
-            7.75,
-            24.0,
-            7.0
+            8.5,
+            23.5,
+            7.5
           ]
         }
       ],
-      "bytes": 829808,
-      "sha256": "3b782f1ba93bb04c0839214505aa40d3a0c4debcf40e643c5a1ac31afce6c563",
+      "bytes": 419288,
+      "sha256": "2e8ef51b9d73f4f816ea0586a54f5998353325a7e3ea6ba2f1c25844ad51ed3e",
       "path": "assets/models/flora/trees/oak/oak_ancient_autumn.glb",
       "authoring": {
         "species": "oak",
@@ -1265,27 +1265,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6317248,
-          "visual_triangles": 4866,
+          "cells": 6772736,
+          "visual_triangles": 3074,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3690
+            "triangles": 1600
           },
           "min": [
-            -8.25,
+            -9.0,
             0.0,
-            -7.0
+            -7.25
           ],
           "max": [
-            8.0,
-            24.0,
-            7.5
+            8.5,
+            23.5,
+            8.0
           ]
         }
       ],
-      "bytes": 789140,
-      "sha256": "0c9e354038645dd0aaa3c2e9081339ef20d98efba4965a123ce61f2c7bc72bb9",
+      "bytes": 431988,
+      "sha256": "c8462b10b29f9064ecb3d9652e343ac7cb741da2f5dc8c6ded74c50f0602518d",
       "path": "assets/models/flora/trees/oak/oak_ancient_autumn_2.glb",
       "authoring": {
         "species": "oak",
@@ -1299,27 +1299,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6581888,
-          "visual_triangles": 5308,
+          "cells": 6946560,
+          "visual_triangles": 3346,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 4098
+            "triangles": 1776
           },
           "min": [
-            -8.25,
+            -9.0,
             0.0,
-            -8.5
+            -8.75
           ],
           "max": [
-            8.25,
-            24.0,
-            7.25
+            9.0,
+            23.5,
+            7.5
           ]
         }
       ],
-      "bytes": 867348,
-      "sha256": "82fbd1e3043e8699e7e7f4aa7ef9c5f8cba6288e91c33ca9a42bcc6e90bd7224",
+      "bytes": 473208,
+      "sha256": "dfb75a46288366694e9e76bc991e78a193b01d189ea9e1c4ce2ac49f54900d67",
       "path": "assets/models/flora/trees/oak/oak_ancient_autumn_3.glb",
       "authoring": {
         "species": "oak",
@@ -1333,27 +1333,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 732864,
-          "visual_triangles": 8846,
+          "cells": 1342720,
+          "visual_triangles": 7416,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 5578
+            "triangles": 3060
           },
           "min": [
-            -5.75,
+            -6.25,
             0.0,
-            -5.75
+            -6.0
           ],
           "max": [
-            5.0,
-            22.75,
-            5.25
+            5.5,
+            23.0,
+            5.75
           ]
         }
       ],
-      "bytes": 1329012,
-      "sha256": "09b224b2d955845d60446f48fea53b23ce0d7c7213a42816beca93c4335b27fb",
+      "bytes": 965780,
+      "sha256": "9da5100cafdd6b01939fb0978b02c9f08b6e2a9639e38e6ba60d2b7030d04c63",
       "path": "assets/models/flora/trees/oak/oak_ancient_winter.glb",
       "authoring": {
         "species": "oak",
@@ -1367,27 +1367,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 727104,
-          "visual_triangles": 9354,
+          "cells": 1333568,
+          "visual_triangles": 7682,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 5628
+            "triangles": 2932
           },
           "min": [
-            -6.0,
+            -6.25,
             0.0,
             -5.5
           ],
           "max": [
-            5.25,
-            22.75,
+            5.5,
+            23.0,
             5.25
           ]
         }
       ],
-      "bytes": 1380348,
-      "sha256": "2777e1f30db439ed614726ba291936ac0bd6d9d6beb64b14c834815fa17437e1",
+      "bytes": 978480,
+      "sha256": "794813c35ce22e736b072fd1c4e42c89bfaf4ed60394416b1c96c33a4a3d73e3",
       "path": "assets/models/flora/trees/oak/oak_ancient_winter_2.glb",
       "authoring": {
         "species": "oak",
@@ -1401,27 +1401,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 731584,
-          "visual_triangles": 9602,
+          "cells": 1347840,
+          "visual_triangles": 8376,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 5610
+            "triangles": 3134
           },
           "min": [
-            -6.25,
+            -6.5,
             0.0,
-            -6.0
+            -6.5
           ],
           "max": [
-            5.5,
-            22.75,
-            5.25
+            5.75,
+            23.0,
+            5.75
           ]
         }
       ],
-      "bytes": 1401508,
-      "sha256": "918bb8a889f069f309308a93da07784c1cb441933c4b9451c98c09fb0572e19a",
+      "bytes": 1060916,
+      "sha256": "46f6a7d1bce97b80f5de896aef0f77082fef77004c3259a0323a3558a3ff7f5e",
       "path": "assets/models/flora/trees/oak/oak_ancient_winter_3.glb",
       "authoring": {
         "species": "oak",
@@ -1435,27 +1435,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 49757,
-          "visual_triangles": 1908,
+          "cells": 51590,
+          "visual_triangles": 1486,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7440963080571578,
-            "triangles": 440
+            "retained_volume": 0.7474316728048072,
+            "triangles": 358
           },
           "min": [
             -1.5,
             0.0,
-            -1.875
+            -2.0
           ],
           "max": [
-            1.75,
-            6.0,
+            1.875,
+            5.875,
             1.375
           ]
         }
       ],
-      "bytes": 217996,
-      "sha256": "d916ed53e3cfbe88e6f1c5a279b93573020821a88b2089a4d56f51b11b0bf99e",
+      "bytes": 171628,
+      "sha256": "61e3d9d38998353ceb02b6b7987ff71e81fafc7577337b598e385e37f6dfb1d5",
       "path": "assets/models/flora/trees/apple/apple_sapling_spring.glb",
       "authoring": {
         "species": "apple",
@@ -1469,27 +1469,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 49757,
-          "visual_triangles": 1908,
+          "cells": 51590,
+          "visual_triangles": 1486,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7440963080571578,
-            "triangles": 440
+            "retained_volume": 0.7474316728048072,
+            "triangles": 358
           },
           "min": [
             -1.5,
             0.0,
-            -1.875
+            -2.0
           ],
           "max": [
-            1.75,
-            6.0,
+            1.875,
+            5.875,
             1.375
           ]
         }
       ],
-      "bytes": 217988,
-      "sha256": "c07f6a62af3a904b36234feede03f4ec71717efa0e7b6eb7c77d236fd4bc9eac",
+      "bytes": 171624,
+      "sha256": "895c671c054b95c34279085aeb4d0cb52ef045b46ace81497edd20928cbcf292",
       "path": "assets/models/flora/trees/apple/apple_sapling.glb",
       "authoring": {
         "species": "apple",
@@ -1503,27 +1503,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 49757,
-          "visual_triangles": 1908,
+          "cells": 51590,
+          "visual_triangles": 1486,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7440963080571578,
-            "triangles": 440
+            "retained_volume": 0.7474316728048072,
+            "triangles": 358
           },
           "min": [
             -1.5,
             0.0,
-            -1.875
+            -2.0
           ],
           "max": [
-            1.75,
-            6.0,
+            1.875,
+            5.875,
             1.375
           ]
         }
       ],
-      "bytes": 217996,
-      "sha256": "a60ef801379cde1f1b317241f3ca6dc1ea01e6504cdd41d8e968046bf2b10a42",
+      "bytes": 171628,
+      "sha256": "c7bc8700cee7d0427076e082dc9b79d29a5dc09848832ceeca1cfb6e9dcad0a5",
       "path": "assets/models/flora/trees/apple/apple_sapling_autumn.glb",
       "authoring": {
         "species": "apple",
@@ -1537,27 +1537,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 3516,
-          "visual_triangles": 2640,
+          "cells": 7209,
+          "visual_triangles": 2162,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 2512
+            "stride": 2,
+            "retained_volume": 0.6952420585379386,
+            "triangles": 684
           },
           "min": [
             -1.1875,
             0.0,
-            -1.375
+            -1.4375
           ],
           "max": [
             1.25,
-            5.6875,
-            1.1875
+            5.75,
+            1.25
           ]
         }
       ],
-      "bytes": 475984,
-      "sha256": "12289e65ff8f5622dd21e0640d743b541d4369a1bd6c7025dbcbe8d98484a658",
+      "bytes": 263824,
+      "sha256": "ef67d7836f5ceeb7dee9ad0e8d967f406fa88bf1d490787e6e34d9a4f0b45fe5",
       "path": "assets/models/flora/trees/apple/apple_sapling_winter.glb",
       "authoring": {
         "species": "apple",
@@ -1571,27 +1571,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1262170,
-          "visual_triangles": 5528,
+          "cells": 1347678,
+          "visual_triangles": 3640,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9890775410602375,
-            "triangles": 2234
+            "retained_volume": 0.9901000090526075,
+            "triangles": 1022
           },
           "min": [
-            -5.25,
+            -5.75,
             0.0,
-            -4.5
+            -4.75
           ],
           "max": [
-            5.5,
-            12.0,
-            4.25
+            6.0,
+            11.9375,
+            4.5
           ]
         }
       ],
-      "bytes": 716092,
-      "sha256": "da7b4070a6c45bf42f6929e63381e0f6a91dfa8980fa5cf703a14db528405d29",
+      "bytes": 430892,
+      "sha256": "4f8982fb88e9b83c926b3d45dd298ba049db56e186fae374fea49aab8d95e915",
       "path": "assets/models/flora/trees/apple/apple_mature_spring.glb",
       "authoring": {
         "species": "apple",
@@ -1605,27 +1605,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1259826,
-          "visual_triangles": 5600,
+          "cells": 1336780,
+          "visual_triangles": 3604,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9889365674307404,
-            "triangles": 2214
+            "retained_volume": 0.9898412603420159,
+            "triangles": 1006
           },
           "min": [
-            -5.0,
+            -5.5,
             0.0,
-            -4.0
+            -4.25
           ],
           "max": [
-            5.25,
-            12.0,
-            5.0
+            5.75,
+            11.9375,
+            5.25
           ]
         }
       ],
-      "bytes": 720876,
-      "sha256": "30c631337c0bd33ef4a730392c60beae16b723dfb1f04be1905fa6f98fdf25be",
+      "bytes": 426112,
+      "sha256": "22ad9278501a095406397e117171e504cd87adf2dc73434efad61efd6a4a1d13",
       "path": "assets/models/flora/trees/apple/apple_mature_spring_2.glb",
       "authoring": {
         "species": "apple",
@@ -1639,27 +1639,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1241002,
-          "visual_triangles": 5508,
+          "cells": 1306404,
+          "visual_triangles": 3586,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9889814843167054,
-            "triangles": 2130
+            "retained_volume": 0.9901745554973806,
+            "triangles": 830
           },
           "min": [
-            -4.5,
+            -4.75,
             0.0,
-            -4.75
+            -5.0
           ],
           "max": [
-            4.75,
-            12.0,
-            5.0
+            5.25,
+            11.9375,
+            5.25
           ]
         }
       ],
-      "bytes": 704688,
-      "sha256": "6bc608fcb5a0e7890ba6c7cf96b7788631698e569a15e440793eb0c021ef277b",
+      "bytes": 408264,
+      "sha256": "df682643bfdd3b3d2ef76f6c7539e1814626456f11b7c5bf0c033a5bfb3a7597",
       "path": "assets/models/flora/trees/apple/apple_mature_spring_3.glb",
       "authoring": {
         "species": "apple",
@@ -1673,27 +1673,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1261088,
-          "visual_triangles": 4168,
+          "cells": 1346472,
+          "visual_triangles": 2170,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899261589992133,
-            "triangles": 2234
+            "retained_volume": 0.990986815915964,
+            "triangles": 1022
           },
           "min": [
-            -5.25,
+            -5.75,
             0.0,
-            -4.5
+            -4.75
           ],
           "max": [
-            5.5,
-            12.0,
-            4.25
+            6.0,
+            11.75,
+            4.5
           ]
         }
       ],
-      "bytes": 590964,
-      "sha256": "58de2692a0ab92bd11d16742b3a02b50e520182fd71881e4ca9347f668f95785",
+      "bytes": 295640,
+      "sha256": "b708224400d6abe7035371019be0ccdc7952565e3e5b02e76963ba68c466c8cc",
       "path": "assets/models/flora/trees/apple/apple_mature.glb",
       "authoring": {
         "species": "apple",
@@ -1707,27 +1707,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1258672,
-          "visual_triangles": 4170,
+          "cells": 1335528,
+          "visual_triangles": 2096,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9898432633760026,
-            "triangles": 2214
+            "retained_volume": 0.9907691939068294,
+            "triangles": 1006
           },
           "min": [
-            -5.0,
+            -5.5,
             0.0,
-            -4.0
+            -4.25
           ],
           "max": [
-            5.25,
-            12.0,
-            5.0
+            5.75,
+            11.75,
+            5.25
           ]
         }
       ],
-      "bytes": 589308,
-      "sha256": "858ae8a17d231853ab247e9fc91889ca6d0bec98d290036287da610ed475857e",
+      "bytes": 287364,
+      "sha256": "7703488a87f936000c28eb297f5b08447a7533002a71bb39040a7ac9c7a5034f",
       "path": "assets/models/flora/trees/apple/apple_mature_2.glb",
       "authoring": {
         "species": "apple",
@@ -1741,27 +1741,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1239720,
-          "visual_triangles": 3918,
+          "cells": 1305144,
+          "visual_triangles": 1932,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9900041944955312,
-            "triangles": 2130
+            "retained_volume": 0.9911304806212954,
+            "triangles": 830
           },
           "min": [
-            -4.5,
+            -4.75,
             0.0,
-            -4.75
+            -5.0
           ],
           "max": [
-            4.75,
-            12.0,
-            5.0
+            5.25,
+            11.75,
+            5.25
           ]
         }
       ],
-      "bytes": 558396,
-      "sha256": "8bc63eab38cda2bbca1bc428f0de22c5b0d159ab697e65a3ae239d3764d753af",
+      "bytes": 256084,
+      "sha256": "d63855277fb9a4e9bdc56d6cc58cacbbe35839cf87a095fd642b2cd1fe4d2313",
       "path": "assets/models/flora/trees/apple/apple_mature_3.glb",
       "authoring": {
         "species": "apple",
@@ -1775,27 +1775,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1261088,
-          "visual_triangles": 4168,
+          "cells": 1346472,
+          "visual_triangles": 2170,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9899261589992133,
-            "triangles": 2234
+            "retained_volume": 0.990986815915964,
+            "triangles": 1022
           },
           "min": [
-            -5.25,
+            -5.75,
             0.0,
-            -4.5
+            -4.75
           ],
           "max": [
-            5.5,
-            12.0,
-            4.25
+            6.0,
+            11.75,
+            4.5
           ]
         }
       ],
-      "bytes": 590972,
-      "sha256": "4a1738c3d14847da2b5f3b3de4368926aeeebd09e1f2a237d606536c05eeba94",
+      "bytes": 295648,
+      "sha256": "03fd6d69933995a59f91eb6f6e46abe90bab4ee9e32a07d9d29cecc99714ef70",
       "path": "assets/models/flora/trees/apple/apple_mature_autumn.glb",
       "authoring": {
         "species": "apple",
@@ -1809,27 +1809,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1258672,
-          "visual_triangles": 4170,
+          "cells": 1335528,
+          "visual_triangles": 2096,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9898432633760026,
-            "triangles": 2214
+            "retained_volume": 0.9907691939068294,
+            "triangles": 1006
           },
           "min": [
-            -5.0,
+            -5.5,
             0.0,
-            -4.0
+            -4.25
           ],
           "max": [
-            5.25,
-            12.0,
-            5.0
+            5.75,
+            11.75,
+            5.25
           ]
         }
       ],
-      "bytes": 589316,
-      "sha256": "a3bcce54ca6043fcc60fb306d460a69e122e9de3a2de58e0a7ed393450c9087f",
+      "bytes": 287372,
+      "sha256": "868357faa2497da5b9e0136e4d6eb4dae8b146e7eaceada7290dcdb8153c5503",
       "path": "assets/models/flora/trees/apple/apple_mature_autumn_2.glb",
       "authoring": {
         "species": "apple",
@@ -1843,27 +1843,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1239720,
-          "visual_triangles": 3918,
+          "cells": 1305144,
+          "visual_triangles": 1932,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9900041944955312,
-            "triangles": 2130
+            "retained_volume": 0.9911304806212954,
+            "triangles": 830
           },
           "min": [
-            -4.5,
+            -4.75,
             0.0,
-            -4.75
+            -5.0
           ],
           "max": [
-            4.75,
-            12.0,
-            5.0
+            5.25,
+            11.75,
+            5.25
           ]
         }
       ],
-      "bytes": 558400,
-      "sha256": "aba903fd2baa520c522a4f8811d59369c3fe9e5df8d06823636673ef94a67c3e",
+      "bytes": 256088,
+      "sha256": "85e54736b91e691bdf9efbdb3cf4c91f5ec7977732ae7c294766aa6eaac70999",
       "path": "assets/models/flora/trees/apple/apple_mature_autumn_3.glb",
       "authoring": {
         "species": "apple",
@@ -1877,27 +1877,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1267430,
-          "visual_triangles": 4806,
+          "cells": 1353073,
+          "visual_triangles": 2792,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9868158399280433,
-            "triangles": 2422
+            "retained_volume": 0.9879969521230562,
+            "triangles": 1216
           },
           "min": [
-            -5.25,
+            -5.75,
             0.0,
-            -4.625
+            -5.125
           ],
           "max": [
-            5.625,
-            12.0,
-            4.375
+            6.375,
+            11.75,
+            4.625
           ]
         }
       ],
-      "bytes": 666980,
-      "sha256": "10ad68ebb871ba2dadac2a841620460d505dcabd934d5dff5e173228665c98ec",
+      "bytes": 370740,
+      "sha256": "cb48cb25bfdd9f533eb24a87830157f1caeb0d54b31a3b633e1798e622541f01",
       "path": "assets/models/flora/trees/apple/apple_mature_autumn_fruiting.glb",
       "authoring": {
         "species": "apple",
@@ -1911,27 +1911,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1265051,
-          "visual_triangles": 4840,
+          "cells": 1342451,
+          "visual_triangles": 2776,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9866479691332602,
-            "triangles": 2414
+            "retained_volume": 0.9873999125480185,
+            "triangles": 1228
           },
           "min": [
-            -5.125,
+            -5.5,
             0.0,
             -4.375
           ],
           "max": [
-            5.375,
-            12.0,
-            5.0
+            6.125,
+            11.75,
+            5.25
           ]
         }
       ],
-      "bytes": 669372,
-      "sha256": "161f5cafa2f92a9d02317db0d7c3292d8b22f9cad79f3c7ea126053d9db48071",
+      "bytes": 370368,
+      "sha256": "19610f982159ca482ffc5469be1921dd5c8cb737fcb346679635410c398c122f",
       "path": "assets/models/flora/trees/apple/apple_mature_autumn_fruiting_2.glb",
       "authoring": {
         "species": "apple",
@@ -1945,27 +1945,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1246413,
-          "visual_triangles": 4566,
+          "cells": 1311836,
+          "visual_triangles": 2546,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9870500387913156,
-            "triangles": 2366
+            "retained_volume": 0.9881966953186222,
+            "triangles": 1038
           },
           "min": [
-            -4.625,
+            -5.125,
             0.0,
-            -4.875
+            -5.0
           ],
           "max": [
-            5.125,
-            12.0,
-            5.125
+            5.625,
+            11.75,
+            5.625
           ]
         }
       ],
-      "bytes": 639752,
-      "sha256": "ddad132be0cb4902611ba246909167601aca1647e5feee964bf869e8973f68b0",
+      "bytes": 331732,
+      "sha256": "910aa033b7d3d026926b6a843a3535fbdc8fc76ffdf209193018f4ab19c7ca51",
       "path": "assets/models/flora/trees/apple/apple_mature_autumn_fruiting_3.glb",
       "authoring": {
         "species": "apple",
@@ -1979,27 +1979,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 121408,
-          "visual_triangles": 8114,
+          "cells": 227008,
+          "visual_triangles": 5430,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 1.0,
-            "triangles": 6826
+            "stride": 4,
+            "retained_volume": 0.8349309275444037,
+            "triangles": 1392
           },
           "min": [
-            -3.5,
+            -3.625,
             0.0,
-            -3.25
+            -3.375
           ],
           "max": [
-            3.75,
-            11.375,
-            3.5
+            3.875,
+            11.5,
+            3.625
           ]
         }
       ],
-      "bytes": 1376484,
-      "sha256": "17b5101d28500bf41160d35d2b75f77d4b589f671fa2deaf796602406ae6c3c4",
+      "bytes": 629624,
+      "sha256": "02cd3d78d7c6aa489ef326229712120894f2bd94da1d744977b422bc20d995ec",
       "path": "assets/models/flora/trees/apple/apple_mature_winter.glb",
       "authoring": {
         "species": "apple",
@@ -2013,27 +2013,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 121560,
-          "visual_triangles": 7984,
+          "cells": 226616,
+          "visual_triangles": 5100,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 1.0,
-            "triangles": 6824
+            "stride": 4,
+            "retained_volume": 0.8284675398030148,
+            "triangles": 1320
           },
           "min": [
-            -3.25,
+            -3.5,
             0.0,
-            -3.25
+            -3.375
           ],
           "max": [
-            4.0,
-            11.375,
+            4.125,
+            11.5,
             3.75
           ]
         }
       ],
-      "bytes": 1364344,
-      "sha256": "d214ab586f13a86cb92352164fdbb2c84553f9eff717e48375bc15b2683a3b83",
+      "bytes": 592636,
+      "sha256": "5997da0c0308caa1189e228697fe6981901962963f5b20fd6a424027fef122b4",
       "path": "assets/models/flora/trees/apple/apple_mature_winter_2.glb",
       "authoring": {
         "species": "apple",
@@ -2047,27 +2047,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 120712,
-          "visual_triangles": 7826,
+          "cells": 224536,
+          "visual_triangles": 5234,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 1.0,
-            "triangles": 6716
+            "stride": 4,
+            "retained_volume": 0.8388498948943599,
+            "triangles": 1374
           },
           "min": [
-            -3.25,
+            -3.375,
             0.0,
-            -3.625
+            -3.75
           ],
           "max": [
             3.625,
-            11.375,
+            11.5,
             3.875
           ]
         }
       ],
-      "bytes": 1339880,
-      "sha256": "3bf00cf6bfdcf21c3e1eb576031ce9aeae4e04b3b48a915af249a45a086eaa71",
+      "bytes": 609936,
+      "sha256": "1808595ee41c8c83125cf4ff82ff04db67ec04430a37dfa21687e59b2bc20b8e",
       "path": "assets/models/flora/trees/apple/apple_mature_winter_3.glb",
       "authoring": {
         "species": "apple",
@@ -2081,27 +2081,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4939164,
-          "visual_triangles": 6340,
+          "cells": 5332112,
+          "visual_triangles": 4592,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9995278553212649,
-            "triangles": 3596
+            "retained_volume": 0.9994688783731475,
+            "triangles": 1486
           },
           "min": [
-            -8.0,
+            -8.5,
             0.0,
-            -8.0
+            -8.25
           ],
           "max": [
-            8.25,
-            18.0,
-            6.75
+            8.75,
+            17.6875,
+            7.0
           ]
         }
       ],
-      "bytes": 916104,
-      "sha256": "680c8da411da667d256ae86c29890ce50ac83d05a6e7417c7c8b6c8e7f6af723",
+      "bytes": 561168,
+      "sha256": "3c2af0210cf08e3ae5beadee6965b7b20429399a6699d3182740a247a208adbe",
       "path": "assets/models/flora/trees/apple/apple_ancient_spring.glb",
       "authoring": {
         "species": "apple",
@@ -2115,27 +2115,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5083672,
-          "visual_triangles": 6600,
+          "cells": 5447770,
+          "visual_triangles": 5016,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9994161700440154,
-            "triangles": 3616
+            "retained_volume": 0.9994548227990535,
+            "triangles": 1574
           },
           "min": [
-            -7.75,
+            -8.5,
             0.0,
-            -7.0
+            -7.5
           ],
           "max": [
-            8.75,
-            18.0,
-            7.25
+            9.25,
+            17.6875,
+            7.75
           ]
         }
       ],
-      "bytes": 941868,
-      "sha256": "3e289674618c78d44c203105b272b922d4cbc6b5c7ea2f6caf45ed0643aa780b",
+      "bytes": 608276,
+      "sha256": "fcae1a2e4e057544dd92f165c07c6407ae1189face587bda91456eb93c5e36f4",
       "path": "assets/models/flora/trees/apple/apple_ancient_spring_2.glb",
       "authoring": {
         "species": "apple",
@@ -2149,27 +2149,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5351989,
-          "visual_triangles": 6774,
+          "cells": 5662002,
+          "visual_triangles": 5078,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9994400212705968,
-            "triangles": 3694
+            "retained_volume": 0.9994344756501322,
+            "triangles": 1612
           },
           "min": [
-            -7.5,
+            -8.25,
             0.0,
-            -8.0
+            -8.5
           ],
           "max": [
-            8.75,
-            18.0,
-            7.75
+            9.25,
+            17.6875,
+            8.25
           ]
         }
       ],
-      "bytes": 965052,
-      "sha256": "cbebcaa303d3f170f7ea6f8f8f3d6b5377b81e1fc0a3f99c0bc9e1a8b8b03783",
+      "bytes": 617480,
+      "sha256": "322f8af8c354ce735f8f146d9e9871125453c9b4f1beb022bda90376b5ba46f5",
       "path": "assets/models/flora/trees/apple/apple_ancient_spring_3.glb",
       "authoring": {
         "species": "apple",
@@ -2183,27 +2183,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4936832,
-          "visual_triangles": 4672,
+          "cells": 5329280,
+          "visual_triangles": 2800,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3596
+            "triangles": 1486
           },
           "min": [
-            -8.0,
+            -8.5,
             0.0,
-            -8.0
+            -8.25
           ],
           "max": [
-            8.25,
-            18.0,
-            6.75
+            8.75,
+            17.5,
+            7.0
           ]
         }
       ],
-      "bytes": 762640,
-      "sha256": "0e6c915bfe0de9638194a28e48e9b665d2b0316fab7b45ed6b26fcc5aa422090",
+      "bytes": 396288,
+      "sha256": "5f842abd6e7f49be0ec468ba6953f9b0c4e58d8f6a6f07b0a6fd5e851b9b7a1d",
       "path": "assets/models/flora/trees/apple/apple_ancient.glb",
       "authoring": {
         "species": "apple",
@@ -2217,27 +2217,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5080704,
-          "visual_triangles": 4702,
+          "cells": 5444800,
+          "visual_triangles": 3034,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3616
+            "triangles": 1574
           },
           "min": [
-            -7.75,
+            -8.5,
             0.0,
-            -7.0
+            -7.5
           ],
           "max": [
-            8.75,
-            18.0,
-            7.25
+            9.25,
+            17.5,
+            7.75
           ]
         }
       ],
-      "bytes": 767244,
-      "sha256": "db18f55928783aa9d4ba80926453ad6bcab8153a3d8de7e288571ce3fdb97b1b",
+      "bytes": 425912,
+      "sha256": "f0735733f6ee5435f8d357589b51c9217ae0bdc6adb2ad43b57e12f4f9ab6ec2",
       "path": "assets/models/flora/trees/apple/apple_ancient_2.glb",
       "authoring": {
         "species": "apple",
@@ -2251,27 +2251,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5348992,
-          "visual_triangles": 4794,
+          "cells": 5658752,
+          "visual_triangles": 3060,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3694
+            "triangles": 1598
           },
           "min": [
-            -7.5,
+            -8.25,
             0.0,
-            -8.0
+            -8.5
           ],
           "max": [
-            8.75,
-            18.0,
-            7.75
+            9.25,
+            17.5,
+            8.25
           ]
         }
       ],
-      "bytes": 782880,
-      "sha256": "f3bd037d5ed9d7196f1b20562dd34c2d861c5aaec8cd681004dbc20ae9275fdd",
+      "bytes": 430516,
+      "sha256": "613f2afbc4d6944ecc6c8ea5325a534e2c32b18bd92ef56359ca32605ea680b2",
       "path": "assets/models/flora/trees/apple/apple_ancient_3.glb",
       "authoring": {
         "species": "apple",
@@ -2285,27 +2285,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4936832,
-          "visual_triangles": 4672,
+          "cells": 5329280,
+          "visual_triangles": 2800,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3596
+            "triangles": 1486
           },
           "min": [
-            -8.0,
+            -8.5,
             0.0,
-            -8.0
+            -8.25
           ],
           "max": [
-            8.25,
-            18.0,
-            6.75
+            8.75,
+            17.5,
+            7.0
           ]
         }
       ],
-      "bytes": 762644,
-      "sha256": "299d73e08ccdad92d3f763af290848d7824ab94fe0cabc891a3f00a2d7050c22",
+      "bytes": 396296,
+      "sha256": "a8ec9da7a78f24786043d5ab13d55585c585eb2e9bb2574f571599929d6b78ee",
       "path": "assets/models/flora/trees/apple/apple_ancient_autumn.glb",
       "authoring": {
         "species": "apple",
@@ -2319,27 +2319,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5080704,
-          "visual_triangles": 4702,
+          "cells": 5444800,
+          "visual_triangles": 3034,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3616
+            "triangles": 1574
           },
           "min": [
-            -7.75,
+            -8.5,
             0.0,
-            -7.0
+            -7.5
           ],
           "max": [
-            8.75,
-            18.0,
-            7.25
+            9.25,
+            17.5,
+            7.75
           ]
         }
       ],
-      "bytes": 767248,
-      "sha256": "9401828202f8fc0a33740c48afa7ca0ca8ccdfb75de4d221a2c7750b4351d1b6",
+      "bytes": 425920,
+      "sha256": "8346681e662e7b27cf72bba459ce1708525a221674945ffcb067ea8efb82166a",
       "path": "assets/models/flora/trees/apple/apple_ancient_autumn_2.glb",
       "authoring": {
         "species": "apple",
@@ -2353,27 +2353,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5348992,
-          "visual_triangles": 4794,
+          "cells": 5658752,
+          "visual_triangles": 3060,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 3694
+            "triangles": 1598
           },
           "min": [
-            -7.5,
+            -8.25,
             0.0,
-            -8.0
+            -8.5
           ],
           "max": [
-            8.75,
-            18.0,
-            7.75
+            9.25,
+            17.5,
+            8.25
           ]
         }
       ],
-      "bytes": 782888,
-      "sha256": "697fa32c200bdc6b972b9a6d0959f1b63110a47a95238c87680d98ecf6308f0e",
+      "bytes": 430524,
+      "sha256": "195d39642445c9fe3a648705d624943665c9cdafc2583fa661fe203866f2a7c0",
       "path": "assets/models/flora/trees/apple/apple_ancient_autumn_3.glb",
       "authoring": {
         "species": "apple",
@@ -2387,27 +2387,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4950567,
-          "visual_triangles": 5520,
+          "cells": 5343970,
+          "visual_triangles": 3648,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9980852698286883,
-            "triangles": 3852
+            "retained_volume": 0.9981852443033924,
+            "triangles": 1760
           },
           "min": [
-            -8.0,
+            -8.9375,
             0.0,
-            -8.4375
+            -8.6875
           ],
           "max": [
-            8.6875,
-            18.0,
-            7.1875
+            9.1875,
+            17.5,
+            7.4375
           ]
         }
       ],
-      "bytes": 864240,
-      "sha256": "58ca094ce3e038ef03eb920c96e2851367f8b80eb907e74d7e2e28cb7878ee5b",
+      "bytes": 499548,
+      "sha256": "ebb8e7a83f1476591cb57fca96da80975bd0332c097fc4acda0fd402120a7787",
       "path": "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting.glb",
       "authoring": {
         "species": "apple",
@@ -2421,27 +2421,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5095312,
-          "visual_triangles": 5534,
+          "cells": 5459311,
+          "visual_triangles": 3822,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9980060102305806,
-            "triangles": 3872
+            "retained_volume": 0.9982036194677314,
+            "triangles": 1832
           },
           "min": [
-            -7.9375,
+            -8.9375,
             0.0,
-            -7.4375
+            -7.9375
           ],
           "max": [
-            8.9375,
-            18.0,
-            7.25
+            9.4375,
+            17.5,
+            7.75
           ]
         }
       ],
-      "bytes": 867372,
-      "sha256": "9c1160dcad13165b3f11672aba09e7da98294e251c62d2c97199630f70a06b61",
+      "bytes": 522180,
+      "sha256": "d55956b82e9ed82fb4eeded73695c67acb4ae5fd6ea8573b5ebfd9adde6fa7e9",
       "path": "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting_2.glb",
       "authoring": {
         "species": "apple",
@@ -2455,27 +2455,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 5362575,
-          "visual_triangles": 5626,
+          "cells": 5672480,
+          "visual_triangles": 3782,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9981950835186454,
-            "triangles": 3946
+            "retained_volume": 0.998369672524187,
+            "triangles": 1854
           },
           "min": [
-            -7.9375,
+            -8.6875,
             0.0,
-            -8.0
+            -8.9375
           ],
           "max": [
-            8.75,
-            18.0,
-            7.75
+            9.25,
+            17.5,
+            8.25
           ]
         }
       ],
-      "bytes": 882632,
-      "sha256": "7ba1aaf3be2db68338633f90d4b8c93951bd5800c31ecd07e86397f2373eb6e3",
+      "bytes": 520520,
+      "sha256": "c8a1551b65fc844968e9432dac7f931eeaaad3de7c4167db51a77a38bfb83afb",
       "path": "assets/models/flora/trees/apple/apple_ancient_autumn_fruiting_3.glb",
       "authoring": {
         "species": "apple",
@@ -2489,27 +2489,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 525568,
-          "visual_triangles": 7756,
+          "cells": 1008064,
+          "visual_triangles": 6756,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 4948
+            "triangles": 2818
           },
           "min": [
             -5.5,
             0.0,
-            -5.0
+            -5.5
           ],
           "max": [
-            5.5,
-            17.0,
-            5.0
+            6.0,
+            17.25,
+            5.25
           ]
         }
       ],
-      "bytes": 1170760,
-      "sha256": "5eb79126a46a80151eff12279f0320c62c261aa2705940a5ade0826f15c272af",
+      "bytes": 882800,
+      "sha256": "42738bf730a81a2ce29740dac084676800903467f76f4b0c0e6c531a807d22e9",
       "path": "assets/models/flora/trees/apple/apple_ancient_winter.glb",
       "authoring": {
         "species": "apple",
@@ -2523,27 +2523,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 528960,
-          "visual_triangles": 7828,
+          "cells": 1019968,
+          "visual_triangles": 7062,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 5040
+            "triangles": 2948
           },
           "min": [
-            -5.25,
+            -5.5,
             0.0,
-            -5.5
+            -5.75
           ],
           "max": [
-            6.0,
-            17.0,
-            5.25
+            6.5,
+            17.25,
+            5.5
           ]
         }
       ],
-      "bytes": 1185856,
-      "sha256": "7846b5a8240e55619d93d17457365084d4ad811dbaa84f084c290efa2e48f224",
+      "bytes": 922912,
+      "sha256": "e2e776aaeda485fd35e12a7737f5b1d3e6944f9d19f232118e6b3bf9cdba44cf",
       "path": "assets/models/flora/trees/apple/apple_ancient_winter_2.glb",
       "authoring": {
         "species": "apple",
@@ -2557,27 +2557,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 525632,
-          "visual_triangles": 8270,
+          "cells": 1009536,
+          "visual_triangles": 7418,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 5240
+            "triangles": 2994
           },
           "min": [
-            -5.0,
+            -5.25,
             0.0,
-            -5.25
+            -6.0
           ],
           "max": [
-            6.25,
-            17.0,
-            5.75
+            6.5,
+            17.25,
+            6.0
           ]
         }
       ],
-      "bytes": 1244924,
-      "sha256": "4436d58dfa0c93f8508d1baa850cd2a415f313d5ffe1e6b53d4a149df7900f0e",
+      "bytes": 959896,
+      "sha256": "732e611891c2a8c340a8c94fe6c8cf0335e4116348da8dc76ec2a6c6c06c3162",
       "path": "assets/models/flora/trees/apple/apple_ancient_winter_3.glb",
       "authoring": {
         "species": "apple",
@@ -2591,27 +2591,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 12497,
-          "visual_triangles": 1172,
+          "cells": 13926,
+          "visual_triangles": 910,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.9602304553092742,
-            "triangles": 696
+            "stride": 4,
+            "retained_volume": 0.6709751543874767,
+            "triangles": 232
           },
           "min": [
             -0.75,
             0.0,
-            -0.875
+            -1.0
           ],
           "max": [
-            1.0,
-            5.0,
+            1.125,
+            4.875,
             0.75
           ]
         }
       ],
-      "bytes": 173832,
-      "sha256": "ace6ba0ef620fc1cad0b7c00eb2a83fff587de22b7794e98c2cac8150c4d59c0",
+      "bytes": 107036,
+      "sha256": "81e0a101a91e5b1f3951f8dc7f2ec8c696c2051cb49959fcb8628dd71d7ac3e8",
       "path": "assets/models/flora/trees/juniper/juniper_sapling.glb",
       "authoring": {
         "species": "juniper",
@@ -2625,27 +2625,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 12497,
-          "visual_triangles": 1322,
+          "cells": 13926,
+          "visual_triangles": 1030,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.9602304553092742,
-            "triangles": 696
+            "stride": 4,
+            "retained_volume": 0.6709751543874767,
+            "triangles": 232
           },
           "min": [
             -0.75,
             0.0,
-            -0.875
+            -1.0
           ],
           "max": [
-            1.0,
-            5.0,
+            1.125,
+            4.875,
             0.75
           ]
         }
       ],
-      "bytes": 187640,
-      "sha256": "fd9a2ade19361be2beb0c9bbdefc3bc18a7903d79d9f0bd55e406f74ae6dc159",
+      "bytes": 118084,
+      "sha256": "87c43b63debc377d5d297d0cf82bd86fe72d21d36565d17f1dad882c53e649c3",
       "path": "assets/models/flora/trees/juniper/juniper_sapling_winter.glb",
       "authoring": {
         "species": "juniper",
@@ -2659,27 +2659,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 382398,
-          "visual_triangles": 1768,
+          "cells": 418381,
+          "visual_triangles": 1418,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9896286068441781,
-            "triangles": 1120
+            "retained_volume": 0.9920144557233718,
+            "triangles": 754
           },
           "min": [
-            -2.5,
+            -2.75,
             0.0,
-            -2.75
+            -3.0
           ],
           "max": [
-            3.1875,
-            12.0,
+            3.4375,
+            11.75,
             2.5
           ]
         }
       ],
-      "bytes": 267672,
-      "sha256": "2b7b57be2dceca882387d47df3d7f4f5321598579cefd4cf694bf9223e5d980a",
+      "bytes": 201804,
+      "sha256": "5fa285988195cea29382daa341b4c5ab2c2fa5c2cb4670fc0a8ca91e2cc88418",
       "path": "assets/models/flora/trees/juniper/juniper_mature.glb",
       "authoring": {
         "species": "juniper",
@@ -2693,27 +2693,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 345426,
-          "visual_triangles": 1856,
+          "cells": 368764,
+          "visual_triangles": 1562,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9882753469628807,
-            "triangles": 1148
+            "retained_volume": 0.9904654467355816,
+            "triangles": 724
           },
           "min": [
-            -2.4375,
+            -2.6875,
             0.0,
             -2.25
           ],
           "max": [
-            2.75,
-            12.0,
+            3.1875,
+            11.75,
             2.75
           ]
         }
       ],
-      "bytes": 278352,
-      "sha256": "479563967f2680c6a74d8293189990d5b49efbca25822ad975e6398ee174ba1e",
+      "bytes": 212296,
+      "sha256": "2d915af8a96c63f742e4e4c8dd0e2a6b3d34e0721f9c83ad9f603c8b9662f818",
       "path": "assets/models/flora/trees/juniper/juniper_mature_2.glb",
       "authoring": {
         "species": "juniper",
@@ -2727,27 +2727,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 382398,
-          "visual_triangles": 2124,
+          "cells": 418381,
+          "visual_triangles": 1634,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9896286068441781,
-            "triangles": 1120
+            "retained_volume": 0.9920144557233718,
+            "triangles": 754
           },
           "min": [
-            -2.5,
+            -2.75,
             0.0,
-            -2.75
+            -3.0
           ],
           "max": [
-            3.1875,
-            12.0,
+            3.4375,
+            11.75,
             2.5
           ]
         }
       ],
-      "bytes": 300432,
-      "sha256": "dff22ed0d4e5833652fe899f3006abc092eef79743628277985cdbe0a7d62e1b",
+      "bytes": 221680,
+      "sha256": "17c700e291fcecada2d5e1881fcfb1c192847224171e3e3424d78e4336dcf02e",
       "path": "assets/models/flora/trees/juniper/juniper_mature_winter.glb",
       "authoring": {
         "species": "juniper",
@@ -2761,27 +2761,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 345426,
-          "visual_triangles": 2190,
+          "cells": 368764,
+          "visual_triangles": 1756,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9882753469628807,
-            "triangles": 1148
+            "retained_volume": 0.9904654467355816,
+            "triangles": 724
           },
           "min": [
-            -2.4375,
+            -2.6875,
             0.0,
             -2.25
           ],
           "max": [
-            2.75,
-            12.0,
+            3.1875,
+            11.75,
             2.75
           ]
         }
       ],
-      "bytes": 309088,
-      "sha256": "d3c6fb029ab5adae7820b7082e4b93e44892963d4fe99994cbba89f9748159d8",
+      "bytes": 230152,
+      "sha256": "76410716f569190053765a6f2fb3c715a69f247cc586ff9e75072aec537fae46",
       "path": "assets/models/flora/trees/juniper/juniper_mature_winter_2.glb",
       "authoring": {
         "species": "juniper",
@@ -2795,27 +2795,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 381768,
-          "visual_triangles": 1450,
+          "cells": 417840,
+          "visual_triangles": 1152,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9912617086817125,
-            "triangles": 1120
+            "retained_volume": 0.9932988703810071,
+            "triangles": 754
           },
           "min": [
-            -2.5,
+            -2.75,
             0.0,
-            -2.75
+            -3.0
           ],
           "max": [
-            3.0,
-            12.0,
+            3.25,
+            11.75,
             2.5
           ]
         }
       ],
-      "bytes": 238420,
-      "sha256": "c49a3b55b13a2b6dc3bc2ae17bb33011f99716f3a49f8ddb1b4813809fbfd9a3",
+      "bytes": 177336,
+      "sha256": "23c01e438dc477fe0ebd0696f1bb9b5ebdb267760f52a3096b1756df9b6f5028",
       "path": "assets/models/flora/trees/juniper/juniper_mature_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -2829,27 +2829,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 344752,
-          "visual_triangles": 1512,
+          "cells": 368160,
+          "visual_triangles": 1246,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9902074534738015,
-            "triangles": 1148
+            "retained_volume": 0.992090395480226,
+            "triangles": 724
           },
           "min": [
-            -2.25,
+            -2.5,
             0.0,
             -2.25
           ],
           "max": [
-            2.75,
-            12.0,
+            3.0,
+            11.75,
             2.75
           ]
         }
       ],
-      "bytes": 246708,
-      "sha256": "649df3d9ccf6af66c6462a4e37fbe9711cea71d0227fc2cf00fb2c2292e82930",
+      "bytes": 183224,
+      "sha256": "4824cd541127008d08fad79c94aca6b22ea4aaa18570309bb6f27e0c9a9ae9b8",
       "path": "assets/models/flora/trees/juniper/juniper_mature_2_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -2863,27 +2863,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 381768,
-          "visual_triangles": 1808,
+          "cells": 417840,
+          "visual_triangles": 1368,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9912617086817125,
-            "triangles": 1120
+            "retained_volume": 0.9932988703810071,
+            "triangles": 754
           },
           "min": [
-            -2.5,
+            -2.75,
             0.0,
-            -2.75
+            -3.0
           ],
           "max": [
-            3.0,
-            12.0,
+            3.25,
+            11.75,
             2.5
           ]
         }
       ],
-      "bytes": 271364,
-      "sha256": "12f7b6a790b6cd68e1c7b565b6e65caa0c8edb75ab81257bdc8ad49ee5cc4a18",
+      "bytes": 197216,
+      "sha256": "53889cc8a07c4ce7055ed84a20f48ca11918501c75d5837b7b2d322f0a54cbbc",
       "path": "assets/models/flora/trees/juniper/juniper_mature_winter_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -2897,27 +2897,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 344752,
-          "visual_triangles": 1848,
+          "cells": 368160,
+          "visual_triangles": 1440,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9902074534738015,
-            "triangles": 1148
+            "retained_volume": 0.992090395480226,
+            "triangles": 724
           },
           "min": [
-            -2.25,
+            -2.5,
             0.0,
             -2.25
           ],
           "max": [
-            2.75,
-            12.0,
+            3.0,
+            11.75,
             2.75
           ]
         }
       ],
-      "bytes": 277628,
-      "sha256": "f86824bf0cdcea73f977fe37d04a5fba66cb33e8603c56955871fa61d4e7d6da",
+      "bytes": 201080,
+      "sha256": "dce3787da692370cab1f72c150b8390f210c143ac70df31d8a771921ba8a0289",
       "path": "assets/models/flora/trees/juniper/juniper_mature_winter_2_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -2931,27 +2931,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1122130,
-          "visual_triangles": 2514,
+          "cells": 1267316,
+          "visual_triangles": 1984,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9990714088385482,
-            "triangles": 1724
+            "retained_volume": 0.9991509615597057,
+            "triangles": 962
           },
           "min": [
-            -3.25,
+            -4.0,
             0.0,
-            -4.0
+            -4.25
           ],
           "max": [
-            4.25,
-            16.0,
-            3.25
+            5.0,
+            15.75,
+            3.5
           ]
         }
       ],
-      "bytes": 391876,
-      "sha256": "c578f0a376930e6b005a0eb0fb905e7355d2675f7d7f9f1e09ea7ec6afc09a78",
+      "bytes": 273008,
+      "sha256": "fa26d159294da6ed436ba84f295fec5b8b24020af29870a994cc96e0e5278644",
       "path": "assets/models/flora/trees/juniper/juniper_ancient.glb",
       "authoring": {
         "species": "juniper",
@@ -2965,27 +2965,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1178319,
-          "visual_triangles": 2530,
+          "cells": 1311401,
+          "visual_triangles": 1910,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9991182353844756,
-            "triangles": 1704
+            "retained_volume": 0.9991878914229896,
+            "triangles": 910
           },
           "min": [
-            -3.5,
+            -3.75,
             0.0,
             -3.5
           ],
           "max": [
-            4.25,
-            16.0,
-            3.5
+            4.75,
+            15.75,
+            3.75
           ]
         }
       ],
-      "bytes": 391508,
-      "sha256": "fe1905fb0dc75cc381ea79213784864816793e209839d735cf19d20c80287300",
+      "bytes": 261420,
+      "sha256": "61a614e4569375a0951bc8e378ea8616c825f07d38c7890df9fd0c22830556c5",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_2.glb",
       "authoring": {
         "species": "juniper",
@@ -2999,27 +2999,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1122130,
-          "visual_triangles": 3070,
+          "cells": 1267316,
+          "visual_triangles": 2260,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9990714088385482,
-            "triangles": 1724
+            "retained_volume": 0.9991509615597057,
+            "triangles": 962
           },
           "min": [
-            -3.25,
+            -4.0,
             0.0,
-            -4.0
+            -4.25
           ],
           "max": [
-            4.25,
-            16.0,
-            3.25
+            5.0,
+            15.75,
+            3.5
           ]
         }
       ],
-      "bytes": 443036,
-      "sha256": "127f5535b4865dd9c6f5eaeae7f74e6be8e78cdbd5d2ece6f80199a65bbae6a4",
+      "bytes": 298408,
+      "sha256": "a53e3e9b55237095f39329a35410c2e43d2a6d3a04d2a176628bf9bba161debd",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter.glb",
       "authoring": {
         "species": "juniper",
@@ -3033,27 +3033,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1178319,
-          "visual_triangles": 3072,
+          "cells": 1311401,
+          "visual_triangles": 2172,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9991182353844756,
-            "triangles": 1704
+            "retained_volume": 0.9991878914229896,
+            "triangles": 910
           },
           "min": [
-            -3.5,
+            -3.75,
             0.0,
             -3.5
           ],
           "max": [
-            4.25,
-            16.0,
-            3.5
+            4.75,
+            15.75,
+            3.75
           ]
         }
       ],
-      "bytes": 441376,
-      "sha256": "9d9bc770d805ac7711d307107243e71c76f2017b46794bcbf8204181c2bbd017",
+      "bytes": 285532,
+      "sha256": "53017567672fe3a81da5c07a6b05eec9ca2e5520beaad9554bca9738d9eabd8b",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter_2.glb",
       "authoring": {
         "species": "juniper",
@@ -3067,27 +3067,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1121088,
-          "visual_triangles": 2160,
+          "cells": 1266240,
+          "visual_triangles": 1576,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 1724
+            "triangles": 962
           },
           "min": [
-            -3.25,
+            -3.75,
             0.0,
-            -3.75
+            -4.0
           ],
           "max": [
-            4.25,
-            16.0,
-            3.25
+            4.75,
+            15.75,
+            3.5
           ]
         }
       ],
-      "bytes": 359316,
-      "sha256": "f42936a53016d175d12a3da58f93390256d209b598179bbe62da5a2e63cf8fad",
+      "bytes": 235480,
+      "sha256": "c74c6fc9f203a704c702ea6cde98356f4d689ca410f03c3eb3fdbef436c7c3eb",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -3101,27 +3101,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1177280,
-          "visual_triangles": 2142,
+          "cells": 1310336,
+          "visual_triangles": 1498,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 1704
+            "triangles": 910
           },
           "min": [
-            -3.5,
+            -3.75,
             0.0,
-            -3.25
+            -3.5
           ],
           "max": [
-            4.25,
-            16.0,
-            3.5
+            4.5,
+            15.75,
+            3.75
           ]
         }
       ],
-      "bytes": 355820,
-      "sha256": "549a3d3388d99d7f7cd4ef37b58aa27cf5f605ac5a0113e3985c19a81fcc93e3",
+      "bytes": 223524,
+      "sha256": "84e8268670dcef08bd14a0a846d12c747d957422aaf04abe41c5ef5ff8e90594",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_2_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -3135,27 +3135,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1121088,
-          "visual_triangles": 2712,
+          "cells": 1266240,
+          "visual_triangles": 1850,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 1724
+            "triangles": 962
           },
           "min": [
-            -3.25,
+            -3.75,
             0.0,
-            -3.75
+            -4.0
           ],
           "max": [
-            4.25,
-            16.0,
-            3.25
+            4.75,
+            15.75,
+            3.5
           ]
         }
       ],
-      "bytes": 410108,
-      "sha256": "f6ce202a097aa1427618b860c8468d364164c4fec0a2ce7811d3685e692f13bc",
+      "bytes": 260696,
+      "sha256": "1cb5dbb721301333ed9542c637deb650f537ab59784fe29a05a263ef26fa4aea",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -3169,27 +3169,27 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1177280,
-          "visual_triangles": 2686,
+          "cells": 1310336,
+          "visual_triangles": 1760,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 1704
+            "triangles": 910
           },
           "min": [
-            -3.5,
+            -3.75,
             0.0,
-            -3.25
+            -3.5
           ],
           "max": [
-            4.25,
-            16.0,
-            3.5
+            4.5,
+            15.75,
+            3.75
           ]
         }
       ],
-      "bytes": 405872,
-      "sha256": "7b0fe2408f45e274ef07b2be923e564019db2aafa4a3a6e13adbbd5ca7cde096",
+      "bytes": 247636,
+      "sha256": "5c5ca6a85546a3c4c0018b38fc0ae1bccd1215fa1e5f105ff87ca4a5ddb1a91a",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter_2_picked.glb",
       "authoring": {
         "species": "juniper",

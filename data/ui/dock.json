@@ -799,6 +799,20 @@
           "tooltip": "DEV: Spawn an uprooted blueberry, elderberry and strawberry bush near the camera. Dwarves can haul them or replant them through Place → Plants."
         },
         {
+          "id": "hearthblock_lighting_development",
+          "label": "Hearthblock lighting",
+          "action": "panel_action",
+          "target": "development",
+          "tooltip": "Switch the Hearthblock lighting pass on or off to compare it with the previous look.",
+          "icon": "res://assets/ui/dock/utilities_atlas.png",
+          "icon_region": [
+            1230,
+            674,
+            294,
+            288
+          ]
+        },
+        {
           "id": "time_weather_development",
           "label": "Time & weather tools",
           "action": "toggle_window",

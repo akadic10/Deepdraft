@@ -42,8 +42,9 @@ func _run() -> void:
 	var meshes: Array[Node] = actor.find_children("*","MeshInstance3D",true,false)
 	expect(meshes.size()==9,"five body parts and four independent legs")
 	expect(actor.legs.size()==4 and actor.footprint==2,"four legs and two-cell navigation footprint")
-	expect(actor.neck.position.is_equal_approx(Vector3(0,1.5,-.3)),"production neck anchor")
-	expect((actor.neck.position+actor.head.position).is_equal_approx(Vector3(0,2.65,-.55)),"production head anchor")
+	var rig: Dictionary = actor.definition.visual_pose
+	expect(actor.neck.position.is_equal_approx(Vector3(rig.neck[0],rig.neck[1],rig.neck[2])),"production neck anchor")
+	expect((actor.neck.position+actor.head.position).is_equal_approx(Vector3(rig.head[0],rig.head[1],rig.head[2])),"production head anchor")
 	for mesh: MeshInstance3D in meshes:
 		var material := mesh.material_override as StandardMaterial3D
 		expect(material!=null and material.vertex_color_use_as_albedo and material.roughness==1.0 and material.transparency==BaseMaterial3D.TRANSPARENCY_DISABLED,"production opaque vertex-color material")

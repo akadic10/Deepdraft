@@ -462,6 +462,7 @@ func _appearance_from_save(state: Dictionary) -> DwarfAppearanceData:
 	result.eyebrow_style = String(state.get("eyebrow_style", "thick_flat"))
 	result.beard_style = String(state.get("beard_style", ""))
 	result.scar = String(state.get("scar", "none"))
+	result.clothing = String(state.get("clothing", ""))
 	return result
 
 

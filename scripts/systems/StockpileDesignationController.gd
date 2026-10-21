@@ -119,6 +119,7 @@ func _ready() -> void:
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
+	SkyController.hearthblock_lighting_changed.connect(_on_hearthblock_lighting_changed)
 	_overlay_material = StandardMaterial3D.new()
 	_overlay_material.vertex_color_use_as_albedo = true
 	_overlay_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -435,7 +436,8 @@ func _create_zone(cells: Array[Vector3i], requested_id: int = -1) -> StockpileZo
 	var overlay := MeshInstance3D.new()
 	overlay.name = "StockpileZone_%d" % zone_id
 	add_child(overlay)
-	_draw_cells(overlay, cells, COLOR_ZONE, COLOR_ZONE_EDGE, zone.floor_y)
+	var colors := _zone_colors()
+	_draw_cells(overlay, cells, colors[0], colors[1], zone.floor_y)
 	overlay.visible = zone.floor_y <= _slice_y
 	_zone_overlays[zone_id] = overlay
 	StockpileManager.register_zone(zone)   # work source goes live (doc 18 Phase 3)
@@ -621,6 +623,29 @@ func _ensure_preview_mesh() -> void:
 	_preview_mesh = MeshInstance3D.new()
 	_preview_mesh.name = "StockpilePreview"
 	add_child(_preview_mesh)
+
+
+## Confirmed zones read as a quiet burlap mat with a rope-coloured border under
+## Hearthblock lighting; the previous blue overlay otherwise. Drawing feedback
+## while designating keeps its own valid/invalid colours.
+func _zone_colors() -> Array[Color]:
+	if SkyController.hearthblock_active():
+		var look := SkyController.hearthblock_settings()
+		var fill: Array = look.get("stockpile_fill", [])
+		var edge: Array = look.get("stockpile_edge", [])
+		if fill.size() == 4 and edge.size() == 4:
+			# Authored in sRGB; the overlay treats vertex colours as linear.
+			return [Color(float(fill[0]), float(fill[1]), float(fill[2])).srgb_to_linear() * Color(1, 1, 1, float(fill[3])),
+				Color(float(edge[0]), float(edge[1]), float(edge[2])).srgb_to_linear() * Color(1, 1, 1, float(edge[3]))]
+	return [COLOR_ZONE, COLOR_ZONE_EDGE]
+
+
+func _on_hearthblock_lighting_changed(_active: bool) -> void:
+	var colors := _zone_colors()
+	for zone_id: int in _zones:
+		if not _zone_overlays.has(zone_id): continue
+		var zone: StockpileZoneComponent = _zones[zone_id]
+		_draw_cells(_zone_overlays[zone_id], zone.tile_cells, colors[0], colors[1], zone.floor_y)
 
 
 ## Builds flat quads (fill + perimeter strips) for `cells` into `target`.

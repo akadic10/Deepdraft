@@ -1,5 +1,34 @@
 # 64 — Deepdraft's ongoing art direction
 
+> **Update 2026-10-20 — read first.** The owner no longer treats the hand-hewn
+> concept image below as authoritative. The working direction is **Hearthblock**:
+> cozy, friendly chibi voxels built from squares and rectangles on the same 1:16
+> grid, designed for the gameplay camera and lit like a hearth (proposal artifact
+> "Deepdraft Hearthblock Style"). Decided so far: the lighting pass is built
+> ([255](../00_dev_roadmap/255_hearthblock_lighting_pass.md)); furniture has two
+> tiers, Tier 1 · Axe-Hewn Era for now and Tier 2 · Carpenter Era kept for later
+> (never delete either), saved as studies in `VoxelFeed/studies/hearthblock/` and
+> `data/art/studies/hearthblock_furniture_tiers.json`. [256](../00_dev_roadmap/256_hearthblock_art_pilot.md)
+> installed Tier 1 for all wooden furniture and the Hearthblock look for every dwarf
+> (bead eyes, square heads, all hair, beards and brows), with baked occlusion. All
+> animals, trees, wild plants, world rocks, the plank floor, the stored goods the game
+> can produce, per-dwarf tunic colours, the work tools and the menu pictures are done.
+> On 2026-10-21 the owner also approved the proposal's "Dressed" world blocks for
+> stone, grass and dirt: a shader-only change, with blocks still one unit and their
+> simple voxels unchanged. **The owner signed off the result on 2026-10-21; the
+> Hearthblock phase is complete for the game as it exists.** New features (crops,
+> the stone floor, drinks and other goods not yet in the game) should be authored in
+> Hearthblock from the start. Tier 2 · Carpenter furniture waits for its progression
+> step.
+> **Rule added 2026-10-21:** old joints, pivots, envelopes and pinned shapes must not
+> constrain the art. When the art needs new proportions, move the joints into data,
+> change the rig and update tests that only pin old shapes. Real gameplay contracts
+> still hold (navigation footprint and clearance, seat and sleep heights, door
+> openings, tool grip, ground contact); propose a change when one blocks the art. The
+> chibi deer and wolf in 256 were the first case. The rest of this document is the
+> previous direction. Keep its technical constraints and gameplay contracts, but its
+> "preserve existing pivots" line yields to this rule.
+
 **Standing direction: 1:16 chibi / stylized voxel art.** This applies to solid
 non-terrain assets: dwarves, animals, trees and smaller plants, furniture, tools
 and loose goods, including their growth, seasonal, material and packed variants.

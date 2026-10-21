@@ -11,6 +11,11 @@ uniform bool water_surface = false;
 uniform float water_time = 0.0;
 uniform sampler2D water_motion : filter_nearest, repeat_disable;
 uniform float readability_floor = 0.008;
+// Hearthblock lighting (SkyController): a tint for the sealed-air readability
+// floor, and a camera-facing fill for actors and props underground. The
+// defaults reproduce the previous look exactly.
+uniform vec3 readability_tint : source_color = vec3(1.0);
+uniform float view_fill = 0.0;
 // Live actors share one body sample, including attached tools/carried meshes.
 // Negative means ordinary world-space terrain/prop sampling.
 instance uniform float actor_sky_access = -1.0;
@@ -186,7 +191,9 @@ void fragment() {
     SPECULAR = 0.0;
     AO = sky_access;
     AO_LIGHT_AFFECT = 0.0;
-    EMISSION = ALBEDO*readability_floor*(1.0-sky_access)*(0.7+0.3*max(world_normal.y,0.0));
+    EMISSION = ALBEDO*readability_floor*readability_tint*(1.0-sky_access)*(0.7+0.3*max(world_normal.y,0.0));
+    // Faces turned toward the player stay readable where only torches reach.
+    EMISSION += ALBEDO*view_fill*(1.0-sky_access)*max(dot(NORMAL,VIEW),0.0);
     // Automatic scene fog ignores roofs and doors. Keep its distance/height
     // falloff outside, but never introduce sky-coloured haze into sealed air.
     FOG = atmosphere(VERTEX,normalize((INV_VIEW_MATRIX*vec4(VERTEX,0.0)).xyz));

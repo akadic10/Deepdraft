@@ -23,7 +23,8 @@ func _run() -> void:
 		expect(part.transform.is_equal_approx(Transform3D.IDENTITY),"part has baked unit origin")
 		expect(part.find_children("*","CollisionObject3D",true,false).is_empty(),"art adds no collision")
 		var meshes := Shadows.visual_meshes(part)
-		expect(meshes.size()==1 and Shadows.configure(part)==1,"one visual and paired proxy per part")
+		var pairs := 2 if packed == registry.hand else 1   # the Hearthblock mitten and its tunic cuff (doc 256)
+		expect(meshes.size()==pairs and Shadows.configure(part)==pairs,"one visual and paired proxy per part")
 		for mesh: MeshInstance3D in meshes:
 			expect(mesh.transform.is_equal_approx(Transform3D.IDENTITY),"shared frame")
 			expect(mesh.mesh.get_surface_count()==1,"one surface per part")
@@ -61,6 +62,21 @@ func _run() -> void:
 						expect(saved.hair_style==hair.id and saved.beard_style==beard and saved.age_tier==age and saved.eyebrow_style==brow.id,"save appearance IDs")
 						actor.free(); combinations+=1
 	expect(combinations==800,"all current map combinations")
+	# Each dwarf's own tunic colour (doc 256): one shared recoloured torso per colour,
+	# kept in the saved appearance.
+	var torsos := {}
+	for id in range(6100,6106):
+		var actor = factory.spawn({"name":"Tunic QA","gender":"male","appearance":DwarfAppearanceData.new()},id)
+		torsos[actor.appearance.clothing]=Shadows.visual_meshes(actor._body)[0].mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+		expect(actor.serialize_state().appearance.clothing==actor.appearance.clothing,"clothing is saved")
+		actor.free()
+	expect(torsos.size()==6,"six dwarves in a row wear six tunic colours")
+	var colors: Array = torsos.values()
+	var distinct := true
+	for i in colors.size():
+		for j in range(i+1,colors.size()):
+			if colors[i]==colors[j]: distinct=false
+	expect(distinct,"every tunic colour recolours the torso")
 	var cases := []
 	for gender in ["male","female"]:
 		for entry in pools[gender].hair_style: cases.append([gender,entry.id,""])

@@ -6,6 +6,7 @@ import hand_hewn_timber as hewn
 from common import read_json,linear
 from furniture import assets
 from vox_source import read_models,grounded_cells
+import hearthblock
 
 
 class HandHewnTests(unittest.TestCase):
@@ -51,9 +52,12 @@ class HandHewnTests(unittest.TestCase):
             target=materials['materials']['base:material:'+wood]['colors']
             for role,color in colors.items():
                 if role not in ('red','teal'): self.assertEqual(target['hewn_'+role],color)
-        for name,kind in [('log_chair','log_stool'),('log_table','dining_table'),('board_game_table','game_table'),('crude_workbench','workbench')]:
+        # Hearthblock (doc 256): the stool, tables and workbench now replay the
+        # Tier 1 models, colored with the same hand_hewn_timber roles so every wood
+        # recolors. The hand-hewn module still owns the timber item.
+        for name,model in [('log_chair','stool'),('log_table','split_slab_table'),('board_game_table','game_table'),('crude_workbench','workbench')]:
             _,parts,_=next(assets(only='/'+name+'.glb'))
-            self.assertEqual(parts['main'].voxels.cells,hewn.model(kind).cells)
+            self.assertEqual(parts['main'].voxels.cells,hearthblock.model(model).cells)
             self.assertEqual(read_json('data/furniture/'+name+'.json')['material_palette'],'hand_hewn_timber')
 
     def test_editable_wood_variants_roundtrip(self):

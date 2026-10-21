@@ -159,11 +159,12 @@ func _four_diners() -> void:
 	_clear_layout()
 
 
-func _check_table_clearance(diner,table,picking) -> void:
+func _check_table_clearance(diner,table,_picking) -> void:
+	# Posed faces, not the parts' combined boxes: belt-length beards hang in front
+	# of the table edge, below the top (doc 256).
 	for part in [diner._body,diner._head,diner._hand_l,diner._hand_r,diner._foot_l,diner._foot_r]:
-		var bounds: AABB = picking.world_bounds(part)
 		for obstacle in furniture._seating._obstacles(table.def,table.origin_cell,table.yaw_steps):
-			_expect(not bounds.grow(-.001).intersects(obstacle.bounds.grow(-.001)),"seated body and hands clear the actual pedestal/tabletop")
+			_expect(not preload("res://scripts/tests/VoxelFaceClearance.gd").meets(part,obstacle.bounds.grow(-.001)),"seated %s clears the actual pedestal/tabletop"%part.name)
 
 
 func _profile_lifecycle() -> void:

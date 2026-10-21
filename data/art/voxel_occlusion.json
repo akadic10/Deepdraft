@@ -1,0 +1,4 @@
+{
+  "__comment": "Baked voxel corner occlusion (Hearthblock pilot, doc 256). Each exposed face corner counts its two side cells and one diagonal cell in front of the face: 0 = both sides solid (darkest) to 3 = open. Vertex colors are multiplied by curve[level]; alpha stays 1. CraftMaterials matches these darkened swatches so wood variants still recolor. Only assets that opt in use it.",
+  "curve": [0.5, 0.68, 0.85, 1.0]
+}

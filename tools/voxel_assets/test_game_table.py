@@ -2,7 +2,13 @@
 import unittest
 from common import read_json,linear
 from furniture import assets
-from hand_hewn_timber import model,PROFILE
+from hand_hewn_timber import PROFILE
+import hearthblock
+
+
+def model(name):
+    # The game table shares the Tier 1 dining table body (doc 256).
+    return hearthblock.model({'dining_table':'split_slab_table'}[name])
 
 
 class GameTableTests(unittest.TestCase):

@@ -288,6 +288,23 @@ func _support(seconds: float) -> bool:
 func _pose() -> void:
 	pass # Species supplies gait, grazing and rest poses.
 
+## Squash and stretch on the visual root (doc 256). The root keeps its volume and
+## its feet: it squashes as the animal pushes off and lands, stretches in the air
+## and is round again at the top. Every voxel part stays rigid. `travel` is the
+## hop progress; 1 means standing still.
+func _squash_stretch(travel: float) -> void:
+	var amount := float(definition.get("visual_pose", {}).get("squash", 0.0))
+	var stretch := 1.0
+	if travel < 1.0 and amount > 0.0:
+		var edge := minf(travel, 1.0 - travel)
+		var push := sin(PI * edge / .16) if edge < .16 else 0.0
+		stretch = 1.0 + amount * (absf(sin(travel * TAU)) - 1.2 * push)
+	var size: Array = definition.get("visual_scale", [1, 1, 1])
+	visual.scale = Vector3(float(size[0]) / sqrt(stretch), float(size[1]) * stretch, float(size[2]) / sqrt(stretch))
+
+static func _point(value: Array) -> Vector3:
+	return Vector3(float(value[0]), float(value[1]), float(value[2]))
+
 func serialize_state() -> Dictionary:
 	var state := {"id": animal_id, "cell": SaveManager.pack_v3i(cell), "home": SaveManager.pack_v3i(home),
 		"target": SaveManager.pack_v3i(target), "position": SaveManager.pack_v3(position), "yaw": rotation.y,

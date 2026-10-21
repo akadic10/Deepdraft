@@ -9,8 +9,12 @@
     "female_body": "res://assets/models/animals/duck/female_body.glb",
     "female_head": "res://assets/models/animals/duck/female_head.glb",
     "female_wing": "res://assets/models/animals/duck/female_wing.glb",
+    "male_wing_folded": "res://assets/models/animals/duck/male_wing_folded.glb",
+    "female_wing_folded": "res://assets/models/animals/duck/female_wing_folded.glb",
     "foot": "res://assets/models/animals/duck/foot.glb"
   },
+  "__comment_visual_pose": "Chibi Hearthblock rig (doc 256), in blocks: the head joint, the open wings' shoulders (mirrored x) and the feet (mirrored x); foot_reach is how far a paddle reaches ahead of its pivot, so a swinging foot lifts enough to keep its toes above ground. Folded wings are their own mesh. Squash scales the visual root through each step on land.",
+  "visual_pose": {"head": [0, 0.625, -0.1875], "wing": [0.25, 0.625, 0], "feet": [0.17, 0, 0.02], "foot_reach": 0.33, "squash": 0.06},
   "population": {
     "groups": 3,
     "group_size": [

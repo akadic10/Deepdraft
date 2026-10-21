@@ -8,6 +8,11 @@ from common import ROOT, Voxels, Part, linear, read_json, ellipsoid, translate
 from solid_shapes import apply
 from mined_resources import model as mined_model
 import hand_hewn_timber
+import hearthblock
+import hearthblock_goods as goods
+
+# Crate goods the game cannot produce yet (their plants are not in the world).
+NOT_IN_GAME = {'grape_cutting','hops_cutting','pig_tail_seed'}
 
 PROFILE = read_json('data/art/voxel_items.json')
 P = {k:linear(v) for k,v in PROFILE['palette'].items()}
@@ -177,18 +182,22 @@ def flora(name):
 
 
 def assets(only=None):
-    makers={}
+    makers={}; square=set()
     def add(category,name,fn): makers['assets/models/items/'+category+'/'+name+'.glb']=fn
+    def hearthblock_add(category,name,fn): add(category,name,fn); square.add('assets/models/items/'+category+'/'+name+'.glb')
+    # The goods the game has today are Hearthblock (doc 256); the rest keep their earlier art.
     for category in ('stone','soil','ore'):
-        for name in PROFILE[category]: add(category,name,lambda n=name:mined_model(n))
-    for name,colors in PROFILE['gems'].items(): add('gem',name,lambda c=colors:gem(c))
-    for name,material in PROFILE['timber'].items(): add('wood',name,lambda m=material:log(m))
+        for name in PROFILE[category]: hearthblock_add(category,name,lambda n=name:goods.mined(n))
+    for name,colors in PROFILE['gems'].items(): hearthblock_add('gem',name,lambda c=colors:goods.gem(c))
+    for name,material in PROFILE['timber'].items(): hearthblock_add('wood',name,lambda m=material:goods.log(m))
     def stave():
         v=Voxels(); block(v,(-2,0,-7),(2,2,7),'crate_board'); return v
     add('wood','oak_stave',stave)
     for name in PROFILE['crate_contents']:
-        for i,stage in enumerate(['low','half','full']): add('crates',name+'_'+stage,lambda n=name,i=i:crate(n,i))
-    for name in ['stone_hoe','stone_hammer','hunting_spear','carpentry_kit']: add('tools',name,lambda n=name:starter(n))
+        for i,stage in enumerate(['low','half','full']):
+            if name in NOT_IN_GAME: add('crates',name+'_'+stage,lambda n=name,i=i:crate(n,i))
+            else: hearthblock_add('crates',name+'_'+stage,lambda n=name,i=i:goods.crate(n,i))
+    for name in ['stone_hoe','stone_hammer','hunting_spear','carpentry_kit']: hearthblock_add('tools',name,lambda n=name:goods.starter(n))
     for name in PROFILE['drink_marks']: add('drink',name,lambda n=name:drink(n))
     for name in ['cloth_bolt','water_bucket','honey_jar','fossil_fragment']: add('misc',name,lambda n=name:misc(n))
     for name in ['plump_helmet','pig_tail','hops','grape']: add('flora',name,lambda n=name:flora(n))
@@ -199,7 +208,8 @@ def assets(only=None):
     for path,fn in makers.items():
         if not only or only in path:
             metadata=dict(item=path.rsplit('/',1)[-1][:-4])
-            if metadata['item'] in PROFILE['mined_styles']: metadata['source']=PROFILE['mined_shape']
+            if path in square: metadata['source']='tools/voxel_assets/hearthblock_goods.py'
             if metadata['item'] in PROFILE['timber']:
-                metadata.update(source='data/art/voxel_hand_hewn_timber.json',material=PROFILE['timber'][metadata['item']],orientation='horizontal_z')
-            yield path,{'main':Part(fn())},metadata
+                metadata.update(material=PROFILE['timber'][metadata['item']],orientation='horizontal_z')
+            occlusion=hearthblock.occlusion()|{'ground':0} if path in square else None
+            yield path,{'main':Part(fn(),occlusion=occlusion)},metadata

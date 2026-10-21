@@ -214,7 +214,11 @@ class Game extends RefCounted:
 			var target := agent.to_local(table.node.global_position) + Vector3(-.5,float(table.def.game_surface_height)+.375,-.5)
 			agent._hand_r.position = agent._hand_r.position.lerp((target-palm)*blend,reach)
 			agent._hand_r.position.y += sin(reach*PI)*.08*blend
-			agent._head.rotation.x = .06+reach*.035
+			# Nod over the board about the neck (jaw at 29 cells), so a long beard
+			# swings back from the table edge instead of into it (doc 256).
+			var neck := Vector3(0,1.8125,0)
+			var nod := Basis(Vector3.RIGHT,.06+reach*.035)
+			agent._head.transform = Transform3D(nod,agent._head.position+neck-nod*neck)
 
 	func describe(agent: DwarfAgent) -> Dictionary:
 		for player in players:
