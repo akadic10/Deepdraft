@@ -1,7 +1,7 @@
 # 158 — Asset structure
 
 **2026-10-13:** Group assets by media type, then organize 3D models by subject.
-This follows the legacy cleanup in [156](156_legacy_art_cleanup.md) and removal
+This follows the legacy cleanup in 156 and removal
 of style folders in [157](157_asset_folder_layout.md).
 
 ```text

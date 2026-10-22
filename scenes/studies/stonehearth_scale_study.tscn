@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" uid="uid://dx4t5ar6r05hh" path="res://tools/scale_study/StonehearthScaleStudy.gd" id="1"]
-
-[node name="StonehearthScaleStudy" type="Node3D"]
-script = ExtResource("1")

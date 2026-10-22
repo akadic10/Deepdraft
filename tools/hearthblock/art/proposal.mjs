@@ -5,7 +5,7 @@
 // Every model is authored on the native 1:16 grid (one cell = 1/16 world block)
 // with the same primitives as data/art/voxel_*.json: box and cutbox use
 // [x0,x1) x [y0,y1) x [z0,z1) in cells, cutbox clips vertical edges by `n`
-// cells (the same diamond rule as micro_voxel_study/generate.py). cutX/cutZ
+// cells (the same diamond rule as solid() in voxel_assets/solid_shapes.py). cutX/cutZ
 // clip edges along X/Z, pillow steps the top layer in by one cell, paint
 // recolours existing cells, and a null colour carves air.
 // Axes: X right, Y up, Z toward the dwarf's front. Ground is Y0.

@@ -5,7 +5,6 @@ import tempfile
 import struct
 import unittest
 from common import TOOLS,Voxels,Part,box,branch,ellipsoid,export_asset,read_json
-sys.path.insert(0,str(TOOLS/'micro_voxel_study'))
 from test_shadows import load_glb,payloads
 from trees import pine,tree_layers
 
@@ -42,8 +41,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_pine_export_retains_native_grid_ground_and_proxy_pair(self):
         profile=read_json('data/art/voxel_trees.json')
-        # The approved tree revision supersedes the pilot silhouette, while
-        # preserving its actual grid, root, ground and rendering contracts.
+        # The Hearthblock pine keeps the grid, root, ground and rendering contracts.
         vox=pine(profile,'sapling',0,'summer')
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'pine.glb'

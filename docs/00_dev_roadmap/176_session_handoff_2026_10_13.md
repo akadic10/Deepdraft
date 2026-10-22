@@ -1,9 +1,10 @@
 # 176 — Session handoff · 2026-10-13
 
 The player ended the session after the mining-access and mismatched dwarf-limb
-fixes. This is the current resume point. The core visual conversion, approved
-proportions, sky, environmental audio and Windows friends-playtest package are
-implemented. The latest fixes have automated/native verification; player
+fixes. The sky, environmental audio and Windows friends-playtest package are
+implemented. The art pass of that day was later replaced by the Hearthblock
+style ([64](../60_asset_creation/64_hearthblock_art_direction.md)), so its rows
+are left out here. The latest fixes have automated/native verification; player
 confirmation after restarting the updated build is still pending.
 
 ## Completed today
@@ -11,27 +12,16 @@ confirmation after restarting the updated build is still pending.
 | Area | Delivered state and source |
 |---|---|
 | Base world | [145](145_base_world_terrain_art_plan.md): coherent grey rock with subtle local variation, full grass voxels, restrained surface/edge shading and stable shoreline colors. Height-based rock bands and grass edge-color treatment are retired. |
-| Surface clutter | [146](146_tree_art_pilot.md)–[149](149_ground_stones.md): tree pilot and full tree family, bushes/flowers/reeds, boulders and loose stones. |
-| Characters, animals and furniture | Approved pilots in [150](150_dwarf_art_pilot.md)–[152](152_furniture_art_pilot.md), shared [standard 63](../60_asset_creation/63_shared_art_standard.md), settlement comparison [153](153_settlement_art_comparison.md), full family conversion [154](154_complete_family_conversion.md). All 41 dwarf appearance parts, 21 animal parts across four live species, and 41 furniture forms converted. |
-| Goods and effects | [155](155_resource_drops_and_work_tools.md): loose goods and animated mining/chopping tools. [160](160_faceted_fire.md): all six fire sources and 42 animated frames. |
-| Asset organization | [156](156_legacy_art_cleanup.md)–[158](158_asset_structure.md): obsolete voxel exports purged, redundant `faceted` directories removed, all production 3D families grouped under `assets/models/`. |
-| Rudimentary furniture | [159](159_crude_workbench_stump.md): workbench is a rough stump. [172](172_rudimentary_log_bridge.md): bridges use bark-covered whole logs across all five spans, with updated icons. Craft categories put beds in Rooms and eating furniture in Dining. |
-| Scale | [162](162_visual_scale_review.md)–[165](165_approved_actor_proportions.md): native comparisons, including the local Stonehearth reference, followed by player approval of Balanced dwarves and Large wolf. These settings are live. |
+| Asset organization | [157](157_asset_folder_layout.md)–[158](158_asset_structure.md): all production 3D families grouped under `assets/models/`. |
+| Rudimentary furniture | [172](172_rudimentary_log_bridge.md): bridges use bark-covered whole logs across all five spans, with updated icons. Craft categories put beds in Rooms and eating furniture in Dining. |
 | Sky and save/load | [166](166_diorama_sky.md): full 360-degree diorama sky, day/night, stars, moon and weather. [161](161_save_menu_scene_teardown.md) and [167](167_sky_scene_lifetime.md): UI/sky teardown errors during save loading fixed. |
 | Sound and weather | [168](168_environment_ambience.md)–[170](170_environment_sound_details.md): time/season/weather ambience and local details; room listening makes snoring and nearby fires audible. Rain and Storm are saved weather types with roof-aware rain/patter and thunder. |
 | Friends playtest | [171](171_windows_playtest.md): ten main-scene debug warnings fixed at source, Windows x86-64 package prepared. [173](173_ledge_pickup_and_safe_exports.md): exports now use a unique release directory every time. |
 
 ## Decisions to retain
 
-- Stylized faceted props and characters sit on editable voxel terrain. Keep
-  full grass voxels; grass-over-dirt caps and fringes are deferred by the player.
-- One block is one Godot unit. Balanced dwarves retain their height (about 3.32
-  blocks), with a 2.16-block resting hand span. Pine heights remain unchanged.
-  Large wolves are approximately 2.392 high × 1.287 wide × 3.411 long.
-  Preserve the runtime rig/clearance contracts in standard 63; do not bake the
-  approved presentation scales into GLBs a second time.
-- Keep the rough construction language for starter furniture. The illustrated
-  Hearth & iron HUD remains the accepted UI direction.
+- Keep full grass voxels; grass-over-dirt caps and fringes are deferred by the player.
+- The illustrated Hearth & iron HUD remains the accepted UI direction.
 - Rain is cosmetic precipitation; it does not add simulated water. Sound
   settings are player preferences, separate from settlement saves.
 - Matching limb colors still receive ordinary directional shading. The fix

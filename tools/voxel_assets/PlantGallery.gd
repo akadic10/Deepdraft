@@ -69,7 +69,7 @@ func _model(path: String) -> Node3D:
 func _page(name_: String, specs: Array, columns: int) -> void:
 	var canvas := Control.new(); root.add_child(canvas)
 	var bg := ColorRect.new(); bg.color=Color("202b29"); bg.size=Vector2(root.size); canvas.add_child(bg)
-	var title := Label.new(); title.text="DEEPDRAFT / HAND-HEWN PLANTS / "+name_.replace("_"," ").to_upper()
+	var title := Label.new(); title.text="DEEPDRAFT / HEARTHBLOCK PLANTS / "+name_.replace("_"," ").to_upper()
 	title.position=Vector2(24,20); title.add_theme_font_size_override("font_size",25); canvas.add_child(title)
 	var note := Label.new(); note.text="Actual Godot models  ·  Native 1:16 cells  ·  Fixed framing for before/after review"
 	note.position=Vector2(24,958); note.add_theme_font_size_override("font_size",20); canvas.add_child(note)

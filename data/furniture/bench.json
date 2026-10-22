@@ -1,14 +1,14 @@
 {
   "__comment": [
-    "Chibi split-log bench: exactly two floor cells, 2x1 or 1x2 when rotated.",
-    "Native 1:16 hand-hewn wood; the seat contact remains one block high.",
+    "Tier 1 split-log bench (doc 256): exactly two floor cells, 2x1 or 1x2 when rotated.",
+    "The seat contact remains one block high.",
     "One usable dwarf seat, with authored seated clearance and side/rear access.",
     "The two-block bench supports one broad dwarf; separate benches can share a table."
   ],
   "furniture_key": "base:furniture:bench",
   "furniture_category": "seating",
   "display_name": "Log bench",
-  "description": "A thick split-log seat on chunky timber feet, with rough bark, worn cut grain and a drying split.",
+  "description": "Half of a split log, riven face up and dropped into notches in two short logs, with the bark still on.",
   "model": "res://assets/models/furniture/bench.glb",
   "item_key": "base:resources:furniture:bench",
   "placement": "floor",

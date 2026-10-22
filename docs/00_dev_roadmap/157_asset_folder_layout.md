@@ -2,7 +2,7 @@
 
 **2026-10-13:** Remove the redundant `faceted` directory layer now that the
 superseded voxel exports and duplicate pilots have been removed in
-[156](156_legacy_art_cleanup.md). Asset families and their meaningful categories
+156. Asset families and their meaningful categories
 remain the organizing structure.
 
 | Family | Production location | Models moved |

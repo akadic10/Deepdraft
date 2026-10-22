@@ -56,6 +56,7 @@ func _run() -> void:
 			world_seed, resources["overlap"]["tin"], resources["overlap"]["copper"], Time.get_ticks_msec() - started])
 		await process_frame
 	var suffix := "baseline_current" if _baseline else "current"
+	DirAccess.make_dir_recursive_absolute("res://tmp/world_layout_review")
 	var file := FileAccess.open("res://tmp/world_layout_review/resource_diagnostics_%s.json" % suffix, FileAccess.WRITE)
 	file.store_string(JSON.stringify({"passed": _failures.is_empty(), "failures": _failures,
 		"sample": "x/z = 4,12,...,1020; every Y4 through the solid column top", "seeds": report}, "\t"))

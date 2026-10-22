@@ -50,14 +50,13 @@ closed, while the visual omits faces touching other head parts. Whole assets all
 reduce their caster totals. This is an approximate silhouette, not an exact
 replacement for detailed shadows.
 
-The request and coverage threshold live in
-[`data/art/micro_voxel_study.json`](../../data/art/micro_voxel_study.json).
-[`generate.py`](../../tools/micro_voxel_study/generate.py) exports the pair through
-the new opt-in `write_glb_meshes()` in `tools/voxel_glb.py`. Legacy single-mesh
+The proxy stride and coverage threshold are now set in `tools/voxel_assets/common.py`
+(stride 4, coverage .6), and the pair is exported through the opt-in
+`write_glb_meshes()` in `tools/voxel_glb.py`. Legacy single-mesh
 exports retain their existing behavior. Each GLB has one shared identity root,
 two identity mesh children, world-unit coordinates and one surface per mesh.
-See [`geometry.json`](../../tools/micro_voxel_study/geometry.json) for per-part
-stride, retained volume, triangles, bounds, bytes and hashes.
+Each family manifest in `data/art/voxel_manifests/` records every part's proxy
+stride, retained volume and triangles.
 
 ## Godot integration
 

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" uid="uid://bo5jxawg4drdp" path="res://tools/scale_study/ScaleStudy.gd" id="1"]
-
-[node name="ScaleStudy" type="Node3D"]
-script = ExtResource("1")

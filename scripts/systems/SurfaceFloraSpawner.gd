@@ -56,10 +56,9 @@ const DOMAIN_MOUNTAIN: int = 2
 @export_range(1, 64, 1) var view_radius_chunks: int = 5
 
 ## Scale conversion. The live world renders 1 block = 1.0 Godot unit (doc 13 §5).
-## Trees are authored 1:1 — 1 voxel = 1 block (the Stonehearth tree convention,
-## doc 61) with .import root_scale = 1.0 (never edit .import). So instance_scale =
-## godot_units_per_block / voxels_per_block = 1.0 / 1.0 = 1.0. Characters/items use
-## 8 voxels/block via their own import scale.
+## Tree GLBs are built on the 1:16 grid but exported in world units with root
+## scale 1.0 (doc 63; never edit .import), so instance_scale =
+## godot_units_per_block / voxels_per_block = 1.0 / 1.0 = 1.0.
 @export var voxels_per_block: float = 1.0
 @export var godot_units_per_block: float = 1.0
 

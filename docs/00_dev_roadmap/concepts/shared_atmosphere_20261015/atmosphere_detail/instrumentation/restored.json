@@ -1,5 +1,0 @@
-{
-  "scripts/systems/WorldRenderer.gd": "855295e2e4d3c757bb8fc2670075859cc2ceab86e1c6ef41daaeccf4d1440090",
-  "scripts/components/UndergroundLighting.gd": "bf069389dfec7adb265df6e996c85d4121cec94c811d71b03b0269a5f09b0697",
-  "scripts/entities/DwarfAgent.gd": "fe2513aa4ee7f7fe4518d133335ae5ea611b145494b7755cc29f563f4c5a7a56"
-}

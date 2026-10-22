@@ -81,7 +81,7 @@ No fuel upkeep or specialist jobs are enabled. See
 **Implemented starter crafting (2026-10-07):** Workers can make a crude workbench
 without an existing workshop, install it, then craft batches of wooden torches.
 The bench is now a rough **3×3 stump** usable from any open side (updated
-2026-10-18; [229](../00_dev_roadmap/229_workbench_voxel_scale.md)). Its 1-unit top
+2026-10-18). Its 1-unit top
 has a worker-facing crafting contact 0.625 units from the center. Its first
 packed form is crafted at the timber pickup spot; the settlement flag is not a
 workshop. Both recipes use axe animation and contact-timed wood sounds.
@@ -424,7 +424,7 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 
 ## Forward Compatibility Notes
 
-- **Gems are finished drops (user decision, 2026-10-10)** — Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond are beautiful and trade-ready immediately after mining. No Jeweller profession, workshop, cutting or polishing stage is planned. This replaces the earlier deferred Jeweller proposal. Their stable `_raw` identifiers do not imply unfinished goods. See [104 — Gem drops](../00_dev_roadmap/104_gem_drop_artwork.md).
+- **Gems are finished drops (user decision, 2026-10-10)** — Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond are beautiful and trade-ready immediately after mining. No Jeweller profession, workshop, cutting or polishing stage is planned. This replaces the earlier deferred Jeweller proposal. Their stable `_raw` identifiers do not imply unfinished goods.
 - **Steel tier** — `52_combat_military.md` notes steel as a future equipment quality tier above iron. When steel ore or a steel-making recipe is added, it slots into the existing smelting/forging pipeline with higher `min_skill` requirements and better damage/reduction values. No structural changes to this system are needed.
 - **Weaponsmith crafting for champions** — the champion invader AI (`52_combat_military.md` Forward Compatibility) may loot forged weapons on colony breach. The item drop pipeline already handles this; no new code needed.
 - **Copper and tin uses** — copper and tin ingots have no forge recipes yet. They are placeholder outputs for future systems: copper fittings for water/brewing infrastructure upgrades, tin for food preservation vessels. Do not delete them from the smelting table.

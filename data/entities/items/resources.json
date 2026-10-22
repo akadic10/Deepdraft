@@ -6,7 +6,7 @@
     "Fields:",
     "  display_name  â€” human-readable name shown in UI and tooltips",
     "  description   â€” one-sentence flavour text shown in the inspect panel",
-    "  model         â€” path to the MagicaVoxel .glb micro-voxel model (res:// path)",
+    "  model         â€” path to the 1:16 voxel .glb model (res:// path)",
     "  stack_max     â€” legacy balancing hint; not used for physical storage capacity",
     "  crate_capacity â€” opted-in produce packaging capacity (24); absent means one unit",
     "  crate_models  â€” low / half / full models for counts 1-8 / 9-16 / 17-24",

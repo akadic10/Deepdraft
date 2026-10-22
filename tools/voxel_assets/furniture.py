@@ -2,12 +2,6 @@
 import math
 from common import ROOT,Voxels,Part,linear,read_json
 from solid_shapes import apply
-from micro_voxel_study.generate import solid
-import log_chair
-import workbench
-import log_table
-import hand_hewn_timber
-import log_bench
 import hearthblock
 
 
@@ -56,18 +50,6 @@ def assets(only=None):
                 if shape['op']=='hearthblock_vox':
                     vox.cells.update(hearthblock.model(shape['model']).cells)
                     occlusion=hearthblock.occlusion(shape['model'])
-                elif shape['op']=='log_bench_vox':
-                    vox.cells.update(log_bench.model().cells)
-                elif shape['op']=='hand_hewn_vox':
-                    vox.cells.update(hand_hewn_timber.model(shape['kind']).cells)
-                elif shape['op']=='log_chair_vox':
-                    vox.cells.update(log_chair.model().cells)
-                elif shape['op']=='workbench_vox':
-                    vox.cells.update(workbench.model(worn=shape.get('worn',True)).cells)
-                elif shape['op']=='log_table_vox':
-                    vox.cells.update(log_table.model().cells)
-                elif shape['op']=='pilot':
-                    for p in shape['shapes']: solid(vox,p,palette)
                 else: apply(vox,shape,palette)
             parts[key]=Part(vox,occlusion=occlusion)
         definition_path=ROOT/('data/furniture/'+name+'.json')
@@ -80,12 +62,6 @@ def assets(only=None):
         if any(shape['op']=='hearthblock_vox' for shapes in piece.values() for shape in shapes):
             metadata['source']='data/art/voxel_hearthblock.json'
             metadata['direction']='docs/00_dev_roadmap/256_hearthblock_art_pilot.md'
-        elif name in ['log_chair','log_table','board_game_table','crude_workbench']:
-            metadata['source']='data/art/voxel_hand_hewn_timber.json'
-            metadata['direction']='docs/60_asset_creation/64_hand_hewn_art_direction.md'
-        elif name=='bench':
-            metadata['source']='data/art/voxel_log_bench.json'
-            metadata['direction']='docs/60_asset_creation/64_hand_hewn_art_direction.md'
         yield path,parts,metadata
     for name in ['campfire','hearth','wooden_torch']:
         definition=read_json('data/furniture/'+name+'.json')['light_source']['flame_animation']

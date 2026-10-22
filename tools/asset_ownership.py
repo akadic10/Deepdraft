@@ -1,4 +1,5 @@
-"""Prevent historical faceted builders from overwriting migrated production art."""
+"""Keep production art owned by tools/voxel_assets: no other writer may overwrite or
+recreate a model listed in a family manifest or retired in data/content_retirements.json."""
 from functools import lru_cache
 import json
 from pathlib import Path
@@ -17,4 +18,4 @@ def guard_legacy_write(path):
     except ValueError: return
     if relative in voxel_owned_paths():
         raise RuntimeError(f'{relative} is owned by tools/voxel_assets/build.py; '
-                           'the historical faceted generator cannot overwrite or recreate it')
+                           'another writer cannot overwrite or recreate it')

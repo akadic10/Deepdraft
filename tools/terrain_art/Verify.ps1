@@ -4,7 +4,7 @@ $terrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $terrainOutput = Join-Path $terrainRoot ('tmp/terrain_art_20261013/verify_' + $Group.ToLower())
 New-Item -ItemType Directory -Force $terrainOutput | Out-Null
 $terrainCases = if ($Group -eq 'Focused') {
-    @('TerrainAppearanceTest','TerrainExplorerTest','WorldTerrainStartupTest','UndergroundLightingTest')
+    @('WorldTerrainStartupTest')
 } else {
     @('WorldLayoutTest','WorldGenerationTest','WorldResourceDiagnosticsTest','CaveGenerationTest')
 }

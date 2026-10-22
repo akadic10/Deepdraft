@@ -1,9 +1,0 @@
-SCRIPT ERROR: Invalid assignment of property or key 'duck_navigation' with value of type 'RefCounted (-9223371856717805558.gd)' on a base object of type 'Node3D (WildlifeManager.gd)'.
-   at: _run (res://scripts/tests/ArrivalPreparationTest.gd:39)
-   GDScript backtrace (most recent call first):
-       [0] _run (res://scripts/tests/ArrivalPreparationTest.gd:39)
-WARNING: SkyController: WorldEnvironment has no Environment resource.
-   at: push_warning (core/variant/variant_utility.cpp:1033)
-   GDScript backtrace (most recent call first):
-       [0] _bind_to_scene (res://scripts/systems/SkyController.gd:170)
-       [1] _ready (res://scripts/systems/SkyController.gd:73)

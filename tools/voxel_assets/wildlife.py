@@ -1,6 +1,6 @@
 """Native voxel wildlife parts in their existing rigid-part authoring frames."""
 from common import Voxels,Part,linear,read_json
-from micro_voxel_study.generate import solid
+from solid_shapes import solid
 import hearthblock
 
 

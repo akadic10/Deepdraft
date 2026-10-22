@@ -1,12 +1,12 @@
 # 12 — World Grid
 
-**World scale versus art scale (2026-10-18):** One world-block edge is one Godot
-unit. Non-terrain solid assets use **1:16 chibi voxel art**: sixteen micro-voxel
-cells per block edge, so each cell is 0.0625 Godot unit. This is a visual authoring
-grid; terrain simulation, navigation and occupancy retain world-block resolution.
-The physical metre mapping below is separate from engine units. See the
-[shared art standard](../60_asset_creation/63_shared_art_standard.md) and
-[chibi art direction](../60_asset_creation/64_hand_hewn_art_direction.md).
+**World scale versus art scale:** One world-block edge is one Godot unit.
+Non-terrain solid assets are built on a **1:16 cell grid**: sixteen cells per block
+edge, so each cell is 0.0625 Godot unit. This is a visual authoring grid; terrain
+simulation, navigation and occupancy keep world-block resolution. The physical metre
+mapping below is separate from engine units. See the
+[technical art standard](../60_asset_creation/63_shared_art_standard.md) and the
+[Hearthblock art direction](../60_asset_creation/64_hearthblock_art_direction.md).
 
 **Bulk restore notifications (2026-10-17):** WorldData can batch main-thread
 terrain invalidations across a synchronous restore. `set_block` still writes
@@ -151,18 +151,18 @@ schema. See `00_dev_roadmap/20_save_load.md` for the shipped persistence contrac
 
 ---
 
-## Terrain Style vs Floating Items (The Stonehearth Standard)
+## Terrain Blocks vs Object Models
 
-To achieve maximum performance over a 134-million-voxel grid, the game cleanly decouples world environment geometry from interactive item resources:
+To keep a 134-million-voxel grid fast, the game decouples world terrain geometry from interactive objects:
 
 ### 1. Solid Flat Terrain Walls
-*   All untouched terrain blocks inside a mountain wall are rendered strictly as flat-shaded, single-color cubes. 
-*   The chunk rendering script reads the `hex_color` code from the JSON registry and applies it instantly to the cube vertices via a fast vertex-color color map. No complex textures or high-density voxel files are processed inside solid terrain walls.
+*   Untouched terrain blocks are rendered as flat, single-colour cubes. The chunk renderer reads the `hex_color` code from the JSON registry and writes it to the cube vertices as vertex colour. No textures or voxel model files are processed inside solid terrain.
+*   The Hearthblock dressing (a one-cell edge ring, a fine seam, quiet flecks and occasional cracks or worn patches on stone, grass and earth) is drawn by `terrain_appearance.gdshaderinc` from `appearance_profiles.json`. It adds no geometry.
 
-### 2. Micro-Voxel Floating Items
+### 2. Object Models
 *   The moment a dwarf mines an ore or stone block, that grid position is overwritten to `base:terrain:void`.
-*   The engine looks up the block's drop entry (in `block_resources.json`) and instantly spawns a floating 3D item entity scene (`.tscn`) at those coordinates. 
-*   These standalone item drops host the high-density micro-voxel `.glb` model files imported from MagicaVoxel, allowing loose cargo on the floor to look beautifully detailed without lagging the engine environment.
+*   The engine looks up the block's drop entry (in `block_resources.json`) and spawns an item entity at those coordinates.
+*   Items, furniture, flora, animals and dwarves use 1:16 cell `.glb` models built by `tools/voxel_assets/`: one greedy-meshed visual plus a coarse shadow proxy. They show detail without adding terrain cost.
 
 ### 3. Entity Space Clearance Rules
 *   **Clearance Bounds**: A standard dwarf agent stands **3.3 blocks tall visual profile**, but occupies a strict $1 \times 1 \times 3$ grid space on the pathfinding matrix. Tunnels require at least 3 empty air layers above a floor tile for passage.
@@ -209,7 +209,7 @@ Each placed entity type is defined in `data/entities/`. Definitions must include
 
 ### Mesh Scale
 
-Entity meshes are authored at **1 unit = 1 block** (same as the terrain block size). A tree 4 blocks tall should be 4 units tall in the `.glb`. This means entity voxels are visually indistinguishable in size from terrain blocks — the difference is purely in how they are stored and rendered.
+Entity meshes use world units, **1 unit = 1 block**, with root scale 1. A tree 4 blocks tall is 4 units tall in the `.glb`. Their geometry is built from 1:16 cells, so it is finer than terrain blocks; occupancy and navigation still use whole blocks.
 
 ### Lifecycle
 

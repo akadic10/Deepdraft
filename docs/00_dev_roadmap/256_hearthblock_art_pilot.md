@@ -1,7 +1,7 @@
 # 256 — Hearthblock art: Tier 1 furniture, every dwarf, all animals, trees, wild plants and stored goods
 
 Step 2 of the Hearthblock direction (see [255](255_hearthblock_lighting_pass.md) and
-[64](../60_asset_creation/64_hand_hewn_art_direction.md)), built in the game rather
+[64](../60_asset_creation/64_hearthblock_art_direction.md)), built in the game rather
 than in a study viewer. The pilot (stool, dining table, torch, campfire, one dwarf)
 was accepted on 2026-10-20; the owner then asked for the Tier 1 furniture pass and
 the remaining dwarves overnight.
@@ -30,8 +30,8 @@ sleep heights, hinges and walking surfaces, and all four woods.
 | Torch, campfire | Proposal designs (wooden peg torch; eight-stone campfire); animated flames unchanged. |
 | Settlement flag | A rough pole in a stone cairn, a lashed crossbar and the banner. |
 
-The water stones are rocks and unchanged. Tier 2 · Carpenter Era studies remain in
-`VoxelFeed/studies/hearthblock/` (never delete).
+The water stones are rocks and unchanged. Tier 2 · Carpenter Era designs remain in
+`data/art/studies/hearthblock_furniture_tiers.json` and `proposal.mjs` (never delete).
 
 **Dwarves: every appearance.** All dwarves now have the proposal's square head (four
 ages: smaller nose for young, a forehead line for middle age, elder dome, wrinkles
@@ -63,7 +63,7 @@ constrained by existing stuff"):
   the head about 1.5 cells instead of sinking into the bed.
 
 **Wildlife, trees and plants.** Every animal, tree and wild plant is Hearthblock. Crops
-are still in the previous style.
+keep placeholder models until farming arrives.
 
 - **Animals: all four species** (owner-approved 2026-10-21). All are chibi: square
   blocks, bead eyes with a glint, species palettes unchanged.
@@ -132,18 +132,15 @@ are still in the previous style.
   - Wildflowers: square stalks with L-shaped leaves and chunky square heads (a cream
     daisy, a two-tier purple aster, a yellow flower).
   - Reeds: square stalks and L-shaped blades with square cattails.
-  - The first blueberry pilot (`tools/hearthblock/art/plants.mjs`) is superseded and
-    kept for reference.
 
 **Stockpile goods: the 25 the game has today** (2026-10-21; `hearthblock_goods.py`,
-with baked occlusion). Goods the game cannot produce yet keep their earlier art in
+with baked occlusion). Goods the game cannot produce yet keep placeholder models in
 `items.py`: drinks, staves, cloth, honey, the water bucket, grapes, hops, plump
 helmet, pig tail and their cuttings and seeds, the fossil and the gold coin. Every
 good keeps its old footprint, so carrying, crates and stockpile tiles are unchanged.
 - **Mined:** rough stone, three soils and six ores as broken square chunks (a tall
   block and a lower one on a wide base, a crack, lit tops). Ores carry two-cell
-  stepped seams and raised nuggets; soils are stepped mounds; coal glints. The
-  approved 2026-10-18 shapes stay in `mined_resources.py` for reference.
+  stepped seams and raised nuggets; soils are stepped mounds; coal glints.
 - **Gems:** six raw gems as clusters of three square crystals with stepped points and
   lit facets.
 - **Logs:** pine, oak, apple and juniper. Each is the Tier 1 stool on its side, cut

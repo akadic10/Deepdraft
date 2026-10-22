@@ -51,7 +51,7 @@ func _model(spec: Array) -> Node3D:
 func _lineup() -> void:
 	var world := Node3D.new(); root.add_child(world)
 	var ui := CanvasLayer.new(); root.add_child(ui)
-	var title := Label.new(); title.text="DEEPDRAFT / HAND-HEWN TREES"
+	var title := Label.new(); title.text="DEEPDRAFT / HEARTHBLOCK TREES"
 	title.add_theme_color_override("font_color",Color("202b26"))
 	title.position=Vector2(28,22); title.add_theme_font_size_override("font_size",30); ui.add_child(title)
 	var note := Label.new(); note.text="Actual Godot models  ·  Native 1:16 cells  ·  Existing dwarves shown at unchanged scale"
@@ -90,14 +90,14 @@ func _lineup() -> void:
 		label.add_theme_font_size_override("font_size",24); ui.add_child(label)
 	for frame in 8: await process_frame
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png(output+"hand_hewn_lineup.png")==OK)
+	assert(root.get_texture().get_image().save_png(output+"lineup.png")==OK)
 	ui.free(); world.free()
 	for frame in 3: await process_frame
 
 func _page(label: String,specs: Array,size: float) -> void:
 	var canvas := Control.new(); root.add_child(canvas)
 	var backdrop := ColorRect.new(); backdrop.color=Color("182322"); backdrop.size=Vector2(root.size); canvas.add_child(backdrop)
-	var title := Label.new(); title.text="DEEPDRAFT / HAND-HEWN TREES / "+label.replace("_"," ").to_upper()
+	var title := Label.new(); title.text="DEEPDRAFT / HEARTHBLOCK TREES / "+label.replace("_"," ").to_upper()
 	title.position=Vector2(24,20); title.add_theme_font_size_override("font_size",25); canvas.add_child(title)
 	var note := Label.new(); note.text="Actual Godot render  ·  1 cell = 1/16 block  ·  Existing dwarf shown at unchanged scale"
 	note.position=Vector2(24,956); note.add_theme_font_size_override("font_size",19); canvas.add_child(note)

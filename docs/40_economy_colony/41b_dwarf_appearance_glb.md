@@ -2,51 +2,32 @@
 
 ## Overview
 
-**2026-10-13 complete conversion:** [154 — Family conversion](../00_dev_roadmap/154_complete_family_conversion.md)
-integrates all 41 parts under `assets/models/characters/dwarves/`, preserving all appearance
-IDs and the 800 shape combinations. The eight approved [pilot](../00_dev_roadmap/150_dwarf_art_pilot.md)
-exports are byte-identical. Runtime tints, detached anatomy, shared frame, work
-grips, eye anchors and the logical 1×1×3 body are retained. Portraits also show
-the saved scar while world actors continue to omit it. Author production art
-with `tools/generate_dwarf_faceted.py`, `data/art/dwarf_pilot.json` and
-`data/art/dwarf_roster.json` under [standard 63](../60_asset_creation/63_shared_art_standard.md).
-The voxel recipes below are historical dimensions and assembly references;
-`generate_dwarf_glb.py` is retired and its original outputs were removed in
-[156](../00_dev_roadmap/156_legacy_art_cleanup.md). The approved pilot parts now
-resolve directly to their production files, with no duplicate pilot folder.
-[157](../00_dev_roadmap/157_asset_folder_layout.md) removes the intermediate
-style folder; [158](../00_dev_roadmap/158_asset_structure.md) moves the family
-under `assets/models/characters/`. Body, hair, beard, eyebrow and scar categories remain.
-All new exports are baked in world units with root scale 1.
+**Current art: Hearthblock** ([64](../60_asset_creation/64_hearthblock_art_direction.md),
+[256](../00_dev_roadmap/256_hearthblock_art_pilot.md)). Every part is authored in
+`tools/hearthblock/art/dwarves.mjs`, exported to `data/art/voxel_hearthblock.json` and
+built by the `dwarves` family in `tools/voxel_assets/`. There are 41 appearance GLBs
+under `assets/models/characters/dwarves/` plus the two work tools. The parts are:
+- the square head in four ages;
+- bead eyes with a glint;
+- a flared tunic with a brass buckle;
+- a mitten hand with a separate tunic cuff mesh;
+- a cuffed square boot;
+- all 14 hairstyles, 7 beards, 8 brow styles and 4 portrait scars.
 
-**Current assembly corrections (2026-10-13):**
-[165](../00_dev_roadmap/165_approved_actor_proportions.md) integrates the approved
-Balanced proportions without changing dwarf height or logical clearance.
-[175](../00_dev_roadmap/175_dwarf_limb_lighting.md) fixes asymmetric hand/boot
-lighting: the right-part rig root keeps its negative X scale for poses and
+All appearance IDs, pools and save fields are kept. Parts share one frame in world
+units with root scale 1. Hands and feet are detached, and the logical body is 1×1×3.
+The head layout rules and tool grips are listed in 64.
+
+Limb lighting ([175](../00_dev_roadmap/175_dwarf_limb_lighting.md)): to keep both hands
+and boots lit evenly, the right-part rig root keeps its negative X scale for poses and
 anchors, while its inner mesh uses cached reflected geometry plus a
 counter-reflection. Final rendered transforms are positive. Reflect normals and
 tangents and reverse winding with positions; preserve baked colors and runtime
 tints. Never replace this with a plain negative mesh scale or separate right-side
 color compensation. Imported left/source meshes and appearance save IDs remain
-unchanged. The historical assembly notes below retain their coordinate meaning.
+unchanged.
 
 This document catalogues every visual attribute a dwarf can have and defines the modular GLB file strategy for constructing them at runtime. The design goal is the minimum set of authored files that can express all valid combinations without duplicating geometry per color variant.
-
-2026-06-08 rework note: the current generated GLBs are being corrected because `body_base.glb` included arms and legs. The source of truth is now explicit: `body_base.glb` is compact torso plus neck only, while hands and feet remain detached floating parts. Track the regen work in [15_dwarf_asset_rework.md](../00_dev_roadmap/15_dwarf_asset_rework.md).
-
-2026-07-02 quality regen (doc 17 §1, verified overlap-free across all part combos): heads grew to hearthling ratio (14 voxels wide vs the 8-wide chest, 1-voxel edge chamfers, double-stepped crown, protruding 2×2 nose); `body_base.glb` is now a **clothed** torso with BAKED colours (tunic, dark belt + iron buckle, 10-wide trouser pelvis, shoulder notches, tunic collar as the short neck — no skin shows); `foot.glb` is a baked leather **boot** (stepped heel, toe step, dark sole); `hand.glb` is a mitten (palm + thumb mass, finger-groove colour breaks). **Tint pipeline change:** body and feet are no longer skin-tinted — `DwarfAgent._apply_tints` tints them WHITE; skin tint applies to head and hands only. The colour tables below otherwise stand.
-
-Scale contract: dwarf parts are authored in an 8-voxels-per-block frame, but `tools/generate_dwarf_glb.py` exports positions in Godot/world units by baking the `0.125` scale into the GLB. Keep Godot import `Root Scale = 1.0` for generated dwarf GLBs.
-
-**2026-10-01 approved redesign shipped:** all 41 GLBs now use a 15-cell skull
-(17 including ears), 11-cell chest, 5×4×7 boots, filled sculpted hair caps, and
-rounded beard volumes. Height is 25–27 cells (3.125–3.375 blocks), with the
-logical 1×1×3 footprint unchanged. X/Z cell centres align on integers before
-the half-cell mesh shift; the shared origin and runtime mirroring still apply.
-All appearance IDs, filenames, pools, and save fields are preserved. The
-canonical generator now builds this roster; implementation and QA commands:
-[25_dwarf_visual_redesign.md](../00_dev_roadmap/25_dwarf_visual_redesign.md).
 
 ---
 
@@ -59,7 +40,7 @@ All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall
 | Attribute | Values | Notes |
 |---|---|---|
 | `skin_tone` | pale · medium · tan · dark | Applied to `head_[age].glb` and `hand.glb`; body/boots retain baked colors |
-| `eye_color` | grey · blue · green · brown · amber · red | Applied to `eyes.glb` — separate node, not embedded in head |
+| `eye_color` | grey · blue · green · brown · amber · red | Shown on the bead eye's glint in portraits; world eyes are untinted |
 | `hair_color` | black · dark_brown · brown · auburn · red · blonde · grey · white | Applied to all hair/beard/brow shape meshes |
 
 ### Shape Attributes — Both Genders
@@ -180,19 +161,20 @@ Anatomy contract:
 
 ## Color Application Strategy
 
-Colors are never baked per-file. Every shape GLB is authored in a **neutral palette** (e.g. mid-grey for hair, light pink for skin). At runtime, a material override applies a tint.
+Tinted roles are authored near white with baked shading, and a runtime material
+multiplies them by the dwarf's colour. Everything else is baked.
 
-### Palette Reservation (MagicaVoxel)
+### Palette roles
 
-When authoring in MagicaVoxel, reserve specific palette index ranges per semantic use:
+`dwarves.mjs` paints semantic roles, and `proposal.mjs` → `TINTED` lists the tinted ones:
+- `skin`, `skin_shade`, `nose`, `blush` and `mouth` take the skin tone on the head and
+  mittens.
+- `hair`, `hair_mid` and `hair_shade` take the hair colour on hair, beards and brows.
+- `tunic`, `tunic_dark` and `tunic_light` are recoloured to the dwarf's clothing colour
+  on the torso and both cuffs (`DwarfAssets.CLOTHING`, `CraftMaterials.apply_colors`).
+- Boots, belt, buckle, eyes and the work tools keep their baked colours.
 
-| Palette slot range | Semantic |
-|---|---|
-| 1 – 4 | Skin (highlight → shadow) |
-| 5 – 8 | Hair (highlight → shadow) |
-| 9 – 10 | Eye (iris, pupil) |
-| 11 – 14 | Clothing/body base |
-| 15+ | Free use per mesh |
+The live code is `DwarfAgent._apply_tints`. The sketch below shows the original idea.
 
 ### Runtime Tinting in Godot
 
@@ -418,15 +400,18 @@ func _attach(parent: Node3D, node_name: String, mesh: Mesh) -> void:
 
 ---
 
-## Work tools — felling axe and mining pick (updated 2026-10-13)
+## Work tools — felling axe and mining pick
 
 `assets/models/characters/dwarves/tools/felling_axe.glb` is separate from the 41 appearance parts.
 `DwarfAssets` owns its preload; `DwarfFellingPose.gd` instantiates it under the
 right hand when felling starts and hides it when work stops. Dwarves implicitly
 carry their work tools, with no inventory, delivery or durability requirement.
 
-The axe uses broad forged planes, selective bevels, a faceted wooden haft and
-linear vertex colors, exported directly in world units with a unit root.
+Both tools are Hearthblock models (`tools/felling_axe` and `tools/mining_pickaxe` in
+`dwarves.mjs`). They have square hafts with a lit grain face and leather wraps. The axe
+has a square socket collar, a heavy cheek and a flared bit with a bright steel edge.
+The pickaxe has a square socket and two square arms stepping down to steel points.
+They are exported in world units with a unit root.
 Unlike the shared-frame body parts, its origin is the lower hand grip, with the
 haft along +Y and blade facing +Z. Both hands rotate around their authored palm
 centres and stay on the handle throughout the swing. The tool attachment cancels
@@ -435,18 +420,14 @@ scales so subsequent walking cannot flip the mirrored hand or boot. The axe uses
 its own lit vertex-color material and is never skin-tinted. Navigation and
 collision retain their existing logical footprint.
 
-Generator: `tools/generate_items_faceted.py`; palette: `data/art/items.json`.
-Both impact points are vertices in the new meshes. The lower origin, upper grip
-`(0,.625,0)`, axe edge `(0,1.0625,.6875)` and pick point `(0,1.375,.9375)` are
-unchanged. [155](../00_dev_roadmap/155_resource_drops_and_work_tools.md) records
-import, pose and real-worker checks. Old voxel files/generators remain comparisons.
-Native preview:
-`tools/DwarfFellingPreview.gd`. Behavior and validation:
+Both impact points are vertices in the meshes. The contract: the lower grip is the
+origin, the upper grip is `(0,.625,0)`, the axe edge is `(0,1.0625,.6875)` (cell
+0, 17, 11) and the pick point is `(0,1.375,.9375)` (cell 0, 22, 15).
+`ItemArtTest`, `DwarfArtTest`, `MiningAnimationTest` and `TreeFellingTest`
+check grips and strike points. Behavior and validation:
 [48_object_explorer_and_tree_felling.md](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
-`assets/models/characters/dwarves/tools/mining_pickaxe.glb` adds a longer haft, curved iron
-point and opposing chisel, using the same material/grip convention. The shared
-item generator authors both tools; native pose studies:
-`tools/DwarfMiningPreview.gd`. `DwarfMiningPose.gd` aims at the target voxel face
+`assets/models/characters/dwarves/tools/mining_pickaxe.glb` has a longer haft and uses the
+same material and grip convention. `DwarfMiningPose.gd` aims at the target voxel face
 for wall, overhead, low and underfoot mining. Both rigs now inherit attachment,
 material and mirrored-part reset behavior from `DwarfWorkToolPose.gd`. No body
 parts or appearance IDs changed. Phase-0.92 pick contact now emits material-aware
@@ -466,9 +447,10 @@ To have a fully working male dwarf with all options:
 - **4** scar overlays
 - **Total for males: 27 GLBs**
 
-Add female hair styles (+10 GLBs) and female eyebrows (+4 GLBs) for full gender coverage: **41 GLBs total**.
+Add female hair styles (+10 GLBs) and female eyebrows (+4 GLBs) for full gender coverage: **41 GLBs total**, plus the two work tools.
 
-All colors (8 hair, 4 skin, 6 eye) are zero additional files — handled by the tint shader.
+Colours need no extra files: 8 hair and 4 skin colours are runtime tints, 6 eye colours
+show on the portrait glint, and 6 tunic colours are shared recoloured meshes.
 
 ---
 

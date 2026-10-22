@@ -1,8 +1,0 @@
-{
-	"failures": [],
-	"flow_sha256": "bf994443b856c11da74d09ec1ee75a80d5a10d06ce5dda8a018e97a5ae960d08",
-	"full_snapshots": 21,
-	"manager_sha256": "e55b7df402ec9e5ed01b82907d44ddbef9a6a296eab43f42fdbd32e21c602672",
-	"original_manager_sha256": "08fba30aee51320ad91e0c0b97550c3b869b1ecdead76a62e173ff0927b4013d",
-	"ticks": 500
-}

@@ -2,7 +2,6 @@
 import unittest
 from common import read_json,linear
 from furniture import assets
-from hand_hewn_timber import PROFILE
 import hearthblock
 
 
@@ -16,7 +15,7 @@ class GameTableTests(unittest.TestCase):
     def setUpClass(cls):
         _,parts,_=next(assets(only='board_game_table.glb'))
         cls.cells=parts['main'].voxels.cells
-        cls.palette=PROFILE['palettes']['oak']
+        cls.palette=read_json('data/art/voxel_hearthblock.json')['palettes']['hewn']
         cls.definition=read_json('data/furniture/board_game_table.json')
 
     def test_same_native_log_outline_and_height(self):
@@ -24,7 +23,7 @@ class GameTableTests(unittest.TestCase):
         self.assertEqual({p for p in self.cells if p[1]<24},set(base))
         self.assertEqual({p:c for p,c in self.cells.items() if p[1]<23},
                          {p:c for p,c in base.items() if p[1]<23})
-        self.assertTrue(all(self.cells[p] in (c,linear(self.palette['knot'])) for p,c in base.items()))
+        self.assertTrue(all(self.cells[p] in (c,linear(self.palette['pith'])) for p,c in base.items()))
         self.assertEqual([(min(p[i] for p in self.cells),max(p[i] for p in self.cells)+1)
                           for i in range(3)],[(-23,23),(0,25),(-23,23)])
         self.assertEqual(self.definition['game_surface_height'],1.5)

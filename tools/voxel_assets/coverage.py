@@ -1,4 +1,4 @@
-"""Frozen migration coverage plus explicitly authored post-migration additions."""
+"""Expected model paths per family: the frozen baseline plus authored additions, minus retirements."""
 from common import read_json
 
 
@@ -16,12 +16,12 @@ PREFIXES={
 
 def expected_paths(family):
     if family=='presentation': return {'assets/models/presentation/'+key+'.glb' for key in read_json('data/art/voxel_presentation.json')['parts']}
-    baseline=read_json('docs/00_dev_roadmap/concepts/223_voxel_migration_plan/inventory.json')
-    if family=='crops': return {r['path'] for r in baseline['missing_defined_models']}
+    baseline=read_json('data/art/voxel_baseline.json')
+    if family=='crops': return set(baseline['crops'])
     additions=read_json('data/art/voxel_additions.json').get(family,[])
     assert len(additions)==len(set(additions)) and all(p.startswith(PREFIXES[family]) for p in additions)
     retired=set(read_json('data/content_retirements.json')['assets'])
-    return ({r['path'] for r in baseline['assets'] if r['path'].startswith(PREFIXES[family])}|set(additions))-retired
+    return ({p for p in baseline['assets'] if p.startswith(PREFIXES[family])}|set(additions))-retired
 
 
 def validate_coverage(family,paths):

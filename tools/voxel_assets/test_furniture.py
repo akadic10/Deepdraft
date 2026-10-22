@@ -3,7 +3,7 @@ import unittest
 from common import read_json,linear,Voxels
 from furniture import assets
 from coverage import expected_paths
-from micro_voxel_study.generate import solid
+from solid_shapes import solid
 
 
 class FurnitureTests(unittest.TestCase):

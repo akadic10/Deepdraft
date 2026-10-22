@@ -36,7 +36,7 @@ func _ready() -> void:
 
 
 func _title_text() -> String:
-	return "Deepdraft dwarves   ·   live assets   ·   8 voxels per block"
+	return "Deepdraft dwarves   ·   live assets   ·   1:16 cells"
 
 
 func _comparison_text() -> String:

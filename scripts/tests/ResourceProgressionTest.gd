@@ -69,6 +69,7 @@ func _run() -> void:
 		report.append(row)
 		print("RESOURCE_SEED ",JSON.stringify(row))
 		await process_frame
+	DirAccess.make_dir_recursive_absolute("res://tmp/colony_balance_review_20261011")
 	var output := FileAccess.open("res://tmp/colony_balance_review_20261011/resource_progression.json",FileAccess.WRITE)
 	output.store_string(JSON.stringify({"stages":["cover below 10","cover 10–19","cover 20–31","cover 32+"],"method":"x/z every 16 blocks, all solid Y; eight fresh full layouts including rivers and caves","seeds":report,"failures":failures},"  "))
 	for failure: String in failures: push_error(failure)

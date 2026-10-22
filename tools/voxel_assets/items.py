@@ -6,8 +6,6 @@ The saved art profile owns palettes and each named inventory presentation.
 import math
 from common import ROOT, Voxels, Part, linear, read_json, ellipsoid, translate
 from solid_shapes import apply
-from mined_resources import model as mined_model
-import hand_hewn_timber
 import hearthblock
 import hearthblock_goods as goods
 
@@ -40,18 +38,6 @@ def profile(v, rings, color, inner=0, colors=None):
 
 def grounded(v):
     return translate(v,(0,-min(p[1] for p in v.cells)/16,0))
-
-
-def gem(colors):
-    v=Voxels(); cs=list(map(linear,colors))
-    profile(v,[(0,2,2,0,0),(2,4,4,0,0),(5,6,6,0,0),(7,6,6,0,0),(10,3,3,0,0)],cs[0],colors=cs[:3])
-    block(v,(-2,10,-2),(2,11,2),cs[3],1)
-    block(v,(-1,10,-1),(1,11,1),cs[4])
-    return v
-
-
-def log(material_id):
-    return hand_hewn_timber.model('timber',material_id)
 
 
 def shell():

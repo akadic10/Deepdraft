@@ -13,6 +13,6 @@
 __pycache__/
 
 # Local test output, extracted builds, scratch scripts and isolated Godot profiles.
-# Copy durable reports/review captures into docs/00_dev_roadmap/concepts/.
-# Previously tracked tmp files remain tracked; this prevents new scratch output.
+# Review screenshots and reports stay here; don't copy them into docs/ unless the owner asks.
+# Only tmp/.gdignore stays tracked, so Godot never imports scratch output.
 /tmp/

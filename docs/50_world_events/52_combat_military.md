@@ -120,7 +120,7 @@ var stored_item:  String      # item URI, or "" if empty
 var display_type: StringName  # &"weapon" or &"shield" — cosmetic only, does not restrict items
 ```
 
-- Visually renders the stored weapon or shield as a micro-voxel `.glb` model mounted on the wall.
+- Visually renders the stored weapon or shield as a 1:16 voxel `.glb` model mounted on the wall.
 - A Wall Display with `stored_item == ""` is an empty mount bracket — visible in the room but non-functional until stocked.
 - Multiple Wall Displays can be placed in a single Armory. Dwarves pull from the nearest available display that holds their required weapon type.
 - The player stocks Wall Displays by designating a **haul task**: right-click the display and select *"Stock from stockpile"* — a dwarf hauls the specified weapon item from the nearest compatible stockpile.

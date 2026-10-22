@@ -1,7 +1,6 @@
 extends "res://tools/terrain_art/CaptureTerrain.gd"
 
-## Offline comparison in the full production scene. No shipping model paths change.
-var pilot := false
+## Full-world benchmark in the production scene. No shipping model paths change.
 var quick := false
 var restore_only := false
 var scene: Node3D
@@ -22,7 +21,6 @@ func _init() -> void:
 	resolution = Vector2i(2560,1440)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--output="): output = arg.trim_prefix("--output=").trim_suffix("/")+"/"
-		if arg == "--pilot": pilot = true
 		if arg == "--quick": quick = true
 		if arg == "--restore-only": restore_only = true
 		if arg == "--small": resolution = Vector2i(1600,1000)
@@ -44,14 +42,8 @@ func _run() -> void:
 	clock_node.set_speed(1)
 	clock_node.hour = 12.0
 	seed(153)
-	if pilot: load("res://tools/dwarf_pilot/DwarfPilotAssets.gd").install(root.get_node("DwarfAssets"))
 	scene = load("res://scenes/main/debug_world.tscn").instantiate()
 	scene.get_node("Renderer").world_seed = 1234
-	if pilot:
-		var owner = scene.get_node("WildlifeManager")
-		owner.set_script(load("res://tools/animal_pilot/AnimalPilotWildlife.gd"))
-		owner.slice_controller_path=NodePath("../SliceController")
-		owner.camera_path=NodePath("../CameraRig")
 	var publish = func(node: Node):
 		if node == scene: current_scene = scene
 	node_added.connect(publish)
@@ -62,14 +54,13 @@ func _run() -> void:
 	furniture = scene.get_node("FurniturePlacementController")
 	director = scene.get_node("DwarfDirector")
 	wildlife = scene.get_node("WildlifeManager")
-	if pilot: load("res://tools/furniture_pilot/FurniturePilotAssets.gd").install(furniture)
 	while not generator._maps_ready or generator.is_generating(): await process_frame
 	while not scene.get_node("SurfaceFloraSpawner")._pending.is_empty(): await process_frame
 	var details = scene.get_node("SurfaceDetailManager")
 	while not details._initialized or not details._visual_queue.is_empty(): await process_frame
 	while not wildlife.duck_initialized: await process_frame
 	await _settle()
-	report = {"seed":1234,"pilot":pilot,"quick":quick,"resolution":[resolution.x,resolution.y],
+	report = {"seed":1234,"quick":quick,"resolution":[resolution.x,resolution.y],
 		"fixed_simulation_fps":60,"adapter":RenderingServer.get_video_adapter_name(),
 		"engine":Engine.get_version_info(),"cpu":OS.get_processor_name(),"captures":{},"failures":[],
 		"shader_uniform_buffer_slots":ProjectSettings.get_setting("rendering/limits/global_shader_variables/buffer_size")}
@@ -154,23 +145,12 @@ func _reload_check(save: Node, expected: Dictionary = {}) -> void:
 	if expected.is_empty(): expected=save._build_snapshot()
 	# SaveManager validates JSON-normalized snapshots, not live StringName/Vector data.
 	expected=JSON.parse_string(JSON.stringify(expected))
-	# Reapply study-only model substitutions before the normal restore assembles actors.
-	var prepare = func(node: Node):
-		if node.name == "DebugWorld":
-			node.ready.connect(func():
-				if pilot:
-					load("res://tools/furniture_pilot/FurniturePilotAssets.gd").install(node.get_node("FurniturePlacementController"))
-					node.get_node("WildlifeManager")._deer_models=load("res://tools/animal_pilot/AnimalPilotAssets.gd").models()
-			,CONNECT_ONE_SHOT)
-	node_added.connect(prepare)
 	save.set_process(true)
 	var started := Time.get_ticks_usec()
 	if not save.request_load():
 		report.failures.append("Saved benchmark could not load")
-		node_added.disconnect(prepare)
 		return
 	while save.is_loading(): await process_frame
-	node_added.disconnect(prepare)
 	save.set_process(false)
 	scene=current_scene
 	renderer=scene.get_node("Renderer")

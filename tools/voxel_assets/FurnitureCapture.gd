@@ -1,6 +1,14 @@
-extends "res://tools/furniture_pilot/FurniturePilot.gd"
+extends Node3D
 
 ## Native comparison using owner-loaded definitions and production interaction poses.
+var source: FurniturePlacementController
+var camera: Camera3D
+var environment: WorldEnvironment
+var look: Environment
+var sun: DirectionalLight3D
+var caption: Label
+var labels: Array[Label] = []
+var _installed := {} # The production seated look-at code consults this.
 var output := "res://tmp/settlement_art_20261013/furniture_native_gallery/"
 var pairs: Array[Node3D]=[]
 var title_label: Label
@@ -18,8 +26,8 @@ func _ready() -> void:
 		if arg=="--all-woods": all_woods=true
 		if arg=="--colony": colony=true
 	if "--staged" in OS.get_cmdline_user_args(): staged=preload("res://tools/voxel_assets/StagedAssets.gd").install("furniture")
-	get_window().title="Deepdraft - Complete furniture conversion"
-	SaveManager.configure_storage_for_testing("user://furniture_faceted_review")
+	get_window().title="Deepdraft - Furniture review"
+	SaveManager.configure_storage_for_testing("user://furniture_review")
 	WorldGenerator.world_seed=1234
 	for id in ["SaveManager","TaskManager","WorldClock","SkyController","WeatherManager","RoomManager","StockpileManager","WorldEventDirector"]:
 		var service := get_tree().root.get_node_or_null(id)
@@ -36,9 +44,25 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(output)
 	_capture_all.call_deferred()
 
+func _stage() -> void:
+	environment=WorldEnvironment.new(); look=Environment.new()
+	look.background_mode=Environment.BG_COLOR; look.background_color=Color("303E40")
+	look.ambient_light_source=Environment.AMBIENT_SOURCE_COLOR
+	look.ambient_light_color=Color("D5E3ED"); look.ambient_light_energy=.48
+	look.tonemap_mode=Environment.TONE_MAPPER_FILMIC
+	environment.environment=look.duplicate(); add_child(environment)
+	sun=DirectionalLight3D.new(); sun.shadow_enabled=true
+	sun.directional_shadow_max_distance=60; add_child(sun)
+	var ground := MeshInstance3D.new(); var box := BoxMesh.new()
+	box.size=Vector3(80,1,80); ground.mesh=box; ground.position=Vector3(40,20.5,40)
+	var mat := StandardMaterial3D.new(); mat.albedo_color=Color("69835A"); mat.roughness=1
+	ground.material_override=mat; add_child(ground)
+	camera=Camera3D.new(); camera.projection=Camera3D.PROJECTION_ORTHOGONAL
+	camera.current=true; add_child(camera)
+
 func _ui() -> void:
 	var layer := CanvasLayer.new(); add_child(layer)
-	title_label=Label.new(); title_label.text="DEEPDRAFT / COMPLETE FURNITURE FAMILY"
+	title_label=Label.new(); title_label.text="DEEPDRAFT / FURNITURE"
 	title_label.position=Vector2(32,22); title_label.add_theme_font_size_override("font_size",28); layer.add_child(title_label)
 	caption=Label.new(); caption.position=Vector2(32,66); caption.add_theme_font_size_override("font_size",20); layer.add_child(caption)
 	for text in ["VIEW A","OPPOSITE VIEW"]:
@@ -134,3 +158,9 @@ func _capture(id: String) -> void:
 	await RenderingServer.frame_post_draw
 	var result := get_viewport().get_texture().get_image().save_png(output+id+".png")
 	assert(result==OK)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE: get_tree().quit()
+
+func _exit_tree() -> void:
+	if is_instance_valid(source): source.free()

@@ -413,4 +413,4 @@ this doc's build log.
 
 ---
 
-*Prev: [17_dwarf_visual_polish.md](./17_dwarf_visual_polish.md)*
+*Prev: [16_first_dwarf_milestone.md](./16_first_dwarf_milestone.md)*

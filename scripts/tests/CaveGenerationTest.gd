@@ -55,6 +55,7 @@ func _run() -> void:
 		report.append({"seed": world_seed, "caves": summary, "sha256": fingerprint})
 		print("CaveGenerationTest: seed %d, %d caves checked." % [world_seed, catalog.size()])
 		await process_frame
+	DirAccess.make_dir_recursive_absolute("res://tmp/world_layout_review")
 	var file := FileAccess.open("res://tmp/world_layout_review/caves_report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"passed": _failures.is_empty(), "failures": _failures, "seeds": report}, "\t"))
 	for failure in _failures: printerr(failure)

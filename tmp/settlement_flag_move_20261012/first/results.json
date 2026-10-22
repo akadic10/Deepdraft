@@ -1,7 +1,0 @@
-{
-  "test": "SettlementFlagMoveTest",
-  "passed": true,
-  "exit": 0,
-  "seconds": 4.9,
-  "timeout": false
-}

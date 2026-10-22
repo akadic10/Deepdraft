@@ -24,7 +24,7 @@ const TERRAIN_GRID_OFFSET := 0.006
 const FALLBACK_DEFAULT_SIZE := 1
 const FALLBACK_MAX_HORIZONTAL := 8
 const FALLBACK_MAX_VERTICAL := 8
-const FALLBACK_MAX_DRAG_LENGTH := 40
+const FALLBACK_MAX_DRAG_LENGTH := 32
 const FALLBACK_ZONE_MAX_WORKERS := 4
 const FALLBACK_SWING_BASE_TIME := 2.0
 
@@ -371,7 +371,7 @@ func _load_config() -> void:
 	_guide_spacing = maxi(1,int(guide.get("cell_size",32)))
 	_guide_width = clampf(float(guide.get("line_width",.16)),.02,.5)
 	_guide_color = Color(String(guide.get("color","edbd71b8")))
-	_max_drag_length = int(dig_tool.get("max_drag_length", FALLBACK_MAX_DRAG_LENGTH))
+	_max_drag_length = maxi(1, int(dig_tool.get("max_drag_length", FALLBACK_MAX_DRAG_LENGTH)))
 	var zone_cfg: Dictionary = root.get("zone", {})
 	_zone_max_workers = int(zone_cfg.get("max_workers", FALLBACK_ZONE_MAX_WORKERS))
 	var exec_cfg: Dictionary = root.get("execution", {})
@@ -963,8 +963,10 @@ func _map_precision_axis(
 	var remainder := extent % size_horizontal
 	if remainder > 0:
 		extent = extent - remainder + size_horizontal
+	# Hard cap: the most whole brush steps that fit in max_drag_length blocks.
+	# A longer drag stops growing at the cap; the anchor side stays put.
 	if extent > _max_drag_length:
-		extent = maxi(size_horizontal, extent - size_horizontal)
+		extent = maxi(size_horizontal, _max_drag_length - _max_drag_length % size_horizontal)
 
 	var offset: float
 	if normal_coord > 0:
@@ -1919,7 +1921,12 @@ func _zone_has_assigned_worker(component: MiningZoneComponent) -> bool:
 func get_zone_block_work(block: Vector3i) -> Dictionary:
 	var block_id := _block_id_at(block)
 	if not BlockRegistry.is_solid(block_id):
-		return {}
+		# Undiscovered cave air is planned as the strata the slice shows. Work it
+		# as that block so the commit breaks into the cave and reveals it; air
+		# the player already knows about has nothing left to mine.
+		block_id = _designation_block_id_at(block)
+		if not BlockRegistry.is_solid(block_id):
+			return {}
 	var key := BlockRegistry.get_key(block_id)
 	var def := BlockRegistry.get_def(key)
 	var hardness := maxi(int(def.get("hardness", 1)), 1)
@@ -1941,7 +1948,9 @@ func get_zone_block_work(block: Vector3i) -> Dictionary:
 func play_zone_mining_impact(block: Vector3i, impact_position: Vector3, normal: Vector3) -> void:
 	var block_id := _block_id_at(block)
 	if not BlockRegistry.is_solid(block_id):
-		return
+		block_id = _designation_block_id_at(block)   # concealed cave air strikes like its strata
+		if not BlockRegistry.is_solid(block_id):
+			return
 	var exposed_air := block + Vector3i(normal)
 	var cave_id := WorldGenerator.get_cave_id(exposed_air)
 	if not _mined_blocks.has(exposed_air) and not (cave_id >= 0 and InteriorTracker.is_cave_discovered(cave_id)):

@@ -273,6 +273,22 @@ func terrain_overrides() -> Dictionary:
 	for changes: Dictionary in _edits.values(): result.merge(changes)
 	return result
 
+## Columns of chunks (chunk x, z) holding any override; renderers rebuild per column.
+func override_columns() -> Array[Vector2i]:
+	var seen := {}
+	for key: Vector3i in _edits.keys(): seen[Vector2i(key.x, key.z)] = true
+	var result: Array[Vector2i] = []
+	result.assign(seen.keys())
+	return result
+
+## Every override in one column of chunks, all heights: cell -> runtime id.
+func column_overrides(cx: int, cz: int) -> Dictionary:
+	var result := {}
+	for cy in range(WORLD_SIZE_Y >> 4):
+		var changes: Dictionary = _edits.get(Vector3i(cx, cy, cz), {})
+		if not changes.is_empty(): result.merge(changes)
+	return result
+
 func serialize_edits(solid_only := false) -> Array:
 	var result: Array = []
 	for changes: Dictionary in _edits.values():

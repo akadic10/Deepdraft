@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "note": "Native 1:16 loose goods. Approved chunky stone, ore and soil use three sculpted shapes at the established 0.75-unit size. Timber shares the accepted hand-hewn stool shape. Greedy visuals and separate shadow-only proxies.",
+  "note": "Native 1:16 loose goods. The goods the game can produce are Hearthblock models built by tools/voxel_assets/hearthblock_goods.py (doc 256) from these palettes and mined styles; goods not yet in the game keep their placeholder builders in items.py. Greedy visuals and separate shadow-only proxies.",
   "stone": [
     "rough_stone"
   ],
@@ -174,16 +174,6 @@
     "vintage_wine_barrel": "865168",
     "reserve_gin_cask": "82978D"
   },
-  "mined_shape": {
-    "source": "data/art/voxel_mined_resources.json",
-    "direction": "docs/60_asset_creation/reference/proposals/chunky_resources_v1.png",
-    "grid": 16,
-    "extent_cells": [
-      12,
-      12,
-      12
-    ]
-  },
   "mined_styles": {
     "rough_stone": {
       "pattern": "stone",
@@ -300,17 +290,5 @@
       },
       "shape": "ore"
     }
-  },
-  "mined_original_source": {
-    "source": "data/art/sources/stone_ore_dirt.vox",
-    "sha256": "d7e8b2e4f829d3fd7bbf2850b696d171e4c4d052eb66a784ad6422d53d5c6c1a",
-    "model_index": 0,
-    "size": [
-      16,
-      16,
-      16
-    ],
-    "cells": 1088,
-    "note": "Exact player-authored occupancy; source Z up maps to Godot Y up; centered and grounded with integer translation only. Four other saved models are not the stone shape."
   }
 }

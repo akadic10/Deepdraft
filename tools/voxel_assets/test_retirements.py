@@ -22,9 +22,6 @@ class RetirementTests(unittest.TestCase):
             self.assertNotIn(key, items)
             thumbnail = ROOT/'assets/ui/items'/(key.replace(':', '_')+'.png')
             self.assertFalse(thumbnail.exists())
-            name = key.rsplit(':', 1)[1]+'_block'
-            for folder in ('chunky_resources', 'stone_ore_dirt'):
-                self.assertFalse((ROOT/'VoxelFeed/colored'/folder/(name+'.vox')).exists())
         self.assertEqual(read_json('data/art/voxel_items.json')['stone'], ['rough_stone'])
         place = read_json('data/ui/place_catalog.json')
         for key in policy['furniture']:

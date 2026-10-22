@@ -1,7 +1,7 @@
 extends Node3D
 
-## Isolated art review. Copied into tmp/dwarf_redesign_preview by the generator.
-## No game autoloads, world generation, saves, or live registry edits.
+## Base scene for the dwarf roster review (DwarfRosterPreview, VoxelRosterCapture):
+## stage, camera, labels, walk cycle and capture helpers. No saves or live registry edits.
 var _camera: Camera3D
 var _lineup := Node3D.new()
 var _actors: Array[Node3D] = []
@@ -106,7 +106,7 @@ func _build_ui() -> void:
 
 
 func _title_text() -> String:
-	return "Dwarf redesign study   ·   8 voxels per block   ·   prototype height: 27 voxels"
+	return "Deepdraft dwarves   ·   1:16 cells"
 
 
 func _comparison_text() -> String:

@@ -30,8 +30,8 @@ input/output bins + restock priority (doc 44). **Save/load gap closed
 2026-07-18 (doc 20):** ghosts, installed pieces, uninstall flags, and container inventories
 persist in schema version 1.
 
-**Shelf update, 2026-10-01:** [art doc 41](41_storage_shelf_visual_redesign.md)
-ships Alen's requested oak/iron replacement, superseding the earlier hand-authoring
+**Shelf update, 2026-10-01:** a redesign
+shipped Alen's requested oak/iron replacement, superseding the earlier hand-authoring
 reservation below. Capacity remains eight. The 0.5 anchor scale is now a maximum;
 optional per-slot bounds fit and center rotated items to prevent clipping. Existing
 inventory saves restore into the updated display layout without a schema change.

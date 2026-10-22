@@ -141,7 +141,7 @@ func delivery_contact(stand: Vector3i) -> Vector3:
 
 
 ## Barrel/chest ABSORB the node; the shelf snaps it onto a free anchor
-## (doc 19 Phase 5, art doc 41: scale up to 0.5, varied yaw, fitted slot bounds).
+## (doc 19 Phase 5: scale up to 0.5, varied yaw, fitted slot bounds).
 ## Anchors are footprint-local block coords (origin = bottom-front-left);
 ## as children of the rotated piece node they follow its yaw for free, and
 ## slice culling rides the parent's visibility.

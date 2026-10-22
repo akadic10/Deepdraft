@@ -458,7 +458,6 @@ func _place_block(cell: Vector3i, key: String) -> void:
 	mining._ensure_chunk_real(cell)
 	WorldData.set_block(cell.x,cell.y,cell.z,BlockRegistry.get_id(key))
 	NavGrid.refresh_mined_block(cell)
-	if renderer != null: renderer._cavity_shell_dirty = true
 	_dirty = true
 
 func dev_build_order(id: int) -> int:

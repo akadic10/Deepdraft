@@ -1,14 +1,15 @@
 # 145 — Base world terrain art plan
 
-**Next asset pilot delivered:** [146 — Pine and oak](146_tree_art_pilot.md)
-integrates the preferred clustered tree treatment into production, with every
-stage/season, gameplay verification and matched forest rendering measurements.
+**Current terrain look:** the base palette and appearance profiles below are still
+live. Since 2026-10-21 the Hearthblock dressing
+([256](256_hearthblock_art_pilot.md), [64](../60_asset_creation/64_hearthblock_art_direction.md))
+also draws one-cell edges, seams, flecks and occasional cracks or worn patches on
+stone, grass and earth, in the same shader.
 
 Recorded and implemented **2026-10-13**. **Status: all five phases complete.**
 The player authorized the complete implementation after selecting the palette.
 This starts the wider art migration with the existing base world voxels,
-ahead of the character/animal/furniture pilot
-previously proposed in [144 — World art direction](144_world_art_direction_handoff.md).
+ahead of the character, animal and furniture work.
 
 The player has confirmed **a coherent grey rock palette with subtle variation**
 and **grass remaining a full voxel**. Grass over dirt, thin turf caps and fringes
@@ -407,9 +408,6 @@ to assess the art.
 | [WorldRenderer.gd](../../scripts/systems/WorldRenderer.gd) | Production overview, cavity and added-terrain surfaces; local rebuilding |
 | [ChunkMesher.gd](../../scripts/systems/ChunkMesher.gd) | Compatible appearance contract for the exact chunk path |
 | [underground_lighting.gdshader](../../scripts/shaders/underground_lighting.gdshader) | Existing lighting contract; any terrain detail must be explicitly scoped |
-| [StudyTerrain.gd](../../tools/visual_study/StudyTerrain.gd), [StudyMesh.gd](../../tools/visual_study/StudyMesh.gd) and [VisualStudy.gd](../../tools/visual_study/VisualStudy.gd) | Full-voxel grass pilot, native comparisons and reference captures |
 | [World rendering guide](../20_player_interface/24_world_rendering.md) and [Art guide](../60_asset_creation/61_voxel_art_guide.md) | Update production conventions after implementation is verified |
 
-This plan changes the immediate work order and terrain art decisions. Historical
-study captures and measurements in [143](143_visual_quality_study.md) and
-[144](144_world_art_direction_handoff.md) remain evidence of those earlier passes.
+This plan changes the immediate work order and terrain art decisions.

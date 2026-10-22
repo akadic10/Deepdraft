@@ -1,6 +1,6 @@
 """Offline-baked actor overlays; intentional non-casters with one visual mesh."""
 from common import Voxels,Part,linear,read_json
-from micro_voxel_study.generate import solid
+from solid_shapes import solid
 
 
 def assets(only=None):

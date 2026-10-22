@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" uid="uid://b8bsgcygro5km" path="res://tools/scale_study/ProportionStudy.gd" id="1"]
-
-[node name="ProportionStudy" type="Node3D"]
-script = ExtResource("1")

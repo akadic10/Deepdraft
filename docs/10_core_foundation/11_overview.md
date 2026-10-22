@@ -14,15 +14,16 @@ remain design goals. Gems remain finished drops without a Jeweller/polishing sta
 
 **Deepdraft** is a modern, high-performance voxel colony management simulation focused on a subterranean dwarven settlement. The player acts as a high-level overseer, issuing global commands, managing production infrastructure, and orchestrating trade rather than directly controlling a single avatar.
 
-**Visual direction — 2026-10-18:** **Chibi / stylized voxel art at a native 1:16
-object-to-world ratio.** Each object cell is 1/16 of a world block along each
-axis; sixteen cells span one world-block edge. Characters use expressive faces
-and chunky hands, boots and beards. Nature and objects use broad shapes,
-substantial materials and a few deliberate imperfections. The existing simple
-world voxels provide the backdrop. The original
-[hand-hewn concept](../60_asset_creation/64_hand_hewn_art_direction.md) remains
-the visual target; [63](../60_asset_creation/63_shared_art_standard.md) defines
-the technical authoring, material and shadow rules.
+**Visual direction — Hearthblock (2026-10-20):** cozy, warm, friendly chibi voxels
+built from squares and rectangles at a native **1:16** object-to-world ratio. Each
+object cell is 1/16 of a world block along each axis, so sixteen cells span one
+world-block edge. Characters and animals have big square heads, bead eyes and chunky
+hands, boots and paws. Furniture is Tier 1 · Axe-Hewn: split, notched and lashed
+timber. The simple world blocks are the backdrop, with a quiet one-cell dressing on
+stone, grass and earth, and the scene is lit like a hearth.
+[64](../60_asset_creation/64_hearthblock_art_direction.md) defines the look, and
+[63](../60_asset_creation/63_shared_art_standard.md) defines the technical authoring,
+material and shadow rules.
 
 **Colony scale — 2026-10-14:** The intended maximum is **30 dwarves**.
 Design progression and performance around that population, including a mature

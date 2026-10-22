@@ -5,7 +5,7 @@ param(
         'LadderSchedulingTest','LadderTest','LadderMiningTest',
         'CraftingSelectionTest','WorkerCraftingTest','WorkerCraftingWoodTest','RudimentaryRecreationTest','RecreationSoloTest',
         'HaulingSelectionTest','HaulingAnimationTest','HaulingCapacityTest','FruitHaulingTest','SurfaceWorkSelectionTest',
-        'TreeFellingTest','AppleHarvestTest','JuniperHarvestTest','MinerProfessionTest','PlacementHaulPriorityTest',
+        'TreeFellingTest','AppleHarvestTest','JuniperHarvestTest','MinerProfessionTest','MiningHiddenAirTest','MiningDragLimitTest','PlacementHaulPriorityTest',
         'ShrubMoveHandoffTest','DwarfSupportTest','DwarfIdleBehaviorTest','DwarfIdlePlanningTest','DwarfFoodTest','DwarfDiningTest','ShrubRegrowthTest',
         'BridgeCornerWalkingTest','NavigationRegressionTest','ConstructionTest','ConstructionStagingTest','ConstructionContinuityTest','ConstructionDevTest','ConstructionInputTest','FloorConstructionTest','RetiredStoneMigrationTest','SaveManagerRoundTripTest'),
     [string]$LogDirectory = ''
@@ -23,6 +23,7 @@ foreach ($case in $Tests) {
     $errFile = Join-Path $LogDirectory ($case + '.err')
     $timer = [Diagnostics.Stopwatch]::StartNew()
     $process = Start-Process -FilePath $godotPath -ArgumentList @('--headless','--path',('"'+$projectRoot+'"'),'--script',('res://scripts/tests/'+$case+'.gd')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+    $null = $process.Handle  # hold the handle: Windows PowerShell 5.1 otherwise loses ExitCode
     $limit = if ($case -eq 'SaveManagerRoundTripTest') { 360 } else { 180 }
     $timedOut = $false
     while (-not $process.WaitForExit(1000)) {

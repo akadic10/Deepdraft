@@ -1,7 +1,0 @@
-{
-  "test": "SaveManagerRoundTripTest",
-  "passed": false,
-  "exit": 1,
-  "seconds": 38.16,
-  "timeout": false
-}

@@ -143,14 +143,18 @@ var _debug_previous_readability := -1.0
 # Immutable mined-set snapshot for the threaded overview build (same pattern as
 # _ovt_cut): the cut-floor colour rule (defects 3/4) reads it on worker threads.
 var _ovt_mined: Dictionary = {}
-var _cavity_shell_node: MeshInstance3D = null
-## Coalesced-rebuild flag: every shell-shaping event (cut/mined block changes,
-## slice moves and season turns) marks dirty; _process drains it into
-## at most ONE _rebuild_cavity_shell() per frame. Real mining commits one block
-## per swing — rebuilding synchronously per commit made block N cost O(N) (and
-## save-restore O(N²)); coalescing caps it at one rebuild per frame no matter
-## the batch size.
+var _cavity_shell_node: Node3D = null   # container: one MeshInstance3D per column
+## Coalesced FULL-rebuild flag for events that change every column (slice moves,
+## season turns, world restores); _process drains it into at most ONE
+## _rebuild_cavity_shell() per frame. Cut/mined block edits instead mark only the
+## columns they touch in _shell_dirty_columns: a full rebuild per mining commit
+## cost O(all cut blocks) — ~80 ms in a 50k-cut colony — on every swing.
 var _cavity_shell_dirty: bool = false
+## The shell is split into 16×16 block columns (all heights: a column's
+## open-from-above test reads its whole (x, z) column). Vector2i column keys.
+var _cut_cells_by_column: Dictionary = {}   # column -> Dictionary(cell -> true)
+var _shell_meshes: Dictionary = {}          # column -> MeshInstance3D
+var _shell_dirty_columns: Dictionary = {}   # column -> true
 ## Memoised WorldGenerator id lookups for shell neighbour blocks. Generated ids
 ## are deterministic and immutable for the lifetime of a world (the seed never
 ## changes within a scene; a load reloads the scene and this node with it).
@@ -168,7 +172,11 @@ var _cut_chunks: Dictionary = {}
 var _ovt_cut: Dictionary = {}
 ## Invalidate on input changes; reuse immutable dictionaries across tile batches.
 ## Replacement is allowed only after every reader of the previous batch finishes.
+## The flag forces a full copy (global invalidation); block edits instead list
+## their cells in _snapshot_dirty_cells, patched in place between batches — a
+## full copy per mining commit cost ~30 ms in a 50k-cut colony.
 var _overview_snapshot_dirty := true
+var _snapshot_dirty_cells: Dictionary = {}   # cell -> true
 # Group-task scratch for the threaded overview build (main thread sets these
 # before dispatch; workers read _ovt_batch/_ovt_season read-only and write their
 # own disjoint _ovt_results slot).
@@ -343,6 +351,10 @@ func _process(_delta: float) -> void:
 				underground_lighting._on_caves_discovered(cells)
 	if _added_terrain_dirty or (_added_terrain != null and _added_terrain_slice != slice_y):
 		_rebuild_added_terrain()
+	elif not _added_dirty_columns.is_empty():
+		var added_columns := _added_dirty_columns.keys()
+		_added_dirty_columns.clear()
+		_rebuild_added_columns(added_columns)
 	# VisibleVolume contract (doc 11 Phase 3, ref doc 10 rule S5): flush at most
 	# ONE visible_volume_changed per frame, before either render branch runs, so
 	# consumers rebuild reactively and never poll. Any number of state changes in
@@ -360,6 +372,10 @@ func _process(_delta: float) -> void:
 	if _cavity_shell_dirty:
 		_cavity_shell_dirty = false
 		_rebuild_cavity_shell()
+	elif not _shell_dirty_columns.is_empty():
+		var shell_columns := _shell_dirty_columns.keys()
+		_shell_dirty_columns.clear()
+		_rebuild_shell_columns(shell_columns)
 
 	if _block_face_overview_active():
 		# Stamp unconditionally — timing can begin between frames, and a zero
@@ -754,6 +770,7 @@ func set_visual_cut_blocks(blocks: Dictionary) -> void:
 	_visual_cut_blocks.merge(_debug_cave_blocks)
 	_visual_cut_blocks.merge(WorldData.terrain_overrides())
 	_cut_chunks.clear()
+	_cut_cells_by_column.clear()
 	for block: Vector3i in _visual_cut_blocks.keys():
 		_track_cut_chunk(block, 1)
 	_invalidate_visual_cut_meshes_global()
@@ -875,72 +892,95 @@ func is_revealed_air(block: Vector3i) -> bool:
 ## Skips cavity continuations, faces above the slice plane and world edges.
 ## Discovered natural cave air shares the exposure rules of mined openings;
 ## undiscovered cave air remains concealed behind designation faces.
-## Full rebuild; per-chunk nodes remain the scale path for larger networks.
+## Full rebuild: every column that has cut blocks or still owns a mesh. Slice
+## moves, season turns and restores land here; edits rebuild only the columns
+## they touch (_rebuild_shell_columns, fed by _shell_dirty_columns).
 func _rebuild_cavity_shell() -> void:
-	if _cavity_shell_node == null:
-		_cavity_shell_node = MeshInstance3D.new()
-		_cavity_shell_node.name = "CavityShell"
-		_cavity_shell_node.material_override = _material
-		preload("res://scripts/components/TerrainLighting.gd").configure_mesh(_cavity_shell_node)
-		add_child(_cavity_shell_node)
+	_shell_dirty_columns.clear()
+	var columns: Dictionary = {}
+	for column: Vector2i in _cut_cells_by_column: columns[column] = true
+	for column: Vector2i in _shell_meshes: columns[column] = true
+	_rebuild_shell_columns(columns.keys())
 
-	if _visual_cut_blocks.is_empty():
-		_cavity_shell_node.mesh = null
-		return
 
-	var verts: PackedVector3Array = []
-	var norms: PackedVector3Array = []
-	var cols: PackedColorArray = []
-	var indices: PackedInt32Array = []
+func _rebuild_shell_columns(columns: Array) -> void:
 	var season: String = WorldClock.season
 	var col_tops: Dictionary = {}   # per-rebuild cache: Vector2i -> effective top
+	for column: Vector2i in columns:
+		var verts: PackedVector3Array = []
+		var norms: PackedVector3Array = []
+		var cols: PackedColorArray = []
+		var indices: PackedInt32Array = []
+		for block: Vector3i in _cut_cells_by_column.get(column, {}):
+			if WorldData.has_solid_override(block): continue
+			if block.y > slice_y:
+				continue   # cavity above the plane — hidden with everything else
+			if block.y > _cavity_column_top(block.x, block.z, col_tops):
+				continue   # open-from-above — the overview's job (defect 1)
+			var mined := is_revealed_air(block) or _debug_cave_blocks.has(block)
+			for dir: Vector3i in _SHELL_DIRS:
+				var n: Vector3i = block + dir
+				if WorldData.has_solid_override(n): continue # Current terrain mesh owns overrides.
+				if _visual_cut_blocks.has(n):
+					continue   # open continuation of the cavity (plan or hole)
+				if n.y > slice_y:
+					continue   # never draw above the plane
+				if n.x < 0 or n.x >= WORLD_SIZE_X \
+						or n.y < 0 or n.y >= WORLD_SIZE_Y \
+						or n.z < 0 or n.z >= WORLD_SIZE_Z:
+					continue   # world edge
+				# Memoised: generated ids are deterministic per world (see the
+				# _shell_exact_ids declaration), so repeat rebuilds hit the dict
+				# instead of re-sampling 3D noise per face.
+				var exact_id: int
+				if _shell_exact_ids.has(n):
+					exact_id = _shell_exact_ids[n]
+				else:
+					exact_id = WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
+					_shell_exact_ids[n] = exact_id
+				if not BlockRegistry.is_solid(exact_id):
+					# An undiscovered cave touching a designation still looks solid.
+					# Actual mining discovers connected natural air in InteriorTracker.
+					if WorldGenerator.get_cave_id(n) < 0: continue
+					exact_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
+				var display_id: int
+				if mined:
+					display_id = exact_id
+				elif _shell_strata_ids.has(n):
+					display_id = _shell_strata_ids[n]
+				else:
+					display_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
+					_shell_strata_ids[n] = display_id
+				_add_shell_face(n, dir, BlockRegistry.get_terrain_color(display_id, season), verts, norms, cols, indices)
+		_apply_column_mesh(_shell_meshes, _shell_container(), column, verts, norms, cols, indices)
 
-	for block: Vector3i in _visual_cut_blocks.keys():
-		if WorldData.has_solid_override(block): continue
-		if block.y > slice_y:
-			continue   # cavity above the plane — hidden with everything else
-		if block.y > _cavity_column_top(block.x, block.z, col_tops):
-			continue   # open-from-above — the overview's job (defect 1)
-		var mined := is_revealed_air(block) or _debug_cave_blocks.has(block)
-		for dir: Vector3i in _SHELL_DIRS:
-			var n: Vector3i = block + dir
-			if WorldData.has_solid_override(n): continue # Current terrain mesh owns overrides.
-			if _visual_cut_blocks.has(n):
-				continue   # open continuation of the cavity (plan or hole)
-			if n.y > slice_y:
-				continue   # never draw above the plane
-			if n.x < 0 or n.x >= WORLD_SIZE_X \
-					or n.y < 0 or n.y >= WORLD_SIZE_Y \
-					or n.z < 0 or n.z >= WORLD_SIZE_Z:
-				continue   # world edge
-			# Memoised: generated ids are deterministic per world (see the
-			# _shell_exact_ids declaration), so repeat rebuilds hit the dict
-			# instead of re-sampling 3D noise per face.
-			var exact_id: int
-			if _shell_exact_ids.has(n):
-				exact_id = _shell_exact_ids[n]
-			else:
-				exact_id = WorldGenerator.get_generated_block_id(n.x, n.y, n.z)
-				_shell_exact_ids[n] = exact_id
-			if not BlockRegistry.is_solid(exact_id):
-				# An undiscovered cave touching a designation still looks solid.
-				# Actual mining discovers connected natural air in InteriorTracker.
-				if WorldGenerator.get_cave_id(n) < 0: continue
-				exact_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
-			var display_id: int
-			if mined:
-				display_id = exact_id
-			elif _shell_strata_ids.has(n):
-				display_id = _shell_strata_ids[n]
-			else:
-				display_id = WorldGenerator.get_overview_strata_block_id(n.x, n.y, n.z)
-				_shell_strata_ids[n] = display_id
-			_add_shell_face(n, dir, BlockRegistry.get_terrain_color(display_id, season), verts, norms, cols, indices)
 
+func _shell_container() -> Node3D:
+	if _cavity_shell_node == null:
+		_cavity_shell_node = Node3D.new()
+		_cavity_shell_node.name = "CavityShell"
+		add_child(_cavity_shell_node)
+	return _cavity_shell_node
+
+
+## One MeshInstance3D per column with faces; a column left without faces frees
+## its node. Shared by the cavity shell and the added terrain.
+func _apply_column_mesh(meshes: Dictionary, container: Node3D, column: Vector2i,
+		verts: PackedVector3Array, norms: PackedVector3Array, cols: PackedColorArray,
+		indices: PackedInt32Array) -> void:
+	var node: MeshInstance3D = meshes.get(column)
 	if verts.is_empty():
-		_cavity_shell_node.mesh = null
+		if node != null:
+			node.queue_free()
+			meshes.erase(column)
 		return
-
+	if node == null:
+		node = MeshInstance3D.new()
+		node.name = "Column_%d_%d" % [column.x, column.y]
+		node.material_override = _material
+		preload("res://scripts/components/TerrainLighting.gd").configure_mesh(node)
+		container.add_child(node)
+		meshes[column] = node
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
@@ -949,7 +989,7 @@ func _rebuild_cavity_shell() -> void:
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	_cavity_shell_node.mesh = mesh
+	node.mesh = mesh
 
 
 ## Cut-aware effective top of a column (cached per shell rebuild): walk down
@@ -1047,13 +1087,40 @@ func _track_cut_chunk(block: Vector3i, delta: int) -> void:
 		_cut_chunks[key] = count
 	else:
 		_cut_chunks.erase(key)
+	var column := _column_of(block)
+	var cells: Dictionary = _cut_cells_by_column.get(column, {})
+	if delta > 0:
+		cells[block] = true
+		_cut_cells_by_column[column] = cells
+	elif cells.erase(block) and cells.is_empty():
+		_cut_cells_by_column.erase(column)
+
+
+## 16×16 column key (chunk x, z) for the per-column shell and added-terrain meshes.
+func _column_of(cell: Vector3i) -> Vector2i:
+	return Vector2i(cell.x >> 4, cell.z >> 4)
+
+
+## Columns whose meshes an edit at `cell` can change: its own column (every
+## height, for the open-from-above test) plus a neighbour column when the cell
+## sits on a column edge, since faces toward the cell belong to that neighbour.
+func _mark_columns_touching(dirty: Dictionary, cells: Array[Vector3i]) -> void:
+	for cell: Vector3i in cells:
+		var column := _column_of(cell)
+		dirty[column] = true
+		var lx := cell.x & 15
+		var lz := cell.z & 15
+		if lx == 0: dirty[column + Vector2i(-1, 0)] = true
+		elif lx == 15: dirty[column + Vector2i(1, 0)] = true
+		if lz == 0: dirty[column + Vector2i(0, -1)] = true
+		elif lz == 15: dirty[column + Vector2i(0, 1)] = true
 
 
 func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	if blocks.is_empty():
 		return
-	_overview_snapshot_dirty = true
-	_cavity_shell_dirty = true   # designations and mined holes both shape the shell (SO-2b A)
+	for block: Vector3i in blocks: _snapshot_dirty_cells[block] = true
+	_mark_columns_touching(_shell_dirty_columns, blocks)   # designations and mined holes both shape the shell (SO-2b A)
 	if _block_face_overview_active():
 		_enqueue_overview_tiles_for_blocks(blocks)
 		return
@@ -2005,13 +2072,24 @@ func _drain_overview_tile_queue() -> void:
 
 func _refresh_overview_snapshots() -> void:
 	assert(not _ovt_building and _ovt_task < 0, "Overview snapshots still have active readers")
-	if not _overview_snapshot_dirty: return
-	_ovt_cut = _visual_cut_blocks.duplicate()
-	_ovt_mined = _mined_blocks.duplicate()
-	_ovt_mined.merge(_discovered_cave_blocks)
-	_ovt_mined.merge(_debug_cave_blocks)
-	_ovt_mined.merge(WorldData.terrain_overrides())
-	_overview_snapshot_dirty = false
+	if _overview_snapshot_dirty or _snapshot_dirty_cells.size() > _visual_cut_blocks.size() / 4:
+		_ovt_cut = _visual_cut_blocks.duplicate()
+		_ovt_mined = _mined_blocks.duplicate()
+		_ovt_mined.merge(_discovered_cave_blocks)
+		_ovt_mined.merge(_debug_cave_blocks)
+		_ovt_mined.merge(WorldData.terrain_overrides())
+		_overview_snapshot_dirty = false
+		_snapshot_dirty_cells.clear()
+		return
+	# No batch is reading (asserted above), so membership is patched in place.
+	for cell: Vector3i in _snapshot_dirty_cells:
+		if _visual_cut_blocks.has(cell): _ovt_cut[cell] = true
+		else: _ovt_cut.erase(cell)
+		if _mined_blocks.has(cell) or _discovered_cave_blocks.has(cell) \
+				or _debug_cave_blocks.has(cell) or WorldData.has_terrain_override(cell):
+			_ovt_mined[cell] = true
+		else: _ovt_mined.erase(cell)
+	_snapshot_dirty_cells.clear()
 
 
 func _overview_result_is_current(index: int) -> bool:
@@ -2919,7 +2997,7 @@ func _print_startup_performance_report() -> void:
 ## solid overrides with their block's own art. This cache records no ownership.
 func _terrain_block_changed(cell: Vector3i, _old: int, _new: int) -> void:
 	_terrain_changes[cell] = true
-	_added_terrain_dirty = true
+	_mark_columns_touching(_added_dirty_columns, [cell])
 
 func _flush_terrain_changes() -> void:
 	if _terrain_changes.is_empty(): return
@@ -2939,60 +3017,63 @@ func _flush_terrain_changes() -> void:
 		_shell_exact_ids.erase(cell)
 	_invalidate_visual_cut_blocks(changed)
 
-var _added_terrain: MeshInstance3D
-var _added_terrain_dirty := false
+var _added_terrain: Node3D   # container: one MeshInstance3D per column
+var _added_terrain_dirty := false   # full rebuild (season); edits mark _added_dirty_columns
 var _added_terrain_slice := -1
+var _added_meshes: Dictionary = {}          # column -> MeshInstance3D
+var _added_dirty_columns: Dictionary = {}   # column -> true
 
 ## Solid final-state overrides, including both authored floor types. All writers
-## use this same mesh; construction retains only previews and unfinished plans.
+## use these meshes; construction retains only previews and unfinished plans.
+## Full rebuild of every column with overrides or a mesh (season turns, slice
+## moves); terrain edits rebuild only the columns they touch.
 func _rebuild_added_terrain() -> void:
 	_added_terrain_dirty = false
+	_added_dirty_columns.clear()
+	var columns: Dictionary = {}
+	for column: Vector2i in WorldData.override_columns(): columns[column] = true
+	for column: Vector2i in _added_meshes: columns[column] = true
+	_rebuild_added_columns(columns.keys())
+
+
+func _rebuild_added_columns(columns: Array) -> void:
 	_added_terrain_slice = slice_y
-	var cells: Array = []
-	for entry: Dictionary in WorldData.serialize_solid_edits():
-		var cell := SaveManager.unpack_v3i(entry.cell)
-		if cell.y>slice_y: continue
-		cells.append(entry)
-	if _added_terrain == null:
-		if cells.is_empty(): return
-		_added_terrain = MeshInstance3D.new()
-		_added_terrain.name = "AddedTerrain"
-		_added_terrain.material_override = _material
-		preload("res://scripts/components/TerrainLighting.gd").configure_mesh(_added_terrain)
-		add_child(_added_terrain)
-	var verts := PackedVector3Array()
-	var norms := PackedVector3Array()
-	var colors := PackedColorArray()
-	var indices := PackedInt32Array()
-	for entry: Dictionary in cells:
-		var cell := SaveManager.unpack_v3i(entry.cell)
-		var color := BlockRegistry.get_terrain_color(BlockRegistry.get_id(entry.block),WorldClock.season)
-		var definition := BlockRegistry.get_def(entry.block)
-		var floor_def := BlockRegistry.get_construction_def(String(definition.get("construction","")))
-		for direction: Vector3i in _SHELL_DIRS:
-			var neighbour := cell+direction
-			var solid := BlockRegistry.is_solid(WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z))
-			if neighbour.y <= slice_y and solid: continue
-			var cut := direction == Vector3i.UP and cell.y == slice_y and solid
-			if not floor_def.is_empty():
-				var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
-				_floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,cut,verts,norms,colors,indices)
-			else:
-				_add_shell_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
-	_added_terrain.mesh = null
-	if not verts.is_empty():
-		var arrays := []
-		arrays.resize(Mesh.ARRAY_MAX)
-		arrays[Mesh.ARRAY_VERTEX] = verts
-		arrays[Mesh.ARRAY_NORMAL] = norms
-		arrays[Mesh.ARRAY_COLOR] = colors
-		arrays[Mesh.ARRAY_INDEX] = indices
-		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-		_added_terrain.mesh = mesh
+	var season: String = WorldClock.season
+	for column: Vector2i in columns:
+		var overrides: Dictionary = WorldData.column_overrides(column.x, column.y)
+		var verts := PackedVector3Array()
+		var norms := PackedVector3Array()
+		var colors := PackedColorArray()
+		var indices := PackedInt32Array()
+		for cell: Vector3i in overrides:
+			var id: int = overrides[cell]
+			if not BlockRegistry.is_solid(id): continue
+			if _added_terrain == null:
+				# Exists once any solid override does, even above the slice, so
+				# slice moves (_process) rebuild it.
+				_added_terrain = Node3D.new()
+				_added_terrain.name = "AddedTerrain"
+				add_child(_added_terrain)
+			if cell.y > slice_y: continue
+			var color := BlockRegistry.get_terrain_color(id, season)
+			var definition := BlockRegistry.get_def(BlockRegistry.get_key(id))
+			var floor_def := BlockRegistry.get_construction_def(String(definition.get("construction","")))
+			for direction: Vector3i in _SHELL_DIRS:
+				var neighbour := cell+direction
+				var solid := BlockRegistry.is_solid(WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z))
+				if neighbour.y <= slice_y and solid: continue
+				var cut := direction == Vector3i.UP and cell.y == slice_y and solid
+				if not floor_def.is_empty():
+					var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
+					_floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,cut,verts,norms,colors,indices)
+				else:
+					_add_shell_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
+		if _added_terrain != null:
+			_apply_column_mesh(_added_meshes, _added_terrain, column, verts, norms, colors, indices)
 
 func is_loading_complete() -> bool:
 	if _initial_load or _cavity_shell_dirty or _added_terrain_dirty or not _terrain_changes.is_empty(): return false
+	if not _shell_dirty_columns.is_empty() or not _added_dirty_columns.is_empty(): return false
 	if _block_face_overview_active():
 		if not _overview_built or not _dirty_overview_tiles.is_empty() or _ovt_building: return false
 	elif not _dirty_region_queue.is_empty(): return false

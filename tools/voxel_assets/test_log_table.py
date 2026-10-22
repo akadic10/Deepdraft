@@ -1,34 +1,18 @@
-import tempfile
+"""Log dining table: footprint, seating obstacles, recipe and seated head clearance."""
 import unittest
-from pathlib import Path
 from common import read_json
-from log_table import model,source_model,top_cells,base_cells,export_editable
-from vox_source import read_models
+import hearthblock
 
 
 class LogTableTests(unittest.TestCase):
-    def test_exact_authored_top_and_centered_native_pedestal(self):
-        source=source_model();top=top_cells();base=base_cells();cells=model().cells
-        self.assertEqual(top,{(x-24,z,23-y) for x,y,z in source['cells']})
-        self.assertEqual(len(top),6464)
-        self.assertEqual([(min(p[i] for p in base),max(p[i] for p in base)+1) for i in range(3)],
-                         [(-8,8),(0,16),(-8,8)])
-        self.assertEqual([(min(p[i] for p in cells),max(p[i] for p in cells)+1) for i in range(3)],
-                         [(-23,23),(0,20),(-23,23)])
-        self.assertFalse(top&base)
-        self.assertLess(set(cells),top|base)
-        self.assertGreater(len(cells),len(top|base)*.85)
-        self.assertTrue(all((x,16,z) in top for x,y,z in base if y==15))
-        self.assertTrue((16,15,0) not in cells and (16,16,0) in cells,'open space beneath tabletop overhang')
-
     def test_definition_and_craft_registration(self):
         definition=read_json('data/furniture/log_table.json')
         self.assertEqual(definition['footprint'],{'width':3,'depth':3})
         self.assertEqual(definition['dining_surface_height'],24/16)
         self.assertEqual(definition['material_palette'],'hand_hewn_timber')
         self.assertEqual(len(definition['seating']['slots']),4)
-        from hand_hewn_timber import model as production_model
-        for x,y,z in production_model('dining_table').cells:
+        # The Tier 1 split-slab table (doc 256) stays inside the seating obstacles.
+        for x,y,z in hearthblock.model('split_slab_table').cells:
             lo=((x+24)/16,y/16,(z+24)/16);hi=tuple(v+1/16 for v in lo)
             self.assertTrue(any(all(b['min'][i]<=lo[i] and hi[i]<=b['max'][i] for i in range(3)) for b in definition['seating_obstacles']))
         recipe=next(r for r in read_json('data/workshops/worker_crafting.json')['recipes'] if r['id']=='base:recipe:worker:log_table')
@@ -36,17 +20,6 @@ class LogTableTests(unittest.TestCase):
         self.assertEqual(recipe['output'],definition['item_key'])
         self.assertEqual(recipe['ingredient_count'],2)
         self.assertIn(definition['item_key'],read_json('data/entities/items/resources.json'))
-
-    def test_four_editable_woods_preserve_composite_shape(self):
-        with tempfile.TemporaryDirectory() as directory:
-            export_editable(directory)
-            colors=[]
-            for wood in ['pine','oak','juniper','applewood']:
-                source,palette=read_models(Path(directory)/(wood+'.vox'))
-                self.assertEqual(source[0]['size'],(48,48,20))
-                self.assertEqual({(x-24,z,23-y) for x,y,z in source[0]['cells']},set(model().cells))
-                colors.append(tuple(palette[:5]))
-            self.assertEqual(len(set(colors)),4)
 
     def test_compact_four_seat_profile_keeps_every_head_off_the_tabletop(self):
         definition=read_json('data/furniture/log_table.json')

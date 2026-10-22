@@ -7,8 +7,8 @@
     "Four seasonal models: spring (blossom), summer (leafy), autumn (gold/rust), winter (bare).",
     "Footprint follows the spreading-tree rule — see 42_farming_brewing.md § Surface Trees.",
     "",
-    "MODEL VARIANTS — complete clustered tree family (doc 147):",
-    "All stages use clustered low-poly models in world units. Seasonal variant counts/order match.",
+    "MODEL VARIANTS — Hearthblock square trees (doc 256):",
+    "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
     "World-position hashing preserves each tree variant across seasonal changes.",
     "Placement, growth, collision and harvest values are unchanged."
   ],

@@ -1,5 +1,5 @@
 {
-  "description": "Hand-hewn native 1:16 plants: substantial offset leaf clusters, attached fruit, broad flowers and reed blades. Offline owner tools/voxel_assets/plants.py; gameplay dimensions and timing remain unchanged.",
+  "description": "Hearthblock plants (doc 256): notched square clumps, leaf pads and stalks on the native 1:16 grid. Offline owner tools/voxel_assets/plants.py; gameplay dimensions and timing live in the plant definitions.",
   "blueberry": {
     "bark": "68533F",
     "spring": [

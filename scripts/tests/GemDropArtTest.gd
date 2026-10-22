@@ -46,11 +46,11 @@ func _run() -> void:
 		var cell := Vector3i(24 + (i % 3) * 3, 20, 24 + (i / 3) * 3)
 		items.spawn_drop(key, 1, cell + Vector3i.UP)
 		var node: Node3D = items.get_children().back()
-		var meshes := node.find_children("*", "MeshInstance3D", true, false)
+		var meshes: Array = load("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(node)
 		_expect(meshes.size() == 1 and meshes[0].mesh is ArrayMesh, key + " imports real gem geometry")
 		var mesh := meshes[0] as MeshInstance3D
 		var arrays: Array = mesh.mesh.surface_get_arrays(0)
-		# Standard 63 replaces integer cube faces with broad jewel facets.
+		# Hearthblock gems (doc 256) are square crystal clusters: flat, axis-aligned faces.
 		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
@@ -60,10 +60,10 @@ func _run() -> void:
 			var a: int = indices[j]; var b: int = indices[j+1]; var c: int = indices[j+2]
 			face_error = maxf(face_error,maxf(normals[a].distance_to(normals[b]),normals[a].distance_to(normals[c])))
 			if absf(normals[a].y) > .05 and absf(normals[a].y) < .95: sloping = true
-		_expect(face_error < .001 and sloping, key + " has flat sloping jewel facets")
+		_expect(face_error < .001 and not sloping, key + " has flat square voxel faces")
 		var radius := 0.0
 		for vertex in vertices: radius=maxf(radius,Vector2(vertex.x,vertex.z).length())
-		_expect(radius < .5 and mesh.get_aabb().size.y <= .626, key + " preserves jewel scale at every yaw")
+		_expect(radius < .5 and mesh.get_aabb().size.y <= .7501, key + " keeps the 12-cell carry size at every yaw")
 		measurements[NAMES[i] + "_geometry"] = {"face_error": face_error, "radius": radius}
 		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
 		_expect(not reference_colours.has(colors), key + " has a distinct palette")
@@ -191,8 +191,8 @@ func _native_review() -> void:
 	_expect(measurements.gloss_difference > .00001, "real lights produce visible facet reflections")
 	for key: String in items._surface_materials:
 		items._surface_materials[key].set_shader_parameter("surface_specular", items.get_item_def(key).surface.specular)
-	# The solver itself has UndergroundLightingTest coverage. Feed sealed air to
-	# this shader probe to isolate gem gloss from world generation and navigation.
+	# Feed sealed air to this shader probe to isolate gem gloss from world
+	# generation and navigation.
 	for x in range(21,35):
 		for y in range(20,24):
 			for z in range(21,32): field._write_cell(Vector3i(x,y,z), 0.0, true)

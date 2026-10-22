@@ -24,22 +24,26 @@ planned. The six shared jewel models and inventory thumbnails use distinct
 palettes and light-dependent highlights, including under local torches. Gems
 obey normal underground darkness, slice visibility, carrying and storage rules.
 Existing `_raw` item keys, drop chances, values and counts remain unchanged;
-the displayed names omit "Raw". See [104](../00_dev_roadmap/104_gem_drop_artwork.md).
+the displayed names omit "Raw".
 
-**Loose-item art (2026-10-13):** [155](../00_dev_roadmap/155_resource_drops_and_work_tools.md)
-converts all remaining drops and both dwarf work tools to standard 63. Ore
-identities retain a shared shape and colored mineral patches; natural stone is
-coherent grey, coal dark, and gems faceted with their existing gloss. Generator:
-`tools/generate_items_faceted.py`; profile: `data/art/items.json`. Only model
-paths change in resource definitions; generation, loot, quantities, material
-selection, worker contacts and saves retain their existing rules.
+**Loose-item art (Hearthblock, 2026-10-21):** mined stone, soils and ores are broken
+square chunks: a tall block and a lower one on a wide base, with a crack and lit tops.
+Ores carry two-cell stepped seams and raised nuggets, soils are stepped mounds and coal
+glints. The six gems are clusters of three square crystals with stepped points. They
+are built by `tools/voxel_assets/hearthblock_goods.py` with the palettes in
+`data/art/voxel_items.json`
+([256](../00_dev_roadmap/256_hearthblock_art_pilot.md)). Generation, loot,
+quantities, carry size, material selection, worker contacts and saves keep their
+existing rules.
 
 **Terrain appearance (2026-10-13):** Rock keys and their generation/resource rules
 remain authoritative, but all eleven natural-rock variants now share one grey
 colour family. Grass variants are selected deterministically without edge-distance
 maps; all eight share a full-voxel seasonal grass palette. Dirt's decorative
-variant stripes are also removed. Material geography, soil depth, caves, resource
-placement, hardness and yields retain their existing rules. See
+variant stripes are also removed. Stone, grass and earth now carry the Hearthblock
+dressing, drawn in the shader only (one-cell edges, seams, flecks, occasional cracks
+or worn patches; `appearance_profiles.json` → `dressing`). Material geography, soil
+depth, caves, resource placement, hardness and yields retain their existing rules. See
 [145 â€” Base world terrain art](../00_dev_roadmap/145_base_world_terrain_art_plan.md).
 
 ## Geological Spectrum
@@ -200,7 +204,7 @@ A single click (no drag) always produces a **4Ã—4Ã—4 zone**. Dragging expa
 > follow-up Stonehearth parity-polish pass shipped 2026-06-06 (see *Shipped UX polish* below);
 > its tracking doc `05_mining_tech_debt.md` was retired the same day (git history retains the
 > worklog). Implemented in `scripts/systems/MiningDesignationController.gd`. Tuning lives in
-> `data/terrain/mining_config.json` (defaults 1Ã—1, max 8Ã—8, max drag 40) â€” the controller's
+> `data/terrain/mining_config.json` (defaults 1Ã—1, max 8Ã—8, max drag 32) â€” the controller's
 > inline values are fallbacks only; JSON wins.
 
 **Shipped UX polish (2026-06-06 Stonehearth parity pass â€” all verified in-engine):**
@@ -259,7 +263,8 @@ else:                                   # clicked a side face
 Invariants: the origin block is always included; horizontal extents round up to a multiple of
 the current horizontal size; the region grows away from the clicked face when there is a
 horizontal face normal; axes without a normal component are centered by half the horizontal
-size; max drag length is enforced by trimming one horizontal-size step.
+size; each horizontal axis is capped at `max_drag_length` (32) blocks, the most whole
+horizontal-size steps that fit, so a longer drag stops growing at the cap.
 
 **Selection filters:** out-of-bounds, transparent blocks, water, and `y <= 3` (Bedrock
 Protocol) are never selected; a preview with no valid mineable blocks confirms to nothing.
@@ -555,7 +560,11 @@ system. `InteriorTracker` publishes its air to rendering and lighting; this
 does not create mined-block deltas for pre-existing air. Save/load reconstructs
 discovery from the actual saved mining edits. The normal mining picker treats
 hidden cave air as concealed strata, then removes now-empty designations after
-discovery. A discovered cave provides walkable space and exposed mining leads;
+discovery. A worker who reaches a still-hidden planned cell works it as that
+strata; the commit breaks into the cave and reveals it, and yields no goods. A
+planned cell that is already open is skipped for the rest of the lease
+([254 §4.1](../00_dev_roadmap/254_full_project_review_2026_10_20.md)).
+A discovered cave provides walkable space and exposed mining leads;
 it remains dark away from real entrances and installed lights. It does not yet
 contain water, crops, creatures or loot.
 

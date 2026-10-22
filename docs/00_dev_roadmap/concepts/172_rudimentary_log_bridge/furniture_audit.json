@@ -1,5 +1,0 @@
-{
-  "furniture_fingerprint_checks": 41,
-  "bridge_gameplay_definition": "unchanged",
-  "legacy_full_audit_note": "The cross-family Git-HEAD gameplay audit is stale relative to earlier approved changes (including wolf proportions); this scoped audit checks all 41 furniture fingerprints and the unchanged bridge definition."
-}

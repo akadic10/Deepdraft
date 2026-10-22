@@ -71,7 +71,7 @@ var _swings_left: int = 0
 var _swing_time: float = 1.0
 var _swing_timer: float = 0.0
 var _pull_failures: int = 0
-var _pull_exclude: Dictionary = {}   # Vector3i -> true; this-round path blacklist
+var _pull_exclude: Dictionary = {}   # Vector3i -> true; this-round blacklist (unpathable or nothing to mine)
 
 ## HAUL-lease execution state (doc 18 §2.3 + pouch). Mirrors the zone-lease
 ## shape: 3 failed rounds release the lease with backoff; EVERYTHING carried
@@ -158,7 +158,7 @@ signal walk_finished(success: bool)
 ## physics sweep (collision_mask 0); obstacle correctness comes from the nav
 ## grid, not the physics engine.
 ##
-## Walk animation (doc 17 §2 rework, 2026-07-02): the gait cycle is driven by
+## Walk animation (2026-07-02 rework): the gait cycle is driven by
 ## DISTANCE TRAVELLED, not time — feet plant in sync with ground covered at
 ## any speed. With foot swing amplitude = stride_length/2 and the planted
 ## foot sliding backward (relative to the body) exactly one stride per half
@@ -784,9 +784,8 @@ func _begin_swinging() -> void:
 		return
 	var work: Dictionary = source.call("get_block_work", dwarf_id)
 	if work.is_empty():
-		# Reservation lost or block no longer solid — pull something else.
-		source.call("unreserve", dwarf_id)
-		_zone_pull_next()
+		# Reservation lost or nothing left to mine — pull something else.
+		_skip_zone_block(source)
 		return
 	_swings_left = int(work["swings"])
 	_swing_time = float(work["swing_time"]) * DwarfAssets.mining_duration_multiplier(profession, profession_experience)
@@ -798,11 +797,25 @@ func _begin_swinging() -> void:
 	_mining_pose.apply(0,_mine_contact)
 
 
+## Nothing to mine at the reserved block: the reservation was lost, or the cell
+## is already open (e.g. cave air revealed by the previous commit stays planned
+## until the deferred cleanup). Exclude it for the rest of this lease before
+## pulling again — its stand is usually the current cell, so re-pulling it
+## swings straight back here and recurses without end.
+func _skip_zone_block(source: RefCounted) -> void:
+	source.call("unreserve", dwarf_id)
+	_pull_exclude[_zone_block] = true
+	_zone_pull_next()
+
+
 func _process_swinging(delta: float) -> void:
 	var source := _zone_source()
 	if source == null or source.call("get_block_work",dwarf_id).is_empty():
 		_reset_part_offsets()
-		_zone_pull_next()
+		if source == null:
+			_zone_pull_next()   # routes to fail via null source
+		else:
+			_skip_zone_block(source)
 		return
 	# Coalesce a long frame into one contact, capped at this block's last
 	# swing. Crossing (rather than pose evaluation) prevents hold/reveal replay.
@@ -1922,7 +1935,7 @@ func _follow_path(delta: float) -> void:
 		rotation.y = atan2(route.facing.x, route.facing.z)
 
 	# Face travel direction (XZ only). The dwarf part GLBs are authored with
-	# the FACE on the +Z side (dwarf_roster.py), so local +Z —
+	# the FACE on the +Z side (tools/hearthblock/art/dwarves.mjs), so local +Z —
 	# not Godot's usual -Z — must point along travel. Smooth turn, no snap.
 	var flat := Vector2(to_target.x, to_target.z)
 	if not _climbing and flat.length_squared() > 0.0001:
@@ -2131,8 +2144,8 @@ func _apply_tints() -> void:
 	var skin: Color = DwarfAssets.SKIN_TONES.get(appearance.skin_tone, Color.WHITE)
 	var hair: Color = DwarfAssets.HAIR_COLORS.get(appearance.hair_color, Color.WHITE)
 
-	# Body and feet are BAKED since the doc-17 regen (clothed tunic torso,
-	# leather boots) — tint WHITE to keep the standard material while leaving
+	# Body and feet carry baked colours (the tunic torso and leather boots), so
+	# tint them WHITE to keep the standard material while leaving
 	# the baked colours alone. Skin tint applies to head and hands only.
 	_tint(_body, Color.WHITE)
 	_tint(_hand_l, skin)

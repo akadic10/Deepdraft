@@ -65,6 +65,7 @@ func _run() -> void:
 		await process_frame
 	# Preserve doc 69's historical before/after evidence when checking new rules.
 	var suffix := "baseline_current" if _baseline else "current"
+	DirAccess.make_dir_recursive_absolute("res://tmp/world_layout_review")
 	var file := FileAccess.open("res://tmp/world_layout_review/resource_balance_%s.json" % suffix, FileAccess.WRITE)
 	file.store_string(JSON.stringify({"passed": _failures.is_empty(), "failures": _failures,
 		"sample_method": "x/z 4,12,...,1020; every Y4 through solid terrain top, including generated cave air",

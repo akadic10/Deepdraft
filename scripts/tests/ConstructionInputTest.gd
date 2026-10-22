@@ -79,7 +79,7 @@ func _run() -> void:
 	furniture._slice_y = 127
 	builder._dirty = true
 	renderer._rebuild_added_terrain()
-	_expect(renderer._added_terrain!=null and renderer._added_terrain.mesh!=null,"terrain renderer owns completed block faces")
+	_expect(renderer._added_terrain!=null and not renderer._added_meshes.is_empty(),"terrain renderer owns completed block faces")
 	# This fixture leaves the renderer detached to avoid starting worldgen.
 	renderer._added_terrain.reparent(scene, false)
 	_move(camera.unproject_position(Vector3(45.5,22.5,43)))

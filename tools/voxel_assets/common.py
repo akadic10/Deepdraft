@@ -80,24 +80,6 @@ def translate(vox, offset):
     return result
 
 
-def branch_blocks(vox, a, b, r0, r1, color, step=1):
-    """Broad timber terraces on the 1:16 grid; small tips remain solid cubes.
-
-    Authoring a thick trunk with one-cell curvature creates thousands of tiny
-    surface rectangles. Two/four-cell steps retain a deliberate voxel silhouette
-    while allowing the greedy mesh to merge long faces.
-    """
-    if step==1:
-        branch(vox,a,b,r0,r1,color)
-        return
-    coarse=Voxels()
-    branch(coarse,[v/step for v in a],[v/step for v in b],r0/step,r1/step,color)
-    for x,y,z in coarse.cells:
-        for dx in range(step):
-            for dy in range(step):
-                for dz in range(step): vox.cells[x*step+dx,y*step+dy,z*step+dz]=color
-
-
 def palette_snow(vox, foliage_colors, snow, depth=2):
     """Recolor only the exposed top skin of foliage, retaining shape and wood."""
     tops={}

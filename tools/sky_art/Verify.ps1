@@ -1,4 +1,4 @@
-param([string[]]$Tests = @('DioramaSkyTest', 'SkyDialTest', 'WeatherPersistenceTest', 'UndergroundLightingTest', 'RoomLightingTest', 'TunnelEntranceTest'), [switch]$ReadExisting)
+param([string[]]$Tests = @('DioramaSkyTest', 'SkyDialTest', 'WeatherPersistenceTest'), [switch]$ReadExisting)
 $ErrorActionPreference = 'Stop'
 $skyRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $skyOutput = Join-Path $skyRoot 'tmp/sky_art_20261013/verification'

@@ -1,5 +1,5 @@
 {
-  "__comment": "Hand-hewn chibi tree family: substantial foliage masses, distinct species silhouettes, forked trunks and long bark plates. Native 1:16 cells, existing heights, footprint clearance and seasonal/picked identities.",
+  "__comment": "Hearthblock trees (doc 256): square tiered crowns, square pine plates and stepped square timber. Native 1:16 cells, existing heights, footprint clearance and seasonal/picked identities. Owner: tools/voxel_assets/trees.py.",
   "pine": {
     "seed": 701,
     "bark": [

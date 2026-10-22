@@ -1,2 +1,0 @@
-ERROR: Can't create shader cache folder, no shader caching will happen: user://
-   at: RendererCompositorRD (servers/rendering/renderer_rd/renderer_compositor_rd.cpp:337)

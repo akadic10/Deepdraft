@@ -5,7 +5,6 @@ import * as P from './proposal.mjs';
 import * as T from './tier1.mjs';
 import * as D from './dwarves.mjs';
 import * as W from './wildlife.mjs';
-import * as PL from './plants.mjs';
 
 const cellsOf = (v) => [...v.cells].map(([k, c]) => [...P.Vox.unkey(k), c]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
 const fromModel = (v) => ({ ops: v.log, cells: cellsOf(v) });
@@ -54,7 +53,6 @@ const out = {
   },
   dwarf: Object.fromEntries(D.NAMES.map(n => [n, fromModel(D.build(n))])),
   wildlife: Object.fromEntries(W.NAMES.map(n => [n, fromModel(W.build(n))])),
-  plants: Object.fromEntries(PL.NAMES.map(n => [n, fromModel(PL.build(n))])),
   palette: P.PALETTE,
 };
 for (let h = 1; h <= 4; h++) out.furniture['ladder_' + h] = fromModel(T.ladder(h));

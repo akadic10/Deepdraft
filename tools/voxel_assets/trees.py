@@ -1,10 +1,10 @@
-"""Hand-hewn tree silhouettes, baked on the native 1:16 object grid."""
+"""Hearthblock trees (doc 256): square tiered crowns, square pine plates and stepped
+square timber, baked on the native 1:16 object grid."""
 import math
 import random
-from common import Voxels,Part,box,branch_blocks,linear,palette_snow,read_json
+from common import Voxels,Part,box,linear,palette_snow,read_json
 
 STAGES=('sapling','mature','ancient')
-HEARTHBLOCK=('oak','pine','apple','juniper')   # Hearthblock square trees (doc 256)
 NEIGHBORS=((1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1))
 
 
@@ -19,29 +19,6 @@ def _grounded_wood(wood):
             if q in wood.cells and q not in connected:
                 connected.add(q); pending.append(q)
     wood.cells={p:c for p,c in wood.cells.items() if p in connected}
-
-
-def crown(vox, at, width, depth, colors, turn=0):
-    """Tapered chunky lobes; broad shoulders instead of flat pucks.
-
-    Two/four-cell leaf steps avoid a curtain of one-cell chamfer stripes.
-    All dimensions are baked into native cells, never stretched at runtime.
-    """
-    step=4 if width>=2 else 2
-    coarse=Voxels()
-    for y,w,height,shade in [(-.40,.55,.20,0),(-.24,.84,.27,0),
-                            (0,1,.32,1),(.23,.86,.25,1),(.40,.57,.19,2)]:
-        dx=math.cos(turn)*width*y*.16; dz=math.sin(turn)*width*y*.16
-        box(coarse,((at[0]+dx)/step,(at[1]+depth*y)/step,(at[2]+dz)/step),
-            (width*w/step,depth*height/step,width*w*.90/step),colors[shade],cut=width*w*.16/step)
-    # One offset leaf tuft breaks the repeated shoulders without surface noise.
-    box(coarse,((at[0]+math.cos(turn)*width*.43)/step,(at[1]+depth*.10)/step,
-                (at[2]+math.sin(turn)*width*.40)/step),
-        (width*.31/step,depth*.30/step,width*.29/step),colors[2],cut=width*.045/step)
-    for (x,y,z),color in coarse.cells.items():
-        for dx in range(step):
-            for dy in range(step):
-                for dz in range(step): vox.cells[x*step+dx,y*step+dy,z*step+dz]=color
 
 
 def _upsample(vox, coarse, step):
@@ -96,7 +73,7 @@ def square_pine(vox, h, r, tiers, lean, variant, colors):
 
 def square_timber(wood, a, b, r0, r1, color, step):
     """Hearthblock wood: a squared limb that steps along its path with a square
-    section, face-connected like branch_blocks but with flat sides (doc 256)."""
+    section and flat sides, every step face-connected to the next (doc 256)."""
     coarse=Voxels()
     length=math.dist(a,b)
     count=max(2,math.ceil(length*16/step/max(1,min(r0,r1)*16/step))+1)
@@ -176,11 +153,8 @@ def tree_layers(profile,species,stage,variant,season,picked,footprint):
     color_season='autumn' if season=='autumn_fruiting' else season
     colors=[linear(v) for v in p.get(color_season,p['summer'])]
     wood=Voxels(); leaves=Voxels(); accents=Voxels()
-    square=species in HEARTHBLOCK
-    def timber(a,b,r0,r1):
-        if square: square_timber(wood,a,b,r0,r1,bark,step)
-        else: branch_blocks(wood,a,b,r0,r1,bark,step)
-    crown=square_crown if square else globals()['crown']
+    def timber(a,b,r0,r1): square_timber(wood,a,b,r0,r1,bark,step)
+    crown=square_crown
     knee=(r*.035,h*form['fork_height'],r*-.025)
     shoulder=(r*form['lean'],h*.62,r*.06)
     tip=(r*(form['lean']-.08),h*.94,-r*.09)
@@ -193,24 +167,8 @@ def tree_layers(profile,species,stage,variant,season,picked,footprint):
                trunk*.38,max(.0625,trunk*.10))
     centers=[]
     evergreen=species in ('pine','juniper')
-    if species=='pine' and square:
+    if species=='pine':
         square_pine(leaves,h,r,dims['tiers'],form['lean'],variant,colors)
-    elif species=='pine':
-        for tier in range(dims['tiers']):
-            t=tier/max(1,dims['tiers']-1)
-            y=h*(.37+.51*t)
-            width=r*(1.16-.89*t)
-            depth=h*(.28-.10*t)
-            at=(r*form['lean']*t,y,r*.07*math.sin(t*4+variant))
-            crown(leaves,at,width*1.16,depth,colors[:3],tier)
-            for side in range(3):
-                angle=side*math.tau/3+tier*.65+variant*.5
-                reach=width*(.36+rng.uniform(-.035,.035))
-                center=(at[0]+math.cos(angle)*reach,y+depth*rng.uniform(-.14,.06),at[2]+math.sin(angle)*reach)
-                timber((at[0],y-depth*.28,at[2]),center,trunk*.21,max(.0625,trunk*.07))
-                crown(leaves,center,width*.88,depth*.74,
-                      [colors[0],colors[1+(tier+side)%3],colors[3]],angle)
-        crown(leaves,(tip[0],h*.955,tip[2]),r*.30,h*.09,colors[2:5],variant)
     else:
         count=dims['limbs']
         for limb in range(count):

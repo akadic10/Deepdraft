@@ -34,7 +34,7 @@ FLAMES = ['flame_out', 'flame_mid', 'flame_core']
 GROUND = {'ground': 0}
 
 
-def models(dwarf_parts, wildlife_parts, plant_parts):
+def models(dwarf_parts, wildlife_parts):
     rows = [
         ('stool', 'furniture', 'hewn', dict(piece='log_chair', occlusion=GROUND)),
         ('split_slab_table', 'furniture', 'hewn', dict(piece='log_table', occlusion=GROUND)),
@@ -74,8 +74,6 @@ def models(dwarf_parts, wildlife_parts, plant_parts):
     # The floor sits where each part meets the ground: soles in their leg/foot frames.
     floor = {'rabbit/body': 0, 'deer/leg': -10, 'wolf/leg': -8, 'duck/foot': 0}
     rows += [(name, 'wildlife', name.split('/')[0], dict(occlusion={'ground': floor[name]}) if name in floor else {}) for name in wildlife_parts]
-    # Plants: one palette per species and season ('blueberry/mature/spring' -> 'blueberry:spring').
-    rows += [(name, 'plants', name.split('/')[0] + ':' + ('summer' if name.endswith('/fruit') else name.split('/')[-1]), dict(occlusion=GROUND)) for name in plant_parts]
     return rows
 
 
@@ -88,23 +86,15 @@ def main():
     fixed = {k: proposal[k].lstrip('#') for k in FIXED_FROM_PROPOSAL} | FIXED
     dwarf_scar = json.loads((ROOT / 'data/art/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']['scar']
     wildlife = json.loads((ROOT / 'data/art/voxel_wildlife.json').read_text(encoding='utf-8-sig'))['palette']
-    species = {name.split('/')[0] for name in ref['wildlife']}
+    species = sorted({name.split('/')[0] for name in ref['wildlife']})
     palettes = {f: {k.split(':', 1)[1]: v.lstrip('#') for k, v in wildlife.items() if k.startswith(f + ':')} for f in species}
-    flora = json.loads((ROOT / 'data/art/voxel_plants.json').read_text(encoding='utf-8-sig'))
-    for name in {n.split('/')[0] for n in ref['plants']}:
-        p = flora[name]
-        for season in ('spring', 'summer', 'autumn', 'winter'):
-            leaves = p.get(season, p['summer'])
-            palettes[f'{name}:{season}'] = {'bark': p['bark'], 'leaf0': leaves[0], 'leaf1': leaves[1], 'leaf2': leaves[2],
-                                            'blossom': p['blossom'], 'blossom_centre': 'CEAC62',
-                                            'fruit0': p['fruit'][0], 'fruit1': p['fruit'][1], 'fruit2': p['fruit'][2]}
     # Work tools keep the existing tool materials (iron, steel, haft wood, leather wraps).
     dwarf_palette = json.loads((ROOT / 'data/art/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']
     tools = {k: dwarf_palette[k].lstrip('#') for k in ('wood', 'grain', 'tool_leather', 'iron', 'iron_dark', 'steel')}
     palettes |= {'hewn': HEWN | fixed, 'oak': OAK | fixed,
                 'dwarf': {k: proposal[k].lstrip('#') for k in DWARF_ROLES if k != 'scar'} | {'scar': dwarf_scar.lstrip('#')} | tools}
     out = {}
-    for name, group, palette, extra in models(list(ref['dwarf']), list(ref['wildlife']), list(ref['plants'])):
+    for name, group, palette, extra in models(list(ref['dwarf']), list(ref['wildlife'])):
         source = extra.pop('source', name)
         out[name] = dict(group=group, palette=palette, **extra, ops=ref[group][source]['ops'])
         used = {op[2] for op in _flat(out[name]['ops'] + out[name].get('extra', [])) if len(op) > 2 and op[2] is not None}

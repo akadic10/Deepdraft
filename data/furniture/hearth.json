@@ -1,10 +1,10 @@
 {
   "__comment": [
     "Rudimentary room heater — rough stacked fieldstone back and cheeks, open front, logs and glowing coals (doc 199).",
-    "Faceted world-unit geometry is authored by generate_furniture_faceted.py; the opening faces local +Z.",
+    "Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs (doc 256); the opening faces local +Z.",
     "The stone back reaches 1.68 blocks inside the unchanged 2x2x2 collision envelope.",
     "RoomManager counts 1600 heat units once at the origin. Small sealed bedrooms stay comfortable through the seasons.",
-    "Named body/flame meshes and ten low faceted flame frames preserve installed lighting and animation.",
+    "Named body/flame meshes and ten low voxel flame frames preserve installed lighting and animation.",
     "Installed hearths emit warm, gently flickering light. Ghosts and packed items remain unlit.",
     "The shared packed-furniture item and floor-placement behavior are unchanged."
   ],

@@ -3,7 +3,7 @@ import unittest
 from common import read_json,linear,Voxels
 from dwarves import assets,separate_overlay,surface_keys
 from coverage import expected_paths
-from micro_voxel_study.generate import solid
+from solid_shapes import solid
 
 
 def _merged(parts):

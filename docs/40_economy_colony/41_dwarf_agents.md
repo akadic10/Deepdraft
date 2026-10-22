@@ -51,10 +51,10 @@ direction; runtime population enforcement has not been added. See
 [11 — Overview](../10_core_foundation/11_overview.md) and
 [187 — Scaling measurements](../00_dev_roadmap/187_colony_scaling_performance.md).
 
-**2026-10-13 — Balanced proportions:** [165](../00_dev_roadmap/165_approved_actor_proportions.md)
-integrates the selected narrower torso/head and relaxed stance. Standing height
-and the logical 1×1×3 body stay fixed. `DwarfAssets` owns `proportions.json`;
-assembly, work/rest resets and static portraits use those factors. Tool/carry
+**Proportions:** `DwarfAssets` owns `data/entities/dwarves/proportions.json`. Body and
+head widths are 1 because the Hearthblock parts carry their own shape; the file sets
+the relaxed hand and foot stance. Standing height and the logical 1×1×3 body stay
+fixed. Assembly, work/rest resets and static portraits use those values. Tool/carry
 grips and appearance IDs remain current; existing saves receive the new shape.
 
 **2026-10-12 — Food and dining:** [131 — Food and dining](../00_dev_roadmap/131_dwarf_food_and_dining.md)
@@ -279,9 +279,9 @@ The **0.3 block visual overhang** above the logical footprint is purely cosmetic
 
 > **Agent note:** The navigation system (see `32_navigation_3d.md`) uses the **3-block logical height**, not the 3.3-block visual height. Never use the visual mesh AABB for pathfinding clearance calculations.
 
-### Mesh Anatomy — Stonehearth-Inspired Silhouette
+### Mesh Anatomy — Hearthblock Chibi Silhouette
 
-Dwarf character meshes follow a **Stonehearth-style blocky silhouette**: deliberately simplified anatomy that keeps MagicaVoxel asset authoring fast and consistent across the whole roster.
+Dwarf character meshes use the **Hearthblock chibi silhouette** ([64](../60_asset_creation/64_hearthblock_art_direction.md)): a big square head, a compact flared tunic, chunky mittens and square boots. The anatomy is deliberately simple, which keeps authoring fast and consistent across the whole roster.
 
 A dwarf mesh is composed of exactly **four parts**:
 
@@ -294,8 +294,8 @@ A dwarf mesh is composed of exactly **four parts**:
 
 **Dwarves have no arms and no legs.** The hands and feet are detached, floating parts — connected to the body only by animation transforms, not by any mesh geometry. This is intentional and must be preserved:
 
-- It dramatically simplifies mesh authoring in MagicaVoxel. Each dwarf variant is four small voxel objects rather than a complex articulated rig.
-- It matches the aesthetic reference of Stonehearth, where the charm comes from the contrast between the large expressive head and the minimal, bobbing limb stubs.
+- It keeps authoring simple. Each dwarf is a few small cell-built parts (`tools/hearthblock/art/dwarves.mjs`) rather than a complex articulated rig.
+- The charm comes from the contrast between the big expressive head and the small, bobbing mittens and boots.
 - Hands and feet bob and swing via simple procedural animation offsets. No skeletal rig or IK solver is needed — transform offsets on the four part nodes are sufficient.
 
 ```
@@ -318,7 +318,7 @@ Each dwarf scene is structured as four sibling `MeshInstance3D` nodes under the 
 
 ```
 DwarfAgent (CharacterBody3D)
-  ├─ MeshHead   (MeshInstance3D)  ← .glb imported from MagicaVoxel
+  ├─ MeshHead   (MeshInstance3D)  ← .glb built by tools/voxel_assets
   ├─ MeshBody   (MeshInstance3D)
   ├─ MeshHandL  (MeshInstance3D)
   ├─ MeshHandR  (MeshInstance3D)

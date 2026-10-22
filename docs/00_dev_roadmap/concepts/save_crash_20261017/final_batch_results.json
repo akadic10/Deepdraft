@@ -1,7 +1,0 @@
-{
-  "test": "TerrainEditBatchTest",
-  "passed": true,
-  "exit": 0,
-  "seconds": 3.08,
-  "timeout": false
-}

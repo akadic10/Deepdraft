@@ -1,7 +1,0 @@
-{
-  "test": "ShrubMoveHandoffTest",
-  "passed": false,
-  "exit": 1,
-  "seconds": 11.65,
-  "timeout": false
-}

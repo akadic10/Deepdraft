@@ -1,5 +1,5 @@
 {
-  "description": "Hand-hewn chibi dwarf roster: distinct swept locks, sculpted cheeks and noses, substantial beard masses and workwear. Native 1:16 cells; original eye, palm, sole, tool and rigid animation anchors.",
+  "description": "Dwarf palette and anchors. The parts themselves are Hearthblock models authored in tools/hearthblock/art/dwarves.mjs (doc 256). Native 1:16 cells; eye, palm, sole, tool and rigid animation anchors.",
   "cells_per_block": 16,
   "palette": {
     "skin": "FFFFFF",

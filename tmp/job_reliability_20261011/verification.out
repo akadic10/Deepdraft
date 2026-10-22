@@ -1,7 +1,0 @@
-PASS JobLifecycleTest (2.49s)
-PASS JobPlanningTest (6.46s)
-PASS JobMixedWorldTest (17s)
-PASS HaulingSelectionTest (7.29s)
-PASS ShrubMoveHandoffTest (1.83s)
-PASS SavedLadderJobTest (46.34s)
-Logs: P:\Deepdraft\tmp\job_reliability_verification

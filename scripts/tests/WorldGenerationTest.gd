@@ -57,6 +57,7 @@ func _run() -> void:
 			validation["max_y"], validation["summit_columns"], validation["detailed_columns"], Time.get_ticks_msec() - started])
 		await process_frame
 	var report_name := "live_fallback_report.json" if force_fallback else "live_report.json"
+	DirAccess.make_dir_recursive_absolute("res://tmp/world_layout_review")
 	var file := FileAccess.open("res://tmp/world_layout_review/" + report_name, FileAccess.WRITE)
 	file.store_string(JSON.stringify({"passed": _failures.is_empty(), "failures": _failures, "seeds": report}, "\t"))
 	file.close()

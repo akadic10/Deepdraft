@@ -89,15 +89,15 @@ Ranked by impact × likelihood ÷ effort.
 | # | Issue | Sev | Ver | Effort |
 |---|---|---|---|---|
 | 1 | A stale `.git/index.lock` (since Oct 18 19:17) blocks commits and checkouts; 3 days of work are uncommitted | HIGH | ✔ | minutes |
-| 2 | Hidden cave air in a mining zone → unbounded recursion and a stack overflow (§4.1) | CRITICAL | ✔ | small |
-| 3 | Saves from another build are deleted by the next save; the startup notice is never shown (§4.7) | HIGH | ✔ | small |
-| 4 | New Game / Load throw the colony away on one click, with no confirmation (§4.9) | HIGH | ✔ | small |
-| 5 | Load and New Game leave the clock paused and overwrite the saved pause preference; regression in uncommitted code (§4.7) | MED | ✔ | small |
-| 6 | The gate runner and `Export.ps1` are broken under Windows PowerShell 5.1 (§4.10) | HIGH | ✔ | one line each |
+| 2 | Hidden cave air in a mining zone → unbounded recursion and a stack overflow (§4.1) — **fixed 2026-10-21** | CRITICAL | ✔ | small |
+| 3 | Saves from another build are deleted by the next save; the startup notice is never shown (§4.7) — **deferred by the owner; logged in [00 — To do](00_todo.md) 2026-10-21** | HIGH | ✔ | small |
+| 4 | New Game / Load throw the colony away on one click, with no confirmation (§4.9) — **deferred by the owner; logged in [00 — To do](00_todo.md) 2026-10-21** | HIGH | ✔ | small |
+| 5 | Load and New Game leave the clock paused and overwrite the saved pause preference; regression in uncommitted code (§4.7) — **deferred by the owner; logged in [00 — To do](00_todo.md) 2026-10-21** | MED | ✔ | small |
+| 6 | The gate runner and `Export.ps1` are broken under Windows PowerShell 5.1 (§4.10) — **runner fixed 2026-10-21; `Export.ps1` deleted** | HIGH | ✔ | one line each |
 | 7 | 6 tests broken by the furniture retirement; 2 tools don't compile; ~13 tools reference retired keys | MED | ✔ | small |
-| 8 | `docs/` has no `.gdignore` (1,343 images get imported); 4,648 scratch files are still tracked in git (§6) | MED | ✔ | small |
-| 9 | Every terrain edit triggers whole-world rebuilds in the renderer and WorldData (§4.3) | HIGH | ✔ | medium |
-| 10 | The shared shader's instance uniforms cap the scene at ~8,192 lit objects; past that, meshes render black (§4.3) | HIGH | ✔ | medium |
+| 8 | `docs/` has no `.gdignore` (1,343 images get imported); 4,648 scratch files are still tracked in git (§6) — **fixed 2026-10-21: `tmp/` cleared, `docs/.gdignore` added, concept evidence removed** | MED | ✔ | small |
+| 9 | Every terrain edit triggers whole-world rebuilds in the renderer and WorldData (§4.3) — **fixed 2026-10-21: per-column meshes and an in-place snapshot patch; a mined block's frame went from 284 ms to ~19 ms on the owner's save copy** | HIGH | ✔ | medium |
+| 10 | The shared shader's instance uniforms cap the scene at ~8,192 lit objects; past that, meshes render black (§4.3) — **logged in [00 — To do](00_todo.md) 2026-10-21; `buffer_size` unchanged (owner)** | HIGH | ✔ | medium |
 
 ---
 
@@ -146,6 +146,28 @@ Fix:
 - Skip non-solid live blocks in `reserve_next` and `_recompute_destination`.
 - Consider removing discovered cells synchronously.
 - Add a regression test with a hidden cave behind a designated face.
+
+**Resolved 2026-10-21.** The new `MiningHiddenAirTest` reproduced the crash
+in-engine first: 16 GDScript stack overflows, then 2,048 `Stack underflow! (Engine
+Bug)` errors. The fix differs from the sketch above, so that no cell can stall a zone
+forever:
+- **Dwarf** (`DwarfAgent._skip_zone_block`, used by `_begin_swinging` and
+  `_process_swinging`): a reserved block with nothing to mine is unreserved and
+  excluded for the rest of the lease before the next pull. It doesn't count as a path
+  failure, because a cave the previous commit revealed isn't the worker's failure.
+  Recursion is now bounded by the at most 29 blocks workable from one stand.
+- **Controller** (`get_zone_block_work`, `play_zone_mining_impact`): when the live
+  block isn't solid, the work falls back to `_designation_block_id_at`.
+  - Undiscovered cave air is worked and struck as the strata the slice shows. The
+    existing commit path then breaks into the cave, reveals it, spawns no goods and
+    marks the cell done.
+  - Known air yields no work, and is skipped as above until the deferred cleanup
+    removes it from the plan.
+  - Solid blocks behave exactly as before.
+- **Checks.** `MiningHiddenAirTest` was added to the job gate (it covers both cases on
+  real seed-1234 caves). The mining, ladder, job, support, navigation and construction
+  regressions pass. `MiningLedgeAccessTest`'s pre-existing failure is unchanged.
+- **Docs.** The rule is recorded in doc 43's "Cave discovery" section.
 
 ### 4.2 World core & generation — B−
 
@@ -216,6 +238,11 @@ Fix:
     2k-placed colony is 50–200 ms per commit frame.
   - Fix: key the shell and added-terrain meshes by chunk, and dirty only the chunks
     around each edit.
+  - **Fixed 2026-10-21.** The shell and added terrain are one mesh per 16×16 column
+    (all heights), and edits rebuild only the columns they touch. The overview snapshot
+    is patched per changed cell. Measured on a copy of the owner's save (49k edits):
+    284 ms → ~19 ms per mined-block frame, against 6.9 ms idle. The rest is mostly the
+    one shell column (8–12 ms). See [00 — Changelog](00_changelog.md).
 - **[HIGH][✔] Instance uniforms in the shared lit shader cap the scene at ≈8,192 lit
   instances.**
   - Where: `scripts/shaders/underground_lighting_common.gdshaderinc:16-22`; `project.godot`
@@ -225,6 +252,8 @@ Fix:
     raising the buffer only moved the limit.
   - Fix: move `actor_sky_access` and `doorway_light_*` into an actor/door-only shader
     variant, or into material parameters.
+  - **Logged as a to-do 2026-10-21** in [00 — To do](00_todo.md). The owner
+    chose to keep `buffer_size` as it is. Measured: 4,147 of 8,192 slots with 5 dwarves.
 - **[MED][◐] With X-ray on, every interior change hides and rebuilds every water and
   damp-ground tile.**
   - Where: `XrayController.gd:245,279`; `WaterRenderer.gd:37,93,128-142`;
@@ -322,6 +351,8 @@ Fix:
 - **[HIGH][✔] `max_drag_length` (40) is never enforced** (`MiningDesignationController.gd:966-967`).
   `extent = maxi(size, extent - size)` subtracts one brush width instead of clamping,
   so screen-height drags create zones of 20k+ blocks.
+  **Fixed 2026-10-21:** the owner set the cap to 32. Each axis now stops at the most whole
+  brush steps that fit; covered by the gate test `MiningDragLimitTest`.
 - **[HIGH][◐] Every mined block re-processes the whole zone.**
   - Where: `MiningDesignationController.gd:1420-1526, 1983-1985`;
     `MiningZoneComponent.gd:245-275, 380-382`.
@@ -418,6 +449,7 @@ Fix:
     - Delete only a primary that fails JSON parsing.
     - Rename any other invalid file aside as `*.rejected-<utc>.json`.
     - Queue notices until the dock registers.
+  - **Logged as a to-do 2026-10-21** in [00 — To do](00_todo.md).
 - **[MED][✔] Doc 177 #1 is still open: unknown furniture or item keys silently destroy
   pieces and their contents on load.**
   - Where: `FurniturePlacementController.gd:1457-1458, 1496-1497`;
@@ -432,6 +464,9 @@ Fix:
     and later restores that captured `true`.
   - Result: the game resumes paused, and the saved pause preference is overwritten.
     `WorldLoadingScreenTest` fails on both of its checks.
+  - **Logged as a to-do 2026-10-21** in [00 — To do](00_todo.md). The code is committed
+    now (`d367736d`). Re-check: the test passes on a fresh profile and fails these two
+    checks once a save exists at startup.
 - **[MED][◐] The main-thread autosave stall is back.**
   - Where: `SaveManager.gd:253`; `WorldData.gd:276-287`; `InteriorTracker.gd:180-186`.
   - Schema 2 serializes edits and exploration synchronously, with lambda sorts.
@@ -502,6 +537,7 @@ Fix:
   - Where: `data/ui/dock.json:581-589` (uncommitted); `DockUI.gd:699-710`;
     `SaveManager.gd:185-203`.
   - No confirmation dialog exists anywhere in the UI.
+  - **Logged as a to-do 2026-10-21** in [00 — To do](00_todo.md).
 - **[MED][◐] Keyboard focus is never released on world clicks.**
   - Where: `Camera.gd:359-361`; `DwarfRosterPanel.gd:54-60`; `WorkerCraftingPanel.gd:82-90`;
     `DockIconButton.gd:24, 52-55`.
@@ -727,7 +763,11 @@ scheduler and its executors.
 - **AGENT.md is 155 KB, and its first 1,898 lines are a changelog.** The Session Start
   Protocol requires reading about 744 KB (~186K tokens) before any work, which is more
   than most agent context windows. The structure section is stale (it describes
-  "DwarfVoxel/").
+  "DwarfVoxel/"). **Fixed 2026-10-21:**
+  - AGENT.md is rules only (317 lines);
+  - the entries moved to `00_changelog.md`;
+  - agents now read only the docs for their area;
+  - a new `CLAUDE.md` imports AGENT.md.
 - **Root clutter.** 9 `Launch *.cmd` files and `godot_streaming_test.log`. The main scene
   is `debug_world.tscn`.
 

@@ -131,8 +131,7 @@ and orthographic views use a finite sky FOV. Six fixtures and native captures
 pass. World-edge streaming/dissolve work remains separate.
 
 **Settlement shader capacity (2026-10-13):**
-[153 — Settlement art comparison](../00_dev_roadmap/153_settlement_art_comparison.md)
-exposed shader-instance allocation failures with the full forest, 24 dwarves,
+a settlement benchmark exposed shader-instance allocation failures with the full forest, 24 dwarves,
 wildlife and 48 furniture pieces. Some character parts rendered black with
 the existing art. `project.godot` now sets
 `rendering/limits/global_shader_variables/buffer_size=131072`, doubling the
@@ -655,10 +654,17 @@ Mining cuts are **renderer state** (Stonehearth's model — designation never mu
 ## Loading and overview snapshots
 
 Overview workers reuse immutable cut/mined/discovery/terrain dictionaries while
-their inputs remain unchanged. Local cut/terrain/discovery changes and global
-invalidations mark these snapshots dirty. A replacement is made only after the
-previous batch has been consumed; existing per-tile revisions and global epochs
-still reject stale results. Slice/season values remain captured per batch.
+their inputs remain unchanged. Global invalidations replace these snapshots. Local
+cut/terrain/discovery changes record their cells, and only those cells are patched.
+Either happens only after the previous batch has been consumed; existing per-tile
+revisions and global epochs still reject stale results. Slice/season values remain
+captured per batch.
+
+**Edit cost (2026-10-21):** the cavity shell and the added-terrain mesh are split
+into 16×16-block columns that cover every height. A mined, built or designated block
+rebuilds only its own column, plus the neighbouring column when it sits on a column
+edge. Slice moves, season turns and loads rebuild every column. See
+[254 §4.3](../00_dev_roadmap/254_full_project_review_2026_10_20.md).
 
 Underground lighting uses a 12 ms work budget while WorldClock is held by the
 loading cover, returning to 2.5 ms during play. The solver, published samples,
