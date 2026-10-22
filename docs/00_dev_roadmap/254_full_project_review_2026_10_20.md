@@ -88,7 +88,7 @@ Ranked by impact × likelihood ÷ effort.
 
 | # | Issue | Sev | Ver | Effort |
 |---|---|---|---|---|
-| 1 | A stale `.git/index.lock` (since Oct 18 19:17) blocks commits and checkouts; 3 days of work are uncommitted | HIGH | ✔ | minutes |
+| 1 | A stale `.git/index.lock` (since Oct 18 19:17) blocks commits and checkouts; 3 days of work are uncommitted — **fixed 2026-10-21: the lock is gone and the work is committed (`d367736d`, `1238cfa1`, `2add8fdc`)** | HIGH | ✔ | minutes |
 | 2 | Hidden cave air in a mining zone → unbounded recursion and a stack overflow (§4.1) — **fixed 2026-10-21** | CRITICAL | ✔ | small |
 | 3 | Saves from another build are deleted by the next save; the startup notice is never shown (§4.7) — **deferred by the owner; logged in [00 — To do](00_todo.md) 2026-10-21** | HIGH | ✔ | small |
 | 4 | New Game / Load throw the colony away on one click, with no confirmation (§4.9) — **deferred by the owner; logged in [00 — To do](00_todo.md) 2026-10-21** | HIGH | ✔ | small |
@@ -735,10 +735,12 @@ scheduler and its executors.
 - **The repo is locked.** `.git/index.lock` is 0 bytes and was created 2026-10-18 at
   19:17. No git process is running. Commits and checkouts fail until it is removed.
   There are also 66 garbage temporary objects (382 MB) from interrupted git writes, and
-  `_to_delete/git_index.lock.stale` shows this has happened before.
+  `_to_delete/git_index.lock.stale` shows this has happened before. **Fixed 2026-10-21:**
+  the lock and the garbage objects are gone, and `_to_delete/` is deleted.
 - **Uncommitted work.** 627 modified, 99 deleted and about 3,150 untracked files,
   including 101 changed scripts, the furniture retirement, about 540 asset files and
-  `VoxelFeed/`. The last commit was on Oct 17.
+  `VoxelFeed/`. The last commit was on Oct 17. **Fixed 2026-10-21:** all of it is
+  committed (`d367736d`, `1238cfa1`, `2add8fdc`).
 - **Commit style.** One-word messages, with 600–2,600 files per commit. History is not
   reviewable, and bisecting is impractical.
 - **Repository weight.**
