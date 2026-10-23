@@ -65,7 +65,7 @@ func _ready() -> void:
 	add_child(_reference)
 	if renderer!=null:
 		renderer.underground_view = self
-		_shell_material = renderer._material.duplicate() if renderer._material!=null else null
+		_shell_material = renderer.terrain_material().duplicate() if renderer.terrain_material()!=null else null
 		if _shell_material is ShaderMaterial:
 			_shell_material.set_shader_parameter("readability_floor",float(_config.get("readability_floor",.12)))
 			# The inspection shell keeps its own neutral look under Hearthblock lighting.
@@ -110,14 +110,14 @@ func set_mode(value: String) -> void:
 			_refresh_interiors()
 			_select_level(int(renderer.slice_y))
 			if _scan.is_empty(): _scan.append(get_tree().current_scene)
-	if renderer!=null: renderer._visible_volume_dirty = true
+	if renderer!=null: renderer.mark_visible_volume_dirty()
 	_sync_working()
 	_sync_camera()
 	_sync_visibility()
 	changed.emit()
 
 func pin_reference() -> void:
-	reference_y = int(renderer.slice_y) if renderer!=null else 127
+	reference_y = int(renderer.slice_y) if renderer!=null else SliceController.MAX_SLICE_Y
 	_reference_dirty = true
 	_reference_job.clear()
 	changed.emit()
@@ -140,7 +140,7 @@ func _sync_working() -> void:
 		if is_instance_valid(tool) and tool.has_method("is_active") and tool.is_active(): next = true
 	if next==working: return
 	working = next
-	if renderer!=null: renderer._visible_volume_dirty = true
+	if renderer!=null: renderer.mark_visible_volume_dirty()
 	_sync_camera()
 	_sync_visibility()
 	changed.emit()
@@ -177,7 +177,7 @@ func _select_level(level: int) -> void:
 	_reference_job.clear()
 	# Keep the previous outline aligned while refreshing its columns.
 	if _reference.mesh!=null: _reference.position.y = level-_reference_mesh_level
-	if renderer!=null: renderer._visible_volume_dirty = true
+	if renderer!=null: renderer.mark_visible_volume_dirty()
 	_sync_visibility()
 
 func _hide_entry(entry: Dictionary) -> void:
@@ -204,7 +204,7 @@ func _invalidate_all() -> void:
 	_reference.mesh = null
 	_reference_dirty = true
 	_reference_job.clear()
-	if renderer!=null: renderer._visible_volume_dirty = true
+	if renderer!=null: renderer.mark_visible_volume_dirty()
 
 func _process(_delta: float) -> void:
 	if mode=="off": return
@@ -246,7 +246,7 @@ func _refresh_interiors() -> void:
 	_reference_dirty = true
 	_reference_job.clear()
 	_visual_cursor = 0
-	if renderer!=null: renderer._visible_volume_dirty = true
+	if renderer!=null: renderer.mark_visible_volume_dirty()
 
 func _commit_chunk() -> void:
 	var key: Vector3i = _job.key
@@ -280,7 +280,7 @@ func _commit_chunk() -> void:
 	_reference_dirty = _reference_dirty or not _job.water_only
 	if not _job.water_only: _reference_job.clear()
 	_job.clear()
-	renderer._visible_volume_dirty = true
+	renderer.mark_visible_volume_dirty()
 
 func _shell_node(mesh: ArrayMesh) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -447,12 +447,12 @@ func _update_visuals() -> void:
 		elif node.is_inside_tree(): _filter_visual(node)
 
 func _is_terrain_batch(node: Node) -> bool:
-	var owner := node.get_parent()
-	while owner!=null and owner!=get_tree().current_scene:
+	var ancestor := node.get_parent()
+	while ancestor!=null and ancestor!=get_tree().current_scene:
 		# The water renderer also owns individually placed, selectable stones.
-		if owner.is_in_group("water_stones"): return false
-		if owner==renderer: return true
-		owner = owner.get_parent()
+		if ancestor.is_in_group("water_stones"): return false
+		if ancestor==renderer: return true
+		ancestor = ancestor.get_parent()
 	return false
 
 func _filter_visual(node: VisualInstance3D) -> void:

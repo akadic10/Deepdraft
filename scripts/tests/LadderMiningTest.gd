@@ -48,13 +48,13 @@ func _run() -> void:
 	for i in range(20):
 		tasks._run_scheduler()
 		await process_frame
-	_expect(worker.current_task_id < 0 and not tasks._work_probe.is_empty(), "small slices preserve a pending assignment search")
-	var progress: int = tasks._work_probe.route_query.expanded
+	_expect(worker.current_task_id < 0 and not tasks._scheduler._work_probe.is_empty(), "small slices preserve a pending assignment search")
+	var progress: int = tasks._scheduler._work_probe.route_query.expanded
 	world.set_block(100,60,100,rock)
 	await process_frame
 	await process_frame
 	tasks._run_scheduler()
-	_expect(int(tasks._work_probe.get("route_query", {}).get("expanded",0)) > progress, "unrelated terrain edits preserve pending search progress")
+	_expect(int(tasks._scheduler._work_probe.get("route_query", {}).get("expanded",0)) > progress, "unrelated terrain edits preserve pending search progress")
 	for task in tasks._tasks.values():
 		_expect(task.blocked_count == 0 and task.retry_at == 0, "unfinished search never marks a reachable zone blocked")
 	tasks._probe_node_cap = saved_cap
@@ -65,7 +65,7 @@ func _run() -> void:
 		tasks._run_scheduler()
 		if worker.current_task_id < 0: assignment_wakes += 1
 		worker._process(.1)
-		if not captured and DisplayServer.get_name() != "headless" and worker._climbing and worker.position.y > 40:
+		if not captured and DisplayServer.get_name() != "headless" and worker.is_climbing() and worker.position.y > 40:
 			await _capture_ladder_mining("automatic_climb")
 			captured = true
 		if worker._task_phase == worker.TaskPhase.ZONE_SWINGING:
@@ -149,7 +149,6 @@ func _build_capture_scene() -> void:
 		mesh.material_override = material
 		scene.add_child(mesh)
 	var loader = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	loader._load_defs()
 	var def: Dictionary = loader.get_defs()["base:furniture:crude_ladder"]
 	for base in [Vector3i(47,20,48),Vector3i(48,36,48)]:
 		var route := Node3D.new()
@@ -160,7 +159,7 @@ func _build_capture_scene() -> void:
 			var model: Node3D = load(def.ladder.models["4"]).instantiate()
 			model.position.y = offset
 			route.add_child(model)
-			loader._apply_material(model,loader._make_solid_material())
+			loader.apply_material(model,loader.make_solid_material())
 	loader.free()
 	var environment := WorldEnvironment.new()
 	environment.environment = Environment.new()

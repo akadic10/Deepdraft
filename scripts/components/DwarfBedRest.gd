@@ -23,7 +23,7 @@ func begin(radius: float) -> void:
 	_controller = agent.get_tree().get_first_node_in_group("furniture_controller")
 	if not is_instance_valid(_controller): return
 	var nearby: Array = []
-	for piece: InstalledFurnitureComponent in _controller._installed.values():
+	for piece: InstalledFurnitureComponent in _controller.get_installed_pieces():
 		if not _available(piece): continue
 		var owned := piece.assigned_dwarf_id==agent.dwarf_id
 		if not owned and piece.node.global_position.distance_to(agent.global_position)>radius: continue
@@ -67,7 +67,7 @@ func _access_clear(piece: InstalledFurnitureComponent, cell: Vector3i) -> bool:
 		for y in range(1,4):
 			var air := tile+Vector3i.UP*y
 			if BlockRegistry.is_solid(WorldData.get_live_block(air.x,air.y,air.z)) or PlacedEntityRegistry.occupies(air,piece.occupancy_ids): return false
-	for other: DwarfAgent in TaskManager._agents.values():
+	for other: DwarfAgent in TaskManager.get_agents():
 		if other!=agent and is_instance_valid(other) and other.is_sleeping() and other.current_cell()==cell: return false
 	return true
 
@@ -96,7 +96,7 @@ func seek() -> int:
 	return 0
 
 func valid() -> bool:
-	return _available(bed) and is_instance_valid(_controller) and _controller._installed.get(bed.installed_id)==bed and bed.sleep_owner==agent.dwarf_id and _access_clear(bed,goal)
+	return _available(bed) and is_instance_valid(_controller) and _controller.get_installed(bed.installed_id)==bed and bed.sleep_owner==agent.dwarf_id and _access_clear(bed,goal)
 
 func yaw() -> float:
 	return float(bed.yaw_steps+int(bed.def.sleep_surface.facing_steps))*PI*.5

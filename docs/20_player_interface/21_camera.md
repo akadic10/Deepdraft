@@ -58,9 +58,7 @@ out beyond 24 units. Camera altitude alone does not suppress nearby work.
 Native positional playback supplies restrained left/right panning. Active sound
 tails also update while panning; distant hits are discarded rather than queued.
 Both work families share the same attenuation and voice budget. Tuning lives in
-`data/audio/work_feedback.json`; camera controls are unchanged. This behavior was
-accepted in player testing on 2026-10-04; see
-[doc 48](../00_dev_roadmap/48_object_explorer_and_tree_felling.md) for validation.
+`data/audio/work_feedback.json`; camera controls are unchanged. 
 
 ## Controls
 
@@ -108,6 +106,17 @@ All values track `data/camera/camera_settings.json`. Defaults as shipped:
 | `pan_reference_height` | 135 | camera world-Y where `move_speed` reads at face value |
 | `smoothing` | 0.22 | pan position lerp |
 | `edge_scroll_enabled` / `edge_scroll_threshold_pixels` | false / 10 | edge scroll |
+| `paced_fps_max` | 75 | frame-pacing ceiling; see below (0 = uncapped) |
+
+**Frame pacing (2026-10-22).** With vsync, a frame that misses a refresh stays on
+screen for one refresh or two, unpredictably, and panning judders even at a high
+average frame rate. The rig therefore caps `Engine.max_fps` at the largest even
+fraction of the display's refresh rate that is not above `paced_fps_max`
+(120 Hz → 60, 144 Hz → 72, 60 Hz → 60), so every frame is held equally long.
+Measured on the owner's 7680×2160 120 Hz display: uncapped, 94% of running frames
+missed a 120 Hz refresh; capped at 60, most frames land on the 16.7 ms beat. The
+camera benchmark (`tools/performance/Run.ps1`) stays uncapped unless run with
+`-Paced`.
 
 ### `rotation`
 | Key | Value | Meaning |
@@ -138,8 +147,8 @@ Each wheel notch moves a **fixed fraction** (`zoom_step_fraction`) of the curren
 zoom, constant perceived speed at any distance, so one notch can never collapse the whole range.
 
 In `cursor_target` mode the zoom homes toward the **ground point under the mouse**: a ray is marched
-against the terrain **height field** (`WorldGenerator.get_visible_surface_y`) — the same source the
-overview renderer uses, so it works map-wide even on columns not yet streamed into `WorldData`. The
+against the terrain **height field** (`ObjectPicking.surface_hit` over `WorldGenerator.get_visible_surface_y`) — the same source the
+overview renderer uses, so it works map-wide even on columns never materialised in `WorldData`. The
 rig pivot **and** spring length scale toward that point by one factor with the view direction held
 fixed, so the point stays put on screen (true zoom-to-cursor). If the ray finds no ground (e.g. the
 pointer is off-world), it falls back to the `spring_fraction` step toward the pivot.
@@ -199,14 +208,14 @@ A defining feature: the player can slice the world horizontally to see undergrou
   whole map stays present at any depth, cut floors show authored strata only (slice-concealment rule,
   `24_world_rendering.md`).
 - Driven by `WorldRenderer.slice_y`; the Slice tool (`SliceController`, dock palette + `\` `]` `[`
-  `Ctrl+]` `Ctrl+[` hotkeys, doc 11 Phase 2) steps it. `SliceController.slice_changed(new_slice_y)`
+  `Ctrl+]` `Ctrl+[` hotkeys) steps it. `SliceController.slice_changed(new_slice_y)`
   fires on every move (`slice_y = 127` = off).
 - **Placed flora obey the slice:** `SurfaceFloraSpawner` connects to `slice_changed` and hides trees
-  whose base is above the cut (coarse per-instance toggle; doc 11 Phase 5). The same hook will serve
-  furniture, items, and dwarves.
-- **AUTO mode** (slice follows the camera): **dormant by decision** — manual control proved right
-  (doc 10 §2.3, doc 11 Phase 2.6). `Camera.slice_y_changed` still emits but nothing connects to it;
-  revisit only behind a settings toggle.
+  whose base is above the cut (coarse per-instance toggle). Dwarves (`DwarfDirector`), loose items
+  (`ItemDropManager`), furniture and room overlays use the same hook.
+- **AUTO mode** (slice follows the camera): **dormant by decision** — manual control proved right.
+  `Camera.slice_y_changed` still emits but nothing connects to it; revisit only behind a
+  settings toggle.
 
 ## Slice Visual Treatment
 
@@ -218,8 +227,13 @@ When a slice is active, the topmost visible layer should have a subtle highlight
 - **Props see-through at extreme close-up:** flora/props have no collision, so at the closest zoom
   the camera passes through a tree canopy (cosmetic).
 - **Coarse flora slice-culling:** a tree straddling the cut shows whole (canopy can poke above the
-  plane). Accepted as-is; a per-prop clip-plane shader is the optional clean follow-up (doc 11
-  Phase 5).
+  plane). Accepted as-is; a per-prop clip-plane shader is the optional clean follow-up.
+- **Entity slice visibility is one height test.** An entity hides when its base is above
+  `slice_y`: trees use the ground block they stand on, dwarves and loose items their feet
+  height, furniture its placed origin (wall pieces their top cell). These read raw `slice_y`
+  from `slice_changed`, not the VisibleVolume contract (`24_world_rendering.md`), so cut
+  cavities do not cull them. X-ray filters them separately, by camera layer, in
+  `XrayController`.
 
 ## Implementation Notes
 

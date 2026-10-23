@@ -78,18 +78,35 @@ placement; installed campfires animate and light, and idle dwarves use stump sto
 No fuel upkeep or specialist jobs are enabled. See
 [100 — Camp crafting](../00_dev_roadmap/100_profession_crafting_camp.md).
 
-**Implemented starter crafting (2026-10-07):** Workers can make a crude workbench
-without an existing workshop, install it, then craft batches of wooden torches.
-The bench is now a rough **3×3 stump** usable from any open side (updated
-2026-10-18). Its 1-unit top
+**Implemented starter crafting:** Workers can make a crude workbench without an
+existing workshop, install it, then craft batches of log torches (four per log).
+The bench is a rough **3×3 stump** usable from any open side. Its 1-unit top
 has a worker-facing crafting contact 0.625 units from the center. Its first
 packed form is crafted at the timber pickup spot; the settlement flag is not a
-workshop. Both recipes use axe animation and contact-timed wood sounds.
-The Craft cabinet supports finite batches, spare-stock targets and per-order
-allowed wood, defaulting to Pine without automatic substitution. See
-[64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md) for recipes,
-physical ownership, saving and verification. The specialist metalworking and
-carpentry chains below remain design specifications, not live conversion systems.
+workshop. Recipes live in `data/workshops/worker_crafting.json`, loaded only by
+`CraftingManager`. The Craft cabinet supports finite batches and spare-stock
+(maintain) targets. The specialist metalworking and carpentry chains below
+remain design specifications, not live conversion systems.
+
+- **Allowed wood.** Each order keeps its own allowed-wood list, defaulting to the
+  recipe's `default_ingredients` (Pine for every current recipe). An empty list
+  leaves the order waiting; excluded species are never substituted.
+- **Choosing a log.** Workers take the nearest allowed unit by Manhattan
+  distance, comparing loose logs and stored units across stockpiles and
+  containers; a loose log wins a tie. The checklist is not a species priority.
+- **Changing wood mid-order.** Excluding the species of the log already being
+  used returns that log and keeps the order's partial progress.
+- **Maintain orders** refill in full batches, so the last batch may overshoot a
+  target that is not a multiple of the batch size. Installed, reserved and
+  carried goods do not count as spares. Queuing a duplicate maintain order
+  updates the existing order's target and wood list.
+- **One worker per bench.** A worker claims a bench while collecting and
+  working; an order never fans out into parallel batches.
+- **Interruption.** Pause and sleep keep partial work, which belongs to the
+  order; cancelling removes the order.
+- **Sound.** The craft sound fires when the axe crosses contact, driven by saved
+  work progress, so resuming never replays earlier strikes. Clock speed changes
+  the cadence, not the pitch.
 
 **Starter tools implemented (2026-10-09):** Workers craft stone hoes, hunting
 spears, crude carpentry kits and stone hammers at the crude workbench. Each uses
@@ -232,11 +249,9 @@ The Smelter converts raw ore into metal ingots. It is a standalone workshop bloc
 
 Full schema: `data/workshops/smelter.json` *(to be created)*.
 
-**Visual milestone (2026-10-03, [art doc 45](../00_dev_roadmap/45_smelter_asset_and_placement.md)):**
-the smelter model, independent placement, hauling/build/uninstall and cosmetic
-firelight are live under `data/furniture/smelter.json` / `base:furniture:smelter`.
-The production behavior described in this section is still planned. The visual
-piece consumes no fuel, produces no ingots and contributes no operating heat yet.
+**Status:** the smelter is planned. There is no smelter furniture definition or
+placed model in the game yet, and none of the production behavior in this
+section is live.
 
 ### Placement
 
@@ -258,7 +273,7 @@ Coal is consumed as fuel in every smelting recipe. It is never a product and can
 
 > **Design note:** Gold and silver ingots have no combat application — they are luxury goods. Gold ingots are the highest-value item a merchant will buy (above gems, by unit weight). The Blacksmith who can smelt gold is a direct economic asset.
 
-Silver and gold ingots carry `base_trade_value` entries in `data/entities/items/resources.json`. Exact values TBD in the trade balance pass.
+Silver and gold ingots need base trade values (see the planned price table in `51_visitors.md` § Pricing). Exact values TBD in the trade balance pass.
 
 ---
 
@@ -406,7 +421,7 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 | `DwarfAgent` | Three new profession keys added to `profession_experience` dict (see `41_dwarf_agents.md`). Specialisation logic runs in the Labour window on player action. |
 | `StockpileManager` | New filter tags `stockpile_ingots` and `stockpile_metalwork`. Bolt stockpile tag `stockpile_ammo` already scaffolded in `52_combat_military.md`. |
 | `RoomData` / temperature | Smelter emits 800 heat units into its enclosing sealed room while active. Handled the same way as torches — see `34_temperature.md`. |
-| `VisitorManager` / trade | Gold and silver ingots, forged weapons (if surplus), and armour pieces carry `base_trade_value` and appear in the merchant buy priority 5 tier. |
+| `VisitorManager` / trade | Gold and silver ingots, forged weapons (if surplus), and armour pieces get base trade values (`51_visitors.md` § Pricing) and appear in the merchant buy priority 5 tier. |
 | `52_combat_military.md` | The `ARMING` task now resolves via Forge output — military gear no longer depends exclusively on trade. The placeholder note in that doc is satisfied by this system. |
 
 ---

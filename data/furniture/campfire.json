@@ -15,7 +15,6 @@
     "width": 3,
     "depth": 3
   },
-  "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
@@ -30,8 +29,7 @@
       ]
     }
   ],
-  "__comment": "The unchanged two-block fire sits in the middle of a three-block area. Occupancy rounds its centered bounds outward so dwarves walk around the ring. Installed and queued fires always use this current definition when loaded.",
-  "room_anchor": false,
+  "__comment": "The two-block fire sits in the middle of a three-block area. Occupancy rounds its centered bounds outward so dwarves walk around the ring. Installed and queued fires always use this current definition when loaded.",
   "seating_focus": "fire",
   "seating_obstacles": [
     {

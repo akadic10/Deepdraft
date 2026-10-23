@@ -132,14 +132,14 @@ func _ready() -> void:
 	_footer.custom_minimum_size.y = 18
 	add_child(_margin(_footer, 12, 10))
 	_scroll.get_v_scroll_bar().value_changed.connect(func(_value: float): _queue_portrait_update())
-	get_viewport().size_changed.connect(func(): _fit.call_deferred())
+	get_viewport().size_changed.connect(func(): refit.call_deferred())
 	set_process(false)
 
 
 func set_work_view(enabled: bool) -> void:
 	_work_view = enabled
 	refresh()
-	_fit.call_deferred()
+	refit.call_deferred()
 
 
 func begin_browsing() -> void:
@@ -156,7 +156,7 @@ func begin_browsing() -> void:
 				if _rows[agent].button.visible and director.can_inspect_dwarf(agent):
 					director.inspect_dwarf(agent)
 					break
-	_fit.call_deferred()
+	refit.call_deferred()
 	set_process(true)
 
 
@@ -368,7 +368,7 @@ func _cargo_texture(key: String) -> Texture2D:
 	return _textures[key]
 
 
-func _fit() -> void:
+func refit() -> void:
 	if window == null or not is_inside_tree(): return
 	var viewport := get_viewport_rect().size
 	_compact = viewport.x < 1150

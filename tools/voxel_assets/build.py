@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import shutil
 import tempfile
-from common import ROOT,export_asset,read_json
+from common import ROOT,export_asset
 from coverage import validate_coverage
 
 FAMILIES={}
@@ -57,15 +57,6 @@ def main():
     with tempfile.TemporaryDirectory(prefix='deepdraft_voxel_verify_') as temp:
         base=Path(temp) if args.check else args.output.resolve()
         for family in families:
-            if family in ('furniture','items') and not args.check and not args.only:
-                # A complete rebuild must also remove retired files from an
-                # older stage, or the native gallery would still pick them up.
-                for relative in read_json('data/content_retirements.json')['assets']:
-                    if not relative.startswith(f'assets/models/{family}/'): continue
-                    for suffix in ['', '.import']:
-                        target=(base/(relative+suffix)).resolve()
-                        if not target.is_relative_to(base.resolve()): raise ValueError('retired path escapes output')
-                        if target.is_file(): target.unlink()
             rows=[]; seen=set()
             for relative,parts,metadata in FAMILIES[family](only=args.only):
                 if args.only and args.only not in relative: continue

@@ -33,7 +33,10 @@ func _run() -> void:
 	mood.begin_sleep()
 	mood.record_sleep(2,false,29)
 	_expect(is_equal_approx(mood.value(),.35),"hot sleep also reduces happiness")
-	mood.restore({})
+	var blank: Dictionary = mood.serialize()
+	for key: String in blank: blank[key] = "" if key == "dining_outcome" else 0.0
+	blank.erase("solo_recreation_memory_hours")
+	mood.restore(blank)
 	mood.record_sleep(3.1,true,20)
 	mood.finish_sleep()
 	_expect(is_equal_approx(mood.value(),.6),"comfortable personal-room sleep keeps full bonus")

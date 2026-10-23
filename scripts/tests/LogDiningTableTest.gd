@@ -56,7 +56,7 @@ func _layouts_and_meals() -> void:
 		var table=furniture._installed[id]
 		_expect(table.cells.size()==9,"table reserves its requested 3x3 space")
 		for cell in table.cells:_expect(not root.get_node("NavGrid").is_walkable(cell),"dwarves do not walk through the table area")
-		var bounds: AABB=furniture._visual_bounds(definition,origin,yaw)
+		var bounds: AABB=furniture.visual_bounds(definition,origin,yaw)
 		_expect(bounds.size.is_equal_approx(Vector3(2.875,1.5,2.875)),"eight-cell slab and sixteen-cell pedestal retain native dimensions")
 		_expect(bounds.get_center().is_equal_approx(Vector3(origin)+Vector3(1.5,1.75,1.5)),"top and base are centered on the 3x3 footprint")
 		var slots: Array=furniture._seating.slots_for(table)

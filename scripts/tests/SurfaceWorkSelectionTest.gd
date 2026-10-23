@@ -97,14 +97,14 @@ func _designate(action := "uproot"):
 		_expect(details.designate_uproot(BLUE), "uproot designation accepted")
 	else:
 		_expect(details.designate_detail(BLUE, action), "%s designation accepted" % action)
-	return details._sources[BLUE]
+	return details.work.sources[BLUE]
 
 
 func _dispatch(wakes := 30) -> void:
 	for i in range(wakes):
-		var before: int = tasks._probes_total
+		var before: int = tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total - before <= tasks._max_probes_per_wake, "per-wake probe cap is respected")
+		_expect(tasks._scheduler._probes_total - before <= tasks._max_probes_per_wake, "per-wake probe cap is respected")
 		await process_frame
 
 
@@ -121,14 +121,12 @@ func _eligibility_and_priority() -> void:
 	_fresh()
 	near = _add_worker(202, Vector3i(40,20,40))
 	far = _add_worker(201, Vector3i(55,20,40))
-	var old_priority: int = tasks._static_priorities.BUILD
-	tasks._static_priorities.BUILD = 60
-	var urgent: int = tasks.add_task(Task.Type.BUILD, Vector3i(42,20,40))
+	var urgent: int = _post_mine_lease(Vector3i(42,20,40))
 	source = _designate()
 	await _dispatch()
 	_expect(near.current_task_id == urgent and far.current_task_id == source.lease_id,
 		"higher-priority work is considered before proximity; busy worker is not stolen")
-	tasks._static_priorities.BUILD = old_priority
+	_clear_mine_leases()
 	_fresh()
 	far = _add_worker(201, Vector3i(55,20,40))
 	source = _designate()
@@ -213,7 +211,7 @@ func _resumable_comparison() -> void:
 	slow.source = source
 	tasks.register_work_source(source.source_id, slow)
 	tasks._run_scheduler()
-	_expect(not tasks._surface_match.is_empty() and not bool(tasks._surface_match.ranked)
+	_expect(not tasks._scheduler._surface_match.is_empty() and not bool(tasks._scheduler._surface_match.ranked)
 		and source.reserved_by < 0 and far.current_task_id < 0,
 		"budget yield preserves ranking without reserving source work")
 	tasks.register_work_source(source.source_id, source)
@@ -245,7 +243,7 @@ func _resumable_comparison() -> void:
 	await _dispatch()
 	_expect(far.current_task_id < 0 and source.reserved_by < 0, "cancelling while ranking cannot assign stale work")
 	tasks.reset_runtime_state()
-	_expect(tasks._surface_match.is_empty(), "scene reset discards pending comparison")
+	_expect(tasks._scheduler._surface_match.is_empty(), "scene reset discards pending comparison")
 
 
 func _other_surface_jobs() -> void:
@@ -257,8 +255,8 @@ func _other_surface_jobs() -> void:
 		details.register_record({"id": "selection:other", "definition": spec[0],
 			"origin": Vector3i(40,20,44), "variant": 0, "yaw": 0})
 		_expect(details.designate_detail("selection:other", spec[1]), "%s order accepted" % spec[0])
-		if not details._sources.has("selection:other"): continue
-		var source = details._sources["selection:other"]
+		if not details.work.sources.has("selection:other"): continue
+		var source = details.work.sources["selection:other"]
 		await _dispatch()
 		_expect(near.current_task_id == source.lease_id and far.current_task_id < 0,
 			"%s also chooses the nearest idle worker" % spec[0])

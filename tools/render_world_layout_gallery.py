@@ -16,7 +16,7 @@ BG = "#101c23"
 PANEL = "#1b2b32"
 TEXT = "#e6ede9"
 MUTED = "#9cafa9"
-SHELVES = [19, 27, 35, 43, 55, 67, 79, 91, 103, 115]
+SHELVES = json.loads((ROOT / "data/world_gen/macro_layout.json").read_text(encoding="utf-8"))["shelf_tops"]
 COLORS = ["#477865", "#679378", "#92a580", "#bbb38b", "#a89876",
           "#b3a48d", "#b9b3a4", "#c9c8bd", "#deded2", "#ffffee"]
 WATER = "#339fcd"

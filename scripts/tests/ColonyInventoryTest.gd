@@ -5,7 +5,6 @@ const STONE := "base:resources:stone:rough_stone"
 const IRON := "base:resources:ore:iron"
 const ACORN := "base:resources:seed:oak_acorn"
 const ACTIVE_TABLE := "base:furniture:log_table"
-const StorageFixture = preload("res://scripts/tests/TestStorageFixture.gd")
 var inventory
 var rig
 var stock_controller
@@ -128,19 +127,11 @@ func _run() -> void:
 	_expect(rig._target_pos.is_equal_approx(Vector3(35.5,22.5,33.5)), "Locate resolves live loose item position")
 	dock._open_inventory()
 	await _settle()
-	# Containers count their contents; their display nodes never add inventory.
-	# Storage furniture is retired; preserve container/UI coverage with the
-	# existing test-only fixture, including real rendered contents and merging.
-	StorageFixture.install(furniture)
-	var storage_def: Dictionary=furniture.get_defs()[StorageFixture.KEY]
-	storage_def.storage={"capacity":8,"render_contents":true,
-		"anchors":[[0.25,0.25,0.25],[0.75,0.25,0.25],[0.25,0.75,0.25],[0.75,0.75,0.25],
-		[0.25,0.25,0.75],[0.75,0.25,0.75],[0.25,0.75,0.75],[0.75,0.75,0.75]],
-		"anchor_max_size":[0.3125,0.3125,0.3125]}
-	furniture._install(StorageFixture.KEY,storage_def,Vector3i(44,20,44),0)
-	var installed = furniture._installed.values()[0]
-	var container = installed.storage
-	container.restore_inventory({ACORN: 20}, items)
+	# Stored crates count their contents; their display nodes never add inventory.
+	var seed_cells: Array[Vector3i] = [Vector3i(44,20,44), Vector3i(45,20,44)]
+	var seed_zone = stock_controller._create_zone(seed_cells)
+	seed_zone.cell_stacks[seed_cells[0]] = {"item": ACORN, "count": 20}
+	items.restore_stored_item(ACORN, seed_cells[0], 20)
 	root.get_node("StockpileManager").rebuild_totals()
 	items.restore_loose_item(ACORN, Vector3(36.5,21,33.5), 0, 10)
 	await _settle()
@@ -148,18 +139,19 @@ func _run() -> void:
 	inventory.selected_key = ACORN; inventory.refresh()
 	_click(inventory._inspect.get_global_rect().get_center())
 	await _settle()
-	_expect(not manager.is_open("inventory") and explorer._object_id == "installed:%d" % installed.installed_id, "Inspect storage selects installed test container")
-	explorer.clear_selection()
+	_expect(not manager.is_open("inventory") and stock_controller._window_zone_id == seed_zone.zone_id, "Inspect storage opens the stockpile holding the item")
+	manager.close("storage_zone_info")
 	dock._open_inventory()
 	await _settle()
-	container.filter_tags.assign(["stockpile_seed"])
-	pull = container.reserve_haul(20, Vector3i(36,20,33), {})
-	_expect(not pull.is_empty(), "shelf reserves crate")
-	cargo = container.take_item(20, 0)
+	seed_zone.set_all_accepted(false)
+	seed_zone.set_category_accepted("stockpile_seed", true)
+	pull = seed_zone.reserve_haul(20, Vector3i(36,20,33), {})
+	_expect(not pull.is_empty(), "stockpile reserves crate")
+	cargo = seed_zone.take_item(20, 0)
 	scene.add_child(cargo)
-	_expect(container.commit_haul(20, [[cargo,ACORN]]), "shelf deposits crate")
+	_expect(seed_zone.commit_haul(20, [[cargo,ACORN]]), "stockpile deposits crate")
 	await _settle()
-	_expect(inventory._stock[ACORN].total == 30 and inventory._stock[ACORN].carried == 0, "merged shelf visuals do not duplicate goods")
+	_expect(inventory._stock[ACORN].total == 30 and inventory._stock[ACORN].carried == 0, "merged stored crates do not duplicate goods")
 	# Split-crate pickup retains remaining units on the ground.
 	items.restore_loose_item(ACORN, Vector3(38.5,21,33.5), 0, 12)
 	var crate: Node3D = items.nearest_loose_of_key(ACORN, Vector3i(38,20,33))
@@ -254,6 +246,6 @@ func _run() -> void:
 			await _settle()
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://tmp/inventory_review/inventory_%d.png" % viewport_size.x)
-	if failures.is_empty(): print("COLONY_INVENTORY_OK: direct navigation, physical totals, reservations, hauling, crate contents, stockpile/container storage, Locate/Inspect, separate Place workflow, stable browsing, drag, Escape, 960/1280/2560 layouts")
+	if failures.is_empty(): print("COLONY_INVENTORY_OK: direct navigation, physical totals, reservations, hauling, crate contents, stockpile storage, Locate/Inspect, separate Place workflow, stable browsing, drag, Escape, 960/1280/2560 layouts")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)

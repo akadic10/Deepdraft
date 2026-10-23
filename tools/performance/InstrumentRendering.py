@@ -11,10 +11,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = {
-    "scripts/systems/WorldRenderer.gd": [
-        "_process", "_update_block_face_overview", "_drain_overview_tile_queue",
-        "_recompute_overview_stats", "_rebuild_cavity_shell", "_rebuild_added_terrain",
+    "scripts/systems/WorldRenderer.gd": ["_process", "_rebuild_added_terrain"],
+    "scripts/components/TerrainTileMesher.gd": [
+        "_update_block_face_overview", "_drain_overview_tile_queue", "_recompute_overview_stats",
     ],
+    "scripts/components/TerrainCavityShell.gd": ["rebuild_all"],
     "scripts/components/UndergroundLighting.gd": [
         "_process", "_sync_actors", "actor_sky_at", "_sync_fog", "_upload",
     ],

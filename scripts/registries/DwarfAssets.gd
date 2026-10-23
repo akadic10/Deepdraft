@@ -2,7 +2,7 @@ extends Node
 
 ## Dwarf asset + data registry autoload ("DwarfAssets" in project.godot).
 ##
-## Owns BOTH halves of dwarf creation inputs (Registry Pattern, AGENT.md):
+## Owns BOTH halves of dwarf creation inputs (Registry Pattern, CLAUDE.md):
 ##   1. The ~41 modular part GLBs (doc 41b) — preloaded once, queried by key.
 ##      No `preload`/`load` calls for dwarf parts anywhere else in the codebase.
 ##   2. Generation pools (names/appearance/traits) and profession definitions.
@@ -211,6 +211,11 @@ func profession_definition(key: String) -> Dictionary:
 	return _professions.get("professions", {}).get(key, {})
 
 
+## Every profession id in professions.json, in file order.
+func profession_ids() -> Array:
+	return _professions.get("professions", {}).keys()
+
+
 func promotion_entries() -> Array:
 	return _professions.get("promotion_screen", [])
 
@@ -251,16 +256,4 @@ func mining_duration_multiplier(key: String, experience: Dictionary) -> float:
 
 
 func _load_json(path: String) -> Dictionary:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_error("DwarfAssets: cannot open %s (error %d)" % [path, FileAccess.get_open_error()])
-		return {}
-	var json := JSON.new()
-	var err := json.parse(file.get_as_text())
-	file.close()
-	if err != OK:
-		push_error("DwarfAssets: JSON parse error in %s — %s" % [path, json.get_error_message()])
-		return {}
-	if json.data is Dictionary:
-		return json.data
-	return {}
+	return preload("res://scripts/registries/JsonData.gd").read_dict(path)

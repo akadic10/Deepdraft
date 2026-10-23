@@ -15,29 +15,6 @@ extends RefCounted
 
 const WORKER_KEY := "base:profession:worker"
 
-## Profession keys initialised on every new dwarf (doc 41 §Agent Fields).
-## Must stay aligned with data/professions/professions.json (drift fixed
-## 2026-08-07: carpenter was missing here while present in the JSON;
-## weaponsmith/armorsmith stubs were added to the JSON — docs 41/44 define
-## them as Blacksmith Level 3 promotions, so their keys belong in every
-## dwarf's experience dict from day one; promotion copies the blacksmith
-## count into them, doc 44 §Experience Carry-Over).
-const PROFESSION_KEYS: Array[String] = [
-	"base:profession:worker",
-	"base:profession:miner",
-	"base:profession:hunter",
-	"base:profession:stonemason",
-	"base:profession:farmer",
-	"base:profession:brewer",
-	"base:profession:builder",
-	"base:profession:merchant",
-	"base:profession:innkeeper",
-	"base:profession:carpenter",
-	"base:profession:blacksmith",
-	"base:profession:weaponsmith",
-	"base:profession:armorsmith",
-]
-
 
 ## Rolls one dwarf's full data set. (Instance method, not static: autoload
 ## access — WorldGenerator, DwarfAssets — is unreliable from static functions;
@@ -57,7 +34,8 @@ func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 	var traits := _roll_traits(rng)
 
 	var experience := {}
-	for key in PROFESSION_KEYS:
+	# Every profession in professions.json starts at zero (doc 41 §Agent Fields).
+	for key in DwarfAssets.profession_ids():
 		experience[key] = 0
 	# Workers start with a small random task count so new arrivals aren't all
 	# identical level-1 dwarves (doc 41).

@@ -3,6 +3,8 @@ param(
     [string]$SavePath = '',
     [double]$Seconds = 8,
     [switch]$Small,
+    [switch]$Paced,
+    [string]$Resolution = '',
     [switch]$NoMarkers,
     [switch]$NoAblations,
     [switch]$RoomRebuilds,
@@ -17,7 +19,7 @@ if (Test-Path -LiteralPath $benchmarkOutput) { throw 'Use a new label to preserv
 New-Item -ItemType Directory -Path $benchmarkOutput -Force | Out-Null
 $benchmarkProfile = Join-Path $benchmarkOutput 'profile'
 New-Item -ItemType Directory -Path $benchmarkProfile -Force | Out-Null
-$benchmarkArguments = @('--path',('"'+$benchmarkRoot+'"'),'--disable-vsync','--audio-driver','Dummy','--script','res://tools/performance/CameraBenchmark.gd','--',('--output=res://tmp/performance_20261014/'+$Label),('--seconds='+$Seconds))
+$benchmarkArguments = @('--path',('"'+$benchmarkRoot+'"'),'--audio-driver','Dummy','--script','res://tools/performance/CameraBenchmark.gd','--',('--output=res://tmp/performance_20261014/'+$Label),('--seconds='+$Seconds))
 $sourceHash = $null
 if ($SavePath) {
     $SavePath = (Resolve-Path -LiteralPath $SavePath).Path
@@ -28,6 +30,11 @@ if ($SavePath) {
     $benchmarkArguments += '--saved'
 }
 if ($Small) { $benchmarkArguments += '--small' }
+if ($Paced) { $benchmarkArguments += '--paced' } else { $benchmarkArguments = @('--disable-vsync') + $benchmarkArguments }
+if ($Resolution) {
+    if ($Resolution -notmatch '^[0-9]+x[0-9]+$') { throw 'Resolution must look like 2560x1440' }
+    $benchmarkArguments += ('--resolution=' + $Resolution)
+}
 if ($NoMarkers) { $benchmarkArguments += '--no-markers' }
 if ($NoAblations) { $benchmarkArguments += '--no-ablations' }
 if ($RoomRebuilds) { $benchmarkArguments += '--room-rebuilds' }

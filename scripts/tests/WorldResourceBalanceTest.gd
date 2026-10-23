@@ -49,7 +49,7 @@ func _run() -> void:
 		_generator._apply_edge_detail()
 		_generator._build_cave_maps()
 		_generator._maps_ready = true
-		for window: Dictionary in _generator._resource_focus_windows:
+		for window: Dictionary in _generator.block_fill.resource_focus_windows:
 			_names[window["id"]] = String(window["key"])
 		if report.is_empty(): shadowed = _check_windows()
 		var sample := _sample_world()
@@ -69,7 +69,7 @@ func _run() -> void:
 	var file := FileAccess.open("res://tmp/world_layout_review/resource_balance_%s.json" % suffix, FileAccess.WRITE)
 	file.store_string(JSON.stringify({"passed": _failures.is_empty(), "failures": _failures,
 		"sample_method": "x/z 4,12,...,1020; every Y4 through solid terrain top, including generated cave air",
-		"shadowed_windows": shadowed, "windows": _generator._resource_focus_windows, "seeds": report}, "\t"))
+		"shadowed_windows": shadowed, "windows": _generator.block_fill.resource_focus_windows, "seeds": report}, "\t"))
 	file.close()
 	for failure in _failures: printerr(failure)
 	print("WorldResourceBalanceTest: %s (%s)" % ["PASS" if _failures.is_empty() else "FAIL", suffix])
@@ -85,7 +85,7 @@ func _empty_counts() -> Dictionary:
 func _check_windows() -> Array:
 	var shadowed: Array = []
 	_check_metal_fields()
-	for windows: Array[Dictionary] in [_generator._gem_windows, _generator._soil_windows]:
+	for windows: Array[Dictionary] in [_generator.block_fill.gem_windows, _generator.block_fill.soil_windows]:
 		for window: Dictionary in windows:
 			for y in range(int(window["min_y"]), int(window["max_y"]) + 1):
 				var upper := 1.0
@@ -97,23 +97,23 @@ func _check_windows() -> Array:
 					shadowed.append({"key": window["key"], "y": y, "threshold": threshold, "upper": upper})
 					if not _baseline: _expect(false, "Unreachable resource: %s at Y%d" % [window["key"], y])
 				else:
-					_expect(_generator._pick_resource_from_windows(windows, y, (upper + threshold) * 0.5) == window["id"], "Reachable interval selects wrong resource.")
+					_expect(_generator.block_fill.pick_resource_from_windows(windows, y, (upper + threshold) * 0.5) == window["id"], "Reachable interval selects wrong resource.")
 			# Strict noise boundary and inclusive depth bounds, independent of a
 			# particular seed hitting these rare noise values.
 			var one: Array[Dictionary] = [window]
 			var low := int(window["min_y"])
 			var high := int(window["max_y"])
 			var threshold := float(window["threshold"])
-			_expect(_generator._pick_resource_from_windows(one, low, threshold) == -1, "Threshold must be strictly exceeded.")
-			_expect(_generator._pick_resource_from_windows(one, low, threshold + 0.00001) == window["id"], "Resource missing at minimum depth.")
-			_expect(_generator._pick_resource_from_windows(one, high, threshold + 0.00001) == window["id"], "Resource missing at maximum depth.")
-			_expect(_generator._pick_resource_from_windows(one, low - 1, 1.0) == -1 and _generator._pick_resource_from_windows(one, high + 1, 1.0) == -1, "Resource escaped depth bounds.")
+			_expect(_generator.block_fill.pick_resource_from_windows(one, low, threshold) == -1, "Threshold must be strictly exceeded.")
+			_expect(_generator.block_fill.pick_resource_from_windows(one, low, threshold + 0.00001) == window["id"], "Resource missing at minimum depth.")
+			_expect(_generator.block_fill.pick_resource_from_windows(one, high, threshold + 0.00001) == window["id"], "Resource missing at maximum depth.")
+			_expect(_generator.block_fill.pick_resource_from_windows(one, low - 1, 1.0) == -1 and _generator.block_fill.pick_resource_from_windows(one, high + 1, 1.0) == -1, "Resource escaped depth bounds.")
 	return shadowed
 
 
 func _check_metal_fields() -> void:
-	var saved_windows: Array[Dictionary] = _generator._metal_windows
-	var saved_noise: Array[FastNoiseLite] = _generator._metal_noise
+	var saved_windows: Array[Dictionary] = _generator.block_fill.metal_windows
+	var saved_noise: Array[FastNoiseLite] = _generator.block_fill.metal_noise
 	_expect(saved_windows.size() == 6 and saved_noise.size() == 6, "Missing metal field.")
 	var offsets := {}
 	for i in range(saved_windows.size()):
@@ -128,30 +128,30 @@ func _check_metal_fields() -> void:
 		_expect(is_equal_approx(saved_noise[i].frequency, settings["frequency"]), "Metal frequency differs from data.")
 		var one: Array[Dictionary] = [window]
 		var one_noise: Array[FastNoiseLite] = [saved_noise[i]]
-		_generator._metal_windows = one
-		_generator._metal_noise = one_noise
+		_generator.block_fill.metal_windows = one
+		_generator.block_fill.metal_noise = one_noise
 		# Exercise the actual production selector at every inclusive depth,
 		# including strict equality, independently of rare natural noise maxima.
 		for y in range(int(window["min_y"]), int(window["max_y"]) + 1):
 			var value := (saved_noise[i].get_noise_3d(125, y, 257) + 1.0) * 0.5
 			window["threshold"] = value
-			_expect(_generator._pick_metal_from_fields(125, y, 257) == -1, "Metal threshold must be strictly exceeded.")
+			_expect(_generator.block_fill.pick_metal_from_fields(125, y, 257) == -1, "Metal threshold must be strictly exceeded.")
 			window["threshold"] = value - 0.00001
-			_expect(_generator._pick_metal_from_fields(125, y, 257) == window["id"], "Independent metal unreachable at configured depth.")
+			_expect(_generator.block_fill.pick_metal_from_fields(125, y, 257) == window["id"], "Independent metal unreachable at configured depth.")
 		window["threshold"] = -1.0
-		_expect(_generator._pick_metal_from_fields(125, int(window["min_y"]) - 1, 257) == -1, "Metal below depth band.")
-		_expect(_generator._pick_metal_from_fields(125, int(window["max_y"]) + 1, 257) == -1, "Metal above depth band.")
+		_expect(_generator.block_fill.pick_metal_from_fields(125, int(window["min_y"]) - 1, 257) == -1, "Metal below depth band.")
+		_expect(_generator.block_fill.pick_metal_from_fields(125, int(window["max_y"]) + 1, 257) == -1, "Metal above depth band.")
 	# Both resources qualify: first wins. If its own field fails, the second can
 	# qualify even with a higher cutoff, unlike the old shared-channel selection.
 	var overlap: Array[Dictionary] = [saved_windows[0].duplicate(true), saved_windows[1].duplicate(true)]
 	var pair: Array[FastNoiseLite] = [saved_noise[0], saved_noise[1]]
-	_generator._metal_windows = overlap
-	_generator._metal_noise = pair
+	_generator.block_fill.metal_windows = overlap
+	_generator.block_fill.metal_noise = pair
 	for window: Dictionary in overlap:
 		window["threshold"] = -1.0
 		window["min_burial"] = 0
 		window.erase("shallow_threshold")
-	_expect(_generator._pick_metal_from_fields(125, 24, 257) == overlap[0]["id"], "Metal overlap lost priority.")
+	_expect(_generator.block_fill.pick_metal_from_fields(125, 24, 257) == overlap[0]["id"], "Metal overlap lost priority.")
 	var checked_independence := false
 	for x in range(128):
 		var first := (pair[0].get_noise_3d(x, 24, 257) + 1.0) * 0.5
@@ -159,12 +159,12 @@ func _check_metal_fields() -> void:
 		if second <= first + 0.001: continue
 		overlap[0]["threshold"] = first
 		overlap[1]["threshold"] = second - 0.00001
-		_expect(_generator._pick_metal_from_fields(x, 24, 257) == overlap[1]["id"], "Later metal did not use its own field.")
+		_expect(_generator.block_fill.pick_metal_from_fields(x, 24, 257) == overlap[1]["id"], "Later metal did not use its own field.")
 		checked_independence = true
 		break
 	_expect(checked_independence, "No independent metal field fixture found.")
-	_generator._metal_windows = saved_windows
-	_generator._metal_noise = saved_noise
+	_generator.block_fill.metal_windows = saved_windows
+	_generator.block_fill.metal_noise = saved_noise
 
 
 func _sample_world() -> Dictionary:
@@ -184,9 +184,9 @@ func _sample_world() -> Dictionary:
 				if id == _blocks.AIR_ID:
 					air += 1
 					continue
-				if y < top and not _generator._is_resource_perimeter_column(x, z) and not _generator._is_natural_exposed_wall(x, y, z):
+				if y < top and not _generator.block_fill.is_resource_perimeter_column(x, z) and not _generator.block_fill.is_natural_exposed_wall(x, y, z):
 					var strata: int = _generator.get_overview_strata_block_id(x, y, z)
-					if _generator._is_resource_replaceable_rock(strata):
+					if _generator.block_fill.is_resource_replaceable_rock(strata):
 						eligible_by_y[y] = int(eligible_by_y.get(y, 0)) + 1
 						if y <= 22:
 							var noise: float = (_generator.noise_gem.get_noise_3d(x, y, z) + 1.0) * 0.5
@@ -197,14 +197,14 @@ func _sample_world() -> Dictionary:
 				if not by_y.has(y): by_y[y] = _empty_counts()
 				by_y[y][key] += 1
 				if not examples.has(key): examples[key] = Vector3i(x, y, z)
-				_expect(y > 3 and y < top and not _generator._is_resource_perimeter_column(x, z) and not _generator._is_natural_exposed_wall(x, y, z), "Resource breached protected surface/foundation edge.")
+				_expect(y > 3 and y < top and not _generator.block_fill.is_resource_perimeter_column(x, z) and not _generator.block_fill.is_natural_exposed_wall(x, y, z), "Resource breached protected surface/foundation edge.")
 	# Rebuild noise and check actual generated, streamed, and concealed identities.
 	_generator._build_noise_instances()
 	for key: String in examples:
 		var cell: Vector3i = examples[key]
 		var expected: int = _blocks.get_id(StringName(key))
 		_expect(_generator.get_generated_block_id(cell.x, cell.y, cell.z) == expected, "Resource changed after seeded noise rebuild.")
-		_generator._fill_chunk_column(cell.x / 16, cell.z / 16)
+		_generator.block_fill.fill_chunk_column(cell.x / 16, cell.z / 16)
 		_expect(_world.get_block(cell.x, cell.y, cell.z) == expected, "Streamed resource differs from generated block.")
 		_expect(_generator.get_overview_strata_block_id(cell.x, cell.y, cell.z) != expected, "Slice strata exposed a resource.")
 	return {"counts": counts, "by_y": by_y, "eligible_by_y": eligible_by_y, "gem_max_by_y": gem_max_by_y,
@@ -302,7 +302,7 @@ func _deep_gem_census() -> Dictionary:
 	var overlap := {"diamond": 0, "emerald": 0}
 	var by_y := {}
 	var examples := {}
-	var old_windows: Array[Dictionary] = _generator._gem_windows.duplicate(true)
+	var old_windows: Array[Dictionary] = _generator.block_fill.gem_windows.duplicate(true)
 	for window: Dictionary in old_windows:
 		if String(window["key"]) == "base:terrain:gem:diamond": window["threshold"] = 0.90
 	var changed := 0
@@ -313,10 +313,10 @@ func _deep_gem_census() -> Dictionary:
 				var noise: float = (_generator.noise_gem.get_noise_3d(x, y, z) + 1.0) * 0.5
 				if noise <= 0.88: continue
 				var cell := Vector3i(x, y, z)
-				if _generator.get_cave_id(cell) >= 0 or _generator._is_natural_exposed_wall(x, y, z): continue
+				if _generator.get_cave_id(cell) >= 0 or _generator.block_fill.is_natural_exposed_wall(x, y, z): continue
 				var strata: int = _generator.get_overview_strata_block_id(x, y, z)
-				if not _generator._is_resource_replaceable_rock(strata): continue
-				var old_id: int = _generator._pick_resource_from_windows(old_windows, y, noise)
+				if not _generator.block_fill.is_resource_replaceable_rock(strata): continue
+				var old_id: int = _generator.block_fill.pick_resource_from_windows(old_windows, y, noise)
 				var id: int = _generator.get_generated_block_id(x, y, z)
 				var old_name := String(_names.get(old_id, "")).get_slice(":", 3)
 				var name := String(_names.get(id, "")).get_slice(":", 3)
@@ -335,7 +335,7 @@ func _deep_gem_census() -> Dictionary:
 	for name: String in examples:
 		var cell: Vector3i = examples[name]
 		var expected: int = _blocks.get_id(StringName("base:terrain:gem:" + name))
-		_generator._fill_chunk_column(cell.x / 16, cell.z / 16)
+		_generator.block_fill.fill_chunk_column(cell.x / 16, cell.z / 16)
 		_expect(_world.get_block(cell.x, cell.y, cell.z) == expected, "Streamed deep gem differs from census.")
 		_expect(_generator.get_overview_strata_block_id(cell.x, cell.y, cell.z) != expected, "Deep gem leaked through slice strata.")
 	print("WorldResourceBalanceTest: deep census seed %d: %s" % [_generator.world_seed, str(counts)])

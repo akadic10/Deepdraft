@@ -32,7 +32,7 @@ signal tool_active_changed(active: bool)
 const TOOL_ID := "rooms"
 const RAY_STEP := 0.25
 const RAY_MAX := 700.0
-const SLICE_OFF_Y := 127
+const SLICE_OFF_Y := SliceController.MAX_SLICE_Y
 const _FACE_NORMALS: Array[Vector3i] = [
 	Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
 	Vector3i(0, 1, 0), Vector3i(0, -1, 0),

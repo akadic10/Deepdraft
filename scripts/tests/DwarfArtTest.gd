@@ -100,7 +100,7 @@ func _run() -> void:
 				actor._reset_part_offsets(); rig.apply(phase,Vector3(0,1.2,1.4))
 				expect((actor._hand_r.global_transform*rig.PALM).distance_to(rig.tool.global_position)<.001,"lower work grip")
 				expect((actor._hand_l.global_transform*rig.PALM).distance_to(rig.tool.global_transform*rig.SUPPORT_GRIP)<.001,"upper work grip")
-			actor._reset_part_offsets(); actor._walk_cycle=phase; actor._walk_bob(0)
+			actor._reset_part_offsets(); actor._walk_cycle=phase; actor._movement.walk_bob(0)
 			for foot in [actor._foot_l,actor._foot_r]: expect(_lowest(actor,foot)>=-.065,"walking sole")
 		actor._reset_part_offsets()
 		for pose in ["lying","sitting"]:

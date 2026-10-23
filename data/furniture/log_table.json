@@ -14,7 +14,6 @@
   "placement_label": "3 × 3 log dining table",
   "placement_note": "Four separate log stools fit at the close guides. Table and stools together occupy 5 × 5 tiles.",
   "show_placement_area": true,
-  "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
@@ -68,7 +67,6 @@
     }
   ],
   "dining_surface_height": 1.5,
-  "room_anchor": false,
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {

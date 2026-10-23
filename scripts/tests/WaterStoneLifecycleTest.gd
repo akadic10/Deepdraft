@@ -55,7 +55,7 @@ func _run() -> void:
 	furniture._hover_cell = Vector3i(54,20,40)
 	furniture._confirm_ghost()
 	_expect(await _phase(worker.TaskPhase.FETCH_TO_GHOST), "real worker packs and carries same stone")
-	_expect(not water.stones.wet.placed and worker._fetch_item.get_meta("instance_id")=="wet", "carried stone retains identity and deactivates")
+	_expect(not water.stones.wet.placed and worker._work_execution._fetch_item.get_meta("instance_id")=="wet", "carried stone retains identity and deactivates")
 	var before: float = water.flow.added
 	water.step(.1)
 	_expect(water.flow.added==before, "no phantom spring at original location while carried")
@@ -81,7 +81,7 @@ func _run() -> void:
 	furniture._hover_cell = Vector3i(65,20,40)
 	furniture._confirm_ghost()
 	_expect(await _phase(worker.TaskPhase.FETCH_TO_GHOST), "extra stone uses same physical placement pipeline")
-	drops.set_disallowed(worker._fetch_item,true)
+	drops.set_disallowed(worker._work_execution._fetch_item,true)
 	_expect(furniture._ghosts.is_empty() and worker._carried_entries.is_empty() and not water.stones[extra_wet].placed, "disallow in transit safely drops extra stone and cancels plan")
 	drops.set_disallowed(item,false)
 	furniture.begin_water_stone_move(extra_wet)

@@ -20,6 +20,8 @@ func _run() -> void:
 	var original: Dictionary = flow.serialize()
 	var renderer = load("res://scripts/components/WaterRenderer.gd").new()
 	renderer.terrain = Terrain.new()
+	# Border faces reach one redraw step below the neighbour (see WaterMeshBuilder).
+	var step: float = float(gen.water_profile.rendering.redraw_level_step)
 	var closed := false
 	var small_normal := false
 	var real_fall := false
@@ -32,8 +34,8 @@ func _run() -> void:
 		for i in range(0,vertices.size(),4):
 			var a := vertices[i]
 			var c := vertices[i+2]
-			if a.x==32 and c.x==32 and a.y>c.y:
-				closed = absf(a.y-120.75)<0.00001 and absf(c.y-120.7499)<0.00001
+			if a.x==32 and c.x==32 and absf(a.y-120.75)<0.00001 and absf(c.y-(120.7499-step))<0.00001:
+				closed = true
 				small_normal = normals[i].dot(Vector3.UP)>0.9999
 			if a.x>33 and a.x<33.1 and a.y-c.y>2 and normals[i].x>0.9: real_fall = true
 	var ok := closed and small_normal and real_fall and flow.serialize()==original

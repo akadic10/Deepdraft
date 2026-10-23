@@ -19,7 +19,7 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 		_row(result, entry.key).carried += int(entry.count)
 	for entry: Dictionary in physical.equipped:
 		_row(result, entry.key).equipped += int(entry.count)
-	for source: StorageComponent in StockpileManager._zones.values() + StockpileManager._containers.values():
+	for source: StorageComponent in StockpileManager.get_zones():
 		for stack: Dictionary in source.stored_entries().values():
 			_material(_row(result, String(stack.item)), String(stack.get("material_id", "")), int(stack.count))
 	for category: String in physical:

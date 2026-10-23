@@ -23,7 +23,7 @@ func _run() -> void:
 	var selected: Array[Vector3i] = [Vector3i(50,32,45)]
 	var mine_id: int = mining._create_zone(selected)
 	var mine_source = tasks.get_work_source(mine_id)
-	var build_lease: int = ladders.routes[1].source._lease_id
+	var build_lease: int = ladders.work.get_source(1)._lease_id
 	_expect(not nav.find_path(worker.current_cell(),base+Vector3i.UP*4).is_empty(),"next section is reachable on the paid rungs")
 	_expect(nav.find_path(worker.current_cell(),upper).is_empty(),"mining still needs the unfinished upper sections")
 	# Force continuation independent of machine speed. Construction must get
@@ -37,7 +37,7 @@ func _run() -> void:
 	_expect(tasks._tasks.values().filter(func(task): return task.type == Task.Type.MINE).all(func(task): return task.blocked_count == 0),"yielding does not pretend that unfinished mining probes failed")
 	if worker.current_task_id != build_lease:
 		_finish_scheduling(); return
-	_expect(int(tasks._work_probes.get(Task.Type.MINE,{}).get("route_query",{}).get("expanded",0)) > 1,"mining keeps its search progress while construction is considered")
+	_expect(int(tasks._scheduler._work_probes.get(Task.Type.MINE,{}).get("route_query",{}).get("expanded",0)) > 1,"mining keeps its search progress while construction is considered")
 	tasks._probe_node_cap = 1200
 	# This fixture supplies real chunks, not a generated world's noise maps.
 	root.get_node("WorldGenerator")._maps_ready = false

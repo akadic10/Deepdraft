@@ -26,7 +26,7 @@ var _world_generator: Node = null
 var _world_clock: Node = null
 ## Full scene-owner snapshot captured right after the colony state is built.
 ## Every load is deep-diffed against it (content equality, not section sizes —
-## a chest losing its inventory or a ghost losing its yaw used to pass).
+## a stockpile losing its stacks or a ghost losing its yaw used to pass).
 var _content_reference: Dictionary = {}
 var _terrain_reference: String = ""
 var _fixture_origin: Vector2i
@@ -52,9 +52,7 @@ func _run() -> void:
 
 	# Use a reproducible world with known flora and wildlife arrival corridors.
 	node_added.connect(func(node: Node):
-		if node.name == "Renderer" and node.get_script() != null: node.set("world_seed", 1234)
-		if node.name == "FurniturePlacementController" and node.get_script() != null:
-			node.ready.connect(func(): preload("res://scripts/tests/TestStorageFixture.gd").install(node)))
+		if node.name == "Renderer" and node.get_script() != null: node.set("world_seed", 1234))
 	var scene_error := change_scene_to_file("res://scenes/main/debug_world.tscn")
 	if scene_error != OK:
 		_fail("could not load debug_world.tscn (%s)" % error_string(scene_error))
@@ -71,7 +69,7 @@ func _run() -> void:
 	var expected_seed := int(_world_generator.get("world_seed"))
 	# An untouched world is usable even before settlement: empty collections
 	# are legitimate, but missing owners or malformed fields are not.
-	var fresh_error := String(_save_manager.call("_validate_snapshot", _save_manager.call("_build_snapshot")))
+	var fresh_error := String(_validate_fixture(_save_manager.call("_build_snapshot")))
 	if not fresh_error.is_empty():
 		_fail("fresh world rejected: %s" % fresh_error)
 		return
@@ -178,8 +176,8 @@ func _run() -> void:
 		_fail("autosave content did not round-trip — %s" % autosave_content_diff)
 		return
 
-	# Fault injection stays inside SaveManager, the sole save-file I/O owner.
-	var corrupt_error := String(_save_manager.call("_write_text_file", TEST_PRIMARY, "{invalid json"))
+	# Fault injection goes through SaveFileStore, the sole save-file I/O owner.
+	var corrupt_error := String(_write_fixture(TEST_PRIMARY, "{invalid json"))
 	if not corrupt_error.is_empty():
 		_fail("could not inject a corrupt primary: %s" % corrupt_error)
 		return
@@ -237,7 +235,7 @@ func _verify_snapshot_validation() -> String:
 	var valid: Dictionary = _save_manager.call("_build_snapshot")
 	# Exercise JSON's numeric representation, not only in-memory integers.
 	var parsed: Dictionary = JSON.parse_string(JSON.stringify(valid))
-	var error := String(_save_manager.call("_validate_snapshot", parsed))
+	var error := String(_validate_fixture(parsed))
 	if not error.is_empty(): return "complete snapshot rejected: %s" % error
 	var cases: Array[Dictionary] = []
 	var empty_scene := parsed.duplicate(true)
@@ -276,6 +274,12 @@ func _verify_snapshot_validation() -> String:
 		[["scene"], {}], [["scene"], []], [["clock"], {}], [["weather"], {}],
 		[["world_seed"], "123"], [["world_seed"], true], [["world_seed"], 1.5],
 		[["schema_version"], "1"], [["schema_version"], 1.5], [["schema_version"], true],
+		[["schema_version"], int(parsed.schema_version) - 1],
+		[["scene","construction","orders",1,"total_blocks"],"1"],
+		[["scene","furniture","installed",0,"material_id"],"base:material:unknown"],
+		[["scene","furniture","ghosts",0,"required_material_id"],"base:material:unknown"],
+		[["scene","stockpiles","zones",0,"storage_filter","tags"],"stockpile_seed"],
+		[["scene","dwarves","roster",0,"food","last_dining"],"banquet"],
 		[["clock", "paused"], "false"], [["clock", "hour"], []],
 		[["clock", "day"], 0], [["clock", "season"], ""],
 		[["weather", "rng_state"], 1234], [["weather", "rng_state"], "9223372036854775808"],
@@ -315,10 +319,72 @@ func _verify_snapshot_validation() -> String:
 		for index in range(path.size() - 1): target = target[path[index]]
 		target[path.back()] = change[1]
 		cases.append({"name": str(path), "snapshot": malformed})
+	# Fields the single current format requires: snapshots without them are rejected.
+	for path: Array in [
+		["scene","construction","orders",0,"total_blocks"],
+		["scene","furniture","ghosts",0,"required_material_id"],
+		["scene","furniture","installed",0,"material_id"],
+		["scene","stockpiles","zones",0,"storage_filter"],
+		["scene","dwarves","roster",0,"food","last_dining"],
+		["scene","dwarves","roster",0,"mood","recreation_retry_hours"],
+		["scene","dwarves","roster",0,"mood","hot_memory_hours"],
+		["scene","wildlife","deer_initialized"],
+		["scene","wildlife","wolf_initialized"],
+	]:
+		var stripped := parsed.duplicate(true)
+		var parent: Variant = stripped
+		for index in range(path.size() - 1): parent = parent[path[index]]
+		parent.erase(path.back())
+		cases.append({"name": "missing " + str(path), "snapshot": stripped})
 	for entry: Dictionary in cases:
-		if String(_save_manager.call("_validate_snapshot", entry.snapshot)).is_empty():
+		if String(_validate_fixture(entry.snapshot)).is_empty():
 			return "invalid snapshot accepted: " + entry.name
+	var content_error := _verify_unknown_content_rejected(parsed)
+	if not content_error.is_empty(): return content_error
 	print("SAVE_VALIDATION_CASES_OK (%d malformed snapshots)" % cases.size())
+	return ""
+
+
+## Saves naming furniture, items, recipes or flora the game no longer defines
+## are rejected before restore (doc 258 step 6), and real content still passes.
+func _verify_unknown_content_rejected(parsed: Dictionary) -> String:
+	var content: Node = root.get_node("ContentRegistry")
+	var order := {"id": 1, "recipe": String(content.recipes.keys()[0]), "quantity": 1, "maintain": false,
+		"paused": false, "progress": 0.0, "allowed_ingredients": []}
+	var known := parsed.duplicate(true)
+	known.scene.worker_crafting.orders = [order]
+	var error := String(_validate_fixture(known))
+	if not error.is_empty(): return "known recipe order rejected: " + error
+	var retired_order := order.duplicate()
+	retired_order.recipe = "base:recipe:retired"
+	var too_many := []
+	for id in range(1, int(content.max_craft_orders) + 2):
+		var extra := order.duplicate()
+		extra.id = id
+		too_many.append(extra)
+	var cases := 0
+	for change in [
+		[["scene","furniture","installed",0,"key"],"base:furniture:retired"],
+		[["scene","furniture","ghosts",0,"key"],"base:furniture:retired"],
+		[["scene","items","loose",0,"item_key"],"base:resources:retired"],
+		[["scene","stockpiles","zones",0,"stacks"],[{"cell":[10,20,10],"item":"base:resources:retired","count":1,"disallowed":false}]],
+		[["scene","dwarves","roster",0,"carried_items"],[{"item_key":"base:resources:retired","count":1,"disallowed":false}]],
+		[["scene","worker_crafting","orders"],[retired_order]],
+		[["scene","worker_crafting","orders"],too_many],
+		[["scene","flora","trees",0,"species"],"base:flora:retired_tree"],
+		[["scene","flora","trees",0,"stage"],"withered"],
+		[["scene","surface_details","planted"],[{"id":"plant:retired","definition":"base:flora:retired_bush","origin":[10,20,10],"yaw":0}]],
+	]:
+		var snapshot := parsed.duplicate(true)
+		var target: Variant = snapshot
+		var path: Array = change[0]
+		for index in range(path.size() - 1): target = target[path[index]]
+		target[path.back()] = change[1]
+		error = String(_validate_fixture(snapshot))
+		var expected := "more orders" if change[1] is Array and change[1].size() > 1 else "start a new world"
+		if not error.contains(expected): return "unknown content %s not rejected as expected: %s" % [str(path), error]
+		cases += 1
+	print("SAVE_UNKNOWN_CONTENT_OK (%d cases)" % cases)
 	return ""
 
 
@@ -333,13 +399,13 @@ func _verify_structural_recovery(expected_seed: int) -> String:
 		if autosave: malformed.scene.dwarves = []
 		else: malformed.scene = {}
 		var paths: Dictionary = _save_manager.call("_autosave_paths" if autosave else "_quick_save_paths")
-		if String(_save_manager.call("_commit_snapshot", malformed, paths)).is_empty():
+		if String(_save_store().call("_commit_snapshot", malformed, _save_manager.call("_absolute_paths", paths))).is_empty():
 			return "invalid temporary snapshot was committed"
 		for pair in [[primary, original], [backup, original_backup]]:
 			var retained: Dictionary = _save_manager.call("_read_snapshot", pair[0])
 			if not retained.ok or not _deep_diff(pair[1].snapshot, retained.snapshot, "save").is_empty():
 				return "rejected commit changed a healthy save/backup"
-		var write_error := String(_save_manager.call("_write_text_file", primary, JSON.stringify(malformed)))
+		var write_error := String(_write_fixture(primary, JSON.stringify(malformed)))
 		if not write_error.is_empty(): return write_error
 		if bool(_save_manager.call("_read_snapshot", primary).ok): return "malformed primary passed disk validation"
 		# Saving over an invalid primary must retain the previous healthy backup.
@@ -349,7 +415,7 @@ func _verify_structural_recovery(expected_seed: int) -> String:
 		var retained_backup: Dictionary = _save_manager.call("_read_snapshot", backup)
 		if not retained_backup.ok or not _deep_diff(original_backup.snapshot, retained_backup.snapshot, "backup").is_empty():
 			return "invalid primary replaced the healthy backup"
-		write_error = String(_save_manager.call("_write_text_file", primary, JSON.stringify(malformed)))
+		write_error = String(_write_fixture(primary, JSON.stringify(malformed)))
 		if not write_error.is_empty(): return write_error
 		_load_completed = false
 		_load_succeeded = false
@@ -375,7 +441,7 @@ func _verify_rejected_load_preserves_world() -> String:
 	var invalid := before.duplicate(true)
 	invalid.scene = {}
 	for path: String in [TEST_PRIMARY, TEST_BACKUP, TEST_AUTOSAVE, TEST_AUTOSAVE_BACKUP]:
-		var error := String(_save_manager.call("_write_text_file", path, JSON.stringify(invalid)))
+		var error := String(_write_fixture(path, JSON.stringify(invalid)))
 		if not error.is_empty(): return error
 	for command: String in ["load_game", "load_autosave"]:
 		_load_completed = false
@@ -522,7 +588,7 @@ func _build_nonempty_colony_state() -> String:
 		{"cell":_pack_v3i(_surface_cell(16,6)+Vector3i.UP),"block":"base:construction:floor:plank"},
 		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:floor:stone"}]})
 	construction.restore_state({"next_id":703,"orders":[{"id":701,"kind":"stone","materials":{"":1},"total_blocks":1,"cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]},
-			{"id":702,"kind":"stone_floor","cells":[{"cell":_pack_v3i(_surface_cell(20,6)+Vector3i.UP),"work":0.0}]}]})
+			{"id":702,"kind":"stone_floor","total_blocks":1,"cells":[{"cell":_pack_v3i(_surface_cell(20,6)+Vector3i.UP),"work":0.0}]}]})
 	var rebuilt_targets: Array[Vector3i] = [mined_cell]
 	mining._create_zone(rebuilt_targets,102)
 	var caves: Array = _world_generator.get_cave_catalog()
@@ -537,7 +603,6 @@ func _build_nonempty_colony_state() -> String:
 		"zones": [{
 			"id": 201,
 			"cells": [_pack_v3i(stockpile_cell)],
-			"filter_tags": ["stockpile_seed"],
 			"storage_filter": {"tags": ["stockpile_seed"], "items": ["base:resources:wood:oak_log"],
 				"excluded_items": ["base:resources:seed:oak_acorn"]},
 			"stacks": [{
@@ -551,30 +616,29 @@ func _build_nonempty_colony_state() -> String:
 		"ghosts": [{
 			"id": 301,
 			"key": "base:furniture:bench",
+			"required_material_id": "",
 			"origin": _pack_v3i(ghost_cell),
 			"yaw": 1,
 		}],
 		"installed": [{
 			"id": 401,
-			"key": "test:furniture:storage",
+			"key": "base:furniture:log_chair",
+			"material_id": "base:material:applewood",
 			"origin": _pack_v3i(furniture_cell),
 			"yaw": 0,
 			"flagged_uninstall": false,
-			"storage_filter": {"tags": ["stockpile_stone"], "items": ["base:resources:wood:oak_log"], "excluded_items": []},
-			"inventory": { "base:resources:stone:rough_stone": 2, "base:resources:flora:apple": 27, "base:resources:furniture:log_chair":1 },
-			"instances":[{"item":"base:resources:furniture:log_chair", "count":1, "material_id":"base:material:applewood", "disallowed":false}],
 		}, {
 			"id": 402, "key": "base:furniture:door", "material_id":"base:material:oak",
-			"origin": _pack_v3i(_surface_cell(32, 0)), "yaw": 0,
+			"origin": _pack_v3i(_surface_cell(32, 0)), "yaw": 0, "flagged_uninstall": false,
 		}, {
-			"id": 403, "key": "base:furniture:campfire",
-			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0,
+			"id": 403, "key": "base:furniture:campfire", "material_id": "",
+			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0, "flagged_uninstall": false,
 		}, {
-			"id": 406, "key": "base:furniture:log_bed", "assigned_dwarf_id": 0,
-			"origin": _pack_v3i(_surface_cell(46, 0)), "yaw": 1,
+			"id": 406, "key": "base:furniture:log_bed", "material_id": "", "assigned_dwarf_id": 0,
+			"origin": _pack_v3i(_surface_cell(46, 0)), "yaw": 1, "flagged_uninstall": false,
 		}],
 	})
-	items.call("restore_state", {
+	items.restore_state({
 		"loose": [{
 			"item_key": "base:resources:flora:juniper_berry",
 			"count": 17,
@@ -821,11 +885,13 @@ func _add_transplant_fixtures(details: Node, stockpiles: Node, furniture: Node, 
 	working.work_seconds = .65
 	details._ensure_source(ids[5])
 	var ground := _surface_cell(18,0)
-	stockpiles.restore_state({"zones":[{"id":202,"cells":[_pack_v3i(ground)],"stacks":[
-		{"cell":_pack_v3i(ground),"item":key,"count":1,"instance_id":ids[1]}]}]})
-	furniture.restore_state({"installed":[{"id":404,"key":"test:furniture:storage",
-		"origin":_pack_v3i(_surface_cell(40,0)),"inventory":{key:1},
-		"instances":[{"item":key,"count":1,"instance_id":ids[2]}]}],
+	# Two stored packed plants in one stockpile, one per cell.
+	var second := _surface_cell(22,7)
+	stockpiles.restore_state({"zones":[{"id":202,"cells":[_pack_v3i(ground),_pack_v3i(second)],
+		"storage_filter":_accept_all_filter(),"stacks":[
+		{"cell":_pack_v3i(ground),"item":key,"count":1,"instance_id":ids[1]},
+		{"cell":_pack_v3i(second),"item":key,"count":1,"instance_id":ids[2]}]}]})
+	furniture.restore_state({
 		"ghosts":[{"id":302,"key":"base:flora:blueberry_bush","origin":_pack_v3i(_surface_cell(44,0)),
 			"plant_id":ids[4],"plant_work":1.25,"yaw":2}]})
 	for i in [3,4]:
@@ -841,12 +907,12 @@ func _add_flower_fixtures(details: Node, stockpiles: Node, furniture: Node, item
 		details._remove(ids[i], "uprooted")
 	var item_key: String = registry.packed_item("base:detail:flowers", int(details._records[ids[3]].variant))
 	var ground := _surface_cell(18,3)
-	stockpiles.restore_state({"zones":[{"id":203,"cells":[_pack_v3i(ground)],"stacks":[
-		{"cell":_pack_v3i(ground),"item":item_key,"count":1,"instance_id":ids[3]}]}]})
-	item_key = registry.packed_item("base:detail:flowers", int(details._records[ids[4]].variant))
-	furniture.restore_state({"installed":[{"id":405,"key":"test:furniture:storage",
-		"origin":_pack_v3i(_surface_cell(40,5)),"inventory":{item_key:1},
-		"instances":[{"item":item_key,"count":1,"instance_id":ids[4]}]}]})
+	var second := _surface_cell(24,7)
+	var second_key: String = registry.packed_item("base:detail:flowers", int(details._records[ids[4]].variant))
+	stockpiles.restore_state({"zones":[{"id":203,"cells":[_pack_v3i(ground),_pack_v3i(second)],
+		"storage_filter":_accept_all_filter(),"stacks":[
+		{"cell":_pack_v3i(ground),"item":item_key,"count":1,"instance_id":ids[3]},
+		{"cell":_pack_v3i(second),"item":second_key,"count":1,"instance_id":ids[4]}]}]})
 	for i in [5,6]:
 		item_key = registry.packed_item("base:detail:flowers", int(details._records[ids[i]].variant))
 		items.restore_loose_item(item_key,Vector3(_surface_cell(42,i))+Vector3(.5,1,.5),0,1,ids[i])
@@ -899,29 +965,32 @@ func _add_permission_fixtures(furniture: Node, items: Node) -> void:
 	furniture._restore_ghost({"id":401,"key":"base:water:wet_stone","origin":_pack_v3i(_surface_cell(46,3)),"yaw":0,"stone_id":"wet"})
 	for kind in ["wet","dry"]: water.grant_stone(kind,_surface_cell(46,5)+Vector3i.UP)
 	var id: String = water.grant_stone("dry",_surface_cell(46,6)+Vector3i.UP)
-	for piece in furniture._installed.values():
-		if piece.storage == null: continue
-		var storage = piece.storage
-		var token = storage._slots.reserve("base:resources:water:dry_stone",1,-1,Vector3i.ZERO,true)
-		if token == null: continue
-		for node in items._loose.keys():
-			if node.get_meta("instance_id","") != id: continue
-			items.set_disallowed(node,false)
-			items.take(node)
-			token["instance_id"] = id
-			storage._commit_one(token,"base:resources:water:dry_stone")
-			storage._place_visual(node,token)
-			break
-		break
+	for node in items._loose.keys():
+		if node.get_meta("instance_id","") != id: continue
+		items.set_disallowed(node,false)
+		if items.take(node).is_empty(): continue
+		node.free() # The stockpile stack below owns this stone now.
+	# A stored water stone plus a stored packed chair keeping its material.
+	var stone_cell := _surface_cell(8,5)
+	var chair_cell := _surface_cell(9,5)
+	_owner("stockpiles").restore_state({"zones":[{"id":204,"cells":[_pack_v3i(stone_cell),_pack_v3i(chair_cell)],
+		"storage_filter":_accept_all_filter(),"stacks":[
+		{"cell":_pack_v3i(stone_cell),"item":"base:resources:water:dry_stone","count":1,"instance_id":id},
+		{"cell":_pack_v3i(chair_cell),"item":"base:resources:furniture:log_chair","count":1,"material_id":"base:material:applewood"}]}]})
 	root.get_node("StockpileManager").rebuild_totals()
 
 
+func _accept_all_filter() -> Dictionary:
+	# Load at runtime: the zone script needs autoloads this SceneTree script compiles before.
+	return {"tags": load("res://scripts/components/StockpileZoneComponent.gd").DEFAULT_FILTER_TAGS.duplicate(), "items": [], "excluded_items": []}
+
+
 func _add_furniture_moves(furniture: Node) -> void:
-	# Pending source with real storage settings, plus an already-packed bench.
+	# Pending source keeping its material, plus an already-packed workbench.
 	var source = furniture._installed[401]
 	var id: String = furniture._moves.prepare(source)
 	source.set_uninstall(true)
-	furniture._restore_ghost({"id":408,"key":source.furniture_key,"move_id":id,
+	furniture._restore_ghost({"id":408,"key":source.furniture_key,"move_id":id,"required_material_id":source.material_id,
 		"origin":_pack_v3i(_surface_cell(6,3)),"yaw":1})
 	var key := "base:furniture:crude_workbench"
 	var installed_id: int = furniture._next_installed_id
@@ -992,10 +1061,10 @@ func _verify_restored_state(expected_seed: int) -> String:
 			return "constructed terrain was not restored after mining"
 	if not bool((scene_state["settlement_flag"] as Dictionary).get("founded", false)):
 		return "settlement flag did not round-trip"
-	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 3:
+	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 4:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
-	if furniture_state.get("ghosts", []).size() != 7 or furniture_state.get("installed", []).size() != 7:
+	if furniture_state.get("ghosts", []).size() != 7 or furniture_state.get("installed", []).size() != 5:
 		return "furniture state did not round-trip"
 	var flags: Array = furniture_state.installed.filter(func(piece): return piece.key == "base:furniture:settlement_flag")
 	if flags.size() != 1 or flags[0].origin != scene_state.settlement_flag.cell or scene_state.dwarves.settlement_anchor != scene_state.settlement_flag.cell:
@@ -1113,7 +1182,7 @@ func _run_inflight_carried_case() -> String:
 	var items := _owner("items")
 	if dwarves == null or items == null:
 		return "in-flight case: save-state owners missing after reload"
-	var loose_before := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
+	var loose_before := ((items.serialize_state() as Dictionary).get("loose", []) as Array).size()
 	var move_id := "furniture_move:2"
 	for item in items._loose.keys():
 		if item.get_meta("instance_id","") == move_id:
@@ -1166,6 +1235,8 @@ func _run_inflight_carried_case() -> String:
 			"sleep": 0.9,
 			"sleeping": true,
 			"sleep_hours_left": 5.0,
+			"food": {"value":1.0,"last_meal":"","last_dining":"","hours_since_meal":0.0,"retry_hours":0.0},
+			"mood": {"personal_sleep_hours":0.0,"bedroom_memory_hours":0.0,"dining_outcome":"","dining_memory_hours":0.0,"cold_sleep_hours":0.0,"cold_memory_hours":0.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":0.0,"recreation_retry_hours":0.0},
 			"carried_items": [
 				{"item_key":"base:resources:furniture:crude_workbench","count":1,"instance_id":move_id,"material_id":"base:material:juniper"},
 				{"item_key": "base:resources:stone:rough_stone", "count": 1, "disallowed":true},
@@ -1176,7 +1247,7 @@ func _run_inflight_carried_case() -> String:
 			],
 		}],
 	})
-	var loose_after := ((items.call("serialize_state") as Dictionary).get("loose", []) as Array).size()
+	var loose_after := ((items.serialize_state() as Dictionary).get("loose", []) as Array).size()
 	if loose_after != loose_before + 5:
 		return "in-flight case: carried items not conserved as loose drops (loose %d -> %d, expected +5)" \
 			% [loose_before, loose_after]
@@ -1189,7 +1260,7 @@ func _run_inflight_carried_case() -> String:
 		if drop.get("instance_id","")==stone_id and drop.disallowed: stone_count+=int(drop.count)
 	if stone_count!=1 or water.stones[stone_id].placed: return "in-flight stone lost its identity, permission or inactive state"
 	var carried_cones := 0
-	for drop in (items.call("serialize_state") as Dictionary).get("loose", []):
+	for drop in (items.serialize_state() as Dictionary).get("loose", []):
 		if String(drop.item_key) == "base:resources:seed:pine_cone":
 			carried_cones += int(drop.count)
 	if carried_cones != 24:
@@ -1328,3 +1399,16 @@ func _wait_for_save() -> bool:
 		if Time.get_ticks_msec()-started>30000: return false
 		await process_frame
 	return bool(_save_manager.last_save_profile.get("success",false))
+
+
+## Save-file fixtures go through SaveManager's real transaction store.
+func _save_store() -> RefCounted:
+	return _save_manager.call("_file_store")
+
+
+func _write_fixture(path: String, contents: String) -> String:
+	return String(_save_store().call("_write_text_file", ProjectSettings.globalize_path(path), contents))
+
+
+func _validate_fixture(snapshot: Dictionary) -> String:
+	return String(_save_store().call("_validate_snapshot", snapshot))

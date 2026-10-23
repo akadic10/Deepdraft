@@ -1,5 +1,38 @@
 # 33 — Water, Rivers & Flooding
 
+**Dry-ground skip for area queries (2026-10-22):** `WaterManager.water_columns`
+records every column that has held water since load. It is filled at initialise
+and restore, and from each flush, and it never shrinks. Area scans such as the
+ambience scan skip other columns, because a first `flow.spans()` lookup per
+column is costly and fills the solver's cache with dry ground. Single-cell
+queries (`depth_at`) still ask the solver.
+
+**Water redraws only visible movement (2026-10-22):** a water tile's mesh keeps
+its last build until a cell it draws (or holds in its one-column border halo) has
+moved by `rendering.redraw_level_step` (1/32 block) since that build, or crossed
+standing depth. Small moves add up against the last build, so slow drift still
+gets drawn. `WaterRenderer` decides this from `WaterManager.surface_changed`;
+`dirty_tiles` now only marks whole-world (re)initialisation. Faces on a tile
+border reach one step below a wet neighbour's level, under its surface, so a
+neighbour waiting to redraw never opens a crack. Solver, navigation, flooding and
+saves keep using exact levels. `tools/performance/WaterMeshChurnProbe.gd` measured
+the owner's quicksave: 73% of per-tick tile changes were under 1/1024 block;
+redraw demand fell from 100 to about 5 tiles per second. In the camera benchmark,
+water rendering fell from 3.2 to 0.55 ms per frame, the mesh backlog from about
+860 ms to 14 ms, and frames over 16.7 ms from 116 to 32 of about 540.
+
+**Water ticks spread across frames (2026-10-22):** live play (`WaterManager.advance`)
+no longer runs a whole 0.1 s tick in one frame. Sources and the tick's cell count
+(up to 384) are fixed when a tick starts, and its cells run in proportion to the
+time elapsed toward the next tick. Changes and moisture still flush once, when
+the tick closes: flushing mid-tick would restart soil moisture for a cell whose
+level crossed a threshold and came back. A save finishes the open tick first, so
+saves stay on tick boundaries and the format is unchanged. `step()` still runs a
+whole tick at once for tests. `WaterTickSpreadTest` requires identical water,
+queue, totals, moisture and clock to whole ticks. On the 2026-10-20 quicksave the
+worst water frame falls from 13 ms to 6 ms and running-game frame p95 from 26 ms
+to 20 ms.
+
 **Water flow loop (2026-10-14):**
 [184](../00_dev_roadmap/184_water_flow_loop_performance.md) reuses quantities
 within ordered transfers, stores receiving ceilings with invalidated terrain

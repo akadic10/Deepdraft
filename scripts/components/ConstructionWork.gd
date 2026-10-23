@@ -14,6 +14,11 @@ var materials: RefCounted
 var builder_id := -1
 var _stand_targets: Dictionary = {}
 
+## The staged FETCH_BUILD lease, or -1.
+func lease_id() -> int:
+	return _lease_id
+
+
 func display_name() -> String:
 	return "%s (%d blocks)" % [def.display_name,cells.size()]
 
@@ -111,7 +116,7 @@ func work_facing(from: Vector3i) -> Vector3i:
 
 func can_complete_build() -> bool:
 	if not ready_for_staged_work() or not cells.has(target) or not controller.build_reason(target,false).is_empty(): return false
-	var worker: DwarfAgent = TaskManager._agents.get(builder_id)
+	var worker: DwarfAgent = TaskManager.get_agent(builder_id)
 	return is_instance_valid(worker) and worker.current_cell() in controller.stands_for(target)
 
 func commit_staged_build(dwarf_id: int) -> bool:
@@ -126,7 +131,7 @@ func commit_staged_build(dwarf_id: int) -> bool:
 ## Replanning is only needed after this standing position has no work left.
 func continue_staged_build(dwarf_id: int) -> bool:
 	if dwarf_id != builder_id or not ready_for_staged_work(): return false
-	var worker: DwarfAgent = TaskManager._agents.get(dwarf_id)
+	var worker: DwarfAgent = TaskManager.get_agent(dwarf_id)
 	if not is_instance_valid(worker): return false
 	var stand := worker.current_cell()
 	if not NavGrid.is_walkable(stand): return false

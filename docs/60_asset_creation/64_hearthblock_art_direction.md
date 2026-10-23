@@ -74,7 +74,8 @@ is part of the look:
 - warmer fire lights and darker, warmer slice caps;
 - burlap stockpile overlays.
 
-The values are in `data/sky/sky_settings.json` → `hearthblock_lighting`. Judge new art
+The values are in `data/sky/sky_settings.json` → `hearthblock_lighting`. The main world
+always uses this lighting; the old on/off toggle was removed on 2026-10-22. Judge new art
 in the game under this lighting at gameplay and colony zoom, not in studio light alone.
 
 ## Furniture tiers
@@ -84,7 +85,7 @@ in the game under this lighting at gameplay and colony zoom, not in studio light
   wool.
 - **Tier 2 · Carpenter Era** is for later, when the game adds that progression step: a
   plank dining table and a blanket bed. Its designs are in
-  `data/art/studies/hearthblock_furniture_tiers.json`, next to the Tier 1 studies, and
+  `tools/art_data/studies/hearthblock_furniture_tiers.json`, next to the Tier 1 studies, and
   as `diningTable()` and `bed()` in `tools/hearthblock/art/proposal.mjs`.
   **Never delete either tier's designs.**
 

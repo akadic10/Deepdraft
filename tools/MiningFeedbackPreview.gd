@@ -11,9 +11,9 @@ func _run() -> void:
 			family = argument.trim_prefix("--family=")
 	var key := "base:terrain:soil:cave" if family == "soil" else "base:terrain:rock:rock01"
 	var target := Vector3i(42,22,40)
-	mining._mined_blocks[Vector3i(41,22,40)] = true
+	world.set_block(41,22,40,blocks.AIR_ID) # records removed terrain: a mined-open tunnel
 	await _begin_block(target,key)
-	mining._zones_root.hide()
+	mining._overlay.zones_root.hide()
 	root.size = Vector2i(780,720)
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
@@ -66,8 +66,8 @@ func _run() -> void:
 	env.ambient_light_energy = .8
 	sun.light_energy = 1.4
 	# Show the last two authored swings at their real cadence.
-	worker._swings_left = mini(worker._swings_left,2)
-	var duration: float = worker._swing_timer+(worker._swings_left-1)*worker._swing_time+1.0
+	worker._work_execution._swings_left = mini(worker._work_execution._swings_left,2)
+	var duration: float = worker._work_execution._swing_timer+(worker._work_execution._swings_left-1)*worker._work_execution._swing_time+1.0
 	var directory := "res://tmp/mining_feedback_review/"+family
 	DirAccess.make_dir_recursive_absolute(directory)
 	feedback._rng.seed = 753

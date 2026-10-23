@@ -23,14 +23,13 @@ const SOURCE_ID_BASE := 1_000_000
 const LEASE_REFRESH_S := 0.25
 
 var _zones: Dictionary = {}          # source_id -> StockpileZoneComponent
-var _containers: Dictionary = {}     # source_id -> ContainerStorageComponent (doc 19 Phase 4)
 var _totals: Dictionary = {}         # item_key -> stored count (aggregate)
 var _max_haulers: int = 2
 var _carry_mult_heavy: float = 0.7
 var _carry_capacity: int = 4
 var _pouch_radius: int = 8
 
-var _drop_manager: Node3D = null
+var _drop_manager: ItemDropManager = null
 var _drop_manager_connected: bool = false
 var _lease_dirty: bool = false
 var _lease_accum: float = 0.0
@@ -55,16 +54,14 @@ func _process(delta: float) -> void:
 	# Lazy drop-manager hookup: the scene node may enter the tree after this
 	# autoload's _ready. Connect once, then this branch never runs again.
 	if not _drop_manager_connected:
-		_drop_manager = get_tree().get_first_node_in_group("item_drop_manager") as Node3D
+		_drop_manager = ItemDropManager.find(get_tree())
 		if _drop_manager != null:
-			_drop_manager.connect("drop_spawned", _on_drop_spawned)
-			_drop_manager.connect("loose_items_changed", _mark_dirty)
+			_drop_manager.drop_spawned.connect(_on_drop_spawned)
+			_drop_manager.loose_items_changed.connect(_mark_dirty)
 			_drop_manager_connected = true
 			# Backfill zones registered before the scene node entered the tree.
 			for source_id: int in _zones:
 				(_zones[source_id] as StockpileZoneComponent).drop_manager = _drop_manager
-			for source_id: int in _containers:
-				(_containers[source_id] as ContainerStorageComponent).drop_manager = _drop_manager
 	if not _lease_dirty:
 		return
 	_lease_accum += delta
@@ -74,11 +71,14 @@ func _process(delta: float) -> void:
 	_lease_dirty = false
 	for source_id: int in _zones:
 		(_zones[source_id] as StockpileZoneComponent).update_leases()
-	for source_id: int in _containers:
-		(_containers[source_id] as ContainerStorageComponent).update_leases()
 
 
 # ── Zone registry (called by StockpileDesignationController) ──────────────────
+
+## Every registered stockpile zone (a copy of the list).
+func get_zones() -> Array:
+	return _zones.values()
+
 
 func register_zone(zone: StockpileZoneComponent) -> void:
 	zone.source_id = SOURCE_ID_BASE + zone.zone_id
@@ -90,32 +90,6 @@ func register_zone(zone: StockpileZoneComponent) -> void:
 	zone.changed_callback = _on_zone_deposit
 	_zones[zone.source_id] = zone
 	TaskManager.register_work_source(zone.source_id, zone)
-	_mark_dirty()
-
-
-## Container registered by FurniturePlacementController on install (doc 19
-## Phase 4). Source id comes from the caller (TaskManager.allocate_source_id).
-func register_container(container: ContainerStorageComponent) -> void:
-	container.max_haulers = _max_haulers
-	container.carry_speed_mult_heavy = _carry_mult_heavy
-	container.carry_capacity = _carry_capacity
-	container.pouch_bundle_radius = _pouch_radius
-	container.drop_manager = _drop_manager
-	container.changed_callback = _on_zone_deposit
-	_containers[container.source_id] = container
-	TaskManager.register_work_source(container.source_id, container)
-	_mark_dirty()
-
-
-## Container removed (uninstall/DEV): contents are the CALLER's to dump
-## (FurniturePlacementController tears down in order); this frees the slots.
-func deregister_container(container: ContainerStorageComponent) -> void:
-	if not _containers.has(container.source_id):
-		return
-	TaskManager.cancel_source_tasks(container.source_id)
-	container.release_storage_claims()
-	_containers.erase(container.source_id)
-	TaskManager.unregister_work_source(container.source_id)
 	_mark_dirty()
 
 
@@ -133,7 +107,7 @@ func deregister_zone(zone: StockpileZoneComponent) -> void:
 		var stack: Dictionary = zone.cell_stacks[cell]
 		_apply_total(String(stack.get("item", "")), -int(stack.get("count", 0)))
 	if _drop_manager != null and is_instance_valid(_drop_manager):
-		_drop_manager.call("release_stored_cells", zone.cell_stacks)
+		_drop_manager.release_stored_cells(zone.cell_stacks)
 	_mark_dirty()
 
 
@@ -160,11 +134,6 @@ func get_item_locations(item_key: String) -> Array[Dictionary]:
 				position = Vector3(cell) + Vector3(.5, 1, .5)
 		if count > 0:
 			result.append({"kind": "stockpile", "owner": zone, "count": count, "position": position})
-	for container: ContainerStorageComponent in _containers.values():
-		var count := int(container.inventory.get(item_key, 0))
-		if count > 0 and is_instance_valid(container.display_parent):
-			result.append({"kind": "container", "owner": container, "count": count,
-				"position": container.display_parent.global_position, "node": container.display_parent})
 	return result
 
 
@@ -175,21 +144,18 @@ func get_stats() -> Dictionary:
 		var zone: StockpileZoneComponent = _zones[source_id]
 		cells += zone.cell_count()
 		stored += zone.stored_count()
-	for source_id: int in _containers:
-		stored += (_containers[source_id] as ContainerStorageComponent).stored_count()
-	return { "zones": _zones.size(), "cells": cells, "stored": stored, "containers": _containers.size() }
+	return { "zones": _zones.size(), "cells": cells, "stored": stored }
 
 
 ## Scene-reload boundary. Work-source state is transient and TaskManager is
-## reset separately; restored zones/containers register themselves afresh.
+## reset separately; restored zones register themselves afresh.
 func reset_runtime_state() -> void:
 	if _drop_manager_connected and _drop_manager != null \
 			and is_instance_valid(_drop_manager) \
-			and _drop_manager.is_connected("drop_spawned", _on_drop_spawned):
-		_drop_manager.disconnect("drop_spawned", _on_drop_spawned)
-		_drop_manager.disconnect("loose_items_changed", _mark_dirty)
+			and _drop_manager.drop_spawned.is_connected(_on_drop_spawned):
+		_drop_manager.drop_spawned.disconnect(_on_drop_spawned)
+		_drop_manager.loose_items_changed.disconnect(_mark_dirty)
 	_zones.clear()
-	_containers.clear()
 	_totals.clear()
 	_drop_manager = null
 	_drop_manager_connected = false
@@ -209,24 +175,17 @@ func rebuild_totals() -> void:
 			var count := int(stack.get("count", 0))
 			if not key.is_empty() and count > 0:
 				_totals[key] = int(_totals.get(key, 0)) + count
-	for source_id: int in _containers:
-		var container: ContainerStorageComponent = _containers[source_id]
-		for key: String in container.inventory:
-			var count := int(container.inventory[key])
-			if count > 0:
-				_totals[key] = int(_totals.get(key, 0)) + count
 	_mark_dirty()
 	stockpile_changed.emit("", 0)
 
 
 ## Fetch withdraw (doc 19 §3.3): pull one stored unit of `item_key` out of
 ## the zone nearest `near`, reserved for `dwarf_id`. Null if no zone holds
-## the item. Containers join this lookup in Phase 4 via the same surface.
+## the item.
 func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id: String = "", material_id: String = "") -> Node3D:
 	if not instance_id.is_empty() or not material_id.is_empty():
 		var candidates: Array = []
-		for source: StorageComponent in _zones.values() + _containers.values():
-			if source is ContainerStorageComponent and source.suspended: continue
+		for source: StorageComponent in _zones.values():
 			for slot in source.stored_entries():
 				var stack: Dictionary = source.stored_entries()[slot]
 				if not source.slot_allowed(slot) or source._outgoing.has(slot) or String(stack.item) != item_key: continue
@@ -262,12 +221,6 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id:
 	if best_zone != null:
 		var node := best_zone.withdraw_nearest(item_key, near, dwarf_id)
 		if node != null: return node
-	# No zone holds it — try containers (doc 19 Phase 4).
-	for source_id: int in _containers:
-		var container: ContainerStorageComponent = _containers[source_id]
-		if int(container.inventory.get(item_key, 0)) > 0:
-			var node := container.withdraw_nearest(item_key, near, dwarf_id)
-			if node != null: return node
 	return null
 
 
@@ -275,8 +228,7 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id:
 ## across the allowed keys instead of treating key sorting as a wood preference.
 func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) -> Node3D:
 	var candidates: Array[Dictionary] = []
-	for source: StorageComponent in _zones.values() + _containers.values():
-		if source is ContainerStorageComponent and source.suspended: continue
+	for source: StorageComponent in _zones.values():
 		var entries := source.stored_entries()
 		for slot in entries:
 			var stack: Dictionary = entries[slot]
@@ -299,12 +251,12 @@ func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) 
 func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary,
 		claim_owner := -1, material_id := "", instance_id := "") -> bool:
 	if query.is_empty():
-		query.merge({"sources":_zones.values()+_containers.values(), "index":0,
+		query.merge({"sources":_zones.values(), "index":0,
 			"slots":[], "slot_index":0, "best":{}, "distance":0x7FFFFFFF})
 	while int(query.index) < query.sources.size():
 		if Time.get_ticks_usec() >= deadline: return false
 		var source: StorageComponent = query.sources[query.index]
-		if is_registered(source) and not (source is ContainerStorageComponent and source.suspended):
+		if is_registered(source):
 			if query.slots.is_empty(): query.slots = source.stored_entries().keys()
 			while int(query.slot_index) < query.slots.size():
 				if Time.get_ticks_usec() >= deadline: return false
@@ -333,7 +285,6 @@ func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictiona
 func withdraw_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 	var source: StorageComponent = quote.get("source")
 	if source == null or not is_registered(source): return null
-	if source is ContainerStorageComponent and source.suspended: return null
 	var stack: Dictionary = source.stored_entries().get(quote.slot,{})
 	if not source.slot_allowed(quote.slot) or stack.is_empty() or String(stack.item) != quote.key: return null
 	if int(stack.count) <= int(source._outgoing.get(quote.slot,{}).get("count",0)): return null
@@ -345,7 +296,7 @@ func withdraw_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 
 
 func is_registered(storage: StorageComponent) -> bool:
-	return _zones.get(storage.source_id) == storage or _containers.get(storage.source_id) == storage
+	return _zones.get(storage.source_id) == storage
 
 
 func storage_rules_changed() -> void:
@@ -355,8 +306,7 @@ func storage_rules_changed() -> void:
 
 func get_available_total(key: String) -> int:
 	var total := 0
-	for storage: StorageComponent in _zones.values()+_containers.values():
-		if storage is ContainerStorageComponent and storage.suspended: continue
+	for storage: StorageComponent in _zones.values():
 		for slot in storage.stored_entries():
 			var stack: Dictionary = storage.stored_entries()[slot]
 			if storage.slot_allowed(slot) and String(stack.item)==key: total += int(stack.count)
@@ -365,7 +315,7 @@ func get_available_total(key: String) -> int:
 
 func get_disallowed_total(key: String) -> int:
 	var total := 0
-	for storage: StorageComponent in _zones.values()+_containers.values():
+	for storage: StorageComponent in _zones.values():
 		for slot in storage.stored_entries():
 			var stack: Dictionary = storage.stored_entries()[slot]
 			if not storage.slot_allowed(slot) and String(stack.item)==key: total += int(stack.count)
@@ -375,7 +325,7 @@ func get_disallowed_total(key: String) -> int:
 func permissions_changed() -> void:
 	# Cancel only hauls touching the newly unavailable source or destination.
 	var owners := {}
-	for storage: StorageComponent in _zones.values()+_containers.values():
+	for storage: StorageComponent in _zones.values():
 		for dwarf_id in storage._pulls:
 			var pull: Dictionary = storage._pulls[dwarf_id]
 			for item in pull.items:
@@ -393,9 +343,8 @@ func permissions_changed() -> void:
 func relocation_candidates(destination: StorageComponent, near: Vector3i, exclude: Dictionary = {}, limit: int = 0) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if not is_registered(destination): return result
-	for origin: StorageComponent in _zones.values() + _containers.values():
+	for origin: StorageComponent in _zones.values():
 		if origin == destination: continue
-		if origin is ContainerStorageComponent and origin.suspended: continue
 		for slot in origin.stored_entries():
 			if origin._outgoing.has(slot) or exclude.has(origin.relocation_id(slot)): continue
 			if exclude.has(origin.slot_cell(slot)): continue
@@ -414,7 +363,7 @@ func relocation_candidates(destination: StorageComponent, near: Vector3i, exclud
 
 func get_outgoing_totals() -> Dictionary:
 	var result := {}
-	for origin: StorageComponent in _zones.values() + _containers.values():
+	for origin: StorageComponent in _zones.values():
 		for token: Dictionary in origin._outgoing.values():
 			result[token.item] = int(result.get(token.item, 0)) + int(token.count)
 	return result
@@ -424,12 +373,12 @@ func get_outgoing_totals() -> Dictionary:
 ## Source/slot snapshots are transient, contain no claims and never own goods.
 func advance_relocation_quote(destination: StorageComponent, near: Vector3i, query: Dictionary, deadline_usec: int, exclude_cells: Dictionary = {}) -> bool:
 	if query.is_empty():
-		query.merge({"sources": _zones.values() + _containers.values(), "source_index": 0,
+		query.merge({"sources": _zones.values(), "source_index": 0,
 			"slots": [], "slot_index": 0, "cell": Vector3i(-1, -1, -1), "distance": 0x7FFFFFFF})
 	while int(query.source_index) < query.sources.size():
 		if Time.get_ticks_usec() >= deadline_usec: return false
 		var origin: StorageComponent = query.sources[query.source_index]
-		if origin == destination or not is_registered(origin) or (origin is ContainerStorageComponent and origin.suspended):
+		if origin == destination or not is_registered(origin):
 			query.source_index += 1
 			continue
 		if query.slots.is_empty(): query.slots = origin.stored_entries().keys()
@@ -483,9 +432,6 @@ func _route(task: Task, dwarf_id: int) -> void:
 	var zone: StockpileZoneComponent = _zones.get(task.source_id)
 	if zone != null:
 		zone.on_task_gone(task.id, dwarf_id)
-	var container: ContainerStorageComponent = _containers.get(task.source_id)
-	if container != null:
-		container.on_task_gone(task.id, dwarf_id)
 	_mark_dirty()
 
 
@@ -503,9 +449,6 @@ func _on_task_released(task: Task, dwarf_id: int, _reason: int) -> void:
 	var zone: StockpileZoneComponent = _zones.get(task.source_id)
 	if zone != null:
 		zone.cancel_haul(dwarf_id)
-	var container: ContainerStorageComponent = _containers.get(task.source_id)
-	if container != null:
-		container.cancel_haul(dwarf_id)
 	_mark_dirty()
 
 
@@ -518,8 +461,7 @@ func _on_task_failed(task: Task, _reason: String) -> void:
 
 
 func has_stored_instance(item_key: String, instance_id: String) -> bool:
-	for source: StorageComponent in _zones.values() + _containers.values():
-		if source is ContainerStorageComponent and source.suspended: continue
+	for source: StorageComponent in _zones.values():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
 			if not source.slot_allowed(slot): continue
@@ -529,8 +471,8 @@ func has_stored_instance(item_key: String, instance_id: String) -> bool:
 
 func get_promised_totals() -> Dictionary:
 	var result := {}
-	if not is_instance_valid(_drop_manager) or _drop_manager._instance_promises.is_empty(): return result
-	for source: StorageComponent in _zones.values() + _containers.values():
+	if not is_instance_valid(_drop_manager) or not _drop_manager.has_instance_promises(): return result
+	for source: StorageComponent in _zones.values():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
 			if not source.slot_allowed(slot): continue
@@ -541,8 +483,7 @@ func get_promised_totals() -> Dictionary:
 ## Available physical units by material, excluding permissions and outgoing claims.
 func available_materials(item_key: String) -> Dictionary:
 	var result := {}
-	for source: StorageComponent in _zones.values() + _containers.values():
-		if source is ContainerStorageComponent and source.suspended: continue
+	for source: StorageComponent in _zones.values():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
 			if String(stack.item) != item_key or not source.slot_allowed(slot): continue

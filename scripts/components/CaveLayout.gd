@@ -3,7 +3,8 @@ extends RefCounted
 ## Finite, dry, connected systems. One level per system keeps the first caves
 ## usable with the current three-block dwarf clearance and navigation rules.
 ## Immutable after build; column spans are shared by generation and discovery.
-const SIZE := 1024
+const WorldSize = preload("res://scripts/systems/WorldSize.gd")
+const SIZE := WorldSize.WORLD_SIZE_X
 const CARDINALS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 
 
@@ -50,7 +51,7 @@ static func build(world_seed: int, heights: PackedInt32Array, water: PackedInt32
 				overlaps = true
 				break
 		if overlaps: continue
-		var lowest := 127
+		var lowest := WorldSize.MAX_Y
 		var wet := false
 		for x in range(safe_bounds.position.x, safe_bounds.end.x):
 			for z in range(safe_bounds.position.y, safe_bounds.end.y):

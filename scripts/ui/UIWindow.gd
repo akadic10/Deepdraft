@@ -114,6 +114,11 @@ func _ready() -> void:
 
 
 ## Sets the title-bar text. Safe before or after _ready.
+func get_title_bar() -> PanelContainer: return _title_bar
+func get_title_label() -> Label: return _title_label
+func get_body_slot() -> MarginContainer: return _body_slot
+
+
 func set_window_title(title: String, emoji: String = "") -> void:
 	var text := ("%s  %s" % [emoji, title]) if not emoji.is_empty() else title
 	if _title_label == null:

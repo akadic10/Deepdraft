@@ -5,6 +5,8 @@ extends SceneTree
 var output := ""
 var saved := false
 var markers := true
+## --paced keeps vsync and the camera's frame cap, to see frame pacing as played.
+var paced := false
 var weather_override := ""
 var ablations := true
 var room_rebuilds := false
@@ -28,11 +30,15 @@ func _init() -> void:
 		if arg.begins_with("--output="): output=arg.trim_prefix("--output=").trim_suffix("/")+"/"
 		if arg=="--saved": saved=true
 		if arg=="--no-markers": markers=false
+		if arg=="--paced": paced=true
 		if arg=="--no-ablations": ablations=false
 		if arg=="--room-rebuilds": room_rebuilds=true
 		if arg.begins_with("--weather="): weather_override=arg.trim_prefix("--weather=")
 		if arg.begins_with("--seconds="): seconds=maxf(3,float(arg.trim_prefix("--seconds=")))
 		if arg=="--small": resolution=Vector2i(1280,720)
+		if arg.begins_with("--resolution="):
+			var size:=arg.trim_prefix("--resolution=").split("x")
+			resolution=Vector2i(int(size[0]),int(size[1]))
 	_run.call_deferred()
 
 func _run() -> void:
@@ -42,8 +48,9 @@ func _run() -> void:
 		return
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	root.size=resolution
-	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	Engine.max_fps=0
+	if not paced:
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+		Engine.max_fps=0
 	clock_node=root.get_node("WorldClock")
 	generator=root.get_node("WorldGenerator")
 	clock_node.set_paused(true)
@@ -66,6 +73,7 @@ func _run() -> void:
 		await process_frame
 		await process_frame
 	scene=current_scene
+	if not paced: Engine.max_fps=0 # the camera rig caps frames for pacing
 	renderer=scene.get_node("Renderer")
 	moisture_view=_find_script(scene,"res://scripts/components/MoistureRenderer.gd")
 	rig=scene.get_node("CameraRig")
@@ -108,7 +116,7 @@ func _run() -> void:
 		"wildlife_manager_sha256":FileAccess.get_sha256("res://scripts/systems/WildlifeManager.gd"),
 		"occupancy_registry_sha256":FileAccess.get_sha256("res://scripts/registries/PlacedEntityRegistry.gd"),
 		"driver":RenderingServer.get_current_rendering_driver_name(),"resolution":[resolution.x,resolution.y],
-		"saved":saved,"seed":generator.world_seed,"markers":markers,"vsync":"disabled","fixed_fps":false,
+		"saved":saved,"seed":generator.world_seed,"markers":markers,"vsync":"enabled" if paced else "disabled","max_fps":Engine.max_fps,"fixed_fps":false,
 		"weather":root.get_node("WeatherManager").current_weather_id(),"weather_override":weather_override,
 		"ablations":ablations,
 		"sample_seconds_min":seconds,"camera_origin":str(origin),"camera_zoom":rig._target_zoom,
@@ -143,7 +151,7 @@ func _benchmark_modes() -> Array[String]:
 
 func _ready_for_sampling() -> bool:
 	if not generator._maps_ready or generator.is_generating(): return false
-	if not renderer._overview_built or not renderer._dirty_overview_tiles.is_empty() or renderer._cavity_shell_dirty: return false
+	if not renderer.tiles.overview_built or not renderer.tiles.dirty_overview_tiles.is_empty() or renderer.cavity_shell.dirty: return false
 	if renderer.underground_lighting.is_updating(): return false
 	if moisture_view!=null and moisture_view.has_method("is_updating") and moisture_view.is_updating(): return false
 	if not scene.get_node("SurfaceFloraSpawner")._pending.is_empty(): return false

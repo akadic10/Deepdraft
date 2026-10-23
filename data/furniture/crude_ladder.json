@@ -11,9 +11,7 @@
     "width": 1,
     "depth": 1
   },
-  "blocks_movement": false,
   "collision_regions": [],
-  "room_anchor": false,
   "ladder": {
     "section_height": 4,
     "install_seconds": 2.0,

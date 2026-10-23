@@ -40,24 +40,24 @@ func _run() -> void:
 
 	# A local change must retain far-away mesh nodes and geometry, rather than
 	# reinitializing the entire map whenever the dirty queue becomes nonempty.
-	var distant: MeshInstance3D = view._overview_tile_nodes[Vector2i.ZERO]
+	var distant: MeshInstance3D = view.tiles.overview_tile_nodes[Vector2i.ZERO]
 	var distant_mesh := distant.mesh
 	var mouth: Vector3i = gen.spring_cave.mouth
 	var local_blocks: Array[Vector3i] = [mouth]
-	view._enqueue_overview_tiles_for_blocks(local_blocks)
+	view.tiles._enqueue_overview_tiles_for_blocks(local_blocks)
 	await _settle(view)
 	if not _coverage(view, "local refresh"): return
-	if view._overview_tile_nodes[Vector2i.ZERO] != distant or distant.mesh != distant_mesh:
+	if view.tiles.overview_tile_nodes[Vector2i.ZERO] != distant or distant.mesh != distant_mesh:
 		_fail("local refresh rebuilt distant terrain")
 		return
 	# Interrupt an actual in-flight batch with a second revision. The completed
 	# older mesh must be discarded and the replacement must retain full coverage.
-	view._enqueue_overview_tiles_for_blocks(local_blocks)
-	view._drain_overview_tile_queue()
-	var stale_before: int = view._overview_stale_results
-	view._enqueue_overview_tiles_for_blocks(local_blocks)
+	view.tiles._enqueue_overview_tiles_for_blocks(local_blocks)
+	view.tiles._drain_overview_tile_queue()
+	var stale_before: int = view.tiles._overview_stale_results
+	view.tiles._enqueue_overview_tiles_for_blocks(local_blocks)
 	await _settle(view)
-	if view._overview_stale_results <= stale_before:
+	if view.tiles._overview_stale_results <= stale_before:
 		_fail("in-flight terrain revision was not rejected")
 		return
 	if not _coverage(view, "edit during asynchronous build"): return
@@ -77,8 +77,8 @@ func _run() -> void:
 		_fail("save completion failed"); return
 	# Loading while a batch is running must join readers before generator maps
 	# are cleared. Saving above records a complete, stable scene.
-	view._enqueue_overview_tiles_for_blocks(local_blocks)
-	view._drain_overview_tile_queue()
+	view.tiles._enqueue_overview_tiles_for_blocks(local_blocks)
+	view.tiles._drain_overview_tile_queue()
 	saves.load_finished.connect(func(ok: bool, _backup: bool):
 		_load_ok = ok
 		_load_finished = true)
@@ -101,8 +101,8 @@ func _run() -> void:
 
 	# Full invalidation followed immediately by a local event is the same race
 	# as startup, and must schedule every tile again.
-	view._invalidate_overview_global()
-	view._enqueue_overview_tiles_for_blocks(local_blocks)
+	view.tiles.invalidate_global()
+	view.tiles._enqueue_overview_tiles_for_blocks(local_blocks)
 	await _settle(view)
 	if not _coverage(view, "global invalidation plus local update"): return
 	print("WorldTerrainStartupTest: PASS seed=", _seed)
@@ -110,17 +110,17 @@ func _run() -> void:
 
 func _settle(view: Node) -> void:
 	await process_frame
-	while not view._overview_built or not view._dirty_overview_tiles.is_empty():
+	while not view.tiles.overview_built or not view.tiles.dirty_overview_tiles.is_empty():
 		await process_frame
 
 func _coverage(view: Node, stage: String) -> bool:
 	var count := ceili(float(view.WORLD_SIZE_X) / view.OVERVIEW_TILE_SIZE)
-	if view._overview_tile_nodes.size() != count * count:
-		_fail("%s: only %d/%d terrain tiles" % [stage, view._overview_tile_nodes.size(), count * count])
+	if view.tiles.overview_tile_nodes.size() != count * count:
+		_fail("%s: only %d/%d terrain tiles" % [stage, view.tiles.overview_tile_nodes.size(), count * count])
 		return false
 	for x in count:
 		for z in count:
-			var tile: MeshInstance3D = view._overview_tile_nodes.get(Vector2i(x, z))
+			var tile: MeshInstance3D = view.tiles.overview_tile_nodes.get(Vector2i(x, z))
 			if tile == null or not tile.visible or tile.mesh == null or tile.mesh.get_surface_count() == 0:
 				_fail("%s: missing visible geometry at %s" % [stage, Vector2i(x, z)])
 				return false

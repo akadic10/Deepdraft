@@ -61,12 +61,12 @@ func _check_pick_grips() -> void:
 	var pose: RefCounted = worker._mining_pose
 	var pick: Node3D = pose.pickaxe
 	_expect(is_instance_valid(pick) and pick.visible and pick.get_parent() == worker._hand_r,"mining equips pickaxe in right hand")
-	var contact: Vector3 = worker.to_global(worker._mine_contact)
-	var box := AABB(Vector3(worker._zone_block)-Vector3.ONE*.001,Vector3.ONE*1.002)
+	var contact: Vector3 = worker.to_global(worker._work_execution._mine_contact)
+	var box := AABB(Vector3(worker._work_execution._zone_block)-Vector3.ONE*.001,Vector3.ONE*1.002)
 	_expect(box.has_point(contact),"contact lies on/just inside target voxel")
 	var previous := Vector3.ZERO
 	for phase in [0.0,.2,.4,.55,.75,.93,1.0]:
-		pose.apply(phase,worker._mine_contact)
+		pose.apply(phase,worker._work_execution._mine_contact)
 		_expect((worker._hand_r.global_transform*pose.PALM).distance_to(pick.global_position) < .001,"lower grip follows pick")
 		_expect((worker._hand_l.global_transform*pose.PALM).distance_to(pick.global_transform*pose.SUPPORT_GRIP) < .001,"upper grip follows pick")
 		if phase >= pose.CONTACT_PHASE:
@@ -77,13 +77,13 @@ func _check_pick_grips() -> void:
 	worker.apply_slice(19)
 	_expect(not pick.is_visible_in_tree(),"slice hides pick with dwarf")
 	worker.apply_slice(127)
-	pose.apply(0,worker._mine_contact)
+	pose.apply(0,worker._work_execution._mine_contact)
 
 
 func _check_stowed_pick(reason: String) -> void:
 	_expect(not worker._mining_pose.pickaxe.visible,"%s stows pick" % reason)
 	_expect(worker._hand_r.scale.is_equal_approx(Vector3(-1,1,1)) and worker._foot_r.scale.is_equal_approx(Vector3(-1,1,1)),"%s preserves mirrors" % reason)
-	var offsets := {worker._hand_l:worker._relaxed_hand(-1),worker._hand_r:worker._relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
+	var offsets := {worker._hand_l:worker._rig.relaxed_hand(-1),worker._hand_r:worker._rig.relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
 	for part in [worker._body,worker._head,worker._hand_l,worker._hand_r,worker._foot_l,worker._foot_r]:
 		_expect(part.position.is_equal_approx(offsets.get(part,Vector3.ZERO)) and part.rotation.is_zero_approx(),"%s restores Balanced pose" % reason)
 
@@ -109,19 +109,19 @@ func _run() -> void:
 		world.set_block(removed.x,removed.y,removed.z,blocks.AIR_ID)
 	var block := Vector3i(42,22,40)
 	var id: int = await _begin_block(block)
-	var source: RefCounted = worker._zone_source()
+	var source: RefCounted = worker._work_execution._zone_source()
 	worker._process(.1)
-	var timer: float = worker._swing_timer
+	var timer: float = worker._work_execution._swing_timer
 	var transform: Transform3D = worker._hand_r.transform
 	clock_node.set_paused(true)
 	worker._process(5)
-	_expect(is_equal_approx(worker._swing_timer,timer) and worker._hand_r.transform.is_equal_approx(transform),"pause freezes mining and pick")
+	_expect(is_equal_approx(worker._work_execution._swing_timer,timer) and worker._hand_r.transform.is_equal_approx(transform),"pause freezes mining and pick")
 	clock_node.set_paused(false)
 	clock_node.set_speed(2)
 	worker._process(.02)
-	_expect(is_equal_approx(worker._swing_timer,timer-.04),"mining and pick follow clock speed")
+	_expect(is_equal_approx(worker._work_execution._swing_timer,timer-.04),"mining and pick follow clock speed")
 	clock_node.set_speed(1)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_check_stowed_pick("interrupt")
 	_expect(source.reserved_block_of(worker.dwarf_id).y < 0 and world.get_block(block.x,block.y,block.z) != blocks.AIR_ID,"interrupt releases block without mining it")
 	_expect(await _until_mining(),"resume after interrupt")
@@ -130,7 +130,7 @@ func _run() -> void:
 	_check_stowed_pick("sleep")
 	worker._wake_up()
 	_expect(await _until_mining(),"resume after sleep")
-	var total: float = (worker._swings_left-1)*worker._swing_time+worker._swing_timer
+	var total: float = (worker._work_execution._swings_left-1)*worker._work_execution._swing_time+worker._work_execution._swing_timer
 	worker._process(total-.01)
 	_expect(world.get_block(block.x,block.y,block.z) != blocks.AIR_ID,"full authored work still required across a long frame")
 	worker._process(.02)

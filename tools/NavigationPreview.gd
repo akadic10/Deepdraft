@@ -6,7 +6,7 @@ extends "res://tools/HearthThemePreview.gd"
 func _capture_inspector() -> void:
 	await super._capture_inspector()
 	var dock = scene.get_node("Dock")
-	dock._mining_controller._hint_window.hide()
+	dock._mining_controller._zone_ui.hint_window.hide()
 	_expect(dock._button_by_target.keys() == ["orders", "zones", "rooms", "construction", "place", "craft", "colony", "stocks", "system", "development"],
 		"all ten illustrated commands retain their dedicated dock entries")
 	var rooms = load("res://scripts/systems/RoomOverlayController.gd").new()

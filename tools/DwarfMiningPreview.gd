@@ -12,7 +12,7 @@ func _run() -> void:
 	if view == "underfoot": target = Vector3i(41,20,40)
 	if view == "low": world.set_block(42,20,40,blocks.AIR_ID)
 	await _begin_block(target)
-	mining._zones_root.hide()
+	mining._overlay.zones_root.hide()
 	root.size = Vector2i(780,720)
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
@@ -72,7 +72,7 @@ func _run() -> void:
 	var directory := "res://tmp/mining_animation_review/"+view
 	DirAccess.make_dir_recursive_absolute(directory)
 	for i in range(36):
-		worker._mining_pose.apply(float(i)/35,worker._mine_contact)
+		worker._mining_pose.apply(float(i)/35,worker._work_execution._mine_contact)
 		await process_frame
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(directory+"/frame_%02d.png" % i)

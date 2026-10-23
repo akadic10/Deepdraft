@@ -208,7 +208,7 @@ func show_data(data: Dictionary, following: bool) -> void:
 	_food_effects.text = String(food.effects)
 	_food_effects.visible = not _food_effects.text.is_empty()
 	_meal.text = String(food.meal)
-	var mood: Dictionary = agent._mood.describe()
+	var mood: Dictionary = agent.get_mood().describe()
 	_happiness.text = "%s · Happiness %d%%" % [mood.label,roundi(float(mood.value)*100)]
 	_happiness.tooltip_text = String(mood.thought)
 	_thought.text = String(mood.thought)

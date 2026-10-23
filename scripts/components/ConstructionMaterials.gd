@@ -15,11 +15,11 @@ var _retry := 0.0
 var _shown_count := -1
 var _contents: Node3D
 
-func setup(project: RefCounted) -> void:
-	project_ref = weakref(project)
-	ghost_id = project.ghost_id
-	drop_manager = project.drop_manager
-	filter_items = [project.item_key]
+func setup(order: RefCounted) -> void:
+	project_ref = weakref(order)
+	ghost_id = order.ghost_id
+	drop_manager = order.drop_manager
+	filter_items = [order.item_key]
 	var hauling := TaskManager.get_config_section("hauling")
 	carry_capacity = maxi(1,int(hauling.get("carry_capacity",4)))
 	carry_speed_mult_heavy = float(hauling.get("carry_speed_mult_heavy",.7))
@@ -41,12 +41,12 @@ func in_transit() -> int:
 	for token: Dictionary in reservations.values(): amount += int(token.count)
 	return amount
 
-func _has_any_room() -> bool:
+func has_any_room() -> bool:
 	var order := project()
 	return order != null and crate_cell != INVALID and order.cells.size() > count()+in_transit()
 
 func _reserve_deposit(key: String, _near: Vector3i, dwarf_id: int, amount := 1, material_id := "") -> Variant:
-	if not _has_any_room() or not accepts_key(key): return null
+	if not has_any_room() or not accepts_key(key): return null
 	var quantity := mini(amount,project().cells.size()-count()-in_transit())
 	var token := {"id":_next_token,"item":key,"count":quantity,"owner":dwarf_id,"active":true,"material_id":material_id}
 	_next_token += 1
@@ -89,7 +89,7 @@ func delivery_contact(_stand: Vector3i) -> Vector3:
 	return Vector3(crate_cell)+Vector3(.5,1.48,.5)
 
 func commit_haul(dwarf_id: int, carried: Array) -> bool:
-	var worker: DwarfAgent = TaskManager._agents.get(dwarf_id)
+	var worker: DwarfAgent = TaskManager.get_agent(dwarf_id)
 	if not is_instance_valid(worker) or worker.current_cell() not in delivery_stand_cells(crate_cell): return false
 	if not site_supported(): return false
 	return super.commit_haul(dwarf_id,carried)
@@ -100,7 +100,7 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline: int) -> boo
 		query.erase("stored")
 		query.stock_revision = scheduling_revision()
 		query.from = from
-	if not _has_any_room() or not _can_haul_key(filter_items[0]):
+	if not has_any_room() or not _can_haul_key(filter_items[0]):
 		query.cell = INVALID
 		return true
 	if not query.has("loose"): query.loose = {}
@@ -119,8 +119,7 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline: int) -> boo
 ## portions, collect each at contact, then deposit together at the project.
 func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> Dictionary:
 	var candidates: Array[Dictionary] = []
-	for origin: StorageComponent in StockpileManager._zones.values()+StockpileManager._containers.values():
-		if origin is ContainerStorageComponent and origin.suspended: continue
+	for origin: StorageComponent in StockpileManager.get_zones():
 		for slot in origin.stored_entries():
 			var stack: Dictionary = origin.stored_entries()[slot]
 			var cell := origin.withdrawal_item_cell(slot)
@@ -179,7 +178,7 @@ func take_item(dwarf_id: int, index: int) -> Node3D:
 	var marker: Node3D = pull.items[index]
 	if pull.picked.has(marker) or not bool(pull.deposits[marker].active): return null
 	var transfer: Dictionary = pull.transfers[marker]
-	var worker: DwarfAgent = TaskManager._agents.get(dwarf_id)
+	var worker: DwarfAgent = TaskManager.get_agent(dwarf_id)
 	if not is_instance_valid(worker): return null
 	var cargo: Node3D = transfer.source.take_portion(transfer.token,dwarf_id,worker.current_cell())
 	if cargo != null:
@@ -204,7 +203,7 @@ func cancel_haul(dwarf_id: int) -> void:
 	super.cancel_haul(dwarf_id)
 
 func update_leases() -> void:
-	if _lease_ids.size() >= max_haulers or not _has_any_room(): return
+	if _lease_ids.size() >= max_haulers or not has_any_room(): return
 	if StockpileManager.get_available_total(filter_items[0]) <= 0 and drop_manager.count_loose(_query_tags(),1,_can_haul_key) <= 0: return
 	var wanted := mini(max_haulers,project().cells.size()-count())
 	while _lease_ids.size() < wanted:
@@ -237,13 +236,14 @@ func _refresh_contents() -> void:
 	for i in range(mini(6,_shown_count)):
 		var stone: Node3D = drop_manager.create_item_visual(filter_items[0])
 		_contents.add_child(stone)
+		@warning_ignore("integer_division")
 		stone.position = Vector3((i%3-1)*.19,.12+(i/3)*.10,-.11+(i/3)*.22)
 		preload("StorageItemLayout.gd").fit(stone,Vector3(.23,.22,.23),1.0)
 
 func refund() -> void:
 	if is_instance_valid(drop_manager):
-		var floor := crate_cell if crate_cell != INVALID else Vector3i(project().origin_cell)
-		for material: String in staged: drop_manager.spawn_drop(filter_items[0],int(staged[material]),floor+Vector3i.UP,material)
+		var crate_floor := crate_cell if crate_cell != INVALID else Vector3i(project().origin_cell)
+		for material: String in staged: drop_manager.spawn_drop(filter_items[0],int(staged[material]),crate_floor+Vector3i.UP,material)
 	staged.clear()
 
 func remove_visual() -> void:

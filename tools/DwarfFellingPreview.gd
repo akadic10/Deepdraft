@@ -92,7 +92,7 @@ func _run() -> void:
 		directory += "/side"
 	DirAccess.make_dir_recursive_absolute(directory)
 	for i in range(36):
-		worker._felling_pose.apply(float(i)/36.0,worker._fell_contact)
+		worker._felling_pose.apply(float(i)/36.0,worker._work_execution._fell_contact)
 		await process_frame
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(directory+"/frame_%02d.png" % i)

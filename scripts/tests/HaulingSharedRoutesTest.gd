@@ -21,46 +21,46 @@ func _shared_search_invalidation() -> void:
 	var second:={}
 	tasks._budget_usec=100000
 	tasks._probe_node_cap=1
-	var status: int=tasks._advance_haul_probe(first,worker,from,goal,Time.get_ticks_usec(),goals)
+	var status: int=tasks._scheduler._advance_haul_probe(first,worker,from,goal,Time.get_ticks_usec(),goals)
 	_expect(status==nav.ProbeResult.SEARCHING,"fixture starts an unfinished route")
 	var expanded: int=first.route_query.expanded
 	drops.restore_loose_item(LOG,Vector3(80.5,21,80.5))
-	tasks._advance_haul_probe(second,worker,from,goal,Time.get_ticks_usec(),goals)
+	tasks._scheduler._advance_haul_probe(second,worker,from,goal,Time.get_ticks_usec(),goals)
 	_expect(second.route_query.expanded>expanded and first.route_query==second.route_query,"another lease resumes the same search after an inventory change")
 	for wake in 400:
-		status=tasks._advance_haul_probe(second,worker,from,goal,Time.get_ticks_usec(),goals)
+		status=tasks._scheduler._advance_haul_probe(second,worker,from,goal,Time.get_ticks_usec(),goals)
 		if status!=nav.ProbeResult.SEARCHING: break
 	_expect(status==nav.ProbeResult.REACHABLE,"shared frontier eventually proves the long route")
 	var third:={}
-	status=tasks._advance_haul_probe(third,worker,from,goal,Time.get_ticks_usec(),goals)
+	status=tasks._scheduler._advance_haul_probe(third,worker,from,goal,Time.get_ticks_usec(),goals)
 	_expect(status==nav.ProbeResult.REACHABLE and third.last_route==second.last_route,"a completed proof serves another lease without another search")
 	var rock: int=blocks.get_id("base:terrain:rock:rock01")
 	world.set_block(goal.x,goal.y+1,goal.z,rock)
 	await process_frame; await process_frame
-	status=tasks._advance_haul_probe(third,worker,from,goal,Time.get_ticks_usec(),goals)
+	status=tasks._scheduler._advance_haul_probe(third,worker,from,goal,Time.get_ticks_usec(),goals)
 	_expect(status==nav.ProbeResult.UNREACHABLE,"blocking the approach invalidates a cached successful proof")
 	world.set_block(goal.x,goal.y+1,goal.z,blocks.AIR_ID)
 	await process_frame; await process_frame
 	for wake in 400:
-		status=tasks._advance_haul_probe(third,worker,from,goal,Time.get_ticks_usec(),goals)
+		status=tasks._scheduler._advance_haul_probe(third,worker,from,goal,Time.get_ticks_usec(),goals)
 		if status!=nav.ProbeResult.SEARCHING: break
 	_expect(status==nav.ProbeResult.REACHABLE,"opening the approach invalidates the failed proof too")
 	var capacity: int=tasks.get_config_section("hauling").get("route_cache_entries",64)
 	var retained:={}
 	var long_goal:=Vector3i(110,20,110)
-	tasks._advance_haul_probe(retained,worker,from,long_goal,Time.get_ticks_usec(),{long_goal:true})
+	tasks._scheduler._advance_haul_probe(retained,worker,from,long_goal,Time.get_ticks_usec(),{long_goal:true})
 	var retained_expanded: int=retained.route_query.expanded
 	for i in capacity+8:
 		var other:=Vector3i(30+i%70,20,105)
-		tasks._advance_haul_probe({},worker,from,other,Time.get_ticks_usec(),{other:true})
-	_expect(tasks._haul_route_cache.size()<=capacity,"shared frontiers have a bounded memory footprint")
-	tasks._advance_haul_probe(retained,worker,from,long_goal,Time.get_ticks_usec(),{long_goal:true})
+		tasks._scheduler._advance_haul_probe({},worker,from,other,Time.get_ticks_usec(),{other:true})
+	_expect(tasks._scheduler._haul_route_cache.size()<=capacity,"shared frontiers have a bounded memory footprint")
+	tasks._scheduler._advance_haul_probe(retained,worker,from,long_goal,Time.get_ticks_usec(),{long_goal:true})
 	_expect(retained.route_query.expanded>retained_expanded,"cache eviction does not discard a lease's unfinished route")
 	_expect(drops._reserved.is_empty(),"sharing geometry never claims inventory during planning")
 
 func _busy_colony() -> void:
 	await _fresh()
-	_expect(tasks._haul_route_cache.is_empty(),"loading a new world clears all shared route state")
+	_expect(tasks._scheduler._haul_route_cache.is_empty(),"loading a new world clears all shared route state")
 	for item in drops._loose.keys(): drops.take(item); item.free()
 	world.begin_edit_batch()
 	for x in range(30,55):
@@ -91,9 +91,9 @@ func _busy_colony() -> void:
 	for tick in 1800:
 		tasks.advance_supervision(.05)
 		stockpiles._process(.05)
-		var before: int=tasks._probes_total
+		var before: int=tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total-before<=1,"shared geometry retains the per-wake probe cap")
+		_expect(tasks._scheduler._probes_total-before<=1,"shared geometry retains the per-wake probe cap")
 		for actor in tasks._agents.values():
 			if actor.current_task_id>=0:
 				assigned[actor.dwarf_id]=true

@@ -244,6 +244,10 @@ func _select(key: String) -> void:
 	_fit.call_deferred()
 
 
+func set_all_toggle(pressed: bool) -> void:
+	_all_toggle.set_pressed_no_signal(pressed)
+
+
 func begin_browsing() -> void:
 	_browse_keys.clear()
 	_scroll.scroll_vertical = 0

@@ -1,7 +1,7 @@
 # 80 — Plant and grow berry cuttings
 
 Status: **implemented 2026-10-08**, following mature shrub relocation in
-[79](79_shrub_transplanting.md).
+mature shrub relocation (doc 79, retired; see `42_farming_brewing.md`).
 
 ## Player flow
 

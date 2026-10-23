@@ -35,8 +35,8 @@ func _check_known_air_is_skipped() -> void:
 	var zone: int = mining._create_zone(planned)
 	world.set_block(opened.x,opened.y,opened.z,blocks.AIR_ID)
 	_expect(await _until_mining(),"worker moves past the opened cell and starts mining")
-	_expect(worker._zone_block == solid,"the remaining solid block is the one being worked")
-	var source: RefCounted = worker._zone_source()
+	_expect(worker._work_execution._zone_block == solid,"the remaining solid block is the one being worked")
+	var source: RefCounted = worker._work_execution._zone_source()
 	_expect(source != null and not source.reserved.has(opened),"the opened cell keeps no reservation")
 	mining._remove_zone(zone)
 	world.set_block(solid.x,solid.y,solid.z,blocks.AIR_ID)
@@ -65,8 +65,8 @@ func _check_hidden_cave_air_is_mined() -> void:
 		var planned: Array[Vector3i] = [cell]
 		var zone: int = mining._create_zone(planned)
 		_expect(await _until_mining(),"concealed air is worked like the rock the slice shows")
-		_expect(worker._zone_block == cell,"the hidden cell is the block being worked")
-		var total: float = (worker._swings_left-1)*worker._swing_time+worker._swing_timer
+		_expect(worker._work_execution._zone_block == cell,"the hidden cell is the block being worked")
+		var total: float = (worker._work_execution._swings_left-1)*worker._work_execution._swing_time+worker._work_execution._swing_timer
 		worker._process(total+.02)
 		await process_frame
 		_expect(tracker.is_cave_discovered(site.cave_id),"breaking into the cell reveals its cave")

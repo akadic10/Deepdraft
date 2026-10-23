@@ -9,8 +9,7 @@
     "",
     "MODEL VARIANTS — Hearthblock square trees (doc 256):",
     "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
-    "World-position hashing preserves each tree variant across seasonal changes.",
-    "Placement, growth and collision values are unchanged."
+    "World-position hashing preserves each tree variant across seasonal changes."
   ],
   "base:flora:oak_tree": {
     "harvest_resource": "base:resources:wood:oak_log",
@@ -22,8 +21,9 @@
       "stockpile_wood"
     ],
     "appeal": 3,
-    "__placement_comment": "Mixed-forest niche, doc 14: low/wet broadleaf (lowland + foothill, mid-wet moisture). Read by SurfaceFloraSpawner's unified selector.",
+    "__placement_comment": "Mixed-forest niche (42_farming_brewing.md, World placement): low/wet broadleaf (lowland + foothill, mid-wet moisture). Read by SurfaceFloraSpawner's unified selector.",
     "placement": {
+      "pick_order": 1,
       "domains": [
         "lowland",
         "foothill"
@@ -53,7 +53,6 @@
         "felling": { "work_seconds": 2.0 },
         "clearance_height": 2,
         "growth_duration_days": 8,
-        "next_stage": "mature",
         "models": {
           "spring": "res://assets/models/flora/trees/oak/oak_sapling_spring.glb",
           "summer": "res://assets/models/flora/trees/oak/oak_sapling.glb",
@@ -68,7 +67,6 @@
         "felling": { "work_seconds": 10.0 },
         "clearance_height": 7,
         "growth_duration_days": 16,
-        "next_stage": "ancient",
         "models": {
           "spring": [
             "res://assets/models/flora/trees/oak/oak_mature_spring.glb",
@@ -110,7 +108,6 @@
         "felling": { "work_seconds": 20.0 },
         "clearance_height": 10,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "spring": [
             "res://assets/models/flora/trees/oak/oak_ancient_spring.glb",

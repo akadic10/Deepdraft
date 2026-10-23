@@ -55,17 +55,8 @@ func _run() -> void:
 			worker.show()
 		furniture.dev_remove_installed(stool.installed_id)
 		for node in drops._loose.keys(): drops.take(node); node.free()
-	# Old 2x2 chairs use version 1 and the same stable item/furniture keys. Loading
-	# reconstructs their occupancy from the new definition, without a second item.
-	var legacy := {"installed":[{"id":77,"key":STOOL,"origin":[48,20,44],"yaw":1,"layout_version":1}]}
-	furniture.restore_state(legacy)
-	var restored = furniture._installed[77]
-	_expect(restored.origin_cell==origin and restored.cells.size()==1 and int(restored.def.layout_version)==2,"old placed chair restores as the one-tile stool at its saved anchor")
-	_expect(_count(STOOL_ITEM)==0,"updating installed chair does not create a duplicate packed item")
-	furniture.dev_remove_installed(restored.installed_id)
-	_expect(_count(STOOL_ITEM)==1,"uninstalling revised stool refunds the existing compatible item")
 	for failure in failures: push_error(failure)
-	print("LOG_STOOL_OK: compact geometry, four rotations, torso/feet fit, access, head clearance, seated save and old-chair restore" if failures.is_empty() else "LOG_STOOL_FAIL")
+	print("LOG_STOOL_OK: compact geometry, four rotations, torso/feet fit, access, head clearance, and seated save" if failures.is_empty() else "LOG_STOOL_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _stool_capture(name: String) -> void:

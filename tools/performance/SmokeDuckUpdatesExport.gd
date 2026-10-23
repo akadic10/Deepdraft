@@ -108,7 +108,7 @@ func _settle() -> void:
 		await process_frame
 		var flora = current_scene.get_node("SurfaceFloraSpawner")
 		var details = current_scene.get_node("SurfaceDetailManager")
-		if renderer._overview_built and renderer._dirty_overview_tiles.is_empty() and not renderer._ovt_building and not renderer._cavity_shell_dirty \
+		if renderer.tiles.overview_built and renderer.tiles.dirty_overview_tiles.is_empty() and not renderer.tiles.ovt_building and not renderer.cavity_shell.dirty \
 			and flora._ready_to_spawn and flora._pending.is_empty() and details._initialized and details._visual_queue.is_empty() \
 			and not renderer.underground_lighting.is_updating(): return
 	check(false,"world settles")

@@ -7,9 +7,12 @@ const Wolf := preload("res://scripts/entities/WolfAgent.gd")
 func scan(focus: Vector3, slice_y: int, radius: int, flora: Node, wildlife: Node) -> Dictionary:
 	var result := {}
 	if WaterManager.initialized:
-		for x in range(maxi(0, floori(focus.x) - radius), mini(1024, floori(focus.x) + radius + 1)):
-			for z in range(maxi(0, floori(focus.z) - radius), mini(1024, floori(focus.z) + radius + 1)):
+		for x in range(maxi(0, floori(focus.x) - radius), mini(WorldData.WORLD_SIZE_X, floori(focus.x) + radius + 1)):
+			for z in range(maxi(0, floori(focus.z) - radius), mini(WorldData.WORLD_SIZE_Z, floori(focus.z) + radius + 1)):
 				if Vector2(x + .5 - focus.x, z + .5 - focus.z).length_squared() > radius * radius: continue
+				# Dry ground: a first spans() lookup per column cost up to 79 ms
+				# per scan when the camera reached new ground (2026-10-22).
+				if not WaterManager.water_columns.has(Vector2i(x, z)): continue
 				for span: Vector2i in WaterManager.flow.spans(Vector2i(x, z)):
 					var key := Vector3i(x, span.x, z)
 					if WaterManager.flow.volume(key) < WaterManager.standing_depth: continue
@@ -22,7 +25,7 @@ func scan(focus: Vector3, slice_y: int, radius: int, flora: Node, wildlife: Node
 						continue
 					for direction: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
 						var bank := Vector3i(x + direction.x, floori(level - .1), z + direction.y)
-						if bank.x < 0 or bank.z < 0 or bank.x >= 1024 or bank.z >= 1024: continue
+						if bank.x < 0 or bank.z < 0 or bank.x >= WorldData.WORLD_SIZE_X or bank.z >= WorldData.WORLD_SIZE_Z: continue
 						if BlockRegistry.is_solid(WorldData.get_terrain_block(bank.x, bank.y, bank.z)):
 							_nearest(result, "shoreline", point, focus)
 							_nearest(result, "frogs", point, focus)

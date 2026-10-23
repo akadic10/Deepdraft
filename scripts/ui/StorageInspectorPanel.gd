@@ -219,19 +219,17 @@ func _queue_refresh() -> void:
 func refresh() -> void:
 	_refresh_queued = false
 	if storage == null or not is_instance_valid(storage.drop_manager): return
-	var is_ground := storage is StockpileZoneComponent
-	_kind.text = "GROUND STORAGE" if is_ground else "CONTAINER STORAGE"
-	if not is_ground and storage.suspended: _kind.text = "UNINSTALL PENDING · DELIVERIES PAUSED"
+	_kind.text = "GROUND STORAGE"
 	var held := storage.contents()
 	var goods := 0
 	var rejected := 0
 	for key: String in held:
 		goods += int(held[key])
 		if not storage.accepts_key(key): rejected += int(held[key])
-	info_label.text = "%d / %d %s used   ·   Goods stored: %d" % [storage.stored_entries().size(), storage.storage_capacity(), "cells" if is_ground else "slots", goods]
+	info_label.text = "%d / %d %s used   ·   Goods stored: %d" % [storage.stored_entries().size(), storage.storage_capacity(), "cells", goods]
 	_capacity.max_value = maxi(1, storage.storage_capacity())
 	_capacity.value = storage.stored_entries().size()
-	_capacity.tooltip_text = "Produce crates hold several goods in one cell or slot."
+	_capacity.tooltip_text = "Produce crates hold several goods in one cell."
 	var selected_count := 0
 	for key in _keys:
 		var selected := storage.accepts_key(key)

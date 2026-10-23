@@ -109,7 +109,7 @@ func _step(delta: float) -> void:
 
 func _check_contact() -> void:
 	if sound_events.is_empty(): return
-	var item: Node3D = worker._fetch_item
+	var item: Node3D = worker._work_execution._fetch_item
 	var bounds: AABB = worker._carry_pose.item_bounds(item)
 	var expected := item.global_position+Vector3.UP*bounds.end.y
 	_expect(sound_events.back()[1].is_equal_approx(expected),"sound originates at the axe contact on the log")

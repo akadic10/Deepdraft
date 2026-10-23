@@ -57,24 +57,26 @@ func loading_state() -> Dictionary:
 	var maps := bool(gen.get("maps_ready",false)) and not WorldGenerator.is_generating()
 	var map_fraction := 1.0 if maps else minf(.95,float(gen.get("map_phase_timings",[]).size())/8.0)
 	var tile_size := maxi(1,int(render.get("overview_tile_size",32)))
-	var total := ceili(float(WorldGenerator.WORLD_SIZE_X)/tile_size)*ceili(float(WorldGenerator.WORLD_SIZE_Z)/tile_size)
+	var total := ceili(float(WorldData.WORLD_SIZE_X)/tile_size)*ceili(float(WorldData.WORLD_SIZE_Z)/tile_size)
 	var terrain_fraction := clampf(float(render.get("overview_tiles",0))/maxi(1,total),0,1)
 	var scenery: bool = _flora != null and bool(_flora.get_spawn_stats().get("ready",false)) and _details != null and _details.is_loading_complete() and _wildlife != null and _wildlife.is_loading_complete()
-	var ready: bool = maps and bool(render.get("loading_complete",false)) and scenery and not SaveManager.is_loading()
+	var is_ready: bool = maps and bool(render.get("loading_complete",false)) and scenery and not SaveManager.is_loading()
 	var progress := .28*map_fraction+.62*terrain_fraction+(.09 if scenery else 0.0)
-	return {"ready":ready,"progress":1.0 if ready else minf(.99,progress),"maps":maps,"terrain":bool(render.get("loading_complete",false)),"scenery":scenery,"restoring":SaveManager.is_loading()}
+	return {"ready":is_ready,"progress":1.0 if is_ready else minf(.99,progress),"maps":maps,"terrain":bool(render.get("loading_complete",false)),"scenery":scenery,"restoring":SaveManager.is_loading()}
 
 func _process(delta: float) -> void:
 	if _released: return
 	_last_state = loading_state()
+	# A failed generation never becomes ready; say so instead of waiting forever.
+	_art.failure = WorldGenerator.generation_error
 	_quiet_frames = _quiet_frames+1 if _last_state.ready else 0
-	var ready := _quiet_frames>=3
-	var target := 1.0 if ready else minf(.99,float(_last_state.progress))
+	var is_ready := _quiet_frames>=3
+	var target := 1.0 if is_ready else minf(.99,float(_last_state.progress))
 	_art.progress = maxf(_art.progress,target)
-	_art.complete = ready
+	_art.complete = is_ready
 	_art.animation_time += delta
 	_art.queue_redraw()
-	_full_seconds = _full_seconds+delta if ready else 0.0
+	_full_seconds = _full_seconds+delta if is_ready else 0.0
 	# Show a fully filled mug briefly; readiness is still rechecked each frame.
 	if _full_seconds>=.25: _reveal()
 

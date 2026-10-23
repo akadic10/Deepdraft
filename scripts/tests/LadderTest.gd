@@ -54,7 +54,7 @@ func _run() -> void:
 	furniture._hover_cell = base
 	furniture._hover_valid = furniture._placement_valid(base)
 	furniture._position_preview(base)
-	_expect(furniture._hint_label.text.contains("12-block") and furniture._hint_label.text.contains("3 ladder sections"), "Place preview displays full height and cost")
+	_expect(furniture._visuals.hint_label.text.contains("12-block") and furniture._visuals.hint_label.text.contains("3 ladder sections"), "Place preview displays full height and cost")
 	var id: int = ladders._next_id
 	furniture._confirm_ghost()
 	furniture.deactivate()
@@ -69,13 +69,13 @@ func _run() -> void:
 	_check_visible_height(id, 4)
 	ladders.restore_state(partial)
 	_expect(ladders.routes[id].built == 4 and ladders.routes[id].mode == "build", "unfinished route restores its next section job")
-	_expect(await _until_condition(func(): return worker._climbing and worker._carried_entries.size() == 1), "worker climbs installed section carrying the next module")
+	_expect(await _until_condition(func(): return worker.is_climbing() and worker._carried_entries.size() == 1), "worker climbs installed section carrying the next module")
 	var pos: Vector3 = worker.position
 	clock_node.set_paused(true)
 	worker._process(2)
 	_expect(worker.position == pos, "pause freezes a loaded climber")
 	clock_node.set_paused(false)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(worker._carried_entries.is_empty(), "interrupt drops intact section")
 	_expect(await _until_condition(func(): return nav.is_walkable(worker.current_cell()) and not worker._ladder_exiting), "interrupted worker descends to safe ground")
 	for task in tasks._tasks.values(): task.retry_at = 0
@@ -91,7 +91,7 @@ func _run() -> void:
 	for i in range(1800):
 		zone.update_leases()
 		await _tick()
-		if worker._climbing and not worker._carried_entries.is_empty():
+		if worker.is_climbing() and not worker._carried_entries.is_empty():
 			_expect(worker._carried_entries[0][0].position.z < 0, "climbing cargo rides behind the worker, leaving hands free")
 			if "--capture" in OS.get_cmdline_user_args():
 				for step in range(350):

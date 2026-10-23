@@ -17,9 +17,7 @@ class FurnitureTests(unittest.TestCase):
                 self.assertTrue(part.voxels.cells,path+name)
                 self.assertEqual(part.shadow,'flame' not in name,path+name)
 
-    def test_retired_designs_cannot_regenerate(self):
-        retired=read_json('data/content_retirements.json')
-        self.assertFalse(set(retired['assets']) & set(self.parts))
+    def test_kept_designs_build(self):
         for name in ['settlement_flag','wet_stone','dry_stone','log_table','log_chair','board_game_table']:
             self.assertIn('assets/models/furniture/'+name+'.glb',self.parts)
 

@@ -3,6 +3,7 @@ extends Node
 ## Sole owner of material identity, appeal tuning and semantic wood palettes.
 ## Finished goods keep a material ID; recipes and catalog entries remain generic.
 const DATA_PATH := "res://data/materials/craft_materials.json"
+const JsonData = preload("res://scripts/registries/JsonData.gd")
 var definitions: Dictionary = {}
 var palettes: Dictionary = {}
 var _ingredients: Dictionary = {}
@@ -10,10 +11,10 @@ var _meshes: Dictionary = {}
 
 
 func _ready() -> void:
-	var data = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
-	assert(data is Dictionary, "Invalid craft material definitions")
-	definitions = data.materials
-	palettes = data.source_palettes
+	var data := JsonData.read_dict(DATA_PATH)
+	assert(not data.is_empty(), "Invalid craft material definitions")
+	definitions = data.get("materials", {})
+	palettes = data.get("source_palettes", {})
 	for id: String in definitions:
 		for key: String in definitions[id].get("ingredients", []):
 			_ingredients[key] = id
@@ -114,7 +115,7 @@ func _recolor(original: ArrayMesh, profile: Dictionary, target: Dictionary) -> A
 	return mesh
 
 
-## Baked corner occlusion (data/art/voxel_occlusion.json) darkens vertex colors and
+## Baked corner occlusion (tools/art_data/voxel_occlusion.json) darkens vertex colors and
 ## stores each vertex's shade in UV2.x. Wood ramps collide once darkened, so match
 ## the unshaded swatch at that exact shade and keep the shade on the new wood.
 static func _shaded(color: Color, shade: float, swatches: Array) -> Color:

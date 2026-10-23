@@ -68,7 +68,7 @@ func _walk(start: Vector3, goal: Vector3i, delta: float) -> void:
 	for i in range(4000):
 		if not worker.is_walking(): break
 		worker._follow_path(delta)
-		if not worker._has_floor_support(worker.current_cell()):
+		if not worker._movement.has_floor_support(worker.current_cell()):
 			supported = false
 			break
 	_expect(supported, "every movement step stays supported: %s / %.3f" % [worker.position,delta])

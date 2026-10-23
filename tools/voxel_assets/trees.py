@@ -229,7 +229,7 @@ def branching_tree(profile,species,stage,variant,season,picked,footprint):
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_trees.json')
+    profile=read_json('tools/art_data/voxel_trees.json')
     for species in ('pine','oak','apple','juniper'):
         definition=read_json(f'data/entities/flora/{species}_tree.json')[f'base:flora:{species}_tree']
         for stage,settings in definition['stages'].items():

@@ -127,3 +127,16 @@ func on_task_gone(task: Task) -> void:
 	reserved_by = -1
 	lease_id = -1
 	ensure_lease()
+
+
+# WorkSourceTable routing contract.
+func work_task_gone(task: Task, _dwarf_id: int) -> void:
+	on_task_gone(task)
+
+
+func work_task_released(_task: Task, dwarf_id: int) -> void:
+	release_worker(dwarf_id)
+
+
+func work_source_retired() -> void:
+	pass

@@ -2,7 +2,7 @@ extends RefCounted
 
 ## Optional top-ups use a proven delivery route plus short out-and-back spurs.
 ## A missed budget only skips an optimization; the original delivery proceeds.
-static func candidate(manager: Node, key: String, material: String, route: Array[Vector3i],
+static func candidate(manager: ItemDropManager, key: String, material: String, route: Array[Vector3i],
 		exclude: Dictionary, detour: int, deadline: int, config: Dictionary) -> Dictionary:
 	if route.is_empty(): return {}
 	var anchors := {}
@@ -15,7 +15,7 @@ static func candidate(manager: Node, key: String, material: String, route: Array
 	var choices: Array[Dictionary] = []
 	for item in manager._loose:
 		if Time.get_ticks_usec() >= deadline: break
-		if not manager.Permission.allowed(item) or manager._reserved.has(item) or exclude.has(item): continue
+		if not ItemDropManager.Permission.allowed(item) or manager._reserved.has(item) or exclude.has(item): continue
 		if manager.item_key_of(item)!=key or CraftMaterials.of_item(item)!=material or item.has_meta("instance_id"): continue
 		var cell: Vector3i = manager.item_floor_cell(item)
 		if exclude.has(cell): continue

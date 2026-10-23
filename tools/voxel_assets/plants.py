@@ -267,7 +267,7 @@ def pack(profile,plant,shrub_root):
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_plants.json')
+    profile=read_json('tools/art_data/voxel_plants.json')
     for species in RIPE:
         for season in SEASONS:
             base=f'assets/models/flora/bushes/{species}/{species}'

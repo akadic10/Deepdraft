@@ -34,7 +34,7 @@ func _run() -> void:
 	mining._open_zone_window(901)
 	storage._open_zone_window(501)
 	await _settle()
-	var mine_window: UIWindow = mining._zone_window
+	var mine_window: UIWindow = mining._zone_ui.zone_window
 	var storage_window: UIWindow = storage._window_panel
 	_expect(mine_window.get_parent() == manager and storage_window.get_parent() == manager,
 		"both context panels use the shared window layer")
@@ -60,9 +60,9 @@ func _run() -> void:
 
 	# Live mining information must neither steal focus nor move either window.
 	storage._open_zone_window(502)
-	mining._zone_body.text = "stale"
+	mining._zone_ui.zone_body.text = "stale"
 	mining._process(.6)
-	_expect("Blocks left: 2 / 2" in mining._zone_body.text, "mining statistics still refresh")
+	_expect("Blocks left: 2 / 2" in mining._zone_ui.zone_body.text, "mining statistics still refresh")
 	_expect(manager.get_child(-1) == storage_window, "mining refresh leaves storage in front")
 	_expect("0 / 1 cells used" in storage._window_info_label.text, "selection swaps storage content")
 	_expect(storage_window.position == Vector2(600,70), "switching zones keeps placement")
@@ -71,7 +71,7 @@ func _run() -> void:
 		"Close clears mining selection")
 	mining._open_zone_window(902)
 	_expect(mine_window.position == Vector2(130,60), "reopening mining retains its position")
-	_expect("Blocks left: 1 / 1" in mining._zone_body.text, "selection swaps mining content")
+	_expect("Blocks left: 1 / 1" in mining._zone_ui.zone_body.text, "selection swaps mining content")
 	_click(storage_window._close_button.get_global_rect().get_center())
 	_expect(not storage_window.visible and storage._window_zone_id == -1,
 		"Close clears storage selection")
@@ -110,9 +110,9 @@ func _run() -> void:
 	manager.free()
 	_build_windows(false)
 	await _settle()
-	_expect(mining._zone_window.position == mining_position and storage._window_panel.position == storage_position,
+	_expect(mining._zone_ui.zone_window.position == mining_position and storage._window_panel.position == storage_position,
 		"both positions survive manager and controller recreation")
-	_expect(not mining._zone_window.visible and not storage._window_panel.visible,
+	_expect(not mining._zone_ui.zone_window.visible and not storage._window_panel.visible,
 		"context windows never reopen without a selected zone on startup")
 	if failures.is_empty():
 		print("ZONE_WINDOWS_OK: native drags, focus, world-input isolation, clamp, selection, close/remove, disk layout reload")

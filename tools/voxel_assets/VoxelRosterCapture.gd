@@ -77,7 +77,7 @@ func _capture_all() -> void:
 		actor.appearance.scar=DwarfAssets.scars.keys()[i]
 		actor.appearance.skin_tone=DwarfAssets.SKIN_TONES.keys()[i]
 		actor.appearance.hair_color=["red","black","blonde","white"][i]
-		actor._apply_tints()
+		actor._rig.apply_tints()
 		var texture := TextureRect.new()
 		add_child(texture)
 		var viewport := preload("res://scripts/ui/DwarfPortrait.gd").create_viewport(texture,Vector2i(384,448))
@@ -99,7 +99,7 @@ func _capture_all() -> void:
 		for actor in _actors:
 			actor._reset_part_offsets()
 			match pose:
-				"walk": actor._walk_cycle=.55; actor._walk_bob(0)
+				"walk": actor._walk_cycle=.55; actor._movement.walk_bob(0)
 				"mine": actor._mining_pose.apply(.55,Vector3(0,1.2,1.4))
 				"fell": actor._felling_pose.apply(.55,Vector3(0,1.2,1.4))
 				"rest":

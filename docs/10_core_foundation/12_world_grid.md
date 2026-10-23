@@ -13,8 +13,8 @@ terrain invalidations across a synchronous restore. `set_block` still writes
 every voxel, records persistence deltas, marks chunk dirtiness and emits exact
 `block_changed` events immediately. Only repeated `chunk_dirtied` notifications
 coalesce, flushing once per affected chunk at the outermost `end_edit_batch`.
-Begin/end must not span a frame; normal edits and generator submission keep
-their existing notification paths. World reset clears pending batch state.
+Begin/end must not span a frame; normal edits keep their existing
+notification paths. World reset clears pending batch state.
 See [211](../00_dev_roadmap/211_large_save_terrain_restore.md).
 
 **Construction (2026-10-12):** full 1×1×1 stone voxels are real terrain writes.
@@ -33,6 +33,15 @@ surface overlay. Terrain solidity and permanent string-key save rules still appl
 types retain their art and room bonus without tracking who placed them. See
 [212](../00_dev_roadmap/212_final_terrain_state.md).
 
+**Removed terrain and the visible surface (doc 258 step 6):** WorldData's overrides are
+the only record of removed terrain. `WorldData.is_removed_terrain(cell)` is true where a
+generated block is now air (mined, cleared or deconstructed), and
+`removed_terrain_count()` counts those cells. The mining controller and the renderer keep
+no copy. `WorldData.visible_top_y(x, z, surface_y, slice_y, cut, count_removed)` is the one
+visible-surface rule: a column's surface clamped to the slice plane, then stepped down
+past cut cells (and removed terrain, when asked). The mining grid and the overview,
+cavity shell and neighbour walls all use it.
+
 ## Map Dimensions
 
 
@@ -45,15 +54,19 @@ types retain their art and room bonus without tracking who placed them. See
 *   **Voxel Physical Dimension**: 1 engine block = $0.5\text{m} \times 0.5\text{m} \times 0.5\text{m}$.
 *   **Total Playable Boundary**: $512\text{m} \times 512\text{m} \times 64\text{m}$ (Quarter Square Kilometer).
 *   **Total Master Block Count**: $1024 \times 1024 \times 128 = 134,217,728$ blocks.
+*   **In code:** use `WorldData.WORLD_SIZE_X` / `WORLD_SIZE_Y` / `WORLD_SIZE_Z` and
+    `WorldData.MAX_Y` (127, the top row and the slice "off" value, also
+    `SliceController.MAX_SLICE_Y`); never type the numbers (`tools/lint_project.py`
+    rule `world-literal`). The values live in `scripts/systems/WorldSize.gd`, which only
+    autoload-free code (world-generation layouts, the save validator) preloads directly.
 
 ---
 
 ## Chunk System
 
-The world is subdivided into uniform **16 × 16 × 16 block chunks** for memory management, mesh optimization (`ArrayMesh`), and rendering dirty-flags.
+The world is subdivided into uniform **16 × 16 × 16 block chunks** for memory management and dirty flags. A chunk is materialised only when terrain inside it is first edited; untouched terrain is read from the generator (`get_generated_block_id`, whose per-block strata and veins live in its `WorldBlockFill` helper), and the renderer draws the block-face overview from the generator maps (`24_world_rendering.md`).
 *   **Chunk Count Grid**: $64 \times 64 \times 8 = 32,768$ total chunks.
 *   **Total Voxels Per Chunk**: $16 \times 16 \times 16 = 4,096$ voxels.
-*   **Frustum & Wilderness Fog Occlusion**: Only chunks exposed to empty air or intersected by the active horizontal camera slice plane generate visual geometry. Chunks completely buried in solid rock or completely hidden inside the background distance fog contain data but skip rendering pipelines to protect framerates.
 
 ---
 
@@ -141,13 +154,18 @@ Natural caves are part of that deterministic base. On load, replaying a mining
 edit beside cave air re-discovers its connected system and rebuilds its renderer,
 interior and lighting state. Pre-existing cave air is never added to the saved
 mined-block list; developer highlights/previews are transient. See
-[68 — Caves and discovery](../00_dev_roadmap/68_caves_and_discovery.md).
+`43_mining_materials.md` §Cave discovery.
 
 If a future construction system persists a non-void terrain block, it must store the
 block's permanent namespaced key and resolve that key through `BlockRegistry` on load.
-Runtime integer IDs must never cross the save boundary. `schema_version` provides a
-migration boundary; it does not by itself guarantee compatibility with every future
-schema. See `00_dev_roadmap/20_save_load.md` for the shipped persistence contract.
+Runtime integer IDs must never cross the save boundary. Saves are not migrated during
+development: a save whose `schema_version` differs from the game's is rejected, and so
+is one whose shape doesn't match the current validator. A save that names content the
+game no longer defines (an unknown block, material, furniture piece, item, worker recipe,
+tree species or stage, or planted bush) is rejected too, before the scene exists: the
+validator checks those keys against `BlockRegistry`, `CraftMaterials`,
+`SurfaceDetailRegistry` and `ContentRegistry`, and restore code never skips unknown ids.
+See `13_architecture.md` §SaveManager for the persistence contract.
 
 ---
 
@@ -234,7 +252,7 @@ state:
   "clock": { "year": 1, "season": "summer", "day": 1, "hour": 8.0 },
   "weather": { "current_id": "base:weather:clear", "rng_state": 1234 },
   "scene": {
-    "mining": { "mined_blocks": [[10, 40, 12]], "zones": [] },
+    "mining": { "zones": [] },
     "settlement_flag": { "placed": true, "cell": [512, 28, 512] },
     "stockpiles": { "zones": [] },
     "furniture": { "ghosts": [], "installed": [] },
@@ -255,7 +273,7 @@ camera use three-number world-position arrays.
 
 Both slots use validated transactional replacement and retain one previous valid
 generation. Full slot paths, ownership rules, and recovery behavior are specified in
-`00_dev_roadmap/20_save_load.md`.
+`13_architecture.md` §SaveManager.
 
 ### Walkability Interaction
 
@@ -266,6 +284,8 @@ The custom A* nav grid (see `32_navigation_3d.md`) checks walkability against bo
 ## Surface Elevation Ranges
 
 Seeded macro heights determine domain labels, with 32×32 columns per macro cell.
+The shelf tops below are `shelf_tops` in `data/world_gen/macro_layout.json`; the
+generator derives the bands from them.
 
 | Domain | Elevation | Notes |
 |---|---|---|
@@ -280,7 +300,7 @@ rendered surfaces, chunk bounds and actual water blocks consistently. Edge detai
 roughens every natural cliff and shoreline while preserving summit interiors
 and connected lowland/water cores, followed by a full
 column validation before maps become available. Resource depth rules still use
-absolute Y. See [doc 66](../00_dev_roadmap/66_seeded_world_layout.md).
+absolute Y. See `43_mining_materials.md` §Core world composition.
 
 ---
 

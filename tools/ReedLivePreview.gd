@@ -31,8 +31,8 @@ func _run() -> void:
 	var deadline := Time.get_ticks_msec() + 120000
 	while Time.get_ticks_msec() < deadline:
 		await process_frame
-		if generator._maps_ready and renderer._overview_built and details._initialized and flora._pending.is_empty() and details._visual_queue.is_empty(): break
-	if not details._initialized or not renderer._overview_built:
+		if generator._maps_ready and renderer.tiles.overview_built and details._initialized and flora._pending.is_empty() and details._visual_queue.is_empty(): break
+	if not details._initialized or not renderer.tiles.overview_built:
 		printerr("Reed preview timed out"); quit(1); return
 	clock_node.restore_state({"year":1,"season":"summer","day":1,"hour":10,"speed":1,"paused":true})
 	var target := Vector3.ZERO

@@ -62,7 +62,7 @@ func _show_details() -> void:
 		var lines: Array[String] = ["%s — %s" % [row.key,row.label],String(row.state).capitalize(),row.reason,""]
 		if int(row.rejections)>0: lines.append("Workers with rejected routes: %d"%row.rejections)
 		for attempt: Dictionary in row.attempts:
-			var agent: DwarfAgent = TaskManager._agents.get(int(attempt.worker))
+			var agent: DwarfAgent = TaskManager.get_agent(int(attempt.worker))
 			lines.append("Attempt %d · %s\n%s · %s\nLast progress %.1f seconds ago" % [attempt.attempt,
 				agent.dwarf_name if is_instance_valid(agent) else str(attempt.worker),attempt.step,attempt.unit,attempt.seconds_without_progress])
 		lines.append("\nRecent transitions")

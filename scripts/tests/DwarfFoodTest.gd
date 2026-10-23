@@ -21,7 +21,7 @@ func _run() -> void:
 	var row: Dictionary = inventory_script.snapshot(drops,furniture)[BLUEBERRY]
 	_expect(row.total==24 and row.available==23,"one stored portion is reserved in inventory")
 	_expect(tasks.worker_availability(worker)=="Self-care" and not tasks._idle_dwarves.has(worker.dwarf_id),"food search is unavailable to job assignment")
-	tasks._reconcile_workers()
+	tasks._supervision._reconcile_workers()
 	_expect(not tasks._idle_dwarves.has(worker.dwarf_id),"reconciliation preserves eating availability")
 	_expect(await _food_phase("eating"),"worker physically reaches and collects fruit")
 	_expect(zone.contents().get(BLUEBERRY,0)==23 and worker._carried_entries.size()==1,"pickup splits one fruit from the full crate")
@@ -33,7 +33,7 @@ func _run() -> void:
 	_expect(worker._food.value==before and worker._food._elapsed==0,"pause freezes hunger and eating")
 	clock_node.set_paused(false)
 	worker._process(2)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(_food_total(BLUEBERRY)==24 and worker._carried_entries.is_empty() and zone._outgoing.is_empty(),"interrupted meal drops its whole portion and frees claims")
 	worker.restore_saved_runtime(saved)
 	_expect(is_equal_approx(worker._food.value,float(saved.food.value)),"hunger survives saved runtime restore")
@@ -48,10 +48,10 @@ func _run() -> void:
 	await _unreachable_storage()
 	await _no_food()
 	await _job_interrupt()
-	await _container()
+	await _stored_apple_meal()
 	await _ui()
 	for failure in failures: push_error(failure)
-	print("DWARF_FOOD_OK: clock, sleep, stored/loose priority, portions, claims, cancellation, save, contention, routes, jobs, containers and UI" if failures.is_empty() else "DWARF_FOOD_FAIL")
+	print("DWARF_FOOD_OK: clock, sleep, stored/loose priority, portions, claims, cancellation, save, contention, routes, jobs, stored Apple and UI" if failures.is_empty() else "DWARF_FOOD_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _store(key: String, count: int) -> void:
@@ -93,7 +93,7 @@ func _clear_food() -> void:
 		tasks.deregister_dwarf(second.dwarf_id)
 		second.free()
 	worker._food.value=1.0
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	for cell in zone.cell_stacks.keys():
 		var node = drops.stored_node_at(cell)
 		if is_instance_valid(node): node.free()
@@ -212,20 +212,13 @@ func _job_interrupt() -> void:
 	await _finish_food()
 	_expect(await _completed(id),"worker returns and completes the interrupted craft")
 
-func _container() -> void:
+func _stored_apple_meal() -> void:
 	_clear_food()
-	var storage=load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i]=[Vector3i(45,20,42),Vector3i(46,20,42)]
-	storage.setup_container({"storage":{"capacity":4}},cells)
-	storage.source_id=tasks.allocate_source_id()
-	stockpiles.register_container(storage)
-	storage.restore_inventory({APPLE:4},drops)
-	stockpiles._totals[APPLE]=4
+	_store(APPLE,4)
 	_hungry(worker)
-	_expect(await _food_phase("eating"),"dwarf eats from container access cells")
+	_expect(await _food_phase("eating"),"dwarf eats stored Apple from the stockpile zone")
 	await _finish_food()
-	_expect(storage.contents().get(APPLE,0)==3 and _food_total(APPLE)==3,"container meal consumes one portion and updates totals")
-	stockpiles.deregister_container(storage)
+	_expect(_food_total(APPLE)==3,"stored Apple meal consumes one portion and updates totals")
 
 func _ui() -> void:
 	var inspector=load("res://scripts/ui/DwarfInspectorPanel.gd").new()

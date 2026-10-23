@@ -48,7 +48,7 @@ func _run() -> void:
 		roots[id] = tree.node.get_instance_id()
 		old_models[id] = tree.model_path
 		occupancy[id] = tree.occupancy_id
-	var revisions: Dictionary = terrain._overview_revisions.duplicate()
+	var revisions: Dictionary = terrain.tiles._overview_revisions.duplicate()
 	var rig = current_scene.get_node("CameraRig")
 	rig.stop_following()
 	var focus: Dictionary = flora._trees[roots.keys()[roots.size()/4]]
@@ -91,7 +91,7 @@ func _run() -> void:
 	clock_node.hour = dawn
 	await _settle()
 	for key: Vector2i in revisions:
-		check(int(terrain._overview_revisions.get(key,0)) > int(revisions[key]),"every existing terrain tile refreshed by end of night")
+		check(int(terrain.tiles._overview_revisions.get(key,0)) > int(revisions[key]),"every existing terrain tile refreshed by end of night")
 	_check_final_art(flora,details)
 	await _capture("dawn")
 	# Reload the actual half-night save while paused. Transient queues rebuild
@@ -139,7 +139,7 @@ func _settle() -> void:
 		var terrain = current_scene.get_node("Renderer")
 		var flora = current_scene.get_node("SurfaceFloraSpawner")
 		var details = current_scene.get_node("SurfaceDetailManager")
-		if terrain._overview_built and terrain._dirty_overview_tiles.is_empty() and not terrain._ovt_building and not terrain._cavity_shell_dirty \
+		if terrain.tiles.overview_built and terrain.tiles.dirty_overview_tiles.is_empty() and not terrain.tiles.ovt_building and not terrain.cavity_shell.dirty \
 			and terrain._seasonal_refresh.pending_count() == 0 and flora._seasonal_refresh.pending_count() == 0 and details._seasonal_refresh.pending_count() == 0 \
 			and flora._ready_to_spawn and flora._pending.is_empty() and details._initialized and details._visual_queue.is_empty() \
 			and not terrain.underground_lighting.is_updating(): return

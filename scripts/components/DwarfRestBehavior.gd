@@ -56,8 +56,8 @@ func begin(restored := false) -> void:
 	bed_rest.begin(float(config.get("bed_search_radius",48)))
 	_search_pass = 0
 	if is_instance_valid(_flora):
-		for id: Vector2i in _flora._trees:
-			var tree: Dictionary = _flora._trees[id]
+		for id: Vector2i in _flora.get_trees():
+			var tree: Dictionary = _flora.get_trees()[id]
 			if Vector3(tree.cell-here).length() <= radius+8 and int(tree.occupancy_id) >= 0:
 				_tree_handles[int(tree.occupancy_id)] = id
 	var restored_spot := restored and _choose(here,true)
@@ -220,31 +220,31 @@ func _footprint(cell: Vector3i, forward: Vector3i, style: String) -> Array[Vecto
 	return result
 
 func _clear(cell: Vector3i) -> bool:
-	if not Privacy.allowed(cell,agent.dwarf_id,true) or RoomManager._door_cells.has(cell): return false
+	if not Privacy.allowed(cell,agent.dwarf_id,true) or RoomManager.is_door_cell(cell): return false
 	if not NavGrid.is_walkable(cell) or NavGrid.bridge_supports(cell): return false
 	for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
 		if not NavGrid.ladder_at(cell+offset).is_empty(): return false
-	for zone in StockpileManager._zones.values():
+	for zone in StockpileManager.get_zones():
 		if cell in zone.tile_cells: return false
 	var furniture := agent.get_tree().get_first_node_in_group("furniture_controller")
-	return furniture == null or (not furniture._cell_to_ghost.has(cell) and not furniture._cell_to_installed.has(cell))
+	return furniture == null or (furniture.get_ghost_at(cell) == null and furniture.get_installed_at(cell) == null)
 
 func _cover(cell: Vector3i) -> bool:
 	if BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y+1,cell.z)) and BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y+2,cell.z)): return true
 	if not is_instance_valid(_flora): return false
-	for range_entry: Vector3i in PlacedEntityRegistry._columns.get(Vector2i(cell.x,cell.z),[]):
+	for range_entry: Vector3i in PlacedEntityRegistry.column_ranges(Vector2i(cell.x,cell.z)):
 		if not _tree_handles.has(range_entry.z) or cell.y+1 < range_entry.x or cell.y+2 > range_entry.y: continue
 		var id: Vector2i = _tree_handles[range_entry.z]
-		if not bool(_flora._tree_changes.get(id,{}).get("designated",false)): return true
+		if not bool(_flora.get_tree_change(id).get("designated",false)): return true
 	return false
 
 func _unclaimed(footprint: Array[Vector3i]) -> bool:
-	for other: DwarfAgent in TaskManager._agents.values():
+	for other: DwarfAgent in TaskManager.get_agents():
 		if other == agent or not is_instance_valid(other): continue
 		if other.current_cell() in footprint: return false
-		if other._rest_behavior == null or not other.is_sleeping(): continue
+		if other.get_rest_behavior() == null or not other.is_sleeping(): continue
 		for tile in footprint:
-			if tile in other._rest_behavior.cells: return false
+			if tile in other.get_rest_behavior().cells: return false
 	return true
 
 func _valid() -> bool:

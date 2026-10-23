@@ -171,7 +171,7 @@ func _check_movement() -> void:
 	_expect(is_equal_approx(worker.position.distance_to(start),3.4),"normal speed is 3.4 blocks/sec")
 	var maximum_lift := 0.0
 	for i in 40:
-		worker._walk_bob(.0525)
+		worker._movement.walk_bob(.0525)
 		maximum_lift = maxf(maximum_lift,maxf(worker._foot_l.position.y,worker._foot_r.position.y))
 	_expect(maximum_lift>.19,"new walking cycle lifts feet visibly")
 	start = worker.position
@@ -273,7 +273,7 @@ func _capture_rest() -> void:
 	camera.look_at(worker.position+Vector3(0,1.5,0))
 	worker._walk_cycle = 0
 	for phase in 4:
-		worker._walk_bob(worker.stride_length*.5)
+		worker._movement.walk_bob(worker.stride_length*.5)
 		await process_frame
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/dwarf_rest_20261011/walk_%d.png" % phase)

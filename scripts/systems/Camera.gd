@@ -19,7 +19,8 @@ extends Node3D
 const SETTINGS_PATH  := "res://data/camera/camera_settings.json"
 const BLOCK_SIZE: int = 1          # 1 voxel = 1 m  (12_world_grid.md)
 const SLICE_AUTO_OFFSET: int = 2   # camera sees this many layers below its Y
-const AudioPicking := preload("res://scripts/components/ObjectPicking.gd")
+const Picking := preload("res://scripts/components/ObjectPicking.gd")
+const JsonData = preload("res://scripts/registries/JsonData.gd")
 
 # ── Scene references (wire in Inspector — never use get_node paths) ───────────
 
@@ -44,6 +45,7 @@ var _move_smooth: float = 0.1
 var _edge_scroll: bool  = false
 var _edge_px:     int   = 10
 var _pan_ref_height: float = 135.0   # camera world-Y at default framing; move_speed reads face value here (21_camera.md)
+var _paced_fps_max: float = 75.0     # frame cap ceiling; an even fraction of the refresh rate (0 = uncapped)
 
 var _rot_speed:   float = 0.5
 var _invert_x:    bool  = false
@@ -53,11 +55,9 @@ var _max_pitch:   float = -10.0
 var _orbit_dead_zone: float = 6.0   # pixels of mouse motion before orbit engages (Stonehearth dead zone)
 var _orbit_dynamic_pivot: bool = true  # on orbit engage, re-anchor the pivot to the look point (Stonehearth _get_orbit_target)
 
-var _zoom_speed:  float = 2.0         # legacy / non-proportional fixed step (units per notch)
 var _zoom_min:    float = 5.0
 var _zoom_max:    float = 100.0
 var _zoom_default: float = 30.0
-var _zoom_proportional: bool = true   # Stonehearth-style: step scales with current distance
 var _zoom_step_fraction: float = 0.18 # proportional notch = this fraction of current distance (21_camera.md)
 var _zoom_mode: String = "cursor_target"  # "cursor_target" = zoom toward mouse (Route B) | "spring_fraction" = Route A
 var _cursor_min_gap: float = 14.0     # cursor zoom stops this far from the targeted surface point (never punches through)
@@ -103,14 +103,49 @@ signal slice_y_changed(new_slice_y: int)
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 
+## The first Camera rig in `node`'s subtree (depth-first, `node` included), or null.
+static func find_in(node: Node) -> Camera:
+	if node is Camera:
+		return node as Camera
+	for child: Node in node.get_children():
+		var found := find_in(child)
+		if found != null:
+			return found
+	return null
+
+
+## Adds a new rig named "CameraRig" under `parent`. WorldRenderer uses it when
+## the scene has no rig wired in the editor; the rig builds its own child nodes.
+static func create_rig(parent: Node) -> Camera:
+	var rig := Camera.new()
+	rig.name = "CameraRig"
+	parent.add_child(rig)
+	return rig
+
+
 func _ready() -> void:
 	add_to_group("work_audio_view")
 	add_to_group(SaveManager.OWNER_GROUP)
 	_load_settings()
+	_apply_frame_pacing()
 	_ensure_child_nodes()   # create arm / spring / camera if not wired in editor
 	_build_cursor_overlay()
 	_apply_initial_transform()
 	print("Camera: ready (FOV %d°, zoom %.0f–%.0f m)." % [int(_fov), _zoom_min, _zoom_max])
+
+
+## Frame pacing (21_camera.md): under vsync a frame that misses a refresh stays
+## on screen for one refresh or two, unpredictably, and panning judders even at
+## a high average rate (2026-10-22: 94% of running frames missed a 120 Hz
+## refresh). Capping at an even fraction of the refresh rate holds every frame
+## for the same number of refreshes.
+func _apply_frame_pacing() -> void:
+	if _paced_fps_max <= 0.0 or DisplayServer.get_name() == "headless": return
+	var refresh := DisplayServer.screen_get_refresh_rate(get_window().current_screen)
+	if refresh <= 0.0: return
+	var divisor := maxi(1, ceili(refresh/_paced_fps_max-0.01))
+	Engine.max_fps = roundi(refresh/divisor)
+	print("Camera: frame pacing %d fps on a %.0f Hz display." % [Engine.max_fps, refresh])
 
 
 func get_work_audio_context() -> Dictionary:
@@ -122,13 +157,13 @@ func get_work_audio_context() -> Dictionary:
 	# Cursor zoom and the terrain-floor guard can leave the orbit pivot well
 	# above the room on screen. Listen at the visible terrain instead. Share
 	# one centre-ray result per frame across work, fire, water and ambience.
-	if WorldGenerator._maps_ready:
+	if WorldGenerator.is_maps_ready():
 		var centre := camera_node.get_viewport().get_visible_rect().size * .5
 		var origin := camera_node.project_ray_origin(centre)
 		var direction := camera_node.project_ray_normal(centre).normalized()
 		var slice := get_tree().get_first_node_in_group("work_feedback_slice")
-		var slice_y := int(slice.get_slice_y()) if slice != null else 127
-		var hit := AudioPicking.terrain_hit(origin, direction, slice_y, _far, _audio_surface_block)
+		var slice_y := int(slice.get_slice_y()) if slice != null else SliceController.MAX_SLICE_Y
+		var hit := Picking.terrain_hit(origin, direction, slice_y, _far, _audio_surface_block)
 		if not hit.is_empty():
 			focus = origin + direction * float(hit.distance) + Vector3(hit.normal) * .05
 			var cell := Vector3i(hit.x, hit.y, hit.z)
@@ -254,18 +289,9 @@ func _ensure_child_nodes() -> void:
 # ── Settings loader ───────────────────────────────────────────────────────────
 
 func _load_settings() -> void:
-	var file := FileAccess.open(SETTINGS_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("Camera: cannot open %s — using defaults." % SETTINGS_PATH)
-		return
-	var json := JSON.new()
-	if json.parse(file.get_as_text()) != OK:
-		push_error("Camera: JSON parse error in %s." % SETTINGS_PATH)
-		file.close()
-		return
-	file.close()
-
-	var d: Dictionary = json.data
+	var parsed: Variant = JsonData.read(SETTINGS_PATH)
+	if parsed == null: return # reported by JsonData; the built-in defaults stay
+	var d: Dictionary = parsed
 
 	# camera_settings ──────────────────────────────────────────────────────────
 	var cs := d.get("camera_settings", {}) as Dictionary
@@ -288,6 +314,7 @@ func _load_settings() -> void:
 	_edge_scroll = mv.get("edge_scroll_enabled",          false)
 	_edge_px     = int(mv.get("edge_scroll_threshold_pixels", 10))
 	_pan_ref_height = mv.get("pan_reference_height",     135.0)
+	_paced_fps_max  = float(mv.get("paced_fps_max",       75.0))
 
 	# rotation ─────────────────────────────────────────────────────────────────
 	var rot := d.get("rotation", {}) as Dictionary
@@ -301,15 +328,13 @@ func _load_settings() -> void:
 
 	# zoom ─────────────────────────────────────────────────────────────────────
 	var zm := d.get("zoom", {}) as Dictionary
-	_zoom_speed         = zm.get("zoom_speed",         2.0)
-	_zoom_min           = zm.get("min_distance",       5.0)
-	_zoom_max           = zm.get("max_distance",     100.0)
-	_zoom_default       = zm.get("default_distance",  30.0)
-	_zoom_proportional  = zm.get("proportional",      true)
-	_zoom_step_fraction = zm.get("zoom_step_fraction", 0.18)
-	_zoom_mode          = zm.get("mode",     "cursor_target")
-	_cursor_min_gap     = zm.get("cursor_min_gap",     14.0)
-	_zoom_smooth        = zm.get("smoothing",          0.15)
+	_zoom_min           = zm.min_distance
+	_zoom_max           = zm.max_distance
+	_zoom_default       = zm.default_distance
+	_zoom_step_fraction = zm.zoom_step_fraction
+	_zoom_mode          = zm.mode
+	_cursor_min_gap     = zm.cursor_min_gap
+	_zoom_smooth        = zm.smoothing
 	_target_zoom = clampf(_zoom_default, _zoom_min, _zoom_max)
 
 	# input_mappings ───────────────────────────────────────────────────────────
@@ -598,9 +623,7 @@ func _apply_zoom(zoom_in: bool) -> void:
 
 ## Route A fallback: shrink/grow spring_length toward the rig pivot by a geometric step.
 func _zoom_spring(zoom_in: bool) -> void:
-	var step := _zoom_speed
-	if _zoom_proportional:
-		step = _target_zoom * _zoom_step_fraction
+	var step := _target_zoom * _zoom_step_fraction
 	_target_zoom = clampf(_target_zoom + (-step if zoom_in else step), _zoom_min, _zoom_max)
 
 
@@ -670,16 +693,8 @@ func _march_surface(origin: Vector3, dir: Vector3) -> Dictionary:
 		return {}
 	if dir.y >= -0.0001:
 		return {}   # not looking downward (the pitch clamp normally prevents this)
-	const STEP := 1.0
-	const MAX_T := 1200.0
-	var t := 0.0
-	while t <= MAX_T:
-		var pt := origin + dir * t
-		var surf := float(WorldGenerator.get_visible_surface_y(int(floor(pt.x)), int(floor(pt.z))))
-		if pt.y <= surf:
-			return { "hit": true, "point": Vector3(pt.x, surf, pt.z) }
-		t += STEP
-	return {}
+	var hit := Picking.surface_hit(origin, dir, 1200.0, 1.0, 0.0)
+	return {} if hit.is_empty() else {"hit": true, "point": hit.point}
 
 
 ## Dynamic orbit pivot (Stonehearth _get_orbit_target). When orbit engages, move the rig

@@ -18,7 +18,7 @@ func _run() -> void:
 	drops.spawn_drop(PINE,1,Vector3i(43,21,41))
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"allowed Pine wakes waiting order")
 	worker._process(.4)
-	_expect(drops.item_key_of(worker._fetch_item)==PINE,"nearby Oak and Apple never substitute for Pine")
+	_expect(drops.item_key_of(worker._work_execution._fetch_item)==PINE,"nearby Oak and Apple never substitute for Pine")
 	var progress: float = order.progress
 	crafting.set_allowed_ingredients(id,[JUNIPER])
 	_expect(worker._carried_entries.is_empty() and _count(PINE)==1,"removing carried species returns its intact log")
@@ -35,37 +35,12 @@ func _run() -> void:
 	worker.position = Vector3(40.5,21,42.5)
 	id = crafting.queue_order(BENCH_RECIPE,1,false,[APPLE,PINE])
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"allowed stored timber can be collected")
-	_expect(drops.item_key_of(worker._fetch_item)==PINE,"stored Pine nearer than Apple wins despite alphabetical order")
+	_expect(drops.item_key_of(worker._work_execution._fetch_item)==PINE,"stored Pine nearer than Apple wins despite alphabetical order")
 	_expect(await _completed(id),"stored Pine batch completes")
 	id = crafting.queue_order(BENCH_RECIPE,1)
 	for i in range(10): await _tick()
 	_expect(crafting.get_order(id).lease_id<0 and _count(OAK)==1 and _count(APPLE)==1,"exhausted Pine waits without withdrawing stored Oak or Apple")
 	crafting.remove_order(id)
-	# Containers participate in the same allowed-key and proximity lookup.
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(40,20,43)]
-	container.setup_container({"storage":{"capacity":2}},cells)
-	container.source_id = tasks.allocate_source_id()
-	stockpiles.register_container(container)
-	container.restore_inventory({PINE:1},drops)
-	stockpiles.rebuild_totals()
-	id = crafting.queue_order(BENCH_RECIPE,1,false,[APPLE,PINE])
-	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"allowed container timber can be collected")
-	_expect(drops.item_key_of(worker._fetch_item)==PINE and container.stored_count()==0,"nearby allowed container beats farther stored Apple")
-	crafting.remove_order(id)
-	_expect(_count(PINE)==1 and _count(APPLE)==1,"cancel returns container timber without touching other species")
-	_clear_loose_wood()
-	container.restore_inventory({PINE:1},drops)
-	container.suspended = true
-	var fallback_cell := Vector3i(42,20,44)
-	zone.cell_stacks[fallback_cell] = {"item":PINE,"count":1}
-	drops.restore_stored_item(PINE,fallback_cell,1)
-	stockpiles.rebuild_totals()
-	id = crafting.queue_order(BENCH_RECIPE,1)
-	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"suspended nearby container does not block other allowed storage")
-	_expect(container.stored_count()==1,"suspended container retains its timber")
-	_expect(await _completed(id),"farther allowed stored Pine completes while container is suspended")
-	stockpiles.deregister_container(container)
 	stockpiles.rebuild_totals()
 	_clear_loose_wood()
 	# Explicit Oak and Apple selection remains available to the player.
@@ -79,16 +54,15 @@ func _run() -> void:
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(crafting.serialize_state()))
 	crafting.restore_state(saved)
 	_expect(crafting.orders[0].allowed_ingredients==[APPLE],"nondefault wood selection survives JSON round trip")
-	crafting.restore_state({"orders":[{"recipe":BENCH_RECIPE,"quantity":1},
+	crafting.restore_state({"orders":[
 		{"recipe":TORCH_RECIPE,"quantity":1,"allowed_ingredients":[]},
 		{"recipe":BENCH_RECIPE,"quantity":1,"allowed_ingredients":["base:resources:wood:oak_stave","missing:key"]}]})
 	await _frames(2)
-	_expect(crafting.orders[0].allowed_ingredients==[PINE],"pre-filter saves migrate conservatively to Pine")
-	_expect(crafting.orders[1].allowed_ingredients.is_empty() and crafting.orders[2].allowed_ingredients.is_empty(),"empty or invalid saved choices never widen to other wood")
+	_expect(crafting.orders[0].allowed_ingredients.is_empty() and crafting.orders[1].allowed_ingredients.is_empty(),"empty or invalid saved choices never widen to other wood")
 	for entry in crafting.orders.duplicate(): crafting.remove_order(entry.id)
 	await _test_wood_menu()
 	for failure in failures: push_error(failure)
-	if failures.is_empty(): print("WORKER_WOOD_OK: Pine default, loose/stored/container filtering and proximity, opt-in species, active changes conserve timber/progress, maintain updates, save/migration and menu")
+	if failures.is_empty(): print("WORKER_WOOD_OK: Pine default, loose/stored filtering and proximity, opt-in species, active changes conserve timber/progress, maintain updates, save and menu")
 	quit(0 if failures.is_empty() else 1)
 
 func _clear_loose_wood() -> void:

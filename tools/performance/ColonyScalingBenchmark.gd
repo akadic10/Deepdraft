@@ -181,6 +181,6 @@ func _record_activity() -> void:
 func _work_stats() -> Dictionary:
 	var stored:=0
 	for zone in yard_zones: stored+=zone.stored_count()
-	return {"mined":mining._mined_blocks.size(),"built":build_targets.filter(func(cell): return root.get_node("BlockRegistry").is_solid(root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z))).size(),"stored":stored,
+	return {"mined":root.get_node("WorldData").removed_terrain_count(),"built":build_targets.filter(func(cell): return root.get_node("BlockRegistry").is_solid(root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z))).size(),"stored":stored,
 		"active":root.get_node("TaskManager")._active.size(),"idle":root.get_node("TaskManager")._idle_dwarves.size(),
 		"navigation":root.get_node("NavGrid").get_stats()}

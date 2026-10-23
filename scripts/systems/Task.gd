@@ -12,22 +12,31 @@ extends RefCounted
 ## zone posts at most MAX_WORKERS zone-LEASE tasks; the per-block work never
 ## exists as a queued Task object. Do not create per-block tasks — ever.
 ##
-## `priority` stores only the STATIC base value (doc 31 priority table). Dynamic
-## colony-state bonuses (+20 BREW when ale is low, ...) are computed once per
-## scheduler wake, per TYPE — never written into tasks, so colony-state changes
-## never trigger re-sorts.
+## `priority` stores only the STATIC base value (doc 31 priority table).
 
 ## FETCH_BUILD / UNINSTALL: the furniture pipeline (doc 19 §3.3/§3.4 — a ghost
 ## posts ONE fetch-and-build lease; a 📤-flagged piece posts ONE uninstall
 ## lease). First-class types per SH parity (dedicated placement_task_group).
-enum Type { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
+enum Type { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
+
+## Task-type categories: the one place each grouping is listed (read-only).
+## Work on a surface source (tree, boulder, scree, shrub, plant): one executor,
+## the specialized surface-work matcher.
+const SURFACE_WORK := [Type.FELL_TREE, Type.CLEAR_BOULDER, Type.GATHER_SCREE, Type.HARVEST_SHRUB,
+	Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE]
+## Surface work done by hand: gather pose and gather contact (no axe or pick).
+const GATHER_WORK := [Type.GATHER_SCREE, Type.HARVEST_SHRUB, Type.CLEAR_SHRUB,
+	Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE]
+const SHRUB_WORK := [Type.HARVEST_SHRUB, Type.CLEAR_SHRUB]
+## Work every dwarf may take, before permissions. Workers add CRAFT.
+const COMMON_WORK := [Type.MINE, Type.HAUL, Type.FETCH_BUILD, Type.UNINSTALL] + SURFACE_WORK
 
 ## Release reasons (doc 16 §2.8) — passed through task_released for logging/AI.
 enum ReleaseReason { NEED_INTERRUPT, COMBAT, PLAYER, PATH_INVALID, SOURCE_EMPTY, NO_PROGRESS, MATERIAL_UNAVAILABLE, PLAN_CHANGED, SEARCH_BUDGET_EXHAUSTED }
 
 var id: int = -1                       # unique, assigned by TaskManager
-var type: int = Type.IDLE              # Task.Type
+var type: int = Type.MINE              # Task.Type
 var status: int = Status.PENDING       # Task.Status
 var priority: int = 1                  # STATIC base priority (1 lowest – 100 highest)
 var target_pos: Vector3i = Vector3i.ZERO   # representative position (zone centroid for leases)
@@ -45,7 +54,7 @@ var planning_context: Dictionary = {}
 var recovery_paused := false
 
 
-func _init(p_type: int = Type.IDLE, p_priority: int = 1,
+func _init(p_type: int = Type.MINE, p_priority: int = 1,
 		p_target: Vector3i = Vector3i.ZERO, p_payload: Dictionary = {},
 		p_source_id: int = -1) -> void:
 	type = p_type
@@ -66,11 +75,6 @@ static func type_name(t: int) -> String:
 	match t:
 		Type.MINE:   return "MINE"
 		Type.HAUL:   return "HAUL"
-		Type.FARM:   return "FARM"
-		Type.BREW:   return "BREW"
-		Type.BUILD:  return "BUILD"
-		Type.IDLE:   return "IDLE"
-		Type.PATROL: return "PATROL"
 		Type.FETCH_BUILD: return "FETCH_BUILD"
 		Type.UNINSTALL:  return "UNINSTALL"
 		Type.FELL_TREE: return "FELL_TREE"

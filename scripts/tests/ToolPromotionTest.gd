@@ -30,7 +30,7 @@ func _run() -> void:
 	_expect(await _equipment_stage("walking"), "appointment finds and reserves a reachable kit")
 	var kit: Node3D = worker._equipment.item
 	_expect(drops.reserved_by(kit, worker.dwarf_id), "one exact physical kit is reserved")
-	_expect(not worker.dwarf_id in tasks._idle_dwarves and tasks._types_for(worker).is_empty(), "pending appointment cannot receive general work")
+	_expect(not worker.dwarf_id in tasks._idle_dwarves and tasks._scheduler.types_for(worker).is_empty(), "pending appointment cannot receive general work")
 	tasks.notify_dwarf_idle(worker.dwarf_id)
 	_expect(not worker.dwarf_id in tasks._idle_dwarves, "stray idle wake cannot steal appointment")
 	_expect(await _equipment_stage("pickup"), "dwarf walks to kit before pickup")
@@ -96,27 +96,16 @@ func _run() -> void:
 	worker.change_profession(WORKER)
 	drops.take(kit)
 	kit.free()
-	# Ground storage and container storage both use real withdrawal ownership.
-	for container_mode in [false, true]:
-		kit = drops.nearest_loose_of_key(KIT, worker.current_cell())
-		drops.take(kit)
-		kit.free()
-		var container
-		if container_mode:
-			container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-			var cells: Array[Vector3i] = [Vector3i(43,20,40)]
-			container.setup_container({"storage":{"capacity":2}}, cells)
-			container.source_id = tasks.allocate_source_id()
-			stockpiles.register_container(container)
-			container.restore_inventory({KIT:1}, drops)
-		else:
-			zone.cell_stacks[Vector3i(40,20,44)] = {"item":KIT,"count":1}
-			drops.restore_stored_item(KIT, Vector3i(40,20,44), 1)
-		stockpiles.rebuild_totals()
-		_expect(worker.change_profession(CARPENTER) and await _appointed(), "promotion collects tool from " + ("container" if container_mode else "stockpile"))
-		_expect(crafting.stock_snapshot()[KIT].equipped == 1 and crafting.stock_snapshot()[KIT].stored == 0, "withdrawal transfers single ownership")
-		worker.change_profession(WORKER)
-		if container_mode: stockpiles.deregister_container(container)
+	# Ground storage uses real withdrawal ownership.
+	kit = drops.nearest_loose_of_key(KIT, worker.current_cell())
+	drops.take(kit)
+	kit.free()
+	zone.cell_stacks[Vector3i(40,20,44)] = {"item":KIT,"count":1}
+	drops.restore_stored_item(KIT, Vector3i(40,20,44), 1)
+	stockpiles.rebuild_totals()
+	_expect(worker.change_profession(CARPENTER) and await _appointed(), "promotion collects tool from stockpile")
+	_expect(crafting.stock_snapshot()[KIT].equipped == 1 and crafting.stock_snapshot()[KIT].stored == 0, "withdrawal transfers single ownership")
+	worker.change_profession(WORKER)
 	# Save/load equipped and pending at both contact phases, using real owners.
 	worker.change_profession(CARPENTER)
 	await _appointed()

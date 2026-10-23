@@ -66,12 +66,13 @@ The game operates on a continuous, interconnected economic loop that fuels both 
 
 4. Invariant Design Constraints (Non-Negotiable)
 
-To ensure structural focus and guarantee optimal performance targets, the engine strictly enforces four core development boundaries:
+To ensure structural focus and guarantee optimal performance targets, the engine strictly enforces five core development boundaries:
 
 1. **RTS Perspective Only**: Gameplay is strictly viewed through a top-down, smooth-orbiting god-view camera rig equipped with vertical layer slicing. Direct keyboard WASD character manipulation or third-person traversal is entirely excluded.
 2. **Uniform Data Grid**: The underlying world simulation tracks space via a uniform 0.5m data array matrix. Individual terrain tiles do not utilize separate textures or polygon meshes; they are generated dynamically as flat-shaded, single-color voxel cubes.
 3. **Entity Decoupling**: Terrain remains on the world-block simulation grid. Characters, flora, wildlife, furniture and loose goods use separate 1:16 voxel art baked into optimized meshes. Their finer visual cells do not create a finer terrain, navigation or occupancy grid; existing gameplay definitions own those dimensions.
 4. **Absolute Safety Nets**: The baseline array floor layers (Y = 0..3) consist of un-minable bedrock across the entire 1024 × 1024 plane, preventing physics logic loops or characters clipping into an empty void.
+5. **Whole World, Always**: The full 1024 × 1024 map stays present and the camera can reach all of it. Never shrink the world or lock the camera to a local patch as a performance fix; fix the cost instead.
 
 ---
 
@@ -139,17 +140,16 @@ func daylight_hours(day_of_year: int) -> float:
 
 > **Correction (2026-06-02):** an earlier revision of this block used `MEAN - AMPL * cos(angle)`,
 > which inverts the seasons (shortest day at the summer solstice). The sign is `+`. This is the
-> form implemented in `WorldClock.daylight_hours()` and consumed by the sky day/night system
-> (`docs/00_dev_roadmap/08_sky_plan.md`, Phase 3).
+> form implemented in `WorldClock.daylight_hours()` and consumed by `SkyController`.
 
 Within each in-game day, `SkyController` interpolates sun/moon and sky-gradient curves against `WorldClock.hour`, with one-hour twilight shoulders around sunrise and sunset. Surface ambient light follows the sky. `UndergroundLighting` gates daylight by physical sky access, while local lights illuminate covered interiors.
 
-> **Implemented:** `WorldClock.daylight_hours()` supplies seasonal day length; `SkyController` drives the live sky, sun/moon and surface ambient lighting from `data/sky/sky_settings.json`. See [08 — Sky, Clock & Weather](../00_dev_roadmap/08_sky_plan.md) for the implementation reference.
+> **Implemented:** `WorldClock.daylight_hours()` supplies seasonal day length; `SkyController` drives the live sky, sun/moon and surface ambient lighting from `data/sky/sky_settings.json`. See [24 — World rendering](../20_player_interface/24_world_rendering.md) §Fog & Sky System for the sky and fog rules.
 
 ### Implementation Notes
 
 - Flora growth ticks are driven by `WorldClock.day_changed`. Each tick, every live flora entity reads `WorldClock.season` and applies the growth rate modifier.
-- Dormant winter plants do not advance their `next_stage` timer. The timer is paused, not reset.
+- Dormant winter plants do not advance their growth-stage timer. The timer is paused, not reset.
 - Caravan spawning is triggered on `WorldClock.season_changed`. The caravan system in `12_trade_events.md` rolls its probability check immediately on receiving this signal.
 - `WorldClock` is authoritative. No other system should track its own day/season counter.
 

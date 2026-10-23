@@ -63,7 +63,7 @@ func _ready() -> void:
 		page.create_from_images([_blank_layer()])
 		_pages.append(page)
 	WorldData.block_changed.connect(_on_block_changed)
-	InteriorTracker.caves_discovered.connect(_on_caves_discovered)
+	InteriorTracker.caves_discovered.connect(darken_discovered_caves)
 	RoomManager.door_boundaries_changed.connect(_on_doors_changed)
 	_on_doors_changed(RoomManager.get_door_boundaries().keys())
 	get_tree().node_added.connect(_on_node_added)
@@ -80,7 +80,7 @@ func _on_block_changed(pos: Vector3i, old_id: int, new_id: int) -> void:
 ## Newly revealed natural air starts underground-dark everywhere, including
 ## beyond the mining edit's local light-update radius. The queued breach edits
 ## then propagate real daylight into entrances by the usual bounded solver.
-func _on_caves_discovered(cells: Array[Vector3i]) -> void:
+func darken_discovered_caves(cells: Array[Vector3i]) -> void:
 	for cell: Vector3i in cells:
 		if _samples.has(cell): continue
 		_samples[cell] = 0.0
@@ -303,7 +303,7 @@ func _step() -> void:
 			var col: Vector2i = _column_keys[_cursor]
 			_cursor += 1
 			_roof.erase(col)
-			var top := _roof_height(col)
+			var top := roof_height(col)
 			# Removing/adding a roof changes every air cell below that roof, not
 			# just cells next to the edited voxel. This also handles skylights.
 			for y in range(mini(top,int(_columns[col]))+1, maxi(top,int(_columns[col]))+1):
@@ -332,7 +332,7 @@ func _step() -> void:
 			_cursor += 1
 			var distance: int = _visited[pos]
 			if distance <= reach: _affected.append(pos)
-			if pos.y > _roof_height(Vector2i(pos.x,pos.z)):
+			if pos.y > roof_height(Vector2i(pos.x,pos.z)):
 				_light[pos] = 0
 				_light_queue.append(pos)
 			if distance < reach*2:
@@ -370,7 +370,7 @@ func _seed(pos: Vector3i, distance: int) -> void:
 
 
 func _inside(pos: Vector3i) -> bool:
-	return pos.x >= 0 and pos.x < 1024 and pos.y >= 0 and pos.y < 128 and pos.z >= 0 and pos.z < 1024
+	return pos.x >= 0 and pos.x < WorldData.WORLD_SIZE_X and pos.y >= 0 and pos.y < WorldData.WORLD_SIZE_Y and pos.z >= 0 and pos.z < WorldData.WORLD_SIZE_Z
 
 
 func _is_air(pos: Vector3i) -> bool:
@@ -384,9 +384,9 @@ func _is_air(pos: Vector3i) -> bool:
 	return air
 
 
-func _roof_height(col: Vector2i) -> int:
+func roof_height(col: Vector2i) -> int:
 	if _roof.has(col): return int(_roof[col])
-	for y in range(127,-1,-1):
+	for y in range(WorldData.MAX_Y,-1,-1):
 		if not _is_air(Vector3i(col.x,y,col.y)):
 			_roof[col] = y
 			return y

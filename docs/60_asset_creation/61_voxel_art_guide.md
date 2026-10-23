@@ -17,13 +17,16 @@ each axis (0.0625 Godot units).
 | `tools/hearthblock/art/tier1.mjs` | Tier 1 · Axe-Hewn furniture, hearth, kits and flag |
 | `tools/hearthblock/art/dwarves.mjs` | Every dwarf part: heads, eyes, body, mittens and cuffs, boots, hair, beards, brows, scars, work tools |
 | `tools/hearthblock/art/wildlife.mjs` | Rabbit, deer, wolf and ducks |
-| `tools/hearthblock/art/export.mjs`, `write_data.py` | Export the `.mjs` models to `data/art/voxel_hearthblock.json` |
+| `tools/hearthblock/art/export.mjs`, `write_data.py` | Export the `.mjs` models to `tools/art_data/voxel_hearthblock.json` |
 | `tools/voxel_assets/hearthblock.py` | Replays those operations for the Python builders |
 | `tools/voxel_assets/build.py` | Stages, checks and installs a family |
 | `tools/voxel_assets/<family>.py` | Family builders: `trees`, `plants`, `rocks`, `crops`, `dwarves`, `presentation`, `wildlife`, `furniture`, `items` (+ `hearthblock_goods`), `construction` |
 | `tools/voxel_glb.py`, `tools/voxel_shadow.py` | Greedy mesher with opt-in baked occlusion, GLB writer, shadow proxies |
-| `data/art/voxel_*.json` | Family profiles and palettes; installed manifests in `data/art/voxel_manifests/` |
-| `data/art/studies/hearthblock_furniture_tiers.json` | Tier 1 and Tier 2 furniture study layouts (never delete) |
+| `tools/art_data/voxel_*.json` | Family profiles and palettes; installed manifests in `tools/art_data/voxel_manifests/` |
+| `tools/art_data/studies/hearthblock_furniture_tiers.json` | Tier 1 and Tier 2 furniture study layouts (never delete) |
+
+Art data sits under `tools/` (not `data/`) because no game script reads it; the export preset excludes `tools/*`,
+so it does not ship.
 
 ## Cell vocabulary
 
@@ -70,8 +73,8 @@ Keep wood swatches for wood only, or hay and stone would recolour with the wood.
    `WildlifeArtTest`, `ItemArtTest`, `FurnitureArtTest`, `FireArtTest`,
    `GemDropArtTest`, `GroundStoneArtTest`, `SurfaceVegetationArtTest` and
    `VoxelPipelineTest`.
-6. **Check in the game.** Use `tools/hearthblock/RunLightingReview.ps1` on a copied save
-   to see the model under Hearthblock lighting.
+6. **Check in the game.** Run the game and look at the model in the main world, which
+   always uses Hearthblock lighting.
 7. **Re-render the menu pictures** that show the model with
    `tools/FurnitureCatalogThumbnails.gd`, `tools/InventoryCatalogThumbnails.gd` or
    `tools/GenerateFloorIcons.gd`.

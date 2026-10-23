@@ -3,7 +3,8 @@ extends RefCounted
 ## Seeded, downhill route over the existing shelf graph. The summit is never
 ## cut. Fine channels are carved into authoritative terrain, before cave layout.
 const DIRS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
-const SIZE := 1024
+const WorldSize = preload("res://scripts/systems/WorldSize.gd")
+const SIZE := WorldSize.WORLD_SIZE_X
 const VERSION := 5 # Aligned spring outlet; saved volume deltas require this base.
 
 static func carve(seed_value: int, macro: Dictionary, heights: PackedInt32Array, water: PackedInt32Array, profile: Dictionary) -> Dictionary:

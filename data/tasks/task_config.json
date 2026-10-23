@@ -70,11 +70,6 @@
   "static_priorities": {
     "MINE": 50,
     "HAUL": 40,
-    "FARM": 35,
-    "BREW": 30,
-    "BUILD": 45,
-    "IDLE": 1,
-    "PATROL": 60,
     "FETCH_BUILD": 45,
     "UNINSTALL": 40,
     "FELL_TREE": 50,
@@ -87,11 +82,7 @@
     "UPROOT_SHRUB": 50,
     "HARVEST_TREE": 50
   },
-  "__comment_zone": "Mining work-source settings. max_workers mirrors data/terrain/mining_config.json zone.max_workers — the zone posts this many MINE leases.",
-  "zone_source": {
-    "max_workers": 4
-  },
-  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip, replacing the old physical-item pouch_capacity limit. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
+  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
   "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Bridges/ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
   "furniture": {
     "uninstall_time_s": 2.0,

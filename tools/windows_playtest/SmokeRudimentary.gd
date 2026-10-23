@@ -33,7 +33,7 @@ func _run() -> void:
 		if node.name=="Renderer": node.set("world_seed",1234))
 	change_scene_to_file("res://scenes/main/debug_world.tscn")
 	await process_frame
-	while current_scene == null or current_scene.get_node("Renderer")._initial_load: await process_frame
+	while current_scene == null or current_scene.get_node("Renderer").tiles.initial_load: await process_frame
 	clock_node.set_paused(true)
 	var furniture = get_first_node_in_group("furniture_controller")
 	var crafting = get_first_node_in_group("crafting_manager")

@@ -6,7 +6,7 @@ import hearthblock
 
 
 def flame(name,phase=0):
-    data=read_json('data/art/voxel_fire_effects.json')
+    data=read_json('tools/art_data/voxel_fire_effects.json')
     profile=data['families'][name]
     anchor=profile['anchor']; width,height,depth=profile['size']
     palette={k:linear(v) for k,v in data['palette'].items()}
@@ -37,7 +37,7 @@ def flame(name,phase=0):
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_furniture.json')
+    profile=read_json('tools/art_data/voxel_furniture.json')
     palette={key:linear(value) for key,value in profile['palette'].items()}
     flames={}
     for name,piece in profile['pieces'].items():
@@ -60,7 +60,7 @@ def assets(only=None):
                 parts[light['emissive_mesh']]=Part(flame(name),shadow=False)
         metadata=dict(piece=name)
         if any(shape['op']=='hearthblock_vox' for shapes in piece.values() for shape in shapes):
-            metadata['source']='data/art/voxel_hearthblock.json'
+            metadata['source']='tools/art_data/voxel_hearthblock.json'
             metadata['direction']='docs/00_dev_roadmap/256_hearthblock_art_pilot.md'
         yield path,parts,metadata
     for name in ['campfire','hearth','wooden_torch']:

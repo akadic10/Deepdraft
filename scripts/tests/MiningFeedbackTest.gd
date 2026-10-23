@@ -34,16 +34,16 @@ func _run() -> void:
 	await _setup_mining_feedback()
 	var block := Vector3i(42,22,40)
 	# This wall faces a mined-open tunnel, so its actual material is visible.
-	mining._mined_blocks[Vector3i(41,22,40)] = true
+	world.set_block(41,22,40,blocks.AIR_ID) # records removed terrain: a mined-open tunnel
 	var id: int = await _begin_block(block)
-	var swing: float = worker._swing_time
-	var elapsed: float = swing-worker._swing_timer
+	var swing: float = worker._work_execution._swing_time
+	var elapsed: float = swing-worker._work_execution._swing_timer
 	worker._process(swing*.91-elapsed)
 	_expect(sound_events.is_empty() and burst_events.is_empty(),"wind-up emits no feedback")
 	worker._process(swing*.02)
 	_expect(sound_events.size() == 1 and sound_events[0][0] == "mining_stone","stone contact emits once")
 	_expect(burst_events.size() == 1 and burst_events[0][1] == "mining_impact","chips coincide with contact")
-	_expect(sound_events[0][1].distance_to(worker.to_global(worker._mine_contact)) < .001,"sound originates at pick point")
+	_expect(sound_events[0][1].distance_to(worker.to_global(worker._work_execution._mine_contact)) < .001,"sound originates at pick point")
 	var chip = feedback._bursts.back()
 	_expect(chip._particles.size() == 6,"small contact chip count")
 	var chip_age: float = chip.age
@@ -62,16 +62,16 @@ func _run() -> void:
 	_expect(sound_events.size() == 3,"long update coalesces crossed strikes")
 	# Resume starts a fresh wind-up. Pitch remains natural at faster speed.
 	id = await _begin_block(block)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(await _until_mining(),"interrupted mining resumes")
 	feedback._process(.5)
 	clock_node.set_speed(3)
-	elapsed = swing-worker._swing_timer
+	elapsed = swing-worker._work_execution._swing_timer
 	worker._process((swing*.93-elapsed)/3)
 	_expect(sound_events.size() == 4,"3x contact emits once")
 	_expect(feedback._voices[0].player.pitch_scale > .96 and feedback._voices[0].player.pitch_scale < 1.04,"3x speed does not raise pitch")
 	clock_node.set_speed(1)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(await _until_mining(),"second resume")
 	slice_stub.height = 21
 	worker._process(swing*.95)
@@ -107,7 +107,7 @@ func _run() -> void:
 	# Hidden resources use host strata until the struck face is mined open.
 	feedback.clear_transients()
 	world.set_block(block.x,block.y,block.z,blocks.get_id("base:terrain:ore:gold"))
-	mining._mined_blocks.erase(Vector3i(41,22,40))
+	world._edits[Vector3i(2,1,2)].erase(Vector3i(41,22,40)) # the tunnel was never mined
 	var point := Vector3(42.025,22.4,40.5)
 	mining.play_zone_mining_impact(block,point,Vector3.LEFT)
 	var strata: int = root.get_node("WorldGenerator").get_overview_strata_block_id(block.x,block.y,block.z)
@@ -116,7 +116,7 @@ func _run() -> void:
 	for particle in feedback._bursts.back()._particles:
 		_expect(particle.color.is_equal_approx(host_color) or particle.color.is_equal_approx(host_color.darkened(.18)),"hidden ore chips match visible host strata")
 	feedback.clear_transients()
-	mining._mined_blocks[Vector3i(41,22,40)] = true
+	world.set_block(41,22,40,blocks.AIR_ID) # records removed terrain: a mined-open tunnel
 	mining.play_zone_mining_impact(block,point,Vector3.LEFT)
 	var gold: Color = blocks.get_color(blocks.get_id("base:terrain:ore:gold"),clock_node.season)
 	for particle in feedback._bursts.back()._particles:

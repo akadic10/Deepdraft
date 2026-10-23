@@ -37,7 +37,7 @@ func _run() -> void:
 	worker = _worker(302, Vector3i(39,20,40))
 	explorer.select_object(flora, MATURE)
 	explorer._perform_action("harvest")
-	var source = flora._felling_sources[MATURE]
+	var source = flora.work.sources[MATURE]
 	var lease: int = source.lease_id
 	flora.designate_harvest(MATURE)
 	_expect(source.lease_id == lease and source.task_type == Task.Type.HARVEST_TREE and source.duration == 3,
@@ -57,7 +57,7 @@ func _run() -> void:
 	_expect(is_equal_approx(source.state.work_seconds, partial + .2), "harvest follows speed")
 	clock_node.set_speed(1)
 	partial = source.state.work_seconds
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(source.reserved_by < 0 and source.state.work_seconds == partial, "interruption releases worker and preserves crop work")
 	flora.cancel_felling(MATURE)
 	_expect(flora.designate_felling(MATURE), "cancelled harvest permits felling")
@@ -72,7 +72,7 @@ func _run() -> void:
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_juniper("picking")
 	var body: Node3D = flora._trees[MATURE].node
 	var occupancy: int = flora._trees[MATURE].occupancy_id
-	source = flora._felling_sources[MATURE]
+	source = flora.work.sources[MATURE]
 	_expect(await _until_harvested(MATURE), "worker completes crop")
 	_expect(_berries() == 2, "mature tree yields exactly two berries")
 	_expect(flora._trees[MATURE].node == body and flora._trees[MATURE].occupancy_id == occupancy,
@@ -105,7 +105,7 @@ func _run() -> void:
 	_expect(await _until_working(), "ancient tree uses its larger footprint")
 	worker._process(.7)
 	_season("winter")
-	_expect(worker.current_task_id < 0 and not flora._felling_sources.has(ANCIENT), "season end cancels active harvest safely")
+	_expect(worker.current_task_id < 0 and not flora.work.sources.has(ANCIENT), "season end cancels active harvest safely")
 	_season("autumn", 2)
 	flora.designate_harvest(ANCIENT)
 	_expect(flora._tree_changes[ANCIENT].work_seconds == 0, "next year's crop starts fresh work")

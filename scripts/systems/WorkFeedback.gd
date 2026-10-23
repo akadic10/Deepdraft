@@ -23,11 +23,8 @@ signal burst_started(position: Vector3, stage: String)
 func _ready() -> void:
 	process_priority = 50 # Camera smoothing runs before spatial volume updates.
 	_rng.randomize()
-	var file := FileAccess.open(CONFIG_PATH,FileAccess.READ)
-	if file == null:
-		push_error("WorkFeedback: cannot load settings")
-		return
-	config = JSON.parse_string(file.get_as_text())
+	config = preload("res://scripts/registries/JsonData.gd").read_dict(CONFIG_PATH)
+	if config.is_empty(): return # reported by JsonData
 	for kind: String in config.audio:
 		if not config.audio[kind] is Array: continue
 		var bank: Array[AudioStream] = []
@@ -94,7 +91,7 @@ func _exit_tree() -> void:
 	_streams.clear()
 
 
-func _context() -> Dictionary:
+func listener_context() -> Dictionary:
 	if not is_instance_valid(_view):
 		_view = get_tree().get_first_node_in_group("work_audio_view")
 	if is_instance_valid(_view):
@@ -107,10 +104,10 @@ func _context() -> Dictionary:
 		"zoom": camera.get_meta("work_zoom",24.0)}
 
 
-func _slice_y() -> int:
+func visible_slice_y() -> int:
 	if not is_instance_valid(_slice):
 		_slice = get_tree().get_first_node_in_group("work_feedback_slice")
-	return int(_slice.call("get_slice_y")) if is_instance_valid(_slice) else 127
+	return int(_slice.call("get_slice_y")) if is_instance_valid(_slice) else SliceController.MAX_SLICE_Y
 
 
 ## Horizontal distance to the looked-at area, independent of camera altitude.
@@ -178,8 +175,8 @@ func _play(kind: String, position: Vector3, floor_y: int, source: Node3D = null)
 	if (WorldClock.paused or WorldClock.speed <= 0) and not bool(profile.get("allow_paused",false)): return false
 	var now := Time.get_ticks_msec()
 	if _last_sound_msec.has(kind) and now - int(_last_sound_msec[kind]) < float(profile.get("cooldown_seconds",0))*1000: return false
-	var context := _context()
-	if context.is_empty() or floor_y > _slice_y():
+	var context := listener_context()
+	if context.is_empty() or floor_y > visible_slice_y():
 		return false
 	var gain := spatial_gain(position,context.focus,context.zoom,profile)
 	if gain < float(config.audio.minimum_gain) or _streams[kind].is_empty():
@@ -281,8 +278,8 @@ func _mining_colors(profile: Dictionary, block_id: int) -> Dictionary:
 func _can_emit(position: Vector3, floor_y: int) -> bool:
 	if config.is_empty() or not _sync_scene() or WorldClock.paused or WorldClock.speed <= 0:
 		return false
-	var context := _context()
-	if context.is_empty() or floor_y > _slice_y():
+	var context := listener_context()
+	if context.is_empty() or floor_y > visible_slice_y():
 		return false
 	# Offscreen work never queues effects to replay on return.
 	return spatial_gain(position,context.focus,context.zoom) >= float(config.audio.minimum_gain)
@@ -302,9 +299,9 @@ func _spawn_burst(position: Vector3, floor_y: int, settings: Dictionary, size: f
 func _process(delta: float) -> void:
 	if config.is_empty() or not _sync_scene():
 		return
-	_update_voices(delta,_context())
+	_update_voices(delta,listener_context())
 	var step := 0.0 if WorldClock.paused else delta*WorldClock.speed
-	var slice_y := _slice_y()
+	var slice_y := visible_slice_y()
 	for i in range(_bursts.size()-1,-1,-1):
 		var burst := _bursts[i]
 		burst.visible = burst.floor_y <= slice_y
@@ -328,7 +325,7 @@ func _update_voices(delta: float, context: Dictionary) -> void:
 				voice.player.global_position = source.global_position
 				voice.floor = floori(source.global_position.y)
 		var gain := 0.0
-		if source_valid and not context.is_empty() and voice.floor <= _slice_y():
+		if source_valid and not context.is_empty() and voice.floor <= visible_slice_y():
 			gain = spatial_gain(voice.player.global_position,context.focus,context.zoom,profile)
 		voice.gain = gain
 		if gain < float(config.audio.minimum_gain) or float(voice.remaining) <= 0:

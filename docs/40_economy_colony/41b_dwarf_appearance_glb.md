@@ -4,7 +4,7 @@
 
 **Current art: Hearthblock** ([64](../60_asset_creation/64_hearthblock_art_direction.md),
 [256](../00_dev_roadmap/256_hearthblock_art_pilot.md)). Every part is authored in
-`tools/hearthblock/art/dwarves.mjs`, exported to `data/art/voxel_hearthblock.json` and
+`tools/hearthblock/art/dwarves.mjs`, exported to `tools/art_data/voxel_hearthblock.json` and
 built by the `dwarves` family in `tools/voxel_assets/`. There are 41 appearance GLBs
 under `assets/models/characters/dwarves/` plus the two work tools. The parts are:
 - the square head in four ages;
@@ -424,8 +424,7 @@ Both impact points are vertices in the meshes. The contract: the lower grip is t
 origin, the upper grip is `(0,.625,0)`, the axe edge is `(0,1.0625,.6875)` (cell
 0, 17, 11) and the pick point is `(0,1.375,.9375)` (cell 0, 22, 15).
 `ItemArtTest`, `DwarfArtTest`, `MiningAnimationTest` and `TreeFellingTest`
-check grips and strike points. Behavior and validation:
-[48_object_explorer_and_tree_felling.md](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
+check grips and strike points.
 `assets/models/characters/dwarves/tools/mining_pickaxe.glb` has a longer haft and uses the
 same material and grip convention. `DwarfMiningPose.gd` aims at the target voxel face
 for wall, overhead, low and underfoot mining. Both rigs now inherit attachment,

@@ -15,9 +15,7 @@
     "width": 3,
     "depth": 1
   },
-  "blocks_movement": false,
   "collision_regions": [],
-  "room_anchor": false,
   "door_animation": {
     "width": 3,
     "double": false,

@@ -71,7 +71,7 @@ def scree(clump,palette,i):
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_rocks.json')
+    profile=read_json('tools/art_data/voxel_rocks.json')
     palette=[linear(c) for c in profile['palette']]
     for i,p in enumerate(profile['boulders']):
         path=f'assets/models/rocks/boulders/boulder_{i+1}.glb'

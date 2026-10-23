@@ -20,7 +20,6 @@ func _run() -> void:
 	root.get_node("WorldGenerator").world_seed=1234
 	var scene := Node3D.new(); root.add_child(scene); current_scene=scene
 	var controller = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	controller._load_defs()
 	var materials := root.get_node("CraftMaterials")
 	var picking = load("res://scripts/components/ObjectPicking.gd").new()
 	var count := 0
@@ -58,7 +57,7 @@ func _run() -> void:
 		definitions+=1
 		var definition: Dictionary=controller.get_defs()[key]
 		expect(String(definition.model).begins_with(DIRECTORY),key+" production path")
-		var model: Node3D=controller._instance_model(key,controller._make_solid_material())
+		var model: Node3D=controller._instance_model(key,controller.make_solid_material())
 		scene.add_child(model)
 		var bounds := _bounds(model)
 		if definition.placement=="floor":
@@ -108,7 +107,7 @@ func _palette(controller: Node,materials: Node,key: String,definition: Dictionar
 	var hashes := {}
 	var originals := VoxelShadows.visual_meshes(original)
 	for wood in ["pine","oak","juniper","applewood"]:
-		var model: Node3D=controller._instance_model(key,controller._make_solid_material())
+		var model: Node3D=controller._instance_model(key,controller.make_solid_material())
 		materials.apply_palette(model,definition,"base:material:"+wood)
 		var meshes := VoxelShadows.visual_meshes(model)
 		var swatches: Array=[]

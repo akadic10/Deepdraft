@@ -8,7 +8,7 @@ const BuildSource = preload("res://scripts/components/LadderBuildComponent.gd")
 const RemoveSource = preload("res://scripts/components/LadderRemovalComponent.gd")
 var definition: Dictionary
 var routes: Dictionary = {}
-var _sources: Dictionary = {}
+var work := preload("res://scripts/components/WorkSourceTable.gd").new() # route id -> section source
 var _next_id := 1
 var _tick := 0.0
 var _terrain_dirty := false
@@ -21,10 +21,6 @@ func _ready() -> void:
 	definition = get_parent().get_defs().get(KEY, {})
 	if not NavGrid.ladder_routes_changed.is_connected(TaskManager.ladder_routes_changed):
 		NavGrid.ladder_routes_changed.connect(TaskManager.ladder_routes_changed)
-	TaskManager.task_completed.connect(func(t: Task): _task_gone(t, -1))
-	TaskManager.task_cancelled.connect(func(t: Task): _task_gone(t, t.assigned_to))
-	TaskManager.task_failed.connect(func(t: Task, _why: String): _task_gone(t, t.assigned_to))
-	TaskManager.task_released.connect(func(t: Task, dwarf: int, _why: int): _task_gone(t, dwarf))
 	WorldData.chunk_dirtied.connect(func(_x: int, _y: int, _z: int): _terrain_dirty = true)
 
 func _exit_tree() -> void:
@@ -87,28 +83,28 @@ func describe(base: Vector3i, yaw: int, ignore := -1) -> Dictionary:
 			result.reason = "Another ladder occupies this space"
 			return result
 	var parent := get_parent()
-	if is_instance_valid(parent._bridges) and parent._bridges.reserves(area):
+	if is_instance_valid(parent.get_bridges()) and parent.get_bridges().reserves(area):
 		result.reason = "Keep the ladder clear of bridges and bridge plans"
 		return result
 	var plants := get_tree().get_first_node_in_group("surface_details")
 	if plants != null:
 		for x in range(base.x - 1, base.x + 2):
 			for z in range(base.z - 1, base.z + 2):
-				for id: String in plants._columns.get(Vector2i(x,z), []):
-					if bool(plants._changes.get(id, {}).get("removed", false)): continue
-					var record: Dictionary = plants._records[id]
+				for id: String in plants.ids_in_column(Vector2i(x,z)):
+					if bool(plants.get_change(id).get("removed", false)): continue
+					var record: Dictionary = plants.get_record(id)
 					var plant := SurfaceDetailRegistry.get_definition(record.definition)
 					if area.intersects(preload("res://scripts/components/SurfaceDetailPlacement.gd").planting_area(plant, record.origin)):
 						result.reason = "Clear or move nearby plants and stones first"
 						return result
-	for zone: StockpileZoneComponent in StockpileManager._zones.values():
+	for zone: StockpileZoneComponent in StockpileManager.get_zones():
 		for cell: Vector3i in zone.tile_cells:
 			if area.intersects(AABB(Vector3(cell) + Vector3.UP, Vector3.ONE)):
 				result.reason = "Keep the climbing column clear of storage zones"
 				return result
-	for group: Dictionary in [parent._ghosts, parent._installed]:
-		for piece in group.values():
-			if parent._visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps).intersects(area):
+	for group: Array in [parent.get_ghost_pieces(), parent.get_installed_pieces()]:
+		for piece in group:
+			if parent.visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps).intersects(area):
 				result.reason = "Clear nearby furniture or queued placements first"
 				return result
 	result.reason = ""
@@ -121,7 +117,7 @@ func placement_reason(base: Vector3i, yaw: int) -> String:
 	var required := sections(spec.height)
 	if available < required:
 		return "%d-block ladder · Needs %d sections · %d available · Craft %d more at the crude workbench" % [spec.height, required, available, required - available]
-	if base.y + int(spec.height) > get_parent()._slice_y: return "Raise the slice to show the upper landing"
+	if base.y + int(spec.height) > get_parent().get_slice_y(): return "Raise the slice to show the upper landing"
 	return ""
 
 func place(base: Vector3i, yaw: int) -> int:
@@ -130,7 +126,7 @@ func place(base: Vector3i, yaw: int) -> int:
 	var id := _next_id
 	_next_id += 1
 	var route := {"id":id, "base":base, "yaw":yaw, "height":int(spec.height), "built":0,
-		"required_material_id":String(get_parent().material_choices.get(KEY, "")),"mode":"build", "progress":0.0, "source":null, "node":null, "materials":[]}
+		"required_material_id":String(get_parent().material_choices.get(KEY, "")),"mode":"build", "progress":0.0, "node":null, "materials":[]}
 	routes[id] = route
 	_refresh(route)
 	return id
@@ -142,7 +138,7 @@ func pending_sections() -> Dictionary:
 		if route.mode != "build": continue
 		var count := sections(route.height) - sections(route.built)
 		requested += count
-		var source = route.source
+		var source = work.get_source(route.id)
 		pending += count - (1 if source != null and source.has_committed_item() else 0)
 	return {"pending":pending, "requested":requested}
 
@@ -167,19 +163,20 @@ func _process(delta: float) -> void:
 					_register(route)
 		if route.mode == "damaged":
 			if _safe_to_remove(route, -1):
-				var drops := get_tree().get_first_node_in_group("item_drop_manager")
+				var drops := ItemDropManager.find(get_tree())
 				if drops != null:
 					for index in range(sections(route.built)):
 						drops.spawn_drop(definition.item_key, 1, route.base + Vector3i.UP, String(route.get("materials", [])[index]) if index < route.get("materials", []).size() else "")
 				_erase(route)
 			continue
-		if route.source == null: _make_source(route)
-		if route.source is FurnitureGhostComponent: route.source.update_lease()
-		if is_instance_valid(route.node): route.node.visible = route.base.y + 1 <= get_parent()._slice_y
+		if not work.has(route.id): _make_source(route)
+		var source = work.get_source(route.id)
+		if source is FurnitureGhostComponent: source.update_lease()
+		if is_instance_valid(route.node): route.node.visible = route.base.y + 1 <= get_parent().get_slice_y()
 	_terrain_dirty = false
 
 func _make_source(route: Dictionary) -> void:
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	if drops == null: return
 	var source: RefCounted
 	if route.mode == "build" and route.built < route.height:
@@ -197,16 +194,13 @@ func _make_source(route: Dictionary) -> void:
 		source.uninstall_callback = func(_s, _worker_id): _removed(route)
 	else: return
 	source.progress = route.progress
-	source.source_id = TaskManager.allocate_source_id()
-	TaskManager.register_work_source(source.source_id, source)
-	_sources[source.source_id] = route.id
-	route.source = source
+	work.add(route.id, source)
 	if source is FurnitureGhostComponent: source.update_lease()
 	else: source.set_uninstall(true)
 
 func _installed(route: Dictionary) -> void:
 	if not route.has("materials"): route.materials = []
-	route.materials.append(route.source.material_id)
+	route.materials.append(work.get_source(route.id).material_id)
 	_retire(route, false)
 	route.built = mini(route.height, route.built + section_height())
 	route.progress = 0.0
@@ -215,35 +209,27 @@ func _installed(route: Dictionary) -> void:
 
 func _removed(route: Dictionary) -> void:
 	var material_id := String(route.materials.pop_back()) if not route.get("materials", []).is_empty() else ""
-	var origin: Vector3i = route.source.origin_cell
+	var origin: Vector3i = work.get_source(route.id).origin_cell
 	_retire(route, false)
 	route.built = maxi(0, (sections(route.built) - 1) * section_height())
 	route.progress = 0.0
-	get_tree().get_first_node_in_group("item_drop_manager").spawn_drop(definition.item_key, 1, origin + Vector3i.UP, material_id)
+	ItemDropManager.find(get_tree()).spawn_drop(definition.item_key, 1, origin + Vector3i.UP, material_id)
 	if route.built == 0: _erase(route)
 	else: _refresh(route)
 
 func _safe_to_remove(route: Dictionary, worker: int) -> bool:
-	for agent in TaskManager._agents.values():
+	for agent in TaskManager.get_agents():
 		if not is_instance_valid(agent) or agent.dwarf_id == worker: continue
 		var cell: Vector3i = agent.current_cell()
 		if cell.x == route.base.x and cell.z == route.base.z and cell.y > route.base.y and cell.y <= route.base.y + route.built:
 			return false
 	return true
 
-func _task_gone(task: Task, dwarf: int) -> void:
-	var route: Dictionary = routes.get(_sources.get(task.source_id, -1), {})
-	if not route.is_empty() and route.source != null: route.source.on_task_gone(task.id, dwarf)
-
 func _retire(route: Dictionary, cancel: bool) -> void:
-	var source = route.source
+	var source = work.get_source(route.id)
 	if source == null: return
 	route.progress = source.progress
-	_sources.erase(source.source_id) # Suppress reposting while tearing down.
-	if cancel: TaskManager.cancel_source_tasks(source.source_id)
-	TaskManager.unregister_work_source(source.source_id)
-	if source is FurnitureGhostComponent: source.release_claim()
-	route.source = null
+	work.retire(route.id, cancel)
 
 func _register(route: Dictionary) -> void:
 	if route.built <= 0: NavGrid.remove_ladder(route.id)
@@ -253,14 +239,14 @@ func _refresh(route: Dictionary) -> void:
 	_register(route)
 	_rebuild_visual(route)
 	_make_source(route)
-	get_parent()._mark_catalog_dirty()
+	get_parent().mark_catalog_dirty()
 
 func _erase(route: Dictionary) -> void:
 	_retire(route, true)
 	NavGrid.remove_ladder(route.id)
 	if is_instance_valid(route.node): route.node.queue_free()
 	routes.erase(route.id)
-	get_parent()._mark_catalog_dirty()
+	get_parent().mark_catalog_dirty()
 
 func make_visual(height: int, built: int, ghost_material: Material = null, materials: Array = []) -> Node3D:
 	var root_node := Node3D.new()
@@ -271,9 +257,9 @@ func make_visual(height: int, built: int, ghost_material: Material = null, mater
 		mesh.position.y = offset
 		root_node.add_child(mesh)
 		if offset >= built:
-			get_parent()._apply_material(mesh, ghost_material if ghost_material != null else get_parent()._make_ghost_material())
+			get_parent().apply_material(mesh, ghost_material if ghost_material != null else get_parent().make_ghost_material())
 		else:
-			get_parent()._apply_material(mesh, get_parent()._make_solid_material())
+			get_parent().apply_material(mesh, get_parent().make_solid_material())
 			var index := floori(float(offset) / section_height())
 			if index < materials.size(): CraftMaterials.apply_palette(mesh, definition, String(materials[index]))
 	return root_node
@@ -295,7 +281,7 @@ func _clearance_bounds(route: Dictionary) -> AABB:
 	return AABB(Vector3(route.base) + Vector3(0,1,0), Vector3(1, int(route.height) + NavGrid.CLEARANCE, 1))
 
 func _block(cell: Vector3i) -> int:
-	return get_parent()._block_id(cell.x, cell.y, cell.z)
+	return get_parent().terrain_block_id(cell.x, cell.y, cell.z)
 
 func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
 	var result := {}
@@ -346,7 +332,7 @@ func serialize_state() -> Dictionary:
 	var entries: Array = []
 	for route: Dictionary in routes.values():
 		entries.append({"id":route.id, "key":KEY, "base":SaveManager.pack_v3i(route.base), "yaw":route.yaw,
-			"height":route.height, "built":route.built, "materials":route.get("materials", []).duplicate(), "required_material_id":String(route.get("required_material_id", "")),"mode":route.mode, "progress":route.source.progress if route.source != null else route.progress})
+			"height":route.height, "built":route.built, "materials":route.get("materials", []).duplicate(), "required_material_id":String(route.get("required_material_id", "")),"mode":route.mode, "progress":work.get_source(route.id).progress if work.has(route.id) else route.progress})
 	return {"routes":entries, "next_id":_next_id}
 
 func restore_state(state: Dictionary) -> void:
@@ -357,10 +343,6 @@ func restore_state(state: Dictionary) -> void:
 		var route := entry.duplicate(true)
 		route.base = SaveManager.unpack_v3i(entry.base)
 		for key in ["id", "yaw", "height", "built"]: route[key] = int(route[key])
-		# Retain the number of paid sections in saves made with shortened tails.
-		route.height = sections(route.height) * section_height()
-		route.built = mini(route.height, sections(route.built) * section_height())
-		route.source = null
 		route.node = null
 		routes[route.id] = route
 		_refresh(route)

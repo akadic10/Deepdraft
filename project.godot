@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 CraftMaterials="*res://scripts/registries/CraftMaterials.gd"
 SurfaceDetailRegistry="*res://scripts/registries/SurfaceDetailRegistry.gd"
+ContentRegistry="*res://scripts/registries/ContentRegistry.gd"
 BlockRegistry="*uid://darckb4wfswr6"
 WorldClock="*uid://cntlqitntp144"
 WorkFeedback="*res://scripts/systems/WorkFeedback.gd"

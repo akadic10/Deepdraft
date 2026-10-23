@@ -37,10 +37,10 @@ func _run() -> void:
 	for x in range(entrance.x+1,entrance.x+18):
 		for z in range(entrance.z,entrance.z+4):
 			for y in range(entrance.y+1,entrance.y+5): mined.append(Vector3i(x,y,z))
-	var tile_builds: int = renderer._overview_build_count
+	var tile_builds: int = renderer.tiles._overview_build_count
 	mining._mine_blocks_world(mined)
 	await _settle()
-	var mining_rebuilds: int = renderer._overview_build_count-tile_builds
+	var mining_rebuilds: int = renderer.tiles._overview_build_count-tile_builds
 	_expect(mining_rebuilds <= 12,"mining keeps terrain invalidation local")
 	var deep := entrance+Vector3i(12,2,2)
 	_expect(field.sky_at(deep) == 0,"generated mountain blocks sky light")
@@ -114,7 +114,7 @@ func _find_cliff() -> Vector3i:
 
 func _settle() -> void:
 	for i in range(4): await process_frame
-	while field.is_updating() or not renderer._dirty_overview_tiles.is_empty() or renderer._cavity_shell_dirty:
+	while field.is_updating() or not renderer.tiles.dirty_overview_tiles.is_empty() or renderer.cavity_shell.dirty:
 		await process_frame
 
 func _capture(label: String) -> void:

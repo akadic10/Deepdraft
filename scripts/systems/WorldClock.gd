@@ -114,6 +114,10 @@ func _advance_season() -> void:
 # ── Speed / pause control ─────────────────────────────────────────────────────
 
 ## Sets the time multiplier (e.g. 1.0, 2.0, 3.0). 0 freezes the clock.
+func get_real_seconds_per_game_hour() -> float:
+	return _real_seconds_per_game_hour
+
+
 func set_speed(new_speed: float) -> void:
 	speed = maxf(0.0, new_speed)
 
@@ -128,9 +132,9 @@ func set_paused(value: bool) -> void:
 
 ## Scene-owned loading presentation freezes simulation without changing saved
 ## player pause/speed preferences. Its owner releases on reveal or scene exit.
-func hold_for_loading(owner: Node, held: bool) -> void:
-	if held: _loading_holds[owner.get_instance_id()] = true
-	else: _loading_holds.erase(owner.get_instance_id())
+func hold_for_loading(holder: Node, held: bool) -> void:
+	if held: _loading_holds[holder.get_instance_id()] = true
+	else: _loading_holds.erase(holder.get_instance_id())
 
 
 func is_loading_held() -> bool:
@@ -283,22 +287,17 @@ func get_event_times() -> Dictionary:
 	return _event_times
 
 
+## Hours in one in-game day (calendar.json time_scale.hours_per_day).
+func hours_per_day() -> int:
+	return _hours_per_day
+
+
 # ── Config loader ─────────────────────────────────────────────────────────────
 
 func _load_config() -> void:
-	var file := FileAccess.open(CALENDAR_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("WorldClock: cannot open %s — using built-in defaults." % CALENDAR_PATH)
-		return
-
-	var json := JSON.new()
-	if json.parse(file.get_as_text()) != OK:
-		push_error("WorldClock: JSON parse error in %s — %s" % [CALENDAR_PATH, json.get_error_message()])
-		file.close()
-		return
-	file.close()
-
-	var d: Dictionary = json.data
+	var parsed: Variant = preload("res://scripts/registries/JsonData.gd").read(CALENDAR_PATH)
+	if parsed == null: return # reported; the built-in defaults stay
+	var d: Dictionary = parsed
 
 	var ts: Dictionary = d.get("time_scale", {})
 	_real_seconds_per_game_hour = float(ts.get("real_seconds_per_game_hour", _real_seconds_per_game_hour))

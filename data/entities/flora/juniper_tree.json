@@ -9,8 +9,7 @@
     "",
     "MODEL VARIANTS \u2014 Hearthblock square trees (doc 256):",
     "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
-    "World-position hashing preserves each tree variant across seasonal changes.",
-    "Placement, growth, collision and harvest values are unchanged."
+    "World-position hashing preserves each tree variant across seasonal changes."
   ],
   "base:flora:juniper_tree": {
     "harvest_resource": "base:resources:wood:juniper_log",
@@ -22,8 +21,9 @@
       "stockpile_wood"
     ],
     "appeal": 2,
-    "__placement_comment": "Mixed-forest niche, doc 14: hardy DRY-loving evergreen on rocky/exposed ground (lowland rock through mountain, extends above the pine treeline). Read by SurfaceFloraSpawner.",
+    "__placement_comment": "Mixed-forest niche (42_farming_brewing.md, World placement): hardy DRY-loving evergreen on rocky/exposed ground (lowland rock through mountain, extends above the pine treeline). Read by SurfaceFloraSpawner.",
     "placement": {
+      "pick_order": 3,
       "domains": [
         "lowland",
         "foothill",
@@ -56,7 +56,6 @@
         },
         "clearance_height": 2,
         "growth_duration_days": 4,
-        "next_stage": "mature",
         "models": {
           "summer": "res://assets/models/flora/trees/juniper/juniper_sapling.glb",
           "winter": "res://assets/models/flora/trees/juniper/juniper_sapling_winter.glb"
@@ -71,7 +70,6 @@
         },
         "clearance_height": 6,
         "growth_duration_days": 8,
-        "next_stage": "ancient",
         "models": {
           "summer": [
             "res://assets/models/flora/trees/juniper/juniper_mature.glb",
@@ -100,8 +98,7 @@
           "harvest_season": "autumn",
           "work_seconds": 3.0,
           "yield_item": "base:resources:flora:juniper_berry",
-          "yield_count": 2,
-          "post_harvest": "persist"
+          "yield_count": 2
         },
         "picked_models": {
           "summer": [
@@ -120,7 +117,6 @@
         },
         "clearance_height": 10,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "summer": [
             "res://assets/models/flora/trees/juniper/juniper_ancient.glb",
@@ -149,8 +145,7 @@
           "harvest_season": "autumn",
           "work_seconds": 3.0,
           "yield_item": "base:resources:flora:juniper_berry",
-          "yield_count": 4,
-          "post_harvest": "persist"
+          "yield_count": 4
         },
         "picked_models": {
           "summer": [

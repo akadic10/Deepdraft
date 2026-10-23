@@ -122,6 +122,11 @@ func _rebuild_ladders() -> void:
 	ladder_routes_changed.emit()
 
 
+## Every registered ladder record (read-only; do not mutate).
+func ladder_records() -> Array:
+	return _ladders.values()
+
+
 func ladder_at(cell: Vector3i) -> Dictionary:
 	return _ladders.get(_rungs.get(cell, -1), {})
 

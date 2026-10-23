@@ -13,7 +13,7 @@ class LogBenchTests(unittest.TestCase):
         _,parts,metadata = next(assets(only='/bench.glb'))
         # The seat contracts are checked in test_hearthblock.
         self.assertEqual(parts['main'].voxels.cells,hearthblock.model('log_bench').cells)
-        self.assertEqual(metadata['source'],'data/art/voxel_hearthblock.json')
+        self.assertEqual(metadata['source'],'tools/art_data/voxel_hearthblock.json')
 
 
 if __name__=='__main__': unittest.main()

@@ -27,7 +27,7 @@ func _run() -> void:
 	explorer.select_object(flora,MATURE)
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_juniper("ready")
 	explorer._perform_action("harvest")
-	var source=flora._felling_sources[MATURE]
+	var source=flora.work.sources[MATURE]
 	var lease: int=source.lease_id
 	flora.designate_harvest(MATURE)
 	_expect(source.task_type==Task.Type.HARVEST_TREE and source.duration==4 and source.lease_id==lease,"single harvest lease with authored duration")
@@ -42,7 +42,7 @@ func _run() -> void:
 	worker._process(10)
 	_expect(source.state.work_seconds==partial,"paused gathering preserves work")
 	clock_node.set_paused(false)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(source.reserved_by<0 and source.state.work_seconds==partial,"interruption preserves work and releases worker")
 	var crop: int=flora._tree_fruit_yield(MATURE)
 	var saved: Dictionary=JSON.parse_string(JSON.stringify(flora.serialize_state()))
@@ -52,7 +52,7 @@ func _run() -> void:
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_juniper("picking")
 	var body: Node3D=flora._trees[MATURE].node
 	var occupancy: int=flora._trees[MATURE].occupancy_id
-	source=flora._felling_sources[MATURE]
+	source=flora.work.sources[MATURE]
 	_expect(await _until_harvested(MATURE),"mature apple crop completes")
 	_expect(_berries()>=4 and _berries()<=6 and _berries()==crop,"mature yield uses documented 4–6 range")
 	_expect(flora._trees[MATURE].node==body and flora._trees[MATURE].occupancy_id==occupancy and not flora._tree_changes[MATURE].felled,"tree, trunk collision and occupancy survive picking")
@@ -69,10 +69,10 @@ func _run() -> void:
 	flora.designate_harvest(ANCIENT)
 	worker.position=Vector3(51.5,21,40.5)
 	_expect(await _until_working(),"ancient tree has a reachable perimeter")
-	_expect(flora._felling_sources[ANCIENT].duration==6,"ancient picking uses authored six seconds")
+	_expect(flora.work.sources[ANCIENT].duration==6,"ancient picking uses authored six seconds")
 	worker._process(.7)
 	_season("winter")
-	_expect(worker.current_task_id<0 and not flora._felling_sources.has(ANCIENT),"season end releases the harvest safely")
+	_expect(worker.current_task_id<0 and not flora.work.sources.has(ANCIENT),"season end releases the harvest safely")
 	_season("autumn",2)
 	_expect(flora.can_harvest_tree(MATURE) and "_autumn_fruiting" in String(flora._trees[MATURE].model_path),"next autumn renews mature crop and visual")
 	flora.designate_harvest(ANCIENT)

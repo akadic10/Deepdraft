@@ -123,6 +123,7 @@ script = ExtResource("8_dwarves")
 camera_path = NodePath("../CameraRig")
 slice_controller_path = NodePath("../SliceController")
 window_manager_path = NodePath("../UIWindowManager")
+dock_ui_path = NodePath("../DockUI")
 
 [node name="WildlifeManager" type="Node3D" parent="."]
 script = ExtResource("20_wildlife")
@@ -131,6 +132,7 @@ slice_controller_path = NodePath("../SliceController")
 
 [node name="WorldEventDirector" type="Node" parent="."]
 script = ExtResource("21_events")
+dock_ui_path = NodePath("../DockUI")
 
 [node name="FlagPlacementController" type="Node3D" parent="."]
 script = ExtResource("9_flag")
@@ -156,6 +158,7 @@ slice_controller_path = NodePath("../SliceController")
 
 [node name="CraftingManager" type="Node" parent="."]
 script = ExtResource("17_crafting")
+dock_ui_path = NodePath("../DockUI")
 
 [node name="ConstructionController" type="Node3D" parent="."]
 script = ExtResource("23_construction")
@@ -188,6 +191,7 @@ dock_ui_path = NodePath("../DockUI")
 flora_path = NodePath("../SurfaceFloraSpawner")
 explorer_path = NodePath("../ObjectExplorerController")
 details_path = NodePath("../SurfaceDetailManager")
+mining_path = NodePath("../MiningDesignationController")
 
 [node name="DwarfNeedIndicators" type="CanvasLayer" parent="."]
 script = ExtResource("27_needs")

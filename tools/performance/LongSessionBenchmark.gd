@@ -185,7 +185,7 @@ func _state() -> Dictionary:
 		"objects":Performance.get_monitor(Performance.OBJECT_COUNT),"resources":Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT),
 		"orphan_nodes":Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT),
 		"video_memory_mb":RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED)/1048576.0,
-		"mined":scene.get_node("MiningDesignationController")._mined_blocks.size(),
+		"mined":root.get_node("WorldData").removed_terrain_count(),
 		"built":build_targets.filter(func(cell): return root.get_node("BlockRegistry").is_solid(root.get_node("WorldData").get_terrain_block(cell.x,cell.y,cell.z))).size(),"stored":stored,
 		"loose":scene.get_node("ItemDropManager")._loose.size(),"wildlife":scene.get_node("WildlifeManager").animals.size(),
 		"scheduler":root.get_node("TaskManager").get_scheduler_stats(),"assignments":assignments.duplicate(),

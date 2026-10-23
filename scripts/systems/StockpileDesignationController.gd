@@ -20,11 +20,8 @@ extends Node3D
 ##     of the preview; confirm designates exactly the valid subset (WYSIWYG).
 ##   - No grid snapping; max extent per drag is MAX_ZONE_EXTENT.
 ##
-## Raycasting: a slice-aware voxel DDA against the live block grid (doc 22b,
-## 2026-08-06 — previously a STATIC height-field march, the flag-tool
-## approach, which meant zones could only ever be drawn on the untouched
-## world-gen surface, never inside a mined interior). See
-## _surface_cell_for()'s header for the full story.
+## Raycasting: ObjectPicking.terrain_hit against the live block grid, so zones
+## can be drawn inside mined interiors (doc 22b).
 ##
 ## Slice rule (doc 11 Phase 5): zone overlays hide when their floor is above
 ## the cut, same hook as flora/dwarves/drops.
@@ -39,7 +36,8 @@ const ZONE_WINDOW_ID := "storage_zone_info"
 const MAX_ZONE_EXTENT := 16          # max cells per axis in one drag
 const WORLD_EDGE_MARGIN := 2
 const RAY_MAX := 700.0
-const SLICE_OFF_Y := 127
+const SLICE_OFF_Y := SliceController.MAX_SLICE_Y
+const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const OVERLAY_LIFT := 1.04           # overlay quad height above the floor top
 const DRAG_THRESHOLD_PX := 6.0       # below this, a click = zone select (doc 22)
 
@@ -166,7 +164,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton:
 			var mb_inactive := event as InputEventMouseButton
 			if mb_inactive.pressed and mb_inactive.button_index == MOUSE_BUTTON_LEFT \
-					and _try_select_zone_at_screen(mb_inactive.position):
+					and try_select_zone_at_screen(mb_inactive.position):
 				get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and (event as InputEventKey).pressed \
@@ -369,8 +367,8 @@ func _update_size_label() -> void:
 ## the visible surface at exactly the marquee plane, and NavGrid-walkable
 ## (solid floor + 3-air clearance + no entity footprint).
 func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
-	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldGenerator.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
-			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldGenerator.WORLD_SIZE_Z - WORLD_EDGE_MARGIN:
+	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldData.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
+			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldData.WORLD_SIZE_Z - WORLD_EDGE_MARGIN:
 		return false
 	if cell.y <= 3 or cell.y != plane_y:
 		return false
@@ -516,7 +514,6 @@ func serialize_state() -> Dictionary:
 		saved_zones.append({
 			"id": zone_id,
 			"cells": cells,
-			"filter_tags": zone.filter_tags.duplicate(),
 			"storage_filter": zone.serialize_filter(),
 			"stacks": stacks,
 		})
@@ -524,7 +521,7 @@ func serialize_state() -> Dictionary:
 
 
 func restore_state(state: Dictionary) -> void:
-	var drop_manager := get_tree().get_first_node_in_group("item_drop_manager")
+	var drop_manager := ItemDropManager.find(get_tree())
 	for raw in state.get("zones", []):
 		if not (raw is Dictionary):
 			continue
@@ -535,7 +532,7 @@ func restore_state(state: Dictionary) -> void:
 		if cells.is_empty():
 			continue
 		var zone := _create_zone(cells, int(entry.get("id", -1)))
-		zone.restore_filter(entry.get("storage_filter", {"tags": entry.get("filter_tags", StockpileZoneComponent.DEFAULT_FILTER_TAGS)}))
+		zone.restore_filter(entry.storage_filter)
 		for stack_raw in entry.get("stacks", []):
 			if not (stack_raw is Dictionary):
 				continue
@@ -546,16 +543,16 @@ func restore_state(state: Dictionary) -> void:
 			if count <= 0 or item_key.is_empty() or not zone.has_cell(cell):
 				continue
 			if drop_manager != null:
-				var kept := mini(count, int(drop_manager.call("item_capacity", item_key)))
+				var kept := mini(count, drop_manager.item_capacity(item_key))
 				if count > kept:
-					drop_manager.call("spawn_drop", item_key, count - kept, cell + Vector3i.UP)
+					drop_manager.spawn_drop(item_key, count - kept, cell + Vector3i.UP)
 				count = kept
 			zone.cell_stacks[cell] = { "item": item_key, "count": count }
 			zone.cell_stacks[cell]["disallowed"] = false
 			if saved_stack.has("instance_id"): zone.cell_stacks[cell]["instance_id"] = saved_stack.instance_id
 			zone.cell_stacks[cell]["material_id"] = String(saved_stack.get("material_id", ""))
-			if drop_manager != null and drop_manager.has_method("restore_stored_item"):
-				drop_manager.call("restore_stored_item", item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")))
+			if drop_manager != null:
+				drop_manager.restore_stored_item(item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")))
 
 
 # ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────
@@ -583,8 +580,8 @@ func dev_spawn_bushes() -> void:
 		for dx in range(-ring,ring+1):
 			for dz in range(-ring,ring+1):
 				if maxi(absi(dx),absi(dz)) != ring: continue
-				var floor := center+Vector3i(dx,0,dz)
-				if NavGrid.is_walkable(floor) and not WaterManager.has_standing_water(floor+Vector3i.UP): floors.append(floor)
+				var stand := center+Vector3i(dx,0,dz)
+				if NavGrid.is_walkable(stand) and not WaterManager.has_standing_water(stand+Vector3i.UP): floors.append(stand)
 	var keys: Array = SurfaceDetailRegistry.definitions.keys()
 	keys.sort()
 	var count := 0
@@ -601,8 +598,8 @@ func _dev_spawn_mix(mix: Dictionary) -> void:
 	if center.x < 0:
 		push_warning("StockpileDesignationController: no ground at view centre for DEV drops.")
 		return
-	var manager := get_tree().get_first_node_in_group("item_drop_manager")
-	if manager == null or not manager.has_method("spawn_drop"):
+	var manager := ItemDropManager.find(get_tree())
+	if manager == null:
 		push_warning("StockpileDesignationController: ItemDropManager not found.")
 		return
 	for item_key: String in mix:
@@ -612,7 +609,7 @@ func _dev_spawn_mix(mix: Dictionary) -> void:
 			var cell := center + jitter
 			# spawn_drop expects the MINED block position; its rest scan walks
 			# down to the floor, so hand it the air block above the surface.
-			manager.call("spawn_drop", item_key, 1, Vector3i(cell.x, center.y + 1, cell.z))
+			manager.spawn_drop(item_key, 1, Vector3i(cell.x, center.y + 1, cell.z))
 
 
 # ── Rendering helpers ─────────────────────────────────────────────────────────
@@ -640,7 +637,7 @@ func _zone_colors() -> Array[Color]:
 	return [COLOR_ZONE, COLOR_ZONE_EDGE]
 
 
-func _on_hearthblock_lighting_changed(_active: bool) -> void:
+func _on_hearthblock_lighting_changed(_lit: bool) -> void:
 	var colors := _zone_colors()
 	for zone_id: int in _zones:
 		if not _zone_overlays.has(zone_id): continue
@@ -699,94 +696,14 @@ func _screen_center_surface_cell() -> Vector3i:
 	return Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
 
 
-## Voxel DDA raycast from the camera through the mouse, returning the cell
-## (the floor cell itself -- NavGrid's convention; see the off-by-one note
-## below).
-##
-## 2026-08-06 bugfix (doc 22b follow-on): this used to march the ray against
-## WorldGenerator.get_visible_surface_y() — the STATIC world-gen heightmap,
-## set once at generation and never updated by mining. Zones were
-## deliberately documented as "surface designations" for that reason, but
-## that meant a stockpile zone could never be drawn inside a mined-out
-## interior room — a hard blocker for the doc 22 door/sealed-room work this
-## zones can never reach the storage rooms doors are built to protect.
-## Ported from FurniturePlacementController._surface_cell_for()'s fix (same
-## day): a real voxel DDA against the live block grid (_block_id — WorldData
-## first, WorldGenerator fallback), gated by _slice_y exactly like
-## MiningDesignationController._raycast_voxel(). Above-ground zone drawing is
-## unaffected — the first solid cell hit for an untouched column is still
-## the natural terrain surface.
-##
-## OFF-BY-ONE FOLLOW-UP FIX (2026-08-06, same day): this first shipped
-## returning `pos.y + 1` ("one above the hit block"), on the wrong
-## assumption that cell.y meant the walkable AIR cell. It doesn't --
-## NavGrid._compute_walkable(cell) requires cell.y ITSELF to be solid, with
-## clearance checked at cell.y+1..+CLEARANCE. WorldGenerator.get_visible_
-## surface_y() (the old raycast's source) returns that same solid-floor
-## convention -- confirmed via get_visible_surface_block_id(), which
-## generates the SURFACE block at exactly that Y. Returning pos.y + 1 meant
-## every returned cell was air, so is_walkable() rejected literally
-## everything and placement broke outright -- reported as "lost the ability
-## to draw storage zones". Fixed to return pos.y (the solid block itself).
+## The first slice-visible solid block under the screen point, on the live block
+## grid (ObjectPicking.terrain_hit): the floor cell itself, NavGrid's convention.
 func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return {}
-	var origin := camera.project_ray_origin(screen_pos)
-	var direction := camera.project_ray_normal(screen_pos).normalized()
-
-	var pos := Vector3i(floori(origin.x), floori(origin.y), floori(origin.z))
-	var step := Vector3i(
-		1 if direction.x > 0.0 else -1,
-		1 if direction.y > 0.0 else -1,
-		1 if direction.z > 0.0 else -1)
-	var t_delta := Vector3(
-		abs(1.0 / direction.x) if not is_zero_approx(direction.x) else INF,
-		abs(1.0 / direction.y) if not is_zero_approx(direction.y) else INF,
-		abs(1.0 / direction.z) if not is_zero_approx(direction.z) else INF)
-	var t_max := Vector3(
-		_axis_t_max(origin.x, direction.x, pos.x),
-		_axis_t_max(origin.y, direction.y, pos.y),
-		_axis_t_max(origin.z, direction.z, pos.z))
-	var travelled := 0.0
-
-	while travelled <= RAY_MAX:
-		if pos.x >= 0 and pos.x < WorldGenerator.WORLD_SIZE_X \
-				and pos.z >= 0 and pos.z < WorldGenerator.WORLD_SIZE_Z:
-			if pos.y >= 0 and pos.y <= _slice_y:
-				var block_id := _block_id(pos.x, pos.y, pos.z)
-				if BlockRegistry.is_solid(block_id):
-					return { "x": pos.x, "y": pos.y, "z": pos.z }
-		elif pos.y < 0:
-			return {}
-
-		if t_max.x <= t_max.y and t_max.x <= t_max.z:
-			pos.x += step.x
-			travelled = t_max.x
-			t_max.x += t_delta.x
-		elif t_max.y <= t_max.z:
-			pos.y += step.y
-			travelled = t_max.y
-			t_max.y += t_delta.y
-		else:
-			pos.z += step.z
-			travelled = t_max.z
-			t_max.z += t_delta.z
-
-	return {}
-
-
-func _axis_t_max(origin_axis: float, direction_axis: float, pos_axis: int) -> float:
-	if is_zero_approx(direction_axis):
-		return INF
-	var boundary := float(pos_axis + 1) if direction_axis > 0.0 else float(pos_axis)
-	return (boundary - origin_axis) / direction_axis
-
-
-func _block_id(wx: int, wy: int, wz: int) -> int:
-	if WorldData.chunk_exists(wx >> 4, wy >> 4, wz >> 4):
-		return WorldData.get_block(wx, wy, wz)
-	return WorldData.get_live_block(wx, wy, wz)
+	return Picking.terrain_hit(camera.project_ray_origin(screen_pos),
+		camera.project_ray_normal(screen_pos).normalized(), _slice_y, RAY_MAX)
 
 
 # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────
@@ -831,9 +748,9 @@ func _on_zone_window_state_changed(id: String, shown: bool) -> void:
 
 
 ## Zone click-select at an arbitrary screen position — usable while the tool
-## is INACTIVE (the mining controller's _try_select_zone_at_screen pattern).
+## is INACTIVE (the mining controller's try_select_zone_at_screen pattern).
 ## Returns true if a zone window was opened (caller consumes the click).
-func _try_select_zone_at_screen(screen_pos: Vector2) -> bool:
+func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
 	var hit := _surface_cell_for(screen_pos)
 	if hit.is_empty():
 		return false

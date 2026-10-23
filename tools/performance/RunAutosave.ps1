@@ -3,7 +3,6 @@ param(
     [string]$Label = 'long_session_5',
     [string]$SavePath = '',
     [double]$Seconds = 24,
-    [switch]$ProfileBaseline,
     [switch]$Small,
     [switch]$NoMarkers,
     [switch]$NoAblations,
@@ -30,7 +29,6 @@ if ($SavePath) {
     Copy-Item -LiteralPath $SavePath -Destination $copiedSave
     $benchmarkArguments += '--saved'
 }
-if ($ProfileBaseline) { $benchmarkArguments += '--profile-baseline' }
 if ($Small) { $benchmarkArguments += '--small' }
 if ($NoMarkers) { $benchmarkArguments += '--no-markers' }
 if ($NoAblations) { $benchmarkArguments += '--no-ablations' }

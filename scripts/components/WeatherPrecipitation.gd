@@ -34,7 +34,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var profile: Dictionary = WeatherManager.current_definition().get("precipitation", {})
-	if profile.is_empty() or SaveManager.is_loading() or not is_instance_valid(_view) or not _view.is_inside_tree() or not WorldGenerator._maps_ready:
+	if profile.is_empty() or SaveManager.is_loading() or not is_instance_valid(_view) or not _view.is_inside_tree() or not WorldGenerator.is_maps_ready():
 		visual.visible = false
 		visible_streaks = 0
 		return
@@ -56,16 +56,16 @@ func _scan(focus: Vector3, profile: Dictionary) -> void:
 	_centre = focus
 	drops.clear()
 	for i in int(profile.streaks):
-		var x := clampf(focus.x + _rng.randf_range(-profile.radius, profile.radius), 0, 1023.99)
-		var z := clampf(focus.z + _rng.randf_range(-profile.radius, profile.radius), 0, 1023.99)
+		var x := clampf(focus.x + _rng.randf_range(-profile.radius, profile.radius), 0, WorldData.WORLD_SIZE_X - .01)
+		var z := clampf(focus.z + _rng.randf_range(-profile.radius, profile.radius), 0, WorldData.WORLD_SIZE_Z - .01)
 		var roof := WorldGenerator.get_surface_y(floori(x), floori(z))
-		if is_instance_valid(_lighting): roof = _lighting._roof_height(Vector2i(floori(x), floori(z)))
+		if is_instance_valid(_lighting): roof = _lighting.roof_height(Vector2i(floori(x), floori(z)))
 		drops.append({"point": Vector3(x, roof + 1.05, z), "phase": _rng.randf(), "strength": _rng.randf_range(.16, .32)})
 
 func _draw_rain(profile: Dictionary) -> void:
 	mesh.clear_surfaces()
 	visible_streaks = 0
-	var slice_y := int(_slice.get_slice_y()) if is_instance_valid(_slice) else 127
+	var slice_y := int(_slice.get_slice_y()) if is_instance_valid(_slice) else SliceController.MAX_SLICE_Y
 	var camera := get_viewport().get_camera_3d()
 	if camera == null: return
 	var right := camera.global_basis.x * float(profile.width)

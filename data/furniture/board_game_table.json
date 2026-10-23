@@ -14,7 +14,6 @@
   "placement_label": "3 × 3 log game area",
   "placement_note": "Place log stools on the opposite guides outside the game area. Solo play restores some happiness; playing together restores more.",
   "show_placement_area": true,
-  "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
@@ -41,7 +40,6 @@
       ]
     }
   ],
-  "room_anchor": false,
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {

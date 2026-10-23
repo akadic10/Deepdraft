@@ -97,6 +97,14 @@ were re-checked against the code on 2026-10-21.
 - **Done when** the first mined block after a load costs about the same as the next
   ones.
 
+### A season change spikes single frames
+
+- **Observed, not pursued** (performance work is paused). A season change rebuilds the
+  whole world's seasonal visuals in one go; single frames reached about 180 ms without
+  surface details and about 194 ms with them. Thinning details would not remove it.
+- **Fix direction**, if season changes become a playtest problem: profile trees,
+  materials and the rebuild together, then spread the rebuild over several frames.
+
 ---
 
 ## Rendering
@@ -135,3 +143,82 @@ Owner decision 2026-10-21: log the proper fix and leave `buffer_size` unchanged
   profile). The report gives users, the cap and a per-system breakdown.
 - **Done when** a slot count over a large save shows only actors and doors reserving
   slots, and dwarves, animals and doorways light exactly as before.
+
+---
+
+## UI
+
+### DEV windows still build their own chrome
+
+- **Fix direction.** Move the block inspector (`scripts/components/BlockInspector.gd`)
+  and World Build (`DebugLoadingOverlay.gd`) onto `UIWindowManager`, then reword the
+  comment above `DockUI._toggle_window` (`scripts/ui/DockUI.gd:667-670`) that says they
+  "stay overlay-toggles until their doc 24 Phase U2 migrations land".
+
+---
+
+## World start
+
+### Bounded start presentation (optional)
+
+- **Idea.** Before play, frame the camera and fog on the settlement anchor with no
+  simulation running. Open question: just frame the existing ~5 s full boot, or
+  generate a bounded area.
+
+### Fog of war around the anchor
+
+- **Idea.** Reveal the area around the settlement anchor and fog the rest.
+  `TerrainTileMesher.SLICE_CUT_DIM` (slice-cut floor dimming) is meant to fold into that
+  fog multiply and be removed.
+
+---
+
+## World / caves
+
+Principle for all of these: ordinary tunnelling must stay a viable way to build a
+colony. A cave is a choice, not what makes a seed work. Rules for the current caves are
+in [43 §Cave discovery](../40_economy_colony/43_mining_materials.md#cave-discovery).
+
+### Multi-seed cave playtest (deferred)
+
+- **Idea.** A visual and playable pass across several seeds: chamber shape, size,
+  spacing, depth and the effort to reach them. Tune from play before adding any of the
+  rewards or risks below.
+
+### Cave content and structure
+
+- **Pools, springs and irrigation.** Needs fluid containment, saturation, drainage and
+  flooding first; never connect live lakes blindly.
+- **Fungi and cave plants.** Needs the farming/harvest loop, regrowth, light and water
+  needs, art and placement.
+- **Ruins and signs of earlier inhabitants.** Needs discovery content, item uses and
+  placement that keeps the space usable.
+- **Inhabitants and hazards.** Needs combat/hazard systems, readable warnings and
+  counterplay, with no unavoidable early punishment.
+- **Multiple levels and shafts.** Needs stairs or ramps, worker reachability,
+  floor/ceiling integrity and a usable slice view.
+- **Cave specialisations.** Measure ore left after carving, exposed veins and access
+  cost before giving regions distinct reasons to explore.
+- **Progressive discovery.** Line-of-sight or dwarf exploration, partial reveal
+  rendering and saving, beyond the first wall breach.
+- **Logistics.** Playtest whether adapting a cave (travel, hauling, light, doors,
+  sealing, temperature) beats digging custom rooms.
+
+---
+
+## Surface details
+
+- **Reed/fiber crafting.** Reeds can only be cleared today and yield nothing.
+- **Reed regrowth and shallow-water reeds.** Reeds grow only on dry banks near the
+  waterline; nothing regrows or roots underwater.
+- **Alpine/snow species and cave flora.** No species is designed for high summits or
+  caves yet.
+
+---
+
+## Forestry
+
+- **Tree growth and regrowth.** Trees keep their generated growth stage; saplings never
+  grow and felled trees never come back.
+- **Forestry Zone and Clear Stumps.** Planned dock actions; neither is in
+  `data/ui/dock.json`, and there are no persistent stump objects.

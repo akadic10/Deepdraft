@@ -41,35 +41,39 @@ func _run() -> void:
 		_expect(worker.current_task_id==lease and effects[0]==0,"old completion leaves current attempt intact")
 		_expect(tasks.lifecycle_errors().is_empty(),"shared worker/lease contract holds after recovery")
 	_expect(await _installed(CAMP),"recovered real placement completes")
-	worker._fetch_complete()
+	worker._work_execution._fetch_complete()
 	_expect(furniture._installed.size()==1 and _count(CAMP_ITEM)==0,"duplicate completion cannot install or consume twice")
 	# Repeated faults become actionable instead of endlessly recycling a worker.
-	var id: int = tasks.add_task(Task.Type.PATROL,worker.current_cell())
-	var synthetic = tasks.get_task(id)
-	for attempt in range(3):
-		tasks._assign(synthetic,worker)
-		# Generic fixture source is deliberately frozen in execution.
-		worker._task_phase = worker.TaskPhase.EXECUTING
-		worker._exec_timer = 1.0
-		tasks.advance_supervision(.5)
-		for tick in range(28): tasks.advance_supervision(.5)
-	_expect(synthetic.recovery_paused,"three stalled attempts require attention")
-	_expect(synthetic.wait_reason.begins_with("Needs attention"),"repeated failure is explained")
-	tasks.retry_order(synthetic.order_key)
-	_expect(not synthetic.recovery_paused,"explicit retry revalidates rather than completing")
-	tasks.cancel_task(id)
-	# An event re-entering the same commit performs the effect once.
-	id = tasks.add_task(Task.Type.PATROL,worker.current_cell())
-	var fenced = tasks.get_task(id)
-	tasks._assign(fenced,worker)
-	var calls := [0]
-	var op := func():
-		calls[0]+=1
-		tasks.commit_step(worker.dwarf_id,id,fenced.attempt.generation,"unit",func(): calls[0]+=10)
-		return true
-	_expect(tasks.commit_step(worker.dwarf_id,id,fenced.attempt.generation,"unit",op),"first commit succeeds")
-	_expect(not tasks.commit_step(worker.dwarf_id,id,fenced.attempt.generation,"unit",op) and calls[0]==1,"duplicate and reentrant effects are fenced")
-	tasks.cancel_task(id)
+	# Real work: a one-block mining lease beside the worker. Supervision runs
+	# without frames, so the assigned executor makes no progress.
+	var id: int = _post_mine_lease(worker.current_cell()+Vector3i(1,0,0))
+	var stalled = tasks.get_task(id)
+	_expect(stalled != null,"fixture posts a real mining lease")
+	if stalled != null:
+		for attempt in range(3):
+			tasks._scheduler.assign(stalled,worker)
+			tasks.advance_supervision(.5)
+			for tick in range(28): tasks.advance_supervision(.5)
+		_expect(stalled.recovery_paused,"three stalled attempts require attention")
+		_expect(stalled.wait_reason.begins_with("Needs attention"),"repeated failure is explained")
+		tasks.retry_order(stalled.order_key)
+		_expect(not stalled.recovery_paused,"explicit retry revalidates rather than completing")
+		# An event re-entering the same commit performs the effect once.
+		tasks._scheduler.assign(stalled,worker)
+		var calls := [0]
+		var op := func():
+			calls[0]+=1
+			tasks.commit_step(worker.dwarf_id,id,stalled.attempt.generation,"unit",func(): calls[0]+=10)
+			return true
+		_expect(tasks.commit_step(worker.dwarf_id,id,stalled.attempt.generation,"unit",op),"first commit succeeds")
+		_expect(not tasks.commit_step(worker.dwarf_id,id,stalled.attempt.generation,"unit",op) and calls[0]==1,"duplicate and reentrant effects are fenced")
+	_clear_mine_leases()
+	# A task with no work source has no executor: assignment fails it cleanly
+	# instead of hanging the worker or recycling it through PENDING.
+	id = tasks.add_task(Task.Type.MINE,worker.current_cell())
+	tasks._scheduler.assign(tasks.get_task(id),worker)
+	_expect(tasks.get_task(id)==null and worker.current_task_id<0 and worker._task_phase==worker.TaskPhase.NONE,"source-less task is refused, not worked")
+	_expect(worker.dwarf_id in tasks._idle_dwarves and tasks.lifecycle_errors().is_empty(),"refused task leaves the worker idle and consistent")
 	# Saved diagnostics are compact; source checkpoints continue to own work.
 	var craft_id: int = crafting.queue_order(BENCH_RECIPE,1)
 	var saved_craft: Dictionary = crafting.serialize_state()

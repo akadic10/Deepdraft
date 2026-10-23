@@ -65,8 +65,8 @@ func _refresh_index() -> void:
 	_cached_pieces.clear()
 	_cached_vertices.clear()
 	_gate_segments.clear()
-	for pieces: Dictionary in [controller._installed,controller._ghosts]:
-		for piece in pieces.values():
+	for pieces: Array in [controller.get_installed_pieces(),controller.get_ghost_pieces()]:
+		for piece in pieces:
 			if not applies(piece.def): continue
 			_cached_pieces.append(piece)
 			if is_post(piece.def): continue
@@ -83,9 +83,9 @@ func _collect_vertices() -> Dictionary:
 	var result := {}
 	# A separately built post owns the shared visual before a gate end post.
 	for solid in [true,false]:
-		var pieces: Dictionary = controller._installed if solid else controller._ghosts
+		var pieces: Array = controller.get_installed_pieces() if solid else controller.get_ghost_pieces()
 		for posts in [true,false]:
-			for piece in pieces.values():
+			for piece in pieces:
 				if not applies(piece.def) or is_post(piece.def) != posts: continue
 				var points := ends(piece.def,piece.origin_cell,piece.yaw_steps)
 				for i in points.size():
@@ -127,23 +127,23 @@ func reserves(bounds: AABB) -> bool:
 func support_valid(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 	for cell in support_cells(def,origin,yaw):
 		if cell.x<2 or cell.z<2 or cell.x>=WorldData.WORLD_SIZE_X-2 or cell.z>=WorldData.WORLD_SIZE_Z-2 or cell.y<=3: return false
-		if not BlockRegistry.is_solid(controller._block_id(cell.x,cell.y,cell.z)): return false
+		if not BlockRegistry.is_solid(controller.terrain_block_id(cell.x,cell.y,cell.z)): return false
 	return true
 
 func _space_reason(bounds: AABB, skip = null) -> String:
 	var handles: Array[int] = []
-	for piece in controller._installed.values(): handles.append_array(piece.occupancy_ids)
+	for piece in controller.get_installed_pieces(): handles.append_array(piece.occupancy_ids)
 	for cell in controller._bounds_cells(bounds.grow(-.001)):
-		if cell.y>=WorldData.WORLD_SIZE_Y or controller._block_id(cell.x,cell.y,cell.z)!=BlockRegistry.AIR_ID or PlacedEntityRegistry.occupies(cell,handles): return "fence_clearance"
-	for pieces: Dictionary in [controller._installed,controller._ghosts]:
-		for piece in pieces.values():
+		if cell.y>=WorldData.WORLD_SIZE_Y or controller.terrain_block_id(cell.x,cell.y,cell.z)!=BlockRegistry.AIR_ID or PlacedEntityRegistry.occupies(cell,handles): return "fence_clearance"
+	for pieces: Array in [controller.get_installed_pieces(),controller.get_ghost_pieces()]:
+		for piece in pieces:
 			if piece==skip or applies(piece.def): continue
-			if bounds.intersects(controller._visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps)): return "fence_clearance"
-			if controller._seating.is_chair(piece.def):
-				for space in controller._seating.clearance_regions(piece.def,piece.origin_cell,piece.yaw_steps):
-					if controller._seating.regions_intersect(space,{"bounds":bounds}): return "seat_clearance"
-	if is_instance_valid(controller._ladders) and controller._ladders.reserves(bounds): return "fence_clearance"
-	if is_instance_valid(controller._bridges) and controller._bridges.reserves(bounds): return "fence_clearance"
+			if bounds.intersects(controller.visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps)): return "fence_clearance"
+			if controller.get_seating().is_chair(piece.def):
+				for space in controller.get_seating().clearance_regions(piece.def,piece.origin_cell,piece.yaw_steps):
+					if controller.get_seating().regions_intersect(space,{"bounds":bounds}): return "seat_clearance"
+	if is_instance_valid(controller.get_ladders()) and controller.get_ladders().reserves(bounds): return "fence_clearance"
+	if is_instance_valid(controller.get_bridges()) and controller.get_bridges().reserves(bounds): return "fence_clearance"
 	return ""
 
 func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) -> String:
@@ -168,13 +168,13 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 	return "" if not work_stands(def,origin,yaw).is_empty() else "fence_access"
 
 func _rail_visual(a: Vector3i, b: Vector3i, owner, solid: bool) -> Node3D:
-	var node: Node3D = load(String(controller._defs["base:furniture:log_fence"].grid_fence.rail_model)).instantiate()
-	var material = controller._make_solid_material() if solid else controller._make_ghost_material()
-	controller._apply_material(node,material)
+	var node: Node3D = load(String(controller.get_defs()["base:furniture:log_fence"].grid_fence.rail_model)).instantiate()
+	var material = controller.make_solid_material() if solid else controller.make_ghost_material()
+	controller.apply_material(node,material)
 	preload("VoxelShadowSetup.gd").set_casting(node,solid)
 	owner.node.add_child(node)
 	node.global_position = (Vector3(a)+Vector3(b))*.5+Vector3.UP
-	node.global_rotation = Vector3(0,0 if a.z==b.z else PI*.5,0)
+	node.global_rotation = Vector3(0,0.0 if a.z==b.z else PI*.5,0)
 	CraftMaterials.apply_palette(node,owner.def,owner.material_id if solid else owner.required_material_id)
 	if solid: preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(node)
 	return node
@@ -239,10 +239,10 @@ func preview(def: Dictionary, origin: Vector3i, yaw: int, node: Node3D, material
 	for point in ends(def,origin,yaw):
 		for offset in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
 			if not vertices.has(point+offset) or _gate_covers(point,point+offset): continue
-			var rail: Node3D = load(String(controller._defs["base:furniture:log_fence"].grid_fence.rail_model)).instantiate()
-			controller._apply_material(rail,material)
+			var rail: Node3D = load(String(controller.get_defs()["base:furniture:log_fence"].grid_fence.rail_model)).instantiate()
+			controller.apply_material(rail,material)
 			preload("VoxelShadowSetup.gd").set_casting(rail,false)
 			node.add_child(rail)
 			rail.set_meta("fence_preview",true)
 			rail.global_position = Vector3(point)+Vector3(offset)*.5+Vector3.UP
-			rail.global_rotation = Vector3(0,0 if offset.x else PI*.5,0)
+			rail.global_rotation = Vector3(0,0.0 if offset.x else PI*.5,0)

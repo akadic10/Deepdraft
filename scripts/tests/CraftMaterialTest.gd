@@ -47,23 +47,6 @@ func _run() -> void:
 	var stored_ids: Array = []
 	for stack: Dictionary in zone.cell_stacks.values(): stored_ids.append(stack.get("material_id", ""))
 	_expect(stored_ids.size() == 4 and ids.all(func(id): return id in stored_ids), "ground storage preserves every wood")
-	# Withdraw into a closed container; no display node is available to hide metadata loss.
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(47,20,44)]
-	container.setup_container({"storage":{"capacity":8}}, cells)
-	stockpiles.register_container(container)
-	for id: String in ids:
-		var item: Node3D = stockpiles.withdraw_item(STOOL_ITEM, cells[0], 889, "", id)
-		_expect(item != null and materials.of_item(item) == id, "filtered withdrawal " + id)
-		if item == null: continue
-		var token: Dictionary = container._reserve_deposit(STOOL_ITEM, cells[0], 889, 1, id)
-		drops.take(item)
-		container._commit_one(token, STOOL_ITEM)
-		container._place_visual(item, token)
-		container.changed_callback.call(STOOL_ITEM, 1)
-	var saved_stacks: Array = JSON.parse_string(JSON.stringify(container.stored_entries().values()))
-	container.restore_inventory({STOOL_ITEM:4}, drops, saved_stacks)
-	_expect(container.stored_entries().values().all(func(stack): return stack.material_id in ids), "container save keeps wood without visuals")
 	# Place Oak with all four available. Claim and install must honor the dropdown.
 	furniture.material_choices[STOOL] = "base:material:oak"
 	furniture.activate_for(STOOL, true)
@@ -76,7 +59,7 @@ func _run() -> void:
 	_expect(await _phase(worker.TaskPhase.FETCH_DEPOSIT), "selected oak reaches installation site")
 	var carried: Array = worker.serialize_state().carried_items
 	_expect(carried.size() == 1 and carried[0].material_id == "base:material:oak", "save during delivery preserves material")
-	_expect(await _installed(STOOL), "worker installs selected oak from container")
+	_expect(await _installed(STOOL), "worker installs selected oak from ground storage")
 	var piece = furniture._installed.values().filter(func(value): return value.furniture_key == STOOL)[0]
 	_expect(piece.material_id == "base:material:oak" and piece.display_name() == "Oak log stool", "installed item retains material and name")
 	_expect(float(materials.appeal(piece.def, piece.material_id).total) == 2, "stool appeal is design plus oak bonus")
@@ -109,7 +92,7 @@ func _run() -> void:
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://tmp/material_furniture_20261011/place_%d.png" % viewport.x)
 	for failure in failures: push_error(failure)
-	if failures.is_empty(): print("CRAFT_MATERIAL_OK: four real crafts, hauling, containers, filtered installation, refund, persistence, maintain, palettes, appeal")
+	if failures.is_empty(): print("CRAFT_MATERIAL_OK: four real crafts, hauling, ground storage, filtered installation, refund, persistence, maintain, palettes, appeal")
 	quit(0 if failures.is_empty() else 1)
 
 func _test_palettes() -> void:

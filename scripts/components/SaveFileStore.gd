@@ -4,7 +4,6 @@ extends RefCounted
 ## mutable field until its task has completed and the main thread joins it.
 const Validator = preload("res://scripts/components/SaveSnapshotValidator.gd")
 const Preparation = preload("res://scripts/components/SaveSnapshotPreparation.gd")
-const Retirement = preload("res://scripts/components/RetiredFurnitureMigration.gd")
 var directory := ""
 var paths: Dictionary = {}
 var catalogs: Dictionary = {}
@@ -34,30 +33,28 @@ func _record(stage: String, started: int) -> void:
 
 func _encode(state: Dictionary) -> String:
 	var started:=Time.get_ticks_usec()
-	var result:=JSON.stringify(Retirement.cleaned_copy(state,catalogs.get("retired_furniture",{}),catalogs.get("retired_items",{})),"\t")
+	var result:=JSON.stringify(state,"\t")
 	_record("encode_json",started)
 	return result
 
 func _validate_snapshot(state: Dictionary) -> String:
 	var error:=Validator.validate_captured(state,schema_version,catalogs)
 	if not error.is_empty(): return error
-	for section: String in ["terrain","test_dam"]:
-		for entry: Dictionary in state.scene.water.get(section,[]):
-			if not catalogs.blocks.has(entry.block): return "save.scene.water contains an unknown terrain block."
-			if section=="terrain" and not catalogs.blocks[entry.block].solid: return "save.scene.water contains a non-solid terrain edit."
+	for entry: Dictionary in state.scene.water.test_dam:
+		if not catalogs.blocks.has(entry.block): return "save.scene.water contains an unknown terrain block."
 	return ""
 
-func _commit_snapshot(snapshot: Dictionary, paths: Dictionary) -> String:
-	# Reject corrupt input before migration; migration must never conceal it.
-	var validation_error := _validate_snapshot(snapshot)
+func _commit_snapshot(state: Dictionary, files: Dictionary) -> String:
+	# Reject corrupt input before anything is written.
+	var validation_error := _validate_snapshot(state)
 	if not validation_error.is_empty(): return "save validation failed: " + validation_error
 	var dir_error := DirAccess.make_dir_recursive_absolute(
 		directory)
 	if dir_error != OK and dir_error != ERR_ALREADY_EXISTS:
 		return "could not create the saves folder (%s)." % error_string(dir_error)
 
-	var temp_path := String(paths.get("temp", ""))
-	var backup_stage_path := String(paths.get("backup_stage", ""))
+	var temp_path := String(files.get("temp", ""))
+	var backup_stage_path := String(files.get("backup_stage", ""))
 	var cleanup_error := _remove_if_exists(temp_path)
 	if not cleanup_error.is_empty():
 		return cleanup_error
@@ -65,31 +62,31 @@ func _commit_snapshot(snapshot: Dictionary, paths: Dictionary) -> String:
 	if not cleanup_error.is_empty():
 		return cleanup_error
 
-	var write_error := _write_text_file(temp_path, _encode(snapshot))
+	var write_error := _write_text_file(temp_path, _encode(state))
 	if not write_error.is_empty():
 		return write_error
-	var temp_result := _read_snapshot(temp_path)
+	var temp_result := read_snapshot(temp_path)
 	if not bool(temp_result.get("ok", false)):
 		_remove_if_exists(temp_path)
 		return "temporary save validation failed: %s" % String(temp_result.get("error", "invalid file"))
 
-	var rotation_error := _rotate_primary_to_backup_if_valid(paths)
+	var rotation_error := _rotate_primary_to_backup_if_valid(files)
 	if not rotation_error.is_empty():
 		_remove_if_exists(temp_path)
 		return rotation_error
 
-	var replace_error := _replace_primary_with_temp(paths)
+	var replace_error := _replace_primary_with_temp(files)
 	if not replace_error.is_empty():
 		_remove_if_exists(temp_path)
 		return replace_error
 	return ""
 
 
-func _rotate_primary_to_backup_if_valid(paths: Dictionary) -> String:
-	var primary_path := String(paths.get("primary", ""))
-	var backup_path := String(paths.get("backup", ""))
-	var backup_stage_path := String(paths.get("backup_stage", ""))
-	var primary_result := _read_snapshot(primary_path)
+func _rotate_primary_to_backup_if_valid(files: Dictionary) -> String:
+	var primary_path := String(files.get("primary", ""))
+	var backup_path := String(files.get("backup", ""))
+	var backup_stage_path := String(files.get("backup_stage", ""))
+	var primary_result := read_snapshot(primary_path)
 	if not bool(primary_result.get("ok", false)):
 		if not bool(primary_result.get("missing", false)):
 			warnings.append("SaveManager: existing primary is invalid and will not replace the backup (%s)." \
@@ -101,7 +98,7 @@ func _rotate_primary_to_backup_if_valid(paths: Dictionary) -> String:
 		backup_stage_path)
 	if copy_error != OK:
 		return "could not stage the previous save as a backup (%s)." % error_string(copy_error)
-	var staged_result := _read_snapshot(backup_stage_path)
+	var staged_result := read_snapshot(backup_stage_path)
 	if not bool(staged_result.get("ok", false)):
 		_remove_if_exists(backup_stage_path)
 		return "staged backup validation failed: %s" % String(staged_result.get("error", "invalid file"))
@@ -119,9 +116,9 @@ func _rotate_primary_to_backup_if_valid(paths: Dictionary) -> String:
 	return ""
 
 
-func _replace_primary_with_temp(paths: Dictionary) -> String:
-	var primary_path := String(paths.get("primary", ""))
-	var temp_path := String(paths.get("temp", ""))
+func _replace_primary_with_temp(files: Dictionary) -> String:
+	var primary_path := String(files.get("primary", ""))
+	var temp_path := String(files.get("temp", ""))
 	var remove_error := _remove_if_exists(primary_path)
 	if not remove_error.is_empty():
 		return remove_error
@@ -129,17 +126,17 @@ func _replace_primary_with_temp(paths: Dictionary) -> String:
 		temp_path,
 		primary_path)
 	if rename_error != OK:
-		var recovery_error := _restore_primary_from_backup(paths)
+		var recovery_error := restore_primary_from_backup(files)
 		if recovery_error.is_empty():
 			return "could not install the new save; the previous backup was restored (%s)." \
 				% error_string(rename_error)
 		return "could not install the new save (%s); recovery also failed: %s" \
 			% [error_string(rename_error), recovery_error]
 
-	var installed_result := _read_snapshot(primary_path)
+	var installed_result := read_snapshot(primary_path)
 	if not bool(installed_result.get("ok", false)):
 		var validation_error := String(installed_result.get("error", "invalid file"))
-		var recovery_error := _restore_primary_from_backup(paths)
+		var recovery_error := restore_primary_from_backup(files)
 		if recovery_error.is_empty():
 			return "installed save failed validation; the previous backup was restored (%s)." \
 				% validation_error
@@ -148,10 +145,10 @@ func _replace_primary_with_temp(paths: Dictionary) -> String:
 	return ""
 
 
-func _restore_primary_from_backup(paths: Dictionary) -> String:
-	var primary_path := String(paths.get("primary", ""))
-	var backup_path := String(paths.get("backup", ""))
-	var backup_result := _read_snapshot(backup_path)
+func restore_primary_from_backup(files: Dictionary) -> String:
+	var primary_path := String(files.get("primary", ""))
+	var backup_path := String(files.get("backup", ""))
+	var backup_result := read_snapshot(backup_path)
 	if not bool(backup_result.get("ok", false)):
 		return "no valid backup is available (%s)." % String(backup_result.get("error", "missing"))
 	var remove_error := _remove_if_exists(primary_path)
@@ -162,7 +159,7 @@ func _restore_primary_from_backup(paths: Dictionary) -> String:
 		primary_path)
 	if copy_error != OK:
 		return "could not copy the backup into the primary slot (%s)." % error_string(copy_error)
-	var restored_result := _read_snapshot(primary_path)
+	var restored_result := read_snapshot(primary_path)
 	if not bool(restored_result.get("ok", false)):
 		return "recovered primary failed validation: %s" \
 			% String(restored_result.get("error", "invalid file"))
@@ -182,7 +179,7 @@ func _write_text_file(path: String, contents: String) -> String:
 	return ""
 
 
-func _read_snapshot(path: String) -> Dictionary:
+func read_snapshot(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return { "ok": false, "missing": true, "error": "is missing" }
 	var file := FileAccess.open(path, FileAccess.READ)
@@ -198,18 +195,13 @@ func _read_snapshot(path: String) -> Dictionary:
 	_record("parse_json",started)
 	if parse_error != OK or not (json.data is Dictionary):
 		return { "ok": false, "missing": false, "error": "contains invalid JSON" }
-	var snapshot: Dictionary = json.data
+	var loaded: Dictionary = json.data
 	started=Time.get_ticks_usec()
-	var validation_error := _validate_snapshot(snapshot)
+	var validation_error := _validate_snapshot(loaded)
 	_record("validate",started)
 	if not validation_error.is_empty():
 		return { "ok": false, "missing": false, "error": validation_error }
-	var retirement_report := Retirement.apply(snapshot,catalogs.get("retired_furniture",{}),catalogs.get("retired_items",{}))
-	if retirement_report.values().any(func(count): return count != 0):
-		validation_error = _validate_snapshot(snapshot)
-		if not validation_error.is_empty():
-			return { "ok": false, "missing": false, "error": "retirement migration: " + validation_error }
-	return { "ok": true, "missing": false, "error": "", "snapshot": snapshot, "retirement": retirement_report }
+	return { "ok": true, "missing": false, "error": "", "snapshot": loaded }
 
 
 func _remove_if_exists(path: String) -> String:

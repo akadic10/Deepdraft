@@ -19,12 +19,6 @@ class_name Chunk
 var blocks:   PackedByteArray
 var is_dirty: bool = false
 
-## True if this chunk contains at least one void (air) block. A freshly
-## created chunk is all void, so this starts true. WorldGenerator sets it to
-## false for fully-solid chunks; WorldRenderer uses it (plus neighbours) to
-## skip meshing fully-buried interior chunks that can produce no visible faces.
-var has_void: bool = true
-
 
 func _init() -> void:
 	blocks.resize(4096)

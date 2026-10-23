@@ -6,10 +6,7 @@
   ],
   "id": "base:weather:foggy",
   "display_name": "Foggy",
-  "vision_multiplier": 0.4,
   "is_dark_during_daytime": true,
-  "hide_cloud_shadows": true,
-  "snow_accumulation_per_minute": -0.0007,
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 0.94,
@@ -17,8 +14,5 @@
       "fog_begin": 20,
       "fog_end": 180
     }
-  },
-  "thoughts": [
-    "base:thought:weather_foggy"
-  ]
+  }
 }

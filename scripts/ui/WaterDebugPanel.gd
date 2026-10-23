@@ -13,6 +13,11 @@ func _ready() -> void:
 	_build.call_deferred()
 
 func _build() -> void:
+	# The flood warning is player feedback, so it stays connected with DEV tools off.
+	WaterManager.flood_warning.connect(func(): get_node(dock_path).show_persistence_status("Rising water is spilling onto dry ground."))
+	if not UIRegistry.dev_tools_enabled:
+		set_process(false)
+		return
 	var body := VBoxContainer.new()
 	UITheme.apply_surface(body)
 	body.add_theme_constant_override("separation",10)
@@ -34,7 +39,6 @@ func _build() -> void:
 	body.add_child(hint)
 	get_node(window_manager_path).register_window("water_dev","DEV · Water","",body,
 		{"persistent":false,"default_pos":Vector2(18,90),"min_size":Vector2(420,0)})
-	WaterManager.flood_warning.connect(func(): get_node(dock_path).show_persistence_status("Rising water is spilling onto dry ground."))
 
 func _button(parent: Node,label: String,action: Callable) -> Button:
 	var button := Button.new()

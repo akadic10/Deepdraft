@@ -24,7 +24,7 @@ func _run() -> void:
 	# These points enter the actual terrain DDA and mouse-click dispatch.
 	for point: Vector3 in [Vector3(43.5,21.001,48.5),Vector3(44.001,19.2,48.5),Vector3(46.5,19.95,48.5),Vector3(49.5,21.001,48.5)]:
 		var screen := camera.unproject_position(point)
-		var hit: Dictionary = furniture._surface_cell_for(screen)
+		var hit: Dictionary = furniture.surface_cell_for(screen)
 		_expect(not hit.is_empty(),"test aim hits real terrain: "+str(point))
 		if hit.is_empty(): continue
 		var raw := Vector3i(hit.x,hit.y,hit.z)
@@ -52,7 +52,7 @@ func _run() -> void:
 	camera.look_at(Vector3(46.5,18,48.5),Vector3.FORWARD)
 	await _frames(2)
 	var wet_screen := camera.unproject_position(Vector3(46.5,19.95,48.5))
-	var bed_hit: Dictionary = furniture._surface_cell_for(wet_screen)
+	var bed_hit: Dictionary = furniture.surface_cell_for(wet_screen)
 	_expect(bed_hit.get("y",-1)==17,"vertical water picking hits the submerged riverbed")
 	furniture.activate_for(BRIDGE,true)
 	furniture._update_hover(true,wet_screen)
@@ -70,7 +70,7 @@ func _run() -> void:
 	var obstruction: int = root.get_node("PlacedEntityRegistry").register_box(Vector3i(43,22,47),Vector3i(1,1,3))
 	await _frames(2)
 	furniture._update_hover(false,bank_screen)
-	_expect(not furniture._hover_valid and furniture._hint_label.text.contains("Clear"),"stationary preview rejects a newly blocked landing with a useful reason")
+	_expect(not furniture._hover_valid and furniture._visuals.hint_label.text.contains("Clear"),"stationary preview rejects a newly blocked landing with a useful reason")
 	root.get_node("PlacedEntityRegistry").unregister(obstruction)
 	await _frames(2)
 	furniture._update_hover(false,bank_screen)

@@ -12,7 +12,7 @@ import hearthblock_goods as goods
 # Crate goods the game cannot produce yet (their plants are not in the world).
 NOT_IN_GAME = {'grape_cutting','hops_cutting','pig_tail_seed'}
 
-PROFILE = read_json('data/art/voxel_items.json')
+PROFILE = read_json('tools/art_data/voxel_items.json')
 P = {k:linear(v) for k,v in PROFILE['palette'].items()}
 P.update({'tool:'+k:linear(v) for k,v in read_json('data/materials/craft_materials.json')['source_palettes']['starter_tool']['colors'].items()})
 

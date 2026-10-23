@@ -85,7 +85,7 @@ func _check_surface() -> Dictionary:
 			var bucket: Dictionary = by_domain[DOMAINS[_generator.domain_map[x * 1024 + z]]]
 			bucket[category] += 1
 			bucket["total"] += 1
-	var measured: Dictionary = _generator._compute_surface_metrics()
+	var measured: Dictionary = preload("res://scripts/components/WorldGenerationMetrics.gd").compute_surface_metrics(_generator)
 	if not _baseline:
 		_compare_bucket(actual, measured, "world")
 		for domain in DOMAINS: _compare_bucket(by_domain[domain], measured["by_domain"][domain], domain)
@@ -134,7 +134,7 @@ func _check_resources() -> Dictionary:
 			var cell: Vector3i = examples[metal]
 			var expected: int = _blocks.get_id(StringName("base:terrain:ore:" + metal))
 			_expect(_generator.get_generated_block_id(cell.x, cell.y, cell.z) == expected, "Seeded ore changed on noise rebuild.")
-			_generator._fill_chunk_column(cell.x / 16, cell.z / 16)
+			_generator.block_fill.fill_chunk_column(cell.x / 16, cell.z / 16)
 			_expect(_world.get_block(cell.x, cell.y, cell.z) == expected, "Streamed ore differs from generated block.")
 			_expect(_generator.get_overview_strata_block_id(cell.x, cell.y, cell.z) != expected, "Slice overview exposed an ore vein.")
 	return {"counts": counts, "by_y": by_y, "overlap": overlap, "sampled_blocks": sampled.size(),
@@ -142,9 +142,9 @@ func _check_resources() -> Dictionary:
 
 
 func _check_metal_windows() -> void:
-	var windows: Array[Dictionary] = _generator._metal_windows
+	var windows: Array[Dictionary] = _generator.block_fill.metal_windows
 	var offsets := {}
-	_expect(windows.size() == _generator._metal_noise.size(), "Missing independent metal field.")
+	_expect(windows.size() == _generator.block_fill.metal_noise.size(), "Missing independent metal field.")
 	for window: Dictionary in windows:
 		var settings: Dictionary = window["noise_field"]
 		_expect(not offsets.has(settings["seed_offset"]), "Metal fields share a seed offset.")

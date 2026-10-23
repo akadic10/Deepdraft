@@ -33,7 +33,7 @@ func tool_key() -> String:
 
 func items() -> ItemDropManager:
 	if not is_instance_valid(_items) and agent.is_inside_tree():
-		_items = agent.get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+		_items = ItemDropManager.find(agent.get_tree())
 	return _items
 
 func blocked_reason(role: String) -> String:

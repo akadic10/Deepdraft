@@ -10,9 +10,7 @@ extends RefCounted
 ## freed, the packed item-form drop spawned — everything re-enters ordinary
 ## hauling).
 ##
-## Phase 4 attaches the ContainerStorageComponent to pieces whose def
-## carries a `storage` block; this component stays the placement/lifecycle
-## half. Owned by FurniturePlacementController.
+## Owned by FurniturePlacementController.
 
 var installed_id: int = -1
 var furniture_key: String = ""
@@ -29,7 +27,6 @@ var source_id: int = -1
 var flagged_uninstall: bool = false
 var uninstall_callback: Callable = Callable()   # (component, worker_id) -> owner teardown
 
-var storage: ContainerStorageComponent = null   # doc 19 Phase 4 — set for storage pieces
 var material_id := ""
 var idle_seat_owner := -1 # Transient exclusive rest use; never serialized.
 var idle_seat_yaw_steps := -1 # A round stool's occupant can face independently.
@@ -59,14 +56,6 @@ func set_uninstall(flag: bool) -> void:
 	if flag == flagged_uninstall:
 		return
 	flagged_uninstall = flag
-	# A flagged container stops accepting deposits and cancels live haul
-	# leases (doc 19 §3.4); un-flagging resumes.
-	if storage != null:
-		storage.suspended = flag
-		if flag and storage.source_id >= 0:
-			TaskManager.cancel_source_tasks(storage.source_id)
-		StockpileManager.storage_rules_changed()
-		storage.changed.emit()
 	if flag:
 		if _lease_id < 0 and source_id >= 0:
 			_lease_id = int(TaskManager.add_task(
@@ -85,6 +74,19 @@ func on_task_gone(task_id: int, _dwarf_id: int) -> void:
 		if flagged_uninstall and source_id >= 0:
 			_lease_id = int(TaskManager.add_task(
 				Task.Type.UNINSTALL, origin_cell, { "installed_id": installed_id }, source_id))
+
+
+# WorkSourceTable routing contract. Releases keep the pending lease as it is.
+func work_task_gone(task: Task, dwarf_id: int) -> void:
+	on_task_gone(task.id, dwarf_id)
+
+
+func work_task_released(_task: Task, _dwarf_id: int) -> void:
+	pass
+
+
+func work_source_retired() -> void:
+	pass
 
 
 ## Scheduler probe target / dwarf walk target: the nearest walkable cell

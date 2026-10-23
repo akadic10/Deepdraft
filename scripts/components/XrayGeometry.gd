@@ -50,7 +50,7 @@ func append_water(cell: Vector3i, level: int, data: Array) -> void:
 		Vector3(cell.x+1,top,cell.z+1),Vector3(cell.x,top,cell.z+1),color)
 
 func _solid(cell: Vector3i) -> bool:
-	return cell.x>=0 and cell.x<1024 and cell.z>=0 and cell.z<1024 and cell.y>=0 and cell.y<128 \
+	return cell.x>=0 and cell.x<WorldData.WORLD_SIZE_X and cell.z>=0 and cell.z<WorldData.WORLD_SIZE_Z and cell.y>=0 and cell.y<WorldData.WORLD_SIZE_Y \
 		and BlockRegistry.is_solid(WorldData.get_terrain_block(cell.x,cell.y,cell.z))
 
 func _face(cell: Vector3i, direction: Vector3i, renderer: Node, data: Array) -> void:
@@ -61,7 +61,7 @@ func _face(cell: Vector3i, direction: Vector3i, renderer: Node, data: Array) -> 
 		var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
 		floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,false,data[0],data[1],data[2],data[3])
 	else:
-		renderer._add_shell_face(cell,-direction,BlockRegistry.get_terrain_color(id,WorldClock.season),data[0],data[1],data[2],data[3])
+		renderer.add_shell_face(cell,-direction,BlockRegistry.get_terrain_color(id,WorldClock.season),data[0],data[1],data[2],data[3])
 
 func mesh(data: Array) -> ArrayMesh:
 	if data[0].is_empty(): return null

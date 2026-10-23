@@ -88,7 +88,7 @@ func _save_and_recover(piece) -> void:
 	var furniture_state: Dictionary=JSON.parse_string(JSON.stringify(furniture.serialize_state()))
 	var flag_state: Dictionary=JSON.parse_string(JSON.stringify(flag_controller.serialize_state()))
 	var cargo: Dictionary=worker.serialize_state().carried_items[0]
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	furniture.cancel_ghost(plan.ghost_id)
 	for node in drops._loose.keys(): drops.take(node); node.queue_free()
 	furniture.free()

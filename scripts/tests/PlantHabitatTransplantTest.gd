@@ -37,7 +37,7 @@ func _run() -> void:
 	_expect(helper.current_task_id < 0, "other dwarf remains available")
 	_expect(worker.serialize_state().carried_items[0].instance_id == FLOWER, "flower cargo saves stable identity")
 	_expect(not details.flower_blooming(FLOWER) and details.flowering_clumps(Vector3(50,21,50),10).is_empty(), "packed flower has no forage")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	var cargo = drops._loose.keys().filter(func(n): return n.get_meta("instance_id", "") == FLOWER)[0]
 	_season("winter")
 	_expect(String(cargo.get_meta("visual_path")).ends_with("flowers_3_packed_winter.glb"), "interrupted flower keeps variant with dormant packed art")
@@ -108,26 +108,22 @@ func _test_spacing() -> void:
 func _storage_roundtrip() -> void:
 	details.designate_uproot(FLOWER)
 	_expect(await _advance_until(func(): return details._changes[FLOWER].packed), "standalone flower Uproot packs clump")
-	var item: Node3D = drops.nearest_loose_of_key(FLOWER_ITEM,Vector3i(44,20,47))
-	var fixture = preload("res://scripts/tests/TestStorageFixture.gd")
-	fixture.install(furniture)
-	furniture._install(fixture.KEY,furniture.get_defs()[fixture.KEY],Vector3i(55,20,46),0)
-	var chest = furniture._installed.values().back().storage
-	chest.drop_manager = drops
-	var token = chest._reserve_deposit(FLOWER_ITEM,Vector3i(44,20,47),999,1)
-	token["instance_id"] = FLOWER
-	drops.take(item)
-	chest._commit_one(token,FLOWER_ITEM)
-	chest.changed_callback.call(FLOWER_ITEM,1)
-	chest._place_visual(item,token)
+	# A real dwarf hauls the packed clump into a ground stockpile.
+	zone_controller = load("res://scripts/systems/StockpileDesignationController.gd").new()
+	scene.add_child(zone_controller)
+	zone_controller.set_process(false)
+	var cells: Array[Vector3i] = [Vector3i(55,20,46)]
+	var zone = zone_controller._create_zone(cells)
+	zone.filter_tags.assign(["stockpile_seed"])
+	var stockpile_manager := root.get_node("StockpileManager")
+	_expect(await _advance_until(func():
+		stockpile_manager._process(1)
+		return zone.stored_count() == 1), "packed flower hauls into Seeds & cuttings storage")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(details.serialize_state()))
-	var furniture_save: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
-	var entry: Dictionary = furniture_save.installed.back()
-	_expect(entry.instances[0].instance_id == FLOWER, "container save retains exact clump")
+	var zone_save: Dictionary = JSON.parse_string(JSON.stringify(zone_controller.serialize_state()))
+	_expect(zone_save.zones[0].stacks[0].instance_id == FLOWER and zone_save.zones[0].stacks[0].item == FLOWER_ITEM, "stockpile save retains exact clump")
 	details.restore_state(saved)
-	chest.restore_inventory(entry.inventory,drops,entry.instances)
 	_expect(details._records[FLOWER].variant == 2 and details._changes[FLOWER].packed and not details.flower_blooming(FLOWER), "saved storage flower preserves identity and dormancy")
-	chest.dump_contents(Vector3i(54,20,46))
 	furniture.activate_for(FLOWER_CATALOG,true)
 	furniture._hover_cell = Vector3i(48,20,46)
 	_expect(furniture._placement_valid(furniture._hover_cell), "stored flower destination valid")
@@ -135,7 +131,7 @@ func _storage_roundtrip() -> void:
 	furniture._confirm_ghost()
 	furniture.deactivate()
 	_expect(await _advance_until(func(): return not furniture._ghosts.has(plan)), "Place catalog replants stored flower")
-	_expect(details._records[FLOWER].origin == Vector3i(48,20,46), "stored flower has one new location")
+	_expect(details._records[FLOWER].origin == Vector3i(48,20,46) and zone.stored_count() == 0, "stored flower leaves the stockpile for one new location")
 
 
 func _capture_flowers() -> void:

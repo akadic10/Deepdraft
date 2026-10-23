@@ -117,13 +117,13 @@ func serialize() -> Dictionary:
 	return data
 
 func restore(data: Dictionary) -> void:
-	recreation_memory_hours = clampf(float(data.get("recreation_memory_hours",0.0)),0.0,float(config.recreation.duration_hours))
+	recreation_memory_hours = clampf(float(data.recreation_memory_hours),0.0,float(config.recreation.duration_hours))
 	solo_recreation_memory_hours = clampf(float(data.get("solo_recreation_memory_hours",0.0)),0.0,float(config.recreation.duration_hours))
-	recreation_retry_hours = clampf(float(data.get("recreation_retry_hours",0.0)),0.0,float(TaskManager.get_config_section("recreation").cooldown_hours))
-	dining_outcome = String(data.get("dining_outcome",""))
-	dining_memory_hours = clampf(float(data.get("dining_memory_hours",0.0)),0.0,float(config.dining.duration_hours))
-	personal_sleep_hours = clampf(float(data.get("personal_sleep_hours",0.0)),0.0,DwarfAgent.SLEEP_HOURS)
-	bedroom_memory_hours = clampf(float(data.get("bedroom_memory_hours",0.0)),0.0,float(config.personal_bedroom.duration_hours))
+	recreation_retry_hours = clampf(float(data.recreation_retry_hours),0.0,float(TaskManager.get_config_section("recreation").cooldown_hours))
+	dining_outcome = String(data.dining_outcome)
+	dining_memory_hours = clampf(float(data.dining_memory_hours),0.0,float(config.dining.duration_hours))
+	personal_sleep_hours = clampf(float(data.personal_sleep_hours),0.0,DwarfAgent.SLEEP_HOURS)
+	bedroom_memory_hours = clampf(float(data.bedroom_memory_hours),0.0,float(config.personal_bedroom.duration_hours))
 	for kind: String in thermal_hours:
-		thermal_hours[kind] = clampf(float(data.get(kind+"_sleep_hours",0.0)),0.0,DwarfAgent.SLEEP_HOURS)
-		thermal_memory[kind] = clampf(float(data.get(kind+"_memory_hours",0.0)),0.0,float(config.thermal.duration_hours))
+		thermal_hours[kind] = clampf(float(data[kind+"_sleep_hours"]),0.0,DwarfAgent.SLEEP_HOURS)
+		thermal_memory[kind] = clampf(float(data[kind+"_memory_hours"]),0.0,float(config.thermal.duration_hours))

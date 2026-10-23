@@ -32,7 +32,7 @@ func _process(delta: float) -> void:
 	if WorldClock.paused or WorldClock.speed<=0 or SaveManager.is_loading() or not is_instance_valid(furniture) or get_viewport().get_camera_3d()==null:
 		_silence()
 		return
-	var context := WorkFeedback._context()
+	var context := WorkFeedback.listener_context()
 	if context.is_empty():
 		_silence()
 		return
@@ -54,11 +54,11 @@ func _process(delta: float) -> void:
 			player.play(fmod(float(voice.id)*2.317,player.stream.get_length()))
 
 func _audible_source(source: Variant) -> bool:
-	return is_instance_valid(source) and source.is_inside_tree() and not source.is_queued_for_deletion() and source.is_visible_in_tree() and floori(source.global_position.y)<=WorkFeedback._slice_y()
+	return is_instance_valid(source) and source.is_inside_tree() and not source.is_queued_for_deletion() and source.is_visible_in_tree() and floori(source.global_position.y)<=WorkFeedback.visible_slice_y()
 
 func _scan(context: Dictionary) -> void:
 	var candidates: Array[Dictionary] = []
-	for piece in furniture._installed.values():
+	for piece in furniture.get_installed_pieces():
 		var kind := String(piece.def.get("fire_sound", ""))
 		if kind.is_empty() or not _audible_source(piece.node): continue
 		var point: Vector3 = piece.node.global_position

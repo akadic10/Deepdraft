@@ -2,6 +2,8 @@ extends Node
 ## Calendar opportunities are independent of population and kills. Providers own
 ## entry routing and actors; this owner owns decisions, expiry and batch progress.
 signal arrival_finished(event_id: String, count: int, edge: String)
+## Dock whose toast announces arrivals (Scene Decoupling Contract).
+@export var dock_ui_path: NodePath
 
 const PREPARATION_BUDGET_USEC := 2000
 const DATA_PATH := "res://data/world_events/arrivals.json"
@@ -16,7 +18,7 @@ var serial := 0
 func _ready() -> void:
 	add_to_group("world_events")
 	add_to_group(SaveManager.OWNER_GROUP)
-	config = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH)) as Dictionary
+	config = preload("res://scripts/registries/JsonData.gd").read_dict(DATA_PATH)
 	arrival_finished.connect(_announce)
 
 func _process(delta: float) -> void:
@@ -111,7 +113,7 @@ func _record(id: String, reason: String, count: int) -> void:
 	if history.size() > 12: history.pop_front()
 
 func _announce(event_id: String, count: int, edge: String) -> void:
-	var dock := get_tree().get_first_node_in_group("command_dock")
+	var dock := get_node_or_null(dock_ui_path) if not dock_ui_path.is_empty() else null
 	if dock == null: return
 	for event: Dictionary in config.events:
 		if event.id != event_id: continue

@@ -177,7 +177,7 @@ func _check_construction_menu() -> void:
 		plank.grab_focus()
 		await create_timer(.4).timeout
 		_expect(plank._info != null and plank._info.visible and bounds.encloses(plank._info.get_global_rect()), "keyboard focus shows floor preview explanation inside viewport")
-		_expect(plank.description.contains("Carpenter") and plank.description.contains("DEV Build"), "preview explains unavailable workers and DEV Build")
+		_expect(plank.description.contains("Carpenter") and plank.description.contains("cannot build"), "preview explains unavailable workers")
 		await _capture_menu_art("floor_help_%d" % resolution.x)
 		_menu_key(KEY_ENTER)
 		await _frames(5)

@@ -98,13 +98,13 @@ func _chairs_and_interruptions() -> void:
 	for i in range(100): extra_worker._process(.1)
 	_expect(extra_worker._idle_behavior.seat==null and chair.idle_seat_owner==worker.dwarf_id,"two dwarves cannot reserve or sit in the same chair")
 	tasks.notify_dwarf_unavailable(extra_worker.dwarf_id)
-	var urgent: int = tasks.add_task(Task.Type.BUILD,Vector3i(44,20,42))
+	var urgent: int = _post_mine_lease(Vector3i(44,20,42))
 	for i in range(60):
 		tasks._run_scheduler()
 		if worker.current_task_id==urgent: break
 		await process_frame
 	_expect(worker.current_task_id==urgent and chair.idle_seat_owner<0 and worker._body.position.is_zero_approx(),"work releases the seat and clears its pose immediately")
-	tasks.cancel_task(urgent)
+	_clear_mine_leases()
 	_reset_at(worker,Vector3i(44,20,44))
 	_expect(await _seat_phase(worker,"sitting"),"chair can be reused after a work interruption")
 	worker.dev_make_tired()

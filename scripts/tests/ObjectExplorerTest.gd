@@ -140,9 +140,7 @@ func _run() -> void:
 	explorer._on_slice_changed(127)
 
 	# Furniture uses the same window and its existing authoritative actions.
-	var storage_fixture = load("res://scripts/tests/TestStorageFixture.gd")
-	storage_fixture.install(furniture)
-	var key: String = storage_fixture.KEY
+	var key := "base:furniture:bench"
 	furniture._install(key, furniture.get_defs()[key], Vector3i(14,20,14), 0)
 	var piece = furniture._installed.values()[0]
 	_aim_above(piece.node.position)
@@ -150,13 +148,6 @@ func _run() -> void:
 	_expect(explorer.select_at_screen(camera.unproject_position(piece.node.position + Vector3.UP * .5)), "click furniture model")
 	_expect(explorer._provider == furniture, "furniture provider selected")
 	var furniture_id: String = explorer._object_id
-	piece.storage.restore_inventory({"base:resources:wood:oak_log":3,
-		"base:resources:seed:oak_acorn":27}, items)
-	explorer._refresh_selected()
-	explorer._storage_panel.refresh()
-	_expect("5 / 8 slots" in explorer._storage_panel.info_label.text, "live physical capacity includes two produce crates")
-	_expect(explorer._storage_panel.storage == piece.storage and piece.storage.inventory.get("base:resources:seed:oak_acorn", 0) == 27,
-		"container inspection uses its authoritative contents")
 	explorer._perform_action("uninstall")
 	_expect(piece.flagged_uninstall, "uninstall action preserved")
 	explorer._perform_action("uninstall")
@@ -274,6 +265,31 @@ func _aim_above(position: Vector3) -> void:
 func _expect(ok: bool, label: String) -> void:
 	if not ok:
 		failures.append(label)
+
+
+## Real stand-in work for scheduling tests: a one-block mining designation is
+## the cheapest work source with its own executor. Returns its MINE lease id;
+## _clear_mine_leases() removes every such designation and cancels its lease.
+var _mine_fixture: Node = null
+var _mine_fixture_zones: Array[int] = []
+
+func _post_mine_lease(block: Vector3i) -> int:
+	if _mine_fixture == null:
+		_mine_fixture = load("res://scripts/systems/MiningDesignationController.gd").new()
+		scene.add_child(_mine_fixture)
+		_mine_fixture.set_process(false)
+	var cells: Array[Vector3i] = [block]
+	var zone_id: int = _mine_fixture._create_zone(cells)
+	_mine_fixture_zones.append(zone_id)
+	var source = root.get_node("TaskManager").get_work_source(zone_id)
+	var lease := -1 if source == null or source.lease_ids.is_empty() else int(source.lease_ids.keys()[0])
+	_expect(lease >= 0, "mining designation at %s posts a real lease" % block)
+	return lease
+
+
+func _clear_mine_leases() -> void:
+	for zone_id in _mine_fixture_zones: _mine_fixture._remove_zone(zone_id)
+	_mine_fixture_zones.clear()
 
 
 func _click(position: Vector2) -> void:

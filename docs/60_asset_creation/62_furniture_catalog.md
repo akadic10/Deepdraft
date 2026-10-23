@@ -9,7 +9,7 @@ recolour for pine, oak, juniper and apple.
 
 **Tier 2 · Carpenter Era** (a plank dining table and a blanket bed) waits for its
 progression step. Its designs are kept in
-`data/art/studies/hearthblock_furniture_tiers.json` and as `diningTable()` and `bed()` in
+`tools/art_data/studies/hearthblock_furniture_tiers.json` and as `diningTable()` and `bed()` in
 `tools/hearthblock/art/proposal.mjs`. They must never be deleted.
 
 ## 1. Furniture in the game
@@ -112,7 +112,9 @@ will return with player crafting.
 ### Where Deepdraft matches the SH shape
 
 - **The storage ladder:** barrel 8 → chest 24 → a future vault class. Doc 19 tracks
-  SH's crate 8 → 32 → vault 256 deliberately.
+  SH's crate 8 → 32 → vault 256 deliberately. The container code was deleted on
+  2026-10-22 because no furniture used it (doc 258); build it fresh with the barrel
+  and chest milestone.
 - **Room-anchor furniture:** the trade counter matches SH's market and stall function.
   The tavern bar, armor stand and wall display follow the same "furniture defines the
   room" pattern.

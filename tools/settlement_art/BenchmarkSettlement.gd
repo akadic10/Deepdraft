@@ -101,7 +101,7 @@ func _run() -> void:
 	report["fixture"] = _fixture_state()
 	report["fixture_sha256"] = JSON.stringify(report.fixture).sha256_text()
 	var snapshots: Dictionary = save._build_snapshot()
-	report["initial_save_validation"] = save._validate_snapshot(snapshots)
+	report["initial_save_validation"] = save._file_store()._validate_snapshot(snapshots)
 	if not report.initial_save_validation.is_empty(): report.failures.append(report.initial_save_validation)
 	# Paused views isolate rendering; active views retain the real scheduler/AI.
 	_view(Vector3(camp)+Vector3(0,3,0),48,Vector3(-.7,1,1))
@@ -161,7 +161,7 @@ func _reload_check(save: Node, expected: Dictionary = {}) -> void:
 	var actual: Dictionary = JSON.parse_string(JSON.stringify(save._build_snapshot()))
 	FileAccess.open(output+"restore_expected.json",FileAccess.WRITE).store_string(JSON.stringify(expected))
 	FileAccess.open(output+"restore_actual.json",FileAccess.WRITE).store_string(JSON.stringify(actual))
-	var validation: String = save._validate_snapshot(actual)
+	var validation: String = save._file_store()._validate_snapshot(actual)
 	var checks := {"dwarf_count":actual.scene.dwarves.roster.size()==expected.scene.dwarves.roster.size(),
 		"furniture":_same_save_value(actual.scene.furniture,expected.scene.furniture),
 		"wildlife":_same_save_value(actual.scene.wildlife,expected.scene.wildlife),

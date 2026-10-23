@@ -70,12 +70,12 @@ func _place_case(key: String,yaw: int) -> void:
 	var ghost = await _arrive(key,yaw)
 	if worker._task_phase!=worker.TaskPhase.FETCH_DEPOSIT: return
 	var duration: float = tasks.get_config_section("hauling").deposit_time_s
-	_expect(is_zero_approx(worker._handling_elapsed),"arrival does not spend hidden placement work")
-	_expect(is_equal_approx(worker._handling_duration,duration),"only the shared set-down duration is charged")
-	var item: Node3D = worker._fetch_item
+	_expect(is_zero_approx(worker._work_execution._handling_elapsed),"arrival does not spend hidden placement work")
+	_expect(is_equal_approx(worker._work_execution._handling_duration,duration),"only the shared set-down duration is charged")
+	var item: Node3D = worker._work_execution._fetch_item
 	var start: Vector3 = item.global_position
 	var stand: Vector3 = worker.global_position
-	var contact: Vector3 = worker._handling_target
+	var contact: Vector3 = worker._work_execution._handling_target
 	var wall := String(ghost.def.get("placement","floor"))=="wall"
 	if wall:
 		_expect(is_equal_approx(contact.y,float(SITE.y)+float(ghost.def.wall_mount.origin_offset_y)),"wall handoff rises to mount height")
@@ -95,17 +95,17 @@ func _place_case(key: String,yaw: int) -> void:
 	var pose := item.global_transform
 	clock_node.set_paused(true)
 	worker._process(3)
-	_expect(item.global_transform.is_equal_approx(pose) and is_equal_approx(worker._handling_elapsed,.15),"pause freezes pose and placement together")
+	_expect(item.global_transform.is_equal_approx(pose) and is_equal_approx(worker._work_execution._handling_elapsed,.15),"pause freezes pose and placement together")
 	clock_node.set_paused(false)
 	clock_node.set_speed(2)
 	worker._process(.05)
-	_expect(is_equal_approx(worker._handling_elapsed,.25),"2x advances animation and completion together")
+	_expect(is_equal_approx(worker._work_execution._handling_elapsed,.25),"2x advances animation and completion together")
 	clock_node.set_speed(1)
 	worker._process(duration*.85-.25)
 	var bounds: AABB = item.global_transform * worker._carry_pose.item_bounds(item)
 	_expect(Vector3(bounds.get_center().x,bounds.position.y,bounds.get_center().z).distance_to(contact)<.005,"physical crate reaches placement contact")
 	await _capture_pose(key,yaw,"release")
-	worker._process(duration-worker._handling_elapsed-.001)
+	worker._process(duration-worker._work_execution._handling_elapsed-.001)
 	_expect(furniture._ghosts.has(ghost.ghost_id) and worker._carried_entries.size()==1,"no premature item consumption")
 	worker._process(.002)
 	_expect(not furniture._ghosts.has(ghost.ghost_id) and furniture._installed.size()==1,"installed at animation end without another wait: "+key)
@@ -118,12 +118,12 @@ func _interruptions() -> void:
 	for action in ["cancel","blocked","interrupt"]:
 		var ghost = await _arrive(LOG_BENCH,0)
 		worker._process(.2)
-		var item: Node3D = worker._fetch_item
+		var item: Node3D = worker._work_execution._fetch_item
 		if action=="cancel": furniture.cancel_ghost(ghost.ghost_id)
 		elif action=="blocked":
 			ghost.build_valid_callback = func(_plan): return false
 			worker._process(1)
-		else: worker.dev_force_interrupt()
+		else: worker.force_interrupt()
 		_expect(worker._carried_entries.is_empty() and drops._loose.has(item) and drops._loose.size()==1
 			and furniture._installed.is_empty(),action+" conserves the exact packed item")
 		if action=="interrupt":
@@ -133,9 +133,9 @@ func _interruptions() -> void:
 			_expect(furniture._installed.size()==1 and drops._loose.is_empty(),"resumed placement consumes one item")
 	# Direct arrival from an existing carried-item handoff uses the same path.
 	var handoff_plan = await _arrive(LOG_BENCH,2)
-	worker._clear_item_handling()
-	worker._fetch_travel_to_ghost()
-	_expect(worker._task_phase==worker.TaskPhase.FETCH_DEPOSIT and is_zero_approx(worker._handling_elapsed),"already at stand begins one immediate set-down")
+	worker._work_execution._clear_item_handling()
+	worker._work_execution._fetch_travel_to_ghost()
+	_expect(worker._task_phase==worker.TaskPhase.FETCH_DEPOSIT and is_zero_approx(worker._work_execution._handling_elapsed),"already at stand begins one immediate set-down")
 	worker._process(1)
 	_expect(not furniture._ghosts.has(handoff_plan.ghost_id),"same-stand handoff finishes")
 

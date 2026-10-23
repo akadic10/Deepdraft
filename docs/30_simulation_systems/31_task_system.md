@@ -80,33 +80,34 @@ packing reuses UNINSTALL, while Move reserves the resulting exact-instance item
 for a FETCH_BUILD plan. Packing progress survives interruption; the water effect
 stays active until the physical item is packed. See milestone 110.
 
-> **IMPLEMENTED (2026-06-10, doc 16 §2 — read that section first).** `TaskManager` autoload +
-> `Task` class shipped with the First Dwarf Milestone. The implementation **refines** this spec:
+> **Implemented.** `TaskManager` autoload + `Task` class. The implementation **refines** this spec:
 > tasks are **intent-sized leases posted by work sources** (a mining zone posts ≤ `MAX_WORKERS`
 > zone leases, never per-block tasks — O(intents), not O(blocks)); storage is **per-type sorted
 > buckets** with resumable scan cursors; the scheduler is **event-driven with a heartbeat**,
 > time-budgeted (1 ms/wake) and probe-capped so overload degrades into assignment latency, never
-> frame time; `priority` stores only the **static** value with colony bonuses computed per wake;
+> frame time; `priority` stores only the **static** value;
 > unreachable tasks carry `retry_at`/`blocked_count` exponential backoff (BLOCKED is a status,
 > not a separate queue). Tunables live in `data/tasks/task_config.json`. Release protocol:
-> releasing a task is always cheap and always legal (doc 16 §2.8). The tables below remain the
-> design source for priorities, bonuses, and skill mapping.
+> releasing a task is always cheap and always legal (see Release Protocol). The tables below remain the
+> design source for priorities and skill mapping; colony-state bonuses are planned only.
 >
-> **HAUL live (doc 18 — Stockpiles & Hauling, banked 2026-07-11):** stockpile zones are the
+> **HAUL live:** stockpile zones are the
 > second work-source family, proving the lease pattern generalises. A zone posts ≤
 > `max_haulers` HAUL leases; the `DwarfAgent` executor pulls bundles within the JSON
-> `hauling.carry_capacity` budget (4 points: rock/ore 1, raw log 2, crate 4; doc 49)
+> `hauling.carry_capacity` budget (4 points: rock/ore 1, raw log 2, crate 4)
 > from `ItemDropManager`'s loose-item index, with owner-guarded item
-> reservations and the §2.8 release protocol (any interrupt drops the whole pouch at the
-> dwarf's feet as loose items). Stockpile source ids live at `1_000_000 + zone_id`
+> reservations and the release protocol (any interrupt drops the whole pouch at the
+> dwarf's feet as loose items). When mining or a removed bridge takes away support,
+> `ItemDropManager` coalesces the changed columns and settles only the loose items
+> in them; a settling item's pickup reservation is invalidated, and stored or
+> carried goods are never moved. Stockpile source ids live at `1_000_000 + zone_id`
 > (`StockpileManager`); hauling tunables in `task_config.json` `hauling`. Workshops are next.
 >
-> **FETCH_BUILD + UNINSTALL live (doc 19, 2026-07-11):** the furniture pipeline's two
+> **FETCH_BUILD + UNINSTALL live:** the furniture pipeline's two
 > first-class types (SH parity — placement is a dedicated task group whose band TOPS
 > restock, hence FETCH_BUILD 45 > HAUL 40). A ghost posts ONE type-matched fetch lease; a
 > 📤-flagged piece posts ONE uninstall lease. Source ids for new families come from
-> `TaskManager.allocate_source_id()` (monotonic from 10M — the doc 18 allocator debt,
-> paid). The zone re-based onto the shared `StorageComponent` contract with containers as
+> `TaskManager.allocate_source_id()` (monotonic from 10M). The zone re-based onto the shared `StorageComponent` contract with containers as
 > the second face; five work-source families now ride one scheduler unchanged.
 
 **2026-10-11 furniture dispatch fix:** an unreachable idle dwarf no longer puts
@@ -128,21 +129,21 @@ are unchanged. Completed passes and a newly available idle pool start at the
 highest priority again. See [88 — Ladder task reachability](../00_dev_roadmap/88_ladder_task_reachability.md)
 for the saved colony and construction-to-mining regression.
 
-> **FELL_TREE live (doc 48, 2026-10-04):** each designated tree posts one lease at
+> **FELL_TREE live (2026-10-04):** each designated tree posts one lease at
 > priority 50. `SurfaceFloraSpawner` owns persistent work and felled records;
 > `TreeFellingComponent` owns the transient lease/reservation and trunk-side stand
 > candidates. `DwarfAgent` tries one full route per frame, works only from a valid
 > adjacent floor cell, and releases safely on interruption. Saved work survives
 > cancellation, sleep, seasonal model changes and reload; task IDs do not.
 
-> **CRAFT live (doc 64, 2026-10-07):** scene-owned `CraftingManager` posts one
+> **CRAFT live (2026-10-07):** scene-owned `CraftingManager` posts one
 > lease per runnable Worker order at priority 46. `WorkerCraftOrder` owns recipe,
 > quantity, allowed wood and partial progress; it reuses physical fetch/work/
 > set-down and cheap release. Only current Workers receive these starter jobs.
 > First benches are made at the ingredient pickup spot; workshop recipes use
 > a reachable open side of a claimed stump. The lease's
 > placeholder `target_pos` is not the worksite: routing and inspection use the
-> order's actual `work_cell`. See [64 — Crafting](../00_dev_roadmap/64_worker_crafting.md).
+> order's actual `work_cell`.
 
 > **CRAFT pickup selection fixed (2026-10-09, doc 98):** compare every eligible
 > idle Worker at the first physical ingredient (stone for starter tools, timber
@@ -183,37 +184,32 @@ See [84 — Juniper harvesting](../00_dev_roadmap/84_juniper_berry_harvesting.md
 **CLEAR_PLANT live (2026-10-08):** appended priority-50 adjacent hand-work lease
 for decorative flower and reed clearing. JSON defines 1.5 seconds and no item yield.
 It shares cheap release and source-level partial progress with other surface
-details. Construction/support displacement retires work without rewards. See
-[76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md) and
-[77 — Seasonal reeds](../00_dev_roadmap/77_seasonal_reeds.md).
+details. Construction/support displacement retires work without rewards.
 
 **CLEAR_BOULDER live (2026-10-08):** one priority-50 lease per marked stone.
 `SurfaceDetailManager` owns removal and partial work; the adjacent work component
 shares tree felling's side routing/release protocol with a separate task type and
 tombstone key. Dwarves use the mining pick and stone feedback. Cancellation,
 sleep and reload retain progress; completion awards two Rough Stone by JSON.
-See [73 — Boulder pilot](../00_dev_roadmap/73_boulder_pilot.md).
 
 **GATHER_SCREE live (2026-10-08):** a priority-50 adjacent work lease collects one
 walkable loose-stone clump by hand in three seconds for one rough stone. It uses
 the same source-level progress/release contract; displacement cancels without
-loot. See [74 — Gatherable scree](../00_dev_roadmap/74_gatherable_scree.md).
+loot.
 
-> **HARVEST_SHRUB / CLEAR_SHRUB live (doc 75, 2026-10-08):** appended priority-50
+> **HARVEST_SHRUB / CLEAR_SHRUB live (2026-10-08):** appended priority-50
 > types use the adjacent work/release contract and hand-gathering pose. Harvest
 > retains the plant and grants one saved crop per eligible calendar season;
 > completed clearing permanently removes it and yields one cutting. Partial work is separate per
-> action. Season end cancels harvest leases safely. See
-> [75 — Seasonal shrubs](../00_dev_roadmap/75_seasonal_shrubs.md).
+> action. Season end cancels harvest leases safely.
 
-**UPROOT_SHRUB live (doc 79, 2026-10-08):** appended priority-50 adjacent hand
+**UPROOT_SHRUB live (2026-10-08):** appended priority-50 adjacent hand
 work lifts a mature shrub without fruit/cutting rewards. Partial work belongs
 to its persistent plant record. Replanting uses the existing priority-45
 `FETCH_BUILD` pipeline with a `ShrubPlantingComponent` destination plan and
 saved work progress. Move reserves one exact plant identity through interruption;
 generic Place accepts any available whole shrub of that species. Release drops
-the intact plant, and destination validity is checked before consuming it. See
-[79 — Shrub transplanting](../00_dev_roadmap/79_shrub_transplanting.md).
+the intact plant, and destination validity is checked before consuming it.
 
 **Move continuation (doc 82):** exact-plant Move fetches compare workers at the
 packed plant's pickup sides. The uprooter is preferred among workers already at
@@ -238,21 +234,68 @@ Interrupted work resumes an animated reach over its remaining duration; cargo
 stays worker-owned until the final valid-site commit. See
 [83 — Shrub planting animation](../00_dev_roadmap/83_shrub_planting_animation.md).
 
-The Task System is a **global asynchronous job queue** that decouples player designations from dwarf agent execution. Players issue high-level orders (mine this zone, haul these goods); the Task System assigns work to available dwarves. Orders are represented as **intent-sized tasks** (zone leases, future item-batch hauls) — the atomic block-level unit of work never exists as a queued Task object (doc 16 §2.1).
+The Task System is a **global asynchronous job queue** that decouples player designations from dwarf agent execution. Players issue high-level orders (mine this zone, haul these goods); the Task System assigns work to available dwarves. Orders are represented as **intent-sized tasks** (zone leases, future item-batch hauls) — the atomic block-level unit of work never exists as a queued Task object.
+
+Every task needs a work source whose executor performs it (a MINE or HAUL lease
+carries its `zone_id`; other families carry `source_id`). There is no generic
+walk-and-wait executor: a task that reaches `DwarfAgent.receive_task` without one
+is failed at once (`fail_dwarf_task`, "No work source can perform this task") so
+it can neither hang the worker nor cycle through PENDING. Tests that need
+stand-in work post a one-block mining designation instead.
+
+The executors live in the dwarf's work-execution component (doc 258 step 8):
+`receive_task` hands the lease to `DwarfWorkExecution.start`, which runs the
+MINE zone lease, UNINSTALL and adjacent clearing itself; its base script
+`DwarfCarryWork` holds the HAUL and FETCH_BUILD/CRAFT executors and the shared
+pickup/carry/set-down presentation. Walk results, aborts, sleep and
+`force_interrupt` reach them through `walk_finished`, `abort` and
+`clear_task_state`.
+
+**Shared work-source table (doc 258 step 6, 2026-10-22).** Ladders, bridges, tree
+felling/harvest (`SurfaceFloraSpawner`), surface details (`SurfaceDetailManager`) and
+furniture ghosts and uninstall leases (`FurniturePlacementController`) keep their
+sources in one helper, `scripts/components/WorkSourceTable.gd` (a plain `RefCounted`,
+not an autoload). It owns the owner key ↔ source map, source-id allocation,
+`register_work_source`/`unregister_work_source`, retiring, and the routing of
+TaskManager events:
+
+- completed → `work_task_gone(task, -1)`; cancelled/failed →
+  `work_task_gone(task, assigned_to)`. The source may re-post its lease.
+- released → `work_task_released(task, dwarf)` only. The lease stays PENDING,
+  so only the worker's transient claim is freed and nothing is re-posted
+  (Hard Rule 12).
+- `retire(key, cancel_tasks)` forgets the source *before* cancelling its tasks, so
+  cancellation cannot re-post, then unregisters it and calls
+  `work_source_retired()` (ghosts release their item claim).
+
+`FurnitureGhostComponent`, `InstalledFurnitureComponent` and `TreeFellingComponent`
+implement the three hooks, and the ladder and bridge sources inherit them. The table
+saves nothing: owners save their own records and rebuild their sources on restore,
+which gives each source a fresh id. Mining, stockpiles, construction, crafting and
+water stones keep their own routing. The work-journal key
+(`WorkSourceAdapter.locator`) names the task type (`task_type=FELL_TREE`), not its
+enum number, so reordering `Task.Type` does not orphan saved journal entries.
+`WorkSourceTableTest` (gate) covers the contract.
 
 ## Task Object Schema
 
 ```gdscript
-# scripts/systems/Task.gd — as shipped (doc 16 §2.2)
+# scripts/systems/Task.gd — as shipped
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FARM, BREW, BUILD, IDLE, PATROL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
+
+# Task-type categories, listed only here (doc 258 step 6):
+const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work: one executor, the surface matcher
+const GATHER_WORK  := [...]  # surface work done by hand (gather pose and contact)
+const SHRUB_WORK   := [...]  # HARVEST_SHRUB, CLEAR_SHRUB
+const COMMON_WORK  := [...]  # what any dwarf may take before permissions; Workers add CRAFT
 
 var id:            int           # unique auto-incremented ID
 var type:          Task.Type
 var status:        Task.Status
-var priority:      int           # STATIC base priority; colony bonuses applied at match time
+var priority:      int           # STATIC base priority
 var target_pos:    Vector3i      # representative position (zone stand cell for leases)
 var payload:       Dictionary    # type-specific data; MINE lease: { "zone_id": int }
 var assigned_to:   int           # dwarf id, or -1 if unassigned
@@ -264,7 +307,7 @@ var blocked_count: int           # consecutive blocked probes (backoff + task_un
 
 ## Global Task Queue
 
-`TaskManager` (Autoload) holds the authoritative tables (doc 16 §2.3 — per-type buckets, not one global queue):
+`TaskManager` (Autoload) holds the authoritative tables (per-type buckets, not one global queue):
 
 ```gdscript
 var _tasks: Dictionary            # id -> Task                (authoritative store)
@@ -272,8 +315,15 @@ var _pending: Dictionary          # Task.Type -> Array[int]   (ids, sorted by st
 var _active: Dictionary           # dwarf_id -> task_id
 var _idle_dwarves: Array[int]     # event-maintained, never rebuilt by scanning
 var _completed_log: Array         # ring buffer, last 200
-var _scan_cursor: Dictionary      # Task.Type -> int          (resumable scan position)
 ```
+
+The matching itself runs in `scripts/components/TaskScheduler.gd` (doc 258
+step 8), which receives these same table objects. It owns the resumable scan
+cursors (`_scan_cursor`, Task.Type -> int), the specialised haul/craft/surface/move
+comparisons, worker rejections and the lease handoff (`assign`). Attempt
+supervision — progress samples, `_recover_attempt`, `_reconcile_workers`,
+retries and job diagnostics — runs in `scripts/components/TaskSupervision.gd`.
+`TaskManager` keeps the public API, tables, signals and config.
 
 > **Agent note:** pending buckets must remain sorted at all times. Insert new tasks using binary search on static `priority` rather than appending and re-sorting each frame. Dwarves hold task **IDs**, never Task references — lookups go through the manager so a cancelled task can be freed safely.
 
@@ -293,13 +343,12 @@ through a Labor window remain planned.
 | `FETCH_BUILD` | 45 | Install finished furniture |
 | `UNINSTALL` | 40 | Pack marked furniture for storage |
 | `HAUL` | 40 | Keeps workshops fed; slightly less urgent than mining |
-| `FARM` | 35 | Seasonal; deprioritised when food stores are high |
-| `BREW` | 30 | Comfort; deprioritised when drink stocks are sufficient |
-| `BUILD` | 45 | Infrastructure investment |
-| `IDLE` | 1 | Lowest — only taken when nothing else is available |
-| `PATROL` | 60 | Safety; pre-empts most economic tasks |
 
-Priority is **additive** — bonuses are applied based on colony state:
+Farming, brewing and patrol have no task types yet; each gets its type and
+priority when its feature arrives (doc 52 plans `PATROL` at 60). Dwarves idle
+without a queued task.
+
+**Planned, not implemented:** colony-state bonuses added to the static priority:
 
 ```
 +20  if ale stockpile < 10 and task type == BREW
@@ -320,9 +369,19 @@ Successful bundle delivery completes the HAUL lease and returns the worker to
 matching. Returning haulers cannot pull their next load directly, bypassing nearby
 idle workers or higher-priority jobs. Storage replenishes its bounded intake leases
 through the normal coalesced wake; no per-item task queue is introduced.
-See [60 — Hauling worker selection](../00_dev_roadmap/60_hauling_worker_selection.md).
 
-> **As implemented (doc 16 §2.4–2.6 — supersedes the original pure-polling engine).** The
+Every eligible idle worker receives a read-only pickup quote
+(`StorageComponent.advance_haul_quote`) before one is chosen; quotes never
+reserve goods, and `reserve_haul` still owns claims and bundling
+(`TaskScheduler`). Distance is a floor-cell Manhattan estimate from the worker to
+the quoted pickup, followed by bounded pickup and delivery reachability probes; it
+is not an optimal assignment or a shortest-path comparison. Equal distances keep
+idle-queue order. A pickup cell that fails its probe is excluded for that worker
+only and the candidates are ranked again, so a farther worker or other supplies
+can still win. The chosen executor receives that worker's exclusions, so its
+reservation matches the quote.
+
+> **As implemented (supersedes the original pure-polling engine).** The
 > scheduler runs on **wake events** (task added, dwarf idle, zone destination changed, chunk
 > dirtied near a blocked target), flushed at most once per frame; the `POLL_INTERVAL = 0.5 s`
 > heartbeat survives as the safety net that catches `retry_at` expiries. Every wake is bounded
@@ -342,7 +401,7 @@ See [81 — Surface worker selection](../00_dev_roadmap/81_surface_worker_select
 Matching loop per wake for non-hauling work:
 
 ```
-1. Order pending type buckets by (static + colony_bonus(type)) desc, type ID for ties
+1. Order pending type buckets by static priority desc, type ID for ties
 2. For adjacent surface types and exact-plant Move fetches, compare eligible idle workers as above.
    For other types, visit compatible idle workers and scan from _scan_cursor[type]:
      skip if status != PENDING, or now < retry_at
@@ -394,9 +453,6 @@ Each `Task.Type` maps to a preferred dwarf skill. A dwarf without the preferred 
 |---|---|
 | MINE | `skill_mining` |
 | HAUL | `skill_hauling` |
-| FARM | `skill_farming` |
-| BREW | `skill_brewing` |
-| BUILD | `skill_building` |
 
 **2026-10-14 — construction work-position cost:** a synchronous
 `ConstructionWork.work_stands` call captures dwarf bounds and loose-item cells
@@ -428,12 +484,53 @@ times are higher and some planning waits remain. See
 for throughput, frame-time tradeoffs and validation. This is not a runtime
 population cap or a guarantee against starvation in every settlement.
 
+**Probe results are not stored as lasting data.** A failed reachability probe
+either backs the task off or, while other idle workers remain, records a worker
+rejection that is valid only for the current navigation and idle-pool revision.
+Backoff (`retry_at`/`blocked_count`) is the only negative result that outlives
+those changes.
+
+**Runtime is not deterministic.** Only dwarf generation is seeded (doc 41).
+Scheduler and agent behaviour depend on frame timing and wake order, so do not
+chase replay determinism here.
+
+## Release Protocol (Hard Rule 12)
+
+Releasing a task is always cheap and always legal. No task type may be designed
+so that abandoning it mid-way corrupts state. The dwarf decides *when* to
+interrupt (doc 41); `TaskManager.release_dwarf_task(dwarf_id, reason, requeue_dwarf)`
+decides what happens to the work:
+
+- The task returns to `PENDING` with `assigned_to = -1` and is re-inserted in its
+  type bucket. Its static priority is unchanged. Release reasons that prove a dead
+  end (`PATH_INVALID`, `NO_PROGRESS`, `MATERIAL_UNAVAILABLE`, `PLAN_CHANGED`,
+  `SEARCH_BUDGET_EXHAUSTED`) also apply backoff.
+- Reservations are freed by the work source on `task_released`. A mining lease's
+  reserved block returns to the zone's destination set.
+- Source-level progress is never lost (completed blocks, saved per-source work).
+  Progress on the current atomic unit, such as a partial swing on a block, is
+  discarded.
+- A carried item is dropped at the dwarf's feet as a normal loose item.
+- The dwarf rejoins `_idle_dwarves` only after its interrupt behaviour finishes
+  (sleep, eating, combat). A dwarf holding a task releases with
+  `requeue_dwarf = false`; one holding no task calls
+  `TaskManager.notify_dwarf_unavailable`, and both return with
+  `notify_dwarf_idle`. An assignment that lands in the same frame the dwarf became
+  unavailable is bounced straight back to `PENDING` by `DwarfAgent.receive_task`.
+
+`Task.ReleaseReason` values: `NEED_INTERRUPT`, `COMBAT`, `PLAYER`, `PATH_INVALID`,
+`SOURCE_EMPTY`, `NO_PROGRESS`, `MATERIAL_UNAVAILABLE`, `PLAN_CHANGED`,
+`SEARCH_BUDGET_EXHAUSTED`.
+
+Planned combat pre-emption (priority-85 combat work interrupting economy work,
+doc 52) will call this same release path.
+
 ## Signals
 
 ```gdscript
 signal task_added(task: Task)
 signal task_assigned(task: Task, dwarf_id: int)
-signal task_released(task: Task, dwarf_id: int, reason: int)   # §2.8 release protocol
+signal task_released(task: Task, dwarf_id: int, reason: int)   # see Release Protocol
 signal task_completed(task: Task)
 signal task_failed(task: Task, reason: String)
 signal task_unreachable(task: Task)

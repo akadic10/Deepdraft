@@ -22,7 +22,6 @@
       "cutting": {
         "clearance_height": 1,
         "growth_duration_days": 6,
-        "next_stage": "fruiting",
         "models": {
           "summer": "res://assets/models/flora/crops/grape/grape_cutting.glb"
         },
@@ -34,7 +33,6 @@
       "fruiting": {
         "clearance_height": 2,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "spring": "res://assets/models/flora/crops/grape/grape_budding.glb",
           "summer": "res://assets/models/flora/crops/grape/grape_fruiting.glb",
@@ -45,8 +43,7 @@
           "yields": [
             { "item": "base:resources:flora:grape",          "count": 5, "chance": 1.00, "season_only": ["summer", "autumn"] },
             { "item": "base:resources:seed:grape_cutting",   "count": 1, "chance": 0.25 }
-          ],
-          "post_harvest": "persist"
+          ]
         }
       }
 

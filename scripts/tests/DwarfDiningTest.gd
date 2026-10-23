@@ -259,9 +259,9 @@ func _effects_and_save() -> void:
 	_expect(is_equal_approx(worker._mood.value(),.5),"proper meal clears previous penalty")
 	for entry in [[1.0,1.0,.5],[.3,.9,.45],[.1,.75,.35]]:
 		worker._food.value=entry[0]
-		worker._task_phase=worker.TaskPhase.EXECUTING
+		worker._task_phase=worker.TaskPhase.UNINSTALL_WORKING
 		worker._exec_timer=10
-		worker._work_execution.tick(worker,1)
+		worker._work_execution.tick(1)
 		_expect(is_equal_approx(worker._exec_timer,10-entry[1]),"productive labor gets correct hunger multiplier")
 		_expect(is_equal_approx(worker._mood.value(),entry[2]),"live hunger mood tier")
 	worker._task_phase=worker.TaskPhase.NONE

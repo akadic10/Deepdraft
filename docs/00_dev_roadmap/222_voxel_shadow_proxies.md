@@ -55,7 +55,7 @@ The proxy stride and coverage threshold are now set in `tools/voxel_assets/commo
 `write_glb_meshes()` in `tools/voxel_glb.py`. Legacy single-mesh
 exports retain their existing behavior. Each GLB has one shared identity root,
 two identity mesh children, world-unit coordinates and one surface per mesh.
-Each family manifest in `data/art/voxel_manifests/` records every part's proxy
+Each family manifest in `tools/art_data/voxel_manifests/` records every part's proxy
 stride, retained volume and triangles.
 
 ## Godot integration

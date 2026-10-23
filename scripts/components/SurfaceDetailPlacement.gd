@@ -27,7 +27,7 @@ static func hash_cell(seed_value: int, x: int, z: int, salt: int) -> int:
 	return h & 0x7FFFFFFF
 
 
-func _reject(reason: String) -> Dictionary:
+func reject(reason: String) -> Dictionary:
 	rejection_counts[reason] = int(rejection_counts.get(reason, 0)) + 1
 	return {}
 
@@ -45,19 +45,19 @@ func candidate(key: String, definition: Dictionary, cell: Vector2i, flora: Node)
 	var z := cell.y * size + inset + floori(float(h) / span) % span
 	var ring := int(pl.clear_ring)
 	if x - ring < 0 or z - ring < 0 or x + width + ring >= WorldData.WORLD_SIZE_X or z + width + ring >= WorldData.WORLD_SIZE_Z:
-		return _reject("edge")
+		return reject("edge")
 	var y := WorldGenerator.get_surface_y(x, z)
 	if y < int(pl.min_y) or y > int(pl.max_y):
-		return _reject("height")
+		return reject("height")
 	var shore: Dictionary = {}
 	if pl.has("shore_radius"):
 		shore = shore_info(Vector3i(x,y,z),pl)
-		if shore.is_empty(): return _reject("shore")
+		if shore.is_empty(): return reject("shore")
 	if pl.has("ground_kinds"):
 		var moisture := WorldGenerator.get_moisture(x, z)
-		if moisture < float(pl.min_moisture) or moisture > float(pl.max_moisture): return _reject("moisture")
+		if moisture < float(pl.min_moisture) or moisture > float(pl.max_moisture): return reject("moisture")
 		var block_key := BlockRegistry.get_key(WorldGenerator.get_generated_block_id(x, y, z))
-		if String(BlockRegistry.get_def(block_key).get("kind", "")) not in pl.ground_kinds: return _reject("ground")
+		if String(BlockRegistry.get_def(block_key).get("kind", "")) not in pl.ground_kinds: return reject("ground")
 	if not _patches.has(key):
 		var noise := FastNoiseLite.new()
 		noise.seed = _seed + int(definition.salt)
@@ -67,24 +67,24 @@ func candidate(key: String, definition: Dictionary, cell: Vector2i, flora: Node)
 	var rocky := y >= int(pl.rock_min_y)
 	var density := float(pl.rock_density if rocky else pl.lowland_density) * patch
 	if float(hash_cell(_seed, cell.x, cell.y, int(definition.salt) + 1)) / 2147483647.0 >= density:
-		return _reject("density")
+		return reject("density")
 	# Flat footprint AND ring: no smoothing, floating corners or blocked ledges.
 	for px in range(x - ring, x + width + ring):
 		for pz in range(z - ring, z + width + ring):
 			var col := Vector2i(px, pz)
 			if WorldGenerator.get_waterline(col.x,col.y)>=0:
-				return _reject("water")
+				return reject("water")
 			if WorldGenerator.get_surface_y(px, pz) != y:
-				return _reject("shelf")
+				return reject("shelf")
 	var cliff_distance := -1
 	if String(pl.get("habitat", "")) == "cliff_foot":
 		cliff_distance = _cliff_distance(Vector3i(x, y, z), width, pl)
-		if cliff_distance < 0: return _reject("cliff_foot")
+		if cliff_distance < 0: return reject("cliff_foot")
 		# The broad patch field supplies broken clusters; this second independent
 		# sample thins them as they spread away from the wall.
 		var proximity := lerpf(1.0, float(pl.outer_density), float(cliff_distance - 1) / maxf(1, float(pl.cliff_radius) - 1))
 		if float(hash_cell(_seed, cell.x, cell.y, int(definition.salt) + 4)) / 2147483647.0 >= proximity:
-			return _reject("cliff_falloff")
+			return reject("cliff_falloff")
 	# Preserve the original trees, even if their columns have not streamed yet.
 	var tree_size := int(flora.get("scatter_cell_size"))
 	var margin := int(pl.tree_margin) + ring
@@ -96,7 +96,7 @@ func candidate(key: String, definition: Dictionary, cell: Vector2i, flora: Node)
 				tree_candidates[tree_cell] = flora.call("generated_tree_candidate", tx, tz, tree_size)
 			var tree: Dictionary = tree_candidates[tree_cell]
 			if not tree.is_empty() and area.intersects(Rect2i(tree.origin.x, tree.origin.z, tree.footprint, tree.footprint)):
-				return _reject("tree")
+				return reject("tree")
 	var result := {"id": "%s:%d:%d:%d" % [definition.category, _seed, cell.x, cell.y], "definition": key,
 		"origin": Vector3i(x, y, z), "variant": hash_cell(_seed, cell.x, cell.y, int(definition.salt) + 2) % definition.models.size(),
 		"yaw": hash_cell(_seed, cell.x, cell.y, int(definition.salt) + 3) % 4,

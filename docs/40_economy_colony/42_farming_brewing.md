@@ -58,7 +58,7 @@ forage boundary. Only planted blooming clumps qualify; honey is not yet playable
 **Flower follow-up:** the shared clearing tool is now **Clear plants**. Decorative
 wildflowers have four seasonal appearances, no harvest action or resource yield,
 and take 1.5 seconds to clear by hand. Clearing, construction and excavation
-remove them permanently. See [76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md).
+remove them permanently.
 
 Generated blueberry, elderberry and wild-strawberry plants can now be harvested
 or permanently cleared. Harvest takes three seconds and keeps the plant; clearing
@@ -75,9 +75,7 @@ Use the individual inspector or **Orders → Harvest plants / Clear shrubs**.
 Cuttings use existing crates and the **Seeds & cuttings** stockpile filter. Each
 completed clearing grants its cutting only once; cancellation and reload cannot
 repeat the reward. Construction/excavation displacement grants no cutting.
-Farm plots and brewing remain future work. Fruit consumption is live in 131. See
-[75 — Seasonal shrubs](../00_dev_roadmap/75_seasonal_shrubs.md) for exact rules,
-habitats, saved crop cycles and developer test shortcuts.
+Farm plots and brewing remain future work. Fruit consumption is live in 131.
 
 **Mature shrub relocation — live 2026-10-08:** inspector **Move** replants the
 selected whole bush at chosen open ground; **Uproot** packs it for storage and
@@ -88,8 +86,7 @@ These actions preserve identity and the seasonal crop
 without yielding fruit or cuttings. Whole shrubs use seasonal wrapped-root art,
 one heavy carry load and one storage slot in Seeds & cuttings. Player placement
 uses suitable dry ground and a clear 3×3 envelope under open sky, independently
-of world-generation habitat bands. See [79 — Shrub transplanting](../00_dev_roadmap/79_shrub_transplanting.md)
-for ground rules, cancellation, save coverage and testing controls.
+of world-generation habitat bands.
 
 **Cutting growth — live 2026-10-08:** **Place → Plants** also plants one cutting
 per young shrub, with three seconds of worker planting. Blueberry/strawberry need
@@ -124,8 +121,8 @@ soil deposits and can add a rough patch of `base:terrain:soil:cave` on a chamber
 floor. This supplies a material and location for later underground agriculture.
 It does **not** implement farming, saturation, irrigation, or naturally growing
 cave crops. The requirements below remain the design target; dry cave soil alone
-does not promise a working farm. See [68](../00_dev_roadmap/68_caves_and_discovery.md)
-for the deferred water and fungi work.
+does not promise a working farm. The deferred cave water and fungi
+work is tracked in `00_todo.md` (World / caves).
 
 ### Underground Crops (cave soil — `base:terrain:soil:cave`)
 
@@ -179,21 +176,35 @@ FALLOW → SEEDED → SPROUTING → MATURE → HARVESTABLE → (harvested → FA
 
 Each transition triggers a visual mesh swap on the farm block (see Single-Tile Asset Overflow Rule below).
 
-- Annual crops (`post_harvest: "fallow"`) return to FALLOW after harvest.
-- Perennial crops (`post_harvest: "persist"`) stay in their current growth stage and re-enter HARVESTABLE the following harvest season.
+- Annual crops return to FALLOW after harvest.
+- Perennial crops stay in their current growth stage and re-enter HARVESTABLE the following harvest season.
+
+**Planned, not implemented.** The crop files in `data/entities/flora/` hold the
+stages, models and yields the art tools read; the farming rules below are design
+only. Stages advance in the order the crop file lists them.
+
+| Crop | Stages | After harvest |
+|---|---|---|
+| Plump helmet | sprouting (6 days) → mature | FALLOW, then automatically re-seeds to sprouting with no dwarf and no seed item; needs no light |
+| Pig tail | seedling (8 days) → mature | FALLOW; re-seed from pig tail seed |
+| Hops | seedling → climbing → mature | FALLOW; re-seed from hops cuttings |
+| Grape vine | cutting → fruiting | Persists |
 
 ---
 
 ## Beehives
 
-Beehives (`base:workshop:beehive`) are outdoor structures that produce honey passively over time. Full schema: `data/workshops/beehive.json`.
+Beehives (`base:workshop:beehive`) are outdoor structures that produce honey passively over time.
+
+**Planned, not implemented;** there is no beehive data file yet. Its one recipe,
+`base:recipe:beehive:collect_honey`, takes no inputs, yields 2 honey, is 1 hour of
+work and needs no skill. The placement and production values below are the design.
 
 ### Required future connection: wildflower forage
 
 **User requirement, 2026-10-08:** the generated wildflowers must have a meaningful
 role in honey production when beekeeping is implemented. They currently remain
-decorative; this connection is planned, not live. See
-[76 — Seasonal wildflowers](../00_dev_roadmap/76_seasonal_wildflowers.md).
+decorative; this connection is planned, not live.
 
 The proposed design is to measure nearby **blooming flower clumps** as bee forage
 and use that supply to influence hive productivity. Preserving a flower patch
@@ -239,15 +250,17 @@ Build multiple beehives to increase honey throughput. Honey is required for **Sw
 
 ## Brewing Recipes
 
-**Asset status, 2026-10-02:** the independently placeable `base:furniture:brewing_vat`
-now has a 2×2 model, packed item, placement and saving
-([art doc 42](../00_dev_roadmap/42_brewing_vat_asset_and_placement.md)). Its liquid
-surface is static artwork. This asset pass does not implement the brewery
-workshop, ingredient delivery, recipe queues or production described below.
+**Brewing vat:** a placeable brewing vat is planned with the brewery. There is no
+vat furniture definition or placed model in the game yet.
 
 Brewing converts raw crops into drinks and refined goods inside a `base:workshop:brewery` block.
 
-Recipes are defined in `data/workshops/brewery.json` (see that file for the full schema). The recipes are:
+**Planned, not implemented;** there is no brewery data file yet. Each recipe has an
+id, inputs and outputs, a work time in in-game hours, a skill bonus, a minimum
+Brewer level (Min Skill, 0 = always available) and a UI category (`ale`, `stout`,
+`mead`, `cider`, `wine`, `spirit`, `processed_goods`). Each Brewer level above 1
+cuts the work time by the recipe's skill bonus: 5% for ale, stout and cider, 6% for
+mead and wine, 7% for gin and 4% for cloth. The recipes are:
 
 ### Ales & Stouts
 
@@ -282,7 +295,7 @@ Brewing tasks are issued by the Task System when a brewery workshop is idle and 
 
 ## Aging Cellar
 
-The Aging Cellar (`base:workshop:aging_cellar`) is an underground workshop that produces premium aged drinks from base brewed drinks and oak staves. Full schema: `data/workshops/aging_cellar.json`.
+The Aging Cellar (`base:workshop:aging_cellar`) is an underground workshop that produces premium aged drinks from base brewed drinks and oak staves. It is **planned, not implemented;** there is no aging cellar data file yet.
 
 **Carpentry decision (2026-10-04):** oak felling supplies raw logs and possible
 acorns. A carpenter makes oak staves from those logs, then uses the staves for
@@ -290,12 +303,9 @@ oak aging casks. Staves never drop from trees. The planned aging recipes below
 still consume staves directly; those inputs are provisional until cask crafting
 and use are implemented. Carpentry quantities and work times remain to be defined.
 
-**Visual and placement status (2026-10-03):** the independently buildable
-**Aging Rack** (`base:furniture:aging_rack`) now supplies the 2×2×2 oak-cask model,
-packed item, ghost, hauling, uninstall and save/load integration. See
-[art doc 46](../00_dev_roadmap/46_aging_rack_asset_and_placement.md).
-The recipes and temperature-dependent batch behavior described below remain
-planned; the placed rack currently has no storage or production behavior.
+**Aging rack:** an oak-cask aging rack is planned with the aging cellar. There is
+no rack furniture definition or placed model in the game yet; the recipes and
+temperature-dependent batch behavior described below are planned too.
 
 For the full temperature system — sealed rooms, heat sources, the depth-temperature gradient, and the Frozen Vault — see [`34_temperature.md`](../30_simulation_systems/34_temperature.md).
 
@@ -341,8 +351,12 @@ Only **one batch per cellar block** can be in progress at a time. Build addition
 
 ### Aging Recipes
 
-These planned recipe values match `data/workshops/aging_cellar.json`; that file
-owns recipe quantities, work times and temperature ranges.
+Planned recipe values. Loading takes 1 hour, cut by 4% per Brewer level above 1;
+Min Skill is the minimum Brewer level. When the room is out of range the batch
+shows a tooltip: stout "Too warm for stout — lower temperature or build deeper.",
+wine "Temperature out of range for wine — adjust heat sources or depth.", gin
+"Too warm for gin — this recipe needs deep cold stone." UI categories are
+`aged_ale`, `aged_wine` and `aged_spirit`.
 
 | Recipe ID | Inputs | Output | Aging Time | Temp Range | Min Skill |
 |---|---|---|---|---|---|
@@ -388,7 +402,27 @@ zones remain planned. See docs 48, 84 and 252 for behavior and acceptance covera
 
 ### Collision Rule
 
-The `CollisionShape3D` XZ extents must match the visual canopy spread of the mesh. The harvestable destination region mirrors those same XZ extents at Y height = 1 (ground level, where the dwarf stands to chop). Collision runs full height from Y = 0 to the top of the mesh.
+A mature or ancient tree gets one `StaticBody3D` with a `BoxShape3D`: XZ = the stage's
+footprint (see the table below), height = the stage's `clearance_height` from the species
+JSON, resting on the ground. The canopy is visual overhang only and carries no collision
+(Hard Rule 5). Saplings have no body. `SurfaceFloraSpawner.enable_collision` can turn tree
+bodies off globally.
+
+**Physics layers — never put trees on Layer 1.** The RTS camera's `SpringArm3D` collides
+with Layer 1 only, which is reserved for terrain (`Camera.gd`). A tree body on Layer 1 makes
+the spring arm treat it as ground and snap the camera down onto the canopy on a quick pan.
+Trees and surface details (boulders) use **Layer 2** (`tree_collision_layer`); dwarves use
+Layer 3 (`DwarfAgent.COLLISION_LAYER_DWARF`). All three use `collision_mask = 0`.
+
+### Placed Tree Rendering
+
+Tree GLBs are Hearthblock models built by `tools/voxel_assets/trees.py`, exported in world
+units (1 block = 1 Godot unit, root scale 1; see `63_shared_art_standard.md`). A tree's origin
+is its trunk base, placed on the top face of the surface block (`get_surface_y + 1`).
+`SurfaceFloraSpawner` overrides every mesh with the terrain material: vertex colour as albedo,
+**lit** (`SHADING_MODE_PER_PIXEL`) and **double-sided** (`CULL_DISABLED`). Double-siding
+stops the stepped canopy showing see-through back faces; lighting makes the facets read
+as 3D like the ground. Trees bake their colours and use no runtime tint.
 
 ### Growth Stages
 
@@ -413,7 +447,15 @@ All trees share the same three-stage pattern:
 
 **Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Mature and ancient trees support perennial autumn picking, described above, with distinct ripe and picked visuals. Full apple schema: `data/entities/flora/apple_tree.json`.
 
-**Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner` (see `docs/00_dev_roadmap/13_flora_scatter_pine.md`). Full schema: `data/entities/flora/pine_tree.json`.
+**Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner`; placement across species is described under World placement below. Full schema: `data/entities/flora/pine_tree.json`.
+
+### World placement
+
+The settlement plain is fully forested: trees grow everywhere suitable, and the player clears land to build. There is no special forest belt at the map edge; the normal rules run to the border. Apples grow wild in groves; player planting of apple saplings is planned (no tree-planting work exists yet).
+
+Each species has an elevation, domain and moisture niche, and all species share one scatter grid (`SurfaceFloraSpawner.scatter_cell_size`). Each cell holds at most one tree: every species is scored for suitability there, and one is chosen by a seeded weighted pick, or the cell is left open. This blends species across the gradients and prevents overlapping trunks. Placement is a pure function of `world_seed` and column position, so it needs no save data; saves store only changed trees (felled, designated, harvested). Moisture is a seeded noise map that reads drier with altitude and wetter beside water (`WorldGenerator.get_moisture`). Per-species keys (domains, height band, moisture band, `base_density`, slope and edge limits, footprints, stage weights) live in the `placement` block of each `data/entities/flora/*_tree.json`. Apple suitability is also gated by a grove mask, so wild apples cluster into groves.
+
+The planned trade road (doc 51) must exclude flora from its road strip.
 
 ### Fruit Trees
 
@@ -426,8 +468,8 @@ A fruit tree has two independent harvest mechanisms:
 on the stage. Each autumn, eligible trees become ready to harvest. The player
 designates picking through the inspector or Harvest plants click/drag tool. A
 dwarf gathers fruit by hand at a reachable side of the trunk and leaves the
-crop there for ordinary hauling or eating. The tree persists
-(`post_harvest: "persist"`). Cancel/Undo releases the worker without losing the
+crop there for ordinary hauling or eating. The tree persists.
+Cancel/Undo releases the worker without losing the
 current crop's partial work. The same tree cannot be picked twice that autumn;
 the next year's crop starts with fresh work. No automatic annual orders are posted.
 
@@ -450,6 +492,53 @@ JSON. Hungry dwarves eat gathered fruit through the normal food system; emergenc
 self-foraging of standing plants still targets nearby ripe berry shrubs.
 
 > **Agent note**: Trees are the **only** surface entities with real collision shapes. Giving a `CollisionShape3D` to any farm crop violates the Single-Tile Asset Overflow Rule above.
+
+---
+
+## Surface details
+
+Boulders, scree, wild berry shrubs, wildflowers and reeds are surface details:
+placed entities, never terrain blocks. `SurfaceDetailRegistry` loads their
+definitions from `data/entities/surface_details.json` and the flora
+`*_bush.json` files; `SurfaceDetailPlacement` scores candidates and
+`SurfaceDetailManager` owns the layout, removals and saved changes. They sit
+beside the tree layer described under World placement and never change it.
+
+- **Placement comes from seed and category only.** A candidate derives from
+  `world_seed`, the definition's own hash salt and its scatter cell, sampled
+  against generated terrain and water. Loaded visuals, streaming order, camera
+  position and current occupancy never decide where a detail goes. Untouched
+  details regenerate on load; saves store only changes (removal, moves, partial
+  work, crop state).
+- **Precedence.** Generated tree candidates come first: a detail whose area,
+  plus its `tree_margin`, meets a tree candidate is rejected, even where that
+  tree has not streamed in. Remaining candidates are arbitrated by JSON
+  `placement_priority`, highest first, with ties broken by id: boulder 100,
+  scree 50, blueberry 20, elderberry 19, wild strawberry 18, flowers 10,
+  reeds 5.
+- **Conflicts resolve before saved removals apply.** Arbitration runs on the
+  immutable candidate set, so clearing a detail never lets a previously rejected
+  one appear on reload.
+- **Terrain is never flattened to fit a detail.** An unsupported footprint is
+  rejected, not levelled.
+- **Removal is committed before any reward.** The detail is tombstoned first and
+  the drop spawned after, so cancelling, season changes or reloading cannot
+  repeat a yield.
+- **Construction or loss of supporting ground removes a detail with no reward.**
+  Placed structures and terrain edits under a detail remove it permanently;
+  season changes, camera movement and loading never bring it back.
+- **Only boulders block.** A boulder registers its 2×2 footprint (2 high) in
+  `PlacedEntityRegistry` and gets a `StaticBody3D` on physics Layer 2 with
+  `collision_mask = 0`. Every other detail is non-blocking: no occupancy and no
+  collider (Hard Rule 5 for plant overhangs).
+- **Reeds use actual nearby water.** A reed roots on a dry bank within
+  `shore_radius` (4, Manhattan) of a generated water cell, 0–2 blocks above
+  that body's local waterline (`min_bank_height` / `max_bank_height`). The
+  water-bank mask is only a cheap prefilter; never place from the mask alone or
+  assume the waterline is Y18.
+- **Densities change only with measurement.** Before raising any category's
+  population, repeat a paired comparison of the same seeds and camera paths with
+  and without details (counts, frame time, draw calls, memory).
 
 ---
 

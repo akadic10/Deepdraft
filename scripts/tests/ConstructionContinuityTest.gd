@@ -58,7 +58,7 @@ func _four_block_column() -> void:
 		_expect(worker._construction_pose.tool.visible,"hammer stays equipped between blocks")
 		if _completed_cells().size()!=completed:
 			completed = _completed_cells().size()
-			var sample: Dictionary = worker._work_execution.sample(worker)
+			var sample: Dictionary = worker._work_execution.sample()
 			_expect(sample.unit==str(order.target),"supervision tracks the new block rather than the previous timer")
 			transitions.append({"completed":completed,"next_block":str(order.target),"task":worker.current_task_id,
 				"root":str(worker.global_position),"left_foot":str(worker._foot_l.global_position),"right_foot":str(worker._foot_r.global_position)})
@@ -98,7 +98,7 @@ func _interrupt_after_transition() -> void:
 	worker._process(5)
 	_expect(is_equal_approx(order.progress,partial),"pause freezes continued construction")
 	clock_node.set_paused(false)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(order.builder_id<0 and order.materials.count()==1 and is_equal_approx(order.work_progress[upper],partial),"interrupt after a chained commit preserves stock and partial work")
 	_expect(not worker._construction_pose.tool.visible and not worker._construction_pose._stance_ready,"interruption releases the pose anchor")
 	_expect(await _wait_phase(worker.TaskPhase.FETCH_WORKING),"partial chained work can resume")

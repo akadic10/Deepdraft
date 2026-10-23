@@ -2,10 +2,7 @@
   "__comment": "Presentation weather: visible precipitation and contextual sound; does not create simulated flood water. Scheduled and saved by WeatherManager.",
   "id": "base:weather:storm",
   "display_name": "Storm",
-  "vision_multiplier": 0.6,
   "is_dark_during_daytime": true,
-  "hide_cloud_shadows": true,
-  "snow_accumulation_per_minute": -0.0009,
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 1.0,
@@ -24,6 +21,5 @@
     "width": 0.023,
     "length": 0.65,
     "color": "#9fb6c6"
-  },
-  "thoughts": []
+  }
 }

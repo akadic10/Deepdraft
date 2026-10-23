@@ -232,7 +232,7 @@ func _rebuild_terrain_visual() -> void:
 				for direction: Vector3i in builder.DIRECTIONS:
 					var n := cell+direction
 					if n.y<=23 and blocks.is_solid(world.get_terrain_block(n.x,n.y,n.z)): continue
-					renderer._add_shell_face(cell,-direction,blocks.get_color(id),verts,norms,colors,indices)
+					renderer.add_shell_face(cell,-direction,blocks.get_color(id),verts,norms,colors,indices)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX]=verts; arrays[Mesh.ARRAY_NORMAL]=norms; arrays[Mesh.ARRAY_COLOR]=colors; arrays[Mesh.ARRAY_INDEX]=indices

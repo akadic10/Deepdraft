@@ -39,6 +39,7 @@ func _run() -> void:
 	director.name = "Dwarves"
 	director.camera_path = NodePath("../Camera")
 	director.window_manager_path = NodePath("../Windows")
+	director.dock_ui_path = NodePath("../Dock")
 	scene.add_child(director)
 	roster = director._roster_panel
 	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
@@ -129,7 +130,7 @@ func _run() -> void:
 	await _settle()
 	# Real contact/deposit and resting updates cannot shuffle All rows.
 	_expect(await _until(worker.TaskPhase.HAUL_DEPOSIT), "worker reaches actual stockpile deposit")
-	worker._process(worker._handling_duration)
+	worker._process(worker._work_execution._handling_duration)
 	roster.refresh()
 	await _settle()
 	_expect(roster._rows[worker].cargo_icon.visible == false and zone.stored_count() == 12, "deposit clears carried thumbnail and preserves stock")

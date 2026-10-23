@@ -96,7 +96,7 @@ func _run() -> void:
 			await process_frame
 			var screen := study.unproject_position(wildlife.get_explorer_bounds(rabbit).get_center())
 			if explorer.pick_at_screen(screen).get("id") == rabbit: break
-	dock._dispatch_panel_action("world_events", "DEV: Arrival status")
+	dock._dispatch_command("arrival_status_development")
 	await _shot("arrival_settled")
 	print(species.to_upper()+"_ARRIVAL_LIVE_PREVIEW_OK" if failures.is_empty() else species.to_upper()+"_ARRIVAL_LIVE_PREVIEW_FAILED")
 	root.get_node("WorldGenerator").prepare_for_world_reload()

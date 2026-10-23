@@ -14,9 +14,7 @@
     "width": 2,
     "depth": 1
   },
-  "blocks_movement": false,
   "collision_regions": [],
-  "room_anchor": false,
   "material_group": "wood",
   "material_palette": "oak_log",
   "appeal": {

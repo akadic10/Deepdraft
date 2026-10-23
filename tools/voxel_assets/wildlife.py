@@ -5,7 +5,7 @@ import hearthblock
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_wildlife.json')
+    profile=read_json('tools/art_data/voxel_wildlife.json')
     palette={key:linear(value) for key,value in profile['palette'].items()}
     for name,shapes in profile['parts'].items():
         path='assets/models/animals/'+name+'.glb'

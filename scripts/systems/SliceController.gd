@@ -18,7 +18,7 @@ extends Node
 ##     once per session; SaveManager persists active/height state (S4).
 ##   - Hotkeys (H1): slice_toggle (\), slice_cell_up (]), slice_cell_down ([),
 ##     slice_single_up (Ctrl+]), slice_single_down (Ctrl+[) — registered in
-##     project.godot [input] (ownership note: AGENT.md, approved 2026-06-05).
+##     project.godot [input] (ownership note: CLAUDE.md, approved 2026-06-05).
 ##   - The fixed TimeSliceHUD presents controls/readout; this node owns no UI.
 ##   - X-ray inspection keeps this plane and its controls available (doc 210).
 ##
@@ -42,7 +42,8 @@ const CELL_HEIGHT: int = 4
 const MIN_SLICE_Y: int = 4
 
 ## Ceiling clamp = slice off (world top; identical output to the unsliced view).
-const MAX_SLICE_Y: int = 127
+## Use it for every "slice off" default.
+const MAX_SLICE_Y: int = WorldData.MAX_Y
 
 # ── Signals ───────────────────────────────────────────────────────────────────
 
@@ -227,8 +228,8 @@ func _set_slice_y(value: int) -> void:
 func _seed_from_camera() -> int:
 	if _camera_rig == null or not WorldGenerator.has_method("get_visible_surface_y"):
 		return -1
-	var wx := clampi(floori(_camera_rig.global_position.x), 0, WorldGenerator.WORLD_SIZE_X - 1)
-	var wz := clampi(floori(_camera_rig.global_position.z), 0, WorldGenerator.WORLD_SIZE_Z - 1)
+	var wx := clampi(floori(_camera_rig.global_position.x), 0, WorldData.WORLD_SIZE_X - 1)
+	var wz := clampi(floori(_camera_rig.global_position.z), 0, WorldData.WORLD_SIZE_Z - 1)
 	var surface_y := int(WorldGenerator.get_visible_surface_y(wx, wz))
 	if surface_y < 0:
 		return -1

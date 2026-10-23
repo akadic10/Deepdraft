@@ -14,36 +14,22 @@ class FaultStore extends "res://scripts/components/SaveFileStore.gd":
 	var reads := 0
 	func _write_text_file(path: String, contents: String) -> String:
 		return "injected write failure" if fail_write else super._write_text_file(path,contents)
-	func _read_snapshot(path: String) -> Dictionary:
+	func read_snapshot(path: String) -> Dictionary:
 		reads+=1
 		if reads==fail_read: return {"ok":false,"missing":false,"error":"injected validation failure"}
-		return super._read_snapshot(path)
+		return super.read_snapshot(path)
 
 static func run(tree: SceneTree, saves: Node) -> String:
 	var expected: Dictionary=saves._build_snapshot()
 	var capture: Dictionary=saves._capture_snapshot()
 	Preparation.finish(capture,saves._captured_sections)
 	if JSON.stringify(expected.scene)!=JSON.stringify(capture.scene): return "worker preparation differs from synchronous serializers"
-	# Frozen former validator remains an independent oracle for legacy reads.
-	var old:=GDScript.new()
-	old.source_code=FileAccess.get_file_as_string("res://docs/00_dev_roadmap/concepts/autosave_20261015/SaveSnapshotValidator.gd.before.txt")
-	if old.reload()!=OK: return "frozen validator failed to compile"
 	var canonical: Dictionary=JSON.parse_string(JSON.stringify(expected))
 	var catalogs: Dictionary=saves._capture_catalogs()
-	var legacy: Dictionary=canonical.duplicate(true)
-	legacy.schema_version=1
-	legacy.scene.erase("terrain"); legacy.scene.erase("exploration")
-	legacy.scene.mining.mined_blocks=[]
-	legacy.scene.water.terrain=[]
-	legacy.scene.construction.built=[]
-	var cases: Array=[legacy]
-	for field in legacy.scene:
-		var invalid: Dictionary=legacy.duplicate(true)
-		invalid.scene.erase(field)
-		cases.append(invalid)
-	for state in cases:
-		if old.validate(state,1)!=Store.Validator.validate_captured(state,2,catalogs): return "captured validator changed a legacy validation result"
-	if not Store.Validator.validate_captured(canonical,2,catalogs).is_empty(): return "current final-terrain snapshot rejected"
+	if not Store.Validator.validate_captured(canonical,saves.SAVE_SCHEMA_VERSION,catalogs).is_empty(): return "current snapshot rejected"
+	var other_version: Dictionary=canonical.duplicate(true)
+	other_version.schema_version=saves.SAVE_SCHEMA_VERSION-1
+	if Store.Validator.validate_captured(other_version,saves.SAVE_SCHEMA_VERSION,catalogs).is_empty(): return "a save from another version was accepted"
 	var owner:=AliasedOwner.new()
 	tree.root.add_child(owner)
 	owner.add_to_group("save_state_owner")
@@ -91,7 +77,7 @@ static func run(tree: SceneTree, saves: Node) -> String:
 		if fault.result_error.is_empty() or FileAccess.get_file_as_bytes(paths.primary)!=primary: return "failed transaction changed the last good primary"
 		var expected_backup: PackedByteArray=primary if mode=="installed" else backup
 		if FileAccess.get_file_as_bytes(paths.backup)!=expected_backup: return "failed transaction lost the valid backup"
-	print("SAVE_WORKER_CHECKS_PASS ",cases.size()," validator comparisons; exact capture; isolated nested state; busy guards; 3 failure stages")
+	print("SAVE_WORKER_CHECKS_PASS current and other-version validation; exact capture; isolated nested state; busy guards; 3 failure stages")
 	return ""
 
 static func _wait(tree: SceneTree,saves: Node) -> bool:

@@ -14,13 +14,12 @@ func _run() -> void:
 	root.get_node("WorldGenerator").world_seed=1234
 	var scene := Node3D.new(); root.add_child(scene); current_scene=scene
 	var controller = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	controller._load_defs()
 	var libraries := {}; var frames := 0; var sources := 0
 	for id: String in ["campfire","hearth","wooden_torch"]:
 		var key := "base:furniture:"+id
 		var definition: Dictionary=controller.get_defs()[key]
 		var config: Dictionary=definition.light_source.flame_animation
-		var model: Node3D=controller._instance_model(key,controller._make_solid_material())
+		var model: Node3D=controller._instance_model(key,controller.make_solid_material())
 		scene.add_child(model); model.position.x=sources*4
 		var flame: MeshInstance3D=model.find_child(definition.light_source.emissive_mesh,true,false)
 		var first_mesh := flame.mesh

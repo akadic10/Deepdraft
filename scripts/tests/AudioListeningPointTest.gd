@@ -7,6 +7,7 @@ class Sleeper extends Node3D:
 	func is_resting() -> bool: return true
 class Fires extends Node3D:
 	var _installed := {}
+	func get_installed_pieces() -> Array: return _installed.values()
 
 var failures: Array[String] = []
 

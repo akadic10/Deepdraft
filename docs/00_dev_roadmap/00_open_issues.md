@@ -121,7 +121,7 @@ probe-cap hypothesis below at the system level, but the original 2026-08-14
 mining/hauling stall had not been reproduced with the new code, so the issue was
 kept open at that time. The old cap-raising experiment is historical, not the next recommended fix.
 
-**2026-10-06 follow-up:** [60 — Hauling worker selection](60_hauling_worker_selection.md)
+**2026-10-06 follow-up:** the hauling worker selection change (doc 60, retired; rules in `31_task_system.md` Scheduler)
 fixes idle-queue ordering after tree felling and a returning hauler bypassing
 matching after deposit. Those defects have targeted reproductions and passing
 regressions. They do not establish the cause of this older mining-face stall;

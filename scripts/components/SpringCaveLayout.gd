@@ -1,5 +1,7 @@
 extends RefCounted
 
+const WorldSize = preload("res://scripts/systems/WorldSize.gd")
+
 ## A real, surface-connected cavity. The heightmap still describes the roof;
 ## column spans describe the stream bed and the raised, walkable ledges below it.
 static func build(seed_value: int, river: Dictionary, heights: PackedInt32Array, profile: Dictionary) -> Dictionary:
@@ -17,7 +19,7 @@ static func build(seed_value: int, river: Dictionary, heights: PackedInt32Array,
 		for d in range(attempt-3,attempt+2):
 			for u in range(-3,4):
 				var p := origin+back*d+side*u
-				if heights[p.x*1024+p.y]<ceiling+int(profile.roof_thickness): covered = false
+				if heights[p.x*WorldSize.WORLD_SIZE_Z+p.y]<ceiling+int(profile.roof_thickness): covered = false
 		if covered:
 			length = attempt
 			break
@@ -29,7 +31,7 @@ static func build(seed_value: int, river: Dictionary, heights: PackedInt32Array,
 		var radius := 3 if d>=length-3 else 2
 		for u in range(-radius,radius+1):
 			var p := origin+back*d+side*u
-			var index := p.x*1024+p.y
+			var index := p.x*WorldSize.WORLD_SIZE_Z+p.y
 			# Widen into a collection pool; the chamber expands one row before
 			# the water so each dry ledge can turn around the wider basin.
 			var stream := absi(u)<=(2 if d>=length-2 and d<length else 1)
@@ -44,7 +46,7 @@ static func build(seed_value: int, river: Dictionary, heights: PackedInt32Array,
 	# open and the approach uses the same real solid floor/air as the chamber.
 	for u in range(-1,2):
 		var p := origin-back+side*u
-		var index := p.x*1024+p.y
+		var index := p.x*WorldSize.WORLD_SIZE_Z+p.y
 		if heights[index]<mouth.y: continue # Already carved by the river.
 		# The river preserves upper cliff columns. Tunnel through a protruding
 		# lip at water height without shaving away its roof or the summit.
@@ -53,7 +55,7 @@ static func build(seed_value: int, river: Dictionary, heights: PackedInt32Array,
 		bounds = bounds.merge(Rect2i(p,Vector2i.ONE))
 	for bank: int in [-1,1]:
 		var p := origin-back+side*2*bank
-		columns[p.x*1024+p.y] = Vector3i(ledge,ceiling,-1)
+		columns[p.x*WorldSize.WORLD_SIZE_Z+p.y] = Vector3i(ledge,ceiling,-1)
 		ledges.append(Vector3i(p.x,ledge,p.y))
 		bounds = bounds.merge(Rect2i(p,Vector2i.ONE))
 	var source_col := origin+back*length

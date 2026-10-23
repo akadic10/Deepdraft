@@ -12,7 +12,6 @@
     "width": 3,
     "depth": 3
   },
-  "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
@@ -27,13 +26,11 @@
       ]
     }
   ],
-  "room_anchor": false,
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {
     "design": 1,
     "material_factor": 0.5
   },
-  "crafting_surface_radius": 0.625,
-  "layout_version": 2
+  "crafting_surface_radius": 0.625
 }

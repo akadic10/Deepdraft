@@ -37,25 +37,8 @@ func _run() -> void:
 	_expect(withdrawn==stored_item and drops.Permission.allowed(withdrawn), "ground storage withdraws the physical crate")
 	_expect(_has_permission_action(drops.get_explorer_data(withdrawn)), "permission action returns outside storage")
 	drops.unreserve(withdrawn,999)
-	# Stored ownership clears permissions in both hidden and visible containers.
-	for shelf in [false,true]:
-		var container = _container(shelf,Vector3i(50,20,42))
-		container.restore_inventory({ACORN:15},drops,[{"item":ACORN,"count":7,"disallowed":true},{"item":ACORN,"count":8,"disallowed":false}])
-		_expect(container.occupied_slots()==2, "restore preserves physical crates")
-		for s in container.stored_entries():
-			_expect(container.slot_allowed(s) and not container.stored_entries()[s].disallowed, "restored storage has no hidden disallowed stock")
-			if shelf: _expect(drops.Permission.allowed(container._anchor_slots[s][0]), "shelf visual agrees with stored ownership")
-		var returned = container.withdraw_nearest(ACORN,Vector3i.ZERO,999)
-		_expect(returned!=null and drops.quantity_of(returned)==1 and drops.Permission.allowed(returned), "container selects available stock")
-		drops.unreserve(returned,999)
-		_expect(container.dump_contents(Vector3i(50,20,42))==14, "removing storage returns every remaining unit")
-		var forbidden := 0
-		for node in drops._loose:
-			if not drops.Permission.allowed(node): forbidden+=drops.quantity_of(node)
-		_expect(forbidden==0, "storage removal releases allowed goods")
-		stockpiles.deregister_container(container)
 	await _review_storage_contents()
-	if failures.is_empty(): print("ITEM_PERMISSIONS_OK: outside-storage controls, pickup/contact cancellation, carried release, grouped material-aware contents, live counts and ground/chest/shelf ownership")
+	if failures.is_empty(): print("ITEM_PERMISSIONS_OK: outside-storage controls, pickup/contact cancellation, carried release, grouped material-aware contents, live counts and ground ownership")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
 
@@ -107,15 +90,6 @@ func _review_storage_contents() -> void:
 	await _settle()
 	expected[2][1] = "× 2"
 	_expect(_content_rows(panel)==expected and "Goods stored: 20" in panel.info_label.text, "live withdrawal updates grouped totals")
-	# The same panel is reused for both container representations.
-	for shelf in [false,true]:
-		var container = _container(shelf,Vector3i(50,20,42))
-		container.restore_inventory({ACORN:15,PINE:1},drops,[{"item":PINE,"count":1},{"item":ACORN,"count":7},{"item":ACORN,"count":8}])
-		panel.show_storage(container,[])
-		await _settle()
-		_expect(_content_rows(panel)==[["Oak Acorn","× 15"],["Pine Log","× 1"]], "container Contents groups separate crates")
-		_expect("3 / 3 slots used" in panel.info_label.text, "container capacity still counts occupied slots")
-		stockpiles.deregister_container(container)
 	# Ground restore also applies current storage access rules to flags in input.
 	var saved: Dictionary = storage.serialize_state()
 	for entry: Dictionary in saved.zones:

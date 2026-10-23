@@ -119,7 +119,7 @@ func _run() -> void:
 	rabbit.restore_state(clone_state)
 	for i in range(40): wildlife.advance(0.05, [])
 	_expect(rabbit.serialize_state() == future, "restored RNG and hop phase resume the same decisions")
-	wildlife.restore_state({"initialized":true,"rabbits":[]})
+	wildlife.restore_state({"initialized":true,"rabbits":[],"deer_initialized":true,"deer":[],"wolf_initialized":true,"wolves":[],"duck_initialized":true,"ducks":[]})
 	_expect(wildlife.initialized and wildlife.animals.is_empty(), "saved empty population stays empty")
 	if failures.is_empty(): print("RABBIT_WILDLIFE_OK")
 	else:

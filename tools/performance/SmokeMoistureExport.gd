@@ -71,7 +71,7 @@ func _settle(terrain: Node, water: Node) -> void:
 	await process_frame
 	await process_frame
 	var view=terrain.get_node("Water")
-	while not terrain._overview_built or not terrain._dirty_overview_tiles.is_empty() or terrain._cavity_shell_dirty or terrain.underground_lighting.is_updating() or not water.dirty_tiles.is_empty() or not view._pending.is_empty() or not view._jobs.is_empty() or _moisture(terrain).is_updating():
+	while not terrain.tiles.overview_built or not terrain.tiles.dirty_overview_tiles.is_empty() or terrain.cavity_shell.dirty or terrain.underground_lighting.is_updating() or not water.dirty_tiles.is_empty() or not view._pending.is_empty() or not view._jobs.is_empty() or _moisture(terrain).is_updating():
 		await process_frame
 
 func _moisture(terrain: Node) -> Node:

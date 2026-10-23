@@ -85,7 +85,7 @@ func _all_units() -> int:
 	var total := _snapshot_units()
 	if is_instance_valid(second):
 		for entry: Dictionary in second.serialize_state().carried_items: total += int(entry.count)
-	for source in stockpiles._zones.values()+stockpiles._containers.values():
+	for source in stockpiles._zones.values():
 		for amount in source.contents().values(): total += int(amount)
 	return total
 
@@ -148,23 +148,6 @@ func _stored_bundle() -> void:
 	_expect(not construction.orders.has(id) and zone.stored_count()==0,"stored bundle reaches crate and builds all four voxels")
 	_expect(zone._outgoing.is_empty(),"stored portion claims released")
 	stockpiles.deregister_zone(zone)
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	container.setup_container({"storage":{"capacity":8}},_cells([Vector3i(40,20,46)]))
-	container.restore_inventory({STONE:4},drops)
-	stockpiles.register_container(container)
-	cells.clear()
-	for x in range(47,51): cells.append(Vector3i(x,21,51))
-	id = construction.create_order(cells)
-	saw_bundle = false
-	for tick in range(1800):
-		await _tick()
-		if worker._task_phase == worker.TaskPhase.HAUL_TO_ZONE:
-			saw_bundle = worker._carried_entries.size()==4
-		if not construction.orders.has(id): break
-	_expect(saw_bundle,"one storage container supplies a normal four-stone bundle")
-	_expect(not construction.orders.has(id) and container.stored_count()==0,"container stone is delivered and consumed exactly once")
-	_expect(container._outgoing.is_empty(),"container withdrawal claims are released")
-	stockpiles.deregister_container(container)
 
 func _missing_supply_cancel() -> void:
 	drops.spawn_drop(STONE,4,Vector3i(40,21,40))

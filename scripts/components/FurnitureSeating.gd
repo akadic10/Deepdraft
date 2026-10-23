@@ -35,7 +35,7 @@ func slots_for_layout(def: Dictionary, origin: Vector3i, table_yaw: int) -> Arra
 	var result: Array[Dictionary] = []
 	var seating: Dictionary = def.get("seating", {})
 	var key := String(seating.get("chair_key", ""))
-	var chair: Dictionary = controller._defs.get(key, {})
+	var chair: Dictionary = controller.get_defs().get(key, {})
 	if chair.is_empty():
 		return result
 	for slot: Dictionary in seating.get("slots", []):
@@ -62,8 +62,8 @@ func chair_definition(def: Dictionary, origin: Vector3i, yaw: int, layout: Dicti
 	if not is_chair(def): return def
 	var candidates: Array[Dictionary] = []
 	if not layout.is_empty(): candidates.append(layout)
-	for pieces: Dictionary in [controller._installed, controller._ghosts]:
-		for piece in pieces.values():
+	for pieces: Array in [controller.get_installed_pieces(), controller.get_ghost_pieces()]:
+		for piece in pieces:
 			if piece.def.get("seating", {}).has("chair_profile"):
 				candidates.append({"def":piece.def,"origin":piece.origin_cell,"yaw":piece.yaw_steps})
 	for table in candidates:
@@ -136,7 +136,7 @@ func _obstacles(def: Dictionary, origin: Vector3i, yaw: int) -> Array[Dictionary
 	if def.has("grid_fence"): return controller._fences.obstacles(def,origin,yaw)
 	var result: Array[Dictionary] = []
 	if not def.has("seating_obstacles"):
-		return [{"bounds": controller._visual_bounds(def, origin, yaw)}]
+		return [{"bounds": controller.visual_bounds(def, origin, yaw)}]
 	for region: Dictionary in def.seating_obstacles:
 		result.append({"bounds": _world_box(def, region, origin, yaw)})
 	return result
@@ -170,10 +170,10 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 	var spaces: Array[Dictionary] = []
 	if chair: spaces = clearance_regions(def, origin, yaw)
 	var furniture_handles: Array[int] = []
-	for piece in controller._installed.values():
+	for piece in controller.get_installed_pieces():
 		furniture_handles.append_array(piece.occupancy_ids)
-	for pieces: Dictionary in [controller._ghosts, controller._installed]:
-		for piece in pieces.values():
+	for pieces: Array in [controller.get_ghost_pieces(), controller.get_installed_pieces()]:
+		for piece in pieces:
 			if piece == skip:
 				continue
 			if chair and _overlap(spaces, _obstacles(piece.def, piece.origin_cell, piece.yaw_steps)):
@@ -188,12 +188,12 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 	for space in spaces:
 		for cell: Vector3i in controller._bounds_cells(space.bounds):
 			if not regions_intersect(space, {"bounds": AABB(Vector3(cell), Vector3.ONE)}): continue
-			if cell.x < 0 or cell.z < 0 or cell.x >= WorldGenerator.WORLD_SIZE_X or cell.z >= WorldGenerator.WORLD_SIZE_Z \
-					or cell.y >= WorldData.WORLD_SIZE_Y or controller._block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID \
+			if cell.x < 0 or cell.z < 0 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z \
+					or cell.y >= WorldData.WORLD_SIZE_Y or controller.terrain_block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID \
 					or PlacedEntityRegistry.occupies(cell, furniture_handles):
 				return "seat_clearance"
 	for cell in access_cells(def, origin, yaw):
-		if NavGrid.is_walkable(cell) and not controller._cell_to_ghost.has(cell):
+		if NavGrid.is_walkable(cell) and controller.get_ghost_at(cell) == null:
 			return ""
 	return "seat_access"
 
@@ -203,15 +203,10 @@ func placement_reason(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 func _chair_count(slots: Array[Dictionary], skip = null) -> int:
 	var count := 0
 	for slot in slots:
-		var installed = controller._installed.get(int(controller._cell_to_installed.get(slot.origin, -1)))
-		var ghost = controller._ghosts.get(int(controller._cell_to_ghost.get(slot.origin, -1)))
+		var installed = controller.get_installed_at(slot.origin)
+		var ghost = controller.get_ghost_at(slot.origin)
 		for chair in [installed, ghost]:
 			if chair == skip or not matches_slot(chair, slot):
-				continue
-			# Older saves could contain several previously standalone chair plans.
-			# Built chairs win; otherwise the first queued plan may still finish.
-			if skip is FurnitureGhostComponent and chair is FurnitureGhostComponent \
-					and chair.ghost_id > skip.ghost_id:
 				continue
 			count += 1
 	return count
@@ -219,8 +214,8 @@ func _chair_count(slots: Array[Dictionary], skip = null) -> int:
 
 func exceeds_capacity(def: Dictionary, origin: Vector3i, yaw: int, skip = null) -> bool:
 	if is_chair(def):
-		for pieces: Dictionary in [controller._installed, controller._ghosts]:
-			for table in pieces.values():
+		for pieces: Array in [controller.get_installed_pieces(), controller.get_ghost_pieces()]:
+			for table in pieces:
 				var seating: Dictionary = table.def.get("seating", {})
 				if seating.is_empty() or table.origin_cell.y != origin.y:
 					continue
@@ -239,7 +234,7 @@ func exceeds_capacity(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 ## Associations are derived, so removing a table cannot strand a saved chair ID.
 func installed_seats(table_id: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	var table = controller._installed.get(table_id)
+	var table = controller.get_installed(table_id)
 	if table == null:
 		return result
 	var limit := int(table.def.get("seating", {}).get("max_chairs", 2147483647))
@@ -247,7 +242,7 @@ func installed_seats(table_id: int) -> Array[Dictionary]:
 		if result.size() >= limit:
 			break
 		var id := int(controller._cell_to_installed.get(slot.origin, -1))
-		var chair = controller._installed.get(id)
+		var chair = controller.get_installed(id)
 		if matches_slot(chair, slot):
 			slot["chair_id"] = id
 			result.append(slot)
@@ -255,7 +250,7 @@ func installed_seats(table_id: int) -> Array[Dictionary]:
 
 
 func is_recreation_seat(piece) -> bool:
-	for table in controller._installed.values():
+	for table in controller.get_installed_pieces():
 		if table.flagged_uninstall or not table.def.has("recreation"): continue
 		for slot in slots_for_layout(table.def,table.origin_cell,table.yaw_steps):
 			if matches_slot(piece,slot): return true
@@ -285,7 +280,7 @@ func resolve(cell: Vector3i) -> void:
 	clear_guides()
 	aim = cell
 	dirty = false
-	var def: Dictionary = controller._defs.get(controller._active_key, {})
+	var def: Dictionary = controller.get_defs().get(controller._active_key, {})
 	if not is_chair(def):
 		return
 	var nearby: Array[Dictionary] = []
@@ -293,8 +288,8 @@ func resolve(cell: Vector3i) -> void:
 	var nearest_distance := INF
 	var cursor := Vector3(cell) + Vector3(.5, 0, .5)
 	# Pick by nearest seat, so adjacent tables do not steal one another's slots.
-	for pieces: Dictionary in [controller._installed, controller._ghosts]:
-		for piece in pieces.values():
+	for pieces: Array in [controller.get_installed_pieces(), controller.get_ghost_pieces()]:
+		for piece in pieces:
 			if piece.origin_cell.y != cell.y or not controller._piece_visible(piece.def, piece.origin_cell, piece.yaw_steps):
 				continue
 			for slot in slots_for(piece):
@@ -317,14 +312,14 @@ func resolve(cell: Vector3i) -> void:
 			snap = slot.duplicate()
 	for slot in nearby:
 		# A real/planned chair already depicts its occupied position.
-		var ghost = controller._ghosts.get(int(controller._cell_to_ghost.get(slot.origin, -1)))
-		var installed = controller._installed.get(int(controller._cell_to_installed.get(slot.origin, -1)))
+		var ghost = controller.get_ghost_at(slot.origin)
+		var installed = controller.get_installed_at(slot.origin)
 		if matches_slot(ghost, slot) or matches_slot(installed, slot):
 			continue
 		var reason: String = controller._floor_placement_reason(def, slot.origin, slot.yaw)
 		if reason == "seat_capacity":
 			continue # Full personal tables stop advertising alternative chair guides.
-		var material: StandardMaterial3D = controller._make_ghost_material()
+		var material: StandardMaterial3D = controller.make_ghost_material()
 		var tint: Color = controller.TINT_VALID if reason.is_empty() else controller.TINT_INVALID
 		material.albedo_color = Color(tint.r, tint.g, tint.b, .18)
 		var guide: Node3D = controller._instance_model(slot.key, material)

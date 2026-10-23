@@ -178,7 +178,7 @@ func _check_water() -> void:
 		for y in range(floor_y + 1, line + 1):
 			_expect(_generator.get_generated_block_id(x, y, z) == water_id, "Water column has a gap.")
 		_expect(_generator.get_generated_block_id(x, line + 1, z) == _blocks.AIR_ID, "Water extends above its line.")
-		_generator._fill_chunk_column(x / 16, z / 16)
+		_generator.block_fill.fill_chunk_column(x / 16, z / 16)
 		for y in range(floor_y + 1, line + 1):
 			_expect(_world.get_block(x, y, z) == water_id, "Streamed chunk lost water above lake floor.")
 		_expect(_generator.get_visible_surface_block_id(x, z) == water_id, "Overview water block disagrees with generated block.")
@@ -196,7 +196,7 @@ func _check_water() -> void:
 					checked[wet] = true
 					var mask: Dictionary = _generator.lake_columns if body["kind"] == "lowland_lake" else _generator.tarn_columns
 					_expect(mask.has(Vector2i(sx, sz)) == wet, "Detailed shore has stale water membership.")
-					_generator._fill_chunk_column(sx / 16, sz / 16)
+					_generator.block_fill.fill_chunk_column(sx / 16, sz / 16)
 					for sy in range(floor_y, maxi(surface, line) + 2):
 						var expected: int = _generator.get_generated_block_id(sx, sy, sz)
 						_expect(_world.get_block(sx, sy, sz) == expected, "Streamed shore differs from detailed terrain.")
@@ -211,7 +211,7 @@ func _check_blocks() -> void:
 		var x := (index / 32) * 32 + 16
 		var z := (index % 32) * 32 + 16
 		for y in range(4):
-			_expect(_generator.get_generated_block_id(x, y, z) == _generator._id_bedrock, "Bedrock changed.")
+			_expect(_generator.get_generated_block_id(x, y, z) == _generator.block_fill.id_bedrock, "Bedrock changed.")
 		if layout["water_index"][index] >= 0: continue
 		var y: int = _generator.get_surface_y(x, z)
 		_expect(_generator.get_visible_surface_block_id(x, z) == _generator.get_generated_block_id(x, y, z), "Visible surface does not match terrain blocks.")

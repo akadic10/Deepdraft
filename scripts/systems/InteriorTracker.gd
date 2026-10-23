@@ -186,11 +186,6 @@ func serialize_exploration() -> Dictionary:
 	return {"cells":cells,"caves":caves}
 
 func restore_exploration(state: Dictionary) -> void:
-	# Legacy mining records supply exploration seeds only, never terrain writes.
-	if state.has("legacy_mined"):
-		var seeds: Array[Vector3i] = []
-		for packed: Array in state.legacy_mined: seeds.append(Vector3i(packed[0],packed[1],packed[2]))
-		on_blocks_mined(seeds)
 	for packed: Array in state.cells: _add_cell(Vector3i(packed[0],packed[1],packed[2]))
 	for cave_id in state.caves:
 		if _discovered_caves.has(int(cave_id)): continue

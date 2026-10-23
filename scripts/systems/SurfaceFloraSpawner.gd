@@ -10,13 +10,13 @@ extends Node3D
 ## open). This blends species across the moisture/elevation gradient and prevents
 ## overlapping trunks. Streams in/out with the camera like the terrain.
 ##
-## Design + decisions: docs/00_dev_roadmap/14_flora_distribution_plan.md
-##                     docs/00_dev_roadmap/13_flora_scatter_pine.md (pine first pass)
+## Design + decisions: docs/40_economy_colony/42_farming_brewing.md (World placement)
 ## Placement data:     data/entities/flora/<species>_tree.json -> "placement"
-## Footprint / rules:  docs/40_economy_colony/42_farming_brewing.md (Surface Trees)
+## Footprint / rules:  docs/40_economy_colony/42_farming_brewing.md (Surface Trees:
+##                     collision, physics layers, rendering)
 ##
-## OWNS its own data loading (the VisitorManager pattern — no separate registry
-## autoload for flora). All FileAccess for flora JSON happens here.
+## Species definitions come from ContentRegistry; this node keeps the derived
+## scatter entries and all runtime forestry state.
 ##
 ## Determinism (Hard Rule 8): every decision is a pure function of
 ## WorldGenerator.world_seed + column XZ. No randi()/randf().
@@ -33,15 +33,6 @@ const DOMAIN_MOUNTAIN: int = 2
 
 # ── Tunables (exported so they can be adjusted in the editor) ─────────────────
 
-## Flora definition JSON files. Each holds one "base:flora:*_tree" species block.
-## A file without a "placement" block is skipped (assets exist but no niche yet).
-@export var flora_json_paths: Array[String] = [
-	"res://data/entities/flora/pine_tree.json",
-	"res://data/entities/flora/oak_tree.json",
-	"res://data/entities/flora/apple_tree.json",
-	"res://data/entities/flora/juniper_tree.json",
-]
-
 ## Shared scatter grid: one candidate tree per cell_size×cell_size block cell
 ## (bigger = sparser overall). This is the master density dial; per-species
 ## base_density (in each JSON) sets the relative mix within a cell.
@@ -55,7 +46,7 @@ const DOMAIN_MOUNTAIN: int = 2
 ## cover_whole_map is OFF). Match WorldRenderer's view_radius_chunks.
 @export_range(1, 64, 1) var view_radius_chunks: int = 5
 
-## Scale conversion. The live world renders 1 block = 1.0 Godot unit (doc 13 §5).
+## Scale conversion. The live world renders 1 block = 1.0 Godot unit (doc 63).
 ## Tree GLBs are built on the 1:16 grid but exported in world units with root
 ## scale 1.0 (doc 63; never edit .import), so instance_scale =
 ## godot_units_per_block / voxels_per_block = 1.0 / 1.0 = 1.0.
@@ -84,8 +75,8 @@ const DOMAIN_MOUNTAIN: int = 2
 
 @export var debug_logging: bool = true
 
-## Slice tool — placed flora hide above the active cut plane (11_slice_xray_plan.md
-## Phase 5). Wire to the SliceController node; leave empty to disable slice culling.
+## Slice tool — placed flora hide above the active cut plane (21_camera.md
+## Known limitations). Wire to the SliceController node; leave empty to disable slice culling.
 @export var slice_controller_path: NodePath
 
 # ── Loaded data ───────────────────────────────────────────────────────────────
@@ -116,13 +107,12 @@ var _trees: Dictionary = {}  # Vector2i(wx, wz) -> {name, stage, cell, node, bou
 var _flight_tree_reach := 32.0 # Conservative initial canopy broad-phase radius.
 const FellingSource = preload("res://scripts/components/TreeFellingComponent.gd")
 var _tree_changes: Dictionary = {} # Vector2i -> authoritative, saveable forestry delta
-var _felling_sources: Dictionary = {} # Vector2i -> TreeFellingComponent
-var _source_trees: Dictionary = {} # source id -> Vector2i
+var work := preload("res://scripts/components/WorkSourceTable.gd").new() # Vector2i tree id -> TreeFellingComponent
 var _felling_markers: Dictionary = {} # Vector2i -> Label (projected UI, never a pick target)
 var _felling_marker_layer: CanvasLayer
 signal tree_felling_changed(tree_id: Vector2i)
 
-const SLICE_OFF_Y: int = 127            # SliceController.MAX_SLICE_Y → slice off (all flora visible)
+const SLICE_OFF_Y: int = SliceController.MAX_SLICE_Y   # slice off (all flora visible)
 var _slice_controller: Node = null
 var _slice_y: int = SLICE_OFF_Y         # active cut plane; trees with base_y > this are hidden
 
@@ -134,10 +124,6 @@ func _ready() -> void:
 	_felling_marker_layer = CanvasLayer.new()
 	_felling_marker_layer.layer = 19 # Below dock/windows; visible with the Chop tool off.
 	add_child(_felling_marker_layer)
-	TaskManager.task_released.connect(_on_felling_released)
-	TaskManager.task_completed.connect(_on_felling_task_gone)
-	TaskManager.task_cancelled.connect(_on_felling_task_gone)
-	TaskManager.task_failed.connect(func(task: Task, _reason: String) -> void: _on_felling_task_gone(task))
 	_tree_material = _build_tree_material()
 	if not _load_all_flora():
 		push_error("SurfaceFloraSpawner: no usable flora definitions; disabled.")
@@ -288,6 +274,15 @@ func _spawn_column(cx: int, cz: int) -> void:
 
 
 ## Read-only soundscape query. Removed and sliced-away trees add no rustle.
+## Live trees by column, Vector2i -> record. Read-only; do not mutate.
+func get_trees() -> Dictionary:
+	return _trees
+
+## The saved forestry change for a tree column, or {}.
+func get_tree_change(id: Vector2i) -> Dictionary:
+	return _tree_changes.get(id, {})
+
+
 func ambient_tree_density(point: Vector3, radius: float, full_count: float) -> float:
 	var count := 0.0
 	for node: Node3D in ambient_trees(point, radius):
@@ -417,7 +412,7 @@ func _suitability(sp: Dictionary, domain: int, ground_y: int, moisture: float,
 	var grove := _grove_weight(pl, wx, wz)
 	if grove <= 0.0:
 		return 0.0
-	var base := float(pl.get("base_density", pl.get("spawn_chance", 0.4)))
+	var base := float(pl.base_density)
 	return base * mw * fall * grove
 
 
@@ -521,7 +516,7 @@ func _despawn_column(key: Vector2i, preserve_occupancy: bool = false) -> void:
 	_loaded_columns.erase(key)
 
 
-# ── Slice culling (11_slice_xray_plan.md Phase 5) ─────────────────────────────
+# ── Slice culling (21_camera.md) ──────────────────────────────────────────────
 
 ## Hide trees whose base sits above the active cut plane. Coarse per-instance toggle:
 ## a tree straddling the plane shows whole (canopy may poke above) — acceptable v1; a
@@ -773,52 +768,21 @@ func _find_camera(node: Node) -> Camera:
 	return null
 
 
-# ── Data loading (registry pattern — this system owns its flora JSON) ─────────
+# ── Species (ContentRegistry owns the flora JSON) ──────────────────────────────
 
-## Loads every flora JSON; keeps species that have both a "placement" and "stages"
-## block. Files without placement (assets exist but no niche yet) are skipped.
+## Builds scatter entries, in registry order, from species with a placement niche.
 func _load_all_flora() -> bool:
 	_species.clear()
-	for path in flora_json_paths:
-		if not FileAccess.file_exists(path):
-			push_warning("SurfaceFloraSpawner: missing %s (skipped)" % path)
-			continue
-		var f := FileAccess.open(path, FileAccess.READ)
-		if f == null:
-			push_warning("SurfaceFloraSpawner: cannot open %s (skipped)" % path)
-			continue
-		var parsed = JSON.parse_string(f.get_as_text())
-		f.close()
-		if typeof(parsed) != TYPE_DICTIONARY:
-			push_warning("SurfaceFloraSpawner: malformed JSON %s (skipped)" % path)
-			continue
-		var key := _species_key(parsed)
-		if key == "":
-			push_warning("SurfaceFloraSpawner: no 'base:flora:*' key in %s (skipped)" % path)
-			continue
-		var def: Dictionary = parsed[key]
-		var placement: Dictionary = def.get("placement", {})
-		var stages: Dictionary = def.get("stages", {})
-		if placement.is_empty() or stages.is_empty():
-			if debug_logging:
-				print("SurfaceFloraSpawner: %s has no placement yet (skipped)." % key)
-			continue
+	for key: String in ContentRegistry.trees:
+		var def: Dictionary = ContentRegistry.trees[key].duplicate(true) # own copy
 		_species.append({
 			"key": key,
 			"name": _short_name(key),
-			"placement": placement,
-			"stages": stages,
-			"domains": _domains_dict(placement.get("domains", [])),
+			"placement": def.placement,
+			"stages": def.stages,
+			"domains": _domains_dict(def.placement.get("domains", [])),
 		})
 	return not _species.is_empty()
-
-
-func _species_key(parsed: Dictionary) -> String:
-	for k in parsed.keys():
-		var s := String(k)
-		if s.begins_with("base:flora:"):
-			return s
-	return ""
 
 
 ## "base:flora:pine_tree" -> "pine"
@@ -966,7 +930,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 	var status := "Standing"
 	if marked:
 		status = "Marked for harvest" if harvesting else "Marked for felling"
-		var source: RefCounted = _felling_sources.get(tree_id)
+		var source: RefCounted = work.get_source(tree_id)
 		if source != null:
 			var task := TaskManager.get_task(int(source.get("lease_id")))
 			if task != null:
@@ -1008,9 +972,9 @@ func perform_explorer_action(tree_id: Variant, action_id: String) -> void:
 
 
 func _explorer_item_name(item_key: String) -> String:
-	var items := get_tree().get_first_node_in_group("item_drop_manager")
+	var items := ItemDropManager.find(get_tree())
 	if items != null:
-		var definition: Dictionary = items.call("get_item_def", item_key)
+		var definition: Dictionary = items.get_item_def(item_key)
 		if definition.has("display_name"):
 			return String(definition["display_name"])
 	return item_key.get_slice(":", item_key.get_slice_count(":") - 1).capitalize()
@@ -1097,12 +1061,12 @@ func get_slice_y() -> int:
 ## Opaque identity for a designation; a new mark after cancellation gets a new
 ## source. UI undo cannot accidentally cancel a later order or a loaded save.
 func get_felling_order_token(tree_id: Vector2i) -> RefCounted:
-	return _felling_sources.get(tree_id)
+	return work.get_source(tree_id)
 
 
 func marked_trees_in_screen_rect(rect: Rect2, camera: Camera3D) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
-	for id: Vector2i in _felling_sources:
+	for id: Vector2i in work.sources:
 		var bounds := get_explorer_bounds(id)
 		if bounds.size == Vector3.ZERO: continue
 		var centre := bounds.get_center()
@@ -1132,14 +1096,14 @@ func cancel_felling(tree_id: Vector2i) -> void:
 	if not _tree_changes.has(tree_id) or bool(_tree_changes[tree_id]["felled"]):
 		return
 	_tree_changes[tree_id]["designated"] = false
-	_retire_felling_source(tree_id, true)
+	work.retire(tree_id, true)
 	_clear_felling_marker(tree_id)
 	# Retain completed work on the tree, including after cancellation/re-designation.
 	tree_felling_changed.emit(tree_id)
 
 
 func _ensure_felling_source(tree_id: Vector2i) -> void:
-	if _felling_sources.has(tree_id):
+	if work.has(tree_id):
 		return
 	var state: Dictionary = _tree_changes[tree_id]
 	var species := _species_for_key(String(state["species"]))
@@ -1148,7 +1112,6 @@ func _ensure_felling_source(tree_id: Vector2i) -> void:
 	var harvest := String(state.get("action", "fell")) == "harvest"
 	source.task_type = Task.Type.HARVEST_TREE if harvest else Task.Type.FELL_TREE
 	if harvest: source.fruit_label = String(stage.fruit_harvest.get("yield_label","berries"))
-	source.source_id = TaskManager.allocate_source_id()
 	source.origin = state["origin"]
 	source.footprint = _footprint_for(species["placement"], String(state["stage"]))
 	source.duration = maxf(float(stage.get("fruit_harvest" if harvest else "felling", {}).get("work_seconds", 1.0)), .01)
@@ -1156,9 +1119,7 @@ func _ensure_felling_source(tree_id: Vector2i) -> void:
 	source.complete_callback = _complete_felling.bind(tree_id)
 	source.contact_distance_callback = _felling_contact_distance.bind(tree_id)
 	source.feedback_visible_callback = _felling_feedback_visible.bind(tree_id)
-	_felling_sources[tree_id] = source
-	_source_trees[source.source_id] = tree_id
-	TaskManager.register_work_source(source.source_id, source)
+	work.add(tree_id, source)
 	source.ensure_lease()
 
 
@@ -1173,30 +1134,8 @@ func _felling_contact_distance(start: Vector3, end: Vector3, tree_id: Vector2i) 
 	return _picking.hit_distance(node,start,end) if is_instance_valid(node) else INF
 
 
-func _retire_felling_source(tree_id: Vector2i, cancel_task: bool) -> void:
-	var source: RefCounted = _felling_sources.get(tree_id)
-	if source == null:
-		return
-	var source_id := int(source.get("source_id"))
-	_felling_sources.erase(tree_id)
-	_source_trees.erase(source_id) # Retired tasks cannot re-post a lease in callbacks.
-	if cancel_task:
-		TaskManager.cancel_source_tasks(source_id)
-	TaskManager.unregister_work_source(source_id)
-
-
-func _on_felling_released(task: Task, dwarf_id: int, _reason: int) -> void:
-	if _source_trees.has(task.source_id):
-		_felling_sources[_source_trees[task.source_id]].release_worker(dwarf_id)
-
-
-func _on_felling_task_gone(task: Task) -> void:
-	if _source_trees.has(task.source_id):
-		_felling_sources[_source_trees[task.source_id]].on_task_gone(task)
-
-
 func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
-	var source: RefCounted = _felling_sources.get(tree_id)
+	var source: RefCounted = work.get_source(tree_id)
 	if source == null or int(source.get("reserved_by")) != dwarf_id:
 		return false
 	var state: Dictionary = _tree_changes[tree_id]
@@ -1206,7 +1145,7 @@ func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
 		return false
 	if String(state.get("action", "fell")) == "harvest":
 		return _complete_tree_harvest(dwarf_id, tree_id)
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	if drops == null:
 		return false
 	# Commit the tombstone before emitting any drops. Reloading/seasonal spawning
@@ -1215,7 +1154,7 @@ func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
 	state["designated"] = false
 	var show_feedback := _felling_feedback_visible(tree_id)
 	_remove_tree_visual(tree_id)
-	_retire_felling_source(tree_id, false) # The finishing dwarf completes its lease.
+	work.retire(tree_id, false) # The finishing dwarf completes its lease.
 	var species := _species_for_key(String(state["species"]))
 	var yields: Array = species["stages"][state["stage"]].get("harvest", {}).get("yields", [])
 	var drop_cell: Vector3i = state["origin"]
@@ -1227,15 +1166,15 @@ func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
 	for i in range(yields.size()):
 		var drop: Dictionary = yields[i]
 		if _unit(_hash(tree_id.x, tree_id.y, 17001 + i)) < float(drop.get("chance", 1.0)):
-			drops.call("spawn_drop", String(drop["item"]), int(drop.get("count", 1)), drop_cell)
+			drops.spawn_drop(String(drop["item"]), int(drop.get("count", 1)), drop_cell)
 	tree_felling_changed.emit(tree_id)
 	return true
 
 
 func _complete_tree_harvest(dwarf_id: int, tree_id: Vector2i) -> bool:
 	if not can_harvest_tree(tree_id): return false
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
-	var dwarf: DwarfAgent = TaskManager._agents.get(dwarf_id)
+	var drops := ItemDropManager.find(get_tree())
+	var dwarf: DwarfAgent = TaskManager.get_agent(dwarf_id)
 	if drops == null or dwarf == null: return false
 	var state: Dictionary = _tree_changes[tree_id]
 	var fruit := _tree_fruit(tree_id)
@@ -1244,11 +1183,11 @@ func _complete_tree_harvest(dwarf_id: int, tree_id: Vector2i) -> bool:
 	state.designated = false
 	state.work_seconds = 0.0
 	state["harvest_work_seconds"] = 0.0
-	_retire_felling_source(tree_id, false)
+	work.retire(tree_id, false)
 	_clear_felling_marker(tree_id)
 	_refresh_tree_crop_visual(tree_id)
 	# The trunk stays solid: put the crate on the worker's accessible side.
-	drops.call("spawn_drop", String(fruit.yield_item), _tree_fruit_yield(tree_id), dwarf.current_cell() + Vector3i.UP)
+	drops.spawn_drop(String(fruit.yield_item), _tree_fruit_yield(tree_id), dwarf.current_cell() + Vector3i.UP)
 	tree_felling_changed.emit(tree_id)
 	return true
 
@@ -1389,8 +1328,7 @@ func serialize_state() -> Dictionary:
 
 func restore_state(state: Dictionary) -> void:
 	_seasonal_refresh.clear()
-	for id: Vector2i in _felling_sources.keys():
-		_retire_felling_source(id, true)
+	work.retire_all(true)
 	for id: Vector2i in _felling_markers.keys():
 		_clear_felling_marker(id)
 	_tree_changes.clear()
@@ -1401,8 +1339,6 @@ func restore_state(state: Dictionary) -> void:
 		var entry: Dictionary = raw
 		var species := _species_for_key(String(entry.get("species", "")))
 		var stage_name := String(entry.get("stage", ""))
-		if species.is_empty() or not species["stages"].has(stage_name):
-			continue
 		var origin := SaveManager.unpack_v3i(entry.get("origin", []))
 		if origin.x < 0 or origin.x >= WorldData.WORLD_SIZE_X or origin.z < 0 \
 				or origin.z >= WorldData.WORLD_SIZE_Z or origin.y < 1 or origin.y >= WorldData.WORLD_SIZE_Y - 1:
@@ -1431,7 +1367,6 @@ func restore_state(state: Dictionary) -> void:
 
 
 func _exit_tree() -> void:
-	for id: Vector2i in _felling_sources.keys():
-		_retire_felling_source(id, true)
+	work.retire_all(true)
 	for id: Vector2i in _trees:
 		_unregister_tree_occupancy(id)

@@ -53,7 +53,7 @@ func _run() -> void:
 	_step(.03)
 	_expect(sound_events.size()==1 and sound_events[0][0]=="hammer","head contact plays hammer impact")
 	if not sound_events.is_empty():
-		var actual: Vector3 = worker._construction_pose.tool.global_transform*worker.ConstructionPose.MODEL_POINT
+		var actual: Vector3 = worker._construction_pose.tool.global_transform*worker._rig.ConstructionPose.MODEL_POINT
 		_expect(actual.distance_to(sound_events[0][1])<.001,"sound originates at the striking face")
 	_step(.02)
 	_expect(sound_events.size()==1,"contact hold does not retrigger")
@@ -82,7 +82,7 @@ func _run() -> void:
 	_step(1)
 	_expect(sound_events.size()==3,"distant work stays quiet")
 	camera.set_meta("work_focus",Vector3(44,21,40))
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(await _wait_phase(worker.TaskPhase.FETCH_WORKING),"partial work resumes")
 	_step(.01)
 	_expect(sound_events.size()==3,"resume never replays a previous impact")

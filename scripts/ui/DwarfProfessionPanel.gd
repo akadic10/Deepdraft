@@ -7,6 +7,7 @@ const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const PREFIX := "base:profession:"
 var director: Node
 var manager: UIWindowManager
+var dock: Node # injected by DwarfDirector; an open dock menu takes Esc first
 var window: UIWindow
 var _agent: DwarfAgent
 var _selected := PREFIX + "miner"
@@ -207,8 +208,7 @@ func clear_subject() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if is_visible_in_tree() and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		var dock := get_tree().get_first_node_in_group("command_dock")
-		if dock != null and dock.is_action_menu_open(): return
+		if is_instance_valid(dock) and dock.is_action_menu_open(): return
 		manager.close("professions")
 		get_viewport().set_input_as_handled()
 
@@ -239,8 +239,8 @@ func refresh() -> void:
 	var enabled := DwarfAssets.profession_enabled(_selected)
 	var current := _agent.profession == _selected
 	var pending := _agent.promotion_pending()
-	var selected_pending: bool = pending and _agent._equipment.pending_role == _selected
-	var blocked: String = _agent._equipment.blocked_reason(_selected) if enabled and not current and not selected_pending else ""
+	var selected_pending: bool = pending and _agent.get_equipment().pending_role == _selected
+	var blocked: String = _agent.get_equipment().blocked_reason(_selected) if enabled and not current and not selected_pending else ""
 	var level := DwarfAssets.profession_level(_selected, _agent.profession_experience)
 	var count := maxi(0, int(_agent.profession_experience.get(_selected, 0)))
 	_current.text = "Currently %s · One active profession" % DwarfAssets.profession_definition(_agent.profession).get("display_name", "Worker")
@@ -289,13 +289,13 @@ func refresh() -> void:
 	_promote.text = "Current profession" if current else "Not yet available" if not enabled else "Return to Worker" if _selected == PREFIX + "worker" else ("Resume %s · Lv %d" % [title, level] if count > 0 else "Promote to " + title)
 	if selected_pending or (current and pending): _promote.text = "Cancel promotion"
 	elif not blocked.is_empty(): _promote.text = "Waiting for tool" if not _agent.is_sleeping() else "Dwarf is sleeping"
-	_feedback.text = _agent._equipment.message
+	_feedback.text = _agent.get_equipment().message
 	_feedback.visible = not _feedback.text.is_empty()
 	for key: String in _nodes:
 		var node: Dictionary = _nodes[key]
 		var usable := DwarfAssets.profession_enabled(key)
 		node.state.text = "Current" if key == _agent.profession else "Available" if usable else "Planned"
-		if pending and key == _agent._equipment.pending_role: node.state.text = "Collecting tool"
+		if pending and key == _agent.get_equipment().pending_role: node.state.text = "Collecting tool"
 		node.state.add_theme_color_override("font_color", UITheme.SUCCESS if usable else UITheme.HEARTH_MUTED)
 		node.icon.modulate = UITheme.HEARTH_COPPER if usable or key == _selected else UITheme.HEARTH_MUTED
 		node.button.set_pressed_no_signal(key == _selected)
@@ -304,12 +304,12 @@ func refresh() -> void:
 
 func _apply_promotion() -> void:
 	if not is_instance_valid(_agent) or not _agent in director.get_roster(): return
-	if _agent.promotion_pending() and _agent._equipment.pending_role == _selected:
-		_agent._equipment.cancel()
+	if _agent.promotion_pending() and _agent.get_equipment().pending_role == _selected:
+		_agent.get_equipment().cancel()
 	else:
 		_agent.change_profession(_selected)
 	refresh()
-	director._refresh_window()
+	director.refresh_window()
 
 
 func _fit() -> void:

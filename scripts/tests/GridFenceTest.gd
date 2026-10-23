@@ -159,7 +159,7 @@ func _input_and_save() -> void:
 	furniture._update_hover(true,aim)
 	_expect(furniture._hover_cell==Vector3i(47,20,43),"real camera aim snaps to nearest grid intersection")
 	_expect(furniture._hover_valid,"post beside an installed post is valid")
-	_expect(furniture._preview.get_children().any(func(n): return n.has_meta("fence_preview")),"cursor preview shows automatic connecting rails")
+	_expect(furniture._visuals.preview.get_children().any(func(n): return n.has_meta("fence_preview")),"cursor preview shows automatic connecting rails")
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_fence("preview")
 	furniture._confirm_ghost()
 	var rail_pick: Dictionary = furniture.pick_explorer_object(camera.position,Vector3(46.5,22.0,43))

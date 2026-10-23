@@ -50,6 +50,17 @@ signal invasion_started(wave: InvasionWave)
 
 Visitors enter from a fixed **world-edge entry node** placed by the world generator at the mountain's lowest accessible surface point. They must be able to pathfind from that node to their destination or they abort and turn back.
 
+## Planned: trade road
+
+The trade road is not built: `WorldGenerator` has no road logic. The planned shape is a
+deterministic mask (derived from `world_seed`, Hard Rule 8) that runs from a map edge to a
+buildable area and is surfaced as packed dirt, with an un-minable road threshold (the
+overview's Trade pillar). The road strip excludes flora (`SurfaceFloraSpawner` must skip its columns; see `42_farming_brewing.md`, World
+placement).
+
+Open question, decide with implementation: is the road visible at worldgen as packed dirt,
+or does it appear only once caravans start using it?
+
 ---
 
 ## Merchants
@@ -106,7 +117,26 @@ Merchants will not buy raw stone, soil, or basic ore — only processed or high-
 
 ### Pricing
 
-All items carry a `base_trade_value` in `data/entities/items/resources.json`. Actual trade prices fluctuate ±20% based on caravan type and recent transaction history. No separate price table is maintained here — the source of truth is the resource file.
+Every item has a base trade value in Trade Points (TP; 1 TP = 1 gold coin). Actual trade prices fluctuate ±20% based on caravan type and recent transaction history.
+
+**Planned, not implemented.** No trade code exists yet, so these values live here
+rather than in `resources.json`. When the merchant system is built, move them into
+the item data that owns them.
+
+| Group | Base trade value (TP) |
+|---|---|
+| Stone, soil, misc | Rough Stone 1 · Cave/Light/Dark Soil 1 · Water Bucket 1 · Gold Coin 1 · Fossil Fragment 10 |
+| Starter tools | Stone Hoe, Hunting Spear, Crude Carpentry Kit, Stone Hammer 3 each |
+| Ore | Tin 2 · Coal 2 · Copper 3 · Iron 4 · Silver 10 · Gold 12 |
+| Gems | Jade 22 · Amethyst 25 · Ruby 40 · Sapphire 40 · Emerald 45 · Diamond 80 |
+| Wood | Pine Log 2 · Apple Wood 3 · Juniper Log 3 · Oak Log 5 · Oak Stave 8 |
+| Produce | Plump Helmet 2 · Pig Tail 2 · Apple 3 · Hops 3 · Blueberry 4 · Juniper Berry 4 · Elderberry 5 · Grapes 5 · Wild Strawberry 6 · Honey 6 · Pig Tail Cloth 6 |
+| Seeds, cuttings | Pine Cone 2 · Pig Tail Seed 2 · Apple Seed 3 · Blueberry Cutting 3 · Oak Acorn 4 · Elderberry Cutting 4 · Hops Cutting 4 · Strawberry Cutting 5 · Juniper Seed 5 · Grape Cutting 6 |
+| Drinks | Ale 3 · Mead 5 · Stout 5 · Cider 5 · Wine 7 · Gin 8 · Aged Stout 10 · Reserve Gin 12 · Vintage Wine 15 |
+| Packed furniture | Log torch 2 · Ladder section 3 · Log bridge kit 4 · Campfire 4 · Log Stool 4 · Fence Post 4 · Gate 4 · Bench 6 · Log door (2 wide) 8 · Crude Workbench 8 · Log Dining Table 8 · Board-game Table 10 · Log door (3 wide) 12 · Log bed 12 · Hearth 14 · Double log door (4 wide) 16 |
+| Not for sale | Settlement flag, uprooted plants, water stones: 0 / no value |
+
+Ingots, forged goods and armour (doc 44) still need values in the trade balance pass.
 
 ### Demand Decay
 
@@ -128,7 +158,39 @@ max_count          — maximum units to buy per visit
 max_price_per_unit — colony will not pay above this price in gold coins
 ```
 
-Buy orders are persistent standing orders — they re-evaluate on every merchant visit. What merchants can potentially sell is defined in `data/visitors/merchant_catalog.json`.
+Buy orders are persistent standing orders — they re-evaluate on every merchant visit.
+
+### Merchant Catalogue (planned stub)
+
+**Planned, not implemented.** These are the goods caravans may sell to the colony.
+The list is a stub: a design session still has to settle the full set of
+surface goods, which caravan types carry which categories, pricing tiers, rarity
+weights and reputation-gated items. Each entry gives a sell price in gold coins
+(±20% by caravan type and demand), the caravans that carry it, the units per
+visit and the minimum `trade_reputation`. Bought goods take stockpile tags from
+their category (food, misc/luxury, seed).
+
+| Item | Description | Price | Caravans | Stock | Min rep. |
+|---|---|---|---|---|---|
+| Surface Provisions | Dried fruits, hard cheese and travel bread from the lowland farms. | 2 | Small Merchant, Trade Expedition, Emergency Supplies | 3–10 | 0 |
+| Exotic Spice | Fragrant dried spices from distant lowland markets; dwarves don't cook with them, but they trade well. | 15 | Travelling Fair, Trade Expedition | 1–4 | 0 |
+| Rare Seed | A seed packet of unknown lowland origin. Plant it and see what grows. | 20 | Travelling Fair | 1–3 | 25 |
+
+Still to design: lowland tools, cloth and textiles, livestock (future pasture),
+maps and manuscripts (lore/quests), metal ingots the colony cannot smelt yet,
+reputation-gated luxuries (silk, dyes, glassware) and Emergency Supplies
+exclusives (medicine, salted meat).
+
+### Merchant Profession (planned)
+
+A dwarf promoted to **Merchant** (from Worker) staffs the Trade Counter in a Shop:
+`STAFF_TRADE_COUNTER`, `COLLECT_SHOP_COINS` and `RESTOCK_SHOP_STORAGE`, falling
+back to hauling when idle. Instead of work speed, each experience level above 1
+adds **+2% to sale prices** in the assigned shop (+8% at level 5, +10% at level 6),
+stacking with the ±20% caravan demand. Level perks: level 3 slows demand decay,
+level 4 makes caravans slightly more likely to visit, level 5 grows trade
+reputation faster, level 6 (with the Merchant's Tongue trait) attracts a rare
+caravan type.
 
 ### Trade Reputation
 
@@ -197,18 +259,25 @@ Travelers are individual wanderers passing through the mountain region. They car
 | Tavern | `base:furniture:tavern_bar` in a sealed room | Traveler turns around and leaves |
 | Traveler bed | Any bed flagged `traveler_bed = true` | Traveler drinks but does not stay overnight |
 
-> **Note (updated 2026-08-03, doc 21):** `base:furniture:tavern_bar` now exists as a placeable furniture piece — data-driven, fetchable, installable via the Build panel, same pipeline as the doc 19 storage set. It carries `room_anchor`/`room_type: "tavern"` fields, but **no code reads them yet**: there is no sealed-room detection, no Tavern room designation, and no traveler AI in the codebase as of this note. Placing a bar today changes nothing about traveler behaviour — this section still documents intent only until the room-detection system (doc 34's sealed-room flood-fill is the natural place for it to land) and traveler AI are actually built.
+> **Note (2026-10-22):** there is no tavern bar, Tavern room or traveler AI in the game. The bar was retired with the other uncraftable furniture (doc 234), and its unused `room_anchor` field was removed in doc 258. This section documents intent only. Tavern detection would build on the existing room detection (doc 34).
 
 ### Traveler Behaviour
 
 ```
 APPROACHING  → pathing to tavern room entrance from world edge
 DRINKING     → seated at tavern, consuming 1 ale or mead per in-game hour
-               pays base_trade_value × 0.6 gold coins per drink (below market rate)
+               pays base trade value × 0.6 gold coins per drink (below market rate)
 LODGING      → claims an available traveler bed, sleeps 6 in-game hours
                pays flat 5 gold coins lodging fee on waking
 DEPARTING    → pathing back to world edge
 ```
+
+**Innkeeper profession (planned).** A dwarf promoted to **Innkeeper** (from Worker)
+runs the Tavern: `SERVE_DRINK`, `SEAT_GUEST`, `COLLECT_NIGHT_STAND_COINS` and
+`RESTOCK_TAVERN_STORAGE`, falling back to hauling. Each level above 1 makes
+drink service 5% faster and adds **+1 coin** to the lodging fee (9 coins per
+guest night at level 5). Level 4 slightly raises traveler spawn chance; level 6
+(with the Warm Host trait) means guests sometimes leave a tip on the night stand.
 
 Travelers stay for **1–3 in-game days** depending on tavern stock and bed availability. A traveler who cannot find a drink within 2 in-game hours of arriving departs immediately, applying a small reputation penalty.
 

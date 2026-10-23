@@ -142,38 +142,11 @@ func _run() -> void:
 	_expect(drops.get_explorer_data(node).is_empty(), "slice hides crate inspection")
 	drops._on_slice_changed(127)
 
-	_fresh_drops()
-	# Exercise visible container slots without depending on retired furniture.
-	var anchors: Array = []
-	for i in 8: anchors.append([float(i%4),float(i/4),0.0])
-	var def := {"storage":{"capacity":8,"render_contents":true,"anchors":anchors}}
-	var shelf = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var shelf_cells: Array[Vector3i] = [Vector3i(50,20,50)]
-	shelf.setup_container(def,shelf_cells)
-	shelf.drop_manager = drops
-	shelf.display_parent = Node3D.new()
-	scene.add_child(shelf.display_parent)
-	shelf.restore_inventory({ACORN:27,BERRY:17},drops)
-	_expect(shelf.occupied_slots() == 3 and shelf.stored_count() == 44, "shelf counts three crates and 44 goods")
-	drops.restore_loose_item(ACORN,Vector3(48.5,21,48.5),0,6)
-	_deliver(shelf,8)
-	_expect(shelf.occupied_slots() == 3 and shelf.inventory[ACORN] == 33, "shelf tops up its existing partial crate")
-	var visual_count := 0
-	for entry in shelf._anchor_slots:
-		if entry != null:
-			visual_count += drops.quantity_of(entry[0])
-	_expect(visual_count == 50, "shelf visuals represent all stored units")
-	withdrawn = shelf.withdraw_nearest(ACORN,Vector3i.ZERO,9)
-	_expect(withdrawn != null and drops.quantity_of(withdrawn) == 1 and shelf.inventory[ACORN] == 32, "shelf withdrawal decrements one unit")
-	drops.take(withdrawn)
-	withdrawn.free()
-	_expect(shelf.dump_contents(Vector3i(50,20,50)) == 49 and _units(ACORN) == 32 and _units(BERRY) == 17, "uninstall returns all crate contents")
-
 	await _worker_haul()
 	for failure in failures:
 		push_error(failure)
 	if failures.is_empty():
-		print("PRODUCE_CRATES_OK: loose packing, partial refill, split pickup, reservations, skipped/reordered cargo, interruption, JSON, explorer, shelf, withdraw, uninstall, real dwarf hauling")
+		print("PRODUCE_CRATES_OK: loose packing, partial refill, split pickup, reservations, skipped/reordered cargo, interruption, JSON, explorer, withdraw, real dwarf hauling")
 	quit(0 if failures.is_empty() else 1)
 
 

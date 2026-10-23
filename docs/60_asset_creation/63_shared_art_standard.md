@@ -70,14 +70,12 @@ Family contracts:
 | Structural floors and materials crate | `construction/` | 4 |
 | **Total** | | **384** |
 
-Crops fill **defined art paths** only; they don't add farming behaviour. Retired
-content is listed in `data/content_retirements.json`, and full furniture builds prune
-retired staged files.
+Crops fill **defined art paths** only; they don't add farming behaviour.
 
 Authoring inputs:
-- Hearthblock operations in `data/art/voxel_hearthblock.json`, written from
+- Hearthblock operations in `tools/art_data/voxel_hearthblock.json`, written from
   `tools/hearthblock/art/*.mjs` by `write_data.py` and replayed by `hearthblock.py`;
-- the family profiles `data/art/voxel_*.json`;
+- the family profiles `tools/art_data/voxel_*.json`;
 - semantic swatches in `data/materials/craft_materials.json`;
 - the family builders in `tools/voxel_assets/`.
 
@@ -87,18 +85,22 @@ The pipeline:
 3. `activate.py` installs, but only after that complete, exact-hash review.
 4. `build.py FAMILY --check` regenerates and compares every installed byte.
 
-Installed manifests in `data/art/voxel_manifests/` are the export authority.
-`test_retirements.py` checks production coverage, hashes and retirement guards.
-Coverage requires both the original migration paths and the additions listed by
-family in `data/art/voxel_additions.json`. Don't hand-edit `.import` or `.tres`; use
-Godot's importer. Root scale stays 1.
+Installed manifests in `tools/art_data/voxel_manifests/` are the export authority.
+`test_coverage.py` checks production coverage and hashes.
+Coverage requires each family to produce exactly the paths listed for it in
+`tools/art_data/voxel_expected.json`.
+- A new model: add its path there.
+- A removed model: delete its path there, and delete the `.glb`, its `.import` file
+  and any staged copy.
+
+Don't hand-edit `.import` or `.tres`; use Godot's importer. Root scale stays 1.
 
 ## Baked occlusion
 
 Occlusion is opt-in (`greedy_mesh_from_voxels(..., occlusion=...)`); families without it
 rebuild byte for byte.
 - Each face corner counts its two side cells and one diagonal cell, on the curve
-  `[0.5, 0.68, 0.85, 1.0]` from `data/art/voxel_occlusion.json`.
+  `[0.5, 0.68, 0.85, 1.0]` from `tools/art_data/voxel_occlusion.json`.
 - Floors count as solid for shading only.
 - Faces merge only when their colour and all four corner levels agree.
 - Each shaded vertex stores its shade in UV2, so `CraftMaterials` matches the unshaded

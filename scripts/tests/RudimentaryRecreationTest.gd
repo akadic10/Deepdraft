@@ -106,7 +106,7 @@ func _saved_layout_roundtrip() -> void:
 		table = furniture._installed[id]
 		_expect(table.cells.size()==9 and furniture.get_dining_seats(id).size()==2,"3x3 game and both stool associations survive reload")
 		_expect(JSON.parse_string(JSON.stringify(furniture.serialize_state()))==saved,"saved IDs, material, positions, yaw and layout version remain stable")
-		var bounds: AABB = furniture._visual_bounds(table.def,table.origin_cell,table.yaw_steps)
+		var bounds: AABB = furniture.visual_bounds(table.def,table.origin_cell,table.yaw_steps)
 		_expect(bounds.size.is_equal_approx(Vector3(2.875,1.5625,2.875)),"native 46-cell outline, 24-cell shared dining-table height and one-cell counters survive every saved rotation")
 		_expect(AABB(Vector3(origin+Vector3i.UP),Vector3(3,1.5625,3)).encloses(bounds),"log and counters stay inside their game area")
 		_clear_layout()
@@ -124,7 +124,7 @@ func _create_partner() -> void:
 func _reset_players() -> void:
 	for agent in [worker,extra_worker]:
 		agent.abort_task()
-		agent._mood.restore({})
+		agent._mood.restore(_blank_mood(agent))
 		agent._food.value = 1.0
 		agent.sleep = 1.0
 		agent._idle_behavior.config = agent._idle_behavior.config.duplicate(true)
@@ -300,7 +300,9 @@ func _games_and_interruptions() -> void:
 	_layout()
 	worker._mood.record_dining("neither")
 	tasks.notify_dwarf_unavailable(extra_worker.dwarf_id)
-	var work_id: int = tasks.add_task(Task.Type.BUILD,Vector3i(44,20,39))
+	# Real work: a placed rock on the floor, mined away again on completion.
+	world.set_block(44,21,39,blocks.get_id("base:terrain:rock:rock01"))
+	var work_id: int = _post_mine_lease(Vector3i(44,21,39))
 	for i in range(60):
 		tasks._run_scheduler()
 		if worker.current_task_id==work_id: break
@@ -308,7 +310,7 @@ func _games_and_interruptions() -> void:
 	_expect(worker.current_task_id==work_id,"unhappy worker has a real job")
 	_expect(await _playing(),"unhappy worker takes short break despite queued work")
 	_expect(tasks.lifecycle_errors().is_empty(),"need interruption safely releases job lease")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(worker._body.position.is_zero_approx(),"interruption resets seated pose")
 	for i in range(150):
 		tasks._run_scheduler()
@@ -316,7 +318,8 @@ func _games_and_interruptions() -> void:
 		await process_frame
 		if tasks.get_task(work_id)==null: break
 	_expect(tasks.get_task(work_id)==null,"released work resumes and completes after game interruption")
-	tasks.cancel_task(work_id)
+	_clear_mine_leases()
+	world.set_block(44,21,39,0)
 	_layout()
 	drops.restore_loose_item(PINE,worker.position,0,1)
 	var cargo: Node3D = drops.nearest_loose_of_key(PINE,worker.current_cell())
@@ -368,3 +371,10 @@ func _capture_game() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(OUT+"place.png")
 	dock._place_window.hide()
+
+## A saved mood with every timer at zero (solo memory is only written above zero).
+func _blank_mood(agent) -> Dictionary:
+	var mood: Dictionary = agent._mood.serialize()
+	for key: String in mood: mood[key] = "" if key == "dining_outcome" else 0.0
+	mood.erase("solo_recreation_memory_hours")
+	return mood

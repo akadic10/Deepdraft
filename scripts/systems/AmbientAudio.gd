@@ -29,12 +29,11 @@ var _save_left := -1.0
 var _volumes := {}
 var _muted := {}
 signal preferences_changed
-signal call_started(kind: String, variant: int)
 
 
 func _ready() -> void:
 	process_priority = 56
-	config = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_PATH))
+	config = preload("res://scripts/registries/JsonData.gd").read_dict(CONFIG_PATH)
 	_rng.randomize()
 	if AudioServer.get_bus_index(config.bus) < 0:
 		AudioServer.add_bus()
@@ -187,7 +186,7 @@ func _process(delta: float) -> void:
 		_save_left -= delta
 		if _save_left < 0: save_preferences()
 	if config.is_empty() or not _sync_scene(): return
-	if not WorldGenerator._maps_ready or get_viewport().get_camera_3d() == null:
+	if not WorldGenerator.is_maps_ready() or get_viewport().get_camera_3d() == null:
 		for voice: Dictionary in loops.values():
 			voice.player.stop()
 			voice.gain = 0.0
@@ -248,7 +247,7 @@ func _scan_environment() -> void:
 	var x := clampi(floori(focus.x), 0, WorldData.WORLD_SIZE_X - 1)
 	var z := clampi(floori(focus.z), 0, WorldData.WORLD_SIZE_Z - 1)
 	var surface := WorldGenerator.get_overview_surface_height(x, z)
-	var slice_y := int(_slice.get_slice_y()) if is_instance_valid(_slice) else 127
+	var slice_y := int(_slice.get_slice_y()) if is_instance_valid(_slice) else SliceController.MAX_SLICE_Y
 	# Sample air at the viewed column, not the elevated camera. Slicing away
 	# a mountain roof does not turn its interior into an outdoor sound source.
 	var point := focus + Vector3.UP * .35
@@ -260,8 +259,8 @@ func _scan_environment() -> void:
 		_forest = _flora.ambient_tree_density(point, float(config.forest_radius), float(config.forest_full_count))
 	_habitat = _sources.scan(focus, slice_y, int(config.source_radius), _flora, _wildlife)
 	_habitat.roof_gain = 0.0
-	if is_instance_valid(_lighting) and _lighting.has_method("_roof_height"):
-		var roof: int = _lighting._roof_height(Vector2i(x, z))
+	if is_instance_valid(_lighting) and _lighting.has_method("roof_height"):
+		var roof: int = _lighting.roof_height(Vector2i(x, z))
 		_habitat.roof_gain = 1.0 - smoothstep(5, 14, maxf(0, roof - focus.y))
 	last_scan_usec = Time.get_ticks_usec() - started
 
@@ -310,7 +309,7 @@ func _voice_source_valid(voice: Dictionary) -> bool:
 	if not voice.has("source"): return true
 	var node: Node3D = voice.source.get_ref()
 	if not is_instance_valid(node) or not node.is_inside_tree() or node.is_queued_for_deletion() or not node.is_visible_in_tree(): return false
-	var slice_y := int(_slice.get_slice_y()) if is_instance_valid(_slice) else 127
+	var slice_y := int(_slice.get_slice_y()) if is_instance_valid(_slice) else SliceController.MAX_SLICE_Y
 	if node.global_position.y > slice_y: return false
 	if _context.is_empty() or node.global_position.distance_to(_context.focus) > float(config.source_radius) * (3 if voice.kind == "wolves" else 1): return false
 	if voice.kind == "wolves": return _sources.eligible_wolf(node, slice_y)
@@ -351,6 +350,5 @@ func _start_call(kind: String) -> bool:
 		voice.left = player.stream.get_length() / player.pitch_scale
 		player.volume_db = linear_to_db(maxf(voice.gain, .0001)) + float(config.calls[kind].level_db)
 		if DisplayServer.get_name() != "headless": player.play()
-		call_started.emit(kind, variant)
 		return true
 	return false

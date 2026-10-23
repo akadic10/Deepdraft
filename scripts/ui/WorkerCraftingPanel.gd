@@ -378,7 +378,7 @@ func refresh() -> void:
 		_requirements.text += "\n%d %s · %d available" % [int(extra_counts[key]),controller.ingredient_label(key),int(totals.get(key,{}).get("available",0))]
 	_requirements.text += "\n"+bench
 	_purpose.text = String(recipe.get("purpose_short",recipe.get("purpose","")) if get_viewport_rect().size.y < 650 else recipe.get("purpose",""))
-	var output_def: Dictionary = controller.items.get_item_def(String(recipe.output))
+	var output_def: Dictionary = controller.furniture.def_for_item(String(recipe.output)) if controller.furniture != null else {}
 	if output_def.has("appeal") and not allowed.is_empty():
 		var scores: Array[float] = []
 		for key: String in allowed: scores.append(float(CraftMaterials.appeal(output_def, CraftMaterials.from_ingredient(key)).total))

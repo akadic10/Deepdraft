@@ -53,7 +53,7 @@ def crop(profile,species,stage,season):
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_crops.json')
+    profile=read_json('tools/art_data/voxel_crops.json')
     for species in ('grape_vine','hops_plant','pig_tail_plant','plump_helmet'):
         data=read_json(f'data/entities/flora/{species}.json')
         definition=next(v for k,v in data.items() if k.startswith('base:flora:'))

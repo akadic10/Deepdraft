@@ -14,12 +14,11 @@ const Shrub = preload("res://scripts/components/ShrubSeason.gd")
 var _placement := Placement.new()
 var _picking := Picking.new()
 var _flora: Node
-var _slice_y := 127
+var _slice_y := SliceController.MAX_SLICE_Y
 var _initialized := false
 var _records: Dictionary = {}
 var _changes: Dictionary = {}
-var _sources: Dictionary = {}
-var _source_ids: Dictionary = {}
+var work := preload("res://scripts/components/WorkSourceTable.gd").new() # detail id -> clearing/harvest source
 var _columns: Dictionary = {}
 var _visual_queue: Array[String] = []
 const SeasonalRefresh = preload("res://scripts/components/SeasonalRefreshQueue.gd")
@@ -49,10 +48,6 @@ func _ready() -> void:
 	_material.vertex_color_use_as_albedo = true
 	_material.roughness = 1.0
 	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	TaskManager.task_released.connect(_on_released)
-	TaskManager.task_completed.connect(_on_task_gone)
-	TaskManager.task_cancelled.connect(_on_task_gone)
-	TaskManager.task_failed.connect(func(task: Task, _reason: String): _on_task_gone(task))
 	WorldData.block_changed.connect(_on_block_changed)
 	WorldClock.season_changed.connect(_on_season_changed)
 	WorldClock.hour_changed.connect(_on_growth_tick)
@@ -72,6 +67,23 @@ func _process(_delta: float) -> void:
 		_spawn_visual(_visual_queue.pop_back())
 	_seasonal_refresh.drain(_spawn_visual)
 	_update_markers()
+
+
+## True once the detail layout has been built (visuals may still be queued).
+func is_initialized() -> bool:
+	return _initialized
+
+## Detail ids whose footprint touches this column.
+func ids_in_column(column: Vector2i) -> Array:
+	return _columns.get(column, [])
+
+## The saved change for a detail id, or {}.
+func get_change(id: String) -> Dictionary:
+	return _changes.get(id, {})
+
+## The generated record for a detail id, or {}.
+func get_record(id: String) -> Dictionary:
+	return _records.get(id, {})
 
 
 func is_loading_complete() -> bool:
@@ -120,7 +132,7 @@ func initialize_layout(reverse_order := false) -> void:
 					for other: AABB in plant_areas.get(Vector2i(x,z), []):
 						if area.intersects(other): overlap = true
 		if overlap:
-			_placement._reject("detail_overlap")
+			_placement.reject("detail_overlap")
 			continue
 		for x in range(record.origin.x, record.origin.x + width):
 			for z in range(record.origin.z, record.origin.z + width): occupied_base[Vector2i(x,z)] = true
@@ -288,7 +300,7 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	var plant := _is_decorative_plant(String(id))
 	var status := "Marked for gathering" if marked and gathering else "Marked for clearing" if marked else "Available" if gathering else "Standing"
 	if plant: status = "Marked for clearing" if marked else "Partial work kept" if float(state.get("work_seconds",0)) > 0 else "Not marked"
-	var source: RefCounted = _sources.get(id)
+	var source: RefCounted = work.get_source(id)
 	if source != null:
 		var task := TaskManager.get_task(int(source.get("lease_id")))
 		if task != null:
@@ -373,7 +385,7 @@ func designate_detail(id: String, tool: String) -> bool:
 func cancel_clearing(id: String) -> void:
 	if not _changes.has(id): return
 	_changes[id].designated = false
-	_retire_source(id, true)
+	work.retire(id, true)
 	_sync_marker(id)
 	var placer := get_tree().get_first_node_in_group("furniture_controller")
 	if placer != null: placer.cancel_shrub_moves(id)
@@ -386,7 +398,7 @@ func get_slice_y() -> int:
 ## The live source is an opaque order token. Cancelling/reissuing or restoring
 ## a save creates a different source, so an old Undo cannot cancel new work.
 func get_clearing_order_token(id: String) -> RefCounted:
-	return _sources.get(id)
+	return work.get_source(id)
 
 
 func stones_in_clearing_rect(rect: Rect2i) -> Array[String]:
@@ -408,7 +420,7 @@ func details_in_rect(rect: Rect2i, tool: String) -> Array[String]:
 
 func marked_stones_in_screen_rect(rect: Rect2, camera: Camera3D) -> Array[String]:
 	var result: Array[String] = []
-	for id: String in _sources:
+	for id: String in work.sources:
 		var bounds := get_explorer_bounds(id)
 		if bounds.size == Vector3.ZERO: continue
 		var center := bounds.get_center()
@@ -418,13 +430,12 @@ func marked_stones_in_screen_rect(rect: Rect2, camera: Camera3D) -> Array[String
 
 
 func _ensure_source(id: String) -> void:
-	if _sources.has(id): return
+	if work.has(id): return
 	var record: Dictionary = _records[id]
 	var definition := SurfaceDetailRegistry.get_definition(record.definition)
 	var source := ClearingSource.new()
 	source.task_type = Task.Type.GATHER_SCREE if String(definition.clearing.get("method", "break")) == "gather" else Task.Type.CLEAR_BOULDER
 	source.removed_key = "removed"
-	source.source_id = TaskManager.allocate_source_id()
 	source.origin = record.origin
 	source.footprint = int(definition.footprint)
 	source.duration = float(definition.clearing.work_seconds)
@@ -444,11 +455,9 @@ func _ensure_source(id: String) -> void:
 		source.state["display_name"] = definition.display_name
 		source.state["clearing_activity"] = definition.clearing_activity
 	source.contact_distance_callback = _contact_distance.bind(id)
-	if source.task_type in [Task.Type.GATHER_SCREE, Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB, Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB]: source.work_contact_callback = _gather_contact.bind(id)
+	if source.task_type in Task.GATHER_WORK: source.work_contact_callback = _gather_contact.bind(id)
 	source.feedback_visible_callback = func(): return get_explorer_bounds(id).size != Vector3.ZERO
-	_sources[id] = source
-	_source_ids[source.source_id] = id
-	TaskManager.register_work_source(source.source_id, source)
+	work.add(id, source)
 	source.ensure_lease()
 
 
@@ -468,32 +477,14 @@ func _contact_distance(start: Vector3, end: Vector3, id: String) -> float:
 	return _picking.hit_distance(node, start, end) if is_instance_valid(node) else INF
 
 
-func _retire_source(id: String, cancel_task: bool) -> void:
-	var source: RefCounted = _sources.get(id)
-	if source == null: return
-	var source_id := int(source.get("source_id"))
-	_sources.erase(id)
-	_source_ids.erase(source_id)
-	if cancel_task: TaskManager.cancel_source_tasks(source_id)
-	TaskManager.unregister_work_source(source_id)
-
-
-func _on_released(task: Task, dwarf: int, _reason: int) -> void:
-	if _source_ids.has(task.source_id): _sources[_source_ids[task.source_id]].release_worker(dwarf)
-
-
-func _on_task_gone(task: Task) -> void:
-	if _source_ids.has(task.source_id): _sources[_source_ids[task.source_id]].on_task_gone(task)
-
-
 func _complete_clearing(dwarf: int, id: String) -> bool:
-	var source: RefCounted = _sources.get(id)
+	var source: RefCounted = work.get_source(id)
 	if source == null or int(source.get("reserved_by")) != dwarf: return false
 	var state := _state(id)
 	if bool(state.removed) or not bool(state.designated) or float(state.work_seconds) < float(source.get("duration")): return false
 	var record: Dictionary = _records[id]
 	var definition := SurfaceDetailRegistry.get_definition(record.definition)
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	var has_yield := int(definition.clearing.count) > 0 and not String(definition.clearing.item).is_empty()
 	if has_yield and drops == null: return false
 	var origin: Vector3i = record.origin
@@ -501,17 +492,17 @@ func _complete_clearing(dwarf: int, id: String) -> bool:
 	_remove(id, "cleared", false) # Tombstone before rewards; finishing worker owns lease completion.
 	if was_visible and String(definition.clearing.get("method", "break")) != "gather":
 		WorkFeedback.block_mined(origin + Vector3i.UP, BlockRegistry.get_id(definition.clearing.feedback_block))
-	if has_yield: drops.call("spawn_drop", definition.clearing.item, int(definition.clearing.count), origin + Vector3i.UP)
+	if has_yield: drops.spawn_drop(definition.clearing.item, int(definition.clearing.count), origin + Vector3i.UP)
 	return true
 
 
 func _complete_shrub(dwarf: int, id: String) -> bool:
-	var source: RefCounted = _sources.get(id)
+	var source: RefCounted = work.get_source(id)
 	if source == null or int(source.get("reserved_by")) != dwarf: return false
 	var state := _state(id)
 	if bool(state.removed) or not bool(state.designated) or float(state.work_seconds) < float(source.get("duration")): return false
 	var definition := SurfaceDetailRegistry.get_definition(_records[id].definition)
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	if drops == null: return false
 	if String(state.get("action", "clear")) == "uproot":
 		var cargo: Node3D = drops.create_item_visual(SurfaceDetailRegistry.packed_item(_records[id].definition, int(_records[id].variant)), 1, id)
@@ -536,11 +527,11 @@ func _complete_shrub(dwarf: int, id: String) -> bool:
 			var drop: Dictionary = yields[i]
 			var roll := float(Placement.hash_cell(WorldGenerator.world_seed, origin.x, origin.z, int(definition.salt) + 17001 + i)) / 2147483648.0
 			if roll < float(drop.get("chance", 1.0)):
-				drops.call("spawn_drop", String(drop.item), int(drop.get("count", 1)), origin + Vector3i.UP)
+				drops.spawn_drop(String(drop.item), int(drop.get("count", 1)), origin + Vector3i.UP)
 		return true
 	if not Shrub.available(definition, state): return false
 	_stamp_crop(id, state)
-	drops.call("spawn_drop", definition.harvest.item, int(definition.harvest.count), _records[id].origin + Vector3i.UP)
+	drops.spawn_drop(definition.harvest.item, int(definition.harvest.count), _records[id].origin + Vector3i.UP)
 	return true
 
 
@@ -553,7 +544,7 @@ func _stamp_crop(id: String, state: Dictionary) -> void:
 	state.designated = false
 	state.work_seconds = 0.0
 	state["harvest_work_seconds"] = 0.0
-	_retire_source(id, false)
+	work.retire(id, false)
 	_visual_queue.append(id)
 	_sync_marker(id)
 	_forage_claims.erase(id)
@@ -566,7 +557,7 @@ func forage_available(id: String, dwarf := -1) -> bool:
 	if _forage_claims.has(id) and int(_forage_claims[id]) != dwarf: return false
 	var definition := SurfaceDetailRegistry.get_definition(_records[id].definition)
 	if not Shrub.available(definition, state) or int(definition.harvest.count) <= 0: return false
-	var drops := get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	var drops := ItemDropManager.find(get_tree())
 	return drops != null and not drops.food_definition(definition.harvest.item).is_empty()
 
 
@@ -622,7 +613,7 @@ func advance_forage(id: String, dwarf: int, stand: Vector3i, seconds: float) -> 
 
 func take_forage_portion(id: String, dwarf: int, stand: Vector3i) -> Node3D:
 	if advance_forage(id,dwarf,stand,0.0) != 0.0: return null
-	var drops := get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	var drops := ItemDropManager.find(get_tree())
 	var definition := SurfaceDetailRegistry.get_definition(_records[id].definition)
 	if drops == null or drops.food_definition(definition.harvest.item).is_empty(): return null
 	var portion := drops.create_item_visual(definition.harvest.item,1)
@@ -665,7 +656,7 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 	var status := "Ready to harvest" if ripe else "Regrowing · %.1f game days remaining" % Shrub.regrow_remaining(definition,state) if WorldClock.season in definition.harvest.seasons else "Out of season · regrowth paused"
 	if marked:
 		status = "Marked for harvest" if harvest else "Marked for uprooting" if uproot else "Marked for clearing"
-		var source: RefCounted = _sources.get(id)
+		var source: RefCounted = work.get_source(id)
 		var task := TaskManager.get_task(int(source.get("lease_id"))) if source != null else null
 		if task != null:
 			if task.retry_at > Time.get_ticks_msec(): status = "Awaiting reachable route"
@@ -683,10 +674,10 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 	var seasons: Array[String] = []
 	for season: String in definition.harvest.seasons: seasons.append(season.capitalize())
 	var clearing_yields: Array[String] = []
-	var items := get_tree().get_first_node_in_group("item_drop_manager")
+	var items := ItemDropManager.find(get_tree())
 	for drop: Dictionary in definition.clearing.get("yields", []):
 		var item_key := String(drop.item)
-		var item: Dictionary = items.call("get_item_def", item_key) if items != null else {}
+		var item: Dictionary = items.get_item_def(item_key) if items != null else {}
 		var label := String(item.get("display_name", item_key.get_slice(":", item_key.get_slice_count(":") - 1).capitalize()))
 		clearing_yields.append("%d × %s (%d%% chance)" % [int(drop.get("count", 1)), label, roundi(float(drop.get("chance", 1.0)) * 100)])
 	return {"title": definition.display_name, "kind": "Transplanted shrub" if state.has("origin") else "Wild shrub", "rows": [
@@ -701,7 +692,7 @@ func _remove(id: String, reason: String, cancel_task := true) -> void:
 	state.removed = true
 	state.designated = false
 	state["reason"] = reason
-	_retire_source(id, cancel_task)
+	work.retire(id, cancel_task)
 	var record: Dictionary = _records[id]
 	var handle := int(record.occupancy)
 	record.occupancy = -1
@@ -794,7 +785,7 @@ func serialize_state() -> Dictionary:
 func restore_state(saved: Dictionary) -> void:
 	_seasonal_refresh.clear()
 	_forage_claims.clear()
-	for id: String in _sources.keys(): _retire_source(id, true)
+	work.retire_all(true)
 	_growing.clear()
 	_regrowing.clear()
 	for id: String in _records.keys():
@@ -863,7 +854,7 @@ func restore_state(saved: Dictionary) -> void:
 
 func _exit_tree() -> void:
 	_initializing = true
-	for id: String in _sources.keys(): _retire_source(id, true)
+	work.retire_all(true)
 	for record: Dictionary in _records.values():
 		if int(record.occupancy) >= 0: PlacedEntityRegistry.unregister(int(record.occupancy))
 
@@ -953,19 +944,19 @@ func _on_growth_tick(_hour: int) -> void:
 
 ## DEV items need the same persistent plant identity as an uprooted bush.
 ## Record it as packed before registration so no planted mesh/occupancy appears.
-func dev_spawn_packed_shrub(key: String, floor: Vector3i) -> String:
+func dev_spawn_packed_shrub(key: String, cell: Vector3i) -> String:
 	var definition := SurfaceDetailRegistry.get_definition(key)
 	if definition.get("kind") != "shrub" or not definition.has("transplant"): return ""
-	if not NavGrid.is_walkable(floor) or WaterManager.has_standing_water(floor+Vector3i.UP): return ""
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	if not NavGrid.is_walkable(cell) or WaterManager.has_standing_water(cell+Vector3i.UP): return ""
+	var drops := ItemDropManager.find(get_tree())
 	if drops == null or drops.get_item_def(SurfaceDetailRegistry.packed_item(key,0)).is_empty(): return ""
 	var id := "planted:%d:%d" % [WorldGenerator.world_seed, _next_plant_id]
 	_next_plant_id += 1
 	_changes[id] = {"removed": true, "packed": true, "designated": false,
 		"work_seconds": 0.0, "reason": "dev_packed_shrub"}
-	register_record({"id": id, "definition": key, "origin": floor, "yaw": 0,
+	register_record({"id": id, "definition": key, "origin": cell, "yaw": 0,
 		"variant": 0, "player_created": true})
-	drops.restore_loose_item(SurfaceDetailRegistry.packed_item(key,0),Vector3(floor)+Vector3(.5,1,.5),0,1,id)
+	drops.restore_loose_item(SurfaceDetailRegistry.packed_item(key,0),Vector3(cell)+Vector3(.5,1,.5),0,1,id)
 	return id
 
 

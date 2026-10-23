@@ -84,7 +84,7 @@ func _run() -> void:
 	worker._process(2)
 	_expect(sound_events.size() == 3,"pause emits no impacts")
 	clock_node.set_paused(false)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(await _until_working(),"interruption resumes job")
 	clock_node.set_speed(3)
 	worker._process(.20)
@@ -94,7 +94,7 @@ func _run() -> void:
 	var pitch: float = feedback._voices.back().player.pitch_scale
 	_expect(pitch > .96 and pitch < 1.04,"speed changes cadence, not audio pitch")
 	clock_node.set_speed(1)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(await _until_working(),"second interruption resumes")
 	worker._process(.2)
 	flora.cancel_felling(Vector2i(40,40))

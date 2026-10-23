@@ -122,7 +122,7 @@ func _candidate(world_seed: int, attempt: int, fallback: bool) -> Dictionary:
 		for index in body["cells"]:
 			heights[index] = int(body["floor_y"])
 			water_index[index] = body_index
-	return {"seed": world_seed, "profile_id": _profile["profile_id"], "algorithm_version": _profile["algorithm_version"],
+	return {"seed": world_seed, "profile_id": _profile["profile_id"],
 		"macro_count": _count, "macro_size": _profile["macro_size"], "ranks": ranks, "heights": heights,
 		"water_index": water_index, "water_bodies": water_bodies}
 

@@ -69,13 +69,13 @@ func _all_workers_blocked() -> void:
 	var task: Task = tasks.get_task(lease)
 	_expect(task.blocked_count==1 and task.assigned_to<0,"back off once when every eligible worker is unreachable")
 	_expect(ghost._claim_valid() and _count(CAMP_ITEM)==1,"unreachable order retains its packed item")
-	var before: int = tasks._probes_total
+	var before: int = tasks._scheduler._probes_total
 	for i in range(5): tasks._run_scheduler()
-	_expect(tasks._probes_total==before,"fully blocked order respects its retry delay")
+	_expect(tasks._scheduler._probes_total==before,"fully blocked order respects its retry delay")
 	for y in range(21,25): world.set_block(45,y,41,blocks.AIR_ID)
 	await _frames(2)
 	for i in range(800):
 		if furniture._ghosts.is_empty(): break
 		await _tick()
 	_expect(furniture._ghosts.is_empty() and _count(CAMP_ITEM)==0,"opening a route rearms the existing order and completes installation")
-	_expect(tasks._worker_rejections.is_empty(),"completed leases discard failed-worker records")
+	_expect(tasks._scheduler._worker_rejections.is_empty(),"completed leases discard failed-worker records")

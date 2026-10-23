@@ -3,28 +3,31 @@ extends Node
 ## Sole loader for surface-detail definitions. Runtime owners keep only stable
 ## string definition/instance keys in saves; no block IDs or visual nodes.
 const DATA_PATH := "res://data/entities/surface_details.json"
+## The flora folder: "*_bush.json" wild shrubs load here, "*_tree.json"
+## species load in ContentRegistry through flora_files().
+const FLORA_DIR := "res://data/entities/flora/"
+const JsonData = preload("res://scripts/registries/JsonData.gd")
 var definitions: Dictionary = {}
 
 
-func _ready() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
-	if not parsed is Dictionary:
-		push_error("SurfaceDetailRegistry: invalid definitions")
-		return
+## Loads at construction, not _ready: the main scene is built (member
+## initializers included) before any autoload's _ready runs.
+func _init() -> void:
+	var parsed := JsonData.read_dict(DATA_PATH)
 	for key: String in parsed:
 		var definition: Dictionary = parsed[key]
 		if definition.get("models", []).is_empty() or int(definition.get("footprint", 0)) < 1:
 			push_error("SurfaceDetailRegistry: invalid detail " + key)
 			continue
 		definitions[key] = definition
-	for species: String in ["blueberry", "elderberry", "wild_strawberry"]:
-		_load_shrub(species)
+	for path: String in flora_files("_bush.json"):
+		_load_shrub(path.get_file().trim_suffix("_bush.json"))
 
 
 func _load_shrub(species: String) -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/entities/flora/%s_bush.json" % species))
+	var parsed := JsonData.read_dict(FLORA_DIR + species + "_bush.json")
 	var key := "base:flora:%s_bush" % species
-	if not parsed is Dictionary or not parsed.has(key):
+	if not parsed.has(key):
 		push_error("SurfaceDetailRegistry: invalid shrub " + species)
 		return
 	var plant: Dictionary = parsed[key]
@@ -47,6 +50,15 @@ func _load_shrub(species: String) -> void:
 		definition.harvest["regrow_days"] = float(mature.harvest.regrow_days)
 		definition.harvest["seasons"] = entry.season_only if entry.season_only is Array else [entry.season_only]
 	definitions[key] = definition
+
+
+## Sorted res:// paths of the flora files whose names end with suffix.
+func flora_files(suffix: String) -> Array[String]:
+	var paths: Array[String] = []
+	for file_name in DirAccess.get_files_at(FLORA_DIR):
+		if file_name.ends_with(suffix): paths.append(FLORA_DIR + file_name)
+	paths.sort()
+	return paths
 
 
 func get_definition(key: String) -> Dictionary:

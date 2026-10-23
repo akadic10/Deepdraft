@@ -64,7 +64,7 @@ func _bench_case(phase: int, after_contact: bool) -> void:
 	_expect(zone._pulls.is_empty(), "old haul releases deposit and item claims")
 	_expect(int(furniture.get_catalog_stock()[BENCH].available) == 0, "one owned item cannot be promised twice")
 	if was_carried:
-		_expect(worker._fetch_item == item and worker._fetch_picked_up, "same carrier retains exact item without another pickup")
+		_expect(worker._work_execution._fetch_item == item and worker._work_execution._fetch_picked_up, "same carrier retains exact item without another pickup")
 		_expect(worker._task_phase in [worker.TaskPhase.FETCH_TO_GHOST,worker.TaskPhase.FETCH_DEPOSIT], "carrier goes directly to placement")
 		var cargo: Array = worker.serialize_state().carried_items
 		_expect(cargo.size() == 1 and int(cargo[0].count) == 1, "redirected item remains physical save cargo")
@@ -86,7 +86,7 @@ func _interrupted_handoff(blocked: bool) -> void:
 	var ghost := _place_bench(Vector3i(80,20,40))
 	if blocked:
 		ghost.build_valid_callback = func(_plan): return false
-		worker._fetch_complete() # Support changed before final commit.
+		worker._work_execution._fetch_complete() # Support changed before final commit.
 		_expect(_count(BENCH_ITEM) == 1 and worker._carried_entries.is_empty(), "failed site drops intact cargo")
 		_expect(not ghost._carried_by.has(worker.dwarf_id), "failed site frees carrier bookkeeping")
 	else:

@@ -7,12 +7,12 @@ const Phase = DwarfAgent.TaskPhase
 
 static func roster_state(agent: DwarfAgent) -> Dictionary:
 	var data := describe(agent)
-	var leisure: bool = agent._idle_behavior != null and agent._idle_behavior.active()
-	data.group = "resting" if agent.is_sleeping() else "working" if agent.current_task_id >= 0 or agent._task_phase != Phase.NONE or (agent.is_walking() and not leisure) else "idle"
+	var leisure: bool = agent.get_idle_behavior() != null and agent.get_idle_behavior().active()
+	data.group = "resting" if agent.is_sleeping() else "working" if agent.current_task_id >= 0 or agent.get_task_phase() != Phase.NONE or (agent.is_walking() and not leisure) else "idle"
 	# Short labels for the overview; the existing inspector retains the exact
 	# phase and destination. Classification never changes the underlying task.
 	data.summary = data.activity
-	match agent._task_phase:
+	match agent.get_task_phase():
 		Phase.HAUL_TO_ITEM, Phase.HAUL_PICKUP, Phase.HAUL_TO_ZONE, Phase.HAUL_DEPOSIT:
 			data.summary = "Hauling"
 		Phase.FETCH_TO_ITEM, Phase.FETCH_PICKUP, Phase.FETCH_TO_GHOST, Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT:
@@ -35,7 +35,7 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 	var live_task := TaskManager.get_task(agent.current_task_id)
 	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting " + _tree_fruit_label(live_task)
 	if live_task != null and live_task.type == Task.Type.UPROOT_SHRUB: data.summary = "Uprooting shrub"
-	var fetch := agent._fetch_source()
+	var fetch := agent.fetch_source()
 	if fetch != null and fetch.has_method("advance_plant"): data.summary = "Planting cutting" if bool(fetch.def.get("from_cutting", false)) else "Replanting shrub"
 	if data.group == "idle" and not leisure: data.summary = "Idle"
 	if data.group == "resting": data.summary = "Resting"
@@ -44,7 +44,7 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 		data.summary = "Collecting profession tool"
 	if agent.is_eating():
 		data.group = "resting"
-		data.summary = "Eating" if agent._food.state == "eating" else "Getting food"
+		data.summary = "Eating" if agent.get_food().state == "eating" else "Getting food"
 	if agent.is_recreating():
 		data.group = "resting"
 		data.summary = data.activity
@@ -56,14 +56,14 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 	var activity := "Ready for work"
 	var explanation := "Waiting for an available job."
 	var destination := "No destination"
-	var phase := agent._task_phase
+	var phase := agent.get_task_phase()
 	var clearing_stone := task != null and task.type == Task.Type.CLEAR_BOULDER
 	var gathering_stone := task != null and task.type == Task.Type.GATHER_SCREE
 	if agent.is_sleeping():
-		var rest: Dictionary = agent._rest_behavior.describe()
+		var rest: Dictionary = agent.get_rest_behavior().describe()
 		activity = rest.activity
-		explanation = "%s · %.1f game hours remaining" % [rest.explanation,agent._sleep_hours_left]
-		if agent._rest_behavior.state in ["travelling","travelling_bed"]: destination = "Resting spot (%d, %d, %d)" % [rest.destination.x,rest.destination.y,rest.destination.z]
+		explanation = "%s · %.1f game hours remaining" % [rest.explanation,agent.get_sleep_hours_left()]
+		if agent.get_rest_behavior().state in ["travelling","travelling_bed"]: destination = "Resting spot (%d, %d, %d)" % [rest.destination.x,rest.destination.y,rest.destination.z]
 	elif phase != Phase.NONE:
 		match phase:
 			Phase.FETCH_PLANNING:
@@ -128,7 +128,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			var label := "flowers" if plant_source != null and plant_source.get("state").get("plant_kind") == "flower" else "a shrub"
 			activity = ("Uprooting " if phase == Phase.FELL_WORKING else "Going to uproot ") + label
 			explanation = "Lifting the whole plant for storage or replanting. Its seasonal state is preserved."
-		var fetch := agent._fetch_source()
+		var fetch := agent.fetch_source()
 		if fetch != null and fetch.has_method("advance_plant"):
 			var label := "flowers" if fetch.def.has("plant_variant") else "a shrub"
 			activity = ("Replanting " if phase in [Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT] else "Carrying " if phase == Phase.FETCH_TO_GHOST else "Collecting ") + label
@@ -144,7 +144,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 	elif agent.is_walking():
 		activity = "Walking"
 		explanation = "Moving to the requested position."
-		destination = location(agent._move_path.back())
+		destination = location(agent.get_move_path().back())
 	var availability := TaskManager.worker_availability(agent)
 	if availability.begins_with("Trapped") and task == null and not agent.is_sleeping():
 		activity = "Needs accessible footing"
@@ -163,9 +163,9 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			elif phase in [Phase.FETCH_WORKING,Phase.FETCH_DEPOSIT]:
 				activity = "Crafting " + String(craft_source.recipe.name).to_lower()
 				explanation = "Working with the gathered materials to finish the recipe."
-	var ladder_build := agent._fetch_source()
-	if task == null and not agent.is_sleeping() and not availability.begins_with("Trapped") and agent._idle_behavior != null and agent._idle_behavior.active():
-		var leisure: Dictionary = agent._idle_behavior.describe()
+	var ladder_build := agent.fetch_source()
+	if task == null and not agent.is_sleeping() and not availability.begins_with("Trapped") and agent.get_idle_behavior() != null and agent.get_idle_behavior().active():
+		var leisure: Dictionary = agent.get_idle_behavior().describe()
 		activity = leisure.activity
 		explanation = leisure.explanation
 		destination = location(leisure.destination) if leisure.destination.x >= 0 else "No destination"
@@ -175,42 +175,42 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			explanation = "Hammering the structure using stone already delivered to its materials crate."
 		else:
 			activity = "Installing a ladder section" if phase == Phase.FETCH_WORKING else "Carrying a ladder section" if phase == Phase.FETCH_TO_GHOST else "Collecting a ladder section"
-	var delivery := agent._haul_source()
+	var delivery := agent.haul_source()
 	if delivery != null and delivery.has_method("site_supported"):
 		activity = "Delivering construction materials" if phase in [Phase.HAUL_TO_ZONE,Phase.HAUL_DEPOSIT] else "Collecting construction materials"
 		explanation = "Filling the project's temporary materials crate using the normal carrying limit."
-	var ladder_removal := agent._uninstall_source()
+	var ladder_removal := agent.uninstall_source()
 	if ladder_removal != null and ladder_removal.has_method("advance_removal"):
 		activity = "Dismantling a ladder" if phase == Phase.UNINSTALL_WORKING else "Going to dismantle a ladder"
-	if agent._climbing:
-		activity = "Climbing with supplies" if not agent._carried_entries.is_empty() else "Climbing a ladder"
+	if agent.is_climbing():
+		activity = "Climbing with supplies" if not agent.get_carried_entries().is_empty() else "Climbing a ladder"
 		explanation = "Using the installed rungs to reach another level."
-	if agent._ladder_exiting:
+	if agent.is_ladder_exiting():
 		activity = "Climbing down to safe ground"
 		explanation = "Leaving the ladder before taking another job or resting."
 	if agent.promotion_pending():
-		activity = "Equipping profession tool" if agent._equipment.stage == "pickup" else "Collecting profession tool"
+		activity = "Equipping profession tool" if agent.get_equipment().stage == "pickup" else "Collecting profession tool"
 		explanation = "Promotion completes after collecting the reserved starter tool."
 		destination = "Finding a reachable starter tool"
-		if is_instance_valid(agent._equipment.item):
-			destination = _item_name(agent, agent._equipment.item.get_meta("item_key", "")) + "\n" + location(agent._item_floor_cell(agent._equipment.item))
+		if is_instance_valid(agent.get_equipment().item):
+			destination = _item_name(agent, agent.get_equipment().item.get_meta("item_key", "")) + "\n" + location(agent.item_floor_cell(agent.get_equipment().item))
 	var load_used := 0
 	if agent.is_recreating():
-		var game: Dictionary = agent._recreation.describe(agent)
+		var game: Dictionary = agent.get_recreation().describe(agent)
 		activity = game.activity
 		explanation = game.explanation
 		destination = location(game.destination)
-	var food: Dictionary = agent._food.describe()
+	var food: Dictionary = agent.get_food().describe()
 	if agent.is_eating():
 		activity = food.activity
 		explanation = food.explanation
 		destination = location(food.destination) if food.destination.x >= 0 else "Finding reachable food"
-	elif agent._food.hungry() and not food.explanation.is_empty():
+	elif agent.get_food().hungry() and not food.explanation.is_empty():
 		explanation += "\n"+String(food.explanation)
 	for entry: Dictionary in items:
 		load_used += int(entry.cost)
 	var capacity := int(TaskManager.get_config_section("hauling").get("carry_capacity", 4))
-	var source := agent._haul_source()
+	var source := agent.haul_source()
 	if source is StorageComponent:
 		capacity = source.carry_capacity
 	var trait_names: Array[String] = []
@@ -242,18 +242,18 @@ static func location(cell: Vector3i) -> String:
 
 
 static func equipment_description(agent: DwarfAgent) -> String:
-	var key: String = agent._equipment.tool_key() if agent._equipment != null else ""
-	if not key.is_empty(): return CraftMaterials.product_name(_item_name(agent, key), CraftMaterials.of_item(agent._equipment.equipped)) + "\nStarter tool · No work-speed bonus"
+	var key: String = agent.get_equipment().tool_key() if agent.get_equipment() != null else ""
+	if not key.is_empty(): return CraftMaterials.product_name(_item_name(agent, key), CraftMaterials.of_item(agent.get_equipment().equipped)) + "\nStarter tool · No work-speed bonus"
 	return "Default pickaxe · No crafted upgrade" if agent.profession == "base:profession:miner" else "Default work tools"
 
 
 static func equipment_details(agent: DwarfAgent) -> Dictionary:
 	var preview: Dictionary = DwarfAssets.profession_definition(agent.profession).get("equipment_preview", {})
-	var key: String = agent._equipment.tool_key() if agent._equipment != null else ""
-	var manager := agent.get_tree().get_first_node_in_group("item_drop_manager")
+	var key: String = agent.get_equipment().tool_key() if agent.get_equipment() != null else ""
+	var manager := ItemDropManager.find(agent.get_tree())
 	var definition: Dictionary = manager.get_item_def(key) if manager != null and not key.is_empty() else {}
 	var details: Dictionary = definition.get("equipment", {})
-	var material_id := CraftMaterials.of_item(agent._equipment.equipped) if agent._equipment != null else ""
+	var material_id := CraftMaterials.of_item(agent.get_equipment().equipped) if agent.get_equipment() != null else ""
 	return {
 		"name": CraftMaterials.product_name(_item_name(agent, key), material_id) if not key.is_empty() else String(preview.get("default_name", "Basic work tools")),
 		"tier": String(details.get("tier", "Standard")),
@@ -264,26 +264,22 @@ static func equipment_details(agent: DwarfAgent) -> Dictionary:
 		"upgrade_status": String(preview.get("upgrade_status", "Choose a profession")),
 		"upgrade_description": String(preview.get("upgrade_description", "Upgrade details will appear with this profession's gameplay.")),
 		"upgrade_method": String(preview.get("upgrade_method", "")),
-		"pending": agent._equipment.message if agent.promotion_pending() else ""
+		"pending": agent.get_equipment().message if agent.promotion_pending() else ""
 	}
 
 
 static func _destination(agent: DwarfAgent, task: Task) -> String:
-	var phase := agent._task_phase
+	var phase := agent.get_task_phase()
 	if phase in [Phase.HAUL_TO_ITEM, Phase.HAUL_PICKUP, Phase.FETCH_TO_ITEM, Phase.FETCH_PICKUP]:
-		var item: Node3D = agent._fetch_item
-		if phase in [Phase.HAUL_TO_ITEM, Phase.HAUL_PICKUP] and agent._haul_index < agent._haul_items.size():
-			item = agent._haul_items[agent._haul_index]
+		var item: Node3D = agent.target_item()
 		if is_instance_valid(item):
-			return "%s\n%s" % [_item_name(agent, String(item.get_meta("item_key", ""))), location(agent._item_floor_cell(item))]
+			return "%s\n%s" % [_item_name(agent, String(item.get_meta("item_key", ""))), location(agent.item_floor_cell(item))]
 	if phase in [Phase.HAUL_TO_ZONE, Phase.HAUL_DEPOSIT]:
-		var source := agent._haul_source()
+		var source := agent.haul_source()
 		var label := "Storage"
 		if source is StockpileZoneComponent:
 			label = "Stockpile %d" % source.zone_id
-		elif source is ContainerStorageComponent:
-			label = "Storage container"
-		return "%s\n%s" % [label, location(agent._haul_deposit)]
+		return "%s\n%s" % [label, location(agent.get_haul_deposit())]
 	if task != null:
 		var source: Object = TaskManager.get_work_source(task.source_id)
 		if task.type == Task.Type.CRAFT and is_instance_valid(source):
@@ -294,34 +290,34 @@ static func _destination(agent: DwarfAgent, task: Task) -> String:
 		if is_instance_valid(source) and source.has_method("display_name"):
 			label = String(source.call("display_name"))
 		elif phase in [Phase.ZONE_MOVING, Phase.ZONE_SWINGING]:
-			return "Mining site\n%s" % location(agent._zone_block)
+			return "Mining site\n%s" % location(agent.get_zone_block())
 		elif phase in [Phase.FELL_FINDING, Phase.FELL_MOVING, Phase.FELL_WORKING]:
 			label = "Marked boulder" if task.type == Task.Type.CLEAR_BOULDER else "Marked tree"
 			if task.type == Task.Type.GATHER_SCREE: label = "Loose stones"
-			if task.type in [Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB]: label = "Wild shrub"
+			if task.type in Task.SHRUB_WORK: label = "Wild shrub"
 			if task.type in [Task.Type.CLEAR_PLANT, Task.Type.UPROOT_SHRUB] and is_instance_valid(source): label = String(source.get("state").get("display_name", "Wild plants"))
 		return "%s\n%s" % [label, location(task.target_pos)]
 	return "Work site"
 
 
 static func _item_name(agent: DwarfAgent, key: String) -> String:
-	var manager := agent.get_tree().get_first_node_in_group("item_drop_manager")
+	var manager := ItemDropManager.find(agent.get_tree())
 	if manager != null:
-		var definition: Dictionary = manager.call("get_item_def", key)
+		var definition: Dictionary = manager.get_item_def(key)
 		return String(definition.get("display_name", key.get_slice(":", key.get_slice_count(":") - 1).capitalize()))
 	return key.get_slice(":", key.get_slice_count(":") - 1).capitalize()
 
 
 static func _cargo(agent: DwarfAgent) -> Array[Dictionary]:
 	var grouped: Dictionary = {}
-	var manager := agent.get_tree().get_first_node_in_group("item_drop_manager")
-	for entry: Array in agent._carried_entries:
+	var manager := ItemDropManager.find(agent.get_tree())
+	for entry: Array in agent.get_carried_entries():
 		if not is_instance_valid(entry[0]):
 			continue
 		var key := String(entry[1])
 		var material_id := CraftMaterials.of_item(entry[0])
 		var group_key := key + "|" + material_id
-		var definition: Dictionary = manager.call("get_item_def", key) if manager != null else {}
+		var definition: Dictionary = manager.get_item_def(key) if manager != null else {}
 		if not grouped.has(group_key):
 			grouped[group_key] = {"key": key, "name": CraftMaterials.product_name(_item_name(agent, key), material_id), "count": 0, "objects": 0,
 				"cost": 0, "crate": int(definition.get("crate_capacity", 1)) > 1}
@@ -337,7 +333,7 @@ static func _cargo(agent: DwarfAgent) -> Array[Dictionary]:
 
 static func task_is_shrub(agent: DwarfAgent) -> bool:
 	var task := TaskManager.get_task(agent.current_task_id)
-	return task != null and task.type in [Task.Type.HARVEST_SHRUB, Task.Type.CLEAR_SHRUB]
+	return task != null and task.type in Task.SHRUB_WORK
 
 
 static func _tree_fruit_label(task: Task) -> String:

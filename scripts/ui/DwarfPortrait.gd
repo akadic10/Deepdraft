@@ -35,11 +35,11 @@ static func create_viewport(texture: TextureRect, resolution := Vector2i(192, 22
 static func create_model(viewport: SubViewport, agent: DwarfAgent) -> Node3D:
 	var model := Node3D.new()
 	viewport.add_child(model)
-	for part: Node3D in [agent._body, agent._head]:
+	for part: Node3D in [agent.get_body(), agent.get_head()]:
 		if part == null: continue
 		var copy := part.duplicate(0) as Node3D
 		copy.transform = Transform3D.IDENTITY
-		copy.scale.x = agent.proportions.body_width if part==agent._body else agent.proportions.head_width
+		copy.scale.x = agent.proportions.body_width if part==agent.get_body() else agent.proportions.head_width
 		for silhouette: Node in copy.find_children("OccludedSilhouette","MeshInstance3D",true,false): silhouette.free()
 		# Portraits use their own studio lighting, even when the selected dwarf
 		# stands underground. Keep the original tint without the world light field.

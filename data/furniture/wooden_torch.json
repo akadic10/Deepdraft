@@ -16,9 +16,7 @@
     "width": 0,
     "depth": 0
   },
-  "blocks_movement": false,
   "collision_regions": [],
-  "room_anchor": false,
   "wall_mount": {
     "origin_offset_y": 2.5,
     "bracket_height": 0.875,

@@ -42,7 +42,7 @@ func _process(delta: float) -> void:
 func _scan() -> void:
 	var closest_z := INF
 	var nearby := false
-	for actor in TaskManager._agents.values():
+	for actor in TaskManager.get_agents():
 		if not is_instance_valid(actor) or not actor.is_inside_tree() or actor.is_queued_for_deletion(): continue
 		var local: Vector3 = _model.to_local(actor.global_position)
 		if absf(local.y)>1.25 or absf(local.x)>float(_settings.width)*.5+.35: continue

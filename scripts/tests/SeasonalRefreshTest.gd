@@ -34,7 +34,7 @@ func _run() -> void:
 	details._visual_queue.clear()
 	var chop_id: Vector2i = roots.keys()[4]
 	flora.designate_felling(chop_id)
-	var source = flora._felling_sources[chop_id]
+	var source = flora.work.sources[chop_id]
 	source.state.work_seconds = 0.25
 	var saved_flora: Dictionary = flora.serialize_state()
 	for next: String in ["autumn", "winter", "spring", "summer"]:
@@ -67,7 +67,7 @@ func _run() -> void:
 			var expected: String = flora.resolve_tree_model_for_season(species.stages[tree.stage],next,tree.cell)
 			_expect(tree.model_path == expected, "final art matches authored season for every species/stage")
 			_expect(tree.node == roots[id] and tree.occupancy_id == occupancy[id], "art swap preserves body and occupancy")
-		_expect(flora._felling_sources[chop_id] == source and source.state.work_seconds == .25, "chopping source and progress survive night")
+		_expect(flora.work.sources[chop_id] == source and source.state.work_seconds == .25, "chopping source and progress survive night")
 		_expect(flora.serialize_state() == saved_flora, "visual refresh does not alter forestry save")
 	# Save/load notification during a paused night catches up without waiting for dawn.
 	clock_node.hour = 1
@@ -79,20 +79,20 @@ func _run() -> void:
 	# Terrain work is paced in worker-sized batches, preserving the visible nodes.
 	var terrain = load("res://scripts/systems/WorldRenderer.gd").new()
 	terrain.overview_tiles_per_frame = 8
-	for i in 32: terrain._overview_tile_nodes[Vector2i(i,0)] = MeshInstance3D.new()
+	for i in 32: terrain.tiles.overview_tile_nodes[Vector2i(i,0)] = MeshInstance3D.new()
 	clock_node.hour = 0
 	terrain._on_season_changed(clock_node.season)
-	_expect(terrain._seasonal_refresh.pending_count() == 4 and terrain._dirty_overview_tiles.is_empty(), "terrain queues batches without an immediate full-map rebuild")
+	_expect(terrain._seasonal_refresh.pending_count() == 4 and terrain.tiles.dirty_overview_tiles.is_empty(), "terrain queues batches without an immediate full-map rebuild")
 	clock_node.hour = 3
 	for i in 8:
 		await process_frame
 		terrain._seasonal_refresh.drain(terrain._enqueue_seasonal_batch)
-	_expect(terrain._dirty_overview_tiles.size() == 16, "half summer night admits two complete terrain batches")
-	_expect(terrain._overview_tile_nodes.size() == 32, "queued recolour retains every terrain node")
+	_expect(terrain.tiles.dirty_overview_tiles.size() == 16, "half summer night admits two complete terrain batches")
+	_expect(terrain.tiles.overview_tile_nodes.size() == 32, "queued recolour retains every terrain node")
 	terrain.finish_pending_overview()
 	_expect(terrain._seasonal_refresh.pending_count() == 0, "world teardown discards seasonal terrain queue")
-	for node: Node in terrain._overview_tile_nodes.values(): node.free()
-	terrain._overview_tile_nodes.clear()
+	for node: Node in terrain.tiles.overview_tile_nodes.values(): node.free()
+	terrain.tiles.overview_tile_nodes.clear()
 	terrain.free()
 	# Superseded nights, removals and slices are checked against current live state.
 	clock_node.advance_season()

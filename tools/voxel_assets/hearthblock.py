@@ -1,13 +1,13 @@
 """Hearthblock pilot solids, replayed from the proposal's authoring logs.
 
-`data/art/voxel_hearthblock.json` holds each model's operations exactly as the
+`tools/art_data/voxel_hearthblock.json` holds each model's operations exactly as the
 proposal recorded them. Replay keeps role names until the end so the result can
 be compared cell for cell with the proposal, then maps roles to linear colors.
 """
 from common import Voxels, linear, read_json
 
-DATA = 'data/art/voxel_hearthblock.json'
-OCCLUSION = 'data/art/voxel_occlusion.json'
+DATA = 'tools/art_data/voxel_hearthblock.json'
+OCCLUSION = 'tools/art_data/voxel_occlusion.json'
 
 
 def _span(lo, hi): return range(lo, hi)

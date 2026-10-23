@@ -31,8 +31,8 @@ func _run() -> void:
 	var deadline := Time.get_ticks_msec() + 120000
 	while Time.get_ticks_msec() < deadline:
 		await process_frame
-		if generator._maps_ready and renderer._overview_built and details._initialized and flora._pending.is_empty() and details._visual_queue.is_empty(): break
-	if not details._initialized or not renderer._overview_built:
+		if generator._maps_ready and renderer.tiles.overview_built and details._initialized and flora._pending.is_empty() and details._visual_queue.is_empty(): break
+	if not details._initialized or not renderer.tiles.overview_built:
 		printerr("Boulder preview timed out")
 		quit(1)
 		return

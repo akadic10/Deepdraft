@@ -31,7 +31,7 @@ sleep heights, hinges and walking surfaces, and all four woods.
 | Settlement flag | A rough pole in a stone cairn, a lashed crossbar and the banner. |
 
 The water stones are rocks and unchanged. Tier 2 · Carpenter Era designs remain in
-`data/art/studies/hearthblock_furniture_tiers.json` and `proposal.mjs` (never delete).
+`tools/art_data/studies/hearthblock_furniture_tiers.json` and `proposal.mjs` (never delete).
 
 **Dwarves: every appearance.** All dwarves now have the proposal's square head (four
 ages: smaller nose for young, a forehead line for middle age, elder dome, wrinkles
@@ -214,7 +214,7 @@ good keeps its old footprint, so carrying, crates and stockpile tiles are unchan
 
 - `tools/hearthblock/art/`: `proposal.mjs` (the approved proposal models, verbatim),
   `tier1.mjs` (furniture), `dwarves.mjs` (every dwarf part). `write_data.py` runs
-  `export.mjs` and writes `data/art/voxel_hearthblock.json` with each model's
+  `export.mjs` and writes `tools/art_data/voxel_hearthblock.json` with each model's
   operations, palettes and pilot edits. `tools/voxel_assets/hearthblock.py` replays
   them; the furniture and dwarves families use them through the normal
   `build.py --install` gate.
@@ -233,7 +233,7 @@ good keeps its old footprint, so carrying, crates and stockpile tiles are unchan
 
 Opt-in in `greedy_mesh_from_voxels(..., occlusion=...)`; other families rebuild
 byte-for-byte. Each face corner counts its two side cells and one diagonal cell:
-curve `[0.5, 0.68, 0.85, 1.0]` from `data/art/voxel_occlusion.json`, as on the
+curve `[0.5, 0.68, 0.85, 1.0]` from `tools/art_data/voxel_occlusion.json`, as on the
 proposal page. Floors (and the torch's wall) count as solid for shading only. Faces
 merge only when color and all four corner levels agree; the diagonal follows the
 brighter pair. Darkened wood ramps collide (oak bark equals oak wood_dark at the

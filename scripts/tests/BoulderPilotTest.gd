@@ -63,7 +63,7 @@ func _run() -> void:
 	_expect(hit.get("id", "") == DETAIL_ID, "exact imported mesh is selectable")
 	_expect(explorer.select_object(details, DETAIL_ID), "shared inspector accepts boulders")
 	explorer._perform_action("clear")
-	var source: RefCounted = details._sources[DETAIL_ID]
+	var source: RefCounted = details.work.sources[DETAIL_ID]
 	var lease: int = source.lease_id
 	details.designate_clearing(DETAIL_ID)
 	_expect(source.lease_id == lease, "repeated designation does not duplicate jobs")
@@ -85,7 +85,7 @@ func _run() -> void:
 	worker._process(2)
 	_expect(float(source.state.work_seconds) == partial, "pause freezes work")
 	clock_node.set_paused(false)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(source.reserved_by == -1 and float(source.state.work_seconds) == partial, "interrupt releases ownership and retains progress")
 	_expect(not worker._mining_pose.pickaxe.visible, "interrupt stows pick")
 	_expect(await _until_working(), "interrupted boulder job resumes")
@@ -97,7 +97,7 @@ func _run() -> void:
 	_expect(await _until_working(), "boulder clearing resumes after waking")
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_boulders()
 	explorer._perform_action("cancel")
-	_expect(worker.current_task_id == -1 and not details._sources.has(DETAIL_ID), "cancel aborts worker and source")
+	_expect(worker.current_task_id == -1 and not details.work.sources.has(DETAIL_ID), "cancel aborts worker and source")
 	_expect(is_equal_approx(details._changes[DETAIL_ID].work_seconds, partial), "cancellation keeps work")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(details.serialize_state()))
 	details.restore_state(saved)
@@ -105,7 +105,7 @@ func _run() -> void:
 	details.designate_clearing(DETAIL_ID)
 	var designated: Dictionary = JSON.parse_string(JSON.stringify(details.serialize_state()))
 	details.restore_state(designated)
-	_expect(details._sources.size() == 1, "designated restore creates exactly one lease")
+	_expect(details.work.sources.size() == 1, "designated restore creates exactly one lease")
 	_expect(await _until_working(), "restored work resumes through scheduler")
 	for i in range(120):
 		worker._process(.1)
@@ -122,7 +122,7 @@ func _run() -> void:
 	_expect(await _until_working(), "second boulder can be reached after clearing first")
 	world.set_block(46,20,40,blocks.AIR_ID)
 	_expect(details._changes[support_id].removed and details._records[support_id].occupancy < 0, "excavation removes unsupported stone immediately")
-	_expect(worker.current_task_id == -1 and not details._sources.has(support_id), "support loss cancels active work and releases worker")
+	_expect(worker.current_task_id == -1 and not details.work.sources.has(support_id), "support loss cancels active work and releases worker")
 	world.set_block(46,20,40,blocks.get_id("base:terrain:rock:rock01"))
 	details._spawn_visual(support_id)
 	_expect(details._records[support_id].node == null, "replacing support never resurrects removed detail")
@@ -141,7 +141,7 @@ func _run() -> void:
 		walls.append(occ.register_box(cell, Vector3i(1,3,1)))
 	details.designate_clearing(remaining)
 	for i in range(12): tasks._run_scheduler()
-	var blocked_source: RefCounted = details._sources[remaining]
+	var blocked_source: RefCounted = details.work.sources[remaining]
 	var blocked_task: Task = tasks.get_task(blocked_source.lease_id)
 	_expect(blocked_task.blocked_count > 0 and blocked_source.reserved_by == -1 and blocked_source.state.work_seconds == 0, "unreachable stone retries without phantom progress or reservation")
 	occ.unregister(walls.pop_front())
@@ -185,8 +185,8 @@ func _capture_boulders(output := "res://tmp/boulder_review/pilot.png") -> void:
 	explorer._window.position = Vector2(24,130)
 	details._update_markers()
 	if tasks.get_task(worker.current_task_id).type == Task.Type.GATHER_SCREE:
-		worker._carry_pose.gather(.5, worker._fell_contact)
-	else: worker._mining_pose.apply(.92, worker._fell_contact)
+		worker._carry_pose.gather(.5, worker._work_execution._fell_contact)
+	else: worker._mining_pose.apply(.92, worker._work_execution._fell_contact)
 	for i in range(8): await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(output)

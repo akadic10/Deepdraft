@@ -42,7 +42,7 @@ var node: Node3D = null             # translucent in-world marker (controller-ow
 
 # ── Work-source state (doc 19 Phase 3 — injected by the controller) ───────────
 var source_id: int = -1             # TaskManager.allocate_source_id()
-var drop_manager: Node3D = null     # ItemDropManager (guard is_instance_valid)
+var drop_manager: ItemDropManager = null # guard is_instance_valid
 var install_callback: Callable = Callable()   # (ghost) -> controller install path
 var build_valid_callback: Callable = Callable() # support check before consuming item
 
@@ -145,7 +145,7 @@ func item_available() -> bool:
 		return true
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return false
-	return drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id, -1, required_material_id) != null
+	return drop_manager.nearest_loose_of_key(item_key, origin_cell, {}, required_instance_id, -1, required_material_id) != null
 
 
 ## Posts/retires the single FETCH_BUILD lease, and keeps the item claim
@@ -156,7 +156,7 @@ func item_available() -> bool:
 func update_lease() -> void:
 	if source_id < 0:
 		return
-	_ensure_claim()
+	ensure_claim()
 	if not has_committed_item():
 		var best := {}
 		var distance := INF
@@ -181,7 +181,7 @@ func update_lease() -> void:
 ## dwarf already owns one for this ghost. Claimed = reserved under
 ## claim_owner_id(), invisible to every unreserved-only scan (haul pouches,
 ## other ghosts' claims and fetches).
-func _ensure_claim() -> void:
+func ensure_claim() -> void:
 	if not required_instance_id.is_empty() and is_instance_valid(drop_manager):
 		drop_manager.promise_instance(required_instance_id, claim_owner_id())
 	if not _fetches.is_empty() or not _carried_by.is_empty():
@@ -191,9 +191,17 @@ func _ensure_claim() -> void:
 	_claim = null
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return
-	var item: Node3D = drop_manager.call("nearest_loose_of_key", item_key, origin_cell, {}, required_instance_id, claim_owner_id(), required_material_id)
-	if item != null and (drop_manager.reserved_by(item, claim_owner_id()) or bool(drop_manager.call("reserve", item, claim_owner_id()))):
+	var item: Node3D = drop_manager.nearest_loose_of_key(item_key, origin_cell, {}, required_instance_id, claim_owner_id(), required_material_id)
+	if item != null and (drop_manager.reserved_by(item, claim_owner_id()) or drop_manager.reserve(item, claim_owner_id())):
 		_claim = item
+
+
+## The loose item this plan holds a soft claim on, or null.
+func claimed_item() -> Node3D: return _claim
+## Dwarves fetching an item for this plan.
+func fetching_workers() -> Array: return _fetches.keys()
+## True when the item is this plan's claim or a fetching dwarf's reservation.
+func holds_item(item: Node3D) -> bool: return _claim == item or item in _fetches.values()
 
 
 ## Frees the ghost's item claim (owner-guarded). Controller calls this on
@@ -203,7 +211,7 @@ func release_claim() -> void:
 		drop_manager.release_instance_promise(required_instance_id, claim_owner_id())
 	if _claim != null and is_instance_valid(_claim) \
 			and drop_manager != null and is_instance_valid(drop_manager):
-		drop_manager.call("unreserve", _claim, claim_owner_id())
+		drop_manager.unreserve(_claim, claim_owner_id())
 	_claim = null
 
 
@@ -228,6 +236,20 @@ func on_task_gone(task_id: int, dwarf_id: int) -> void:
 		_lease_id = -1
 	if dwarf_id >= 0:
 		cancel_fetch(dwarf_id)
+
+
+# WorkSourceTable routing contract. A release keeps the pending lease; only the
+# worker's transient item claim changes.
+func work_task_gone(task: Task, dwarf_id: int) -> void:
+	on_task_gone(task.id, dwarf_id)
+
+
+func work_task_released(_task: Task, dwarf_id: int) -> void:
+	cancel_fetch(dwarf_id)
+
+
+func work_source_retired() -> void:
+	release_claim()
 
 
 ## Scheduler probe / builder stand target: the nearest walkable cell BESIDE
@@ -323,13 +345,13 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 		# Transfer the claim to the fetching dwarf (owner-guarded swap).
 		item = _claim
 		_claim = null
-		drop_manager.call("unreserve", item, claim_owner_id())
-		if not bool(drop_manager.call("reserve", item, dwarf_id)):
+		drop_manager.unreserve(item, claim_owner_id())
+		if not drop_manager.reserve(item, dwarf_id):
 			item = null
 	if item == null:
-		item = drop_manager.call("nearest_loose_of_key", item_key, dwarf_cell, {}, required_instance_id, -1, required_material_id)
+		item = drop_manager.nearest_loose_of_key(item_key, dwarf_cell, {}, required_instance_id, -1, required_material_id)
 		if item != null:
-			if not bool(drop_manager.call("reserve", item, dwarf_id)):
+			if not drop_manager.reserve(item, dwarf_id):
 				item = null
 	if item == null:
 		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id, required_instance_id, required_material_id)
@@ -337,7 +359,7 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 		return {}
 	_fetches[dwarf_id] = item
 	fetched_instance_id = String(item.get_meta("instance_id", ""))
-	var item_def: Dictionary = drop_manager.call("get_item_def", item_key)
+	var item_def: Dictionary = drop_manager.get_item_def(item_key)
 	return {
 		"item": item,
 		"heavy": String(item_def.get("weight_class", "light")) == "heavy",
@@ -359,8 +381,8 @@ func cancel_fetch(dwarf_id: int) -> void:
 	_fetches.erase(dwarf_id)
 	if item != null and is_instance_valid(item) \
 			and drop_manager != null and is_instance_valid(drop_manager):
-		drop_manager.call("unreserve", item, dwarf_id)
-		if not _claim_valid() and bool(drop_manager.call("reserve", item, claim_owner_id())):
+		drop_manager.unreserve(item, dwarf_id)
+		if not _claim_valid() and drop_manager.reserve(item, claim_owner_id()):
 			_claim = item
 
 

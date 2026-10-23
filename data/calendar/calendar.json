@@ -11,7 +11,7 @@
     "",
     "FIELDS:",
     "  time_scale.real_seconds_per_game_hour - wall-clock seconds per in-game hour at x1 speed",
-    "  time_scale.hours_per_day / days_per_season / seasons_per_year - calendar structure",
+    "  time_scale.hours_per_day / days_per_season - calendar structure; the year length is season_order",
     "  season_order      - canonical cycle; index into this drives day_of_year()",
     "  start             - new-game calendar position (matches WorldClock.gd defaults today)",
     "  event_times       - named time-of-day events in HOURS. Shared by the clock AND every sky/fog",
@@ -28,8 +28,7 @@
   "time_scale": {
     "real_seconds_per_game_hour": 60,
     "hours_per_day": 24,
-    "days_per_season": 28,
-    "seasons_per_year": 4
+    "days_per_season": 28
   },
 
   "season_order": ["spring", "summer", "autumn", "winter"],
@@ -50,7 +49,6 @@
   "day_length_curve": {
     "mean_hours":          12.0,
     "amplitude_hours":     4.0,
-    "summer_solstice_doy": 28,
-    "winter_solstice_doy": 84
+    "summer_solstice_doy": 28
   }
 }

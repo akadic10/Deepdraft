@@ -149,7 +149,7 @@ func _run() -> void:
 		restored.set_process(false)
 		restored.restore_state(saved)
 		_expect(_snapshot(restored) == records, "fresh owner restore regenerates identical records")
-		_expect(restored._sources.size() == 1 and restored._changes[first].work_seconds == 1.25, "pre-generation restore reconstructs one partial job")
+		_expect(restored.work.sources.size() == 1 and restored._changes[first].work_seconds == 1.25, "pre-generation restore reconstructs one partial job")
 		if not scree_ids.is_empty(): _expect(restored._changes[scree_ids[0]].removed and restored._records[scree_ids[0]].occupancy < 0, "fresh owner preserves gathered scree removal")
 		if not flower_ids.is_empty(): _expect(restored._changes[flower_ids[0]].removed and restored._records[flower_ids[0]].node == null, "fresh layout restore preserves cleared flower identity")
 		if not reed_ids.is_empty(): _expect(restored._changes[reed_ids[0]].removed and restored._records[reed_ids[0]].node == null, "fresh layout restore preserves cleared reed identity")

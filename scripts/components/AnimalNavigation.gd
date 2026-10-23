@@ -35,12 +35,12 @@ static func _check_epoch() -> void:
 		PlacedEntityRegistry.occupancy_changed.connect(_invalidate_box)
 		WaterManager.levels_changed.connect(_water_changed)
 		_connected = true
-	if _water_revision != WaterManager.revision or _occupancy_revision != PlacedEntityRegistry.reset_revision or _seed != WorldGenerator.world_seed or _maps_ready != WorldGenerator._maps_ready:
+	if _water_revision != WaterManager.revision or _occupancy_revision != PlacedEntityRegistry.reset_revision or _seed != WorldGenerator.world_seed or _maps_ready != WorldGenerator.is_maps_ready():
 		clear_cache()
 		_water_revision = WaterManager.revision
 		_occupancy_revision = PlacedEntityRegistry.reset_revision
 		_seed = WorldGenerator.world_seed
-		_maps_ready = WorldGenerator._maps_ready
+		_maps_ready = WorldGenerator.is_maps_ready()
 
 static func _tile(cell: Vector3i) -> Dictionary:
 	_check_epoch()

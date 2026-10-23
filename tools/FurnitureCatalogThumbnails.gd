@@ -12,7 +12,6 @@ func _run() -> void:
 	root.get_node("WorldClock").set_paused(true)
 	root.get_node("RoomManager").set_process(false)
 	var registry = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	registry._load_defs()
 	var only := ""
 	var output_directory := OUT
 	for arg in OS.get_cmdline_user_args():

@@ -19,4 +19,4 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 func cancel_fetch(dwarf_id: int) -> void:
 	continuation_worker = -1
 	super.cancel_fetch(dwarf_id)
-	_ensure_claim()
+	ensure_claim()

@@ -39,7 +39,7 @@ func _process(delta: float) -> void:
 	if _revision != WaterManager.revision:
 		_silence()
 		_revision = WaterManager.revision
-	var context := WorkFeedback._context()
+	var context := WorkFeedback.listener_context()
 	if context.is_empty():
 		_silence()
 		return

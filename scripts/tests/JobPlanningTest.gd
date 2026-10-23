@@ -38,7 +38,7 @@ func _run() -> void:
 		if result==nav.ProbeResult.REACHABLE: break
 	_expect(result==nav.ProbeResult.REACHABLE and int(query.expanded)>frontier,"escalation retains the frontier and finds the feasible route")
 	# Terrain changes outside examined chunks leave the frontier intact.
-	var task_id: int = tasks.add_task(Task.Type.PATROL,goal)
+	var task_id: int = _post_mine_lease(goal)
 	var task = tasks.get_task(task_id)
 	var context := {"route_query":query,"slices":7}
 	task.planning_context[worker.dwarf_id] = context
@@ -47,12 +47,12 @@ func _run() -> void:
 	var touched: Vector3i = query.chunks.keys()[0]
 	tasks._on_chunk_dirtied(touched.x,touched.y,touched.z)
 	_expect(context.is_empty(),"relevant edits invalidate the stale proof")
-	tasks.cancel_task(task_id)
+	_clear_mine_leases()
 	# One far request cannot monopolize the family while a nearby one is ready.
 	worker._idle_behavior.cancel()
 	worker.position = Vector3(35.5,21,36.5)
-	var far_id: int = tasks.add_task(Task.Type.BUILD,Vector3i(61,20,61))
-	var near_id: int = tasks.add_task(Task.Type.BUILD,Vector3i(36,20,36))
+	var far_id: int = _post_mine_lease(Vector3i(61,20,61))
+	var near_id: int = _post_mine_lease(Vector3i(36,20,36))
 	tasks._probe_node_cap = 1
 	tasks._max_probes_per_wake = 1
 	for wake in range(100):
@@ -60,8 +60,7 @@ func _run() -> void:
 		if worker.current_task_id>=0: break
 		await process_frame
 	_expect(worker.current_task_id==near_id,"same-family quantum schedules nearby work before the long search finishes")
-	tasks.cancel_task(far_id)
-	tasks.cancel_task(near_id)
+	_clear_mine_leases()
 	# The second ingredient has an inaccessible nearest match. Proving only
 	# the first pickup used to trap a whole batch in repeated release/retry.
 	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(41,20,42),0)

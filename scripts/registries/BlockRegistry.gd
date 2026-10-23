@@ -6,6 +6,7 @@ const PALETTES_PATH  := "res://data/terrain/surface_palettes.json"
 const RESOURCES_PATH := "res://data/terrain/block_resources.json"
 const CONSTRUCTION_PATH := "res://data/construction/blocks.json"
 const APPEARANCE_PATH := "res://data/terrain/appearance_profiles.json"
+const JsonData = preload("res://scripts/registries/JsonData.gd")
 
 # ── Internal tables ───────────────────────────────────────────────────────────
 # Keys with "__" prefix in the JSON are documentation comments — always skipped.
@@ -28,7 +29,6 @@ var _appearance_ids := PackedByteArray()
 # any locking. get_color() / is_transparent() stay as the general API; these
 # LUTs are the per-block fast path for the mesher's inner loops.
 var _color_luts:      Dictionary      = {}   # season → PackedColorArray (runtime-id-indexed)
-var _transparent_lut: PackedByteArray = PackedByteArray()   # runtime id → 1 if transparent
 
 const _LUT_SEASONS := ["spring", "summer", "autumn", "winter"]
 
@@ -41,7 +41,7 @@ func _ready() -> void:
 	_load_blocks()
 	_load_palettes()
 	_load_resource_defs()
-	_construction_defs = JSON.parse_string(FileAccess.get_file_as_string(CONSTRUCTION_PATH))
+	_construction_defs = JsonData.read_dict(CONSTRUCTION_PATH)
 	_load_appearance()
 	AIR_ID = get_id(&"base:terrain:void")
 	_build_luts()
@@ -50,9 +50,6 @@ func _ready() -> void:
 
 func _build_luts() -> void:
 	var count := _id_to_key.size()
-	_transparent_lut.resize(count)
-	for id in range(count):
-		_transparent_lut[id] = 1 if is_transparent(id) else 0
 	_color_luts.clear()
 	for season: String in _LUT_SEASONS:
 		var lut := PackedColorArray()
@@ -68,7 +65,7 @@ func _build_luts() -> void:
 
 
 func _load_appearance() -> void:
-	_appearance = JSON.parse_string(FileAccess.get_file_as_string(APPEARANCE_PATH))
+	_appearance = JsonData.read_dict(APPEARANCE_PATH)
 	var used_ids := {}
 	for profile_name: String in _appearance.profiles:
 		var profile: Dictionary = _appearance.profiles[profile_name]
@@ -137,20 +134,7 @@ func configure_terrain_material(material: ShaderMaterial) -> void:
 # ── Loaders ───────────────────────────────────────────────────────────────────
 
 func _load_blocks() -> void:
-	var file := FileAccess.open(BLOCKS_PATH, FileAccess.READ)
-	if file == null:
-		push_error("BlockRegistry: cannot open %s (error %d)" % [BLOCKS_PATH, FileAccess.get_open_error()])
-		return
-
-	var json := JSON.new()
-	var err  := json.parse(file.get_as_text())
-	file.close()
-
-	if err != OK:
-		push_error("BlockRegistry: JSON parse error in %s — %s" % [BLOCKS_PATH, json.get_error_message()])
-		return
-
-	var root: Dictionary       = json.data
+	var root := JsonData.read_dict(BLOCKS_PATH)
 	var block_types: Dictionary = root.get("block_types", {})
 
 	for raw_key: String in block_types:
@@ -172,21 +156,8 @@ func _load_blocks() -> void:
 
 
 func _load_palettes() -> void:
-	var file := FileAccess.open(PALETTES_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("BlockRegistry: cannot open %s — seasonal surface colors will use hex_color fallback." % PALETTES_PATH)
-		return
-
-	var json := JSON.new()
-	var err  := json.parse(file.get_as_text())
-	file.close()
-
-	if err != OK:
-		push_error("BlockRegistry: JSON parse error in %s — %s" % [PALETTES_PATH, json.get_error_message()])
-		return
-
-	var root: Dictionary = json.data
-
+	# On failure, seasonal surface colors fall back to each block's hex_color.
+	var root := JsonData.read_dict(PALETTES_PATH)
 	for variant: String in root:
 		if variant.begins_with("__"):
 			continue
@@ -203,20 +174,7 @@ func _load_palettes() -> void:
 
 
 func _load_resource_defs() -> void:
-	var file := FileAccess.open(RESOURCES_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("BlockRegistry: cannot open %s - resource metadata unavailable." % RESOURCES_PATH)
-		return
-
-	var json := JSON.new()
-	var err  := json.parse(file.get_as_text())
-	file.close()
-
-	if err != OK:
-		push_error("BlockRegistry: JSON parse error in %s - %s" % [RESOURCES_PATH, json.get_error_message()])
-		return
-
-	var root: Dictionary = json.data
+	var root := JsonData.read_dict(RESOURCES_PATH)
 	_resource_defs.clear()
 	for raw_key: String in root:
 		if raw_key.begins_with("__"):
@@ -233,6 +191,14 @@ func _load_resource_defs() -> void:
 
 func get_construction_def(key: String) -> Dictionary:
 	return _construction_defs.get(key, {})
+
+## Every registered block key (StringName).
+func block_keys() -> Array:
+	return _key_to_id.keys()
+
+## Every construction definition key.
+func construction_keys() -> Array:
+	return _construction_defs.keys()
 
 ## Returns the runtime integer ID for a namespaced block key.
 ## Returns -1 if the key is not registered.
@@ -289,12 +255,6 @@ func is_transparent(id: int) -> bool:
 ## Unknown seasons fall back to summer.
 func get_color_lut(season: String) -> PackedColorArray:
 	return _color_luts.get(season, _color_luts.get("summer", PackedColorArray()))
-
-
-## Hot-path LUT: runtime block ID → 1 if transparent (void), else 0.
-## Built once at boot, read-only afterwards (safe from worker threads).
-func get_transparent_lut() -> PackedByteArray:
-	return _transparent_lut
 
 
 ## Returns the display Color for a block at a given season.

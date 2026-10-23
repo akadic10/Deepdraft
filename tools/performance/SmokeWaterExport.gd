@@ -55,8 +55,8 @@ func _settle(terrain: Node, water_view: Node) -> void:
 	# First frame lets the renderer observe a newly assigned slice.
 	await process_frame
 	await process_frame
-	while not terrain._overview_built or not terrain._dirty_overview_tiles.is_empty() \
-		or terrain._cavity_shell_dirty or terrain.underground_lighting.is_updating() \
+	while not terrain.tiles.overview_built or not terrain.tiles.dirty_overview_tiles.is_empty() \
+		or terrain.cavity_shell.dirty or terrain.underground_lighting.is_updating() \
 		or not root.get_node("WaterManager").dirty_tiles.is_empty() \
 		or not water_view._pending.is_empty() or not water_view._jobs.is_empty():
 		await process_frame

@@ -27,7 +27,7 @@ func _fresh(key := LOG, amount := 1) -> void:
 	if is_instance_valid(flora): flora.free()
 	for other in _others:
 		if is_instance_valid(other):
-			tasks.cancel_source_tasks(int(other.get("_haul_source_id")))
+			tasks.cancel_source_tasks(int(other._work_execution._haul_source_id))
 			other.free()
 	_others.clear()
 	await _new_trip(key, amount)
@@ -59,9 +59,9 @@ func _dispatch(wakes := 60) -> void:
 	# starts walking, and existing trips cannot complete and muddy the result.
 	for i in range(wakes):
 		stockpiles._process(.25)
-		var before: int = tasks._probes_total
+		var before: int = tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total - before <= tasks._max_probes_per_wake, "scheduler honors its per-wake probe cap")
+		_expect(tasks._scheduler._probes_total - before <= tasks._max_probes_per_wake, "scheduler honors its per-wake probe cap")
 		await process_frame
 
 
@@ -84,8 +84,8 @@ func _tree_cutter_gets_nearby_lumber() -> void:
 	flora._loaded_columns[Vector2i(2,2)] = [tree]
 	flora.designate_felling(Vector2i(40,40))
 	worker.position = Vector3(39.5,21,40.5)
-	var source = flora._felling_sources[Vector2i(40,40)]
-	tasks._assign(tasks.get_task(source.lease_id), worker)
+	var source = flora.work.sources[Vector2i(40,40)]
+	tasks._scheduler.assign(tasks.get_task(source.lease_id), worker)
 	var far = _other(201, Vector3i(59,20,44)) # older idle entry, closer to STORAGE
 	var near = _other(202, Vector3i(45,20,40))
 	for i in range(100):
@@ -122,8 +122,8 @@ func _returning_hauler_reconsiders_workers() -> void:
 	flora._loaded_columns[Vector2i(3,2)] = [tree]
 	flora.designate_felling(Vector2i(58,40))
 	var cutter = _other(210, Vector3i(57,20,40))
-	var source = flora._felling_sources[Vector2i(58,40)]
-	tasks._assign(tasks.get_task(source.lease_id), cutter)
+	var source = flora.work.sources[Vector2i(58,40)]
+	tasks._scheduler.assign(tasks.get_task(source.lease_id), cutter)
 	for i in range(100):
 		cutter._process(.04)
 		if cutter._task_phase == cutter.TaskPhase.FELL_WORKING: break
@@ -135,7 +135,7 @@ func _returning_hauler_reconsiders_workers() -> void:
 	var goods_before: int = _loose_units() + worker._carried_entries.size()
 	# Finish the old load before the next scheduler wake: this used to claim
 	# new timber directly, bypassing the closer, newly idle cutter entirely.
-	worker._process(worker._handling_duration)
+	worker._process(worker._work_execution._handling_duration)
 	_expect(zone.stored_count() == 1 and worker._carried_entries.is_empty(), "old load commits before its worker is reconsidered")
 	_expect(worker.current_task_id < 0 and tasks.get_task(first_lease) == null
 		and drops._reserved.is_empty() and zone._pulls.is_empty(), "delivery finishes its lease without privately claiming another load")
@@ -162,19 +162,20 @@ func _eligibility_and_priorities() -> void:
 	await _dispatch()
 	_expect(near_log.current_task_id >= 0 and worker.current_task_id < 0, "distance is measured to accepted goods, not nearer rejected items")
 	await _fresh()
-	var task_script = load("res://scripts/systems/Task.gd")
-	var build_id: int = tasks.add_task(task_script.Type.BUILD, Vector3i(41,20,39))
+	var build_id: int = _post_mine_lease(Vector3i(41,20,39))
 	var helper = _other(205, Vector3i(48,20,40))
 	await _dispatch()
 	_expect(worker.current_task_id == build_id and helper.current_task_id >= 0, "higher-priority work is considered before nearby hauling")
+	_clear_mine_leases()
 	await _fresh()
 	_expect(await _until(worker.TaskPhase.HAUL_DEPOSIT), "hauler reaches delivery before new higher-priority work")
 	drops.restore_loose_item(LOG, Vector3(42.5,21,40.5))
-	build_id = tasks.add_task(task_script.Type.BUILD, Vector3i(41,20,43))
-	worker._process(worker._handling_duration)
+	build_id = _post_mine_lease(Vector3i(41,20,43))
+	worker._process(worker._work_execution._handling_duration)
 	await _dispatch()
 	_expect(worker.current_task_id == build_id, "returning hauler considers higher-priority work between loads")
 	_expect(zone.stored_count() == 1 and _loose_units() == 1 and drops._reserved.is_empty(), "completed cargo is stored and the next load stays unclaimed during higher-priority work")
+	_clear_mine_leases()
 	await _fresh()
 	var committed = _other(206, Vector3i(50,20,40))
 	tasks.notify_dwarf_unavailable(worker.dwarf_id)
@@ -250,7 +251,7 @@ func _resumable_ranking() -> void:
 
 
 func _has_proven_haul_pickup() -> bool:
-	return tasks._haul_match.get("routes",{}).values().any(func(route: Dictionary): return bool(route.get("pickup_ok",false)))
+	return tasks._scheduler._haul_match.get("routes",{}).values().any(func(route: Dictionary): return bool(route.get("pickup_ok",false)))
 
 
 func _relocation_distance() -> void:
@@ -261,17 +262,16 @@ func _relocation_distance() -> void:
 	zone.cell_stacks[zone.tile_cells[0]] = {"item": LOG, "count": 1}
 	drops.restore_stored_item(LOG, zone.tile_cells[0], 1)
 	zone.set_all_accepted(false)
-	var target = load("res://scripts/components/ContainerStorageComponent.gd").new()
+	var target = load("res://scripts/components/StockpileZoneComponent.gd").new()
 	var cells: Array[Vector3i] = [Vector3i(60,20,44)]
-	target.setup_container({"storage": {"capacity": 8}}, cells)
-	target.source_id = tasks.allocate_source_id()
-	stockpiles.register_container(target)
+	target.setup(2, cells)
+	stockpiles.register_zone(target)
 	stockpiles.rebuild_totals()
 	worker.position = Vector3(40.5,21,43.5)
 	var far = _other(209, Vector3i(59,20,44))
 	tasks.notify_dwarf_unavailable(worker.dwarf_id)
 	tasks.notify_dwarf_idle(worker.dwarf_id)
 	await _dispatch()
-	_expect(worker.current_task_id >= 0 and far.current_task_id < 0, "relocation compares distance to the source stack, not receiving container")
+	_expect(worker.current_task_id >= 0 and far.current_task_id < 0, "relocation compares distance to the source stack, not receiving stockpile")
 	_expect(zone._outgoing.size() == 1 and zone.stored_count() == 1, "relocation ranking preserves contact-time ownership")
 	_stages += 1

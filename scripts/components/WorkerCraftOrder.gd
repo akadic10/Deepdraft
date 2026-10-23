@@ -42,7 +42,7 @@ func nearest_stand_target(from: Vector3i) -> Vector3i:
 		# Pickup can bring the worker around to another side. Use the closest
 		# open edge of the claimed bench from their actual carrying position.
 		if bench_id >= 0:
-			var bench = manager.furniture._installed.get(bench_id)
+			var bench = manager.furniture.get_installed(bench_id)
 			if bench == null or not manager.bench_valid(bench_id,id): return Vector3i(-1,-1,-1)
 			work_cell = bench.nearest_stand_target(from)
 		elif picked_up and String(recipe.workshop).is_empty():
@@ -55,7 +55,7 @@ func nearest_stand_target(from: Vector3i) -> Vector3i:
 
 func display_name() -> String:
 	if bench_id >= 0:
-		var bench = manager.furniture._installed.get(bench_id)
+		var bench = manager.furniture.get_installed(bench_id)
 		if bench != null: return bench.display_name()
 	return "Crafting spot"
 
@@ -209,9 +209,9 @@ func advance_craft(delta: float) -> float:
 	return remaining_work()
 
 func work_surface() -> Vector3:
-	var agent: Node3D = TaskManager._agents.get(worker_id)
+	var agent: Node3D = TaskManager.get_agent(worker_id)
 	if bench_id >= 0:
-		var bench = manager.furniture._installed.get(bench_id)
+		var bench = manager.furniture.get_installed(bench_id)
 		if bench != null:
 			var center: Vector3 = bench.node.global_position
 			# The stump has no front: the material and axe face the approaching

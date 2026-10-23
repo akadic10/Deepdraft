@@ -31,7 +31,7 @@ func _run() -> void:
 	var gen = root.get_node("WorldGenerator")
 	var renderer = scene.get_node("Renderer")
 	var water = root.get_node("WaterManager")
-	while not gen._maps_ready or not renderer._overview_built or not water.initialized: await process_frame
+	while not gen._maps_ready or not renderer.tiles.overview_built or not water.initialized: await process_frame
 	while not scene.get_node("SurfaceFloraSpawner")._pending.is_empty(): await process_frame
 	if before_fix:
 		for node in renderer.get_children():

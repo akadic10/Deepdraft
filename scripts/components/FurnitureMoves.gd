@@ -18,13 +18,12 @@ func prepare(piece: InstalledFurnitureComponent) -> String:
 	var id := "furniture_move:%d" % next_id
 	next_id += 1
 	records[id] = {"key":piece.furniture_key, "installed_id":piece.installed_id,
-		"assigned_dwarf_id":piece.assigned_dwarf_id,
-		"storage_filter":piece.storage.serialize_filter() if piece.storage != null else {"tags":[],"items":[],"excluded_items":[]}}
+		"assigned_dwarf_id":piece.assigned_dwarf_id}
 	return id
 
 func cancel(id: String) -> void:
 	if not records.has(id): return
-	var piece: InstalledFurnitureComponent = controller._installed.get(int(records[id].installed_id))
+	var piece: InstalledFurnitureComponent = controller.get_installed(int(records[id].installed_id))
 	if piece != null:
 		piece.set_uninstall(false)
 		records.erase(id)
@@ -35,10 +34,10 @@ func packed(piece: InstalledFurnitureComponent, cell: Vector3i, worker_id: int) 
 	if id.is_empty(): return false
 	var record: Dictionary = records[id]
 	record.installed_id = -1
-	var drops: Node = controller._drop_manager
-	var rest_y: int = drops._rest_y(cell + Vector3i.UP)
+	var drops: ItemDropManager = controller._drop_manager
+	var rest_y: int = drops.floor_rest_y(cell + Vector3i.UP)
 	drops.restore_loose_item(piece.item_key,Vector3(cell.x+.5,rest_y,cell.z+.5),0,1,id,false,piece.material_id)
-	for ghost: FurnitureGhostComponent in controller._ghosts.values():
+	for ghost: FurnitureGhostComponent in controller.get_ghost_pieces():
 		if ghost.required_instance_id == id:
 			ghost.continuation_worker = worker_id
 			ghost.update_lease()
@@ -47,10 +46,9 @@ func packed(piece: InstalledFurnitureComponent, cell: Vector3i, worker_id: int) 
 func installed(id: String, piece: InstalledFurnitureComponent) -> void:
 	if not records.has(id) or records[id].key != piece.furniture_key: return
 	var record: Dictionary = records[id]
-	if piece.storage != null: piece.storage.restore_filter(record.storage_filter)
 	var resident := int(record.assigned_dwarf_id)
 	# A newer player assignment elsewhere wins while this bed was in transit.
-	for other: InstalledFurnitureComponent in controller._installed.values():
+	for other: InstalledFurnitureComponent in controller.get_installed_pieces():
 		if other != piece and other.assigned_dwarf_id == resident: resident = -1; break
 	if resident >= 0: controller.assign_bed(piece.installed_id,resident)
 	records.erase(id)

@@ -35,7 +35,7 @@ class DwarfTests(unittest.TestCase):
         self.assertGreaterEqual(min(p[0] for p in foot)-inset,1,'the boots keep a gap at the relaxed stance')
         authored=self.parts['assets/models/characters/dwarves/body/eyes.glb'][0].cells
         lids=Voxels()
-        for shape in read_json('data/art/voxel_presentation.json')['parts']['eyelids']: solid(lids,shape,{'neutral':(1,1,1),'crease':(.5,.5,.5)})
+        for shape in read_json('tools/art_data/voxel_presentation.json')['parts']['eyelids']: solid(lids,shape,{'neutral':(1,1,1),'crease':(.5,.5,.5)})
         self.assertTrue({(x,y) for x,y,z in authored}<={(x,y) for x,y,z in lids.cells},'eyelids cover the eyes')
         self.assertTrue(all((x,y,z) in lids.cells for x,y,z in authored),'closed lids sit exactly over the open eyes')
         # Eyes must remain visible on every head, including bald dwarves.

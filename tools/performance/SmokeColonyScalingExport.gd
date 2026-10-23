@@ -103,5 +103,5 @@ func _run() -> void:
 func _settle(terrain: Node) -> void:
 	await process_frame
 	await process_frame
-	while not terrain._overview_built or not terrain._dirty_overview_tiles.is_empty() or terrain._cavity_shell_dirty or terrain.underground_lighting.is_updating():
+	while not terrain.tiles.overview_built or not terrain.tiles.dirty_overview_tiles.is_empty() or terrain.cavity_shell.dirty or terrain.underground_lighting.is_updating():
 		await process_frame

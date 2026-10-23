@@ -416,7 +416,7 @@
         "Workshop fittings"
       ],
       "requirements": "Promote with a crude carpentry kit. Specialist workshop and recipes are planned; a forged saw comes later.",
-      "hint": "Craft a kit under Rudimentary â†’ Starter tools, then promote a dwarf through Colony â†’ Profession."
+      "hint": "Craft a kit under Rudimentary → Starter tools, then promote a dwarf through Colony → Profession."
     },
     {
       "id": "stonemason",
@@ -442,7 +442,7 @@
         "Metal fittings"
       ],
       "requirements": "Entry tool: stone hammer. Iron pickaxes and carpenter saws are future upgrades.",
-      "hint": "The stone hammer is available under Rudimentary â†’ Starter tools."
+      "hint": "The stone hammer is available under Rudimentary → Starter tools."
     },
     {
       "id": "weaponsmith",
@@ -478,7 +478,7 @@
         "Harvest supplies"
       ],
       "requirements": "Entry tool: stone hoe. Farming will use field work; its production controls are still planned.",
-      "hint": "The stone hoe is available under Rudimentary â†’ Starter tools."
+      "hint": "The stone hoe is available under Rudimentary → Starter tools."
     },
     {
       "id": "hunter",
@@ -490,7 +490,7 @@
         "Animal materials"
       ],
       "requirements": "Entry weapon: hunting spear. Player hunting and processing are planned.",
-      "hint": "The hunting spear is available under Rudimentary â†’ Starter tools."
+      "hint": "The hunting spear is available under Rudimentary → Starter tools."
     },
     {
       "id": "miner",

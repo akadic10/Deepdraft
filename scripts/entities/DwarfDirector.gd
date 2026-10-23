@@ -13,11 +13,13 @@ extends Node3D
 @export var camera_path: NodePath
 @export var slice_controller_path: NodePath
 @export var window_manager_path: NodePath
+## Dock whose tools are dropped when a dwarf is inspected.
+@export var dock_ui_path: NodePath
 
 ## Dwarves per DEV spawn press.
 @export_range(1, 20, 1) var squad_size: int = 5
 
-const SLICE_OFF_Y: int = 127
+const SLICE_OFF_Y: int = SliceController.MAX_SLICE_Y
 const Inspection = preload("res://scripts/components/DwarfInspection.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _picking := Picking.new()
@@ -30,6 +32,7 @@ var _used_names: Dictionary = {}
 var _slice_y: int = SLICE_OFF_Y
 
 var _window_manager: UIWindowManager = null
+var _dock_ui: Node = null
 var _count_label: Label
 var _walk_button: Button
 var _roster_panel: Control
@@ -49,6 +52,7 @@ func _ready() -> void:
 	add_to_group("dwarf_director")
 	_camera_rig = get_node_or_null(camera_path) as Node3D
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
+	_dock_ui = get_node_or_null(dock_ui_path) if not dock_ui_path.is_empty() else null
 	_register_window()
 
 	var slice_controller := get_node_or_null(slice_controller_path)
@@ -76,8 +80,7 @@ func inspect_dwarf(agent: Variant) -> bool:
 	if not _inspectable(agent): return false
 	var explorer := get_tree().get_first_node_in_group("object_explorer")
 	if explorer == null: return false
-	var dock := get_tree().get_first_node_in_group("command_dock")
-	if dock != null: dock.tool_requested.emit("")
+	if _dock_ui != null: _dock_ui.tool_requested.emit("")
 	_set_walk_test(false)
 	return explorer.select_object(self, agent)
 
@@ -182,22 +185,7 @@ func _mouse_surface_cell() -> Dictionary:
 	if camera == null:
 		return {}
 	var mouse := get_viewport().get_mouse_position()
-	var origin := camera.project_ray_origin(mouse)
-	var dir := camera.project_ray_normal(mouse)
-	var t := 0.0
-	while t < 700.0:
-		var p := origin + dir * t
-		var wx := floori(p.x)
-		var wz := floori(p.z)
-		if wx >= 0 and wx < WorldGenerator.WORLD_SIZE_X \
-				and wz >= 0 and wz < WorldGenerator.WORLD_SIZE_Z:
-			var sy := int(WorldGenerator.get_visible_surface_y(wx, wz))
-			if sy >= 0 and p.y <= float(sy + 1):
-				return { "x": wx, "y": sy, "z": wz }
-		elif p.y < 0.0:
-			return {}
-		t += 0.5
-	return {}
+	return Picking.surface_hit(camera.project_ray_origin(mouse), camera.project_ray_normal(mouse), 700.0, 0.5)
 
 
 func _set_walk_test(active: bool) -> void:
@@ -209,8 +197,6 @@ func _set_walk_test(active: bool) -> void:
 # ── Settlement anchor (doc 16 Phase 1 — set by the Flag flow) ────────────────
 
 ## Last installed Settlement Flag cell; retained while packed. (-1,-1,-1) = unfounded.
-## INTERIM HOME: doc 16 leans toward a field on TaskManager — migrate this
-## there when TaskManager ships (step 4) if it becomes the second consumer.
 var settlement_anchor: Vector3i = Vector3i(-1, -1, -1)
 
 
@@ -242,8 +228,8 @@ func spawn_squad_at(wx: int, wz: int) -> int:
 		push_warning("DwarfDirector: maps not ready — cannot spawn yet.")
 		return 0
 
-	var cx := clampi(wx, 0, WorldGenerator.WORLD_SIZE_X - 1)
-	var cz := clampi(wz, 0, WorldGenerator.WORLD_SIZE_Z - 1)
+	var cx := clampi(wx, 0, WorldData.WORLD_SIZE_X - 1)
+	var cz := clampi(wz, 0, WorldData.WORLD_SIZE_Z - 1)
 
 	var spawned := 0
 	var ring := 0
@@ -257,7 +243,7 @@ func spawn_squad_at(wx: int, wz: int) -> int:
 	if spawned > 0:
 		print("DwarfDirector: spawned %d dwarves near (%d, %d) — roster %d." % [
 			spawned, cx, cz, _agents.size()])
-	_refresh_window()
+	refresh_window()
 	return spawned
 
 
@@ -284,8 +270,8 @@ func _spawn_one(wx: int, wz: int) -> bool:
 ## already occupies the cell. (Real walkability arrives with NavGrid — this is
 ## the Phase-1 stand-in; doc 16 build order step 3b.)
 func _standable_ground_y(wx: int, wz: int) -> int:
-	if wx < 0 or wx >= WorldGenerator.WORLD_SIZE_X \
-			or wz < 0 or wz >= WorldGenerator.WORLD_SIZE_Z:
+	if wx < 0 or wx >= WorldData.WORLD_SIZE_X \
+			or wz < 0 or wz >= WorldData.WORLD_SIZE_Z:
 		return -1
 	var col := Vector2i(wx, wz)
 	if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col):
@@ -327,47 +313,6 @@ func _on_slice_changed(new_slice_y: int) -> void:
 			agent.apply_slice(_slice_y)
 
 
-# ── DEV synthetic tasks (doc 16 step 4 verification) ─────────────────────────
-
-## Queues `count` synthetic MINE-type tasks. radius > 0: walkable-snapped cells
-## around the camera (drainable work). radius == 0: random cells across the
-## whole map, water and all (exercises probes, backoff, task_unreachable —
-## the stress path). Plain randomness is fine here: DEV-only, not gameplay.
-func _dev_add_tasks(count: int, radius: int, snap_walkable: bool) -> void:
-	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
-		push_warning("DwarfDirector: maps not ready.")
-		return
-	var cx := 512
-	var cz := 512
-	if _camera_rig != null:
-		cx = clampi(floori(_camera_rig.global_position.x), 0, WorldGenerator.WORLD_SIZE_X - 1)
-		cz = clampi(floori(_camera_rig.global_position.z), 0, WorldGenerator.WORLD_SIZE_Z - 1)
-	var added := 0
-	var attempts := 0
-	while added < count and attempts < count * 10:
-		attempts += 1
-		var wx: int
-		var wz: int
-		if radius > 0:
-			wx = clampi(cx + randi_range(-radius, radius), 0, WorldGenerator.WORLD_SIZE_X - 1)
-			wz = clampi(cz + randi_range(-radius, radius), 0, WorldGenerator.WORLD_SIZE_Z - 1)
-		else:
-			wx = randi_range(0, WorldGenerator.WORLD_SIZE_X - 1)
-			wz = randi_range(0, WorldGenerator.WORLD_SIZE_Z - 1)
-		var sy := int(WorldGenerator.get_surface_y(wx, wz))
-		if sy < 0:
-			continue
-		var target := Vector3i(wx, sy, wz)
-		if snap_walkable:
-			target = NavGrid.walkable_floor_at(wx, wz, sy)
-			if target.y < 0:
-				continue
-		TaskManager.add_task(Task.Type.MINE, target, { "synthetic": true })
-		added += 1
-	print("DwarfDirector: queued %d synthetic tasks (radius %s)." % [
-		added, str(radius) if radius > 0 else "whole map"])
-
-
 # ── Stats (debug overlay, doc 16 Phase 0) ────────────────────────────────────
 
 func get_agent_stats() -> Dictionary:
@@ -407,7 +352,7 @@ func restore_state(state: Dictionary) -> void:
 	_birth_index = maxi(int(state.get("birth_index", 0)), 0)
 	settlement_anchor = SaveManager.unpack_v3i(state.get("settlement_anchor", [-1, -1, -1]))
 	_used_names.clear()
-	var item_manager := get_tree().get_first_node_in_group("item_drop_manager")
+	var item_manager := ItemDropManager.find(get_tree())
 	for raw in state.get("roster", []):
 		if not (raw is Dictionary):
 			continue
@@ -438,17 +383,17 @@ func restore_state(state: Dictionary) -> void:
 			TaskManager.notify_dwarf_unavailable(dwarf_id)
 		var carried_index := 0
 		for saved_cargo: Dictionary in entry.get("carried_items", []):
-			if item_manager == null or not item_manager.has_method("restore_loose_item"):
+			if item_manager == null:
 				break
 			var angle := float(carried_index) * 2.399963
 			var offset := Vector3(cos(angle), 0.0, sin(angle)) * 0.22
 			var item_key := String(saved_cargo.item_key)
 			var count := int(saved_cargo.count)
 			var instance_id := String(saved_cargo.get("instance_id", ""))
-			item_manager.call("restore_loose_item", item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)), String(saved_cargo.get("material_id", "")))
+			item_manager.restore_loose_item(item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)), String(saved_cargo.get("material_id", "")))
 			carried_index += 1
 		_birth_index = maxi(_birth_index, dwarf_id + 1)
-	_refresh_window()
+	refresh_window()
 
 
 func _appearance_from_save(state: Dictionary) -> DwarfAppearanceData:
@@ -472,7 +417,7 @@ func _appearance_from_save(state: Dictionary) -> DwarfAppearanceData:
 ## deterministic; repeated presses cycle through workers.
 func _dev_interrupt_worker() -> void:
 	for agent in _agents:
-		if is_instance_valid(agent) and agent.dev_force_interrupt():
+		if is_instance_valid(agent) and agent.force_interrupt():
 			print("DwarfDirector: DEV interrupt — released %s's task (PLAYER)." % agent.dwarf_name)
 			return
 	print("DwarfDirector: DEV interrupt — no dwarf holds a task.")
@@ -510,7 +455,7 @@ func toggle_window() -> void:
 	if _window_manager == null:
 		return
 	_window_manager.toggle("dwarves")
-	_refresh_window()
+	refresh_window()
 
 
 func is_window_visible() -> bool:
@@ -540,10 +485,11 @@ func _register_window() -> void:
 	_roster_window.keep_body_on_screen = true
 	UITheme.apply_catalog_window(_roster_window)
 	_roster_panel.window = _roster_window
-	_roster_panel._fit.call_deferred()
+	_roster_panel.refit.call_deferred()
 	_profession_panel = preload("res://scripts/ui/DwarfProfessionPanel.gd").new()
 	_profession_panel.director = self
 	_profession_panel.manager = _window_manager
+	_profession_panel.dock = _dock_ui
 	var promotion_margin := MarginContainer.new()
 	for side: String in ["left", "right", "top", "bottom"]: promotion_margin.add_theme_constant_override("margin_" + side, 12)
 	promotion_margin.add_child(_profession_panel)
@@ -552,7 +498,7 @@ func _register_window() -> void:
 	promotion_window.keep_body_on_screen = true
 	UITheme.apply_catalog_window(promotion_window)
 	_profession_panel.window = promotion_window
-	_register_dev_window()
+	if UIRegistry.dev_tools_enabled: _register_dev_window()
 	_window_manager.window_state_changed.connect(_on_window_state_changed)
 
 
@@ -590,22 +536,6 @@ func _register_dev_window() -> void:
 	)
 	column.add_child(_walk_button)
 
-	var tasks_near := UITheme.make_button("DEV: +50 tasks here",
-		"Queues 50 synthetic tasks on walkable cells within 30 blocks of the camera. Dwarves walk to each and 'work' 1 s — scheduler loop verification.",
-		button_size, "dev")
-	tasks_near.pressed.connect(func() -> void:
-		_dev_add_tasks(50, 30, true)
-	)
-	column.add_child(tasks_near)
-
-	var stress := UITheme.make_button("DEV: stress +500 random",
-		"Queues 500 synthetic tasks at random map cells (many unreachable). Frame time must stay flat — the doc 16 §2.5 no-hang test.",
-		button_size, "dev")
-	stress.pressed.connect(func() -> void:
-		_dev_add_tasks(500, 0, false)
-	)
-	column.add_child(stress)
-
 	var interrupt := UITheme.make_button("DEV: interrupt worker",
 		"Force-releases a working dwarf's task (reason PLAYER). The task returns to PENDING; another idle dwarf should pick it up within one heartbeat — doc 16 §2.8 release-protocol test.",
 		button_size, "dev")
@@ -638,7 +568,7 @@ func _register_dev_window() -> void:
 
 	_window_manager.register_window("dwarves_dev", "Dwarf development", "", column,
 		{"persistent": false, "default_pos": Vector2(24, 130)})
-	_refresh_window()
+	refresh_window()
 
 
 ## Roster label can go stale while the window is closed (spawns, loads) —
@@ -653,10 +583,10 @@ func _on_window_state_changed(id: String, open: bool) -> void:
 		else:
 			_roster_panel.end_browsing()
 			_window_manager.close("professions")
-	elif id == "dwarves_dev" and open: _refresh_window()
+	elif id == "dwarves_dev" and open: refresh_window()
 
 
-func _refresh_window() -> void:
+func refresh_window() -> void:
 	if _roster_panel != null: _roster_panel.refresh()
 	if _count_label == null:
 		return

@@ -145,8 +145,6 @@ func _run() -> void:
 	for i in range(40): wildlife.advance(.1,[])
 	_expect(wolf.fatigue < fatigue,"sleep restores wolf fatigue")
 	_navigation_checks()
-	wildlife.restore_state({"initialized":true,"rabbits":[],"deer_initialized":true,"deer":[]})
-	_expect(not wildlife.wolf_initialized,"older wildlife saves request one-time wolf seeding")
 	wildlife.restore_state({"initialized":true,"rabbits":[],"deer_initialized":true,"deer":[],"wolf_initialized":true,"wolves":[]})
 	wildlife.initialize_population()
 	_expect(wildlife.animals.is_empty(),"explicitly empty populations stay empty")

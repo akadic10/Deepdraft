@@ -92,7 +92,7 @@ func show_room(room: Dictionary) -> void:
 	_flooring.text = "%d / %d tiles" % [int(room.get("finished_floor_tiles",0)),int(room.get("floor_tiles",0))]
 	_flooring_appeal.text = "+%.0f · Complete" % float(room.flooring_appeal) if room.get("flooring_complete",false) else "+0 · Incomplete"
 	if room.get("room_type","")=="personal_bedroom":
-		var resident: DwarfAgent = TaskManager._agents.get(int(room.owner_id))
+		var resident: DwarfAgent = TaskManager.get_agent(int(room.owner_id))
 		_bedroom_hint.text = "%s's bedroom. Sleeping here gives a happiness bonus." % (resident.dwarf_name if is_instance_valid(resident) else "Colonist")
 	elif room.get("room_type","")=="barracks": _bedroom_hint.text = "Shared sleeping quarters. Bed assignments are respected; no personal-bedroom bonus."
 	elif room.get("room_type","")=="bedroom": _bedroom_hint.text = "Assign the bed to give a colonist their own bedroom."

@@ -12,7 +12,5 @@
     "width": 1,
     "depth": 1
   },
-  "blocks_movement": false,
-  "collision_regions": [],
-  "room_anchor": false
+  "collision_regions": []
 }

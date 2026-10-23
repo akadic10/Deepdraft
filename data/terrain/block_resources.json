@@ -23,13 +23,8 @@
 
 
   "__comment_rock": [
-    "Authored rock bands (rock01-11) - mined rock SOMETIMES drops Rough Stone (Alen, 2026-06-10).",
-    "chance 0.05 (lowered again 2026-08-06 for testing convenience, Alen - was 0.12 earlier the",
-    "same day, 0.25 from 2026-06-10, 0.50 originally). Deliberately stingy now to make manual",
-    "playtesting easier (less stockpile clutter); the rough stone item's purpose is still void",
-    "fill (see resources.json 'void_fill' tag) so this may need to come back up once backfill",
-    "is actually playtested - revisit in the economy balance pass.",
-    "All 11 bands share one profile; the drop item is band-independent."
+    "Authored rock bands (rock01-11) share one profile: mined rock sometimes drops Rough Stone (chance 0.05).",
+    "The low chance is a temporary playtest setting (less stockpile clutter); revisit in the economy balance pass."
   ],
 
   "base:terrain:rock:rock01":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
@@ -59,7 +54,7 @@
   "base:terrain:surface:dirt_03":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
   "base:terrain:surface:dirt_04":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
 
-  "__comment_soil": "Soft earth - farmable cave soil has the 'farmable' tag. Drop chance 0.05 (2026-08-06, Alen: lowered again from 0.30 the same day, for testing convenience - was a guaranteed 1.00 before that. Matches rock's 0.05 for now.)",
+  "__comment_soil": "Soft earth - farmable cave soil has the 'farmable' tag. Drop chance 0.05, a temporary playtest setting matching rock.",
 
   "base:terrain:soil:cave": {
     "durability": 1,
@@ -89,7 +84,7 @@
   },
 
 
-  "__comment_ore": "Ore veins - depth-biased; deeper = rarer. Drop chance 0.10 for ALL ores (2026-08-14, Alen: testing convenience - drop volume was flooding manual playtests; was a guaranteed 1.00 since launch). Same class of temporary cut as rock/soil 0.05 (2026-08-06) - NOT a balance number, revisit in the economy pass. Gem chances untouched.",
+  "__comment_ore": "Ore veins - depth-biased; deeper = rarer. Drop chance 0.10 for all ores is a temporary playtest setting, like rock and soil - not a balance number; revisit in the economy pass. Gems use their own chances.",
 
   "base:terrain:ore:copper": {
     "durability": 3,
@@ -120,7 +115,7 @@
     "shallow_noise_threshold": 0.8
   },
 
-  "__comment_metal_fields": "2026-10-08: separate seeded fields for metals, broader coal. Cutoffs fitted offline on eight seeds to preserve sampled abundance; never fitted per world. First-match priority resolves overlaps, so metal cutoffs need not descend. Depth windows and temporary drops unchanged. See roadmap 71.",
+  "__comment_metal_fields": "Metals use separate seeded fields; coal is broader. Cutoffs were fitted offline on eight seeds for the intended abundance, never per world. First-match priority resolves overlaps, so metal cutoffs need not descend.",
   "base:terrain:ore:tin": {
     "durability": 2,
     "drops": [
@@ -381,7 +376,7 @@
     "min_burial": 40
   },
 
-  "__comment_diamond_threshold": "0.90 -> 0.91 (2026-10-08): diamond is checked before emerald on the shared gem channel. Equal thresholds suppressed emerald throughout Y5-12. Diamond now owns >0.91 and emerald owns (0.90, 0.91] in the overlap. This makes the highest-value gem rarer while restoring emerald; depths, order, other gem thresholds and mining drops are unchanged.",
+  "__comment_diamond_threshold": "Diamond is checked before emerald on the shared gem channel, so its threshold must stay above emerald's: diamond owns > 0.91 and emerald (0.90, 0.91] where their depths overlap.",
   "base:terrain:gem:diamond": {
     "durability": 8,
     "drops": [

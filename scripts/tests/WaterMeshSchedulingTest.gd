@@ -56,6 +56,13 @@ func _run() -> void:
 	view._invalidate_view()
 	await settle()
 	check(is_equal_approx(top_y(Vector2i.ZERO),120.75),"Initial queued water geometry missing")
+	# Level water across a tile border still gets a face reaching one redraw
+	# step below the neighbour, so a neighbour waiting to redraw shows no crack.
+	var step: float = float(generator.water_profile.rendering.redraw_level_step)
+	var seam := false
+	for vertex: Vector3 in view._tiles[Vector2i.ZERO].mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if is_equal_approx(vertex.x,32.0) and is_equal_approx(vertex.y,120.75-step): seam = true
+	check(seam,"Tile border has no seam face below the neighbour's level")
 	var previous_mesh = view._tiles[Vector2i.ZERO].mesh
 	flow.mass[left] = 500000
 	for _i in 100: view._queue_tile(Vector2i.ZERO)
@@ -79,6 +86,26 @@ func _run() -> void:
 	view._queue_tile(Vector2i.ZERO)
 	await settle()
 	check(view._tiles[Vector2i.ZERO].mesh==previous_mesh and view._unchanged>0,"Unchanged inputs caused a redundant GPU mesh replacement")
+	# Level changes redraw only once they are visible. Small moves add up against
+	# the last build, and a border cell also redraws the neighbour holding it.
+	var step_units := roundi(step*1000000)
+	view._queue_tile(Vector2i(1,0)) # its halo still holds the earlier level
+	await settle()
+	flow.mass[left] = 250000+step_units/2
+	view._on_surface_changed([left])
+	check(view._pending.is_empty(),"An invisible level change queued a redraw")
+	flow.mass[left] = 250000+step_units
+	view._on_surface_changed([left])
+	check(view._pending.has(Vector2i.ZERO),"Small changes that add up never redrew")
+	check(view._pending.has(Vector2i(1,0)),"A border change skipped the neighbour tile")
+	await settle()
+	flow.mass[left] = 70000
+	view._queue_tile(Vector2i.ZERO)
+	await settle()
+	flow.mass[left] = 60000 # under standing depth: the surface disappears
+	view._on_surface_changed([left])
+	check(view._pending.has(Vector2i.ZERO),"Water dropping below standing depth was not redrawn")
+	await settle()
 	# A slice change during a build must hide old water immediately and reject the result.
 	flow.mass[left] = 600000
 	view._queue_tile(Vector2i.ZERO)

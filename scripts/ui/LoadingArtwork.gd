@@ -6,6 +6,7 @@ var definition: Dictionary = {}
 var progress := 0.0
 var animation_time := 0.0
 var complete := false
+var failure := ""
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -57,7 +58,8 @@ func _draw() -> void:
 	draw_line(mug.position+Vector2(7,8),mug.position+Vector2(7,43),Color(1,1,1,.20),1.5,true)
 	draw_line(mug.position+Vector2(1,0),mug.position+Vector2(43,0),ink,2,true)
 	var label := String(definition.get("ready_label","Your settlement awaits")) if complete else String(definition.get("loading_label","Preparing your settlement"))
-	if not complete: label += ".".repeat(1+int(animation_time*1.5)%3)
+	if not failure.is_empty(): label = "%s: %s" % [String(definition.failed_label), failure]
+	elif not complete: label += ".".repeat(1+int(animation_time*1.5)%3)
 	draw_string(font,Vector2(-98,-7),label,HORIZONTAL_ALIGNMENT_LEFT,-1,17,ink)
 	var track := Rect2(-98,8,268,7)
 	draw_style_box(UITheme.style(Color(0.05,.07,.06,.75),Color(muted,.35),1,3,0,0),track)
@@ -66,6 +68,6 @@ func _draw() -> void:
 	draw_string(font,Vector2(-98,38),"%d%%" % roundi(progress*100),HORIZONTAL_ALIGNMENT_LEFT,-1,13,muted)
 	draw_set_transform(Vector2.ZERO)
 
-func _centered(font: Font, text: String, position: Vector2, font_size: int, color: Color) -> void:
+func _centered(font: Font, text: String, at: Vector2, font_size: int, color: Color) -> void:
 	var width := font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x
-	draw_string(font,position-Vector2(width*.5,0),text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size,color)
+	draw_string(font,at-Vector2(width*.5,0),text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size,color)

@@ -37,7 +37,7 @@ def separate_overlay(vox,head_faces):
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_dwarves.json')
+    profile=read_json('tools/art_data/voxel_dwarves.json')
     palette={key:linear(value) for key,value in profile['palette'].items()}
     assert profile['cells_per_block']==16
     # Hearthblock (doc 256) redraws every appearance part; tools keep their solids.

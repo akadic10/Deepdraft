@@ -43,7 +43,7 @@ to explicit assignment because Godot 4.7 rejected its untyped array literal.
 ## Benchmark design and boundaries
 
 The new `tools/performance/ColonyScalingBenchmark.gd` runs the real generated
-world (seed 1234), native D3D12 Forward+, 2560Ã—1440, uncapped and VSync off,
+world (seed 1234), native D3D12 Forward+, 2560×1440, uncapped and VSync off,
 clear weather and Dummy audio. It uses the editor executable running standalone,
 not editor profiling or an exported-build FPS measurement. Runs execute
 sequentially without tests or exports alongside them.

@@ -7,7 +7,7 @@ const BuildSource = preload("res://scripts/components/BridgeBuildComponent.gd")
 const RemoveSource = preload("res://scripts/components/BridgeRemovalComponent.gd")
 var definition: Dictionary
 var routes: Dictionary = {}
-var _sources: Dictionary = {}
+var work := preload("res://scripts/components/WorkSourceTable.gd").new() # route id -> kit source
 var _next_id := 1
 var _tick := 0.0
 var _terrain_dirty := false
@@ -18,10 +18,6 @@ func _ready() -> void:
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
 	definition = get_parent().get_defs()[KEY]
-	TaskManager.task_completed.connect(func(t: Task): _task_gone(t, -1))
-	TaskManager.task_cancelled.connect(func(t: Task): _task_gone(t, t.assigned_to))
-	TaskManager.task_failed.connect(func(t: Task, _why: String): _task_gone(t, t.assigned_to))
-	TaskManager.task_released.connect(_task_released)
 	WorldData.chunk_dirtied.connect(func(_x: int, _y: int, _z: int): _terrain_dirty = true)
 	WaterManager.levels_changed.connect(func(_cells: Array): _terrain_dirty = true)
 	PlacedEntityRegistry.occupancy_changed.connect(func(_lo: Vector3i, _size: Vector3i): _terrain_dirty = true)
@@ -107,12 +103,12 @@ func from_hit(hit: Dictionary, preferred_yaw: int) -> Dictionary:
 func _bank_top(cell: Vector3i) -> Vector3i:
 	if not _solid(cell): return Vector3i(-1,-1,-1)
 	var top := cell
-	while top.y < mini(get_parent()._slice_y,WorldData.WORLD_SIZE_Y-1) and _solid(top+Vector3i.UP):
+	while top.y < mini(get_parent().get_slice_y(),WorldData.WORLD_SIZE_Y-1) and _solid(top+Vector3i.UP):
 		top.y += 1
 	return top
 
 func _wet(cell: Vector3i) -> bool:
-	return WaterManager.has_standing_water(cell) or get_parent()._block_id(cell.x,cell.y,cell.z)==BlockRegistry.get_id("base:terrain:water:source")
+	return WaterManager.has_standing_water(cell) or get_parent().terrain_block_id(cell.x,cell.y,cell.z)==BlockRegistry.get_id("base:terrain:water:source")
 
 ## Hover on either bank. Both lanes must encounter
 ## their first opposite solid floor at exactly the same distance and elevation.
@@ -165,15 +161,15 @@ func describe(base: Vector3i, yaw: int, ignore := -1, require_water := true) -> 
 			result.reason = "Another bridge or bridge plan occupies this crossing"
 			return result
 	var parent := get_parent()
-	if parent._ladders.reserves(area):
+	if parent.get_ladders().reserves(area):
 		result.reason = "Keep the crossing clear of ladders"
 		return result
-	for group: Dictionary in [parent._ghosts,parent._installed]:
-		for piece in group.values():
-			if parent._visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps).intersects(area):
+	for group: Array in [parent.get_ghost_pieces(),parent.get_installed_pieces()]:
+		for piece in group:
+			if parent.visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps).intersects(area):
 				result.reason = "Clear furniture and queued placements from the crossing first"
 				return result
-	for zone: StockpileZoneComponent in StockpileManager._zones.values():
+	for zone: StockpileZoneComponent in StockpileManager.get_zones():
 		for cell: Vector3i in zone.tile_cells:
 			if area.intersects(AABB(Vector3(cell)+Vector3.UP,Vector3.ONE)):
 				result.reason = "Keep both bridge landings clear of storage zones"
@@ -183,9 +179,9 @@ func describe(base: Vector3i, yaw: int, ignore := -1, require_water := true) -> 
 		for cell: Vector3i in cells(result):
 			for dx in range(-1,2):
 				for dz in range(-1,2):
-					for id: String in plants._columns.get(Vector2i(cell.x+dx,cell.z+dz),[]):
-						if bool(plants._changes.get(id,{}).get("removed",false)): continue
-						var record: Dictionary = plants._records[id]
+					for id: String in plants.ids_in_column(Vector2i(cell.x+dx,cell.z+dz)):
+						if bool(plants.get_change(id).get("removed",false)): continue
+						var record: Dictionary = plants.get_record(id)
 						var plant := SurfaceDetailRegistry.get_definition(record.definition)
 						if area.intersects(preload("res://scripts/components/SurfaceDetailPlacement.gd").planting_area(plant,record.origin)):
 							result.reason = "Clear or move plants and stones from the landings first"
@@ -194,19 +190,19 @@ func describe(base: Vector3i, yaw: int, ignore := -1, require_water := true) -> 
 	return result
 
 func _solid(cell: Vector3i) -> bool:
-	return BlockRegistry.is_solid(get_parent()._block_id(cell.x,cell.y,cell.z))
+	return BlockRegistry.is_solid(get_parent().terrain_block_id(cell.x,cell.y,cell.z))
 
 func _water_below(cell: Vector3i) -> bool:
 	for y in range(cell.y,0,-1):
 		var probe := Vector3i(cell.x,y,cell.z)
-		if WaterManager.has_standing_water(probe) or get_parent()._block_id(probe.x,probe.y,probe.z) == BlockRegistry.get_id("base:terrain:water:source"): return true
+		if WaterManager.has_standing_water(probe) or get_parent().terrain_block_id(probe.x,probe.y,probe.z) == BlockRegistry.get_id("base:terrain:water:source"): return true
 		if _solid(probe): return false
 	return false
 
 func placement_reason(base: Vector3i, yaw: int) -> String:
 	var spec := describe(base,yaw)
 	if not String(spec.reason).is_empty(): return spec.reason
-	if base.y+1 > get_parent()._slice_y: return "Raise the slice to show both bridge landings"
+	if base.y+1 > get_parent().get_slice_y(): return "Raise the slice to show both bridge landings"
 	if get_parent().placement_available(KEY) < 1: return "Craft a log bridge kit at the crude workbench first"
 	return ""
 
@@ -216,7 +212,7 @@ func place(base: Vector3i, yaw: int) -> int:
 	var id := _next_id
 	_next_id += 1
 	var route := {"id":id,"base":base,"yaw":yaw,"span":int(spec.span),"built":false,
-		"required_material_id":String(get_parent().material_choices.get(KEY, "")),"mode":"build","progress":0.0,"source":null,"node":null,"handles":[],"material_id":""}
+		"required_material_id":String(get_parent().material_choices.get(KEY, "")),"mode":"build","progress":0.0,"node":null,"handles":[],"material_id":""}
 	routes[id] = route
 	_refresh(route)
 	return id
@@ -227,7 +223,8 @@ func pending_kits() -> Dictionary:
 	for route: Dictionary in routes.values():
 		if route.mode != "build": continue
 		requested += 1
-		if route.source == null or not route.source.has_committed_item(): pending += 1
+		var source = work.get_source(route.id)
+		if source == null or not source.has_committed_item(): pending += 1
 	return {"pending":pending,"requested":requested}
 
 func _process(delta: float) -> void:
@@ -247,12 +244,13 @@ func _process(delta: float) -> void:
 		if route.mode == "damaged":
 			if _safe_to_remove(route): _recover(route)
 			continue
-		if route.source == null: _make_source(route)
-		if route.source is FurnitureGhostComponent: route.source.update_lease()
-		if is_instance_valid(route.node): route.node.visible = route.base.y+1 <= get_parent()._slice_y
+		if not work.has(route.id): _make_source(route)
+		var source = work.get_source(route.id)
+		if source is FurnitureGhostComponent: source.update_lease()
+		if is_instance_valid(route.node): route.node.visible = route.base.y+1 <= get_parent().get_slice_y()
 
 func _make_source(route: Dictionary) -> void:
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	if drops == null: return
 	var source: RefCounted
 	if route.mode == "build":
@@ -273,15 +271,12 @@ func _make_source(route: Dictionary) -> void:
 		source.uninstall_callback = func(_s, _worker_id): _recover(route)
 	else: return
 	source.progress = route.progress
-	source.source_id = TaskManager.allocate_source_id()
-	TaskManager.register_work_source(source.source_id,source)
-	_sources[source.source_id] = route.id
-	route.source = source
+	work.add(route.id,source)
 	if source is FurnitureGhostComponent: source.update_lease()
 	else: source.set_uninstall(true)
 
 func _installed(route: Dictionary) -> void:
-	route.material_id = route.source.material_id
+	route.material_id = work.get_source(route.id).material_id
 	_retire(route,false)
 	route.built = true
 	route.mode = "ready"
@@ -293,35 +288,21 @@ func _recover(route: Dictionary) -> void:
 	for cell: Vector3i in landings(route):
 		if _solid(cell) and NavGrid.is_walkable(cell): bank = cell; break
 	_retire(route,false)
-	get_tree().get_first_node_in_group("item_drop_manager").spawn_drop(definition.item_key,1,bank+Vector3i.UP,String(route.get("material_id", "")))
+	ItemDropManager.find(get_tree()).spawn_drop(definition.item_key,1,bank+Vector3i.UP,String(route.get("material_id", "")))
 	_erase(route)
 
 func _safe_to_remove(route: Dictionary) -> bool:
-	for agent in TaskManager._agents.values():
+	for agent in TaskManager.get_agents():
 		if not is_instance_valid(agent): continue
 		for cell: Vector3i in cells(route,false):
 			if AABB(Vector3(cell)+Vector3(-.3,.5,-.3),Vector3(1.6,4,1.6)).has_point(agent.global_position): return false
 	return true
 
-func _task_gone(task: Task, dwarf: int) -> void:
-	var route: Dictionary = routes.get(_sources.get(task.source_id,-1),{})
-	if not route.is_empty() and route.source != null: route.source.on_task_gone(task.id,dwarf)
-
-func _task_released(task: Task, dwarf: int, _why: int) -> void:
-	# Release retains the pending lease. Only its transient item claim changes;
-	# treating this as task-gone would post a second installation/removal job.
-	var route: Dictionary = routes.get(_sources.get(task.source_id,-1),{})
-	if not route.is_empty() and route.source is FurnitureGhostComponent: route.source.cancel_fetch(dwarf)
-
 func _retire(route: Dictionary, cancel: bool) -> void:
-	var source = route.source
+	var source = work.get_source(route.id)
 	if source == null: return
 	route.progress = source.progress
-	_sources.erase(source.source_id)
-	if cancel: TaskManager.cancel_source_tasks(source.source_id)
-	TaskManager.unregister_work_source(source.source_id)
-	if source is FurnitureGhostComponent: source.release_claim()
-	route.source = null
+	work.retire(route.id,cancel)
 
 func _register(route: Dictionary) -> void:
 	if not route.built: return
@@ -332,20 +313,20 @@ func _register(route: Dictionary) -> void:
 func _refresh(route: Dictionary) -> void:
 	_register(route)
 	if is_instance_valid(route.node): route.node.queue_free()
-	route.node = make_visual(route.span, null if route.built else get_parent()._make_ghost_material())
+	route.node = make_visual(route.span, null if route.built else get_parent().make_ghost_material())
 	add_child(route.node)
 	if route.built: CraftMaterials.apply_palette(route.node, definition, String(route.get("material_id", "")))
 	route.node.position = Vector3(route.base)+Vector3(.5,1,.5)
 	route.node.rotation.y = route.yaw*PI*.5
 	preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(route.node)
 	_make_source(route)
-	get_parent()._mark_catalog_dirty()
+	get_parent().mark_catalog_dirty()
 
 func make_visual(span: int, material: Material = null) -> Node3D:
 	var path := String(definition.model).get_base_dir().path_join("log_bridge_%d.glb" % clampi(span,1,int(definition.bridge.max_span)))
 	var model: Node3D = load(path).instantiate()
 	preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(model,not (material is BaseMaterial3D and material.transparency!=BaseMaterial3D.TRANSPARENCY_DISABLED))
-	get_parent()._apply_material(model,material if material != null else get_parent()._make_solid_material())
+	get_parent().apply_material(model,material if material != null else get_parent().make_solid_material())
 	return model
 
 func _erase(route: Dictionary) -> void:
@@ -354,9 +335,9 @@ func _erase(route: Dictionary) -> void:
 	for handle: int in route.handles: PlacedEntityRegistry.unregister(handle)
 	if is_instance_valid(route.node): route.node.queue_free()
 	routes.erase(route.id)
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	if drops != null and route.built: drops.bridge_support_removed(cells(route,false))
-	get_parent()._mark_catalog_dirty()
+	get_parent().mark_catalog_dirty()
 
 func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
 	var result := {}
@@ -402,7 +383,7 @@ func serialize_state() -> Dictionary:
 	var entries: Array = []
 	for route: Dictionary in routes.values():
 		entries.append({"id":route.id,"key":KEY,"base":SaveManager.pack_v3i(route.base),"yaw":route.yaw,
-			"span":route.span,"built":route.built,"material_id":String(route.get("material_id", "")),"required_material_id":String(route.get("required_material_id", "")),"mode":route.mode,"progress":route.source.progress if route.source != null else route.progress})
+			"span":route.span,"built":route.built,"material_id":String(route.get("material_id", "")),"required_material_id":String(route.get("required_material_id", "")),"mode":route.mode,"progress":work.get_source(route.id).progress if work.has(route.id) else route.progress})
 	return {"routes":entries,"next_id":_next_id}
 
 func restore_state(state: Dictionary) -> void:
@@ -412,7 +393,6 @@ func restore_state(state: Dictionary) -> void:
 		var route := entry.duplicate(true)
 		route.base = SaveManager.unpack_v3i(entry.base)
 		for key in ["id","yaw","span"]: route[key] = int(route[key])
-		route.source = null
 		route.node = null
 		route.handles = []
 		routes[route.id] = route

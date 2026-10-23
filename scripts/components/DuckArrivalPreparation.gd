@@ -44,7 +44,7 @@ func advance(deadline_usec: int) -> bool:
 				var end:=mini(cursor+32,keys.size())
 				while cursor<end:
 					var key: Vector3i=keys[cursor]
-					if WaterManager.flow.volume(key)>=float(data.navigation.swim_depth): all.append(key.x*1024+key.z)
+					if WaterManager.flow.volume(key)>=float(data.navigation.swim_depth): all.append(key.x*WorldData.WORLD_SIZE_Z+key.z)
 					cursor+=1
 				if cursor==keys.size():
 					keys.clear()
@@ -60,7 +60,8 @@ func advance(deadline_usec: int) -> bool:
 				if use_river: col=river[rng.randi_range(0,river.size()-1)]
 				else:
 					var packed:=all[rng.randi_range(0,all.size()-1)]
-					col=Vector2i(packed/1024,packed%1024)
+					@warning_ignore("integer_division")
+					col=Vector2i(packed/WorldData.WORLD_SIZE_Z,packed%WorldData.WORLD_SIZE_Z)
 				var sample: Dictionary=nav.surface(col)
 				if sample.is_empty() or not sample.water or not nav.near_shore(col,int(data.population.shore_distance),data.forage_kinds): continue
 				var crowded:=false
@@ -83,7 +84,7 @@ func advance(deadline_usec: int) -> bool:
 				cells=nav.group_cells(Vector2i(home.x,home.z),count,2.0)
 				if cells.size()!=count: continue
 				routes=[]
-				var distances: Array=[home.x,1023-home.x,home.z,1023-home.z]
+				var distances: Array=[home.x,WorldData.WORLD_SIZE_X-1-home.x,home.z,WorldData.WORLD_SIZE_Z-1-home.z]
 				nearest=distances.find(distances.min())
 				edge=["west","east","north","south"][nearest]
 				phase="member"

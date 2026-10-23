@@ -1,0 +1,296 @@
+{
+ "legacy-code": {
+  "scripts/components/SaveSnapshotValidator.gd": {
+   "migrated": 1
+  },
+  "scripts/components/StorageComponent.gd": {
+   "legacy": 1
+  },
+  "scripts/systems/FurniturePlacementController.gd": {
+   "legacy": 3
+  },
+  "scripts/systems/ItemDropManager.gd": {
+   "legacy": 1
+  },
+  "scripts/systems/TaskManager.gd": {
+   "migrating": 1
+  }
+ },
+ "private-access": {
+  "scripts/components/BoardGameRecreation.gd": {
+   "agent._body": 1,
+   "agent._follow_path": 1,
+   "agent._foot_l": 1,
+   "agent._foot_r": 1,
+   "agent._hand_l": 1,
+   "agent._hand_r": 4,
+   "agent._head": 3,
+   "agent._recreation": 2,
+   "agent._reset_part_offsets": 2,
+   "agent._work_execution": 1,
+   "controller._games": 2
+  },
+  "scripts/components/ConstructionMaterials.gd": {
+   "origin._outgoing": 1
+  },
+  "scripts/components/DuckArrivalPreparation.gd": {
+   "owner._arrival_cell_allowed": 1
+  },
+  "scripts/components/DuckPopulation.gd": {
+   "owner._arrival_cell_allowed": 1,
+   "owner._arrival_entry_free": 1
+  },
+  "scripts/components/DwarfDining.gd": {
+   "agent._body": 1,
+   "agent._follow_path": 1,
+   "agent._food": 5,
+   "agent._foot_l": 1,
+   "agent._foot_r": 1,
+   "agent._head": 1,
+   "agent._idle_behavior": 2,
+   "agent._move_path": 1,
+   "agent._reset_part_offsets": 2
+  },
+  "scripts/components/DwarfEquipment.gd": {
+   "agent._carried_entries": 3,
+   "agent._carry_pose": 2,
+   "agent._complete_profession_change": 1,
+   "agent._drop_carried_at_feet": 1,
+   "agent._follow_path": 1,
+   "agent._idle_behavior": 2,
+   "agent._ladder_exiting": 1,
+   "agent._ladder_path_revision": 2,
+   "agent._move_index": 2,
+   "agent._move_path": 3,
+   "agent._release_for_assignment_change": 1,
+   "agent._reset_part_offsets": 3,
+   "agent._shortcut_timer": 1,
+   "agent._walk_cycle": 1
+  },
+  "scripts/components/DwarfFoodBehavior.gd": {
+   "agent._carried_entries": 2,
+   "agent._carry_pose": 3,
+   "agent._drop_carried_at_feet": 1,
+   "agent._follow_path": 1,
+   "agent._hand_l": 1,
+   "agent._hand_r": 1,
+   "agent._ladder_path_revision": 1,
+   "agent._mood": 1,
+   "agent._move_index": 1,
+   "agent._move_path": 3,
+   "agent._move_validation_index": 1,
+   "agent._reset_part_offsets": 2,
+   "agent._shortcut_timer": 1,
+   "agent._walk_cycle": 1,
+   "agent._work_execution": 1
+  },
+  "scripts/components/DwarfForaging.gd": {
+   "agent._carry_pose": 1,
+   "agent._follow_path": 1,
+   "agent._food": 7,
+   "agent._move_path": 1,
+   "agent._reset_part_offsets": 1,
+   "owner._gather_contact": 1
+  },
+  "scripts/components/DwarfIdleBehavior.gd": {
+   "agent._bob_phase": 2,
+   "agent._body": 1,
+   "agent._carried_entries": 1,
+   "agent._follow_path": 2,
+   "agent._foot_l": 1,
+   "agent._foot_r": 1,
+   "agent._hand_l": 4,
+   "agent._hand_r": 4,
+   "agent._head": 5,
+   "agent._idle_bob": 1,
+   "agent._reset_part_offsets": 3
+  },
+  "scripts/components/DwarfPrivacy.gd": {
+   "agent._follow_path": 1
+  },
+  "scripts/components/DwarfReadability.gd": {
+   "helper._refresh_seconds": 1,
+   "helper._silhouettes": 1
+  },
+  "scripts/components/DwarfRestBehavior.gd": {
+   "agent._body": 3,
+   "agent._follow_path": 2,
+   "agent._foot_l": 2,
+   "agent._foot_r": 2,
+   "agent._hand_l": 2,
+   "agent._hand_r": 2,
+   "agent._head": 10,
+   "agent._reset_part_offsets": 2,
+   "agent._wake_up": 1,
+   "bed_rest._options": 1
+  },
+  "scripts/components/FruitHaulPlanner.gd": {
+   "manager._loose": 1,
+   "manager._reserved": 1
+  },
+  "scripts/components/FurnitureMoves.gd": {
+   "controller._drop_manager": 1
+  },
+  "scripts/components/FurnitureSeating.gd": {
+   "controller._active_key": 2,
+   "controller._bounds_cells": 1,
+   "controller._cell_to_installed": 1,
+   "controller._fences": 1,
+   "controller._floor_placement_reason": 1,
+   "controller._instance_model": 1,
+   "controller._piece_visible": 1,
+   "controller._world_pos": 3
+  },
+  "scripts/components/GridFence.gd": {
+   "controller._bounds_cells": 1,
+   "controller._piece_visible": 1,
+   "controller._teardown_installed": 1
+  },
+  "scripts/components/RoomRebuild.gd": {
+   "owner._bed_assignments": 1,
+   "owner._bed_cells": 2,
+   "owner._block_id": 1,
+   "owner._door_cells": 2,
+   "owner._heat_cells": 2,
+   "owner._light_cells": 2,
+   "owner._next_room_id": 1
+  },
+  "scripts/components/StorageComponent.gd": {
+   "origin._outgoing": 1
+  },
+  "scripts/components/WaterMeshBuilder.gd": {
+   "flow._spans": 1
+  },
+  "scripts/components/WaterSound.gd": {
+   "water_view._splash_sites": 1
+  },
+  "scripts/systems/StockpileManager.gd": {
+   "destination._can_haul_key": 2,
+   "origin._outgoing": 3,
+   "source._outgoing": 7,
+   "storage._pulls": 2,
+   "zone._outgoing": 1
+  },
+  "scripts/systems/WaterManager.gd": {
+   "flow._head": 1,
+   "flow._queue": 1
+  }
+ },
+ "unused-data": {
+  "data/audio/work_feedback.json": {
+   "key: duck_quack": 1,
+   "key: duck_select": 1,
+   "key: duck_splash": 1
+  },
+  "data/entities/animals/duck.json": {
+   "key: female_body": 1,
+   "key: female_head": 1,
+   "key: female_wing": 1,
+   "key: female_wing_folded": 1,
+   "key: male_body": 1,
+   "key: male_head": 1,
+   "key: male_wing": 1,
+   "key: male_wing_folded": 1
+  },
+  "data/entities/flora/elderberry_bush.json": {
+   "key: autumn_picked": 1
+  },
+  "data/entities/flora/wild_strawberry_bush.json": {
+   "key: spring_picked": 1
+  },
+  "data/furniture/campfire.json": {
+   "file": 1
+  },
+  "data/furniture/crude_ladder.json": {
+   "file": 1
+  },
+  "data/furniture/crude_workbench.json": {
+   "file": 1
+  },
+  "data/furniture/door.json": {
+   "file": 1
+  },
+  "data/furniture/dry_stone.json": {
+   "file": 1
+  },
+  "data/furniture/hearth.json": {
+   "file": 1
+  },
+  "data/furniture/log_bed.json": {
+   "file": 1
+  },
+  "data/furniture/log_bridge.json": {
+   "file": 1
+  },
+  "data/furniture/log_chair.json": {
+   "file": 1
+  },
+  "data/furniture/log_door_3.json": {
+   "file": 1
+  },
+  "data/furniture/log_door_4.json": {
+   "file": 1
+  },
+  "data/furniture/log_fence.json": {
+   "file": 1
+  },
+  "data/furniture/log_gate.json": {
+   "file": 1
+  },
+  "data/furniture/settlement_flag.json": {
+   "file": 1
+  },
+  "data/furniture/wet_stone.json": {
+   "file": 1
+  },
+  "data/furniture/wooden_torch.json": {
+   "file": 1
+  },
+  "data/materials/craft_materials.json": {
+   "key: grain_light": 1,
+   "key: heart": 1,
+   "key: hewn_bark": 1,
+   "key: hewn_bark_dark": 1,
+   "key: hewn_bark_light": 1,
+   "key: hewn_crack": 1,
+   "key: hewn_cut": 1,
+   "key: hewn_cut_light": 1,
+   "key: hewn_cut_shade": 1,
+   "key: hewn_grain": 1,
+   "key: hewn_knot": 1,
+   "key: hewn_peel": 1,
+   "key: wood_light": 1
+  },
+  "data/professions/professions.json": {
+   "key: level_2": 1,
+   "key: level_3": 1,
+   "key: level_4": 1,
+   "key: level_5": 1
+  },
+  "data/tasks/task_config.json": {
+   "key: chilly_penalty": 1,
+   "key: cold_penalty": 1,
+   "key: hot_penalty": 1
+  },
+  "data/terrain/appearance_profiles.json": {
+   "key: gold_ore": 1,
+   "key: iron_ore": 1,
+   "key: silver_ore": 1,
+   "key: tin_ore": 1
+  }
+ },
+ "world-literal": {
+  "scripts/components/AnimalNavigation.gd": {
+   "1024": 1
+  },
+  "scripts/components/UndergroundLighting.gd": {
+   "1024": 1
+  },
+  "scripts/components/WorldLayout.gd": {
+   "1023": 1
+  },
+  "scripts/components/WorldLayoutValidator.gd": {
+   "1024": 3
+  }
+ }
+}

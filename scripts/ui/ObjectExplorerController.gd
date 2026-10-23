@@ -14,7 +14,6 @@ extends Node3D
 
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const DwarfPanel = preload("res://scripts/ui/DwarfInspectorPanel.gd")
-const StoragePanel = preload("res://scripts/ui/StorageInspectorPanel.gd")
 const WINDOW_ID := "object_explorer"
 const RAY_MAX := 600.0
 const REFRESH_SECONDS := 0.15
@@ -24,7 +23,7 @@ var _manager: UIWindowManager
 var _window: UIWindow
 var _provider: Node = null
 var _object_id: Variant = null
-var _slice_y := 127
+var _slice_y := SliceController.MAX_SLICE_Y
 var _refresh_elapsed := 0.0
 var _tools: Array[Node] = []
 var _dwarves: Node
@@ -42,7 +41,6 @@ var _outline_bounds := AABB()
 var _standard_content: Control
 var _standard_details_scroll: ScrollContainer
 var _dwarf_panel: VBoxContainer
-var _storage_panel: VBoxContainer
 var _inspector_positioned := false
 var _outline_subject: Node3D
 var _outline_offset := Vector3.ZERO
@@ -108,7 +106,7 @@ func select_at_screen(screen_pos: Vector2) -> bool:
 	if not hit.is_empty() and hit.provider == _terrain:
 		# Existing work/storage zone inspectors take precedence over bare terrain.
 		for tool: Node in _tools:
-			if tool.has_method("_try_select_zone_at_screen") and tool.call("_try_select_zone_at_screen",screen_pos):
+			if tool.has_method("try_select_zone_at_screen") and tool.call("try_select_zone_at_screen",screen_pos):
 				clear_selection()
 				return true
 	return not hit.is_empty() and select_object(hit["provider"], hit["id"])
@@ -227,8 +225,6 @@ func _release_selection() -> void:
 	if is_instance_valid(_dwarf_host):
 		_dwarf_host.clear_subject()
 		_dwarf_host.hide()
-	if is_instance_valid(_storage_panel):
-		_storage_panel.clear_subject()
 
 
 func _on_slice_changed(slice_y: int) -> void:
@@ -309,33 +305,19 @@ func _build_window() -> void:
 	_dwarf_panel.visible = false
 	_dwarf_panel.action_requested.connect(_perform_dwarf_action)
 	root_content.add_child(_dwarf_panel)
-	_storage_panel = StoragePanel.new()
-	_storage_panel.visible = false
-	_storage_panel.action_requested.connect(_perform_action)
-	root_content.add_child(_storage_panel)
 	_window = _manager.register_window(WINDOW_ID, "Object explorer", "", margin,
 		{"persistent": false, "default_pos": Vector2(24, 150), "min_size": Vector2(380, 0)})
 	UITheme.apply_catalog_window(_window)
 	_window.keep_body_on_screen = true
-	_storage_panel.window = _window
 	get_viewport().size_changed.connect(_refresh_selected)
 
 
 func _refresh(data: Dictionary) -> void:
 	var is_dwarf := String(data.get("presentation", "")) == "dwarf"
-	var is_storage := String(data.get("presentation", "")) == "storage"
-	_standard_content.visible = not is_dwarf and not is_storage
+	_standard_content.visible = not is_dwarf
 	_dwarf_panel.visible = is_dwarf and not is_instance_valid(_dwarf_host)
-	_storage_panel.visible = is_storage
 	_window.custom_minimum_size.x = 380
 	_window.set_window_title("DWARF INSPECTOR" if is_dwarf else "Object explorer")
-	if is_storage:
-		_outline_subject = null
-		_storage_panel.show_storage(data.storage, data.get("actions", []), String(data.title))
-		_update_outline(_provider.call("get_explorer_bounds", _object_id))
-		_storage_panel._fit()
-		_position_inspector()
-		return
 	if is_dwarf:
 		var panel := _dwarf_host if is_instance_valid(_dwarf_host) else _dwarf_panel
 		panel.show()
@@ -382,7 +364,7 @@ func _refresh(data: Dictionary) -> void:
 		_row_values[i].tooltip_text = String(rows[i][1])
 	_details.text = String(data.get("details", ""))
 	_details.visible = not _details.text.is_empty()
-	var actions: Array = data.get("actions", [])
+	var actions: Array = UIRegistry.shown_actions(data.get("actions", []))
 	_actions.visible = not actions.is_empty()
 	if actions != _action_data:
 		_action_data = actions.duplicate(true)

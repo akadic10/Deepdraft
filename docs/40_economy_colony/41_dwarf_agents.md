@@ -80,12 +80,22 @@ See [122](../00_dev_roadmap/122_bedroom_comfort_and_mining_progression.md).
 > **distance-driven walk gait** (plant/lift foot phases, counter-swinging hands, body lean;
 > `walk_speed` 3.4, `stride_length` 1.05 — TaskManager movement tuning), zone-lease mining execution
 > with the vertical reach envelope, and **sleep-lite** — the single `sleep` stat below, draining
-> per the table, with reachable bed use, sheltered ground sleeping and the §2.8 release protocol
-> (`16_first_dwarf_milestone.md` step 7). Procedural generation (names/appearance/traits,
+> per the table, with reachable bed use, sheltered ground sleeping and the release protocol
+> (`31_task_system.md` §Release Protocol). Procedural generation (names/appearance/traits,
 > seed-deterministic per `world_seed + birth_index`) runs through `DwarfFactory` +
 > `DwarfAssets`; dwarves spawn at the player-placed Settlement Flag. NOT yet implemented:
 > thirst/alcohol/health, the broader thought system, the full profession roster and the
 > full needs-interrupt priority ladder — the tables below remain their design source.
+>
+> **Components (doc 258 step 8, 2026-10-22).** `DwarfAgent` keeps identity, needs,
+> task dispatch (`receive_task`), interruption (`abort_task`, `force_interrupt`) and
+> the read-only views. Preloaded components (no `class_name`) hold the rest:
+> `DwarfBodyRig` builds and tints the parts, owns the work/carry rigs, the idle bob
+> and the carried cargo (`carried_entries`); `DwarfMovement` follows paths, climbs
+> ladders, drives the walk gait and keeps physical floor support (`snap_to_floor`,
+> `lift_from_raised_floor`); `DwarfWorkExecution` (extending `DwarfCarryWork`) runs
+> the job executors. `walk_to`/`walk_nearby` stay on the agent: they cancel
+> leisure, meals and promotions, then hand the path to `DwarfMovement`.
 
 ## Overview
 
@@ -110,15 +120,12 @@ contact-synchronized wood sounds. Partial recipe work belongs to the order;
 interruptions return the unconsumed log. Inspection reports the actual crafting
 destination. Miner progression followed in milestone 96 and Carpenter tool
 promotion in milestone 101; specialist Carpenter production remains future work.
-See [64 — Worker crafting](../00_dev_roadmap/64_worker_crafting.md).
 
 2026-10-05 inspection and roster: visible dwarves have a portrait, live work/rest
 and cargo readouts in the shared inspector. **Colony → Dwarves** adds a stable
 overview with name search, work/rest filters and Locate; selecting a row opens
 that same inspector. Static portraits use existing visual parts and never create
-simulation agents. Developer controls moved to Development. See
-[doc 51](../00_dev_roadmap/51_hearth_iron_dwarf_inspector.md) and
-[doc 57](../00_dev_roadmap/57_colony_dwarf_roster.md).
+simulation agents. Developer controls moved to Development.
 
 2026-10-04 work tools: tree felling and mining have distinct two-handed procedural
 swings and visible implicit axe/pick models. Both use shared grip and mirrored-part
@@ -129,9 +136,7 @@ trigger procedural positional sounds through `WorkFeedback`; mining also emits
 small contact chips. Successful tree/block removal triggers completion dust from
 the owning world system. Sounds follow camera focus/zoom; particles follow
 simulation pause/speed. Dwarves implicitly carry both tools with no equipment
-inventory or durability requirement. Player testing accepted this work on
-2026-10-04. Details and regression coverage:
-[doc 48](../00_dev_roadmap/48_object_explorer_and_tree_felling.md).
+inventory or durability requirement.
 
 Each dwarf is an autonomous agent (`DwarfAgent`, extends `CharacterBody3D`) driven by the Task System. Dwarves have physiological stats that degrade over time and must be replenished through colony resources.
 
@@ -341,8 +346,17 @@ Mixed loads share that budget; crate cost is independent of fill, while
 `weight_class` separately controls walking speed. Pickup and
 deposit take 0.75 s and 0.65 s at normal clock speed (task JSON tunables).
 Reservations, carried-item saves and interruption drops remain authoritative;
-animation state is transient. Implementation and review evidence:
-[49_dwarf_hauling_animation.md](../00_dev_roadmap/49_dwarf_hauling_animation.md).
+animation state is transient.
+
+The handling stand is a walkable cardinal cell beside the goods. The reserved
+item cell, and every reserved destination cell of a bundle, is never used as the
+stand. Stands are tried nearest first; if the nearest side cannot be reached, the
+dwarf tries another side (`DwarfCarryWork._walk_to_handling_stand`). The item is
+taken from its source exactly once, at hand contact (`DwarfCarryPose.CONTACT_PHASE`,
+36% of the pickup); storage or construction consumes it only after it has been
+lowered. An item without `carry_cost` costs 1, and costs and the configured capacity
+are clamped to at least 1 (`StorageComponent`, `StockpileManager`), so an item
+costing more than the budget is never offered and never posts an impossible lease.
 
 ```
 IDLE
@@ -446,7 +460,31 @@ shows names/descriptions from DwarfAssets with an explicit inactive-effects note
 Light Sleeper is authored as +1 sleep hour (seven instead of six), and Deep
 Sleeper as −1 (five instead of six), but all dwarves currently use the same
 six-hour sleep-lite duration. The descriptions below and in JSON must not be
-treated as evidence of active modifiers. See [doc 51](../00_dev_roadmap/51_hearth_iron_dwarf_inspector.md).
+treated as evidence of active modifiers.
+
+#### Planned trait effects (not implemented)
+
+`traits.json` holds only what generation and the inspector use (name, description,
+polarity, rarity weight, exclusion group). The effects below are design only.
+
+| Trait | Planned effect |
+|---|---|
+| Born Miner, Brewmaster's Intuition, Green Thumb, Architect's Eye, Merchant's Tongue, Warm Host, Born Hauler | ×1.5 experience gain in Miner, Brewer, Farmer, Builder, Merchant, Innkeeper or Worker respectively, and unlock level 6 in that profession |
+| Loves to Cook | Reserves a future Cook profession for this dwarf |
+| Cheerful / Grumpy | Mood baseline +0.06 / −0.05 |
+| Hardworking / Lazy | All task durations ×0.90 / ×1.12 |
+| Iron Constitution / Frail | Incoming damage ×0.70 / ×1.45 |
+| Deep Sleeper / Light Sleeper | −1 / +1 hour of sleep per cycle |
+| Iron Stomach | Ignores food-variety thoughts |
+| Brave | Ignores the invader flee trigger |
+| Fearful | Flees invaders within 15 tiles |
+| Hates the Outdoors | −0.05 mood during outdoor tasks (planting, tending, harvesting, beehives, honey, hauling, clearing rubble) |
+| Cave Sick | −0.05 mood inside a sealed room with no sky |
+| Glutton | Hunger drains ×1.5 |
+| Alcohol Dependent | Must drink every 16 h; each missed window adds −0.06 mood, up to 4 stacks (−0.24). Alcohol thoughts are ×1.5 stronger |
+| Loner | −0.04 mood with 4+ dwarves within 5 tiles |
+| Social | +0.03 mood with 3+ dwarves within 5 tiles |
+| Homesick | −0.08 mood on arrival, fading linearly over 56 days (two seasons) |
 
 The generator rolls a **trait slot distribution** from `generation_config` in `traits.json`, then fills each slot from the positive or negative pool independently:
 
@@ -467,7 +505,35 @@ Traits in the same **exclusion group** (e.g. `mood_baseline`, `work_pace`) canno
 
 Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. The shared inspector's Profession action opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit. Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases. Per-dwarf work permissions are independent of the active profession.
 
-Full profession definitions, task type lists, room assignments, and level descriptions: `data/professions/professions.json`.
+`data/professions/professions.json` holds what the game uses: the career-map
+entries, work permissions, Miner experience thresholds, display names, promotion
+parents, required tools and equipment previews. The planned design for every
+profession is recorded below.
+
+#### Planned profession design (not implemented)
+
+Every profession promotes from Worker unless noted. Specialists fall back to
+Worker tasks (`HAUL`, `CLEAR_RUBBLE`) when they have no primary work; fallback
+speed is unaffected by experience. Work-speed bonus is per level above 1 on the
+profession's primary tasks (5% unless noted), so level 5 is 20% faster and level 6
+25% faster.
+
+| Profession | Primary tasks | Room | Notes |
+|---|---|---|---|
+| Worker | `HAUL`, `CLEAR_RUBBLE`, `COLLECT_FLOOR_ITEMS`, `CRAFT` | — | Base profession; cannot be removed. Planned: haul speed improves with level |
+| Miner (live) | `MINE`, `CLEAR_RUBBLE`, `HAUL_ORE` | — | Live: digging speed. Planned: level 3 spots ore before it is fully exposed; level 6 small chance of bonus ore or gem fragments |
+| Farmer | `PLANT_SEED`, `TEND_FARM`, `HARVEST_CROP`, `TEND_BEEHIVE`, `COLLECT_HONEY` | — | Yields improve at levels 2 and 4; level 6 occasional double harvests |
+| Brewer | `BREW`, `LOAD_AGING_CELLAR`, `COLLECT_AGING_CELLAR`, `WEAVE_CLOTH` | — | Not on the career map. Level gates recipes (see Recipe Gates); level 6 gives a 10% chance of a bonus output unit |
+| Builder | `BUILD_BLOCK`, `DEMOLISH_BLOCK`, `PLACE_FURNITURE`, `REMOVE_FURNITURE` | — | Not on the career map. Level 6 gives buildings a small structural-integrity bonus |
+| Merchant | `STAFF_TRADE_COUNTER`, `COLLECT_SHOP_COINS`, `RESTOCK_SHOP_STORAGE` | Shop | Not on the career map. +2% sale price per level instead of speed; see `51_visitors.md` |
+| Innkeeper | `SERVE_DRINK`, `SEAT_GUEST`, `COLLECT_NIGHT_STAND_COINS`, `RESTOCK_TAVERN_STORAGE` | Tavern | Not on the career map. +1 coin lodging fee per level; see `51_visitors.md` |
+| Carpenter | Planned workshop recipes | — | Live: promotion with a carpentry kit |
+| Blacksmith | Smelting and forging (doc 44) | — | Needs a Smelter and Forge |
+| Weaponsmith, Armorsmith | Forge weapons / armour (doc 44) | — | Promote from Blacksmith level 3 |
+| Hunter, Stonemason | Not designed beyond the career-map preview | — | — |
+
+Level 6 needs both 10,000 tasks and the profession's calling trait (see Planned
+trait effects).
 
 ### Agreed equipment progression — planned (2026-10-09)
 
@@ -528,12 +594,7 @@ var profession: String = "base:profession:worker"   # current active profession 
 var profession_experience: Dictionary = {           # raw task counts per profession key
     "base:profession:worker":      randi_range(0, 9),
     "base:profession:miner":       0,
-    "base:profession:farmer":      0,
-    "base:profession:brewer":      0,
-    "base:profession:builder":     0,
-    "base:profession:merchant":    0,
-    "base:profession:innkeeper":   0,
-    "base:profession:blacksmith":  0,
+    # ...one entry, starting at 0, for every profession in professions.json
     "base:profession:weaponsmith": 0,   # set to blacksmith count at specialisation
     "base:profession:armorsmith":  0,   # set to blacksmith count at specialisation
 }
@@ -575,7 +636,7 @@ Level 6 remains planned and cannot be reached in the current Miner implementatio
 
 ### Work Speed Bonus
 
-Each profession defines a `work_speed_bonus_per_level` (see professions.json). The formula for primary task duration:
+Miner's `work_speed_bonus_per_level` lives in professions.json; other professions use the planned 5% (see the planned profession table). The formula for primary task duration:
 
 ```
 task_duration × (1.0 - (experience_level - 1) × work_speed_bonus_per_level)
@@ -585,7 +646,7 @@ At `work_speed_bonus_per_level: 0.05`, level 5 mining takes 20% less work time t
 
 ### Recipe Gates (Brewer)
 
-The `required_skill` field in `brewery.json` and `aging_cellar.json` maps directly to the Brewer's experience level. A Brewer at experience level N can perform any recipe with `required_skill ≤ N`. The field name is kept as `required_skill` in recipe files for brevity.
+The planned recipes' Min Skill (`42_farming_brewing.md`) is a Brewer experience level. A Brewer at level N can perform any recipe with Min Skill ≤ N: level 1 brews Longbeard Ale, Mountain Cider and Pig Tail Cloth; level 2 adds Dark Stout and Sweet Mead; level 3 Grape Wine and Aged Dark Stout; level 4 Juniper Gin and Reserve Gin; level 5 Vintage Wine.
 
 ---
 

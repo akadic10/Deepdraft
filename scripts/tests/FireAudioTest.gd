@@ -3,6 +3,7 @@ extends SceneTree
 const OUTPUT := "res://tmp/log_furniture_20261011/audio"
 class FurnitureFixture extends Node3D:
 	var _installed: Dictionary = {}
+	func get_installed_pieces() -> Array: return _installed.values()
 var failures: Array[String] = []
 var sound
 var furniture := FurnitureFixture.new()

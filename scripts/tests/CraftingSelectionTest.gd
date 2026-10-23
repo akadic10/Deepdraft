@@ -35,9 +35,9 @@ func _run() -> void:
 func _dispatch_order(id: int) -> void:
 	for i in range(500):
 		crafting._refresh()
-		var before: int = tasks._probes_total
+		var before: int = tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total-before <= tasks._max_probes_per_wake,"craft comparison respects the per-wake probe cap")
+		_expect(tasks._scheduler._probes_total-before <= tasks._max_probes_per_wake,"craft comparison respects the per-wake probe cap")
 		if crafting.get_order(id).worker_id>=0: return
 		await process_frame
 
@@ -91,22 +91,6 @@ func _recipes_and_storage() -> void:
 	await _dispatch_order(id)
 	_expect(crafting.get_order(id).worker_id==extra_worker.dwarf_id and not zone.cell_stacks.has(slot),
 		"stored stone beside later idle worker beats farther loose stone")
-	_fresh_workers()
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(55,20,40)]
-	container.setup_container({"storage":{"capacity":2}},cells)
-	container.source_id = tasks.allocate_source_id()
-	stockpiles.register_container(container)
-	container.restore_inventory({STONE:1},drops)
-	stockpiles.rebuild_totals()
-	drops.spawn_drop(PINE,1,Vector3i(42,21,40))
-	id = crafting.queue_order(HOE,1)
-	await _dispatch_order(id)
-	_expect(crafting.get_order(id).worker_id==extra_worker.dwarf_id and container.stored_count()==0,
-		"container quote matches its real withdrawal location and chooses the nearby worker")
-	_expect(await _completed(id),"container material follows the proven pickup and delivery routes")
-	stockpiles.deregister_container(container)
-	stockpiles.rebuild_totals()
 
 func _eligibility() -> void:
 	_fresh_workers()
@@ -136,15 +120,12 @@ func _eligibility() -> void:
 	# Register the near worker first so the higher-priority bucket claims her.
 	tasks.deregister_dwarf(worker.dwarf_id)
 	tasks.register_dwarf(worker)
-	var priority: int = tasks._static_priorities.BUILD
-	tasks._static_priorities.BUILD = 90
-	var urgent: int = tasks.add_task(Task.Type.BUILD,Vector3i(54,20,41))
+	var urgent: int = _post_mine_lease(Vector3i(54,20,41))
 	id = crafting.queue_order(HOE,1)
 	await _dispatch_order(id)
 	_expect(extra_worker.current_task_id==urgent and crafting.get_order(id).worker_id==worker.dwarf_id,
 		"higher-priority work runs before crafting proximity")
-	tasks._static_priorities.BUILD = priority
-	tasks.cancel_task(urgent)
+	_clear_mine_leases()
 
 func _walls(columns: Array[Vector2i], build: bool) -> void:
 	var block: int = blocks.get_id("base:terrain:rock:rock01") if build else blocks.AIR_ID
@@ -200,7 +181,7 @@ func _yield_and_invalidation() -> void:
 	tasks.register_work_source(order.source_id,slow)
 	for i in range(30):
 		tasks._run_scheduler()
-		if int(tasks._craft_match.get("index",0))>=1: break
+		if int(tasks._scheduler._craft_match.get("index",0))>=1: break
 		await process_frame
 	_expect(order.worker_id<0 and drops._reserved.is_empty() and crafting.bench_claims.is_empty(),
 		"yielding worker comparison creates no early item or bench reservations")
@@ -239,4 +220,4 @@ func _yield_and_invalidation() -> void:
 	_expect(worker.current_task_id<0 and extra_worker.current_task_id<0 and drops._reserved.is_empty(),
 		"cancel during comparison cannot claim stale work")
 	tasks.reset_runtime_state()
-	_expect(tasks._craft_match.is_empty(),"scene reset clears partial crafting comparisons")
+	_expect(tasks._scheduler._craft_match.is_empty(),"scene reset clears partial crafting comparisons")

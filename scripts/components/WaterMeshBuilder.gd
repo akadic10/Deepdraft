@@ -22,6 +22,11 @@ func build() -> void:
 	var palette: Dictionary = snapshot.palette
 	var surface := Color(palette.surface_color)
 	var foam := Color(palette.foam_color)
+	var tile: Vector2i = snapshot.tile
+	# A neighbouring tile may still show its water up to one redraw step off
+	# (WaterRenderer). Faces on the tile border reach that far below the
+	# neighbour's level, under its surface, so the seam never opens a crack.
+	var border_margin := float(palette.get("redraw_level_step",0.0))
 	for key: Vector3i in snapshot.visible:
 		var x := key.x
 		var z := key.z
@@ -49,6 +54,9 @@ func build() -> void:
 					falling = false
 					lower = float(key.y)
 				break
+			var outside := col.x<tile.x*32 or col.x>=tile.x*32+32 or col.y<tile.y*32 or col.y>=tile.y*32+32
+			if outside and not falling and receiver.x>=0 and flow.volume(receiver)>0.0:
+				lower = maxf(float(key.y),lower-border_margin)
 			# Even sub-pixel steps need a closed face: skipping <.002 left
 			# cracks showing the dark river bed between neighboring tops.
 			if top<=lower: continue

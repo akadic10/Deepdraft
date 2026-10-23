@@ -87,9 +87,10 @@ var appeal_config: Dictionary = {}
 
 
 func _ready() -> void:
-	detection_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/detection.json"))
-	temperature_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/world_gen/temperature.json"))
-	appeal_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/appeal.json"))
+	const JsonData = preload("res://scripts/registries/JsonData.gd")
+	detection_config = JsonData.read_dict("res://data/rooms/detection.json")
+	temperature_config = JsonData.read_dict("res://data/world_gen/temperature.json")
+	appeal_config = JsonData.read_dict("res://data/rooms/appeal.json")
 	print("RoomManager: ready (doc 34/22).")
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
 	WorldClock.hour_changed.connect(_on_hour_changed)
@@ -108,6 +109,11 @@ func _process(delta: float) -> void:
 		maxi(1, int(detection_config.budget_check_operations)))
 	if _rebuild.stage == RoomRebuild.Stage.DONE: _publish_rebuild()
 	_last_main_ms = (Time.get_ticks_usec() - start) / 1000.0
+
+
+## True when the cell is a recognised doorway.
+func is_door_cell(cell: Vector3i) -> bool:
+	return _door_cells.has(cell)
 
 
 func is_updating() -> bool:

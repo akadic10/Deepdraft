@@ -36,7 +36,7 @@ func leave(agent: DwarfAgent, delta: float, sleeping := false) -> bool:
 	if agent.is_walking():
 		agent._follow_path(delta)
 		return true
-	if allowed(here,agent.dwarf_id,sleeping) and not RoomManager._door_cells.has(here):
+	if allowed(here,agent.dwarf_id,sleeping) and not RoomManager.is_door_cell(here):
 		reset()
 		return false
 	var room_id := RoomManager.get_room_id_at(here+Vector3i.UP)
@@ -61,7 +61,7 @@ func leave(agent: DwarfAgent, delta: float, sleeping := false) -> bool:
 			return true
 		var cell := _queue[_cursor]
 		_cursor += 1
-		if allowed(cell,agent.dwarf_id,sleeping) and not RoomManager._door_cells.has(cell):
+		if allowed(cell,agent.dwarf_id,sleeping) and not RoomManager.is_door_cell(cell):
 			while cell!=here:
 				_route.push_front(cell)
 				cell = _parents[cell]

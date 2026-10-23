@@ -3,24 +3,25 @@ extends RefCounted
 ## Independent checks over completed macro maps. Never repairs the generator's
 ## output. Water floors are checked separately from the surrounding shelf ranks.
 const CARDINAL: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
-const SHELVES := [19, 27, 35, 43, 55, 67, 79, 91, 103, 115]
+## shelf_tops ranks: 0 lowland, 1-3 foothill (one step size), 4-9 mountain (another).
+const SHELF_COUNT := 10
 
 
 static func profile_errors(profile: Dictionary) -> Array[String]:
 	var errors: Array[String] = []
-	for key in ["profile_id", "algorithm_version", "macro_count", "macro_size", "shelf_tops", "max_attempts",
+	for key in ["profile_id", "macro_count", "macro_size", "shelf_tops", "max_attempts",
 			"primary", "secondary", "requirements", "lowland_lake", "mountain_tarn", "edge_detail"]:
 		if not profile.has(key): errors.append("Missing profile field: " + key)
 	if not errors.is_empty(): return errors
-	if int(profile["algorithm_version"]) != 1 or int(profile["macro_count"]) != 32 or int(profile["macro_size"]) != 32:
-		errors.append("Layout v1 supports only the current 32 x 32 plates of 32 blocks.")
-	# JSON numbers arrive as floats; compare the numeric entries, not Array
-	# equality (which distinguishes the parsed floats from integer constants).
+	if int(profile["macro_count"]) != 32 or int(profile["macro_size"]) != 32:
+		errors.append("The layout supports only the current 32 x 32 plates of 32 blocks.")
+	# The generator derives its terrain bands from shelf_tops and assumes even steps.
 	var shelves: Array = profile["shelf_tops"]
-	var matching_shelves := shelves.size() == SHELVES.size()
-	for i in range(mini(shelves.size(), SHELVES.size())):
-		if float(shelves[i]) != float(SHELVES[i]): matching_shelves = false
-	if not matching_shelves: errors.append("Layout v1 must use the existing shelf heights.")
+	var even_steps := shelves.size() == SHELF_COUNT and int(shelves[0]) > 3 and int(shelves[SHELF_COUNT - 1]) < 128
+	for i in range(1, shelves.size() if even_steps else 0):
+		var step := int(shelves[i]) - int(shelves[i - 1])
+		if step <= 0 or step != int(shelves[1 if i < 4 else 4]) - int(shelves[0 if i < 4 else 3]): even_steps = false
+	if not even_steps: errors.append("Shelf tops need ten rising heights with even foothill and mountain steps.")
 	if int(profile["max_attempts"]) < 0 or int(profile["max_attempts"]) > 32: errors.append("Invalid retry bound.")
 	var fields := {
 		"edge_detail": ["foothill_depth", "mountain_depth", "shore_depth"],
@@ -59,7 +60,7 @@ static func profile_errors(profile: Dictionary) -> Array[String]:
 	if int(lake["min_cells"]) < 12 or int(lake["max_cells"]) > 64 or int(lake["min_cells"]) > int(lake["max_cells"]):
 		errors.append("Invalid lowland lake size.")
 	if int(lake["floor_y"]) != 11 or int(lake["waterline_y"]) != 18 or int(tarn["floor_y"]) != 47 or int(tarn["waterline_y"]) != 54:
-		errors.append("Layout v1 uses the current water elevations and depths.")
+		errors.append("The layout uses the current water elevations and depths.")
 	return errors
 
 
@@ -72,8 +73,10 @@ static func inspect(layout: Dictionary, profile: Dictionary) -> Dictionary:
 	var bodies: Array = layout.get("water_bodies", [])
 	if ranks.size() != count * count or heights.size() != ranks.size() or water.size() != ranks.size():
 		return {"errors": ["Map dimensions are incorrect."], "metrics": {}}
+	var shelves: Array = profile["shelf_tops"]
+	var summit_y := int(shelves[SHELF_COUNT - 1])
 	var histogram: Array[int] = []
-	histogram.resize(10)
+	histogram.resize(SHELF_COUNT)
 	var mountain: Dictionary = {}
 	var lowland: Dictionary = {}
 	var all_lowland: Dictionary = {}
@@ -86,16 +89,16 @@ static func inspect(layout: Dictionary, profile: Dictionary) -> Dictionary:
 		for z in range(count):
 			var index := x * count + z
 			var rank := ranks[index]
-			if rank < 0 or rank >= SHELVES.size():
+			if rank < 0 or rank >= SHELF_COUNT:
 				errors.append("Out-of-range shelf rank.")
 				continue
 			max_height = maxi(max_height, heights[index])
 			min_height = mini(min_height, heights[index])
-			if heights[index] <= 3 or heights[index] > 115: errors.append("Terrain outside supported height range.")
+			if heights[index] <= 3 or heights[index] > summit_y: errors.append("Terrain outside supported height range.")
 			if rank == 0: all_lowland[index] = true
 			if water[index] < 0:
 				histogram[rank] += 1
-				if heights[index] != SHELVES[rank]: errors.append("Dry surface does not match its shelf.")
+				if heights[index] != int(shelves[rank]): errors.append("Dry surface does not match its shelf.")
 				if rank >= 4: mountain[index] = true
 				if rank == 0: lowland[index] = true
 				if rank == 9:
@@ -108,9 +111,9 @@ static func inspect(layout: Dictionary, profile: Dictionary) -> Dictionary:
 					if absi(rank - ranks[(x + dx) * count + z + dz]) > 1: step_violations += 1
 	if step_violations: errors.append("Adjacent terrain shelves differ by more than one rank.")
 	var requirements: Dictionary = profile["requirements"]
-	if max_height != 115 or histogram[9] < int(requirements["min_summit_cells"]): errors.append("Missing required Y115 summit.")
+	if max_height != summit_y or histogram[9] < int(requirements["min_summit_cells"]): errors.append("Missing required Y%d summit." % summit_y)
 	for rank in range(4, 9):
-		if histogram[rank] < int(requirements["min_cells_per_mountain_shelf"]): errors.append("Insufficient shelf area at Y%d." % SHELVES[rank])
+		if histogram[rank] < int(requirements["min_cells_per_mountain_shelf"]): errors.append("Insufficient shelf area at Y%d." % int(shelves[rank]))
 	var largest_peak_component := 0
 	for component: Array in _components(mountain, count):
 		var has_peak := false
@@ -248,8 +251,18 @@ static func inspect_columns(layout: Dictionary, profile: Dictionary, heights: Pa
 	if heights.size() != width * width or domains.size() != heights.size() or waterlines.size() != heights.size():
 		return {"errors": ["Finished map dimensions are incorrect."]}
 	var issues: Dictionary = {}
+	var shelves: Array = profile["shelf_tops"]
+	var lowland_top := int(shelves[0])
+	var foothill_top := int(shelves[3])
+	var summit_y := int(shelves[SHELF_COUNT - 1])
+	var rank_of := PackedInt32Array() # height -> shelf rank, for every height up to the summit
+	rank_of.resize(summit_y + 1)
+	var shelf_rank := 0
+	for y in range(summit_y + 1):
+		while y > int(shelves[shelf_rank]): shelf_rank += 1
+		rank_of[y] = shelf_rank
 	var histogram := PackedInt32Array()
-	histogram.resize(116)
+	histogram.resize(summit_y + 1)
 	var macro_heights: PackedInt32Array = layout["heights"]
 	var macro_ranks: PackedInt32Array = layout["ranks"]
 	var macro_water: PackedInt32Array = layout["water_index"]
@@ -278,14 +291,14 @@ static func inspect_columns(layout: Dictionary, profile: Dictionary, heights: Pa
 					var protected := macro_ranks[macro_index] == 9
 					min_y = mini(min_y, height)
 					max_y = maxi(max_y, height)
-					if height < original or height > 115: issues["Detail eroded terrain or exceeded Y115."] = true
+					if height < original or height > summit_y: issues["Detail eroded terrain or exceeded the summit."] = true
 					if protected and height != original: issues["Protected summit changed."] = true
 					if height != original:
 						detailed_columns += 1
 						if not _within_detail_boundary(x, z, macro_index, layout, profile): issues["Detail escaped its boundary strip."] = true
 					var expected_waterline := body_waterline if body >= 0 and height < body_waterline else -1
 					if waterlines[index] != expected_waterline: issues["Finished waterline differs from its body."] = true
-					var expected_domain := 0 if height <= 19 else (1 if height <= 43 else 2)
+					var expected_domain := 0 if height <= lowland_top else (1 if height <= foothill_top else 2)
 					if domains[index] != expected_domain: issues["Finished domain disagrees with height."] = true
 					if body >= 0 and expected_waterline < 0: shore_land_columns += 1
 					if expected_waterline >= 0:
@@ -299,9 +312,9 @@ static func inspect_columns(layout: Dictionary, profile: Dictionary, heights: Pa
 							if waterlines[neighbor] != body_waterline and heights[neighbor] < body_waterline:
 								issues["Finished water has an uncontained shore."] = true
 						continue
-					if body < 0 and macro_ranks[macro_index] == 0 and height == 19: lowland_columns[macro_index] += 1
-					if height >= 0 and height <= 115: histogram[height] += 1
-					if height == 115: peak_columns += 1
+					if body < 0 and macro_ranks[macro_index] == 0 and height == lowland_top: lowland_columns[macro_index] += 1
+					if height >= 0 and height <= summit_y: histogram[height] += 1
+					if height == summit_y: peak_columns += 1
 					# Forward neighbors cover all eight directions exactly once.
 					for offset: int in [1, width - 1, width, width + 1]:
 						if offset == 1 and z == width - 1: continue
@@ -310,7 +323,7 @@ static func inspect_columns(layout: Dictionary, profile: Dictionary, heights: Pa
 						if offset == width + 1 and z == width - 1: continue
 						var neighbor := index + offset
 						if waterlines[neighbor] >= 0 or heights[neighbor] == height: continue
-						if absi(_rank(height) - _rank(heights[neighbor])) > 1: issues["Detail introduced an excessive dry shelf step."] = true
+						if absi(rank_of[clampi(height, 0, summit_y)] - rank_of[clampi(heights[neighbor], 0, summit_y)]) > 1: issues["Detail introduced an excessive dry shelf step."] = true
 	var requirements: Dictionary = profile["requirements"]
 	var connected_lowland_columns := 0
 	for component: Array in _components(lowland_mask, count):
@@ -320,7 +333,7 @@ static func inspect_columns(layout: Dictionary, profile: Dictionary, heights: Pa
 	if connected_lowland_columns < int(requirements["min_connected_dry_lowland_cells"]) * size * size:
 		issues["Detail removed too much connected dry lowland."] = true
 	for rank in range(4, 9):
-		if histogram[SHELVES[rank]] < int(requirements["min_cells_per_mountain_shelf"]) * size * size:
+		if histogram[int(shelves[rank])] < int(requirements["min_cells_per_mountain_shelf"]) * size * size:
 			issues["Detail removed too much flat mountain shelf area."] = true
 	return {"errors": issues.keys(), "min_y": min_y, "max_y": max_y, "summit_columns": peak_columns,
 		"water_columns": water_columns, "shore_land_columns": shore_land_columns, "shallow_water_columns": shallow_water_columns,
@@ -347,8 +360,3 @@ static func _within_detail_boundary(x: int, z: int, index: int, layout: Dictiona
 		if distances[i] <= int(profile["edge_detail"][field]): return true
 	return false
 
-
-static func _rank(height: int) -> int:
-	if height <= 19: return 0
-	if height <= 43: return 1 + floori((height - 20) / 8.0)
-	return 4 + floori((height - 44) / 12.0)

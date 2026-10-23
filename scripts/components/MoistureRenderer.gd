@@ -223,7 +223,7 @@ func _append_cell(cell: Vector3i) -> void:
 	var x := cell.x
 	var z := cell.z
 	var y := cell.y+1.012
-	ChunkMesher._add_quad(_verts,_norms,_colors,_indices,Vector3(x,y,z),Vector3(x,y,z+1),Vector3(x+1,y,z+1),Vector3(x+1,y,z),Vector3.UP,color)
+	ChunkMesher.add_quad(_verts,_norms,_colors,_indices,Vector3(x,y,z),Vector3(x,y,z+1),Vector3(x+1,y,z+1),Vector3(x+1,y,z),Vector3.UP,color)
 
 func _finish_tile() -> void:
 	if _build_changing: _changing[_building] = true

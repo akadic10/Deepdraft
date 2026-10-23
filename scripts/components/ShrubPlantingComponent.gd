@@ -27,7 +27,7 @@ func cancel_fetch(dwarf_id: int) -> void:
 	super.cancel_fetch(dwarf_id)
 	# Release routing runs again after the actor drops carried goods. Reclaim
 	# an exact Move immediately so the next wake can quote its actual pickup.
-	if not required_instance_id.is_empty(): _ensure_claim()
+	if not required_instance_id.is_empty(): ensure_claim()
 
 
 ## A cutting crate may contain many plants. Only one unit leaves it at pickup.

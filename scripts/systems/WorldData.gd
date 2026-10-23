@@ -10,26 +10,29 @@ extends Node
 ## autoload — never access Chunk.blocks directly from outside this script.
 ##
 ## Thread model:
-##   - WorldGenerator runs on a background Thread and calls submit_chunk()
-##     to hand completed chunks to WorldData atomically.
-##   - WorldRenderer and game logic run on the main thread and call
-##     get_block() / set_block().
+##   - submit_chunk() inserts a whole chunk atomically (set_block's first
+##     edit in a chunk; tests also fill columns through WorldGenerator).
+##   - Game logic runs on the main thread and calls get_block() / set_block().
 ##   - _mutex guards the _chunks dictionary. Once a Chunk object is
 ##     retrieved from the dictionary, its PackedByteArray can be read/written
 ##     without holding the lock — each chunk is only written by one party
 ##     at a time (generator pre-submit, game logic post-submit).
 ##
 ## Signal note:
-##   WorldRenderer MUST connect to chunk_dirtied with CONNECT_DEFERRED so
-##   mesh rebuilds always execute on the main thread, even when the signal
-##   fires from the generator's background thread:
+##   chunk_dirtied is emitted on the main thread (submit_chunk defers it);
+##   listeners such as NavGrid and TaskManager still connect with
+##   CONNECT_DEFERRED:
 ##
 ##     WorldData.chunk_dirtied.connect(_on_chunk_dirtied, CONNECT_DEFERRED)
 
 const CHUNK_SIZE:   int = 16
-const WORLD_SIZE_X: int = 1024
-const WORLD_SIZE_Y: int = 128
-const WORLD_SIZE_Z: int = 1024
+const WorldSize = preload("res://scripts/systems/WorldSize.gd")
+## The world size: use these everywhere instead of typed numbers.
+const WORLD_SIZE_X: int = WorldSize.WORLD_SIZE_X
+const WORLD_SIZE_Y: int = WorldSize.WORLD_SIZE_Y
+const WORLD_SIZE_Z: int = WorldSize.WORLD_SIZE_Z
+## Highest block row; also the slice "off" value (SliceController.MAX_SLICE_Y).
+const MAX_Y: int = WorldSize.MAX_Y
 
 ## Emitted whenever a chunk's contents change and its mesh needs rebuilding.
 ## May fire from the generator thread — connect with CONNECT_DEFERRED.
@@ -39,7 +42,7 @@ signal block_changed(position: Vector3i, old_id: int, new_id: int)
 
 var _chunks: Dictionary = {}   # Vector3i(cx, cy, cz)  →  Chunk
 var _mutex:  Mutex
-var _edits: Dictionary = {} # Main-thread edits, reapplied to late streamed chunks.
+var _edits: Dictionary = {} # Main-thread edits, reapplied to chunks submitted later.
 var _edit_batch_depth := 0
 var _batched_dirty_chunks: Dictionary = {}
 
@@ -58,7 +61,6 @@ func submit_chunk(cx: int, cy: int, cz: int, chunk: Chunk) -> void:
 	_mutex.lock()
 	for cell: Vector3i in _edits.get(Vector3i(cx,cy,cz), {}):
 		chunk.blocks[Chunk.local_index(cell.x % 16,cell.y % 16,cell.z % 16)] = _edits[Vector3i(cx,cy,cz)][cell]
-		chunk.has_void = true
 	_chunks[Vector3i(cx, cy, cz)] = chunk
 	_mutex.unlock()
 	call_deferred("_deferred_emit_chunk_dirtied", cx, cy, cz)
@@ -146,7 +148,7 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 	var original := WorldGenerator.get_generated_block_id(wx,wy,wz)
 	_mutex.lock()
 	var chunk_key := _chunk_key(wx,wy,wz)
-	if WorldGenerator._maps_ready and id == original:
+	if WorldGenerator.is_maps_ready() and id == original:
 		if _edits.has(chunk_key):
 			_edits[chunk_key].erase(cell)
 			if _edits[chunk_key].is_empty(): _edits.erase(chunk_key)
@@ -155,14 +157,6 @@ func set_block(wx: int, wy: int, wz: int, id: int) -> void:
 		_edits[chunk_key][cell] = id
 	_mutex.unlock()
 	chunk.blocks[Chunk.local_index(wx % CHUNK_SIZE, wy % CHUNK_SIZE, wz % CHUNK_SIZE)] = id
-	# Keep the buried-chunk optimisation honest: has_void is baked at
-	# generation time and was never updated afterwards, so carving air into a
-	# previously all-solid chunk left it flagged void-free and eligible for
-	# mesh skipping (WorldRenderer._is_buried). Setting the flag on any air
-	# write keeps it conservative-correct; solid writes leave it alone (a
-	# stale true only costs a skipped optimisation, never a wrong skip).
-	if id == BlockRegistry.AIR_ID:
-		chunk.has_void = true
 	mark_chunk_dirty(wx / CHUNK_SIZE, wy / CHUNK_SIZE, wz / CHUNK_SIZE)
 	if old_id != id:
 		block_changed.emit(Vector3i(wx,wy,wz),old_id,id)
@@ -199,20 +193,6 @@ func chunk_exists(cx: int, cy: int, cz: int) -> bool:
 	var exists := _chunks.has(key)
 	_mutex.unlock()
 	return exists
-
-
-## Returns true if the chunk at (cx, cy, cz) contains any void block, OR does
-## not exist yet (a missing chunk is treated as pure air). Does NOT create a
-## chunk. Used by WorldRenderer to detect fully-buried interior chunks whose
-## six neighbours are all solid — those can be skipped entirely when meshing.
-func chunk_has_void(cx: int, cy: int, cz: int) -> bool:
-	var key := Vector3i(cx, cy, cz)
-	_mutex.lock()
-	var chunk: Chunk = _chunks.get(key, null)
-	_mutex.unlock()
-	if chunk == null:
-		return true
-	return chunk.has_void
 
 
 ## Main-thread invalidation: marks the chunk immediately and emits chunk_dirtied,
@@ -267,6 +247,31 @@ func has_terrain_override(cell: Vector3i) -> bool:
 
 func has_solid_override(cell: Vector3i) -> bool:
 	return BlockRegistry.is_solid(int(_edits.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{}).get(cell,0)))
+
+## THE removed-terrain record: generated terrain that is now air (mined, cleared or
+## deconstructed). Derived from the overrides, so saves and live edits agree.
+func is_removed_terrain(cell: Vector3i) -> bool:
+	var changes: Dictionary = _edits.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{})
+	return changes.has(cell) and not BlockRegistry.is_solid(int(changes[cell]))
+
+func removed_terrain_count() -> int:
+	var count := 0
+	for changes: Dictionary in _edits.values():
+		for id in changes.values():
+			if not BlockRegistry.is_solid(int(id)): count += 1
+	return count
+
+## THE visible-surface rule: a column's surface clamped to the slice plane, then
+## stepped down past cut cells. `cut` holds the caller's extra cut cells (plans,
+## cave reveals); `count_removed` also steps past removed terrain (main thread
+## only). Returns -1 when the column is empty or fully cut away.
+func visible_top_y(x: int, z: int, surface_y: int, slice_y: int, cut: Dictionary, count_removed := false) -> int:
+	if surface_y < 0:
+		return -1
+	var y := mini(surface_y, slice_y)
+	while y >= 0 and (cut.has(Vector3i(x, y, z)) or (count_removed and is_removed_terrain(Vector3i(x, y, z)))):
+		y -= 1
+	return y
 
 func terrain_overrides() -> Dictionary:
 	var result := {}

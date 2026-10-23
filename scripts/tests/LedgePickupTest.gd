@@ -33,8 +33,8 @@ func _run() -> void:
 		if worker._task_phase == worker.TaskPhase.HAUL_PICKUP:
 			saw_contact = true
 			_expect(worker.current_cell().y == 20, "worker reaches from room floor without climbing ledge")
-			if not worker._handling_lifted:
-				_expect(worker._handling_item.get_parent() == drops, "ore remains loose until contact")
+			if not worker._work_execution._handling_lifted:
+				_expect(worker._work_execution._handling_item.get_parent() == drops, "ore remains loose until contact")
 		if zone.stored_count() == 3: break
 		await process_frame
 	_expect(saw_contact and zone.stored_count() == 3 and _loose_units() == 0, "scheduler collects all three elevated copper chunks")

@@ -12,7 +12,7 @@ def main():
     out=ROOT/'tmp/voxel_migration_20261018/checkpoints'; out.mkdir(parents=True,exist_ok=True)
     target=out/(args.label+'.zip'); assert not target.exists(),'checkpoint already exists'
     rows=[]
-    candidates=[ROOT/'AGENT.md']
+    candidates=[ROOT/'CLAUDE.md']
     for folder in ('assets','data','docs','scenes','scripts','tools'):
         candidates.extend(p for p in (ROOT/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
     with zipfile.ZipFile(ROOT/'tmp/voxel_migration_20261018/recovery/workspace_before.zip') as before,zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=3) as archive:

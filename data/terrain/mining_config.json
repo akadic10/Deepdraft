@@ -1,6 +1,5 @@
 {
   "dig_tool": {
-    "xz_cell_size": 4,
     "y_cell_size": 4,
     "max_drag_length": 32
   },

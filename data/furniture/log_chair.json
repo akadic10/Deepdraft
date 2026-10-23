@@ -11,7 +11,6 @@
     "depth": 1,
     "width": 1
   },
-  "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
@@ -26,7 +25,6 @@
       ]
     }
   ],
-  "room_anchor": false,
   "seating_chair": {
     "face_nearby_fire": true,
     "rest_pose": {
@@ -128,7 +126,6 @@
     ]
   },
   "__comment": "One-tile stool: hands rest together in front, boots beside the stump, torso supported by its cut top. Occupants can face a nearby fire independently of stool yaw. Rounded head/hair and beard clearance permits gentle head turns; low body/hand regions clear the fire. Clearance coordinates are relative to the footprint corner, like collision regions.",
-  "layout_version": 2,
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {

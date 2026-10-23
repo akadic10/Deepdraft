@@ -144,9 +144,20 @@ func _record_surface_transfer(from: Vector3i, to: Vector3i, units: int) -> void:
 	surface_flux[to] = Vector2(surface_flux.get(to,Vector2.ZERO))+flux
 
 func step(delta: float, budget: int) -> int:
+	var count := begin_tick(budget)
+	run_cells(delta, count)
+	return count
+
+## A tick may run across several frames: begin_tick settles displaced water and
+## fixes how many queued cells this tick owns; run_cells then takes them from the
+## queue front in the same order step() would. Cells woken meanwhile wait behind.
+func begin_tick(budget: int) -> int:
 	_settle_displaced()
-	var count := mini(budget, _queue.size() - _head)
+	return mini(budget, _queue.size() - _head)
+
+func run_cells(delta: float, count: int) -> void:
 	for i in count:
+		if _head >= _queue.size(): break # a restore emptied the queue mid-tick
 		var key := _queue[_head]
 		_head += 1
 		_queued.erase(key)
@@ -183,7 +194,6 @@ func step(delta: float, budget: int) -> int:
 	if _head > 4096 or _head == _queue.size():
 		_queue = _queue.slice(_head)
 		_head = 0
-	return count
 
 func _level_wet_reach(key: Vector3i, dir: Vector2i) -> void:
 	var total := int(mass.get(key,0))

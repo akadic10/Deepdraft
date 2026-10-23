@@ -17,7 +17,7 @@ class PlantTests(unittest.TestCase):
             self.assertLessEqual(max(abs(v+.5) for p in vox.cells for v in (p[0],p[2])),24,path)
 
     def test_picking_removes_only_fruit_and_young_never_has_fruit(self):
-        profile=read_json('data/art/voxel_plants.json')
+        profile=read_json('tools/art_data/voxel_plants.json')
         for species,seasons in RIPE.items():
             for season in seasons:
                 ripe=shrub(profile,species,season)
@@ -29,7 +29,7 @@ class PlantTests(unittest.TestCase):
                                  shrub(profile,species,season,young=True,picked=True).cells)
 
     def test_packing_retains_exact_grid_shifted_plant(self):
-        profile=read_json('data/art/voxel_plants.json')
+        profile=read_json('tools/art_data/voxel_plants.json')
         for species in RIPE:
             for season in SEASONS:
                 plant=shrub(profile,species,season)
@@ -54,7 +54,7 @@ class PlantTests(unittest.TestCase):
                 self.assertEqual(lowest,0,path)
 
     def test_height_grid_and_repeatability_for_every_defined_variant(self):
-        profile=read_json('data/art/voxel_plants.json')
+        profile=read_json('tools/art_data/voxel_plants.json')
         a=list(assets()); b=list(assets())
         for (path,parts,meta),(other,copy,_) in zip(a,b):
             self.assertEqual(path,other)
@@ -68,7 +68,7 @@ class PlantTests(unittest.TestCase):
             self.assertLess(max(p[1] for p in vox.cells),height,path)
 
     def test_crop_attachment_and_seasonal_availability(self):
-        profile=read_json('data/art/voxel_plants.json')
+        profile=read_json('tools/art_data/voxel_plants.json')
         for species in RIPE:
             for season in SEASONS:
                 base,fruit=shrub_layers(profile,species,season)
@@ -77,7 +77,7 @@ class PlantTests(unittest.TestCase):
                 self.assertFalse(shrub_layers(profile,species,season,True)[1].cells)
 
     def test_flower_packs_and_dormancy_retain_variant_contracts(self):
-        profile=read_json('data/art/voxel_plants.json')
+        profile=read_json('tools/art_data/voxel_plants.json')
         for variant in range(3):
             for season in SEASONS:
                 plant=flowers(profile,variant,season); packed=pack(profile,plant,False)
@@ -89,7 +89,7 @@ class PlantTests(unittest.TestCase):
     def test_young_shrub_canopies_have_depth_below_the_clearance_limit(self):
         # A mature crown merely clipped at the one-block limit can leave a
         # one-cell lid on bare stems. Young forms need their own complete crown.
-        profile=read_json('data/art/voxel_plants.json')
+        profile=read_json('tools/art_data/voxel_plants.json')
         for species in ('blueberry','elderberry'):
             for season in ('spring','summer','autumn'):
                 plant=shrub(profile,species,season,young=True)

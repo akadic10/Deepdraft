@@ -1,0 +1,59 @@
+{
+  "_about": "Test selection for tools/run_job_reliability.ps1. 'gate' is the regression bar for gameplay changes; 'areas' are wildcard groups for focused runs.",
+  "gate": [
+    "JobLifecycleTest", "JobPlanningTest", "JobMixedWorldTest",
+    "FurnitureAssignmentTest", "FurniturePlacementAnimationTest", "FurnitureMoveTest", "HearthRoomTest", "SettlementFlagMoveTest", "WallMountHeightTest",
+    "LadderSchedulingTest", "LadderTest", "LadderMiningTest",
+    "CraftingSelectionTest", "WorkerCraftingTest", "WorkerCraftingWoodTest", "RudimentaryRecreationTest", "RecreationSoloTest",
+    "HaulingSelectionTest", "HaulingAnimationTest", "HaulingCapacityTest", "FruitHaulingTest", "SurfaceWorkSelectionTest",
+    "TreeFellingTest", "AppleHarvestTest", "JuniperHarvestTest", "MinerProfessionTest", "MiningHiddenAirTest", "MiningDragLimitTest", "PlacementHaulPriorityTest",
+    "ShrubMoveHandoffTest", "DwarfSupportTest", "DwarfIdleBehaviorTest", "DwarfIdlePlanningTest", "DwarfFoodTest", "DwarfDiningTest", "ShrubRegrowthTest",
+    "BridgeCornerWalkingTest", "NavigationRegressionTest", "ConstructionTest", "ConstructionStagingTest", "ConstructionContinuityTest", "ConstructionDevTest", "ConstructionInputTest", "FloorConstructionTest", "SaveManagerRoundTripTest",
+    "LadderReleaseTest", "DevInstantBuildTest", "PackedAppealTest", "DataEncodingTest", "WorldGenerationFailureTest", "DevToolsSwitchTest", "ContentRegistryTest",
+    "WorkSourceTableTest", "TerrainPickingTest", "JsonDataTest"
+  ],
+  "areas": {
+    "jobs": ["Job*", "FurnitureAssignmentTest", "PlacementHaulPriorityTest", "WorkSourceTableTest"],
+    "hauling": ["Hauling*", "FruitHaulingTest", "LedgePickupTest", "LooseItemSupportTest", "PlacementHaulPriorityTest", "ProduceCrateTest"],
+    "mining": ["Mining*", "TerrainPickingTest", "MinerProfessionTest", "LadderMiningTest", "TerrainEditBatchTest", "FinalTerrainStateTest", "GemDropArtTest"],
+    "navigation": ["Ladder*", "NavigationRegressionTest", "BridgeCornerWalkingTest", "AnimalNavigationCacheTest", "DwarfSupportTest"],
+    "construction": ["Construction*", "FloorConstructionTest", "LogBridgeTest", "BridgePlacementInputTest", "GridFenceTest", "DryStoneTest", "WallMountHeightTest", "TimberBatchTest"],
+    "furniture": ["Furniture*", "DevInstantBuildTest", "PackedAppealTest", "LogDiningTableTest", "LogFurnitureTest", "LogStoolTest", "SettlementFlagMoveTest", "CampfirePlacementTest", "MiningFurnitureAccessTest"],
+    "rooms": ["Bed*", "HearthRoomTest", "RoomRebuildSchedulingTest", "ZoneWindowTest"],
+    "crafting": ["Craft*", "WorkerCrafting*", "ProfessionCraftingTest", "ToolPromotionTest", "EquipmentFeedbackTest"],
+    "dwarves": ["Dwarf*", "RudimentaryRecreationTest", "RecreationSoloTest"],
+    "flora": ["Tree*", "Shrub*", "JuniperHarvestTest", "AppleHarvestTest", "FlowerPilotTest", "ReedPilotTest", "BoulderPilotTest", "PlantHabitatTransplantTest", "SurfaceWorkSelectionTest", "SurfaceVegetationArtTest", "SeasonalRefreshTest", "SurfaceDetailLayoutTest"],
+    "wildlife": ["Deer*", "Duck*", "Rabbit*", "Wolf*", "HerdArrivalTest", "Arrival*", "AnimalNavigationCacheTest", "WildlifeArtTest"],
+    "water": ["Water*", "Moisture*", "SpringCaveTest", "DockPersistenceLifecycleTest"],
+    "world": ["World*", "TerrainPickingTest", "CaveGenerationTest", "ResourceProgressionTest", "TerrainEditBatchTest", "FinalTerrainStateTest", "VoxelPresentationTest", "EnvironmentDetailsTest", "SurfaceDetailLayoutTest"],
+    "saves": ["SaveManagerRoundTripTest", "ContentRegistryTest", "StartupSaveTest", "WeatherPersistenceTest", "DockPersistenceLifecycleTest", "SkySceneLifecycleTest", "WorldTerrainStartupTest"],
+    "storage": ["StorageFilterTest", "ItemPermissionTest", "ProduceCrateTest", "ColonyInventoryTest"],
+    "ui": ["CraftingBrowserTest", "ColonyInventoryTest", "DwarfInspectorTest", "DwarfRosterTest", "ObjectExplorerTest", "RemainingMenusTest", "TimeSliceHUDTest", "StorageFilterTest", "ItemPermissionTest", "ZoneWindowTest", "OverviewSnapshotTest", "WorldLoadingScreenTest", "SkyDialTest", "DevToolsSwitchTest"],
+    "audio": ["*Audio*"],
+    "sky": ["Sky*", "DioramaSkyTest", "LightingBufferDisposalTest", "WeatherPersistenceTest"],
+    "art": ["*ArtTest", "VoxelPresentationTest"]
+  },
+  "timeouts": {
+    "SaveManagerRoundTripTest": 360,
+    "StartupSaveTest": 300,
+    "WorldResourceDiagnosticsTest": 300
+  },
+  "expected_errors": {
+    "WorldGenerationFailureTest": ["WorldGenerator: generation failed: test layout failure"],
+    "JsonDataTest": ["JSON data: missing file user://json_data_test/", "JSON data: parse error in user://json_data_test/", "JSON data: user://json_data_test/"]
+  },
+  "phases": {
+    "StartupSaveTest": [["--prepare"], []]
+  },
+  "profile_roots": {
+    "world_layout_review": ["CaveGenerationTest", "WorldGenerationTest", "WorldLayoutTest", "WorldResourceBalanceTest", "WorldResourceDiagnosticsTest"],
+    "storage_filter_review": ["StorageFilterTest"],
+    "zone_window_review": ["ZoneWindowTest"]
+  },
+  "shared_output": {
+    "bedroom_20261011": ["BedroomTest", "DwarfReadabilityTest"],
+    "water_review": ["WaterAudioTest", "WaterStoneLifecycleTest", "WorldTerrainStartupTest"],
+    "worker_crafting_review": ["WorkerCraftingTest", "WorkerCraftingWoodTest", "WorkerCraftingStumpTest", "WorkerCraftingAudioTest"],
+    "world_layout_review": ["CaveGenerationTest", "WorldGenerationTest", "WorldLayoutTest", "WorldResourceBalanceTest", "WorldResourceDiagnosticsTest"]
+  }
+}

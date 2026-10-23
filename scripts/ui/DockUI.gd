@@ -1,7 +1,6 @@
 class_name DockUI
 extends CanvasLayer
 
-signal dock_action_invoked(action: String, target: String)
 signal tool_requested(tool_id: String)
 ## Persistence backend hooks. The dock owns presentation only; SaveManager
 ## connects to these signals and owns all file/state work.
@@ -62,33 +61,22 @@ var _craft_window: UIWindow
 var _mining_controller: Node = null
 var _construction_controller: Node = null
 var _room_controller: Node = null
-var _chop_controller: Node = null
 var _orders: Control
 var _toast_layer: CanvasLayer = null
 var _persistence_toast: PanelContainer = null
 var _persistence_toast_label: Label = null
 var _persistence_toast_until_msec: int = 0
 
-## Legacy build-label bindings for older callers/art fixtures. The live Place
-## catalog uses namespaced keys and UIRegistry.get_place_catalog() (doc 54).
-const FURNITURE_PANEL_ITEMS: Dictionary = {
-	"📥 Log Bench": "base:furniture:bench",
-	"📥 Hearth": "base:furniture:hearth",
-	"📥 Log Door (2 wide)": "base:furniture:door",
-}
-
 ## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
 ## Other manager windows (e.g. "dwarves") are registered by their own systems.
 const DOCK_WINDOW_EMOJI: Dictionary = {
-	"labor": "👷",
-	"stockpiles": "🗃️",
 	"trade": "💰",
 }
 
 var _clock_refresh_accum: float = 0.0
 
 func _ready() -> void:
-	add_to_group("command_dock")
+	add_to_group("command_dock") # test discovery only; game nodes use dock_ui_path exports
 	layer = 20
 	_ui_registry = get_node_or_null("/root/UIRegistry")
 	if _ui_registry == null:
@@ -185,7 +173,7 @@ func show_persistence_status(message: String, is_error: bool = false) -> void:
 
 
 func _on_caves_discovered(_cells: Array[Vector3i]) -> void:
-	if SaveManager._loading: return
+	if SaveManager.is_loading(): return
 	show_persistence_status("Cavern discovered. Bring light to explore it.")
 
 
@@ -363,8 +351,8 @@ func _layout_action_panel() -> void:
 		return
 	# Leave the default inspector column clear on a normal desktop viewport.
 	var available := viewport_size.x - 48 - (400 if viewport_size.x >= 900 else 0)
-	var width := minf(820 if _active_panel_target == "build" else 460, available)
-	_panel_body.columns = (4 if width >= 780 else (3 if width >= 600 else 2)) if _active_panel_target == "build" else 2
+	var width := minf(460, available)
+	_panel_body.columns = 2
 	if _active_panel_target == "craft":
 		# A row of professions on desktop, balanced rows on compact screens.
 		var count := maxi(1,_panel_body.get_child_count())
@@ -556,14 +544,6 @@ func _update_navigation_status() -> void:
 	_slice_button.button_pressed = _target_canvas_visible("slice")
 
 func _dispatch(action: String, target: String) -> void:
-	if action == "open_panel" and target == "mine":
-		_panel_container.visible = false
-		_active_panel_target = ""
-		tool_requested.emit("mine_precision")
-		dock_action_invoked.emit(action, target)
-		_refresh_active_buttons()
-		return
-
 	match action:
 		"open_panel":
 			_open_action_panel(target)
@@ -573,7 +553,6 @@ func _dispatch(action: String, target: String) -> void:
 			open_crafting("",target)
 		_:
 			push_warning("DockUI: unknown dock action '%s' for target '%s'." % [action, target])
-	dock_action_invoked.emit(action, target)
 	_refresh_active_buttons()
 
 
@@ -596,7 +575,7 @@ func _open_action_panel(target: String) -> void:
 		return
 	if _orders != null and not _orders.active_tool_id().is_empty(): _request_order_tool("")
 	if _orders != null: _orders.set_open(false)
-	if target in ["place", "build"]:
+	if target == "place":
 		_open_place_catalog()
 		return
 	if _place_window != null: _window_manager.close("place")
@@ -619,60 +598,25 @@ func _open_action_panel(target: String) -> void:
 	_clear_children(_panel_body)
 	_panel_scroll.scroll_vertical = 0
 	for entry: Dictionary in menu.get("items", []):
-		if illustrated:
-			var icon_button := preload("res://scripts/ui/DockIconButton.gd").new()
-			var presentation := entry.duplicate()
-			if String(entry.action) == "open_crafting":
-				var section: Dictionary = _craft_panel.controller.sections.get(String(entry.target), {}) if _craft_panel != null else {}
-				presentation.planned = bool(section.get("planned", false))
-				presentation.status_label = "Catalog preview" if presentation.planned else ""
-				icon_button.disabled = _craft_panel == null or section.is_empty()
-			icon_button.setup(presentation, UIRegistry.get_dock_icon(entry))
-			icon_button.name = String(entry.id).to_pascal_case()
-			if String(entry.action) == "open_crafting":
-				icon_button.name = "Crafter" + String(entry.target).to_pascal_case()
-			icon_button.custom_minimum_size = Vector2(64, 64)
-			icon_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			icon_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			icon_button.pressed.connect(_dispatch_menu_entry.bind(entry))
-			_panel_body.add_child(icon_button)
-			continue
-		var button := UITheme.make_button(String(entry.label),
-			String(entry.get("tooltip", entry.label)), Vector2(128,46),
-			"dev" if String(entry.label).begins_with("DEV") else "")
-		button.add_theme_font_size_override("font_size", 14)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.disabled = bool(entry.get("disabled", false))
-		if String(entry.action)=="open_crafting":
-			_style_crafter_button(button,entry)
-		button.pressed.connect(_dispatch_menu_entry.bind(entry))
-		_panel_body.add_child(button)
-	if _panel_body.get_child_count() == 0:
-		for label in _panel_actions(target):
-			_panel_body.add_child(_make_panel_action_button(label, target))
+		var icon_button := preload("res://scripts/ui/DockIconButton.gd").new()
+		var presentation := entry.duplicate()
+		if String(entry.action) == "open_crafting":
+			var section: Dictionary = _craft_panel.controller.sections.get(String(entry.target), {}) if _craft_panel != null else {}
+			presentation.planned = bool(section.get("planned", false))
+			presentation.status_label = "Catalog preview" if presentation.planned else ""
+			icon_button.disabled = _craft_panel == null or section.is_empty()
+		icon_button.setup(presentation, UIRegistry.get_dock_icon(entry))
+		icon_button.name = String(entry.id).to_pascal_case()
+		if String(entry.action) == "open_crafting":
+			icon_button.name = "Crafter" + String(entry.target).to_pascal_case()
+		icon_button.custom_minimum_size = Vector2(64, 64)
+		icon_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon_button.pressed.connect(_dispatch_menu_entry.bind(entry))
+		_panel_body.add_child(icon_button)
 	_panel_container.visible = true
 	call_deferred("_layout_action_panel")
 	_refresh_active_buttons()
-
-
-func _style_crafter_button(button: Button, entry: Dictionary) -> void:
-	button.name = "Crafter"+String(entry.target).to_pascal_case()
-	button.custom_minimum_size = Vector2(104,82)
-	button.add_theme_font_size_override("font_size",12)
-	button.icon = load(String(entry.icon)) as Texture2D
-	button.expand_icon = true
-	button.add_theme_constant_override("icon_max_width",28)
-	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	button.toggle_mode = true
-	var section: Dictionary = _craft_panel.controller.sections.get(String(entry.target),{}) if _craft_panel != null else {}
-	var planned := bool(section.get("planned",false))
-	button.text += "\n"+("Preview" if section.has("status_label") else "Planned") if planned else "\nWorker crafts"
-	button.add_theme_color_override("icon_normal_color",UITheme.HEARTH_MUTED if planned else UITheme.HEARTH_COPPER)
-	button.add_theme_color_override("icon_hover_color",UITheme.HEARTH_COPPER)
-	button.set_pressed_no_signal(_craft_panel != null and _craft_panel.section_id==String(entry.target))
-	# Planned professions remain clickable so their own preview menu is browsable.
-	button.disabled = _craft_panel == null or section.is_empty()
 
 
 func _dispatch_menu_entry(entry: Dictionary) -> void:
@@ -682,12 +626,11 @@ func _dispatch_menu_entry(entry: Dictionary) -> void:
 		_dispatch(action, target)
 	elif action == "panel_action":
 		if not _dispatch_command(String(entry.id)):
-			_dispatch_panel_action(target, String(entry.label))
+			push_warning("DockUI: unknown panel command '%s'." % String(entry.id))
 	else:
 		_close_action_panel()
 		if action == "activate_tool":
 			tool_requested.emit(target)
-			dock_action_invoked.emit(action, target)
 		else:
 			_dispatch(action, target)
 
@@ -716,104 +659,9 @@ func _dispatch_command(id: String) -> bool:
 			if events != null:
 				show_persistence_status(events.dev_status())
 				_persistence_toast_until_msec = Time.get_ticks_msec() + 6000
-		"hearthblock_lighting_development":
-			# A/B review of the lighting pass; the choice lasts until the game closes.
-			SkyController.set_hearthblock_lighting(not SkyController.is_hearthblock_enabled())
-			show_persistence_status("Hearthblock lighting " + ("on" if SkyController.is_hearthblock_enabled() else "off"))
-			_persistence_toast_until_msec = Time.get_ticks_msec() + 4000
 		_:
 			return false
 	return true
-
-func _make_panel_action_button(label: String, target: String) -> Button:
-	var button := Button.new()
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size = Vector2(128.0, 46.0)
-	button.focus_mode = Control.FOCUS_NONE
-	button.text = label
-	button.tooltip_text = label
-	if label.begins_with("DEV"):
-		UITheme.apply_button_variant(button, "dev")
-	if target in ["farm", "military"] or (target == "chop" and label in ["Forestry Zone", "Clear Stumps"]):
-		button.disabled = true
-		button.tooltip_text = "Coming later"
-	button.add_theme_font_size_override("font_size", 14)
-	button.pressed.connect(func() -> void:
-		_dispatch_panel_action(target, label)
-	)
-	return button
-
-
-func _dispatch_panel_action(target: String, label: String) -> void:
-	if target == "world_events" and label == "DEV: Arrival status":
-		var events := get_tree().get_first_node_in_group("world_events")
-		if events != null:
-			show_persistence_status(events.dev_status())
-			_persistence_toast_until_msec = Time.get_ticks_msec()+6000
-		return
-	if target == "chop":
-		if label == "Chop Trees":
-			_panel_container.visible = false
-			_active_panel_target = ""
-			tool_requested.emit("chop")
-			_refresh_active_buttons()
-		elif label == "Cancel":
-			if _chop_controller != null:
-				_chop_controller.call("deactivate")
-			_panel_container.visible = false
-			_active_panel_target = ""
-			_refresh_active_buttons()
-		return
-	if target == "save_load":
-		match label:
-			"💾 Save Game":
-				_dispatch_command("save_game")
-			"📂 Load Game":
-				_dispatch_command("load_game")
-			"🕒 Load Autosave":
-				_dispatch_command("load_autosave")
-		return
-	if target == "mine" and label == "Mine Block":
-		_panel_container.visible = false
-		_active_panel_target = ""
-		tool_requested.emit("mine_precision")
-		_refresh_active_buttons()
-		return
-	if target == "storage_zone" and label == "Draw Zone":
-		_panel_container.visible = false
-		_active_panel_target = ""
-		tool_requested.emit("storage_zone")
-		_refresh_active_buttons()
-		return
-	if target == "build" and FURNITURE_PANEL_ITEMS.has(label):
-		_panel_container.visible = false
-		_active_panel_target = ""
-		# Announce first so every other click-tool deactivates (2026-07-06
-		# contract), then arm the furniture tool with the chosen def.
-		tool_requested.emit("furniture")
-		if _furniture_controller != null and _furniture_controller.has_method("activate_for"):
-			_furniture_controller.call("activate_for", String(FURNITURE_PANEL_ITEMS[label]))
-		else:
-			push_warning("DockUI: no FurniturePlacementController registered.")
-		_refresh_active_buttons()
-		return
-	if target == "storage_zone" and label == "DEV: Spawn Drops":
-		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_drops"):
-			_stockpile_controller.call("dev_spawn_drops")
-		return
-	if target == "storage_zone" and label == "DEV: Spawn Bushes":
-		_dispatch_command("spawn_bushes")
-		return
-	if target == "storage_zone" and label == "DEV: Spawn Furniture":
-		if _stockpile_controller != null and _stockpile_controller.has_method("dev_spawn_furniture"):
-			_stockpile_controller.call("dev_spawn_furniture")
-		else:
-			push_warning("DockUI: no StockpileDesignationController registered.")
-		return
-	if label == "Cancel":
-		_panel_container.visible = false
-		_active_panel_target = ""
-		_refresh_active_buttons()
 
 
 ## Window toggles route through UIWindowManager (doc 24). The remaining
@@ -907,8 +755,9 @@ func _register_dock_windows() -> void:
 	var audio_window := _window_manager.register_window("audio", "Audio", "", audio_panel,
 		{"persistent": false, "default_pos": Vector2(32, 130)})
 	audio_window.keep_body_on_screen = true
-	_window_manager.register_window("time_weather_dev", "Time & weather tools", "",
-		_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130)})
+	if UIRegistry.dev_tools_enabled:
+		_window_manager.register_window("time_weather_dev", "Time & weather tools", "",
+			_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130)})
 
 	_inventory_panel = preload("res://scripts/ui/ColonyInventoryPanel.gd").new()
 	_inventory_window = _window_manager.register_window("inventory", "Colony Inventory", "", _inventory_panel,
@@ -1044,24 +893,8 @@ func _toggle_block_inspector_overlay() -> void:
 
 func _target_canvas_visible(target: String) -> bool:
 	match target:
-		# Chop's axe opens a menu. Its highlight follows that menu; the tool's
-		# on-screen hint communicates ongoing tree selection after the menu closes.
-		"chop":
-			return false
-		"world_info":
-			return _world_info_overlay != null and _world_info_overlay.visible
-		"block_inspector":
-			return _block_inspector_overlay != null and _block_inspector_overlay.visible
 		"slice":
 			return _slice_controller != null and bool(_slice_controller.call("is_active"))
-		"storage_zone":
-			return _stockpile_controller != null and bool(_stockpile_controller.call("is_active"))
-		"flag":
-			return _flag_controller != null and _flag_controller.has_method("is_active") \
-				and bool(_flag_controller.call("is_active"))
-		"mine":
-			return _mining_controller != null and _mining_controller.has_method("is_active") \
-				and bool(_mining_controller.call("is_active"))
 		"construction":
 			return _construction_controller != null and _construction_controller.is_active()
 		"rooms":
@@ -1143,7 +976,7 @@ func register_crafting_controller(controller: Node) -> void:
 		_window_manager.close("craft")
 		_window_manager.open("place")
 		_place_catalog.show_all = true
-		_place_catalog._all_toggle.set_pressed_no_signal(true)
+		_place_catalog.set_all_toggle(true)
 		_place_catalog.category = "all"
 		_place_catalog.selected_key = key
 		_start_catalog_placement(key))
@@ -1199,7 +1032,7 @@ func _open_inventory() -> void:
 func _locate_inventory_item(key: String, storage_only: bool) -> void:
 	# Resolve current owners at click time: hauling and removal can invalidate
 	# yesterday's location without changing the selected inventory tile.
-	var items := get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	var items := ItemDropManager.find(get_tree())
 	if items == null: return
 	var locations := StockpileManager.get_item_locations(key)
 	if not storage_only:
@@ -1212,14 +1045,12 @@ func _locate_inventory_item(key: String, storage_only: bool) -> void:
 	var rig: Node = get_viewport().get_camera_3d()
 	while rig != null and not rig.has_method("locate_position"): rig = rig.get_parent()
 	for location: Dictionary in locations:
-		if float(location.position.y) > items._slice_y + 1.0: continue
+		if float(location.position.y) > items.get_slice_y() + 1.0: continue
 		if location.has("node") and not location.node.is_visible_in_tree(): continue
 		var inspected := false
 		if storage_only:
 			if location.kind == "stockpile" and _stockpile_controller != null:
 				inspected = _stockpile_controller.inspect_storage(location.owner)
-			elif location.kind == "container" and _furniture_controller != null:
-				inspected = _furniture_controller.inspect_storage(location.owner)
 			if not inspected: continue
 		if rig == null and not inspected: continue
 		if rig != null: rig.locate_position(location.position)
@@ -1234,7 +1065,6 @@ func register_mining_controller(controller: Node) -> void:
 	_mining_controller = controller
 	_connect_tool_active(controller)
 	if _orders != null: _orders.bind_controller("mine_precision", controller)
-	if _chop_controller != null: _chop_controller.set_mining_controller(controller)
 
 
 func register_construction_controller(controller: Node) -> void:
@@ -1250,10 +1080,10 @@ func register_room_controller(controller: Node) -> void:
 	_connect_tool_active(controller)
 
 
+## Push-registration from TreeFellingController — binds the shared surface
+## orders (chop, clear, harvest, cancel) to the Orders shelf.
 func register_chop_controller(controller: Node) -> void:
-	_chop_controller = controller
 	_connect_tool_active(controller)
-	controller.set_mining_controller(_mining_controller)
 	if _orders != null:
 		_orders.bind_controller("chop", controller)
 		_orders.bind_controller("clear_stones", controller)
@@ -1326,50 +1156,12 @@ func _set_block_inspector_overlay(overlay: CanvasLayer) -> void:
 func _target_title(target: String) -> String:
 	var menu: Dictionary = UIRegistry.get_menu(target)
 	if not menu.is_empty(): return String(menu.title)
-	match target:
-		"mine": return "Mine"
-		"chop": return "Chop"
-		"build": return "Build"
-		"storage_zone": return "Storage Zone"
-		"farm": return "Farm"
-		"military": return "Military"
-		"labor": return "Labor"
-		"stockpiles": return "Stockpiles"
-		"trade": return "Trade"
-		"save_load": return "Save / Load"
-		"world_info": return "World Info"
-		"block_inspector": return "Block Inspector"
 	return target.capitalize()
 
 
-func _panel_actions(target: String) -> Array[String]:
-	match target:
-		"mine":
-			return ["Mine Block", "Channel", "Clear Rubble", "Cancel"]
-		"chop":
-			return ["Chop Trees", "Forestry Zone", "Clear Stumps", "Cancel"]
-		"build":
-			var actions: Array[String] = []
-			actions.assign(FURNITURE_PANEL_ITEMS.keys())
-			actions.append("Cancel")
-			return actions
-		"storage_zone":
-			return ["Draw Zone", "DEV: Spawn Drops", "DEV: Spawn Furniture", "DEV: Spawn Bushes", "Cancel"]
-		"farm":
-			return ["Cave Plot", "Surface Plot", "Plant Crop", "Harvest"]
-		"military":
-			return ["Patrol Route", "Guard Post", "Armory", "Enlist"]
-		"save_load":
-			return ["💾 Save Game", "📂 Load Game", "🕒 Load Autosave"]
-	return []
-
-
-## Placeholder row content for the not-yet-built systems (doc 24: kept until
-## Labor/Stockpiles/Trade land for real).
+## Placeholder row content for the not-yet-built Trade window (doc 24).
 func _window_rows(target: String) -> Array[String]:
 	match target:
-		"stockpiles":
-			return ["Stone       0", "Ore         0", "Food        0", "Drink       0", "Trade Goods 0"]
 		"trade":
 			return ["Trade preview", "Exchange colony goods with visiting merchants in a future update."]
 	return []

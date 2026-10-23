@@ -34,6 +34,8 @@ class Highlight extends Control:
 
 
 func _ready() -> void:
+	set_process(false)
+	if not UIRegistry.dev_tools_enabled: return
 	_renderer = get_node(renderer_path)
 	_camera = get_node(camera_path)
 	_slice = get_node(slice_path)
@@ -71,7 +73,6 @@ func _ready() -> void:
 	_manager.register_window("caves_dev", "DEV · Cave explorer", "", body,
 		{"persistent": false, "default_pos": Vector2(18, 90), "min_size": Vector2(420, 0)})
 	_manager.window_state_changed.connect(_on_window_state)
-	set_process(false)
 
 
 func _button(parent: Node, text: String, action: Callable) -> void:
@@ -138,7 +139,7 @@ func _refresh_preview() -> void:
 
 func _update_info() -> void:
 	if _catalog.is_empty():
-		_info.text = "Caves are being generated…" if not WorldGenerator._maps_ready else "No caves in this world."
+		_info.text = "Caves are being generated…" if not WorldGenerator.is_maps_ready() else "No caves in this world."
 		return
 	var cave: Dictionary = _catalog[_selector.selected]
 	_info.text = "%d caves · selected cave %d\n%s\nFloor: %d blocks · air: %d blocks\nExposed ore/gem blocks: %d · cave soil: %d\n%s" % [
@@ -148,7 +149,7 @@ func _update_info() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _catalog.is_empty() and WorldGenerator._maps_ready: _refresh_catalog()
+	if _catalog.is_empty() and WorldGenerator.is_maps_ready(): _refresh_catalog()
 	_update_info()
 	_canvas.segments.clear()
 	_canvas.selected.clear()
@@ -161,10 +162,11 @@ func _process(_delta: float) -> void:
 			var lines := PackedVector2Array()
 			var floor_y := float(cave["floor_y"]) + 1.03
 			for index: int in cave["columns"]:
-				var x := index >> 10
-				var z := index % 1024
-				for edge in [[-1024, Vector3(x, floor_y, z), Vector3(x, floor_y, z + 1)],
-					[1024, Vector3(x + 1, floor_y, z), Vector3(x + 1, floor_y, z + 1)],
+				@warning_ignore("integer_division")
+				var x := index / WorldData.WORLD_SIZE_Z
+				var z := index % WorldData.WORLD_SIZE_Z
+				for edge in [[-WorldData.WORLD_SIZE_Z, Vector3(x, floor_y, z), Vector3(x, floor_y, z + 1)],
+					[WorldData.WORLD_SIZE_Z, Vector3(x + 1, floor_y, z), Vector3(x + 1, floor_y, z + 1)],
 					[-1, Vector3(x, floor_y, z), Vector3(x + 1, floor_y, z)],
 					[1, Vector3(x, floor_y, z + 1), Vector3(x + 1, floor_y, z + 1)]]:
 					if columns.has(index + int(edge[0])): continue

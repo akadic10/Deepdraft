@@ -21,7 +21,6 @@
       "seedling": {
         "clearance_height": 1,
         "growth_duration_days": 4,
-        "next_stage": "climbing",
         "models": {
           "summer": "res://assets/models/flora/crops/hops/hops_seedling.glb"
         },
@@ -33,7 +32,6 @@
       "climbing": {
         "clearance_height": 2,
         "growth_duration_days": 7,
-        "next_stage": "mature",
         "models": {
           "summer": "res://assets/models/flora/crops/hops/hops_climbing.glb"
         },
@@ -45,7 +43,6 @@
       "mature": {
         "clearance_height": 3,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "summer": "res://assets/models/flora/crops/hops/hops_mature.glb",
           "autumn": "res://assets/models/flora/crops/hops/hops_mature_autumn.glb"
@@ -54,8 +51,7 @@
           "yields": [
             { "item": "base:resources:flora:hops",         "count": 5, "chance": 1.00 },
             { "item": "base:resources:seed:hops_cutting",  "count": 2, "chance": 0.60 }
-          ],
-          "post_harvest": "fallow"
+          ]
         }
       }
 

@@ -124,7 +124,7 @@ func refresh_xray() -> void:
 	reference_toggle.disabled = not active
 	reference_pin.disabled = not active
 	reference_toggle.set_pressed_no_signal(_xray.show_reference)
-	var height := int(_slice.get_slice_y()) if is_instance_valid(_slice) else 127
+	var height := int(_slice.get_slice_y()) if is_instance_valid(_slice) else SliceController.MAX_SLICE_Y
 	reference_readout.text = ("Work level %d" % height if _xray.working else "View level %d" % height)+("\nReference %d" % _xray.reference_y if active else "\nX-ray off")
 
 
@@ -170,7 +170,7 @@ func _active_changed(_active: bool) -> void:
 
 func refresh_slice() -> void:
 	var active := is_instance_valid(_slice) and bool(_slice.is_active())
-	var height := int(_slice.get_slice_y()) if active else 127
+	var height := int(_slice.get_slice_y()) if active else SliceController.MAX_SLICE_Y
 	slice_button.set_pressed_no_signal(active)
 	slice_button.disabled = not is_instance_valid(_slice)
 	level_label.visible = active

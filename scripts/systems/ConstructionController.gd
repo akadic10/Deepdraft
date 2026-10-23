@@ -17,7 +17,7 @@ var mining: Node
 var furniture: Node
 var renderer: Node
 var dock: Node
-var drops: Node
+var drops: ItemDropManager
 var _sources: Dictionary = {}
 var _dirty := true
 var _active := false
@@ -46,7 +46,7 @@ func _ready() -> void:
 	if not furniture_path.is_empty(): furniture = get_node(furniture_path)
 	if not renderer_path.is_empty(): renderer = get_node(renderer_path)
 	if not dock_path.is_empty(): dock = get_node(dock_path)
-	drops = get_tree().get_first_node_in_group("item_drop_manager")
+	drops = ItemDropManager.find(get_tree())
 	if dock != null:
 		dock.tool_requested.connect(_on_tool_requested)
 		dock.register_construction_controller(self)
@@ -100,7 +100,7 @@ func _process(delta: float) -> void:
 		_preview_elapsed += delta
 		if _preview_elapsed >= .1: _update_preview()
 		if _is_floor(_kind):
-			_hint.text = "%s · %s required (planned)\nMine one layer, then click or drag its cleared floor\nClick a blue plan for DEV Build · Esc: done\n%s" % [_tool_definition().display_name,_tool_definition().profession,_feedback]
+			_hint.text = "%s · %s required (planned)\nMine one layer, then click or drag its cleared floor\n%sEsc: done\n%s" % [_tool_definition().display_name,_tool_definition().profession,"Click a blue plan for DEV Build · " if UIRegistry.dev_tools_enabled else "",_feedback]
 		else:
 			_hint.text = "Stone block · 1 rough stone each · Height %d\nClick or drag to build · Alt + wheel: height\nCtrl + click: cancel area · Esc: done\n%s" % [_height,_feedback]
 
@@ -152,7 +152,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if _dragging:
 					_update_preview(event.position)
 					var id := create_order(_preview_cells,-1,false,_kind)
-					_feedback = ("Planned %d floor tiles · click a blue plan for DEV Build" % orders[id].cells.size() if _is_floor(_kind) else "Queued %d blocks · %d rough stone" % [orders[id].cells.size(),orders[id].cells.size()]) if id >= 0 else "No clear cells to build"
+					_feedback = ("Planned %d floor tiles%s" % [orders[id].cells.size()," · click a blue plan for DEV Build" if UIRegistry.dev_tools_enabled else ""] if _is_floor(_kind) else "Queued %d blocks · %d rough stone" % [orders[id].cells.size(),orders[id].cells.size()]) if id >= 0 else "No clear cells to build"
 				_dragging = false
 			get_viewport().set_input_as_handled()
 
@@ -169,7 +169,7 @@ func _update_preview(mouse := Vector2(-1,-1)) -> void:
 	if mouse.x < 0: mouse = get_viewport().get_mouse_position()
 	var camera := get_viewport().get_camera_3d()
 	if camera == null: return
-	var hit: Dictionary = furniture._surface_cell_for(mouse)
+	var hit: Dictionary = furniture.surface_cell_for(mouse)
 	_hover = target_from_hit(hit)
 	if not hit.is_empty():
 		_hover_plane_y = camera.project_ray_origin(mouse).y+camera.project_ray_normal(mouse).y*float(hit.distance)
@@ -191,7 +191,7 @@ func _update_preview(mouse := Vector2(-1,-1)) -> void:
 				var invalid := build_reason(cell,true,false,_kind)
 				if invalid.is_empty(): _preview_cells.append(cell)
 				else: reason = invalid
-	_preview.mesh = mining._build_fill_mesh(_preview_cells,Color.WHITE,.005) if not _preview_cells.is_empty() else null
+	_preview.mesh = mining.build_fill_mesh(_preview_cells,Color.WHITE,.005) if not _preview_cells.is_empty() else null
 	_feedback = ("%d floor tiles · worker construction unavailable" % _preview_cells.size() if _is_floor(_kind) else "%d blocks · %d rough stone" % [_preview_cells.size(),_preview_cells.size()]) if not _preview_cells.is_empty() else (reason if not reason.is_empty() else "Raise the slice to build above this face")
 
 func _cancel_at(screen: Vector2) -> void:
@@ -255,21 +255,21 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		return {"title":order.def.display_name,"kind":"Floor construction plan",
 			"rows":[["Status","Requires %s" % order.def.profession],["Tiles left",str(order.cells.size())],
 				["Worker construction","Not yet available"],["Room appeal","+%.0f when fully floored" % float(RoomManager.appeal_config.complete_floor_bonus)]],
-			"details":"Mine one layer deeper, then fill the cleared space. DEV Build instantly builds clear, supported tiles without materials. These preview floors yield no items when mined.\n"+String(_dev_feedback.get(object_id,"")),
+			"details":"Mine one layer deeper, then fill the cleared space. These preview floors yield no items when mined."+_dev_details(object_id,"DEV Build instantly builds clear, supported tiles without materials."),
 			"actions":[{"id":"dev_build","text":"DEV Build","variant":"dev"},{"id":"cancel","text":"Cancel construction","variant":"danger"}]}
-	var task := TaskManager.get_task(order._lease_id)
-	var worker: DwarfAgent = TaskManager._agents.get(order.builder_id)
+	var task := TaskManager.get_task(order.lease_id())
+	var worker: DwarfAgent = TaskManager.get_agent(order.builder_id)
 	var materials = order.materials
 	var status := "Waiting for stone"
 	var details := "Deliver all materials to the temporary crate, then hammer each block. Cancelling returns unused stone; completed blocks remain."
 	var haulers: Array[String] = []
-	for dwarf_id: int in materials._pulls:
-		var hauler: DwarfAgent = TaskManager._agents.get(dwarf_id)
+	for dwarf_id: int in materials.puller_ids():
+		var hauler: DwarfAgent = TaskManager.get_agent(dwarf_id)
 		if is_instance_valid(hauler): haulers.append(hauler.dwarf_name)
 	if materials.crate_cell == INVALID or materials.delivery_stand_cells(materials.crate_cell).is_empty():
 		status = "No delivery access"
 	elif is_instance_valid(worker):
-		status = "Building" if worker._task_phase == DwarfAgent.TaskPhase.FETCH_WORKING else "Going to build"
+		status = "Building" if worker.get_task_phase() == DwarfAgent.TaskPhase.FETCH_WORKING else "Going to build"
 	elif order.ready_for_staged_work():
 		status = "Waiting for builder"
 		if task != null and task.blocked_count > 0:
@@ -288,8 +288,12 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			["Delivery workers",", ".join(haulers) if not haulers.is_empty() else "None assigned"],
 			["Completed","%d / %d blocks" % [order.total_blocks-order.cells.size(),order.total_blocks]],
 			["Work remaining","%.1f seconds at normal speed" % order.total_remaining_work()]],
-		"details":details+"\nDEV finish uses delivered stone and supplies any missing materials instantly. Occupied or unsupported blocks stay pending.\n"+String(_dev_feedback.get(object_id,"")),
+		"details":details+_dev_details(object_id,"DEV finish uses delivered stone and supplies any missing materials instantly. Occupied or unsupported blocks stay pending."),
 		"actions":[{"id":"dev_build","text":"DEV: Finish construction","variant":"dev"},{"id":"cancel","text":"Cancel construction","variant":"danger"}]}
+
+## DEV notes and results appear only while the development tools are on.
+func _dev_details(object_id: Variant,note: String) -> String:
+	return "\n%s\n%s" % [note,String(_dev_feedback.get(object_id,""))] if UIRegistry.dev_tools_enabled else ""
 
 func perform_explorer_action(object_id: Variant,action_id: String) -> void:
 	if action_id == "cancel": cancel_order(int(object_id))
@@ -299,11 +303,11 @@ func perform_explorer_action(object_id: Variant,action_id: String) -> void:
 ## once for that call, never across frames or while a route search yields.
 func obstacle_snapshot() -> Dictionary:
 	var actors: Array[AABB] = []
-	for actor in TaskManager._agents.values():
+	for actor in TaskManager.get_agents():
 		if is_instance_valid(actor): actors.append(AABB(actor.global_position-Vector3(.5,0,.5),Vector3(1,3,1)))
 	var loose := {}
 	if drops != null:
-		for item in drops._loose:
+		for item in drops.loose_items():
 			if is_instance_valid(item): loose[drops.item_floor_cell(item)+Vector3i.UP] = true
 	return {"actors":actors,"loose":loose}
 
@@ -321,19 +325,19 @@ func build_reason(cell: Vector3i, planning := true, require_support := true, kin
 		for bounds: AABB in obstacles.actors:
 			if area.intersects(bounds): return "A dwarf occupies this cell"
 	else:
-		for actor in TaskManager._agents.values():
+		for actor in TaskManager.get_agents():
 			if is_instance_valid(actor) and area.intersects(AABB(actor.global_position-Vector3(.5,0,.5),Vector3(1,3,1))): return "A dwarf occupies this cell"
 	if obstacles.has("loose"):
 		if obstacles.loose.has(cell): return "Haul loose items clear first"
 	elif drops != null:
-		for item in drops._loose:
+		for item in drops.loose_items():
 			if is_instance_valid(item) and drops.item_floor_cell(item)+Vector3i.UP == cell: return "Haul loose items clear first"
 	if furniture != null:
-		for group: Dictionary in [furniture._ghosts,furniture._installed]:
-			for piece in group.values():
-				if furniture._visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps).intersects(area): return "Furniture or a placement plan occupies this cell"
-		if furniture._ladders.reserves(area) or furniture._bridges.reserves(area): return "Keep access structures clear"
-	for zone: StockpileZoneComponent in StockpileManager._zones.values():
+		for group: Array in [furniture.get_ghost_pieces(),furniture.get_installed_pieces()]:
+			for piece in group:
+				if furniture.visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps).intersects(area): return "Furniture or a placement plan occupies this cell"
+		if furniture.get_ladders().reserves(area) or furniture.get_bridges().reserves(area): return "Keep access structures clear"
+	for zone: StockpileZoneComponent in StockpileManager.get_zones():
 		if zone.tile_cells.has(cell-Vector3i.UP): return "Remove the storage designation first"
 	if planning:
 		for order in orders.values():
@@ -391,16 +395,16 @@ func create_order(requested: Array[Vector3i], saved_id := -1, restoring := false
 
 ## Automatic packaging on a clear, flat patch. Keep an open ring around it;
 ## never occupy stairs, storage, access structures, doors or any blueprint.
-func _crate_site_clear(floor: Vector3i) -> bool:
-	if floor == INVALID or not NavGrid.is_walkable(floor): return false
+func _crate_site_clear(site: Vector3i) -> bool:
+	if site == INVALID or not NavGrid.is_walkable(site): return false
 	for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
-		var around := floor+offset
+		var around := site+offset
 		if not NavGrid.is_walkable(around): return false
 		for dy in range(1,4):
 			for order in orders.values():
 				if order.cells.has(around+Vector3i(0,dy,0)): return false
-	if not build_reason(floor+Vector3i.UP,true,false).is_empty(): return false
-	var area := AABB(Vector3(floor)+Vector3(0,1,0),Vector3.ONE)
+	if not build_reason(site+Vector3i.UP,true,false).is_empty(): return false
+	var area := AABB(Vector3(site)+Vector3(0,1,0),Vector3.ONE)
 	return not PlacedEntityRegistry.barriers_overlap(area)
 
 func place_materials_crate(materials: RefCounted) -> void:
@@ -433,7 +437,7 @@ func place_materials_crate(materials: RefCounted) -> void:
 	materials.visual.name = "ConstructionMaterials%d" % order.ghost_id
 	# Generated meshes carry their wood colors in vertices, like loose goods.
 	# Share the drop owner's material so enclosed rooms use the same lighting.
-	drops._apply_material(materials.visual,drops._material)
+	drops.apply_item_material(materials.visual)
 	add_child(materials.visual)
 	materials.visual.position = Vector3(chosen)+Vector3(.5,1,.5)
 	materials.occupancy = PlacedEntityRegistry.register_box(chosen+Vector3i.UP,Vector3i.ONE)
@@ -455,7 +459,7 @@ func commit_block(order: RefCounted) -> void:
 	_place_block(cell,String(key))
 
 func _place_block(cell: Vector3i, key: String) -> void:
-	mining._ensure_chunk_real(cell)
+	mining.ensure_chunk_real(cell)
 	WorldData.set_block(cell.x,cell.y,cell.z,BlockRegistry.get_id(key))
 	NavGrid.refresh_mined_block(cell)
 	_dirty = true
@@ -482,7 +486,7 @@ func dev_build_order(id: int) -> int:
 			if not invalid.is_empty():
 				reason = invalid
 				continue
-			var key: String = String(order.def.block_key) if _is_floor(order.construction_kind) else BlockRegistry.get_key(WorldGenerator.construction_stone_id(cell))
+			var key: String = String(order.def.block_key) if _is_floor(order.construction_kind) else String(BlockRegistry.get_key(WorldGenerator.construction_stone_id(cell)))
 			_place_block(cell,key)
 			if order.materials != null: order.materials.consume_one()
 			order.cells.erase(cell)
@@ -535,7 +539,7 @@ func _rebuild_visuals() -> void:
 		for order in orders.values():
 			for cell: Vector3i in order.cells:
 				if cell.y <= _slice_y(): pending.append(cell)
-		_plans.mesh = mining._build_fill_mesh(pending,Color.WHITE,.004) if not pending.is_empty() else null
+		_plans.mesh = mining.build_fill_mesh(pending,Color.WHITE,.004) if not pending.is_empty() else null
 
 func save_section_key() -> String: return "construction"
 func save_restore_priority() -> int: return 15
@@ -560,7 +564,7 @@ func restore_state(state: Dictionary) -> void:
 		for pending: Dictionary in entry.cells: cells.append(SaveManager.unpack_v3i(pending.cell))
 		var id := create_order(cells,int(entry.id),true,String(entry.kind))
 		if id >= 0:
-			orders[id].total_blocks = int(entry.get("total_blocks",cells.size()))
+			orders[id].total_blocks = int(entry.total_blocks)
 			if orders[id].materials != null:
 				orders[id].materials.staged = entry.get("materials",{}).duplicate()
 				# Restore the location after furniture/storage owners load too.

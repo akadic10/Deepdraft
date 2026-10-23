@@ -1,18 +1,19 @@
 extends Node
 
-## Scene-owned recipe registry and persistent order queue. Runtime leases,
+## Persistent worker order queue over ContentRegistry's recipes. Runtime leases,
 ## worker/bench reservations and cargo ownership are never serialized here.
 signal changed()
+## Dock that shows the crafting window for this queue (Scene Decoupling Contract).
+@export var dock_ui_path: NodePath
 const Order = preload("res://scripts/components/WorkerCraftOrder.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
-const DATA := "res://data/workshops/worker_crafting.json"
-var recipes: Dictionary = {}
-var sections: Dictionary = {}
+var recipes: Dictionary = ContentRegistry.recipes.duplicate(true) # own copies
+var sections: Dictionary = ContentRegistry.recipe_sections.duplicate(true)
 var orders: Array = []
 var bench_claims: Dictionary = {}
 var items: ItemDropManager
 var furniture: FurniturePlacementController
-var max_orders := 64
+var max_orders := ContentRegistry.max_craft_orders
 var _next_id := 1
 var _dirty := false
 var _elapsed := 0.0
@@ -22,8 +23,7 @@ var selection_revision := 0
 func _ready() -> void:
 	add_to_group("crafting_manager")
 	add_to_group(SaveManager.OWNER_GROUP)
-	_load_definitions()
-	items = get_tree().get_first_node_in_group("item_drop_manager")
+	items = ItemDropManager.find(get_tree())
 	furniture = get_tree().get_first_node_in_group("furniture_controller")
 	# Explicit scene reference injected when a fixture does not use that group.
 	if furniture == null:
@@ -36,22 +36,9 @@ func _ready() -> void:
 	TaskManager.task_cancelled.connect(_task_gone)
 	TaskManager.task_failed.connect(func(task: Task, _reason: String): _task_gone(task))
 	TaskManager.task_released.connect(_task_released)
-	var dock := get_tree().get_first_node_in_group("command_dock")
+	var dock := get_node_or_null(dock_ui_path) if not dock_ui_path.is_empty() else null
 	if dock != null: dock.register_crafting_controller(self)
 	wake()
-
-func _load_definitions() -> void:
-	var raw = JSON.parse_string(FileAccess.get_file_as_string(DATA))
-	if not raw is Dictionary: return
-	max_orders = int(raw.get("max_orders",64))
-	for section: Dictionary in raw.get("sections",[]):
-		sections[String(section.id)] = section
-	for recipe: Dictionary in raw.get("recipes",[]):
-		# A batch of matching timber, plus optional fixed single-unit materials.
-		if int(recipe.get("ingredient_count",0)) < 1 or float(recipe.get("work_seconds",0)) <= 0:
-			push_error("Unsupported Worker recipe: " + str(recipe.get("id")))
-			continue
-		recipes[String(recipe.id)] = recipe
 
 func _process(delta: float) -> void:
 	_elapsed += delta
@@ -239,7 +226,7 @@ func advance_worker_quote(order, from: Vector3i, query: Dictionary, deadline: in
 		var first_keys: Array[String] = additional_ingredient_keys(order.recipe)
 		if first_keys.is_empty(): first_keys = batch_ingredient_keys(order.recipe,stock_snapshot(),order.allowed_ingredients)
 		else: first_keys = [first_keys[0]]
-		query.merge({"material_keys":first_keys, "loose":{}, "stored":{}, "benches":furniture._installed.keys(), "index":0, "goals":{}})
+		query.merge({"material_keys":first_keys, "loose":{}, "stored":{}, "benches":furniture.get_installed_ids(), "index":0, "goals":{}})
 	var keys: Array[String] = query.material_keys
 	if not items.advance_material_quote(keys,from,query.loose,deadline,excluded): return false
 	if not StockpileManager.advance_material_quote(keys,from,query.stored,deadline,excluded): return false
@@ -252,7 +239,7 @@ func advance_worker_quote(order, from: Vector3i, query: Dictionary, deadline: in
 		if Time.get_ticks_usec() >= deadline: return false
 		var id: int = query.benches[query.index]
 		query.index += 1
-		var bench = furniture._installed.get(id)
+		var bench = furniture.get_installed(id)
 		if bench == null or bench.furniture_key != String(order.recipe.workshop) or not bench_valid(id): continue
 		for cell: Vector3i in bench.cells:
 			for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
@@ -268,18 +255,18 @@ func reserve_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 	return node if items.reserve(node,dwarf_id) else null
 
 func bench_valid(id: int, worker_id := -1) -> bool:
-	var bench = furniture._installed.get(id)
+	var bench = furniture.get_installed(id)
 	if bench == null or bench.flagged_uninstall or not is_instance_valid(bench.node): return false
 	if bench_claims.has(id) and int(bench_claims[id]) != worker_id: return false
 	for cell: Vector3i in bench.cells:
-		if not BlockRegistry.is_solid(NavGrid._block_id(cell.x,cell.y,cell.z)): return false
+		if not BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y,cell.z)): return false
 	return true
 
 func bench_target(key: String, from: Vector3i) -> Dictionary:
 	var best := {}
 	var distance := INF
-	for id: int in furniture._installed:
-		var bench = furniture._installed[id]
+	for id: int in furniture.get_installed_ids():
+		var bench = furniture.get_installed(id)
 		if bench.furniture_key != key or not bench_valid(id): continue
 		var stand: Vector3i = bench.nearest_stand_target(from)
 		if stand.x < 0: continue
@@ -312,8 +299,8 @@ func status(order, totals: Dictionary) -> String:
 	var reason := waiting_reason(order, totals)
 	if not reason.is_empty(): return reason
 	if order.worker_id >= 0:
-		var agent = TaskManager._agents.get(order.worker_id)
-		if is_instance_valid(agent) and agent._task_phase == agent.TaskPhase.FETCH_WORKING:
+		var agent = TaskManager.get_agent(order.worker_id)
+		if is_instance_valid(agent) and agent.get_task_phase() == agent.TaskPhase.FETCH_WORKING:
 			return "Crafting · %d%%" % roundi(100.0*order.progress/float(order.recipe.work_seconds))
 		return "Gathering / carrying timber" if additional_ingredient_keys(order.recipe).is_empty() else "Gathering / carrying materials"
 	var task := TaskManager.get_task(order.lease_id)
@@ -344,12 +331,10 @@ func restore_state(state: Dictionary) -> void:
 	for entry in state.get("orders",[]):
 		if not entry is Dictionary: continue
 		_next_id = int(entry.get("id",_next_id))
-		# Missing field in a pre-filter save adopts the conservative recipe default.
-		# An explicit empty/invalid list stays empty; never silently allow more wood.
-		var id := queue_order(String(entry.get("recipe","")),int(entry.get("quantity",0)),bool(entry.get("maintain",false)),entry.get("allowed_ingredients"))
+		# An empty or invalid list stays empty; never silently allow more wood.
+		var id := queue_order(String(entry.get("recipe","")),int(entry.get("quantity",0)),bool(entry.get("maintain",false)),entry.allowed_ingredients)
 		var order = get_order(id)
 		next_unused = maxi(next_unused,_next_id)
-		if order == null: continue
 		order.paused = bool(entry.get("paused",false))
 		order.progress = clampf(float(entry.get("progress",0)),0,float(order.recipe.work_seconds))
 	_next_id = next_unused

@@ -20,6 +20,7 @@ func _ready() -> void:
 	_task_manager = get_node_or_null("/root/TaskManager")
 	_build_ui()
 	visible = false
+	set_process(UIRegistry.dev_tools_enabled)
 
 
 func _process(delta: float) -> void:
@@ -111,9 +112,7 @@ func _update_text() -> void:
 	if _renderer != null and _renderer.has_method("get_render_stats"):
 		render = _renderer.call("get_render_stats")
 
-	var camera_chunk: Vector2i = render.get("camera_chunk", Vector2i.ZERO)
 	var maps_text := "ready" if gen.get("maps_ready", false) else "building"
-	var in_flight_text := "yes" if gen.get("column_in_flight", false) else "no"
 	var render_mode: String = render.get("render_mode", "unknown")
 	var domains: Dictionary = metrics.get("domains", {})
 	var surface: Dictionary = metrics.get("surface", {})
@@ -194,11 +193,8 @@ func _update_text() -> void:
 			macro_counts.get("connected_summit_mountain_cells", 0),
 			finished.get("summit_columns", 0),
 		],
-		"columns: %d / %d" % [gen.get("generated_columns", 0), gen.get("total_columns", 0)],
-		"timing: maps %.2fs  columns %.2fs  region %.2fs  overview %.2fs" % [
+		"timing: maps %.2fs  overview %.2fs" % [
 			float(gen.get("map_precompute_ms", 0)) / 1000.0,
-			float(gen.get("column_fill_ms_total", 0)) / 1000.0,
-			float(render.get("region_rebuild_ms_total", 0)) / 1000.0,
 			float(render.get("overview_build_ms_total", 0)) / 1000.0,
 		],
 		"slowest map phase: %s" % map_phase_text,
@@ -212,19 +208,9 @@ func _update_text() -> void:
 			float(render.get("overview_startup_ready_ms", 0)) / 1000.0,
 			float(render.get("overview_complete_ms", 0)) / 1000.0,
 		],
-		"requested: %d  queue: %d  active: %s" % [
-			gen.get("requested_columns", 0),
-			gen.get("queue_size", 0),
-			in_flight_text,
-		],
-		"camera chunk: %d,%d  slice: %d" % [
-			camera_chunk.x,
-			camera_chunk.y,
+		"slice: %d  tiles queued: %d  built: %d" % [
 			render.get("slice_y", 0),
-		],
-		"meshes: %d  queued: %d  built: %d" % [
-			render.get("mesh_nodes", 0),
-			render.get("dirty_queue", 0),
+			render.get("overview_dirty_tiles", 0),
 			render.get("meshes_built", 0),
 		],
 		_agents_tasks_text(),
@@ -279,9 +265,9 @@ func _agents_tasks_text() -> String:
 		var i: Dictionary = interior.call("get_stats")
 		mining_text = "\nmining: interior cells %d (chunks %d)" % [
 			i.get("interior_cells", 0), i.get("interior_chunks", 0)]
-		var drop_manager := get_tree().get_first_node_in_group("item_drop_manager")
-		if drop_manager != null and drop_manager.has_method("get_stats"):
-			var d: Dictionary = drop_manager.call("get_stats")
+		var drop_manager := ItemDropManager.find(get_tree())
+		if drop_manager != null:
+			var d: Dictionary = drop_manager.get_stats()
 			mining_text += "  drops %d" % int(d.get("drops", 0))
 
 	return "\n".join([
@@ -304,7 +290,7 @@ func _agents_tasks_text() -> String:
 ## tasks once Phase 3 lands (0 until then). Null-safe before the tool ships.
 func _storage_text() -> String:
 	var stockpiles := get_tree().get_first_node_in_group("stockpile_controller")
-	var drops := get_tree().get_first_node_in_group("item_drop_manager")
+	var drops := ItemDropManager.find(get_tree())
 	if stockpiles == null and drops == null:
 		return ""
 	var zones: int = 0
@@ -317,8 +303,8 @@ func _storage_text() -> String:
 		stored = int(z.get("stored", 0))
 	var loose: int = 0
 	var reserved: int = 0
-	if drops != null and drops.has_method("get_stats"):
-		var d: Dictionary = drops.call("get_stats")
+	if drops != null:
+		var d: Dictionary = drops.get_stats()
 		loose = int(d.get("loose", 0))
 		reserved = int(d.get("reserved", 0))
 	var containers: int = 0

@@ -18,7 +18,6 @@
       "shrub": {
         "clearance_height": 2,
         "growth_duration_days": 4,
-        "next_stage": "fruiting",
         "models": {
           "spring": "res://assets/models/flora/bushes/elderberry/elderberry_young_spring.glb",
           "summer": "res://assets/models/flora/bushes/elderberry/elderberry_young_summer.glb",
@@ -32,7 +31,6 @@
       "fruiting": {
         "clearance_height": 3,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "spring": "res://assets/models/flora/bushes/elderberry/elderberry_spring.glb",
           "summer": "res://assets/models/flora/bushes/elderberry/elderberry_summer.glb",

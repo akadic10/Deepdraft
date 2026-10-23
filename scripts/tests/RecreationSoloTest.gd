@@ -58,8 +58,11 @@ func _solo_and_memory() -> void:
 	_expect(is_equal_approx(worker._mood.value(),.54),"solo memory remains after the separately earned social thought expires")
 	worker._mood.tick(10)
 	_expect(is_equal_approx(worker._mood.value(),.5),"both thoughts expire")
-	worker._mood.restore({"recreation_memory_hours":8.5,"recreation_retry_hours":2.5})
-	_expect(is_equal_approx(worker._mood.value(),.58) and worker._mood.solo_recreation_memory_hours==0,"legacy saves retain their existing shared reward")
+	var shared := _blank_mood(worker)
+	shared.recreation_memory_hours = 8.5
+	shared.recreation_retry_hours = 2.5
+	worker._mood.restore(shared)
+	_expect(is_equal_approx(worker._mood.value(),.58) and worker._mood.solo_recreation_memory_hours==0,"a save without solo memory keeps the shared reward")
 
 func _distant_partner() -> void:
 	_layout()

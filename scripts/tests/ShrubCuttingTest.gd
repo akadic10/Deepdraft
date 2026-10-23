@@ -19,13 +19,13 @@ func _run() -> void:
 	for item: Node3D in drops._loose:
 		if drops.item_key_of(item) == CUTTING_ITEM:
 			_expect(drops.item_floor_cell(item) == Vector3i(37,20,43), "pickup animation leaves the remainder at its original world position")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(_cutting_count("blueberry_cutting") == 5, "interruption returns cutting without loss")
 	for task in tasks._tasks.values(): task.retry_at = 0
 	_expect(await _wait_for(func(): return worker._task_phase == worker.TaskPhase.FETCH_WORKING), "planting resumes")
 	worker._process(.6)
 	var work: float = furniture._ghosts[first].progress
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(furniture._ghosts[first].progress >= work, "planting progress survives interrupt")
 	for task in tasks._tasks.values(): task.retry_at = 0
 	_expect(await _wait_for(func(): return not furniture._ghosts.has(first)), "worker finishes first cutting")

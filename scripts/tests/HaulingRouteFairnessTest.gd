@@ -32,9 +32,9 @@ func _run() -> void:
 			tasks.notify_dwarf_unavailable(worker.dwarf_id)
 			tasks.notify_dwarf_idle(worker.dwarf_id)
 		stockpiles._process(.25)
-		var before: int=tasks._probes_total
+		var before: int=tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total-before<=1,"candidate rotation preserves per-wake probe cap")
+		_expect(tasks._scheduler._probes_total-before<=1,"candidate rotation preserves per-wake probe cap")
 		if helper.current_task_id>=0: break
 		await process_frame
 	_expect(helper.current_task_id>=0,"reachable worker receives a load while nearer cross-level search is unfinished")
@@ -42,7 +42,7 @@ func _run() -> void:
 	if zone._pulls.has(helper.dwarf_id):
 		_expect(drops.item_floor_cell(zone._pulls[helper.dwarf_id].items[0])==Vector3i(75,20,60),"executor reserves the reachable load")
 	var slow_progress := 0
-	for ctx: Dictionary in tasks._family_frontiers.values():
+	for ctx: Dictionary in tasks._scheduler._family_frontiers.values():
 		for route: Dictionary in ctx.get("routes",{}).values():
 			slow_progress=maxi(slow_progress,int(route.get("route_query",{}).get("expanded",0)))
 	_expect(slow_progress>0,"yielded searches retain their frontier for a later turn")
@@ -100,7 +100,7 @@ func _only_long_route() -> void:
 	for wake in 600:
 		stockpiles._process(.25)
 		tasks._run_scheduler()
-		for context: Dictionary in tasks._family_frontiers.values():
+		for context: Dictionary in tasks._scheduler._family_frontiers.values():
 			if not context.get("deferred",{}).is_empty(): saw_deferred=true
 		if worker.current_task_id>=0: break
 		await process_frame

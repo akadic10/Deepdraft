@@ -12,9 +12,8 @@ extends Node3D
 ## Move/Uninstall/Place use ordinary furniture and never spawn another squad.
 ##
 ## Raycasting: the flag is a SURFACE placement, so the hover test marches the
-## camera ray against the height field (`get_visible_surface_y`) — the
-## camera's cursor-zoom approach — rather than the mining controller's full
-## voxel DDA. Works map-wide, no streamed chunks required.
+## camera ray against the height field (ObjectPicking.surface_hit) rather than
+## the voxel DDA. Works map-wide, no streamed chunks required.
 
 @export var camera_path: NodePath
 @export var dock_ui_path: NodePath
@@ -25,6 +24,7 @@ const FURNITURE_KEY := "base:furniture:settlement_flag"
 const WORLD_EDGE_MARGIN := 2       # reject placement hugging the world border
 const RAY_STEP := 0.5
 const RAY_MAX := 700.0
+const Picking = preload("res://scripts/components/ObjectPicking.gd")
 
 const GHOST_VALID := Color(0.35, 1.0, 0.45, 0.55)
 const GHOST_INVALID := Color(1.0, 0.30, 0.25, 0.55)
@@ -183,36 +183,20 @@ func _update_ghost() -> void:
 			_ghost_material.albedo_color = GHOST_VALID if _hover_valid else GHOST_INVALID
 
 
-## Marches the mouse ray against the visible-surface height field (the camera
-## zoom approach, doc 21) and returns { x, y (surface block), z } or {}.
+## The surface cell under the mouse: { x, y (surface block), z, point } or {}.
 func _mouse_surface_cell() -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return {}
 	var mouse := get_viewport().get_mouse_position()
-	var origin := camera.project_ray_origin(mouse)
-	var dir := camera.project_ray_normal(mouse)
-	var t := 0.0
-	while t < RAY_MAX:
-		var p := origin + dir * t
-		var wx := floori(p.x)
-		var wz := floori(p.z)
-		if wx >= 0 and wx < WorldGenerator.WORLD_SIZE_X \
-				and wz >= 0 and wz < WorldGenerator.WORLD_SIZE_Z:
-			var sy := int(WorldGenerator.get_visible_surface_y(wx, wz))
-			if sy >= 0 and p.y <= float(sy + 1):
-				return { "x": wx, "y": sy, "z": wz }
-		elif p.y < 0.0:
-			return {}
-		t += RAY_STEP
-	return {}
+	return Picking.surface_hit(camera.project_ray_origin(mouse), camera.project_ray_normal(mouse), RAY_MAX, RAY_STEP)
 
 
 ## Validity (doc 16 Phase 1): in-bounds with edge margin, dry standable
 ## surface, cell not occupied by a placed entity (tree trunk).
 func _is_valid_cell(cell: Vector3i) -> bool:
-	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldGenerator.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
-			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldGenerator.WORLD_SIZE_Z - WORLD_EDGE_MARGIN:
+	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldData.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
+			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldData.WORLD_SIZE_Z - WORLD_EDGE_MARGIN:
 		return false
 	var col := Vector2i(cell.x, cell.z)
 	if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col):
@@ -230,7 +214,7 @@ func _place_flag(cell: Vector3i, spawn_squad: bool = true) -> void:
 	if _flag_cell.y >= 0: return
 	_bind_furniture()
 	if _furniture == null: return
-	_furniture._install(FURNITURE_KEY, _furniture.get_defs()[FURNITURE_KEY], cell, 0)
+	_furniture.install_now(FURNITURE_KEY, cell, 0)
 	if _director != null and spawn_squad:
 		_director.call("spawn_squad_at", cell.x, cell.z)
 

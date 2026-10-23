@@ -31,7 +31,6 @@ func _run() -> void:
 	camera.position = Vector3(0,14,23)
 	camera.look_at(Vector3(0,.5,0))
 	var registry = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	registry._load_defs()
 	var materials = root.get_node("CraftMaterials")
 	var columns := ["pine","oak","juniper","applewood"]
 	for column in range(columns.size()):

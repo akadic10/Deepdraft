@@ -25,10 +25,21 @@ var elapsed: float:
 	get: return float(elapsed_usec)/1000000.0
 var revision := 0
 var last_step_usec := 0
+## Cells the last advance() or step() ran; telemetry only, never saved.
+var last_frame_cells := 0
+## The tick in progress, whose cells advance() spreads over frames. Never saved:
+## a save finishes it first.
+var _tick_open := false
+var _tick_cells_left := 0
+var _tick_cells := 0
 ## Optional frame-level stage timings; disabled during normal play, never saved.
 var profile_updates := false
 var last_update_ms: Dictionary = {}
 var edited_columns: Dictionary = {}
+## Columns that have held water since this world loaded (Vector2i -> true). Lets
+## nearby-water queries skip dry ground without asking the solver for spans,
+## whose first lookup per column is costly. Never shrinks; never saved.
+var water_columns: Dictionary = {}
 var dirty_tiles: Dictionary = {}
 var _nav_tops: Dictionary = {}
 var _seed := 0
@@ -56,10 +67,12 @@ func reset() -> void:
 	_soil_kinds.clear()
 	show_moisture = false
 	edited_columns.clear()
+	water_columns.clear()
 	dirty_tiles.clear()
 	_nav_tops.clear()
 	accumulator_usec = 0
 	elapsed_usec = 0
+	_tick_open = false
 	source_enabled = true
 	outlet_enabled = true
 	test_dam.clear()
@@ -67,7 +80,7 @@ func reset() -> void:
 	revision += 1
 
 func initialize() -> void:
-	if initialized or not WorldGenerator._maps_ready or WorldGenerator.river_layout.is_empty(): return
+	if initialized or not WorldGenerator.is_maps_ready() or WorldGenerator.river_layout.is_empty(): return
 	_config = WorldGenerator.water_profile
 	standing_depth = float(_config.simulation.standing_depth)
 	_water_id = BlockRegistry.get_id("base:terrain:water:source")
@@ -76,9 +89,9 @@ func initialize() -> void:
 	flow.conductance = float(_config.simulation.conductance)
 	flow.epsilon = float(_config.simulation.epsilon)
 	flow.level_reach = int(_config.simulation.level_reach)
-	for x in 1024:
-		for z in 1024:
-			var i := x*1024+z
+	for x in WorldData.WORLD_SIZE_X:
+		for z in WorldData.WORLD_SIZE_Z:
+			var i := x*WorldData.WORLD_SIZE_Z+z
 			var water := WorldGenerator.waterline_map[i]
 			if water < 0: continue
 			var bottom := WorldGenerator.heightmap[i]+1
@@ -92,6 +105,7 @@ func initialize() -> void:
 		_nav_tops[key] = _occupied_top(key)
 		dirty_tiles[Vector2i(int(key.x/32.0),int(key.z/32.0))] = true
 	_seed = WorldGenerator.world_seed
+	for key: Vector3i in flow.mass: water_columns[Vector2i(key.x,key.z)] = true
 	initialized = true
 	var layout := WorldGenerator.river_layout
 	stones = {
@@ -103,8 +117,8 @@ func initialize() -> void:
 
 func _rebuild_moisture() -> void:
 	moisture = Moisture.new()
-	moisture.wet_usec = roundi(float(_config.irrigation.wet_hours)*WorldClock._real_seconds_per_game_hour*1000000.0)
-	moisture.dry_usec = roundi(float(_config.irrigation.dry_hours)*WorldClock._real_seconds_per_game_hour*1000000.0)
+	moisture.wet_usec = roundi(float(_config.irrigation.wet_hours)*WorldClock.get_real_seconds_per_game_hour()*1000000.0)
+	moisture.dry_usec = roundi(float(_config.irrigation.dry_hours)*WorldClock.get_real_seconds_per_game_hour()*1000000.0)
 	_moisture_heads.clear()
 	for key: Vector3i in flow.mass:
 		_update_moisture_contact(key)
@@ -137,7 +151,7 @@ func soil_moisture_at(cell: Vector3i) -> float:
 
 func _process(delta: float) -> void:
 	if profile_updates: last_update_ms.clear()
-	if not WorldGenerator._maps_ready:
+	if not WorldGenerator.is_maps_ready():
 		if initialized: reset()
 		return
 	if initialized and _seed != WorldGenerator.world_seed: reset()
@@ -145,18 +159,57 @@ func _process(delta: float) -> void:
 	if not initialized or WorldClock.paused or SaveManager.is_loading() or WorldClock.speed <= 0: return
 	advance(delta * WorldClock.speed)
 
+## Spreads each tick's cells over the frames until the next tick is due, so a
+## 10 Hz tick no longer lands whole on one frame (a regular camera hitch). The
+## cells, their order and amounts match step(). Changes still flush once per
+## tick: a mid-tick flush would restart soil moisture that a cell's level only
+## crossed and left again within the tick.
 func advance(seconds: float) -> void:
 	if not initialized: return
+	var started := Time.get_ticks_usec()
+	last_frame_cells = 0
 	accumulator_usec += roundi(seconds*1000000.0)
 	var tick := float(_config.simulation.tick_seconds)
 	var tick_usec := roundi(tick*1000000.0)
 	# Retain debt rather than losing simulation time during a slow frame.
 	for _i in 4:
+		if accumulator_usec <= 0: break
+		if not _tick_open: _begin_tick(tick)
+		var done := _tick_cells-_tick_cells_left
+		@warning_ignore("integer_division")
+		var due := _tick_cells if accumulator_usec >= tick_usec else _tick_cells*accumulator_usec/tick_usec
+		_run_cells(tick,due-done)
 		if accumulator_usec < tick_usec: break
 		accumulator_usec -= tick_usec
-		step(tick)
+		_tick_open = false
+		_flush_changes()
+	last_step_usec = Time.get_ticks_usec()-started
+	if profile_updates: _record_stage("total",last_step_usec)
 
+## Runs one whole tick at once (tests, scenarios), after any tick in progress.
 func step(seconds: float) -> void:
+	var started := Time.get_ticks_usec()
+	last_frame_cells = 0
+	finish_tick()
+	_begin_tick(seconds)
+	_run_cells(seconds,_tick_cells_left)
+	_tick_open = false
+	_flush_changes()
+	last_step_usec = Time.get_ticks_usec()-started
+	if profile_updates: _record_stage("total",last_step_usec)
+
+## Completes the tick advance() has in progress, e.g. before a save captures
+## the queue. That tick's remaining time is treated as spent.
+func finish_tick() -> void:
+	if not _tick_open: return
+	_run_cells(float(_config.simulation.tick_seconds),_tick_cells_left)
+	_tick_open = false
+	accumulator_usec = maxi(0,accumulator_usec-roundi(float(_config.simulation.tick_seconds)*1000000.0))
+	_flush_changes()
+
+## Sources and the cell count are fixed when a tick starts. The clock moves on
+## here so moisture written by any of this tick's flushes sees the tick's time.
+func _begin_tick(seconds: float) -> void:
 	var started := Time.get_ticks_usec()
 	var ids := stones.keys()
 	ids.sort_custom(func(a: String,b: String): return stones[a].kind=="wet" if stones[a].kind!=stones[b].kind else a<b)
@@ -166,13 +219,19 @@ func step(seconds: float) -> void:
 		if stone.kind == "wet" and source_enabled: flow.add_at(stone.intake, seconds * float(_config.simulation.spring_rate), stone.level)
 		if stone.kind == "dry" and outlet_enabled: flow.remove_at(stone.intake, seconds * float(_config.simulation.outlet_rate), stone.level, true)
 	if profile_updates: _record_stage("sources",Time.get_ticks_usec()-started)
-	var flow_started := Time.get_ticks_usec() if profile_updates else 0
-	flow.step(seconds, int(_config.simulation.max_cells_per_tick))
-	if profile_updates: _record_stage("flow",Time.get_ticks_usec()-flow_started)
+	_tick_cells = flow.begin_tick(int(_config.simulation.max_cells_per_tick))
+	_tick_cells_left = _tick_cells
+	_tick_open = true
 	elapsed_usec += roundi(seconds*1000000.0)
-	_flush_changes()
-	last_step_usec = Time.get_ticks_usec()-started
-	if profile_updates: _record_stage("total",last_step_usec)
+
+func _run_cells(seconds: float, count: int) -> void:
+	count = mini(count,_tick_cells_left)
+	if count <= 0: return
+	var flow_started := Time.get_ticks_usec() if profile_updates else 0
+	flow.run_cells(seconds,count)
+	_tick_cells_left -= count
+	last_frame_cells += count
+	if profile_updates: _record_stage("flow",Time.get_ticks_usec()-flow_started)
 
 func _record_stage(stage: String, usec: int) -> void:
 	last_update_ms[stage] = float(last_update_ms.get(stage,0.0))+usec/1000.0
@@ -187,6 +246,7 @@ func _flush_changes() -> void:
 		var moisture_started := Time.get_ticks_usec() if profile_updates else 0
 		_update_moisture_contact(cell)
 		if profile_updates: moisture_usec += Time.get_ticks_usec()-moisture_started
+		if int(flow.mass.get(cell,0)) > 0: water_columns[Vector2i(cell.x,cell.z)] = true
 		var top := _occupied_top(cell)
 		if top != int(_nav_tops.get(cell,cell.y)):
 			_nav_tops[cell] = top
@@ -194,9 +254,8 @@ func _flush_changes() -> void:
 			if top>WorldGenerator.get_surface_y(cell.x,cell.z)+1 and WorldGenerator.get_waterline(cell.x,cell.z)<0 and elapsed-_last_flood_warning>60.0:
 				_last_flood_warning = elapsed
 				flood_warning.emit()
-		for offset: Vector2i in [Vector2i.ZERO,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
-			var col := Vector2i(cell.x,cell.z)+offset
-			dirty_tiles[Vector2i(int(col.x/32.0),int(col.y/32.0))] = true
+	# Level changes reach WaterRenderer through surface_changed, which redraws only
+	# visible movement; dirty_tiles is for whole-world (re)initialisation.
 	flow.changed.clear()
 	var notify_started := Time.get_ticks_usec() if profile_updates else 0
 	if not occupancy.is_empty(): levels_changed.emit(occupancy)
@@ -207,7 +266,7 @@ func _flush_changes() -> void:
 		_record_stage("notifications",Time.get_ticks_usec()-notify_started)
 
 func _spaces(col: Vector2i) -> Array:
-	if col.x < 0 or col.y < 0 or col.x >= 1024 or col.y >= 1024: return []
+	if col.x < 0 or col.y < 0 or col.x >= WorldData.WORLD_SIZE_X or col.y >= WorldData.WORLD_SIZE_Z: return []
 	var result: Array = []
 	if edited_columns.has(col):
 		var start := -1
@@ -219,8 +278,8 @@ func _spaces(col: Vector2i) -> Array:
 				start = -1
 		if start >= 0: result.append(Vector2i(start,128))
 	else:
-		var index := col.x*1024+col.y
-		var cave: Vector3i = WorldGenerator._cave_layout.columns.get(index,Vector3i(-1,-1,-1))
+		var index := col.x*WorldData.WORLD_SIZE_Z+col.y
+		var cave: Vector3i = WorldGenerator.get_cave_column(index)
 		var surface := WorldGenerator.heightmap[index]+1
 		if cave.x>=0 and cave.y+1>=surface:
 			result.append(Vector2i(mini(cave.x+1,surface),128))
@@ -279,6 +338,7 @@ func save_restore_priority() -> int: return 11
 
 func serialize_state() -> Dictionary:
 	initialize()
+	if initialized: finish_tick()
 	var saved_stones := {}
 	for id: String in stones:
 		saved_stones[id] = stones[id].duplicate(true)
@@ -291,6 +351,7 @@ func serialize_state() -> Dictionary:
 ## Private containers captured on the main thread; formatting runs on the worker.
 func capture_save_state() -> Dictionary:
 	initialize()
+	if initialized: finish_tick()
 	var saved_stones := {}
 	for id: String in stones:
 		saved_stones[id]=stones[id].duplicate(true)
@@ -328,6 +389,7 @@ func restore_state(state: Dictionary) -> void:
 	outlet_enabled = state.outlet_enabled
 	elapsed_usec = int(state.elapsed_usec)
 	accumulator_usec = int(state.accumulator_usec)
+	_tick_open = false
 	test_dam = state.test_dam.duplicate(true)
 	_soil_kinds.clear()
 	_rebuild_moisture()
@@ -335,6 +397,7 @@ func restore_state(state: Dictionary) -> void:
 	_nav_tops.clear()
 	for key: Vector3i in flow.mass:
 		dirty_tiles[Vector2i(int(key.x/32.0),int(key.z/32.0))] = true
+		water_columns[Vector2i(key.x,key.z)] = true
 		_nav_tops[key] = _occupied_top(key)
 		previous_wet[key] = true
 	levels_changed.emit(previous_wet.keys())
@@ -359,8 +422,8 @@ func place_stone(id: String, cell: Vector3i) -> void:
 ## No scenario schedule or extra starting stones are introduced here.
 func grant_stone(kind: String, cell: Vector3i, disallowed: bool = true) -> String:
 	if not initialized or not _config.stones.has(kind): return ""
-	if cell.x<0 or cell.x>=1024 or cell.y<4 or cell.y>=128 or cell.z<0 or cell.z>=1024: return ""
-	var items := get_tree().get_first_node_in_group("item_drop_manager")
+	if cell.x<0 or cell.x>=WorldData.WORLD_SIZE_X or cell.y<4 or cell.y>=WorldData.WORLD_SIZE_Y or cell.z<0 or cell.z>=WorldData.WORLD_SIZE_Z: return ""
+	var items := ItemDropManager.find(get_tree())
 	if items == null: return ""
 	var id := "water_stone:%d" % next_stone_id
 	next_stone_id += 1

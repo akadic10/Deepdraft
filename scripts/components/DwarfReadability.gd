@@ -61,7 +61,7 @@ func refresh() -> void:
 					lower.append(Vector3(x,start,z))
 					upper.append(Vector3(x+1,y,z+1))
 					start = -1
-	for ladder: Dictionary in NavGrid._ladders.values():
+	for ladder: Dictionary in NavGrid.ladder_records():
 		var base: Vector3i = ladder.base
 		if absi(base.x-here.x)>2 or absi(base.z-here.z)>2: continue
 		# A ladder covers the thin rail/rung slab, not its whole climbing column.

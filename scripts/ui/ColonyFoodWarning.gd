@@ -33,8 +33,8 @@ func _process(delta: float) -> void:
 
 func refresh() -> void:
 	var names: PackedStringArray = []
-	for agent: DwarfAgent in TaskManager._agents.values():
-		if is_instance_valid(agent) and agent._food != null and agent._food.shortage and agent._food.hungry():
+	for agent: DwarfAgent in TaskManager.get_agents():
+		if is_instance_valid(agent) and agent.get_food() != null and agent.get_food().shortage and agent.get_food().hungry():
 			names.append(agent.dwarf_name)
 	visible = not names.is_empty()
 	label.text = "%d %s cannot find reachable food.\nHarvest berries or make stored food accessible." % [names.size(),"dwarf" if names.size()==1 else "dwarves"]

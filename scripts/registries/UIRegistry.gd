@@ -5,7 +5,7 @@ extends Node
 #
 # Pattern mirrors BlockRegistry: this autoload is the SINGLE owner of UI-layout
 # JSON I/O. No other script should call FileAccess on these files — query the
-# public API below instead (Registry Pattern, see AGENT.md).
+# public API below instead (Registry Pattern, see CLAUDE.md).
 #
 # Scope: dock and menu LAYOUT only (order, icon, label, action binding). Action *logic*
 # lives in GDScript (the dock node's dispatch map), never in the data file
@@ -25,6 +25,11 @@ var _time_slice: Dictionary = {}
 var _loading_screen: Dictionary = {}
 var _dwarf_indicators: Dictionary = {}
 var _need_icons: Dictionary = {}
+const DEV_TOOLS_PATH := "res://data/ui/dev_tools.json"
+const JsonData = preload("res://scripts/registries/JsonData.gd")
+## The development tools switch (data/ui/dev_tools.json), read once at startup.
+## Off hides the Development menu, its windows and every "dev" variant action.
+var dev_tools_enabled := false
 
 # ── Internal tables ───────────────────────────────────────────────────────────
 # Ordered list of validated navigation buttons.
@@ -39,6 +44,7 @@ const _VALID_ACTIONS := ["open_panel", "toggle_window", "activate_tool", "panel_
 
 
 func _ready() -> void:
+	_load_dev_tools()
 	_load_dock()
 	_load_place_catalog()
 	_load_inventory_catalog()
@@ -51,13 +57,30 @@ func _ready() -> void:
 	print("UIRegistry: loaded %d dock items." % _dock_items.size())
 
 
-func _load_loading_screen() -> void:
-	var file := FileAccess.open("res://data/ui/loading_screen.json",FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing loading screen definition")
+func _load_dev_tools() -> void:
+	var parsed: Variant = JsonData.read(DEV_TOOLS_PATH)
+	if not parsed is Dictionary or not parsed.get("enabled") is bool:
+		push_error("UIRegistry: %s needs a boolean \"enabled\"; development tools stay off." % DEV_TOOLS_PATH)
+		dev_tools_enabled = false
 		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary or not parsed.get("backgrounds") is Array or parsed.backgrounds.is_empty():
+	dev_tools_enabled = parsed.enabled
+
+
+## Dock buttons and menu entries marked "dev": true exist only with the switch on.
+func is_shown(entry: Dictionary) -> bool:
+	return dev_tools_enabled or not bool(entry.get("dev", false))
+
+
+## Object-window actions without the "dev" variant ones while the switch is off.
+func shown_actions(actions: Array) -> Array:
+	if dev_tools_enabled: return actions
+	return actions.filter(func(action: Dictionary) -> bool: return String(action.get("variant", "")) != "dev")
+
+
+func _load_loading_screen() -> void:
+	var parsed: Variant = JsonData.read("res://data/ui/loading_screen.json")
+	if parsed == null: return
+	if not parsed.get("backgrounds") is Array or parsed.backgrounds.is_empty():
 		push_error("UIRegistry: loading screen needs a nonempty backgrounds list")
 		return
 	for path in parsed.backgrounds:
@@ -72,9 +95,9 @@ func get_loading_screen() -> Dictionary:
 
 
 func _load_dwarf_indicators() -> void:
-	var file := FileAccess.open("res://data/ui/dwarf_indicators.json",FileAccess.READ)
-	var parsed = JSON.parse_string(file.get_as_text()) if file != null else null
-	if not parsed is Dictionary or not parsed.get("icons") is Dictionary:
+	var parsed: Variant = JsonData.read("res://data/ui/dwarf_indicators.json")
+	if parsed == null: return
+	if not parsed.get("icons") is Dictionary:
 		push_error("UIRegistry: invalid dwarf indicator definition")
 		return
 	_dwarf_indicators = parsed
@@ -97,23 +120,9 @@ func _load_dock() -> void:
 	_menus.clear()
 	_room_symbols.clear()
 
-	var file := FileAccess.open(DOCK_PATH, FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: cannot open %s (error %d)" % [DOCK_PATH, FileAccess.get_open_error()])
-		return
-
-	var json := JSON.new()
-	var err  := json.parse(file.get_as_text())
-	file.close()
-
-	if err != OK:
-		push_error("UIRegistry: JSON parse error in %s — %s" % [DOCK_PATH, json.get_error_message()])
-		return
-
-	if not json.data is Dictionary:
-		push_error("UIRegistry: dock layout must be a JSON object.")
-		return
-	var root: Dictionary = json.data
+	var parsed: Variant = JsonData.read(DOCK_PATH)
+	if parsed == null: return
+	var root: Dictionary = parsed
 	if root.get("room_symbols", {}) is Dictionary:
 		_room_symbols = root.get("room_symbols", {})
 	if not root.get("items", []) is Array or not root.get("menus", {}) is Dictionary:
@@ -149,7 +158,7 @@ func _load_dock() -> void:
 				push_warning("UIRegistry: skipping malformed command in %s." % key)
 		_menus[key] = {"title": String(menu.get("title", key.capitalize())),
 			"parent": String(menu.get("parent", "")), "items": entries,
-			"illustrated": bool(menu.get("illustrated", false)),
+			"illustrated": bool(menu.get("illustrated", false)), "dev": bool(menu.get("dev", false)),
 			"dock_anchor": String(menu.get("dock_anchor", "")),
 			"columns": maxi(1, int(menu.get("columns", entries.size()))),
 			"compact_columns": maxi(1, int(menu.get("compact_columns", entries.size())))}
@@ -164,10 +173,9 @@ func _is_valid_button(item: Dictionary) -> bool:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-## Returns the ordered list of navigation buttons in screen order.
-## The returned array is the live internal list — treat it as read-only.
+## Returns the navigation buttons in screen order, without hidden DEV entries.
 func get_dock_items() -> Array:
-	return _dock_items
+	return _dock_items.filter(is_shown)
 
 
 ## Atlas regions retain the approved illustrated art without baking captions or
@@ -186,7 +194,12 @@ func get_dock_icon(entry: Dictionary) -> Texture2D:
 
 ## Read-only command-group metadata; behavior remains with DockUI.
 func get_menu(target: String) -> Dictionary:
-	return _menus.get(target, {})
+	var menu: Dictionary = _menus.get(target, {})
+	if menu.is_empty() or dev_tools_enabled: return menu
+	if menu.dev: return {}
+	var shown := menu.duplicate()
+	shown.items = menu.items.filter(is_shown)
+	return shown
 
 
 func get_room_symbol(id: String) -> Texture2D:
@@ -203,34 +216,17 @@ func get_time_slice() -> Dictionary:
 
 func _load_time_slice() -> void:
 	_time_slice.clear()
-	var file := FileAccess.open("res://data/ui/time_slice.json", FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing time/Slice artwork definitions")
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	file.close()
-	if parsed is Dictionary:
-		_time_slice = parsed
-	else:
-		push_error("UIRegistry: malformed time/Slice artwork definitions")
+	_time_slice = JsonData.read_dict("res://data/ui/time_slice.json")
 
 
 func _load_sky_dial() -> void:
 	_sky_dial.clear()
-	var file := FileAccess.open("res://data/ui/sky_dial.json", FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing Sky Dial artwork definitions")
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	file.close()
-	if parsed is Dictionary:
-		_sky_dial = parsed
-	else:
-		push_error("UIRegistry: malformed Sky Dial artwork definitions")
+	_sky_dial = JsonData.read_dict("res://data/ui/sky_dial.json")
 
 
 ## Re-reads the UI layout files. Useful for development / hot-tweaking the layout.
 func reload() -> void:
+	_load_dev_tools()
 	_load_dock()
 	_load_place_catalog()
 	_load_inventory_catalog()
@@ -246,13 +242,9 @@ func get_storage_categories() -> Array[Dictionary]:
 
 func _load_storage_categories() -> void:
 	_storage_categories.clear()
-	var file := FileAccess.open("res://data/ui/storage_filters.json", FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing storage filter categories")
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	file.close()
-	if not parsed is Dictionary or not parsed.get("categories") is Array:
+	var parsed: Variant = JsonData.read("res://data/ui/storage_filters.json")
+	if parsed == null: return
+	if not parsed.get("categories") is Array:
 		push_error("UIRegistry: malformed storage filter categories")
 		return
 	for entry in parsed.categories:
@@ -266,13 +258,9 @@ func get_roster_filters() -> Array[Dictionary]:
 
 func _load_roster_filters() -> void:
 	_roster_filters.clear()
-	var file := FileAccess.open(ROSTER_PATH, FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing dwarf roster filters")
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	file.close()
-	if not parsed is Dictionary or not parsed.get("filters") is Array:
+	var parsed: Variant = JsonData.read(ROSTER_PATH)
+	if parsed == null: return
+	if not parsed.get("filters") is Array:
 		push_error("UIRegistry: malformed dwarf roster filters")
 		return
 	for entry in parsed.filters:
@@ -286,13 +274,9 @@ func get_inventory_catalog() -> Dictionary:
 
 func _load_inventory_catalog() -> void:
 	_inventory_catalog = {"categories": [], "furniture_categories": {}}
-	var file := FileAccess.open(INVENTORY_PATH, FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing Inventory catalog")
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	file.close()
-	if not parsed is Dictionary or not parsed.get("categories") is Array:
+	var parsed: Variant = JsonData.read(INVENTORY_PATH)
+	if parsed == null: return
+	if not parsed.get("categories") is Array:
 		push_error("UIRegistry: malformed Inventory catalog")
 		return
 	for entry in parsed.categories:
@@ -308,13 +292,9 @@ func get_place_catalog() -> Dictionary:
 
 func _load_place_catalog() -> void:
 	_place_catalog = {"categories": [], "items": []}
-	var file := FileAccess.open(PLACE_PATH, FileAccess.READ)
-	if file == null:
-		push_error("UIRegistry: missing Place catalog")
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	file.close()
-	if not parsed is Dictionary or not parsed.get("categories") is Array or not parsed.get("items") is Array:
+	var parsed: Variant = JsonData.read(PLACE_PATH)
+	if parsed == null: return
+	if not parsed.get("categories") is Array or not parsed.get("items") is Array:
 		push_error("UIRegistry: malformed Place catalog")
 		return
 	var categories: Array[String] = []

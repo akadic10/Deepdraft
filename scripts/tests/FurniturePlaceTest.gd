@@ -1,7 +1,7 @@
 extends "res://scripts/tests/ObjectExplorerTest.gd"
 
-const TABLE := "base:furniture:wooden_table"
-const CHAIR := "base:furniture:wooden_chair"
+const TABLE := "base:furniture:log_table"
+const CHAIR := "base:furniture:log_chair"
 var items
 var dock
 var catalog
@@ -72,9 +72,10 @@ func _run() -> void:
 	_expect(catalog._tiles.size() == furniture.get_defs().size(), "all furniture definitions represented")
 	for tile: Dictionary in catalog._tiles.values():
 		_expect(tile.image.texture != null, "real model thumbnail exists")
-	_click(catalog._tabs.storage.get_global_rect().get_center())
+	_click(catalog._tabs.lighting.get_global_rect().get_center())
 	await _settle()
-	_expect(catalog._count.text == "Storage · 3 designs", "Storage filter names its category and three furniture designs")
+	var lighting: int = catalog._entries.filter(func(entry): return entry.category == "lighting").size()
+	_expect(lighting > 0 and catalog._count.text == "Lighting · %d designs" % lighting, "Lighting filter names its category and furniture designs")
 	_expect(catalog._paper.visible and catalog._tiles[catalog.selected_key].button.visible, "details follow a visible design in the selected category")
 	_click(catalog._all_toggle.get_global_rect().get_center())
 	await _settle()
@@ -90,16 +91,16 @@ func _run() -> void:
 	_expect(not furniture.is_active(), "opening the catalog alone does not start placement")
 	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
 	_expect(catalog._values.Available.text == "3", "loose items update open UI")
-	_expect(furniture.active_furniture_key() == TABLE and furniture._preview != null
+	_expect(furniture.active_furniture_key() == TABLE and furniture._visuals.preview != null
 		and manager.is_open("place"), "one tile click starts the blueprint preview and keeps catalog open")
 	_expect(furniture._ghosts.is_empty(), "tile click starts preview without placing behind UI")
 	_key(KEY_R)
 	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
 	_expect(furniture._yaw == 1, "re-clicking the active tile preserves rotation")
-	catalog._scroll.ensure_control_visible(catalog._tiles["base:furniture:communal_table"].button)
+	catalog._scroll.ensure_control_visible(catalog._tiles["base:furniture:board_game_table"].button)
 	await _settle()
-	_click(catalog._tiles["base:furniture:communal_table"].button.get_global_rect().get_center())
-	_expect(not furniture.is_active() and furniture._preview == null and catalog._place.disabled,
+	_click(catalog._tiles["base:furniture:board_game_table"].button.get_global_rect().get_center())
+	_expect(not furniture.is_active() and furniture._visuals.preview == null and catalog._place.disabled,
 		"unavailable design shows details and clears the old preview")
 	catalog._scroll.ensure_control_visible(catalog._tiles[TABLE].button)
 	await _settle()
@@ -170,36 +171,38 @@ func _run() -> void:
 	furniture.cancel_ghost(stored_plan.ghost_id)
 	await _settle()
 	_expect(int(furniture.get_catalog_stock()[TABLE].available) == 2, "cancel after withdraw conserves stock")
-	# Containers, restored requests and installation share the same live accounting.
-	var barrel := "base:furniture:barrel"
-	var barrel_item: String = furniture.get_defs()[barrel].item_key
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	container.setup_container({"storage": {"capacity": 8}}, cells)
-	container.source_id = root.get_node("TaskManager").allocate_source_id()
-	root.get_node("StockpileManager").register_container(container)
-	container.restore_inventory({barrel_item: 2}, items)
+	# Stockpiled stock, restored requests and installation share the same live accounting.
+	var stored_key := "base:furniture:bench"
+	var stored_item_key: String = furniture.get_defs()[stored_key].item_key
+	var bench_zone = load("res://scripts/components/StockpileZoneComponent.gd").new()
+	var bench_cells: Array[Vector3i] = [Vector3i(30,20,32), Vector3i(31,20,32)]
+	bench_zone.setup(903, bench_cells)
+	for stored_cell in bench_cells:
+		bench_zone.cell_stacks[stored_cell] = {"item": stored_item_key, "count": 1}
+		items.restore_stored_item(stored_item_key, stored_cell)
+	root.get_node("StockpileManager").register_zone(bench_zone)
 	root.get_node("StockpileManager").rebuild_totals()
-	_expect(int(furniture.get_catalog_stock()[barrel].available) == 2, "container inventory is available")
-	furniture.activate_for(barrel, true)
+	_expect(int(furniture.get_catalog_stock()[stored_key].available) == 2, "stockpiled furniture is available")
+	furniture.activate_for(stored_key, true)
 	_place_at(Vector3i(45,20,43))
 	var saved: Dictionary = furniture.serialize_state()
 	furniture.deactivate()
 	for id in furniture._ghosts.keys(): furniture.cancel_ghost(id)
 	furniture.restore_state(saved)
-	_expect(int(furniture.get_catalog_stock()[barrel].available) == 1
-		and int(furniture.get_catalog_stock()[barrel].reserved) == 1, "restored plans reserve existing stock")
-	var barrel_plan = furniture._ghosts.values()[0]
-	var barrel_fetch: Dictionary = barrel_plan.reserve_fetch(779, cells[0])
-	_expect(not barrel_fetch.is_empty() and container.stored_count() == 1, "fetch withdraws real container item")
-	items.take(barrel_fetch.item)
-	scene.add_child(barrel_fetch.item)
-	barrel_plan.notify_picked_up(779)
-	barrel_fetch.item.free()
-	barrel_plan.complete_build(779)
+	_expect(int(furniture.get_catalog_stock()[stored_key].available) == 1
+		and int(furniture.get_catalog_stock()[stored_key].reserved) == 1, "restored plans reserve existing stock")
+	var stored_bench_plan = furniture._ghosts.values()[0]
+	var stored_bench_fetch: Dictionary = stored_bench_plan.reserve_fetch(779, bench_cells[0])
+	_expect(not stored_bench_fetch.is_empty() and bench_zone.stored_count() == 1, "fetch withdraws real stockpiled item")
+	items.take(stored_bench_fetch.item)
+	scene.add_child(stored_bench_fetch.item)
+	stored_bench_plan.notify_picked_up(779)
+	stored_bench_fetch.item.free()
+	stored_bench_plan.complete_build(779)
 	await _settle()
 	_expect(furniture._installed.size() == 1 and furniture._ghosts.is_empty(), "delivery installs the requested furniture")
-	_expect(int(furniture.get_catalog_stock()[barrel].available) == 1
-		and int(furniture.get_catalog_stock()[barrel].reserved) == 0, "installation consumes one unit and clears its reservation")
+	_expect(int(furniture.get_catalog_stock()[stored_key].available) == 1
+		and int(furniture.get_catalog_stock()[stored_key].reserved) == 0, "installation consumes one unit and clears its reservation")
 	# Window/keyboard lifecycle; camera wheel isolation is in NavigationPreview.
 	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
 	_key(KEY_R)
@@ -253,7 +256,7 @@ func _place_at(cell: Vector3i) -> void:
 func _test_stable_browsing() -> void:
 	# The user's default view must not compact/re-sort while a hauler owns the
 	# last unit. Use the real reserve -> pickup -> ground-stockpile deposit flow.
-	var extras := ["bench", "barrel", "storage_chest", "storage_shelf", "wall_torch", "brazier", "door", "dwarf_bunk"]
+	var extras := ["bench", "crude_workbench", "wooden_torch", "campfire", "door", "log_bed"]
 	for suffix in extras:
 		items.spawn_drop(furniture.get_defs()["base:furniture:" + suffix].item_key, 1, Vector3i(32,21,32))
 	catalog._all_toggle.button_pressed = false
@@ -303,7 +306,7 @@ func _test_stable_browsing() -> void:
 		_expect(catalog._values.Available.text == "2" and not catalog._place.disabled, "stockpile deposit restores availability")
 		_assert_browse_stable(rectangles, window_rect, scroll, "deposit " + str(viewport_size))
 		if viewport_size.x == 960:
-			items.spawn_drop(furniture.get_defs()["base:furniture:communal_table"].item_key, 1, Vector3i(32,21,32))
+			items.spawn_drop(furniture.get_defs()["base:furniture:board_game_table"].item_key, 1, Vector3i(32,21,32))
 			await _settle()
 			_assert_browse_stable(rectangles, window_rect, scroll, "new design arrives")
 		_expect(root.gui_get_focus_owner() == catalog._tiles[CHAIR].button, "stock changes retain keyboard focus")

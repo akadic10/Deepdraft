@@ -9,8 +9,7 @@
     "",
     "MODEL VARIANTS — Hearthblock square trees (doc 256):",
     "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
-    "World-position hashing preserves each tree variant across seasonal changes.",
-    "Placement, growth, collision and harvest values are unchanged."
+    "World-position hashing preserves each tree variant across seasonal changes."
   ],
   "base:flora:apple_tree": {
     "harvest_resource": "base:resources:wood:apple_wood",
@@ -22,8 +21,9 @@
       "stockpile_wood"
     ],
     "appeal": 4,
-    "__placement_comment": "Mixed-forest niche, doc 14: wild fruit tree in sheltered wet low ground (lowland + low foothill), CLUMPED into groves. Also player-plantable. Read by SurfaceFloraSpawner.",
+    "__placement_comment": "Mixed-forest niche (42_farming_brewing.md, World placement): wild fruit tree in sheltered wet low ground (lowland + low foothill), CLUMPED into groves. Player planting is planned. Read by SurfaceFloraSpawner.",
     "placement": {
+      "pick_order": 2,
       "domains": [
         "lowland",
         "foothill"
@@ -59,7 +59,6 @@
         "collision": "clutter",
         "clearance_height": 2,
         "growth_duration_days": 5,
-        "next_stage": "mature",
         "models": {
           "spring": "res://assets/models/flora/trees/apple/apple_sapling_spring.glb",
           "summer": "res://assets/models/flora/trees/apple/apple_sapling.glb",
@@ -72,10 +71,8 @@
       },
       "mature": {
         "felling": { "work_seconds": 8.0 },
-        "footprint_tiles": 3,
         "clearance_height": 5,
         "growth_duration_days": 10,
-        "next_stage": "ancient",
         "models": {
           "spring": [
             "res://assets/models/flora/trees/apple/apple_mature_spring.glb",
@@ -110,8 +107,7 @@
           "yield_max": 6,
           "work_seconds": 4.0,
           "action_label": "Gather apples",
-          "yield_label": "apples",
-          "post_harvest": "persist"
+          "yield_label": "apples"
         },
         "harvest": {
           "yields": [
@@ -130,11 +126,8 @@
       },
       "ancient": {
         "felling": { "work_seconds": 16.0 },
-        "footprint_tiles": 5,
-        "world_gen_only": true,
         "clearance_height": 7,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "spring": [
             "res://assets/models/flora/trees/apple/apple_ancient_spring.glb",
@@ -169,8 +162,7 @@
           "yield_max": 10,
           "work_seconds": 6.0,
           "action_label": "Gather apples",
-          "yield_label": "apples",
-          "post_harvest": "persist"
+          "yield_label": "apples"
         },
         "harvest": {
           "yields": [

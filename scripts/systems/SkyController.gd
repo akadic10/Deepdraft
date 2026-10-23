@@ -5,7 +5,7 @@ extends Node
 ##
 ## Registered as an autoload (project.godot [autoload]), loaded after WorldClock. Render concerns
 ## are usually scene nodes here (WorldRenderer, Camera), but an autoload mirrors Stonehearth's
-## sky_renderer *service* and avoids editing the main scene; 08_sky_plan.md §D.2 allows either.
+## sky_renderer *service* and avoids editing the main scene; either is acceptable.
 ##
 ## A full-sphere backdrop shares its broad ambient gradient with roof-aware fog.
 ## Stars, clouds and celestial discs are background detail; the existing directional
@@ -17,8 +17,8 @@ const SETTINGS_PATH := "res://data/sky/sky_settings.json"
 const SKY_SHADER := preload("res://scripts/shaders/diorama_sky.gdshader")
 const WORLD_SCENE_PATH := "res://scenes/main/debug_world.tscn"
 
-## Emitted after the Hearthblock look is applied or removed, and after each scene
-## bind, so scene-owned materials, lights and overlays can follow it.
+## Emitted after each scene bind applies (or skips) the Hearthblock look, so
+## scene-owned materials, lights and overlays can follow it.
 signal hearthblock_lighting_changed(active: bool)
 
 # ── Tuning (safe to tweak; calibrate against screenshots) ─────────────────────
@@ -26,19 +26,10 @@ const SUN_ENERGY_SCALE   := 1.5    # light_energy = colour_brightness × this
 const MOON_ENERGY_SCALE   := 1.5
 const LIGHT_OFF_THRESHOLD := 0.02  # celestial colour brightness below this = light switched off
 const UPDATE_INTERVAL     := 0.05  # seconds between sky updates (~20 Hz; sky changes slowly)
-const DAY_HOURS           := 24.0
 const TWILIGHT_HOURS      := 1.0   # dawn/dusk shoulder either side of sunrise/sunset
-const MIN_DAYLIGHT        := 8.0   # winter-solstice daylight span (hours)
-const MAX_DAYLIGHT        := 16.0  # summer-solstice daylight span (hours)
 const WEATHER_BLEND       := 0.04  # per-update smoothing toward weather targets (~1.5 s settle)
 const DARK_FACTOR         := 0.65  # sky/fog brightness scale when is_dark_during_daytime
 
-
-# Fallback event hours if WorldClock has none (matches data/calendar/calendar.json).
-const DEFAULT_EVENT_HOURS := {
-	"midnight": 0, "sunrise_start": 5, "sunrise": 6, "sunrise_end": 7,
-	"midday": 14, "sunset_start": 20, "sunset": 21, "sunset_end": 22,
-}
 
 var _settings: Dictionary = {}
 var _clock: Node = null
@@ -68,12 +59,10 @@ var _active_weather: Dictionary = {}
 var _darken: float = 1.0
 var _c_stars: Array = []
 var _atmosphere: Dictionary = {}
-var _hearthblock_enabled: bool = false
 
 
 func _ready() -> void:
 	_settings = _load_settings()
-	_hearthblock_enabled = bool(_settings.get("hearthblock_lighting", {}).get("enabled", false))
 	_clock = get_node_or_null("/root/WorldClock")
 	# Autoloads run _ready BEFORE the main scene exists; wait one frame, then bind + start driving.
 	await get_tree().process_frame
@@ -104,17 +93,8 @@ func underground_settings() -> Dictionary:
 # ── Settings loader ───────────────────────────────────────────────────────────
 
 func _load_settings() -> Dictionary:
-	var file := FileAccess.open(SETTINGS_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("SkyController: cannot open %s — leaving scene sky/fog as authored." % SETTINGS_PATH)
-		return {}
-	var json := JSON.new()
-	var err := json.parse(file.get_as_text())
-	file.close()
-	if err != OK:
-		push_error("SkyController: JSON parse error in %s — %s" % [SETTINGS_PATH, json.get_error_message()])
-		return {}
-	return json.data
+	# On failure (reported) the scene sky/fog stays as authored.
+	return preload("res://scripts/registries/JsonData.gd").read_dict(SETTINGS_PATH)
 
 
 # ── Scene binding ─────────────────────────────────────────────────────────────
@@ -226,31 +206,25 @@ func current_event_hours() -> Dictionary:
 ## winter solstice, ~16 h at the summer solstice (WorldClock.daylight_hours). The keyframed curves
 ## are anchored to these event names, so they stretch/compress automatically with the season.
 func _refresh_event_hours() -> void:
-	var base := DEFAULT_EVENT_HOURS.duplicate()
-	if _clock != null and _clock.has_method("get_event_times"):
-		var e = _clock.call("get_event_times")
-		if e is Dictionary and not (e as Dictionary).is_empty():
-			base = e
+	# Event hours, day length and the seasonal curve all come from calendar.json via WorldClock.
+	var base: Dictionary = WorldClock.get_event_times()
 	var midnight: float = float(base.get("midnight", 0))
-	var midday: float = float(base.get("midday", 14))
-
-	var daylight := 12.0
-	if _clock != null and _clock.has_method("daylight_hours") and _clock.has_method("day_of_year"):
-		var doy: int = int(_clock.call("day_of_year"))
-		daylight = clampf(float(_clock.call("daylight_hours", doy)), MIN_DAYLIGHT, MAX_DAYLIGHT)
+	var midday: float = float(base.get("midday", 12))
+	var daylight := WorldClock.daylight_hours(WorldClock.day_of_year())
+	var day_hours := _day_hours()
 	var half := daylight * 0.5
 	var sunrise := midday - half
 	var sunset := midday + half
 
 	_event_hours = {
 		"midnight":      midnight,
-		"sunrise_start": clampf(sunrise - TWILIGHT_HOURS, 0.0, DAY_HOURS),
-		"sunrise":       clampf(sunrise, 0.0, DAY_HOURS),
-		"sunrise_end":   clampf(sunrise + TWILIGHT_HOURS, 0.0, DAY_HOURS),
+		"sunrise_start": clampf(sunrise - TWILIGHT_HOURS, 0.0, day_hours),
+		"sunrise":       clampf(sunrise, 0.0, day_hours),
+		"sunrise_end":   clampf(sunrise + TWILIGHT_HOURS, 0.0, day_hours),
 		"midday":        midday,
-		"sunset_start":  clampf(sunset - TWILIGHT_HOURS, 0.0, DAY_HOURS),
-		"sunset":        clampf(sunset, 0.0, DAY_HOURS),
-		"sunset_end":    clampf(sunset + TWILIGHT_HOURS, 0.0, DAY_HOURS),
+		"sunset_start":  clampf(sunset - TWILIGHT_HOURS, 0.0, day_hours),
+		"sunset":        clampf(sunset, 0.0, day_hours),
+		"sunset_end":    clampf(sunset + TWILIGHT_HOURS, 0.0, day_hours),
 	}
 
 
@@ -333,11 +307,11 @@ func _frac(curve: Array, h: float) -> Array:
 	if idx == -1:
 		# h is at/after the last keyframe — wrap to the first (+24h).
 		i0 = n - 1; i1 = 0
-		h0 = curve[i0][0]; h1 = curve[i1][0] + DAY_HOURS
+		h0 = curve[i0][0]; h1 = curve[i1][0] + _day_hours()
 	elif idx == 0:
 		# h is before the first keyframe — wrap from the last (-24h).
 		i0 = n - 1; i1 = 0
-		h0 = curve[i0][0] - DAY_HOURS; h1 = curve[i1][0]
+		h0 = curve[i0][0] - _day_hours(); h1 = curve[i1][0]
 	else:
 		i0 = idx - 1; i1 = idx
 		h0 = curve[i0][0]; h1 = curve[i1][0]
@@ -394,7 +368,7 @@ func _update(h: float) -> void:
 		_sky_mat.set_shader_parameter("night_amount", night * (1.0 - cover * 0.85))
 		_sky_mat.set_shader_parameter("cloud_cover", cover)
 		# Calendar motion stops when paused and wraps continuously at midnight.
-		_sky_mat.set_shader_parameter("cloud_rotation", h * TAU / DAY_HOURS)
+		_sky_mat.set_shader_parameter("cloud_rotation", h * TAU / _day_hours())
 		var cloud_day := _to_color(look.get("cloud_day", [.82, .86, .91]))
 		var cloud_night := _to_color(look.get("cloud_night", [.13, .18, .28]))
 		_sky_mat.set_shader_parameter("cloud_color", _scale_color(cloud_day.lerp(cloud_night, night), _darken))
@@ -473,51 +447,17 @@ func hearthblock_settings() -> Dictionary:
 	return _settings.get("hearthblock_lighting", {}).duplicate(true)
 
 
-## The switch itself, independent of which scene is current.
-func is_hearthblock_enabled() -> bool:
-	return _hearthblock_enabled
-
-
-## True only in the main world scene while the switch is on. Previews, galleries
-## and isolated test scenes keep their authored look.
+## True only in the main world scene. Previews, galleries and isolated test
+## scenes keep their authored look.
 func hearthblock_active() -> bool:
-	if not _hearthblock_enabled or not _settings.has("hearthblock_lighting"):
-		return false
 	var scene := get_tree().current_scene if is_inside_tree() else null
 	return is_instance_valid(scene) and scene.scene_file_path == WORLD_SCENE_PATH
 
 
-func set_hearthblock_lighting(enabled: bool) -> void:
-	if enabled == _hearthblock_enabled:
-		return
-	_hearthblock_enabled = enabled
-	_apply_hearthblock_environment()
-	# Loaded at runtime: FurnitureLighting refers back to this autoload.
-	load("res://scripts/components/FurnitureLighting.gd").apply_look(get_tree())
-	hearthblock_lighting_changed.emit(hearthblock_active())
-
-
-## Tone mapping and glow on the bound world Environment. The scene's authored
-## values are kept on the resource and restored exactly when the look is off.
+## Tone mapping and glow on the bound world Environment. Other scenes keep the
+## values authored on their own Environment.
 func _apply_hearthblock_environment() -> void:
-	if _env == null:
-		return
-	if not _env.has_meta("authored_hearthblock_look"):
-		var levels: Array[float] = []
-		for i in range(7): levels.append(_env.get_glow_level(i))
-		_env.set_meta("authored_hearthblock_look", {
-			"tonemap_mode": _env.tonemap_mode, "tonemap_exposure": _env.tonemap_exposure,
-			"tonemap_white": _env.tonemap_white, "glow_enabled": _env.glow_enabled,
-			"glow_intensity": _env.glow_intensity, "glow_strength": _env.glow_strength,
-			"glow_bloom": _env.glow_bloom, "glow_blend_mode": _env.glow_blend_mode,
-			"glow_hdr_threshold": _env.glow_hdr_threshold, "glow_hdr_scale": _env.glow_hdr_scale,
-			"glow_levels": levels,
-		})
-	var authored: Dictionary = _env.get_meta("authored_hearthblock_look")
-	if not hearthblock_active():
-		for key: String in authored:
-			if key != "glow_levels": _env.set(key, authored[key])
-		for i in range(7): _env.set_glow_level(i, float(authored.glow_levels[i]))
+	if _env == null or not hearthblock_active():
 		return
 	var look := hearthblock_settings()
 	_env.tonemap_mode = {
@@ -544,6 +484,10 @@ func _apply_hearthblock_environment() -> void:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+func _day_hours() -> float:
+	return float(WorldClock.hours_per_day())
+
 
 func _current_hour() -> float:
 	if _clock != null:

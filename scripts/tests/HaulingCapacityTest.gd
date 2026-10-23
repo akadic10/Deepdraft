@@ -38,7 +38,6 @@ func _run() -> void:
 	zone.cancel_haul(OWNER)
 
 	await _test_data_driven_limits()
-	await _test_container_budget()
 	await _test_mixed_trip()
 	await _new_trip(LOG, 1)
 	for i in range(2): drops.restore_loose_item(LOG, Vector3(40.5+i,21,41.5))
@@ -50,7 +49,7 @@ func _run() -> void:
 		_expect(false, "two-log trip reaches carry phase")
 	for failure in failures: push_error(failure)
 	if failures.is_empty():
-		print("HAULING_CAPACITY_OK: JSON budget/costs, rocks/ore/logs/crates, mixed loads, candidate skipping, claims, custom capacity, containers, cancellation")
+		print("HAULING_CAPACITY_OK: JSON budget/costs, rocks/ore/logs/crates, mixed loads, candidate skipping, claims, custom capacity, cancellation")
 	quit(0 if failures.is_empty() else 1)
 
 
@@ -72,7 +71,7 @@ func _test_data_driven_limits() -> void:
 	var pull: Dictionary = zone.reserve_haul(OWNER, worker.current_cell(), {})
 	_expect(pull.get("items", []).size() == 1, "registry cost change controls selection without item-type branches")
 	zone.cancel_haul(OWNER)
-	# Registration uses the coordinator's loaded setting for both storage families.
+	# Registration uses the coordinator's loaded carry setting.
 	stockpiles._carry_capacity = 6
 	stockpiles.register_zone(zone)
 	_expect(zone.carry_capacity == 6, "zone receives changed carry capacity")
@@ -100,26 +99,6 @@ func _test_data_driven_limits() -> void:
 	_expect(pull.get("items", []).size() == 1, "oversized nearest item does not block a fitting main item")
 	if not pull.is_empty(): _expect(drops.item_key_of(pull.items[0]) == STONE, "fitting main item is chosen")
 	zone.cancel_haul(OWNER)
-
-
-func _test_container_budget() -> void:
-	await _new_trip(LOG, 1)
-	for i in range(2): drops.restore_loose_item(LOG, Vector3(40.5+i,21,41.5))
-	stockpiles.deregister_zone(zone)
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(40,20,44)]
-	container.setup_container({"storage": {"capacity": 8}}, cells)
-	container.source_id = tasks.allocate_source_id()
-	stockpiles.register_container(container)
-	_expect(container.carry_capacity == 4, "container receives JSON carry capacity")
-	var pull: Dictionary = container.reserve_haul(OWNER, worker.current_cell(), {})
-	_expect(pull.get("items", []).size() == 2, "container haul obeys same two-log limit")
-	var carried: Array = []
-	for i in range(pull.get("items", []).size()):
-		var item: Node3D = container.take_item(OWNER, i)
-		carried.append([item, drops.item_key_of(item)])
-	_expect(container.commit_haul(OWNER, carried), "container commits reserved budgeted cargo")
-	_expect(container.stored_count() == 2 and _loose_units() == 1 and container.reserved_slot_count == 0, "container delivery leaves third log available")
 
 
 func _test_mixed_trip() -> void:

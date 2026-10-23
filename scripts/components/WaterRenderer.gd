@@ -35,6 +35,7 @@ var last_update_ms: Dictionary = {}
 
 func _ready() -> void:
 	terrain.visible_volume_changed.connect(func(): _view_dirty = true)
+	WaterManager.surface_changed.connect(_on_surface_changed)
 	var base := StandardMaterial3D.new()
 	base.vertex_color_use_as_albedo = true
 	base.roughness = 0.65
@@ -140,6 +141,32 @@ func _invalidate_view() -> void:
 	_splash_sites.clear()
 	for key: Vector3i in WaterManager.flow.mass:
 		_queue_tile(Vector2i(int(key.x/32.0),int(key.z/32.0)))
+
+## A tile keeps its last build until its water moved visibly: by
+## rendering.redraw_level_step since that build, or across standing depth. In a
+## steady river 73% of tile changes per tick are under 1/1024 block (2026-10-22
+## probe); redrawing each one kept the mesh queue seconds behind. A changed cell
+## also counts for the neighbouring tile whose border halo holds it.
+func _on_surface_changed(cells: Array) -> void:
+	var flow = WaterManager.flow
+	var standing := roundi(WaterManager.standing_depth*Flow.UNITS)
+	var step := roundi(float(WorldGenerator.water_profile.rendering.redraw_level_step)*Flow.UNITS)
+	for cell: Vector3i in cells:
+		var units := int(flow.mass.get(cell,0))
+		var checked: Array[Vector2i] = []
+		for offset: Vector2i in [Vector2i.ZERO,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+			var col := Vector2i(cell.x,cell.z)+offset
+			var tile := Vector2i(int(col.x/32.0),int(col.y/32.0))
+			if tile in checked or _pending.has(tile): continue
+			checked.append(tile)
+			if not _last_inputs.has(tile):
+				_queue_tile(tile)
+				continue
+			var built: Dictionary = _last_inputs[tile]
+			# A tile drawn empty keeps no mass; only newly standing water matters.
+			var before := int(built.mass.get(cell,0))
+			if (before>=standing) != (units>=standing) or (not built.visible.is_empty() and absi(units-before)>=step):
+				_queue_tile(tile)
 
 func _queue_tile(tile: Vector2i) -> void:
 	if tile.x < 0 or tile.y < 0 or tile.x >= 32 or tile.y >= 32: return

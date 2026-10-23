@@ -59,7 +59,7 @@ func clock_tick(hours: float) -> void:
 func begin_if_needed() -> bool:
 	if active() or not hungry() or retry_hours > 0.0: return false
 	if agent.is_sleeping() or agent.promotion_pending() or not NavGrid.is_walkable(agent.current_cell()): return false
-	_items = agent.get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	_items = ItemDropManager.find(agent.get_tree())
 	if _items == null: return false
 	_keys = _items.edible_keys()
 	# Clear work and callbacks before claiming self-care ownership.
@@ -296,7 +296,7 @@ func release_reservation() -> void:
 func describe() -> Dictionary:
 	var label := "Famished" if famished() else "Hungry" if hungry() else "Satisfied"
 	if not is_instance_valid(_items) and agent.is_inside_tree():
-		_items = agent.get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+		_items = ItemDropManager.find(agent.get_tree())
 	var meal_name := String(_items.get_item_def(last_meal).get("display_name",last_meal)) if is_instance_valid(_items) else last_meal
 	var meal := "No meal yet" if last_meal.is_empty() else "Last meal: %s · %.1f game hours ago" % [meal_name,hours_since_meal]
 	if not last_dining.is_empty(): meal += "\n"+String({"proper":"Ate seated at a table","seat_only":"Ate without a table","table_only":"Ate standing at a table","neither":"Ate without a seat or table"}.get(last_dining,""))
@@ -318,7 +318,7 @@ func serialize() -> Dictionary:
 func restore(data: Dictionary) -> void:
 	value = clampf(float(data.value),0.0,1.0)
 	last_meal = String(data.last_meal)
-	last_dining = String(data.get("last_dining",""))
+	last_dining = String(data.last_dining)
 	shortage = false
 	hours_since_meal = maxf(0.0,float(data.hours_since_meal))
 	retry_hours = maxf(0.0,float(data.retry_hours))

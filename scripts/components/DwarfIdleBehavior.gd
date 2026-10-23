@@ -133,7 +133,7 @@ func tick(delta: float) -> bool:
 	if _rng.randf() < float(config.get("seat_chance",.6)):
 		_furniture = agent.get_tree().get_first_node_in_group("furniture_controller")
 		if is_instance_valid(_furniture):
-			_chairs = _furniture._installed.values()
+			_chairs = _furniture.get_installed_pieces()
 			_chair_index = 0
 			state = "looking_for_seat"
 			return true
@@ -190,25 +190,25 @@ func _local(cell: Vector3i) -> bool:
 func _uncrowded(cell: Vector3i) -> bool:
 	var point := Vector3(cell)+Vector3(.5,1,.5)
 	var spacing := float(config.get("spacing",2.4))
-	for other: DwarfAgent in TaskManager._agents.values():
+	for other: DwarfAgent in TaskManager.get_agents():
 		if other == agent or not is_instance_valid(other): continue
 		if point.distance_to(other.global_position) < spacing: return false
-		if other._idle_behavior != null and other._idle_behavior.goal.x >= 0:
-			if Vector3(cell-other._idle_behavior.goal).length() < spacing: return false
+		if other.get_idle_behavior() != null and other.get_idle_behavior().goal.x >= 0:
+			if Vector3(cell-other.get_idle_behavior().goal).length() < spacing: return false
 	return true
 
 func _clear_stop(cell: Vector3i) -> bool:
-	if not Privacy.allowed(cell,agent.dwarf_id) or RoomManager._door_cells.has(cell): return false
+	if not Privacy.allowed(cell,agent.dwarf_id) or RoomManager.is_door_cell(cell): return false
 	if not NavGrid.is_walkable(cell): return false
 	for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
 		if not NavGrid.ladder_at(cell+offset).is_empty(): return false
-	for zone in StockpileManager._zones.values():
+	for zone in StockpileManager.get_zones():
 		if cell in zone.tile_cells: return false
 	var furniture := agent.get_tree().get_first_node_in_group("furniture_controller")
 	if furniture != null:
-		if furniture._cell_to_ghost.has(cell): return false
+		if furniture.get_ghost_at(cell) != null: return false
 		for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
-			if furniture._cell_to_installed.has(cell+offset): return false
+			if furniture.get_installed_at(cell+offset) != null: return false
 	return true
 
 ## One furniture candidate per frame; no full-colony pathfinding burst.
@@ -219,7 +219,7 @@ func _find_seat_step() -> void:
 		return
 	var candidate: InstalledFurnitureComponent = _chairs[_chair_index]
 	_chair_index += 1
-	if _furniture._seating.is_recreation_seat(candidate): return
+	if _furniture.get_seating().is_recreation_seat(candidate): return
 	if candidate.flagged_uninstall or candidate.idle_seat_owner >= 0 or not is_instance_valid(candidate.node): return
 	if not Seating.is_chair(candidate.def) or not candidate.def.seating_chair.has("rest_pose"): return
 	if not Privacy.allowed(candidate.origin_cell,agent.dwarf_id): return
@@ -246,10 +246,10 @@ func _find_seat_step() -> void:
 ## Pick once per visit, keeping backed chairs aligned with their furniture.
 ## Round stools prefer the nearest visible fire only if the seated pose fits.
 func _seat_facing(candidate: InstalledFurnitureComponent) -> Dictionary:
-	if bool(_furniture._seating.chair_settings(candidate).get("face_nearby_fire",false)):
+	if bool(_furniture.get_seating().chair_settings(candidate).get("face_nearby_fire",false)):
 		var fires: Array = []
 		var radius := float(config.get("seat_focus_radius",6))
-		for piece: InstalledFurnitureComponent in _furniture._installed.values():
+		for piece: InstalledFurnitureComponent in _furniture.get_installed_pieces():
 			if piece.def.get("seating_focus","") != "fire" or piece.flagged_uninstall or not is_instance_valid(piece.node): continue
 			if piece.origin_cell.y != candidate.origin_cell.y: continue
 			if piece.node.global_position.distance_to(candidate.node.global_position) > radius: continue
@@ -259,24 +259,24 @@ func _seat_facing(candidate: InstalledFurnitureComponent) -> Dictionary:
 			var offset := fire.node.global_position-candidate.node.global_position
 			if offset.length_squared() < .001: continue
 			var yaw := posmod(roundi(atan2(offset.x,offset.z)/(PI*.5)),4)
-			if not _furniture._seating.placement_reason(candidate.def,candidate.origin_cell,yaw,candidate).is_empty(): continue
+			if not _furniture.get_seating().placement_reason(candidate.def,candidate.origin_cell,yaw,candidate).is_empty(): continue
 			var eyes := candidate.node.global_position+Vector3(0,2.5,0)
 			var sight := fire.node.global_position+Vector3.UP-eyes
 			if not Picking.terrain_hit(eyes,sight.normalized(),WorldData.WORLD_SIZE_Y-1,sight.length()).is_empty(): continue
 			return {"yaw":yaw,"fire_id":fire.installed_id}
-	if _furniture._seating.placement_reason(candidate.def,candidate.origin_cell,candidate.yaw_steps,candidate).is_empty():
+	if _furniture.get_seating().placement_reason(candidate.def,candidate.origin_cell,candidate.yaw_steps,candidate).is_empty():
 		return {"yaw":candidate.yaw_steps}
 	return {}
 
 func _seat_valid() -> bool:
 	if seat == null or not is_instance_valid(_furniture) or not is_instance_valid(seat.node): return false
 	if not Privacy.allowed(seat.origin_cell,agent.dwarf_id): return false
-	if _furniture._installed.get(seat.installed_id) != seat or seat.flagged_uninstall: return false
+	if _furniture.get_installed(seat.installed_id) != seat or seat.flagged_uninstall: return false
 	if seat.idle_seat_owner != agent.dwarf_id or not NavGrid.is_walkable(goal): return false
 	for cell in seat.cells:
-		if not BlockRegistry.is_solid(NavGrid._block_id(cell.x,cell.y,cell.z)): return false
+		if not BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y,cell.z)): return false
 	if _seat_check_revision != NavGrid.navigation_revision:
-		if not _furniture._seating.placement_reason(seat.def,seat.origin_cell,Seating.clearance_yaw(seat),seat).is_empty(): return false
+		if not _furniture.get_seating().placement_reason(seat.def,seat.origin_cell,Seating.clearance_yaw(seat),seat).is_empty(): return false
 		_seat_check_revision = NavGrid.navigation_revision
 	return true
 
@@ -305,7 +305,7 @@ func _vector(values: Array) -> Vector3:
 func _pose() -> void:
 	var base := agent.to_local(seat.node.global_position)
 	# Art viewers also supply a lightweight owner for the existing rest pose.
-	var settings: Dictionary = _furniture._seating.chair_settings(seat) if _furniture is FurniturePlacementController else seat.def.seating_chair
+	var settings: Dictionary = _furniture.get_seating().chair_settings(seat) if _furniture is FurniturePlacementController else seat.def.seating_chair
 	var pose: Dictionary = settings.rest_pose
 	var parts := {"body":agent._body,"left_hand":agent._hand_l,"right_hand":agent._hand_r,
 		"left_foot":agent._foot_l,"right_foot":agent._foot_r}
@@ -319,7 +319,7 @@ func _pose() -> void:
 	if is_instance_valid(agent._head):
 		agent._head.position = (base+_vector(pose.get("head",pose.body))+Vector3(0,sin(elapsed*1.8)*.012,0))*_sitting_blend
 		var look := 0.0
-		var fire = _furniture._installed.get(_focus_fire_id)
+		var fire = _furniture.get_installed(_focus_fire_id)
 		if fire != null and not fire.flagged_uninstall and is_instance_valid(fire.node):
 			var direction: Vector3 = fire.node.global_position-seat.node.global_position
 			look = clampf(wrapf(atan2(direction.x,direction.z)-agent.rotation.y,-PI,PI),-PI*.25,PI*.25)

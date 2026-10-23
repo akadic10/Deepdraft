@@ -72,7 +72,7 @@ func _update_marker(entry: Dictionary, camera: Camera3D, delta: float, check_vis
 	entry.pulse += delta
 	icon.hide()
 	if entry.alpha<=0.0 or not agent.is_visible_in_tree() or agent.is_queued_for_deletion(): return
-	var bounds := Picking.visible_world_bounds(agent._head)
+	var bounds := Picking.visible_world_bounds(agent.get_head())
 	if bounds.size == Vector3.ZERO: return
 	var head := bounds.get_center()
 	var anchor := Vector3(head.x,bounds.end.y,head.z)
@@ -89,7 +89,7 @@ func _update_marker(entry: Dictionary, camera: Camera3D, delta: float, check_vis
 	icon.position = camera.unproject_position(anchor)-Vector2(width*.5,icon.size.y+6.0*ui_scale)
 	if not Rect2(Vector2.ZERO,viewport_size).encloses(icon.get_rect()): return
 	if check_visibility or not entry.checked:
-		entry.clear = _head_visible(camera,head,agent._slice_y)
+		entry.clear = _head_visible(camera,head,agent.get_slice_y())
 		entry.checked = true
 	if not entry.clear: return
 	icon.modulate.a = float(entry.alpha)*zoom_alpha

@@ -1,6 +1,5 @@
 extends RefCounted
 
-const LOOK_GROUP := &"hearthblock_furniture_lights"
 
 ## Installed visuals only: caller supplies the definition from the furniture owner.
 ## Keeping the flame a named mesh avoids making the iron and wood glow too.
@@ -26,7 +25,6 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 	var warm: Dictionary = SkyController.hearthblock_settings().get("light_colors", {})
 	var key := String(def.get("furniture_key", ""))
 	if warm.has(key): light.set_meta("hearthblock_color", Color(String(warm[key])))
-	light.add_to_group(LOOK_GROUP)
 	node.add_child(light)
 	var mesh_name := String(light_def.get("emissive_mesh", ""))
 	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
@@ -60,12 +58,6 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 				animation.queue_free() # retain the static glow if a custom clip is invalid
 	preload("VoxelShadowSetup.gd").set_casting(node, bool(light_def.get("body_shadows", false)))
 	_apply_light_look(light)
-
-
-## Re-apply the current look to every installed furniture light.
-static func apply_look(tree: SceneTree) -> void:
-	for light: Node in tree.get_nodes_in_group(LOOK_GROUP):
-		if light is OmniLight3D: _apply_light_look(light)
 
 
 static func _apply_light_look(light: OmniLight3D) -> void:

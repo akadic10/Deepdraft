@@ -79,13 +79,6 @@ func _run() -> void:
 		carrier.free()
 		var bounds: AABB = Picking.world_bounds(node)
 		_expect(bounds.size.x < 1 and bounds.size.z < 1 and is_equal_approx(bounds.position.y, 21), key + " fits a grounded stockpile tile")
-		var slot: Node3D = items.create_item_visual(key)
-		scene.add_child(slot)
-		load("res://scripts/components/StorageItemLayout.gd").fit(slot, Vector3(.3125,.625,.3125), .5)
-		var slot_bounds: AABB = Picking.world_bounds(slot)
-		_expect(slot_bounds.size.x <= .313 and slot_bounds.size.z <= .313 and is_zero_approx(slot_bounds.position.y), key + " fits a shelf slot without hovering")
-		_expect(slot.find_children("*", "MeshInstance3D", true, false)[0].material_override == material, key + " shares gloss in shelf visuals")
-		slot.free()
 		items.drop_loose(node, cell)
 		# Stable presentation positions after testing the actual loose-drop path.
 		node.position = Vector3(cell) + Vector3(.5,1,.5)
@@ -211,8 +204,8 @@ func _native_review() -> void:
 	var torchlight := await _capture("torchlight.png")
 	measurements.torch_difference = _difference(torchlight, dark)
 	_expect(measurements.torch_difference > .0001, "local torchlight reaches sealed gem facets")
-	# Native scale beside a real dwarf, with the actual carry pose and shelf
-	# container path (both must retain the item material after reparenting).
+	# Native scale beside a real dwarf, with the actual carry pose (it must
+	# retain the item material after reparenting).
 	torch.free()
 	sun.visible = true
 	layer.hide()
@@ -249,34 +242,13 @@ func _native_review() -> void:
 	var carried_mesh := cargo.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	_expect(carried_mesh.material_override == items._surface_materials[cargo_key], "actual dwarf carry pose retains gem material")
 	_expect(float(carried_mesh.get_instance_shader_parameter("actor_sky_access")) >= 0, "carried gem binds to the dwarf's underground exposure")
-	var furniture = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	furniture._load_defs()
-	var shelf_def: Dictionary = furniture.get_defs()["base:furniture:storage_shelf"]
-	var shelf: Node3D = load(shelf_def.model).instantiate()
-	furniture._apply_material(shelf, furniture._make_solid_material())
-	scene.add_child(shelf)
-	shelf.position = Vector3(29.5,21,25.5)
-	field.bind_tree(shelf)
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(29,20,25)]
-	container.setup_container(shelf_def, cells)
-	container.display_parent = shelf
-	var stock := {}
-	for name in NAMES: stock["base:resources:gem:" + name + "_raw"] = 1
-	container.restore_inventory(stock, items)
-	_expect(container.stored_count() == 6 and container.occupied_slots() == 6, "actual shelf restores all six gems into individual slots")
-	for slot in container._anchor_slots:
-		if slot == null: continue
-		var stored_mesh := slot[0].find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
-		_expect(stored_mesh.material_override == items._surface_materials[slot[1]], "actual shelf retains gem material")
-	furniture.free()
 	camera.position = Vector3(33,28,37)
 	camera.look_at(Vector3(27.6,22.2,26.4))
 	camera.size = 8.8
 	var context_layer := CanvasLayer.new()
 	scene.add_child(context_layer)
 	_label(context_layer, "GEMS AT GAME SCALE", Vector2(56,35), 32)
-	_label(context_layer, "Carried ruby  ·  Six gems on a storage shelf  ·  Loose drops", Vector2(57,81), 20)
+	_label(context_layer, "Carried ruby  ·  Loose drops", Vector2(57,81), 20)
 	await _capture("game_scale.png")
 
 

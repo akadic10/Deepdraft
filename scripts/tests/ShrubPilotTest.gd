@@ -68,7 +68,7 @@ func _run() -> void:
 	_expect(details.get_explorer_data(BLUE).actions.size() == 4, "ripe plant offers harvest, move, uproot and clear actions")
 	_expect(not details.accepts_tool(BLUE,"clear_stones") and not details.accepts_tool(ELDER,"harvest_plants"), "tools reject wrong categories and out-of-season crops")
 	explorer._perform_action("harvest")
-	var source: RefCounted = details._sources[BLUE]
+	var source: RefCounted = details.work.sources[BLUE]
 	_expect(source.task_type == Task.Type.HARVEST_SHRUB and source.duration == 3, "harvest uses configured adjacent work")
 	_expect(not details.designate_detail(BLUE,"clear_shrubs"), "clearing cannot silently replace a harvest order")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
@@ -86,11 +86,11 @@ func _run() -> void:
 	worker._process(2)
 	_expect(source.state.work_seconds == partial, "pause freezes harvest")
 	clock_node.set_paused(false)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(source.reserved_by == -1 and source.state.work_seconds == partial, "interrupt preserves harvest work and releases claim")
 	details.cancel_clearing(BLUE)
 	details.designate_detail(BLUE,"clear_shrubs")
-	_expect(details._sources[BLUE].task_type == Task.Type.CLEAR_SHRUB and details._changes[BLUE].work_seconds == 0, "clearing keeps separate progress")
+	_expect(details.work.sources[BLUE].task_type == Task.Type.CLEAR_SHRUB and details._changes[BLUE].work_seconds == 0, "clearing keeps separate progress")
 	details.cancel_clearing(BLUE)
 	details.designate_detail(BLUE,"harvest_plants")
 	_expect(details._changes[BLUE].work_seconds == partial, "returning to harvest restores its partial work")
@@ -99,13 +99,13 @@ func _run() -> void:
 	# the saved summer job. The final restored clock decides availability.
 	_season("winter")
 	details.restore_state(saved)
-	_expect(details._sources.size() == 1, "owner restore does not use transient clock to cancel a job")
+	_expect(details.work.sources.size() == 1, "owner restore does not use transient clock to cancel a job")
 	_season("summer")
 	_expect(JSON.parse_string(JSON.stringify(details.serialize_state())) == saved, "active partial crop state round-trips")
 	_expect(await _until_working(), "restored harvest resumes through scheduler")
 	for i in range(45):
 		worker._process(.1)
-		if not details._sources.has(BLUE): break
+		if not details.work.sources.has(BLUE): break
 	_expect(_berry_count("blueberry") == 3 and not details._changes[BLUE].removed, "harvest yields three berries and keeps plant")
 	_expect(not details.designate_detail(BLUE,"harvest_plants"), "same crop cannot be harvested twice")
 	details._spawn_visual(BLUE)
@@ -119,7 +119,7 @@ func _run() -> void:
 	_expect(await _until_working(), "worker reaches elderberry")
 	worker._process(.4)
 	_season("winter")
-	_expect(not details._sources.has(ELDER) and worker.current_task_id == -1 and details._changes[ELDER].work_seconds > 0, "season end cancels active harvest safely and keeps progress")
+	_expect(not details.work.sources.has(ELDER) and worker.current_task_id == -1 and details._changes[ELDER].work_seconds > 0, "season end cancels active harvest safely and keeps progress")
 	_season("autumn",2)
 	details.designate_detail(ELDER,"harvest_plants")
 	_expect(await _until_working(), "elderberry harvest resumes in eligible season")
@@ -144,7 +144,7 @@ func _run() -> void:
 	_expect(details._records[BLUE].node == null, "cleared plant never regrows on load or next season")
 	details.designate_detail(ELDER,"clear_shrubs")
 	world.set_block(46,20,40,blocks.AIR_ID)
-	_expect(details._changes[ELDER].removed and not details._sources.has(ELDER), "support excavation removes shrub and its order")
+	_expect(details._changes[ELDER].removed and not details.work.sources.has(ELDER), "support excavation removes shrub and its order")
 	var handle: int = root.get_node("PlacedEntityRegistry").register_box(Vector3i(52,21,40),Vector3i(1,3,1))
 	_expect(details._changes[STRAW].removed, "committed construction displaces shrubs")
 	root.get_node("PlacedEntityRegistry").unregister(handle)
@@ -221,7 +221,7 @@ func _test_cuttings() -> void:
 		else:
 			var handle: int = root.get_node("PlacedEntityRegistry").register_box(origin+Vector3i.UP, Vector3i(1,3,1))
 			root.get_node("PlacedEntityRegistry").unregister(handle)
-		_expect(details._changes[id].removed and not details._sources.has(id) and _cutting_count("blueberry_cutting") == before, "support/construction displacement never drops cuttings")
+		_expect(details._changes[id].removed and not details.work.sources.has(id) and _cutting_count("blueberry_cutting") == before, "support/construction displacement never drops cuttings")
 	_expect(drops._missing_models.is_empty(), "all cutting crates have valid models")
 	# Restore actual item quantities, then exercise the established Seeds & cuttings filter.
 	var saved_items: Dictionary = JSON.parse_string(JSON.stringify(drops.serialize_state()))
@@ -249,7 +249,7 @@ func _test_cuttings() -> void:
 		if step % 30 == 0: await process_frame
 	for i in range(3): _expect(storage.get_total("base:resources:seed:"+cutting_names[i]) == quantities[i], "worker hauls cutting crates into Seeds & cuttings storage")
 	_expect(_berry_count("blueberry") == 3 and _berry_count("elderberry") == 4 and _berry_count("wild_strawberry") == 6, "clearing and seed storage leave berries unchanged")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	storage.deregister_zone(zone)
 
 
@@ -280,7 +280,7 @@ func _capture_shrubs() -> void:
 	camera.position = Vector3(57,33,56)
 	camera.look_at(Vector3(44,21.6,40))
 	explorer._window.position = Vector2(24,130)
-	worker._carry_pose.gather(.5, worker._fell_contact)
+	worker._carry_pose.gather(.5, worker._work_execution._fell_contact)
 	details._update_markers()
 	for i in range(8): await process_frame
 	await RenderingServer.frame_post_draw

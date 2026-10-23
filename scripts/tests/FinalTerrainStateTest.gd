@@ -5,23 +5,6 @@ var failures: Array[String] = []
 func _init() -> void: _run.call_deferred()
 
 func _run() -> void:
-	var migration = load("res://scripts/components/TerrainSaveMigration.gd")
-	var old := {"schema_version":1,"scene":{
-		"mining":{"mined_blocks":[[8,8,8],[9,8,8],[10,8,8]],"zones":[]},
-		"water":{"terrain":[{"cell":[8,8,8],"block":"base:terrain:rock:rock01"}]},
-		"construction":{"built":[{"cell":[8,8,8],"block":"base:construction:floor:plank"},
-			{"cell":[9,8,8],"block":"base:construction:floor:stone"}],"orders":[],"next_id":1}}}
-	var upgraded: Dictionary = migration.upgrade(old.duplicate(true))
-	_expect(old.schema_version==1 and old.scene.construction.has("built"),"source snapshot remains available for backup")
-	_expect(upgraded.schema_version==2 and upgraded.scene.terrain.edits.size()==3,"overlapping legacy records become one final voxel each")
-	var final := {}
-	for entry: Dictionary in upgraded.scene.terrain.edits: final[str(entry.cell)] = entry.block
-	_expect(final[str([8,8,8])]=="base:construction:floor:plank","last old owner determines final plank tile")
-	_expect(final[str([9,8,8])]=="base:construction:floor:stone","stone flooring retains its identity")
-	_expect(final[str([10,8,8])]=="base:terrain:void","unfilled excavation retains air")
-	_expect(upgraded.scene.exploration.legacy_mined==old.scene.mining.mined_blocks,"legacy knowledge is kept separately")
-	_expect(not upgraded.scene.construction.has("built") and not upgraded.scene.water.has("terrain") and not upgraded.scene.mining.has("mined_blocks"),"old terrain authorities removed")
-	_expect(migration.upgrade(upgraded)==upgraded,"current format needs no conversion")
 	# Use real generator identity for pruning, including later dirt/grass writers.
 	var generator = root.get_node("WorldGenerator")
 	root.get_node("WorldClock").set_paused(true)

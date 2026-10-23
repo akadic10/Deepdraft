@@ -10,7 +10,7 @@ extends StorageComponent
 ## Cells are FLOOR block coordinates; zones are flat by designation rule.
 ## Item identity is the namespaced String key, never a runtime int.
 
-## New storage and older saves accept every existing stockpile category.
+## New storage accepts every existing stockpile category.
 ## StorageComponent adds exact item choices and per-category exceptions.
 const DEFAULT_FILTER_TAGS: Array[String] = [
 	"stockpile_stone", "stockpile_ore", "stockpile_gem", "stockpile_soil",
@@ -72,7 +72,7 @@ func _has_room_for_key(key: String) -> bool:
 # ── Storage contract (doc 19 §3.5 — the abstract surface) ─────────────────────
 
 ## An empty cell or room in an existing compatible crate.
-func _has_any_room() -> bool:
+func has_any_room() -> bool:
 	return _slots.has_any_room()
 
 
@@ -107,12 +107,12 @@ func delivery_stand_cells(target: Vector3i, dwarf_id: int = -1) -> Array[Vector3
 func _place_visual(node: Node3D, token: Variant) -> void:
 	if node != null and is_instance_valid(node) \
 			and drop_manager != null and is_instance_valid(drop_manager):
-		var existing: Node3D = drop_manager.call("stored_node_at", token.slot)
+		var existing: Node3D = drop_manager.stored_node_at(token.slot)
 		if existing != null:
-			drop_manager.call("set_quantity", existing, int(cell_stacks[token.slot].count))
+			drop_manager.set_quantity(existing, int(cell_stacks[token.slot].count))
 			node.queue_free()
 		else:
-			drop_manager.call("place_stored", node, token.slot)
+			drop_manager.place_stored(node, token.slot)
 
 
 ## Scheduler probe / hauler walk target: the zone floor cell nearest this
@@ -171,22 +171,22 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	var best: Vector3i = slot
 	if not slot_allowed(best): return null
 	var item_key := String(cell_stacks[best].item)
-	var node: Node3D = drop_manager.call("stored_node_at", best)
+	var node: Node3D = drop_manager.stored_node_at(best)
 	if node == null:
 		return null
 	var count := int(cell_stacks[best].count)
 	if amount <= 0 or amount > count: return null
 	if count > amount:
-		var single: Node3D = drop_manager.call("spawn_reserved", item_key, best, dwarf_id, "", CraftMaterials.of_item(node))
+		var single: Node3D = drop_manager.spawn_reserved(item_key, best, dwarf_id, "", CraftMaterials.of_item(node))
 		if single == null:
 			return null
 		drop_manager.set_quantity(single, amount)
 		cell_stacks[best].count = count - amount
-		drop_manager.call("set_quantity", node, count - amount)
+		drop_manager.set_quantity(node, count - amount)
 		node = single
 	else:
 		cell_stacks.erase(best)
-		drop_manager.call("withdraw_stored", node, dwarf_id)
+		drop_manager.withdraw_stored(node, dwarf_id)
 	if changed_callback.is_valid():
 		changed_callback.call(item_key, -amount)
 	changed.emit()

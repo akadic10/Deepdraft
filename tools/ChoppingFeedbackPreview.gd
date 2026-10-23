@@ -49,7 +49,7 @@ func _run() -> void:
 	root.get_node("SkyController").set_process(false)
 	env.ambient_light_energy = .8
 	sun.light_energy = 1.3
-	var source: RefCounted = flora._felling_sources[Vector2i(40,40)]
+	var source: RefCounted = flora.work.sources[Vector2i(40,40)]
 	source.state.work_seconds = float(source.duration)-1.15
 	feedback._rng.seed = 1874
 	var directory := "res://tmp/chopping_feedback_review"

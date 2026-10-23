@@ -11,7 +11,7 @@ game does not have yet (drinks, staves, cloth, honey, ...) stay in items.py.
 from common import Voxels, linear, read_json
 import hearthblock
 
-ITEMS = read_json('data/art/voxel_items.json')
+ITEMS = read_json('tools/art_data/voxel_items.json')
 TOOL = {k: linear(v) for k, v in read_json('data/materials/craft_materials.json')['source_palettes']['starter_tool']['colors'].items()}
 WOOD = {k: linear(v) for k, v in dict(riven='C08A4E', riven_dark='9A6A38', chop='7A512E', bark='5C3B26',
                                       bark_light='7B5336', bark_dark='3E2819', rope='CFAB69', rope_dark='9F7E45').items()}

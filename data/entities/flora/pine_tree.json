@@ -9,8 +9,7 @@
     "",
     "MODEL VARIANTS — Hearthblock square trees (doc 256):",
     "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
-    "World-position hashing preserves each tree variant across seasonal changes.",
-    "Placement, growth, collision and harvest values are unchanged."
+    "World-position hashing preserves each tree variant across seasonal changes."
   ],
   "base:flora:pine_tree": {
     "harvest_resource": "base:resources:wood:pine_log",
@@ -33,25 +32,23 @@
       "Determinism (Hard Rule 8): every decision derives from world_seed + column XZ.",
       "footprint = XZ block extents per stage; spacing and collision use these.",
       "scatter_cell_size = grid cell (blocks) holding at most one tree, jittered within the cell.",
-      "spawn_chance = probability a full-density cell contains a pine (before falloff scaling).",
+      "base_density = probability a full-density cell contains a pine (before falloff scaling).",
       "max_surface_slope = reject a footprint whose columns differ in surface Y by more than this.",
       "edge_margin = ring (blocks) around the footprint checked for drops; 0 disables.",
       "edge_dropoff_max = reject if a ring column is off-world or drops more than this below the trunk (keeps canopies off cliff lips / the world edge)."
     ],
     "placement": {
+      "pick_order": 0,
       "domains": [
         "foothill",
         "mountain"
-      ],
-      "exclude_domains": [
-        "lowland"
       ],
       "exclude_water": true,
       "min_surface_y": 20,
       "full_density_max_y": 75,
       "falloff_max_y": 90,
       "scatter_cell_size": 16,
-      "spawn_chance": 0.33,
+      "base_density": 0.33,
       "max_surface_slope": 1,
       "edge_margin": 2,
       "edge_dropoff_max": 3,
@@ -71,7 +68,6 @@
         "felling": { "work_seconds": 2.0 },
         "clearance_height": 6,
         "growth_duration_days": 3,
-        "next_stage": "mature",
         "models": {
           "summer": "res://assets/models/flora/trees/pine/pine_sapling.glb",
           "winter": "res://assets/models/flora/trees/pine/pine_sapling_winter.glb"
@@ -84,7 +80,6 @@
         "felling": { "work_seconds": 6.0 },
         "clearance_height": 16,
         "growth_duration_days": 6,
-        "next_stage": "ancient",
         "models": {
           "summer": [
             "res://assets/models/flora/trees/pine/pine_mature.glb",
@@ -116,7 +111,6 @@
         "felling": { "work_seconds": 12.0 },
         "clearance_height": 22,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "summer": [
             "res://assets/models/flora/trees/pine/pine_ancient.glb",

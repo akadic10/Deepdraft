@@ -19,11 +19,11 @@
     "GROWTH: Two stages — seedling → mature.",
     "        seedling: 8 in-game days → advances to mature.",
     "        mature: final stage; stays until harvested.",
-    "        After harvest: post_harvest: fallow. Re-seed manually.",
+    "        After harvest the plot returns to FALLOW. Re-seed manually.",
     "",
     "YIELD: 4× pig_tail fiber + 1× pig_tail_seed (40% chance).",
     "       Fiber is processed at the brewery (2× pig_tail → 1× cloth).",
-    "       See data/workshops/brewery.json recipe 'base:recipe:brew:pig_tail_cloth'."
+    "       See the planned brewing recipes in docs/40_economy_colony/42_farming_brewing.md."
   ],
 
   "base:flora:pig_tail": {
@@ -36,7 +36,6 @@
       "seedling": {
         "clearance_height": 1,
         "growth_duration_days": 8,
-        "next_stage": "mature",
         "models": {
           "summer": "res://assets/models/flora/crops/pig_tail/pig_tail_seedling.glb"
         },
@@ -48,7 +47,6 @@
       "mature": {
         "clearance_height": 2,
         "growth_duration_days": null,
-        "next_stage": null,
         "models": {
           "summer": "res://assets/models/flora/crops/pig_tail/pig_tail_mature.glb",
           "autumn": "res://assets/models/flora/crops/pig_tail/pig_tail_mature_autumn.glb"
@@ -57,8 +55,7 @@
           "yields": [
             { "item": "base:resources:flora:pig_tail",        "count": 4, "chance": 1.00 },
             { "item": "base:resources:seed:pig_tail_seed",    "count": 1, "chance": 0.40 }
-          ],
-          "post_harvest": "fallow"
+          ]
         }
       }
 

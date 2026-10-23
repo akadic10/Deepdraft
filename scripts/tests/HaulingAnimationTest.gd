@@ -100,7 +100,7 @@ func _check_empty_pose() -> void:
 	_expect(worker._carried_entries.is_empty(), "no cargo remains attached after interruption")
 	_expect(worker._hand_r.scale.is_equal_approx(Vector3(-1,1,1)), "interruption preserves mirrored fist scale")
 	# Relaxed hands hang under the sleeves (proportions.json, doc 256).
-	var offsets := {worker._hand_l:worker._relaxed_hand(-1),worker._hand_r:worker._relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
+	var offsets := {worker._hand_l:worker._rig.relaxed_hand(-1),worker._hand_r:worker._rig.relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
 	for part in [worker._head, worker._body, worker._hand_l, worker._hand_r, worker._foot_l, worker._foot_r]:
 		_expect(part.position.is_equal_approx(offsets.get(part,Vector3.ZERO)) and part.rotation.is_zero_approx(), "interruption restores Balanced resting parts")
 
@@ -115,15 +115,15 @@ func _run() -> void:
 	worker._process(.1)
 	_expect(item.get_parent() == drops and item.global_transform.is_equal_approx(before), "reach leaves source untouched before contact")
 	_expect(_snapshot_units() == 12, "save before contact records goods once")
-	var time: float = worker._handling_elapsed
+	var time: float = worker._work_execution._handling_elapsed
 	var hand: Transform3D = worker._hand_l.transform
 	clock_node.set_paused(true)
 	worker._process(5)
-	_expect(worker._handling_elapsed == time and worker._hand_l.transform.is_equal_approx(hand), "pause freezes reach")
+	_expect(worker._work_execution._handling_elapsed == time and worker._hand_l.transform.is_equal_approx(hand), "pause freezes reach")
 	clock_node.set_paused(false)
 	clock_node.set_speed(2)
 	worker._process(.02)
-	_expect(is_equal_approx(worker._handling_elapsed, time + .04), "handling follows clock speed")
+	_expect(is_equal_approx(worker._work_execution._handling_elapsed, time + .04), "handling follows clock speed")
 	clock_node.set_speed(1)
 	worker._process(.2)
 	_expect(worker.to_local(before.origin).z > .7, "pickup faces the item in front of the boots")
@@ -144,7 +144,7 @@ func _run() -> void:
 	_expect(await _until(worker.TaskPhase.HAUL_DEPOSIT), "arrival starts lowering")
 	_expect(worker.current_cell() != Vector3i(40,20,44), "delivery stands beside the reserved storage cell")
 	worker._process(.3)
-	_expect(worker.to_local(worker._handling_target).z > .9, "ground delivery lowers the load in front of the boots")
+	_expect(worker.to_local(worker._work_execution._handling_target).z > .9, "ground delivery lowers the load in front of the boots")
 	_expect(zone.stored_count() == 0 and _snapshot_units() == 12, "lowering retains cargo until commit")
 	worker._process(.5)
 	_expect(zone.stored_count() == 12 and worker._carried_entries.is_empty(), "set-down commits correct quantity once")
@@ -182,7 +182,7 @@ func _run() -> void:
 	# neighbour of the first slot is another item destination, not a safe stand.
 	worker._clear_path()
 	worker.position = Vector3(42.5,21,44.5)
-	worker._haul_walk_current()
+	worker._work_execution._haul_walk_current()
 	await _until(worker.TaskPhase.HAUL_DEPOSIT)
 	for token in zone._pulls[worker.dwarf_id].cargo.values():
 		_expect(worker.current_cell() != token.slot, "delivery stand excludes every destination in the bundle")
@@ -201,7 +201,7 @@ func _run() -> void:
 	_expect(zone.stored_count() == 24 and _loose_units() == 5, "partial refill preserves remainder")
 
 	await _test_fetch_from_stockpile()
-	await _test_container_deposit()
+	await _test_destination_removed()
 	await _test_blocked_approach()
 	for failure in failures: push_error(failure)
 	if failures.is_empty():
@@ -217,7 +217,6 @@ func _test_fetch_from_stockpile() -> void:
 	# Use the real furniture ghost's storage-withdraw path.
 	var key := "base:resources:furniture:log_chair"
 	var loader = load("res://scripts/systems/FurniturePlacementController.gd").new()
-	loader._load_defs()
 	var defs: Dictionary = loader.get_defs()
 	loader.free()
 	if not defs.has("base:furniture:log_chair"):
@@ -238,7 +237,7 @@ func _test_fetch_from_stockpile() -> void:
 	_expect(await _until(worker.TaskPhase.FETCH_PICKUP), "builder reaches item withdrawn from stockpile")
 	_expect(worker.current_cell() != Vector3i(40,20,44), "withdrawn stockpile item is picked up from beside its cell")
 	worker._process(.35)
-	_expect(worker._fetch_picked_up and _snapshot_units() == 1 and zone.stored_count() == 0, "fetch contact transfers withdrawn item once")
+	_expect(worker._work_execution._fetch_picked_up and _snapshot_units() == 1 and zone.stored_count() == 0, "fetch contact transfers withdrawn item once")
 	_expect(await _until(worker.TaskPhase.FETCH_TO_GHOST), "builder carries with same lift")
 	_check_grip()
 	_expect(await _until(worker.TaskPhase.FETCH_DEPOSIT), "builder lowers item before installation")
@@ -246,20 +245,7 @@ func _test_fetch_from_stockpile() -> void:
 	_expect(built[0] and worker._carried_entries.is_empty(), "construction consumes held item after set-down")
 
 
-func _test_container_deposit() -> void:
-	await _new_trip(LOG, 1)
-	stockpiles.deregister_zone(zone)
-	var container = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(40,20,44)]
-	container.setup_container({"storage": {"capacity": 8}}, cells)
-	container.source_id = tasks.allocate_source_id()
-	stockpiles.register_container(container)
-	zone = container
-	_expect(await _until(worker.TaskPhase.HAUL_DEPOSIT), "container starts visible handoff")
-	worker._process(.3)
-	_expect(container.stored_count() == 0 and _snapshot_units() == 1, "container waits for handoff before absorbing goods")
-	worker._process(1)
-	_expect(container.stored_count() == 1 and worker._carried_entries.is_empty(), "container deposit commits once")
+func _test_destination_removed() -> void:
 	# Removing the destination during reach must leave the reserved item loose.
 	await _new_trip()
 	await _until(worker.TaskPhase.HAUL_PICKUP)
@@ -278,7 +264,7 @@ func _test_blocked_approach() -> void:
 	var stand: Vector3i = worker.current_cell()
 	_expect(stand != Vector3i(40,20,39) and stand != Vector3i(40,20,40), "alternate approach keeps the worker off the item cell")
 	worker._process(.3)
-	_expect(worker.to_local(worker._handling_world_start.origin).z > .7, "alternate approach turns toward the item before contact")
+	_expect(worker.to_local(worker._work_execution._handling_world_start.origin).z > .7, "alternate approach turns toward the item before contact")
 	tasks.cancel_task(worker.current_task_id)
 	for y in range(21,24): world.set_block(40,y,39,blocks.AIR_ID)
 	await process_frame

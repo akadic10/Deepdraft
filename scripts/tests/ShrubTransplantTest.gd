@@ -95,7 +95,7 @@ func _run() -> void:
 	var snapshot: Dictionary = details.serialize_state()
 	var plan_snapshot: Dictionary = furniture.serialize_state()
 	_expect(plan_snapshot.ghosts[0].plant_id == BLUE, "pending Move saves exact identity")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(drops.serialize_state().loose.any(func(e): return e.get("instance_id", "") == BLUE), "interruption drops intact shrub at worker feet")
 	_expect(drops.nearest_loose_of_key(BLUE_ITEM,destination) == null, "a generic placement or hauler cannot steal the interrupted Move's shrub")
 	_season("winter")
@@ -107,7 +107,7 @@ func _run() -> void:
 	_expect(await _wait_for(func(): return worker._task_phase == worker.TaskPhase.FETCH_WORKING), "another lease resumes planting")
 	worker._process(.7)
 	var progress: float = furniture._ghosts[plan].progress
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(furniture._ghosts[plan].progress >= progress, "planting progress belongs to the plan across release")
 	for task in tasks._tasks.values(): task.retry_at = 0
 	_expect(await _wait_for(func(): return not furniture._ghosts.has(plan)), "worker completes replanting")
@@ -120,7 +120,6 @@ func _run() -> void:
 	_expect(details._records[BLUE].node.find_children("*","CollisionShape3D",true,false).is_empty(), "transplanted shrubs remain nonblocking")
 	await _test_storage()
 	await _test_invalidated_destination()
-	_test_seasonal_shelf()
 	await _test_fresh_restore(snapshot,plan_snapshot,cargo)
 	await _test_dev_spawns()
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_transplants()
@@ -201,32 +200,13 @@ func _test_storage() -> void:
 	_expect(zone.cell_stacks[cells[0]].instance_id == ELDER, "ground slot preserves identity")
 	var saved: Dictionary = zone_controller.serialize_state()
 	_expect(saved.zones[0].stacks[0].instance_id == ELDER, "stockpile save keeps plant identity")
-	var item = zone.withdraw_nearest("base:resources:plant:elderberry_bush",cells[0],999)
-	drops.unreserve(item,999)
-	# Real container deposit/withdraw, including opaque storage, save and dump.
-	var fixture = preload("res://scripts/tests/TestStorageFixture.gd")
-	fixture.install(furniture)
-	furniture._install(fixture.KEY,furniture.get_defs()[fixture.KEY],Vector3i(56,20,46),0)
-	var chest = furniture._installed.values().back().storage
-	var token = chest._reserve_deposit(drops.item_key_of(item),cells[0],999,1)
-	token["instance_id"] = item.get_meta("instance_id")
-	drops.take(item)
-	chest._commit_one(token,drops.item_key_of(item))
-	chest.changed_callback.call(drops.item_key_of(item),1)
-	chest._place_visual(item,token)
-	var container_save: Dictionary = furniture.serialize_state()
-	var entry: Dictionary = container_save.installed.back()
-	_expect(entry.instances.size() == 1 and entry.instances[0].instance_id == ELDER, "opaque container serializes identity separately from aggregate stock")
-	chest.restore_inventory(entry.inventory,drops,entry.instances)
-	_expect(chest.stored_entries().values()[0].instance_id == ELDER, "container restore retains identity")
-	chest.dump_contents(Vector3i(55,20,46))
-	_expect(drops.serialize_state().loose.any(func(e): return e.get("instance_id", "") == ELDER), "container removal returns the same whole shrub")
 	furniture.activate_for("base:flora:elderberry_bush",true)
 	furniture._hover_cell = Vector3i(50,20,52)
 	furniture._hover_valid = furniture._placement_valid(furniture._hover_cell)
 	furniture._confirm_ghost()
 	furniture.deactivate()
 	_expect(await _wait_for(func(): return not details._changes[ELDER].packed), "Place catalog fetches and replants stored species")
+	_expect(zone.stored_count() == 0, "replanting takes the shrub out of the stockpile")
 	_expect(details.accepts_tool(ELDER,"harvest_plants"), "previously ripe shrub remains ripe after transplant")
 
 
@@ -255,37 +235,6 @@ func _test_fresh_restore(snapshot: Dictionary, plans: Dictionary, cargo: Array) 
 	_expect(restored._changes[BLUE].packed and restored._records[BLUE].node == null, "fresh restore retains packed tombstone at original site")
 	_expect(plans.ghosts[0].plant_id == cargo[0].instance_id and restored._changes[BLUE].harvested_cycle == "1:summer", "cargo, saved Move and crop all refer to the same plant")
 	restored.queue_free()
-
-
-func _test_seasonal_shelf() -> void:
-	var item: Node3D = drops.nearest_loose_of_key("base:resources:plant:wild_strawberry_bush",Vector3i(55,20,53))
-	var shelf = load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var cells: Array[Vector3i] = [Vector3i(58,20,38)]
-	# Exercise the real display component without restoring retired furniture.
-	shelf.setup_container({"storage":{"capacity":1,"render_contents":true,
-		"anchors":[[.5,.8,.5]],"anchor_scale":.5,"anchor_max_size":[.6,.7,.6]}},cells)
-	shelf.drop_manager = drops
-	shelf.display_parent = Node3D.new()
-	scene.add_child(shelf.display_parent)
-	shelf.display_parent.position = Vector3(cells[0]) + Vector3(.5,1,.5)
-	var key: String = drops.item_key_of(item)
-	var token = shelf._reserve_deposit(key,cells[0],999,1)
-	token["instance_id"] = STRAW
-	drops.take(item)
-	shelf._commit_one(token,key)
-	shelf._place_visual(item,token)
-	_season("summer")
-	var summer_position := item.position
-	_season("winter")
-	_expect(String(item.get_meta("visual_path")).contains("winter"), "stored shelf shrub swaps to winter model")
-	_season("summer")
-	_expect(item.position.is_equal_approx(summer_position), "seasonal shelf refitting never drifts from its anchor")
-	var picking = load("res://scripts/components/ObjectPicking.gd")
-	var bounds: AABB = picking.world_bounds(item)
-	_expect(bounds.size.x <= shelf.anchor_max_size.x + .001 and bounds.size.y <= shelf.anchor_max_size.y + .001 and bounds.size.z <= shelf.anchor_max_size.z + .001, "summer regrowth stays inside shelf display envelope")
-	shelf.dump_contents(cells[0])
-	shelf.display_parent.queue_free()
-	_season("autumn")
 
 
 func _capture_transplants() -> void:

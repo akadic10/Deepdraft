@@ -6,10 +6,7 @@
   ],
   "id": "base:weather:overcast",
   "display_name": "Overcast",
-  "vision_multiplier": 0.75,
   "is_dark_during_daytime": true,
-  "hide_cloud_shadows": true,
-  "snow_accumulation_per_minute": -0.0007,
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 0.85,
@@ -17,6 +14,5 @@
       "fog_begin": 65,
       "fog_end": 360
     }
-  },
-  "thoughts": []
+  }
 }

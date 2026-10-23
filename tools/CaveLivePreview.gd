@@ -28,7 +28,7 @@ func _run() -> void:
 	_generator = root.get_node("WorldGenerator")
 	_renderer = scene.get_node("Renderer")
 	var deadline := Time.get_ticks_msec() + 90000
-	while not _generator._maps_ready or not _renderer._overview_built:
+	while not _generator._maps_ready or not _renderer.tiles.overview_built:
 		await process_frame
 		if Time.get_ticks_msec() > deadline:
 			_failures.append("Scene did not finish terrain generation.")
@@ -62,13 +62,13 @@ func _run() -> void:
 	_expect(interior.discovered_cave_count() == 0, "Highlighting discovered a cave.")
 	var cave: Dictionary = catalog[chosen]
 	var center: Vector3i = cave["center"]
-	var hidden: Dictionary = _renderer._overview_visible_surface_after_cut(center.x, center.z)
+	var hidden: Dictionary = _renderer.tiles._overview_visible_surface_after_cut(center.x, center.z)
 	_expect(hidden.get("wy", -1) == center.y + 3, "Hidden cave appeared through the normal slice.")
 	panel._preview.button_pressed = true
 	await _settle()
 	await _shot("preview")
-	_expect(interior.discovered_cave_count() == 0 and mining._mined_blocks.is_empty(), "Developer preview modified saved world state.")
-	var preview: Dictionary = _renderer._overview_visible_surface_after_cut(center.x, center.z)
+	_expect(interior.discovered_cave_count() == 0 and root.get_node("WorldData").removed_terrain_count() == 0, "Developer preview modified saved world state.")
+	var preview: Dictionary = _renderer.tiles._overview_visible_surface_after_cut(center.x, center.z)
 	_expect(preview.get("wy", -1) == center.y, "Preview did not expose the actual cave floor.")
 	manager.close("caves_dev")
 	_expect(_renderer._debug_cave_blocks.is_empty(), "Closing preview left cave cuts active.")
@@ -100,7 +100,7 @@ func _run() -> void:
 func _settle() -> void:
 	var deadline := Time.get_ticks_msec() + 60000
 	for i in range(10): await process_frame
-	while (not _renderer._dirty_overview_tiles.is_empty() or _renderer._cavity_shell_dirty or _renderer.underground_lighting.is_updating()) and Time.get_ticks_msec() < deadline:
+	while (not _renderer.tiles.dirty_overview_tiles.is_empty() or _renderer.cavity_shell.dirty or _renderer.underground_lighting.is_updating()) and Time.get_ticks_msec() < deadline:
 		await process_frame
 	_expect(Time.get_ticks_msec() < deadline, "Cave view did not finish rebuilding.")
 

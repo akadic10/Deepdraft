@@ -7,8 +7,6 @@ var save_completions: Array = []
 func _prepare_workload() -> void:
 	await super._prepare_workload()
 	var saves=root.get_node("SaveManager")
-	if "--profile-baseline" in OS.get_cmdline_user_args():
-		saves.set_script(load("res://tools/performance/ProfileSaveManager.gd"))
 	saves.autosave_finished.connect(func(ok: bool):
 		var event: Dictionary={"seconds":_elapsed(),"ok":ok}
 		if saves.get("last_save_profile")!=null: event["profile"]=saves.last_save_profile.duplicate(true)
@@ -32,9 +30,6 @@ func _sample(_mode: String) -> void:
 			var started:=Time.get_ticks_usec()
 			var ok: bool=saves.request_autosave()
 			var event: Dictionary={"seconds":_elapsed(),"accepted":ok,"request_ms":(Time.get_ticks_usec()-started)/1000.0}
-			if "--profile-baseline" in OS.get_cmdline_user_args():
-				event["stages"]=saves.stages.duplicate(true)
-				saves.stages.clear()
 			save_events.append(event)
 			issued+=1
 		await process_frame

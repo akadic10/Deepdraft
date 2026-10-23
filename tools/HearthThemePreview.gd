@@ -54,14 +54,6 @@ func _capture_inspector() -> void:
 		"Place click starts existing furniture placement")
 	furniture.deactivate()
 	root.size = Vector2i(1280, 720)
-	dock._dispatch("open_panel", "chop")
-	await _settle()
-	var forestry := _find_button(dock._panel_body, "Forestry")
-	_expect(forestry != null and forestry.disabled, "unavailable forestry action stays disabled")
-	await _save_capture("hearth_chop_1280.png")
-	dock._panel_container.hide()
-	dock._active_panel_target = ""
-	dock._refresh_active_buttons()
 
 	# The independent legacy windows use their real controllers and data too.
 	var storage = load("res://scripts/systems/StockpileDesignationController.gd").new()
@@ -80,8 +72,8 @@ func _capture_inspector() -> void:
 	var mine_blocks: Array[Vector3i] = [Vector3i(52,20,52), Vector3i(53,20,52)]
 	var mine_id: int = mining._create_zone(mine_blocks, 998)
 	mining._open_zone_window(mine_id)
-	mining._zone_window.position = Vector2(24, 254)
-	mining._hint_window.show()
+	mining._zone_ui.zone_window.position = Vector2(24, 254)
+	mining._zone_ui.hint_window.show()
 	var piece = furniture._installed.values()[0]
 	explorer.select_object(furniture, "installed:%d" % piece.installed_id)
 	explorer._window.position = Vector2(880, 32)
@@ -98,8 +90,8 @@ func _capture_inspector() -> void:
 	_expect(rig._target_zoom == saved_zoom, "storage panel consumes wheel input")
 	_click(_find_button(storage._window_panel, "×").get_global_rect().get_center())
 	_expect(not storage._window_panel.visible, "storage Close remains functional")
-	_click(_find_button(mining._zone_window, "×").get_global_rect().get_center())
-	_expect(not mining._zone_window.visible, "legacy mining Close remains functional")
+	_click(_find_button(mining._zone_ui.zone_window, "×").get_global_rect().get_center())
+	_expect(not mining._zone_ui.zone_window.visible, "legacy mining Close remains functional")
 	print("HEARTH_THEME_OK: native menus at 1280/2560, Place activation, disabled actions, close/dock state, wheel isolation")
 
 

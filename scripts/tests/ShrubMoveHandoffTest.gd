@@ -89,9 +89,9 @@ func _spawn_worker(id: int, cell: Vector3i):
 func _advance_until(condition: Callable) -> bool:
 	for i in range(1600):
 		furniture._process(.1)
-		var before: int = tasks._probes_total
+		var before: int = tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total - before <= tasks._max_probes_per_wake, "handoff respects probe budget")
+		_expect(tasks._scheduler._probes_total - before <= tasks._max_probes_per_wake, "handoff respects probe budget")
 		worker._process(.1)
 		helper._process(.1)
 		if condition.call(): return true
@@ -133,9 +133,9 @@ func _packed() -> bool:
 func _dispatch_only(condition: Callable) -> bool:
 	for i in range(80):
 		furniture._process(.1)
-		var before: int = tasks._probes_total
+		var before: int = tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total - before <= tasks._max_probes_per_wake, "split handoff respects probe budget")
+		_expect(tasks._scheduler._probes_total - before <= tasks._max_probes_per_wake, "split handoff respects probe budget")
 		if condition.call(): return true
 		await process_frame
 	return false
@@ -149,7 +149,7 @@ func _tie_and_budget() -> void:
 	helper.position = Vector3(41.5,21,40.5)
 	tasks._max_probes_per_wake = 1
 	var ghost = furniture._ghosts[plan]
-	_expect(await _dispatch_only(func(): return bool(tasks._move_match.get("pickup_ok", false))),
+	_expect(await _dispatch_only(func(): return bool(tasks._scheduler._move_match.get("pickup_ok", false))),
 		"pickup and destination route checks resume on separate wakes")
 	_expect(worker.current_task_id < 0 and helper.current_task_id < 0
 		and ghost._claim_valid() and drops.reserved_by(ghost._claim, ghost.claim_owner_id()),
@@ -164,7 +164,7 @@ func _sleep_and_priority() -> void:
 	var plan := _new_case()
 	_expect(await _advance_until(_packed), "sleep fixture reaches the handoff")
 	tasks._max_probes_per_wake = 1
-	_expect(await _dispatch_only(func(): return bool(tasks._move_match.get("pickup_ok", false))),
+	_expect(await _dispatch_only(func(): return bool(tasks._scheduler._move_match.get("pickup_ok", false))),
 		"sleep can interrupt an in-progress comparison")
 	worker.dev_make_tired()
 	worker._process(.1)
@@ -177,7 +177,7 @@ func _sleep_and_priority() -> void:
 	_expect(await _advance_until(_packed), "priority fixture reaches the handoff")
 	details.register_record({"id": BLUE, "definition": BLUE_KEY, "origin": Vector3i(38,20,40), "variant": 0, "yaw": 0})
 	details.designate_detail(BLUE, "clear_shrubs")
-	var urgent: int = details._sources[BLUE].lease_id
+	var urgent: int = details.work.sources[BLUE].lease_id
 	ghost = furniture._ghosts[plan]
 	_expect(await _dispatch_only(func(): return helper.current_task_id == ghost._lease_id),
 		"replacement may take Move when its uprooter accepts higher-priority work")
@@ -190,20 +190,20 @@ func _cancel_and_interrupt() -> void:
 	var plan := _new_case()
 	_expect(await _advance_until(_packed), "cancellation fixture reaches the handoff")
 	tasks._max_probes_per_wake = 1
-	_expect(await _dispatch_only(func(): return bool(tasks._move_match.get("pickup_ok", false))),
+	_expect(await _dispatch_only(func(): return bool(tasks._scheduler._move_match.get("pickup_ok", false))),
 		"cancellation can happen between route probes")
 	furniture.cancel_ghost(plan)
 	for i in range(5): tasks._run_scheduler()
 	_expect(worker.current_task_id < 0 and helper.current_task_id < 0 and drops.serialize_state().loose.size() == 1
 		and not drops.instance_promised(STRAW), "cancelled Move leaves one recoverable plant and no stale assignment")
 	plan = _new_case()
-	_expect(tasks._move_match.is_empty(), "scene reset drops cached Move comparisons")
+	_expect(tasks._scheduler._move_match.is_empty(), "scene reset drops cached Move comparisons")
 	_expect(await _advance_until(func(): return worker._task_phase == worker.TaskPhase.FETCH_TO_GHOST),
 		"original worker physically carries the shrub")
 	var cargo: Array = worker.serialize_state().carried_items
 	_expect(cargo.size() == 1 and cargo[0].instance_id == STRAW, "carried plant retains exact identity")
 	var ghost = furniture._ghosts[plan]
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(ghost.continuation_worker < 0, "interruption removes the old worker preference")
 	_expect(ghost._claim_valid(), "release reclaims the dropped Move before the next scheduler wake")
 	var dropped: Vector3i = drops.item_floor_cell(ghost._claim)
@@ -282,9 +282,9 @@ func _distant_move_with_live_leisure() -> void:
 	for i in range(3000):
 		furniture._process(.1)
 		tasks.advance_supervision(.1 * clock_node.speed)
-		var before: int = tasks._probes_total
+		var before: int = tasks._scheduler._probes_total
 		tasks._run_scheduler()
-		_expect(tasks._probes_total-before <= 1, "distant Move keeps the one-probe wake limit")
+		_expect(tasks._scheduler._probes_total-before <= 1, "distant Move keeps the one-probe wake limit")
 		if worker.current_task_id >= 0 and first_assignment < 0:
 			first_assignment = tasks.journal.now-started
 		if _packed() and worker.current_task_id < 0: return_planning_seconds += .1 * clock_node.speed

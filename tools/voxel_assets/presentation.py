@@ -4,7 +4,7 @@ from solid_shapes import solid
 
 
 def assets(only=None):
-    profile=read_json('data/art/voxel_presentation.json')
+    profile=read_json('tools/art_data/voxel_presentation.json')
     palette={k:linear(v) for k,v in profile['palette'].items()}
     for name,shapes in profile['parts'].items():
         path='assets/models/presentation/'+name+'.glb'

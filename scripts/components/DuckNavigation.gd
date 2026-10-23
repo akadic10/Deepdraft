@@ -118,12 +118,12 @@ func _receiving_level(key: Vector3i) -> float:
 	return result
 
 func _inside(col: Vector2i) -> bool:
-	return col.x>0 and col.y>0 and col.x<1023 and col.y<1023
+	return col.x>0 and col.y>0 and col.x<WorldData.WORLD_SIZE_X-1 and col.y<WorldData.WORLD_SIZE_Z-1
 
 func clear_body(point: Vector3, radius: float) -> bool:
 	var low := Vector3i((point-Vector3(radius,0,radius)+Vector3.ONE*.001).floor())
 	var high := Vector3i((point+Vector3(radius,float(config.body_height),radius)-Vector3.ONE*.001).floor())
-	if low.x<0 or low.z<0 or high.x>=1024 or high.z>=1024 or low.y<4 or high.y>=int(config.flight_max_y): return false
+	if low.x<0 or low.z<0 or high.x>=WorldData.WORLD_SIZE_X or high.z>=WorldData.WORLD_SIZE_Z or low.y<4 or high.y>=int(config.flight_max_y): return false
 	var bounds := AABB(Vector3(low),Vector3(high-low))
 	if _observing and _body_clearance.has(bounds):
 		_query_hits += 1

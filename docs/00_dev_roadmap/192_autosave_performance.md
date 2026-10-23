@@ -131,8 +131,8 @@ Use `tools/performance/RunAutosave.ps1` with a new label, a disposable copied
 save, `-Population 5`, `20` or `30`, `-Seconds 24 -NoAblations -Weather
 base:weather:clear`. The runner isolates user data and verifies the input hash.
 `AutosaveBenchmark.gd` writes request/completion profiles, frame rows and
-work progress. `ProfileSaveManager.gd` is **baseline-only**: use it with the
-frozen before sources, never as a production coordinator. `Repeat30.ps1` in
+work progress. (The baseline-only `ProfileSaveManager.gd` was removed on
+2026-10-22; it no longer compiled against the current SaveManager.) `Repeat30.ps1` in
 the evidence demonstrates exact-byte restore in `finally`; never overlap it
 with another test or an editor play session.
 

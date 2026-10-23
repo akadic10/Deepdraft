@@ -11,9 +11,7 @@
     "width": 2,
     "depth": 1
   },
-  "blocks_movement": false,
   "collision_regions": [],
-  "room_anchor": false,
   "bridge": {
     "width": 2,
     "max_span": 5,

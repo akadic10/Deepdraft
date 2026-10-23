@@ -22,7 +22,7 @@ func _visible_face(cell: Vector3i, normal: Vector3i) -> bool:
 
 func _visible_block(cell: Vector3i) -> int:
 	if WorldData.has_terrain_override(cell): return WorldData.get_live_block(cell.x,cell.y,cell.z)
-	if renderer._visual_cut_blocks.has(cell): return BlockRegistry.AIR_ID
+	if renderer.is_visually_cut(cell): return BlockRegistry.AIR_ID
 	var block := WorldData.get_live_block(cell.x,cell.y,cell.z)
 	# Undiscovered cave air is concealed by the same rock shell as the renderer.
 	if block == BlockRegistry.AIR_ID and WorldGenerator.get_cave_id(cell)>=0:
@@ -47,7 +47,7 @@ func get_explorer_data(hit: Dictionary) -> Dictionary:
 		var crossed_plan := false
 		for y in range(cell.y+1,top+1):
 			var above := Vector3i(cell.x,y,cell.z)
-			if renderer._visual_cut_blocks.has(above) and not renderer.is_revealed_air(above): crossed_plan = true
+			if renderer.is_visually_cut(above) and not renderer.is_revealed_air(above): crossed_plan = true
 		revealed = not crossed_plan and (revealed or cell.y==WorldGenerator.get_surface_y(cell.x,cell.z))
 	if not known and (cut_face or not revealed):
 		block = WorldGenerator.get_overview_strata_block_id(cell.x,cell.y,cell.z)

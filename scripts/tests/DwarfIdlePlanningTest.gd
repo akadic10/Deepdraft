@@ -21,13 +21,13 @@ func _run() -> void:
 	_expect(furthest>1.0,"unproductive job checks leave enough idle progress to stroll")
 	_expect(worker.dwarf_id in tasks._idle_dwarves and worker.current_task_id<0,"leisure remains available for a real assignment")
 	# An actual assignment still owns movement and immediately interrupts leisure.
-	var job: int=tasks.add_task(Task.Type.BUILD,worker.current_cell()+Vector3i(2,0,0))
+	var job: int=_post_mine_lease(worker.current_cell()+Vector3i(2,0,0))
 	for i in 80:
 		tasks._run_scheduler()
 		if worker.current_task_id==job: break
 		await process_frame
 	_expect(worker.current_task_id==job and not worker._idle_behavior.active(),"reachable work interrupts the resumed leisure")
-	tasks.cancel_task(job)
+	_clear_mine_leases()
 	# A seated dwarf's position is already stable. Merely considering work
 	# must not repeatedly stand them up before any assignment exists.
 	_reset_at(worker,Vector3i(44,20,44))
@@ -48,13 +48,14 @@ func _run() -> void:
 	tasks._planning_holds.clear()
 	_expect(await _seat_phase(worker,"sitting"),"released chair can be reused")
 	tasks.hold_for_planning(worker)
-	job=tasks.add_task(Task.Type.BUILD,Vector3i(44,20,42))
+	job=_post_mine_lease(Vector3i(44,20,42))
 	for i in 80:
 		tasks._run_scheduler()
 		if worker.current_task_id==job: break
 		await process_frame
 	_expect(worker.current_task_id==job and chair.idle_seat_owner<0,"a real assignment releases the retained chair")
 	_expect(tasks.lifecycle_errors().is_empty(),"planning and leisure keep consistent worker ownership")
+	_clear_mine_leases()
 	print("IDLE_PLANNING_DISTANCE ",furthest)
 	for failure: String in failures: push_error(failure)
 	print("DWARF_IDLE_PLANNING_OK" if failures.is_empty() else "DWARF_IDLE_PLANNING_FAIL")

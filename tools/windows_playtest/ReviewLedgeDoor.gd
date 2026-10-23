@@ -68,20 +68,20 @@ func _run() -> void:
 		furniture.activate_for(key, false)
 		furniture._yaw = 0
 		furniture._update_hover(true, camera.unproject_position(Vector3(origin) + Vector3(.5,1,.5)))
-		var good: bool = furniture._preview != null and furniture._preview.visible and furniture._hover_valid and furniture._hover_cell == origin
+		var good: bool = furniture._visuals.preview != null and furniture._visuals.preview.visible and furniture._hover_valid and furniture._hover_cell == origin
 		results.doors.append({"key": key, "preview": good, "cell": furniture._hover_cell})
 		if not good: _fail("Door preview failed: " + str(results.doors[-1])); return
 		await _capture(name)
 		furniture.deactivate()
 	var drops = _owner("items")
-	if drops == null: drops = get_first_node_in_group("item_drop_manager")
+	if drops == null: drops = ItemDropManager.find(self)
 	var ores: Array = []
 	for node in drops._loose:
 		if drops.item_key_of(node) == COPPER: ores.append(node)
 	if ores.size() != 3: _fail("Expected three original copper chunks"); return
 	var nav = root.get_node("NavGrid")
 	var storage = load("res://scripts/components/StorageComponent.gd")
-	results.worker = {"cell":worker.current_cell(), "navigable":nav.is_navigable(worker.current_cell()), "types":tasks._types_for(worker), "idle":tasks._idle_dwarves.duplicate()}
+	results.worker = {"cell":worker.current_cell(), "navigable":nav.is_navigable(worker.current_cell()), "types":tasks._scheduler.types_for(worker), "idle":tasks._idle_dwarves.duplicate()}
 	results.access = []
 	for ore in ores:
 		var stands := []
@@ -100,7 +100,7 @@ func _run() -> void:
 		tasks._run_scheduler()
 		worker._process(.04)
 		if worker._task_phase == worker.TaskPhase.HAUL_PICKUP and prior_phase != worker._task_phase:
-			results.pickups.append({"stand": worker.current_cell(), "ore": worker._handling_item.global_position})
+			results.pickups.append({"stand": worker.current_cell(), "ore": worker._work_execution._handling_item.global_position})
 			worker._process(.20)
 			await _capture("reach_%d" % results.pickups.size())
 		prior_phase = worker._task_phase

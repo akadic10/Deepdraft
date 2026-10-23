@@ -6,10 +6,11 @@ extends RefCounted
 ## Dictionary fields are required unless prefixed with ?. A single-element
 ## array describes its entries; * describes values in a keyed dictionary.
 ## Additional fields are allowed; required fields must still match their types.
+## Autoload-free (worker threads and startup use it), hence WorldSize.
+const WorldSize = preload("res://scripts/systems/WorldSize.gd")
 
 const FILTER := {"tags": [TYPE_STRING], "items": [TYPE_STRING], "excluded_items": [TYPE_STRING]}
-const CARGO := {"item_key": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
-const STACK := {"item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
+const CARGO := {"item_key": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
 const ANIMAL := {
 	"id": "key", "cell": "cell", "home": "cell", "target": "cell", "position": "vector",
 	"yaw": TYPE_FLOAT, "hunger": TYPE_FLOAT, "fatigue": TYPE_FLOAT, "activity": "key",
@@ -29,9 +30,9 @@ const ACTIVE_EVENT := {
 	"?member_routes": [["cell"]],
 }
 const SCENE := {
-	"construction": {"next_id":"positive_int","built":[{"cell":"cell","block":"key"}],
+	"construction": {"next_id":"positive_int",
 		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT}],
-			"?total_blocks":"positive_int","?crate_cell":"cell","?materials":{"*":"positive_int"}}]},
+			"total_blocks":"positive_int","?crate_cell":"cell","?materials":{"*":"positive_int"}}]},
 	"jobs": {"next_order":"positive_int","next_attempt":"positive_int","time":TYPE_FLOAT,
 		"records":{"*":{"key":"key","label":TYPE_STRING,"state":"key","reason":TYPE_STRING,"failures":TYPE_INT,"last_transition":TYPE_FLOAT}},
 		"history":[{"order":"key","state":"key","reason":TYPE_STRING,"attempt":TYPE_INT,"worker":TYPE_INT,"time":TYPE_FLOAT}]},
@@ -40,11 +41,13 @@ const SCENE := {
 		"source_enabled":TYPE_BOOL,"outlet_enabled":TYPE_BOOL,"elapsed_usec":TYPE_INT,"accumulator_usec":TYPE_INT,
 		"next_stone_id":"positive_int", "stones":{"*":{"kind":"key","cell":"cell","intake":"cell","level":TYPE_FLOAT,
 			"placed":TYPE_BOOL,"disallowed":TYPE_BOOL,"packing":TYPE_BOOL,"work":TYPE_FLOAT}},
-		"terrain":[{"cell":"cell","block":"key"}],"test_dam":[{"cell":"cell","block":"key"}],
+		"test_dam":[{"cell":"cell","block":"key"}],
 		"moisture":[{"cell":"cell","value":TYPE_INT,"target":TYPE_INT,"since":TYPE_INT}]},
-	"mining": {"mined_blocks": ["cell"], "zones": [{"id": TYPE_INT, "blocks": ["cell"]}]},
+	"mining": {"zones": [{"id": TYPE_INT, "blocks": ["cell"]}]},
+	"terrain": {"edits": [{"cell": "cell", "block": "key"}]},
+	"exploration": {"cells": ["cell"], "caves": [TYPE_INT]},
 	"flora": {"trees": [{
-		"origin": "cell", "species": "key", "stage": "key", "work_seconds": TYPE_FLOAT,
+		"origin": "cell", "species": "tree", "stage": "key", "work_seconds": TYPE_FLOAT,
 		"action": TYPE_STRING, "fell_work_seconds": TYPE_FLOAT, "harvest_work_seconds": TYPE_FLOAT,
 		"harvest_work_cycle": TYPE_STRING, "harvested_cycle": TYPE_STRING,
 		"felled": TYPE_BOOL, "designated": TYPE_BOOL,
@@ -57,41 +60,39 @@ const SCENE := {
 			"?regrow_started_at":TYPE_FLOAT,"?regrow_credit":TYPE_FLOAT,
 			"?clear_work_seconds": TYPE_FLOAT, "?harvest_work_seconds": TYPE_FLOAT,
 			"?uproot_work_seconds": TYPE_FLOAT}],
-		"planted": [{"id": "key", "definition": "key", "origin": "cell", "yaw": TYPE_INT}],
+		"planted": [{"id": "key", "definition": "plant", "origin": "cell", "yaw": TYPE_INT}],
 		"next_plant_id": TYPE_INT,
 	},
 	"settlement_flag": {"founded": TYPE_BOOL, "cell": "cell"},
-	"stockpiles": {"zones": [{"id": TYPE_INT, "cells": ["cell"], "filter_tags": [TYPE_STRING],
+	"stockpiles": {"zones": [{"id": TYPE_INT, "cells": ["cell"],
 		"storage_filter": FILTER,
-		"stacks": [{"cell": "cell", "item": "key", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]}]},
+		"stacks": [{"cell": "cell", "item": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]}]},
 	"furniture": {
-		"moves": {"next_id":"positive_int","records":{"*":{"key":"key","installed_id":TYPE_INT,"assigned_dwarf_id":TYPE_INT,"storage_filter":FILTER}}},
-		"ghosts": [{"id": TYPE_INT, "key": "key", "origin": "cell", "yaw": TYPE_INT,
-			"?required_material_id": "material", "layout_version": TYPE_INT, "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING, "?move_id":TYPE_STRING}],
-		"installed": [{"id": TYPE_INT, "key": "key", "origin": "cell", "yaw": TYPE_INT,
-			"layout_version": TYPE_INT, "flagged_uninstall": TYPE_BOOL, "?material_id": "material",
-			"?assigned_dwarf_id": TYPE_INT,
-			"?inventory": {"*": "positive_int"}, "?instances": [STACK], "?storage_filter": FILTER}],
+		"moves": {"next_id":"positive_int","records":{"*":{"key":"furniture","installed_id":TYPE_INT,"assigned_dwarf_id":TYPE_INT}}},
+		"ghosts": [{"id": TYPE_INT, "key": "furniture", "origin": "cell", "yaw": TYPE_INT,
+			"required_material_id": "material", "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING, "?move_id":TYPE_STRING}],
+		"installed": [{"id": TYPE_INT, "key": "furniture", "origin": "cell", "yaw": TYPE_INT,
+			"flagged_uninstall": TYPE_BOOL, "material_id": "material", "?assigned_dwarf_id": TYPE_INT}],
 	},
 	"ladders": {"routes": [{"id": TYPE_INT, "key": "key", "base": "cell", "yaw": TYPE_INT,
 		"height": TYPE_INT, "built": TYPE_INT, "?materials": ["material"], "?required_material_id": "material", "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": TYPE_INT},
 	"bridges": {"routes": [{"id": "positive_int", "key": "key", "base": "cell", "yaw": TYPE_INT,
 		"span": "positive_int", "built": TYPE_BOOL, "?material_id": "material", "?required_material_id": "material", "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": "positive_int"},
-	"items": {"loose": [{"item_key": "key", "position": "vector", "rotation_y": TYPE_FLOAT,
+	"items": {"loose": [{"item_key": "item", "position": "vector", "rotation_y": TYPE_FLOAT,
 		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]},
 	"dwarves": {"birth_index": TYPE_INT, "settlement_anchor": "cell", "roster": [{
 		"id": TYPE_INT, "name": TYPE_STRING, "gender": TYPE_STRING, "appearance": {"*": TYPE_STRING},
 		"traits": [TYPE_STRING], "profession": "key", "profession_experience": {"*": TYPE_INT},
 		"work_permissions": {"*": TYPE_BOOL}, "position": "vector", "rotation_y": TYPE_FLOAT,
 		"sleep": TYPE_FLOAT, "sleeping": TYPE_BOOL, "sleep_hours_left": TYPE_FLOAT,
-		"food": {"value":TYPE_FLOAT,"last_meal":TYPE_STRING,"?last_dining":TYPE_STRING,"hours_since_meal":TYPE_FLOAT,"retry_hours":TYPE_FLOAT},
-		"?mood": {"personal_sleep_hours":TYPE_FLOAT,"bedroom_memory_hours":TYPE_FLOAT,
-			"?dining_outcome":TYPE_STRING,"?dining_memory_hours":TYPE_FLOAT,
-			"?recreation_memory_hours":TYPE_FLOAT,"?recreation_retry_hours":TYPE_FLOAT,
+		"food": {"value":TYPE_FLOAT,"last_meal":TYPE_STRING,"last_dining":TYPE_STRING,"hours_since_meal":TYPE_FLOAT,"retry_hours":TYPE_FLOAT},
+		"mood": {"personal_sleep_hours":TYPE_FLOAT,"bedroom_memory_hours":TYPE_FLOAT,
+			"dining_outcome":TYPE_STRING,"dining_memory_hours":TYPE_FLOAT,
+			"recreation_memory_hours":TYPE_FLOAT,"recreation_retry_hours":TYPE_FLOAT,
 			"?solo_recreation_memory_hours":TYPE_FLOAT,
-			"?cold_sleep_hours":TYPE_FLOAT,"?cold_memory_hours":TYPE_FLOAT,
-			"?chilly_sleep_hours":TYPE_FLOAT,"?chilly_memory_hours":TYPE_FLOAT,
-			"?hot_sleep_hours":TYPE_FLOAT,"?hot_memory_hours":TYPE_FLOAT},
+			"cold_sleep_hours":TYPE_FLOAT,"cold_memory_hours":TYPE_FLOAT,
+			"chilly_sleep_hours":TYPE_FLOAT,"chilly_memory_hours":TYPE_FLOAT,
+			"hot_sleep_hours":TYPE_FLOAT,"hot_memory_hours":TYPE_FLOAT},
 		"carried_items": [CARGO], "equipment": {"*": TYPE_STRING},
 	}]},
 	"wildlife": {"initialized": TYPE_BOOL, "rabbits": [ANIMAL], "deer_initialized": TYPE_BOOL,
@@ -100,11 +101,13 @@ const SCENE := {
 		"schedules": {"*": {"next": EVENT_PLAN, "active": "active_event"}},
 		"pressure": {"*": {"x": TYPE_FLOAT, "z": TYPE_FLOAT, "level": TYPE_FLOAT, "day": TYPE_FLOAT}},
 		"history": [{"id": "key", "result": TYPE_STRING, "count": TYPE_INT, "day": TYPE_FLOAT}]},
-	"worker_crafting": {"orders": [{"id":"positive_int","recipe": "key", "quantity": "positive_int", "maintain": TYPE_BOOL,
+	"worker_crafting": {"orders": [{"id":"positive_int","recipe": "recipe", "quantity": "positive_int", "maintain": TYPE_BOOL,
 		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": [TYPE_STRING]}]},
 	"camera": {"target_position": "vector", "zoom": TYPE_FLOAT, "pitch": TYPE_FLOAT, "orbit_y": TYPE_FLOAT},
 	"slice": {"active": TYPE_BOOL, "seeded": TYPE_BOOL, "slice_y": TYPE_INT, "last_slice_y": TYPE_INT},
 }
+## Validation rule -> ContentRegistry.save_catalogs() key set.
+const CONTENT_CATALOGS := {"furniture": "furniture", "item": "items", "recipe": "recipes", "tree": "trees", "plant": "plants"}
 const SNAPSHOT := {
 	"schema_version": TYPE_INT, "project": TYPE_STRING, "saved_at_utc": "key", "world_seed": TYPE_INT,
 	"clock": {"day": "positive_int", "season": "key", "year": "positive_int",
@@ -114,59 +117,42 @@ const SNAPSHOT := {
 
 
 static func _construction_cell(cell: Vector3i) -> bool:
-	return cell.x>=0 and cell.x<1024 and cell.y>3 and cell.y<128 and cell.z>=0 and cell.z<1024
+	return cell.x>=0 and cell.x<WorldSize.WORLD_SIZE_X and cell.y>3 and cell.y<WorldSize.WORLD_SIZE_Y and cell.z>=0 and cell.z<WorldSize.WORLD_SIZE_Z
 
 
 static func validate_captured(snapshot: Dictionary, schema_version: int, catalogs: Dictionary) -> String:
 	# Check metadata before comparing/casting it. JSON decodes numbers as floats,
 	# so whole finite numbers are accepted where serializers supply integers.
-	var rules: Dictionary = SNAPSHOT
-	if _is_integer(snapshot.get("schema_version")) and int(snapshot.schema_version) >= 2:
-		rules = SNAPSHOT.duplicate(true)
-		rules.scene.construction.erase("built")
-		rules.scene.water.erase("terrain")
-		rules.scene.mining.erase("mined_blocks")
-		rules.scene.terrain = {"edits":[{"cell":"cell","block":"key"}]}
-		rules.scene.exploration = {"cells":["cell"],"caves":[TYPE_INT]}
-	var error := _validate(snapshot, rules, "save", catalogs)
+	var error := _validate(snapshot, SNAPSHOT, "save", catalogs)
 	if not error.is_empty(): return error
 	if snapshot.project != "Deepdraft": return "this file belongs to a different project."
-	if snapshot.schema_version < 1: return "the save schema is missing."
-	if snapshot.schema_version > schema_version: return "this save was made by a newer game version."
+	# Development saves are never migrated (CLAUDE.md): any other version is rejected.
+	if snapshot.schema_version != schema_version: return "this development save is from another game version; start a new world."
 	if snapshot.world_seed == 0: return "the world seed is missing."
 	if snapshot.scene.water.layout_version != preload("res://scripts/components/RiverLayout.gd").VERSION:
 		return "this development save uses an outdated river layout; start a new world."
 	if snapshot.clock.hour < 0 or snapshot.clock.speed < 0: return "the saved clock has negative time or speed."
-	if int(snapshot.schema_version) >= 2:
-		if snapshot.scene.construction.has("built") or snapshot.scene.water.has("terrain") or snapshot.scene.mining.has("mined_blocks"):
-			return "save contains obsolete terrain ownership records."
-		var terrain_cells := {}
-		for entry: Dictionary in snapshot.scene.terrain.edits:
-			var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
-			var block: Dictionary = catalogs.blocks.get(entry.block,{})
-			if not _construction_cell(cell) or terrain_cells.has(cell) or block.is_empty() \
-				or (not block.solid and entry.block != "base:terrain:void"):
-				return "save.scene.terrain contains an invalid or duplicate voxel."
-			terrain_cells[cell] = true
-		for packed: Array in snapshot.scene.exploration.cells:
-			if not _construction_cell(Vector3i(packed[0],packed[1],packed[2])):
-				return "save.scene.exploration contains an invalid cell."
-		for cave_id in snapshot.scene.exploration.caves:
-			if cave_id < 0: return "save.scene.exploration contains an invalid cave."
+	var terrain_cells := {}
+	for entry: Dictionary in snapshot.scene.terrain.edits:
+		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
+		var block: Dictionary = catalogs.blocks.get(entry.block,{})
+		if not _construction_cell(cell) or terrain_cells.has(cell) or block.is_empty() \
+			or (not block.solid and entry.block != "base:terrain:void"):
+			return "save.scene.terrain contains an invalid or duplicate voxel."
+		terrain_cells[cell] = true
+	for packed: Array in snapshot.scene.exploration.cells:
+		if not _construction_cell(Vector3i(packed[0],packed[1],packed[2])):
+			return "save.scene.exploration contains an invalid cell."
+	for cave_id in snapshot.scene.exploration.caves:
+		if cave_id < 0: return "save.scene.exploration contains an invalid cave."
 	var construction: Dictionary = snapshot.scene.construction
 	var construction_cells := {}
 	var construction_ids := {}
-	for entry: Dictionary in construction.get("built",[]):
-		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
-		if not _construction_cell(cell) or construction_cells.has(cell) \
-			or String(catalogs.blocks.get(entry.block,{}).get("kind","")) not in ["rock","constructed_floor"]:
-			return "save.scene.construction has an invalid constructed block."
-		construction_cells[cell] = true
 	for order: Dictionary in construction.orders:
 		if not catalogs.construction.has(String(order.kind)): return "save.scene.construction has an unknown construction type."
 		if order.id >= construction.next_id or construction_ids.has(order.id) or order.cells.is_empty(): return "save.scene.construction has an invalid order."
 		construction_ids[order.id] = true
-		if int(order.get("total_blocks",order.cells.size())) < order.cells.size():
+		if int(order.total_blocks) < order.cells.size():
 			return "save.scene.construction has an invalid total block count."
 		var staged := 0
 		for material: String in order.get("materials",{}):
@@ -187,17 +173,22 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 			return "save.scene.jobs has invalid order identities."
 		order_keys[record.key] = true
 	var craft_ids := {}
+	if snapshot.scene.worker_crafting.orders.size() > int(catalogs.max_craft_orders):
+		return "save.scene.worker_crafting has more orders than the queue allows."
 	for order: Dictionary in snapshot.scene.worker_crafting.orders:
 		if craft_ids.has(int(order.id)): return "save.scene.worker_crafting has duplicate order identities."
 		craft_ids[int(order.id)] = true
+	for tree: Dictionary in snapshot.scene.flora.trees:
+		if not catalogs.trees[tree.species].has(tree.stage):
+			return "save.scene.flora names an unknown growth stage '%s'; start a new world." % tree.stage
 	var residents := {}
 	for dwarf: Dictionary in snapshot.scene.dwarves.roster:
 		residents[int(dwarf.id)] = true
 		if float(dwarf.food.value)<0.0 or float(dwarf.food.value)>1.0 or float(dwarf.food.hours_since_meal)<0.0 or float(dwarf.food.retry_hours)<0.0:
 			return "save.scene.dwarves has invalid food need or meal timing."
-		for outcome in [dwarf.food.get("last_dining",""),dwarf.get("mood",{}).get("dining_outcome","")]:
+		for outcome in [dwarf.food.last_dining,dwarf.mood.dining_outcome]:
 			if outcome not in ["","proper","seat_only","table_only","neither"]: return "save.scene.dwarves has an invalid dining outcome."
-		for field: String in dwarf.get("mood",{}):
+		for field: String in dwarf.mood:
 			if field != "dining_outcome" and float(dwarf.mood[field])<0: return "save.scene.dwarves has a negative mood timer."
 	var assigned_beds := {}
 	for piece: Dictionary in snapshot.scene.furniture.installed:
@@ -217,7 +208,7 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		var seen: Dictionary = {}
 		for entry: Dictionary in snapshot.scene.water.flow[list_name]:
 			var p: Array = entry.cell
-			if entry.units < 0 or entry.units > 124000000 or p[0] < 0 or p[0] >= 1024 or p[1] < 4 or p[1] > 128 or p[2] < 0 or p[2] >= 1024:
+			if entry.units < 0 or entry.units > 124000000 or p[0] < 0 or p[0] >= WorldSize.WORLD_SIZE_X or p[1] < 4 or p[1] > WorldSize.WORLD_SIZE_Y or p[2] < 0 or p[2] >= WorldSize.WORLD_SIZE_Z:
 				return "save.scene.water has an invalid volume or location."
 			if list_name=="cells" and (p[1]>=128 or entry.units>(128-p[1])*1000000): return "save.scene.water exceeds the column's capacity."
 			if list_name == "cells" and seen.has(str(p)): return "save.scene.water has duplicate cells."
@@ -229,20 +220,19 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		if entry.value<0 or entry.value>1000000 or entry.target<0 or entry.target>1000000 or entry.since<0 or entry.since>snapshot.scene.water.elapsed_usec:
 			return "save.scene.water has invalid soil moisture."
 		var p: Array = entry.cell
-		if p[0]<0 or p[0]>=1024 or p[1]<4 or p[1]>=128 or p[2]<0 or p[2]>=1024 or moist_cells.has(str(p)): return "save.scene.water has an invalid soil location."
+		if p[0]<0 or p[0]>=WorldSize.WORLD_SIZE_X or p[1]<4 or p[1]>=WorldSize.WORLD_SIZE_Y or p[2]<0 or p[2]>=WorldSize.WORLD_SIZE_Z or moist_cells.has(str(p)): return "save.scene.water has an invalid soil location."
 		moist_cells[str(p)] = true
 	for field: String in ["added_units","drained_units","extracted_units"]:
 		if snapshot.scene.water.flow[field] < 0: return "save.scene.water has negative accounting."
 	var queued: Dictionary = {}
 	for p: Array in snapshot.scene.water.flow.active:
-		if p[0]<0 or p[0]>=1024 or p[1]<4 or p[1]>=128 or p[2]<0 or p[2]>=1024 or queued.has(str(p)): return "save.scene.water has an invalid active cell."
+		if p[0]<0 or p[0]>=WorldSize.WORLD_SIZE_X or p[1]<4 or p[1]>=WorldSize.WORLD_SIZE_Y or p[2]<0 or p[2]>=WorldSize.WORLD_SIZE_Z or queued.has(str(p)): return "save.scene.water has an invalid active cell."
 		queued[str(p)] = true
-	for list_name: String in ["terrain","test_dam"]:
-		var seen: Dictionary = {}
-		for entry: Dictionary in snapshot.scene.water.get(list_name,[]):
-			var p: Array = entry.cell
-			if p[0]<0 or p[0]>=1024 or p[1]<4 or p[1]>=128 or p[2]<0 or p[2]>=1024 or seen.has(str(p)): return "save.scene.water has an invalid terrain edit."
-			seen[str(p)] = true
+	var dam_cells: Dictionary = {}
+	for entry: Dictionary in snapshot.scene.water.test_dam:
+		var p: Array = entry.cell
+		if p[0]<0 or p[0]>=WorldSize.WORLD_SIZE_X or p[1]<4 or p[1]>=WorldSize.WORLD_SIZE_Y or p[2]<0 or p[2]>=WorldSize.WORLD_SIZE_Z or dam_cells.has(str(p)): return "save.scene.water has an invalid terrain edit."
+		dam_cells[str(p)] = true
 	for section: String in snapshot.scene:
 		if not snapshot.scene[section] is Dictionary: return "save.scene.%s must be a dictionary." % section
 	return _validate_stones(snapshot.scene,catalogs)
@@ -259,13 +249,12 @@ static func _validate_stones(scene: Dictionary, catalogs: Dictionary) -> String:
 		if id.begins_with("water_stone:") and int(id.get_slice(":",1))>=scene.water.next_stone_id:
 			return "save.scene.water has an invalid stone serial."
 		for location: Array in [stone.cell, stone.intake]:
-			if location[0]<0 or location[0]>=1024 or location[1]<4 or location[1]>=128 or location[2]<0 or location[2]>=1024:
+			if location[0]<0 or location[0]>=WorldSize.WORLD_SIZE_X or location[1]<4 or location[1]>=WorldSize.WORLD_SIZE_Y or location[2]<0 or location[2]>=WorldSize.WORLD_SIZE_Z:
 				return "save.scene.water has an invalid stone location."
 		if stone.packing and (not stone.placed or stone.disallowed): return "save.scene.water has an invalid packing order."
 		owners[id] = 1 if stone.placed else 0
 	var goods: Array = scene.items.loose.duplicate()
 	for zone: Dictionary in scene.stockpiles.zones: goods.append_array(zone.stacks)
-	for piece: Dictionary in scene.furniture.installed: goods.append_array(piece.get("instances",[]))
 	for dwarf: Dictionary in scene.dwarves.roster:
 		goods.append_array(dwarf.carried_items)
 		if not catalogs.materials.has(String(dwarf.equipment.get("material_id", ""))): return "save.scene has an unknown equipped material."
@@ -359,12 +348,17 @@ static func _validate(value: Variant, rule: Variant, path: String, catalogs: Dic
 			if not value.flight.is_empty() and (value.flight.size()<2 or value.flight_index>=value.flight.size() or value.mode!="air"): return path+" has an invalid flight."
 			if value.hop_seconds<=0 or value.hop_progress<0 or value.hop_progress>1: return path+" has invalid movement progress."
 			for point: Array in [value.position,value.step_from]+value.flight:
-				if point[0]<0 or point[0]>=1024 or point[1]<4 or point[1]>=158 or point[2]<0 or point[2]>=1024: return path+" has an invalid movement location."
+				if point[0]<0 or point[0]>=WorldSize.WORLD_SIZE_X or point[1]<4 or point[1]>=158 or point[2]<0 or point[2]>=WorldSize.WORLD_SIZE_Z: return path+" has an invalid movement location."
 			for field: String in ["launch_left","flight_left","shore_left"]:
 				if value[field]<0: return path+" has a negative timer."
 			return ""
 		"material":
 			return "" if value is String and catalogs.materials.has(value) else "%s has an unknown material." % path
+		"furniture", "item", "recipe", "tree", "plant":
+			# Content the game no longer defines cannot be restored.
+			var catalog: Dictionary = catalogs[CONTENT_CATALOGS[rule]]
+			if value is String and catalog.has(value): return ""
+			return "%s names unknown %s '%s'; start a new world." % [path, rule, str(value)]
 		"key":
 			if value is String and not value.is_empty(): return ""
 			return path + " must be a non-empty string."

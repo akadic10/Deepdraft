@@ -42,6 +42,7 @@ func _setup_crafting_fixture() -> void:
 	furniture.set_process(false)
 	furniture._process(0)
 	crafting = load("res://scripts/systems/CraftingManager.gd").new()
+	crafting.dock_ui_path = NodePath("../Dock")
 	scene.add_child(crafting)
 	crafting.set_process(false)
 	panel = dock._craft_panel

@@ -13,7 +13,7 @@ var max_haulers: int = 2
 var carry_speed_mult_heavy: float = 0.7
 var carry_capacity: int = 4                   # sum of per-object carry_cost points
 var pouch_bundle_radius: int = 8              # extras within this radius of the MAIN item
-var drop_manager: Node3D = null               # ItemDropManager (guard is_instance_valid)
+var drop_manager: ItemDropManager = null      # guard is_instance_valid
 var changed_callback: Callable = Callable()   # (item_key, delta) -> StockpileManager signal
 var filter_tags: Array[String] = []
 var filter_items: Array[String] = []
@@ -32,7 +32,7 @@ const FruitPlanner = preload("res://scripts/components/FruitHaulPlanner.gd")
 # ── Subclass surface (abstract — override all of these) ───────────────────────
 
 ## True while at least one more deposit could be reserved.
-func _has_any_room() -> bool:
+func has_any_room() -> bool:
 	return false
 
 
@@ -42,15 +42,15 @@ func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amoun
 
 
 func _has_room_for_key(_key: String) -> bool:
-	return _has_any_room()
+	return has_any_room()
 
 
 func _item_capacity(key: String) -> int:
-	return int(drop_manager.call("item_capacity", key)) if is_instance_valid(drop_manager) else 1
+	return drop_manager.item_capacity(key) if is_instance_valid(drop_manager) else 1
 
 
 func _carry_cost(key: String) -> int:
-	var def: Dictionary = drop_manager.call("get_item_def", key)
+	var def: Dictionary = drop_manager.get_item_def(key)
 	return maxi(1, int(def.get("carry_cost", 1)))
 
 
@@ -75,6 +75,11 @@ func _deposit_walk_target(_first_token: Variant) -> Vector3i:
 
 
 ## Cosmetic bundle handoff; the reserved tokens still own final placement.
+## Dwarves currently hauling out of this storage.
+func puller_ids() -> Array:
+	return _pulls.keys()
+
+
 func delivery_contact(stand: Vector3i) -> Vector3:
 	return Vector3(stand.x + .5, stand.y + 1.0, stand.z + .5)
 
@@ -146,12 +151,12 @@ func serialize_filter() -> Dictionary:
 		"excluded_items": excluded_items.duplicate()}
 
 
-## Missing rules preserve the legacy accept-all default. Explicit empty arrays
-## mean accept nothing. Restore does not cancel tasks while owners are loading.
+## Explicit empty arrays mean accept nothing. Restore does not cancel tasks
+## while owners are loading.
 func restore_filter(saved: Dictionary) -> void:
-	filter_tags.assign(saved.get("tags", StockpileZoneComponent.DEFAULT_FILTER_TAGS))
-	filter_items.assign(saved.get("items", []))
-	excluded_items.assign(saved.get("excluded_items", []))
+	filter_tags.assign(saved.tags)
+	filter_items.assign(saved.items)
+	excluded_items.assign(saved.excluded_items)
 
 
 func set_all_accepted(allowed: bool) -> void:
@@ -248,7 +253,6 @@ func withdraw_stack(_slot: Variant, _amount: int, _dwarf_id: int) -> Node3D:
 ## outgoing token participates in existing inventory/relocation accounting.
 func reserve_portion(slot: Variant, key: String, dwarf_id: int) -> Dictionary:
 	if not StockpileManager.is_registered(self): return {}
-	if self is ContainerStorageComponent and self.suspended: return {}
 	var stack: Dictionary = stored_entries().get(slot, {})
 	if not slot_allowed(slot) or stack.get("item") != key or int(stack.get("count", 0)) < 1: return {}
 	var outgoing: Dictionary = _outgoing.get(slot,{})
@@ -269,7 +273,6 @@ func reserve_portion(slot: Variant, key: String, dwarf_id: int) -> Dictionary:
 func portion_available(token: Dictionary, dwarf_id: int) -> bool:
 	if not bool(token.get("active", false)) or int(token.get("owner", -1)) != dwarf_id: return false
 	if not StockpileManager.is_registered(self): return false
-	if self is ContainerStorageComponent and self.suspended: return false
 	var stack: Dictionary = stored_entries().get(token.slot, {})
 	var outgoing: Dictionary = _outgoing.get(token.slot,{})
 	return outgoing.get("portions",{}).get(dwarf_id) == token and slot_allowed(token.slot) \
@@ -334,7 +337,7 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline_usec: int) -
 		query["stock_revision"] = revision
 		query["source"] = self
 		query["from"] = from
-	if not is_instance_valid(drop_manager) or not _has_any_room():
+	if not is_instance_valid(drop_manager) or not has_any_room():
 		query.cell = Vector3i(-1, -1, -1)
 		return true
 	if not query.has("loose"): query.loose = {}
@@ -418,9 +421,9 @@ func release_storage_claims() -> void:
 func update_leases() -> void:
 	if source_id < 0 or drop_manager == null or not is_instance_valid(drop_manager):
 		return
-	if not _has_any_room():
+	if not has_any_room():
 		return
-	var candidates := int(drop_manager.call("count_loose", _query_tags(), max_haulers, _can_haul_key))
+	var candidates := drop_manager.count_loose(_query_tags(), max_haulers, _can_haul_key)
 	if candidates < max_haulers:
 		candidates += StockpileManager.relocation_candidates(self, Vector3i.ZERO, {}, max_haulers - candidates).size()
 	var wanted := mini(max_haulers, candidates)
@@ -450,17 +453,17 @@ func on_task_gone(task_id: int, dwarf_id: int) -> void:
 func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> Dictionary:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return {}
-	var main := drop_manager.call("nearest_loose", _query_tags(), dwarf_cell, exclude, _can_haul_key) as Node3D
+	var main := drop_manager.nearest_loose(_query_tags(), dwarf_cell, exclude, _can_haul_key)
 	if main == null:
 		return _reserve_relocation(dwarf_id, dwarf_cell, exclude)
-	var main_cell: Vector3i = drop_manager.call("item_floor_cell", main)
+	var main_cell: Vector3i = drop_manager.item_floor_cell(main)
 
 	var items: Array[Node3D] = [main]
-	if _carry_cost(String(drop_manager.call("item_key_of", main))) < carry_capacity:
+	if _carry_cost(drop_manager.item_key_of(main)) < carry_capacity:
 		var near_exclude := exclude.duplicate()
 		near_exclude[main] = true
-		var extras: Array[Node3D] = drop_manager.call(
-			"loose_near", _query_tags(), main_cell, pouch_bundle_radius,
+		var extras: Array[Node3D] = drop_manager.loose_near(
+			_query_tags(), main_cell, pouch_bundle_radius,
 			0, near_exclude, _can_haul_key)
 		for extra: Node3D in extras:
 			items.append(extra)
@@ -470,7 +473,7 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 	var any_heavy := false
 	var remaining := carry_capacity
 	for item: Node3D in items:
-		var key := String(drop_manager.call("item_key_of", item))
+		var key := drop_manager.item_key_of(item)
 		var cost := _carry_cost(key)
 		if cost > remaining:
 			continue
@@ -479,13 +482,13 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 		var token: Variant = _reserve_fruit_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item)) if fruit_item else _reserve_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item))
 		if token == null:
 			continue
-		if not bool(drop_manager.call("reserve", item, dwarf_id)):
+		if not drop_manager.reserve(item, dwarf_id):
 			_release_haul_deposit(token)
 			continue   # raced another hauler; try the next candidate
 		reserved_items.append(item)
 		deposits[item] = token
 		remaining -= cost
-		var def: Dictionary = drop_manager.call("get_item_def", key)
+		var def: Dictionary = drop_manager.get_item_def(key)
 		if String(def.get("weight_class", "light")) == "heavy":
 			any_heavy = true
 		if remaining == 0:
@@ -607,7 +610,7 @@ func placement_haul_items(dwarf_id: int) -> Array[Dictionary]:
 			"count": int(token.count) if stored else int(drop_manager.quantity_of(item)),
 			"instance_id": instance_id, "carried": false})
 	for item: Node3D in pull.cargo:
-		if drop_manager.Permission.allowed(item) and not item.is_queued_for_deletion() and bool(pull.cargo[item].active):
+		if ItemDropManager.Permission.allowed(item) and not item.is_queued_for_deletion() and bool(pull.cargo[item].active):
 			result.append({"item": item, "key": String(pull.cargo[item].item),
 				"count": int(drop_manager.quantity_of(item)),
 				"instance_id": String(item.get_meta("instance_id", "")), "carried": true})
@@ -631,7 +634,7 @@ func cancel_haul(dwarf_id: int) -> void:
 		if item != null and is_instance_valid(item):
 			# Owner-guarded: skipped items in this range may have been
 			# re-reserved by another hauler since (spam-robustness pass).
-			drop_manager.call("unreserve", item, dwarf_id)
+			drop_manager.unreserve(item, dwarf_id)
 
 
 ## Step 3: pick up the item at `index` in the visit order.
@@ -651,16 +654,16 @@ func take_item(dwarf_id: int, index: int) -> Node3D:
 	if pull.picked.has(item):
 		return null
 	if not accepts_key(String(pull.deposits[item].item)): return null
-	var cargo: Node3D = _take_relocation(pull.transfer, dwarf_id) if pull.has("transfer") else drop_manager.call("take_quantity", item, int(pull.deposits[item].count), dwarf_id)
+	var cargo: Node3D = _take_relocation(pull.transfer, dwarf_id) if pull.has("transfer") else drop_manager.take_quantity(item, int(pull.deposits[item].count), dwarf_id)
 	if cargo != null:
 		pull.picked[item] = true
 		if pull.has("fruit"):
 			var basket: Node3D = pull.fruit.basket
 			if is_instance_valid(basket):
-				var group: Dictionary = pull.cargo[basket]
-				group.parts.append_array(cargo_deposits(pull.deposits[item]))
-				group.count+=int(pull.deposits[item].count)
-				drop_manager.set_quantity(basket,int(group.count))
+				var basket_group: Dictionary = pull.cargo[basket]
+				basket_group.parts.append_array(cargo_deposits(pull.deposits[item]))
+				basket_group.count+=int(pull.deposits[item].count)
+				drop_manager.set_quantity(basket,int(basket_group.count))
 				pull.items[index]=basket # Retain a live, already-picked identity in the visit list.
 				pull.picked[basket]=true
 				cargo.queue_free()
@@ -686,7 +689,7 @@ func skip_item(dwarf_id: int, index: int) -> void:
 		var item: Node3D = items[index]
 		if item != null and is_instance_valid(item) \
 				and drop_manager != null and is_instance_valid(drop_manager):
-			drop_manager.call("unreserve", item, dwarf_id)
+			drop_manager.unreserve(item, dwarf_id)
 		if pull.deposits.has(item):
 			_release_haul_deposit(pull.deposits[item])
 
@@ -699,11 +702,11 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 	# Validate the whole delivery before changing counts. A failed commit leaves
 	# every node with the dwarf, whose release path drops all cargo safely.
 	for entry: Array in carried:
-		if not accepts_key(String(entry[1])) or not drop_manager.Permission.allowed(entry[0]): return false
+		if not accepts_key(String(entry[1])) or not ItemDropManager.Permission.allowed(entry[0]): return false
 		if not pull.cargo.has(entry[0]) or not bool(pull.cargo[entry[0]].active):
 			return false
 		var token: Dictionary = pull.cargo[entry[0]]
-		if String(token.item) != String(entry[1]) or int(token.count) != int(drop_manager.call("quantity_of", entry[0])):
+		if String(token.item) != String(entry[1]) or int(token.count) != drop_manager.quantity_of(entry[0]):
 			return false
 		var total := 0
 		for part: Dictionary in cargo_deposits(token):
@@ -741,7 +744,7 @@ func _visit_order(items: Array[Node3D], from_cell: Vector3i) -> Array[Node3D]:
 		var best_idx := 0
 		var best_dist: int = 0x7FFFFFFF
 		for i: int in range(remaining.size()):
-			var cell: Vector3i = drop_manager.call("item_floor_cell", remaining[i])
+			var cell: Vector3i = drop_manager.item_floor_cell(remaining[i])
 			var d := cell - here
 			var dist := absi(d.x) + absi(d.z)
 			if dist < best_dist:
@@ -750,5 +753,5 @@ func _visit_order(items: Array[Node3D], from_cell: Vector3i) -> Array[Node3D]:
 		var next: Node3D = remaining[best_idx]
 		remaining.remove_at(best_idx)
 		ordered.append(next)
-		here = drop_manager.call("item_floor_cell", next)
+		here = drop_manager.item_floor_cell(next)
 	return ordered

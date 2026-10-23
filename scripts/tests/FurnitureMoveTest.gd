@@ -3,7 +3,6 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 const FROM := Vector3i(44,20,40)
 const TO := Vector3i(53,20,44)
 const JUNIPER := "base:material:juniper"
-const StorageFixture := preload("res://scripts/tests/TestStorageFixture.gd")
 const BED := "base:furniture:log_bed"
 
 func _run() -> void:
@@ -86,7 +85,7 @@ func _clean() -> void:
 	for id in furniture._ghosts.keys(): furniture.cancel_ghost(id)
 	for id in furniture._installed.keys(): furniture.dev_remove_installed(id)
 	for node in drops._loose.keys(): drops.take(node); node.queue_free()
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	worker._idle_behavior.cancel(); worker.stop_walking()
 	worker.position=Vector3(40.5,21,39.5)
 	worker.sleep=1; worker._food.value=1
@@ -110,16 +109,16 @@ func _interruption_and_save() -> void:
 	crafting.furniture=furniture
 	plan=furniture._ghosts.values()[0]
 	_expect(await _phase(worker.TaskPhase.FETCH_TO_GHOST),"restored move resumes and physically carries its item")
-	var cargo: Node3D=worker._fetch_item
+	var cargo: Node3D=worker._work_execution._fetch_item
 	_expect(String(cargo.get_meta("instance_id",""))==move_id,"carrier holds the exact identified furniture")
 	var mid: Dictionary=JSON.parse_string(JSON.stringify(furniture.serialize_state()))
 	var actor: Dictionary=worker.serialize_state()
 	_expect(mid.moves.records[move_id].installed_id==-1 and actor.carried_items[0].instance_id==move_id,"in-flight save has no old installed copy and keeps cargo identity")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(drops.instance_promised(move_id) and _count(BENCH_ITEM)==1,"worker interruption preserves and protects the packed piece")
 	_expect(await _phase(worker.TaskPhase.FETCH_TO_GHOST),"another attempt picks up the same protected piece")
 	furniture.cancel_ghost(plan.ghost_id)
-	_expect(not drops.instance_promised(move_id) and _count(BENCH_ITEM)==1 and worker._fetch_item==null,"cancel while carrying safely drops intact furniture for ordinary storage")
+	_expect(not drops.instance_promised(move_id) and _count(BENCH_ITEM)==1 and worker._work_execution._fetch_item==null,"cancel while carrying safely drops intact furniture for ordinary storage")
 	# Ordinary placement of the cancelled packed item still consumes its record.
 	furniture.activate_for(BENCH,true); furniture._hover_cell=TO; furniture._confirm_ghost(); furniture.deactivate()
 	_expect(await _move_until(func(): return furniture._ghosts.is_empty()),"cancelled packed furniture can be placed normally")
@@ -138,29 +137,6 @@ func _blocked_destination() -> void:
 	_expect(_at(TO)!=null and _count(BENCH_ITEM)==0,"resumed Move installs exactly once")
 
 func _settings_and_crafting() -> void:
-	await _clean()
-	StorageFixture.install(furniture)
-	var chest = _install_piece(StorageFixture.KEY)
-	chest.storage.set_all_accepted(false); chest.storage.set_item_accepted(PINE,true)
-	chest.storage.restore_inventory({PINE:2},drops)
-	stockpiles.rebuild_totals()
-	if "--capture" in OS.get_cmdline_user_args():
-		explorer.select_object(furniture,"installed:%d" % chest.installed_id)
-		await _frames(6)
-		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://tmp/furniture_move_20261012/container.png")
-		root.size=Vector2i(960,540)
-		await _frames(8)
-		_expect(explorer._window.get_global_rect().end.y<=540,"container Move actions fit a compact viewport")
-		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://tmp/furniture_move_20261012/container_compact.png")
-		root.size=Vector2i(1280,720)
-		await _frames(8)
-	_plan(chest)
-	_expect(await _move_until(func(): return furniture._ghosts.is_empty()),"loaded container moves")
-	var moved = _at(TO)
-	_expect(moved!=null and moved.storage.accepts_key(PINE) and not moved.storage.accepts_key(ACORN),"container retains exact filters")
-	_expect(_count(PINE)==2,"container contents remain physical loose goods after packing")
 	await _clean()
 	var bed = _install_piece(BED)
 	_expect(furniture.assign_bed(bed.installed_id,worker.dwarf_id),"bed owner assigned")

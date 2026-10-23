@@ -4,9 +4,9 @@ extends RefCounted
 ## Use actual self-care search outcomes; never launch routes or claim supplies.
 static func describe(agent: DwarfAgent) -> Dictionary:
 	var config := UIRegistry.get_dwarf_indicators()
-	var food = agent._food
+	var food = agent.get_food()
 	if food != null and food.famished(): return _food_concern(food)
-	var rest = agent._rest_behavior
+	var rest = agent.get_rest_behavior()
 	var recovering: bool = agent.is_sleeping() and rest != null and rest.state in ["settling","sleeping","waking"]
 	var unresolved: bool = agent.is_sleeping() and rest != null and rest.elapsed >= float(config.unresolved_rest_seconds)
 	if not recovering and (agent.sleep <= float(config.exhausted_threshold) or unresolved):
@@ -17,8 +17,8 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 				return _issue("rest","Exhausted","No available bed found","Provide an accessible bed. This dwarf is finding a place to sleep on the ground.")
 		return _issue("rest","Exhausted","Needs sleep","Keep a clear route to a bed or a safe resting spot.")
 	if food != null and food.hungry() and food.shortage: return _food_concern(food)
-	if agent._mood != null and agent._mood.value() <= float(config.unhappy_threshold):
-		var thought: Dictionary = agent._mood.strongest_negative_thought()
+	if agent.get_mood() != null and agent.get_mood().value() <= float(config.unhappy_threshold):
+		var thought: Dictionary = agent.get_mood().strongest_negative_thought()
 		if not thought.is_empty(): return _issue("mood","Unhappy",thought.reason,thought.help)
 	return {}
 

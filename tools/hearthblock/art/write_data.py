@@ -1,4 +1,4 @@
-"""Rebuild data/art/voxel_hearthblock.json from the Hearthblock authoring modules.
+"""Rebuild tools/art_data/voxel_hearthblock.json from the Hearthblock authoring modules.
 
     py -3 tools/hearthblock/art/write_data.py      (needs node on PATH)
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-OUT = ROOT / 'data/art/voxel_hearthblock.json'
+OUT = ROOT / 'tools/art_data/voxel_hearthblock.json'
 
 # Wood roles reuse the game's existing source palettes so every wood recolors.
 HEWN = {'bark_dark': '463022', 'bark': '65442C', 'bark_light': '825B36', 'chop': '825B36',
@@ -84,12 +84,12 @@ def main():
         ref = json.loads(reference.read_text())
     proposal = ref['palette']
     fixed = {k: proposal[k].lstrip('#') for k in FIXED_FROM_PROPOSAL} | FIXED
-    dwarf_scar = json.loads((ROOT / 'data/art/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']['scar']
-    wildlife = json.loads((ROOT / 'data/art/voxel_wildlife.json').read_text(encoding='utf-8-sig'))['palette']
+    dwarf_scar = json.loads((ROOT / 'tools/art_data/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']['scar']
+    wildlife = json.loads((ROOT / 'tools/art_data/voxel_wildlife.json').read_text(encoding='utf-8-sig'))['palette']
     species = sorted({name.split('/')[0] for name in ref['wildlife']})
     palettes = {f: {k.split(':', 1)[1]: v.lstrip('#') for k, v in wildlife.items() if k.startswith(f + ':')} for f in species}
     # Work tools keep the existing tool materials (iron, steel, haft wood, leather wraps).
-    dwarf_palette = json.loads((ROOT / 'data/art/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']
+    dwarf_palette = json.loads((ROOT / 'tools/art_data/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']
     tools = {k: dwarf_palette[k].lstrip('#') for k in ('wood', 'grain', 'tool_leather', 'iron', 'iron_dark', 'steel')}
     palettes |= {'hewn': HEWN | fixed, 'oak': OAK | fixed,
                 'dwarf': {k: proposal[k].lstrip('#') for k in DWARF_ROLES if k != 'scar'} | {'scar': dwarf_scar.lstrip('#')} | tools}

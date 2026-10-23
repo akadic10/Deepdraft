@@ -67,8 +67,13 @@ static func _collect_bounds(node: Node, boxes: Array[AABB]) -> void:
 		_collect_bounds(child, boxes)
 
 
-## Shared slice-aware terrain DDA. Returns the hit solid cell and entering face.
-## Optional sampling lets inspection follow rendered cuts without changing work rays.
+## THE terrain raycast (voxel DDA) for every tool. Returns {x, y, z, normal,
+## distance} for the first in-bounds cell at or below `slice_y` whose block is
+## solid on the live grid (WorldData.get_live_block), or {} on a miss.
+## - `sample_block(pos) -> id` replaces the live grid; any non-air id then hits
+##   (mining uses concealed strata, inspection follows rendered cuts).
+## - `visible_face(pos, normal) -> bool` skips cells the view hides (x-ray,
+##   VisibleVolume); pass slice_y = WorldData.MAX_Y to let it decide alone.
 static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 		max_distance: float = 600.0, sample_block: Callable = Callable(), visible_face: Callable = Callable()) -> Dictionary:
 	var pos := Vector3i(floori(origin.x), floori(origin.y), floori(origin.z))
@@ -85,15 +90,13 @@ static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 	while travelled <= max_distance:
 		if pos.y < 0:
 			return {}
-		if pos.x >= 0 and pos.x < WorldGenerator.WORLD_SIZE_X \
-				and pos.z >= 0 and pos.z < WorldGenerator.WORLD_SIZE_Z \
-				and pos.y <= mini(slice_y, WorldGenerator.WORLD_SIZE_Y - 1) \
+		if pos.x >= 0 and pos.x < WorldData.WORLD_SIZE_X \
+				and pos.z >= 0 and pos.z < WorldData.WORLD_SIZE_Z \
+				and pos.y <= mini(slice_y, WorldData.WORLD_SIZE_Y - 1) \
 				and (not visible_face.is_valid() or visible_face.call(pos,normal)):
 			var block_id: int
 			if sample_block.is_valid():
 				block_id = sample_block.call(pos)
-			elif WorldData.chunk_exists(pos.x >> 4, pos.y >> 4, pos.z >> 4):
-				block_id = WorldData.get_block(pos.x, pos.y, pos.z)
 			else:
 				block_id = WorldData.get_live_block(pos.x, pos.y, pos.z)
 			if BlockRegistry.is_solid(block_id) or (sample_block.is_valid() and block_id != BlockRegistry.AIR_ID):
@@ -113,6 +116,27 @@ static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 			travelled = t_max.z
 			t_max.z += t_delta.z
 			normal = Vector3i(0, 0, -step.z)
+	return {}
+
+
+## Height-field march for surface-only picks (flag placement, walk test, camera
+## zoom): steps along the ray until it drops to an in-bounds column's visible
+## surface plus `top_offset`. Ignores mining and the slice, and works before any
+## chunk exists. Returns {x, y (surface block), z, point} or {}.
+static func surface_hit(origin: Vector3, direction: Vector3, max_distance: float,
+		step := 0.5, top_offset := 1.0) -> Dictionary:
+	var t := 0.0
+	while t <= max_distance:
+		var p := origin + direction * t
+		var wx := floori(p.x)
+		var wz := floori(p.z)
+		if wx >= 0 and wx < WorldData.WORLD_SIZE_X and wz >= 0 and wz < WorldData.WORLD_SIZE_Z:
+			var sy := int(WorldGenerator.get_visible_surface_y(wx, wz))
+			if sy >= 0 and p.y <= float(sy) + top_offset:
+				return {"x": wx, "y": sy, "z": wz, "point": Vector3(p.x, float(sy), p.z)}
+		elif p.y < 0.0:
+			return {}
+		t += step
 	return {}
 
 

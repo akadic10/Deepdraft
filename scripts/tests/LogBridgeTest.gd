@@ -50,7 +50,7 @@ func _run() -> void:
 	furniture._hover_cell = bank
 	furniture._hover_valid = furniture._placement_valid(bank)
 	furniture._position_preview(bank)
-	_expect(furniture._hover_valid and furniture._hint_label.text.contains("5-block gap"), "preview quotes span and kit from the selected bank")
+	_expect(furniture._hover_valid and furniture._visuals.hint_label.text.contains("5-block gap"), "preview quotes span and kit from the selected bank")
 	if "--capture" in OS.get_cmdline_user_args(): await _bridge_preview_capture()
 	furniture._confirm_ghost()
 	furniture.deactivate()
@@ -66,8 +66,8 @@ func _run() -> void:
 	worker._process(.5)
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(bridges.serialize_state()))
 	_expect(saved.routes[0].progress>0 and not saved.routes[0].built, "partial installation saves its work without granting support")
-	worker.dev_force_interrupt()
-	var source_id: int = bridges.routes[id].source.source_id
+	worker.force_interrupt()
+	var source_id: int = bridges.work.get_source(id).source_id
 	_expect(tasks._tasks.values().filter(func(task): return task.source_id==source_id).size()==1, "interruption preserves exactly one construction lease")
 	bridges.restore_state(saved)
 	_expect(_count(KIT)==1, "interruption/load conserves the unconsumed physical kit")

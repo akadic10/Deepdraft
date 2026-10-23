@@ -83,7 +83,7 @@ func _run() -> void:
 	for x in range(cliff.x+1,cliff.x+18):
 		for z in range(cliff.z,cliff.z+4):
 			for y in range(cliff.y+1,cliff.y+5): mined.append(Vector3i(x,y,z))
-	var builds: int = renderer._overview_build_count
+	var builds: int = renderer.tiles._overview_build_count
 	var start := Time.get_ticks_usec()
 	var single: Array[Vector3i] = [mined[0]]
 	scene.get_node("MiningDesignationController")._mine_blocks_world(single)
@@ -94,7 +94,7 @@ func _run() -> void:
 	var batch_dispatch := (Time.get_ticks_usec()-start)/1000.0
 	var batch_wait := await _settle()
 	report["edits"] = {"single_dispatch_ms":single_dispatch,"single_settle":single_wait,
-		"batch_dispatch_ms":batch_dispatch,"batch_settle":batch_wait,"tile_rebuilds":renderer._overview_build_count-builds}
+		"batch_dispatch_ms":batch_dispatch,"batch_settle":batch_wait,"tile_rebuilds":renderer.tiles._overview_build_count-builds}
 	scene.get_node("SliceController")._set_slice_y(cliff.y+4)
 	report["slice_settle"] = await _settle()
 	_view(Vector3(cliff)+Vector3(8,1,2),34,Vector3(-1,2,1))
@@ -120,10 +120,10 @@ func _run() -> void:
 	if extended: await _extended_checks(cliff)
 	report["final_renderer"] = renderer.get_render_stats()
 	if profile_builds:
-		report["build_profile"] = {"tiles":renderer._ovp_tiles,
-			"loop_ms":renderer._ovp_loop_usec/1000.0,"sides_ms":renderer._ovp_sides_usec/1000.0,
-			"merge_ms":renderer._ovp_merge_usec/1000.0,"upload_ms":renderer._ovp_mesh_usec/1000.0,
-			"slowest_tile_total_ms":renderer._ovp_max_tile_usec/1000.0,"slowest_tile":renderer._ovp_max_breakdown}
+		report["build_profile"] = {"tiles":renderer.tiles._ovp_tiles,
+			"loop_ms":renderer.tiles._ovp_loop_usec/1000.0,"sides_ms":renderer.tiles._ovp_sides_usec/1000.0,
+			"merge_ms":renderer.tiles._ovp_merge_usec/1000.0,"upload_ms":renderer.tiles._ovp_mesh_usec/1000.0,
+			"slowest_tile_total_ms":renderer.tiles._ovp_max_tile_usec/1000.0,"slowest_tile":renderer.tiles._ovp_max_breakdown}
 	FileAccess.open(output+"report.json",FileAccess.WRITE).store_string(JSON.stringify(report,"  "))
 	print("TERRAIN_CAPTURE_PASS " if report.failures.is_empty() else "TERRAIN_CAPTURE_FAIL ",output)
 	generator.prepare_for_world_reload()
@@ -228,7 +228,7 @@ func _settle() -> Dictionary:
 	var samples: Array[float] = []
 	var start := Time.get_ticks_usec()
 	for i in range(4): await process_frame
-	while not renderer._overview_built or not renderer._dirty_overview_tiles.is_empty() or renderer._cavity_shell_dirty or renderer.underground_lighting.is_updating():
+	while not renderer.tiles.overview_built or not renderer.tiles.dirty_overview_tiles.is_empty() or renderer.cavity_shell.dirty or renderer.underground_lighting.is_updating():
 		var tick := Time.get_ticks_usec()
 		await process_frame
 		samples.append((Time.get_ticks_usec()-tick)/1000.0)

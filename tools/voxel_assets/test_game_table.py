@@ -15,7 +15,7 @@ class GameTableTests(unittest.TestCase):
     def setUpClass(cls):
         _,parts,_=next(assets(only='board_game_table.glb'))
         cls.cells=parts['main'].voxels.cells
-        cls.palette=read_json('data/art/voxel_hearthblock.json')['palettes']['hewn']
+        cls.palette=read_json('tools/art_data/voxel_hearthblock.json')['palettes']['hewn']
         cls.definition=read_json('data/furniture/board_game_table.json')
 
     def test_same_native_log_outline_and_height(self):

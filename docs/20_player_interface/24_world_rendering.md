@@ -113,6 +113,12 @@ Actual roofs and the visible slice clip streaks, including visually removed
 roofs over rooms. Rain presentation never adds simulated water or flooding.
 The sky dial and environmental audio follow the same authoritative weather ID.
 
+**Planned weather effects (not implemented):** snow cover would build at about
++0.0007 per minute while it snows and melt at −0.0007 per minute in clear, foggy or
+overcast weather (−0.0009 in rain and storms). Foggy weather would give dwarves a
+`weather_foggy` thought and snow a `weather_cold` thought. Weather never changes
+gameplay sight or streaming.
+
 **Sky scene lifetime (2026-10-13):**
 [167](../00_dev_roadmap/167_sky_scene_lifetime.md) clears the sky autoload's
 scene references on Environment exit. Save loading leaves a gap between old
@@ -166,8 +172,7 @@ and uploads finished meshes within a 4 ms soft budget (one mesh upload is atomic
 Tile revisions, slice/season snapshots and a global rebuild epoch reject stale
 results. Existing meshes stay visible until a current replacement is ready.
 Scene teardown/save reload joins workers before generation maps are cleared.
-The exact chunk renderer remains dormant in normal play. Seasonal refresh also
-updates generic added-terrain meshes. Positive edits now batch their exposed
+Seasonal refresh also updates generic added-terrain meshes. Positive edits now batch their exposed
 faces, cull shared faces and tag slice-only tops just like constructed stone.
 
 **Gradual seasons (2026-10-15):** existing terrain is admitted for seasonal
@@ -243,7 +248,7 @@ All visual design decisions in this document are derived from analysis of **Ston
 
 ### Core Principle: Sky and Fog Must Match
 
-The single most impactful atmospheric decision is that **the sky color and the fog color must be nearly identical**. Stonehearth achieves a seamless world-edge dissolve entirely through this color match — there is no special boundary shader, no fog wall, no edge culling. The terrain simply fades into the sky.
+The single most impactful atmospheric decision is that **the sky color and the fog color must be nearly identical**. Stonehearth achieves a seamless world-edge dissolve through this color match — no fog wall and no edge culling. The match is per pixel: their dissolve pass takes the fog colour from the sky behind each fragment (see §Future world-edge dissolve). The terrain simply fades into the sky.
 
 ### Daytime Fog Parameters (Target)
 
@@ -264,9 +269,15 @@ also supplies ambient light. Stars and clouds remain background detail.
 
 > **Current implementation:** `SkyController` drives the sky gradient and Sun/Moon
 > lights from calendar-keyed data. It also applies weather cloud/haze parameters
-> from the owned sky/weather JSON. The world-edge fog redesign remains deferred. See
-> [08 — Sky plan](../00_dev_roadmap/08_sky_plan.md) and the live underground-lighting
-> section below for the current division of responsibilities.
+> from the owned sky/weather JSON. The world-edge fog redesign remains deferred; see
+> §Future world-edge dissolve below, and the live underground-lighting section for the
+> current division of responsibilities.
+
+**Light hue is normalised.** `SkyController._apply_light()` divides each sun/moon colour by
+its brightest channel: the hue goes to `light_color`, the brightness to `light_energy`. A
+bluish curve value therefore becomes a fully blue light every frame. Never copy
+Stonehearth's bluish light values (tuned for their renderer); keep sun colours near-white,
+with the max channel setting the energy.
 
 ### Atmospheric Depth (Scattering)
 
@@ -296,6 +307,43 @@ When the terrain slice is active and the player pans to the map edge, they will 
 
 **No world-edge boundary shader is required for the slice view.** The dark void + dark horizon color match solves it for free.
 
+### Future world-edge dissolve
+
+Not built. Today `SkyController` applies depth fog in the horizon colour (`fog_begin` /
+`fog_end` in `data/sky/sky_settings.json`), and the camera's `far_clip` (1024,
+`camera_settings.json`) runs well past the fog end, so there is no honest horizon.
+
+**How Stonehearth does it.** A separate edge-dissolve pass redraws the far ~30% of the view
+(`frustum_start = 0.7`). Its fog factor reaches fully opaque at the far plane, and its fog
+colour is **the rendered sky sampled at that screen pixel**. That is why their terrain and
+sky meet in one line. Their atmosphere height fog is a separate mood layer.
+
+**Why a flat fog colour fails.** Terrain fades to one constant while the sky behind it is a
+gradient, and the far cutoff does not sit on the sky's visual horizon. The result is always
+two lines: where the blocks end and where the horizon band starts. Past attempts, so they
+are not repeated blind:
+
+| Attempt | Result |
+|---|---|
+| Environment depth fog pinned to the far clip | Invisible; the depth mode had no effect on this scene. |
+| Exponential fog in the horizon colour | Washed out the whole scene; exponential fog tints everything. |
+| Terrain shader fading albedo to a flat colour | Two lines: terrain cutoff and sky horizon. |
+
+A red exponential-fog diagnostic was the one useful step: it proved the Environment fog
+reaches terrain and that only the depth mode was dead.
+
+**Rules for the next attempt.**
+
+1. The fog colour must equal the sky behind the pixel: render the sky to a texture and sample
+   it, or evaluate the analytic sky gradient for the fragment's view direction. The roof-aware
+   lighting shader already evaluates that gradient per fragment (`atmosphere()` in
+   `underground_lighting_common.gdshaderinc`), mixed with the flat fog colour by the aerial
+   perspective setting.
+2. Prove the mechanism with an obvious diagnostic (such as solid red) before tuning values.
+3. Change one variable per screenshot, in-engine; headless maths cannot judge the look.
+4. Once the dissolve is honest, cap the draw and build distance around the camera to the fog
+   distance, so far tiles are neither built nor drawn. The whole map stays reachable.
+
 ---
 
 ## Terrain Slice View
@@ -306,20 +354,34 @@ Stonehearth uses a **hard horizontal clip** at `slice_y` — geometry above the 
 
 > **Implemented (2026-06-04):** `WorldRenderer.slice_y` hard-clips the whole map via the
 > slice-aware block-face overview (per-column cut tops, strata-only floors, per-tile
-> invalidation). Verified: ~1.5 s center-first sweep, ~60 ms worst frame for a mountain-depth
-> step (editor/debug). See `00_dev_roadmap/11_slice_xray_plan.md` for the full record.
-
-DwarfVoxel's `slice_fade_bands` (see `21_rts_camera.md`) should apply only at or near the **surface** where transitioning from aboveground to underground view. For slices **deep underground**, default to a hard clip. The black void above reads as solid rock ceiling, which is narratively correct.
+> invalidation). See §Slice meshing rules and §Slice known limits under Terrain Render Modes.
 
 ### The Black Ceiling Reads as Rock
 
 When the player is working inside a carved underground chamber and the slice removes geometry above them, the black void is not perceived as a missing sky — it reads as the solid mountain above. This effect is free and correct. Do not add ambient fill light or particle effects to the overhead void.
 
+### VisibleVolume contract
+
+`WorldRenderer` is the one visibility interface for overlays (no autoload):
+
+- `is_block_visible(pos)` — inside the slice plane, then (while X-ray inspects) inside the
+  discovered shell. The order is always clip first, then the interior set.
+- `filter_blocks(blocks)` — the visible subset, order kept; returns the input unchanged when
+  the slice is off and X-ray is not inspecting.
+- `clip_aabb(aabb)` — slice plane only; a box wholly above the plane comes back zero-size.
+- `visible_volume_changed` — any visibility change sets a dirty flag, flushed as at most one
+  emission per frame in `_process`. Consumers (mining overlays, water, moisture, construction)
+  rebuild on the signal; no consumer may poll.
+
+Mining zone overlays and previews clip through this contract, so a zone wholly above the
+plane disappears (its data is untouched) and designation is WYSIWYG — see
+`43_mining_materials.md`. Entities do not use it yet; see `21_camera.md` §Known limitations.
+
 ### Underground Lighting Model
 
-**Wall torch lighting shipped 2026-10-02** ([art doc 43](../00_dev_roadmap/43_wall_torch_asset_and_lighting.md)).
-Installed torches add bounded warm omni lights and 200 heat units. All four terrain
-mesh paths (chunk, region, overview and cavity shell) now cast local-light shadows,
+**Torch lighting:** each installed log torch (`data/furniture/wooden_torch.json`) adds a
+bounded warm omni light and 75 heat units; packed torches are unlit. The terrain
+meshes (overview tiles, cavity shell and added terrain) cast local-light shadows,
 so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain.
 Since the [2026-10-17 fix](../00_dev_roadmap/204_terrain_sun_shadows.md), the sun also
 includes that layer in its **shadow-caster** mask, preventing plant/prop shadows
@@ -557,10 +619,18 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
 
 ## Terrain Render Modes
 
-> Migrated from the original `00_dev_roadmap/01_world_gen_plan.md` (retired 2026-06-05; live
-> remainder in `00_dev_roadmap/12_worldgen_second_milestone.md`). The renderer may simplify geometry, but
+> Migrated from the original `00_dev_roadmap/01_world_gen_plan.md` (retired 2026-06-05). The renderer may simplify geometry, but
 > it must simplify **exposed block faces** — never invent a painted surface that disagrees with
-> the generated blocks. `WorldRenderer` implements the first two modes today.
+> the generated blocks. `WorldRenderer` implements the first mode today.
+
+**Code layout (doc 258 step 8, 2026-10-22):** `WorldRenderer` owns the lifecycle, the
+exports, `slice_y`, the cut sets, the added terrain, the VisibleVolume contract and the
+material. `TerrainTileMesher` (`renderer.tiles`) owns the tile queue, the immutable
+cut/mined snapshots read by workers, tile meshing, the startup and slice-timing reports
+and the statistics behind `get_render_stats()`. `TerrainCavityShell` (`renderer.cavity_shell`) owns the mined-cavity
+shell, its per-column cut index and the column-mesh helpers the added terrain shares.
+`BlockInspector` is the DEV inspector. All three are plain preloaded scripts in
+`scripts/components/`.
 
 ### Accepted modes
 
@@ -571,16 +641,15 @@ DwarfVoxel's surface is an **unforgiving wilderness** the dwarves are retreating
    1-block grass cap renders grass on its sides, and the 2-block soil bands and rock shelves
    render true. Banding may merge only **identical adjacent colours**; the "approximation" is
    geometric simplification, never colour.
-   **Slice-aware (doc 11 Phase SO):** a column whose surface is above `slice_y` renders its cut
+   **Slice-aware:** a column whose surface is above `slice_y` renders its cut
    floor at the plane. Cut floors are **authored strata only** — see the slice-concealment rule
    below. Neighbour tops are waterline-aware, so water bodies read as calm planes in the cut.
    Slice changes invalidate only tiles whose terrain reaches above the lower plane (+1-tile wall
-   margin), center-first from the camera.
-2. **Near streamed chunk mesh — DORMANT.** Built from generated chunks (`ChunkMesher`, which
-   supports block-granular slice clipping); reachable only via
-   `WorldRenderer.set_overview_enabled(false)`. Reserved for a future true-3D-interior need
-   (side views into roofed tunnels). It must never run during normal sliced play: exact chunk
-   data on a cut floor reveals veins/caves, violating the concealment rule.
+   margin), center-first from the camera; see §Slice meshing rules.
+2. **Near streamed chunk mesh — REMOVED (2026-10-22).** The dormant per-chunk mesher and its
+   on-demand chunk-column generation were deleted (doc 258). A future true-3D-interior view
+   (side views into roofed tunnels) would need a new path, and it must never show exact chunk
+   data on a cut floor: that reveals veins/caves, violating the concealment rule.
 3. **World-edge presentation slab** *(future — Second Milestone).* Large, calm boundary panels —
    not a per-block noisy side dump, and must not contradict the visible playable surface blocks.
 
@@ -597,8 +666,7 @@ not a prospecting tool.
 > air discovered through mining. Cut floors are exact only when the entire cut run
 > above is revealed air. Designation floors, untouched cliffs and concealed slice
 > cuts stay authored strata; a plan must not reveal resources. The cavity shell
-> follows the same rule. Derivation and defect history:
-> `00_dev_roadmap/11_slice_xray_plan.md` §Phase SO-2b, Defects 1–5.
+> follows the same rule. The fix rules behind it are listed in §Slice meshing rules.
 
 Mining into a generated cave reveals its whole connected system. Its air joins
 the renderer's cut/exposure sets independently of executed mining and planned
@@ -612,7 +680,57 @@ Development → DEV: Cave explorer** can outline hidden caves and temporarily
 preview their actual interiors. The preview uses a separate cut set and temporary
 readability lighting. Closing it restores normal lighting and the previous view,
 preserving real discoveries and mining plans. Preview air never becomes a mined
-or discovered save delta. See [68 — Caves and discovery](../00_dev_roadmap/68_caves_and_discovery.md).
+or discovered save delta. See `43_mining_materials.md` §Cave discovery.
+
+### Slice meshing rules
+
+**Invalidation.** `WorldGenerator` precomputes a visible-height range for every 32×32 overview
+tile (`get_tile_visible_range`). A slice move from `old` to `new` rebuilds only tiles whose
+max height is above `min(old, new)`, plus their four neighbours (border walls read neighbour
+tops), queued nearest-first from the camera's tile. Lowland tiles below both planes never
+rebuild. A slice move also marks the cavity shell for one full rebuild.
+
+**Cut dimming.** Floors cut by the plane itself are baked at `SLICE_CUT_DIM = 0.5` luminance
+(`TerrainTileMesher.slice_cut_color`, shared by constructed stone and the added terrain).
+Hue and block identity are untouched. Designation floors and the cavity shell stay full
+brightness. Greedy top-merge never fuses a dimmed cut plate with an undimmed natural plate of
+the same block at the same height.
+
+**Cut cells and revealed air.** Designated, mined and discovered cave cells are all cut cells.
+Revealed air (executed mining, discovered caves, terrain overrides) is the subset that earns
+exact colours; a plan reveals nothing. Every cut block opens the overview:
+
+- **Side-band punching.** A cliff band ends before any cut wall block and restarts after it,
+  so plans and holes both open a block-sized mouth in the wall.
+- **Cavity shell** (`TerrainCavityShell.gd`). For each **enclosed** cut cell (below its
+  column's cut-aware top, under a solid roof) it draws the faces of solid neighbours: exact
+  colour around revealed air, strata around plans. It skips cavity continuations, faces above
+  the plane, the world edge and undiscovered cave air. It is split into 16×16-block columns.
+
+Fix rules these mechanisms keep (each closed a real defect):
+
+1. The shell draws only enclosed cavities; open-from-above cuts are the overview's job alone
+   (a second coplanar face z-fought and flickered veins through).
+2. Plans deduct laterally too: designations punch side bands and get strata shell faces.
+3. A cut floor is exact only when every cut block above it is revealed air; any plan in the
+   run makes it strata.
+4. A designation must never act as a prospecting scanner: designate-read-remove shows only
+   strata, indistinguishable from untouched rock.
+5. A wall face is exact only when the air it faces is revealed air; natural, slice and
+   designation exposure stay strata.
+
+### Slice known limits
+
+- **Slice-step stutter (accepted).** A ±1 step over the mountain cost about a 25 ms worst
+  frame in a release build, measured before overview batches became non-blocking; it felt fine
+  in play. Side faces were half the sweep's CPU, and the world-corner tile with its full-depth
+  edge walls was the slowest. If stepping feels slow again, the ranked levers are: side-face
+  greedy merge (coplanar same-colour cliff quads), then debouncing the optional mining guide's
+  rebuild until the plane settles. Non-blocking batch collection, once the second lever, is
+  already in place.
+- **Lateral cavities.** The overview is a per-column-top representation, so roofed
+  interiors show only where punched mouths, the shell or the slice expose them. X-ray is the
+  interior view.
 
 ### Rejected modes
 
@@ -628,24 +746,24 @@ sides — removed 2026-06-03; a block's faces must always show that block's colo
 > Migrated from the original `00_dev_roadmap/04_mining_performance.md` (retired 2026-06-05;
 > the performance pass it planned shipped 2026-06-01 and killed the 15-second mining-edit
 > freeze). Verified against `WorldRenderer.gd` / `MiningDesignationController.gd` on
-> retirement day. Slice-change invalidation has its own rules — see
-> `00_dev_roadmap/11_slice_xray_plan.md` Phase SO.
+> retirement day. Slice-change invalidation has its own rules — see §Slice meshing rules.
 
 Mining cuts are **renderer state** (Stonehearth's model — designation never mutates
 `WorldData`; only DEV/real mining does). Edits must invalidate locally, never globally:
 
 - **Delta APIs are the normal path:** `add_visual_cut_blocks()` / `remove_visual_cut_blocks()`
   (and `add_mined_blocks()` for executed mining). The mining controller sends only changed
-  blocks on confirm / remove / Ctrl-subtract.
+  blocks on confirm / remove / Ctrl-subtract. Which cut cells are mined holes comes from
+  `WorldData.is_removed_terrain()`; the renderer keeps no mined set of its own. Column tops
+  use `WorldData.visible_top_y()` (see `12_world_grid.md`).
 - **Dirty rule:** changed blocks dirty their own overview tiles **plus X/Z neighbour columns'
-  tiles** (side faces compare neighbouring column heights); streamed regions dirty only
-  regions containing changed blocks and their direct neighbours. Deduplicated, drained on the
-  existing per-frame budgets.
+  tiles** (side faces compare neighbouring column heights). Deduplicated, drained on the
+  existing per-frame budget.
 - **`set_visual_cut_blocks()` (full replacement) is fallback/global-sync only.** Risk to
   guard in review: a controller edit path quietly reverting to it reintroduces global
   invalidation.
-- **`_invalidate_overview_global()` is reserved for genuinely global events:** initial build
-  after worldgen, season/colour changes, render-mode resets, wholesale world-data swaps.
+- **`TerrainTileMesher.invalidate_global()` is reserved for genuinely global events:** initial build
+  after worldgen, season/colour changes, wholesale world-data swaps.
   Ordinary mining edits must never reach it.
 - **Resolved 2026-06-05:** the yellow zone overlay no longer rebuilds all zones into one mesh
   per edit — it was split into per-zone overlay nodes with localized rebuilds (see
@@ -684,7 +802,8 @@ render mode, overview step, overview sampled/merged face counts, overview valida
 count, domain percentages, surface material percentages, height min/max/average, water-body
 stats, settlement-candidate count, generated column count, and mesh count / queue count.
 
-**Development → Block Inspector** reports, per clicked block: render mode, hit source, face direction, hit
+**Development → Block Inspector** (`scripts/components/BlockInspector.gd`, built only when
+`UIRegistry.dev_tools_enabled`) reports, per clicked block: render mode, hit source, face direction, hit
 block key, **generated block key**, agreement (yes/no), coordinate, domain, surface Y, visible
 top Y, water/bank flags, kind, and colour. The agreement check is the core validation that the
 overview/inspector and generated blocks agree on unedited terrain. Edited chunk

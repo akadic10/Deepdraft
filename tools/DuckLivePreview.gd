@@ -25,7 +25,7 @@ func _run() -> void:
 	var deadline := Time.get_ticks_msec()+150000
 	while Time.get_ticks_msec()<deadline:
 		await process_frame
-		if wildlife.duck_initialized and renderer._overview_built and wildlife.arrival_ready(): break
+		if wildlife.duck_initialized and renderer.tiles.overview_built and wildlife.arrival_ready(): break
 	check(wildlife.duck_initialized and wildlife.arrival_ready(),"world and full flora finish loading")
 	var ducks: Array = wildlife.animals_of_species("duck")
 	check(ducks.size()>=6,"natural flocks spawned")

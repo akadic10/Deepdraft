@@ -26,11 +26,11 @@ func _run() -> void:
 	var review := Image.create(1280,960,false,Image.FORMAT_RGBA8)
 	var definition: Dictionary = furniture.get_defs()[BENCH]
 	for yaw in range(4):
-		# Existing saved benches retain identity/origin and use the new 3x3 layout.
+		# A saved bench restores at its origin in the 3x3 layout.
 		furniture.restore_state({"installed":[{"id":1,"key":BENCH,
-			"origin":[45,20,42],"yaw":yaw,"layout_version":1}]})
+			"origin":[45,20,42],"yaw":yaw}]})
 		var bench = furniture._installed[1]
-		var model_bounds: AABB = furniture._visual_bounds(definition,STUMP_CELL,yaw)
+		var model_bounds: AABB = furniture.visual_bounds(definition,STUMP_CELL,yaw)
 		_expect(model_bounds.size.is_equal_approx(Vector3(2.875,1.0,2.875)),"player outline remains 46 cells across and 16 high at every rotation")
 		_expect(bench.cells.size()==9,"restored stump occupies nine tiles at yaw %d" % yaw)
 		for x in 3:
@@ -54,11 +54,11 @@ func _run() -> void:
 			var toward: Vector3 = surface-worker.global_position
 			toward.y = 0
 			_expect(worker.global_basis.z.dot(toward.normalized())>.999,"Worker faces the stump")
-			var bounds: AABB = worker._carry_pose.item_bounds(worker._fetch_item)
-			_expect(is_equal_approx(worker._fetch_item.global_position.y+bounds.position.y,
+			var bounds: AABB = worker._carry_pose.item_bounds(worker._work_execution._fetch_item)
+			_expect(is_equal_approx(worker._work_execution._fetch_item.global_position.y+bounds.position.y,
 				bench.node.global_position.y+float(definition.crafting_surface_height)),"log rests on cut top")
-			var contact: Vector3 = worker._fetch_item.global_position+Vector3.UP*bounds.end.y
-			var cutting_edge: Vector3 = worker._felling_pose.axe.to_global(worker.FellingPose.CUTTING_EDGE)
+			var contact: Vector3 = worker._work_execution._fetch_item.global_position+Vector3.UP*bounds.end.y
+			var cutting_edge: Vector3 = worker._felling_pose.axe.to_global(worker._rig.FellingPose.CUTTING_EDGE)
 			_expect(cutting_edge.distance_to(contact)<.001,"axe contacts material from each direction")
 			if yaw==0 and "--capture" in OS.get_cmdline_user_args():
 				caption.text = SIDE_NAMES[side]+" approach"

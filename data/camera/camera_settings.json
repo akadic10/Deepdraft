@@ -8,9 +8,11 @@
     "Deepdraft uses NEGATIVE pitch (look-down): -90 = straight down, 0 = horizon, so Stonehearth's",
     "  5..80 above-horizon maps to -5 (shallow) .. -80 (steep) here, default -50.",
     "ZOOM (21_camera.md): proportional notch = zoom_step_fraction * current distance",
-    "  (geometric zoom). zoom_speed is the non-proportional fixed-step fallback only.",
+    "  (geometric zoom).",
     "  min_distance 2 / cursor_min_gap 1.5 allow ground-level close-up; the surface floor",
-    "  (surface_floor_* keys) prevents clipping instead of a hard min distance."
+    "  (surface_floor_* keys) prevents clipping instead of a hard min distance.",
+    "FRAME PACING: paced_fps_max caps frames at the largest even fraction of the display",
+    "  refresh rate not above it (120 Hz -> 60, 144 Hz -> 72, 60 Hz -> 60). 0 = uncapped."
   ],
 
   "camera_settings": {
@@ -30,7 +32,8 @@
     "smoothing": 0.22,
     "edge_scroll_enabled": false,
     "edge_scroll_threshold_pixels": 10,
-    "pan_reference_height": 135.0
+    "pan_reference_height": 135.0,
+    "paced_fps_max": 75.0
   },
 
   "rotation": {
@@ -45,13 +48,11 @@
 
   "zoom": {
     "mode": "cursor_target",
-    "zoom_speed": 8.0,
     "zoom_step_fraction": 0.18,
     "cursor_min_gap": 1.5,
     "min_distance": 2.0,
     "max_distance": 180.0,
     "default_distance": 85.0,
-    "proportional": true,
     "smoothing": 0.15
   },
 
@@ -61,9 +62,7 @@
     "move_left":     ["KEY_A", "KEY_LEFT"],
     "move_right":    ["KEY_D", "KEY_RIGHT"],
     "rotate_action": "MOUSE_BUTTON_RIGHT",
-    "drag_action":   "MOUSE_BUTTON_MIDDLE",
-    "zoom_in":       "MOUSE_BUTTON_WHEEL_UP",
-    "zoom_out":      "MOUSE_BUTTON_WHEEL_DOWN"
+    "drag_action":   "MOUSE_BUTTON_MIDDLE"
   },
 
   "cursors": {

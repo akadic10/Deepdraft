@@ -101,19 +101,6 @@ func _run() -> void:
 	_expect(worker.current_task_id>=0,"unrelated permission edit leaves merged fruit delivery active")
 	_expect(await _delivered(13),"merged fruit completes after unrelated permission edit")
 
-	await _fresh(6)
-	stockpiles.deregister_zone(zone)
-	zone=load("res://scripts/components/ContainerStorageComponent.gd").new()
-	var container_cells: Array[Vector3i]=[Vector3i(40,20,72)]
-	zone.setup_container({"storage":{"capacity":3,"render_contents":false}},container_cells)
-	zone.source_id=tasks.allocate_source_id()
-	stockpiles.register_container(zone)
-	zone.restore_inventory({APPLE:20},drops)
-	expected_units+=20
-	_add(APPLE,8,Vector3i(40,20,49))
-	_expect(await _delivered(34),"container storage accepts a consolidated load across two slots")
-	_expect(zone.occupied_slots()==2 and _loose_units()==0,"container retains exact quantities")
-
 	# The optional planner can always abandon optimization when its budget expires.
 	var planner=load("res://scripts/components/FruitHaulPlanner.gd")
 	var route: Array[Vector3i]=[Vector3i(40,20,40),Vector3i(40,20,41)]
@@ -141,14 +128,14 @@ func _add(key: String, amount: int, cell: Vector3i) -> Node3D:
 func _tick() -> void:
 	zone.update_leases()
 	tasks._run_scheduler()
-	var was_topup: bool=worker._handling_fruit_topup
-	var was_lifted: bool=worker._handling_lifted
+	var was_topup: bool=worker._work_execution._handling_fruit_topup
+	var was_lifted: bool=worker._work_execution._handling_lifted
 	worker._process(.05)
-	if was_topup and not was_lifted and worker._handling_lifted: topups+=1
+	if was_topup and not was_lifted and worker._work_execution._handling_lifted: topups+=1
 	_expect(_total()==expected_units,"goods conserved through every pickup/contact/delivery frame")
 	_expect(worker._carried_entries.size()<=1,"fruit load stays one physical basket")
-	if "--capture" in OS.get_cmdline_user_args() and expected_units==22 and worker._handling_fruit_topup:
-		var label := "after_contact" if worker._handling_lifted else "before_contact"
+	if "--capture" in OS.get_cmdline_user_args() and expected_units==22 and worker._work_execution._handling_fruit_topup:
+		var label := "after_contact" if worker._work_execution._handling_lifted else "before_contact"
 		if not captured.has(label):
 			captured[label]=true
 			camera.position=worker.position+Vector3(-8,6,10)
@@ -174,7 +161,7 @@ func _delivered(count: int) -> bool:
 
 func _topup_contact(after: bool) -> bool:
 	for i in 1800:
-		if worker._handling_fruit_topup and bool(worker._handling_lifted)==after: return true
+		if worker._work_execution._handling_fruit_topup and bool(worker._work_execution._handling_lifted)==after: return true
 		await _tick()
 	return false
 

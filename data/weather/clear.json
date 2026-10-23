@@ -2,17 +2,12 @@
   "__comment": [
     "WeatherManager owns selection/scheduling and save state.",
     "SkyController reads is_dark_during_daytime and sky_overrides.atmosphere for cloud cover and haze.",
-    "Clear uses the default atmosphere in data/sky/sky_settings.json. No panorama texture is needed.",
-    "vision_multiplier remains visual-only legacy metadata; it does not change gameplay sight or streaming."
+    "Clear uses the default atmosphere in data/sky/sky_settings.json. No panorama texture is needed."
   ],
   "id": "base:weather:clear",
   "display_name": "Clear",
-  "vision_multiplier": 1.0,
   "is_dark_during_daytime": false,
-  "hide_cloud_shadows": false,
-  "snow_accumulation_per_minute": -0.0007,
   "sky_overrides": {
 
-  },
-  "thoughts": []
+  }
 }

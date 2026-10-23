@@ -12,7 +12,7 @@ func _run() -> void:
 		var duration: float = ghost.def.planting_seconds
 		_expect(is_equal_approx(duration, 1.25), "%s uses the shortened JSON replant duration" % spec[1])
 		_expect(is_zero_approx(ghost.progress), "arrival starts the planting sequence without spending hidden work")
-		var item: Node3D = worker._fetch_item
+		var item: Node3D = worker._work_execution._fetch_item
 		var start: Vector3 = item.global_position
 		worker._process(.15)
 		_expect(item.global_position.y < start.y - .025, "shrub starts lowering within 150 ms of arrival")
@@ -61,12 +61,12 @@ func _resume_and_cancel() -> void:
 	worker._process(.45)
 	var ghost = furniture._ghosts[plan]
 	var progress: float = ghost.progress
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_expect(is_equal_approx(ghost.progress, progress) and worker._carried_entries.is_empty(), "interrupt preserves partial work and releases animated cargo")
 	for task in tasks._tasks.values(): task.retry_at = 0
 	_expect(await _advance_until(func(): return worker._task_phase == worker.TaskPhase.FETCH_WORKING), "worker returns to unfinished planting")
-	_expect(is_equal_approx(worker._plant_animation_duration, 1.25 - progress), "resumed reach uses only remaining work")
-	var item: Node3D = worker._fetch_item
+	_expect(is_equal_approx(worker._work_execution._plant_animation_duration, 1.25 - progress), "resumed reach uses only remaining work")
+	var item: Node3D = worker._work_execution._fetch_item
 	var start := item.global_position
 	worker._process(.1)
 	_expect(item.global_position.y < start.y, "resumed planting animates immediately")

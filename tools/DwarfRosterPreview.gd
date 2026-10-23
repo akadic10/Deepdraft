@@ -92,7 +92,7 @@ func _set_lineup(alternate: bool) -> void:
 func _process(delta: float) -> void:
 	if _walking:
 		for actor in _actors:
-			actor.call("_walk_bob", delta * 2.2)
+			actor._movement.walk_bob(delta * 2.2)
 
 
 func _reset_pose() -> void:

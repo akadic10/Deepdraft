@@ -36,8 +36,8 @@ func _run() -> void:
 	var deadline := Time.get_ticks_msec() + 120000
 	while Time.get_ticks_msec() < deadline:
 		await process_frame
-		if wildlife.initialized and wildlife.deer_initialized and wildlife.wolf_initialized and renderer._overview_built: break
-	if not wildlife.initialized or not wildlife.deer_initialized or not wildlife.wolf_initialized or not renderer._overview_built:
+		if wildlife.initialized and wildlife.deer_initialized and wildlife.wolf_initialized and renderer.tiles.overview_built: break
+	if not wildlife.initialized or not wildlife.deer_initialized or not wildlife.wolf_initialized or not renderer.tiles.overview_built:
 		printerr("Wildlife world timed out")
 		quit(1)
 		return
@@ -57,27 +57,9 @@ func _run() -> void:
 			_check(group.cells.size() == 3,"three members per connected group")
 			for cell: Vector3i in group.cells:
 				_check(Navigation.standable(cell,4,2) and cell.y <= 44,"deer has complete lowland support and clearance")
-		var original: Dictionary = wildlife.serialize_state()
-		wildlife.restore_state({"initialized":true,"rabbits":original.rabbits})
-		wildlife.initialize_population()
-		var migrated: Dictionary = wildlife.serialize_state()
-		_check(migrated.rabbits == original.rabbits and migrated.deer.size() == 18,"rabbit-only save seeds deer without changing existing rabbits")
-		wildlife.initialize_population()
-		_check(wildlife.serialize_state() == migrated,"migration seeds deer only once")
-		wildlife.restore_state(original)
 	if species == "wolf":
 		var original: Dictionary = wildlife.serialize_state()
 		_check(original.wolves.size() == 4,"four seeded wolves join the existing prey populations")
-		var old_save := original.duplicate(true)
-		old_save.erase("wolves")
-		old_save.erase("wolf_initialized")
-		wildlife.restore_state(old_save)
-		wildlife.initialize_population()
-		var migrated: Dictionary = wildlife.serialize_state()
-		_check(migrated.rabbits == original.rabbits and migrated.deer == original.deer and migrated.wolves.size() == 4,"older wildlife save adds wolves without changing existing prey")
-		wildlife.initialize_population()
-		_check(wildlife.serialize_state() == migrated,"wolf migration occurs only once")
-		wildlife.restore_state(original)
 	var explorer := scene.get_node("ObjectExplorerController")
 	var rig := scene.get_node("CameraRig")
 	var candidates: Array = wildlife.animals_of_species(species)

@@ -131,6 +131,7 @@
     },
     {
       "id": "development",
+      "dev": true,
       "label": "Development",
       "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
       "icon_region": [
@@ -175,7 +176,7 @@
             504,
             450
           ],
-          "tooltip": "Plan permanent plank or stone floors. Carpenter and Stonemason construction is planned; DEV Build is available for testing.",
+          "tooltip": "Plan permanent plank or stone floors. Carpenter and Stonemason construction is planned; workers cannot build floors yet.",
           "action": "open_panel",
           "target": "construction_floors"
         }
@@ -198,7 +199,7 @@
             458
           ],
           "preview": true,
-          "tooltip": "Plan full-block plank flooring after mining a supporting layer. Carpenter construction is planned; workers cannot build it yet. Click a blue plan for DEV Build. Fully floored rooms gain +5 appeal.",
+          "tooltip": "Plan full-block plank flooring after mining a supporting layer. Carpenter construction is planned; workers cannot build it yet. Fully floored rooms gain +5 appeal.",
           "action": "activate_tool",
           "target": "construct_plank_floor"
         },
@@ -213,7 +214,7 @@
             458
           ],
           "preview": true,
-          "tooltip": "Plan full-block stone flooring after mining a supporting layer. Stonemason construction is planned; workers cannot build it yet. Click a blue plan for DEV Build. Fully floored rooms gain +5 appeal.",
+          "tooltip": "Plan full-block stone flooring after mining a supporting layer. Stonemason construction is planned; workers cannot build it yet. Fully floored rooms gain +5 appeal.",
           "action": "activate_tool",
           "target": "construct_stone_floor"
         }
@@ -617,14 +618,6 @@
     "place": {
       "title": "Place an item"
     },
-    "farm": {
-      "title": "Farming",
-      "parent": "zones"
-    },
-    "military": {
-      "title": "Military",
-      "parent": "orders"
-    },
     "save_load": {
       "title": "Save / Load",
       "parent": "system",
@@ -676,6 +669,7 @@
       ]
     },
     "development": {
+      "dev": true,
       "title": "Development",
       "items": [
         {
@@ -797,20 +791,6 @@
           "target": "storage_zone",
           "icon": "res://assets/ui/items/base_resources_plant_blueberry_bush.png",
           "tooltip": "DEV: Spawn an uprooted blueberry, elderberry and strawberry bush near the camera. Dwarves can haul them or replant them through Place → Plants."
-        },
-        {
-          "id": "hearthblock_lighting_development",
-          "label": "Hearthblock lighting",
-          "action": "panel_action",
-          "target": "development",
-          "tooltip": "Switch the Hearthblock lighting pass on or off to compare it with the previous look.",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            1230,
-            674,
-            294,
-            288
-          ]
         },
         {
           "id": "time_weather_development",

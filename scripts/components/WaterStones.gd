@@ -122,7 +122,7 @@ func cancel_pack(id: String) -> void:
 
 func _pack_complete(id: String) -> void:
 	var record: Dictionary = WaterManager.stones[id]
-	var items := get_tree().get_first_node_in_group("item_drop_manager")
+	var items := ItemDropManager.find(get_tree())
 	if record.disallowed or not record.placed or items==null: return
 	record.placed = false
 	record.packing = false
@@ -144,7 +144,7 @@ func set_disallowed(id: String, value: bool) -> void:
 		if placement != null: placement.cancel_water_stone_moves(id)
 
 func placement_reason(cell: Vector3i, ignore_id: String = "") -> String:
-	if cell.x<0 or cell.z<0 or cell.x>=1024 or cell.z>=1024 or cell.y<=WorldGenerator.BEDROCK_MAX_Y or cell.y>=125: return "cell"
+	if cell.x<0 or cell.z<0 or cell.x>=WorldData.WORLD_SIZE_X or cell.z>=WorldData.WORLD_SIZE_Z or cell.y<=WorldGenerator.BEDROCK_MAX_Y or cell.y>=125: return "cell"
 	if not BlockRegistry.is_solid(WorldData.get_terrain_block(cell.x,cell.y,cell.z)): return "cell"
 	for y in range(cell.y+1,cell.y+4):
 		if BlockRegistry.is_solid(WorldData.get_terrain_block(cell.x,y,cell.z)) or PlacedEntityRegistry.occupies(Vector3i(cell.x,y,cell.z)): return "cell"

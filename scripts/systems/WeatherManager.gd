@@ -12,14 +12,8 @@ extends Node
 ## scheduling, applying).
 
 const SCHEDULE_PATH := "res://data/calendar/weather_schedule.json"
-const WEATHER_FILES := [
-	"res://data/weather/clear.json",
-	"res://data/weather/foggy.json",
-	"res://data/weather/overcast.json",
-	"res://data/weather/snow.json",
-	"res://data/weather/rain.json",
-	"res://data/weather/storm.json",
-]
+## Every JSON file here is one weather type, loaded in file-name order.
+const WEATHER_DIR := "res://data/weather/"
 
 var _weather_by_id: Dictionary = {}   # id -> weather definition dict
 var _ordered_ids: Array[String] = []  # load order, for the manual cycle button
@@ -30,9 +24,6 @@ var _clock: Node = null
 var _sky: Node = null
 var _current_id: String = ""
 var _precipitation: Node3D
-
-@warning_ignore("unused_signal")  # connected by UI / future systems
-signal weather_changed(weather_id: String)
 
 
 func _ready() -> void:
@@ -59,7 +50,11 @@ func _ready() -> void:
 # ── Loaders ───────────────────────────────────────────────────────────────────
 
 func _load_weather_defs() -> void:
-	for path in WEATHER_FILES:
+	var files := Array(DirAccess.get_files_at(WEATHER_DIR))
+	files.sort()
+	for file_name: String in files:
+		if not file_name.ends_with(".json"): continue
+		var path: String = WEATHER_DIR + file_name
 		var d := _load_json(path)
 		if d.is_empty():
 			continue
@@ -81,19 +76,7 @@ func _load_schedule() -> void:
 
 
 func _load_json(path: String) -> Dictionary:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_warning("WeatherManager: cannot open %s." % path)
-		return {}
-	var json := JSON.new()
-	var err := json.parse(file.get_as_text())
-	file.close()
-	if err != OK:
-		push_error("WeatherManager: JSON parse error in %s — %s" % [path, json.get_error_message()])
-		return {}
-	if json.data is Dictionary:
-		return json.data
-	return {}
+	return preload("res://scripts/registries/JsonData.gd").read_dict(path)
 
 
 func _seed_rng() -> void:
@@ -152,7 +135,6 @@ func _apply(id: String) -> void:
 	_current_id = id
 	if _sky != null and _sky.has_method("apply_weather"):
 		_sky.call("apply_weather", _weather_by_id[id])
-	weather_changed.emit(id)
 
 
 # ── Public API ────────────────────────────────────────────────────────────────

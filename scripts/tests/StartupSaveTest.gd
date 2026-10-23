@@ -21,9 +21,7 @@ func _run() -> void:
 	node_added.connect(func(node: Node):
 		if node.name == "Renderer" and node.get_script() != null:
 			renderer_count += 1
-			node.set("world_seed", 1234 if preparing else 9876)
-		if node.name == "FurniturePlacementController" and node.get_script() != null:
-			node.ready.connect(func(): preload("res://scripts/tests/TestStorageFixture.gd").install(node)))
+			node.set("world_seed", 1234 if preparing else 9876))
 	if not preparing:
 		_save_manager.load_finished.connect(_on_load_finished, CONNECT_ONE_SHOT)
 	_expect(change_scene_to_file("res://scenes/main/debug_world.tscn") == OK, "main scene starts")
@@ -40,7 +38,7 @@ func _run() -> void:
 		_world_clock.restore_state({"year": 4, "season": "winter", "day": 9,
 			"hour": 18.5, "speed": 3.0, "paused": true})
 		var snapshot: Dictionary = _save_manager._build_snapshot()
-		_expect(_save_manager._validate_snapshot(snapshot).is_empty(), "nonempty colony fixture validates")
+		_expect(_save_manager._file_store()._validate_snapshot(snapshot).is_empty(), "nonempty colony fixture validates")
 		_test_selection(snapshot)
 		# The newer autosave must win at actual startup, not the scene's seed or
 		# an older manual file copied later. Keep a real backup and ignored temp.
@@ -102,7 +100,7 @@ func _run() -> void:
 		_expect(weather_before == weather.serialize_state(), "fresh weather derives from the new world seed")
 		if not await _wait_for_world_ready(WORLD_TIMEOUT_MSEC): _finish("new world timed out"); return
 		actual = _save_manager._build_snapshot()
-		_expect(_save_manager._validate_snapshot(actual).is_empty(), "fresh world can be saved")
+		_expect(_save_manager._file_store()._validate_snapshot(actual).is_empty(), "fresh world can be saved")
 		_expect(not actual.scene.settlement_flag.founded and actual.scene.dwarves.roster.is_empty(), "old settlement and dwarves are gone")
 		_expect(actual.scene.furniture.installed.is_empty() and actual.scene.furniture.ghosts.is_empty(), "old furniture and plans are gone")
 		_expect(actual.scene.terrain.edits.is_empty(), "terrain edits are reset")
@@ -152,7 +150,7 @@ func _test_selection(snapshot: Dictionary) -> void:
 	_write_save(TEST_BACKUP, invalid, "2026-10-18 15:00:00")
 	_expect(_save_manager._latest_valid_save().path == TEST_PRIMARY, "invalid newest save falls back to next valid file")
 	for path in [TEST_PRIMARY, TEST_AUTOSAVE]:
-		_expect(_save_manager._write_text_file(path, "{broken").is_empty(), "corrupt fixture written")
+		_expect(_save_manager._file_store()._write_text_file(ProjectSettings.globalize_path(path), "{broken").is_empty(), "corrupt fixture written")
 	_expect(_save_manager._latest_valid_save().is_empty(), "all invalid saves allow fresh startup")
 	_write_save(TEST_AUTOSAVE_BACKUP, snapshot, "2026-10-18 12:00:00")
 	var before := _file_hashes()
@@ -165,7 +163,7 @@ func _write_save(path: String, snapshot: Dictionary, timestamp: String) -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(TEST_DIRECTORY))
 	var state := snapshot.duplicate(true)
 	state.saved_at_utc = timestamp
-	_expect(_save_manager._write_text_file(path, JSON.stringify(state, "\t")).is_empty(), "write fixture " + path)
+	_expect(_save_manager._file_store()._write_text_file(ProjectSettings.globalize_path(path), JSON.stringify(state, "\t")).is_empty(), "write fixture " + path)
 
 func _file_hashes() -> Dictionary:
 	var hashes := {}

@@ -9,15 +9,15 @@ const Permission = preload("res://scripts/components/ItemPermission.gd")
 ## STORED node on a stockpile cell. The index is event-maintained (spawn /
 ## take / drop / place) — never rebuilt by scanning (doc 16 §2.5 discipline).
 ## Scene node in debug_world.tscn (presentation lives in the scene, not an
-## autoload — the SurfaceFloraSpawner pattern), found by producers via the
-## "item_drop_manager" group.
+## autoload — the SurfaceFloraSpawner pattern). Other scripts reach it only
+## through the typed `ItemDropManager.find(tree)` (doc 258 step 6).
 ##
 ## Node states: LOOSE (in _loose, restockable), RESERVED (in _loose and
 ## _reserved — visible but claimed), CARRIED (taken — reparented under the
 ## dwarf, absent from the index), STORED (child of this manager on a zone
 ## cell, meta "stored", absent from _loose — zones own the counts).
 ##
-## REGISTRY PATTERN (AGENT.md): this node is the ONE owner of
+## REGISTRY PATTERN (CLAUDE.md): this node is the ONE owner of
 ## data/entities/items/resources.json — no other script may open it. Item defs
 ## load lazily on first spawn (the file's own contract: "loaded on demand, NOT
 ## held in memory at boot").
@@ -31,8 +31,8 @@ const Permission = preload("res://scripts/components/ItemPermission.gd")
 
 @export var slice_controller_path: NodePath
 
-const RESOURCES_PATH := "res://data/entities/items/resources.json"
-const SLICE_OFF_Y := 127
+const SLICE_OFF_Y := SliceController.MAX_SLICE_Y
+const GROUP := "item_drop_manager"
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _picking = Picking.new()
 
@@ -42,8 +42,8 @@ signal drop_spawned(item_key: String)
 ## Presentation wake for availability changes, including reservations and pickup.
 signal loose_items_changed()
 
-var _defs: Dictionary = {}          # item key (String) -> def Dictionary
-var _defs_loaded: bool = false
+## Own copy: tests and runtime may adjust one manager without touching the registry.
+var _defs: Dictionary = ContentRegistry.items.duplicate(true) # item key -> definition
 var _scene_cache: Dictionary = {}   # model path -> PackedScene (null cached as absent)
 var _material: Material = null
 var _surface_materials: Dictionary = {} # item key -> shared optional glossy material
@@ -67,7 +67,7 @@ func _ready() -> void:
 	WorldClock.season_changed.connect(func(_season: String):
 		for node: Node3D in get_tree().get_nodes_in_group("packed_shrubs"):
 			if not node.is_queued_for_deletion(): set_quantity(node, quantity_of(node)))
-	add_to_group("item_drop_manager")
+	add_to_group(GROUP)
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
 	var slice_controller := get_node_or_null(slice_controller_path)
@@ -83,6 +83,12 @@ func _ready() -> void:
 	_material = lighting.make_material(source) if lighting != null else source
 
 
+## The one way other scripts obtain the scene's drop manager. Null when the
+## scene has none (standalone tests, tools) or before its _ready has run.
+static func find(tree: SceneTree) -> ItemDropManager:
+	return tree.get_first_node_in_group(GROUP) as ItemDropManager if tree != null else null
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 ## Spawns `count` units of an item at a mined block position. The drop rests
@@ -92,12 +98,11 @@ func _ready() -> void:
 func spawn_drop(item_key: String, count: int, block: Vector3i, material_id: String = "") -> void:
 	if count <= 0:
 		return
-	_ensure_defs()
 	var def: Dictionary = _defs.get(item_key, {})
 	if def.is_empty():
 		push_warning("ItemDropManager: unknown item '%s' — drop skipped." % item_key)
 		return
-	var rest_y := _rest_y(block)
+	var rest_y := floor_rest_y(block)
 	var remaining := count
 	# Only unclaimed nearby crates can be topped up. A worker's reservation is
 	# an exact quantity and must never change underneath that worker.
@@ -125,6 +130,21 @@ func spawn_drop(item_key: String, count: int, block: Vector3i, material_id: Stri
 		add_child(node)
 		_loose[node] = item_key
 	drop_spawned.emit(item_key)
+
+
+## Loose (unstored) item nodes. Read-only; do not mutate.
+func loose_items() -> Array:
+	return _loose.keys()
+
+func has_instance_promises() -> bool:
+	return not _instance_promises.is_empty()
+
+func get_slice_y() -> int:
+	return _slice_y
+
+## Gives a node the shared loose-goods material.
+func apply_item_material(node: Node) -> void:
+	_apply_material(node, _material)
 
 
 func promise_instance(id: String, dwarf_id: int) -> void:
@@ -198,10 +218,9 @@ func restore_state(state: Dictionary) -> void:
 ## Builds one unindexed item visual for save restoration consumers (shelf
 ## anchors and ground-stockpile stored nodes).
 func create_item_visual(item_key: String, count: int = 1, instance_id: String = "", material_id: String = "") -> Node3D:
-	_ensure_defs()
 	var def: Dictionary = _defs.get(item_key, {})
 	if def.is_empty():
-		push_warning("ItemDropManager: unknown restored item '%s'." % item_key)
+		push_warning("ItemDropManager: unknown item '%s' — visual skipped." % item_key)
 		return null
 	var node := Node3D.new()
 	node.name = "Drop_%s_%d" % [item_key.get_slice(":", item_key.get_slice_count(":") - 1), _drop_count]
@@ -253,15 +272,13 @@ func restore_loose_item(item_key: String, restored_position: Vector3,
 
 # ── Loose-item index API (doc 18 §2.1) ────────────────────────────────────────
 
-## Public item-definition accessor (Registry Pattern: this node owns
-## resources.json; everyone else queries through here). {} if unknown.
+## Item-definition accessor over ContentRegistry (the resources.json owner).
+## {} if unknown.
 func get_item_def(item_key: String) -> Dictionary:
-	_ensure_defs()
 	return _defs.get(item_key, {})
 
 
 func get_item_defs() -> Dictionary:
-	_ensure_defs()
 	return _defs.duplicate(true)
 
 
@@ -306,7 +323,6 @@ func _prune_inventory_transit(id: int) -> void:
 ## by flat Manhattan distance from `from`. `exclude` is a per-dwarf blacklist
 ## (Node -> true) of items that failed pathing this round. Null if none.
 func nearest_loose(accepted_tags: Array, from: Vector3i, exclude: Dictionary = {}, can_store: Callable = Callable()) -> Node3D:
-	_ensure_defs()
 	var best: Node3D = null
 	var best_dist: int = 0x7FFFFFFF
 	for node: Node3D in _loose:
@@ -419,7 +435,6 @@ func nearest_loose_of_key(item_key: String, from: Vector3i, exclude: Dictionary 
 ## and still find smaller ones that fit. The pouch bundle search (doc 18
 ## pouch — SH NearbyItemSearch equivalent). `exclude` = blacklist + main item.
 func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int, exclude: Dictionary = {}, can_store: Callable = Callable()) -> Array[Node3D]:
-	_ensure_defs()
 	var found: Array = []   # [dist, node] pairs
 	for node: Node3D in _loose:
 		if not Permission.allowed(node) or _reserved.has(node) or exclude.has(node):
@@ -453,7 +468,6 @@ func loose_near(accepted_tags: Array, center: Vector3i, radius: int, limit: int,
 ## Unreserved loose items whose tags overlap accepted_tags, capped at `cap`
 ## (lease posting only needs "are there at least N?", doc 18 §2.2).
 func count_loose(accepted_tags: Array, cap: int, can_store: Callable = Callable()) -> int:
-	_ensure_defs()
 	var found: int = 0
 	for node: Node3D in _loose:
 		if _reserved.has(node) or not Permission.allowed(node):
@@ -508,7 +522,6 @@ func food_definition(item_key: String) -> Dictionary:
 
 
 func edible_keys() -> Array[String]:
-	get_item_def("") # Lazy-load the owning item registry.
 	var result: Array[String] = []
 	for key: String in _defs:
 		if not food_definition(key).is_empty(): result.append(key)
@@ -542,10 +555,6 @@ func set_quantity(node: Node3D, count: int) -> void:
 	node.add_child(_build_drop_node(key, _model_scene(path)))
 	CraftMaterials.apply_palette(node, def, CraftMaterials.of_item(node))
 	node.set_meta("visual_path", path)
-	if def.has("plant_definition") and bool(node.get_meta("stored", false)) and node.has_meta("storage_anchor_position"):
-		node.position = node.get_meta("storage_anchor_position")
-		preload("res://scripts/components/StorageItemLayout.gd").fit(node,
-			node.get_meta("storage_anchor_max_size"), float(node.get_meta("storage_anchor_scale")))
 
 
 ## Take just the reserved quantity. The remainder is still a loose crate.
@@ -647,7 +656,6 @@ func drop_loose(node: Node3D, floor_cell: Vector3i) -> void:
 ## pre-reserved for the withdrawing dwarf — containers hold counts, not
 ## nodes. No drop_spawned emit (the item is claimed the instant it exists).
 func spawn_reserved(item_key: String, floor_cell: Vector3i, dwarf_id: int, instance_id: String = "", material_id: String = "") -> Node3D:
-	_ensure_defs()
 	var def: Dictionary = _defs.get(item_key, {})
 	if def.is_empty():
 		push_warning("ItemDropManager: unknown item '%s' — spawn_reserved skipped." % item_key)
@@ -737,7 +745,7 @@ func bridge_support_removed(cells: Array[Vector3i]) -> void:
 
 
 func _settle_item(node: Node3D) -> bool:
-	var rest_y := _rest_y(Vector3i(floori(node.position.x), ceili(node.position.y - .001), floori(node.position.z)))
+	var rest_y := floor_rest_y(Vector3i(floori(node.position.x), ceili(node.position.y - .001), floori(node.position.z)))
 	if float(rest_y) >= node.position.y - .001: return false
 	# A worker must not complete a reach against the old world transform.
 	if _reserved.has(node):
@@ -787,10 +795,13 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	]
 	if not in_storage: rows.append(["Colony access", "Disallowed" if not Permission.allowed(id) else "Allowed"])
 	rows.append(["Location", "In storage" if in_storage else "Awaiting collection"])
+	# Packed furniture shows the appeal of the piece it installs as.
+	var furniture := get_tree().get_first_node_in_group("furniture_controller")
+	var installs_as: Dictionary = furniture.def_for_item(key) if furniture != null else {}
 	return {
 		"title": CraftMaterials.product_name(String(def.get("display_name", key)), CraftMaterials.of_item(id)),
 		"kind": "Produce crate" if crated else "Resource",
-		"rows": rows + CraftMaterials.inspection_rows(def, CraftMaterials.of_item(id), true),
+		"rows": rows + CraftMaterials.inspection_rows(def if installs_as.is_empty() else installs_as, CraftMaterials.of_item(id), true),
 		"details": String(def.get("description", "")),
 		"actions": actions,
 	}
@@ -819,10 +830,9 @@ func set_disallowed(node: Node3D, value: bool) -> void:
 			parent = parent.get_parent()
 		var furniture := get_tree().get_first_node_in_group("furniture_controller")
 		if furniture != null:
-			for ghost_id in furniture._ghosts.keys():
-				var ghost: FurnitureGhostComponent = furniture._ghosts[ghost_id]
-				if ghost._claim == node or node in ghost._fetches.values() or (not ghost.required_instance_id.is_empty() and ghost.required_instance_id == String(node.get_meta("instance_id", ""))):
-					furniture.cancel_ghost(ghost_id)
+			for ghost: FurnitureGhostComponent in furniture.get_ghost_pieces():
+				if ghost.holds_item(node) or (not ghost.required_instance_id.is_empty() and ghost.required_instance_id == String(node.get_meta("instance_id", ""))):
+					furniture.cancel_ghost(ghost.ghost_id)
 	else:
 		_reserve_promised_instance(node)
 	loose_items_changed.emit()
@@ -880,7 +890,7 @@ func _apply_material(node: Node, material: Material) -> void:
 ## reported as "floating blocks that were recently mined". A plain downward
 ## scan to bedrock is still O(~100) dictionary/array lookups worst case, and
 ## runs on spawn/restore or a relevant support change, never every frame.
-func _rest_y(block: Vector3i) -> int:
+func floor_rest_y(block: Vector3i) -> int:
 	var y := block.y - 1
 	while y > WorldGenerator.BEDROCK_MAX_Y:
 		if NavGrid.bridge_supports(Vector3i(block.x,y,block.z)) or BlockRegistry.is_solid(_block_id(block.x, y, block.z)):
@@ -911,31 +921,6 @@ func _model_scene(path: String) -> PackedScene:
 		push_warning("ItemDropManager: model missing at '%s' — using fallback cube." % path)
 	_scene_cache[path] = scene
 	return scene
-
-
-func _ensure_defs() -> void:
-	if _defs_loaded:
-		return
-	_defs_loaded = true
-	var file := FileAccess.open(RESOURCES_PATH, FileAccess.READ)
-	if file == null:
-		push_error("ItemDropManager: cannot open %s." % RESOURCES_PATH)
-		return
-	var json := JSON.new()
-	var err := json.parse(file.get_as_text())
-	file.close()
-	if err != OK:
-		push_error("ItemDropManager: JSON parse error in %s — %s" % [RESOURCES_PATH, json.get_error_message()])
-		return
-	var root: Dictionary = json.data
-	for raw_key: String in root:
-		if raw_key.begins_with("__"):
-			continue
-		var def = root[raw_key]
-		if typeof(def) != TYPE_DICTIONARY:
-			continue
-		_defs[raw_key] = def
-	print("ItemDropManager: loaded %d item definitions." % _defs.size())
 
 
 # ── Slice culling (doc 11 Phase 5 — same hook as flora and dwarves) ──────────

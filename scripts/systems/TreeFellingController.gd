@@ -6,6 +6,8 @@ extends Node3D
 @export var flora_path: NodePath
 @export var details_path: NodePath
 @export var explorer_path: NodePath
+## Mining owner whose marked blocks Cancel orders previews and removes.
+@export var mining_path: NodePath
 
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const SelectionOverlay = preload("res://scripts/ui/TreeFellingOverlay.gd")
@@ -45,6 +47,7 @@ func _ready() -> void:
 	_flora = get_node_or_null(flora_path) as SurfaceFloraSpawner
 	_details = get_node_or_null(details_path) if not details_path.is_empty() else get_tree().get_first_node_in_group("surface_details")
 	_explorer = get_node_or_null(explorer_path) as ObjectExplorerController
+	_mining = get_node_or_null(mining_path) if not mining_path.is_empty() else null
 	var dock := get_node_or_null(dock_ui_path)
 	if dock != null:
 		dock.call("register_chop_controller", self)
@@ -310,10 +313,6 @@ func _process(delta: float) -> void:
 	if _hover.visible and bounds != _hover_bounds:
 		_hover_bounds = bounds
 		_hover.mesh = Picking.outline_mesh(bounds.grow(.12), Color(1.0, .85, .40))
-
-
-func set_mining_controller(controller: Node) -> void:
-	_mining = controller
 
 
 func set_shared_order_ui(enabled: bool) -> void:

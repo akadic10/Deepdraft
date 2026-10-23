@@ -40,7 +40,7 @@ def plank_floor(alternate):
 
 def stone_floor():
     v=Voxels()
-    colors=list(map(linear,read_json('data/art/voxel_construction.json')['stone']))
+    colors=list(map(linear,read_json('tools/art_data/voxel_construction.json')['stone']))
     for x in range(16):
         for z in range(16):
             row=z//8

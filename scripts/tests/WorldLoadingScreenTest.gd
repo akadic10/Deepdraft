@@ -52,7 +52,7 @@ func _run() -> void:
 		_expect(screen._art.artwork==selected_art,"artwork remains fixed throughout loading")
 		_expect(screen._art.progress>=prior,"progress never goes backwards")
 		prior = screen._art.progress
-		if not renderer._initial_load and renderer._overview_tile_nodes.size()<1024:
+		if not renderer.tiles.initial_load and renderer.tiles.overview_tile_nodes.size()<1024:
 			saw_partial = true
 			_expect(screen.visible,"near-camera terrain completion must not reveal the world")
 			if not captured and DisplayServer.get_name()!="headless":
@@ -63,7 +63,7 @@ func _run() -> void:
 		await process_frame
 	_expect(saw_partial,"exercised the old early-release milestone")
 	_expect(saw_full and is_equal_approx(screen._art.progress,1.0),"mug reaches full before reveal")
-	_expect(renderer._overview_built and renderer._overview_tile_nodes.size()==1024 and renderer._dirty_overview_tiles.is_empty() and not renderer._ovt_building,"all overview tiles complete at reveal")
+	_expect(renderer.tiles.overview_built and renderer.tiles.overview_tile_nodes.size()==1024 and renderer.tiles.dirty_overview_tiles.is_empty() and not renderer.tiles.ovt_building,"all overview tiles complete at reveal")
 	_expect(screen.loading_state().ready,"scenery, water, lighting and restoration complete at reveal")
 	_expect(is_equal_approx(start_hour,clock.hour),"simulation remains frozen until reveal")
 	_expect(not clock.paused and not clock.is_loading_held(),"original running state restored")
@@ -74,7 +74,7 @@ func _run() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(OUT+"world_revealed.png")
 	# A normal local rebuild must never reopen the startup screen.
-	renderer._enqueue_overview_tiles_for_blocks([Vector3i(512,70,512)] as Array[Vector3i])
+	renderer.tiles._enqueue_overview_tiles_for_blocks([Vector3i(512,70,512)] as Array[Vector3i])
 	await process_frame
 	_expect(not screen.visible and screen._released,"ordinary terrain changes do not reopen loading")
 	_expect(saves.request_save(),"save is accepted")

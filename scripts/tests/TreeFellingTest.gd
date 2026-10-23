@@ -30,18 +30,18 @@ func _run() -> void:
 	_click(screen)
 	_expect(flora._tree_changes.has(oak_id), "normal viewport click designates tree")
 	_expect(flora._felling_markers.has(oak_id), "designation has a visible marker")
-	var source = flora._felling_sources.get(oak_id)
+	var source = flora.work.sources.get(oak_id)
 	if source == null:
 		push_error("Cannot continue: click did not create a felling source")
 		quit(1)
 		return
 	var original_lease: int = source.lease_id
 	chop.designate_at_screen(screen)
-	_expect(source.lease_id == original_lease and flora._felling_sources.size() == 1, "repeat designation is idempotent")
+	_expect(source.lease_id == original_lease and flora.work.sources.size() == 1, "repeat designation is idempotent")
 	await _test_rectangle_designation(oak_id)
 	dock.tool_requested.emit("mine_precision")
 	_expect(not chop.is_active(), "another tool deactivates chop")
-	dock._dispatch_panel_action("chop", "Chop Trees")
+	dock._request_order_tool("chop")
 	var escape := InputEventKey.new()
 	escape.keycode = KEY_ESCAPE
 	escape.pressed = true
@@ -65,13 +65,13 @@ func _run() -> void:
 	_expect(is_equal_approx(source.state.work_seconds, partial), "paused chopping does not advance")
 	_expect(worker._hand_r.transform.is_equal_approx(paused_pose), "pause freezes the axe and hands")
 	clock_node.set_paused(false)
-	var timer_before: float = worker._swing_timer
+	var timer_before: float = worker._work_execution._swing_timer
 	clock_node.set_speed(2)
 	worker._process(.05)
-	_expect(is_equal_approx(worker._swing_timer,fposmod(timer_before-.1,worker._swing_time)), "axe animation follows simulation speed")
+	_expect(is_equal_approx(worker._work_execution._swing_timer,fposmod(timer_before-.1,worker._work_execution._swing_time)), "axe animation follows simulation speed")
 	clock_node.set_speed(1)
 	partial = float(source.state.work_seconds)
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	_check_stowed_axe("interruption")
 	_expect(source.reserved_by == -1 and source.lease_id == original_lease, "interrupt releases reservation and retains lease")
 	_expect(is_equal_approx(source.state.work_seconds, partial), "interrupt preserves work")
@@ -87,13 +87,13 @@ func _run() -> void:
 	if OS.get_cmdline_user_args().has("--capture"):
 		root.size = Vector2i(1680, 1000)
 		explorer._window.position = Vector2(24, 150)
-		dock._dispatch_panel_action("chop", "Chop Trees")
-		dock._open_action_panel("chop")
+		dock._request_order_tool("chop")
+		dock._open_action_panel("orders")
 		await _capture(oak, "res://tmp/tree_felling_review/felling.png")
-		dock._dispatch_panel_action("chop", "Cancel")
+		dock._request_order_tool("")
 	explorer._perform_action("cancel_felling")
 	_check_stowed_axe("cancel")
-	_expect(worker.current_task_id == -1 and not flora._felling_sources.has(oak_id), "explorer cancellation stops assigned dwarf")
+	_expect(worker.current_task_id == -1 and not flora.work.sources.has(oak_id), "explorer cancellation stops assigned dwarf")
 	_expect(not flora._tree_changes[oak_id].designated and is_equal_approx(flora._tree_changes[oak_id].work_seconds, partial), "cancel preserves partial work")
 	# JSON round trip into a fresh owner: restore before a visual exists.
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(flora.serialize_state()))
@@ -110,7 +110,7 @@ func _run() -> void:
 	_spawn_tree("oak", "mature", oak_id)
 	flora.designate_felling(oak_id)
 	_expect(await _until_working(), "restored partial tree can be re-designated")
-	source = flora._felling_sources[oak_id]
+	source = flora.work.sources[oak_id]
 	# Season swap during work: no lost progress, reservation or lease.
 	flora._ready_to_spawn = true
 	var standing_tree: Node3D = flora._trees[oak_id].node
@@ -143,7 +143,7 @@ func _run() -> void:
 	var pine_work: float = flora._tree_changes[pine_id].work_seconds
 	saved = JSON.parse_string(JSON.stringify(flora.serialize_state()))
 	flora.restore_state(saved)
-	_expect(flora._felling_sources[pine_id].reserved_by == -1 and is_equal_approx(flora._tree_changes[pine_id].work_seconds, pine_work), "load rebuilds lease without stale dwarf reservation")
+	_expect(flora.work.sources[pine_id].reserved_by == -1 and is_equal_approx(flora._tree_changes[pine_id].work_seconds, pine_work), "load rebuilds lease without stale dwarf reservation")
 	_expect(await _until_felled(pine_id), "restored pending work completes")
 	# Saplings can be cleared without gaining a timber yield.
 	var sapling_id := Vector2i(68,44)
@@ -176,7 +176,7 @@ func _run() -> void:
 		if i % 30 == 0:
 			await process_frame
 	_expect(storage.get_total("base:resources:wood:oak_log") == 4 and _item_count("base:resources:wood:oak_log") == 0, "felled oak logs are hauled into the wood stockpile")
-	worker.dev_force_interrupt()
+	worker.force_interrupt()
 	storage.deregister_zone(zone)
 	# Fully blocked work backs off and remains designated.
 	var blocked_id := Vector2i(80,80)
@@ -188,7 +188,7 @@ func _run() -> void:
 	await process_frame
 	flora.designate_felling(blocked_id)
 	tasks._run_scheduler()
-	var blocked_task = tasks.get_task(flora._felling_sources[blocked_id].lease_id)
+	var blocked_task = tasks.get_task(flora.work.sources[blocked_id].lease_id)
 	_expect(blocked_task.retry_at > Time.get_ticks_msec() and flora._tree_changes[blocked_id].designated, "unreachable tree backs off without losing designation")
 	flora.cancel_felling(blocked_id)
 	# Old saves with no forestry changes remain valid.
@@ -286,13 +286,13 @@ func _test_rectangle_designation(oak_id: Vector2i) -> void:
 	if OS.get_cmdline_user_args().has("--capture"):
 		await _capture_designation("rectangle")
 	_mouse_button(b, false)
-	_expect(flora._felling_sources.size() == 3 and not flora._tree_changes.has(outside_id), "release marks only trees in rectangle")
-	var sapling_lease: int = flora._felling_sources[sapling_id].lease_id
+	_expect(flora.work.sources.size() == 3 and not flora._tree_changes.has(outside_id), "release marks only trees in rectangle")
+	var sapling_lease: int = flora.work.sources[sapling_id].lease_id
 	# Reverse drags select the same region and never duplicate leases.
 	_mouse_button(b, true)
 	_mouse_motion(a)
 	_mouse_button(a, false)
-	_expect(flora._felling_sources.size() == 3 and flora._felling_sources[sapling_id].lease_id == sapling_lease, "reverse rectangle is idempotent")
+	_expect(flora.work.sources.size() == 3 and flora.work.sources[sapling_id].lease_id == sapling_lease, "reverse rectangle is idempotent")
 	flora._update_felling_marker_positions()
 	var marker: Label = flora._felling_markers[sapling_id]
 	_expect(marker.text == "🪓" and marker.visible and marker.mouse_filter == Control.MOUSE_FILTER_IGNORE, "marked tree has a non-interactive axe emoji")
@@ -309,7 +309,7 @@ func _test_rectangle_designation(oak_id: Vector2i) -> void:
 	_expect(marker.visible, "axe remains after leaving Chop mode")
 	if OS.get_cmdline_user_args().has("--capture"):
 		await _capture_designation("axes")
-	dock._dispatch_panel_action("chop", "Chop Trees")
+	dock._request_order_tool("chop")
 	# Escape discards an unfinished rectangle without marking the outside tree.
 	_mouse_button(a, true)
 	_mouse_motion(camera.unproject_position(Vector3(75,21,75)))
@@ -320,12 +320,12 @@ func _test_rectangle_designation(oak_id: Vector2i) -> void:
 	_mouse_button(b, false)
 	_expect(not chop._dragging and not flora._tree_changes.has(outside_id), "Escape cancels rectangle")
 	# Switching tools / losing window focus cancels a gesture too.
-	dock._dispatch_panel_action("chop", "Chop Trees")
+	dock._request_order_tool("chop")
 	_mouse_button(a, true)
 	_mouse_motion(b)
 	dock.tool_requested.emit("mine_precision")
 	_expect(not chop._dragging, "tool switch discards rectangle")
-	dock._dispatch_panel_action("chop", "Chop Trees")
+	dock._request_order_tool("chop")
 	_mouse_button(a, true)
 	chop._notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_OUT)
 	_expect(not chop._dragging, "focus loss discards rectangle")
@@ -428,18 +428,18 @@ func _check_axe_grips() -> void:
 	_expect(is_instance_valid(axe) and axe.visible and axe.get_parent() == worker._hand_r, "felling equips an axe on the right hand")
 	var previous := Vector3.ZERO
 	for phase in [0.0,.2,.36,.48,.56,.8]:
-		pose.apply(phase,worker._fell_contact)
+		pose.apply(phase,worker._work_execution._fell_contact)
 		var right: Vector3 = worker._hand_r.global_transform * pose.PALM
 		var left: Vector3 = worker._hand_l.global_transform * pose.PALM
 		_expect(right.distance_to(axe.global_position) < .001, "lower grip stays on the axe shaft")
 		_expect(left.distance_to(axe.global_transform * pose.SUPPORT_GRIP) < .001, "supporting hand stays on the axe shaft")
 		if phase == .56:
 			var edge: Vector3 = axe.global_transform * pose.CUTTING_EDGE
-			_expect(edge.distance_to(worker.to_global(worker._fell_contact)) < .001, "strike lands on the aimed trunk surface")
+			_expect(edge.distance_to(worker.to_global(worker._work_execution._fell_contact)) < .001, "strike lands on the aimed trunk surface")
 		if phase > 0:
 			_expect(axe.global_position.distance_to(previous) > .001, "wind-up strike and recovery move the tool")
 		previous = axe.global_position
-	pose.apply(0.0,worker._fell_contact)
+	pose.apply(0.0,worker._work_execution._fell_contact)
 	worker.apply_slice(19)
 	_expect(not axe.is_visible_in_tree(), "slice hides axe with the dwarf")
 	worker.apply_slice(127)
@@ -450,7 +450,7 @@ func _check_axe_grips() -> void:
 func _check_stowed_axe(reason: String) -> void:
 	_expect(not worker._felling_pose.axe.visible, "%s stows axe" % reason)
 	_expect(worker._hand_r.scale.is_equal_approx(Vector3(-1,1,1)) and worker._foot_r.scale.is_equal_approx(Vector3(-1,1,1)), "%s preserves mirrored hands and boots" % reason)
-	var offsets := {worker._hand_l:worker._relaxed_hand(-1),worker._hand_r:worker._relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
+	var offsets := {worker._hand_l:worker._rig.relaxed_hand(-1),worker._hand_r:worker._rig.relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}
 	for part in [worker._body,worker._head,worker._hand_l,worker._hand_r,worker._foot_l,worker._foot_r]:
 		_expect(part.position.is_equal_approx(offsets.get(part,Vector3.ZERO)) and part.rotation.is_zero_approx(), "%s restores Balanced part offsets" % reason)
 

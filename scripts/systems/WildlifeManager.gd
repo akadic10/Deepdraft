@@ -8,9 +8,8 @@ const Duck = preload("res://scripts/entities/DuckAgent.gd")
 const Navigation = preload("res://scripts/components/AnimalNavigation.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const ArrivalPlanner = preload("res://scripts/components/EdgeArrivalPlanner.gd")
-const DEFINITION_PATH := "res://data/entities/animals/rabbit.json"
-const DEER_PATH := "res://data/entities/animals/deer.json"
-const WOLF_PATH := "res://data/entities/animals/wolf.json"
+## One "<species>.json" per animal; each species also has its own agent script.
+const ANIMAL_DIR := "res://data/entities/animals/"
 
 @export var slice_controller_path: NodePath
 @export var camera_path: NodePath
@@ -30,7 +29,7 @@ var _wolf_models: Dictionary = {}
 var _deer_models: Dictionary = {}
 var _models: Dictionary = {}
 var _picking := Picking.new()
-var _slice_y := 127
+var _slice_y := SliceController.MAX_SLICE_Y
 var _camera: Node3D
 ## Opt-in diagnostic; no timers or extra saved state during normal play.
 var profile_updates := false
@@ -41,14 +40,16 @@ func _ready() -> void:
 	add_to_group("arrival_provider")
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
-	definition = JSON.parse_string(FileAccess.get_file_as_string(DEFINITION_PATH)) as Dictionary
-	for part: String in definition.model_parts: _models[part] = load(definition.model_parts[part])
-	deer_definition = JSON.parse_string(FileAccess.get_file_as_string(DEER_PATH)) as Dictionary
-	for part: String in deer_definition.model_parts: _deer_models[part] = load(deer_definition.model_parts[part])
-	wolf_definition = JSON.parse_string(FileAccess.get_file_as_string(WOLF_PATH)) as Dictionary
-	for part: String in wolf_definition.model_parts: _wolf_models[part] = load(wolf_definition.model_parts[part])
-	duck_definition = JSON.parse_string(FileAccess.get_file_as_string("res://data/entities/animals/duck.json")) as Dictionary
-	for part: String in duck_definition.model_parts: _duck_models[part] = load(duck_definition.model_parts[part])
+	const JsonData = preload("res://scripts/registries/JsonData.gd")
+	var by_species := {}
+	for file_name in DirAccess.get_files_at(ANIMAL_DIR):
+		if file_name.ends_with(".json"): by_species[file_name.get_basename()] = JsonData.read_dict(ANIMAL_DIR + file_name)
+	definition = by_species.get("rabbit", {})
+	deer_definition = by_species.get("deer", {})
+	wolf_definition = by_species.get("wolf", {})
+	duck_definition = by_species.get("duck", {})
+	for pair: Array in [[definition, _models], [deer_definition, _deer_models], [wolf_definition, _wolf_models], [duck_definition, _duck_models]]:
+		for part: String in pair[0].model_parts: pair[1][part] = load(pair[0].model_parts[part])
 	duck_navigation.config = duck_definition.navigation
 	duck_population.owner = self
 	_camera = get_node_or_null(camera_path) as Node3D if not camera_path.is_empty() else null
@@ -60,7 +61,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not initialized or not deer_initialized or not wolf_initialized or not duck_initialized:
 		var details := get_tree().get_first_node_in_group("surface_details")
-		if not WorldGenerator.get_streaming_stats().get("maps_ready", false) or details == null or not details._initialized: return
+		if not WorldGenerator.get_streaming_stats().get("maps_ready", false) or details == null or not details.is_initialized(): return
 		initialize_population()
 	duck_navigation.flora = get_tree().get_first_node_in_group("surface_flora")
 	var threats: Array[Vector3] = []
@@ -571,10 +572,8 @@ func restore_state(state: Dictionary) -> void:
 		animal.queue_free()
 	animals.clear()
 	initialized = bool(state.get("initialized", false))
-	# A rabbit-only save seeds deer once after restore, without replacing its
-	# rabbits. Explicitly saved empty deer populations never replenish.
-	deer_initialized = bool(state.get("deer_initialized",state.has("deer")))
-	wolf_initialized = bool(state.get("wolf_initialized",state.has("wolves")))
+	deer_initialized = bool(state.deer_initialized)
+	wolf_initialized = bool(state.wolf_initialized)
 	duck_initialized = bool(state.get("duck_initialized",false))
 	var seen := {}
 	for raw: Dictionary in state.get("rabbits", []):

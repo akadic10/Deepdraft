@@ -89,7 +89,7 @@ arrivals shipped subsequently in milestone 94; the reserve floors remain intact.
 ## Ownership and navigation
 
 `WildlifeManager` is a scene owner alongside DwarfDirector and CraftingManager.
-It alone loads `data/entities/animals/rabbit.json`, `deer.json`, `wolf.json` and `duck.json`, loads their
+It alone loads the species files in `data/entities/animals/` (rabbit, deer, wolf, duck), loads their
 shared model parts, and owns generation, inspection and the `wildlife` save
 section. `GrazerAgent` owns common needs, decisions, terrain support and saved
 state; `RabbitAgent` supplies the original rabbit model/poses, while `DeerAgent`
@@ -181,7 +181,8 @@ species fields are required by SaveSnapshotValidator before restoration.
   visibility and source cleanup follow the rabbit rules. Sleeping is silent.
 - Object explorer includes herd size and the existing Locate/Follow controls.
 - The required `deer` array and `deer_initialized` flag share the `wildlife` save
-  section with unchanged rabbit records. Each deer saves its herd ID in addition
+  section with the rabbit records; restore reads every flag directly, with no
+  fallback for saves made before a species existed. Each deer saves its herd ID in addition
   to the common state. Explicitly saved empty deer populations are not reseeded but can
   receive future scheduled arrivals.
 

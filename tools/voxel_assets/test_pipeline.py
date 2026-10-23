@@ -40,7 +40,7 @@ class PipelineTests(unittest.TestCase):
             self.assertIsNone(report['parts'][2]['shadow'])
 
     def test_pine_export_retains_native_grid_ground_and_proxy_pair(self):
-        profile=read_json('data/art/voxel_trees.json')
+        profile=read_json('tools/art_data/voxel_trees.json')
         # The Hearthblock pine keeps the grid, root, ground and rendering contracts.
         vox=pine(profile,'sapling',0,'summer')
         with tempfile.TemporaryDirectory() as directory:
@@ -58,7 +58,7 @@ class PipelineTests(unittest.TestCase):
                 self.assertEqual(value*16,round(value*16))
 
     def test_winter_retains_pine_shape_and_bark(self):
-        profile=read_json('data/art/voxel_trees.json')
+        profile=read_json('tools/art_data/voxel_trees.json')
         summer=pine(profile,'sapling',0,'summer')
         winter=pine(profile,'sapling',0,'winter')
         self.assertEqual(set(summer.cells),set(winter.cells))

@@ -14,7 +14,7 @@ def activate(base,family,review_path):
     for row in manifest['assets']:
         target=ROOT/row['path']; target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copy2(base/row['path'],target)
-    ledger=ROOT/'data/art/voxel_manifests'; ledger.mkdir(parents=True,exist_ok=True)
+    ledger=ROOT/'tools/art_data/voxel_manifests'; ledger.mkdir(parents=True,exist_ok=True)
     (ledger/(family+'.json')).write_text(json.dumps(manifest,indent=2)+'\n')
     (base/(family+'_audit.json')).write_text(json.dumps(report,indent=2)+'\n')
     print('VOXEL_ACTIVATED',family,len(manifest['assets']))

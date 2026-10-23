@@ -262,10 +262,10 @@ static func catalog_item_style(selected: bool = false) -> StyleBoxFlat:
 
 static func apply_catalog_window(window: UIWindow) -> void:
 	window.add_theme_stylebox_override("panel", style(HEARTH_BG, CATALOG_GOLD, 2, 2, 0, 0))
-	window._title_bar.add_theme_stylebox_override("panel", style(CATALOG_WOOD, HEARTH_EDGE, 1, 0, 0, 0))
-	UITheme.apply_title(window._title_label, 22)
+	window.get_title_bar().add_theme_stylebox_override("panel", style(CATALOG_WOOD, HEARTH_EDGE, 1, 0, 0, 0))
+	UITheme.apply_title(window.get_title_label(), 22)
 	for side: String in ["left", "right", "top", "bottom"]:
-		window._body_slot.add_theme_constant_override("margin_" + side, 0)
+		window.get_body_slot().add_theme_constant_override("margin_" + side, 0)
 
 
 static func apply_catalog_primary(button: Button) -> void:

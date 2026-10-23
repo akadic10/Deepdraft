@@ -133,7 +133,7 @@ func _ready() -> void:
 	_locate.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_locate.pressed.connect(func(): locate_requested.emit(selected_key, false))
 	actions.add_child(_locate)
-	_inspect = UITheme.make_button("Inspect storage", "Open a stockpile or container holding this item", Vector2(0, 32))
+	_inspect = UITheme.make_button("Inspect storage", "Open a stockpile holding this item", Vector2(0, 32))
 	_inspect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inspect.pressed.connect(func(): locate_requested.emit(selected_key, true))
 	actions.add_child(_inspect)
@@ -150,7 +150,7 @@ func bind_controller(value: FurniturePlacementController) -> void:
 
 func _bind_items() -> void:
 	if is_instance_valid(items): return
-	items = get_tree().get_first_node_in_group("item_drop_manager") as ItemDropManager
+	items = ItemDropManager.find(get_tree())
 	if items != null: items.loose_items_changed.connect(_queue_refresh)
 
 

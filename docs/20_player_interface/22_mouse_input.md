@@ -20,6 +20,15 @@ changes. Ordinary furniture and ladder picking keep their own rules.
 
 Each frame (on mouse move or on demand), a ray is cast from the camera through the mouse cursor into the 3D world. The hit voxel is identified by stepping through the DDA (Digital Differential Analysis) voxel traversal algorithm.
 
+**One implementation (doc 258 step 6):** every terrain ray goes through
+`ObjectPicking.terrain_hit(origin, direction, slice_y, max_distance, sample_block, visible_face)`,
+which returns `{x, y, z, normal, distance}` or `{}`. Mining passes a `sample_block` that
+reads concealed strata (and treats water as air) plus a `visible_face` that asks the
+renderer's VisibleVolume; furniture, storage zones, construction, tree felling and the
+inspectors use the live grid and the slice plane. Surface-only picks (Settlement Flag,
+the DEV walk test, camera zoom-to-cursor) use `ObjectPicking.surface_hit`, a height-field
+march that needs no materialised chunks. Do not write another ray loop.
+
 ```gdscript
 func raycast_voxel(camera: Camera3D, mouse_pos: Vector2) -> Dictionary:
     var origin    := camera.project_ray_origin(mouse_pos)
@@ -96,4 +105,4 @@ All blocks within `selection_aabb` receive the pending action (mine, designate, 
 
 ---
 
-*Prev: [21_rts_camera.md](21_rts_camera.md) | Next: [23_user_interface.md](23_user_interface.md)*
+*Prev: [21_camera.md](21_camera.md) | Next: [23_user_interface.md](23_user_interface.md)*

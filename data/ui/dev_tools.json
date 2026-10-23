@@ -1,0 +1,4 @@
+{
+  "description": "Development tools switch. true shows the Development dock menu, its windows and debug panels, and every DEV action (Instant Build, DEV Build, DEV Mine, Grow to maturity, DEV Remove). Set false before handing a build to players. Read once at startup.",
+  "enabled": true
+}

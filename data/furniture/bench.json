@@ -17,7 +17,6 @@
     "width": 2,
     "depth": 1
   },
-  "blocks_movement": true,
   "collision_regions": [
     {
       "min": [
@@ -32,7 +31,6 @@
       ]
     }
   ],
-  "room_anchor": false,
   "seating_chair": {
     "rest_pose": {
       "body": [0, 0.375, 0],

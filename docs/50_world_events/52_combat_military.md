@@ -348,7 +348,7 @@ The Military Build tab (currently stubbed in the UI) will expose the following d
 
 | System | Integration Point |
 |---|---|
-| `TaskManager` | `PATROL` task (priority 60) already defined. This system adds `ARMING` and `DISARMING` (priority 80) and `COMBAT` (priority 85). |
+| `TaskManager` | This system adds `PATROL` (priority 60), `ARMING` and `DISARMING` (priority 80) and `COMBAT` (priority 85). |
 | `DwarfAgent` | `health`, `DEAD`, and `TANTRUM` states already exist. `military_class` and `equipment` dict added by this system. |
 | `StockpileManager` | Gear haul tasks use the standard haul pipeline. Quivers are equipment items stored on Wall Displays like weapons — no separate ammo stockpile needed. |
 | `VisitorManager` | `wealth_score` and `invasion_started` signal already scaffolded. Wave spawner connects here. |

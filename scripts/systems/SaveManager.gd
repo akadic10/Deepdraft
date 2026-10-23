@@ -251,16 +251,16 @@ func _capture_snapshot() -> Dictionary:
 		"saved_at_utc":Time.get_datetime_string_from_system(true,true),"world_seed":WorldGenerator.world_seed,
 		"clock":WorldClock.serialize_state().duplicate(true),"weather":WeatherManager.serialize_state().duplicate(true),
 		"scene":{"terrain":{"edits":WorldData.serialize_edits()},"exploration":InteriorTracker.serialize_exploration()}}
-	for owner in get_tree().get_nodes_in_group(OWNER_GROUP):
-		if not owner.has_method("save_section_key") or not owner.has_method("serialize_state"): continue
-		var key:=String(owner.call("save_section_key"))
+	for section_owner in get_tree().get_nodes_in_group(OWNER_GROUP):
+		if not section_owner.has_method("save_section_key") or not section_owner.has_method("serialize_state"): continue
+		var key:=String(section_owner.call("save_section_key"))
 		if key.is_empty(): continue
 		var started:=Time.get_ticks_usec()
-		if owner.has_method("capture_save_state"):
-			state.scene[key]=owner.call("capture_save_state")
+		if section_owner.has_method("capture_save_state"):
+			state.scene[key]=section_owner.call("capture_save_state")
 			_captured_sections.append(key)
 		else:
-			state.scene[key]=owner.call("serialize_state").duplicate(true)
+			state.scene[key]=section_owner.call("serialize_state").duplicate(true)
 		_capture_profile[key]=(Time.get_ticks_usec()-started)/1000.0
 	return state
 
@@ -294,6 +294,9 @@ func _exit_tree() -> void:
 		_save_job=null
 
 
+## Synchronous serializer oracle for tests and benchmark tools: SaveWorkerChecks
+## compares it with _capture_snapshot + SaveSnapshotPreparation. Not on the
+## gameplay save path.
 func _build_snapshot() -> Dictionary:
 	return {
 		"schema_version": SAVE_SCHEMA_VERSION,
@@ -363,7 +366,7 @@ func _request_load_slot(paths: Dictionary, is_autosave: bool) -> bool:
 func _prepare_restore(snapshot: Dictionary, is_autosave: bool, use_backup: bool) -> void:
 	_startup_checked = true
 	_load_validated_msec = Time.get_ticks_msec()
-	_pending_restore = preload("res://scripts/components/TerrainSaveMigration.gd").upgrade(snapshot)
+	_pending_restore = snapshot
 	_loading = true
 	_ready_frames = 0
 	_loading_from_backup = use_backup
@@ -548,20 +551,17 @@ func _autosave_paths() -> Dictionary:
 
 func _capture_catalogs() -> Dictionary:
 	var blocks := {}
-	for key in BlockRegistry._key_to_id:
+	for key in BlockRegistry.block_keys():
 		blocks[String(key)]={"kind":String(BlockRegistry.get_def(key).get("kind","void")),
 			"solid":BlockRegistry.is_solid(BlockRegistry.get_id(key))}
 	var construction := {}
-	for key in BlockRegistry._construction_defs:
+	for key in BlockRegistry.construction_keys():
 		if not BlockRegistry.get_construction_def(key).is_empty(): construction[key]=true
 	var materials := {"":true}
 	for key in CraftMaterials.definitions: materials[key]=true
-	var retired := {}
-	var policy: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/content_retirements.json"))
-	for key: String in policy.furniture: retired[key] = true
-	var retired_items := {}
-	for key: String in policy.get("items", []): retired_items[key] = true
-	return {"blocks":blocks,"construction":construction,"materials":materials,"retired_furniture":retired,"retired_items":retired_items}
+	var catalogs := ContentRegistry.save_catalogs()
+	catalogs.merge({"blocks":blocks,"construction":construction,"materials":materials})
+	return catalogs
 
 
 func _file_store() -> RefCounted:
@@ -576,26 +576,13 @@ func _absolute_paths(paths: Dictionary) -> Dictionary:
 	for key in paths: result[key]=ProjectSettings.globalize_path(paths[key])
 	return result
 
-## Synchronous helpers for reads/recovery and transaction fault fixtures only.
-## Gameplay writes enter _start_save and run the same transaction on a worker.
-func _commit_snapshot(snapshot: Dictionary, paths: Dictionary) -> String:
-	if is_saving(): return "a save is still finishing."
-	var store:=_file_store()
-	var result: String=store._commit_snapshot(snapshot,_absolute_paths(paths))
-	for warning in store.warnings: push_warning(warning)
-	return result
-
+## Synchronous read/recovery helpers. Writes enter _start_save and run the
+## transaction on a worker; tests drive SaveFileStore through _file_store().
 func _restore_primary_from_backup(paths: Dictionary) -> String:
-	return _file_store()._restore_primary_from_backup(_absolute_paths(paths))
+	return _file_store().restore_primary_from_backup(_absolute_paths(paths))
 
 func _read_snapshot(path: String) -> Dictionary:
-	return _file_store()._read_snapshot(ProjectSettings.globalize_path(path))
-
-func _write_text_file(path: String, contents: String) -> String:
-	return _file_store()._write_text_file(ProjectSettings.globalize_path(path),contents)
-
-func _remove_if_exists(path: String) -> String:
-	return _file_store()._remove_if_exists(ProjectSettings.globalize_path(path))
+	return _file_store().read_snapshot(ProjectSettings.globalize_path(path))
 
 
 func _fail_save(message: String) -> bool:
@@ -608,10 +595,6 @@ func _fail_load(message: String) -> bool:
 	_notify(message, true)
 	load_finished.emit(false, false)
 	return false
-
-
-func _validate_snapshot(snapshot: Dictionary) -> String:
-	return _file_store()._validate_snapshot(snapshot)
 
 
 func _notify(message: String, is_error: bool = false) -> void:

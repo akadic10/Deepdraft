@@ -9,6 +9,281 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**Even camera motion on high-refresh displays; no hitch panning onto new ground (2026-10-22):**
+- On the owner's 120 Hz display the game ran at about 100 fps, so frames were held for
+  one or two refreshes at random and panning juddered. The camera rig now caps the
+  frame rate at an even fraction of the refresh rate (60 fps at 120 Hz; tunable as
+  `paced_fps_max` in `camera_settings.json`, see
+  [21](../20_player_interface/21_camera.md)).
+- The ambience scan checked about 1,000 columns for water every 0.75 s, and stalled
+  50–110 ms whenever the camera reached ground it had not visited. It now skips
+  columns that have never held water (`WaterManager.water_columns`). New test:
+  `AmbientWaterScanTest`.
+- Measured at 7680×2160 with vsync on: paused panning holds every frame at 16.7 ms
+  (previously stalls of up to 114 ms). While the game runs, the frame that closes
+  each water update can still slip once every six frames.
+- Restart Play.
+
+**Water redraws only when the change is visible (2026-10-22):** A steady river
+used to rebuild water meshes about 100 times a second for level changes mostly
+under 1/1000 of a block, and the rebuild queue ran seconds behind. A tile now
+redraws when its water has moved 1/32 of a block since its last drawing, or when
+water appears or disappears. Tile seams stay closed. Simulation, flooding and
+saves are unaffected. On the owner's quicksave, water rendering falls from 3.2 to
+0.55 ms per frame, visible water is at most about 14 ms behind instead of almost
+a second, and frames over 16.7 ms while running fall from 116 to 32 of about 540
+(p95 16 ms). Rules are in [33](../30_simulation_systems/33_water_simulation.md).
+Restart Play.
+
+**Smoother camera while the game runs (2026-10-22):** The water solver no longer
+does a whole tick (about 10 ms) in one frame ten times a second. It now spreads each
+tick's cells across the frames until the next tick, in the same order and amounts.
+Water behaves as before. On the owner's quicksave, frame p95 while running falls
+from 26 ms to 20 ms and p99 from 29 ms to 22 ms; the worst water frame falls from
+13 ms to 6 ms. Rules are in
+[33](../30_simulation_systems/33_water_simulation.md); the new test is
+`WaterTickSpreadTest`. Restart Play.
+
+**Main scene starts again (2026-10-22):** The game ran with empty furniture, item and
+recipe catalogs and stopped at `BridgeSystem._ready`. The registry split had scene
+systems copy `ContentRegistry` tables in member initializers, which run while the main
+scene is being built, before any autoload's `_ready`. `ContentRegistry` and
+`SurfaceDetailRegistry` now load in `_init`. `ContentRegistryTest` checks that a freshly
+constructed registry already holds its data. Restart Play.
+- The 36 GDScript warnings shown at startup are gone, mostly by renaming shadowing
+  names. `@warning_ignore` now marks the deliberate integer divisions, the DwarfAgent
+  path forwarders that components read, and `TaskManager.task_assigned` (emitted by
+  `TaskScheduler`). No change in play.
+
+**Milestone doc cleanup, batch 2 (2026-10-22):** No change in play.
+- Deleted docs 37–40 and 42–79 (42 docs). Their still-true rules moved to:
+  - **23 UI:** interaction principles (from 58), Dining seat placement (from 50) and
+    the real stockpile filter model and categories (from 59).
+  - **31 Task system:** hauler ranking (from 60) and loose-item settling (from 63).
+  - **41 Dwarf agents:** handling-stand and carry-cost rules (from 49).
+  - **42 Farming:** Surface details (from 72–79).
+  - **43 Mining:** cave generation rules (from 68).
+  - **44 Crafting:** starter crafting rules (from 64).
+- Design docs no longer describe the retired brewing vat, aging rack, smelter or wall
+  torch as live; doc 24's torch lighting now describes the log torch.
+- `00_todo.md` gained World / caves, Surface details, Forestry and a season-change
+  frame spike (observed, not pursued).
+- Hard Rule 11 in CLAUDE.md now cites 24 §Slice concealment rule and 43 §Cave discovery.
+- Removed the study tools only those docs used: `tools/OreVeinStudy.gd`,
+  `tools/ore_vein_study/`, `tools/CalibrateOreFields.gd`, `tools/SurfaceDetailReview.gd`,
+  `tools/SurfaceDetailSeasonReview.gd` and `tools/summarize_surface_review.py`.
+- No restart or reload needed.
+
+---
+
+**Milestone doc cleanup, batch 1 (2026-10-22):** No change in play. Built milestone docs
+are now retired once their lasting rules live in the design docs (new rule in CLAUDE.md,
+Recording Changes).
+- Deleted docs 06, 07, 08, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 23 and 24.
+  Their still-true rules moved to:
+  - **11 Overview:** "Whole world, always" invariant (from 07).
+  - **13 Architecture:** the full save spec under SaveManager (from 20) and
+    "Measuring performance" (from 07).
+  - **21 Camera:** entity slice visibility (from 11).
+  - **23 UI:** "Window system" (from 24); the Place list now matches the catalogue.
+  - **24 World rendering:** the VisibleVolume contract, slice meshing rules, slice
+    known limits (from 11) and the future world-edge dissolve (from 08).
+  - **31 Task system:** Release Protocol for Hard Rule 12 (from 16).
+  - **42 Farming:** tree collision, physics layers, rendering (from 13) and world
+    placement (from 14).
+  - **43 Mining / 51 Visitors:** the snow-cap question and the planned trade road (from 12).
+  - **00_todo:** World start and the DEV windows still to move onto UIWindowManager
+    (from 06 and 24).
+- Code comments that still say "doc 11", "doc 16" or "doc 18–24" are historical tags;
+  their rules now live in docs 21/24 (11), 31/32/43 (16), 31 (18, 19), 13 (20),
+  34 (22) and 23 (24).
+- No restart or reload needed.
+
+---
+
+**Code review, step 8: large files split (2026-10-22):**
+([258](258_code_review_2026_10_22.md)). This completes the review. No change in play.
+- The six largest scripts were split into helper scripts. WorldRenderer, WorldGenerator,
+  DwarfAgent, TaskManager, and the mining and furniture controllers are now 527–1,196
+  lines each, down from 1,609–2,327, and no game script is over 1,500.
+- World generation was checked identical on four seeds.
+- Block lookups during world generation were briefly a little slower after the split.
+  Most of the extra name lookups are now cached, which made them about 6% faster again
+  with identical results (doc 258).
+- The gate is 55/55. Restart Play. No project reload needed.
+
+---
+
+**Code review, step 7: data cleanup (2026-10-22):**
+([258](258_code_review_2026_10_22.md)). No change in play, except that the DEV weather
+cycle now steps in file-name order.
+- **Art data:** the art-pipeline data moved from `data/art/` to `tools/art_data/`, so
+  exports no longer carry 690 KB of tool files.
+- **Values from data:** the code now reads values it used to copy: terrain bands,
+  profession ids, calendar hours, and the weather, bush, tree and animal file lists.
+  World generation was checked identical on four seeds.
+- **Unused data:**
+  - unused JSON fields are removed;
+  - planned design (trait effects, trade values, profession levels, weather effects,
+    crop details) now lives in docs 24, 41, 42 and 51;
+  - the brewery, aging cellar, beehive and merchant catalogue files are deleted, with
+    their content kept in the docs;
+  - `_v1` file names and `algorithm_version` are gone.
+- The gate is 55/55. Restart Play. No project reload needed.
+
+---
+
+**Code review, step 6: code structure (2026-10-22):**
+([258](258_code_review_2026_10_22.md)).
+- **Saves:** a save that names furniture, items, recipes, trees or plants the game no
+  longer has is refused with "start a new world" instead of being partly loaded.
+- **Code structure, no change in play:**
+  - jobs for ladders, bridges, trees, plants and furniture share one work-source table;
+  - definitions load in a new `ContentRegistry`;
+  - other scripts use public functions instead of private fields;
+  - terrain rays and the mined-terrain record each have one implementation;
+  - world sizes are named constants;
+  - the dock no longer hands out controllers;
+  - the item manager is called directly;
+  - every JSON file reports when it is missing or broken.
+- **Small fixes found along the way:**
+  - a block rebuilt and mined again counts as mined at once;
+  - camera zoom no longer treats the map edge as ground.
+- **Tests:** four new gate tests, so the gate is 55/55. The lint baseline went from 865
+  to 439.
+- **Run Project → Reload Current Project once** (new `ContentRegistry` autoload), then
+  Play.
+
+---
+
+**Code review, step 5: code rules checker (2026-10-22):**
+([258](258_code_review_2026_10_22.md)). Nothing changes in play.
+- `tools/lint_project.py` checks eight mechanical rules and runs with the gate. Examples
+  are private access, JSON read outside its owner, a DEV button without the switch, and
+  world-size literals.
+- Today's 865 known violations are recorded in `tools/lint_baseline.json`. Only new ones
+  fail, and the baseline can only shrink.
+- The gate is 51/51 with lint OK. No restart needed.
+
+---
+
+**Code review, step 4: development tools switch (2026-10-22):**
+([258](258_code_review_2026_10_22.md)).
+- **One switch for every DEV tool:** `data/ui/dev_tools.json` → `"enabled"`. It is on in
+  the project. Set it to false before handing a build to players. That hides:
+  - the Development menu and every DEV window;
+  - the block inspector;
+  - every DEV button and object action (DEV Build, Instant Build, DEV Mine, Grow to
+    maturity, DEV Remove).
+
+  The rising-water warning stays.
+- **Removed:** the "+50 tasks here" and "stress +500 random" buttons and the generic task
+  executor behind them. A task with no work source now fails at once instead of being
+  walked to.
+- **Tests:** ten tests use real mining work instead of fake tasks. New `DevToolsSwitchTest`
+  joins the gate, which is now 51/51.
+- Restart Play. No project reload needed.
+
+---
+
+**Code review, step 3: dead code deleted (2026-10-22):**
+([258](258_code_review_2026_10_22.md)). Over 1,600 lines are gone, with no change in play.
+- **World:** the old streamed-chunk renderer and the generator thread that sat idle all
+  session. The thread now ends once the world maps are built.
+- **Tasks:** five task types that nothing posted and a colony-bonus stub.
+- **Dock:** the old Build panel, its caption-based buttons and the empty Farming and
+  Military menus.
+- **Signals and save code:** unused signals and test-only save wrappers.
+- The DEV synthetic-task buttons still use the generic task executor, so it stays until
+  the DEV gate (step 4).
+- The gate is 50/50. Restart Play. No project reload needed.
+
+---
+
+**Code review, step 2: save compatibility, storage furniture and lighting toggle removed
+(2026-10-22):** at the owner's request ([258](258_code_review_2026_10_22.md)).
+- **Saves have one format.** Any save from another version, or missing a field the game
+  always writes, is rejected with "start a new world". All migrations and old-save
+  fallbacks are deleted.
+- **Storage furniture code deleted.** No furniture used it; it returns with barrels and
+  chests. Stockpile zones are the only storage.
+- **Lighting.** The main world always uses Hearthblock lighting; the Development menu's
+  on/off toggle is gone.
+- **Tests.** About 25 tests moved from containers to stockpile zones. The gate is 50/50;
+  four known failures remain outside it (doc 258).
+- Recent saves should still load. Extra old fields are ignored. Older saves missing a now
+  required field are rejected; start a new world. Restart Play. No project reload needed.
+
+---
+
+**Code review, step 1: five bugs fixed (2026-10-22):**
+([258](258_code_review_2026_10_22.md), which also holds the review backlog for steps 2–8).
+- **Ladders.** Releasing a ladder build or removal no longer posts a second job.
+- **DEV Instant Build.** It now uses up a packed item when one exists and keeps its
+  material, instead of making a free copy.
+- **Text.** Garbled characters are fixed in menu and item text, for example
+  "Wildflowers · cream" and "Rudimentary → Starter tools".
+- **Appeal.** The build menu, crafting screen and item inspector now show the same
+  appeal; it lives only in the furniture data.
+- **Generation failure.** A failed world generation now shows the reason on the loading
+  screen instead of loading forever.
+- **Tests.** Five regression tests added to the gate, which is now 50 tests; 50/50 pass.
+  The test runner accepts `expected_errors` per test.
+- Restart Play. No project reload needed.
+
+---
+
+**Save retirement migration removed (2026-10-22):** at the owner's request. Nobody has
+saves to protect, so the save system no longer cleans out removed content.
+- **Deleted:**
+  - `data/content_retirements.json`;
+  - `RetiredFurnitureMigration.gd`;
+  - `RetiredFurnitureMigrationTest` and `RetiredStoneMigrationTest`.
+- **Save code.** `SaveManager` and `SaveFileStore` now save and load snapshots unchanged.
+  A save that names content the game no longer defines fails validation, as any invalid
+  save does.
+- **Art tools.** The build no longer prunes retired files. The ownership guard covers the
+  installed manifests only. `test_retirements.py` became `test_coverage.py` without its
+  retirement check.
+- **Tests.** The job gate is now 45 tests; 45/45 pass, plus the 5 other save tests. The 66
+  art pipeline tests pass.
+- Restart Play to pick up the save changes. No project reload needed.
+
+---
+
+**One expected-models list for the voxel pipeline (2026-10-22):** tooling only, at the
+owner's request. `data/art/voxel_baseline.json` (the frozen migration inventory) and
+`data/art/voxel_additions.json` (models added since) are merged into
+`data/art/voxel_expected.json`, a full path list per family with retired models already
+removed. `tools/voxel_assets/coverage.py` reads only that file. It also fails if a listed
+path is retired.
+- The expected sets are unchanged (384 models).
+- The voxel tests pass (33/33), and `build.py --check` verifies the wildlife and furniture
+  families.
+- Adding a model is now one edit (doc 63).
+- No restart or reload needed.
+
+---
+
+**Agent rules merged into CLAUDE.md (2026-10-22):** at the owner's request. Only Claude
+Code works on the project, so the rules from `AGENT.md` now live directly in `CLAUDE.md`,
+and `AGENT.md` is deleted. Older entries and milestone docs that mention `AGENT.md` mean
+this file. New standing rule: the owner makes all git commits; agents don't commit or ask
+to. No restart or reload needed.
+
+---
+
+**Parallel, isolated test runner (2026-10-22):** tooling only, no change for the player
+([257](257_parallel_test_runner.md)).
+- `tools/run_job_reliability.ps1` now runs the gate, an area (`-Area hauling`), wildcards
+  or every test (`-All`). It runs 8 tests at a time, each in a throwaway profile, and cleans
+  up after itself. Selection lives in `tools/test_suite.json`.
+- The job gate takes 66 s instead of 403 s (46/46). Across all tests 157/163 pass; the 6
+  that fail were already broken and are listed in 257.
+- No restart or reload needed.
+
+---
+
 **Mining stutter fixed; mining drag capped at 32 (2026-10-21):** review item 6, at the
 owner's request ([254 §4.3, §4.5](254_full_project_review_2026_10_20.md)).
 - **Stutter.** Every mined or built block made the renderer rebuild three whole-world

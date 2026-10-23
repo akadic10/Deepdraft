@@ -185,7 +185,7 @@ forever:
   list indices.**
   - Where: `InteriorTracker.gd:184-198`, `CaveLayout.gd:70,77`, `WorldGenerator.gd:243`,
     `SaveSnapshotValidator.gd:137`.
-  - Changing `caves_v1.json`, the macro profile or the block-id rules can cause:
+  - Changing `caves.json`, the macro profile or the block-id rules can cause:
     - on load, a *different* undiscovered cave being revealed (a Rule 11 breach);
     - edits applied to a changed base world;
     - a seed that now fails validation never setting `_maps_ready`. The loading screen
