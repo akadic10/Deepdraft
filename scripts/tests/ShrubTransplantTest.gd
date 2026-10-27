@@ -18,7 +18,7 @@ func _run() -> void:
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
 	for x in range(32,64):
-		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass_01"))
+		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass"))
 	var gen = root.get_node("WorldGenerator")
 	gen._cache_block_ids() # Live terrain edits query the baseline even in this flat fixture.
 	gen.world_seed = 1234
@@ -129,13 +129,12 @@ func _run() -> void:
 
 
 func _test_dev_spawns() -> void:
-	# Exercise the actual Development command and view-centre drop location.
-	camera.position = Vector3(37.5,38,45.5)
-	camera.look_at(Vector3(37.5,21,36.5))
-	dock._stockpile_controller = zone_controller
+	# The DEV item stamper (doc 23) makes uprooted bushes through the flora owner.
+	var stamper = load("res://scripts/systems/ItemStamperController.gd").new()
+	scene.add_child(stamper)
 	var before: int = details._records.size()
-	dock._dispatch_command("spawn_bushes")
-	_expect(details._records.size()==before+3,"DEV creates one packed bush of each species")
+	_stamp_bushes(stamper)
+	_expect(details._records.size()==before+3,"DEV stamps one packed bush of each species")
 	var identities: Array[String] = []
 	for id: String in details._records:
 		if details._changes.get(id,{}).get("reason") != "dev_packed_shrub": continue
@@ -160,8 +159,15 @@ func _test_dev_spawns() -> void:
 	_expect(worker.serialize_state().carried_items.any(func(e): return e.get("instance_id","")==blue),"dwarf carries the DEV bush's persistent identity")
 	_expect(await _wait_for(func(): return not details._changes[blue].packed),"dwarf replants spawned bush through normal work")
 	_expect(details._records[blue].origin==Vector3i(36,20,52),"spawned bush finishes at requested location")
-	dock._dispatch_command("spawn_bushes")
-	_expect(details._records.size()==before+6,"repeat DEV spawns allocate fresh identities after restore")
+	_stamp_bushes(stamper)
+	_expect(details._records.size()==before+6,"repeat DEV stamps allocate fresh identities after restore")
+
+
+func _stamp_bushes(stamper: Node) -> void:
+	for spec: Array in [["base:resources:plant:blueberry_bush", Vector3i(37,20,36)], ["base:resources:plant:elderberry_bush", Vector3i(38,20,36)],
+			["base:resources:plant:wild_strawberry_bush", Vector3i(36,20,36)]]:
+		stamper.choose(String(spec[0]), 1, "")
+		_expect(stamper.stamp_at(spec[1]) == 1, "the stamper makes %s through the flora owner" % spec[0])
 
 
 func _move(id: String, target: Vector3i) -> int:
@@ -260,22 +266,24 @@ func _capture_transplants() -> void:
 	for i in range(8): await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://tmp/transplant_review/transplanted.png")
-	for button: Button in explorer._actions.get_children():
-		if button.text == "Move": _click(button.get_global_rect().get_center())
+	var move: Button = explorer.get_compact_panel().get_action_button("move")
+	if move != null: _click(move.get_global_rect().get_center())
 	await process_frame
-	_expect(furniture.is_active() and furniture._moving_shrub == BLUE, "actual inspector Move button starts destination picking")
+	_expect(move != null and furniture.is_active() and furniture._moving_shrub == BLUE, "actual panel Move button starts destination picking")
 	_click(camera.unproject_position(Vector3(39.5,21,48.5)))
 	await process_frame
 	_expect(not furniture._ghosts.is_empty() and details._changes[BLUE].designated, "actual ground click commits Move without placing through inspector")
 	for plan_id in furniture._ghosts.keys(): furniture.cancel_ghost(plan_id)
-	explorer._window.hide()
+	explorer.clear_selection()
 	dock._window_manager.open("place")
 	dock._place_catalog._all_toggle.button_pressed = true
-	dock._place_catalog.category = "plants"
 	dock._place_catalog.refresh()
 	for i in range(8): await process_frame
+	dock._place_catalog._scroll.ensure_control_visible(dock._place_catalog.tile("base:flora:wild_strawberry_bush"))   # Plants sits low in the list
+	for i in range(4): await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://tmp/transplant_review/place_plants.png")
-	_click(dock._place_catalog._tiles["base:flora:wild_strawberry_bush"].button.get_global_rect().get_center())
+	_click(dock._place_catalog.tile("base:flora:wild_strawberry_bush").get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(furniture.active_furniture_key() == "base:flora:wild_strawberry_bush", "actual Plant catalog tile starts replanting preview")
 	furniture.deactivate()

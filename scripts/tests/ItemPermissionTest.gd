@@ -69,14 +69,12 @@ func _review_storage_contents() -> void:
 	var panel = storage._storage_panel
 	panel._show_tab(1)
 	await _settle()
-	var expected := [["Oak Acorn","× 15"],["Oak log stool (packed)","× 1"],["Pine Log","× 3"],["Pine log stool (packed)","× 2"]]
+	# Contents is the filter's picture grid: by group, then name; each good and material apart.
+	var expected := [["Pine Log",3,true],["Oak Acorn",15,false],["Oak log stool (packed)",1,false],["Pine log stool (packed)",2,false]]
 	_expect(_content_rows(panel)==expected, "Contents groups counts by item and material, sorted by name: " + str(_content_rows(panel)))
-	_expect("8 / 12 cells used" in panel.info_label.text and "Goods stored: 21" in panel.info_label.text, "grouping preserves physical capacity and logical goods totals")
+	_expect("Used 8 / 12 cells · 21 goods" in panel.info_label.text, "grouping preserves physical capacity and logical goods totals")
 	_expect(_button_named(panel._contents,"Disallow")==null and _button_named(panel._contents,"Allow")==null, "Contents has no permission buttons")
-	var relocation_labels := 0
-	for child in panel._contents.get_children():
-		if child is Label and child.text=="Awaiting relocation": relocation_labels+=1
-	_expect(relocation_labels==1, "rejected item group has one relocation note")
+	_expect(_content_rows(panel).filter(func(row: Array): return row[2]).size()==1, "only the refused good is marked as awaiting relocation")
 	for size in [Vector2i(960,540),Vector2i(2560,1440)]:
 		root.size=size
 		await _settle()
@@ -88,8 +86,8 @@ func _review_storage_contents() -> void:
 	var removed: Node3D = subject.withdraw_stack(cells[0],1,999)
 	drops.unreserve(removed,999)
 	await _settle()
-	expected[2][1] = "× 2"
-	_expect(_content_rows(panel)==expected and "Goods stored: 20" in panel.info_label.text, "live withdrawal updates grouped totals")
+	expected[0][1] = 2
+	_expect(_content_rows(panel)==expected and "· 20 goods" in panel.info_label.text, "live withdrawal updates grouped totals")
 	# Ground restore also applies current storage access rules to flags in input.
 	var saved: Dictionary = storage.serialize_state()
 	for entry: Dictionary in saved.zones:
@@ -100,8 +98,10 @@ func _review_storage_contents() -> void:
 			_expect(not restored.cell_stacks[cell].disallowed and drops.Permission.allowed(drops.stored_node_at(cell)), "restored ground stock and its visual remain available")
 
 
+## Contents' pictures in order: the name (from the hover), the count and whether it is
+## marked as awaiting relocation.
 func _content_rows(panel: Control) -> Array:
 	var result := []
-	for child in panel._contents.get_children():
-		if child is HBoxContainer: result.append([child.get_child(0).text,child.get_child(1).text])
+	for tile: Button in panel._contents.find_children("Tile_*", "Button", true, false):
+		result.append([String(tile.tooltip_text).get_slice(" × ", 0), int(tile.get_node("Count").text), tile.has_node("Mark")])
 	return result

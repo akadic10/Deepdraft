@@ -15,7 +15,7 @@ func _run() -> void:
 	for recipe: Dictionary in crafting.recipes.values():
 		var key := String(recipe.get("furniture",""))
 		if not key.is_empty():
-			_expect(dock._place_catalog._tiles.has(key),"craftable furniture appears in Place catalog: "+key)
+			_expect(dock._place_catalog.has_design(key),"craftable furniture appears in Place catalog: "+key)
 	if not failures.is_empty():
 		for failure in failures: push_error(failure)
 		quit(1)
@@ -48,16 +48,12 @@ func _run() -> void:
 		clock_node.set_paused(true)
 		dock._place_catalog.show_all = false
 		dock._place_catalog._all_toggle.set_pressed_no_signal(false)
-		dock._place_catalog.category = "all"
 		_click(dock._button_by_target.place.get_global_rect().get_center())
 		await _frames(8)
 		var catalog = dock._place_catalog
-		_expect(catalog._tiles[entry[0]].button.is_visible_in_tree() and catalog._tiles[entry[0]].count.text=="1","finished "+entry[0]+" appears in normal Place while paused")
-		var category_key := "lighting" if entry[0]==CAMP else "dining"
-		_click(catalog._tabs[category_key].get_global_rect().get_center())
-		await _frames(6)
-		_expect(catalog._tiles[entry[0]].button.is_visible_in_tree(),"new furniture appears in its Place category")
-		_click(catalog._tiles[entry[0]].button.get_global_rect().get_center())
+		var shown: Button = catalog.tile(entry[0])
+		_expect(shown != null and shown.is_visible_in_tree() and shown.get_node("Count").text=="1","finished "+entry[0]+" appears in normal Place while paused")
+		_click(shown.get_global_rect().get_center())
 		await _frames(4)
 		_expect(furniture.active_furniture_key()==entry[0] and not catalog._place.disabled,"clicking the actual catalog tile enables placement")
 		if "--capture" in OS.get_cmdline_user_args(): await _capture_camp("place_"+String(entry[0]).get_slice(":",2))
@@ -146,11 +142,12 @@ func _review_menu() -> void:
 			await _frames(4)
 			var rect: Rect2 = dock._craft_window.get_global_rect()
 			_expect(rect.end.x<=viewport.x and rect.end.y<=dock._dock_panel.position.y-8,"craft menu fits above dock at "+str(viewport))
-			_expect(panel._detail_scroll.get_global_rect().encloses(panel._make.get_global_rect()),"queue action stays visible for "+recipe+str(viewport))
-			if panel._place.visible:
-				_expect(panel._detail_scroll.get_global_rect().encloses(panel._place.get_global_rect()),"place action stays visible for "+recipe+str(viewport))
-		panel._quantity.get_line_edit().text = "2"
-		_click(panel._make.get_global_rect().get_center())
+			_expect(panel._queue_button.is_visible_in_tree() and rect.encloses(panel._queue_button.get_global_rect()),"queue action stays visible for "+recipe+str(viewport))
+			if panel._place.is_visible_in_tree():
+				_expect(rect.encloses(panel._place.get_global_rect()),"place action stays visible for "+recipe+str(viewport))
+		panel.make_count = 2
+		panel._choose_order(false)
+		_click(panel._queue_button.get_global_rect().get_center())
 		await _frames(3)
 		_expect(crafting.orders.size()==1 and crafting.orders[0].quantity==2,"existing recipe still queues from menu")
 		var order_id: int = crafting.orders[0].id
@@ -159,7 +156,7 @@ func _review_menu() -> void:
 			await _choose_crafter(key)
 			_expect(dock._craft_window.get_global_rect().end.y<=dock._dock_panel.position.y-8,"preview fits above dock for "+key+str(viewport))
 			panel._queue_selected()
-			_expect(panel.selected.is_empty() and not panel._make.visible and not panel._place.visible,"preview cannot queue or place fictitious "+key+" goods")
+			_expect(panel.selected.is_empty() and not panel._queue_button.is_visible_in_tree() and not panel._place.is_visible_in_tree(),"preview cannot queue or place fictitious "+key+" goods")
 			_expect(crafting.orders.size()==1 and not panel._rows.has(order_id),"Worker order is retained without appearing in "+key+" orders")
 		await _choose_crafter("carpenter")
 		await _frames(3)
@@ -173,8 +170,8 @@ func _review_menu() -> void:
 		_expect(panel.section_id=="rudimentary" and panel.selected==RECIPE+"campfire","recipe deep link returns from preview to usable section")
 		if "--capture" in OS.get_cmdline_user_args(): await _capture_camp("rudimentary_%d" % viewport.x)
 		crafting.remove_order(order_id)
-		# Both the submenu and recipe view support ordinary Escape/toggle dismissal.
-		_click(panel._crafters.get_global_rect().get_center())
+		# The Crafters submenu still opens from the dock and closes with Escape.
+		_click(dock._button_by_target.craft.get_global_rect().get_center())
 		await _frames(5)
 		var escape := InputEventKey.new()
 		escape.keycode = KEY_ESCAPE
@@ -186,13 +183,10 @@ func _review_menu() -> void:
 		await _frames(4)
 
 func _choose_crafter(key: String) -> void:
-	_click(panel._crafters.get_global_rect().get_center())
-	await _frames(5)
-	_expect(dock.is_action_menu_open() and not manager.is_open("craft"),"Crafters back button returns to the profession submenu")
-	var button: Button = dock._panel_body.get_node("Crafter"+key.to_pascal_case())
-	_click(button.get_global_rect().get_center())
+	var tile: Button = panel._crafter_tiles[key]
+	_click(tile.get_global_rect().get_center())
 	await _frames(6)
-	_expect(manager.is_open("craft") and panel.section_id==key and not dock.is_action_menu_open(),"profession button opens the correct menu: "+key)
+	_expect(manager.is_open("craft") and panel.section_id==key,"the Crafters row opens the correct profession: "+key)
 
 func _capture_camp(name: String) -> void:
 	await _frames(3)

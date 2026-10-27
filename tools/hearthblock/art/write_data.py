@@ -32,9 +32,38 @@ DWARF_ROLES = ['scar', 'skin', 'skin_shade', 'nose', 'blush', 'mouth', 'hair', '
                'boot', 'boot_light', 'boot_dark', 'sole']
 FLAMES = ['flame_out', 'flame_mid', 'flame_core']
 GROUND = {'ground': 0}
+# UI icons (icons.mjs, doc 259) bake one skin and one hair tint; the game tints dwarves at runtime.
+ICON_TINTS = {'skin': 'pale', 'hair': 'ginger'}
+SKIN_ROLES = ['skin', 'skin_shade', 'nose', 'blush', 'mouth']
+HAIR_ROLES = ['hair', 'hair_mid', 'hair_shade']
+# The Events arrival icons (doc 23) replay each species' head in its own colours, as <species>_<role>.
+ICON_SPECIES = {'rabbit': ['fur', 'cream', 'nose', 'eye', 'glint', 'ear'],
+                'deer': ['coat', 'back', 'cream', 'nose', 'pupil', 'eye', 'ear', 'antler'],
+                'wolf': ['fur', 'light', 'cream', 'nose', 'eye', 'glint', 'shade', 'ear'],
+                'duck': ['male_crown', 'male_bill', 'ring', 'eye']}
+ICON_EXTRA = {'arrow': '5E9B47', 'arrow_light': '86BF63', 'arrow_dark': '3F6E31',      # placement green
+              'burlap': 'B0905F', 'burlap_dark': '8A6D45', 'zone_line': 'F0E2BE',     # storage ground
+              'brass_light': 'F2CF7A',
+              'glass': 'BCD3CF', 'glass_light': 'E4F1EC',
+              'potion': 'DD963F', 'potion_light': 'F2C46B', 'potion_dark': 'A6632A',
+              'earth': '8B6243', 'earth_dark': '6A4831', 'grass': '6F9A4C', 'grass_light': '8FB862',
+              'xray': '6FCBDB', 'xray_light': 'B4EBF2',                                # x-ray cyan, as the in-game guide
+              # Orders and world markers: the in-game oak, blueberry bush and reed colours
+              'leafy_dark': '475E36', 'leafy': '596D3D', 'leafy_light': '7C8B50',
+              'bush_dark': '4D704A', 'bush': '5A7B50', 'bush_light': '6C8957',
+              'berry_blue': '536B8E', 'berry_blue_light': '6A81A3', 'berry_blue_dark': '435C7F', 'berry_red': 'AD4B40',
+              'stalk': '617D4A', 'stalk_light': '789052', 'stalk_dry': 'B09B64',
+              'parchment_edge': 'B8A47E',
+              # Zones and Construction: tilled ridges, the cyan construction plan, and planks
+              'earth_light': 'A07452', 'plan': '4FBFEA', 'plan_light': '9ADDF5',
+              'plank': 'C8955A', 'plank_riven': 'B58A5A', 'plank_grain': 'A67C52', 'plank_seam': '5C3F27',
+              # Professions: ore glints and turnips
+              'ore_copper': 'C0703A', 'ore_gold': 'E0B84C', 'turnip': 'E9E1CF', 'turnip_top': '9B5A8C',
+              # Dwarf concerns: the food badge's lit apple
+              'apple_light': 'E2634B'}
 
 
-def models(dwarf_parts, wildlife_parts):
+def models(dwarf_parts, wildlife_parts, icons, sky):
     rows = [
         ('stool', 'furniture', 'hewn', dict(piece='log_chair', occlusion=GROUND)),
         ('split_slab_table', 'furniture', 'hewn', dict(piece='log_table', occlusion=GROUND)),
@@ -74,7 +103,17 @@ def models(dwarf_parts, wildlife_parts):
     # The floor sits where each part meets the ground: soles in their leg/foot frames.
     floor = {'rabbit/body': 0, 'deer/leg': -10, 'wolf/leg': -8, 'duck/foot': 0}
     rows += [(name, 'wildlife', name.split('/')[0], dict(occlusion={'ground': floor[name]}) if name in floor else {}) for name in wildlife_parts]
+    # Icons keep their render turn (icons.mjs options) for the icon renderer.
+    rows += [(name, 'icon', 'icon', {k: v for k, v in icon.items() if k == 'yaw'}) for name, icon in icons.items()]
+    # The Sky Dial's pieces (sky.mjs) keep their framing, light and outline for the renderer.
+    rows += [(name, 'sky', 'sky', {k: v for k, v in piece.items() if k in ('framing', 'unshaded', 'outline')}) for name, piece in sky.items()]
     return rows
+
+
+def _tint(value, tint):
+    """Multiply an authored colour by a runtime tint, as the game does for dwarves."""
+    a, b = value.lstrip('#'), tint.lstrip('#')
+    return ''.join(f'{round(int(a[i:i+2], 16) * int(b[i:i+2], 16) / 255):02X}' for i in (0, 2, 4))
 
 
 def main():
@@ -93,15 +132,25 @@ def main():
     tools = {k: dwarf_palette[k].lstrip('#') for k in ('wood', 'grain', 'tool_leather', 'iron', 'iron_dark', 'steel')}
     palettes |= {'hewn': HEWN | fixed, 'oak': OAK | fixed,
                 'dwarf': {k: proposal[k].lstrip('#') for k in DWARF_ROLES if k != 'scar'} | {'scar': dwarf_scar.lstrip('#')} | tools}
+    skin, hair = ref['tints']['skin'][ICON_TINTS['skin']], ref['tints']['hair'][ICON_TINTS['hair']]
+    palettes['icon'] = ({k: v.lstrip('#') for k, v in proposal.items()} | tools | HEWN | fixed
+                        | {r: _tint(proposal[r], skin) for r in SKIN_ROLES}
+                        | {r: _tint(proposal[r], hair) for r in HAIR_ROLES} | ICON_EXTRA
+                        # a second dwarf for the Dwarves icon: black hair, medium skin
+                        | {r.replace('hair', 'hair2', 1): _tint(proposal[r], ref['tints']['hair']['black']) for r in HAIR_ROLES}
+                        | {r + '2': _tint(proposal[r], ref['tints']['skin']['medium']) for r in SKIN_ROLES}
+                        | {f'{s}_{r}': wildlife[f'{s}:{r}'].lstrip('#') for s, roles in ICON_SPECIES.items() for r in roles})
+    palettes['sky'] = {k: v.lstrip('#') for k, v in proposal.items()} | {k: v.lstrip('#') for k, v in ref['sky_palette'].items()}
     out = {}
-    for name, group, palette, extra in models(list(ref['dwarf']), list(ref['wildlife'])):
+    for name, group, palette, extra in models(list(ref['dwarf']), list(ref['wildlife']), ref['icon'], ref['sky']):
         source = extra.pop('source', name)
         out[name] = dict(group=group, palette=palette, **extra, ops=ref[group][source]['ops'])
         used = {op[2] for op in _flat(out[name]['ops'] + out[name].get('extra', [])) if len(op) > 2 and op[2] is not None}
         missing = sorted(used - set(palettes[palette]) - set(out[name].get('drop', [])))
         if missing: raise SystemExit(f'{name}: no {palette} color for {missing}')
     description = ('Hearthblock art (doc 256): cozy square chibi solids. proposal.mjs holds the approved proposal models; '
-                   'tier1.mjs the Tier 1 Axe-Hewn furniture (tools/hearthblock/art; regenerate with write_data.py). '
+                   'tier1.mjs the Tier 1 Axe-Hewn furniture; icons.mjs the UI icon models (doc 259); sky.mjs the Sky Dial (doc 23) '
+                   '(tools/hearthblock/art; regenerate with write_data.py). '
                    'Cells use [x0,x1) ranges on the native 1:16 grid. cutbox clips XZ edges, cutbox_x clips YZ, cutbox_z '
                    'clips XY, paint recolors existing cells, air carves, mirror_x adds a sub-log and its mirror across X=0. '
                    'Wood roles map to the existing hand_hewn_timber / oak_log source palettes so every wood variant recolors.')
@@ -112,7 +161,7 @@ def main():
         lines.append(',\n'.join('      ' + json.dumps(op, separators=(',', ':')) for op in model['ops']))
         lines.append('    ]}' + (',' if i < len(out) - 1 else ''))
     lines += ['  }', '}']
-    OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8', newline='\n')
     json.loads(OUT.read_text(encoding='utf-8'))
     print('wrote', OUT.relative_to(ROOT), len(out), 'models')
 

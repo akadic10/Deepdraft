@@ -20,7 +20,7 @@ func _run() -> void:
 	world = root.get_node("WorldData")
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
-	var grass: int = blocks.get_id("base:terrain:surface:grass_01")
+	var grass: int = blocks.get_id("base:terrain:surface:grass")
 	for x in range(20,80):
 		for z in range(20,80): world.set_block(x,20,z,grass)
 	scene = Node3D.new()
@@ -57,7 +57,7 @@ func _run() -> void:
 	feedback.sound_started.connect(func(kind,_p,_v): events.append(kind))
 	clock_node.set_paused(true)
 	_expect(explorer.select_object(wildlife,deer),"deer opens shared inspector")
-	_expect(explorer._name_label.text == "Wild Deer" and events == ["deer_select"],"deer identity and paused selection sound use deer definition")
+	_expect(explorer.get_compact_panel().get_title() == "Wild Deer" and events == ["deer_select"],"deer identity and paused selection sound use deer definition")
 	var data: Dictionary = wildlife.get_explorer_data(deer)
 	_expect(data.rows.back() == ["Herd","2 deer"],"inspector reports saved herd membership")
 	var snapshot: Dictionary = wildlife.serialize_state()

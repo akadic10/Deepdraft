@@ -120,7 +120,7 @@ These come from the owner and override older guidance in milestone docs.
   - After model changes, re-render the menu pictures with:
     - `FurnitureCatalogThumbnails.gd`
     - `InventoryCatalogThumbnails.gd`
-    - `GenerateFloorIcons.gd`
+    - `GenerateUiIcons.gd` (UI icons, including those that replay a real model)
   - Old joints, pivots, envelopes and shape pins must not constrain the art. Change the rig
     data and the tests instead, but keep real gameplay contracts.
   - Content the game cannot produce yet keeps its placeholder model until its feature
@@ -195,8 +195,9 @@ Deepdraft/
 │   └── 00_dev_roadmap/   ← 00_changelog.md, 00_open_issues.md, 00_todo.md (deferred work),
 │                            one NNN_*.md per milestone
 ├── data/                 ← JSON definitions (audio, calendar, camera, construction,
-│                            entities, furniture, materials, professions, rooms, sky, tasks,
-│                            terrain, ui, weather, workshops, world_events, world_gen)
+│                            entities, events, furniture, materials, professions, rooms, sky,
+│                            tasks, terrain, ui, video, weather, workshops, world_events,
+│                            world_gen)
 ├── scripts/
 │   ├── registries/       ← registry autoloads (BlockRegistry, ContentRegistry, CraftMaterials,
 │   │                        DwarfAssets, PlacedEntityRegistry, SurfaceDetailRegistry, UIRegistry)

@@ -56,7 +56,7 @@ func _run() -> void:
 	var blocked := Vector3i(49,21,54)
 	id = construction.create_order(_cells([blocked,blocked+Vector3i.RIGHT]))
 	order = construction.orders[id]
-	order.materials.staged[""] = 2
+	order.materials.staged = {"base:resources:stone:rough_stone": {"": 2}}
 	handle = root.get_node("PlacedEntityRegistry").register_box(blocked,Vector3i.ONE)
 	_expect(construction.dev_build_order(id)==1,"DEV skips occupied cells")
 	_expect(order.cells==_cells([blocked]) and order.materials.count()==1,"partial DEV completion retains only required staged stock")

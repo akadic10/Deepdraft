@@ -1,7 +1,13 @@
 extends VBoxContainer
 
-## Read-only equipment view. Planned upgrades are deliberately not item IDs or
-## active equip actions until those physical goods and recipes exist.
+## The character sheet's Equipment tab (doc 261): the tool the dwarf has, on the people
+## tile, with its tier, materials and benefit, then the upgrade path. Read-only: planned
+## upgrades are deliberately not item IDs or active equip actions until those physical
+## goods and recipes exist.
+const HAY := Color("e2c06a")
+const MUTED := Color("aeb5ad")
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 var _tool_name: Label
 var _tool_details: Label
 var _benefit: Label
@@ -11,41 +17,48 @@ var _upgrade_status: Label
 var _upgrade_description: Label
 var _upgrade_method: Label
 var _pending: Label
+var _headings: Array[Label] = []
 var _shown := {}
 
 func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_theme_constant_override("separation", 12)
-	_label(self, "EQUIPPED TOOL", 12, UITheme.HEARTH_COPPER)
+	add_theme_constant_override("separation", 10)
+	_headings.append(_label(self, "EQUIPPED TOOL", MEDIUM.small, HAY))
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
+	card.add_theme_stylebox_override("panel", UITheme.cell_style("raised", 3))
 	add_child(card)
 	var contents := VBoxContainer.new()
-	contents.add_theme_constant_override("separation", 10)
+	contents.add_theme_constant_override("separation", 8)
 	card.add_child(contents)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 12)
 	contents.add_child(row)
 	_icon = TextureRect.new()
-	_icon.custom_minimum_size = Vector2(64,64)
+	_icon.custom_minimum_size = Vector2(64, 64)
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	row.add_child(_icon)
+	row.add_child(UITheme.framed_picture(_icon))
 	var identity := VBoxContainer.new()
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(identity)
-	_tool_name = _label(identity, "", 17)
-	_tool_name.add_theme_font_override("font", UITheme.hearth_title_font())
-	_tool_details = _label(identity, "", 12, UITheme.HEARTH_MUTED)
-	_benefit = _label(contents, "", 14)
-	_pending = _label(self, "", 13, UITheme.HEARTH_COPPER)
-	_label(self, "UPGRADE PATH", 12, UITheme.HEARTH_COPPER)
-	_upgrade_name = _label(self, "", 18)
-	_upgrade_name.add_theme_font_override("font", UITheme.hearth_title_font())
-	_upgrade_status = _label(self, "", 13, UITheme.HEARTH_COPPER)
-	_upgrade_description = _label(self, "", 14)
-	_upgrade_method = _label(self, "", 13, UITheme.HEARTH_MUTED)
+	_tool_name = _label(identity, "", MEDIUM.heading, UITheme.CARD_TITLE, true)
+	_tool_details = _label(identity, "", MEDIUM.small, MUTED)
+	_benefit = _label(contents, "", MEDIUM.body)
+	_pending = _label(self, "", MEDIUM.body, HAY)
+	_headings.append(_label(self, "UPGRADE PATH", MEDIUM.small, HAY))
+	_upgrade_name = _label(self, "", MEDIUM.heading, UITheme.CARD_TITLE, true)
+	_upgrade_status = _label(self, "", MEDIUM.body, HAY)
+	_upgrade_description = _label(self, "", MEDIUM.body)
+	_upgrade_method = _label(self, "", MEDIUM.body, MUTED)
+
+## The sheet's sizes: body text, the small capitals over each part, names and the picture.
+func apply_size(text: int, heading: int, title: int, picture: float) -> void:
+	for label: Label in _headings: label.add_theme_font_size_override("font_size", heading)
+	for label: Label in [_tool_name, _upgrade_name]: label.add_theme_font_size_override("font_size", title)
+	for label: Label in [_benefit, _upgrade_description]: label.add_theme_font_size_override("font_size", text)
+	for label: Label in [_tool_details, _pending, _upgrade_status, _upgrade_method]: label.add_theme_font_size_override("font_size", text)
+	_icon.custom_minimum_size = Vector2.ONE * picture
 
 func show_equipment(details: Dictionary) -> void:
 	if details == _shown: return
@@ -62,12 +75,11 @@ func show_equipment(details: Dictionary) -> void:
 	_pending.text = String(details.get("pending", ""))
 	_pending.visible = not _pending.text.is_empty()
 
-func _label(parent: Control, text: String, font_size: int, color := UITheme.HEARTH_TEXT) -> Label:
+func _label(parent: Control, text: String, font_size: int, color := UITheme.CARD_TEXT, display := false) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
+	UITheme.format_label(label, display, font_size, color)
 	parent.add_child(label)
 	return label

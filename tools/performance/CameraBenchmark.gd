@@ -5,7 +5,7 @@ extends SceneTree
 var output := ""
 var saved := false
 var markers := true
-## --paced keeps vsync and the camera's frame cap, to see frame pacing as played.
+## --paced keeps vsync and the frame cap (the Frame rate video setting), to see frame pacing as played.
 var paced := false
 var weather_override := ""
 var ablations := true
@@ -73,7 +73,7 @@ func _run() -> void:
 		await process_frame
 		await process_frame
 	scene=current_scene
-	if not paced: Engine.max_fps=0 # the camera rig caps frames for pacing
+	if not paced: Engine.max_fps=0 # the camera rig starts the Frame rate cap (VideoSettings)
 	renderer=scene.get_node("Renderer")
 	moisture_view=_find_script(scene,"res://scripts/components/MoistureRenderer.gd")
 	rig=scene.get_node("CameraRig")

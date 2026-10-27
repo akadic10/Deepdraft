@@ -39,6 +39,11 @@ var _mining_guide_enabled := false
 var _guide_spacing := 32
 var _guide_width := 0.16
 var _guide_color := Color("edbd71b8")
+## The dotted lines splitting each guide square (0: none).
+var _dotted_spacing := 16
+var _dotted_width := 0.1
+var _dotted_color := Color("edbd7194")
+var _dot_length := 0.4
 var _pointer_screen := Vector2.INF
 
 var _state: ToolState = ToolState.INACTIVE
@@ -286,6 +291,12 @@ func _load_config() -> void:
 	_guide_spacing = maxi(1,int(guide.get("cell_size",32)))
 	_guide_width = clampf(float(guide.get("line_width",.16)),.02,.5)
 	_guide_color = Color(String(guide.get("color","edbd71b8")))
+	# A dotted spacing that does not split the squares evenly draws no dotted lines.
+	_dotted_spacing = int(guide.get("dotted_cell_size",16))
+	if _dotted_spacing<=0 or _dotted_spacing>=_guide_spacing or _guide_spacing%_dotted_spacing!=0: _dotted_spacing = 0
+	_dotted_width = clampf(float(guide.get("dotted_line_width",.1)),.02,.5)
+	_dotted_color = Color(String(guide.get("dotted_color","edbd7194")))
+	_dot_length = clampf(float(guide.get("dot_length",.4)),.1,1.)
 	_max_drag_length = maxi(1, int(dig_tool.get("max_drag_length", FALLBACK_MAX_DRAG_LENGTH)))
 	var zone_cfg: Dictionary = root.get("zone", {})
 	_work.max_workers = int(zone_cfg.get("max_workers", FALLBACK_ZONE_MAX_WORKERS))
@@ -324,34 +335,33 @@ func _rebuild_terrain_grid(force: bool = false) -> void:
 	_last_grid_center = rebuild_center
 	_last_grid_slice = slice_y
 	_last_grid_radius = radius
+	_overlay.grid_node.mesh = _area_guide_mesh(
+		clampi(center.x - radius, 0, WORLD_SIZE_X - 1), clampi(center.x + radius, 0, WORLD_SIZE_X - 1),
+		clampi(center.y - radius, 0, WORLD_SIZE_Z - 1), clampi(center.y + radius, 0, WORLD_SIZE_Z - 1), slice_y)
 
+
+## The guide over columns x0..x1, z0..z1: solid lines on the multiples of the cell
+## size, dotted lines on the other multiples of the dotted size. Null when nothing
+## there is visible.
+func _area_guide_mesh(x0: int, x1: int, z0: int, z1: int, slice_y: int) -> ArrayMesh:
 	var verts: PackedVector3Array = []
 	var cols: PackedColorArray = []
-	var x0 := clampi(center.x - radius, 0, WORLD_SIZE_X - 1)
-	var x1 := clampi(center.x + radius, 0, WORLD_SIZE_X - 1)
-	var z0 := clampi(center.y - radius, 0, WORLD_SIZE_Z - 1)
-	var z1 := clampi(center.y + radius, 0, WORLD_SIZE_Z - 1)
-
 	# Only visit columns touching a world-aligned area boundary. There are no
 	# per-voxel outlines, and panning never shifts the guide's origin.
-	for x in range(ceili(float(x0)/_guide_spacing)*_guide_spacing,x1+2,_guide_spacing):
-		for z in range(z0,z1+1):
-			_append_area_guide(Vector2i(x,z),true,slice_y,verts,cols)
-	for z in range(ceili(float(z0)/_guide_spacing)*_guide_spacing,z1+2,_guide_spacing):
-		for x in range(x0,x1+1):
-			_append_area_guide(Vector2i(x,z),false,slice_y,verts,cols)
-
+	var step := _dotted_spacing if _dotted_spacing>0 else _guide_spacing
+	for x in range(ceili(float(x0)/step)*step,x1+2,step):
+		_append_area_line(x,true,z0,z1,slice_y,x%_guide_spacing!=0,verts,cols)
+	for z in range(ceili(float(z0)/step)*step,z1+2,step):
+		_append_area_line(z,false,x0,x1,slice_y,z%_guide_spacing!=0,verts,cols)
 	if verts.is_empty():
-		_overlay.grid_node.mesh = null
-		return
-
+		return null
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_COLOR] = cols
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	_overlay.grid_node.mesh = mesh
+	return mesh
 
 
 func _terrain_grid_radius() -> int:
@@ -373,42 +383,53 @@ func _effective_grid_top(x: int, z: int, slice_y: int) -> int:
 	return WorldData.visible_top_y(x, z, int(WorldGenerator.get_visible_surface_y(x, z)), slice_y, _zone_by_block, true)
 
 
-## Thick surface ribbons, split at the boundary so unequal neighboring tops
-## each receive their own half. Perpendicular cliffs get one continuous stripe,
-## never a box around every block. Depth testing keeps buried guides hidden.
-func _append_area_guide(boundary: Vector2i, along_z: bool, slice_y: int,
+## One boundary line over columns from..to along it, each column's top read once.
+## Thick surface ribbons, or a dotted line's dash centred on each block, split at
+## the boundary so unequal neighboring tops each receive their own half.
+## Perpendicular cliffs get one continuous stripe (a dotted line: a dash per block
+## of height), never a box around every block. Depth testing keeps buried guides
+## hidden.
+func _append_area_line(across: int, along_z: bool, from: int, to: int, slice_y: int, dotted: bool,
 		verts: PackedVector3Array, cols: PackedColorArray) -> void:
-	var across := float(boundary.x if along_z else boundary.y)
-	var along := float(boundary.y if along_z else boundary.x)
-	for side in [-1,0]:
-		var cell := boundary+Vector2i(side,0) if along_z else boundary+Vector2i(0,side)
-		if cell.x<0 or cell.y<0 or cell.x>=WORLD_SIZE_X or cell.y>=WORLD_SIZE_Z: continue
-		var top := _effective_grid_top(cell.x,cell.y,slice_y)
-		if top<0: continue
-		var a := across-_guide_width*.5 if side<0 else across
-		var b := across if side<0 else across+_guide_width*.5
-		var y := float(top+1)+TERRAIN_GRID_OFFSET
-		_append_guide_quad(_guide_point(a,y,along,along_z),_guide_point(b,y,along,along_z),
-			_guide_point(b,y,along+1,along_z),_guide_point(a,y,along+1,along_z),verts,cols)
-		var next := cell+Vector2i(0,1) if along_z else cell+Vector2i(1,0)
-		if next.x>=WORLD_SIZE_X or next.y>=WORLD_SIZE_Z: continue
-		var next_top := _effective_grid_top(next.x,next.y,slice_y)
-		if next_top<0 or next_top==top: continue
-		var face := along+1+TERRAIN_GRID_OFFSET*(1.0 if top>next_top else -1.0)
-		var low := float(mini(top,next_top)+1)
-		var high := float(maxi(top,next_top)+1)
-		_append_guide_quad(_guide_point(a,low,face,along_z),_guide_point(b,low,face,along_z),
-			_guide_point(b,high,face,along_z),_guide_point(a,high,face,along_z),verts,cols)
+	var width := _dotted_width if dotted else _guide_width
+	var color := _dotted_color if dotted else _guide_color
+	var inset := (1.0-_dot_length)*.5 if dotted else 0.0
+	var length := WORLD_SIZE_Z if along_z else WORLD_SIZE_X
+	for side: int in [-1,0]:
+		var row := across+side
+		if row<0 or row>=(WORLD_SIZE_X if along_z else WORLD_SIZE_Z): continue
+		var a := across-width*.5 if side<0 else float(across)
+		var b := float(across) if side<0 else across+width*.5
+		var top := _line_top(row,from,along_z,slice_y)
+		for along: int in range(from,to+1):
+			var next_top := _line_top(row,along+1,along_z,slice_y) if along+1<length else -1
+			if top>=0:
+				var y := float(top+1)+TERRAIN_GRID_OFFSET
+				_append_guide_quad(_guide_point(a,y,along+inset,along_z),_guide_point(b,y,along+inset,along_z),
+					_guide_point(b,y,along+1-inset,along_z),_guide_point(a,y,along+1-inset,along_z),color,verts,cols)
+				if next_top>=0 and next_top!=top:
+					var face := along+1+TERRAIN_GRID_OFFSET*(1.0 if top>next_top else -1.0)
+					var low := mini(top,next_top)+1
+					var high := maxi(top,next_top)+1
+					var rise := 1 if dotted else high-low
+					for h: int in range(low,high,rise):
+						_append_guide_quad(_guide_point(a,h+inset,face,along_z),_guide_point(b,h+inset,face,along_z),
+							_guide_point(b,h+rise-inset,face,along_z),_guide_point(a,h+rise-inset,face,along_z),color,verts,cols)
+			top = next_top
+
+
+func _line_top(row: int, along: int, along_z: bool, slice_y: int) -> int:
+	return _effective_grid_top(row,along,slice_y) if along_z else _effective_grid_top(along,row,slice_y)
 
 
 func _guide_point(across: float, height: float, along: float, along_z: bool) -> Vector3:
 	return Vector3(across,height,along) if along_z else Vector3(along,height,across)
 
 
-func _append_guide_quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,
+func _append_guide_quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,color: Color,
 		verts: PackedVector3Array,cols: PackedColorArray) -> void:
 	verts.append_array([a,b,c,a,c,d])
-	for i in range(6): cols.append(_guide_color)
+	for i in range(6): cols.append(color)
 
 
 func _update_hover_preview(force: bool = false) -> void:
@@ -486,18 +507,34 @@ func set_shared_order_ui(enabled: bool) -> void:
 	if _zone_ui != null: _zone_ui.hint_window.visible = is_active() and not enabled
 
 
-func get_order_hint() -> String:
-	var action := "Release to mark %d blocks" % _preview_blocks.size() if _state == ToolState.DRAGGING else "Drag across blocks to mark mining."
-	if Input.is_key_pressed(KEY_CTRL): action = "Ctrl held · Drag to remove mining marks."
-	return "%s\nWheel: zoom · Shift + wheel: width %d · Alt + wheel: depth %d" % [action, _horizontal_size, _vertical_size]
-
-
-func get_order_summary() -> String:
-	var removing := Input.is_key_pressed(KEY_CTRL)
-	var action := "Drag to remove marks" if removing else "Drag to mark blocks"
+## What the tool bar shows (doc 23, "The tool bar"): the brush's width and depth as
+## steppers, the area guide's switch, and the blocks a held drag would mark or unmark.
+func tool_bar_state() -> Dictionary:
+	var state := {"tool": "mine_precision",
+		"settings": [{"id": "width", "label": "Width", "value": _horizontal_size, "min": 1, "max": _max_horizontal,
+			"keys": "Shift + Wheel", "tooltip": "How many blocks wide the brush marks."},
+			{"id": "depth", "label": "Depth", "value": _vertical_size, "min": 1, "max": _max_vertical,
+			"keys": "Alt + Wheel", "tooltip": "How many blocks deep the brush marks, from the face you drag on."}],
+		"toggle": {"id": "guide", "label": "%d × %d guide" % [_guide_spacing, _guide_spacing], "on": _mining_guide_enabled,
+			"tooltip": "Thicker lines every %d blocks%s while mining. A guide only: mining still marks single blocks." % [_guide_spacing,
+				" and dotted lines every %d" % _dotted_spacing if _dotted_spacing > 0 else ""]}}
 	if _state == ToolState.DRAGGING:
-		action = "%d blocks · Release to %s" % [_preview_blocks.size(), "unmark" if removing else "mark"]
-	return "%s · Width %d · Depth %d" % [action, _horizontal_size, _vertical_size]
+		state.selection = {"count": "%d block%s" % [_preview_blocks.size(), "" if _preview_blocks.size() == 1 else "s"],
+			"detail": "to unmark" if Input.is_key_pressed(KEY_CTRL) else "to mine", "at": _pointer_screen}
+	return state
+
+
+func set_tool_setting(id: String, value: Variant) -> void:
+	match id:
+		"width": _horizontal_size = clampi(int(value), 1, _max_horizontal)
+		"depth": _vertical_size = clampi(int(value), 1, _max_vertical)
+		"guide": set_mining_guide_enabled(bool(value))
+	_update_hover_preview(true)
+
+
+## The tool bar's Done, as Esc.
+func deactivate() -> void:
+	if _state != ToolState.INACTIVE: _deactivate_tool()
 
 
 func order_is_pending(receipt: Dictionary) -> bool:

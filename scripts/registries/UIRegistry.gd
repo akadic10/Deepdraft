@@ -1,7 +1,9 @@
 extends Node
 
 # Registry autoload for data-driven UI layout.
-# Owns dock/menu layout, Place captions/order, Inventory categories and roster filters.
+# Owns dock/menu layout, icon family tiles, world order markers, the compact panel's
+# action pictures, Place captions/order, Inventory categories, roster filters,
+# Colony's page rows, Settings' key list, the title screen and the DEV item stamper.
 #
 # Pattern mirrors BlockRegistry: this autoload is the SINGLE owner of UI-layout
 # JSON I/O. No other script should call FileAccess on these files — query the
@@ -20,12 +22,25 @@ var _inventory_catalog: Dictionary = {}
 const ROSTER_PATH := "res://data/ui/dwarf_roster.json"
 var _roster_filters: Array[Dictionary] = []
 var _storage_categories: Array[Dictionary] = []
+var _storage_groups: Array[Dictionary] = []
 var _sky_dial: Dictionary = {}
+var _settlement_page: Dictionary = {}
 var _time_slice: Dictionary = {}
+var _controls: Dictionary = {}
+var _title_screen: Dictionary = {}
+var _item_stamper: Dictionary = {}
+var _tool_bar: Dictionary = {}
 var _loading_screen: Dictionary = {}
 var _dwarf_indicators: Dictionary = {}
 var _need_icons: Dictionary = {}
 const DEV_TOOLS_PATH := "res://data/ui/dev_tools.json"
+const ICON_FAMILIES_PATH := "res://data/ui/icon_families.json"
+var _icon_families: Dictionary = {}
+const ORDER_MARKERS_PATH := "res://data/ui/order_markers.json"
+var _order_markers: Dictionary = {}
+var _order_marker_tile := Color.TRANSPARENT
+const COMPACT_PANEL_PATH := "res://data/ui/compact_panel.json"
+var _compact_panel: Dictionary = {}
 const JsonData = preload("res://scripts/registries/JsonData.gd")
 ## The development tools switch (data/ui/dev_tools.json), read once at startup.
 ## Off hides the Development menu, its windows and every "dev" variant action.
@@ -40,18 +55,26 @@ var _dock_items: Array = []
 var _menus: Dictionary = {}
 var _room_symbols: Dictionary = {}
 
-const _VALID_ACTIONS := ["open_panel", "toggle_window", "activate_tool", "panel_action", "open_crafting"]
+const _VALID_ACTIONS := ["open_panel", "toggle_window", "activate_tool", "panel_action", "open_crafting", "game_menu"]
 
 
 func _ready() -> void:
 	_load_dev_tools()
+	_load_icon_families()
+	_load_order_markers()
+	_load_compact_panel()
 	_load_dock()
 	_load_place_catalog()
 	_load_inventory_catalog()
 	_load_roster_filters()
 	_load_storage_categories()
 	_load_sky_dial()
+	_load_settlement_page()
 	_load_time_slice()
+	_load_controls()
+	_load_title_screen()
+	_load_item_stamper()
+	_load_tool_bar()
 	_load_loading_screen()
 	_load_dwarf_indicators()
 	print("UIRegistry: loaded %d dock items." % _dock_items.size())
@@ -92,6 +115,84 @@ func _load_loading_screen() -> void:
 
 func get_loading_screen() -> Dictionary:
 	return _loading_screen
+
+
+func _load_icon_families() -> void:
+	_icon_families.clear()
+	var families: Variant = JsonData.read_dict(ICON_FAMILIES_PATH).get("families", {})
+	if not families is Dictionary:
+		push_error("UIRegistry: icon families must be an object.")
+		return
+	for family: String in families:
+		_icon_families[family] = Color(String(families[family].get("tile", "")))
+
+
+## Tile colour for a Hearthblock icon family (doc 259); transparent when unknown.
+func get_icon_family_color(family: String) -> Color:
+	if not _icon_families.has(family):
+		push_warning("UIRegistry: unknown icon family '%s'." % family)
+		return Color.TRANSPARENT
+	return _icon_families[family]
+
+
+func _load_order_markers() -> void:
+	_order_markers.clear()
+	var parsed := JsonData.read_dict(ORDER_MARKERS_PATH)
+	var markers: Variant = parsed.get("markers", {})
+	if not markers is Dictionary:
+		push_error("UIRegistry: order markers must be an object.")
+		return
+	for kind: String in markers:
+		_order_markers[kind] = load(String(markers[kind])) as Texture2D
+	_order_marker_tile = get_icon_family_color(String(parsed.get("family", "")))
+
+
+## The picture for a world order marker (doc 259): fell, harvest, clear_stones,
+## clear_plants or uproot. Null for an unknown kind.
+func get_order_marker(kind: String) -> Texture2D:
+	return _order_markers.get(kind)
+
+
+## The tile colour behind every world order marker.
+func get_order_marker_tile() -> Color:
+	return _order_marker_tile
+
+
+func _load_compact_panel() -> void:
+	var parsed := JsonData.read_dict(COMPACT_PANEL_PATH)
+	_compact_panel = {"family": String(parsed.get("family", "")), "dev_family": String(parsed.get("dev_family", "")),
+		"dev_icon": load(String(parsed.get("dev_icon", ""))) as Texture2D, "actions": {}, "badges": {}}
+	var actions: Variant = parsed.get("actions", {})
+	var badges: Variant = parsed.get("badges", {})
+	if not actions is Dictionary or not badges is Dictionary:
+		push_error("UIRegistry: compact panel actions and badges must be objects.")
+		return
+	for id: String in actions:
+		_compact_panel.actions[id] = {"icon": load(String(actions[id].get("icon", ""))) as Texture2D,
+			"tooltip": String(actions[id].get("tooltip", ""))}
+	for kind: String in badges:
+		_compact_panel.badges[kind] = load(String(badges[kind])) as Texture2D
+
+
+## The compact object panel's picture and hover text for a provider action id (doc 260):
+## {icon, tooltip}, or empty when the id has no entry.
+func get_compact_action(id: String) -> Dictionary:
+	return _compact_panel.get("actions", {}).get(id, {})
+
+
+## The picture in the compact panel's badge for a kind (appeal, quantity); null if unknown.
+func get_compact_badge(kind: String) -> Texture2D:
+	return _compact_panel.get("badges", {}).get(kind)
+
+
+## The icon family of the compact panel's action tiles, or of its DEV tiles.
+func get_compact_family(dev: bool = false) -> String:
+	return String(_compact_panel.get("dev_family" if dev else "family", ""))
+
+
+## The picture on every DEV action tile.
+func get_compact_dev_icon() -> Texture2D:
+	return _compact_panel.get("dev_icon")
 
 
 func _load_dwarf_indicators() -> void:
@@ -219,37 +320,123 @@ func _load_time_slice() -> void:
 	_time_slice = JsonData.read_dict("res://data/ui/time_slice.json")
 
 
+## Settings' key list (doc 23 "Keys"): two columns of groups, each entry what the player
+## does with its input actions or fixed keys.
+func get_controls() -> Dictionary:
+	return _controls
+
+
+func _load_controls() -> void:
+	_controls = JsonData.read_dict("res://data/ui/controls.json")
+	for column: Array in _controls.get("columns", []):
+		for group: Dictionary in column:
+			for entry: Dictionary in group.get("entries", []):
+				for action: String in entry.get("actions", []):
+					if not InputMap.has_action(action):
+						push_warning("UIRegistry: the key list names '%s', which is not an input action." % action)
+
+
+## The title screen (doc 23): its art, the game's name and the line under it.
+func get_title_screen() -> Dictionary:
+	return _title_screen
+
+
+func _load_title_screen() -> void:
+	_title_screen = JsonData.read_dict("res://data/ui/title_screen.json")
+
+
+## The DEV item stamper (doc 23): its groups of items, the amounts it jumps to, and how
+## many recent items it keeps.
+func get_item_stamper() -> Dictionary:
+	return _item_stamper
+
+
+func _load_item_stamper() -> void:
+	_item_stamper = JsonData.read_dict("res://data/ui/item_stamper.json")
+
+
+## The tool bar (doc 23): the keys each tool shows under its name.
+func get_tool_bar() -> Dictionary:
+	return _tool_bar
+
+
+func _load_tool_bar() -> void:
+	_tool_bar = JsonData.read_dict("res://data/ui/tool_bar.json")
+
+
+## The dock's entry whose target is a tool (doc 23, "The tool bar"): its name, picture and
+## family for the bar. {} when the dock has none: Place, Move and the stamper name themselves.
+func get_tool_entry(tool_id: String) -> Dictionary:
+	for entry: Dictionary in _dock_items:
+		if String(entry.get("target", "")) == tool_id: return entry
+	for menu: Dictionary in _menus.values():
+		for entry: Dictionary in menu.get("items", []):
+			if String(entry.get("target", "")) == tool_id: return entry
+	return {}
+
+
 func _load_sky_dial() -> void:
 	_sky_dial.clear()
 	_sky_dial = JsonData.read_dict("res://data/ui/sky_dial.json")
 
 
+## Colony's page (doc 23): each row's picture, and the goals its meter fills toward.
+func get_settlement_page() -> Dictionary:
+	return _settlement_page
+
+
+func _load_settlement_page() -> void:
+	_settlement_page = JsonData.read_dict("res://data/ui/settlement_page.json")
+
+
 ## Re-reads the UI layout files. Useful for development / hot-tweaking the layout.
 func reload() -> void:
 	_load_dev_tools()
+	_load_icon_families()
+	_load_order_markers()
+	_load_compact_panel()
 	_load_dock()
 	_load_place_catalog()
 	_load_inventory_catalog()
 	_load_roster_filters()
 	_load_storage_categories()
 	_load_sky_dial()
+	_load_settlement_page()
 	_load_time_slice()
+	_load_controls()
+	_load_title_screen()
+	_load_item_stamper()
 
 
+## The storage filter's categories: tag, label, group and picture (doc 261).
 func get_storage_categories() -> Array[Dictionary]:
 	return _storage_categories
 
 
+## The storage filter's groups, in order: id and label (doc 261).
+func get_storage_groups() -> Array[Dictionary]:
+	return _storage_groups
+
+
 func _load_storage_categories() -> void:
 	_storage_categories.clear()
+	_storage_groups.clear()
 	var parsed: Variant = JsonData.read("res://data/ui/storage_filters.json")
 	if parsed == null: return
-	if not parsed.get("categories") is Array:
-		push_error("UIRegistry: malformed storage filter categories")
+	if not parsed.get("categories") is Array or not parsed.get("groups") is Array:
+		push_error("UIRegistry: malformed storage filter groups or categories")
 		return
+	var group_ids := {}
+	for entry in parsed.groups:
+		if entry is Dictionary and entry.get("id") is String and entry.get("label") is String:
+			_storage_groups.append(entry)
+			group_ids[entry.id] = true
 	for entry in parsed.categories:
-		if entry is Dictionary and entry.get("tag") is String and entry.get("label") is String:
+		if entry is Dictionary and entry.get("tag") is String and entry.get("label") is String \
+				and group_ids.has(entry.get("group")) and entry.get("picture") is String:
 			_storage_categories.append(entry)
+		else:
+			push_error("UIRegistry: storage category needs a tag, label, known group and picture: %s" % str(entry))
 
 
 func get_roster_filters() -> Array[Dictionary]:

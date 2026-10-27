@@ -44,7 +44,7 @@ func _run() -> void:
 	_expect(not renderer.tiles._ovt_cut.has(planned), "cancelled designation leaves the snapshot")
 	world.get_chunk(2,1,2)
 	world.block_changed.connect(renderer._terrain_block_changed)
-	world.set_block(planned.x,planned.y,planned.z,root.get_node("BlockRegistry").get_id("base:construction:floor:stone"))
+	world.set_block(planned.x,planned.y,planned.z,root.get_node("BlockRegistry").get_id("base:construction:log:oak:x"))
 	renderer._flush_terrain_changes()
 	renderer.tiles._refresh_overview_snapshots()
 	_expect(renderer.tiles._ovt_mined.has(planned) and renderer.tiles._ovt_cut.has(planned), "solid terrain overrides invalidate snapshots")

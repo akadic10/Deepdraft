@@ -119,19 +119,32 @@ static func terrain_hit(origin: Vector3, direction: Vector3, slice_y: int,
 	return {}
 
 
+## The block a placement ray sees (construction, Copy, blueprints, furniture, storage): the live
+## grid, except that a cave not yet found, its water too, reads as its rock, so the ray stops on
+## a slice cut through the cave instead of falling to its floor (Hard Rule 11). Otherwise only
+## solid blocks stop it; water lets it through, as on the live grid. Pass it as terrain_hit's
+## `sample_block`.
+static func concealed_block(pos: Vector3i) -> int:
+	if InteriorTracker.is_hidden_cave(pos):
+		return WorldGenerator.get_overview_strata_block_id(pos.x, pos.y, pos.z)
+	var block := WorldData.get_live_block(pos.x, pos.y, pos.z)
+	return block if BlockRegistry.is_solid(block) else BlockRegistry.AIR_ID
+
+
 ## Height-field march for surface-only picks (flag placement, walk test, camera
 ## zoom): steps along the ray until it drops to an in-bounds column's visible
-## surface plus `top_offset`. Ignores mining and the slice, and works before any
-## chunk exists. Returns {x, y (surface block), z, point} or {}.
+## surface plus `top_offset`. Works before any chunk exists. By default it ignores
+## mining and the slice; `column_top(x, z) -> y` replaces the surface (the camera
+## passes its slice-aware ground). Returns {x, y (surface block), z, point} or {}.
 static func surface_hit(origin: Vector3, direction: Vector3, max_distance: float,
-		step := 0.5, top_offset := 1.0) -> Dictionary:
+		step := 0.5, top_offset := 1.0, column_top := Callable()) -> Dictionary:
 	var t := 0.0
 	while t <= max_distance:
 		var p := origin + direction * t
 		var wx := floori(p.x)
 		var wz := floori(p.z)
 		if wx >= 0 and wx < WorldData.WORLD_SIZE_X and wz >= 0 and wz < WorldData.WORLD_SIZE_Z:
-			var sy := int(WorldGenerator.get_visible_surface_y(wx, wz))
+			var sy := int(column_top.call(wx, wz)) if column_top.is_valid() else int(WorldGenerator.get_visible_surface_y(wx, wz))
 			if sy >= 0 and p.y <= float(sy) + top_offset:
 				return {"x": wx, "y": sy, "z": wz, "point": Vector3(p.x, float(sy), p.z)}
 		elif p.y < 0.0:

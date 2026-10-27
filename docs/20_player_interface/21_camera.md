@@ -1,8 +1,8 @@
 # 21 — Camera
 
-**Underground inspection (2026-10-17):**
-[210](../00_dev_roadmap/210_underground_xray_and_level_reference.md) adds
-Full/Flat X-ray beside the slice tower. The plane and ±1/±4 controls remain
+**Underground inspection (2026-10-17, 210):** adds
+Full/Flat X-ray beside the slice tower (doc 23, "Underground X-ray"; its rendering is in
+doc 24). The plane and ±1/±4 controls remain
 available. Pin a lower level, then raise the plane for projected room/stair
 references. Working tools restore normal terrain and picking automatically;
 closing them resumes inspection. The original camera mask and environment
@@ -47,10 +47,12 @@ The camera publishes the centre-screen terrain hit and actual camera-to-hit dist
 through `get_work_audio_context()`. A shared slice-aware voxel ray follows live
 mined terrain and standing water and is cached once per process frame for work,
 fire, water and ambience. Water uses its fractional surface level; listening
-must not sink to the hidden lake bed (milestone 170).
+must not sink to the hidden lake bed (doc 170), where a terrain-only ray once made a
+shore view sound enclosed.
 Missing terrain uses the orbit pivot; detached cameras return no context. This keeps
-room sounds near the viewed floor when cursor zoom lifts the orbit pivot above it.
-See [169 — Room audio perspective](../00_dev_roadmap/169_room_audio_perspective.md).
+room sounds near the viewed floor when cursor zoom or the terrain-floor guard lifts
+the orbit pivot above it: listening at the pivot once left a sliced bedroom's
+torches out of hearing range (doc 169).
 
 Nearby chopping and mining are strongest around the looked-at X/Z area,
 fade smoothly between 6 and 65 blocks from it, and become quieter when zooming
@@ -71,7 +73,7 @@ Both work families share the same attenuation and voice budget. Tuning lives in
 | Mouse wheel | Zoom toward the point under the cursor |
 | Screen edge | Optional edge-scroll (off by default) |
 
-While dragging, an emoji cursor shows the mode (✋ grab-pan, 🔄 orbit) and the OS cursor hides.
+While dragging, a glyph cursor shows the mode (✋ grab-pan, 🗘 orbit) and the OS cursor hides. The glyphs come from the symbol font shipped with the game, in light ink with a dark outline (doc 23, "Type").
 
 ### Dwarf inspection: Locate and Follow (2026-10-05)
 
@@ -106,17 +108,30 @@ All values track `data/camera/camera_settings.json`. Defaults as shipped:
 | `pan_reference_height` | 135 | camera world-Y where `move_speed` reads at face value |
 | `smoothing` | 0.22 | pan position lerp |
 | `edge_scroll_enabled` / `edge_scroll_threshold_pixels` | false / 10 | edge scroll |
-| `paced_fps_max` | 75 | frame-pacing ceiling; see below (0 = uncapped) |
 
 **Frame pacing (2026-10-22).** With vsync, a frame that misses a refresh stays on
 screen for one refresh or two, unpredictably, and panning judders even at a high
-average frame rate. The rig therefore caps `Engine.max_fps` at the largest even
-fraction of the display's refresh rate that is not above `paced_fps_max`
-(120 Hz → 60, 144 Hz → 72, 60 Hz → 60), so every frame is held equally long.
+average frame rate. `Engine.max_fps` is therefore capped at an even share of the
+display's refresh rate, so every frame is held equally long.
+- **The cap is a video setting** (2026-10-24): Frame rate in the game menu's Settings,
+  owned by `VideoSettings` (doc 23, doc 13). Its choices are the even shares of the
+  refresh rate down to 24 fps (120, 60, 40 and 30 fps at 120 Hz).
+- **The default**, 75 in `data/video/video_settings.json`, gives the largest share not
+  above it: 120 Hz → 60, 144 Hz → 72, 60 Hz → 60.
+- **Rounded choices.** The rates on offer are rounded (165 Hz offers 41 fps for 41.25), so
+  the cap adds half a frame to the chosen rate before finding its share, and each choice
+  caps at itself.
+- **The rig starts the cap** in `_ready` (`VideoSettings.pace_frames()`), so tools that
+  never start the camera stay uncapped.
+
 Measured on the owner's 7680×2160 120 Hz display: uncapped, 94% of running frames
 missed a 120 Hz refresh; capped at 60, most frames land on the 16.7 ms beat. The
 camera benchmark (`tools/performance/Run.ps1`) stays uncapped unless run with
 `-Paced`.
+
+Stutter while panning is frame time, not camera cost: the controller measured about
+0.02 ms a frame (doc 178), and panning only makes uneven frames visible. Look for the
+world update or render stall behind a long frame (doc 13, "Measuring performance").
 
 ### `rotation`
 | Key | Value | Meaning |
@@ -135,11 +150,13 @@ camera benchmark (`tools/performance/Run.ps1`) stays uncapped unless run with
 | `min_distance` / `max_distance` | 2 / 180 | spring length range |
 | `default_distance` | 85 | start zoom |
 | `smoothing` | 0.15 | zoom lerp |
-| `zoom_speed` | 8 | non-proportional fixed-step fallback only |
+
+Every notch is geometric in both modes; the old fixed-step fallback and its `zoom_speed`
+key were removed in doc 258.
 
 ### `input_mappings` / `cursors`
 `rotate_action` = right-mouse, `drag_action` = middle-mouse, move keys = WASD + arrows, zoom = wheel.
-`cursors`: `enabled` true, `orbit` 🔄, `drag` ✋, `size` 28, `hide_system_cursor` true.
+`cursors`: `enabled` true, `orbit` 🗘, `drag` ✋, `size` 28, `hide_system_cursor` true.
 
 ## Zoom (cursor-targeted)
 
@@ -147,8 +164,9 @@ Each wheel notch moves a **fixed fraction** (`zoom_step_fraction`) of the curren
 zoom, constant perceived speed at any distance, so one notch can never collapse the whole range.
 
 In `cursor_target` mode the zoom homes toward the **ground point under the mouse**: a ray is marched
-against the terrain **height field** (`ObjectPicking.surface_hit` over `WorldGenerator.get_visible_surface_y`) — the same source the
-overview renderer uses, so it works map-wide even on columns never materialised in `WorldData`. The
+against the camera's ground (`ObjectPicking.surface_hit` over the height field clamped to the slice;
+see "The camera's ground") — the rule the overview draws by, so it works map-wide even on columns
+never materialised in `WorldData`, and under a deep slice it heads for the cut floor. The
 rig pivot **and** spring length scale toward that point by one factor with the view direction held
 fixed, so the point stays put on screen (true zoom-to-cursor). If the ray finds no ground (e.g. the
 pointer is off-world), it falls back to the `spring_fraction` step toward the pivot.
@@ -160,19 +178,44 @@ prevents sinking into terrain.
 ## Surface floor
 
 Because terrain has no colliders, `Camera._enforce_camera_floor()` keeps the camera above the ground
-every frame, in both zoom modes. It samples the surface height in a small neighbourhood around the
-**look point** (so an edge behind the camera doesn't hold you back) and lifts the rig if the camera
-would drop below it. The clearance is **ruggedness-scaled**: on flat ground it shrinks to
+every frame, in both zoom modes. It samples the camera's ground (below) in a small neighbourhood
+around the **look point** (so an edge behind the camera doesn't hold you back) and lifts the rig if
+the camera would drop below it. The clearance is **ruggedness-scaled**: on flat ground it shrinks to
 `surface_floor_min_clear` (you can zoom to ground level); near a wall/notch (large local height
 delta) it ramps up to `surface_floor_margin` to keep the camera clear of rock. Terrain-only sampling
 means placed flora/props never inflate the floor.
+
+## The camera's ground (2026-10-26)
+
+Zoom, the middle-drag grab, the orbit pivot and the surface floor all use one ground,
+`Camera._ground`. For each column it is the terrain height field
+(`WorldGenerator.get_visible_surface_y`, water surfaces included) clamped to the slice plane,
+then stepped down past mined cells and caves the colony has found: `WorldData.visible_top_y`,
+the rule the overview draws by (doc 12). The plane and the found caves come from the
+WorldRenderer (group `terrain_overview_renderer`); without one nothing is sliced.
+
+- **Under a deep slice the cut floor is the ground.** The camera comes down to a cut floor under
+  a mountain as closely as to open ground. The hidden top above the plane no longer holds the
+  camera up, draws the zoom, or catches the grab and the orbit pivot.
+- **A room mined under the cut, or a found cave the slice opens,** is open to the camera, so it
+  can come down into it. The ruggedness margin applies at its edges as at any wall. Water
+  standing in it is its ground, as a lake's surface is (`WaterManager.has_standing_water`).
+- **A cave not yet found is rock** (Hard Rule 11; doc 24, "Slice concealment rule"). The ground
+  never steps into it, so the camera cannot give it away by sinking below the cut.
+- **A mining plan does not lower the ground.** The overview draws a plan's cut, but the rock is
+  still there, so over a plan the camera keeps above the rock until it is mined.
+- **Raising the slice lifts the camera** at once when the terrain it shows again stands above
+  the camera.
+- `CameraDeepSliceTest` checks zoom, drag and orbit with real input, and the floor in a mined
+  room, dry and flooded, and in a hidden and a found cave.
 
 ## Orbit & pan details
 
 - **Orbit** is right-mouse drag, snap (un-smoothed) in this rig, clamped to the pitch range. A
   movement **dead zone** (`dead_zone_pixels`) means a quick right-click doesn't spin the view.
 - **Dynamic orbit pivot** (`dynamic_pivot`): when orbit engages, the pivot re-anchors to the ground
-  point straight ahead of the camera (recomputing spring length so the camera doesn't jump), so
+  point (the camera's ground, so the cut floor under a slice) straight ahead of the camera
+  (recomputing spring length so the camera doesn't jump), so
   rotation spins around what you're looking at — not the rig origin. Skips if that point is outside
   the zoom range (would force a jump).
 - **Pan speed tracks camera height** (Stonehearth `speed = position.y`): high overview sweeps fast,
@@ -210,6 +253,8 @@ A defining feature: the player can slice the world horizontally to see undergrou
 - Driven by `WorldRenderer.slice_y`; the Slice tool (`SliceController`, dock palette + `\` `]` `[`
   `Ctrl+]` `Ctrl+[` hotkeys) steps it. `SliceController.slice_changed(new_slice_y)`
   fires on every move (`slice_y = 127` = off).
+- **The camera follows the slice:** zoom, drag, orbit and the surface floor use the floor the
+  slice shows (see "The camera's ground").
 - **Placed flora obey the slice:** `SurfaceFloraSpawner` connects to `slice_changed` and hides trees
   whose base is above the cut (coarse per-instance toggle). Dwarves (`DwarfDirector`), loose items
   (`ItemDropManager`), furniture and room overlays use the same hook.
@@ -234,6 +279,11 @@ When a slice is active, the topmost visible layer should have a subtle highlight
   from `slice_changed`, not the VisibleVolume contract (`24_world_rendering.md`), so cut
   cavities do not cull them. X-ray filters them separately, by camera layer, in
   `XrayController`.
+  A dwarf also reruns its test whenever its transform changes (`DwarfAgent` turns on
+  transform notifications when it enters the tree), before the frame draws, and sets
+  `visible` only when the answer changes. Walking stairs, climbing a ladder or a position
+  restored while paused therefore shows or hides it at the plane without a slice change:
+  a worker that walked down into the sliced room once stayed hidden there (doc 217).
 
 ## Implementation Notes
 

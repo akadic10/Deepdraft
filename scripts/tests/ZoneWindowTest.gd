@@ -64,7 +64,7 @@ func _run() -> void:
 	mining._process(.6)
 	_expect("Blocks left: 2 / 2" in mining._zone_ui.zone_body.text, "mining statistics still refresh")
 	_expect(manager.get_child(-1) == storage_window, "mining refresh leaves storage in front")
-	_expect("0 / 1 cells used" in storage._window_info_label.text, "selection swaps storage content")
+	_expect("Used 0 / 1 cells" in storage._window_info_label.text, "selection swaps storage content")
 	_expect(storage_window.position == Vector2(600,70), "switching zones keeps placement")
 	_click(mine_window._close_button.get_global_rect().get_center())
 	_expect(not mine_window.visible and mining._selected_zone_id == -1,

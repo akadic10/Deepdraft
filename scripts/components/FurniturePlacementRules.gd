@@ -111,7 +111,8 @@ func wall_structure_reason(def: Dictionary, origin: Vector3i, yaw: int) -> Strin
 		if not BlockRegistry.is_solid(controller.terrain_block_id(support.x, support.y, support.z)):
 			return "wall_support"
 	for cell: Vector3i in bounds_cells(WallMount.bounds_for(def, origin, yaw)):
-		if cell.y >= WorldData.WORLD_SIZE_Y or controller.terrain_block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID:
+		if cell.y >= WorldData.WORLD_SIZE_Y or controller.terrain_block_id(cell.x, cell.y, cell.z) != BlockRegistry.AIR_ID \
+				or InteriorTracker.is_hidden_cave(cell):
 			return "wall_clearance"
 	return ""
 
@@ -218,6 +219,9 @@ func is_valid_cell(cell: Vector3i) -> bool:
 	var zone_controller: Node = controller.get_tree().get_first_node_in_group("stockpile_controller")
 	if zone_controller != null and zone_controller.has_method("is_zone_cell") \
 			and bool(zone_controller.call("is_zone_cell", cell)):
+		return false
+	# A cave not yet found is rock to every tool: nothing stands in it (Hard Rule 11).
+	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP):
 		return false
 	# Walkable = solid floor + 3-air clearance + no entity footprint (NavGrid).
 	return NavGrid.is_walkable(cell)

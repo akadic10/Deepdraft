@@ -5,6 +5,8 @@ const BLOCKS_PATH    := "res://data/terrain/terrain_blocks.json"
 const PALETTES_PATH  := "res://data/terrain/surface_palettes.json"
 const RESOURCES_PATH := "res://data/terrain/block_resources.json"
 const CONSTRUCTION_PATH := "res://data/construction/blocks.json"
+const SHAPES_PATH := "res://data/construction/shapes.json"
+const MATERIALS_PATH := "res://data/construction/materials.json"
 const APPEARANCE_PATH := "res://data/terrain/appearance_profiles.json"
 const JsonData = preload("res://scripts/registries/JsonData.gd")
 
@@ -20,6 +22,10 @@ var _id_to_def:        Array      = []   # int         →  Dictionary (full blo
 var _surface_palettes: Dictionary = {}   # variant_suffix  →  { season: Color }
 var _resource_defs:    Dictionary = {}
 var _construction_defs: Dictionary = {}
+var _construction_shapes: Dictionary = {}
+var _build_materials: Dictionary = {}   # Build's materials (doc 275): material id -> label, kinds, menu
+var _woods: Dictionary = {}             # wood id -> label, item_key, one, many, blocks by direction
+var _logs: Dictionary = {}              # runtime id of a built log -> {wood, direction}
 var _appearance: Dictionary = {}
 var _terrain_color_luts: Dictionary = {}
 var _appearance_ids := PackedByteArray()
@@ -42,6 +48,8 @@ func _ready() -> void:
 	_load_palettes()
 	_load_resource_defs()
 	_construction_defs = JsonData.read_dict(CONSTRUCTION_PATH)
+	_construction_shapes = JsonData.read_dict(SHAPES_PATH)
+	_load_build_materials()
 	_load_appearance()
 	AIR_ID = get_id(&"base:terrain:void")
 	_build_luts()
@@ -173,6 +181,21 @@ func _load_palettes() -> void:
 		_surface_palettes[variant] = color_map
 
 
+## Build's materials and the woods logs are built from (doc 275). Each wood names its log block
+## for every direction, so a block's wood and direction come from data, never from its key's text.
+func _load_build_materials() -> void:
+	var root := JsonData.read_dict(MATERIALS_PATH)
+	_build_materials = root.get("materials", {})
+	_woods = root.get("woods", {})
+	_logs.clear()
+	for wood: String in _woods:
+		var blocks: Dictionary = _woods[wood].blocks
+		for direction: String in blocks:
+			var id := get_id(StringName(blocks[direction]))
+			assert(id >= 0, "BlockRegistry: unknown log block " + String(blocks[direction]))
+			_logs[id] = {"wood": wood, "direction": direction}
+
+
 func _load_resource_defs() -> void:
 	var root := JsonData.read_dict(RESOURCES_PATH)
 	_resource_defs.clear()
@@ -199,6 +222,57 @@ func block_keys() -> Array:
 ## Every construction definition key.
 func construction_keys() -> Array:
 	return _construction_defs.keys()
+
+## Shapes' shapes (doc 273), by id in data order: each one's label, picture and tooltip.
+func get_construction_shapes() -> Dictionary:
+	return _construction_shapes
+
+## Build's materials in tool bar order (doc 275): Stone, Dirt, Grass, Wood.
+func build_materials() -> Array:
+	return _build_materials.keys()
+
+## A material's label, its construction kinds and, for Stone and Wood, its menu's headings.
+func get_build_material(id: String) -> Dictionary:
+	return _build_materials.get(id, {})
+
+## The material a construction kind belongs to, or "".
+func build_material_of(kind: String) -> String:
+	for id: String in _build_materials:
+		if kind in _build_materials[id].kinds: return id
+	return ""
+
+## The woods logs are built from, in menu order.
+func woods() -> Array:
+	return _woods.keys()
+
+## A wood's label, good and words for one and many, and its blocks by direction.
+func get_wood(id: String) -> Dictionary:
+	return _woods.get(id, {})
+
+## A wood's log block lying `direction`: up, along x or along z. "" when there is none.
+func log_block(wood: String, direction: String) -> StringName:
+	return StringName(_woods.get(wood, {}).get("blocks", {}).get(direction, ""))
+
+## A built log's wood and direction, or {} for any other block.
+func log_of(id: int) -> Dictionary:
+	return _logs.get(id, {})
+
+func is_log(id: int) -> bool:
+	return _logs.has(id)
+
+## Whether a block hides the faces it touches: every solid block but a log, whose clipped
+## corners leave its block's long edges open (doc 275).
+func fills_cell(id: int) -> bool:
+	return is_solid(id) and not _logs.has(id)
+
+## The goods a construction kind takes: logs only the chosen wood's log, the rest their one good.
+func construction_goods(kind: String, wood := "") -> Array[String]:
+	var result: Array[String] = []
+	var def: Dictionary = _construction_defs.get(kind, {})
+	if def.has("logs"):
+		if _woods.has(wood): result.append(String(_woods[wood].item_key))
+	elif not String(def.get("item_key", "")).is_empty(): result.append(String(def.item_key))
+	return result
 
 ## Returns the runtime integer ID for a namespaced block key.
 ## Returns -1 if the key is not registered.
@@ -259,7 +333,7 @@ func get_color_lut(season: String) -> PackedColorArray:
 
 ## Returns the display Color for a block at a given season.
 ##
-## For surface grass/dirt variants, reads from surface_palettes.json.
+## For surface grass and dirt, reads from surface_palettes.json.
 ## For all other blocks, uses the hex_color field from terrain_blocks.json.
 ## Falls back to Color.MAGENTA on any lookup failure (visible error sentinel).
 func get_color(id: int, season: String = "summer") -> Color:
@@ -269,11 +343,11 @@ func get_color(id: int, season: String = "summer") -> Color:
 	var def: Dictionary = _id_to_def[id]
 
 	# Surface blocks use seasonal palettes.
-	# Key format: "base:terrain:surface:grass_04" — last segment is the variant suffix.
+	# Key format: "base:terrain:surface:grass" — the last segment names the palette.
 	var key: String = _id_to_key[id]
 	var parts := key.split(":")
 	if parts.size() >= 1:
-		var suffix: String = parts[-1]   # e.g. "grass_04", "dirt_02"
+		var suffix: String = parts[-1]   # e.g. "grass", "dirt"
 		if _surface_palettes.has(suffix):
 			var palette: Dictionary = _surface_palettes[suffix]
 			if palette.has(season):

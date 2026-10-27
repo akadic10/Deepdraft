@@ -1,0 +1,9 @@
+{
+  "__comment": "Colony's page (doc 23), read by UIRegistry for SettlementPanel: each row's picture, the goal its meter fills toward and where its tone turns. Food counts days of food at today's appetite: Short (rust) under short_days, Low (hay) under goal_days, Plenty (moss) from there. Storage turns hay (Filling up) once filling of its cells are used, and rust (Full) when all of them are. Happiness wears the colony's mood face, so it needs no picture here.",
+  "rows": {
+    "dwarves": {"picture": "res://assets/ui/icons/dwarves.png"},
+    "food": {"picture": "res://assets/ui/items/base_resources_flora_apple.png", "goal_days": 10, "short_days": 3},
+    "beds": {"picture": "res://assets/ui/furniture/log_bed.png"},
+    "storage": {"picture": "res://assets/ui/icons/storage_zone.png", "filling": 0.8}
+  }
+}

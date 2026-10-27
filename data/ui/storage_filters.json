@@ -1,16 +1,21 @@
 {
-  "__comment": "Storage browsing categories. Item identity and tags belong to ItemDropManager; saved acceptance rules belong to each storage component.",
+  "__comment": "Storage browsing groups and categories (doc 261). Each category names its `stockpile_*` tag, its group and its picture, chosen from the item pictures. Item identity and tags belong to ItemDropManager; saved acceptance rules belong to each storage component.",
+  "groups": [
+    {"id": "materials", "label": "Materials"},
+    {"id": "food_farming", "label": "Food & farming"},
+    {"id": "goods", "label": "Goods"}
+  ],
   "categories": [
-    {"tag": "stockpile_stone", "label": "Stone"},
-    {"tag": "stockpile_wood", "label": "Wood"},
-    {"tag": "stockpile_ore", "label": "Ores"},
-    {"tag": "stockpile_gem", "label": "Gems"},
-    {"tag": "stockpile_soil", "label": "Soil"},
-    {"tag": "stockpile_food", "label": "Food"},
-    {"tag": "stockpile_drink", "label": "Drink"},
-    {"tag": "stockpile_seed", "label": "Seeds & cuttings"},
-    {"tag": "stockpile_furniture", "label": "Furniture"},
-    {"tag": "stockpile_currency", "label": "Currency"},
-    {"tag": "stockpile_misc", "label": "Other goods"}
+    {"tag": "stockpile_stone", "label": "Stone", "group": "materials", "picture": "res://assets/ui/items/base_resources_stone_rough_stone.png"},
+    {"tag": "stockpile_wood", "label": "Wood", "group": "materials", "picture": "res://assets/ui/items/base_resources_wood_oak_log.png"},
+    {"tag": "stockpile_ore", "label": "Ores", "group": "materials", "picture": "res://assets/ui/items/base_resources_ore_iron.png"},
+    {"tag": "stockpile_gem", "label": "Gems", "group": "materials", "picture": "res://assets/ui/items/base_resources_gem_ruby_raw.png"},
+    {"tag": "stockpile_soil", "label": "Soil", "group": "materials", "picture": "res://assets/ui/items/base_resources_soil_soil.png"},
+    {"tag": "stockpile_food", "label": "Food", "group": "food_farming", "picture": "res://assets/ui/items/base_resources_flora_apple.png"},
+    {"tag": "stockpile_drink", "label": "Drink", "group": "food_farming", "picture": "res://assets/ui/items/base_resources_drink_ale.png"},
+    {"tag": "stockpile_seed", "label": "Seeds & cuttings", "group": "food_farming", "picture": "res://assets/ui/items/base_resources_seed_oak_acorn.png"},
+    {"tag": "stockpile_furniture", "label": "Furniture", "group": "goods", "picture": "res://assets/ui/furniture/bench.png"},
+    {"tag": "stockpile_currency", "label": "Currency", "group": "goods", "picture": "res://assets/ui/items/base_resources_currency_gold_coin.png"},
+    {"tag": "stockpile_misc", "label": "Other goods", "group": "goods", "picture": "res://assets/ui/icons/stocks.png"}
   ]
 }

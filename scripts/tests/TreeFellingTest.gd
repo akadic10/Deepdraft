@@ -294,8 +294,11 @@ func _test_rectangle_designation(oak_id: Vector2i) -> void:
 	_mouse_button(a, false)
 	_expect(flora.work.sources.size() == 3 and flora.work.sources[sapling_id].lease_id == sapling_lease, "reverse rectangle is idempotent")
 	flora._update_felling_marker_positions()
-	var marker: Label = flora._felling_markers[sapling_id]
-	_expect(marker.text == "🪓" and marker.visible and marker.mouse_filter == Control.MOUSE_FILTER_IGNORE, "marked tree has a non-interactive axe emoji")
+	var marker: Control = flora._felling_markers[sapling_id]
+	var registry: Node = root.get_node("UIRegistry")
+	var chop_icon: Texture2D = registry.get_dock_icon(registry.get_menu("orders").items.filter(func(entry): return entry.id == "chop")[0])
+	_expect(marker.kind == "fell" and marker.get_picture() == chop_icon and marker.visible and marker.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"marked tree shows the Chop trees icon, non-interactive")
 	var before := marker.position
 	camera.position.x += 5
 	flora._update_felling_marker_positions()

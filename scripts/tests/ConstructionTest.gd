@@ -33,7 +33,7 @@ func _run() -> void:
 		if construction.orders.is_empty(): break
 		if _completed_cells().size()==1 and not saw_partial_area:
 			var data: Dictionary = construction.get_explorer_data(id)
-			_expect(data.rows[1][1]=="1" and data.rows[2][1]=="2 / 2 stone delivered","inspector retains delivered total as actual blocks finish")
+			_expect(data.rows[1][1]=="1" and data.rows[2][1]=="2 / 2 rough stone delivered","inspector retains delivered total as actual blocks finish")
 			saw_partial_area = true
 	_expect(_completed_cells().size()==2 and construction.orders.is_empty(),"worker constructs both blocks using real routes and delivery")
 	_expect(saw_partial_area and construction.get_explorer_data(id).is_empty(),"completed area releases its inspector subject")
@@ -118,8 +118,9 @@ func _blocked_commit_test() -> void:
 func _mining_test(cell: Vector3i) -> void:
 	var before := _snapshot_units()
 	# Compare the shared loot rule using the same random roll as natural stone.
+	var chance := float(blocks.get_resource_def(blocks.get_key(world.get_terrain_block(cell.x,cell.y,cell.z))).drops[0].chance)
 	seed(123)
-	var expected_drop := int(randf() <= .05)
+	var expected_drop := int(randf() <= chance)
 	seed(123)
 	_expect(mine._filter_mineable_blocks(_cells([cell])).has(cell),"rebuilt terrain can be designated for mining")
 	var id: int = mine._create_zone(_cells([cell]))

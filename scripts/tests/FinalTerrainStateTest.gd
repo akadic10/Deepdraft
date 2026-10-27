@@ -17,7 +17,7 @@ func _run() -> void:
 	var cell := Vector3i(512,30,512)
 	var original: int = generator.get_generated_block_id(cell.x,cell.y,cell.z)
 	var baseline: int = world.terrain_overrides().size()
-	for key in ["base:terrain:void","base:terrain:soil:dark","base:terrain:surface:grass_01","base:construction:floor:plank","base:construction:floor:stone"]:
+	for key in ["base:terrain:void","base:terrain:soil:cave","base:terrain:surface:grass","base:construction:log:oak:x","base:construction:log:pine:x"]:
 		var id: int = blocks.get_id(key)
 		world.set_block(cell.x,cell.y,cell.z,id)
 		_expect(world.get_terrain_block(cell.x,cell.y,cell.z)==id,"final terrain follows the latest write: "+key)

@@ -1,130 +1,30 @@
 {
-  "__comment": "Hearth & iron Sky Dial artwork. UIRegistry owns this file; WorldClock and WeatherManager own live state.",
-  "frame": {
-    "icon": "res://assets/ui/sky_dial/frame.png"
+  "__comment": [
+    "The Sky Dial (doc 23, 'The Sky Dial'): a Hearthblock window onto the sky over a plate with the time, the date and the year's seasons.",
+    "UIRegistry owns this file. WorldClock, SkyController and WeatherManager own the live state; the dial keeps none of its own.",
+    "The pieces are models in tools/hearthblock/art/sky.mjs, staged by tools/voxel_assets/build.py sky and rendered to layers in 'layers' by tools/GenerateUiIcons.gd.",
+    "picture: the framing every layer shares, in the window's cells seen from the front tilted down by 'pitch' degrees: [left, bottom, width, height] of the camera plane, where across is x and up is y * cos(pitch) - z * sin(pitch). 'width' is the layers' size in pixels across (twice the dial's width on screen).",
+    "opening: where moving pieces may show, in the same plane: the sun and moon, the drifting clouds and the falling rain or snow.",
+    "arc: the sun's path from sunrise on the left to sunset on the right, and the moon's through the night: its centre (x, y, z in cells) and radii.",
+    "clouds: where the clouds sit at midnight [x, y, z, 'big' or 'small']; they drift right by 'drift' cells a game hour and come round again.",
+    "fall: how fast rain and snow fall, in cells a game hour. They follow game time, so they stop when the game is paused.",
+    "weather: what each weather shows. 'grey' greys the daytime sky and hides the sun unless 'sun'; 'clouds' picks the cloud pieces (cloud or storm); 'fall' rain or snow; 'veil' mists the land.",
+    "seasons: the season bar's colour for each season, in the calendar's order."
+  ],
+  "layers": "res://assets/ui/sky_dial/",
+  "picture": {"rect": [-36.5, -3.7, 73.0, 51.0], "pitch": 14.0, "width": 448},
+  "opening": [-27.0, 2.5, 54.0, 36.0],
+  "arc": {"centre": [0.0, 13.0, -1.0], "radius": [20.0, 20.0]},
+  "clouds": [[-13.0, 33.0, -0.5, "big"], [12.0, 36.0, -0.5, "small"], [2.0, 27.0, -0.5, "small"]],
+  "drift": 3.0,
+  "fall": {"rain": 480.0, "snow": 90.0},
+  "weather": {
+    "base:weather:clear": {},
+    "base:weather:overcast": {"grey": true, "clouds": "cloud"},
+    "base:weather:foggy": {"grey": true, "sun": true, "clouds": "cloud", "veil": "#c9d0d566"},
+    "base:weather:rain": {"grey": true, "clouds": "cloud", "fall": "rain"},
+    "base:weather:storm": {"grey": true, "clouds": "storm", "fall": "rain"},
+    "base:weather:snow": {"grey": true, "clouds": "cloud", "fall": "snow"}
   },
-  "landscapes": {
-    "spring": {
-      "day": [
-        0,
-        0,
-        512,
-        384
-      ],
-      "night": [
-        512,
-        0,
-        512,
-        384
-      ]
-    },
-    "summer": {
-      "day": [
-        0,
-        384,
-        512,
-        384
-      ],
-      "night": [
-        512,
-        384,
-        512,
-        384
-      ]
-    },
-    "autumn": {
-      "day": [
-        0,
-        768,
-        512,
-        384
-      ],
-      "night": [
-        512,
-        768,
-        512,
-        384
-      ]
-    },
-    "winter": {
-      "day": [
-        0,
-        1152,
-        512,
-        384
-      ],
-      "night": [
-        512,
-        1152,
-        512,
-        384
-      ]
-    }
-  },
-  "landscape_atlas": "res://assets/ui/sky_dial/landscapes.png",
-  "symbol_atlas": "res://assets/ui/sky_dial/symbols.png",
-  "symbols": {
-    "sun": [
-      0,
-      0,
-      418,
-      418
-    ],
-    "moon": [
-      418,
-      0,
-      418,
-      418
-    ],
-    "overcast": [
-      836,
-      0,
-      418,
-      418
-    ],
-    "foggy": [
-      0,
-      418,
-      418,
-      418
-    ],
-    "snow": [
-      418,
-      418,
-      418,
-      418
-    ],
-    "spring": [
-      836,
-      418,
-      418,
-      418
-    ],
-    "summer": [
-      0,
-      836,
-      418,
-      418
-    ],
-    "autumn": [
-      418,
-      836,
-      418,
-      418
-    ],
-    "winter": [
-      836,
-      836,
-      418,
-      418
-    ]
-  },
-  "weather_symbols": {
-    "base:weather:clear": "sun",
-    "base:weather:foggy": "foggy",
-    "base:weather:overcast": "overcast",
-    "base:weather:snow": "snow",
-    "base:weather:rain": "rain",
-    "base:weather:storm": "storm"
-  }
+  "seasons": {"spring": "#a2c866", "summer": "#6f9a4c", "autumn": "#e39c3b", "winter": "#dfe7ee"}
 }

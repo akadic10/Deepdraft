@@ -19,6 +19,10 @@ func _run() -> void:
 	worker.change_profession(CARPENTER)
 	await _appointed()
 	_expect(promotion_sounds == 1, "Carpenter completion plays one promotion cue")
+	var news: Array = _promotion_news()
+	_expect(news.size() == 1 and news[0].text == "%s is now a Carpenter." % worker.dwarf_name
+		and String(news[0].picture).ends_with("/carpenter.png") and news[0].dwarves == [worker.dwarf_id],
+		"Carpenter completion lands in Events with the profession's icon (doc 23)")
 	worker._process(.1)
 	_expect(not worker.change_profession(CARPENTER) and promotion_sounds == 1, "repeat assignment and processing never replay cue")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
@@ -26,10 +30,12 @@ func _run() -> void:
 	_expect(promotion_sounds == 1, "restoring equipped role is silent")
 	worker.change_profession(WORKER)
 	_expect(promotion_sounds == 1, "returning to Worker is silent")
+	_expect(_promotion_news().size() == 1, "restoring a role and returning to Worker are not news")
 	feedback.clear_transients()
 	clock_node.set_paused(true)
 	worker.change_profession(MINER)
 	_expect(promotion_sounds == 2, "immediate Miner promotion has feedback even while paused")
+	_expect(_promotion_news().size() == 2 and _promotion_news()[0].text.ends_with(" is now a Miner."), "the Miner promotion is news too")
 	worker.change_profession(WORKER)
 	worker.change_profession(CARPENTER)
 	worker._process(5)
@@ -46,6 +52,12 @@ func _run() -> void:
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("EQUIPMENT_FEEDBACK_OK: owned equipment, planned upgrades, embedded/standalone views, three resolutions, completion-only audio and no replay")
 	quit(0 if failures.is_empty() else 1)
+
+## The event log's promotion entries, newest first.
+func _promotion_news() -> Array:
+	return root.get_node("EventLog").entries().filter(func(entry: Dictionary) -> bool:
+		return entry.kind == "colony" and String(entry.text).contains(" is now a "))
+
 
 func _review_views(factory) -> void:
 	director = load("res://scripts/entities/DwarfDirector.gd").new()
@@ -70,29 +82,40 @@ func _review_views(factory) -> void:
 		manager.open("dwarves")
 		director.inspect_dwarf(worker)
 		await _frames(10)
-		var detail = director._roster_panel._detail_panel
-		_click(detail._tabs[2].get_global_rect().get_center())
+		# Colony Dwarves' Details card opens the character sheet beside the roster.
+		var card = director._roster_panel._card
+		_expect(director._roster_panel.window.get_global_rect().encloses(card._buttons.profession.get_global_rect()), "the card's Change profession fits the roster " + str(viewport))
+		_expect(not card._buttons.crafting.visible, "a Carpenter's card has no Crafting while its recipes are planned")
+		_click(card._buttons.character_sheet.get_global_rect().get_center())
+		await _frames(8)
+		var detail = explorer._dwarf_panel
+		_expect(manager.is_open("character_sheet") and manager.is_open("dwarves"), "the card opens the character sheet beside Colony Dwarves " + str(viewport))
+		_click(detail._tabs[3].get_global_rect().get_center())
 		await _frames(4)
-		_expect(detail._equipment_page.is_visible_in_tree(), "Equipment button opens embedded view " + str(viewport))
-		_expect(detail._scroll.size.y >= 90, "embedded equipment keeps a usable scroll area " + str(viewport))
+		_expect(detail._equipment_page.is_visible_in_tree(), "Equipment opens on the sheet from Colony Dwarves " + str(viewport))
+		_expect(detail._scroll.size.y >= 90, "the equipment page keeps a usable scroll area " + str(viewport))
 		_expect(detail._equipment_page._tool_name.text == "Crude Carpentry Kit", "equipment names actual owned item")
 		_expect(detail._equipment_page._icon.texture != null, "equipment has existing kit thumbnail")
 		_expect(detail._equipment_page._benefit.text.contains("No work-speed bonus"), "equipment states actual benefit")
 		_expect(detail._equipment_page._upgrade_name.text == "Iron saw" and detail._equipment_page._upgrade_status.text.contains("Not craftable"), "future upgrade is named without pretending it exists")
 		_expect(detail._equipment_page._upgrade_method.text.contains("Blacksmith"), "upgrade path explains maker and later assignment")
-		_expect(director._roster_panel.window.get_global_rect().encloses(detail._change_profession.get_global_rect()), "profession and equipment navigation fit roster")
 		await _equipment_capture("colony_%d" % viewport.x)
 		detail._scroll.scroll_vertical = 2000
 		await _frames(4)
 		await _equipment_capture("colony_upgrade_%d" % viewport.x)
+		manager.close("character_sheet")
 		manager.close("dwarves")
 		director.inspect_dwarf(worker)
+		await _frames(4)
+		# A world-selected dwarf opens the compact panel; its big button opens the sheet.
+		_click(explorer.get_compact_panel().get_action_button("character_sheet").get_global_rect().get_center())
 		await _frames(8)
+		_expect(manager.is_open("character_sheet"), "Character sheet opens the standalone inspector " + str(viewport))
 		detail = explorer._dwarf_panel
-		_click(detail._tabs[2].get_global_rect().get_center())
+		_click(detail._tabs[3].get_global_rect().get_center())
 		await _frames(4)
 		_expect(detail._equipment_page.is_visible_in_tree(), "Equipment opens standalone inspector " + str(viewport))
-		_expect(explorer._window.get_global_rect().encloses(detail._change_profession.get_global_rect()), "standalone navigation stays inside inspector")
+		_expect(explorer._window.get_global_rect().encloses(detail._tabs[4].get_global_rect()), "standalone navigation stays inside inspector")
 		_expect(explorer._window.size.x <= viewport.x-16, "inspector stays within viewport width")
 		await _equipment_capture("inspector_%d" % viewport.x)
 		detail._scroll.scroll_vertical = 2000

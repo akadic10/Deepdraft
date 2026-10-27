@@ -1,26 +1,32 @@
 # 32 — 3D Navigation
 
-**Grid-edge fences (2026-10-17):** [201](../00_dev_roadmap/201_grid_corner_fences.md)
-adds thin post/rail barriers to `PlacedEntityRegistry`. These do not make either
-adjacent floor tile unwalkable. A* transitions, flat route smoothing and live
-dwarf movement sweep against the barriers, including diagonal post corners.
+**Grid-edge fences (2026-10-17, 201):** fence posts and rails are thin barriers in
+`PlacedEntityRegistry` (`register_barrier`), kept apart from cell occupancy. These do
+not make either adjacent floor tile unwalkable. A* transitions, flat route smoothing
+and live dwarf movement sweep a standing body against the barriers
+(`barrier_blocks_segment`), including diagonal post corners.
 Ground-animal clearance and hops use the same barriers. Gate openings remain
 passable under the existing door convention. Creation/removal emits the normal
 occupancy invalidation signal; plans have no physical barrier. Terrain cells
 remain owned by WorldData, and three-block dwarf clearance is unchanged.
 
-**Wall-light access (2026-10-12):** Both torches install and uninstall from a
-reachable walkable floor beneath/beside the bracket, up to five blocks below
-its cell. Normal three-block clearance and a clear reach to the mount are
-required. The planner searches all candidate floors; the worker checks actual
-reach again at commit. Rungs are not work floors and access ladders are not
-created automatically. See [129](../00_dev_roadmap/129_wall_mount_heights.md).
+**Wall-light access (2026-10-12, 129):** wall lights (the log torch) install and
+uninstall from a reachable walkable floor below the bracket or beside it, never
+behind the wall, up to five blocks below its cell (`furniture.wall_reach_up_blocks`
+in `task_config.json`; `WallFurnitureMount.work_stands`). Normal three-block
+clearance and a clear reach to the mount are required. The planner searches all
+candidate floors; the worker checks actual reach again at commit, and losing access
+releases the work while keeping the carried item. Rungs are not work floors and
+access ladders are not created automatically.
 
-**Bedroom leisure privacy (2026-10-11):** Normal work navigation still passes
+**Bedroom leisure privacy (2026-10-11, 122):** Normal work navigation still passes
 through rooms and doors. Bed searches may supply a per-search floor filter to
 avoid other colonists' bedrooms and take a public detour. These routes bypass
 the shared work-path cache; sleep string pulling honors the same privacy rule.
-Idle/ground-rest visitor exits use bounded checked segments. See milestone 122.
+Idle/ground-rest visitor exits use bounded checked segments (`DwarfPrivacy.leave`):
+at most 64 floor cells a tick and 4,096 an attempt, a two-second wait after a failed
+attempt, a fresh search after any navigation change, and never a teleport. Privacy
+adds no permanent navigation obstacle. Who may use which room is in doc 41.
 
 ## Overview
 
@@ -53,11 +59,11 @@ It settles onto the first physical solid/deck below and releases stale work and
 routes before pathfinding resumes. Physical support is distinct from walkability:
 water or blocked headroom must never make a dwarf fall through a solid floor.
 Existing rung traversal and ordinary step interpolation remain supported.
-The 2026-10-12 flooring follow-up also recovers feet embedded in a one-block
-raised floor when the standing space above is clear. Idle dwarves with no flat
+Feet embedded in a one-block raised floor (a block built where a dwarf stands, for
+instance) recover onto it when the standing space above is clear (2026-10-12). Idle dwarves with no flat
 stroll can take an adjacent one-block step up out of a shallow excavation.
-Both use the existing clearance rules; no pathfinding rules were relaxed.
-See [115 — Dwarf support recovery](../00_dev_roadmap/115_dwarf_support_recovery.md).
+Both use the existing clearance rules; no pathfinding rules were relaxed
+(doc 115; `DwarfMovement.snap_to_floor` and `lift_from_raised_floor`).
 
 **2026-10-11 bridge-corner movement correction:** the saved colony at seed
 471286621 placed Bogorn and Ralrek at floor `(807,41,814)`, just outside a deck
@@ -105,13 +111,30 @@ y    [SOLID]   ← floor node
 ## Entity Obstacles
 
 **Log bridge supports (2026-10-11):** BridgeSystem registers completed deck
-cells separately from terrain. Normal walking, hauling and flat smoothing use
+cells separately from terrain; a plan never supports anyone. Normal walking, hauling and flat smoothing use
 these supports with the same three-block clearance and diagonal corner rules.
+Each deck cell also registers a `PlacedEntityRegistry` box, so nothing below can
+stand with its body through the deck.
 Closing decks retain physical support but reject new entry, including shortcuts;
-occupants may exit to land. Structural changes invalidate cached/progressing
+occupants, idle and sleeping ones too, drop their cargo on the deck and walk to the
+nearest landing. Structural changes invalidate cached/progressing
 searches and active routes through the shared route revision. Loose goods use
 the same deck support for resting and restoring. No water or terrain volume is
-modified. See [113 — Log bridges](../00_dev_roadmap/113_log_bridges.md).
+modified (doc 113).
+
+A bridge is two blocks wide, with a clear span of 1–5 blocks
+(`data/furniture/log_bridge.json` → `bridge`) and one solid landing row at each end.
+Both lanes must meet the opposite bank at the same distance and height, so
+diagonal, sloping and uneven crossings are rejected. Each gap column needs water
+below it when the bridge is placed, and the deck and both landings need three clear
+blocks above them (`BridgeSystem.describe`). A worker installs the whole deck from
+whichever landing is nearer, so no route across the water is needed. Dismantling
+can be cancelled, which reopens the deck without making a kit. When terrain,
+water or occupancy later breaks these rules (a gap that dries out excepted), an
+unbuilt plan is cancelled; a finished deck closes like a dismantled one, keeps its
+support while anyone is on it, then drops its kit at a walkable landing. This is the
+starter crossing only: longer spans, sloping landings, piers, stone bridges and
+crossings over dry chasms are outside it.
 
 Placed entities (trees, workshops, boulders, furniture — see `12_world_grid.md`) are **not** stored in the terrain grid. The A* walkability check must therefore query two sources:
 
@@ -130,13 +153,19 @@ Mining maintains a separate cache of workable blocks. Its controller also
 listens to occupancy changes, invalidates nearby zone destinations and refreshes
 pending lease targets after the footprint updates settle. NavGrid invalidation
 alone does not refresh that work cache. This distinction caused the moved-bed
-failure fixed in [174](../00_dev_roadmap/174_mining_furniture_access.md).
+failure fixed in doc 174 (`MiningZoneWork.on_occupancy_changed`).
 
 For loose goods, explicit route goals are the usable pickup stand cells, not
-the item's potentially unwalkable support cell. Validate those actual goals
+the item's potentially unwalkable support cell: a work probe with explicit stands
+(`NavGrid.advance_reachability`, `exact_goals`) validates the stands, while ordinary
+walking still needs a navigable destination. Validate those actual goals
 with live occupancy. Adjacent pickup reach can extend to a support two blocks
-above the stand floor; it does not increase step height or reduce three-block
-clearance. See [173](../00_dev_roadmap/173_ledge_pickup_and_safe_exports.md).
+above the stand floor, from a cardinal neighbour only, when the item's space and
+the space over the lip are clear in live terrain and placed occupancy
+(`StorageComponent.ground_access_cells`, `ledge_reach_clear`); it does not increase
+step height or reduce three-block clearance. Haul and fetch contact recheck that
+reach before the goods change hands; a blocked reach releases the claim and leaves
+the goods where they lie (doc 173).
 
 > **Design note (verified against Stonehearth):** Stonehearth's engine handles this via a `navgrid` system that unifies terrain blocks and entity `region_collision_shape` components into a single walkability query. Our `PlacedEntityRegistry.occupies()` call is the functional equivalent — the nav grid sees one coherent obstacle space, the two data sources just live in separate registries.
 
@@ -171,8 +200,37 @@ cannot skip over air. Hauling uses these same paths.
 Closing routes allow occupants to leave and workers to dismantle from the top,
 while rejecting new through traffic. Interruptions/sleep return an actor to a
 floor first. Route changes invalidate path caches and re-arm blocked tasks.
-See [86 — Rudimentary ladders](../00_dev_roadmap/86_rudimentary_ladders.md) for
-costs, placement constraints, physical construction/recovery and verification.
+
+**Sections and cost.** A Worker makes one section from one raw log in six seconds
+at a crude workbench (`data/workshops/worker_crafting.json`). Each section installs
+exactly four blocks (`data/furniture/crude_ladder.json` → `ladder`, which also holds
+the install/removal times and the 0.45 climbing speed), so 4/8/12-block ledges take
+1/2/3 sections. An uneven ledge rounds up to whole sections (a five-block ledge gets
+an eight-block ladder) with nothing added above the last one; preview,
+installation, navigation and recovery all use that height. Placement waits until
+every section of the quoted route is in stock.
+
+**Placement.** Ladders are always placed by the player; dwarves never make their own
+access. A ladder climbs a continuous terrain cliff from a walkable floor at
+its base to a walkable landing; a one-block rise uses step-assist instead. The whole
+climbing column, including the part above a rounded-up final section, needs three
+air blocks of body clearance and stays reserved while the route exists. Water,
+occupied clearance, other ladders, bridges and their plans, furniture and queued
+placements, plants or stones within their 3×3 spacing, and storage zones reject
+placement with a reason (`LadderSystem.describe`); the upper landing must be inside
+the slice.
+
+**Building and recovery.** Workers carry each section to the route, build from the
+bottom and climb the finished sections to add the next (two seconds each). Pausing
+keeps the paid sections, partial work and the reserved column, and shows only the
+installed sections; cancelling a route
+with nothing built releases its claim. Dismantling works down from the top at 1.5
+seconds per section, waits for climbers to leave, drops each section as a loose item
+and can be cancelled. Terrain damage closes a route, waits for its occupants, then
+drops only the installed sections. If a lower support is mined away, an occupant
+settles down the clear column to the surviving ground; this never registers unpaid
+rungs. The `ladders` save section keeps each route's height, installed height,
+mode, section materials and partial work (roadmap 86).
 
 ## A\* Cost Function
 
@@ -220,14 +278,25 @@ uses the nearest goal height.
 - Task reachability uses **resumable A\* searches**. The configured
   `scheduler.probe_node_cap` (**1200**) limits one slice; the scheduler's time
   budget can yield earlier. An unfinished search resumes next wake without
-  marking work blocked. The forward limit matches ordinary walking (**6000**),
-  with up to 64 extra nodes for a quick sealed-destination check. Relevant
-  chunk/occupancy edits and ladder changes invalidate searches; unrelated
-  terrain changes preserve progress. See [milestone 88](../00_dev_roadmap/88_ladder_task_reachability.md).
+  marking work blocked: a tall ladder's slower climbing cost makes A* explore wide
+  lower ground before it commits to the climb, so a spent slice proves nothing.
+  The forward limit matches ordinary walking (**6000**),
+  with up to 64 extra nodes for a quick reverse check that rejects a sealed
+  destination pocket. That check is skipped while any ladder or bridge is closing,
+  because a closing route is one-way (`NavGrid._new_approach_probe`). Reaching the
+  forward limit means reachability unknown (`ProbeResult.BUDGET_EXHAUSTED`), not a proven
+  missing route; how scheduler searches widen the allowance before backing off is in
+  doc 31 ("Search fairness"). A search records
+  every chunk it examines, rejected neighbours and clearance cells included, so
+  relevant chunk/occupancy edits (even one that opens an approach it rejected) and
+  ladder changes invalidate it; unrelated terrain changes preserve progress
+  (milestone 88).
 - Mining searches all valid working positions together, requiring an exact
   reached stand. An isolated cliff shelf cannot reject the whole zone. All
   alternatives share the same search bound, and the chosen worker receives
-  the proven block, stand and cached route.
+  the proven block, stand and cached route. That hint is transient: the zone
+  revalidates the block before reserving it, release and cancellation discard it,
+  and terrain changes invalidate the proof.
 
 **2026-10-11 regression coverage:** `NavigationRegressionTest.gd` covers obstacles
 placed after smoothing, changed terrain, rising water, a blocked later step,

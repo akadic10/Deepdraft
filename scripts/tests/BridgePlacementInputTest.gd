@@ -70,7 +70,7 @@ func _run() -> void:
 	var obstruction: int = root.get_node("PlacedEntityRegistry").register_box(Vector3i(43,22,47),Vector3i(1,1,3))
 	await _frames(2)
 	furniture._update_hover(false,bank_screen)
-	_expect(not furniture._hover_valid and furniture._visuals.hint_label.text.contains("Clear"),"stationary preview rejects a newly blocked landing with a useful reason")
+	_expect(not furniture._hover_valid and furniture._visuals.hint_text.contains("Clear"),"stationary preview rejects a newly blocked landing with a useful reason")
 	root.get_node("PlacedEntityRegistry").unregister(obstruction)
 	await _frames(2)
 	furniture._update_hover(false,bank_screen)
@@ -87,7 +87,6 @@ func _run() -> void:
 	_expect(furniture._hover_valid,"rotation preference retains a valid crossing on a straight bank")
 	if "--capture" in OS.get_cmdline_user_args():
 		dock._open_place_catalog()
-		dock._place_catalog.category = "access"
 		dock._place_catalog._select(BRIDGE)
 		furniture._update_hover(true,bank_screen)
 		await _frames(4)

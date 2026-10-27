@@ -1,0 +1,20 @@
+{
+  "__comment": [
+    "Personal tastes (doc 41 'Tastes'), read by DwarfAssets. Each dwarf is given `counts` of the `things` when created, from the world's seed, and keeps them for life. A taste is found when the dwarf uses the thing: sleeps in the bed, sits on the stool or bench at a meal or a game, eats at the table, plays at the board, or uses any of these made of the wood.",
+    "felt: what a found taste adds to the appeal that dwarf feels in a room holding the thing, once for each thing; the strongest is named in the room's thought.",
+    "things: the furniture designs and woods a taste can name, each with the picture its tile shows."
+  ],
+  "counts": {"love": 1, "like": 2, "dislike": 1},
+  "felt": {"love": 4.0, "like": 2.0, "dislike": -4.0},
+  "things": {
+    "base:furniture:log_bed": {"picture": "res://assets/ui/furniture/log_bed.png"},
+    "base:furniture:log_chair": {"picture": "res://assets/ui/furniture/log_chair.png"},
+    "base:furniture:bench": {"picture": "res://assets/ui/furniture/bench.png"},
+    "base:furniture:log_table": {"picture": "res://assets/ui/furniture/log_table.png"},
+    "base:furniture:board_game_table": {"picture": "res://assets/ui/furniture/board_game_table.png"},
+    "base:material:pine": {"picture": "res://assets/ui/items/base_resources_wood_pine_log.png"},
+    "base:material:oak": {"picture": "res://assets/ui/items/base_resources_wood_oak_log.png"},
+    "base:material:juniper": {"picture": "res://assets/ui/items/base_resources_wood_juniper_log.png"},
+    "base:material:applewood": {"picture": "res://assets/ui/items/base_resources_wood_apple_wood.png"}
+  }
+}

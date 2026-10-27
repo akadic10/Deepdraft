@@ -24,7 +24,7 @@ func _run() -> void:
 		furniture._hover_valid = furniture._placement_valid(HEATER_ORIGIN)
 		furniture._update_hint(HEATER_ORIGIN)
 		_expect(furniture._hover_valid, "heater fits against room walls in rotation %d" % yaw)
-		_expect(furniture._visuals.hint_label.text.contains("2 × 2 room heater"), "placement identifies the compact heater")
+		_expect(furniture._visuals.hint_text.contains("2 × 2 room heater"), "placement identifies the compact heater")
 		var outline: MeshInstance3D = furniture._visuals.preview.get_node_or_null("PlacementArea")
 		_expect(outline != null and outline.get_aabb().size.is_equal_approx(Vector3(2,0,2)), "preview shows the full two-by-two base")
 		furniture._confirm_ghost()
@@ -166,17 +166,17 @@ func _capture_heaters(outside_heater) -> void:
 	manager.show()
 	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
 	explorer.window_manager_path = NodePath("../Windows")
+	explorer.dock_ui_path = NodePath("../Dock")
 	scene.add_child(explorer)
-	explorer._inspector_positioned = true
-	explorer._window.position = Vector2(20,30)
+	var compact: Control = explorer.get_compact_panel()
 	for size in [Vector2i(960,540),Vector2i(1280,720)]:
 		root.size = size
 		explorer.select_object(furniture,"installed:%d" % outside_heater.installed_id)
 		await _frames(6)
 		explorer._refresh_selected()
 		await _frames(3)
-		var rect: Rect2 = explorer._window.get_global_rect()
-		_expect(Rect2(Vector2.ZERO,Vector2(size)).encloses(rect), "heater inspector fits viewport %s" % size)
+		_expect(compact.visible and Rect2(Vector2.ZERO,Vector2(size)).encloses(compact.get_global_rect()), "heater panel fits viewport %s" % size)
+		_expect(compact._status.text == "No enclosed room to heat", "outdoor heater says it has no room to heat")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(OUT + "outdoor_inspector_%d.png" % size.x)
 	# Normal UI with a real heated room, followed by the two placement cards.
@@ -199,10 +199,9 @@ func _capture_heaters(outside_heater) -> void:
 	dock._open_place_catalog()
 	dock._place_catalog.show_all = true
 	dock._place_catalog._all_toggle.set_pressed_no_signal(true)
-	dock._place_catalog.category = "all"
 	for key in [HEARTH,camp.furniture_key]:
 		dock._place_catalog._select(key)
 		await _frames(5)
-		_expect(dock._place_catalog._spec.text == String(furniture.get_defs()[key].placement_label), "Place card explains the footprint")
+		_expect(dock._place_catalog.facts_text() == String(furniture.get_defs()[key].placement_label), "Place card explains the footprint")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(OUT + "place_" + String(key).get_slice(":",2) + ".png")

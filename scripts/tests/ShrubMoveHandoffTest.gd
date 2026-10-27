@@ -44,7 +44,7 @@ func _setup_fixture() -> void:
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
 	for x in range(32,64):
-		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass_01"))
+		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass"))
 	var gen = root.get_node("WorldGenerator")
 	gen.world_seed = 1234
 	gen.heightmap.resize(1024 * 1024)
@@ -269,7 +269,7 @@ func _distant_move_with_live_leisure() -> void:
 	worker.position = Vector3(100.5,21,100.5)
 	worker._idle_behavior.cancel()
 	var destination := Vector3i(100,20,98)
-	world.set_block(destination.x,destination.y,destination.z,blocks.get_id("base:terrain:surface:grass_01"))
+	world.set_block(destination.x,destination.y,destination.z,blocks.get_id("base:terrain:surface:grass"))
 	await process_frame
 	var plan := _move(STRAW,destination)
 	clock_node.set_speed(3.0)

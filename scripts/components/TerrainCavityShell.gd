@@ -110,12 +110,15 @@ func rebuild_columns(columns: Array) -> void:
 		var cols: PackedColorArray = []
 		var indices: PackedInt32Array = []
 		for block: Vector3i in _cut_cells_by_column.get(column, {}):
-			if WorldData.has_solid_override(block): continue
+			# A built log leaves its cell's edges open, so the faces round it stay, as for the
+			# space it was built in (doc 275).
+			var log_here := BlockRegistry.is_log(WorldData.get_terrain_block(block.x, block.y, block.z))
+			if WorldData.has_solid_override(block) and not log_here: continue
 			if block.y > slice_y:
 				continue   # cavity above the plane — hidden with everything else
 			if block.y > _cavity_column_top(block.x, block.z, col_tops):
 				continue   # open-from-above — the overview's job (defect 1)
-			var mined: bool = renderer.is_revealed_air(block) or debug_caves.has(block)
+			var mined: bool = log_here or renderer.is_revealed_air(block) or debug_caves.has(block)
 			for dir: Vector3i in SHELL_DIRS:
 				var n: Vector3i = block + dir
 				if WorldData.has_solid_override(n): continue # Current terrain mesh owns overrides.

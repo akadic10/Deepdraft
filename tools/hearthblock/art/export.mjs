@@ -5,6 +5,8 @@ import * as P from './proposal.mjs';
 import * as T from './tier1.mjs';
 import * as D from './dwarves.mjs';
 import * as W from './wildlife.mjs';
+import * as I from './icons.mjs';
+import * as S from './sky.mjs';
 
 const cellsOf = (v) => [...v.cells].map(([k, c]) => [...P.Vox.unkey(k), c]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
 const fromModel = (v) => ({ ops: v.log, cells: cellsOf(v) });
@@ -53,7 +55,11 @@ const out = {
   },
   dwarf: Object.fromEntries(D.NAMES.map(n => [n, fromModel(D.build(n))])),
   wildlife: Object.fromEntries(W.NAMES.map(n => [n, fromModel(W.build(n))])),
+  icon: Object.fromEntries(I.NAMES.map(n => [n, { ...fromModel(I.build(n)), ...I.options(n) }])),
+  sky: Object.fromEntries(S.NAMES.map(n => [n, { ...fromModel(S.build(n)), ...S.options(n) }])),
+  sky_palette: S.PALETTE,
   palette: P.PALETTE,
+  tints: { skin: P.SKIN, hair: P.HAIR },
 };
 for (let h = 1; h <= 4; h++) out.furniture['ladder_' + h] = fromModel(T.ladder(h));
 for (let s = 1; s <= 5; s++) out.furniture['bridge_' + s] = fromModel(T.bridge(s));

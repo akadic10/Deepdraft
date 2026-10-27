@@ -5,6 +5,8 @@ extends RefCounted
 ## yellow outline on the block. WorldRenderer builds it only when
 ## UIRegistry.dev_tools_enabled and forwards unhandled input to it.
 
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 const WORLD_SIZE_X: int = WorldData.WORLD_SIZE_X
 const WORLD_SIZE_Y: int = WorldData.WORLD_SIZE_Y
 const WORLD_SIZE_Z: int = WorldData.WORLD_SIZE_Z
@@ -86,7 +88,7 @@ func _build_block_inspector_ui() -> void:
 	title.text = "Block Inspector"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UITheme.apply_title(title)
+	UITheme.apply_heading(title)
 	header.add_child(title)
 
 	var close := Button.new()
@@ -108,7 +110,7 @@ func _build_block_inspector_ui() -> void:
 
 	_inspector_label = Label.new()
 	_inspector_label.name = "Details"
-	_inspector_label.add_theme_font_size_override("font_size", 13)
+	_inspector_label.add_theme_font_size_override("font_size", MEDIUM.small)
 	_inspector_label.text = "Block inspector\nclick a block"
 	body_margin.add_child(_inspector_label)
 	_build_block_inspector_outline()

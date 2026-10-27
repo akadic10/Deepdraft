@@ -1,24 +1,25 @@
 {
   "__comment": [
     "Profession data read by DwarfAssets.",
-    "promotion_screen: career-map entries (role, icon, position, summary, availability, optional starter_tool).",
+    "promotion_screen: career-map entries (role, position, summary, availability, optional starter_tool).",
     "work_permissions: per-dwarf work categories and the task types each covers.",
     "experience_thresholds: cumulative task counts for levels 2-5 (only Miner experience advances today).",
-    "professions: display_name, promotes_from, promotion_enabled, required_tool, equipment_preview;",
+    "professions: icon (one Hearthblock picture shared by the career map, the equipment view and Crafters, doc 259),",
+    "  display_name, promotes_from, promotion_enabled, required_tool, equipment_preview;",
     "  Miner also has work_speed_bonus_per_level.",
     "Planned profession design (tasks, rooms, level perks) is in docs/40_economy_colony/41_dwarf_agents.md."
   ],
 
   "promotion_screen": [
-    {"role": "worker", "icon": "colony", "position": [278, 12], "summary": "A versatile colony member. Mines, gathers, hauls, builds and crafts basic goods.", "availability": "No requirements. Return to Worker at any time."},
-    {"role": "miner", "icon": "orders", "position": [8, 116], "summary": "Keeps the tunnels moving. Prioritizes mining within work priorities, then helps with permitted general work.", "availability": "No tool or level requirement."},
-    {"role": "farmer", "icon": "farm", "position": [116, 116], "summary": "Plants, tends and harvests cultivated crops. Planned support for fields, underground crops and beehives.", "starter_tool": "base:resources:tools:stone_hoe", "availability": "Planned: farming and tool equipping are not available yet."},
-    {"role": "hunter", "icon": "hunter", "position": [224, 116], "summary": "Hunts designated wildlife for the colony. Tracking and trapping may follow later.", "starter_tool": "base:resources:tools:hunting_spear", "availability": "Planned: requires player hunting, tool equipping and animal resource yields."},
-    {"role": "carpenter", "icon": "craft", "position": [332, 116], "summary": "Collects a carpentry kit to join this profession. Helps with general colony work; specialist wooden goods are planned.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it. Specialist workshop and recipes are planned."},
-    {"role": "stonemason", "icon": "clear_boulders", "position": [440, 116], "summary": "Shapes stone into furniture, building components and decorative pieces.", "availability": "Planned: requires a stone workshop and recipes. Promotion requirements are not finalized."},
-    {"role": "blacksmith", "icon": "anvil", "position": [548, 116], "summary": "Smelts ore and forges metal tools and hardware. Leads to weaponsmithing and armorsmithing.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Planned: requires smelting, forging and tool equipping."},
-    {"role": "weaponsmith", "icon": "hunter", "position": [440, 250], "summary": "An experienced Blacksmith specializing in weapons for the colony.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."},
-    {"role": "armorsmith", "icon": "shield", "position": [548, 250], "summary": "An experienced Blacksmith specializing in armor and shields.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."}
+    {"role": "worker", "position": [278, 12], "summary": "A versatile colony member. Mines, gathers, hauls, builds and crafts basic goods.", "availability": "No requirements. Return to Worker at any time."},
+    {"role": "miner", "position": [8, 116], "summary": "Keeps the tunnels moving. Prioritizes mining within work priorities, then helps with permitted general work.", "availability": "No tool or level requirement."},
+    {"role": "farmer", "position": [116, 116], "summary": "Plants, tends and harvests cultivated crops. Planned support for fields, underground crops and beehives.", "starter_tool": "base:resources:tools:stone_hoe", "availability": "Planned: farming and tool equipping are not available yet."},
+    {"role": "hunter", "position": [224, 116], "summary": "Hunts designated wildlife for the colony. Tracking and trapping may follow later.", "starter_tool": "base:resources:tools:hunting_spear", "availability": "Planned: requires player hunting, tool equipping and animal resource yields."},
+    {"role": "carpenter", "position": [332, 116], "summary": "Collects a carpentry kit to join this profession. Helps with general colony work; specialist wooden goods are planned.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it. Specialist workshop and recipes are planned."},
+    {"role": "stonemason", "position": [440, 116], "summary": "Shapes stone into furniture, building components and decorative pieces.", "availability": "Planned: requires a stone workshop and recipes. Promotion requirements are not finalized."},
+    {"role": "blacksmith", "position": [548, 116], "summary": "Smelts ore and forges metal tools and hardware. Leads to weaponsmithing and armorsmithing.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Planned: requires smelting, forging and tool equipping."},
+    {"role": "weaponsmith", "position": [440, 250], "summary": "An experienced Blacksmith specializing in weapons for the colony.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."},
+    {"role": "armorsmith", "position": [548, 250], "summary": "An experienced Blacksmith specializing in armor and shields.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."}
   ],
   "work_permissions": [
     {"id": "haul", "label": "Haul", "description": "Unrelated hauling to storage. Carrying supplies for another permitted job stays allowed.", "tasks": ["HAUL"]},
@@ -38,13 +39,14 @@
   "professions": {
 
     "base:profession:worker": {
+      "icon": "res://assets/ui/icons/worker.png",
       "promotion_enabled": true,
       "equipment_preview": {
-        "default_name": "Basic work tools", "icon": "colony",
+        "default_name": "Basic work tools",
         "default_description": "Standard tools for general colony work. No crafted upgrade equipped.",
         "upgrade_name": "Profession tools",
         "upgrade_description": "A Carpenter collects a crude carpentry kit when promoted. Other specialist tool careers are planned.",
-        "upgrade_method": "Craft a kit under Rudimentary → Starter tools, then choose Carpenter in Profession."
+        "upgrade_method": "Craft a kit under Rudimentary › Starter tools, then choose Carpenter in Profession."
       },
       "display_name": "Worker",
       "description": "The foundation of every dwarven colony. Workers haul goods, clear rubble, and fill in wherever a specialist is unavailable. Every dwarf begins as a Worker and retains this as a fallback when reassigned.",
@@ -52,8 +54,9 @@
     },
 
     "base:profession:miner": {
+      "icon": "res://assets/ui/icons/miner.png",
       "equipment_preview": {
-        "default_name": "Default pickaxe", "icon": "orders",
+        "default_name": "Default pickaxe",
         "default_description": "Standard mining tool. No equipment bonus; Miner experience improves digging speed separately.",
         "upgrade_name": "Iron pickaxe", "upgrade_status": "Planned · Not craftable yet",
         "upgrade_description": "Future Blacksmith-made upgrade. Planned chance to mine 2–3 marked voxels per strike; balance is not finalized.",
@@ -67,22 +70,26 @@
     },
 
     "base:profession:hunter": {
+      "icon": "res://assets/ui/icons/hunter.png",
       "display_name": "Hunter", "promotes_from": "base:profession:worker"
     },
     "base:profession:stonemason": {
+      "icon": "res://assets/ui/icons/stonemason.png",
       "display_name": "Stonemason", "promotes_from": "base:profession:worker"
     },
     "base:profession:farmer": {
+      "icon": "res://assets/ui/icons/farmer.png",
       "display_name": "Farmer",
       "description": "Plants, tends, and harvests all crops — both underground cave soil plots and surface dirt fields. Also responsible for tending beehives.",
       "promotes_from": "base:profession:worker"
     },
 
     "base:profession:carpenter": {
+      "icon": "res://assets/ui/icons/carpenter.png",
       "promotion_enabled": true,
       "required_tool": "base:resources:tools:carpentry_kit",
       "equipment_preview": {
-        "default_name": "No carpentry tool equipped", "icon": "craft",
+        "default_name": "No carpentry tool equipped",
         "default_description": "A crude carpentry kit is required for this profession.",
         "upgrade_name": "Iron saw", "upgrade_status": "Planned · Not craftable yet",
         "upgrade_description": "Future Blacksmith-made upgrade beyond the mallet and stone adze. Carpentry benefits will be defined with specialist recipes.",
@@ -94,18 +101,21 @@
     },
 
     "base:profession:blacksmith": {
+      "icon": "res://assets/ui/icons/blacksmith.png",
       "display_name": "Blacksmith",
       "description": "Smelts raw ore into metal ingots and forges tools, weapons, and hardware.",
       "promotes_from": "base:profession:worker"
     },
 
     "base:profession:weaponsmith": {
+      "icon": "res://assets/ui/icons/weaponsmith.png",
       "display_name": "Weaponsmith",
       "description": "A promoted Blacksmith working exclusively at the Forge, crafting weapons and crossbows for the military.",
       "promotes_from": "base:profession:blacksmith"
     },
 
     "base:profession:armorsmith": {
+      "icon": "res://assets/ui/icons/armorsmith.png",
       "display_name": "Armorsmith",
       "description": "A promoted Blacksmith working exclusively at the Forge, producing armour and shields for enlisted dwarves.",
       "promotes_from": "base:profession:blacksmith"

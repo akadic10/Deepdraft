@@ -20,26 +20,32 @@ func _run() -> void:
 	extra_worker.position = Vector3(65.5,21,58.5)
 	extra_worker.set_process(false)
 	tasks.register_dwarf(extra_worker)
+	# Ownership only: tastes would move how the room feels (TastesTest covers them).
+	worker.get_tastes().setup({},[])
 	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
 	explorer.window_manager_path = NodePath("../Windows")
+	explorer.dock_ui_path = NodePath("../Dock")
 	scene.add_child(explorer)
 	explorer.select_object(furniture,"installed:%d" % bed.installed_id)
 	await _frames(4)
-	# Move now precedes assignment; locate the actual bed-owner menu.
-	var chooser: MenuButton = explorer._actions.get_children().filter(func(child): return child is MenuButton)[0]
+	# Assign owner opens a list of the colonists' portraits beside the panel (doc 260).
+	var compact: Control = explorer.get_compact_panel()
+	var chooser: Button = compact.get_action_button("assign_bed")
 	_click(chooser.get_global_rect().get_center())
 	await _frames(3)
-	var popup := chooser.get_popup()
-	_expect(popup.visible and popup.item_count==3,"bed assignment menu lists unassigned and both colonists")
+	var choices: Array = compact._owner_rows.get_children()
+	_expect(compact._owners.visible and choices.size()==3,"bed owner list shows unassigned and both colonists")
+	_expect(choices.slice(1).all(func(row): return row.get_meta("portrait").texture is ViewportTexture),"each colonist in the list shows their portrait")
 	if "--capture" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(REVIEW_DIR+"assignment.png")
-	for index in popup.item_count:
-		if popup.get_item_metadata(index)=="assign_bed:%d" % worker.dwarf_id:
-			popup.id_pressed.emit(index)
+	for row: Button in choices:
+		if row.get_meta("action_id")=="assign_bed:%d" % worker.dwarf_id:
+			_click(row.get_global_rect().get_center())
 			break
 	await _frames(3)
-	_expect(bed.assigned_dwarf_id==worker.dwarf_id,"inspector action assigns the actual bed")
+	_expect(bed.assigned_dwarf_id==worker.dwarf_id and not compact._owners.visible,"choosing a portrait assigns the actual bed and closes the list")
+	_expect(compact._status.text=="%s's bed" % worker.dwarf_name,"the panel names the bed's owner")
 	_expect(_room_data().room_type=="personal_bedroom" and _room_data().owner_id==worker.dwarf_id,"single assigned bed derives personal bedroom owner")
 	extra_worker._rest_behavior.bed_rest.begin(48)
 	_expect(extra_worker._rest_behavior.bed_rest._options.is_empty(),"other dwarves cannot claim an assigned bed")
@@ -121,8 +127,11 @@ func _review_ownership_ui() -> void:
 	for resolution in [Vector2i(1280,720),Vector2i(960,540)]:
 		root.size = resolution
 		await _frames(6)
-		_expect(room_tool._window_content._status.text=="PERSONAL BEDROOM · SEALED" and room_tool._window_content._bedroom_hint.text.contains(worker.dwarf_name),"room inspector names the resident")
-		_expect(explorer._window.get_global_rect().end.y<=resolution.y,"bed inspector assignment control fits compact screen")
+		_expect(room_tool._window_content._kind.text=="Personal bedroom" and room_tool._window_content._owner_line.text=="%s sleeps here" % worker.dwarf_name
+			and room_tool._window_panel.get_title_label().text=="%s's bedroom" % worker.dwarf_name,"the room window names the resident, and the band their bedroom")
+		_expect(room_tool._window_content._tags.get_children().any(func(tag: Node): return (tag.get_child(0) as Label).text.begins_with("Owner's bonus")),
+			"a personal bedroom carries the owner's bonus tag")
+		_expect(explorer.get_compact_panel().get_global_rect().end.y<=resolution.y,"bed panel and its Assign owner control fit the compact screen")
 		if "--capture" in OS.get_cmdline_user_args():
 			DirAccess.make_dir_recursive_absolute(REVIEW_DIR)
 			await RenderingServer.frame_post_draw
@@ -131,11 +140,11 @@ func _review_ownership_ui() -> void:
 	room_tool.free()
 	explorer.clear_selection()
 	var dwarf_panel = explorer._dwarf_panel
-	explorer._standard_content.hide()
-	dwarf_panel.show()
 	dwarf_panel.show_data(load("res://scripts/components/DwarfInspection.gd").describe(worker),false)
-	manager.open("object_explorer")
-	_expect(dwarf_panel._happiness.text.contains("60%") and dwarf_panel._thought.text.contains("Slept in my own bedroom"),"dwarf inspector shows happiness and its sleep thought")
+	manager.open(explorer.WINDOW_ID)
+	var good: Array = dwarf_panel._good.get_children().filter(func(child: Node): return child.has_meta("thought"))
+	_expect(dwarf_panel._happiness.text.contains("60%") and not good.is_empty() and good[0].get_meta("thought").text.text == "Slept in my own bedroom",
+		"the character sheet shows happiness and the sleep thought on its Mood tab")
 	if "--capture" in OS.get_cmdline_user_args():
 		for tab in [0,1]:
 			dwarf_panel._show_tab(tab)

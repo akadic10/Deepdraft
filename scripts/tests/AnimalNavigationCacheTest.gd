@@ -12,7 +12,7 @@ func _run() -> void:
 	water = root.get_node("WaterManager")
 	nav = load("res://scripts/components/AnimalNavigation.gd")
 	_build_floor()
-	var stone: int = blocks.get_id("base:terrain:surface:grass_01")
+	var stone: int = blocks.get_id("base:terrain:surface:grass")
 	for x in range(24,54):
 		for z in range(24,54): world.set_block(x,20,z,stone)
 	await process_frame # Drain setup chunk notifications before measuring reuse.

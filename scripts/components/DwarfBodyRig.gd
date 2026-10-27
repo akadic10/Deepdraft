@@ -156,6 +156,7 @@ func _build_name_label() -> void:
 	label.no_depth_test = true
 	label.fixed_size = true
 	label.pixel_size = 0.0009
+	label.font = UITheme.display_font()
 	label.font_size = 40
 	label.outline_size = 8
 	label.modulate = Color(1.0, 0.96, 0.86)

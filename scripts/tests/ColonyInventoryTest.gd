@@ -82,7 +82,7 @@ func _run() -> void:
 	await _settle()
 	_expect(inventory._stock[STONE].total == 2 and inventory._stock[STONE].loose == 2, "loose units wake open window")
 	var stone: Node3D = items.nearest_loose_of_key(STONE, Vector3i(33,20,33))
-	var rect: Rect2 = inventory._tiles[IRON].button.get_global_rect()
+	var rect: Rect2 = inventory.tile(IRON).get_global_rect()
 	var window_rect: Rect2 = dock._inventory_window.get_global_rect()
 	items.reserve(stone, 17)
 	await _settle()
@@ -92,7 +92,7 @@ func _run() -> void:
 	stone.position = Vector3(33.5,21,33.5)
 	await _settle()
 	_expect(inventory._stock[STONE].carried == 1 and inventory._stock[STONE].total == 2, "pickup conserves total")
-	_expect(inventory._tiles[IRON].button.get_global_rect() == rect and dock._inventory_window.get_global_rect() == window_rect, "pickup leaves browsing targets and window unchanged")
+	_expect(inventory.tile(IRON).get_global_rect() == rect and dock._inventory_window.get_global_rect() == window_rect, "pickup leaves browsing targets and window unchanged")
 	items.drop_loose(stone, Vector3i(33,20,33))
 	await _settle()
 	_expect(inventory._stock[STONE].carried == 0 and inventory._stock[STONE].available == 2, "interrupted hauling returns available goods")
@@ -163,11 +163,11 @@ func _run() -> void:
 	items.drop_loose(cargo, Vector3i(38,20,34))
 	# Existing model thumbnails; no invented replacements.
 	for key in [STONE, IRON, ACORN]:
-		_expect(inventory._tiles[key].image.texture.resource_path == Inventory.thumbnail_path(key), "real model thumbnail for " + key)
+		_expect(inventory.tile(key).icon.resource_path == Inventory.thumbnail_path(key), "real model thumbnail for " + key)
 	var item_key: String = furniture.get_defs()[ACTIVE_TABLE].item_key
 	items.restore_loose_item(item_key, Vector3(37.5,21,33.5), 0)
 	await _settle()
-	_click(inventory._tiles[item_key].button.get_global_rect().get_center())
+	_click(inventory.tile(item_key).get_global_rect().get_center())
 	await _settle()
 	_expect(inventory.selected_key == item_key and manager.is_open("inventory") and not furniture.is_active(), "Inventory furniture selection inspects supplies without starting placement")
 	if "--capture" in OS.get_cmdline_user_args():
@@ -175,7 +175,8 @@ func _run() -> void:
 		root.get_texture().get_image().save_png("res://tmp/inventory_review/inventory_furniture.png")
 	_click(dock._button_by_target.place.get_global_rect().get_center())
 	await _settle()
-	_click(catalog._tiles[ACTIVE_TABLE].button.get_global_rect().get_center())
+	_click(catalog.tile(ACTIVE_TABLE).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(manager.is_open("place") and not manager.is_open("inventory") and furniture.active_furniture_key() == ACTIVE_TABLE, "Place dock remains the entry to furniture placement")
 	_expect(furniture._ghosts.is_empty(), "Place selection never places behind UI")
 	_place_at(Vector3i(42,20,40))
@@ -193,18 +194,18 @@ func _run() -> void:
 	var scroll: int = inventory._scroll.scroll_vertical
 	var old_keys: Array = inventory._browse_keys.duplicate()
 	var iron: Node3D = items.nearest_loose_of_key(IRON, Vector3i.ZERO)
-	inventory._tiles[IRON].button.grab_focus()
+	inventory.tile(IRON).grab_focus()
 	items.take(iron); iron.free()
 	await _settle()
-	_expect(inventory._tiles[IRON].button.visible and inventory._tiles[IRON].count.text == "0", "depletion retains zero-count tile until reopening")
+	_expect(inventory.tile(IRON) != null and inventory.tile(IRON).visible and not inventory.tile(IRON).has_node("Count"), "depletion keeps the tile, dimmed and without a count, until reopening")
 	_expect(inventory._browse_keys == old_keys and inventory._scroll.scroll_vertical == scroll, "depletion preserves order and scroll")
-	_expect(inventory._tiles[IRON].button.has_focus(), "count wake preserves keyboard focus")
+	_expect(inventory.tile(IRON).has_focus(), "count wake preserves keyboard focus")
 	items.restore_loose_item("base:resources:wood:oak_log", Vector3(39.5,21,33.5), 0)
 	await _settle()
-	_expect(inventory._browse_keys.slice(0, old_keys.size()) == old_keys, "new goods append without reshuffling")
-	inventory._set_category("materials")
-	_expect(inventory._tiles[STONE].button.visible and not inventory._tiles[item_key].button.visible, "Materials filter uses JSON resource tags")
-	inventory._set_category("all")
+	_expect(inventory._browse_keys.slice(0, old_keys.size()) == old_keys and inventory.shown_goods().back() == "base:resources:wood:oak_log"
+		and _inventory_heading("New"), "new goods wait in the New group at the end, without reshuffling")
+	_expect(inventory.category_of(STONE) == "materials" and inventory.category_of(item_key) == "furniture" and _inventory_heading("Materials")
+		and _inventory_heading("Furniture") and not _inventory_heading("All"), "every category is open at once: Materials gathers goods by their JSON tags")
 	# Title drag, close/reopen and native responsive captures.
 	var start: Vector2 = dock._inventory_window.position
 	var press := InputEventMouseButton.new()
@@ -249,3 +250,8 @@ func _run() -> void:
 	if failures.is_empty(): print("COLONY_INVENTORY_OK: direct navigation, physical totals, reservations, hauling, crate contents, stockpile storage, Locate/Inspect, separate Place workflow, stable browsing, drag, Escape, 960/1280/2560 layouts")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
+
+
+## Whether the Inventory window shows a group headed with this title.
+func _inventory_heading(title: String) -> bool:
+	return inventory._grid.find_children("*", "Label", true, false).any(func(label: Label): return label.text == title and label.is_visible_in_tree())

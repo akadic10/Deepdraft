@@ -3,7 +3,6 @@ extends RefCounted
 ## Incremental, discovered-air-only shell. Geometry is presentation; the real
 ## terrain keeps collision, support and shadow ownership.
 const SIDES := [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]
-var floor_art := preload("res://scripts/components/ConstructionFloorArt.gd").new()
 
 func arrays() -> Array:
 	return [PackedVector3Array(),PackedVector3Array(),PackedColorArray(),PackedInt32Array()]
@@ -55,13 +54,7 @@ func _solid(cell: Vector3i) -> bool:
 
 func _face(cell: Vector3i, direction: Vector3i, renderer: Node, data: Array) -> void:
 	var id := WorldData.get_terrain_block(cell.x,cell.y,cell.z)
-	var definition := BlockRegistry.get_def(BlockRegistry.get_key(id))
-	var floor_def := BlockRegistry.get_construction_def(String(definition.get("construction","")))
-	if not floor_def.is_empty():
-		var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
-		floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,false,data[0],data[1],data[2],data[3])
-	else:
-		renderer.add_shell_face(cell,-direction,BlockRegistry.get_terrain_color(id,WorldClock.season),data[0],data[1],data[2],data[3])
+	renderer.add_shell_face(cell,-direction,BlockRegistry.get_terrain_color(id,WorldClock.season),data[0],data[1],data[2],data[3])
 
 func mesh(data: Array) -> ArrayMesh:
 	if data[0].is_empty(): return null

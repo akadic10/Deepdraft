@@ -33,44 +33,71 @@ queue, totals, moisture and clock to whole ticks. On the 2026-10-20 quicksave th
 worst water frame falls from 13 ms to 6 ms and running-game frame p95 from 26 ms
 to 20 ms.
 
-**Water flow loop (2026-10-14):**
-[184](../00_dev_roadmap/184_water_flow_loop_performance.md) reuses quantities
+**Water flow loop (2026-10-14, 184):** `WaterFlow` reuses quantities
 within ordered transfers, stores receiving ceilings with invalidated terrain
 connections, and traverses the live wet prefix of cached reach geometry without
-building temporary key arrays. The prior solver matches across 3,200 differential
-ticks; all 16 final-source fixtures pass. Tick cadence, rounding, sources, queue
+building temporary key arrays. Each cached connection keeps its receiving
+ceiling; the terrain-edit invalidation that drops a connection refreshes both
+sides, and restore clears them. Live quantities, dry boundaries, the integer
+remainder split and current flux stay authoritative. A per-tick notification
+cache was tried and dropped: its controlled gain was small and its native runs
+mixed. The prior solver matches across 3,200 differential ticks; all 16
+final-source fixtures pass. Tick cadence, rounding, sources, queue
 order, offscreen activity and saves are unchanged. Controlled full-world water
 CPU falls 21%; matched uninterrupted native pans show 15–22% cheaper water
 updates and 8–12% lower frame P95, with occasional larger stalls still present.
 
-**Water current animation (2026-10-14):**
-[183](../00_dev_roadmap/183_water_current_performance.md) removes periodic
+**Water current animation (2026-10-14, 183):** removes periodic
 whole-field current-update stalls. Cosmetic samples own accumulated flux and
 compact volume snapshots, then drain across frames within a soft 1 ms budget.
 The solver records later telemetry separately and continues unchanged, including
 offscreen water. No mass, solver schedule, queue or saved state is modified.
+`WaterSurfaceMotion` takes the solver's `surface_flux` dictionary (the solver
+starts a fresh one) and copies only the volumes of flowing or still-decaying
+currents, so later simulation cannot change a sample. It works in batches of 16,
+checking `rendering.motion_budget_ms` (1.0) between batches; the capture itself is
+atomic. One sample runs at a time, at least 0.2 simulation seconds apart, and
+newer flux waits for the next sample with its real elapsed time. Pause lets a
+captured sample finish, then freezes. Reload, a clock reset or a new solver
+discards pending work and clears the current field, but keeps the mesh slots.
 
-**Damp-ground rendering (2026-10-14):**
-[182](../00_dev_roadmap/182_moisture_rendering_performance.md) removes the
+**Damp-ground rendering (2026-10-14, 182):** removes the
 periodic whole-mesh rebuild. Soil contact and fractional water notifications
 feed a disposable tile index; rendering proceeds within a soft 1 ms frame
 budget. Wetting/drying equations, water amounts and persistence are unchanged.
+The renderer's rules are in doc 24 ("Damp-ground scheduling").
 
-**Water solver performance (2026-10-14):**
-[181](../00_dev_roadmap/181_water_simulation_performance.md) caches valid space
+**Water solver performance (2026-10-14, 181):** `WaterFlow` caches valid space
 ceilings and flat-reach geometry, and skips redundant neighbor wake work.
 Wet/dry boundaries remain live; terrain edits and reloads invalidate geometry.
-Simulation cadence, cell budget, transfer order, conservation, moisture and save
-formats are unchanged. Native fresh-world average water-update cost falls by
+The caches hold topology only, never water levels. Any terrain edit clears every
+cached reach (a reach can start up to `level_reach` columns from the edit) and
+the edited column's ceilings; restore clears every cache, and a changed
+`level_reach` clears the reaches. Cached reaches are capped at 8,192
+(`MAX_CACHED_REACHES`). Waking a neighbour checks the queue first, so insertion
+order is unchanged. `WaterManager.advance` closes at most four ticks a frame and
+carries the rest as time owed. Simulation cadence, cell budget, transfer order,
+conservation, moisture and save formats are unchanged. Native fresh-world average water-update cost falls by
 about one third; the original solver and final code match in 1,400 differential
 ticks. Optional stage timers are disabled during normal play.
 
-**Water mesh scheduling (2026-10-14):**
-[179](../00_dev_roadmap/179_water_mesh_rebuild_performance.md) moves geometry
+**Water mesh scheduling (2026-10-14, 179):** moves geometry
 construction to workers with private snapshots. Coalesced, camera-prioritized
 requests use at most two jobs and a 2 ms soft main-thread preparation/upload
 budget. Slice/reload epochs reject old results; unseen water still simulates.
 Water heights, flooding, appearance and save formats are unchanged.
+`WaterRenderer` copies one tile plus a one-column halo into private containers.
+`WaterMeshBuilder` turns that copy into geometry and waterfall/splash sites on a
+worker, reading no live node, solver, terrain or GPU state; the main thread polls
+finished jobs (never waits for one) and builds the `ArrayMesh`. The budget and job
+count are `rendering.mesh_budget_ms` (2.0; one capture or upload is atomic) and
+`rendering.mesh_jobs` (2). The nearest pending tile goes first, tiles outside the
+frustum after those inside; every eighth dispatch takes the oldest, so distant
+water still updates, and a tile marked again while waiting keeps its first
+timestamp. A changed tile keeps its old mesh until the new one is ready, an
+exactly unchanged capture reuses it, and a tile with no visible water captures
+empty, so hidden pools and films never rebuild it. A slice or view change hides
+the old meshes at once; scene teardown joins outstanding jobs.
 
 Status: **Water simulation, river generation, voxel presentation and soil moisture
 implemented 2026-10-10.** Physical brewing-water hauling and production remain
@@ -81,8 +108,9 @@ planned. This supersedes the earlier permanent-water-block and no-flood rules.
 Log bridges (2026-10-11) register navigation supports over the river without
 writing terrain blocks or displacing water. Only placement requires standing
 water; a later dry channel retains its bridge. Flooded head clearance blocks
-traversal through the normal live-water checks. See
-[113 — Log bridges](../00_dev_roadmap/113_log_bridges.md).
+traversal through the normal live-water checks. Water that rises into the head
+clearance of the deck or a landing also closes a finished bridge, which drops its kit
+once nobody is on it; the bridge rules are in doc 32 (doc 113).
 
 Duck navigation reads live water levels and excludes unsafe waterfall approaches
 and cave water. Ducks do not add/extract volume, irrigate soil or change terrain;
@@ -94,7 +122,11 @@ river from a high rock face to the main lake, after validating the macro shelves
 and before placing caves. The Y115 summit and bedrock stay protected. Channels
 vary with the seed and include collection pools, quiet reaches and cascades.
 Normal reaches have a two-cell carving radius (about five voxels across), with
-short one-cell-radius narrows and a small spring mouth. Pools remain wider.
+short one-cell-radius narrows and a small spring mouth. Pools remain wider, and
+waterfall landings (drops of two blocks or more) widen into plunge pools
+(`river.pool_radius`). Each quiet reach starts with a shallow downhill depth
+gradient: a brim-full flat channel would make the spring wait for a drawdown wave
+to cross the whole terrace before supplying the stream.
 The first four cells outside the cave continue its three-cell stream straight
 ahead before joining the seeded bends. The cliff lip has real air clearance
 across that opening; dry ledges cannot pinch the outlet with an immediate turn.
@@ -108,30 +140,45 @@ rise, equalize and spill at terrain sills. Mining can connect surface water to
 underground pools. Solid placement retains displaced water rather than deleting it.
 A bounded active queue sleeps quiet lakes; simulation time follows clock pause/speed.
 Free waterfalls prefer the lowest receiving surface; they do not distribute flow
-equally onto higher neighboring terraces while the lower channel is open.
+equally onto higher neighboring terraces while the lower channel is open. The
+renderer draws falls from the same choice (`WaterFlow.lowest_receiving_level`).
+Spaces come from terrain solidity alone (`WaterManager._spaces`), so furniture and
+doors are not watertight. Standing water (at least 1/16 block,
+`simulation.standing_depth`) reads as a water block in `WorldData.get_live_block`,
+so new navigation and placement avoid it; flooding never damages or removes
+existing plants, including on load. `levels_changed`, which NavGrid and wildlife
+navigation hear, fires only when a space's occupied top crosses a voxel boundary,
+not on every fractional change.
 
 The spring's wet stone adds at most 2 blocks³ per simulation second,
 inside a real cave with a pool and dry access ledges. It stops at the existing
 maximum discharge level. A loose dry stone rests on the lakebed at the existing
 intake, replacing the decorative shoreline arch/fissure. It removes at most
 8 blocks³/s, only above surface level 19
-(the top of old water-block Y18), so its depth cannot empty the lake.
-Both stones use the exact authored
-ore-drop silhouette and scale, with turquoise wet-stone flecks and muted dry-stone
-flecks. The wet stone rests on the ledge beside the pool; the dry stone sits on
-the lakebed. `WaterStones` renders and inspects these two models with normal
-underground lighting and slice/discovery visibility. Opaque water conceals a fully
-submerged stone. Natural stones start disallowed: inspection and their water
-effects continue, while colony interaction is blocked. Allow alone does not
-auto-haul a placed stone. Deliberate Pack/Move/Place uses real worker jobs and
-individually identified items. Packed, carried and stored stones are inactive.
+(the top of old water-block Y18), so its depth cannot empty the lake. The rates
+are `simulation.spring_rate` and `outlet_rate` in `water.json`.
+Both are one-block rock models from the furniture art pipeline (`wet_stone` and
+`dry_stone` in `tools/art_data/voxel_furniture.json`), the wet one darker. The wet
+stone rests on the ledge beside the pool; the dry stone sits on the lakebed.
+`WaterStones`, a child of `WaterRenderer`, renders and inspects these models with
+normal underground lighting and slice/discovery visibility. Opaque water conceals
+a fully submerged stone, and a hidden stone cannot be picked. Natural stones start
+disallowed: inspection and their water effects continue, while colony interaction
+is blocked. Allow alone does not auto-haul a placed stone. Deliberate
+Pack/Move/Place uses real worker jobs and individually identified items (doc 110).
+Packing is two seconds of UNINSTALL work (`stones.*.packing_seconds`) from a
+walkable dry stand beside the stone, and a Move destination needs one too, so a
+stone under deep water cannot be collected. Packing progress survives
+interruption, and the effect runs until the item exists. Disallowing a stone
+cancels its packing and Move orders. Packed, carried and stored stones are inactive.
 Relocated wet stones supply their new base up to their top; relocated dry stones
 retain the receiving surface at placement (at least their top). Removing support
 settles both a placed stone and its effect. Models add no water displacement or
-navigation occupancy. Extra scenario stones can use the same grant/lifecycle API;
-the acquisition scenario remains future work. See [109](../00_dev_roadmap/109_loose_water_stones.md)
-for artwork and [110](../00_dev_roadmap/110_item_permissions_and_water_stones.md)
-for permissions, physical ownership, persistence and relocation.
+navigation occupancy. `WaterManager.grant_stone(kind, cell, disallowed=true)` makes
+one more inactive loose stone with a new `water_stone:N` identity for a future
+scenario, using the same work, permission and save paths; placed stones act each
+tick in a fixed order (wet stones first, then by id). The acquisition scenario
+remains future work.
 The `base:terrain:water:source` key is an occupancy identity, never an inexhaustible
 block. `WorldData.get_live_block` overlays current water on authoritative terrain.
 
@@ -139,8 +186,10 @@ Soil irrigation reaches up to three cells by Manhattan distance, with weaker
 coverage farther away. Water must intersect the nearby root elevation; it cannot
 irrigate through an entire rock shelf. Nearby soil wets gradually (two game hours
 for full saturation) and dries over 24 game hours. The sparse analytic moisture
-history is saved separately from liquid volume. No crop damage is applied.
-These are initial balancing values, not final crop requirements.
+history is saved separately from liquid volume. `SoilMoisture` is read at a given
+time, so queries and rendering never advance it, and wetting soil takes no water
+from the source. No crop damage is applied. The radius and hours are `irrigation`
+in `water.json`: initial balancing values, not final crop requirements.
 
 Water uses opaque, fractional-height voxel surfaces and separately batched falls,
 cube splashes, restrained square highlights and local water ambience. Damp soil
@@ -148,8 +197,11 @@ and a soil-only moisture overlay explain irrigation. Cave discovery, slicing,
 underground lighting and the shared sound bus still apply.
 Rivers, lakes and pools share one blue-green surface color and animation; depth
 darkens that same color by at most 12%, instead of changing to a separate hue.
+A fall is drawn only where water drops more than one block at a free outlet, set
+0.025 block off the cliff face so the two never flicker against each other.
 Depths below 1/16 block are conserved surface films: damp ground rather than blue
-standing water, without blocking navigation/placement or producing waterfall effects.
+standing water, without blocking navigation/placement or producing waterfall
+effects or sound.
 
 Development → **DEV: Water** offers feature locations, spring stop/start,
 a test dam/removal, a measured lake withdrawal and the moisture overlay. The dam
@@ -160,19 +212,31 @@ those future jobs; callers must handle access, transport and container ownership
 
 Current saves require the `water` owner (restore priority 11, after mining). Its
 volume deltas, active queue, displacement, source/outlet switches, simulation time,
-soil history and solid terrain edits survive JSON exactly using integer units.
-Stone identity, permissions, placed state, effect location/head and packing progress
-are also saved here. Physical inactive items save with their loose/cargo/storage
-owners, and Move destinations with furniture plans. Validation enforces one
-physical owner for each stone identity.
+soil history and solid terrain edits survive JSON exactly using integer units
+(millionths of a block cubed, and microseconds for time). Spring input, outlet loss
+and extraction keep separate totals (`added_units`, `drained_units`,
+`extracted_units`). Stone identity, permissions, placed state, effect location/head
+and packing progress are also saved here. Physical inactive items save with their
+loose/cargo/storage owners, and Move destinations with furniture plans. Validation
+rejects negative or over-full volumes, negative totals or times, and duplicated or
+out-of-range cells before the world changes. It requires the natural `wet` and
+`dry` identities and one physical owner for each stone identity, allows a packing
+order only on a placed, allowed stone, and at most one Move plan per stone.
 Water layout version 5 identifies the aligned spring outlet, real cave and wider, bank-aware terrain;
 saves using the earlier river bed are rejected rather than applying incompatible deltas.
-There are no migrations for older development saves. Tests and captures are in
-[105 — Rivers and water](../00_dev_roadmap/105_rivers_and_water.md).
+Raise `RiverLayout.VERSION` whenever generated river terrain or initial volumes
+change; changes to stone art or water appearance keep it. There are no migrations
+for older development saves.
 
-[106 — Spring caves and water edges](../00_dev_roadmap/106_spring_caves_and_water_edges.md)
-records the source chamber and exposed-cave discovery; its original embedded
-wet-stone blocks are superseded by the loose model in 109.
+The spring cave (doc 106) is a real chamber cut by `SpringCaveLayout`, 8–10 cells
+into the mountain (`spring_cave` in `water.json`), reaching up to 22 where rough
+cliff ledges would otherwise leave its back without a rock roof two blocks thick.
+Terrain blocks form every wall, floor and roof: a three-cell stream between raised
+dry ledges, widening into a pool at the back. The spring's source is that back pool, and its maximum head is the
+mouth's level. The cave is open to the surface, so generation reveals it
+(`InteriorTracker.reveal_surface_caves()`, again on each load) without mining
+deltas, and it then uses the discovered-cave shell, slice, picking, navigation and
+lighting paths; daylight follows its real entrance.
 The cave reserves terrain separately from enclosed cave systems. Fractional water
 interfaces are closed even below 0.002 block; steps below 1/8 block use surface
 lighting, while real drops retain vertical faces. Sky access follows solid terrain,
@@ -212,7 +276,7 @@ flooding below the spring.
 
 The lowland lake has a dry stone on its bed with a defined retained surface level.
 It drains excess above that level, rather than constantly deleting stored water.
-The user chose an ore-shaped loose stone instead of a decorative shoreline opening.
+The user chose a loose stone instead of a decorative shoreline opening.
 Interrupting upstream supply must not cause the outlet to empty the lake below
 its threshold. Water drawn by dwarves or released through a lower excavation
 can still lower the lake.
@@ -270,24 +334,38 @@ agriculture and alcohol production.
 
 ## Voxel presentation
 
-**Live appearance pass (2026-10-10):** [107](../00_dev_roadmap/107_water_appearance.md)
-uses measured transfer directions, including wet-reach equalization, to animate
-sparse voxel highlights. Quiet water shimmers in place. Waterfall streaks fall
-downward; foam and cube splashes stay near active lips/landings. Detail fades at
-distance. This transient current field is indexed by water space (including its
-floor), respects pause/speed, and never changes mass or saved solver state.
+**Live appearance pass (2026-10-10, 107):** measured transfer directions,
+including wet-reach equalization, animate sparse voxel highlights. Quiet water
+shimmers in place. Waterfall streaks fall downward; foam and cube splashes stay
+near active lips/landings. Detail fades with distance and with each pixel's
+footprint, and distant splashes are culled. This transient current field is
+indexed by water space (including its floor), respects pause/speed, and never
+changes mass or saved solver state.
+`WaterFlow` records the transfers only as optional telemetry (`surface_flux`),
+which the solver, mass accounting, queues and saves never read. `WaterSurfaceMotion`
+smooths it into the current field and writes a lookup texture by water space, so
+animating currents needs no remesh and stacked pools stay separate. Each quad
+carries its texture slot and kind (surface, fall or foam). The shader crossfades
+two short advection phases instead of scrolling without bound, calm water keeps
+stationary marks, and all motion runs on the water simulation clock.
 
-[108 — Water ambience](../00_dev_roadmap/108_water_ambience.md) adds procedurally
-synthesized waterfall rush and gentler river burbling. Two bounded spatial voices
-follow visible measured currents, fade with camera focus/zoom, and use the shared
-Work volume/mute controls. Quiet lakes, hidden or drained water stay silent;
-pause/loading stops playback. Sound generation and playback are transient.
+**Water ambience (2026-10-10, 108):** procedurally synthesized waterfall rush
+and gentler river burbling. Two bounded spatial voices follow visible measured
+currents, fade with camera focus/zoom, and use the shared Work volume/mute
+controls. Quiet lakes, hidden or drained water stay silent; pause/loading stops
+playback. Sound generation and playback are transient. Its rules are in doc 13,
+under `WorkFeedback` (`WaterSound`).
 
 Retain flat voxel surfaces and blocky shorelines, with readable depth, restrained
 surface movement and visible changing water levels. Falling water gets separate
 block-shaped splash, ripple and sparkle effects responding to actual flow.
 The high spring should read as a landmark: dark rock opening, bright moving water
 at the mouth, and a small splash pool where appropriate.
+
+**Look under review (owner, 2026-10-15, doc 196):** the owner is unhappy with
+today's water appearance and wants to revisit it in a later session. When that work
+starts, agree the look with the owner first and weigh its cost with it; keeping
+today's appearance is not a goal, and the presentation rules above may change.
 
 Use batched geometry, never a scene node per water cell. Separate water materials
 or effects may be needed alongside the chunk pipeline. Normal lighting, slicing
@@ -324,7 +402,8 @@ owner restore then installs authoritative saved volumes and queues, clears topol
 and soil-kind caches, rebuilds moisture contacts and navigation tops, and notifies
 consumers once. The context ends before simulation resumes and is cleared by reset.
 Live mining, construction, dam breaches and water conservation use the normal path.
-The save format is unchanged. See [247 — Saved-world loading](../00_dev_roadmap/247_saved_world_loading.md).
+The context is `WaterManager.begin_terrain_restore()`; running water for each restored
+voxel made saved worlds load several times slower than fresh ones (doc 247).
 
 ## Stonehearth reference reviewed
 

@@ -27,7 +27,6 @@ var cursor := 0
 var columns := {}
 var column_keys: Array = []
 var floor_total := 0
-var floor_finished := 0
 var floor_y_total := 0
 var exposure := 0.0
 var room := {}
@@ -116,18 +115,12 @@ func _step() -> void:
 			var column := Vector2i(cell.x, cell.z)
 			if not columns.has(column) or cell.y < int(columns[column]): columns[column] = cell.y
 			if not visited.has(cell + Vector3i.UP) or not visited.has(cell + Vector3i.UP * 2): return
-			var id := _block_id(cell + Vector3i.DOWN)
-			if not BlockRegistry.is_solid(id): return
-			floor_total += 1
-			if BlockRegistry.get_def(BlockRegistry.get_key(id)).get("kind", "") == "constructed_floor": floor_finished += 1
+			if BlockRegistry.is_solid(_block_id(cell + Vector3i.DOWN)): floor_total += 1
 		Stage.COLUMNS:
 			if cursor == column_keys.size():
 				room.mean_floor_y = float(floor_y_total) / maxi(1, column_keys.size())
 				room.seasonal_influence = float(owner.temperature_config.sealed_exposure) * exposure / maxi(1, column_keys.size())
 				room.floor_tiles = floor_total
-				room.finished_floor_tiles = floor_finished
-				room.flooring_complete = floor_total > 0 and floor_finished == floor_total
-				room.flooring_appeal = float(owner.appeal_config.complete_floor_bonus) if room.flooring_complete else 0.0
 				furniture_keys = owner._heat_cells.keys()
 				cursor = 0
 				stage = Stage.HEAT
@@ -165,11 +158,7 @@ func _step() -> void:
 				if room.bed_count == 0: first_bed = origin
 				room.bed_count += 1
 			else:
-				if room.bed_count > 0 and room.light_count > 0 and not door_tiles.is_empty():
-					if room.bed_count > 1: room.room_type = "barracks"
-					else:
-						room.owner_id = int(owner._bed_assignments.get(first_bed, -1))
-						room.room_type = "personal_bedroom" if room.owner_id >= 0 else "bedroom"
+				owner.classify(room, int(owner._bed_assignments.get(first_bed, -1)) if room.bed_count == 1 else -1)
 				rooms[next_room_id] = room
 				next_room_id += 1
 				stage = Stage.SEEDS
@@ -179,7 +168,6 @@ func _begin_room() -> void:
 	cursor = 0
 	columns = {}
 	floor_total = 0
-	floor_finished = 0
 	floor_y_total = 0
 	exposure = 0.0
 	room = {"cells": visited, "door_cells": door_tiles, "volume": visited.size(),

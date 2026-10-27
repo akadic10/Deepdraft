@@ -8,49 +8,114 @@
 
 ---
 
-**2026-10-17 closeout:** Current resume point:
-[220 — Session handoff](220_session_handoff_2026_10_17.md).
+**2026-10-17 closeout:** Current resume point: the session handoff, doc 220.
 
 | Recent report | Disposition |
 |---|---|
-| Existing save crashes while a new game works | Reproduced and fixed in [211](211_large_save_terrain_restore.md); final-state schema and compatibility checks in [212](212_final_terrain_state.md). |
-| Dwarves idle while goods need hauling | Route starvation and repeated planning work corrected in [213](213_hauling_route_fairness.md) and [215](215_shared_hauling_routes.md). New cases require current-save evidence; legitimate food/need interruptions are separate. |
-| Sollin remains motionless | Exact persistent freeze not reproduced after fresh load. A separate reproducible idle-timer/pose interruption bug was fixed in [216](216_idle_planning_interruption.md). |
-| Torch moved from upstairs | Exact copied-save trace used stairs and valid lower-room contact. Stale worker visibility fixed in [217](217_dwarf_slice_visibility.md); through-floor reach was not reproduced. |
-| X-ray severe stalls | Reproduced and corrected in [218](218_xray_performance.md), with native before/after measurements and their limits. |
-| X-ray completely rebuilds on slice toggles | Recent variants now retained in [219](219_xray_slice_cache.md). Repeated copied-save toggles queued zero mesh rebuilds; final player review remains pending. |
+| Existing save crashes while a new game works | Reproduced and fixed in doc 211; final-state schema and compatibility checks in doc 212. |
+| Dwarves idle while goods need hauling | Route starvation and repeated planning work corrected in docs 213 and 215. New cases require current-save evidence; legitimate food/need interruptions are separate. |
+| Sollin remains motionless | Exact persistent freeze not reproduced after fresh load. A separate reproducible idle-timer/pose interruption bug was fixed in doc 216. |
+| Torch moved from upstairs | Exact copied-save trace used stairs and valid lower-room contact. Stale worker visibility fixed in doc 217; through-floor reach was not reproduced. |
+| X-ray severe stalls | Reproduced and corrected in doc 218, with native before/after measurements and their limits. |
+| X-ray completely rebuilds on slice toggles | Recent variants now retained in doc 219. Repeated copied-save toggles queued zero mesh rebuilds; final player review remains pending. |
 
 Other completed gameplay reports are summarized in 220. Historical issues
 001/002 below remain presumed closed by the player's earlier instruction;
 these newer reports do not establish a shared cause or reopen them. The
-[177 review](177_project_review_deferred_2026_10_14.md) remains parked. This index
+177 review (doc 177) remains parked; its two open findings are in
+[00 — To do](00_todo.md), Furniture. This index
 does not authorize automatic investigations or unattended work.
 
 **2026-10-13 playtest fixes:** The following reports have reproduced causes and
 implemented fixes, with automated/native evidence in their milestone docs:
 
 - Elevated copper drops unreachable and door preview missing:
-  [173](173_ledge_pickup_and_safe_exports.md). Pickup stands/reach corrected;
+  doc 173. Pickup stands/reach corrected;
   the door issue came from replacing a running game's PCK, now prevented by
   unique release folders.
 - Mining stuck at zero faces after moving a bed:
-  [174](174_mining_furniture_access.md). Occupancy changes now refresh mining
+  doc 174. Occupancy changes now refresh mining
   destinations and pending lease recovery.
 - Left/right dwarf hand and boot colors appear mismatched:
-  [175](175_dwarf_limb_lighting.md). Reflected mesh lighting corrected while
+  doc 175. Reflected mesh lighting corrected while
   retaining shared colors and rig anchors.
 
 Player review of the latest mining/limb fixes after restart remains pending.
 These reports are separate from historical issues 001/002 below and do not
-establish their original causes. Current build and resume notes:
-[176 — Session handoff](176_session_handoff_2026_10_13.md).
+establish their original causes. Current build and resume notes: the session
+handoff, doc 176.
 
 **2026-10-12 status:** Issues 001 and 002 are **CLOSED — presumed resolved**, by
 Alen's decision. Neither requires further investigation unless the player reports
 it again. Their original causes were not confirmed; the historical reports below
 are retained for reference, not as active work. Issue 001 follows the major
-scheduler/lifecycle changes in [126 — Lifecycle and recovery](126_job_lifecycle_and_recovery.md).
-See [124 — Session handoff](124_session_handoff_2026_10_11.md).
+scheduler/lifecycle changes in doc 126 (lifecycle and recovery). Session handoff:
+doc 124.
+
+## Issue 003 — `ToolPromotionTest` fails 18 checks, also on the last commit · **CLOSED — a stale test, not a regression** · found 2026-10-23 · closed 2026-10-26
+
+**Resolved (2026-10-26).** Promotion works; the test had gone stale.
+- **The cause:** the test installs the crude workbench at (45, 20, 42), and the bench now
+  occupies a 3 by 3 space (x 45–47, z 42–44). The test then placed the worker at
+  (46.5, 21, 43.5), inside the bench, where no cell is walkable.
+- **How every check failed:** every route from there failed.
+  - The sealed-kit step "passed" for the wrong reason.
+  - The reachable second kit was excluded as unreachable.
+  - Every later check failed in turn.
+
+  A trace of the promotion's search showed both kits excluded within two ticks, from a start
+  cell that is not walkable.
+- **The proof:** a copy of the test with only the worker moved to (44.5, 21, 44.5), beside
+  the bench, passed every check. That covers pickup from the ground and from storage, a
+  sealed kit giving way to a reachable one, pending and equipped saves, permission
+  interrupts, Miner, and the UI.
+- **The fix:** that one position, in `ToolPromotionTest`. The test was repaired rather than
+  deleted because `EquipmentFeedbackTest` extends it.
+
+**Not a playtest report.** Found while running the `crafting` test area during the UI
+icon pass (doc 259, since retired). The test is in that area of
+`tools/test_suite.json`, not in the gate, and the gate passes.
+
+**Observed.** `tools/run_job_reliability.ps1 -Tests ToolPromotionTest` fails on every
+run, after about 6 seconds. There are no script errors, only failed checks, in this
+order:
+- blocked nearest tool yields to reachable alternative;
+- promotion collects tool from stockpile;
+- withdrawal transfers single ownership;
+- equipped tool survives JSON save restoration once;
+- pending snapshot restores one tool and retains old role (twice);
+- restored appointment reacquires physical kit (twice);
+- disallowed kit cannot authorize promotion (twice);
+- interrupted kit stays disallowed (twice);
+- UI offers cancellation while dwarf collects kit;
+- Cancel promotion button releases appointment;
+- profession screen displays equipped kit (twice);
+- inspector identifies real equipped tool;
+- inventory tracks equipped kit separately.
+
+The checks before the first failure pass. These include crafting the kit,
+reserving it, and failing cleanly when every kit is sealed off.
+
+**Predates the UI work.** The last commit (`b3a95478`), extracted with
+`git archive HEAD` into a scratch folder, imported and run on its own, fails the same
+way, with the first failure identical. The uncommitted UI changes did not cause it.
+
+**Where to look.** The first failure follows this setup:
+1. A kit is sealed behind rock, and promotion correctly fails.
+2. A second kit is restored as a loose item at (39.5, 21, 39.5).
+3. `worker.change_profession(CARPENTER)` should then be appointed to it, and isn't.
+
+Candidates, not yet investigated, most likely first:
+1. A change in item pickup or route checks since the test was written: loose and stored
+   item restoration in `ItemDropManager` (`restore_loose_item`, `restore_stored_item`),
+   stockpile withdrawal, or `DwarfAgent.change_profession` and the promotion and
+   equipment components.
+2. A stale fixture: the crafting fixture's world, the kit positions or the worker's
+   start cell no longer match what the test assumes.
+
+**Decision pending.** If the game regressed, fix it with a focused regression test. If
+the test is stale, delete it, as CLAUDE.md asks, unless other tests build on it. Run
+the gate after either.
 
 ## Issue 002 — Dwarves overlap unmined mining-designation cells · **CLOSED — presumed resolved** · reported 2026-10-07
 
@@ -113,7 +178,7 @@ investigation is planned unless Alen reports it again. This is a provisional
 closure, not a confirmed reproduction or root-cause fix of the original report.
 The observations and hypotheses below are retained as historical context.
 
-**2026-10-09 follow-up:** [88 — Ladder task reachability](88_ladder_task_reachability.md)
+**2026-10-09 follow-up:** doc 88 (ladder task reachability)
 replaces the capped yes/no assignment probe with resumable searches and tests all
 valid mining stands, fixing two reproduced ladder-related failures. The player
 confirmed ladder access and staircase excavation. This addresses the older

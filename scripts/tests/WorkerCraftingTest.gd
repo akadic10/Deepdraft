@@ -165,11 +165,12 @@ func _run() -> void:
 	furniture.perform_explorer_action("installed:%d" % bench.installed_id,"craft")
 	await _frames(5)
 	_expect(manager.is_open("craft") and panel.selected==TORCH_RECIPE,"bench inspector opens crafting")
-	panel._quantity.get_line_edit().text = "2"
-	panel._mode.select(0)
-	_click(panel._make.get_global_rect().get_center())
+	panel._choose_order(false)
+	_click(panel._make_row.more.get_global_rect().get_center())
+	await _frames(2)
+	_click(panel._queue_button.get_global_rect().get_center())
 	await _frames(3)
-	_expect(crafting.orders.size()==2 and crafting.orders[1].quantity==2,"menu queues real recipe batches")
+	_expect(panel.make_count==2 and crafting.orders.size()==2 and crafting.orders[1].quantity==2,"menu queues real recipe batches")
 	await _ui_capture()
 	_click(panel._place.get_global_rect().get_center())
 	await _frames(3)
@@ -232,8 +233,8 @@ func _ui_capture() -> void:
 		await _frames(8)
 		var rect: Rect2 = dock._craft_window.get_global_rect()
 		_expect(rect.end.x <= viewport.x and rect.end.y <= dock._dock_panel.position.y-8,"craft window fits above dock at %s (window %s, dock %.1f, cached %.1f)" % [viewport,rect,dock._dock_panel.position.y,panel._dock_top])
-		_expect(panel._make.get_global_rect().size.x>=150,"craft action remains usable")
-		_expect(panel._detail_scroll.get_global_rect().encloses(panel._make.get_global_rect()),"queue action visible without scrolling")
+		_expect(panel._queue_button.get_global_rect().size.x>=120,"craft action remains usable")
+		_expect(panel._queue_button.is_visible_in_tree() and rect.encloses(panel._queue_button.get_global_rect()),"queue action in view without scrolling at %s (window %s, queue %s)" % [viewport,rect,panel._queue_button.get_global_rect()])
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://tmp/worker_crafting_review/crafting_%dx%d.png" % [viewport.x,viewport.y])

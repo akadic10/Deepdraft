@@ -83,7 +83,7 @@
       "clearing": {
         "method": "gather",
         "work_seconds": 2.0,
-        "feedback_block": "base:terrain:soil:light",
+        "feedback_block": "base:terrain:surface:dirt",
         "yields": [
           {
             "item": "base:resources:seed:elderberry_cutting",

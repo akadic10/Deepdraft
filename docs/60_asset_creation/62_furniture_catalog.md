@@ -39,10 +39,18 @@ Footprints are width × depth in blocks. Heat values come from each definition's
 
 Ladder and bridge kits, packed furniture and the materials crate are rope-bound
 bundles of poles and split logs, or a crate of split slats on bark corner posts.
+All packed furniture, the settlement flag included, shares one crate
+(`assets/models/furniture/packed_furniture.glb`, the `model` of each packed item in
+`resources.json`), one world block in size and carried and stored at that size. Only
+the ladder and bridge kits, the water stones and uprooted plants keep models of their
+own when packed. Menus never show the crate: Place, crafting, Inventory, storage and the
+compact panel picture a packed piece by its placed form
+(`assets/ui/furniture/<key>.png`, from `FurnitureCatalogThumbnails.gd`; doc 116).
 
 ### Bed use and heating
 
-Each bed design supports **Assign bed…** in Object explorer, with one assigned bed
+Each bed design supports **Assign owner** in the compact panel (a list of the
+colonists' portraits, [23](../20_player_interface/23_user_interface.md#object-selection-implemented-2026-10-04)), with one assigned bed
 per colonist. A tired dwarf tries its assigned bed first, then reachable unassigned
 beds, then sheltered ground rest. Each bed admits one sleeper. Assignments save, and
 temporary sleeper claims are rebuilt on load.
@@ -51,17 +59,53 @@ A sealed room with a door, an installed light and complete bed footprints become
 Bedroom (one unassigned bed), a Personal bedroom (one assigned bed) or Barracks
 (several beds). A dwarf who sleeps at least three game hours in its own personal
 bedroom gets **Slept in my own bedroom**: +10 happiness for 24 game hours. Cold,
-chilly and hot sleep can separately cause temperature penalties (doc 122).
+chilly and hot sleep can separately cause temperature penalties (doc 34).
 
 `RoomManager` counts each installed heat source once, including multi-cell fires.
 Heating adds `total heat units / max(room volume, 128)` °C to the ambient
 temperature. Packed items don't heat rooms, and no installed source needs fuel or
 ignition yet.
 
+### Doors, fences and gates
+
+**Doors** (doc 117). The three log doors are frameless: the leaves fill the opening
+and hinge at its outer edges (`door_animation.hinge_inset: 0`). Fixed jambs and lintels
+are kept for better doors in later tiers (owner, 2026-10-12).
+- A dwarf within `approach_distance` (2.8 blocks) in front of or behind the doorway
+  opens the leaves away from its side. The side is chosen only while they are shut, so
+  passing traffic can't flip them. They shut `hold_seconds` after the last dwarf has
+  gone, and pause freezes them (`FurnitureDoorAnimation`, tuned by each definition's
+  `door_animation`; the gate swings the same way).
+- The hinges are looks only: navigation, the room seal and door lighting never follow
+  the pose, and doors load shut with nothing saved. Doors stay walkable, and each
+  footprint column of a door seals rooms at any pose (doc 34).
+
+**Fences and gates** (doc 201; `placement: grid_fence`, `GridFence.gd`, a helper of
+`FurniturePlacementController`):
+- A Log Fence Post stands on a grid corner, not a tile: the pointer snaps to the
+  nearest intersection. The four tiles around that corner must be solid ground at one
+  level, with room for the post and a walkable tile beside it for the worker.
+- Posts one grid edge apart at the same height join with two rails; diagonal and more
+  distant posts don't. Runs, corners and T or four-way junctions share one post. A plan
+  previews its rails, and rails turn solid once both of their posts are installed.
+- The Log Gate spans two grid edges, with its middle corner left empty. It uses posts
+  already at its ends (hiding its own there) and joins neighbouring posts; R turns it.
+  Gates have no locks or animal permissions: the opening blocks no one.
+- Rails are worked out from the posts' positions; they are neither items nor saved.
+  They are rebuilt when plans or pieces change and once after a load, and moving or
+  removing a post changes only its own rails.
+- Posts and rails are thin barriers in `PlacedEntityRegistry`, not filled cells: a post
+  is 0.24 blocks across and 1.3 high (`grid_fence.post_radius` and `height`), and rails
+  block up to 1.1 (`GridFence.rail_box`). The tiles on both sides stay walkable, and
+  routes and animals sweep against the barriers (doc 32). A plan reserves its space
+  against other furniture but blocks no route. Neither fences nor gates seal a room.
+- A post or gate that loses its ground drops its packed item, and its rails go with it;
+  a plan there is cancelled.
+
 ## Retired and planned furniture
 
-[234](../00_dev_roadmap/234_retired_uncraftable_furniture.md) removed fifteen designs
-until players can craft them:
+Doc 234 (2026-10-18) removed fifteen designs until players can craft them (the
+settlement flag and the wet and dry stones stayed, though no recipe makes them):
 - the aging rack, anvil, storage barrel, brazier, brewing vat and smelter;
 - the communal dining table, personal dining table, wooden chair and dwarven bed;
 - the storage chest, storage shelf, tavern bar, trade counter and wall torch.

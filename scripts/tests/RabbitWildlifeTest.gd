@@ -16,7 +16,7 @@ func _run() -> void:
 	world = root.get_node("WorldData")
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
-	var grass: int = blocks.get_id("base:terrain:surface:grass_01")
+	var grass: int = blocks.get_id("base:terrain:surface:grass")
 	for x in range(20, 64):
 		for z in range(20, 64): world.set_block(x, 20, z, grass)
 	scene = Node3D.new()
@@ -167,4 +167,4 @@ func _navigation_checks(start: Dictionary) -> void:
 	world.set_block(40,20,40,0)
 	for i in range(9): wildlife.advance(0.02,[])
 	_expect(rabbit.cell == source + Vector3i.DOWN and rabbit.position == Vector3(40.5,20,40.5), "mining support during a hop falls inside the source column onto the next floor")
-	world.set_block(40,20,40,blocks.get_id("base:terrain:surface:grass_01"))
+	world.set_block(40,20,40,blocks.get_id("base:terrain:surface:grass"))

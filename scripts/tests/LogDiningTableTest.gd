@@ -197,9 +197,9 @@ func _capture_log_table(table) -> void:
 	root.get_texture().get_image().save_png(out+"actual_dining.png")
 	manager.show();dock.show();dock._open_place_catalog()
 	dock._place_catalog.show_all=true;dock._place_catalog._all_toggle.set_pressed_no_signal(true)
-	dock._place_catalog.category="dining";dock._place_catalog._select(LOG_TABLE)
+	dock._place_catalog._select(LOG_TABLE)
 	await _frames(5)
-	_expect(dock._place_catalog._spec.text.contains("3 × 3"),"Place card shows the new table dimensions")
+	_expect(dock._place_catalog.facts_text().contains("3 × 3"),"Place card shows the new table dimensions")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out+"place_card.png")
 	dock._place_window.hide()

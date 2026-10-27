@@ -1,18 +1,6 @@
 {
-  "__comment": "Inventory presentation only. Counts and item definitions stay with their existing owners. The first matching tag rule wins; unmatched resources use Other. Furniture uses Place catalog captions and thumbnails.",
+  "__comment": "Inventory presentation only: the categories are the Inventory window's groups, in order. Counts and item definitions stay with their existing owners. The first matching tag rule wins; unmatched resources use Other. Furniture uses Place catalog captions and thumbnails.",
   "categories": [
-    {
-      "id": "all",
-      "label": "All",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        12,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Show all colony supplies and their available, stored and reserved quantities."
-    },
     {
       "id": "materials",
       "label": "Materials",
@@ -23,66 +11,26 @@
         "stockpile_soil",
         "stockpile_metal",
         "stockpile_gem"
-      ],
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        1230,
-        358,
-        294,
-        290
-      ],
-      "tooltip": "Show materials and their available, stored and reserved quantities."
+      ]
     },
     {
       "id": "furniture",
-      "label": "Furniture",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        12,
-        660,
-        294,
-        290
-      ],
-      "tooltip": "Show furniture and their available, stored and reserved quantities."
+      "label": "Furniture"
     },
     {
       "id": "storage",
-      "label": "Storage",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        622,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Show storage and their available, stored and reserved quantities."
+      "label": "Storage"
     },
     {
       "id": "lighting",
-      "label": "Lighting",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        926,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Show lighting and their available, stored and reserved quantities."
+      "label": "Lighting"
     },
     {
       "id": "tools",
       "label": "Tools",
       "tags": [
         "tool"
-      ],
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        318,
-        660,
-        294,
-        290
-      ],
-      "tooltip": "Show tools and their available, stored and reserved quantities."
+      ]
     },
     {
       "id": "food",
@@ -90,42 +38,18 @@
       "tags": [
         "stockpile_food",
         "stockpile_seed"
-      ],
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        622,
-        660,
-        294,
-        290
-      ],
-      "tooltip": "Show food & seeds and their available, stored and reserved quantities."
+      ]
     },
     {
       "id": "drink",
       "label": "Drink",
       "tags": [
         "stockpile_drink"
-      ],
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        926,
-        660,
-        294,
-        290
-      ],
-      "tooltip": "Show drink and their available, stored and reserved quantities."
+      ]
     },
     {
       "id": "other",
-      "label": "Other",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        1230,
-        660,
-        294,
-        290
-      ],
-      "tooltip": "Show other and their available, stored and reserved quantities."
+      "label": "Other"
     }
   ],
   "furniture_categories": {

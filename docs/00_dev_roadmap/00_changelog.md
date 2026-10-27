@@ -9,6 +9,1643 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**Wood's card names the material (2026-10-26):** From the owner, hovering Wood in Build: the
+card was titled "Upright oak log". Stone's and Wood's cards are now titled "Stone" and "Wood".
+The body then names the chosen type and says what it does: "Upright oak log. Stands on end.
+…", ending "Click it for the Wood menu." The rule is in doc 23 ("Build"). Restart Play; no
+reload needed.
+
+---
+
+**Logs in Build (2026-10-26):** Doc [275](275_build_menus_and_logs.md), phases 2 and 3, built
+with the owner's picks: format A, the ghost-log preview, and the approved look.
+- **Build's Stone and Wood open menus** above the tool bar.
+  - Stone's holds native stone.
+  - Wood's holds Upright log and Horizontal log over oak, pine, juniper and apple, each with
+    its stock.
+  - Q and E still step the materials, and each keeps its type.
+- **Logs fill their block** as the loose log stretched.
+  - Logs in a row join into one long log, and stacked upright logs into a post.
+  - Where lying logs cross, meet or turn a corner they are notched together, the top log
+    alternating layer by layer.
+- **Placing them:** a horizontal log lies along the drag, and R turns it for a click. The
+  preview shows green ghost logs, and the crate takes only the chosen wood.
+- **Shapes, Copy and Blueprints keep logs.**
+  - A hollow rectangle lays each side along its length.
+  - A blueprint turns its logs with it.
+  - The Wooden shed starter is now a Log cabin.
+- **The planked wood block is gone.** Saves holding one won't load, the owner's Gunberg
+  quicksave among them; start a new colony.
+
+`LogJointsTest` is new; the job gate passes (55/55). Reload the project (Project → Reload
+Current Project): new models and pictures were imported. Then restart Play.
+
+---
+
+**Logs and Build's menus, the pictures (2026-10-26):** No change in play. Phase 1 of doc
+[275](275_build_menus_and_logs.md) draws:
+- **Built logs in all four woods:** the loose log stretched to fill its block, with grooved
+  bark plates, beside the loose log. Also rows, a wall, a post, the +, T and L joints, and a
+  small cabin in each wood.
+- **Wood's menu in two formats** on the game's own tool bar over the owner's colony:
+  - **A,** the two logs over the four woods with their stock;
+  - **B,** a grid of the eight logs.
+
+  Stone's menu holds only native stone.
+- **Two previews** of logs being dragged: ghost logs, or green cells with a stripe.
+
+Three picks wait on the owner: the look, the menu format and the preview. The pictures are in
+`tmp/log_building_20261026/`. No restart or reload needed.
+
+---
+
+**Build's Stone and Wood menus, and logs: the plan (2026-10-26):** No change in play. Doc
+[275](275_build_menus_and_logs.md) plans what the owner asked for in Build's tool bar:
+- **Stone and Wood open menus.** Stone lists native stone, with more stones to come. Wood
+  lists Upright log and Horizontal log, and the player picks oak, pine, juniper or apple.
+- **A log fills its block:** the loose log stretched to reach every face, with its bark
+  plates flush and its end grain scaled up.
+- **Logs join.** Logs in a row become one long log, and stacked logs make a solid wall
+  with a groove between courses.
+- **Joints are notched.** Where horizontal logs cross (+), meet (T) or turn a corner (L),
+  they look notched, and the top log alternates layer by layer.
+- **The planked wood block goes**, and the Wooden shed starter becomes a log cabin.
+
+The plan has four phases. The first draws the log pieces and two menu formats for the
+owner's pick. No restart or reload needed.
+
+---
+
+**Even margins on the icon menus (2026-10-26):** From the owner, looking at the Construction
+menu: more space on the right than the left. When an icon menu (Construction, Crafters,
+Development) opened, or its icons grew from 56 to 64 px, its scroll area briefly counted a
+12 px scrollbar in its width, and the menu kept that room on its right. These menus are
+sized to show every row, so they no longer scroll at all; each now has the same 8 px either
+side. `ConstructionInputTest` measures both sides at three screen sizes. The rule is in
+doc 23 ("Sizes, states and menus"). Restart Play; no reload needed.
+
+---
+
+**Floors removed (2026-10-26):** From the owner, after reviewing the Floors tools: a floor
+tile is a whole block, so nothing stops it being stacked into a wall, and all it did was
+add +5 room appeal, which only DEV Build could reach. Later, choosing a material under
+Build (stone first) will offer textures that unlock as the colony progresses.
+- **Construction** holds Build, Shapes, Copy and Blueprints. The Floors submenu, the
+  simple plank and stone floors and their blocks are gone, with the tool bar's PLANNED tag
+  and the "a Carpenter builds it: planned" line, which only the floors used.
+- **Rooms** lose the finished-floor row and its +5; appeal comes from what a room holds,
+  for its size. Nothing a normal game could build changes.
+- **Saves** holding a DEV-built floor or a floor plan no longer load (no backward
+  compatibility during development).
+- **The Hearthblock sources** no longer build the floor models or the three floor icons.
+- **The texture plan** and the decisions it needs are in `00_todo.md`, "Build textures by
+  progression".
+
+The rules are in docs 12, 23 and 34. The job gate is now 55 tests: `FloorConstructionTest`
+went with the floors. Restart Play; no reload needed.
+
+---
+
+**Dotted 16-block lines on the mining guide (2026-10-26):** From the owner, looking at the
+32 × 32 guide over a slice cut floor on the wide screen: a dotted line at 16 × 16 as well.
+- **With the guide on,** Mine blocks also draws thinner, fainter dotted lines halfway
+  between the solid 32-block lines, so each 32 × 32 square shows its four 16 × 16
+  quarters. Each block gets one dash, with a gap at every block edge.
+- **The dotted lines keep the solid lines' rules:** they sit on each column's visible top,
+  on the slice's cut floor and in blocks planned for mining. Where the ground steps along
+  a line, each half sits on its own side. They climb cliffs that cross them, a dash per
+  block of height. Buried lines stay hidden, and with the guide off neither kind shows.
+- **The switch's card** reads "Thicker lines every 32 blocks and dotted lines every 16 while
+  mining."
+- **Redrawing the guide** as the view moves costs about a fifth more than before: 59 ms
+  zoomed out on the 7680×2160 screen, up from 48. It runs only with the guide on.
+
+The rules are in docs 23 and 24; `MiningAreaGuideTest` covers them. Pictures at 1920×1080
+and 7680×2160 are in `tmp/mining_guide_20261026/`. Restart Play; no reload needed.
+
+---
+
+**Every save can be deleted (2026-10-26):** From the owner, after trying Save as…: the
+quick save and the autosave need Delete too, with a confirmation.
+- **On the Load page,** in a colony and from the title, the quick save and the autosave
+  each have Delete under Load while they hold a save. Delete asks first, as it does for
+  named saves: "Delete the quick save?", with Cancel the default. The files go to the
+  Recycle Bin. Save game writes the next quick save, and the next autosave comes after five
+  minutes of play.
+- **A save that won't load,** from another build for instance, can be deleted too.
+- **"Last saved" stays true.** The game menu's tag, and the Load, New game, Quit and Exit
+  questions, give this colony's newest save still on disk. Deleting the save the colony came
+  from makes them say it has not been saved.
+- **The title's board** shows the newest save again when you come back from Load game…, or
+  goes when no save is left. A named save deleted there could stay on the board before.
+
+The rules are in docs 23 and 13. Restart Play; no reload needed.
+
+---
+
+**The camera comes down to a deep slice (2026-10-26):** With the slice cut deep under a
+mountain, the camera used to stay above the hidden mountain top. Now it follows the floor
+the slice shows:
+- **Wheel zoom** heads for the cut floor under the cursor and gets as close to it as to open
+  ground.
+- **Middle-drag** grabs the cut floor, so the floor stays under the pointer as you drag.
+- **Orbit** pivots on the cut floor in front of the camera.
+- **The camera floor** follows a room mined under the cut, or a found cave the slice opens,
+  down into it, and stops at water standing there as it does on a lake. A cave not yet
+  found still reads as rock, so the camera never dips into it.
+- **Raising the slice** lifts the camera at once when the terrain it shows again stands
+  above the camera.
+
+All four use one ground, the overview's own rule (doc 21, "The camera's ground"). The todo
+item is done and gone; `CameraDeepSliceTest` covers it. Restart Play; no reload needed.
+
+---
+
+**Save slots plan retired (2026-10-26):** No change in play. The owner accepted named saves
+("Save as… works in play"), so doc 274 is retired:
+- **Its rules** are in doc 23 ("The game menu, saving and loading" and "The title screen"),
+  doc 13 (`SaveManager`) and doc 12 ("Save Format").
+- **Its decisions** join doc 23: named saves were chosen over six numbered slots and over
+  one book per colony; Save game still writes the quick save; there is one autosave; named
+  saves have no limit.
+- **Its facts** join doc 13: what saves cost in room (about 25 MB for a 5-dwarf colony's
+  save and backup); what a schema change does to a named save; and how a capture founds a
+  named colony.
+- **Later,** in [00_todo.md](00_todo.md): renaming a save, and a picture of the colony on
+  each save. The generator fingerprint item notes that named saves make it matter more.
+- **Pictures** stay in `tmp/save_slots_20261026/`, the plan's and the built pages.
+
+No restart or reload needed.
+
+---
+
+**Named saves: Save as… (2026-10-26):** Doc [274](274_save_slots.md), built with the owner's
+picks: format A and the recommended answer to every other question.
+- **Save as…** sits beside Save game in the game menu. It keeps the colony under a name,
+  beside the quick save and the autosave.
+  - The name field offers the colony's name and date ("Brunhald, autumn day 9"), selected
+    so typing replaces it.
+  - Names may use up to 40 letters, digits, spaces, commas, hyphens and apostrophes.
+  - Save game still writes the quick save in one click.
+- **Load** lists your saves under the two slots, newest first, each with Load and Delete:
+  - each gives its name, how long ago it was saved, and its colony and date;
+  - the heading gives how many saves there are and the room they take
+    ("4 saves · 98 MB");
+  - the list scrolls;
+  - Open folder shows the saves, and a save file copied into that folder is listed too.
+- **Replace and Delete ask first.** Saving under a name in use, capitals aside, asks before
+  replacing that save. Replacing another colony's save says that colony is lost, with Cancel
+  leading. Delete sends the files to the Recycle Bin.
+- **New game** now says that the new colony's quick save and autosave will replace the ones
+  you have, and offers Save as… first.
+- **Continue** loads the newest save of any kind, and the title's board names a named save
+  ("Saved 2 days ago · Before the flood").
+- **Files:** each named save is one file in `saves/named/` with its backup, written by the
+  same checked write as the quick save. Saves made before today still load.
+
+The rules are in docs 23 ("The game menu, saving and loading"), 13 (`SaveManager`) and 12.
+The "More save slots" todo item is done and gone. Restart Play; no reload needed.
+
+---
+
+**Two UI cleanups (2026-10-26):** No change in play. Two calls from the todo's UI list,
+on the owner's word:
+- **The unused floor pictures are gone:** `assets/ui/construction/plank_floor.png` and
+  `stone_floor.png`, which nothing had shown since the Construction menu took Hearthblock
+  icons, and `tools/GenerateFloorIcons.gd`, which drew them. CLAUDE.md's re-render list and
+  docs 61 and 64 no longer name it. The Floors entries keep their own icons in
+  `assets/ui/icons/`.
+- **`CompactPanelTest` joins the gate,** which now has 56 tests (CLAUDE.md). It covers the
+  compact panel shown for nearly everything clicked in the world: its style, actions, owner
+  list, closing and placement.
+
+No restart or reload needed.
+
+---
+
+**The last UI icons turn Hearthblock (2026-10-26):** The three line icons left from
+before the overhaul are now Hearthblock icons (`icons.mjs`):
+- **The badges over dwarves' heads** sit on a small people tile, as the world order
+  markers sit on theirs: a red apple for hunger, a pale moon with two Zs for exhaustion,
+  and the mood scale's Unhappy face for unhappiness. The character sheet's Rest and Food
+  rows and the compact panel's concern icon show the same pictures.
+- **Allow/Disallow** on the compact panel shows a dwarf's mitten held up, struck through
+  in red.
+- **The crafting board's work time** has a brass clock instead of the 2× speed icon.
+- **The compact panel's mood badge** shows the face of the dwarf's mood step beside the
+  happiness. It showed the old frowning badge for every dwarf.
+- **Goods without a picture of their own** show the Hearthblock stocks icon in Colony →
+  Dwarves (what a dwarf carries) and on the crafting board's ingredients, as the
+  inventory and the character sheet already did, instead of a white line box.
+
+The old SVG badges, `disallow.svg` and `stocks.svg` are deleted. `UiIconDataTest` now also checks the
+badges' and the compact panel's pictures, and `DwarfInspectorTest` the mood badge's face.
+Captures at 1920 × 1080 and 150% UI scale are in `tmp/need_badges_20261026/`. The rules
+are in docs 23 ("Dwarf concern badges") and 61 (UI icons). Restart Play; no reload needed.
+
+---
+
+**Save slots plan (2026-10-26):** No change in play. Doc [274](274_save_slots.md) plans the
+todo's "More save slots": more saves beside the quick save and the autosave. It offers three
+formats:
+- **A, Save as… with a name** (recommended): your saves are listed under the two slots;
+- **B,** six numbered slots;
+- **C,** one book of saves per colony.
+
+Seven questions wait on the owner:
+- the format;
+- what Save game writes;
+- replacing and deleting;
+- how many saves to keep;
+- how many autosaves to keep;
+- the title's Continue;
+- New game and the shared slots.
+
+The pictures are in `tmp/save_slots_20261026/`, built from the game menu's own parts. No
+restart or reload needed.
+
+---
+
+**Copy keeps the inside of the rock hidden (2026-10-26):** From the owner's playtest:
+"dragging a blueprint around existing mountains reveals what is in it".
+- **The leak:** Copy took every block as it really is. Buried cave soil, a resource placed
+  among the ore veins, copied as dirt ("Dirt · 36 soil" on a mountainside's copy, and brown
+  in its picture), and water inside the rock left holes.
+- **Now** every block the colony has not seen copies as the slice shows it, its authored
+  strata. A block counts as seen once it was dug, built or explored, or faces open air or such
+  a cell. A copy of unexplored mountain is plain rock and the strata's own soil layers.
+- **Hidden caves' water** now stops the placement pointer as their air does; before, the
+  pointer could sink through it to the cave floor.
+- **Placing a blueprint** already gave nothing away: every unseen block in its way is in the
+  way for the same reason.
+- `HiddenCavePlacementTest` copies a box of rock holding a buried deposit and a pocket of
+  water, before and after a dug cell beside the deposit.
+
+Blueprints copied before this fix keep what they took. Restart Play; no reload needed.
+
+---
+
+**Copy takes its clicks; hidden caves stay hidden (2026-10-26):** From the owner's playtest
+("I can't copy this wall"):
+- **Copy and placing take their clicks.** The object explorer takes every world click unless
+  a tool it knows is on, and it knew only the scene's own tools. So a press with Copy
+  selected the ground instead of starting the box, and a click to place a blueprint did the
+  same. Tools made at run time now join a `click_tool` group that the explorer checks. The
+  Phase 3 checks drove the tool directly and missed it; `ConstructionInputTest` (gate) now
+  copies a wall and places a blueprint with the real mouse.
+- **Copy's box stands on the ground,** even when the drag starts on a wall's face, so it
+  takes the whole wall rather than the part above the pointer.
+- **Copy's tool bar** has no Undo or "Last order", since Copy makes no orders. It shows what
+  it last copied.
+- **Hidden caves stay hidden** (the todo's "Placement tools see through undiscovered
+  caves"). With the slice through a cave not yet found, the pointer for Build, Shapes,
+  Copy, placing, furniture and storage stops on the cut instead of dropping to the cave
+  floor. Construction refuses the cave's air with rock's own reason, "Mine existing terrain
+  before building" (it said "Explore this space before building"), and furniture and
+  storage refuse its floor. New `HiddenCavePlacementTest` (construction area).
+
+The rules are in docs 22, 23 ("Copy and Blueprints", "Tools keep their clicks") and 24
+("Placement tools"). Restart Play; no reload needed.
+
+---
+
+**Construction plan retired (2026-10-26):** No change in play. The owner accepted Copy and
+Blueprints ("looks good"), the last of doc 273's three phases, so doc 273 is retired:
+- **Its rules** are in doc 23 ("Build", "Shapes", "Copy and Blueprints" and "Taking blocks
+  out of plans"), doc 43 ("Built blocks"), doc 24 (built wood's boards), doc 31 (the crate's
+  goods by material) and doc 13 (`BlueprintLibrary`, now with the file format).
+- **Its decisions** join doc 23: Copy keeps natural blocks, since built stone is natural
+  rock; designing is building, with no drafting board, design mode, paint tool or separate
+  palette of doors and furniture.
+- **Later,** in [00_todo.md](00_todo.md) (Construction):
+  - dig and build;
+  - furniture in blueprints;
+  - walls to the ceiling;
+  - roofs;
+  - each wood its colour;
+  - Copy inside Blueprints if the shelf feels long.
+
+  The todo's shape tools and blueprints items are done and gone.
+- **Stale text corrected:** doc 23 still said Construction opens only Build and Floors, and
+  doc 12 that construction adds no block type.
+- **Comments:** two that cited a section of doc 273 now cite doc 23. Other code comments
+  still mention doc 273, as they do other retired docs.
+
+No restart or reload needed.
+
+---
+
+**Copy and Blueprints (2026-10-26):** Phase 3 of doc
+[273](273_construction_shapes_and_blueprints.md). Construction's shelf gains two entries:
+- **Copy:** drag a box round anything built or planned (Alt + wheel for its height, F to take
+  its floor too). Every block in it is kept as the material that builds it: rock as stone,
+  dirt, grass and wood as themselves, floors and plans as their own. Unexplored space counts
+  as rock, so a copy never gives a cave away. The Blueprints window then opens on the copy,
+  ready to name.
+- **Blueprints:** a window of pictures, the four starters (stone hut, wooden shed, stair
+  flight, garden terrace) and yours. The card gives the size, the picture and each material
+  against your stock. Place, Rename, Delete (yours, pressed twice) and Open folder.
+- **Placing:** a green ghost follows the pointer, R turns it, and a click plans it; blocks in
+  the way show in rust and are left out. One Undo takes the whole placement back.
+- **Sharing:** each of your blueprints is a JSON file in your blueprints folder; copy the
+  file to share it, drop a friend's in. A file the game cannot trust (another format, too
+  big, an unknown material) is refused and named with why.
+- **Shelf hover cards** stand above the whole shelf, never over a row of it.
+
+There is a new autoload (`BlueprintLibrary`): **Project → Reload Current Project** before
+playing.
+
+---
+
+**Shapes: rectangles, circles and stairs (2026-10-26):** Phase 2 of doc
+[273](273_construction_shapes_and_blueprints.md). Construction's shelf gains **Shapes**,
+which lays Build's materials out as a shape:
+- **Rectangle:** walls round a dragged rectangle (one wide, a wall), or Filled (F) for a
+  slab. Door (Shift + wheel) leaves a gap 2, 3 or 4 wide and 3 tall in the side facing you.
+- **Circle:** a ring of walls dragged from its centre, or filled, up to 31 across.
+- **Stairs:** a flight dragged from the foot, a block up a step, as wide as the drag. Rock
+  in a step's headroom stops the flight there, and the bar says which step.
+- **Choosing:** Tab steps through the shapes and Q and E through the materials, each a row
+  of pictures on the tool bar.
+- **Taking blocks out of plans:** in Build, Shapes and the floors, Ctrl + drag over plans
+  (or Ctrl + click) takes their blocks out one by one, shown in rust; the crate gives back
+  what is no longer needed. Ctrl + click no longer cancels a whole plan: its panel's Cancel
+  construction and Undo do.
+- **The tool bar's pictures** now fill their buttons, and a bar too wide to clear the slice
+  tower narrows its status line instead of rising over the clock.
+- **Sizes (after the owner's playtest):** while you drag, the tag beside the cursor gives
+  the size first: "12 × 10 · 3 tall", "9 across", "6 steps · 2 wide", or the erase box's
+  "4 × 3". Build and the floors show it too. The tag keeps clear of the slice tower, and on a
+  16:9 screen the Shapes bar drops its status line rather than cover the clock.
+
+The rules are in doc 23 ("Shapes" and "Taking blocks out of plans"). Restart Play; no reload
+needed.
+
+---
+
+**Build: stone, dirt, grass and wood (2026-10-26):** Phase 1 of doc
+[273](273_construction_shapes_and_blueprints.md). Construction's Stone block became
+**Build**:
+- **Four materials,** shown as pictures on the tool bar; Q and E step through them.
+  - **Stone:** 1 rough stone, built as the natural rock of its layer.
+  - **Dirt:** 1 soil.
+  - **Grass:** 1 soil, one block tall and only under open sky.
+  - **Wood:** 1 oak, pine or juniper log. The block is the wood of the log it used, drawn
+    with boards, and gives that log back when mined, to the sound of chopping.
+- **Build opens on the last material used,** and the tag and the plan's panel count that
+  material's own good (rough stone, soil or logs).
+- **Rough stone and soil now drop 25% of the time,** up from 5%, so building costs about
+  four blocks dug for each block built.
+- **Build's icon** is a wall going up in stone, wood and grass-topped earth.
+
+The rules are in docs 23 ("Build") and 43 ("Built blocks"). Restart Play. A save with a
+materials crate in it from before today won't load.
+
+---
+
+**Old milestone docs retired (2026-10-26):** No change in play. The milestone docs from
+2026-10-09 to 2026-10-22 (80 to 258) had never been retired; 136 of them now are, as
+CLAUDE.md's "Recording Changes" asks. They were finished milestones, session handoffs,
+performance records, the project and code reviews (177, 254 and 258), and plans that later
+work replaced, such as the illustrated dock and menus and the pre-Hearthblock art.
+- **Their lasting rules** are in the design docs, each checked against today's code first.
+  Every design doc gained some. The largest additions:
+  - 31: the job lifecycle in a new "Orders, attempts and supervision", hauling routes,
+    fruit hauling and surface work;
+  - 13: a new "Builds and tests" (Windows builds, running tests), and the save, audio and
+    world-event systems;
+  - 23, 24, 32, 33, 41, 42, 43, 44, 45 and 51 for their areas, and a new "Doors, fences
+    and gates" in 62.
+- **Stale text corrected on the way:** ore drops (one unit at 40%), built stone (no refund,
+  its rock's own 5% drop), the grass palette, the wolf's 4×4×3 navigation, doc 12's
+  schema-2 terrain record, and retired furniture (wall torch, brazier, wooden chair,
+  Dwarven bed) still named in live rules.
+- **Links:** design docs no longer link these docs. Plain mentions such as "(doc 215)"
+  lead to their entries here, and `00_open_issues.md` mentions them the same way.
+- **Unfinished work** is in [00_todo.md](00_todo.md), each item re-checked against the
+  code:
+  - review findings still in the code: furniture that installs over a hole or a dwarf,
+    mining that leaves furniture or storage floating, Uninstall trying only the nearest
+    side, placement that sees through hidden caves (Hard Rule 11), ladder changes that
+    cancel meals and games, hunger dropping work before finding food, proven routes a
+    worker can't walk, three small dwarf defects, the camera under a deep slice, starting
+    wildlife inside trunks, saves without a world-generator fingerprint, and a
+    construction crate restored elsewhere;
+  - a dwarf leaving the scene mid-walk runs job code (from the 2026-10-15 benchmarks);
+  - the duck flight spike and the 30-dwarf soak the owner kept for later on 2026-10-15;
+  - wall materials and thinner walls, which the owner left for later on 2026-10-12;
+  - the blueberry cutting's description, and Godot's stricter GDScript warnings.
+- **Kept:** doc 256, the Hearthblock art pilot. `tools/voxel_assets/furniture.py` writes
+  its path into every Hearthblock furniture model's metadata, and about 70 code, data and
+  tool comments cite it. It can retire once those point at doc 64.
+- **Left as they are:** code and data comments that cite retired docs (199, 210, 254, 255
+  and 258; `SkyController.gd` and `sky_settings.json` give 255's full path), and the
+  frozen sources in `concepts/`, which tests read.
+
+No restart or reload needed.
+
+---
+
+**Construction's Build plan (2026-10-26):** No change in play. Doc
+[273](273_construction_shapes_and_blueprints.md) turns from a concept into the plan for the
+owner's four menus, in three phases and a later list:
+- **Build:** stone, dirt, grass and wood blocks;
+- **Shapes:** rectangles and circles, hollow or filled, and stairs;
+- **Copy and Blueprints:** blueprints saved as shareable JSON files, placed as plans, with
+  four starter blueprints.
+
+Six open questions wait on the owner. No restart or reload needed.
+
+---
+
+**One Soil good; light and dark soil removed (2026-10-26):** Leftovers from before the
+Hearthblock overhaul are gone:
+- **Soil:** grass, dirt and cave soil drop one good, Soil, in place of Light, Dark and Cave
+  soil. The Soil stockpile shows it with its own picture (the old cave soil mound).
+- **Light and dark soil:** the blocks, which the world never placed, and their goods, which
+  nothing used. Cleared bushes now throw dirt-coloured debris; they borrowed light soil's
+  colour.
+- **Grass and dirt:** one block each, in place of 8 and 4 identical variants. Worlds look
+  and generate as before.
+- **Cave soil** stays a block of its own, the ground cave farms are meant for (doc 42).
+
+No milestone doc: the rules went straight into docs 12, 13, 23, 42, 43 and 51. Restart
+Play. A save that holds a removed good or block won't load, so start a new colony.
+
+---
+
+**Construction's shape tools and blueprints, a concept (2026-10-26):** No change in play.
+Doc [273](273_construction_shapes_and_blueprints.md) compares today's Stone block with
+Stonehearth's building editor and draws three formats over the real game:
+- **A · Shapes on the shelf** (recommended): Wall, Room and Stairs as tools beside Stone
+  block, each with its settings on the tool bar, and a blueprint library window;
+- **B · The drafting table:** a top-down board in a window, laid out in the world;
+- **C · The builder's brush:** one Build tool with a shape wheel at the cursor, and copy and
+  paste from what is built.
+
+Two smaller questions ask:
+- what a blueprint keeps: blocks and floors (recommended), or furniture too;
+- where blueprints are kept: the player's library across colonies (recommended), or the
+  save.
+
+The pictures, from real Hearthblock models, are in `tmp/construction_concept_20261026/`.
+No restart or reload needed.
+
+---
+
+**The UI overhaul is done; doc 259 retired (2026-10-26):** No change in play. Doc 259 ran
+the overhaul from its first review (2026-10-23) to the closing concept. Every part it
+planned is built and accepted, and each part's rules already live in doc 23. Retiring it:
+- **Its standing decisions** join doc 23:
+  - Stonehearth as a reference for how things work, never for how they look;
+  - what was not taken from Stonehearth;
+  - a word with every number;
+  - per-voxel building, never a building object;
+  - how later views should look.
+- **The icon spec** joins doc 61.
+- **Docs 45 and 52:** the trapping-grounds decision joins doc 45, and health in the combat
+  UI joins doc 52.
+- **The todo list** ([00_todo.md](00_todo.md)) gains the overhaul's later items:
+  - choosing keys and more save slots;
+  - the item stamper's two later ideas;
+  - the need badges and the Development menu's painted pictures;
+  - two unused floor pictures.
+
+  It also gains the Stonehearth lessons that future work needs, for shape tools,
+  blueprints and storage shelves.
+- **The owner's Stonehearth screenshots** stay in `tmp/ui_review_20261023/stonehearth/`.
+
+No restart or reload needed.
+
+---
+
+**Closing concept retired (2026-10-26):** No change in play. The owner accepted the
+closing work ("great"): the dock's counts, the dwarf list's pictures and level bar, the
+view banner and the sky window. Doc 272 is retired:
+- **Its rules** are in doc 23: "Counts", "Views", Colony Dwarves' rows, "The Sky Dial", and
+  the family colours as the only family mark.
+- **The dial's art pipeline** is in docs 61, 63 and 64.
+- **The forecast** waits in [00_todo.md](00_todo.md).
+
+Doc 141, the painted dial's milestone, is retired with it. No restart or reload needed.
+
+---
+
+**The Sky Dial: the sky window (2026-10-26):** Built from the owner's pick in
+[272](272_closing_the_ui_overhaul.md). The dial at the top right is Hearthblock now:
+- **The window:** a stone window under an oak lintel shows the sky at this hour, from
+  night through dawn and day to dusk.
+- **The sun and moon:** the sun crosses the window from sunrise to sunset, and the moon
+  by night.
+- **The weather:** clouds drift across, rain and snow fall, and fog mists the land. They
+  stop when the game is paused.
+- **The season's land:** blossom in spring, green in summer, orange leaves in autumn,
+  snow in winter.
+- **The plate under it:** the time, the date, a bar of the year's seasons with today
+  marked, and the days to the next season.
+
+The dial keeps its size and place, and the time controls stay under it. Its pieces are
+Hearthblock models rendered like the UI icons (doc 23, "The Sky Dial"). The gate passes
+(55/55), and the lint is clean. Restart Play; no project reload needed.
+
+---
+
+**The Sky Dial, redrawn (2026-10-26):** No change in play. Doc
+[272](272_closing_the_ui_overhaul.md), question 5, compares Stonehearth's clock with
+today's dial and draws three new options:
+- **A · the sky window** (recommended): a stone window under an oak lintel. Through it you
+  see the sky at this hour, the sun or moon crossing over the season's hills, and the
+  weather;
+- **B · the living diorama:** a chunk of the colony's surface with its door, a torch, a
+  seasonal tree and one of your dwarves, lit by the hour;
+- **C · the day wheel:** a wheel that turns behind a stone arch, the sun on one half and
+  the moon on the other.
+
+Each option is built from real Hearthblock cells and set over the game in four states. A
+second question is the plate under the dial: the time and date, the year's seasons
+(recommended), or a two-day forecast too. Pictures are in `tmp/sky_dial_20261026/`. No
+restart or reload needed.
+
+---
+
+**Counts, profession pictures and the view banner (2026-10-26):** Built from the owner's
+picks in [272](272_closing_the_ui_overhaul.md).
+- **Counts on the dock:**
+  - Colony counts the idle dwarves, in hay. A dwarf counts only after it has waited a few
+    seconds, so one between two jobs doesn't flick the number.
+  - Place counts what is ready to place, in moss.
+  - Each count's hover card says what it counts, and the Events bell's card names its
+    count too.
+- **Colony's dwarf list:** each row shows the profession's picture beside the portrait,
+  and Miners a bar to the next level.
+- **The view banner:** while Appeal or X-ray is on, a banner at the top centre names the
+  view and how to leave it. Toasts sit below it.
+- **Family patterns:** skipped; the family colours stay.
+- **Tests:** the gate passes (55/55), and the lint is clean.
+
+Restart Play; no project reload needed.
+
+---
+
+**Closing concept for the UI overhaul (2026-10-26):** No change in play. The overhaul's
+last five open ideas are drawn in one concept, [272](272_closing_the_ui_overhaul.md), over
+the real screens. Each has a skip option:
+- **live counts on the dock:** A what waits on you, idle dwarves and furniture ready to
+  place (recommended); B work in hand; or C skip;
+- **the dwarf list's row:** A the profession's picture and a level bar; B the picture
+  alone (recommended); or C skip;
+- **the view banner:** A at the top centre (recommended); B on the view's own panel; or C
+  skip;
+- **family patterns:** A zones in their world colour; B zones and Construction; or C skip
+  (recommended);
+- **the Sky Dial's art:** A painted, as today (recommended); B a Hearthblock frame; or C
+  voxel scenes too.
+
+Once the picks are built and accepted, doc 259 retires and the overhaul is done. Pictures
+are in `tmp/overhaul_close_20261026/`. No restart or reload needed.
+
+---
+
+**The full test run is green (2026-10-26):** No change in play. All 188 tests pass, and Issue
+003 is closed ([00_open_issues.md](00_open_issues.md)).
+- **Tool promotion did not regress.**
+  - `ToolPromotionTest` placed its worker inside the crude workbench, which now occupies a
+    3 by 3 space, so every route failed.
+  - Moved beside the bench, every check passes: pickup from the ground and from storage,
+    saves, permissions and the UI.
+  - It was repaired rather than deleted, as `EquipmentFeedbackTest` builds on it.
+- **Two stale checks removed:**
+  - `CaveGenerationTest` restored only the mining controller and expected the discovered
+    cave back. Saves restore the terrain, and discovery with it, through `SaveManager`,
+    which the gate's save round trip checks.
+  - `EnvironmentDetailsTest` faked live water without `WaterManager`'s index of wet columns,
+    which the ambience scan reads since 2026-10-22; its shore, frog and cave-drip checks are
+    gone. Its report folder in `tmp/` had been cleaned away, so it now makes the folder
+    instead of timing out.
+- No restart or reload needed.
+
+---
+
+**Wide screens decided (2026-10-26):** No change in play. The owner settled doc 259's 32:9
+question: the HUD keeps its corners at every width, wide screens only need to not break,
+and a HUD width setting waits until players ask. On Steam's September 2026 survey, 32:9 is
+about 0.4% of players and 21:9 about 3.5%. The rule is in doc 23, "Screen shapes". No
+restart or reload needed.
+
+---
+
+**Type milestone retired (2026-10-26):** No change in play. The owner accepted the type ("it
+looks good"), so doc 271 is retired. Its rules and the owner's choices are in doc 23
+("Type", and "Symbols and emoji"); doc 21 has the camera's cursor. Left for later: the
+fonts' licences in the Windows export, now in `00_todo.md` (UI). A test comment cited doc
+271; it no longer does. No restart or reload needed.
+
+---
+
+**Type (2026-10-26):** every word is set in fonts shipped with the game
+([271](271_type.md), built with the owner's picks).
+- **Fredoka** for names, headings, buttons and the HUD's titles: the Sky Dial, the dock's
+  menus, the title and loading screens. **Nunito** for text, rows and cards.
+- **The Sky Dial's clock holds still** as its minutes change: its figures share one width.
+- **One type scale:** every text size is one of seven steps for its window's tier, so a
+  heading or a label is the same size in every window. Sizes stay as they were, made even:
+  - a dwarf's name on the character sheet is larger at 1080 (34, was 26);
+  - the settlement's name is a little smaller at your screen's size (42, was 48);
+  - most else moved by a pixel or none.
+- **Symbols** (▴ ▾ ◆ ◇ ✓ ✕) come from a symbol font shipped with the game, so they look
+  the same on every machine.
+  - Menu paths read "Place › Plants".
+  - The camera's cursors are 🗘 for orbit and ✋ for pan, outlined.
+- **For the export:** add `assets/ui/fonts/*.txt` to the Windows export's non-resource
+  files, so the fonts' licences ship with the game.
+- Restart Play; no project reload needed.
+
+---
+
+**Type concept (2026-10-26):** No change in play. One font shipped with the game and one
+type scale are drawn in [271](271_type.md), over the real screens: the title, the tool bar,
+the Sky Dial, the character sheet, crafting and the settlement page.
+- **What it fixes:**
+  - The UI borrows Windows' fonts: Segoe UI, and Georgia for the HUD's titles.
+  - Sizes are set by hand in 275 places, so the same kind of text differs from window to
+    window.
+  - The Sky Dial's clock wobbles every second, because Georgia's digits differ in width.
+- **Shared by every option:**
+  - the fonts ship in `assets/ui/fonts/` under the Open Font License;
+  - a small symbol font draws the arrows, ✓ ✕ and the small triangles the same on every
+    machine;
+  - numbers that tick keep one width per digit;
+  - one scale of seven sizes, as today's most-used ones, replaces the hand-set sizes.
+- **Three questions:**
+  - **the font:** A Nunito, B Fredoka for names and titles with Nunito for text
+    (recommended), or C Rubik;
+  - **the HUD's titles:** A the new font (recommended), or B keep a serif (Gelasio,
+    Georgia's open twin);
+  - **the text's size:** A as today (recommended), or B one step larger.
+
+Pictures are in `tmp/type_concept_20261026/`. No restart or reload needed.
+
+---
+
+**Tool bar milestone retired (2026-10-26):** No change in play. The owner accepted the tool
+bar ("tool bar is great"), so doc 270 is retired. Its rules and the owner's choices are in
+doc 23 ("The tool bar", and the passages on Orders, Construction, Place, the stamper and
+Keys). Nothing is left unfinished. No restart or reload needed.
+
+---
+
+**Crate test fixed (2026-10-26):** No change in play. `ProduceCrateTest` (in the hauling and
+storage areas, not the gate) had failed since dwarves gained tastes.
+- **Why:** its check on a carrying dwarf's save used a stand-in dwarf built by hand, without
+  `setup()`. The stand-in had only the parts a save wrote before tastes, so saving it hit the
+  missing tastes. Real dwarves get their tastes in `setup()`, and the gate's save round trip
+  covers them, so play and saves were never affected.
+- **Fix:** the test now builds its carrier with `DwarfFactory`, as the game builds a dwarf,
+  so it cannot fall behind the dwarf's parts again. A new check, "carrier snapshot keeps the
+  dwarf's tastes", sits beside "carrier snapshot records crate quantity".
+- The test used to run out its 60 s timer after the error; it now passes in about 2 s.
+- No restart or reload needed.
+
+---
+
+**The tool bar (2026-10-25):** every tool now shows one bar above the dock
+([270](270_mode_bar.md), built with the owner's picks).
+- **One place for every tool:** Orders, Storage, Stone block and the floors, Rooms, Place and
+  Move, the settlement flag and the DEV stamper.
+  - The bar shows the tool's picture and name, with its keys on keycaps.
+  - Its settings are steppers you can click: a wall's Height, mining's Width and Depth with
+    the 32 × 32 guide, a torch's Mount level. The wheel keys still work.
+  - Then the last order with View, Undo, and Done · Esc.
+- **Construction gains Undo and Done,** and its corner box is gone.
+- **While you drag, a tag beside the selection** says what it would order and what it
+  costs: "27 blocks", "27 rough stone · 6 in stock", in rust when the stock runs short.
+  Storage's floating size label became this tag.
+- **Undo, or Ctrl + Z,** takes back the newest order of any tool, even with no tool on.
+  Its hover card says which order.
+- **Place and the stamper** keep their windows for choosing; their Done and Undo moved to the
+  bar.
+- **Reload the project** (Project → Reload Current Project): Ctrl + Z is a new input action
+  in `project.godot`.
+
+---
+
+**Mode bar concept (2026-10-25):** No change in play. One bar for every tool is drawn in
+[270](270_mode_bar.md): the tool's picture and name, its keys on keycaps, its settings as
+steppers, the last order, Undo and Done.
+- **What it replaces:** the Orders banner and its toast, Construction's corner box (which has
+  no Undo or Done, and whose "Queued" message vanishes within a tenth of a second), Place's
+  Done, Undo last and bare hint label, and the stamper's Done.
+- **Shared by every option:**
+  - it is a Hearthblock slab in the tool's family colour, sized like the windows;
+  - the cost names the stock ("27 rough stone · 6 in stock"), in rust when short;
+  - Ctrl + Z is Undo;
+  - every message a tool gives shows in it.
+- **Four questions:**
+  - **where it sits:** A above the dock (recommended), B one strip with the family's tools,
+    or C a card beside the dock;
+  - **the drag's numbers:** A in the bar, B a tag at the selection (recommended), or C both;
+  - **Undo:** A one list for every tool (recommended), B each tool its own, or C each tool
+    its own with Redo;
+  - **the height:** A in the bar (recommended), B beside the slice tower, or C at the
+    selection.
+
+Pictures are in `tmp/mode_bar_20261025/`. No restart or reload needed.
+
+---
+
+**UI scale milestone retired (2026-10-25):** No change in play. The owner accepted the UI
+scale ("it works"), so doc 269 is retired. Its rules and the owner's choices are in doc 23
+("The UI scale", and the Settings page's Interface tab). Doc 13 has `VideoSettings` as the
+one owner of the window's content scale. Nothing is left unfinished. No restart or reload
+needed.
+
+---
+
+**The UI scale (2026-10-25):** Settings has a new **Interface** tab with the UI scale
+([269](269_ui_scale.md), built with the owner's picks).
+- **Auto, 100%, 125%, 150% or 200%.** Everything drawn over the world grows together:
+  - the dock, Sky Dial, time controls and compact panel;
+  - windows, hover cards and toasts;
+  - the menus, the title and loading screens, and the marks over dwarves.
+
+  The world keeps its full resolution. Changes show at once.
+- **Auto is the default:** the scale Windows sets for the screen. On the owner's screen
+  (Windows at 150%) the game now opens at 150%; choose 100% for the sizes as before.
+- **A window too small for a size** uses the largest that fits. Windows take their sizes for
+  the room the scale leaves: at 200% on 7680×2160, the 1920×1080 sizes drawn twice as
+  large.
+- **Cells and pictures stay crisp at every size:** cell art draws nearest, and portraits
+  render at the scale.
+- Restart Play. No project reload needed.
+
+---
+
+**UI scale concept (2026-10-25):** No change in play. The UI scale, a new Interface tab in
+Settings, is drawn in [269](269_ui_scale.md).
+- **Shared by every option:**
+  - steps of 100, 125, 150 and 200%, offered only where they leave the interface at least
+    960 × 540;
+  - 175% left out, as it makes the dock and windows smaller than 150% does;
+  - changes show at once, and windows take the sizes for the room the scale leaves.
+- **Three questions:**
+  - **what grows:** A the whole interface, through Godot's scale with the cell art drawn
+    nearest (recommended), B the HUD only, or C the whole interface size by size;
+  - **how it is picked:** A choice blocks with Auto (recommended), B a slider, or C named
+    sizes;
+  - **the default:** A Auto, following Windows (150% on the owner's screen; recommended), B
+    100%, or C by the screen's height.
+
+Pictures are in `tmp/ui_scale_20261025/`. No restart or reload needed.
+
+---
+
+**Item stamper milestone retired (2026-10-25):** No change in play. The owner accepted the
+DEV item stamper ("it works"), so doc 268 is retired. Its rules and the owner's choices are
+in doc 23 ("The item stamper"). Doc 13 has `get_item_stamper()`. Nothing is left
+unfinished, as furniture stays packed. No restart or reload needed.
+
+---
+
+**The DEV item stamper (2026-10-25):** Development's Spawn Drops, Spawn Furniture and
+Spawn Bushes are replaced by one **Item stamper** ([268](268_item_stamper.md), built with
+the owner's picks).
+- **Its window,** "Stamp an item", is laid out as Place:
+  - every item as a picture by group, with Recent first;
+  - a search box for a name or an id (Enter picks the first match);
+  - the chosen item's board with its wood (Pine first) and the amount.
+- **Stamp, then click floors:** each click puts the amount down as one pile, and dwarves
+  carry it to storage. Uprooted bushes keep their records, one to a floor. Esc or Done ends
+  stamping.
+- **Refused,** dimmed with the reason: uprooted wildflowers, the river's water stones and
+  the settlement flag.
+- **No Undo last,** to keep it simple.
+- `debug_world.tscn` gained the stamper's node: accept the editor's reload of the scene if
+  it asks, then restart Play. No project reload needed.
+
+---
+
+**DEV item stamper concept (2026-10-25):** No change in play. The DEV item stamper,
+which replaces Spawn Drops, Spawn Furniture and Spawn Bushes, is drawn in
+[268](268_item_stamper.md), with options for four questions:
+- **its form:** A a search window, B the picture grid and card as Place has them
+  (recommended), or C a command bar above the dock;
+- **what a click makes:** A one pile, B a pile on every cell of a dragged area, or C goods
+  stored on a stockpile and a pile elsewhere (recommended);
+- **furniture:** A packed, B installed, or C a choice of both (recommended);
+- **the old spawners' mixes:** A gone, B kept as three Mixes (recommended), or C mixes of
+  your own.
+
+Pictures are in `tmp/stamper_20261025/`. No restart or reload needed.
+
+---
+
+**Title screen milestone retired (2026-10-25):** No change in play. The owner accepted the
+title screen and Quit to main menu, so doc 267 is retired.
+- **Its lasting rules** are in the design docs:
+  - 23 User Interface: the title screen, the owner's choices over the other art and DEV
+    options, and the game menu's Quit to main menu and its question;
+  - 13 Architecture: SaveManager's ways between the title and the world, and how the sky
+    and the weather wait for a world.
+- **Unfinished:** nothing. With the painted panorama chosen there is no phase 2.
+- No restart or reload needed.
+
+---
+
+**The title screen (2026-10-25):** the game now opens on a title screen instead of in the
+newest save (phase 1 of [267](267_title_screen.md), with the owner's picks: the painted
+panorama, and the title in every build).
+- **Over the loading screen's painted panorama:** DEEPDRAFT, "Dig · Brew · Trade", and
+  the menu at the left of the screen's middle.
+- **Continue** sits beside the newest save on a pine board: the settlement, its date and
+  hour, and "Saved 1 day ago · Quick save". It has focus, so Enter resumes.
+- **New game, Load game…, Settings… and Exit game.** Nothing asks first, as no colony runs
+  yet: a Load slot loads at once and Exit quits at once. Load and Settings are the game
+  menu's own pages. Without a save, New game leads.
+- **The game menu gains Quit to main menu…** above Exit game…. It asks as Exit does: Save
+  and quit, Quit without saving, or Cancel. It then clears the colony and shows the title,
+  whose Continue offers the save.
+- **For quick testing,** run `debug_world.tscn` on its own (Run Current Scene, F6). It
+  still starts the world and resumes the newest save, as launch did before.
+- **Small screens:** the game menu's buttons are a little shorter below 650 px tall, so
+  its seven buttons fit.
+- **Reload the project** (Project → Reload Current Project): `project.godot`'s main scene
+  changed, and the open editor could otherwise save the file with the old one. Then
+  restart Play.
+
+---
+
+**Title screen concept (2026-10-25):** No change in play. The title screen and Quit to
+main menu are drawn in [267](267_title_screen.md), with options for the two open
+questions:
+- **the art:** A the painted panorama, B a Hearthblock scene (recommended), or C the
+  colony as the save left it;
+- **DEV and Continue:** A always the title (recommended), B DEV skips straight to the
+  newest save, or C a switch of its own.
+
+Pictures are in `tmp/title_20261025/`. No restart or reload needed.
+
+---
+
+**Keys and Settings' Controls tab (2026-10-25):** new keys, and the key list in Settings
+(doc 259, screen 16).
+- **Space** pauses and resumes at the previous speed, even right after clicking a button;
+  **1** and **2** run at normal and fast speed. A text box keeps the keys it types, and
+  Space does nothing while the game menu is open or the world is loading.
+- **V** turns the Appeal view on and off, and **X** X-ray, as their buttons do. Ctrl + X
+  is not X-ray.
+- **Hover cards** on pause, 1×, 2×, Appeal and X-ray now show their key on a keycap.
+- **Settings has a third tab, Controls:** every key and mouse control in two columns
+  (Camera, Time, Windows; Views, Tools), each on keycaps, read from the game's own keys.
+  Choosing your own keys comes later. Controls has no Restore defaults.
+  - On screens under about 810 px tall (1280×720) the list scrolls.
+  - The Settings window is a little taller on every tab (1100 × 1037 at 7680×2160), as
+    the key list sets its height.
+- **Settings' lines** no longer break after a number or a slash ("120 Hz", "1 level").
+- Closes the "Appeal left for later" item in `00_todo.md`.
+- Reload the project (Project → Reload Current Project), so the editor knows the five new
+  input actions in `project.godot` and never saves the file without them; then restart
+  Play.
+
+---
+
+**Appeal milestone retired (2026-10-25):** No change in play. The owner accepted Appeal,
+all three of doc 266's phases (a room's appeal and the room thoughts, the Appeal view, and
+personal tastes), so doc 266 is retired.
+- **Its lasting rules** are in the design docs:
+  - 23 User Interface: room appeal, the room window's Appeal tab, the Appeal view and the
+    Tastes tab. It now also records the owner's choices over the other options;
+  - 41 Dwarf Agents: the room thoughts and tastes, now also with the tastes choice;
+  - 13 Architecture: the appeal API, the view's wiring, `get_tastes()` and `note_taste`;
+  - 24 World Rendering: the view's dim, tints and glows;
+  - 34 Temperature: the finished floor as part of room appeal.
+- **Unfinished:** a key for the Appeal view, now in `00_todo.md` ("Appeal left for later").
+- A test comment cited doc 266; it no longer does.
+- No restart or reload needed.
+
+---
+
+**Appeal, phase 3: personal tastes (2026-10-25):** each dwarf now has tastes of their own
+(phase 3 of [266](266_appeal_and_tastes.md)).
+- **One love, two likes and one dislike** among the furniture they use and the woods it is
+  made of: log bed, log stool, bench, log table, board-game table; pine, oak, juniper,
+  applewood. They are given at birth from the world's seed and never change.
+- **Found by using:** a taste stays "?" until the dwarf sleeps a night in the bed, eats at
+  the table on the seat, plays at the board, or uses a piece of that wood. The journal
+  tells it that day: "Found a taste: loves the log bed".
+- **What it does:** once found, a loved thing in a room adds 4 to the appeal that dwarf
+  feels, a liked one 2, a disliked one takes 4. The room's thought says so: "Slept in a
+  pleasant room · loves the log bed".
+- **The character sheet** has a sixth tab, **Tastes**:
+  - the loves, likes and dislikes as tiles, "?" until found;
+  - their own bedroom as it is and as it feels to them, on the appeal scale.
+- **The room window's Appeal tab** says how a bedroom's owner feels it when a taste moves
+  it.
+- **Saves:** dwarves now save their tastes, so saves from before this change no longer
+  load; start a new world.
+- Restart Play; no project reload needed.
+
+---
+
+**Appeal, phase 2: the Appeal view (2026-10-25):** a new view shows room appeal over the
+world (phase 2 of [266](266_appeal_and_tastes.md)).
+- **The Appeal button** (the gold star) now starts the dock's view group, before X-ray. It
+  lights while the view is on; other tools keep working.
+- **While it is on:**
+  - the world dims and greys, and each sealed room's floor takes its word's colour:
+    violet Horrid, stone Plain, amber Pleasant, gold Beautiful;
+  - the pieces a room counts glow warm, and its loose goods and stocked storage cool;
+  - the open hall stays dim, as only rooms count, and a room whose floor is above the
+    slice shows nothing.
+- **The scale** rises above the dock, as X-ray's options do: each word with its colour and
+  range.
+- **Hovering a room** shows a card with its name, word, number and parts. **Clicking its
+  floor** opens the room window on its Appeal tab; a click on a piece still selects it.
+- In your colony all six bedrooms show Plain.
+- The view starts off and is not saved. Saves from phase 1 still load.
+- Restart Play; no project reload needed.
+
+---
+
+**Appeal, phase 1: a room's appeal and how dwarves feel it (2026-10-25):** sealed rooms
+now have an appeal, and your dwarves feel it (phase 1 of [266](266_appeal_and_tastes.md),
+with the recommended picks).
+- **A room's appeal** adds up what it holds:
+  - each piece by its design and wood, as Place shows it; the hearth and the settlement
+    flag now add 2;
+  - each pile of loose goods takes 1, and each storage cell holding goods ½;
+  - a room bigger than 64 floor tiles counts only its share (121 tiles count 53%);
+  - a finished floor then adds 5.
+- **Its word:** Horrid below 0, Plain to 8, Pleasant to 16, Beautiful above. Your colony's
+  11 by 11 bedrooms are Plain 4.5; a finished floor makes them Pleasant 9.5.
+- **The room window** shows the word and number on its banner. A new **Appeal** tab shows
+  the score on the word scale and what a stay leaves, each part with its picture and
+  value, the room's size and the floor.
+- **Dwarves feel it:** a full sleep, a meal or a board game in a sealed room leaves the
+  room's thought for a while: Beautiful +8, Pleasant +4, Horrid −6, Plain none. The
+  journal has lines for each ("Woke up and just lay there, admiring the beams.").
+- **Rooms only:** meals and games in your open hall give no room thought until a door
+  seals it.
+- **Not yet:** the Appeal view over the world (phase 2) and personal tastes (phase 3).
+- **Saves:** dwarves now save their room memories, so saves from before this change no
+  longer load; start a new world.
+- Restart Play; no project reload needed.
+
+---
+
+**Settlement overview milestone retired (2026-10-25):** No change in play. The owner
+accepted the Settlement overview (both phases of doc 265: the name and the page, then the
+journal), so doc 265 is retired.
+- **Its lasting rules** are in the design docs:
+  - 23 User Interface: Colony's page with its journal, and naming the settlement. It now
+    also records the two choices (layout A, naming at the flag), the stutter rule for
+    suggestions, a flag from stock still founding a named settlement, where the page reads
+    the colony, and the group `settlement`;
+  - 13 Architecture: `ColonyJournal` (now also why it looks at the thoughts rather than
+    being told), its `journal` section and `colony_name`;
+  - 41 Dwarf Agents: the thought ids;
+  - 12 World Grid: the save example with `colony_name` and the flag's name and founding
+    day.
+- **Unfinished:** nothing new; Trade stays a planned entry.
+- A code comment cited doc 265; it no longer does.
+- No restart or reload needed.
+
+---
+
+**Settlement overview, phase 2: the journal (2026-10-25):** Colony's page now has a
+journal beside its rows: what your dwarves said, day by day (phase 2 of
+[265](265_settlement_overview.md)).
+- **Each day** ("Today · Autumn, day 8", "Yesterday…") lists its complaints, then its
+  praises, the most shared first. Ten days are kept.
+- **A line per thought a day:** the speaker's face, their name, the thought, how many
+  share it (names on hover) and their words: "Woke with frost in my beard. A hearth would
+  not go amiss."
+- **What lands in it:** a thought begins when a dwarf comes to have it, or when its memory
+  comes again (another night in the cold, another meal off the knees). What the dwarves
+  already think when you load is not news.
+- **Layout:** the journal is as tall as the rows and scrolls by itself; the page widens
+  to 1560 px on your screen. Small screens set it under the rows.
+- **Saves:** the journal is saved with the colony, so saves from before today's phases
+  no longer load; start a new world.
+- **Reload the project** (Project → Reload Current Project): the journal is a new
+  autoload.
+
+---
+
+**Settlement overview, phase 1: the name and the page (2026-10-25):** Colony now opens
+your settlement's own page, and the settlement has a name (phase 1 of
+[265](265_settlement_overview.md), layout A and naming option 1).
+- **Founding asks for a name.** Click where to plant the flag, and a card asks for the
+  settlement's name. It holds a suggestion from the world's seed, with Suggest another.
+  Found Brunhald plants the flag and brings the dwarves; Cancel or Esc keeps the flag tool,
+  and another click moves the waiting flag. Names are 3 to 24 letters, spaces, hyphens
+  and apostrophes.
+- **Events and the toast** announce "Brunhald is founded.", with how many dwarves arrived.
+- **Colony's page:** the flag, the name with Rename, the founding day and dwarves, a
+  badge for each profession and the colony's mood. Below are Dwarves, Labor, Settlement
+  flag and Trade as buttons, then five rows at a glance:
+  - dwarves working, resting and idle;
+  - days of food against a goal of 10;
+  - dwarves with their own bedroom;
+  - storage cells used and items stored;
+  - happiness with the main complaint and what helps.
+
+  The rows turn moss, hay or rust by their goals. Before founding, the page offers Found
+  the settlement. The Colony menu is gone.
+- **The name also shows** as the game menu's title and on each Load slot.
+- **Not yet:** the journal of what the dwarves said (phase 2), which will sit beside the
+  rows.
+- **Saves:** the name is saved with the flag, so saves made before today no longer load;
+  start a new world.
+- Restart Play; no project reload needed.
+
+---
+
+**Events milestone retired (2026-10-24):** No change in play. The owner accepted the
+Events window and the bell, the last of doc 264's two phases, so doc 264 is retired.
+- **Its lasting rules** are in the design docs:
+  - 23 User Interface: the event log and what lands in it, the toasts, the Events window
+    (now also why it is a window, what the bell leaves alone, the warnings' order and when
+    the list rebuilds) and the bell;
+  - 13 Architecture: `EventLog`, the signals it hears and its `events` save section;
+  - 61 Voxel Art Guide: the Events icons and the arrival heads that replay a model.
+- **Unfinished:** critical entries in red, entries that ask for a decision, filters and a
+  sound for new entries, now in `00_todo.md` ("Events left for later"). Doc 52 points
+  there for the critical entries.
+- Code comments and `event_log.json` cited doc 264; they now cite doc 23.
+- No restart or reload needed.
+
+---
+
+**Events, phase 2: the Events window and the bell (2026-10-24):** The event log can now
+be read in a window, opened from a new brass bell on the dock (phase 2 of
+[264](264_events.md), layout A).
+- **The bell** sits after Inventory. It counts the entries you have not seen in hay,
+  turns rust while a warning stands, and shows "!" once everything is read.
+- **The Events window** opens where your other windows open. Standing warnings sit at the
+  top on rust-banded cards with what to do. Below them come the days, newest first
+  ("Today · Autumn, day 7"), each entry with its picture, time, a New tag until seen, and
+  Locate.
+- **Locate** moves the view and keeps the window open. The hungry-dwarves warning visits
+  each hungry dwarf in turn.
+- **A resolved warning** stays in its day, greyed, in past words ("2 dwarves could not
+  find reachable food.") with the time it was resolved.
+- **The hungry-dwarves box** under the Sky Dial is gone; that warning now stands in Events.
+- Saves from phase 1 still load. No new autoload: restart Play.
+
+---
+
+**Events, phase 1: the event log and its toasts (2026-10-24):** What happens in the colony
+is now kept in an event log, and toasts are Hearthblock (phase 1 of [264](264_events.md),
+layout A).
+- **Toasts:** up to three at the top centre, newest on top, each a slab with a band in its
+  tone: teal with a picture for news, rust with a second line for a warning, moss for your
+  own actions. Before, one flat toast replaced the last after 2.5 s.
+- **What is kept:** arrivals (with the species' head), caverns found by mining,
+  promotions, each new season, and warnings for hungry dwarves and rising water. Warnings
+  stay until resolved. The log keeps 10 days and is saved with the colony; the Events
+  window to read it comes in phase 2.
+- **Your own actions** (saving, loading, the flag) stay toasts only.
+- **New icons:** a brass bell for Events (used in phase 2), the rabbit, deer, wolf and duck
+  heads, a cavern and a warning sign.
+- **Saves made before this change do not load:** they have no event log, so the game
+  starts a new world.
+- New autoload `EventLog`: reload the project (Project → Reload Current Project), then
+  restart Play.
+
+---
+
+**Game menu milestone retired (2026-10-24):** No change in play. The owner accepted
+Settings, the last of doc 263's three phases, so doc 263 is retired.
+- **Its lasting rules** are in the design docs:
+  - 23 User Interface: the game menu, its pages and questions, Esc's order, Settings' tabs
+    and rows, the slider, and why Video has no list of resolutions;
+  - 13 Architecture: `GameMenu`, `VideoSettings` and SaveManager's slot reads;
+  - 21 Camera: frame pacing as the Frame rate setting, and why its cap adds half a frame.
+- **Unfinished:** three video settings (brightness, a Screen choice, FSR 2), now in
+  `00_todo.md`. Quit to main menu and Settings' Interface and Controls stay with doc 259
+  (screen 16), beside the title screen.
+- Code comments that cited doc 263 now cite doc 23.
+- No restart or reload needed.
+
+---
+
+**Settings: Audio and Video tabs (2026-10-24):** the game menu's Settings has its sections as
+tabs across the top, Audio and a new Video tab (phase 3 of [263](263_game_menu.md)).
+- **Every setting is a row:** its name and a line on what it does, then choice blocks or a
+  slider.
+- **Video:** Display (Borderless, Fullscreen, Windowed), Render scale (50–100%, upscaled
+  with FSR), Frame rate (the even shares of your screen's refresh rate), VSync, Shadows
+  (High, Medium, Low) and Anti-aliasing (Off, SMAA, MSAA 2×, MSAA 4×). Each default is
+  what the game did before, and every change shows at once and is kept for every colony.
+- **Restore defaults** resets the open tab.
+- **Frame pacing** is now the Frame rate setting; its default still gives 60 fps on a
+  120 Hz screen.
+- New autoload `VideoSettings`: reload the project (Project → Reload Current Project),
+  then restart Play.
+
+---
+
+**Game menu settings (2026-10-24):** the game menu's Settings… opens a Settings page inside
+the menu (phase 2 of [263](263_game_menu.md)).
+- **Audio:** ambience and effects, each with a voxel slider (hay fill, stone knob), its
+  percentage and Mute, plus Restore defaults.
+- **Keyboard:** the arrow keys move the sliders.
+- **Back, or Esc,** returns to the menu.
+- **Gone:** the separate Audio window.
+- Restart Play.
+
+---
+
+**Game menu (2026-10-24):** The Menu button, and Esc once nothing is left for it to close,
+open a game menu over the dimmed world. Phase 1 of [263](263_game_menu.md).
+- **The menu** gives the colony's date and when it was last saved, then Resume, Save game,
+  Load game…, New game…, Settings… and Exit game…. The game pauses while it is open and
+  resumes exactly as it was, paused or at its speed.
+- **Load game…** lists the quick save and the autosave with their date in the colony and
+  when they were saved.
+- **Load, New game and Exit ask first** and say how long ago the colony was last saved.
+  Exit offers Save and exit, and closing the game's window asks the same, so a misclick or
+  a closed window no longer throws away progress.
+- **Esc's order:** a drag, an open dock menu, the active tool, a window, the selection,
+  and only then the menu. Inside the menu Esc steps back.
+- **Settings…** opens the Audio window for now; Settings gets its own page in phase 2.
+- **Gone:** the painted Menu and Save / Load panels, and three painted sheets nothing used
+  any more.
+- `GameMenu` is a new autoload: **Project → Reload Current Project**, then restart Play.
+
+---
+
+**Place and Inventory milestone retired (2026-10-24):** No change in play. The owner
+accepted both windows, so doc 262 is retired.
+- **Its lasting rules** are in 23 User Interface: the Place window, Colony Inventory, the
+  picture grid's in-place restyling, and each window's API.
+- Nothing is left unfinished.
+- No restart or reload needed.
+
+---
+
+**Inventory window rebuilt (2026-10-24):** Colony Inventory now has the Place window's
+layout and size ([262](262_place_window.md)), with no painted category pictures.
+- **Goods:** every category is open at once as a group, each good on a tile with how many
+  the colony holds. Goods that run out are dimmed; names show on hover.
+- **The board** shows the chosen good's picture with its total and group, its
+  description, and what it is made of (furniture of different woods). Then where it is,
+  each number with its word: stored, loose, carried and equipped; available, reserved and
+  disallowed. Locate and Inspect storage sit under the board.
+- **Stable browsing:** goods that arrive while the window is open wait in a New group at
+  the end until it reopens.
+- `categories_atlas.png`, the painted category sheet, is deleted.
+- Restart Play.
+
+---
+
+**Place window rebuilt (2026-10-24):** Place is a big window in the crafting window's
+shape (layout B of [262](262_place_window.md)), with no painted category pictures.
+- **Designs:** every category is open at once as a group, each design on a tile with how
+  many are ready; designs with none ready are dimmed, and names show on hover. Show all
+  designs lists every design.
+- **The board:** the chosen design's picture, facts and appeal, its description and note,
+  its wood as pictures with counts (Any first), and how many are ready to place, on their
+  way and being crafted. Place item, Done and Undo last sit under it.
+- **Stable browsing:** counts change in place while goods are hauled, and a design that
+  arrives while the window is open waits in a New group at the end until it reopens.
+- **Shared picture grid:** crafting, storage and the room window also keep their tiles,
+  focus and hover when only counts or marks change.
+- Restart Play.
+
+---
+
+**Hearthblock windows milestone retired (2026-10-24):** No change in play. The owner
+accepted the room window, the last of doc 261's five phases, so doc 261 is retired.
+- **Its lasting rules** are in the design docs:
+  - 23 User Interface: each window, the shared panel rules (owner APIs, sizes, fitting
+    above the dock), the picture grid and the layout pitfalls met building them;
+  - 13 Architecture and 34 Temperature: room kinds;
+  - 41 Dwarf Agents: mood.
+- **Unfinished:** a clock icon for crafting's time badge, now in `00_todo.md`. Tastes and
+  the appeal mechanic stay with doc 259.
+- No restart or reload needed.
+
+---
+
+**Room window rebuilt (2026-10-24):** Clicking a room with the Rooms tool opens a window
+that says what the room is and what it needs, as the approved concept draws it.
+- **The band** names the room: "Birna's bedroom", or "Bedroom 6" without an owner.
+- **The header:** the kind with its tags (Sealed, Frozen vault, Owner's bonus +10), who
+  sleeps there with their portrait, and an appeal banner ("Plain +0").
+- **What makes it a bedroom:** Bed, Light, Door and Walls with their counts, each ticked
+  when met. A room one step short says what to add: "One step from a bedroom: add a
+  light."
+- **Comfort:** the warmth the room's heat sources add, its temperature with the goal
+  ("16 °C or more"), and the finished floor with its +5 appeal.
+- **In this room:** the furniture as pictures with counts, doors included.
+- **Details:** volume, doors, floor level, heating and the season's influence.
+- **New icon:** a thermometer for temperature.
+- Rooms are classified as before. Their kinds and needs now live in
+  `data/rooms/room_kinds.json`.
+
+See [261](261_hearthblock_windows.md), "Built: phase 5". Restart Play.
+
+---
+
+**Script errors fail tests again (2026-10-24):** tooling only, no change for the player
+([257](257_parallel_test_runner.md)).
+- `tools/run_job_reliability.ps1` fails a test whose stderr has a `SCRIPT ERROR` line, even
+  when it exits 0 and prints its pass marker. A runtime error inside an awaited coroutine
+  ends only that coroutine, so a test could pass with its later checks skipped
+  (`BedOwnershipTest` did).
+- The runner had this check, but it hadn't fired since `expected_errors` arrived on
+  2026-10-22. A test with no expected errors got a one-entry empty allow-list that hid
+  every error line.
+- Only `SCRIPT ERROR` counts. `ERROR` and `WARNING` lines, such as WASAPI audio errors and
+  `push_warning` backtraces, don't.
+- A failure now lists its distinct script errors first, each with its `at:` line.
+- Gate 55/55 with lint OK. `-All` 168/176. The rule adds two failures, whose fixtures
+  leave the world generator's maps unsized:
+  - `AmbientWaterScanTest` is deleted. It was the only check that the ambience scan
+    skips columns that never held water.
+  - `BoulderPilotTest` is fixed rather than deleted, since 10 tests build on it, 3 of
+    them in the gate. Its fixture now caches block ids and sizes the maps as
+    `TreeFellingTest`'s does. See 257.
+- After both changes the flora area passed 18/18 and the gate 55/55 with lint OK.
+- No restart or reload needed.
+
+---
+
+**Storage rebuilt (2026-10-24):** A storage zone's window is now a filter of pictures,
+as the approved concept draws it.
+- **The band** names the zone.
+- **Groups:** Materials, Food & farming and Goods each show their categories as
+  pictures, marked ✓ when all of it is stored and − when some is.
+- **Clicking:**
+  - a picture stores the whole category or stops it;
+  - a group's All, Some or None does the same for the group;
+  - a category's name opens its exact goods, to allow or refuse single goods.
+- **Under the filter:** All, None, how full it is, and Remove zone.
+- **Contents** shows what is stored as pictures with counts, with a "!" on goods waiting
+  to move elsewhere. Click one to find it in the filter.
+- **Filter and Contents** hang under the window.
+- **Fixed:** in crafting, clicking a recipe or a wood could pass the click on to the world
+  behind the window.
+
+See [261](261_hearthblock_windows.md), "Built: phase 4". Restart Play.
+
+---
+
+**Colony Dwarves follows Stonehearth's Citizens (2026-10-24):** The left column no longer
+squeezes in the whole character sheet.
+- **A Details card** shows who the selected dwarf is: the portrait, name, profession with
+  its level, and traits.
+- **Its buttons:** Character sheet, Change profession, Crafting (for Workers) and Follow.
+- **Character sheet** opens the full sheet beside Colony Dwarves. It follows the dwarf you
+  pick in the list, and Escape closes it first.
+- **Every row** now shows the dwarf's mood: the face and the word.
+- **On large screens** Colony Dwarves is bigger, up to 1688×1180 at 7680×2160, with larger
+  rows and type.
+
+See [261](261_hearthblock_windows.md), "Colony Dwarves' details column, reviewed". Restart
+Play.
+
+---
+
+**Character sheet rebuilt (2026-10-24):** The character sheet now follows the approved
+concept.
+- **Header.**
+  - The portrait and the name.
+  - The profession with its level and experience bar. Only Miners earn experience so far.
+  - The traits as tags: green for good ones, red for bad ones.
+  - A mood banner with the dwarf's face, mood word and happiness.
+- **Five tabs.**
+  - Overview: what the dwarf is doing and where they are heading, Rest and Food with
+    their pictures, what they carry as pictures, and their latest two thoughts.
+  - Mood: every thought as a card with its hours left and value, bad ones on the left and
+    good ones on the right, over a five-step scale (Miserable, Unhappy, Content, Happy,
+    Joyful).
+  - Traits and Equipment.
+  - Profession: the level and its rewards, and Change profession.
+- **Five new mood faces** for the banner and the scale.
+- **Mood words.** A small worry (−3 or −5) now leaves a dwarf Content rather than
+  Unhappy. The face over a dwarf's head still appears at the same point (40%), now when
+  the sheet says Unhappy or Miserable.
+
+See [261](261_hearthblock_windows.md), "Built: phase 3". Restart Play.
+
+---
+
+**Windows follow the concept; crafting rebuilt (2026-10-24):** Every window now keeps the
+concept's shared rules, and the crafting window is rebuilt as drawn.
+- **Every window:**
+  - The shown tab and the main action (Queue, Place item, Follow, Promote) are blocks in
+    the window's family colour.
+  - Every picture sits on the family tile, with a hay rim when selected: recipes, items,
+    storage filters, portraits, tools and room symbols.
+  - Names and headings use the bold display face. The serif stays only on the HUD.
+  - The title band is the concept's 12 cells.
+- **Crafting:**
+  - The profession sits on top with a Crafters row of every profession, so switching no
+    longer leaves the window.
+  - Recipes are grouped pictures. One that cannot start now is dimmed with a "!", and
+    its tooltip says why.
+  - The chosen recipe sits on a pine board with its picture, its time, yield and appeal,
+    and its ingredients as pictures. Click a wood to allow it.
+  - Each recipe now has a flavour line.
+  - Make now or Keep in stock, with one Queue button.
+  - The queue stays in view, each order with its picture and a coloured status tag. On
+    small screens it folds into an Orders tab.
+  - The window is tall enough for every recipe's board, so none needs scrolling at
+    1920×1080 and up. The log fence, log gate and board-game table no longer repeat
+    their description.
+
+See [261](261_hearthblock_windows.md), "Corrected after the owner's review" and "Built:
+phase 2". Restart Play.
+
+---
+
+**Windows in the Hearthblock frame (2026-10-24):** Every window now wears Deepdraft's
+voxel frame. This is the first step of the window redesign.
+- A title band runs across the top in the window's family colour:
+  - terracotta for crafting, Place, Inventory and rooms;
+  - teal for the character sheet, Colony Dwarves, Professions and Trade;
+  - blue for storage and mining zones;
+  - purple for Audio, and amber for DEV windows.
+- The title sits on the band in the bold display face, and a stone keycap ✕ closes the
+  window.
+- Inside:
+  - buttons are raised blocks, with a hay edge when pressed or selected;
+  - main actions are hay blocks;
+  - cards are recessed insets or the pale pine board;
+  - fields, bars and scroll bars are cell grooves.
+- The brown cabinet frame on the catalog windows is gone.
+- Fixed: the Trade preview no longer opens 2,600 px tall. Every window now shrinks to its
+  contents once it opens.
+- Colony Dwarves now reaches down to just above the dock on small screens.
+- Today's contents stay until each window is rebuilt: crafting next, then the character
+  sheet, storage and rooms.
+
+See [261](261_hearthblock_windows.md), phase 1. Restart Play.
+
+---
+
+**Compact panel in Deepdraft's own style (2026-10-23):** The panel beside the dock now
+matches the hover cards. It is a dark voxel slab with a band in the selected thing's
+family colour across the top: terracotta for furniture and goods, blue for nature,
+orders and terrain, teal for dwarves.
+- The name sits on the band and is never cut short: "Rudimentary hearth (packed)" shows
+  whole.
+- The badge sits on a stone chip, and the picture or portrait on a tile in the family
+  colour, like the dock's icons.
+- The status sits on a tag in its tone: moss when fine, hay when waiting, rust when
+  blocked.
+- The Stonehearth-style plate, white pill and brown frame are gone.
+
+See [259](259_ui_overhaul.md), option A. Restart Play.
+
+---
+
+**Hover cards in Deepdraft's own style (2026-10-23):** Hover cards are now dark hearth
+slabs drawn in voxel cells, with notched corners, a lit top and a dark underside, like
+the dock's tiles. They replace the black card copied from Stonehearth.
+- Each card's top wears the family colour of the button it explains: blue for work,
+  teal for people, purple for the time and view controls and the Sky Dial.
+- Keys sit on pale stone keycaps ("Ctrl + ]" shows two), and a planned status sits on a
+  hay tag. The pointer is stepped.
+- Plain tooltips in windows and on the dock use the same slab. The Assign owner list
+  matches the cards.
+
+See [259](259_ui_overhaul.md), option C. Restart Play.
+
+---
+
+**Explorer window retired; window tooltips in the format (2026-10-23):** Plain tooltips
+in every window are now the black card with light text that the dock and the compact
+panel use. That covers the character sheet, rooms, storage, DEV tools and every other
+window.
+- The old explorer window's general layout is gone. Every object already opened the
+  compact panel, so nothing moves; the window remains only as a dwarf's character
+  sheet.
+- Rooms, storage and DEV tools keep their own windows, and clicking a storage zone
+  still opens the storage inspector.
+- Its saved position starts fresh, at the top right, the first time you open a
+  character sheet.
+
+See [260](260_compact_panels.md), phase 6. Restart Play.
+
+---
+
+**Hover cards in the panel format (2026-10-23):** Hovering or focusing any icon button
+now shows a near-black card in the approved format: the name in gold, the explanation,
+and a pointer at the button. That covers the dock, its menus, the Orders shelf, the time
+and view controls and the compact panel's buttons.
+- Commands with a key show it in orange. Slice shows "key: \\" and the tower's arrows
+  show "]", "Ctrl + ]", "Ctrl + [" and "[", read from the key bindings.
+- Planned entries show their status in amber.
+- The Sky Dial's details use the same card beside the dial.
+- Plain tooltips on the dock and the compact panel are black cards too.
+
+See [260](260_compact_panels.md). Restart Play.
+
+---
+
+**Compact panel for every object (2026-10-23):** Trees, shrubs, flowers, reeds,
+boulders, scree, wildlife, ladders, bridges, water stones, construction plans and
+terrain faces now open the compact panel beside the dock, like furniture, goods and
+dwarves. The old explorer window remains only as a dwarf's character sheet.
+- **Pictures.** Trees, plants, stones and animals show a live portrait of the object
+  itself, in its current season or pose. The rest use their thumbnail or
+  construction icon; terrain has none.
+- **Key facts.**
+  - Each panel shows what matters on its status line: a tree's age and fruit, a
+    shrub's crop, an animal's activity with its herd or flock, a plan's progress.
+  - The badge shows ripe fruit or berries, a stone's yield or a floor's room appeal.
+  - A tree's flavour line says what felling yields and when its fruit comes.
+- **Buttons.** Fell, Harvest, Clear, Uproot, Move, Pause, Resume, Dismantle, Pack for
+  storage and Cancel use the existing Hearthblock icons.
+
+See [260](260_compact_panels.md). Restart Play.
+
+---
+
+**Compact dwarf panel (2026-10-23):** Clicking a dwarf now opens the compact panel
+beside the dock instead of the dwarf window:
+- The panel shows the dwarf's portrait and name, and a mood badge with happiness (the
+  thoughts on hover).
+- It shows the profession on its tile and what the dwarf is doing, with a concern
+  icon when something needs attention.
+- Hearthblock buttons: Follow (lit while the camera follows), Locate and Character
+  sheet.
+- Character sheet opens the familiar tabbed window, now titled Character sheet. Closing
+  it keeps the dwarf selected.
+- Colony → Dwarves still shows the dwarf inside the overview.
+- Scrolling over the panel no longer zooms the world.
+
+`DwarfInspectorTest` passes again, after its retired furniture keys were replaced. See
+[260](260_compact_panels.md). Restart Play.
+
+---
+
+**Compact object panel for furniture and goods (2026-10-23):** Clicking furniture or
+goods now opens a small panel beside the dock instead of the window at the top right, in
+the Stonehearth-style format the owner approved:
+- A name plate, an appeal badge (goods without appeal show their quantity), the
+  object's picture, one flavour line and one status line in green, amber or red, such
+  as "Birna's bed" or "Heating the bedroom · 18.5°C".
+- Hearthblock icon buttons: Move, Pack up, Assign owner, Craft, Allow/Disallow,
+  Place stone and Cancel. DEV actions sit apart on DEV tiles, behind the DEV switch.
+- Hovering the flavour line shows the full description when it is longer.
+- Assign owner opens a list of the dwarves' portraits.
+- There is no Details button: the owner judged that it repeated the panel.
+- At 7680×2160 the panel sits left of the dock. On narrow screens it sits above the
+  dock's left end, and the dock's menus keep clear of it.
+
+Trees, plants, stones, wildlife and construction keep the window until later phases.
+`CompactPanelTest` covers the panel. See [260](260_compact_panels.md). Restart Play.
+
+---
+
+**UI overhaul, frames and panels proof (2026-10-23):** No change to the game. Three looks
+for frames and panels were tried on the live UI at runtime and captured at 7680×2160:
+- A · Blocks: every box a voxel block, like the icon tiles.
+- B · Workshop: the blocks, plus timber and iron frames on windows, the dock and menus.
+- C: the blocks with wooden title plates.
+
+The owner rejected all three as reskins of today's windows. Three new formats for the
+compact panel were then mocked from scratch: Timber board, Storybook and Lantern glass.
+None was right. Deepdraft content was then mocked in the Stonehearth panel format from the
+owner's reference screens. The owner decides. See [259](259_ui_overhaul.md).
+
+---
+
+**Hearthblock Colony; icon pass complete (2026-10-23):** The Colony menu now shows
+Hearthblock icons on the people tile:
+- Dwarves: two of the colony's dwarves side by side.
+- Settlement flag: the game's banner.
+- Labor: a ticked work ledger.
+- Trade (planned, locked): a balance with coins and goods.
+
+This completes the menu icon pass. The dock, the time and view controls, every command
+menu, the world order markers and the professions use Hearthblock icons. Menu,
+Development and the Place and Inventory categories keep their painted art until their
+features arrive.
+- `UiIconDataTest` checks the Colony entries.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+---
+
+**Hearthblock professions (2026-10-23):** Every profession has one Hearthblock icon,
+shared by the Crafters menu, the career map and the equipment view:
+- Worker: the dwarves' own axe and pickaxe.
+- Miner: an ore heap and pick. Carpenter: a saw. Stonemason: a chisel and mallet.
+- Blacksmith: an anvil with a glowing bar. Weaponsmith: a crossed sword and hammer.
+  Armorsmith: a helm.
+- Farmer: the stone hoe and turnips. Hunter: the spear and a paw print. Brewer: a
+  brewing tub.
+
+Planned careers stay dimmed on the career map and locked in Crafters.
+- The painted Crafters sheet (`craft_atlas.png`) and the eight copper profession SVGs are
+  deleted.
+- `UiIconDataTest` checks each profession's icon and that Crafters shows it.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+---
+
+**Hearthblock Zones and Construction (2026-10-23):** The Zones and Construction menus now
+show Hearthblock icons on the work tile:
+- Zones: Storage, Farming and Animal pasture. Farming and Animal pasture stay locked as
+  planned.
+- Construction: Stone block, Floors, and the two floors.
+
+Stone block shows its top course as the cyan plan the game draws over planned blocks.
+Pasture uses the game's own log fence. The floors copy the real plank and stone floors.
+- The painted Zones sheet (`zones_atlas.png`) is deleted. The Construction sheet stays
+  for the room panel's flooring fact.
+- `ConstructionInputTest` and `UiIconDataTest` check the new icons.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+---
+
+**Hearthblock Orders and world markers (2026-10-23):** The six Orders tools now show
+Hearthblock icons on the work tile: Mine blocks, Chop trees, Clear stones, Harvest
+plants, Clear plants and Cancel orders.
+
+The markers over ordered trees, bushes, flowers, reeds and stones show the same
+pictures on a small tile instead of emoji, so a marked tree looks like the tool that
+marked it. Uprooting a bush or flower has its own marker, a bush lifted out with its
+roots beside a brass arrow.
+- The painted Orders sheet (`orders_atlas.png`) is deleted.
+- `TreeFellingTest` and `UiIconDataTest` check the new markers and pictures.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+---
+
+**Time under the Sky Dial, views in the dock (2026-10-23):** The bottom-right strip is
+split (layout option B):
+- Pause, 1× and 2× hang centred under the Sky Dial, and the food warning hangs below
+  them.
+- X-ray and Slice end the dock as its last group. They are plain dock icons without
+  captions, the same size as the others.
+- The slice arrows rise above Slice only while Slice is on. X-ray's options rise beside
+  them only while X-ray is on.
+
+These controls now sit below windows, like the dial and the dock. On short screens the
+slice steps get shorter and the food warning moves beside the time controls, so nothing
+overlaps. Tests cover the new placement at four screen sizes.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+---
+
+**Hearthblock time and view strip; one-button X-ray (2026-10-23):** The bottom-right
+controls now use Hearthblock icons on the system tile:
+- Pause, 1× and 2×, and the four slice steps, as brass glyphs;
+- Slice as a block of ground with its top lifted;
+- X-ray as a see-through block.
+
+X-ray is one button beside Slice, and its options (Full | Flat, Guide, Pin guide here)
+appear only while it is on. Slice and X-ray carry small captions that light up when on.
+Compact screens use 44 px buttons so the strip still fits at 960 px.
+- `controls_atlas.png` is deleted.
+- `TimeSliceHUDTest` covers the new X-ray button.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+---
+
+**Hearthblock dock icons (2026-10-23):** The ten dock buttons now show Hearthblock icons.
+They are small voxel models in the game's own style, outlined, on notched tiles coloured
+by command family:
+- work (Orders, Zones, Construction): steel blue;
+- settlement (Rooms, Place, Craft): terracotta;
+- people (Colony, Inventory): teal;
+- system (Menu, Development): dusk violet.
+
+Hover lightens a tile; the active command keeps its copper frame and notch. Menus keep
+their painted art until their group is converted.
+- **Pipeline:** icons are authored in `tools/hearthblock/art/icons.mjs`, staged by
+  `build.py icons` and rendered by the new `tools/GenerateUiIcons.gd` to
+  `assets/ui/icons/`. Family colours are in `data/ui/icon_families.json`.
+- **Removed:** the 11 unused SVG icons.
+- **New test:** `UiIconDataTest` (`ui` area) checks every picture the UI data names.
+- See [259](259_ui_overhaul.md). Restart Play.
+
+**UI overhaul, steps 1–2: review of the current UI and the Stonehearth reference
+(2026-10-23):** No change in play.
+- Captured every UI surface from a copy of the owner's quicksave, in a throwaway profile, and
+  reviewed it ahead of the overhaul and the Hearthblock icons. Screenshots are in
+  `tmp/ui_review_20261023/shots/`.
+- Main findings: painted navigation beside voxel tiles and portraits, about 100 icons to
+  redo, no UI scaling at 7680×2160, windows in three screen areas, no at-a-glance colony
+  information.
+- Went through 26 Stonehearth screens with the owner (copies in
+  `tmp/ui_review_20261023/stonehearth/`). Accepted for the overhaul: a settlement
+  overview with a journal, a rebuilt crafting window, an Events log, a simpler X-ray, the
+  appeal mechanic with its view and personal tastes, a game menu and a title screen, a
+  DEV item stamper, and compact panels for objects and dwarves with a character sheet.
+- Logged for later in `00_todo.md`: shape tools, blueprints, building vision and storage
+  furniture. Fight & Defend is noted in doc 52. See [259](259_ui_overhaul.md).
+- Step 3 began with an icon proof: the ten dock icons built as Hearthblock models
+  (`tools/hearthblock/art/icons.mjs`), staged by a new staged-only `icons` family in
+  `build.py`, rendered in three forms and shown in the real dock at 7680×2160. Nothing
+  is installed; the owner picks the form. `write_data.py` now writes LF line endings.
+- No restart or reload needed.
+
 **Even camera motion on high-refresh displays; no hitch panning onto new ground (2026-10-22):**
 - On the owner's 120 Hz display the game ran at about 100 fps, so frames were held for
   one or two refreshes at random and panning juddered. The camera rig now caps the

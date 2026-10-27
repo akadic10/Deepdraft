@@ -364,10 +364,9 @@ func _capture_game() -> void:
 	dock._open_place_catalog()
 	dock._place_catalog.show_all = true
 	dock._place_catalog._all_toggle.set_pressed_no_signal(true)
-	dock._place_catalog.category = "all"
 	dock._place_catalog._select(GAME)
 	await _frames(5)
-	_expect(dock._place_catalog._spec.text.contains("3 × 3") and dock._place_catalog._note.text.contains("outside"),"Place card explains game area and separate stools")
+	_expect(dock._place_catalog.facts_text().contains("3 × 3") and dock._place_catalog._note.text.contains("outside"),"Place card explains game area and separate stools")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(OUT+"place.png")
 	dock._place_window.hide()

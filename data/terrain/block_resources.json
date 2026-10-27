@@ -23,43 +23,33 @@
 
 
   "__comment_rock": [
-    "Authored rock bands (rock01-11) share one profile: mined rock sometimes drops Rough Stone (chance 0.05).",
-    "The low chance is a temporary playtest setting (less stockpile clutter); revisit in the economy balance pass."
+    "Authored rock bands (rock01-11) share one profile: mined rock sometimes drops Rough Stone (chance 0.25).",
+    "Raised from 0.05 for building (doc 273, 2026-10-26): about four blocks dug for each block built. A playtest setting; revisit in the economy balance pass."
   ],
 
-  "base:terrain:rock:rock01":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock02":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock03":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock04":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock05":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock06":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock07":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock08":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock09":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock10":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock11":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.05 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock01":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock02":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock03":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock04":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock05":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock06":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock07":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock08":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock09":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock10":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock11":  { "durability": 3, "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
 
-  "__comment_surface": "Surface biome blocks - 8 grass colour variants all share the same drop profile",
+  "__comment_surface": "Surface blocks - grass and dirt drop the one Soil good",
 
-  "base:terrain:surface:grass_01":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_02":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_03":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_04":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_05":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_06":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_07":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:grass_08":  { "durability": 1, "drops": [{ "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:dirt_01":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:dirt_02":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:dirt_03":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:dirt_04":  { "durability": 1, "drops": [{ "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
+  "base:terrain:surface:grass":  { "durability": 1, "drops": [{ "item": "base:resources:soil:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
+  "base:terrain:surface:dirt":  { "durability": 1, "drops": [{ "item": "base:resources:soil:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
 
-  "__comment_soil": "Soft earth - farmable cave soil has the 'farmable' tag. Drop chance 0.05, a temporary playtest setting matching rock.",
+  "__comment_soil": "Soft earth - cave soil keeps the 'farmable' tag for cave farms and drops the same Soil good as grass and dirt. Drop chance 0.25, a playtest setting matching rock.",
 
   "base:terrain:soil:cave": {
     "durability": 1,
     "drops": [
-      { "item": "base:resources:soil:cave_soil", "count": 1, "chance": 0.05 }
+      { "item": "base:resources:soil:soil", "count": 1, "chance": 0.25 }
     ],
     "depth_bias": { "min_y": 18, "max_y": 60 },
     "noise_threshold": 0.66,
@@ -67,22 +57,21 @@
     "material_tags": ["dirt", "soil", "farmable", "stockpile_soil"]
   },
 
-  "base:terrain:soil:light": {
-    "durability": 1,
-    "drops": [
-      { "item": "base:resources:soil:light_soil", "count": 1, "chance": 0.05 }
-    ],
-    "material_tags": ["dirt", "soil", "stockpile_soil"]
-  },
 
-  "base:terrain:soil:dark": {
-    "durability": 1,
-    "drops": [
-      { "item": "base:resources:soil:dark_soil", "count": 1, "chance": 0.05 }
-    ],
-    "material_tags": ["dirt", "soil", "stockpile_soil"]
-  },
+  "__comment_logs": "Built logs give their log back whole (doc 275).",
 
+  "base:construction:log:oak:up": { "durability": 2, "drops": [{ "item": "base:resources:wood:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:oak:x": { "durability": 2, "drops": [{ "item": "base:resources:wood:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:oak:z": { "durability": 2, "drops": [{ "item": "base:resources:wood:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:pine:up": { "durability": 2, "drops": [{ "item": "base:resources:wood:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:pine:x": { "durability": 2, "drops": [{ "item": "base:resources:wood:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:pine:z": { "durability": 2, "drops": [{ "item": "base:resources:wood:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:juniper:up": { "durability": 2, "drops": [{ "item": "base:resources:wood:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:juniper:x": { "durability": 2, "drops": [{ "item": "base:resources:wood:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:juniper:z": { "durability": 2, "drops": [{ "item": "base:resources:wood:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:apple:up": { "durability": 2, "drops": [{ "item": "base:resources:wood:apple_wood", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:apple:x": { "durability": 2, "drops": [{ "item": "base:resources:wood:apple_wood", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:apple:z": { "durability": 2, "drops": [{ "item": "base:resources:wood:apple_wood", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
 
   "__comment_ore": "Ore veins - depth-biased; deeper = rarer. Drop chance 0.10 for all ores is a temporary playtest setting, like rock and soil - not a balance number; revisit in the economy pass. Gems use their own chances.",
 

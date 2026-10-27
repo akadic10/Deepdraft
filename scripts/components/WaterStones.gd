@@ -174,9 +174,13 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	var definition: Dictionary = WorldGenerator.water_profile.stones[record.kind]
 	var actions := [Permission.action(record.disallowed)]
 	if not record.disallowed:
-		actions.append({"id":"pack", "text":"Cancel packing" if record.packing else "Pack for storage"})
+		actions.append({"id":"pack", "text":"Cancel packing", "icon":"res://assets/ui/icons/cancel.png"} if record.packing else {"id":"pack", "text":"Pack for storage"})
 		if not record.packing: actions.append({"id":"move", "text":"Move"})
-	return {"title":definition.display_name,"kind":"Water stone", "rows":[
+	# The compact panel (doc 260): the stone's picture and whether it is working.
+	var state := {"text":"Disallowed: dwarves leave it here", "tone":"blocked"} if record.disallowed \
+		else {"text":"Packing requested", "tone":"waiting"} if record.packing else {"text":"Working while placed", "tone":"fine"}
+	return {"title":definition.display_name, "family":"settlement",
+		"picture":"res://assets/ui/furniture/%s_stone.png" % String(record.kind), "status":state, "rows":[
 		["Colony access","Disallowed" if record.disallowed else "Allowed"],
 		["Water","Active while placed"],["Order","Packing requested" if record.packing else "None"]],
 		"details":"Feeds water up to level %.1f. Allowing colony access does not stop the spring or automatically move it." % record.level if record.kind=="wet" else "Absorbs water above level %.1f. Packing stops the drain; allowing access alone leaves it working." % record.level,

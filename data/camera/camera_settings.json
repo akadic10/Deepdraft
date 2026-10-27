@@ -11,8 +11,7 @@
     "  (geometric zoom).",
     "  min_distance 2 / cursor_min_gap 1.5 allow ground-level close-up; the surface floor",
     "  (surface_floor_* keys) prevents clipping instead of a hard min distance.",
-    "FRAME PACING: paced_fps_max caps frames at the largest even fraction of the display",
-    "  refresh rate not above it (120 Hz -> 60, 144 Hz -> 72, 60 Hz -> 60). 0 = uncapped."
+    "FRAME PACING is the Frame rate video setting (data/video/video_settings.json)."
   ],
 
   "camera_settings": {
@@ -32,8 +31,7 @@
     "smoothing": 0.22,
     "edge_scroll_enabled": false,
     "edge_scroll_threshold_pixels": 10,
-    "pan_reference_height": 135.0,
-    "paced_fps_max": 75.0
+    "pan_reference_height": 135.0
   },
 
   "rotation": {
@@ -67,7 +65,7 @@
 
   "cursors": {
     "enabled": true,
-    "orbit": "🔄",
+    "orbit": "🗘",
     "drag": "✋",
     "size": 28,
     "hide_system_cursor": true

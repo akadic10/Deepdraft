@@ -168,7 +168,7 @@ func _check_raised_floor() -> void:
 	await _new_trip(STONE,3)
 	_expect(await _until(worker.TaskPhase.HAUL_TO_ZONE), "raised-floor fixture owns real cargo")
 	var cell: Vector3i = worker.current_cell()+Vector3i.UP
-	world.set_block(cell.x,cell.y,cell.z,blocks.get_id("base:construction:floor:plank"))
+	world.set_block(cell.x,cell.y,cell.z,blocks.get_id("base:construction:log:oak:x"))
 	nav.refresh_mined_block(cell)
 	worker._process(.01)
 	_expect(worker.current_cell()==cell and nav.is_walkable(cell), "embedded feet recover onto raised flooring")
@@ -188,7 +188,7 @@ func _check_raised_floor() -> void:
 	_expect(worker.position==Vector3(76.35,21,40.7) and is_equal_approx(worker.rotation.y,.7), "saved embedded dwarf recovers preserving XZ and facing")
 	worker._begin_sleep()
 	var remaining: float = worker._sleep_hours_left
-	world.set_block(76,21,40,blocks.get_id("base:construction:floor:stone"))
+	world.set_block(76,21,40,blocks.get_id("base:construction:log:pine:x"))
 	nav.refresh_mined_block(Vector3i(76,21,40))
 	worker._process(.01)
 	_expect(worker.position.y==22 and worker._sleeping and worker._sleep_hours_left==remaining, "raised floor preserves remaining sleep")

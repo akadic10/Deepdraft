@@ -89,7 +89,7 @@ func _run() -> void:
 	for n in range(250): tasks.journal.transition(locator,"waiting",str(n))
 	_expect(tasks.journal.history.size()==200,"transition history is bounded")
 	var inspector = load("res://scripts/ui/JobInspectorPanel.gd").new()
-	manager.register_window("jobs_test","Job inspector","",inspector,{"persistent":false,"default_pos":Vector2(220,110)})
+	manager.register_window("jobs_test","Job inspector","",inspector,{"persistent":false,"default_pos":Vector2(220,110),"family":"dev"})
 	manager.open("jobs_test")
 	inspector._selected = stable_key
 	inspector.refresh()

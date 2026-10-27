@@ -16,6 +16,7 @@ extends Node
 const NAMES_PATH      := "res://data/entities/dwarves/names.json"
 const APPEARANCE_PATH := "res://data/entities/dwarves/appearance.json"
 const TRAITS_PATH     := "res://data/entities/dwarves/traits.json"
+const TASTES_PATH     := "res://data/entities/dwarves/tastes.json"
 
 # ── Runtime tint palettes (doc 41b §Color Application Strategy) ───────────────
 
@@ -132,6 +133,7 @@ var scars: Dictionary = {
 var _names: Dictionary = {}        # { male: {prefixes, suffixes}, female: {...} }
 var _appearance: Dictionary = {}   # { shared: {...}, male: {...}, female: {...} }
 var _traits: Dictionary = {}       # { generation_config, exclusion_groups, traits }
+var _tastes: Dictionary = {}       # { counts, felt, things }
 var _professions: Dictionary = {}
 var _work_categories: Dictionary = {}
 var _proportions: Dictionary = {}
@@ -141,6 +143,7 @@ func _ready() -> void:
 	_names = _load_json(NAMES_PATH)
 	_appearance = _load_json(APPEARANCE_PATH)
 	_traits = _load_json(TRAITS_PATH)
+	_tastes = _load_json(TASTES_PATH)
 	_proportions = _load_json("res://data/entities/dwarves/proportions.json")
 	_professions = _load_json("res://data/professions/professions.json")
 	for entry: Dictionary in work_permissions():
@@ -199,6 +202,12 @@ func get_appearance_pools() -> Dictionary:
 
 func get_trait_data() -> Dictionary:
 	return _traits
+
+
+## Personal tastes (doc 41 "Tastes"): how many of each a dwarf has, what a found taste adds
+## to the appeal they feel, and the things a taste can name with their pictures.
+func get_taste_data() -> Dictionary:
+	return _tastes
 
 
 func get_proportions() -> Dictionary:

@@ -1,0 +1,77 @@
+{
+  "_comment": [
+    "Video settings: the Video section of the game menu's Settings (doc 23) and frame pacing",
+    "(doc 21). Source of truth for VideoSettings.gd. The settings are listed in the order the",
+    "page shows them. Each default is what the game does unaided, so nothing changes until",
+    "the player chooses; the player's choices live in user://video.cfg, for every colony.",
+    "display: borderless is the project's own full screen; fullscreen is exclusive full",
+    "  screen; windowed opens at window_screen_share of the screen, centred, and keeps its size.",
+    "render_scale: below 1 the world is drawn smaller and FSR 1 upscales it; the interface",
+    "  keeps the screen's full size.",
+    "frame_rate: the choices are the even shares of the screen's refresh rate (the refresh",
+    "  rate divided by 1, 2 ... shares) down to lowest. The cap is the largest share not above",
+    "  the chosen rate, so every frame stays on screen equally long; the default 75 gives 60",
+    "  at 120 Hz, 72 at 144 Hz and 60 at 60 Hz.",
+    "shadows: the shadow atlas sizes and the soft filter (0 hard, 1 soft very low, 2 soft",
+    "  low); high is the engine's own.",
+    "anti_aliasing: MSAA samples (0, 2 or 4) and SMAA.",
+    "ui_scale (doc 23): the size of the whole interface, shown on Settings' Interface tab",
+    "  (its section). auto follows the display scale Windows sets for the screen, as the",
+    "  largest of the steps not above it. A step is offered only while it leaves the",
+    "  interface at least 960 x 540 to lay out in; a choice too large for the window waits",
+    "  at the largest step that fits."
+  ],
+
+  "window_screen_share": 0.667,
+
+  "settings": [
+    {
+      "id": "display", "title": "Display", "default": "borderless",
+      "about": "Borderless fills the screen as a window; Fullscreen takes it over.",
+      "choices": [
+        { "id": "borderless", "label": "Borderless" },
+        { "id": "fullscreen", "label": "Fullscreen" },
+        { "id": "windowed", "label": "Windowed" }
+      ]
+    },
+    {
+      "id": "render_scale", "title": "Render scale", "default": 1.0, "min": 0.5, "max": 1.0, "step": 0.05,
+      "about": "Below 100%, the world is upscaled with FSR; the interface stays sharp."
+    },
+    {
+      "id": "frame_rate", "title": "Frame rate", "default": 75, "lowest": 24, "shares": 4,
+      "about": "Even shares of your {refresh} Hz screen keep panning smooth."
+    },
+    {
+      "id": "vsync", "title": "VSync", "default": "on",
+      "about": "Waits for the screen, so frames never tear.",
+      "choices": [
+        { "id": "on", "label": "On" },
+        { "id": "off", "label": "Off" }
+      ]
+    },
+    {
+      "id": "shadows", "title": "Shadows", "default": "high",
+      "about": "Sun and firelight shadows; lower is blurrier and faster.",
+      "choices": [
+        { "id": "high", "label": "High", "directional_size": 4096, "positional_size": 4096, "soft_quality": 2 },
+        { "id": "medium", "label": "Medium", "directional_size": 2048, "positional_size": 2048, "soft_quality": 1 },
+        { "id": "low", "label": "Low", "directional_size": 1024, "positional_size": 1024, "soft_quality": 0 }
+      ]
+    },
+    {
+      "id": "anti_aliasing", "title": "Anti-aliasing", "default": "off",
+      "about": "Smooths the jagged edges of blocks.",
+      "choices": [
+        { "id": "off", "label": "Off", "msaa": 0, "smaa": false },
+        { "id": "smaa", "label": "SMAA", "msaa": 0, "smaa": true },
+        { "id": "msaa_2x", "label": "MSAA 2×", "msaa": 2, "smaa": false },
+        { "id": "msaa_4x", "label": "MSAA 4×", "msaa": 4, "smaa": false }
+      ]
+    },
+    {
+      "id": "ui_scale", "section": "interface", "title": "UI scale", "default": "auto", "steps": [100, 125, 150, 200],
+      "about": "Every button, window and card. The world keeps its full resolution."
+    }
+  ]
+}

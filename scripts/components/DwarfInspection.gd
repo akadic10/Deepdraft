@@ -8,7 +8,7 @@ const Phase = DwarfAgent.TaskPhase
 static func roster_state(agent: DwarfAgent) -> Dictionary:
 	var data := describe(agent)
 	var leisure: bool = agent.get_idle_behavior() != null and agent.get_idle_behavior().active()
-	data.group = "resting" if agent.is_sleeping() else "working" if agent.current_task_id >= 0 or agent.get_task_phase() != Phase.NONE or (agent.is_walking() and not leisure) else "idle"
+	data.group = _base_group(agent, leisure)
 	# Short labels for the overview; the existing inspector retains the exact
 	# phase and destination. Classification never changes the underlying task.
 	data.summary = data.activity
@@ -49,6 +49,21 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 		data.group = "resting"
 		data.summary = data.activity
 	return data
+
+
+## Only the group roster_state files the dwarf under (working, resting or idle), without
+## describing it: the dock's Colony count asks it of every dwarf each second.
+static func roster_group(agent: DwarfAgent) -> String:
+	if agent.is_recreating() or agent.is_eating(): return "resting"
+	if agent.promotion_pending(): return "working"
+	return _base_group(agent, agent.get_idle_behavior() != null and agent.get_idle_behavior().active())
+
+
+## Before roster_state's overrides: asleep, at work (a task, a phase, or walking other than
+## at leisure), or idle.
+static func _base_group(agent: DwarfAgent, leisure: bool) -> String:
+	if agent.is_sleeping(): return "resting"
+	return "working" if agent.current_task_id >= 0 or agent.get_task_phase() != Phase.NONE or (agent.is_walking() and not leisure) else "idle"
 
 
 static func describe(agent: DwarfAgent) -> Dictionary:
@@ -220,11 +235,25 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		var definition: Dictionary = definitions.get(key, {})
 		var name := String(definition.get("display_name", key.get_slice(":", key.get_slice_count(":") - 1).capitalize()))
 		trait_names.append(name)
-		trait_details.append({"name": name,
+		trait_details.append({"name": name, "positive": String(definition.get("polarity", "positive")) == "positive",
 			"description": String(definition.get("description", "No description available."))})
+	# The compact panel's mood badge (doc 260): happiness beside the step's face, with the
+	# thought on hover.
+	var badge := {}
+	# The character sheet's mood (doc 261): the step, happiness and the thoughts as rows.
+	var mood_sheet := {}
+	if agent.get_mood() != null:
+		var mood: Dictionary = agent.get_mood().describe()
+		var step: Dictionary = agent.get_mood().step()
+		badge = {"kind": "mood", "icon": String(step.icon), "value": "%d%%" % roundi(float(mood.value) * 100),
+			"tooltip": "%s\n\n%s" % [mood.label, mood.thought]}
+		mood_sheet = step.merged({"points": agent.get_mood().points(), "thoughts": agent.get_mood().thoughts()})
 	return {
-		"presentation": "dwarf", "agent": agent, "title": agent.dwarf_name,
-		"kind": "Dwarf", "profession": String(DwarfAssets.profession_definition(agent.profession).get("display_name", "Worker")) + (" · Lv %d" % DwarfAssets.profession_level(agent.profession, agent.profession_experience) if agent.profession == "base:profession:miner" else ""),
+		"presentation": "dwarf", "family": "people", "agent": agent, "title": agent.dwarf_name, "badge": badge,
+		"mood": mood_sheet, "experience": experience(agent), "crafting_section": crafting_section(agent),
+		"profession_icon": String(DwarfAssets.profession_definition(agent.profession).get("icon", "")),
+		"profession_name": String(DwarfAssets.profession_definition(agent.profession).get("display_name", "Worker")),
+		"profession": String(DwarfAssets.profession_definition(agent.profession).get("display_name", "Worker")) + (" · Lv %d" % DwarfAssets.profession_level(agent.profession, agent.profession_experience) if agent.profession == "base:profession:miner" else ""),
 		"activity": activity, "explanation": explanation, "destination": destination,
 		"equipment": equipment_description(agent),
 		"equipment_details": equipment_details(agent),
@@ -239,6 +268,68 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 
 static func location(cell: Vector3i) -> String:
 	return "X %d · Z %d · Level %d" % [cell.x, cell.z, cell.y]
+
+
+## The character sheet's Tastes tab (doc 41 "Tastes"): each taste the dwarf holds, loves
+## first, with whether it is found, its name and picture; and how their own bedroom feels to
+## them ({} without one): its name, appeal and word, and the appeal and word as they feel
+## it, with the taste that moves it. Asked only while the tab shows.
+static func tastes_sheet(agent: DwarfAgent) -> Dictionary:
+	var tastes: RefCounted = agent.get_tastes()
+	var things: Dictionary = DwarfAssets.get_taste_data().get("things", {})
+	var held: Array[Dictionary] = []
+	var ids: Array = tastes.tastes.keys()
+	ids.sort()
+	for kind: String in ["love", "like", "dislike"]:
+		for id: String in ids:
+			if tastes.tastes[id] != kind: continue
+			held.append({"id": id, "kind": kind, "found": tastes.found.has(id), "name": tastes.display_name(id),
+				"picture": String((things.get(id, {}) as Dictionary).get("picture", ""))})
+	var own := {}
+	for room: Dictionary in RoomManager.get_rooms().values():
+		if int(room.get("owner_id", -1)) != agent.dwarf_id: continue
+		var appeal: Dictionary = RoomManager.room_appeal(room)
+		var felt: Dictionary = tastes.felt(appeal)
+		own = {"name": "%s's bedroom" % agent.dwarf_name, "score": float(appeal.score), "word": String(appeal.word.get("word", "")),
+			"felt_score": float(felt.score), "felt_word": String(felt.word.get("word", "")),
+			"taste": tastes.describe(felt.taste) if not String(felt.taste).is_empty() else ""}
+		break
+	return {"name": agent.dwarf_name, "tastes": held, "own_room": own}
+
+
+## The crafting section the dwarf's profession works in today, or "": Workers craft
+## Rudimentary, and a specialist its own section once it is no longer planned.
+static func crafting_section(agent: DwarfAgent) -> String:
+	var section := "rudimentary" if agent.profession == "base:profession:worker" else agent.profession.get_slice(":", 2)
+	var entry: Dictionary = ContentRegistry.recipe_sections.get(section, {})
+	return section if not entry.is_empty() and not bool(entry.get("planned", false)) else ""
+
+
+## The profession's level, the way to the next and the level rewards, for every profession
+## (doc 261). Only the Miner earns experience today (`earns`); the others stay at level 1.
+static func experience(agent: DwarfAgent) -> Dictionary:
+	var key := agent.profession
+	var name := String(DwarfAssets.profession_definition(key).get("display_name", "Worker"))
+	var summary := ""
+	for entry: Dictionary in DwarfAssets.promotion_entries():
+		if "base:profession:" + String(entry.role) == key: summary = String(entry.summary)
+	var level := DwarfAssets.profession_level(key, agent.profession_experience)
+	var result := {"level": level, "progress": 0.0, "earns": false, "line": "%s levels are planned" % name, "summary": summary, "rewards": []}
+	if key != "base:profession:miner": return result
+	result.earns = true
+	var count := maxi(0, int(agent.profession_experience.get(key, 0)))
+	result.rewards = [{"level": 1, "text": "Mining focus", "earned": true}]
+	for reward_level in range(2, 6):
+		var speed := DwarfAssets.mining_duration_multiplier(key, {key: DwarfAssets.experience_threshold(reward_level)})
+		result.rewards.append({"level": reward_level, "text": "%d%% less digging time" % roundi((1.0 - speed) * 100), "earned": level >= reward_level})
+	if level >= 5:
+		result.progress = 1.0
+		result.line = "Master Miner · %d blocks mined" % count
+		return result
+	var lower := DwarfAssets.experience_threshold(level) if level > 1 else 0
+	result.progress = clampf(float(count - lower) / float(maxi(1, DwarfAssets.experience_threshold(level + 1) - lower)), 0.0, 1.0)
+	result.line = "%d%% to level %d · %d blocks mined" % [floori(result.progress * 100), level + 1, count]
+	return result
 
 
 static func equipment_description(agent: DwarfAgent) -> String:
@@ -259,7 +350,7 @@ static func equipment_details(agent: DwarfAgent) -> Dictionary:
 		"tier": String(details.get("tier", "Standard")),
 		"materials": String(details.get("materials", "Included work tools")) + (" · " + CraftMaterials.material_name(material_id) if not material_id.is_empty() else ""),
 		"benefit": String(details.get("benefit", preview.get("default_description", "No crafted tool equipped."))),
-		"icon": "res://assets/ui/items/%s.png" % key.replace(":", "_") if not key.is_empty() else "res://assets/ui/icons/%s.svg" % preview.get("icon", "colony"),
+		"icon": "res://assets/ui/items/%s.png" % key.replace(":", "_") if not key.is_empty() else String(DwarfAssets.profession_definition(agent.profession).get("icon", "")),
 		"upgrade_name": String(preview.get("upgrade_name", "Future tool upgrades")),
 		"upgrade_status": String(preview.get("upgrade_status", "Choose a profession")),
 		"upgrade_description": String(preview.get("upgrade_description", "Upgrade details will appear with this profession's gameplay.")),

@@ -1,0 +1,14 @@
+{
+  "__note": "The DEV item stamper (doc 23, \"The item stamper\"), read by ItemStamperPanel through UIRegistry: its groups of items, each gathering item categories (the third part of an item's key; anything else falls in the last group), the amounts it jumps to, and how many recent items it keeps.",
+  "groups": [
+    {"id": "materials", "title": "Materials", "categories": ["stone", "soil", "ore", "gem", "wood"]},
+    {"id": "furniture", "title": "Furniture", "categories": ["furniture", "special"]},
+    {"id": "tools", "title": "Tools", "categories": ["tools"]},
+    {"id": "food", "title": "Food & seeds", "categories": ["flora", "seed"]},
+    {"id": "drink", "title": "Drink", "categories": ["drink"]},
+    {"id": "plants", "title": "Plants", "categories": ["plant"]},
+    {"id": "other", "title": "Other", "categories": ["misc", "currency", "water"]}
+  ],
+  "amounts": [5, 10, 20],
+  "recent": 8
+}

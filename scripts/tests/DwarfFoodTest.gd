@@ -228,7 +228,7 @@ func _ui() -> void:
 	inspector.position=Vector2(20,20)
 	inspector.show_data(load("res://scripts/components/DwarfInspection.gd").describe(worker),false)
 	await _frames(3)
-	_expect(inspector._food_label.text.contains("Food") and inspector._food.tooltip_text.contains("Apple"),"shared inspector shows actual Food and last meal")
+	_expect(inspector._food.title.text=="Food" and inspector._food.panel.tooltip_text.contains("Apple"),"the character sheet shows actual Food and the last meal")
 	if "--capture" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/food_20261012/food_inspector.png")

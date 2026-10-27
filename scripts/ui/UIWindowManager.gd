@@ -44,6 +44,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	add_to_group("ui_window_manager")   # the game menu closes the front window on Esc
 	_load_layout()
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	print("UIWindowManager: ready (%d remembered window positions)." % _layout.size())
@@ -59,15 +60,22 @@ func _ready() -> void:
 ##   "persistent":  bool     — restorable open state at startup (default false)
 ##   "default_pos": Vector2  — first-ever position (else cascade)
 ##   "min_size":    Vector2  — content minimum size
+##   "family":      String   — the icon family whose colour the title band wears
+##                             (work, settlement, people, system or dev; doc 261)
+##   "flush":       bool     — the content fills the body and brings its own margins
 func register_window(id: String, title: String, emoji: String,
 		content: Control, opts: Dictionary = {}) -> UIWindow:
 	if _windows.has(id):
 		push_warning("UIWindowManager: '%s' registered twice — keeping the first." % id)
 		return _windows[id] as UIWindow
+	if String(opts.get("family", "")).is_empty():
+		push_error("UIWindowManager: '%s' has no family; its band stays plain (doc 261)." % id)
 
 	var window := UIWindow.new()
 	window.window_id = id
 	window.persistent = bool(opts.get("persistent", false))
+	window.family = String(opts.get("family", ""))
+	window.flush = bool(opts.get("flush", false))
 	window.set_window_title(title, emoji)
 	window.visible = false
 	if opts.has("min_size"):
@@ -122,6 +130,16 @@ func open(id: String) -> void:
 	_raise(window)
 	_record_state(id)
 	window_state_changed.emit(id, true)
+	_settle.call_deferred(window)
+
+
+## Wrapped text measures against no width while a window is hidden, so a window can open
+## far taller than its contents. Once laid out, shrink it to them and keep it on screen.
+func _settle(window: UIWindow) -> void:
+	if not is_instance_valid(window) or not window.visible:
+		return
+	window.reset_size()
+	window.clamp_to_viewport()
 
 
 func close(id: String) -> void:
@@ -131,6 +149,17 @@ func close(id: String) -> void:
 	window.visible = false
 	_record_state(id)
 	window_state_changed.emit(id, false)
+
+
+## Closes the front-most open window and says whether there was one: Esc's step before the
+## game menu opens (doc 23), once tools and window owners have had their turn.
+func close_front() -> bool:
+	for index in range(get_child_count() - 1, -1, -1):
+		var window := get_child(index) as UIWindow
+		if window != null and window.visible and _windows.has(window.window_id):
+			close(window.window_id)
+			return true
+	return false
 
 
 func toggle(id: String) -> void:

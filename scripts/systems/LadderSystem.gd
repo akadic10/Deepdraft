@@ -302,11 +302,17 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	if route.is_empty(): return {}
 	var status := {"build":"Installing from below", "ready":"Open for climbing and hauling", "paused":"Construction stopped", "remove":"Dismantling from the top", "damaged":"Support damaged — clearing the route"}
 	var actions: Array = []
-	if route.mode == "build": actions.append({"id":"pause", "text":"Pause construction" if route.built > 0 else "Cancel placement"})
+	var cancel_icon := "res://assets/ui/icons/cancel.png"
+	if route.mode == "build":
+		actions.append({"id":"pause", "text":"Pause construction"} if route.built > 0 else {"id":"pause", "text":"Cancel placement", "icon":cancel_icon})
 	if route.mode == "paused" and route.built < route.height: actions.append({"id":"resume", "text":"Resume construction"})
 	if route.built > 0:
-		actions.append({"id":"pause" if route.mode == "remove" else "remove", "text":"Cancel dismantling" if route.mode == "remove" else "Dismantle and recover sections"})
-	return {"title":"Rough wooden ladder", "kind":"Access", "rows":[["Status",status[route.mode]],
+		actions.append({"id":"pause", "text":"Cancel dismantling", "icon":cancel_icon} if route.mode == "remove" else {"id":"remove", "text":"Dismantle and recover sections"})
+	# The compact panel (doc 260): the ladder's picture and its state with progress.
+	var progress := " · %d / %d blocks" % [route.built, route.height] if route.mode in ["build", "paused"] else ""
+	return {"title":"Rough wooden ladder", "family":"settlement", "picture":"res://assets/ui/furniture/crude_ladder.png",
+		"status":{"text":status[route.mode] + progress, "tone":{"build":"fine", "ready":"fine", "paused":"waiting", "remove":"waiting", "damaged":"blocked"}[route.mode]},
+		"rows":[["Status",status[route.mode]],
 		["Height", "%d / %d blocks installed" % [route.built, route.height]], ["Sections", "%d installed · %d total" % [sections(route.built), sections(route.height)]]] + _material_rows(route),
 		"details":"Workers carry each four-block section here and install it from below. Dismantling waits for climbers to leave and recovers one section at a time.", "actions":actions}
 

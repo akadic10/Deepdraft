@@ -38,7 +38,7 @@ func _run() -> void:
 	gen._maps_ready = true
 	gen.water_profile = {"rendering":{"moisture_budget_ms":0.02}}
 	world = root.get_node("WorldData")
-	grass = root.get_node("BlockRegistry").get_id("base:terrain:surface:grass_01")
+	grass = root.get_node("BlockRegistry").get_id("base:terrain:surface:grass")
 	for x in range(64,128):
 		for z in range(64,128):
 			var cell := Vector3i(x,10,z)

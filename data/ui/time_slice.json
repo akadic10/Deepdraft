@@ -1,5 +1,5 @@
 {
-  "__note": "Illustrated permanent time/Slice controls. Regions exclude atlas spacing; buttons clip to their beveled outlines at draw time.",
+  "__note": "Permanent time and view controls. Hearthblock icons (assets/ui/icons, doc 259) on the system family tile; labels appear on hover/focus. key_action names the input action whose key the hover card shows (doc 260). A view's view_name and view_line are its banner at the top centre while it is on (doc 23, \"Views\"): what it is and what it shows.",
   "xray": {
     "readability_floor": 0.22,
     "background_color": "#19252b",
@@ -9,14 +9,25 @@
     "mesh_budget_usec": 2500,
     "visual_budget_usec": 1200
   },
+  "appeal": {
+    "__note": "The Appeal view (doc 23), read by AppealViewController: how much colour the dimmed world keeps and how bright it stays, how strongly a room's word tints its floor (the tints themselves are the words' in data/rooms/appeal.json), the glow on pieces that add appeal and on loose or stocked goods, and how often (real seconds) it redraws while on.",
+    "dim_keep_colour": 0.35,
+    "dim_brightness": 0.62,
+    "tint_alpha": 0.6,
+    "warm_glow": "#ffcf6a80",
+    "cool_glow": "#7d8cff99",
+    "refresh_seconds": 1.0
+  },
   "buttons": {
-    "pause": {"label": "Pause / resume", "tooltip": "Pause the settlement, or resume at the previous speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [39, 175, 307, 302]},
-    "play": {"label": "Normal speed · 1×", "tooltip": "Resume the settlement at normal speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [423, 175, 307, 302]},
-    "fast": {"label": "Fast speed · 2×", "tooltip": "Resume the settlement at twice normal speed.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [807, 175, 307, 302]},
-    "slice": {"label": "Slice view", "tooltip": "Toggle Slice (\\). Your previous level is remembered. Scroll over the height tower for one level; Ctrl + scroll for four.", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [1191, 175, 307, 302]},
-    "up_four": {"label": "Raise 4 levels", "tooltip": "Show four more levels · ]", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [27, 635, 331, 195]},
-    "up_one": {"label": "Raise 1 level", "tooltip": "Show one more level · Ctrl + ]", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [411, 635, 331, 195]},
-    "down_one": {"label": "Lower 1 level", "tooltip": "Hide one more level · Ctrl + [", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [795, 635, 331, 195]},
-    "down_four": {"label": "Lower 4 levels", "tooltip": "Hide four more levels · [", "icon": "res://assets/ui/time_slice/controls_atlas.png", "icon_region": [1179, 635, 331, 195]}
+    "pause": {"label": "Pause / resume", "tooltip": "Pause the settlement, or resume at the previous speed.", "key_action": "time_pause", "icon": "res://assets/ui/icons/pause.png", "family": "system"},
+    "play": {"label": "Normal speed · 1×", "tooltip": "Resume the settlement at normal speed.", "key_action": "time_normal", "icon": "res://assets/ui/icons/play.png", "family": "system"},
+    "fast": {"label": "Fast speed · 2×", "tooltip": "Resume the settlement at twice normal speed.", "key_action": "time_fast", "icon": "res://assets/ui/icons/fast.png", "family": "system"},
+    "slice": {"label": "Slice view", "tooltip": "Cut the world away above a level. Your previous level is remembered. Scroll over the height tower for one level; Ctrl + scroll for four.", "key_action": "slice_toggle", "icon": "res://assets/ui/icons/slice.png", "family": "system"},
+    "appeal": {"label": "Appeal", "tooltip": "See how your dwarves find each room. The world dims and each sealed room's floor shows its appeal: Horrid, Plain, Pleasant or Beautiful. Hover a room for its parts; click it for the room.", "key_action": "view_appeal", "icon": "res://assets/ui/icons/appeal.png", "family": "system", "view_name": "Appeal view", "view_line": "How each room feels to the dwarves"},
+    "xray": {"label": "X-ray", "tooltip": "See dug rooms through the mountain. While it is on, choose Full or Flat and the lower-level guide.", "key_action": "view_xray", "icon": "res://assets/ui/icons/xray.png", "family": "system", "view_name": "X-ray view", "view_line": "Dug rooms seen through the mountain"},
+    "up_four": {"label": "Raise 4 levels", "tooltip": "Show four more levels.", "key_action": "slice_cell_up", "icon": "res://assets/ui/icons/up_four.png", "family": "system"},
+    "up_one": {"label": "Raise 1 level", "tooltip": "Show one more level.", "key_action": "slice_single_up", "icon": "res://assets/ui/icons/up_one.png", "family": "system"},
+    "down_one": {"label": "Lower 1 level", "tooltip": "Hide one more level.", "key_action": "slice_single_down", "icon": "res://assets/ui/icons/down_one.png", "family": "system"},
+    "down_four": {"label": "Lower 4 levels", "tooltip": "Hide four more levels.", "key_action": "slice_cell_down", "icon": "res://assets/ui/icons/down_four.png", "family": "system"}
   }
 }

@@ -2,8 +2,9 @@ extends RefCounted
 
 ## Ghost visuals for FurniturePlacementController (doc 258 step 8): the cursor
 ## ghost (validity-tinted, rebuilt for ladder heights and bridge spans), the
-## why-invalid hint label, the project's ghost and solid materials and model
-## instancing. Tool state is read through the controller's placement_state().
+## why-invalid hint, the project's ghost and solid materials and model
+## instancing. Tool state is read through the controller's placement_state(). The hint is
+## text the tool bar shows (doc 23, "The tool bar").
 
 const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
 const GridFence = preload("res://scripts/components/GridFence.gd")
@@ -12,7 +13,7 @@ const Rules = preload("res://scripts/components/FurniturePlacementRules.gd")
 var controller
 var preview: Node3D = null             # cursor ghost (one per activation)
 var material: StandardMaterial3D = null
-var hint_label: Label = null
+var hint_text := ""
 var _bridge_span := -1
 var _ladder_height := -1
 
@@ -36,8 +37,7 @@ func clear() -> void:
 	if preview != null:
 		preview.queue_free()
 		preview = null
-	if hint_label != null:
-		hint_label.visible = false
+	hint_text = ""
 
 
 func place(origin: Vector3i) -> void:
@@ -77,19 +77,6 @@ func place(origin: Vector3i) -> void:
 ## Why-invalid hint (the mining-ruler lesson: never make the player guess).
 ## Shown only for the wall requirement — plain cell blockage is self-evident.
 func update_hint(_origin: Vector3i) -> void:
-	if hint_label == null:
-		var layer := CanvasLayer.new()
-		layer.layer = 21
-		controller.add_child(layer)
-		hint_label = Label.new()
-		hint_label.name = "PlacementHint"
-		hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hint_label.add_theme_font_size_override("font_size", 16)
-		UITheme.apply_surface(hint_label)
-		hint_label.add_theme_color_override("font_color", UITheme.HEARTH_TEXT)
-		hint_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, .9))
-		hint_label.add_theme_constant_override("outline_size", 6)
-		layer.add_child(hint_label)
 	var state: Dictionary = controller.placement_state()
 	var key: String = state.key
 	var yaw: int = state.yaw
@@ -113,38 +100,34 @@ func update_hint(_origin: Vector3i) -> void:
 		"seat_access":"Leave an open tile beside or behind the chair",
 		"seat_capacity":"Table chair limit reached — cancel or remove a chair to choose another side",
 		"cell":"This position is occupied or has no clear floor"}
-	hint_label.text = String(hints.get(invalid_reason, "Point at a wall, or aim beside it and press R" if wall else ""))
+	hint_text = String(hints.get(invalid_reason, "Point at a wall, or aim beside it and press R" if wall else ""))
 	if GridFence.applies(defs.get(key,{})) and valid:
-		hint_label.text = "Click a grid corner to place a post · Rails connect neighboring posts · Esc finishes" if GridFence.is_post(defs[key]) else "Gate between grid corners · R rotates · Click to place · Esc finishes"
+		hint_text = "Click a grid corner to place a post · Rails connect neighboring posts · Esc finishes" if GridFence.is_post(defs[key]) else "Gate between grid corners · R rotates · Click to place · Esc finishes"
 	if wall and valid:
-		hint_label.text = "Mount level %d · Alt + wheel: height · R: floor-aim facing · Click to place" % WallMount.mount_cell(defs[key],state.cell).y
+		hint_text = "Mount level %d · Alt + wheel: height · R: floor-aim facing · Click to place" % WallMount.mount_cell(defs[key],state.cell).y
 	elif wall:
-		hint_label.text += " · Alt + wheel: height"
+		hint_text += " · Alt + wheel: height"
 	if valid and not controller.get_seating().snap.is_empty():
-		hint_label.text = "Table seat — chair faces inward. Click to place; Esc to finish."
+		hint_text = "Table seat — chair faces inward. Click to place; Esc to finish."
 	if valid and bool(defs.get(key, {}).get("plant", false)):
-		hint_label.text = "Click to choose this plant’s new home · R rotates · Esc cancels" if not String(state.moving_shrub).is_empty() else "Click to plant here · reserves a 3 × 3 area · R rotates · Esc finishes"
+		hint_text = "Click to choose this plant’s new home · R rotates · Esc cancels" if not String(state.moving_shrub).is_empty() else "Click to plant here · reserves a 3 × 3 area · R rotates · Esc finishes"
 	if bool(defs.get(key, {}).get("show_placement_area", false)):
 		var fp: Dictionary = defs[key].footprint
 		var area := "%d × %d" % [int(fp.width), int(fp.depth)]
 		if valid:
-			hint_label.text = "Click to place · reserves a %s area · R rotates · Esc finishes" % area
+			hint_text = "Click to place · reserves a %s area · R rotates · Esc finishes" % area
 			if defs[key].has("placement_label"):
-				hint_label.text = "%s · Click to place · R rotates · Esc finishes" % String(defs[key].placement_label)
+				hint_text = "%s · Click to place · R rotates · Esc finishes" % String(defs[key].placement_label)
 				if bool(defs[key].get("room_heater", false)):
-					hint_label.text += "\nFace the opening into an enclosed room"
+					hint_text += "\nFace the opening into an enclosed room"
 		elif invalid_reason == "cell":
-			hint_label.text = "Needs a clear, level %s area" % area
-	hint_label.visible = not hint_label.text.is_empty()
+			hint_text = "Needs a clear, level %s area" % area
 	if key == ladders.KEY:
 		var spec: Dictionary = ladders.describe(_origin, yaw)
-		hint_label.text = "%d-block ladder · %d ladder sections · Click to build · R rotates" % [spec.height, ladders.sections(spec.height)] if valid else invalid_reason
-		hint_label.visible = true
-	hint_label.position = Vector2(20, controller.get_viewport().get_visible_rect().size.y - 180)
+		hint_text = "%d-block ladder · %d ladder sections · Click to build · R rotates" % [spec.height, ladders.sections(spec.height)] if valid else invalid_reason
 	if key == bridges.KEY:
 		var spec: Dictionary = bridges.describe(_origin,yaw)
-		hint_label.text = "2 wide · %d-block gap · 1 kit · Click to build from this bank · R changes direction · Esc finishes" % spec.span if valid else invalid_reason
-		hint_label.visible = true
+		hint_text = "2 wide · %d-block gap · 1 kit · Click to build from this bank · R changes direction · Esc finishes" % spec.span if valid else invalid_reason
 
 
 static func make_ghost_material() -> StandardMaterial3D:

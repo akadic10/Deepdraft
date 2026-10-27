@@ -72,55 +72,58 @@ func _clear_loose_wood() -> void:
 func _test_wood_menu() -> void:
 	dock.open_crafting(BENCH_RECIPE)
 	await _frames(6)
-	_expect(panel._draft_ingredients[BENCH_RECIPE]==[PINE],"recipe draft starts with only Pine checked")
-	_click(panel._wood.get_global_rect().get_center())
-	await _frames(3)
-	var popup: PopupMenu = panel._wood.get_popup()
-	_expect(popup.visible and popup.item_count==4,"Allowed wood opens four species checkboxes")
-	popup.id_pressed.emit(_wood_index(popup,JUNIPER))
-	popup.id_pressed.emit(_wood_index(popup,PINE))
-	_expect(panel._draft_ingredients[BENCH_RECIPE]==[JUNIPER],"checkboxes change recipe draft independently")
-	popup.hide()
+	_expect(panel._draft_ingredients[BENCH_RECIPE]==[PINE],"recipe draft starts with only Pine allowed")
+	var woods: Array = crafting.ingredient_keys(crafting.recipes[BENCH_RECIPE])
+	_expect(woods.size()==4 and woods.all(func(key): return panel._woods.get_tile(key)!=null),"the board shows all four woods as pictures")
+	_expect(_mark(PINE)=="✓" and _mark(JUNIPER)=="✕","the allowed wood is ticked and the others crossed")
+	_click(panel._woods.get_tile(JUNIPER).get_global_rect().get_center())
+	await _frames(2)
+	_click(panel._woods.get_tile(PINE).get_global_rect().get_center())
+	await _frames(2)
+	_expect(panel._draft_ingredients[BENCH_RECIPE]==[JUNIPER] and _mark(JUNIPER)=="✓","clicking woods changes the recipe draft independently")
 	panel.select_recipe(TORCH_RECIPE)
 	_expect(panel._draft_ingredients[TORCH_RECIPE]==[PINE],"other recipe retains its own Pine default")
 	panel.select_recipe(BENCH_RECIPE)
 	await _frames(2)
-	_click(panel._make.get_global_rect().get_center())
+	_click(panel._queue_button.get_global_rect().get_center())
 	await _frames(3)
 	_expect(crafting.orders.size()==1 and crafting.orders[0].allowed_ingredients==[JUNIPER],"queue button copies selected wood onto the order")
 	var order = crafting.orders[0]
-	_click(panel._orders_tab.get_global_rect().get_center())
-	await _frames(3)
+	if panel._folded:
+		_click(panel._orders_tab.get_global_rect().get_center())
+		await _frames(3)
 	var row: Dictionary = panel._rows[order.id]
 	_click(row.wood.get_global_rect().get_center())
 	await _frames(2)
 	var row_popup: PopupMenu = row.wood.get_popup()
+	_expect(row_popup.visible and row_popup.item_count==4,"a queued order's wood menu lists four species")
 	row_popup.id_pressed.emit(_wood_index(row_popup,JUNIPER))
 	_expect(order.allowed_ingredients.is_empty() and crafting.status(order,crafting.stock_snapshot())=="Choose allowed wood","clearing an existing order waits without substitutions")
 	row_popup.id_pressed.emit(_wood_index(row_popup,PINE))
 	_expect(order.allowed_ingredients==[PINE],"queued order can be edited through its own wood menu")
 	row_popup.hide()
-	_click(panel._recipes_tab.get_global_rect().get_center())
-	await _frames(3)
+	if panel._folded:
+		_click(panel._recipes_tab.get_global_rect().get_center())
+		await _frames(3)
 	# Clearing the draft must disable submission, not mean 'any timber'.
-	panel._open_wood_menu(panel._wood,-1)
-	popup.id_pressed.emit(_wood_index(popup,JUNIPER))
-	_expect(panel._make.disabled,"empty draft cannot submit a crafting order")
-	popup.id_pressed.emit(_wood_index(popup,PINE))
+	_click(panel._woods.get_tile(JUNIPER).get_global_rect().get_center())
+	await _frames(2)
+	_expect(panel._queue_button.disabled,"empty draft cannot submit a crafting order")
+	_click(panel._woods.get_tile(PINE).get_global_rect().get_center())
+	await _frames(2)
 	crafting.queue_order(TORCH_RECIPE,8,true,[PINE,JUNIPER])
 	for viewport in [Vector2i(1280,720),Vector2i(960,540)]:
 		root.size = viewport
 		await _frames(8)
-		_expect(panel._detail_scroll.get_global_rect().encloses(panel._place.get_global_rect()),"material chooser keeps both crafting actions visible at %s" % viewport)
+		var window: Rect2 = dock._craft_window.get_global_rect()
+		_expect(window.encloses(panel._queue_button.get_global_rect()) and window.encloses(panel._place.get_global_rect()),"the woods keep both crafting actions in view at %s" % viewport)
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png(WOOD_OUT+"/crafting_%dx%d.png" % [viewport.x,viewport.y])
-	_click(panel._wood.get_global_rect().get_center())
-	await _frames(3)
-	if "--capture" in OS.get_cmdline_user_args():
-		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png(WOOD_OUT+"/allowed_wood_menu.png")
-	popup.hide()
+
+func _mark(key: String) -> String:
+	var tile: Button = panel._woods.get_tile(key)
+	return (tile.get_node("Mark").get_child(0) as Label).text if tile!=null and tile.has_node("Mark") else ""
 
 func _wood_index(popup: PopupMenu, key: String) -> int:
 	for index in range(popup.item_count):

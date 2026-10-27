@@ -19,7 +19,7 @@ func _run() -> void:
 	var blocks = root.get_node("BlockRegistry")
 	world.get_chunk(2,1,2)
 	for x in range(32,48):
-		for z in range(32,48): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass_01"))
+		for z in range(32,48): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass"))
 	var scene := Node3D.new()
 	root.add_child(scene)
 	current_scene = scene

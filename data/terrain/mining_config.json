@@ -11,7 +11,11 @@
   "area_guide": {
     "cell_size": 32,
     "line_width": 0.16,
-    "color": "#edbd71b8"
+    "color": "#edbd71b8",
+    "dotted_cell_size": 16,
+    "dotted_line_width": 0.1,
+    "dotted_color": "#edbd7194",
+    "dot_length": 0.4
   },
   "zone": {
     "max_workers": 4

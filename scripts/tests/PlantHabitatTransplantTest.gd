@@ -81,12 +81,12 @@ func _test_spacing() -> void:
 	# Player mountain cultivation is valid on soil, never bare rock.
 	for x in range(46,53):
 		for z in range(34,39):
-			world.set_block(x,91,z,blocks.get_id("base:terrain:surface:grass_01"))
+			world.set_block(x,91,z,blocks.get_id("base:terrain:surface:grass"))
 	_expect(details.planting_reason(BLUE_KEY,Vector3i(49,91,36)).is_empty(), "cultivation allowed on mountain grass")
 	world.set_block(49,91,36,blocks.get_id("base:terrain:rock:rock01"))
 	_expect(details.planting_reason(BLUE_KEY,Vector3i(49,91,36)) == "plant_soil", "cultivation rejects bare rock")
 	for x in range(39,42):
-		for z in range(39,42): world.set_block(x,91,z,blocks.get_id("base:terrain:surface:grass_01"))
+		for z in range(39,42): world.set_block(x,91,z,blocks.get_id("base:terrain:surface:grass"))
 	_expect(details.planting_reason(FLOWER_KEY,Vector3i(40,91,40)).is_empty(), "plant below on another terrain level does not overlap")
 	for x in range(39,42):
 		for z in range(39,42): world.set_block(x,91,z,blocks.AIR_ID)

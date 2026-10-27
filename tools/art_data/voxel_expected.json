@@ -364,9 +364,7 @@
       "assets/models/items/ore/iron_ore.glb",
       "assets/models/items/ore/silver_ore.glb",
       "assets/models/items/ore/tin_ore.glb",
-      "assets/models/items/soil/cave_soil.glb",
-      "assets/models/items/soil/dark_soil.glb",
-      "assets/models/items/soil/light_soil.glb",
+      "assets/models/items/soil/soil.glb",
       "assets/models/items/stone/rough_stone.glb",
       "assets/models/items/tools/carpentry_kit.glb",
       "assets/models/items/tools/hunting_spear.glb",
@@ -380,9 +378,7 @@
     ],
     "construction": [
       "assets/models/construction/materials_crate.glb",
-      "assets/models/construction/plank_floor.glb",
-      "assets/models/construction/plank_floor_alternate.glb",
-      "assets/models/construction/stone_floor.glb"
+      "assets/models/construction/logs.glb"
     ],
     "crops": [
       "assets/models/flora/crops/grape/grape_budding.glb",

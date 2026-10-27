@@ -4,11 +4,11 @@ extends RefCounted
 ## animations are instantiated; each viewport renders only when requested.
 static func create_viewport(texture: TextureRect, resolution := Vector2i(192, 224)) -> SubViewport:
 	var viewport := SubViewport.new()
-	viewport.size = resolution
 	viewport.own_world_3d = true
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	texture.add_child(viewport)
+	UITheme.follow_ui_scale(viewport, resolution)   # sharp at any UI scale
 	texture.texture = viewport.get_texture()
 	var environment := WorldEnvironment.new()
 	var settings := Environment.new()

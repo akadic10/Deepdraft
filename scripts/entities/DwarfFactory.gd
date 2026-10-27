@@ -23,7 +23,8 @@ const WORKER_KEY := "base:profession:worker"
 ##   used_names  — Dictionary[String -> true] of names already assigned;
 ##                 mutated: the chosen name is added.
 ## Returns: { name, gender, appearance: DwarfAppearanceData,
-##            traits: Array[String], profession, profession_experience }
+##            traits: Array[String], profession, profession_experience,
+##            tastes: {thing id -> love/like/dislike}, found_tastes: [] }
 func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _dwarf_seed(WorldGenerator.world_seed, birth_index)
@@ -40,6 +41,8 @@ func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 	# Workers start with a small random task count so new arrivals aren't all
 	# identical level-1 dwarves (doc 41).
 	experience[WORKER_KEY] = rng.randi_range(0, 9)
+	# Drawn last, so the earlier rolls stay as they were.
+	var tastes := _roll_tastes(rng)
 
 	return {
 		"name": dwarf_name,
@@ -48,6 +51,8 @@ func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 		"traits": traits,
 		"profession": WORKER_KEY,
 		"profession_experience": experience,
+		"tastes": tastes,
+		"found_tastes": [],
 	}
 
 
@@ -149,6 +154,30 @@ static func _weighted_id(options: Array, rng: RandomNumberGenerator, fallback: S
 		if r <= acc:
 			return String((opt as Dictionary).get("id", fallback))
 	return fallback
+
+
+# ── Tastes (doc 41 "Tastes") ──────────────────────────────────────────────────
+
+## A new dwarf's tastes: tastes.json's things in sorted order, shuffled by the dwarf's own
+## generator, then dealt out as `counts` loves, likes and dislikes.
+func _roll_tastes(rng: RandomNumberGenerator) -> Dictionary:
+	var data: Dictionary = DwarfAssets.get_taste_data()
+	var things: Array = (data.get("things", {}) as Dictionary).keys()
+	things.sort()
+	for i in range(things.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var held: Variant = things[i]
+		things[i] = things[j]
+		things[j] = held
+	var tastes := {}
+	var dealt := 0
+	var counts: Dictionary = data.get("counts", {})
+	for kind: String in ["love", "like", "dislike"]:
+		for _n in range(int(counts.get(kind, 0))):
+			if dealt >= things.size(): break
+			tastes[String(things[dealt])] = kind
+			dealt += 1
+	return tastes
 
 
 # ── Traits (doc 41 §Trait Assignment) ────────────────────────────────────────

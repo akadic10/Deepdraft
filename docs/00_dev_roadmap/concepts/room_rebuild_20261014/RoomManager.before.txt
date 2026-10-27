@@ -434,20 +434,14 @@ func _build_room_data(fill_result: Dictionary) -> Dictionary:
 	return room
 
 ## Count physical interior walking surfaces, even below furniture. Doorway
-## columns are outside room.cells. Mixed floor materials count together; plans
-## and natural rock never count. Derive this again on terrain edits and load.
+## columns are outside room.cells. Derive this again on terrain edits and load.
+## (The finished-floor fields left with the permanent floors, 2026-10-26.)
 func flooring_stats(cells: Dictionary) -> Dictionary:
 	var total := 0
-	var finished := 0
 	for air: Vector3i in cells:
 		if not cells.has(air+Vector3i.UP) or not cells.has(air+Vector3i.UP*2): continue
-		var id := _block_id(air+Vector3i.DOWN)
-		if not BlockRegistry.is_solid(id): continue
-		total += 1
-		if BlockRegistry.get_def(BlockRegistry.get_key(id)).get("kind","") == "constructed_floor": finished += 1
-	var complete := total > 0 and finished == total
-	return {"floor_tiles":total,"finished_floor_tiles":finished,"flooring_complete":complete,
-		"flooring_appeal":float(appeal_config.complete_floor_bonus) if complete else 0.0}
+		if BlockRegistry.is_solid(_block_id(air+Vector3i.DOWN)): total += 1
+	return {"floor_tiles":total}
 
 
 ## mean_floor_y = average Y of the LOWEST air cell in each (x,z) column of the

@@ -8,7 +8,7 @@ var project_ref: WeakRef
 var crate_cell := INVALID
 var visual: Node3D
 var occupancy := -1
-var staged: Dictionary = {} # material id -> actual delivered stone count
+var staged: Dictionary = {} # item key -> {material id -> delivered count}
 var reservations: Dictionary = {}
 var _next_token := 1
 var _retry := 0.0
@@ -19,7 +19,7 @@ func setup(order: RefCounted) -> void:
 	project_ref = weakref(order)
 	ghost_id = order.ghost_id
 	drop_manager = order.drop_manager
-	filter_items = [order.item_key]
+	filter_items.assign(order.item_keys())
 	var hauling := TaskManager.get_config_section("hauling")
 	carry_capacity = maxi(1,int(hauling.get("carry_capacity",4)))
 	carry_speed_mult_heavy = float(hauling.get("carry_speed_mult_heavy",.7))
@@ -33,7 +33,8 @@ func display_name() -> String: return "Construction materials crate"
 
 func count() -> int:
 	var amount := 0
-	for value in staged.values(): amount += int(value)
+	for materials: Dictionary in staged.values():
+		for value in materials.values(): amount += int(value)
 	return amount
 
 func in_transit() -> int:
@@ -57,18 +58,23 @@ func _release_deposit(token: Variant) -> void:
 	token.active = false
 	reservations.erase(token.id)
 
-func _commit_one(token: Variant, _key: String) -> void:
+func _commit_one(token: Variant, key: String) -> void:
+	var item := String(token.get("item",key))
 	var material := String(token.get("material_id",""))
-	staged[material] = int(staged.get(material,0))+int(token.count)
+	if not staged.has(item): staged[item] = {}
+	staged[item][material] = int(staged[item].get(material,0))+int(token.count)
 	_release_deposit(token)
 
-func consume_one() -> bool:
-	for material: String in staged:
-		if int(staged[material]) > 0:
-			staged[material] -= 1
-			if int(staged[material]) == 0: staged.erase(material)
-			return true
-	return false
+## Takes one delivered good for a finished block and says which; "" when the crate is empty.
+func consume_one() -> String:
+	for item: String in staged:
+		var materials: Dictionary = staged[item]
+		for material: String in materials:
+			materials[material] = int(materials[material])-1
+			if int(materials[material]) <= 0: materials.erase(material)
+			if materials.is_empty(): staged.erase(item)
+			return item
+	return ""
 
 func delivery_stand_cells(_target: Vector3i, _dwarf_id := -1) -> Array[Vector3i]:
 	var result: Array[Vector3i] = []
@@ -100,7 +106,7 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline: int) -> boo
 		query.erase("stored")
 		query.stock_revision = scheduling_revision()
 		query.from = from
-	if not has_any_room() or not _can_haul_key(filter_items[0]):
+	if not has_any_room() or not filter_items.any(_can_haul_key):
 		query.cell = INVALID
 		return true
 	if not query.has("loose"): query.loose = {}
@@ -204,7 +210,9 @@ func cancel_haul(dwarf_id: int) -> void:
 
 func update_leases() -> void:
 	if _lease_ids.size() >= max_haulers or not has_any_room(): return
-	if StockpileManager.get_available_total(filter_items[0]) <= 0 and drop_manager.count_loose(_query_tags(),1,_can_haul_key) <= 0: return
+	var stocked := 0
+	for item: String in filter_items: stocked += StockpileManager.get_available_total(item)
+	if stocked <= 0 and drop_manager.count_loose(_query_tags(),1,_can_haul_key) <= 0: return
 	var wanted := mini(max_haulers,project().cells.size()-count())
 	while _lease_ids.size() < wanted:
 		var id := TaskManager.add_task(Task.Type.HAUL,crate_cell,{"zone_id":source_id},source_id)
@@ -233,17 +241,37 @@ func _refresh_contents() -> void:
 	_contents = Node3D.new()
 	visual.add_child(_contents)
 	_shown_count = count()
-	for i in range(mini(6,_shown_count)):
-		var stone: Node3D = drop_manager.create_item_visual(filter_items[0])
+	var shown: Array[String] = []
+	for item: String in staged:
+		for material: String in staged[item]:
+			for n in range(int(staged[item][material])): shown.append(item)
+	for i in range(mini(6,shown.size())):
+		var stone: Node3D = drop_manager.create_item_visual(shown[i])
 		_contents.add_child(stone)
 		@warning_ignore("integer_division")
 		stone.position = Vector3((i%3-1)*.19,.12+(i/3)*.10,-.11+(i/3)*.22)
 		preload("StorageItemLayout.gd").fit(stone,Vector3(.23,.22,.23),1.0)
 
+## Gives back what the crate holds beyond `needed`, after blocks were taken out of its plan.
+func refund_excess(needed: int) -> void:
+	var extra := count()-needed
+	if extra <= 0 or not is_instance_valid(drop_manager): return
+	var crate_floor := crate_cell if crate_cell != INVALID else Vector3i(project().origin_cell)
+	for item: String in staged.keys():
+		for material: String in staged[item].keys():
+			if extra <= 0: break
+			var take := mini(extra,int(staged[item][material]))
+			staged[item][material] = int(staged[item][material])-take
+			if int(staged[item][material]) <= 0: staged[item].erase(material)
+			drop_manager.spawn_drop(item,take,crate_floor+Vector3i.UP,material)
+			extra -= take
+		if staged[item].is_empty(): staged.erase(item)
+
 func refund() -> void:
 	if is_instance_valid(drop_manager):
 		var crate_floor := crate_cell if crate_cell != INVALID else Vector3i(project().origin_cell)
-		for material: String in staged: drop_manager.spawn_drop(filter_items[0],int(staged[material]),crate_floor+Vector3i.UP,material)
+		for item: String in staged:
+			for material: String in staged[item]: drop_manager.spawn_drop(item,int(staged[item][material]),crate_floor+Vector3i.UP,material)
 	staged.clear()
 
 func remove_visual() -> void:

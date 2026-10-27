@@ -5,6 +5,8 @@ extends RefCounted
 ## hint callout. The controller owns zone selection; the buttons and the
 ## window's close report back through signals.
 
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 signal remove_pressed
 signal dev_mine_pressed
 signal closed
@@ -36,7 +38,7 @@ func _build_zone_window() -> void:
 
 	zone_body = Label.new()
 	zone_body.text = "Blocks: 0"
-	zone_body.add_theme_font_size_override("font_size", 13)
+	zone_body.add_theme_font_size_override("font_size", MEDIUM.small)
 	column.add_child(zone_body)
 
 	var remove := Button.new()
@@ -66,7 +68,7 @@ func _build_zone_window() -> void:
 	column.add_child(dev_mine)
 
 	zone_window = window_manager.register_window(ZONE_WINDOW_ID, "Mining Zone", "", column,
-		{"default_pos": Vector2(18, 118), "min_size": Vector2(280, 118)})
+		{"default_pos": Vector2(18, 118), "min_size": Vector2(280, 118), "family": "work"})
 	window_manager.window_state_changed.connect(_on_zone_window_state_changed)
 
 
@@ -117,14 +119,14 @@ func _build_hint_window(parent: Node) -> void:
 	title.text = "Mining Tool"
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UITheme.apply_title(title, 15)
+	UITheme.apply_title(title, MEDIUM.lead)
 	column.add_child(title)
 
 	var body := Label.new()
 	body.text = "Drag: designate   ·   Ctrl: remove\nShift / Alt + wheel: width / depth   ·   Esc: exit"
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	body.add_theme_font_size_override("font_size", 12)
+	body.add_theme_font_size_override("font_size", MEDIUM.small)
 	body.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 	column.add_child(body)
 

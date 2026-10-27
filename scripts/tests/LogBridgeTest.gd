@@ -16,7 +16,7 @@ func _run() -> void:
 	root.get_node("WorldGenerator")._build_noise_instances()
 	bridges = furniture._bridges
 	bridges.set_process(false)
-	_expect(dock._place_catalog._tiles.has(BRIDGE), "Place catalog exposes the bridge under Access")
+	_expect(dock._place_catalog.has_design(BRIDGE), "Place catalog exposes the bridge under Access")
 	furniture._ladders.set_process(false)
 	nav = root.get_node("NavGrid")
 	await _geometry_checks()
@@ -50,7 +50,7 @@ func _run() -> void:
 	furniture._hover_cell = bank
 	furniture._hover_valid = furniture._placement_valid(bank)
 	furniture._position_preview(bank)
-	_expect(furniture._hover_valid and furniture._visuals.hint_label.text.contains("5-block gap"), "preview quotes span and kit from the selected bank")
+	_expect(furniture._hover_valid and furniture._visuals.hint_text.contains("5-block gap"), "preview quotes span and kit from the selected bank")
 	if "--capture" in OS.get_cmdline_user_args(): await _bridge_preview_capture()
 	furniture._confirm_ghost()
 	furniture.deactivate()
@@ -73,6 +73,9 @@ func _run() -> void:
 	_expect(_count(KIT)==1, "interruption/load conserves the unconsumed physical kit")
 	for task in tasks._tasks.values(): task.retry_at = 0
 	_expect(await _condition(func(): return bridges.routes[id].built), "resumed installation completes")
+	var open: Dictionary = bridges.get_explorer_data(id)
+	_expect(ResourceLoader.exists(String(open.picture)) and open.status.tone == "fine"
+		and open.actions.any(func(action): return action.id == "remove"), "compact panel: an open bridge shows its picture, status and Dismantle")
 	_expect(_count(KIT)==0 and not nav.find_path(bank,far_bank).is_empty(), "one kit becomes a traversable deck")
 	_expect(water.flow.mass==baseline, "bridge construction does not displace, dam or consume water")
 	_expect(nav.line_walkable_flat(bank,far_bank), "ordinary path smoothing accepts the completed deck")
@@ -233,7 +236,6 @@ func _bridge_preview_capture() -> void:
 	cam.look_at(Vector3(46,20,48))
 	cam.size = 20
 	dock._open_place_catalog()
-	dock._place_catalog.category = "access"
 	dock._place_catalog.selected_key = BRIDGE
 	dock._place_catalog.refresh()
 	dock._place_catalog._fit()

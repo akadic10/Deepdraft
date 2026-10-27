@@ -12,6 +12,9 @@ from common import ROOT,export_asset
 from coverage import validate_coverage
 
 FAMILIES={}
+# Staged-only families: built for review, left out of 'all', never installed (icons: doc 259;
+# sky: the Sky Dial's pieces, doc 23). tools/GenerateUiIcons.gd renders both to PNGs.
+STAGED_ONLY={'icons','sky'}
 
 
 def register_families():
@@ -25,6 +28,8 @@ def register_families():
     from furniture import assets as furniture_assets
     from items import assets as item_assets
     from construction import assets as construction_assets
+    from icons import assets as icon_assets
+    from sky import assets as sky_assets
     FAMILIES['trees']=tree_assets
     FAMILIES['plants']=plant_assets
     FAMILIES['rocks']=rock_assets
@@ -35,6 +40,8 @@ def register_families():
     FAMILIES['furniture']=furniture_assets
     FAMILIES['items']=item_assets
     FAMILIES['construction']=construction_assets
+    FAMILIES['icons']=icon_assets
+    FAMILIES['sky']=sky_assets
 
 
 def main():
@@ -52,7 +59,8 @@ def main():
     if args.only and args.install: parser.error('partial families cannot be installed')
     if args.merge and (not args.only or args.check or args.install): parser.error('--merge requires a staged --only selection')
     if args.install and (not args.review or args.family=='all'): parser.error('install one family with its --review gallery JSON')
-    families=list(FAMILIES) if args.family=='all' else [args.family]
+    if (args.install or args.check) and args.family in STAGED_ONLY: parser.error(args.family+' is staged for review only')
+    families=[f for f in FAMILIES if f not in STAGED_ONLY] if args.family=='all' else [args.family]
     reports={}
     with tempfile.TemporaryDirectory(prefix='deepdraft_voxel_verify_') as temp:
         base=Path(temp) if args.check else args.output.resolve()
@@ -78,7 +86,7 @@ def main():
                 rows=[replacements.pop(r['path'],r) for r in previous['assets']]
                 assert not replacements,'selection is outside the complete family'
                 validate_coverage(family,[r['path'] for r in rows])
-            if not args.only: validate_coverage(family,seen)
+            if not args.only and family not in STAGED_ONLY: validate_coverage(family,seen)
             report={'family':family,'grid':16,'complete':not bool(args.only) or args.merge,'assets':rows}
             reports[family]=report
             if not args.check:

@@ -140,6 +140,12 @@ func is_active() -> bool:
 	return _active
 
 
+## What the tool bar shows (doc 23, "The tool bar"): the dock's Rooms entry; it orders
+## nothing, so there is nothing to undo.
+func tool_bar_state() -> Dictionary:
+	return {"tool": TOOL_ID, "undo": false}
+
+
 func toggle_active() -> void:
 	if _active:
 		deactivate()
@@ -420,6 +426,16 @@ func _pick_room_at_screen(screen_pos: Vector2) -> void:
 	# Clicked empty space: keep the current selection (closing is the ✕'s job).
 
 
+## Opens the room window on the room around an air cell, at a tab ("appeal" from the Appeal
+## view), whether or not the tool is on. False outside rooms.
+func open_room_at(cell: Vector3i, tab := "") -> bool:
+	var room_id := int(RoomManager.get_room_id_at(cell))
+	if room_id < 0 or _window_panel == null: return false
+	_select_room(room_id, cell)
+	if not tab.is_empty(): _window_content.show_tab_named(tab)
+	return true
+
+
 func _select_room(room_id: int, cell: Vector3i) -> void:
 	var previous := _selected_room_id
 	_selected_room_id = room_id
@@ -437,16 +453,13 @@ func _build_window() -> void:
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
 	if _window_manager == null:
 		return
-	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 12)
+	# The room window (doc 261) brings its own margins; its band names the room.
 	_window_content = preload("res://scripts/ui/RoomInspectorPanel.gd").new()
-	margin.add_child(_window_content)
-	_window_panel = _window_manager.register_window(WINDOW_ID, "Room", "", margin,
-		{"default_pos": Vector2(maxf(24, get_viewport().get_visible_rect().size.x - 388), 24)})
-	UITheme.apply_catalog_window(_window_panel)
+	_window_panel = _window_manager.register_window(WINDOW_ID, "Room", "", _window_content,
+		{"default_pos": Vector2(maxf(24, get_viewport().get_visible_rect().size.x - 388), 24), "family": "settlement", "flush": true})
 	_window_panel.keep_body_on_screen = true
 	_window_content.window = _window_panel
+	_window_content.dock = get_node_or_null(dock_ui_path) if not dock_ui_path.is_empty() else null
 	_window_manager.window_state_changed.connect(_on_window_state_changed)
 
 
@@ -481,5 +494,14 @@ func _refresh_window() -> void:
 	if room.is_empty():
 		_close_window()
 		return
-	_window_panel.set_window_title("%s %d" % [RoomManager.room_label(room),_selected_room_id])
+	_window_panel.set_window_title(room_title(room, _selected_room_id))
 	_window_content.show_room(room)
+
+
+## The room's name on the band and the Appeal view's card: "Birna's bedroom" for a personal
+## bedroom, otherwise its kind and number ("Barracks 3").
+func room_title(room: Dictionary, room_id: int) -> String:
+	var owner_id := int(room.get("owner_id", -1))
+	var owner: DwarfAgent = TaskManager.get_agent(owner_id) if owner_id >= 0 else null
+	if is_instance_valid(owner): return "%s's bedroom" % owner.dwarf_name
+	return "%s %d" % [RoomManager.room_label(room), room_id]

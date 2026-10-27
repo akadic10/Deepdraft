@@ -24,10 +24,20 @@ Each frame (on mouse move or on demand), a ray is cast from the camera through t
 `ObjectPicking.terrain_hit(origin, direction, slice_y, max_distance, sample_block, visible_face)`,
 which returns `{x, y, z, normal, distance}` or `{}`. Mining passes a `sample_block` that
 reads concealed strata (and treats water as air) plus a `visible_face` that asks the
-renderer's VisibleVolume; furniture, storage zones, construction, tree felling and the
-inspectors use the live grid and the slice plane. Surface-only picks (Settlement Flag,
+renderer's VisibleVolume. Furniture, storage zones, construction, Copy and placing a
+blueprint pass `ObjectPicking.concealed_block`: the live grid, with the air of a cave not
+yet found read as its rock, so the pointer stops on a slice cut through a hidden cave
+(Hard Rule 11; doc 24, "Slice concealment rule"). Tree felling and the inspectors use the
+live grid and the slice plane. The terrain inspector
+(`TerrainExplorerProvider`, doc 130) passes a `sample_block` that sees what the renderer
+draws (planned cuts as air, undiscovered cave air as rock) and a `visible_face` that
+asks VisibleVolume, or X-ray's shown faces while it inspects; work and designation rays
+keep their own. Surface-only picks (Settlement Flag,
 the DEV walk test, camera zoom-to-cursor) use `ObjectPicking.surface_hit`, a height-field
-march that needs no materialised chunks. Do not write another ray loop.
+march that needs no materialised chunks. Its `column_top` replaces the plain surface: the
+camera passes its slice-aware ground (doc 21, "The camera's ground"), so zoom, the drag grab
+and the orbit pivot stop on the cut floor and never in a cave not yet found. Do not write
+another ray loop.
 
 ```gdscript
 func raycast_voxel(camera: Camera3D, mouse_pos: Vector2) -> Dictionary:

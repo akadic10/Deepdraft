@@ -91,7 +91,7 @@ func _run() -> void:
 		root.size = viewport
 		await _frames(8)
 		_expect(panel._requirements.text.begins_with("4 timber") and panel._requirements.text.contains("same wood"),"recipe card explains increased cost")
-		_expect(panel._detail_scroll.get_global_rect().encloses(panel._make.get_global_rect()),"bed crafting action stays visible at "+str(viewport))
+		_expect(dock._craft_window.get_global_rect().encloses(panel._queue_button.get_global_rect()),"bed crafting action stays visible at "+str(viewport))
 		if "--capture" in OS.get_cmdline_user_args():
 			DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://tmp/bed_cost_20261011"))
 			await RenderingServer.frame_post_draw

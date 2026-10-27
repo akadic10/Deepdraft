@@ -48,7 +48,7 @@ func _run() -> void:
 			var models: Array=definition.crate_models
 			_expect((bounds_by_stage[models[2]] as AABB).size.y>(bounds_by_stage[models[0]] as AABB).size.y,"full crate visibly higher "+key)
 		if definition.get("material_palette","")=="starter_tool": _wood_variants(key,definition)
-	_expect(keys.size()==58 and inspected.size()==88,"all 58 definitions / 88 presentations imported")
+	_expect(keys.size()==56 and inspected.size()==86,"all 56 definitions / 86 presentations imported")
 	_expect(items._missing_models.is_empty(),"zero fallback models")
 	_work_tools()
 	_carry()

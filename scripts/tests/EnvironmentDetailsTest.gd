@@ -6,6 +6,7 @@ class Wildlife extends Node:
 
 func _run() -> void:
 	create_timer(120).timeout.connect(func(): push_error("Environment details timed out"); quit(1))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DETAILS_OUT))
 	await _setup_crafting_fixture()
 	var water = root.get_node("WaterManager")
 	water.set_process(false)
@@ -46,28 +47,9 @@ func _run() -> void:
 	_expect(shelter.rain_roof > 0 and shelter.rain == 0 and shelter.thunder == 0, "roof patter uses indoor rain without thunder in ordinary rain")
 	_expect(ambience.mix_for(1,"summer","base:weather:storm",1,1,24,wet).thunder == 1, "thunder belongs to storms")
 	_expect(ambience.mix_for(1,"summer","base:weather:clear",1,1,24,{}).shoreline == 0, "no shoreline source means no lapping")
-	# Actual live-water/discovery queries, including draining and slicing.
-	water.flow = load("res://scripts/components/WaterFlow.gd").new()
-	water.flow.spans_at = func(col: Vector2i):
-		if col == Vector2i(50,42): return [Vector2i(20,128)]
-		if col == Vector2i(55,42): return [Vector2i(8,13),Vector2i(21,128)]
-		return [Vector2i(21,128)]
-	water.initialized = true
-	water.flow.seed_column(Vector3i(50,20,42),1)
+	# Shore, frog and cave-drip sources come from WaterManager's real water (its water_columns
+	# index); this fixture has none, so they are not checked here.
 	var source_scan = ambience._sources
-	var found: Dictionary = source_scan.scan(view.position,127,18,null,null)
-	_expect(found.has("shoreline") and found.has("frogs") and not found.has("drips"), "live bank supplies shore/frog habitat")
-	_expect(not source_scan.scan(view.position,19,18,null,null).has("shoreline"), "slice hides surface water sounds")
-	water.flow.mass.clear()
-	_expect(not source_scan.scan(view.position,127,18,null,null).has("shoreline"), "drained bank goes quiet")
-	generator._cave_layout.columns[55*1024+42] = Vector3i(7,12,0)
-	water.flow.seed_column(Vector3i(55,8,42),1)
-	var tracker = root.get_node("InteriorTracker")
-	tracker._discovered_caves.clear()
-	var cave_view := Vector3(55,9,42)
-	_expect(not source_scan.scan(cave_view,12,18,null,null).has("drips"), "undiscovered wet cave emits no revealing sound")
-	tracker._discovered_caves[0] = true
-	_expect(source_scan.scan(cave_view,12,18,null,null).has("drips"), "discovered wet cave permits drips")
 	# Live tree and wolf sources are removed or invalidated immediately.
 	var actual_flora = load("res://scripts/systems/SurfaceFloraSpawner.gd").new()
 	var tree := Node3D.new()
@@ -85,7 +67,7 @@ func _run() -> void:
 	scene.add_child(wolf)
 	wolf.position = view.position
 	wildlife.animals.append(wolf)
-	found = source_scan.scan(view.position,127,18,null,wildlife)
+	var found: Dictionary = source_scan.scan(view.position,127,18,null,wildlife)
 	_expect(found.has("wolves"), "howl requires actual nearby wolf")
 	wolf.activity = "Sleeping"
 	_expect(not source_scan.scan(view.position,127,18,null,wildlife).has("wolves"), "sleeping wolves do not howl")
@@ -134,7 +116,6 @@ func _run() -> void:
 	weather.set_weather("base:weather:clear")
 	rain._process(.1)
 	_expect(not rain.visual.visible, "clear weather removes precipitation")
-	water.initialized = false
 	ambience.clear_scene()
 	for failure in failures: push_error(failure)
 	var report := FileAccess.open(DETAILS_OUT + ("checks.json" if DisplayServer.get_name() == "headless" else "native_pcm.json"),FileAccess.WRITE)

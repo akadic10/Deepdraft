@@ -54,7 +54,7 @@ func _run() -> void:
 	furniture._hover_cell = base
 	furniture._hover_valid = furniture._placement_valid(base)
 	furniture._position_preview(base)
-	_expect(furniture._visuals.hint_label.text.contains("12-block") and furniture._visuals.hint_label.text.contains("3 ladder sections"), "Place preview displays full height and cost")
+	_expect(furniture._visuals.hint_text.contains("12-block") and furniture._visuals.hint_text.contains("3 ladder sections"), "Place preview displays full height and cost")
 	var id: int = ladders._next_id
 	furniture._confirm_ghost()
 	furniture.deactivate()
@@ -66,6 +66,10 @@ func _run() -> void:
 	var partial: Dictionary = JSON.parse_string(JSON.stringify(ladders.serialize_state()))
 	ladders.perform_explorer_action(id, "pause")
 	_expect(ladders.routes[id].built == 4 and ladders.routes[id].mode == "paused", "cancelled extension retains paid support")
+	var paused: Dictionary = ladders.get_explorer_data(id)
+	_expect(ResourceLoader.exists(String(paused.picture)) and paused.status.tone == "waiting"
+		and String(paused.status.text).ends_with("4 / 12 blocks") and paused.actions.any(func(action): return action.id == "resume"),
+		"compact panel: a paused ladder shows its picture, progress and Resume")
 	_check_visible_height(id, 4)
 	ladders.restore_state(partial)
 	_expect(ladders.routes[id].built == 4 and ladders.routes[id].mode == "build", "unfinished route restores its next section job")

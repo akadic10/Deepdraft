@@ -8,6 +8,7 @@ var door
 var lamp
 var room_probe := Vector3i(62,21,62)
 var room_meshes: Array[Node3D] = []
+var room_window_tool
 var bedroom_output := "res://tmp/bedroom_20261011/"
 
 func _run() -> void:
@@ -22,7 +23,7 @@ func _run() -> void:
 	drops.spawn_drop(PINE,4,Vector3i(42,21,42))
 	_expect(await _completed(crafting.queue_order("base:recipe:worker:log_bed",1)),"starter worker crafts log bed")
 	_expect(_count(BED_ITEM)==1 and _count(PINE)==0,"four timber become one packed bed")
-	_expect(dock._place_catalog._tiles.has(BED),"log bed available in Place catalog")
+	_expect(dock._place_catalog.has_design(BED),"log bed available in Place catalog")
 	_build_bedroom()
 	door = _put("door",Vector3i(63,20,60))
 	_expect(_room_data().get("room_type")=="room","sealed door alone is a room")
@@ -42,12 +43,14 @@ func _run() -> void:
 	lamp = _put("wooden_torch",Vector3i(68,20,64))
 	var room := _room_data()
 	_expect(room.get("room_type")=="bedroom" and room.bed_count==1 and room.light_count==1 and room.door_cells.size()==1,"bed + door + light + sealed enclosure creates bedroom")
+	await _check_room_window(true)
 	for key in ["wooden_torch","campfire"]:
 		var def: Dictionary = furniture.get_defs()["base:furniture:"+key]
 		_expect(is_equal_approx(float(def.light_source.energy),2.6 if key=="wooden_torch" else 3.2),"doubled firelight: "+key)
 	# Every required component must remain present.
 	furniture._teardown_installed(lamp.installed_id,false)
 	_expect(_room_data().get("room_type")=="room","light removal revokes bedroom")
+	await _check_room_window(false)
 	lamp = _put("wooden_torch",Vector3i(68,20,64))
 	furniture._teardown_installed(door.installed_id,false)
 	_expect(_room_data().is_empty(),"door removal unseals bedroom")
@@ -139,6 +142,40 @@ func _put(short_key: String, cell: Vector3i, yaw := 0):
 	furniture._install(key,furniture.get_defs()[key],cell,yaw)
 	return furniture._installed[furniture._next_installed_id-1]
 
+## The room window (doc 261): the kind and its needs, each with its count and ticked when
+## met; who sleeps there; the furniture in it; and, for a plain room, the one step missing.
+func _check_room_window(bedroom: bool) -> void:
+	if room_window_tool == null:
+		room_window_tool = load("res://scripts/systems/RoomOverlayController.gd").new()
+		room_window_tool.window_manager_path = NodePath("../Windows")
+		room_window_tool.dock_ui_path = NodePath("../Dock")
+		scene.add_child(room_window_tool)
+	var room_id: int = rooms.get_room_id_at(room_probe)
+	room_window_tool._select_room(room_id, room_probe)
+	await _frames(4)
+	var panel = room_window_tool._window_content
+	if bedroom:
+		_expect(panel._kind.text == "Bedroom" and room_window_tool._window_panel.get_title_label().text == "Bedroom %d" % room_id,
+			"the room window names its kind on the header and the band")
+		_expect(panel._needs_heading.text == "WHAT MAKES IT A BEDROOM" and panel._need_rows.beds.count.text == "1" and panel._need_rows.lights.count.text == "1 source"
+			and ["beds", "lights", "doors", "walls"].all(func(id: String): return panel._need_rows[id].glyph.text == "✓") and not panel._short.visible,
+			"a bedroom's needs each show their count, ticked")
+		_expect(panel._owner_row.visible and panel._owner_line.text == "No one owns the bed", "an unowned bedroom says no one owns the bed")
+		var tiles: Array = panel._furniture.find_children("Tile_*", "Button", true, false)
+		_expect(tiles.size() == 3 and [BED, "base:furniture:wooden_torch", "base:furniture:door"].all(func(key: String): return panel._furniture.get_tile(key) != null),
+			"In this room shows the bed, the torch and the door it seals")
+		var appeal: Dictionary = rooms.room_appeal(rooms.get_room_at(room_probe))
+		_expect(float(appeal.total) > 0.0 and panel._banner_word.text == String(appeal.word.word) and panel._banner_value.text == load("res://scripts/components/RoomAppeal.gd").number(float(appeal.score)),
+			"the appeal banner shows what the bedroom holds: %s %s" % [panel._banner_word.text, panel._banner_value.text])
+		_expect(panel._comfort.heating.count.text.begins_with("+") and panel._comfort.heating.goal.text == "1 heat source", "the torch's warmth reads in degrees, from one heat source")
+		return
+	_expect(panel._kind.text == "Room" and panel._needs_heading.text == "WHAT MAKES IT A BEDROOM" and panel._need_rows.lights.glyph.text == "!"
+		and panel._need_rows.beds.glyph.text == "✓" and panel._short.visible and panel._short.text == "One step from a bedroom: add a light.",
+		"a room one step short of a bedroom says which step is missing")
+	room_window_tool.free()
+	room_window_tool = null
+
+
 func _room_data() -> Dictionary:
 	rooms._rebuild_all_rooms()
 	return rooms.get_room_at(room_probe)
@@ -183,7 +220,7 @@ func _capture_bed() -> void:
 		await _frames(8)
 		var rect: Rect2 = room_tool._window_panel.get_global_rect()
 		_expect(rect.position.x>=0 and rect.position.y>=0 and rect.end.x<=resolution.x and rect.end.y<=resolution.y,"bedroom inspector fits %s" % resolution)
-		_expect(room_tool._window_content._status.text=="BEDROOM · SEALED" and room_tool._window_content._beds.text=="1","room inspector explains bedroom classification")
+		_expect(room_tool._window_content._kind.text=="Bedroom" and room_tool._window_content._need_rows.beds.count.text=="1","the room window explains the bedroom")
 		await RenderingServer.frame_post_draw
 		assert(root.get_texture().get_image().save_png(bedroom_output+"room_ui_%d.png" % resolution.x)==OK)
 	room_tool.deactivate()

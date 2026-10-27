@@ -8,6 +8,7 @@ extends RefCounted
 ## Additional fields are allowed; required fields must still match their types.
 ## Autoload-free (worker threads and startup use it), hence WorldSize.
 const WorldSize = preload("res://scripts/systems/WorldSize.gd")
+const SettlementName = preload("res://scripts/components/SettlementName.gd")
 
 const FILTER := {"tags": [TYPE_STRING], "items": [TYPE_STRING], "excluded_items": [TYPE_STRING]}
 const CARGO := {"item_key": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
@@ -31,8 +32,8 @@ const ACTIVE_EVENT := {
 }
 const SCENE := {
 	"construction": {"next_id":"positive_int",
-		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT}],
-			"total_blocks":"positive_int","?crate_cell":"cell","?materials":{"*":"positive_int"}}]},
+		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT,"?dir":TYPE_STRING}],
+			"total_blocks":"positive_int","?wood":TYPE_STRING,"?crate_cell":"cell","?materials":{"*":{"*":"positive_int"}}}]},
 	"jobs": {"next_order":"positive_int","next_attempt":"positive_int","time":TYPE_FLOAT,
 		"records":{"*":{"key":"key","label":TYPE_STRING,"state":"key","reason":TYPE_STRING,"failures":TYPE_INT,"last_transition":TYPE_FLOAT}},
 		"history":[{"order":"key","state":"key","reason":TYPE_STRING,"attempt":TYPE_INT,"worker":TYPE_INT,"time":TYPE_FLOAT}]},
@@ -63,7 +64,7 @@ const SCENE := {
 		"planted": [{"id": "key", "definition": "plant", "origin": "cell", "yaw": TYPE_INT}],
 		"next_plant_id": TYPE_INT,
 	},
-	"settlement_flag": {"founded": TYPE_BOOL, "cell": "cell"},
+	"settlement_flag": {"founded": TYPE_BOOL, "cell": "cell", "name": TYPE_STRING, "founded_day": TYPE_INT},
 	"stockpiles": {"zones": [{"id": TYPE_INT, "cells": ["cell"],
 		"storage_filter": FILTER,
 		"stacks": [{"cell": "cell", "item": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]}]},
@@ -82,7 +83,7 @@ const SCENE := {
 		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]},
 	"dwarves": {"birth_index": TYPE_INT, "settlement_anchor": "cell", "roster": [{
 		"id": TYPE_INT, "name": TYPE_STRING, "gender": TYPE_STRING, "appearance": {"*": TYPE_STRING},
-		"traits": [TYPE_STRING], "profession": "key", "profession_experience": {"*": TYPE_INT},
+		"traits": [TYPE_STRING], "tastes": {"*": "key"}, "found_tastes": ["key"], "profession": "key", "profession_experience": {"*": TYPE_INT},
 		"work_permissions": {"*": TYPE_BOOL}, "position": "vector", "rotation_y": TYPE_FLOAT,
 		"sleep": TYPE_FLOAT, "sleeping": TYPE_BOOL, "sleep_hours_left": TYPE_FLOAT,
 		"food": {"value":TYPE_FLOAT,"last_meal":TYPE_STRING,"last_dining":TYPE_STRING,"hours_since_meal":TYPE_FLOAT,"retry_hours":TYPE_FLOAT},
@@ -92,7 +93,10 @@ const SCENE := {
 			"?solo_recreation_memory_hours":TYPE_FLOAT,
 			"cold_sleep_hours":TYPE_FLOAT,"cold_memory_hours":TYPE_FLOAT,
 			"chilly_sleep_hours":TYPE_FLOAT,"chilly_memory_hours":TYPE_FLOAT,
-			"hot_sleep_hours":TYPE_FLOAT,"hot_memory_hours":TYPE_FLOAT},
+			"hot_sleep_hours":TYPE_FLOAT,"hot_memory_hours":TYPE_FLOAT,
+			"slept_room":TYPE_STRING,"slept_room_hours":TYPE_FLOAT,"ate_room":TYPE_STRING,"ate_room_hours":TYPE_FLOAT,
+			"played_room":TYPE_STRING,"played_room_hours":TYPE_FLOAT,
+			"slept_room_taste":TYPE_STRING,"ate_room_taste":TYPE_STRING,"played_room_taste":TYPE_STRING},
 		"carried_items": [CARGO], "equipment": {"*": TYPE_STRING},
 	}]},
 	"wildlife": {"initialized": TYPE_BOOL, "rabbits": [ANIMAL], "deer_initialized": TYPE_BOOL,
@@ -105,11 +109,18 @@ const SCENE := {
 		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": [TYPE_STRING]}]},
 	"camera": {"target_position": "vector", "zoom": TYPE_FLOAT, "pitch": TYPE_FLOAT, "orbit_y": TYPE_FLOAT},
 	"slice": {"active": TYPE_BOOL, "seeded": TYPE_BOOL, "slice_y": TYPE_INT, "last_slice_y": TYPE_INT},
+	"events": {"next_id": "positive_int", "seen_id": TYPE_INT, "entries": [{"id": "positive_int", "kind": "key",
+		"text": "key", "detail": TYPE_STRING, "picture": TYPE_STRING, "time": TYPE_FLOAT, "?place": "cell",
+		"?dwarves": [TYPE_INT], "?warning": "key", "?raised": TYPE_FLOAT, "?hold": TYPE_FLOAT, "?past": "key", "?resolved": TYPE_FLOAT}]},
+	"journal": {"lines": [{"day": TYPE_INT, "topic": "key", "text": "key", "tone": "key", "dwarves": [TYPE_INT],
+		"speaker": TYPE_INT, "name": TYPE_STRING, "words": TYPE_STRING}]},
 }
+const EVENT_KINDS := ["arrival", "discovery", "colony", "warning"]
 ## Validation rule -> ContentRegistry.save_catalogs() key set.
 const CONTENT_CATALOGS := {"furniture": "furniture", "item": "items", "recipe": "recipes", "tree": "trees", "plant": "plants"}
 const SNAPSHOT := {
-	"schema_version": TYPE_INT, "project": TYPE_STRING, "saved_at_utc": "key", "world_seed": TYPE_INT,
+	"schema_version": TYPE_INT, "project": TYPE_STRING, "saved_at_utc": "key", "world_seed": TYPE_INT, "colony_name": TYPE_STRING,
+	"?save_name": TYPE_STRING,
 	"clock": {"day": "positive_int", "season": "key", "year": "positive_int",
 		"hour": TYPE_FLOAT, "speed": TYPE_FLOAT, "paused": TYPE_BOOL},
 	"weather": {"current_id": "key", "rng_state": "rng"}, "scene": SCENE,
@@ -132,6 +143,12 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	if snapshot.scene.water.layout_version != preload("res://scripts/components/RiverLayout.gd").VERSION:
 		return "this development save uses an outdated river layout; start a new world."
 	if snapshot.clock.hour < 0 or snapshot.clock.speed < 0: return "the saved clock has negative time or speed."
+	# A founded settlement has a name in the rules and a founding day; an unfounded one neither.
+	var settlement: Dictionary = snapshot.scene.settlement_flag
+	var named: bool = SettlementName.is_valid(settlement.name) and settlement.founded_day >= 0
+	var unnamed: bool = settlement.name == "" and settlement.founded_day == -1
+	if not (named if settlement.founded else unnamed):
+		return "save.scene.settlement_flag has an invalid name or founding day."
 	var terrain_cells := {}
 	for entry: Dictionary in snapshot.scene.terrain.edits:
 		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
@@ -150,16 +167,25 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	var construction_ids := {}
 	for order: Dictionary in construction.orders:
 		if not catalogs.construction.has(String(order.kind)): return "save.scene.construction has an unknown construction type."
+		# Logs (doc 275) name a wood the game knows and which way each log lies.
+		var logs := String(catalogs.construction[order.kind].get("logs", "")) if catalogs.construction[order.kind] is Dictionary else ""
+		if not logs.is_empty() and not catalogs.woods.has(String(order.get("wood", ""))): return "save.scene.construction has an unknown wood."
+		for entry: Dictionary in order.cells:
+			var direction := String(entry.get("dir", ""))
+			if (logs.is_empty() and not direction.is_empty()) or (not logs.is_empty() and not direction in (["up"] if logs == "up" else ["x", "z"])):
+				return "save.scene.construction has a log lying an unknown way."
 		if order.id >= construction.next_id or construction_ids.has(order.id) or order.cells.is_empty(): return "save.scene.construction has an invalid order."
 		construction_ids[order.id] = true
 		if int(order.total_blocks) < order.cells.size():
 			return "save.scene.construction has an invalid total block count."
+		# Staged goods by item, then material.
 		var staged := 0
-		for material: String in order.get("materials",{}):
-			if not material.is_empty() and not catalogs.materials.has(material): return "save.scene.construction has an unknown material."
-			staged += int(order.materials[material])
-		if staged > order.cells.size() or (staged > 0 and order.kind != "stone"):
-			return "save.scene.construction has excess staged materials."
+		for item: String in order.get("materials",{}):
+			if not catalogs.items.has(item): return "save.scene.construction has an unknown material."
+			for material: String in order.materials[item]:
+				if not material.is_empty() and not catalogs.materials.has(material): return "save.scene.construction has an unknown material."
+				staged += int(order.materials[item][material])
+		if staged > order.cells.size(): return "save.scene.construction has excess staged materials."
 		for entry: Dictionary in order.cells:
 			var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
 			if not _construction_cell(cell) or construction_cells.has(cell) or entry.work<0: return "save.scene.construction has invalid planned work."
@@ -172,6 +198,25 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		if number < 1 or number >= int(jobs.next_order) or order_keys.has(record.key) or record.failures < 0 or record.last_transition < 0:
 			return "save.scene.jobs has invalid order identities."
 		order_keys[record.key] = true
+	var events: Dictionary = snapshot.scene.events
+	# EventLog keeps at most MAX_ENTRIES (200).
+	if events.entries.size() > 200 or events.seen_id < 0 or events.seen_id >= events.next_id:
+		return "save.scene.events has invalid bounds."
+	var event_ids := {}
+	for entry: Dictionary in events.entries:
+		if entry.id >= events.next_id or event_ids.has(entry.id) or entry.time < 0 or not entry.kind in EVENT_KINDS \
+			or (entry.has("warning") and entry.kind != "warning") or (entry.has("hold") and not entry.has("raised")) \
+			or (entry.has("past") and (not entry.has("warning") or entry.has("resolved"))):
+			return "save.scene.events has an invalid entry."
+		event_ids[entry.id] = true
+	# ColonyJournal keeps at most MAX_LINES (200), one line per topic a day, spoken by one of its dwarves.
+	var topics := {}
+	if snapshot.scene.journal.lines.size() > 200: return "save.scene.journal has too many lines."
+	for line: Dictionary in snapshot.scene.journal.lines:
+		var topic := "%d|%s" % [line.day, line.topic]
+		if line.day < 0 or not line.tone in ["complaint", "praise"] or not line.speaker in line.dwarves or topics.has(topic):
+			return "save.scene.journal has an invalid line."
+		topics[topic] = true
 	var craft_ids := {}
 	if snapshot.scene.worker_crafting.orders.size() > int(catalogs.max_craft_orders):
 		return "save.scene.worker_crafting has more orders than the queue allows."
@@ -189,7 +234,17 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		for outcome in [dwarf.food.last_dining,dwarf.mood.dining_outcome]:
 			if outcome not in ["","proper","seat_only","table_only","neither"]: return "save.scene.dwarves has an invalid dining outcome."
 		for field: String in dwarf.mood:
-			if field != "dining_outcome" and float(dwarf.mood[field])<0: return "save.scene.dwarves has a negative mood timer."
+			if not dwarf.mood[field] is String and float(dwarf.mood[field])<0: return "save.scene.dwarves has a negative mood timer."
+		for activity: String in ["slept", "ate", "played"]:
+			if not catalogs.appeal_words.has(String(dwarf.mood[activity + "_room"])): return "save.scene.dwarves names an unknown room appeal word."
+			var room_taste := String(dwarf.mood[activity + "_room_taste"])
+			if not room_taste.is_empty() and not room_taste in dwarf.found_tastes: return "save.scene.dwarves names a room taste the dwarf has not found."
+		# Tastes name furniture designs or woods the game has; the found ones are tastes held.
+		for thing: String in dwarf.tastes:
+			if not (catalogs.furniture.has(thing) or (catalogs.materials.has(thing) and not thing.is_empty())): return "save.scene.dwarves has a taste for an unknown thing."
+			if dwarf.tastes[thing] not in ["love", "like", "dislike"]: return "save.scene.dwarves has an invalid taste."
+		for thing: String in dwarf.found_tastes:
+			if not dwarf.tastes.has(thing): return "save.scene.dwarves has found a taste it does not hold."
 	var assigned_beds := {}
 	for piece: Dictionary in snapshot.scene.furniture.installed:
 		var resident := int(piece.get("assigned_dwarf_id",-1))

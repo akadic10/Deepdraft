@@ -1,113 +1,37 @@
 {
-  "__comment": "Place catalog presentation. Definitions and real stock come from FurniturePlacementController; Worker crafting counts come from CraftingManager.",
+  "__comment": "Place catalog presentation: the categories are the Place window's groups, in order. Definitions and real stock come from FurniturePlacementController; Worker crafting counts come from CraftingManager.",
   "categories": [
     {
-      "id": "all",
-      "label": "All",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        12,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Browse every placeable design."
-    },
-    {
       "id": "dining",
-      "label": "Dining",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        318,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Tables, chairs, stools and benches."
+      "label": "Dining"
     },
     {
       "id": "recreation",
-      "label": "Recreation",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        318,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Games and places to relax together."
+      "label": "Recreation"
     },
     {
       "id": "lighting",
-      "label": "Lighting",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        926,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Torches, fires and other lights."
+      "label": "Lighting"
     },
     {
       "id": "rooms",
-      "label": "Room furnishings",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        1230,
-        54,
-        294,
-        290
-      ],
-      "tooltip": "Beds, doors, hearths and the settlement flag."
+      "label": "Room furnishings"
     },
     {
       "id": "workshops",
-      "label": "Workshops",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        12,
-        358,
-        294,
-        290
-      ],
-      "tooltip": "Workbenches and crafting stations."
+      "label": "Workshops"
     },
     {
       "id": "plants",
-      "label": "Plants",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        318,
-        358,
-        294,
-        290
-      ],
-      "tooltip": "Packed plants, cuttings and flowers."
+      "label": "Plants"
     },
     {
       "id": "access",
-      "label": "Access",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        622,
-        358,
-        294,
-        290
-      ],
-      "tooltip": "Ladders, bridges, fences and gates."
+      "label": "Access"
     },
     {
       "id": "water",
-      "label": "Water",
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        926,
-        358,
-        294,
-        290
-      ],
-      "tooltip": "Wet and dry stones."
+      "label": "Water"
     }
   ],
   "items": [

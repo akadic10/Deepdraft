@@ -104,25 +104,33 @@ func _run() -> void:
 	_expect(AudioServer.is_bus_mute(ambience._bus("ambience")), "zero slider is a true mute")
 	ambience.set_volume("ambience", .72)
 	ambience.set_volume("effects", .4466836)
-	# Real menu dispatch and controls, tested at small and normal window sizes.
-	var audio_window = manager.get_ui_window("audio")
-	var audio_panel = audio_window._content
+	# The game menu's Settings page (doc 23), its Audio tab and real controls, at small and normal sizes.
+	var menu = root.get_node("GameMenu")
 	for size: Vector2i in [Vector2i(960, 540), Vector2i(1920, 1080)]:
 		root.size = size
-		dock._dispatch_menu_entry({"action": "toggle_window", "target": "audio"})
+		await _frames(4)
+		menu.open()
+		menu._choose("settings")
+		menu._settings.show_section("audio")
 		await _frames(8)
-		_expect(audio_window.visible and Rect2(Vector2.ZERO, Vector2(size)).encloses(audio_window.get_global_rect()), "audio window opens and fits: " + str(size))
-		audio_panel.sliders.ambience.value = 61
-		_expect(is_equal_approx(ambience.volume("ambience"), .61), "visible slider changes live mix")
-		_click(audio_panel.mute_buttons.ambience.get_global_rect().get_center())
+		_expect(menu._settings.visible and menu._title.text == "Settings" and Rect2(Vector2.ZERO, Vector2(size)).encloses(menu._frame.get_global_rect()),
+			"the Settings page opens in the menu and fits: " + str(size))
+		var parts: Dictionary = menu._settings.controls.ambience
+		parts.slider.value = 61
+		_expect(is_equal_approx(ambience.volume("ambience"), .61) and parts.value.text == "61%", "the visible slider changes the live mix and its percentage")
+		_click(parts.mute.get_global_rect().get_center())
 		await _frames(2)
-		_expect(ambience.muted("ambience"), "actual mute button updates bus")
-		_click(audio_panel.mute_buttons.ambience.get_global_rect().get_center())
+		_expect(ambience.muted("ambience") and parts.mute.button_pressed, "the actual Mute button mutes the bus")
+		_click(parts.mute.get_global_rect().get_center())
 		await _frames(2)
 		if DisplayServer.get_name() != "headless":
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png(OUT + "settings_%d.png" % size.x)
-		manager.close("audio")
+		_click(menu._settings.restore_button.get_global_rect().get_center())
+		await _frames(2)
+		_expect(is_equal_approx(ambience.volume("ambience"), .72) and not ambience.muted("ambience") and parts.slider.value == 72,
+			"Restore defaults puts the mix and the slider back")
+		menu.close()
 	ambience.set_volume("ambience", .72)
 	if DisplayServer.get_name() != "headless": await _native_audio()
 	_expect(weather._rng.state == rng_state and root.get_node("WorldGenerator").world_seed == world_seed, "audio leaves world/weather random state unchanged")

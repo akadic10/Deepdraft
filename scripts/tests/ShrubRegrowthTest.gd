@@ -65,7 +65,7 @@ func _run() -> void:
 	snapshot=JSON.parse_string(JSON.stringify(details.serialize_state()))
 	details.restore_state(snapshot)
 	var destination:=Vector3i(45,20,46)
-	var soil: int=blocks.get_id("base:terrain:surface:grass_01")
+	var soil: int=blocks.get_id("base:terrain:surface:grass")
 	# Fixture ground uses rock; transplant requires a permitted soil block.
 	world.set_block(destination.x,destination.y,destination.z,soil)
 	_expect(details.can_plant(BLUE,"base:flora:blueberry_bush",destination),"replant destination is valid")

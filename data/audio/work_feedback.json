@@ -164,6 +164,11 @@
       "res://assets/audio/work/pick_soil_01.wav", "res://assets/audio/work/pick_soil_02.wav",
       "res://assets/audio/work/pick_soil_03.wav", "res://assets/audio/work/pick_soil_04.wav",
       "res://assets/audio/work/pick_soil_05.wav", "res://assets/audio/work/pick_soil_06.wav"
+    ],
+    "mining_wood": [
+      "res://assets/audio/work/axe_chop_01.wav", "res://assets/audio/work/axe_chop_02.wav",
+      "res://assets/audio/work/axe_chop_03.wav", "res://assets/audio/work/axe_chop_04.wav",
+      "res://assets/audio/work/axe_chop_05.wav", "res://assets/audio/work/axe_chop_06.wav"
     ]
   },
   "poof": {
@@ -178,6 +183,7 @@
   "mining": {
     "fallback_block": "base:terrain:rock:rock07",
     "soil_kinds": ["dirt", "grass"],
+    "wood_kinds": ["log"],
     "impact": {
       "lifetime": 0.28, "dust_count": 0, "chip_count": 6,
       "scale": 0.7, "spread": 0.08, "height": 0.05, "floor_offset": -0.8

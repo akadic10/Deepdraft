@@ -7,16 +7,23 @@ var progress := 0.0
 var animation_time := 0.0
 var complete := false
 var failure := ""
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	resized.connect(queue_redraw)
 
 func source_rect(view_size: Vector2) -> Rect2:
-	if artwork == null or view_size.y <= 0: return Rect2()
-	var tex := artwork.get_size()
+	if artwork == null: return Rect2()
+	return band_rect(artwork.get_size(),view_size,float(definition.get("panorama_aspect",32.0/9.0)))
+
+## The part of a panorama a screen shows: a fixed-height band `widest` wide for its height,
+## centred, and wider screens reveal its sides. The title screen crops its art the same way.
+static func band_rect(tex: Vector2, view_size: Vector2, widest: float) -> Rect2:
+	if view_size.y <= 0: return Rect2()
 	var aspect := view_size.x / view_size.y
-	var height := minf(tex.y,tex.x/maxf(float(definition.get("panorama_aspect",32.0/9.0)),aspect))
+	var height := minf(tex.y,tex.x/maxf(widest,aspect))
 	var extent := Vector2(height*aspect,height)
 	return Rect2((tex-extent)*.5,extent)
 
@@ -37,7 +44,7 @@ func _draw() -> void:
 	var foam := Color(String(definition.get("foam","fff0cd")))
 	var title_font := UITheme.hearth_title_font()
 	var font := UITheme.shared_theme().default_font
-	_centered(title_font,String(definition.get("title","DEEPDRAFT")),Vector2(0,-66),34,ink)
+	_centered(title_font,String(definition.get("title","DEEPDRAFT")),Vector2(0,-66),MEDIUM.display,ink)
 	# An outlined tankard fills bottom-to-top while the slim bar tracks the same work.
 	var mug := Rect2(-176,-23,44,53)
 	var handle := Rect2(-134,-14,18,31)

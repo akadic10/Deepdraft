@@ -5,6 +5,8 @@ const Materials = preload("res://scripts/components/ConstructionMaterials.gd")
 const INVALID := Vector3i(-1,-1,-1)
 var controller: Node
 var construction_kind := "stone"
+var wood := ""                    # logs (doc 275): the wood they are built from
+var directions: Dictionary = {}   # logs: which way each cell's log lies, up, x or z
 var cells: Array[Vector3i] = []
 var total_blocks := 0
 var target := INVALID
@@ -20,7 +22,27 @@ func lease_id() -> int:
 
 
 func display_name() -> String:
-	return "%s (%d blocks)" % [def.display_name,cells.size()]
+	return "%s (%d blocks)" % [type_name(construction_kind,wood),cells.size()]
+
+## A kind's name, a log's with its wood: "Native stone", "Horizontal pine log" (doc 275).
+static func type_name(kind: String, of_wood: String) -> String:
+	var definition := BlockRegistry.get_construction_def(kind)
+	if not definition.has("logs"): return String(definition.get("type_label",definition.get("label","")))
+	var words := BlockRegistry.get_wood(of_wood)
+	return "%s %s log" % [String(definition.type_label).get_slice(" ",0),String(words.get("label","")).to_lower()]
+
+## What a kind's blocks cost in words: its good, or a wood's logs ("1 pine log", "18 pine logs").
+static func good_words(kind: String, of_wood: String, count := 2) -> String:
+	var definition := BlockRegistry.get_construction_def(kind)
+	if not definition.has("logs"): return String(definition.get("good","materials"))
+	return String(BlockRegistry.get_wood(of_wood).get("one" if count == 1 else "many",definition.good))
+
+## A kind's picture; a log's shows its wood.
+static func picture(kind: String, of_wood: String) -> String:
+	return String(BlockRegistry.get_construction_def(kind).get("picture","")).replace("{wood}",of_wood)
+
+func item_keys() -> Array[String]:
+	return BlockRegistry.construction_goods(construction_kind,wood)
 
 func initialize_materials() -> void:
 	materials = Materials.new()
@@ -33,7 +55,7 @@ func item_available() -> bool:
 	return ready_for_staged_work()
 
 func work_waiting_reason() -> String:
-	return "Waiting for construction access" if ready_for_staged_work() else "Delivering stone to the materials crate"
+	return "Waiting for construction access" if ready_for_staged_work() else "Delivering %s to the materials crate" % good_words(construction_kind,wood)
 
 func work_stands(_from: Vector3i) -> Array[Vector3i]:
 	_stand_targets.clear()
@@ -121,7 +143,7 @@ func can_complete_build() -> bool:
 
 func commit_staged_build(dwarf_id: int) -> bool:
 	if dwarf_id != builder_id or not can_complete_build() or remaining_work() > .0001: return false
-	if not materials.consume_one(): return false
+	if materials.consume_one().is_empty(): return false
 	controller.commit_block(self)
 	cells.erase(target)
 	work_progress.erase(target)
@@ -154,7 +176,6 @@ func continue_staged_build(dwarf_id: int) -> bool:
 	return true
 
 func update_lease() -> void:
-	if not bool(def.get("worker_enabled",true)): return
 	materials.update_leases()
 	if _lease_id < 0 and ready_for_staged_work():
 		_lease_id = TaskManager.add_task(Task.Type.FETCH_BUILD,origin_cell,{"construction_id":ghost_id},source_id)

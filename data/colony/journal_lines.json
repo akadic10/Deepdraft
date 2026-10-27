@@ -1,0 +1,102 @@
+{
+  "__comment": "The colony's journal (doc 23), read by ColonyJournal: how many days of lines it keeps, how often (real seconds) it looks at the dwarves' thoughts, and how many game hours a memory's age must fall back by to count as the thought coming again. lines holds what a dwarf says when a thought begins, a few per thought, keyed by the thought's id in DwarfMood.thoughts(), and when a dwarf finds a taste (found_love, found_like, found_dislike; {thing} is the thing's name). The dwarf's id, the day and the topic choose one, so a journal reads the same after a load.",
+  "keep_days": 10,
+  "check_seconds": 1.0,
+  "renewed_hours": 0.5,
+  "lines": {
+    "bedroom": [
+      "A door that shuts and a bed of my own. Bliss.",
+      "Slept like a stone. My own stone, in my own room.",
+      "Nobody snoring but me. Best night in an age."
+    ],
+    "recreation_together": [
+      "A good game of stones after work. I won, mostly.",
+      "Lost at stones and laughed anyway.",
+      "Three games, two arguments, one friend. A fine evening."
+    ],
+    "recreation_alone": [
+      "Beat myself twice. It still counts.",
+      "Played both sides. Both sides cheated."
+    ],
+    "hungry": [
+      "My stomach growls louder than the picks.",
+      "I keep thinking about berries. Any berries."
+    ],
+    "famished": [
+      "I would eat the bark off a log.",
+      "Hollow as a worked-out seam."
+    ],
+    "dining_seat_only": [
+      "Supper off my knees again.",
+      "A stool is fine. A table would be finer."
+    ],
+    "dining_table_only": [
+      "Ate standing up, like a pack mule.",
+      "A table and nowhere to sit. Who plans these halls?"
+    ],
+    "dining_neither": [
+      "No seat and no table. Just berries in the dark.",
+      "Ate in the dirt like a mole."
+    ],
+    "cold": [
+      "Too cold to sleep and too tired not to.",
+      "My breath froze on the blanket."
+    ],
+    "chilly": [
+      "Woke with frost in my beard. A hearth would not go amiss.",
+      "My toes have not been warm since we came down here."
+    ],
+    "hot": [
+      "Like sleeping in a bread oven.",
+      "Sweated through the night. Bank that hearth."
+    ],
+    "slept_horrid": [
+      "Tripped over a log on the way to bed. Then over another.",
+      "Woke up beside a sack of stones. Not the company I wanted."
+    ],
+    "slept_pleasant": [
+      "A tidy room makes for a tidy sleep.",
+      "Planks underfoot and a hearth glowing. A good night."
+    ],
+    "slept_beautiful": [
+      "Woke up and just lay there, admiring the beams.",
+      "Who knew a room could make a dwarf glad to wake?"
+    ],
+    "ate_horrid": [
+      "Supper between the stockpiles. Everything tasted of sawdust.",
+      "Ate with a heap of rubble for company."
+    ],
+    "ate_pleasant": [
+      "A good meal in a good room. That is all I ask.",
+      "The stew tasted better for the room."
+    ],
+    "ate_beautiful": [
+      "Dined like a lord tonight. The room did half the work.",
+      "Lingered over my bowl just to stay in that room."
+    ],
+    "played_horrid": [
+      "Hard to plan a move with junk piled at your elbow.",
+      "Lost the game. Blame the mess."
+    ],
+    "played_pleasant": [
+      "A fine game in a fine room.",
+      "Good board, good company, good room."
+    ],
+    "played_beautiful": [
+      "Played in our grandest room. Felt like a feast day.",
+      "Even losing felt grand in there."
+    ],
+    "found_love": [
+      "Never knew a {thing} could feel like home.",
+      "That {thing}! Where has it been all my life?"
+    ],
+    "found_like": [
+      "A {thing}. Not bad at all.",
+      "I could get used to a {thing}."
+    ],
+    "found_dislike": [
+      "A {thing}, of all things. Never again, if I can help it.",
+      "Whoever chose that {thing} owes me an apology."
+    ]
+  }
+}

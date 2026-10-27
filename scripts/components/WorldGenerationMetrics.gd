@@ -190,9 +190,9 @@ static func _add_surface_bucket_percentages(bucket: Dictionary) -> void:
 
 
 static func _surface_category(fill: BlockFill, block_id: int) -> String:
-	if fill.grass_ids.has(block_id):
+	if block_id == fill.id_grass:
 		return "grass"
-	if fill.dirt_ids.has(block_id):
+	if block_id == fill.id_dirt:
 		return "dirt"
 	if block_id == fill.id_water:
 		return "water"

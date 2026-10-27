@@ -6,7 +6,6 @@ const BlockInspector = preload("res://scripts/components/BlockInspector.gd")
 
 ## Coalesced final-state terrain invalidations; no construction ownership.
 var _terrain_changes: Dictionary = {}
-var _floor_art = preload("res://scripts/components/ConstructionFloorArt.gd").new()
 var underground_view: Node
 
 ## Renders the terrain as the block-face overview: one MeshInstance3D per
@@ -19,6 +18,7 @@ var underground_view: Node
 ##   tiles          TerrainTileMesher   the block-face overview tiles
 ##   cavity_shell   TerrainCavityShell  faces around enclosed cut cells
 ##   block_inspector BlockInspector     the DEV inspector (dev tools only)
+##   built_logs     BuiltLogs           built logs as their pieces (doc 275)
 
 # ── Exports ───────────────────────────────────────────────────────────────────
 
@@ -92,6 +92,7 @@ var _camera_rig: Camera = null
 var tiles := TileMesher.new(self)
 var cavity_shell := CavityShell.new(self)
 var block_inspector: BlockInspector = null
+var built_logs: Node3D
 
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -119,6 +120,10 @@ func _ready() -> void:
 	var moisture_view := preload("res://scripts/components/MoistureRenderer.gd").new()
 	moisture_view.terrain = self
 	add_child(moisture_view)
+	built_logs = preload("res://scripts/components/BuiltLogs.gd").new()
+	built_logs.name = "BuiltLogs"
+	built_logs.lighting = underground_lighting
+	add_child(built_logs)
 	if UIRegistry.dev_tools_enabled: block_inspector = BlockInspector.new(self)
 
 	WorldData.block_changed.connect(_terrain_block_changed)
@@ -173,6 +178,7 @@ func _process(_delta: float) -> void:
 		var added_columns := _added_dirty_columns.keys()
 		_added_dirty_columns.clear()
 		_rebuild_added_columns(added_columns)
+	if built_logs != null: built_logs.refresh(slice_y)
 	# VisibleVolume contract (doc 11 Phase 3, ref doc 10 rule S5): flush at most
 	# ONE visible_volume_changed per frame, before the overview tiles drain, so
 	# consumers rebuild reactively and never poll. Any number of state changes in
@@ -430,9 +436,10 @@ func _setup_camera_rig() -> void:
 
 ## The generated overview is immutable; mask every current override and draw
 ## solid overrides with their block's own art. This cache records no ownership.
-func _terrain_block_changed(cell: Vector3i, _old: int, _new: int) -> void:
+func _terrain_block_changed(cell: Vector3i, old_id: int, new_id: int) -> void:
 	_terrain_changes[cell] = true
 	CavityShell.mark_columns_touching(_added_dirty_columns, [cell])
+	if built_logs != null: built_logs.cell_changed(cell, old_id, new_id)
 
 func _flush_terrain_changes() -> void:
 	if _terrain_changes.is_empty(): return
@@ -455,13 +462,15 @@ var _added_terrain_slice := -1
 var _added_meshes: Dictionary = {}          # column -> MeshInstance3D
 var _added_dirty_columns: Dictionary = {}   # column -> true
 
-## Solid final-state overrides, including both authored floor types. All writers
-## use these meshes; construction retains only previews and unfinished plans.
+## Solid final-state overrides as cubes; built logs are BuiltLogs' to draw, and a log hides no
+## face it touches (doc 275). All writers use these meshes; construction retains only previews
+## and unfinished plans.
 ## Full rebuild of every column with overrides or a mesh (season turns, slice
 ## moves); terrain edits rebuild only the columns they touch.
 func _rebuild_added_terrain() -> void:
 	_added_terrain_dirty = false
 	_added_dirty_columns.clear()
+	if built_logs != null: built_logs.rescan()
 	var columns: Dictionary = {}
 	for column: Vector2i in WorldData.override_columns(): columns[column] = true
 	for column: Vector2i in _added_meshes: columns[column] = true
@@ -486,20 +495,14 @@ func _rebuild_added_columns(columns: Array) -> void:
 				_added_terrain = Node3D.new()
 				_added_terrain.name = "AddedTerrain"
 				add_child(_added_terrain)
-			if cell.y > slice_y: continue
+			if cell.y > slice_y or BlockRegistry.is_log(id): continue
 			var color := BlockRegistry.get_terrain_color(id, season)
-			var definition := BlockRegistry.get_def(BlockRegistry.get_key(id))
-			var floor_def := BlockRegistry.get_construction_def(String(definition.get("construction","")))
 			for direction: Vector3i in CavityShell.SHELL_DIRS:
 				var neighbour := cell+direction
-				var solid := BlockRegistry.is_solid(WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z))
-				if neighbour.y <= slice_y and solid: continue
-				var cut := direction == Vector3i.UP and cell.y == slice_y and solid
-				if not floor_def.is_empty():
-					var patterns: Array = floor_def.get("pattern_models",[floor_def.model])
-					_floor_art.append_face(String(patterns[posmod(cell.z,patterns.size())]),cell,direction,cut,verts,norms,colors,indices)
-				else:
-					CavityShell.add_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
+				var near := WorldData.get_terrain_block(neighbour.x,neighbour.y,neighbour.z)
+				if neighbour.y <= slice_y and BlockRegistry.fills_cell(near): continue
+				var cut := direction == Vector3i.UP and cell.y == slice_y and BlockRegistry.is_solid(near)
+				CavityShell.add_face(cell,-direction,slice_cut_color(color) if cut else color,verts,norms,colors,indices)
 		if _added_terrain != null:
 			cavity_shell.apply_column_mesh(_added_meshes, _added_terrain, column, verts, norms, colors, indices)
 

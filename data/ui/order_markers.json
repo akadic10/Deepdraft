@@ -1,0 +1,11 @@
+{
+  "__comment": "World markers over ordered trees, plants and stones (doc 259). Each kind of order shows its Orders icon on a tile in the family colour, so a marked tree shows the same picture as the tool that marked it. Uproot is the object panel's action and has its own icon. Owned by UIRegistry.",
+  "family": "work",
+  "markers": {
+    "fell": "res://assets/ui/icons/chop.png",
+    "harvest": "res://assets/ui/icons/harvest_plants.png",
+    "clear_stones": "res://assets/ui/icons/clear_stones.png",
+    "clear_plants": "res://assets/ui/icons/clear_plants.png",
+    "uproot": "res://assets/ui/icons/uproot.png"
+  }
+}

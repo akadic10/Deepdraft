@@ -1,0 +1,15 @@
+{
+  "__comment": [
+    "Room kinds (doc 261), read by RoomManager. A sealed room takes the first kind whose needs it meets, in this order; with none it is a plain room. A personal bedroom comes before a bedroom, which takes no owner; the bed counts keep barracks apart.",
+    "needs: counts the room must hold, each with a least and, for beds, a most: beds (whole beds inside), lights (light sources) and doors (door pieces). owner: the room's one bed has an owner.",
+    "shows: the room window's heading for the needs ('What makes it a bedroom'). A plain room is shown the kind it is fewest needs away from, the first such in this order."
+  ],
+  "kinds": [
+    {"id": "personal_bedroom", "label": "Personal bedroom", "shows": "What makes it a bedroom", "owner": true,
+      "needs": {"beds": {"least": 1, "most": 1}, "lights": {"least": 1}, "doors": {"least": 1}}},
+    {"id": "bedroom", "label": "Bedroom", "shows": "What makes it a bedroom",
+      "needs": {"beds": {"least": 1, "most": 1}, "lights": {"least": 1}, "doors": {"least": 1}}},
+    {"id": "barracks", "label": "Barracks", "shows": "What makes it barracks",
+      "needs": {"beds": {"least": 2}, "lights": {"least": 1}, "doors": {"least": 1}}}
+  ]
+}

@@ -241,7 +241,10 @@ class Game extends RefCounted:
 			agent._recreation = null
 			var earned: bool = completed and player.arrived and player.blend >= 1.0
 			agent.get_mood().recreation_retry_hours = float(config.cooldown_hours if earned else config.retry_hours)
-			if earned: agent.get_mood().record_recreation(together)
+			if earned:
+				agent.get_mood().record_recreation(together)
+				agent.meet_pieces([table, seat])
+				agent.get_mood().record_room("played", RoomManager.appeal_at(agent.current_cell() + Vector3i.UP))
 			agent.stop_walking()
 			agent._reset_part_offsets()
 			if agent.dwarf_id != excluded_dwarf_id: TaskManager.notify_dwarf_idle(agent.dwarf_id)

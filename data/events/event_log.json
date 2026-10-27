@@ -1,0 +1,14 @@
+{
+  "__comment": "The colony's event log (doc 23), read by EventLog: how many days of entries it keeps, how many toasts show at once, how often it checks for dwarves who cannot find food, and how many in-game hours a flood warning stays after the water stops spilling. Each kind names how long its toast stays and its picture when the entry brings none (an arrival brings its species' picture from arrivals.json, a promotion its profession's icon). messages are the player's own toasts (saves, loads, the flag), which never land in the log.",
+  "keep_days": 10,
+  "toast_limit": 3,
+  "food_check_seconds": 1.0,
+  "flood_hold_hours": 3.0,
+  "kinds": {
+    "arrival": {"toast_seconds": 4.0},
+    "discovery": {"toast_seconds": 4.0, "picture": "res://assets/ui/icons/cavern.png"},
+    "colony": {"toast_seconds": 4.0, "picture": "res://assets/ui/icons/colony.png"},
+    "warning": {"toast_seconds": 6.0, "picture": "res://assets/ui/icons/warning.png"}
+  },
+  "messages": {"toast_seconds": 2.5, "error_toast_seconds": 4.5}
+}

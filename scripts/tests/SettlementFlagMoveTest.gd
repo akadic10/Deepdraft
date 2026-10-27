@@ -45,10 +45,8 @@ func _run() -> void:
 	if "--capture" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(OUT+"inspector.png")
-	var move_button: Button
-	for button in explorer._actions.get_children():
-		if button.text=="Move": move_button=button
-	_expect(move_button!=null,"flag inspector offers Move")
+	var move_button: Button = explorer.get_compact_panel().get_action_button("move")
+	_expect(move_button!=null,"flag panel offers Move")
 	if move_button!=null: _click(move_button.get_global_rect().get_center())
 	_expect(furniture.is_active() and not piece.flagged_uninstall,"Move starts the normal preview")
 	furniture.deactivate()
@@ -115,5 +113,5 @@ func _save_and_recover(piece) -> void:
 	_expect(await _move_until(func(): return furniture._installed.is_empty()),"ordinary Uninstall packs the flag for storage")
 	_expect(_count(FLAG_ITEM)==1 and flag_controller.serialize_state().founded and founder.squads==1,"uninstall preserves the founded colony and one recoverable flag")
 	dock._toggle_window("flag")
-	_expect(manager.is_open("place") and dock._place_catalog.category == "rooms" and dock._place_catalog.selected_key == FLAG, "Colony flag entry opens the packed flag's existing Place flow")
+	_expect(manager.is_open("place") and dock._place_catalog.selected_key == FLAG, "Colony flag entry opens the packed flag's existing Place flow")
 	_expect(founder.squads == 1 and not flag_controller.is_active(), "packed navigation never grants another founding flag or squad")

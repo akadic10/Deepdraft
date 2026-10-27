@@ -5,6 +5,6 @@ extends RefCounted
 static func allowed(node: Node) -> bool:
 	return is_instance_valid(node) and not bool(node.get_meta("disallowed", false))
 
+## Its picture is the permission entry in data/ui/compact_panel.json.
 static func action(disallowed: bool) -> Dictionary:
-	return {"id":"permission", "text":"Allow" if disallowed else "Disallow",
-		"icon":"res://assets/ui/icons/disallow.svg"}
+	return {"id":"permission", "text":"Allow" if disallowed else "Disallow"}

@@ -28,6 +28,8 @@
 [ext_resource type="Script" path="res://scripts/ui/WorldLoadingScreen.gd" id="25_loading"]
 [ext_resource type="Script" uid="uid://cb6brkkvx3ufx" path="res://scripts/systems/XrayController.gd" id="26_xray"]
 [ext_resource type="Script" path="res://scripts/ui/DwarfNeedIndicators.gd" id="27_needs"]
+[ext_resource type="Script" path="res://scripts/systems/AppealViewController.gd" id="28_appeal"]
+[ext_resource type="Script" path="res://scripts/systems/ItemStamperController.gd" id="29_stamper"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -61,7 +63,6 @@ script = ExtResource("22_water")
 camera_path = NodePath("../CameraRig")
 slice_path = NodePath("../SliceController")
 window_manager_path = NodePath("../UIWindowManager")
-dock_path = NodePath("../DockUI")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1164921905]
 environment = SubResource("Environment_main")
@@ -132,7 +133,6 @@ slice_controller_path = NodePath("../SliceController")
 
 [node name="WorldEventDirector" type="Node" parent="."]
 script = ExtResource("21_events")
-dock_ui_path = NodePath("../DockUI")
 
 [node name="FlagPlacementController" type="Node3D" parent="."]
 script = ExtResource("9_flag")
@@ -177,9 +177,10 @@ window_manager_path = NodePath("../UIWindowManager")
 script = ExtResource("15_explorer")
 window_manager_path = NodePath("../UIWindowManager")
 slice_controller_path = NodePath("../SliceController")
-click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController"), NodePath("../ConstructionController")])
+click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController"), NodePath("../ConstructionController"), NodePath("../AppealViewController"), NodePath("../ItemStamperController")])
 dwarf_director_path = NodePath("../DwarfDirector")
 terrain_provider_path = NodePath("../TerrainExplorerProvider")
+dock_ui_path = NodePath("../DockUI")
 
 [node name="TerrainExplorerProvider" type="Node" parent="."]
 script = ExtResource("24_terrain_explorer")
@@ -209,4 +210,16 @@ script = ExtResource("26_xray")
 renderer_path = NodePath("../Renderer")
 slice_path = NodePath("../SliceController")
 dock_path = NodePath("../DockUI")
-tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../ConstructionController"), NodePath("../FurniturePlacementController"), NodePath("../StockpileDesignationController"), NodePath("../FlagPlacementController"), NodePath("../TreeFellingController")])
+tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../ConstructionController"), NodePath("../FurniturePlacementController"), NodePath("../StockpileDesignationController"), NodePath("../FlagPlacementController"), NodePath("../TreeFellingController"), NodePath("../ItemStamperController")])
+
+[node name="AppealViewController" type="Node3D" parent="."]
+script = ExtResource("28_appeal")
+dock_path = NodePath("../DockUI")
+slice_path = NodePath("../SliceController")
+rooms_tool_path = NodePath("../RoomOverlayController")
+tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../ConstructionController"), NodePath("../FurniturePlacementController"), NodePath("../StockpileDesignationController"), NodePath("../FlagPlacementController"), NodePath("../TreeFellingController"), NodePath("../RoomOverlayController"), NodePath("../ItemStamperController")])
+
+[node name="ItemStamperController" type="Node3D" parent="."]
+script = ExtResource("29_stamper")
+dock_path = NodePath("../DockUI")
+slice_path = NodePath("../SliceController")

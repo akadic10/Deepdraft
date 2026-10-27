@@ -13,7 +13,9 @@ Providers may implement `cancel_arrival_preparation(event_id)` to discard partia
 work on expiry or restore. Private search state is not saved. Restoring the
 saved event seed/attempt starts it again; accepted routes and issued ordinals
 retain their existing schema. Pause stops planning. Each member still validates
-live conditions before entering. See [193](../00_dev_roadmap/193_arrival_preparation_performance.md).
+live conditions before entering. Spreading the work keeps the seeded decision a
+synchronous run would make on the same world; it only delays entry, and a world
+that changes meanwhile may pick a different candidate (doc 193).
 
 ## Implementation status — 2026-10-10
 
@@ -26,12 +28,52 @@ trade-road adapter can preserve merchant road access, while
 goblin/orc groups can use their own wilderness eligibility and navigation.
 The earlier single-entry assumption below describes the visitor proposal,
 not a restriction on the live framework. VisitorManager is not registered.
-See [94 — Rabbit arrival events](../00_dev_roadmap/94_rabbit_arrival_events.md)
-for the provider contract and the completed scope.
-Deer/wolf entry groups and predator food limits are recorded in
-[95 — Deer/wolf arrivals](../00_dev_roadmap/95_deer_wolf_arrivals.md).
-Duck air routes, 2–5-member opportunities and saved pending members are recorded
-in [111 — Duck wildlife](../00_dev_roadmap/111_duck_wildlife.md).
+Each species' routes, journeys, groups, predator food limits and duck flights are
+in [45 — Wildlife](../40_economy_colony/45_wildlife.md) (docs 94, 95 and 111);
+tuning is in `data/world_events/arrivals.json`, which only the director loads.
+
+- **Scheduling.** Each event's next opportunity (due date, group size, chance roll
+  and route seed) is drawn in advance from the director's seeded RNG. Deaths,
+  population and hunting never change those draws: wiping out a species neither
+  hastens nor enlarges the next group, and a group is an opportunity, not a
+  guaranteed replacement. A due opportunity is consumed once and the next is drawn
+  from that moment; a failed seasonal roll skips it. An accepted group expires
+  `expiry_days` (six game hours) after its due time, and one a clock jump has
+  overtaken is recorded as missed, so there is never a catch-up wave. Pause stops
+  preparation, entry and travel; game speed scales entry spacing and travel.
+- **Provider contract.** Providers join the `arrival_provider` group and implement
+  `arrival_provider_key()` (the event's `provider`), `arrival_ready()`,
+  `prepare_arrival(...)` and `spawn_arrival_member(event, batch, director)`.
+  `prepare_arrival` makes at most one bounded candidate search per frame and returns
+  `ready` with the accepted `route`, `edge` and `count` (plus `member_routes` when a
+  group spreads out), `blocked` with a reason, `pending`, or an empty result to
+  retry; after `entry_attempts` tries the group ends with "no corridor".
+  `spawn_arrival_member` enters one member atomically and returns `spawned`, `wait`
+  (try again after `member_seconds`) or a reason that ends the group. Entry types
+  today are `wilderness` and `air`. A new visitor needs its own provider and entry
+  adapter (merchants a `trade_road` one; goblins and orcs their own eligibility,
+  navigation and post-entry AI): a JSON row alone implements nothing.
+- **Hunting pressure.** `WildlifeManager.remove_animal(animal, "player_hunt")` is the
+  hook for future player hunting; predation and invalid or repeated removals add
+  nothing. Pressure gathers per 64-block region: one point per kill, at most six,
+  fading 0.5 per game day. Arrival routes and homes stay more than 80 blocks from
+  the centre of any region at 0.5 or more, so one kill keeps arrivals away for about
+  a day and repeated hunting for longer. It is local danger, not a population score,
+  and never changes dates, group sizes, rolls or RNG (`hunting_pressure` in
+  `arrivals.json`).
+- **Saves.** The `world_events` section (priority 66, after wildlife) holds the RNG
+  as text, the serial counter, each event's next decision and active group (attempt,
+  accepted routes, issued count, entry timer), the last 12 results and the pressure.
+  Saving never draws or advances anything. Members are named `<group id>:member:<n>`
+  and issued ordinals never rewind, so a half-entered group carries on after a load
+  without repeating a member or its announcement. Scheduling waits until SaveManager
+  has restored the calendar; an event missing from a save gets its own delayed first
+  opportunity, leaving existing decisions alone.
+- **Presentation.** When a group stops entering, complete or cut short, the members
+  who entered are posted once to the event log
+  ([23](../20_player_interface/23_user_interface.md#toasts-and-the-event-log)).
+  Development → Arrival status shows each species' next opportunity and latest
+  result for six seconds; it never forces an arrival.
 
 ## Overview
 
@@ -125,7 +167,7 @@ the item data that owns them.
 
 | Group | Base trade value (TP) |
 |---|---|
-| Stone, soil, misc | Rough Stone 1 · Cave/Light/Dark Soil 1 · Water Bucket 1 · Gold Coin 1 · Fossil Fragment 10 |
+| Stone, soil, misc | Rough Stone 1 · Soil 1 · Water Bucket 1 · Gold Coin 1 · Fossil Fragment 10 |
 | Starter tools | Stone Hoe, Hunting Spear, Crude Carpentry Kit, Stone Hammer 3 each |
 | Ore | Tin 2 · Coal 2 · Copper 3 · Iron 4 · Silver 10 · Gold 12 |
 | Gems | Jade 22 · Amethyst 25 · Ruby 40 · Sapphire 40 · Emerald 45 · Diamond 80 |

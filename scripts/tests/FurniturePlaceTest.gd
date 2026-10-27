@@ -55,7 +55,7 @@ func _run() -> void:
 	_click(dock._button_by_target.place.get_global_rect().get_center())
 	await _settle()
 	_expect(manager.is_open("place") and dock._button_by_target.place.button_pressed, "Place opens a managed catalog")
-	_expect(catalog._empty.visible and catalog._place.disabled and not catalog._paper.visible
+	_expect(catalog._empty.visible and catalog._place.disabled and not catalog._card.is_visible_in_tree()
 		and catalog.selected_key.is_empty(), "no stock shows empty state without unrelated furniture details")
 	if "--capture" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
@@ -69,53 +69,64 @@ func _run() -> void:
 	await _settle()
 	_click(catalog._all_toggle.get_global_rect().get_center())
 	await _settle()
-	_expect(catalog._tiles.size() == furniture.get_defs().size(), "all furniture definitions represented")
-	for tile: Dictionary in catalog._tiles.values():
-		_expect(tile.image.texture != null, "real model thumbnail exists")
-	_click(catalog._tabs.lighting.get_global_rect().get_center())
-	await _settle()
-	var lighting: int = catalog._entries.filter(func(entry): return entry.category == "lighting").size()
-	_expect(lighting > 0 and catalog._count.text == "Lighting · %d designs" % lighting, "Lighting filter names its category and furniture designs")
-	_expect(catalog._paper.visible and catalog._tiles[catalog.selected_key].button.visible, "details follow a visible design in the selected category")
+	_expect(catalog.shown_designs().size() == furniture.get_defs().size(), "all furniture definitions represented")
+	for key: String in catalog.shown_designs():
+		_expect(catalog.tile(key).icon != null, "real model thumbnail exists")
+	var lighting: Array = catalog._entries.filter(func(entry): return entry.category == "lighting").map(func(entry): return entry.key)
+	_expect(lighting.size() > 0 and _heading_shown("Lighting") and lighting.all(func(key): return catalog.tile(key) != null),
+		"every category is open at once: Lighting shows as a group with its designs")
+	_expect(not _heading_shown("All"), "there is no All group")
+	_expect(catalog._card.is_visible_in_tree() and catalog.tile(catalog.selected_key).visible, "details follow a shown design")
 	_click(catalog._all_toggle.get_global_rect().get_center())
 	await _settle()
-	_expect(catalog._empty.visible and not catalog._paper.visible and catalog.selected_key.is_empty(), "returning to empty owned stock clears previous design details")
-	_click(catalog._tabs.all.get_global_rect().get_center())
-	await _settle()
+	_expect(catalog._empty.visible and not catalog._card.is_visible_in_tree() and catalog.selected_key.is_empty(), "returning to empty owned stock clears previous design details")
 	var item_key: String = furniture.get_defs()[TABLE].item_key
 	items.spawn_drop(item_key, 3, Vector3i(33,21,33))
 	items.spawn_drop(furniture.get_defs()[CHAIR].item_key, 2, Vector3i(34,21,33))
 	await _settle()
-	_expect(catalog._paper.visible and catalog.selected_key == TABLE, "arriving furniture restores the matching details")
+	_expect(catalog._card.is_visible_in_tree() and catalog.selected_key == TABLE, "arriving furniture restores the matching details")
 	await _test_stable_browsing()
 	_expect(not furniture.is_active(), "opening the catalog alone does not start placement")
-	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
+	_click(catalog.tile(TABLE).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(catalog._values.Available.text == "3", "loose items update open UI")
 	_expect(furniture.active_furniture_key() == TABLE and furniture._visuals.preview != null
 		and manager.is_open("place"), "one tile click starts the blueprint preview and keeps catalog open")
 	_expect(furniture._ghosts.is_empty(), "tile click starts preview without placing behind UI")
 	_key(KEY_R)
-	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
+	_click(catalog.tile(TABLE).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(furniture._yaw == 1, "re-clicking the active tile preserves rotation")
-	catalog._scroll.ensure_control_visible(catalog._tiles["base:furniture:board_game_table"].button)
+	catalog._scroll.ensure_control_visible(catalog.tile("base:furniture:board_game_table"))
 	await _settle()
-	_click(catalog._tiles["base:furniture:board_game_table"].button.get_global_rect().get_center())
+	_click(catalog.tile("base:furniture:board_game_table").get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(not furniture.is_active() and furniture._visuals.preview == null and catalog._place.disabled,
 		"unavailable design shows details and clears the old preview")
-	catalog._scroll.ensure_control_visible(catalog._tiles[TABLE].button)
+	catalog._scroll.ensure_control_visible(catalog.tile(TABLE))
 	await _settle()
-	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
+	_click(catalog.tile(TABLE).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(furniture.active_furniture_key() == TABLE, "available tile restarts placement directly")
 	var tile_count: int = furniture._ghosts.size()
 	_click(catalog._place.get_global_rect().get_center())
 	_expect(furniture._ghosts.size() == tile_count, "UI click never places into world")
 	var cell := Vector3i(37,20,38)
-	_click(camera.unproject_position(Vector3(cell) + Vector3(.5,1,.5)))
+	# The window spans most of a 1280-wide screen, so look from further left for this click:
+	# the cell then sits on the right of the screen, clear of the window.
+	var shift: Vector3 = camera.global_transform.basis.x * -14.0
+	camera.position += shift
 	await _settle()
+	var spot := camera.unproject_position(Vector3(cell) + Vector3(.5,1,.5))
+	_expect(not dock._place_window.get_global_rect().has_point(spot), "the world click lands clear of the window")
+	_click(spot)
+	await _settle()
+	camera.position -= shift
 	_expect(furniture._ghosts.size() == 1, "real world click creates a placement")
 	_expect(catalog._values.Available.text == "2" and catalog._values.Reserved.text == "1", "available becomes reserved")
 	_expect(furniture.is_active(), "repeat placement stays armed")
-	_click(catalog._tiles[CHAIR].button.get_global_rect().get_center())
+	_click(catalog.tile(CHAIR).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(furniture.active_furniture_key() == CHAIR, "switching item continues placement")
 	_expect(furniture._ghosts.size() == 1, "item tile click does not place behind the catalog")
 	catalog._select(TABLE)
@@ -127,7 +138,10 @@ func _run() -> void:
 	_expect(furniture._ghosts.size() == 3, "cannot overbook the final unit with rapid clicks")
 	_expect(not furniture.is_active() and manager.is_open("place"), "exhaustion ends tool, retains catalog")
 	_expect(catalog._values.Available.text == "0" and catalog._values.Reserved.text == "3", "exhausted count remains visible")
-	_click(catalog._undo.get_global_rect().get_center())
+	# The tool ended with the stock; Ctrl + Z still takes back the newest placement.
+	var undo := InputEventKey.new()
+	undo.pressed = true; undo.keycode = KEY_Z; undo.physical_keycode = KEY_Z; undo.ctrl_pressed = true
+	root.push_input(undo, true)
 	await _settle()
 	_expect(furniture._ghosts.size() == 2 and catalog._values.Available.text == "1", "Undo returns inventory")
 	var first = furniture._ghosts.values()[0]
@@ -148,6 +162,11 @@ func _run() -> void:
 	for id in furniture._ghosts.keys(): furniture.cancel_ghost(id)
 	await _settle()
 	_expect(catalog._values.Available.text == "3" and catalog._values.Reserved.text == "0", "cancelling all plans releases all stock")
+	# Place counts what is ready to place, in moss (doc 23, "Counts").
+	dock._counts.refresh()
+	var place_tile: Control = dock._button_by_target.place
+	_expect(place_tile.count_text == str(dock._counts.ready_to_place()) and dock._counts.ready_to_place() >= 3 and place_tile.count_tone == "fine"
+		and place_tile.count_note.ends_with("items are ready to place"), "Place counts what is ready to place, in moss: " + place_tile.count_text)
 	# Stored units are counted once; a fetched stored item moves to the claimed pool.
 	for node in items._loose.keys():
 		if items.item_key_of(node) == item_key: items.take(node); node.free()
@@ -204,7 +223,8 @@ func _run() -> void:
 	_expect(int(furniture.get_catalog_stock()[stored_key].available) == 1
 		and int(furniture.get_catalog_stock()[stored_key].reserved) == 0, "installation consumes one unit and clears its reservation")
 	# Window/keyboard lifecycle; camera wheel isolation is in NavigationPreview.
-	_click(catalog._tiles[TABLE].button.get_global_rect().get_center())
+	_click(catalog.tile(TABLE).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_key(KEY_R)
 	_expect(furniture._yaw == 1, "R rotates while catalog open")
 	_key(KEY_ESCAPE)
@@ -237,7 +257,7 @@ func _run() -> void:
 		_expect(dock._place_window.get_global_rect().encloses(catalog._place.get_global_rect()), "primary action fits " + str(viewport_size))
 		_expect(catalog._scroll.size.y >= 112, "catalog shows at least one complete compact row")
 		_expect(dock._place_window.get_global_rect().end.y <= dock._dock_panel.position.y - 8,
-			"catalog leaves the dock accessible at " + str(viewport_size))
+			"catalog leaves the dock accessible at %s (window %s, dock top %.0f, list %.0f)" % [viewport_size, dock._place_window.get_global_rect(), dock._dock_panel.position.y, catalog._scroll.size.y])
 		if "--capture" in OS.get_cmdline_user_args():
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://tmp/place_catalog_review/place_%d.png" % viewport_size.x)
@@ -269,13 +289,13 @@ func _test_stable_browsing() -> void:
 		catalog._select(CHAIR)
 		await _settle()
 		catalog._scroll.scroll_vertical = 60
-		catalog._tiles[CHAIR].button.grab_focus()
+		catalog.tile(CHAIR).grab_focus()
 		await _settle()
 		var rectangles := {}
 		var click_key := ""
-		for key: String in catalog._tiles:
-			var button: Button = catalog._tiles[key].button
-			if button.visible:
+		for key: String in catalog.shown_designs():
+			var button: Button = catalog.tile(key)
+			if button.is_visible_in_tree():
 				rectangles[key] = button.get_global_rect()
 				if catalog._scroll.get_global_rect().has_point(button.get_global_rect().get_center()): click_key = key
 		var window_rect: Rect2 = dock._place_window.get_global_rect()
@@ -309,10 +329,13 @@ func _test_stable_browsing() -> void:
 			items.spawn_drop(furniture.get_defs()["base:furniture:board_game_table"].item_key, 1, Vector3i(32,21,32))
 			await _settle()
 			_assert_browse_stable(rectangles, window_rect, scroll, "new design arrives")
-		_expect(root.gui_get_focus_owner() == catalog._tiles[CHAIR].button, "stock changes retain keyboard focus")
+			_expect(_heading_shown("New") and catalog.shown_designs().back() == "base:furniture:board_game_table",
+				"a design that arrives while Place is open waits in the New group at the end")
+		_expect(root.gui_get_focus_owner() == catalog.tile(CHAIR), "stock changes retain keyboard focus")
 		_expect(catalog.selected_key == CHAIR, "stock changes retain selection")
 		_expect(not click_key.is_empty(), "scrolled catalog has a clickable tile")
 		_click(rectangles[click_key].get_center())
+		await process_frame   # a tile press arrives once the click is over
 		_expect(catalog.selected_key == click_key, "same screen point selects the same item after hauling")
 		stockpiles.deregister_zone(zone)
 	# Return the fixture to its original stock for the placement checks.
@@ -321,7 +344,7 @@ func _test_stable_browsing() -> void:
 			items.take(node); node.free()
 	manager.close("place"); manager.open("place")
 	await _settle()
-	_expect(catalog._count.text == "All · 2 designs", "reopening refreshes the owned-design list")
+	_expect(catalog.shown_designs().size() == 2 and not _heading_shown("New"), "reopening refreshes the owned-design list and sorts arrivals into their groups")
 	root.size = Vector2i(1280,720)
 	catalog._all_toggle.button_pressed = true
 	catalog._scroll.scroll_vertical = 0
@@ -332,8 +355,13 @@ func _assert_browse_stable(rectangles: Dictionary, window_rect: Rect2, scroll: i
 	_expect(dock._place_window.get_global_rect().is_equal_approx(window_rect), "window stays put: " + stage)
 	_expect(catalog._scroll.scroll_vertical == scroll, "scroll stays put: " + stage)
 	for key: String in rectangles:
-		var button: Button = catalog._tiles[key].button
-		_expect(button.visible and button.get_global_rect().is_equal_approx(rectangles[key]), "tile stays put: " + key + " / " + stage)
+		var button: Button = catalog.tile(key)
+		_expect(button != null and button.is_visible_in_tree() and button.get_global_rect().is_equal_approx(rectangles[key]), "tile stays put: " + key + " / " + stage)
+
+
+## Whether the designs show a group headed with this title.
+func _heading_shown(title: String) -> bool:
+	return catalog._grid.find_children("*", "Label", true, false).any(func(label: Label): return label.text == title and label.is_visible_in_tree())
 
 
 func _key(code: Key) -> void:

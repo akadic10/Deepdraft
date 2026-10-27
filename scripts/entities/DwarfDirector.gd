@@ -108,7 +108,13 @@ func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
 
 
 func get_explorer_data(id: Variant) -> Dictionary:
-	return Inspection.describe(id) if _inspectable(id) else {}
+	if not _inspectable(id): return {}
+	var data := Inspection.describe(id)
+	# The compact panel's actions (doc 260): Follow stays lit while the camera follows.
+	var following := is_following(id)
+	data.actions = [{"id": "follow", "text": "Stop following" if following else "Follow", "active": following},
+		{"id": "locate", "text": "Locate"}]
+	return data
 
 
 func get_explorer_bounds(id: Variant) -> AABB:
@@ -118,6 +124,10 @@ func get_explorer_bounds(id: Variant) -> AABB:
 func perform_explorer_action(id: Variant, action: String) -> void:
 	if action == "profession":
 		if _inspectable(id): open_professions(id)
+		return
+	if action == "crafting":   # Colony Dwarves' Details card: this profession's crafting
+		var section := Inspection.crafting_section(id) if _inspectable(id) else ""
+		if not section.is_empty() and _dock_ui != null: _dock_ui.open_crafting("", section)
 		return
 	if not _inspectable(id) or not is_instance_valid(_camera_rig):
 		return
@@ -364,6 +374,8 @@ func restore_state(state: Dictionary) -> void:
 			"gender": String(entry.get("gender", "male")),
 			"appearance": _appearance_from_save(entry.get("appearance", {}) as Dictionary),
 			"traits": entry.get("traits", []),
+			"tastes": entry.get("tastes", {}),
+			"found_tastes": entry.get("found_tastes", []),
 			"profession": String(entry.get("profession", "base:profession:worker")),
 			"profession_experience": entry.get("profession_experience", {}),
 			"work_permissions": entry.get("work_permissions", {}),
@@ -480,10 +492,10 @@ func _register_window() -> void:
 		return
 	_roster_panel = preload("res://scripts/ui/DwarfRosterPanel.gd").new()
 	_roster_panel.director = self
+	_roster_panel.dock = _dock_ui
 	_roster_window = _window_manager.register_window("dwarves", "Colony Dwarves", "", _roster_panel,
-		{"persistent": false, "default_pos": Vector2(24, 76)})
+		{"persistent": false, "default_pos": Vector2(24, 76), "family": "people", "flush": true})
 	_roster_window.keep_body_on_screen = true
-	UITheme.apply_catalog_window(_roster_window)
 	_roster_panel.window = _roster_window
 	_roster_panel.refit.call_deferred()
 	_profession_panel = preload("res://scripts/ui/DwarfProfessionPanel.gd").new()
@@ -494,9 +506,8 @@ func _register_window() -> void:
 	for side: String in ["left", "right", "top", "bottom"]: promotion_margin.add_theme_constant_override("margin_" + side, 12)
 	promotion_margin.add_child(_profession_panel)
 	var promotion_window := _window_manager.register_window("professions", "Professions", "", promotion_margin,
-		{"persistent": false, "default_pos": Vector2(70, 50)})
+		{"persistent": false, "default_pos": Vector2(70, 50), "family": "people", "flush": true})
 	promotion_window.keep_body_on_screen = true
-	UITheme.apply_catalog_window(promotion_window)
 	_profession_panel.window = promotion_window
 	if UIRegistry.dev_tools_enabled: _register_dev_window()
 	_window_manager.window_state_changed.connect(_on_window_state_changed)
@@ -512,7 +523,7 @@ func _register_dev_window() -> void:
 
 	_count_label = Label.new()
 	_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_count_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+	_count_label.add_theme_font_size_override("font_size", UITheme.TYPE_MEDIUM.body)
 	column.add_child(_count_label)
 
 	var button_size := Vector2(166.0, 30.0)
@@ -546,7 +557,7 @@ func _register_dev_window() -> void:
 	column.add_child(jobs)
 	var job_panel := preload("res://scripts/ui/JobInspectorPanel.gd").new()
 	_window_manager.register_window("jobs_dev","Job inspector","",job_panel,
-		{"persistent":false,"default_pos":Vector2(220,130)})
+		{"persistent":false,"default_pos":Vector2(220,130),"family":"dev"})
 
 	var tire := UITheme.make_button("DEV: tire a worker",
 		"Drops one dwarf's sleep stat to the threshold — they release their task, sleep in place for 6 in-game hours, then resume work. The organic interrupt path (sleep-lite).",
@@ -567,7 +578,7 @@ func _register_dev_window() -> void:
 	column.add_child(spawn)
 
 	_window_manager.register_window("dwarves_dev", "Dwarf development", "", column,
-		{"persistent": false, "default_pos": Vector2(24, 130)})
+		{"persistent": false, "default_pos": Vector2(24, 130), "family": "dev"})
 	refresh_window()
 
 

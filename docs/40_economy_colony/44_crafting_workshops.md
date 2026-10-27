@@ -2,81 +2,110 @@
 
 **Log dining table (2026-10-18):** Craft → Rudimentary → Dining now offers a
 Log Dining Table for two matching logs and 16 seconds at a crude workbench.
-Its 3×3 footprint combines the player's cut-log tabletop and a one-block log
-pedestal. Pine, Oak, Juniper and Applewood follow normal material selection,
+Its 3×3 footprint is a split-slab top over a one-block central base (the Tier 1
+design in doc 62). Pine, Oak, Juniper and Applewood follow normal material selection,
 packed delivery, installation, Move and saving. Four separate log stools fit
-the displayed guides, one tile closer than the initial layout, so table and
-four stools together occupy 5×5. Stools are crafted independently. See
-[232 — Compact dining](../00_dev_roadmap/232_compact_log_dining.md) and
-[231 — Log dining table](../00_dev_roadmap/231_log_dining_table.md).
+the displayed guides, one against the middle of each side, so table and four
+stools together occupy 5×5. Stools are crafted independently (docs 231, 232).
 
 **Recipe categories (2026-10-13):** Rudimentary groups items by their use, matching
 the Place catalogue: Rooms contains the log bed, hearth and three doors; Dining
 contains the log stool and bench; Lighting contains the log torch and campfire.
 These replace the mixed Camp furnishings group. Workshops, Access and Starter
 tools retain their existing recipes. Categories affect browsing and search only.
+Recreation holds the Board-game Table: two matching logs and one rough stone, 18
+seconds; Access also holds the Log Fence Post and Log Gate, one log and 10 seconds each
+(doc 198).
 
 **Rudimentary hearth (2026-10-11):** Rudimentary → Rooms now offers a
 rough fieldstone hearth: two matching logs and four rough stones, physically delivered to
-a crude workbench before 18 seconds of work. It emits 2400 heat units and quiet
-fire audio when installed. Repeated ingredients appear as one quantity in the
-recipe detail. Fuel upkeep remains future work. See milestone 122.
+a crude workbench before 18 seconds of work. It emits 1600 heat units (2400 until
+doc 199; doc 34) and quiet fire audio when installed. Unlike the other wooden
+starter pieces it keeps no wood identity, whichever logs it used (its definition has no
+`material_group`). Repeated ingredients appear as one quantity in the recipe detail. Fuel upkeep remains
+future work (doc 122).
 
 **Log bed cost (2026-10-11):** One bed requires four matching logs at the crude
 workbench, under Rudimentary → Rooms. Every log is physically delivered
 before the 16 seconds of work. Mixed species cannot substitute for a complete
 batch; the finished bed retains its wood identity. Cancelled work releases all
-unconsumed timber. See [120 — Beds and bedrooms](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
+unconsumed timber (doc 120).
 
 **Material identity and appeal (2026-10-11):** Starter recipes inherit the actual
 selected timber. Wood follows packed goods, storage, carried/equipped items,
 installation and saves. Maintain counts only outputs made from allowed wood;
 Place selects a wood within its existing design card. Appeal is design plus a
-scaled material bonus, with future copper/gold tuning separate from recipes.
-See [118 — Crafted materials and appeal](../00_dev_roadmap/118_crafted_materials_and_appeal.md).
+scaled material bonus, with future copper/gold tuning separate from recipes (doc 118).
+- A recipe opts in with `material_group`. The batch's first log fixes its wood, and the
+  material of the last log is read just before that log is consumed, so interrupted
+  work keeps the original goods. Names read "Oak log stool"
+  (`CraftMaterials.product_name`).
+- `material_id` is an item property, not a new item key. It survives splitting, storage,
+  relocation, equipment, saves, installation and recovery, and different materials never
+  share a stack or a storage slot. A bridge keeps one kit material; a ladder keeps one per
+  built section and gives them back in order. Packed crates keep their neutral art.
+- A placement plan's chosen wood (`required_material_id`, saved with the plan) binds its
+  claim, storage withdrawal and redirected hauls; Any takes the nearest.
+- Appeal (`design`, `material_factor`) lives only in the furniture definitions
+  (`data/furniture/*.json`); a packed item finds its piece through
+  `FurniturePlacementController.def_for_item()`, which the crafting screen and the item
+  inspector use. Keeping a second copy in the item data let the build menu and crafting
+  disagree (doc 258; `PackedAppealTest`, gate). Furniture and item definitions both carry
+  `material_palette`; `data/materials/craft_materials.json` holds each material's bonus
+  (pine 0, oak 1, juniper 1.5, applewood 2; iron 1, copper 4 and gold 25 wait for
+  refined-metal recipes). Torches and campfires take a quarter of it
+  (`material_factor` 0.25). Raw ore never becomes furniture.
+- Goods without a `material_id` stay unspecified: original artwork and the design's
+  appeal alone. Nothing guesses their wood.
 
 **Log furniture (2026-10-11):** Rudimentary → Rooms offers 2/3-wide single log
 doors and a 4-wide double log door. Dining offers a log bench. Each uses
 one allowed timber at a crude workbench, taking 12/18/24 seconds for doors and
 10 for the bench. Finished crates use normal haul/install work. The starter
-wooden torch is renamed Log torch; its four-per-log recipe is unchanged. See
-[117 — Log furniture and fire ambience](../00_dev_roadmap/117_log_furniture_and_fire_audio.md).
+wooden torch is renamed Log torch; its four-per-log recipe is unchanged (doc 117).
 
 **Crafting menu (2026-10-11):** the profession cabinet uses compact category
 icon groups, name/category search, and separate Recipes / Orders tabs. A single
 selected-item card shows the illustration, real materials/stock, batch or stock
 target controls, and Place. Pause, priority, cancellation and per-order wood
-selection stay in Orders. Recipe costs, reservations and work are unchanged.
-See [114 — Crafting browser](../00_dev_roadmap/114_crafting_browser.md).
+selection stay in Orders. Recipe costs, reservations and work are unchanged (doc 114).
+The window was rebuilt on 2026-10-24; its current layout is "The crafting window" in
+`23_user_interface.md`.
 
 **Log bridge kits (2026-10-11):** Craft → Rudimentary → Access now offers a kit
 from one selected raw log at a crude workbench (12 seconds). Workers physically
-deliver one kit to the chosen bank and install a two-block-wide, 1–5-block river
-crossing in 8 seconds. Place → Access validates both landings and previews the
-whole span. Four seconds of safe dismantling returns the kit. See
-[113 — Log bridges](../00_dev_roadmap/113_log_bridges.md).
+deliver one kit to whichever landing is nearer to them and install a two-block-wide,
+1–5-block river crossing in 8 seconds. Place → Access validates both landings and previews the
+whole span. Four seconds of safe dismantling returns the kit (doc 113; the
+crossing rules are in doc 32, Entity Obstacles).
 
 **Carpenter promotion (2026-10-09):** A crafted crude carpentry kit now enables
 promotion after the selected dwarf reserves, collects and equips it. Changing
 profession returns the kit. Specialist Carpenter workshop/recipes remain planned;
-general work remains available. See [101 — Tool promotion](../00_dev_roadmap/101_tool_based_promotion.md).
+general work remains available. The old profession stays until the kit is picked up;
+the appointment rules are in `41_dwarf_agents.md`, Agreed equipment progression
+(doc 101).
 
 The shared **Equipment** tab shows the owned kit, materials and current benefit.
 The Blacksmith-made iron saw is an explicit planned upgrade, not a craftable
-item. Completed promotions play a chime. See
-[102 — Equipment feedback](../00_dev_roadmap/102_equipment_view_promotion_feedback.md).
+item. Completed promotions play a chime (doc 102).
 
 **Profession menu and camp furniture (2026-10-09):** Craft opens a submenu of
 profession icon buttons above the dock. Choosing **Rudimentary** opens Worker
 recipes; specialists open planned menus and Miner opens an equipment preview.
-**‹ Crafters** returns to the chooser; the in-window profession dropdown is gone.
+Since 2026-10-24 the crafting window's own Crafters row switches professions (doc 23).
 Each menu shows its own section's orders. Browsing preserves live production;
 previews cannot queue unavailable crafts. Workers can now make a campfire from
 one allowed log plus one Rough Stone (10 seconds), or a log stool from one allowed
 log (8 seconds), at the crude workbench. Both use normal physical crafting and
 placement; installed campfires animate and light, and idle dwarves use stump stools.
-No fuel upkeep or specialist jobs are enabled. See
-[100 — Camp crafting](../00_dev_roadmap/100_profession_crafting_camp.md).
+No fuel upkeep or specialist jobs are enabled (doc 100).
+- **Sections** (`sections` in `worker_crafting.json`: name, `planned`, preview and
+  requirement text) only present the menu. They never enable a specialist job or change
+  who may craft; a recipe without `section` belongs to Rudimentary.
+- **Every placeable recipe needs a Place tile.** A recipe that makes furniture needs its
+  design in `data/ui/place_catalog.json`, or its goods can never be placed: the first
+  campfires and stools shipped that way. `ProfessionCraftingTest` checks every one.
 
 **Implemented starter crafting:** Workers can make a crude workbench without an
 existing workshop, install it, then craft batches of log torches (four per log).
@@ -92,8 +121,14 @@ remain design specifications, not live conversion systems.
   recipe's `default_ingredients` (Pine for every current recipe). An empty list
   leaves the order waiting; excluded species are never substituted.
 - **Choosing a log.** Workers take the nearest allowed unit by Manhattan
-  distance, comparing loose logs and stored units across stockpiles and
-  containers; a loose log wins a tie. The checklist is not a species priority.
+  distance, comparing loose logs and units stored in stockpiles; a loose log wins
+  a tie. The checklist is not a species priority.
+- **Matching wood.** A recipe that takes several logs (the bed, the tables, the
+  hearth) takes them all from one species: a batch starts only when one allowed
+  species can supply all of them. Logs a working order still needs are not
+  available to other orders (`CraftingManager.batch_ingredient_keys`). Every log is
+  delivered to the bench before work starts; cancelling or loading keeps staged and
+  carried logs as goods (doc 120).
 - **Changing wood mid-order.** Excluding the species of the log already being
   used returns that log and keeps the order's partial progress.
 - **Maintain orders** refill in full batches, so the last batch may overshoot a
@@ -102,8 +137,20 @@ remain design specifications, not live conversion systems.
   updates the existing order's target and wood list.
 - **One worker per bench.** A worker claims a bench while collecting and
   working; an order never fans out into parallel batches.
-- **Interruption.** Pause and sleep keep partial work, which belongs to the
-  order; cancelling removes the order.
+- **Fixed ingredients.** `additional_ingredients` lists exact item keys, one unit each
+  (Rough Stone for the starter tools, campfire, hearth and board-game table). The worker
+  fetches them first, then the logs. Every ingredient but the last is set down beside the
+  bench as an ordinary loose item reserved to that worker, not an abstract credit, and
+  the bench stays claimed between trips. Counts, claims, positions, the wood rule, the
+  work cell and the bench are checked again before work and at the commit; only a
+  finished batch consumes them. Pausing, sleep, lost access or a removed bench release
+  the goods and the bench while the order keeps its progress; cancelling the order
+  releases them too. The item owner saves staged goods, the dwarf its cargo and the
+  order its recipe, wood and progress, so after a load the worker gathers them again;
+  there is no material ledger (doc 97).
+- **Interruption.** Pause, sleep and moving the workbench keep partial work, which
+  belongs to the order; it resumes with its ingredients at an installed bench
+  (doc 132). Cancelling removes the order.
 - **Sound.** The craft sound fires when the axe crosses contact, driven by saved
   work progress, so resuming never replays earlier strikes. Clock speed changes
   the cadence, not the pitch.
@@ -113,8 +160,10 @@ spears, crude carpentry kits and stone hammers at the crude workbench. Each uses
 one allowed log and one Rough Stone, collected physically before crafting.
 Tools support normal hauling, storage and saving. The recipe card and profession
 preview show current availability: Carpenter can equip its kit; other careers
-and specialist crafting gameplay remain planned. See
-[97 — Starter tools](../00_dev_roadmap/97_starter_profession_tools.md).
+and specialist crafting gameplay remain planned (doc 97). Tools are ordinary goods in
+the Other goods storage category (`stockpile_misc`, with exact-item filters) and
+Inventory's Tools group, never placeable. The hunting spear avoids a cord or leather
+dependency; bows are later equipment.
 
 **Agreed equipment direction (2026-10-09, planned):** crafted tools will support
 selected profession requirements and later upgrades. Miner keeps its default

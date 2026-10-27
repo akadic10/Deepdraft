@@ -50,7 +50,9 @@ var _last_flood_warning := -600.0
 signal levels_changed(cells: Array)
 ## Includes fractional changes that do not affect navigation occupancy.
 signal surface_changed(cells: Array)
-signal flood_warning
+## Rising water spills onto dry ground at `cell`, at most once a minute. EventLog
+## raises its warning (doc 23).
+signal flood_warning(cell: Vector3i)
 
 func _ready() -> void:
 	add_to_group("save_state_owner")
@@ -253,7 +255,7 @@ func _flush_changes() -> void:
 			occupancy.append(cell)
 			if top>WorldGenerator.get_surface_y(cell.x,cell.z)+1 and WorldGenerator.get_waterline(cell.x,cell.z)<0 and elapsed-_last_flood_warning>60.0:
 				_last_flood_warning = elapsed
-				flood_warning.emit()
+				flood_warning.emit(cell)
 	# Level changes reach WaterRenderer through surface_changed, which redraws only
 	# visible movement; dirty_tiles is for whole-world (re)initialisation.
 	flow.changed.clear()

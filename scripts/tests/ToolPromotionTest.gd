@@ -87,7 +87,8 @@ func _run() -> void:
 	for x in range(47,51):
 		for z in range(46,50):
 			for y in range(21,25): world.set_block(x,y,z,blocks.get_id("base:terrain:rock:rock01"))
-	worker.position = Vector3(46.5,21,43.5)
+	# Beside the 3 x 3 workbench (x 45-47, z 42-44), not inside it; the sealed kit is still nearest.
+	worker.position = Vector3(44.5,21,44.5)
 	_expect(worker.change_profession(CARPENTER), "sealed tool is owned but needs a route check")
 	_expect(not await _appointed() and not worker.promotion_pending(), "all unreachable tools fail cleanly without locking dwarf")
 	_expect(crafting.stock_snapshot()[KIT].available == 1 and worker.dwarf_id in tasks._idle_dwarves, "unreachable promotion leaves kit and worker available")
@@ -208,12 +209,12 @@ func _review_equipment() -> void:
 		await _capture_equipment("equipped_%d" % viewport.x)
 	manager.close("professions")
 	director.inspect_dwarf(worker)
+	explorer.open_character_sheet()   # the tabbed window is the dwarf's character sheet (doc 260)
 	await _frames(6)
 	var inspector = explorer._dwarf_panel
-	_expect(inspector._equipment.text.contains("carpentry") or inspector._equipment.text.contains("Carpentry"), "inspector identifies real equipped tool")
+	_expect(inspector._equipment_page._tool_name.text.contains("Carpentry"), "the character sheet names the real equipped tool")
 	await _capture_equipment("inspector_960")
 	dock._open_inventory()
-	dock._inventory_panel._set_category("tools")
 	await _frames(5)
 	_expect(crafting.stock_snapshot()[KIT].equipped == 1, "inventory tracks equipped kit separately")
 

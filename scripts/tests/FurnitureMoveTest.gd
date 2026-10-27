@@ -14,10 +14,8 @@ func _run() -> void:
 	var piece = _install_piece(BENCH)
 	_expect(explorer.select_object(furniture,"installed:%d" % piece.installed_id),"workbench inspection opens")
 	await _frames(4)
-	var move_button: Button
-	for button in explorer._actions.get_children():
-		if button.text=="Move": move_button=button
-	_expect(move_button!=null,"real inspector offers Move for the workbench")
+	var move_button: Button = explorer.get_compact_panel().get_action_button("move")
+	_expect(move_button!=null,"real compact panel offers Move for the workbench")
 	if "--capture" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/furniture_move_20261012/workbench.png")

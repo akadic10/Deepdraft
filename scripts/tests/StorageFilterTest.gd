@@ -195,24 +195,40 @@ func _ui_and_persistence() -> void:
 	var panel = storage._storage_panel
 	var probe := InputProbe.new()
 	scene.add_child(probe)
+	# The picture filter (doc 261): the band names the zone; groups of category pictures.
+	_expect(storage._window_panel.get_title_label().text == "Storage Zone 501", "the window's band names the zone")
+	_expect(panel._rows.size() == 3 and panel.get_category_tile("stockpile_wood") != null and panel.get_category_tile("stockpile_misc") != null,
+		"the categories show as pictures in three groups")
+	_expect(panel.get_category_tile("stockpile_stone").get_node("Mark").get_global_rect().position.y >= panel._scroll.get_global_rect().position.y,
+		"the top row's marks show whole inside the filter")
 	_click(panel._none.get_global_rect().get_center())
-	panel.set_category("stockpile_wood")
 	await _settle()
-	_click(panel._tiles[LOG].button.get_global_rect().get_center())
+	_expect(_state_of(panel._rows.materials) == "None" and panel.get_category_tile("stockpile_wood").get_node_or_null("Mark") == null,
+		"None leaves every group and picture unmarked")
+	_click(_caption_of(panel._rows.materials, "stockpile_wood").get_global_rect().get_center())
+	await _settle()
+	_expect(panel.category == "stockpile_wood" and panel._exact.visible and panel._exact.get_index() == panel._rows.materials.get_index() + 1,
+		"a category's name opens its exact goods under its group")
+	_click(panel._exact_grid.get_tile(LOG).get_global_rect().get_center())
 	await _settle()
 	_expect(subject.accepts_key(LOG) and not subject.accepts_key(PINE), "native item click immediately writes exact acceptance")
-	_expect("some selected" in panel._group.text and "Oak Log" in panel._summary.text, "category partial state and summary reflect selected log")
+	_expect(panel.category_state("stockpile_wood") == "some" and panel.get_category_tile("stockpile_wood").get_node("Mark").get_child(0).text == "−"
+		and _state_of(panel._rows.materials) == "Some", "the partial category is marked − and its group says Some")
 	_expect(panel._waiting.visible and subject.stored_count() == 1, "filter change displays waiting goods without ejecting them")
 	_expect(probe.clicks == 0, "filter clicks do not reach world input")
-	_click(panel._group.get_global_rect().get_center())
+	_click(panel.get_category_tile("stockpile_wood").get_global_rect().get_center())
 	await _settle()
-	_expect(subject.accepts_key(PINE) and subject.accepts_key(STAVE), "native category click replaces individual exceptions")
+	_expect(subject.accepts_key(PINE) and subject.accepts_key(STAVE), "a click on the category's picture replaces individual exceptions")
+	_click(_state_button(panel._rows.materials).get_global_rect().get_center())
+	await _settle()
+	_expect(subject.accepts_key(STONE) and subject.accepts_key(PINE) and not subject.accepts_key(ACORN)
+		and _state_of(panel._rows.materials) == "All", "a group's state stores every category in the group")
 	_click(panel._all.get_global_rect().get_center())
 	await _settle()
-	_expect(subject.accepts_key(STONE) and subject.accepts_key(ACORN), "native Accept all button restores every category")
+	_expect(subject.accepts_key(STONE) and subject.accepts_key(ACORN), "native All restores every category")
 	_click(panel._none.get_global_rect().get_center())
 	await _settle()
-	_click(panel._tiles[LOG].button.get_global_rect().get_center())
+	_click(panel._exact_grid.get_tile(LOG).get_global_rect().get_center())
 	await _settle()
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(storage.serialize_state()))
 	storage.remove_zone(501)
@@ -225,9 +241,17 @@ func _ui_and_persistence() -> void:
 	var before := window.position
 	_drag_title(window, Vector2(50, 10))
 	_expect(window.position.x == before.x + 50, "storage inspector keeps native dragging")
+	_expect(panel._tab_row.get_global_rect().position.y >= window.get_global_rect().end.y - 8.0, "Filter and Contents hang under the window")
 	_click(panel._tabs[1].get_global_rect().get_center())
 	await _settle()
-	_expect(panel._contents.visible and not panel._grid.visible and "1 / 3 cells" in panel.info_label.text, "contents tab keeps capacity visible")
+	_expect(panel._contents_page.visible and not panel._filter.visible and "Used 1 / 3 cells" in panel.info_label.text, "contents tab keeps capacity visible")
+	var stored: Button = panel._contents.find_children("Tile_*", "Button", true, false)[0]
+	_expect(stored.has_node("Count") and stored.get_node("Count").text == "1" and stored.has_node("Mark"), "Contents shows the pine log with its count, marked as awaiting relocation")
+	_click(stored.get_global_rect().get_center())
+	await _settle()
+	_expect(panel._filter.visible and panel.category == "stockpile_wood", "a stored good's picture opens its category in the filter")
+	_click(panel._tabs[1].get_global_rect().get_center())
+	await _settle()
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_storage("storage-contents")
 	_click(panel._tabs[0].get_global_rect().get_center())
 	await _settle()
@@ -235,13 +259,72 @@ func _ui_and_persistence() -> void:
 	for viewport in [Vector2i(960,540), Vector2i(1280,720), Vector2i(2560,1440)]:
 		root.size = viewport
 		await _settle()
-		_expect(window.position.y + window.size.y <= viewport.y and window.position.x + window.size.x <= viewport.x, "storage window fits %s" % str(viewport))
+		_expect(window.position.y + window.size.y <= viewport.y and window.position.x + window.size.x <= viewport.x, "storage window fits %s (window %s)" % [viewport, window.get_global_rect()])
 		_expect(panel._scroll.size.y >= 68 and panel._actions.get_global_rect().end.y < viewport.y, "scrolling item grid preserves footer at %s" % str(viewport))
+		_expect(panel._tab_row.get_global_rect().end.y <= viewport.y, "the hanging tabs stay on screen at %s" % str(viewport))
 		if "--capture" in OS.get_cmdline_user_args(): await _capture_storage("storage-%dx%d" % [viewport.x,viewport.y])
 	root.size = Vector2i(1280,720)
 	manager.close(storage.ZONE_WINDOW_ID)
 	await _settle()
+	await _storage_keeps_its_window(cells[2])
 	_completed_stages += 1
+
+
+## Bare terrain under the zone, as TerrainExplorerProvider reports it in the game.
+class TerrainStub extends Node:
+	var picking = load("res://scripts/components/ObjectPicking.gd")
+	func developer_inspection_active() -> bool: return false
+	func terrain_hit(start: Vector3, direction: Vector3, slice_y: int, limit: float) -> Dictionary:
+		return picking.terrain_hit(start, direction, slice_y, limit)
+
+
+## Doc 260 phase 6: every world object shows in the compact panel, but a click on a
+## storage zone still opens the storage window, through the explorer as in the game.
+func _storage_keeps_its_window(cell: Vector3i) -> void:
+	storage.name = "Storage"
+	var terrain := TerrainStub.new()
+	terrain.name = "Terrain"
+	scene.add_child(terrain)
+	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()
+	explorer.window_manager_path = NodePath("../Windows")
+	explorer.terrain_provider_path = NodePath("../Terrain")
+	explorer.click_tool_paths.append(NodePath("../Storage"))
+	scene.add_child(explorer)
+	camera = Camera3D.new()
+	scene.add_child(camera)
+	camera.current = true
+	var generator = root.get_node("WorldGenerator")
+	generator._maps_ready = true
+	var target := Vector3(cell) + Vector3(.5, 1, .5)
+	_aim_above(target)
+	await _settle()
+	_click(camera.unproject_position(target))
+	await _settle()
+	_expect(manager.is_open(storage.ZONE_WINDOW_ID) and storage._window_zone_id == 501, "a click on the zone opens the storage window")
+	_expect(not explorer.get_compact_panel().visible and not manager.is_open(explorer.WINDOW_ID), "storage never opens the compact panel or the character sheet")
+	_expect(storage._window_panel.get_theme_stylebox("panel", "TooltipPanel") == UITheme.cell_style("card", UITheme.CARD_CELL),
+		"the storage window's tooltips are the hover card's hearth slab")
+	manager.close(storage.ZONE_WINDOW_ID)
+	generator._maps_ready = false
+	for node: Node in [camera, explorer, terrain]: node.free()
+	await _settle()
+
+
+## A group's All, Some or None, as its row shows it.
+func _state_of(row: Node) -> String:
+	var button := _state_button(row)
+	return button.text if button != null else ""
+
+
+func _state_button(row: Node) -> Button:
+	for button: Button in row.find_children("*", "Button", true, false):
+		if button.text in ["All", "Some", "None"]: return button
+	return null
+
+
+## The name under a category's picture, which opens its exact goods.
+func _caption_of(row: Node, tag: String) -> Button:
+	return row.get_tile(tag).get_parent().get_child(1)
 
 
 func _capture_storage(file: String) -> void:

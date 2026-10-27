@@ -14,24 +14,31 @@ every voxel, records persistence deltas, marks chunk dirtiness and emits exact
 `block_changed` events immediately. Only repeated `chunk_dirtied` notifications
 coalesce, flushing once per affected chunk at the outermost `end_edit_batch`.
 Begin/end must not span a frame; normal edits keep their existing
-notification paths. World reset clears pending batch state.
-See [211](../00_dev_roadmap/211_large_save_terrain_restore.md).
+notification paths. World reset clears pending batch state. Without the batch,
+restoring a large save emitted a chunk signal per voxel and crashed the engine
+natively (doc 211).
 
-**Construction (2026-10-12):** full 1×1×1 stone voxels are real terrain writes.
+**Construction (2026-10-12):** full 1×1×1 blocks are real terrain writes.
 Construction materializes the original chunk before editing. Since 212 it
 retains no completed-block provenance: WorldData stores only the current value
 at each changed cell. Returning to the generated value removes the override.
-Exploration is saved separately and never writes terrain. Existing natural rock keys supply
-the layer's appearance and solidity; no special constructed block type is added.
-Completed terrain blocks/supports movement and seals rooms. Plans do not. See 127.
+Exploration is saved separately and never writes terrain. Built stone takes its layer's
+natural rock key, and built dirt and grass the world's own, so they add no block type;
+built logs (since 2026-10-26, doc 275) have their own keys,
+`base:construction:log:<wood>:<up|x|z>`, so mining gives the log back and saves keep the way it
+lies. `data/construction/materials.json` names each wood's block for each direction.
+Completed terrain blocks/supports movement and seals rooms. Plans do not. A plan
+cell must be dry air above bedrock (Y > 3) in discovered space, clear of dwarves,
+loose goods, placed occupancy, furniture and its plans, ladders, bridges and storage
+zones; existing terrain is mined first, never overwritten. A block waits until
+one of its six faces touches solid terrain, and every check runs again when the block
+is committed (`ConstructionController.build_reason`; roadmap 127).
 
-**Permanent floors (roadmap 128):** two additional construction-only block keys,
-`base:construction:floor:plank` and `base:construction:floor:stone`, fill full
-support cells after excavation. Natural generation never emits them. Their
-current 1:16 art cells are presentation detail, not a finer navigation grid or a thin
-surface overlay. Terrain solidity and permanent string-key save rules still apply. These block
-types retain their art and room bonus without tracking who placed them. See
-[212](../00_dev_roadmap/212_final_terrain_state.md).
+**No separate floor blocks (owner, 2026-10-26):** the plank and stone floors and their
+Floors menu are gone. Every block is a whole cell, so a floor is simply a block a dwarf
+stands on, and a floor block could always be stacked into a wall. A finer look for floors
+and walls is planned as a texture choice on Build's materials instead (`00_todo.md`,
+"Build textures by progression").
 
 **Removed terrain and the visible surface (doc 258 step 6):** WorldData's overrides are
 the only record of removed terrain. `WorldData.is_removed_terrain(cell)` is true where a
@@ -105,7 +112,7 @@ Blocks are declared inside a structured data file using a nested **Namespaced St
 
 ### Registry JSON Format (`res://data/terrain/terrain_blocks.json`)
 
-Keys use the `base:terrain:` namespace. Each definition carries `kind`, `hex_color`, and `hardness`. The file has a single top-level `block_types` object (41 active blocks: `void`, `bedrock`, `rock:rock01`–`rock11`, `surface:grass_01`–`08`, `surface:dirt_01`–`04`, `soil:cave/light/dark`, `ore:*`, `gem:*`, `water:source`).
+Keys use the `base:terrain:` namespace. Each definition carries `kind`, `hex_color`, and `hardness`. The file has a single top-level `block_types` object (41 blocks: `void`, `bedrock`, `rock:rock01`–`rock11`, `surface:grass`, `surface:dirt`, `soil:cave`, `ore:*`, `gem:*`, `water:source`, and the twelve built logs `base:construction:log:<wood>:<up|x|z>` for oak, pine, juniper and apple).
 
 ```json
 {
@@ -130,34 +137,39 @@ Keys use the `base:terrain:` namespace. Each definition carries `kind`, `hex_col
       "hex_color": "#7A5C45",
       "hardness": 4
     },
-    "base:terrain:surface:grass_03": {
+    "base:terrain:surface:grass": {
       "kind": "grass",
-      "hex_color": "#94B873",
+      "hex_color": "#657F4E",
       "hardness": 1
     }
   }
 }
 ```
 
-> **Surface colours are seasonal.** For `surface:grass_*` and `surface:dirt_*` blocks, `BlockRegistry.get_color()` reads `data/terrain/surface_palettes.json` (per-season tint) and only falls back to `hex_color` if no palette entry exists. All other kinds use `hex_color` directly.
+> **Surface colours are seasonal.** For `surface:grass` and `surface:dirt`, `BlockRegistry.get_color()` reads `data/terrain/surface_palettes.json` (per-season tint, keyed by the last segment of the key) and only falls back to `hex_color` if no palette entry exists. All other kinds use `hex_color` directly.
 >
 > **Item drops** are no longer declared inline on the block (there is no `drops_item_entity` / `selectable_kinds` field). What a mined block yields is defined separately in `data/terrain/block_resources.json` and `data/entities/items/resources.json`.
 
 ### Save File Serialization
 
-The version-1 save does **not** dump materialised chunks or their session-local integer
-block IDs. The deterministic `world_seed` regenerates the untouched world, and the mining
-section stores only authoritative removal deltas as integer grid coordinates. Restoring a
-save regenerates the same base terrain and reapplies those mined coordinates as void.
+The save does **not** dump materialised chunks or their session-local integer block IDs.
+The deterministic `world_seed` regenerates the untouched world, and `scene.terrain.edits`
+holds the final state of every changed cell: one `{cell, block}` record per cell, with the
+block's permanent namespaced key (air is `base:terrain:void`). Mined, cleared and built
+cells are stored alike, with no edit history and no record of who changed them; a cell set
+back to its generated block drops its record. A record is a solid block or air, never
+water (the `water` section owns water) and never a bedrock row. Restoring a save
+regenerates the same base terrain and writes those blocks back. Any solid terrain key can
+be recorded, so building dirt or grass later needs no new format (doc 212).
 
-Natural caves are part of that deterministic base. On load, replaying a mining
-edit beside cave air re-discovers its connected system and rebuilds its renderer,
-interior and lighting state. Pre-existing cave air is never added to the saved
-mined-block list; developer highlights/previews are transient. See
+Natural caves are part of that deterministic base. Exploration is saved separately in
+`scene.exploration` (known cells and discovered cave IDs). On load the discovered caves
+rebuild their renderer, interior and lighting state from those IDs. Exploration never
+writes terrain, and filling a known cell does not forget it. Pre-existing cave air is
+never written to the terrain edits; developer highlights/previews are transient. See
 `43_mining_materials.md` §Cave discovery.
 
-If a future construction system persists a non-void terrain block, it must store the
-block's permanent namespaced key and resolve that key through `BlockRegistry` on load.
+Each record's key resolves through `BlockRegistry` on load.
 Runtime integer IDs must never cross the save boundary. Saves are not migrated during
 development: a save whose `schema_version` differs from the game's is rejected, and so
 is one whose shape doesn't match the current validator. A save that names content the
@@ -235,25 +247,31 @@ Entity meshes use world units, **1 unit = 1 block**, with root scale 1. A tree 4
 - **Damage**: `entity.take_damage(amount)` — reduces the entity's health value.
 - **Death**: When health reaches 0: (1) loot items spawn at the entity's grid position, (2) the node is freed, (3) PlacedEntityRegistry removes the entry. **Nothing in the terrain grid is modified.**
 
-### Save Format (schema version 1)
+### Save Format (schema version 2)
 
-`SaveManager` owns the manual JSON at `user://saves/quicksave.json` and the independent
-five-minute JSON at `user://saves/autosave.json`. They use the same versioned schema, but
+`SaveManager` owns the manual JSON at `user://saves/quicksave.json`, the independent
+five-minute JSON at `user://saves/autosave.json`, and the player's named saves in
+`user://saves/named/` (Save as…, doc 23). They use the same versioned schema, but
 separate primary/backup/temp files so autosave never replaces the player's manual save.
+A named save adds `save_name` beside the clock (the schema's one optional top-level field),
+so the Load page reads it from the top of the file.
 Each top level separates deterministic world identity, autoload state, and scene-owned
 state:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project": "Deepdraft",
   "saved_at_utc": "2026-07-18T12:00:00Z",
   "world_seed": 123456789,
+  "colony_name": "Brunhald",
   "clock": { "year": 1, "season": "summer", "day": 1, "hour": 8.0 },
   "weather": { "current_id": "base:weather:clear", "rng_state": 1234 },
   "scene": {
+    "terrain": { "edits": [{ "cell": [512, 27, 520], "block": "base:terrain:void" }] },
+    "exploration": { "cells": [[512, 27, 520]], "caves": [] },
     "mining": { "zones": [] },
-    "settlement_flag": { "placed": true, "cell": [512, 28, 512] },
+    "settlement_flag": { "founded": true, "cell": [512, 28, 512], "name": "Brunhald", "founded_day": 28 },
     "stockpiles": { "zones": [] },
     "furniture": { "ghosts": [], "installed": [] },
     "items": { "loose": [] },
@@ -271,9 +289,9 @@ is regenerated and is not duplicated in the save. Grid-aligned entities use inte
 coordinates; continuously positioned entities such as dwarves, loose items, and the
 camera use three-number world-position arrays.
 
-Both slots use validated transactional replacement and retain one previous valid
-generation. Full slot paths, ownership rules, and recovery behavior are specified in
-`13_architecture.md` §SaveManager.
+Every slot, the named saves too, uses validated transactional replacement and retains one
+previous valid generation. Full slot paths, ownership rules, and recovery behavior are
+specified in `13_architecture.md` §SaveManager.
 
 ### Walkability Interaction
 

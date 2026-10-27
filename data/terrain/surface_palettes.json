@@ -1,76 +1,16 @@
 {
   "__comment": [
-    "Seasonal colours for full grass voxels and separate dirt voxels. All equivalent variants share one material palette.",
+    "Seasonal colours for the grass and dirt blocks, keyed by the last segment of their ids.",
     "Local variation comes from terrain appearance profiles, never distance to a terrace edge or altitude.",
     "Values are sRGB; BlockRegistry converts terrain vertex colours to linear exactly once."
   ],
-  "grass_01": {
+  "grass": {
     "spring": "#718F58",
     "summer": "#657F4E",
     "autumn": "#8A8354",
     "winter": "#A0AAA0"
   },
-  "grass_02": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "grass_03": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "grass_04": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "grass_05": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "grass_06": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "grass_07": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "grass_08": {
-    "spring": "#718F58",
-    "summer": "#657F4E",
-    "autumn": "#8A8354",
-    "winter": "#A0AAA0"
-  },
-  "dirt_01": {
-    "spring": "#69533F",
-    "summer": "#7A5F45",
-    "autumn": "#72583F",
-    "winter": "#8A8377"
-  },
-  "dirt_02": {
-    "spring": "#69533F",
-    "summer": "#7A5F45",
-    "autumn": "#72583F",
-    "winter": "#8A8377"
-  },
-  "dirt_03": {
-    "spring": "#69533F",
-    "summer": "#7A5F45",
-    "autumn": "#72583F",
-    "winter": "#8A8377"
-  },
-  "dirt_04": {
+  "dirt": {
     "spring": "#69533F",
     "summer": "#7A5F45",
     "autumn": "#72583F",

@@ -175,18 +175,17 @@ func _foraging() -> void:
 	worker._process(.05)
 	await _finish_food()
 	_expect(worker._food.last_meal.is_empty() and details._forage_claims.is_empty(),"ordinary hunger does not pick a bush")
-	var warning = load("res://scripts/ui/ColonyFoodWarning.gd").new()
-	dock._root.add_child(warning)
-	warning.refresh()
-	await _frames(3)
-	_expect(warning.visible and warning.label.text.contains("1 dwarf"),"failed searches expose a persistent colony warning")
-	_expect(Rect2(Vector2.ZERO,Vector2(root.size)).encloses(warning.get_global_rect()),"food warning stays inside the viewport")
+	var events := root.get_node("EventLog")
+	events.check_food()
+	var shortage: Dictionary = events.warning("food")
+	_expect(shortage.get("text","")=="1 dwarf cannot find reachable food." and shortage.get("dwarves",[])==[worker.dwarf_id],"failed searches pin the food warning in Events")
 	_store(APPLE,4)
 	_hungry(worker); worker._food.value=.1
 	_expect(await _food_phase("eating"),"famished dwarf still takes stored food first")
 	_expect(worker._food._quote.key==APPLE and details.forage_available(bush_id),"emergency never overrides reachable storage")
-	warning.refresh()
-	_expect(not warning.visible,"collecting food clears the shortage warning")
+	events.check_food()
+	_expect(events.warning("food").is_empty() and events.entries().any(func(entry:Dictionary)->bool: return entry.id==shortage.get("id",-1) and entry.text=="1 dwarf could not find reachable food."),
+		"collecting food resolves the shortage warning, in past words")
 	await _finish_food()
 	_clear_food()
 	worker._food.last_meal=""
@@ -230,7 +229,6 @@ func _foraging() -> void:
 	_expect(details.forage_available(bush_id) and not worker.is_eating(),"emergency search does not walk across the map")
 	var travel = load("res://scripts/components/DwarfForaging.gd")
 	_expect(travel.path_length(Vector3i.ZERO,[Vector3i(12,0,0),Vector3i(12,0,12),Vector3i(1,0,1)])>24,"range measures routed travel, not straight-line endpoint")
-	warning.queue_free()
 	details.free()
 
 func _forage_phase(target: String) -> bool:
@@ -292,15 +290,15 @@ func _presentation() -> void:
 			root.get_texture().get_image().save_png("res://tmp/dining_20261012/dining_%d.png" % size.x)
 	await _finish_food()
 	inspector.show_data(load("res://scripts/components/DwarfInspection.gd").describe(worker),false)
-	_expect(inspector._meal.text.contains("Blueberry") and inspector._meal.text.contains("seated at a table"),"last-meal panel reports real food and arrangement")
+	_expect(inspector._food.panel.tooltip_text.contains("Blueberry") and inspector._food.panel.tooltip_text.contains("seated at a table"),"Food reports the real last meal and arrangement")
 	if "--capture" in OS.get_cmdline_user_args():
 		_clear_food()
 		_hungry(worker)
 		worker._process(.05)
 		await _finish_food()
-		dock._root.get_node("ColonyFoodWarning").refresh()
+		root.get_node("EventLog").check_food()
 		inspector.show_data(load("res://scripts/components/DwarfInspection.gd").describe(worker),false)
-		inspector._show_tab(1)
+		inspector._show_tab(0)
 		for size in [Vector2i(1280,720),Vector2i(960,540)]:
 			root.size=size
 			await _frames(4)

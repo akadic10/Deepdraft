@@ -295,6 +295,12 @@ func waiting_reason(order, totals: Dictionary) -> String:
 		return "Waiting for a free workbench"
 	return ""
 
+## Why a recipe could not start now with these woods, or "" when it could: the crafting
+## window's ready and missing recipes (doc 261).
+func recipe_waiting_reason(recipe: Dictionary, allowed: Array[String], totals: Dictionary) -> String:
+	return waiting_reason({"paused": false, "worker_id": -1, "maintain": false, "quantity": 1,
+		"allowed_ingredients": allowed, "recipe": recipe}, totals)
+
 func status(order, totals: Dictionary) -> String:
 	var reason := waiting_reason(order, totals)
 	if not reason.is_empty(): return reason

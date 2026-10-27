@@ -1,28 +1,38 @@
 # 24 — World Rendering & Atmosphere
 
-**X-ray slice reuse (2026-10-17):**
-[219](../00_dev_roadmap/219_xray_slice_cache.md) retains three recent variants
-per chunk. Slice toggles immediately reuse cached geometry and keep unaffected
+**X-ray slice reuse (2026-10-17, 219):** `XrayController` retains three recent
+variants per chunk (`CACHED_LEVELS_PER_CHUNK`), dropping the least recently used.
+Slice toggles immediately reuse cached geometry and keep unaffected
 chunks visible; only uncached or edited geometry is rebuilt. Cached water and
 terrain correctly refresh after changes made in another view or while Off.
+- A chunk wholly below or wholly above several slice heights shares one variant for
+  them; one extra level over the chunk's top keeps water cut at its top edge apart from
+  a live surface above it. A notification at the same height does nothing.
+- Full and Flat share each variant. Interior edits retire a chunk's variants at every
+  height, and a season change retires them all. Water changes, also while X-ray is off,
+  mark cached water stale; it rebuilds alone when that variant is next shown.
+- Turning X-ray back on takes up the pending changes instead of rebuilding unchanged
+  chunks. The guide moves to the new plane at once while its outline refreshes, and
+  picking uses the shown variant's faces. The cache is transient.
 
-**X-ray update performance (2026-10-17):**
-[218](../00_dev_roadmap/218_xray_performance.md) separates inspection visibility
+**X-ray update performance (2026-10-17, 218):** separates inspection visibility
 notifications from physical cavity rebuilds. Actual slice/terrain edits still
-update the physical shell; X-ray chunk uploads do not. Full/Flat switches reuse
-meshes, and water updates retain terrain and reference geometry. Copied-save
+update the physical shell; X-ray chunk uploads do not (see "VisibleVolume contract").
+Full/Flat switches reuse meshes, and a water-only change rebuilds only the water
+mesh, keeping terrain, picking sets and the guide. Copied-save
 measurements at 7680×2160 remove the repeated approximately 300 ms stalls.
 
-**Moving dwarf visibility (2026-10-17):**
-[217](../00_dev_roadmap/217_dwarf_slice_visibility.md) refreshes actor slice
-visibility on transform changes. Moving down into a cutaway no longer leaves
-the dwarf invisible until the player changes slices. Upward crossings, paused
-restoration and whole-world view use the same existing feet-height threshold.
+**Moving dwarf visibility (2026-10-17, 217):** refreshes actor slice
+visibility on transform changes (doc 21, "Known limitations"). Moving down into a
+cutaway no longer leaves the dwarf invisible until the player changes slices. Upward
+crossings, paused restoration and whole-world view use the same existing feet-height
+threshold.
 
-**Underground X-ray (2026-10-17):**
-[210](../00_dev_roadmap/210_underground_xray_and_level_reference.md) adds a
-scene-owned discovered-interior shell on camera layer 19. Full emits inward
-walls and floors; Flat retains usable floors and low wall sections. Real terrain
+**Underground X-ray (2026-10-17, 210):** adds a scene-owned discovered-interior shell
+on camera layer 19 (`XrayController`, built through `XrayGeometry` from
+`InteriorTracker`'s interior air). Full emits inward walls and supported floors, with no
+ceilings; Flat retains floors with three blocks of headroom and their one-block wall
+strips. Real terrain
 continues supplying shadows and world data. The inspection camera uses a dark
 background and a modest shell readability floor; normal lighting returns while
 working or when X-ray is off. Interior water uses still surfaces at the live
@@ -30,29 +40,54 @@ solver height, clipped to discovered space. Normal water rendering is unchanged.
 Pinned floor perimeters and stair boundaries project as dashed, non-interactive
 cyan ribbons onto the active slice; no individual-voxel grid is added. Shell
 updates are incremental, and construction removes occupied interior air.
+- **The camera** sees only layer 19 while X-ray inspects. Its own mask and environment
+  come back while a tool works, when X-ray turns off and at scene teardown.
+- **What joins the view:** furniture, actors and props with a low or central point of
+  their bounds in known interior air gain layer 19, keeping their own slice and animation
+  visibility; moving actors are checked again every frame. Lights always gain it, so
+  their light still reaches the shell. Terrain batches, outdoor water and damp ground
+  never join (the shell draws its own pools); individual water stones still can.
+- **Clicks** follow the shell's faces: never a floor's underside or a wall's hidden top,
+  and in Flat only faces that open onto air with headroom, as Flat draws them. Terrain
+  outside the shell never takes a click (`XrayController.is_terrain_face_visible`).
+- **Budgets:** building chunk meshes and the guide share a soft 2.5 ms a frame, and
+  sorting the scene's visuals 1.2 ms; one mesh upload is atomic. These and the look
+  (background, readability floor, guide colour, width and radius) are the `xray`
+  section of `data/ui/time_slice.json`, read through UIRegistry.
 
-**Torch reach (2026-10-17):** [209](../00_dev_roadmap/209_torch_reach_and_construction_size.md)
-extends wall and log torch radii from 12 to 20 voxels. The existing 0.6 attenuation
-now fades across a wider area, reducing the measured outer brightness gradient
-by over half. Energy, warm colour, flicker and terrain/door shadowing are retained.
-Native rendered profiles and the full-world bedroom lighting regression pass.
+**Torch reach (2026-10-17, 209):** the log torch lights a 20-voxel radius (12
+before). Its 0.6 attenuation spreads the smooth outer fade over that wider area;
+there is no extra shader cutoff or room-wide fill (`light_source` in
+`data/furniture/wooden_torch.json`: `range`, `attenuation`, `energy` 2.6). The wall
+torch shared this reach until it was retired (doc 234). Energy, warm colour, flicker
+and terrain/door shadowing are retained.
 
-**Optional mining guide (2026-10-17):**
-[208](../00_dev_roadmap/208_optional_mining_area_guide.md) removes the automatic
-per-voxel mining grid. The optional 32×32 guide uses thick, depth-tested ribbons
-only at world-aligned area boundaries, following visible tops and cliff steps.
-It shares the existing slice/cut invalidation and has no mesh while disabled.
+**Optional mining guide (2026-10-17, 208; dotted lines 2026-10-26):** no per-voxel
+mining grid is drawn. The optional 32×32 guide (doc 23) uses warm, depth-tested ribbons
+0.16 voxels wide, without shadows, only at world-aligned area boundaries (X/Z multiples
+of 32). Halfway between them, on the other multiples of 16, dotted lines split each
+square into 16×16 quarters: ribbons 0.1 wide and fainter, one dash 0.4 long centred on
+each block, so a dotted line has a gap at every block edge and where it crosses a solid
+line. Each side of a boundary follows its own visible top, and a perpendicular cliff
+gets one continuous vertical stripe; a dotted line climbs it a dash per block of height.
+Both kinds share one mesh and material. Only columns touching a boundary are sampled,
+each column's top read once per line; coverage follows the camera's position and zoom,
+widens for ultrawide aspects, and a still view reuses its mesh. A rebuild with the
+dotted lines costs about 1.2× the 32-only guide's before them (2026-10-26, a fresh world
+at slice 47: 36 ms at 7680×2160 at zoom 46 and 59 ms at zoom 110, against 31 and 48;
+9 and 18 ms at 1920×1080). It shares the existing slice/cut invalidation (planned cuts
+and mined floors move it) and has no mesh while disabled or outside mining. Tuning:
+`area_guide` in `data/terrain/mining_config.json`; a `dotted_cell_size` that does not
+divide `cell_size` (or 0) draws no dotted lines.
 
-**Terrain sun shadows (2026-10-17):**
-[204](../00_dev_roadmap/204_terrain_sun_shadows.md) includes terrain in the sun's
+**Terrain sun shadows (2026-10-17, 204):** terrain is in the sun's
 shadow-caster mask. Excluding it let plants on plateaus project isolated shadows
 through solid cliffs onto lower ground. Visible terrain now blocks sunlight as
 well as local lights; plants keep their normal shadows. Existing slice visibility
 controls the rendered casters, while physical roof/door skylight remains derived
 from world data. No mesh rebuild, material, sunlight intensity or save changes.
 
-**Shared live atmosphere (2026-10-15):**
-[196](../00_dev_roadmap/196_shared_atmosphere_performance.md) replaces repeated
+**Shared live atmosphere (2026-10-15, 196):** replaces repeated
 fog/sky uniform broadcasts with one scene-owned 20×1 RGBA float texture
 (`SceneAtmosphereData`). Every material made by that `UndergroundLighting`
 owner binds the same stable texture; changed atmosphere uploads 320 bytes at
@@ -62,56 +97,83 @@ apply. Roof/door/actor exposure and water appearance use the same equations.
 The packet is derived data, recreated on scene load, with independent ownership
 for separate viewports. Eight native comparisons against the frozen prior
 shader are pixel-identical. This changes data delivery, not atmospheric design.
+Writing each changed value to every cached material (about 1,300 in a 30-dwarf
+colony) cost main-thread time and render setup on every update. Unchanged values
+upload nothing, and a material created later binds the same texture and sees its
+current contents. The pixel layout is a contract between
+`SceneAtmosphereData._pack()` and `atmosphere()` in
+`underground_lighting_common.gdshaderinc`: change both together. Pixels are full
+floats, so HDR colours keep their range.
 
-**Work effect preparation (2026-10-15):**
-[191](../00_dev_roadmap/191_event_hitch_review.md) identifies first-use dust
-pipeline compilation as a separate mining hitch. `WorkDustBurst` shares one
+**Work effect preparation (2026-10-15, 191):** first-use dust
+pipeline compilation was a separate mining hitch. `WorkDustBurst` shares one
 immutable box mesh/material while each burst retains its own MultiMesh colors
 and transforms. `WorkFeedback` prepares the same format with one hidden
 scene-lifetime instance during loading; headless runs skip it. Counts, RNG,
 animation, sound and slice behavior are unchanged. The traced first impact's
 rendering drops from 199.83 to 2.33 ms. Compilation work moves to loading.
-Performance diagnostics now include render setup CPU, which viewport-only
-render timing omits. Autosave and arrival stalls remain separate follow-ups.
+A new effect that brings its own mesh/material combination needs the same
+preparation, or its first appearance compiles a pipeline mid-game. Performance
+diagnostics now include render setup CPU, which viewport-only render timing
+omits (doc 13, Measuring performance). `WorkDustReuseTest` checks the shared
+resources and the hidden instance against the frozen original burst.
 
-**Lighting buffer disposal (2026-10-15):**
-[190](../00_dev_roadmap/190_lighting_buffer_disposal_performance.md) moves
-clearing the previous light calculation's private CPU work buffers to a worker.
+**Lighting buffer disposal (2026-10-15, 190):** clearing the previous light
+calculation's private CPU work buffers runs on a worker. One `clear()` of a large
+solve's caches (over a million air and visited entries in the 30-dwarf work yard)
+cannot yield to the 2.5 ms solver budget, so
+`UndergroundLighting._retire_work_buffers()` swaps in fresh containers and hands the
+old ones, which hold only coordinates, numbers and booleans, to `WorkerThreadPool`.
 Only one retired set may await disposal; later edits coalesce until that slot
 is available. Published light samples, images, textures and scene/world access
 stay on the main thread. The solver, actor lighting and concealment rules are
 unchanged. Native 30-dwarf lighting peaks fall from 231.49 to 5.78 ms; separate
 frame stalls remain. Cleanup still consumes CPU and scene teardown joins it.
+`LightingBufferDisposalTest` checks the published light data against the frozen
+original solver.
 
-**Water current scheduling (2026-10-14):**
-[183](../00_dev_roadmap/183_water_current_performance.md) snapshots only the
+**Water current scheduling (2026-10-14, 183):** snapshots only the
 volumes needed for measured/decaying currents and processes animation updates
 across frames within a soft 1 ms budget. Pending samples retain their captured
 inputs while new telemetry accumulates separately. Shader animation continues
 every frame; current changes appear progressively. Reload discards pending work.
 Water simulation, geometry, shader detail and save formats remain unchanged.
+The sampling rules are in doc 33.
 
-**Damp-ground scheduling (2026-10-14):**
-[182](../00_dev_roadmap/182_moisture_rendering_performance.md) replaces the
+**Damp-ground scheduling (2026-10-14, 182):** replaces the
 whole-world moisture mesh with 16×16-column tiles, incremental soil/film
 notifications and a soft 1 ms main-thread work budget. Partial tiles resume
 across frames. Slice/discovery changes hide existing tiles immediately;
 season/debug changes refresh while paused. Terrain colors, moisture simulation,
-surface films and saves retain their existing behavior.
+surface films and saves retain their existing behavior. The old renderer rebuilt
+one whole-world mesh every simulated second, overlay closed or not, stalling a
+frame each second. `MoistureRenderer` now keeps a disposable index of tracked soil and
+surface films, fed by `SoilMoisture.cells_changed` and `WaterManager.surface_changed`;
+neither signal changes the simulation, its schedule or saves. Tiles whose analytic
+moisture is still changing refresh once per simulated second; settled tiles never
+rebuild, and an identical rebuild keeps its mesh. Work runs in batches of 16 cells
+against `rendering.moisture_budget_ms` (1.0, soft) in `data/world_gen/water.json`,
+nearest tile first, with every eighth dispatch taking the oldest. Terrain edits hide
+and requeue their tile. A new moisture owner or a reload discards the index and
+disconnects the old owner.
 
-**Water mesh rebuilds (2026-10-14):**
-[179](../00_dev_roadmap/179_water_mesh_rebuild_performance.md) adds private
+**Water mesh rebuilds (2026-10-14, 179):** adds private
 worker snapshots, coalesced dirty tiles, nearby priority with distant progress,
 and a soft main-thread time budget for water mesh preparation/uploads. The
 32×32 tile geometry, palette, waterfalls and concealment rules stay intact.
-Simulation runs independently of presentation scheduling.
+Simulation runs independently of presentation scheduling. The scheduling rules
+are in doc 33.
 
-**Rain and storms (2026-10-13):**
-[170](../00_dev_roadmap/170_environment_sound_details.md) adds two scheduled and
+**Rain and storms (2026-10-13, 170):** adds two scheduled and
 saved weather IDs with cloud/haze overrides and one bounded local rain mesh.
-Actual roofs and the visible slice clip streaks, including visually removed
-roofs over rooms. Rain presentation never adds simulated water or flooding.
+Spring, summer and autumn can draw them (`data/calendar/weather_schedule.json`);
+winter keeps snow. Actual roofs and the visible slice clip streaks, including
+visually removed roofs over rooms. Rain presentation never adds simulated water or flooding.
 The sky dial and environmental audio follow the same authoritative weather ID.
+WeatherManager adds the scene's `WeatherPrecipitation` when the weather has a
+`precipitation` profile (`data/weather/rain.json`, `storm.json`). It draws at most
+`streaks` (180) around the listening focus, each starting on the physical roof
+(`UndergroundLighting.roof_height`), and stops at the slice.
 
 **Planned weather effects (not implemented):** snow cover would build at about
 +0.0007 per minute while it snows and melt at −0.0007 per minute in clear, foggy or
@@ -119,22 +181,24 @@ overcast weather (−0.0009 in rain and storms). Foggy weather would give dwarve
 `weather_foggy` thought and snow a `weather_cold` thought. Weather never changes
 gameplay sight or streaming.
 
-**Sky scene lifetime (2026-10-13):**
-[167](../00_dev_roadmap/167_sky_scene_lifetime.md) clears the sky autoload's
-scene references on Environment exit. Save loading leaves a gap between old
-scene detachment and replacement; no light global transforms may be read in
-that gap. The existing SaveManager rebind resumes rendering. This lifecycle is
-covered by a dedicated fixture and real dock-driven save/restoration tests.
+**Sky scene lifetime (2026-10-13, 167):** the sky autoload clears its scene
+references when the WorldEnvironment leaves the tree (`tree_exiting`). Save
+loading leaves a gap between old scene detachment and replacement; no light
+global transforms may be read in that gap. The existing SaveManager rebind
+(`rebind_to_current_scene()`) resumes rendering. Each bind first disconnects the
+previous exit listener, so a departing older scene cannot clear a newer binding.
+A sun or moon that leaves the tree on its own is skipped and hidden in the backdrop. A null check is not enough: the
+lights still exist during the gap, so check `is_inside_tree()` before reading a
+transform. `SkySceneLifecycleTest` and the dock-driven save round trip cover this.
 
-**Full-sphere sky (2026-10-13):**
-[166 — Diorama sky](../00_dev_roadmap/166_diorama_sky.md) replaces the plain
-procedural backdrop with a continuous directional sky shader, stars and
-celestial discs. `SkyController` now owns time/weather haze as well as sky color;
+**Full-sphere sky (2026-10-13, 166):** replaces the plain procedural backdrop
+with a continuous directional sky shader, stars and celestial discs. `SkyController` now owns time/weather haze as well as sky color;
 clear-night fog no longer retains daytime grey. The same gradient is evaluated
 by roof-aware materials, preserving sealed-room darkness. Cloud/star details
 are excluded from the ambient cubemap. The lower hemisphere is atmosphere,
 and orthographic views use a finite sky FOV. Six fixtures and native captures
-pass. World-edge streaming/dissolve work remains separate.
+pass. World-edge streaming/dissolve work remains separate. The rules are under
+§Sky below.
 
 **Settlement shader capacity (2026-10-13):**
 a settlement benchmark exposed shader-instance allocation failures with the full forest, 24 dwarves,
@@ -145,21 +209,29 @@ default uniform-slot capacity. Both current and pilot benchmark runs use this
 setting and reject renderer errors. This is buffer headroom, not a new population
 or performance guarantee. Restart Play after changing it.
 
-**Base terrain art (2026-10-13):**
-[145 — Base world terrain art](../00_dev_roadmap/145_base_world_terrain_art_plan.md)
+**Base terrain art (2026-10-13):** doc 145
 unifies natural rock into one grey palette and keeps grass as a full seasonal
-voxel. Dirt uses a restrained earth family. Local variation and soft edge normals
-run on the existing merged surfaces; the measured chamfer prototype remains in
-the study. Real world geometry, support and picking planes retain their cube
-boundaries. Grass edge-distance maps and their deferred recolour pass are removed.
+voxel (the owner's choice), with the brown in a separate dirt voxel below. Dirt uses a
+restrained earth family. Every variant of a family shares one authored sRGB palette
+(`terrain_blocks.json`, `surface_palettes.json`). Local variation and soft edge normals
+run on the existing merged surfaces. Real chamfer geometry was measured and rejected:
+it added about 75% more scene primitives, and its regular seams read as masonry. Real
+world geometry, support and picking planes retain their cube boundaries. Grass
+edge-distance maps and their deferred recolour pass are removed. Since 2026-10-21,
+stone, grass and earth also carry the Hearthblock dressing in the same shader
+([63](../60_asset_creation/63_shared_art_standard.md#world-and-effect-boundaries)).
+Built logs take no profile: they are drawn as pieces (see "Built logs").
 
 BlockRegistry loads `appearance_profiles.json` and builds immutable linear terrain
 colour lookups. The existing opaque sRGB `get_color` API remains for UI and
 definitions. Terrain vertices carry a profile in colour alpha (`id / 16`);
 artificial cut faces add eight to the tag and use quieter detail. Alpha one opts
-out, preserving imported floor art. Only the terrain material enables the shader
+out, for imported art that keeps its own detail. Only the terrain material enables the shader
 treatment; shared actor, prop and water materials retain their existing response.
 Exposure/concealment chooses the permitted material before assigning any profile.
+The detail is hashed in world space, so it stays stable across tiles, reloads and
+camera moves. It fades with projected cell size, and with distance between
+`detail_fade.near` and `far` in `appearance_profiles.json`.
 
 The damp-soil overlay is part of this terrain colour contract too. It uses the
 same linear palette and appearance tag, then darkens with moisture. Mixing its
@@ -175,7 +247,7 @@ Scene teardown/save reload joins workers before generation maps are cleared.
 Seasonal refresh also updates generic added-terrain meshes. Positive edits now batch their exposed
 faces, cull shared faces and tag slice-only tops just like constructed stone.
 
-**Gradual seasons (2026-10-15):** existing terrain is admitted for seasonal
+**Gradual seasons (2026-10-15, 194):** existing terrain is admitted for seasonal
 recolour in normal worker-sized batches across midnight to sunrise. Trees and
 ground plants share the night schedule and a soft 2 ms admission/art budget;
 tree root nodes and collision stay alive while only changed art is replaced.
@@ -183,45 +255,70 @@ The existing mesh build/upload budgets remain separate. Edits and slice
 concealment still invalidate immediately. Pause holds the night schedule;
 paused loads rebuild the target appearance within frame budgets. This is a
 sequence of discrete replacements rather than a continuous colour crossfade.
-See [194](../00_dev_roadmap/194_gradual_season_transition.md).
+Terrain is queued in batches of `overview_tiles_per_frame` tiles: admitting tiles
+one at a time copied the edit snapshot and recomputed the whole-overview
+statistics for every tile, which made the first trial slower. The cavity shell
+and added terrain still rebuild at the boundary. The night schedule and queue
+rules are in doc 13 (`WorldClock`).
 
-**Constructed stone (2026-10-12):** `ConstructionController` draws built blocks
-with the renderer's existing terrain material, natural rock palette and exposed
-cube faces, clipped by slice. Tops exposed only because the slice hides a solid
+**Constructed stone (2026-10-12):** built blocks are solid terrain overrides.
+`WorldRenderer` draws every solid override from `WorldData` (the added terrain) with the
+terrain material, the block's own palette and exposed cube faces, clipped by slice. Tops exposed only because the slice hides a solid
 block above use the same `slice_cut_color` dimming as natural overview plates.
 Real exposed tops and vertical faces retain ordinary stone color; slice and
 terrain changes rebuild this distinction for existing construction too.
-`WorldRenderer.built_blocks` is a shared read-only
-view of construction provenance: cavity shells and the generic added-terrain
-mesh exclude those cells, preventing duplicate faces and generated ore colors.
-Mined/designation history stays intact so the overview still cuts the original
-terrain away. Plans provide neither terrain nor navigation support. See roadmap 127.
+The overview masks every overridden cell. Edited cells flush once per frame, and a
+cell set back to its generated block loses its mask and its stale excavation hole.
+Nothing records who built a block; `ConstructionController` draws only previews and
+unfinished plans (doc 212). Plans provide neither terrain nor navigation support
+(roadmap 127).
 
-**Permanent floor art (roadmap 128):** ConstructionFloorArt caches the authored
-plank/stone GLB boundary faces and batches exposed faces with the terrain's live
-lighting material. Eight art voxels per block axis retain full-cell tops and
-solidity. World-Z pattern phase joins separate plank areas without a seam; slice
-caps dim when hiding solid terrain above. No extra per-tile nodes or overlapping
-top planes are created.
+**Floor art removed (2026-10-26):** the plank and stone floors' authored face art
+(`ConstructionFloorArt`, which batched GLB boundary faces into the added terrain) left
+with the floors. Every built block but a log is drawn as a coloured cube with its kind's
+appearance profile; five of the seven profile ids are taken since the planked wood block and
+its `timber` boards went (doc 275). The planned Build textures need more profile ids than
+the vertex alpha holds, or authored art again (`00_todo.md`, "Build textures by progression").
 
-**Water update (2026-10-10):** terrain overview/chunks now render solid beds;
+**Built logs (2026-10-26, doc 275):** a built log is a whole solid block for every system, but
+`BuiltLogs` (a WorldRenderer helper) draws it as a Hearthblock piece of
+`assets/models/construction/logs.glb`, not as a cube: the loose log stretched to fill its
+block (`tools/voxel_assets/built_logs.py`), recoloured for its wood by CraftMaterials and lit
+with the goods' material.
+- **Pieces by neighbours:** logs of one wood in a row join into one long log, with end grain
+  only where the row stops, and upright logs into one post. Where lying logs meet across (+,
+  T, L) the top log passes whole over the lower log's fresh-cut shoulders: along X on even
+  layers, along Z on odd ones, so stacked corners alternate. Logs of another wood, and lying
+  logs against upright ones, stay apart. Each block takes one of four plate variants by
+  position. `BuiltLogs.piece_at` picks the piece (`LogJointsTest`).
+- **Faces behind a log:** a log's clipped corners leave its block's long edges open, so
+  `BlockRegistry.fills_cell` is false for a log. Built blocks keep the faces they turn to a
+  log, and the cave shell draws the faces round a log as round the space it was built in.
+- **The slice** hides logs above the cut, and a log at the cut shows its end grain.
+- **Drawing:** one MultiMesh a piece and wood, and one a piece for the coarse shadow proxies,
+  rebuilt when a log comes or goes or the slice moves. A piece is about 560 visual triangles.
+- **The preview:** a log drag shows the same pieces in the preview's green.
+
+**Water update (2026-10-10, 105):** terrain overview/chunks now render solid beds;
 `WaterRenderer` renders live fractional voxel water in 32×32 tiles, with batched
 cube splashes and a shared lighting/fog shader. It follows discovery and slice
 changes without exposing hidden caves. `MoistureRenderer` shades damp soil and
 provides a soil-only coverage overlay. Positive solid edits such as dams have a
 batched terrain mesh. Static `waterline_map` remains generation data, not live
-rendering authority. See [105](../00_dev_roadmap/105_rivers_and_water.md).
+rendering authority. The water rules are in doc 33.
 
-**Startup coverage fix (2026-10-10):** full-world overview scheduling has its own
-initialization state. Local discovery/edit queues cannot stand in for the initial
-1,024-tile build. This prevents surface cave discovery from leaving most terrain
-absent. `WorldTerrainStartupTest` covers fresh worlds, local updates, slice/save
-reloads and full invalidation; see [106](../00_dev_roadmap/106_spring_caves_and_water_edges.md).
+**Startup coverage fix (2026-10-10, 106):** full-world overview scheduling has its own
+initialization state (`TerrainTileMesher._overview_initialized`): global invalidation
+resets it, a local refresh keeps it. Local discovery/edit queues cannot stand in for
+the initial 1,024-tile build: the spring cave's reveal once queued two local tiles
+before the first build, startup took that queue as its whole job, and the rest of
+the terrain stayed absent under floating trees and water. `WorldTerrainStartupTest`
+covers fresh worlds, local updates, slice/save reloads and full invalidation.
 
 **Flying wildlife (2026-10-10):** full-world visibility includes ducks above the
 highest terrain layer. An actual slice still hides birds and their wake/splash
-effects together. Cosmetic water effects remain outside animal picking bounds.
-See [111 — Ducks](../00_dev_roadmap/111_duck_wildlife.md).
+effects together. Cosmetic water effects remain outside animal picking bounds
+(doc 111; duck rules in [45](../40_economy_colony/45_wildlife.md#ducks--live-2026-10-10)).
 
 ## Dwarf readability and firelight — updated 2026-10-11
 
@@ -234,9 +331,8 @@ Logical 1×1×3 navigation and physical terrain remain unchanged. Readability
 color/opacity/reach/timing are loaded by TaskManager from task_config.json.
 The depth reconstruction follows the native renderer's reverse-Z convention.
 
-Campfire and wall torch energy are 3.2 and log torch 2.6, twice their prior values;
-range and heat remain unchanged. Native mine, cover and bedroom captures/tests
-are documented in [120](../00_dev_roadmap/120_log_beds_and_bedrooms.md).
+Campfire light energy is 3.2 and the log torch's 2.6 (both doubled in doc 120),
+held in each definition's `light_source`.
 
 ## Reference
 
@@ -260,6 +356,11 @@ The single most impactful atmospheric decision is that **the sky color and the f
 
 These values are derived from Stonehearth's `sky_settings.json` `height_fog` params at corresponding times of day. The clear daytime setting is the most important — it must feel open, airy, and deep, not claustrophobic.
 
+They are design targets. The live depth-fog values are data: `diorama.atmosphere` in
+`data/sky/sky_settings.json` for clear weather, and each weather file's
+`sky_overrides.atmosphere`. `SkyController` applies them with the fog colour taken from
+the sky's horizon colour, so night fog is never daytime grey.
+
 ### Sky
 
 Use the full-sphere `diorama_sky.gdshader` installed by `SkyController` on the
@@ -278,6 +379,28 @@ its brightest channel: the hue goes to `light_color`, the brightness to `light_e
 bluish curve value therefore becomes a fully blue light every frame. Never copy
 Stonehearth's bluish light values (tuned for their renderer); keep sun colours near-white,
 with the max channel setting the energy.
+
+**Sky data.** In `data/sky/sky_settings.json`, `sky_gradient_colors` holds the top,
+horizon and lower-hemisphere curves keyed to calendar events, and `starfield_brightness`
+fades the stars. `diorama` holds the gradient shape, star brightness and scale, the sun
+and moon disc radii, the cloud colours and the clear-weather `atmosphere` (cloud cover,
+fog density, begin and end). A weather file's `sky_overrides.atmosphere` overrides only
+those atmosphere values, and `SkyController` eases toward them.
+
+**The sky depends on view direction only.** `diorama_sky.gdshader` reads `EYEDIR`, never
+the camera position or shader `TIME`. Clouds turn with the game hour, so they stop while
+the game is paused and wrap without a jump at midnight. Stars use three blended
+direction-space projections, so there is no seam or pole. An orthographic camera's
+angular FOV becomes `sky_custom_fov`, so world-unit zoom cannot stretch the stars.
+
+**Only the broad gradient lights the world.** The radiance-cubemap pass
+(`AT_CUBEMAP_PASS`) skips stars, discs and clouds, so they never sparkle on surfaces or
+brighten interiors. There is no sky mesh, bitmap, seam or ground disc, and the crescent
+moon is fixed art, not a lunar phase.
+
+**One Moon per scene.** Each bind reuses the scene's `Moon` node or adds one that never
+casts shadows (the sun is the only shadow caster), so repeated binds add no lights.
+`DioramaSkyTest` covers these sky rules.
 
 ### Atmospheric Depth (Scattering)
 
@@ -372,6 +495,10 @@ When the player is working inside a carved underground chamber and the slice rem
 - `visible_volume_changed` — any visibility change sets a dirty flag, flushed as at most one
   emission per frame in `_process`. Consumers (mining overlays, water, moisture, construction)
   rebuild on the signal; no consumer may poll.
+- The signal is for overlays only and never rebuilds the physical cavity shell or terrain.
+  Slice moves (`slice_y`'s setter) and terrain edits invalidate the shell on their own
+  paths. X-ray marks the volume dirty with every chunk upload; when the signal also
+  rebuilt the whole shell, each upload stalled a frame (doc 218).
 
 Mining zone overlays and previews clip through this contract, so a zone wholly above the
 plane disappears (its data is untouched) and designation is WYSIWYG — see
@@ -383,9 +510,11 @@ plane disappears (its data is untouched) and designation is WYSIWYG — see
 bounded warm omni light and 75 heat units; packed torches are unlit. The terrain
 meshes (overview tiles, cavity shell and added terrain) cast local-light shadows,
 so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain.
-Since the [2026-10-17 fix](../00_dev_roadmap/204_terrain_sun_shadows.md), the sun also
+Since the 2026-10-17 fix (doc 204), the sun also
 includes that layer in its **shadow-caster** mask, preventing plant/prop shadows
-from passing through cliffs. Camera and normal light masks include layer 20. A torch is hidden with
+from passing through cliffs. `SkyController` applies `TerrainLighting.configure_sun()`
+to the scene's sun on every bind; the terrain meshes get the layer through
+`configure_mesh()`. Camera and normal light masks include layer 20. A torch is hidden with
 its light when the slice cuts below its flame, preventing illumination over a
 sliced-away wall. Terrain identity, material colors and discovery rules are unchanged.
 
@@ -452,7 +581,12 @@ Tracked air attenuates sky ambient and directional light. Installed omni lights
 retain their existing range, colour and shadow settings. Air-only interpolation
 prevents solid rock from blending daylight into tunnel edges. SkyController owns
 the tuning in `data/sky/sky_settings.json`: `entrance_reach_blocks: 12` and
-`readability_floor: 0.008` (reduced after the room-darkness follow-up below).
+`readability_floor: 0.008` (reduced after the room-darkness follow-up below). In the
+main world the Hearthblock lighting replaces that floor with
+`hearthblock_lighting.underground_fill` (0.035 of albedo, cool slate tint) and adds a
+camera-facing `view_fill` on closed actor and prop materials. Both scale with
+`1 − sky access`, so open ground is unchanged
+([64 §Lighting](../60_asset_creation/64_hearthblock_art_direction.md#lighting)).
 
 The same shader shades live dwarves, their subsequently attached tool meshes,
 installed furniture and loose/carried items. Emissive flames and transparent
@@ -675,6 +809,20 @@ air is initialized to underground darkness throughout the cave; the usual light
 solver then propagates entrance daylight and placed lights. Merely moving the
 slice does not discover a cave or light its interior.
 
+**Placement tools (2026-10-26):** a cave not yet found, its air and its water, is rock to
+every placement tool (`InteriorTracker.is_hidden_cave`). Furniture, storage, construction,
+Copy and placing a
+blueprint aim through `ObjectPicking.concealed_block` (doc 22), so with the slice through a
+hidden cave the pointer stops on the cut, never on the cave floor. Construction refuses the
+cave's air with rock's own reason, "Mine existing terrain before building", and its stairs
+take it for rock in their headroom; furniture, wall pieces and storage refuse it as they
+refuse a cell that is not open floor. Copy goes further: every block the colony has not
+seen copies as its strata, so a copied chunk of mountain shows no cave, deposit or water
+inside it (doc 23, "Copy and Blueprints"). Placing a blueprint needs nothing more, since
+every unseen block in its way, rock, ore, deposit, water or hidden cave, is in the way for
+the same reason. `HiddenCavePlacementTest`. The camera's ground (doc 21) also takes a hidden
+cave for rock, so zoom, drag, orbit and the camera floor stop on the cut above it.
+
 **Explicit developer inspection exception:** at the user's request, **Menu →
 Development → DEV: Cave explorer** can outline hidden caves and temporarily
 preview their actual interiors. The preview uses a separate cut set and temporary
@@ -692,9 +840,11 @@ rebuild. A slice move also marks the cavity shell for one full rebuild.
 
 **Cut dimming.** Floors cut by the plane itself are baked at `SLICE_CUT_DIM = 0.5` luminance
 (`TerrainTileMesher.slice_cut_color`, shared by constructed stone and the added terrain).
-Hue and block identity are untouched. Designation floors and the cavity shell stay full
-brightness. Greedy top-merge never fuses a dimmed cut plate with an undimmed natural plate of
-the same block at the same height.
+The dimming leaves hue and block identity untouched. Designation floors and the cavity shell
+stay full brightness. Greedy top-merge never fuses a dimmed cut plate with an undimmed natural
+plate of the same block at the same height. In the main world the Hearthblock lighting also
+tints these tagged cut faces toward darker, warmer rock (`slice_cap_tint`, applied in
+`terrain_appearance.gdshaderinc`); block identity is still untouched.
 
 **Cut cells and revealed air.** Designated, mined and discovered cave cells are all cut cells.
 Revealed air (executed mining, discovered caves, terrain overrides) is the subset that earns
@@ -741,6 +891,20 @@ repaint a block's face with a different block's colour** (a 4-block Y sampling s
 top-colour override did exactly this — swallowing the grass cap so grass blocks showed dirt
 sides — removed 2026-06-03; a block's faces must always show that block's colour).
 
+## The Appeal view's dim and tints (2026-10-25)
+
+The Appeal view (doc 23) is presentation drawn over the normal render, never a change to
+terrain or its materials:
+- **The dim** is one full-screen quad (`appeal_dim.gdshader`, its vertex shader setting
+  `POSITION` to cover the screen) that reads the screen texture and draws it greyed and
+  darkened. Its render priority (−100) makes it the first of the see-through passes.
+- **The room tints** are one multimesh of floor quads, 0.02 above each floor, unshaded and
+  depth-tested, so furniture and walls hide them as they hide the floor (priority 10).
+- **The glows** are overlay materials on the counted pieces' meshes (priority 20), given
+  back when the view turns off.
+- **Layers:** all three sit on the default layer, X-ray's layer and the terrain layer, so
+  the normal and X-ray cameras both draw them and X-ray's own scan leaves them alone.
+
 ## Mining-Edit Invalidation Contract
 
 > Migrated from the original `00_dev_roadmap/04_mining_performance.md` (retired 2026-06-05;
@@ -776,26 +940,31 @@ their inputs remain unchanged. Global invalidations replace these snapshots. Loc
 cut/terrain/discovery changes record their cells, and only those cells are patched.
 Either happens only after the previous batch has been consumed; existing per-tile
 revisions and global epochs still reject stale results. Slice/season values remain
-captured per batch.
+captured per batch. Copying the large terrain dictionaries for every batch slowed
+saved-world loads (doc 247).
 
 **Edit cost (2026-10-21):** the cavity shell and the added-terrain mesh are split
 into 16×16-block columns that cover every height. A mined, built or designated block
 rebuilds only its own column, plus the neighbouring column when it sits on a column
-edge. Slice moves, season turns and loads rebuild every column. See
-[254 §4.3](../00_dev_roadmap/254_full_project_review_2026_10_20.md).
+edge. Slice moves, season turns and loads rebuild every column. Before this, every
+commit rebuilt the whole shell, the added terrain and the overview snapshot on the main
+thread, a cost that grew with the colony's age (doc 254).
 
 Underground lighting uses a 12 ms work budget while WorldClock is held by the
-loading cover, returning to 2.5 ms during play. The solver, published samples,
-texture data and readiness gate are unchanged. See
-[247 — Saved-world loading](../00_dev_roadmap/247_saved_world_loading.md).
+loading cover, returning to 2.5 ms during play (`UndergroundLighting`
+`LOADING_FRAME_BUDGET_USEC` and `FRAME_BUDGET_USEC`). The solver, published samples,
+texture data and readiness gate are unchanged (doc 247).
 
 ## Debug Overlay & Block Inspector
 
-Player terrain inspection lives in Object explorer: click an exposed face for
-its material name and simple facts. `TerrainExplorerProvider` follows live
+Player terrain inspection uses the compact panel beside the dock
+([23](23_user_interface.md#object-selection-implemented-2026-10-04)): click an exposed face for its material
+name, the kind of face and its level, and its description. `TerrainExplorerProvider` follows live
 terrain, constructed blocks and the renderer's visual cuts, keeping undiscovered
-deposits concealed on slices and planned excavations. See
-[130 — Terrain inspection](../00_dev_roadmap/130_terrain_inspection.md).
+deposits concealed on slices and planned excavations (doc 130). It is a scene node with
+a `renderer_path` export and keeps no visibility state of its own: it reads the
+renderer's cut and revealed sets, X-ray's shown faces and `InteriorTracker`'s known
+cells. The object explorer falls back to it only when no object or zone was hit.
 
 The debug overlay (`DebugLoadingOverlay`) exposes generation/render state: map readiness, active
 render mode, overview step, overview sampled/merged face counts, overview validation mismatch

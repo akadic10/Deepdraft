@@ -327,6 +327,11 @@ Exact values are TBD in a future balance pass. These are design-intent ratios.
 - A dwarf whose `health` reaches `0.0` enters the `DEAD` state. All equipped gear drops as item entities.
 - Dwarves reduced below `0.50` health gain `base:thought:injured` and are assigned a forced bed-rest task until health recovers above `0.75`.
 - Corpses persist and trigger `base:thought:saw_corpse` for any dwarf passing within 3 tiles.
+- Nothing removes a dwarf from the colony yet, and leaving the scene tree is not a
+  cleanup: `DwarfAgent._exit_tree` only cancels recreation and frees meal, rest, idle and
+  equipment claims. Death (or a later emigration) must also release the current task, drop
+  carried cargo at the feet (Hard Rule 12) and call `TaskManager.deregister_dwarf`
+  (doc 254).
 
 ---
 
@@ -342,6 +347,16 @@ The Military Build tab (currently stubbed in the UI) will expose the following d
 | Barricade | Low constructed block (half-height) — blocks invader movement, does not block Marksman fire lines |
 | Gate | Reinforced door variant — takes 5× longer for invaders to breach |
 
+## Player UI (future)
+
+Owner, 2026-10-23: plan a Fight & Defend menu with the combat milestone, not with the UI
+overhaul. Stonehearth's version is the reference, not a template:
+- a town-wide defence toggle (a shield);
+- one coloured banner per squad with its member count, used to select and command it;
+- its own tile colour, so combat commands stand apart from the rest of the menus;
+- health, once dwarves can be hurt: a badge on a dwarf's compact panel and a line in the
+  character sheet's header (doc 23).
+
 ---
 
 ## Integration with Existing Systems
@@ -353,7 +368,7 @@ The Military Build tab (currently stubbed in the UI) will expose the following d
 | `StockpileManager` | Gear haul tasks use the standard haul pipeline. Quivers are equipment items stored on Wall Displays like weapons — no separate ammo stockpile needed. |
 | `VisitorManager` | `wealth_score` and `invasion_started` signal already scaffolded. Wave spawner connects here. |
 | `AudioManager` | Combat track registered as `"combat_alert"`. Triggered by `invasion_started`, fades on wave clear. |
-| `ToastManager` | CRITICAL and WARN severities already exist and cover all required military notifications. |
+| `EventLog` | Warnings already land in the event log with a rust toast (doc 23). Critical (red) entries for invaders and deaths are planned (`00_todo.md`, "Events left for later"). |
 | `WorldClock` | Invasion chance roll fires on `day_changed`. No new clock dependency needed. |
 | Room system | Armory room classification follows the same flood-fill and furniture-anchor pattern as Shop (`51_visitors.md`) and sealed rooms (`34_temperature.md`). No new room detection code needed — only a new classifier branch. |
 

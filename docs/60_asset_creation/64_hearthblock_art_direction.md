@@ -5,7 +5,7 @@ voxels built from squares and rectangles on the 1:16 grid. Models are designed f
 gameplay camera and lit like a hearth. The owner chose it on 2026-10-20. By 2026-10-21
 everything the game can show had been converted and the owner signed off the result.
 
-- [255 — Lighting pass](../00_dev_roadmap/255_hearthblock_lighting_pass.md) records the lighting.
+- [Lighting](#lighting) below holds the lighting pass (doc 255).
 - [256 — Hearthblock art](../00_dev_roadmap/256_hearthblock_art_pilot.md) records the models,
   the terrain dressing and the menu pictures.
 - [61 — Voxel art authoring guide](61_voxel_art_guide.md) explains how to build a model.
@@ -34,7 +34,8 @@ It also covers the dressing drawn on terrain blocks.
 - World blocks stay one unit with simple voxels. Hearthblock only dresses the stone,
   grass and earth faces in the shader (`terrain_appearance.gdshaderinc`, values in
   `data/terrain/appearance_profiles.json` → `dressing`). Every mark is a whole cell,
-  like the models.
+  like the models. Built logs are the exception: each is drawn as a Hearthblock piece, the
+  loose log stretched to fill its block (doc 275; doc 24, "Built logs").
 
 ## Shape language
 
@@ -67,16 +68,33 @@ It also covers the dressing drawn on terrain blocks.
 
 ## Lighting
 
-The Hearthblock lighting pass ([255](../00_dev_roadmap/255_hearthblock_lighting_pass.md))
-is part of the look:
-- ACES tone mapping, with glow that only fire reaches;
-- a cool fill for sealed air and a camera-facing fill on actors and props underground;
+The Hearthblock lighting pass (doc 255, 2026-10-20) is part of the look:
+- ACES tone mapping, with glow that only fire reaches. Flames are unshaded, and a flame
+  gain above 1 lifts only them past the glow threshold, so lit walls and faces never
+  bloom;
+- a cool fill for sealed air and a camera-facing fill on actors and props underground.
+  Both fade with sky access and stay subtle: they lift faces and shadows without
+  flattening the torch pools;
 - warmer fire lights and darker, warmer slice caps;
 - burlap stockpile overlays.
 
 The values are in `data/sky/sky_settings.json` → `hearthblock_lighting`. The main world
 always uses this lighting; the old on/off toggle was removed on 2026-10-22. Judge new art
 in the game under this lighting at gameplay and colony zoom, not in studio light alone.
+
+Who applies it:
+- `SkyController.hearthblock_active()` is true only in the main world scene
+  (`debug_world.tscn`). Galleries, previews, thumbnails, portraits and test scenes keep
+  their own Environment and materials. `SkyController` sets the world Environment's tone
+  mapping and glow, and emits `hearthblock_lighting_changed` after every scene bind.
+- `UndergroundLighting` sets the sealed-air floor and tint, the view fill (closed actor
+  and prop materials only) and the cap tint on every material it makes. The shader
+  defaults (`readability_tint`, `view_fill`, `slice_cap_tint`) leave a material unchanged.
+- `FurnitureLighting` warms each fire light by furniture key (`light_colors`) and sets
+  the flame gain.
+- `StockpileDesignationController` draws confirmed zones in burlap, authored in sRGB and
+  converted for the linear vertex overlay. The preview while drawing keeps its own valid
+  and invalid colours, and the X-ray inspection shell keeps its neutral look.
 
 ## Furniture tiers
 
@@ -110,10 +128,14 @@ owner instead of working around it. The current contracts:
   - table tops 1.5;
   - workbench top 1.0.
 
-  The dining and game tables are 3 × 3 with four stools in a 5 × 5 layout. A seated
+  The dining and game tables are 3 × 3; the dining table takes four stools in a 5 × 5
+  layout and the game table two opposite stools (3 × 5). A seated
   dwarf sits 3 cells back on the stool, and no head cell may enter the tabletop
-  (`test_log_table`). The bench is 2 × 1 with one seat. Door leaves are `leaf_left`
-  and `leaf_right`, hinged at the outer edges.
+  (`test_log_table`). Every table cell stays inside the definition's
+  `seating_obstacles`, so seated legs stay clear (`test_hearthblock`), and the
+  board-game nod pivots at the neck, so a long beard swings back from the table edge.
+  The bench is 2 × 1 with one seat. Door leaves are `leaf_left` and `leaf_right`,
+  hinged at the outer edges.
 - **Dwarves** grip tools at the palm, cell (17, 20, 3). The support grip is 10 cells up
   the haft. Strike points are axe (0, 17, 11) and pickaxe (0, 22, 15). The head obeys
   these layout rules:
@@ -122,7 +144,8 @@ owner instead of working around it. The current contracts:
   - beards end at y ≥ 12 so a striding boot passes under them;
   - below y 18, anything on the head stays within z 11.
 
-  A lying head rests on its lowest cell.
+  A lying head rests on its lowest cell, measured once per dwarf (`DwarfRestBehavior`),
+  so a back bun lifts the head instead of sinking into the bed.
 - **Animals** keep their navigation footprints and clearances. Deer need four blocks of
   headroom, and the rabbit fits one block. Squash and stretch keeps volume and feet,
   and no foot dips below ground.
@@ -130,7 +153,7 @@ owner instead of working around it. The current contracts:
   every growth, season, picked and packed state. Trunk footprints come from each tree
   definition. Saplings and wild plants never block movement.
 - **Rocks:** boulders are 2 × 2 × 2 and block movement. Scree is 3 × 3 and stays low
-  enough to walk over.
+  enough to walk over, at most half a block high.
 - **Goods** keep their footprints, so carrying, crates and stockpile tiles are
   unchanged.
 - **Terrain** blocks stay one unit; the dressing is shader-only.
@@ -146,16 +169,25 @@ owner instead of working around it. The current contracts:
 | Bushes, wildflowers, reeds | `tools/voxel_assets/plants.py` (notched square clumps) |
 | Stored goods the game can produce | `tools/voxel_assets/hearthblock_goods.py` |
 | Boulders and scree | `tools/voxel_assets/rocks.py` |
-| Plank floor, materials crate | `tools/voxel_assets/construction.py` |
+| Materials crate | `tools/voxel_assets/construction.py` |
 | Terrain dressing | `terrain_appearance.gdshaderinc`, `appearance_profiles.json` |
-| Menu pictures | `FurnitureCatalogThumbnails.gd`, `InventoryCatalogThumbnails.gd`, `GenerateFloorIcons.gd` |
+| Menu pictures | `FurnitureCatalogThumbnails.gd`, `InventoryCatalogThumbnails.gd` |
+| UI icons (doc 259) | `tools/hearthblock/art/icons.mjs`, rendered by `tools/GenerateUiIcons.gd` |
+| The Sky Dial (doc 23) | `tools/hearthblock/art/sky.mjs`, rendered to layers by `tools/GenerateUiIcons.gd` |
 
 Placeholders that are not Hearthblock yet, because the game cannot produce them yet:
-crops; the stone floor (it needs a Stonemason); drinks, staves, cloth, honey, the water
+crops; drinks, staves, cloth, honey, the water
 bucket, grapes, hops, plump helmet, pig tail and their cuttings and seeds; the fossil
 and the gold coin. Author each one in Hearthblock when its feature arrives. Don't
-convert content ahead of its feature. The painted loading screens and the illustrated
-menus are a separate medium.
+convert content ahead of its feature.
+
+UI icons are Hearthblock too (owner, 2026-10-23):
+each is a small Hearthblock model rendered with a dark outline and drawn on a tile in its
+command family's colour. Since 2026-10-26 every UI icon is one, the badges over dwarves'
+heads included, except the DEV-only Development menu's painted sheet (`00_todo.md`).
+The Sky Dial is Hearthblock too: a stone window onto the sky, built from models and
+rendered to layers (owner, 2026-10-26).
+The painted loading screens stay a separate medium.
 
 ## Making new art
 

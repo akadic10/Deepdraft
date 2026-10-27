@@ -76,18 +76,6 @@ func _run() -> void:
 	_build_second_room()
 	_drain_and_compare("shared door separates two rooms")
 	_expect(rooms.get_rooms().size() == 2, "shared boundary keeps two rooms")
-	# Construction updates finished flooring, including tiles under furniture.
-	var plank := -1
-	# Resolve the authored construction key without assuming a particular material.
-	for key: String in blocks._key_to_id:
-		if blocks.get_def(key).get("kind", "") == "constructed_floor":
-			plank = blocks.get_id(key)
-			break
-	_expect(plank >= 0 and plank != blocks.AIR_ID, "constructed flooring available")
-	for x in range(61,69):
-		for z in range(61,69): world.set_block(x,20,z,plank)
-	_drain_and_compare("finished flooring")
-	_expect(rooms.get_room_at(room_probe).flooring_complete, "complete constructed floor earns appeal")
 	# Restart/reload discards old jobs and registrations before furniture restore.
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
 	rooms._mark_dirty()
@@ -154,7 +142,7 @@ func _drain_and_compare(label: String) -> void:
 	_expect(reference._cell_to_room.size() == rooms._cell_to_room.size(), label + ": exact cell count")
 	for room: Dictionary in rooms.get_rooms().values():
 		var other: Dictionary = reference.get_room_at(room.cells.keys()[0])
-		_expect(room == other, label + ": exact geometry, climate, flooring and bedroom fields")
+		_expect(room == other, label + ": exact geometry, climate and bedroom fields")
 	comparisons += 1
 
 func _observe_commit(_id: int) -> void:

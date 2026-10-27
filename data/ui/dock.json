@@ -1,17 +1,12 @@
 {
-  "__comment": "Hearth & iron illustrated command dock. Icon regions use the approved concept atlas; labels appear on hover/focus. UIRegistry owns layout; DockUI owns dispatch.",
+  "__comment": "Command dock. Dock items and the Orders, Zones, Construction and Crafters menus show Hearthblock icons (assets/ui/icons, doc 259) on their family tile (icon_families.json); other menus keep the illustrated atlas regions until their icon pass. Labels appear on hover/focus. Colony opens its page, and 'colony' lists the entries that page shows as buttons (doc 23). UIRegistry owns layout; DockUI owns dispatch.",
   "schema_version": 2,
   "items": [
     {
       "id": "orders",
       "label": "Orders",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        64,
-        100,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/orders.png",
+      "family": "work",
       "tooltip": "Mining, chopping and cancelling work orders",
       "action": "open_panel",
       "target": "orders"
@@ -19,13 +14,8 @@
     {
       "id": "zones",
       "label": "Zones",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        349,
-        100,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/zones.png",
+      "family": "work",
       "tooltip": "Designate storage areas. Farming and animal pastures are planned.",
       "action": "open_panel",
       "target": "zones"
@@ -33,13 +23,8 @@
     {
       "id": "rooms",
       "label": "Rooms",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        634,
-        100,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/rooms.png",
+      "family": "settlement",
       "tooltip": "Inspect enclosed rooms, temperature and lighting",
       "action": "toggle_window",
       "target": "rooms"
@@ -47,27 +32,17 @@
     {
       "id": "construction",
       "label": "Construction",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        922,
-        100,
-        268,
-        264
-      ],
-      "tooltip": "Build stone blocks and plan permanent floors",
+      "icon": "res://assets/ui/icons/construction.png",
+      "family": "work",
+      "tooltip": "Build blocks and shapes, copy what you built and place blueprints",
       "action": "open_panel",
       "target": "construction"
     },
     {
       "id": "place",
       "label": "Place",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        1209,
-        100,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/place.png",
+      "family": "settlement",
       "tooltip": "Place finished furniture and replant uprooted shrubs",
       "action": "open_panel",
       "target": "place"
@@ -75,13 +50,8 @@
     {
       "id": "craft",
       "label": "Craft",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        64,
-        411,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/craft.png",
+      "family": "settlement",
       "tooltip": "Choose a profession to open its crafting menu",
       "action": "open_panel",
       "target": "craft"
@@ -89,57 +59,46 @@
     {
       "id": "colony",
       "label": "Colony",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        349,
-        411,
-        268,
-        264
-      ],
-      "tooltip": "Dwarves and settlement",
-      "action": "open_panel",
+      "icon": "res://assets/ui/icons/colony.png",
+      "family": "people",
+      "tooltip": "Your settlement at a glance: its name, dwarves, food, beds, storage and happiness",
+      "action": "toggle_window",
       "target": "colony"
     },
     {
       "id": "stocks",
       "label": "Inventory",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        634,
-        411,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/stocks.png",
+      "family": "people",
       "tooltip": "Browse colony supplies, check quantities and find items",
       "action": "open_panel",
       "target": "stocks"
     },
     {
+      "id": "events",
+      "label": "Events",
+      "icon": "res://assets/ui/icons/events.png",
+      "family": "people",
+      "tooltip": "Arrivals, discoveries, colony news and warnings. The count shows what is new; it turns rust while a warning stands.",
+      "action": "toggle_window",
+      "target": "events"
+    },
+    {
       "id": "system",
       "label": "Menu",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        922,
-        411,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/system.png",
+      "family": "system",
       "separator_before": true,
-      "tooltip": "Save, load and utilities",
-      "action": "open_panel",
+      "tooltip": "Save, load, start a new colony, settings and exit. Esc opens it too.",
+      "action": "game_menu",
       "target": "system"
     },
     {
       "id": "development",
       "dev": true,
       "label": "Development",
-      "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-      "icon_region": [
-        1209,
-        411,
-        268,
-        264
-      ],
+      "icon": "res://assets/ui/icons/development.png",
+      "family": "system",
       "separator_before": true,
       "tooltip": "Development and testing tools",
       "action": "open_panel",
@@ -153,70 +112,40 @@
       "dock_anchor": "construction",
       "items": [
         {
-          "id": "stone_block",
-          "label": "Stone block",
-          "icon": "res://assets/ui/dock/construction_atlas.png",
-          "icon_region": [
-            240,
-            32,
-            504,
-            450
-          ],
-          "tooltip": "Requires 1 rough stone per full block. Haulers fill a temporary materials crate using their normal carrying capacity, then a builder hammers each block for 3 seconds. Click or drag; Alt + wheel adjusts height.",
+          "id": "build",
+          "label": "Build",
+          "icon": "res://assets/ui/icons/build.png",
+          "family": "work",
+          "tooltip": "Place blocks of stone, dirt, grass or wood: 1 rough stone, soil or log a block. Q and E change the material. Haulers fill a materials crate, then a builder hammers each block for 3 seconds. Click or drag; Alt + wheel adjusts height.",
           "action": "activate_tool",
-          "target": "construct_stone"
+          "target": "construct_build"
         },
         {
-          "id": "floors",
-          "label": "Floors",
-          "icon": "res://assets/ui/dock/construction_atlas.png",
-          "icon_region": [
-            793,
-            32,
-            504,
-            450
-          ],
-          "tooltip": "Plan permanent plank or stone floors. Carpenter and Stonemason construction is planned; workers cannot build floors yet.",
-          "action": "open_panel",
-          "target": "construction_floors"
-        }
-      ]
-    },
-    "construction_floors": {
-      "title": "Permanent floors",
-      "parent": "construction",
-      "illustrated": true,
-      "dock_anchor": "construction",
-      "items": [
-        {
-          "id": "plank_floor",
-          "label": "Simple plank floor",
-          "icon": "res://assets/ui/dock/construction_atlas.png",
-          "icon_region": [
-            240,
-            502,
-            504,
-            458
-          ],
-          "preview": true,
-          "tooltip": "Plan full-block plank flooring after mining a supporting layer. Carpenter construction is planned; workers cannot build it yet. Fully floored rooms gain +5 appeal.",
+          "id": "shapes",
+          "label": "Shapes",
+          "icon": "res://assets/ui/icons/shapes.png",
+          "family": "work",
+          "tooltip": "Lay Build's materials out as a shape: a rectangle or a circle, as walls or filled, or a flight of stairs. Tab changes the shape and Q and E the material. Each block is still planned, built and mined on its own.",
           "action": "activate_tool",
-          "target": "construct_plank_floor"
+          "target": "construct_shapes"
         },
         {
-          "id": "stone_floor",
-          "label": "Simple stone floor",
-          "icon": "res://assets/ui/dock/construction_atlas.png",
-          "icon_region": [
-            793,
-            502,
-            504,
-            458
-          ],
-          "preview": true,
-          "tooltip": "Plan full-block stone flooring after mining a supporting layer. Stonemason construction is planned; workers cannot build it yet. Fully floored rooms gain +5 appeal.",
+          "id": "copy",
+          "label": "Copy",
+          "icon": "res://assets/ui/icons/copy.png",
+          "family": "work",
+          "tooltip": "Drag a box round what you built or planned to keep it as a blueprint, every block as the material that builds it. Alt + wheel sets the box's height; F takes its floor too.",
           "action": "activate_tool",
-          "target": "construct_stone_floor"
+          "target": "construct_copy"
+        },
+        {
+          "id": "blueprints",
+          "label": "Blueprints",
+          "icon": "res://assets/ui/icons/blueprints.png",
+          "family": "work",
+          "tooltip": "The starter blueprints and your own: place one as plans, rename or delete yours, or open the folder their files are kept in to share them.",
+          "action": "toggle_window",
+          "target": "blueprints"
         }
       ]
     },
@@ -226,142 +155,92 @@
         {
           "id": "rudimentary",
           "label": "Rudimentary",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/worker.png",
+          "family": "settlement",
           "tooltip": "Worker recipes made with basic tools and the crude workbench.",
           "action": "open_crafting",
-          "target": "rudimentary",
-          "icon_region": [
-            14,
-            136,
-            294,
-            298
-          ]
+          "target": "rudimentary"
         },
         {
           "id": "carpenter",
           "label": "Carpenter",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/carpenter.png",
+          "family": "settlement",
           "tooltip": "Browse the carpentry catalog. Carpenter promotion is available; specialist production is planned.",
           "action": "open_crafting",
-          "target": "carpenter",
-          "icon_region": [
-            320,
-            136,
-            294,
-            298
-          ]
+          "target": "carpenter"
         },
         {
           "id": "stonemason",
           "label": "Stonemason",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/stonemason.png",
+          "family": "settlement",
           "tooltip": "Browse planned stonework and masonry designs.",
           "action": "open_crafting",
-          "target": "stonemason",
-          "icon_region": [
-            624,
-            136,
-            294,
-            298
-          ]
+          "target": "stonemason"
         },
         {
           "id": "blacksmith",
           "label": "Blacksmith",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/blacksmith.png",
+          "family": "settlement",
           "tooltip": "Browse planned metalworking designs.",
           "action": "open_crafting",
-          "target": "blacksmith",
-          "icon_region": [
-            928,
-            136,
-            294,
-            298
-          ]
+          "target": "blacksmith"
         },
         {
           "id": "weaponsmith",
           "label": "Weaponsmith",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/weaponsmith.png",
+          "family": "settlement",
           "tooltip": "Browse planned weapons and weapon-making tools.",
           "action": "open_crafting",
-          "target": "weaponsmith",
-          "icon_region": [
-            1230,
-            136,
-            294,
-            298
-          ]
+          "target": "weaponsmith"
         },
         {
           "id": "armorsmith",
           "label": "Armorsmith",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/armorsmith.png",
+          "family": "settlement",
           "tooltip": "Browse planned armor and protective equipment.",
           "action": "open_crafting",
-          "target": "armorsmith",
-          "icon_region": [
-            14,
-            480,
-            294,
-            298
-          ]
+          "target": "armorsmith"
         },
         {
           "id": "farmer",
           "label": "Farmer",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/farmer.png",
+          "family": "settlement",
           "tooltip": "Browse planned farming tools and supplies.",
           "action": "open_crafting",
-          "target": "farmer",
-          "icon_region": [
-            320,
-            480,
-            294,
-            298
-          ]
+          "target": "farmer"
         },
         {
           "id": "hunter",
           "label": "Hunter",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/hunter.png",
+          "family": "settlement",
           "tooltip": "Browse planned hunting equipment.",
           "action": "open_crafting",
-          "target": "hunter",
-          "icon_region": [
-            624,
-            480,
-            294,
-            298
-          ]
+          "target": "hunter"
         },
         {
           "id": "miner",
           "label": "Miner",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/miner.png",
+          "family": "settlement",
           "tooltip": "Browse the mining-equipment catalog. Miner is already a playable profession; this crafting catalog is a preview.",
           "action": "open_crafting",
-          "target": "miner",
-          "icon_region": [
-            928,
-            480,
-            294,
-            298
-          ]
+          "target": "miner"
         },
         {
           "id": "brewer",
           "label": "Brewer",
-          "icon": "res://assets/ui/dock/craft_atlas.png",
+          "icon": "res://assets/ui/icons/brewer.png",
+          "family": "settlement",
           "tooltip": "Browse planned brewing and aging equipment.",
           "action": "open_crafting",
-          "target": "brewer",
-          "icon_region": [
-            1230,
-            480,
-            294,
-            298
-          ]
+          "target": "brewer"
         }
       ],
       "illustrated": true,
@@ -375,13 +254,8 @@
         {
           "id": "mine",
           "label": "Mine blocks",
-          "icon": "res://assets/ui/dock/orders_atlas.png",
-          "icon_region": [
-            340,
-            98,
-            276,
-            258
-          ],
+          "icon": "res://assets/ui/icons/mine.png",
+          "family": "work",
           "tooltip": "Drag to mark blocks. Shift + wheel changes width; Alt + wheel changes depth. Ctrl removes marks.",
           "action": "activate_tool",
           "target": "mine_precision"
@@ -389,13 +263,8 @@
         {
           "id": "chop",
           "label": "Chop trees",
-          "icon": "res://assets/ui/dock/orders_atlas.png",
-          "icon_region": [
-            632,
-            98,
-            276,
-            258
-          ],
+          "icon": "res://assets/ui/icons/chop.png",
+          "family": "work",
           "tooltip": "Click a tree or drag around several to mark them for felling.",
           "action": "activate_tool",
           "target": "chop"
@@ -403,13 +272,8 @@
         {
           "id": "clear_stones",
           "label": "Clear stones",
-          "icon": "res://assets/ui/dock/orders_atlas.png",
-          "icon_region": [
-            924,
-            98,
-            276,
-            258
-          ],
+          "icon": "res://assets/ui/icons/clear_stones.png",
+          "family": "work",
           "tooltip": "Click or drag to mark boulders and loose-stone clumps. Workers break boulders or gather scree for rough stone.",
           "action": "activate_tool",
           "target": "clear_stones"
@@ -417,13 +281,8 @@
         {
           "id": "harvest_plants",
           "label": "Harvest plants",
-          "icon": "res://assets/ui/dock/orders_atlas.png",
-          "icon_region": [
-            340,
-            395,
-            276,
-            254
-          ],
+          "icon": "res://assets/ui/icons/harvest_plants.png",
+          "family": "work",
           "tooltip": "Click ripe shrubs, apple trees or junipers, or drag an area. Workers gather fruit and keep the plants for later harvests.",
           "action": "activate_tool",
           "target": "harvest_plants"
@@ -431,13 +290,8 @@
         {
           "id": "clear_shrubs",
           "label": "Clear plants",
-          "icon": "res://assets/ui/dock/orders_atlas.png",
-          "icon_region": [
-            632,
-            395,
-            276,
-            254
-          ],
+          "icon": "res://assets/ui/icons/clear_plants.png",
+          "family": "work",
           "tooltip": "Permanently remove shrubs, flowers and reeds. Shrubs yield a cutting; flowers and reeds yield no items.",
           "action": "activate_tool",
           "target": "clear_shrubs"
@@ -445,13 +299,8 @@
         {
           "id": "cancel",
           "label": "Cancel orders",
-          "icon": "res://assets/ui/dock/orders_atlas.png",
-          "icon_region": [
-            924,
-            395,
-            276,
-            254
-          ],
+          "icon": "res://assets/ui/icons/cancel.png",
+          "family": "work",
           "separator_before": true,
           "tooltip": "Click or drag across marked blocks, trees, stones and shrubs to cancel work. Partial progress is kept.",
           "action": "activate_tool",
@@ -465,13 +314,8 @@
         {
           "id": "storage_zone",
           "label": "Storage",
-          "icon": "res://assets/ui/dock/zones_atlas.png",
-          "icon_region": [
-            70,
-            260,
-            444,
-            436
-          ],
+          "icon": "res://assets/ui/icons/storage_zone.png",
+          "family": "work",
           "tooltip": "Drag over clear, walkable ground to create a storage zone. Select a finished zone to choose accepted goods.",
           "action": "activate_tool",
           "target": "storage_zone"
@@ -479,13 +323,8 @@
         {
           "id": "farming_zone",
           "label": "Farming",
-          "icon": "res://assets/ui/dock/zones_atlas.png",
-          "icon_region": [
-            547,
-            260,
-            444,
-            436
-          ],
+          "icon": "res://assets/ui/icons/farming_zone.png",
+          "family": "work",
           "tooltip": "Crop-growing zones are planned. Fields and farming work are not available yet.",
           "planned": true,
           "action": "activate_tool",
@@ -494,13 +333,8 @@
         {
           "id": "animal_pasture",
           "label": "Animal pasture",
-          "icon": "res://assets/ui/dock/zones_atlas.png",
-          "icon_region": [
-            1020,
-            260,
-            444,
-            436
-          ],
+          "icon": "res://assets/ui/icons/animal_pasture.png",
+          "family": "work",
           "tooltip": "Grazing zones for livestock are planned. Pasture designation and animal keeping are not available yet.",
           "planned": true,
           "action": "activate_tool",
@@ -517,27 +351,8 @@
           "action": "toggle_window",
           "target": "dwarves",
           "tooltip": "Your dwarves, their current work and rest",
-          "icon": "res://assets/ui/dock/colony_atlas.png",
-          "icon_region": [
-            244,
-            36,
-            494,
-            450
-          ]
-        },
-        {
-          "id": "flag",
-          "label": "Settlement flag",
-          "action": "toggle_window",
-          "target": "flag",
-          "icon": "res://assets/ui/dock/colony_atlas.png",
-          "icon_region": [
-            798,
-            36,
-            494,
-            450
-          ],
-          "tooltip": "Found your settlement, or locate and inspect its existing flag. Packed flags can be placed again."
+          "icon": "res://assets/ui/icons/dwarves.png",
+          "family": "people"
         },
         {
           "id": "labor",
@@ -545,13 +360,17 @@
           "action": "toggle_window",
           "target": "labor",
           "tooltip": "Manage real dwarf work permissions in the colony roster",
-          "icon": "res://assets/ui/dock/colony_atlas.png",
-          "icon_region": [
-            244,
-            506,
-            494,
-            450
-          ]
+          "icon": "res://assets/ui/icons/labor.png",
+          "family": "people"
+        },
+        {
+          "id": "flag",
+          "label": "Settlement flag",
+          "action": "toggle_window",
+          "target": "flag",
+          "icon": "res://assets/ui/icons/flag.png",
+          "family": "people",
+          "tooltip": "Locate and inspect the settlement's flag. Packed flags can be placed again."
         },
         {
           "id": "trade",
@@ -559,114 +378,18 @@
           "action": "toggle_window",
           "target": "trade",
           "tooltip": "View the trade preview. Merchants and trading are not available yet.",
-          "icon": "res://assets/ui/dock/colony_atlas.png",
-          "icon_region": [
-            798,
-            506,
-            494,
-            450
-          ],
+          "icon": "res://assets/ui/icons/trade.png",
+          "family": "people",
           "planned": true,
           "status_label": "Planned trade"
         }
-      ],
-      "illustrated": true,
-      "dock_anchor": "colony"
+      ]
     },
     "stocks": {
       "title": "Colony Inventory"
     },
-    "system": {
-      "title": "Colony menu",
-      "items": [
-        {
-          "id": "new_game",
-          "label": "New Game",
-          "action": "panel_action",
-          "target": "system",
-          "icon": "res://assets/ui/dock/colony_atlas.png",
-          "icon_region": [798, 36, 494, 450],
-          "tooltip": "Start a fresh world. Unsaved progress is discarded; existing save files are kept."
-        },
-        {
-          "id": "save_load",
-          "label": "Save / Load",
-          "action": "open_panel",
-          "target": "save_load",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            14,
-            36,
-            294,
-            288
-          ],
-          "tooltip": "Save or restore your settlement."
-        },
-        {
-          "id": "audio",
-          "label": "Audio",
-          "action": "toggle_window",
-          "target": "audio",
-          "icon": "res://assets/ui/dock/hearth_iron_atlas.png",
-          "icon_region": [922, 411, 268, 264],
-          "tooltip": "Adjust ambience and effects volume."
-        }
-      ],
-      "illustrated": true,
-      "dock_anchor": "system"
-    },
     "place": {
       "title": "Place an item"
-    },
-    "save_load": {
-      "title": "Save / Load",
-      "parent": "system",
-      "illustrated": true,
-      "dock_anchor": "system",
-      "items": [
-        {
-          "id": "save_game",
-          "label": "Save game",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            926,
-            36,
-            294,
-            288
-          ],
-          "tooltip": "Save the current settlement to the manual save slot.",
-          "action": "panel_action",
-          "target": "save_load"
-        },
-        {
-          "id": "load_game",
-          "label": "Load game",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            1230,
-            36,
-            294,
-            288
-          ],
-          "tooltip": "Restore the manual save, replacing the current running settlement.",
-          "action": "panel_action",
-          "target": "save_load"
-        },
-        {
-          "id": "load_autosave",
-          "label": "Load autosave",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            14,
-            358,
-            294,
-            288
-          ],
-          "tooltip": "Restore the latest autosave, replacing the current running settlement.",
-          "action": "panel_action",
-          "target": "save_load"
-        }
-      ]
     },
     "development": {
       "dev": true,
@@ -757,10 +480,10 @@
           ]
         },
         {
-          "id": "spawn_drops",
-          "label": "Spawn Drops",
-          "action": "panel_action",
-          "target": "storage_zone",
+          "id": "item_stamper",
+          "label": "Item stamper",
+          "action": "toggle_window",
+          "target": "item_stamper",
           "icon": "res://assets/ui/dock/utilities_atlas.png",
           "icon_region": [
             622,
@@ -768,29 +491,7 @@
             294,
             288
           ],
-          "tooltip": "Spawn test resource drops near the camera."
-        },
-        {
-          "id": "spawn_furniture",
-          "label": "Spawn Furniture",
-          "action": "panel_action",
-          "target": "storage_zone",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            926,
-            674,
-            294,
-            288
-          ],
-          "tooltip": "Spawn test furniture items near the camera."
-        },
-        {
-          "id": "spawn_bushes",
-          "label": "Spawn Bushes",
-          "action": "panel_action",
-          "target": "storage_zone",
-          "icon": "res://assets/ui/items/base_resources_plant_blueberry_bush.png",
-          "tooltip": "DEV: Spawn an uprooted blueberry, elderberry and strawberry bush near the camera. Dwarves can haul them or replant them through Place → Plants."
+          "tooltip": "DEV: Put any item on a floor: pick it, set the amount and wood, then click floors. Dwarves carry goods to storage."
         },
         {
           "id": "time_weather_development",
@@ -815,44 +516,31 @@
   },
   "room_symbols": {
     "beds": {
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        12,
-        660,
-        294,
-        290
-      ]
+      "icon": "res://assets/ui/furniture/log_bed.png"
     },
-    "flooring": {
-      "icon": "res://assets/ui/dock/construction_atlas.png",
-      "icon_region": [
-        793,
-        32,
-        504,
-        450
-      ]
+    "lights": {
+      "icon": "res://assets/ui/furniture/wooden_torch.png"
     },
-    "appeal": {
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [1230, 54, 294, 290]
+    "doors": {
+      "icon": "res://assets/ui/furniture/door.png"
+    },
+    "walls": {
+      "icon": "res://assets/ui/icons/rooms.png"
+    },
+    "heating": {
+      "icon": "res://assets/ui/furniture/hearth.png"
     },
     "temperature": {
-      "icon": "res://assets/ui/dock/utilities_atlas.png",
-      "icon_region": [
-        318,
-        36,
-        294,
-        288
-      ]
+      "icon": "res://assets/ui/icons/thermometer.png"
     },
-    "lighting": {
-      "icon": "res://assets/ui/dock/categories_atlas.png",
-      "icon_region": [
-        926,
-        54,
-        294,
-        290
-      ]
+    "appeal": {
+      "icon": "res://assets/ui/icons/appeal.png"
+    },
+    "loose": {
+      "icon": "res://assets/ui/items/base_resources_stone_rough_stone.png"
+    },
+    "stocked": {
+      "icon": "res://assets/ui/icons/storage_zone.png"
     }
   }
 }

@@ -1,6 +1,6 @@
 # 256 — Hearthblock art: Tier 1 furniture, every dwarf, all animals, trees, wild plants and stored goods
 
-Step 2 of the Hearthblock direction (see [255](255_hearthblock_lighting_pass.md) and
+Step 2 of the Hearthblock direction (after the lighting pass, doc 255, now in
 [64](../60_asset_creation/64_hearthblock_art_direction.md)), built in the game rather
 than in a study viewer. The pilot (stool, dining table, torch, campfire, one dwarf)
 was accepted on 2026-10-20; the owner then asked for the Tier 1 furniture pass and
@@ -162,9 +162,9 @@ good keeps its old footprint, so carrying, crates and stockpile tiles are unchan
 - **Plank floor** (`construction.py`): Tier 1 split planks, two eight-cell boards per
   tile over a dark joist layer, with dark seams, staggered ends, pegs, grain, a knot
   and an axe chop. The alternate tile flips the stagger. Both stay solid 16-cell
-  blocks.
+  blocks. Removed with the floors on 2026-10-26.
 - **Materials crate:** the same axe-hewn crate as the stockpile goods.
-- **Stone floor:** unchanged. It needs a Stonemason, who is not in the game yet.
+- **Stone floor:** unchanged, then removed with the floors on 2026-10-26.
 - **Clothing colours:** each dwarf wears one of six tunic colours: teal, rust, moss,
   slate, ochre and plum (`DwarfAssets.CLOTHING`).
   - The baked teal torso and both mitten cuffs are recoloured with the same

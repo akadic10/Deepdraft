@@ -21,7 +21,7 @@ func _run() -> void:
 	world = root.get_node("WorldData")
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
-	world.set_block(40,20,40,blocks.get_id("base:terrain:surface:grass_01"))
+	world.set_block(40,20,40,blocks.get_id("base:terrain:surface:grass"))
 	scene = Node3D.new()
 	root.add_child(scene)
 	current_scene = scene

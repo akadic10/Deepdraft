@@ -5,21 +5,28 @@ their appearance across the first night of a season. Harvest eligibility and
 crop cycles still change at midnight; harvest/removal actions use current
 logical state. Tree bodies, occupancy and chopping work survive visual swaps.
 Saving preserves gameplay state; a paused load rebuilds target art through
-bounded frames. See [194](../00_dev_roadmap/194_gradual_season_transition.md).
+bounded frames. The owner asked for this gradual overnight change rather than the
+world swapping in one frame (doc 194); the old path despawned and respawned every
+tree, so the forest briefly vanished. `SurfaceFloraSpawner` swaps only a tree's art
+node and skips trees whose model path does not change. `SurfaceDetailManager` keeps
+a separate seasonal queue; spawning, harvesting, growth and transplanting stay
+immediate, so a new or just-picked plant can show the new season before its
+neighbours. The night schedule and queue rules are in doc 13 (`WorldClock`).
 
-**Zones navigation, 2026-10-12:** [137 — Illustrated Zones](../00_dev_roadmap/137_illustrated_zones.md)
-reserves visible Farming and Animal pasture entries beside live Storage. Both
+**Zones navigation, 2026-10-12 (doc 137):** Zones reserves visible Farming and Animal
+pasture entries beside live Storage (doc 23, "Navigation Groups"). Both
 are explicitly planned and only explain their status; no farm or pasture zones,
 worker jobs, livestock ownership or crop cultivation are enabled by this UI pass.
 
-**Food foundation, 2026-10-12:** [131 — Food and dining](../00_dev_roadmap/131_dwarf_food_and_dining.md)
-adds eating fresh fruit and repeat berry-bush crops. Dwarves prefer reachable
-stored food, then allowed loose portions. Famished dwarves may pick a ripe,
-unclaimed bush within 24 blocks of routed travel when harvested food is unavailable.
-Normal crop work, yield and regrowth still apply: one portion is carried for eating,
-surplus berries remain haulable, and interrupted work saves on the plant.
-Dining and hunger penalties are live. Edibility/nutrition are explicit item data,
-so later cooked food and edible meats can share the same behavior.
+**Food foundation, 2026-10-12 (doc 131):** dwarves eat fresh fruit, and berry bushes
+give repeat crops. Dwarves prefer reachable stored food, then allowed loose portions.
+Famished dwarves may pick a ripe, unclaimed bush within 24 blocks of routed travel when
+harvested food is unavailable. Normal crop work, yield and regrowth still apply: one
+portion is carried for eating, surplus berries remain haulable, and interrupted work
+saves on the plant. The picker never clears or uproots the bush or skips its regrowth.
+Dining and hunger penalties are live; the eating and dining rules are in doc 41.
+Edibility/nutrition are explicit item data, so later cooked food and edible meats can
+share the same behavior.
 
 ## Overview
 
@@ -45,15 +52,22 @@ and breweries require hauling or a later, separately designed lifting system.
 
 ## Wild berry harvest — live 2026-10-08
 
-**Habitat, spacing and flower relocation — live 2026-10-09:** wild berry bushes
-root on grass/dirt/soil below Y44. Player cultivation may use suitable soil at
-any height. Bushes, cuttings and flowers reserve exclusive 3×3 planting areas,
-including queued orders, while keeping single-cell roots and no collision.
-Flowers now support Move/Uproot and variant-specific Place → Plants entries;
-seasonal packed art, identity and dormant/blooming state survive relocation and
-storage. See [85 — Plant habitats, spacing and flowers](../00_dev_roadmap/85_plant_habitats_spacing_flowers.md).
-JSON `bloom.seasons` and the manager's planted-clump queries are the future hive
-forage boundary. Only planted blooming clumps qualify; honey is not yet playable.
+**Habitat, spacing and flower relocation — live 2026-10-09 (doc 85):** wild berry
+bushes root on grass/dirt/soil at Y4–43, below the mountain boundary Y44; wild
+flowers keep Y4–70 (`placement` in the JSON). These bands limit generation only:
+player cultivation may use suitable soil (`transplant.ground_kinds`) at any
+height. Bushes, cuttings and flowers reserve exclusive 3×3 planting areas,
+including queued orders, while keeping single-cell roots and no collision (rules
+under Surface details). Flowers now support Move/Uproot and variant-specific
+Place → Plants entries: 1.5 seconds to uproot, 1.25 to replant, and each shape is
+its own unstackable packed item (one heavy carry load, one Seeds & cuttings
+slot). Seasonal packed art, identity and dormant/blooming state survive
+relocation and storage; moving or clearing a flower yields nothing. JSON
+`bloom.seasons` and `SurfaceDetailManager.flower_blooming(id)` /
+`flowering_clumps(center, radius)` are the future hive forage boundary: only
+living, planted clumps in bloom count, at their current locations, so packed,
+stored and cleared flowers never do and Move or reload never resets bloom. Honey
+is not yet playable.
 
 **Flower follow-up:** the shared clearing tool is now **Clear plants**. Decorative
 wildflowers have four seasonal appearances, no harvest action or resource yield,
@@ -75,46 +89,54 @@ Use the individual inspector or **Orders → Harvest plants / Clear shrubs**.
 Cuttings use existing crates and the **Seeds & cuttings** stockpile filter. Each
 completed clearing grants its cutting only once; cancellation and reload cannot
 repeat the reward. Construction/excavation displacement grants no cutting.
-Farm plots and brewing remain future work. Fruit consumption is live in 131.
+Farm plots and brewing remain future work. Fruit consumption is live (doc 41).
 
 **Mature shrub relocation — live 2026-10-08:** inspector **Move** replants the
 selected whole bush at chosen open ground; **Uproot** packs it for storage and
 later **Place → Plants**. Each takes three seconds of uprooting, with another
-1.25 seconds to replant. Replanting starts animating on arrival and includes the
-set-down in that duration; see [83 — Shrub planting animation](../00_dev_roadmap/83_shrub_planting_animation.md).
-These actions preserve identity and the seasonal crop
+1.25 seconds to replant (`wild.transplant.uproot_seconds` / `plant_seconds`).
+Replanting starts animating on arrival and includes the set-down in that
+duration (doc 83). These actions preserve identity and the seasonal crop
 without yielding fruit or cuttings. Whole shrubs use seasonal wrapped-root art,
 one heavy carry load and one storage slot in Seeds & cuttings. Player placement
 uses suitable dry ground and a clear 3×3 envelope under open sky, independently
 of world-generation habitat bands.
 
-**Cutting growth — live 2026-10-08:** **Place → Plants** also plants one cutting
-per young shrub, with three seconds of worker planting. Blueberry/strawberry need
-3 growth days and elderberry 4. JSON seasonal multipliers are spring 1.2, summer
-1.0, autumn 0.8 and winter 0.0. Twelve young seasonal models show their growth
-stage without fruit. WorldClock-derived age survives save/load; maturity enables
-ordinary seasonal harvest and mature Move/Uproot. Young clearing returns one
-cutting. Inspector **DEV: Grow to maturity** provides a focused test shortcut.
-See [80 — Shrub cutting growth](../00_dev_roadmap/80_shrub_cutting_growth.md).
+**Cutting growth — live 2026-10-08 (doc 80):** **Place → Plants** also plants one
+cutting per young shrub, with three seconds of worker planting. Each planting
+takes one cutting from its crate (pickup, cancelling and the final site check are
+in doc 31, "Cutting planting"). Cuttings use the mature transplant's placement rules, with clearance
+checked for the mature plant. Blueberry/strawberry need 3 growth days and
+elderberry 4 (`stages.shrub.growth_duration_days`). JSON seasonal multipliers
+(`wild.planting.seasonal_growth`) are spring 1.2, summer 1.0, autumn 0.8 and
+winter 0.0. Age is the plant's `growth_credit` plus
+`WorldClock.seasonal_days_between()` since its `planted_at` day: one growth day
+is one in-game day at rate 1, pausing freezes it, and there is no wall-clock or
+offline growth. Twelve young seasonal models show their growth stage without
+fruit. WorldClock-derived age survives save/load; maturity enables ordinary
+seasonal harvest and mature Move/Uproot. Until then a young plant can only be
+cleared, which returns one cutting; construction or support loss removes it
+without a drop. Inspector **DEV: Grow to maturity** adds growth credit to that
+plant only, leaving the calendar and other crops unchanged.
 
 ## Agricultural Cycles
 
-**Apple harvesting — live 2026-10-19:** inspector **Gather apples** and **Orders →
-Harvest plants** gather fruit without felling. Mature trees yield 4–6 apples in
-four seconds; ancient trees yield 7–10 in six seconds, once each autumn. Saplings
-are too young. The fruit disappears after picking and returns next autumn;
-partial work and picked state survive saving. Gathered apples enter normal
+**Apple harvesting — live 2026-10-19 (doc 252):** inspector **Gather apples** and
+**Orders → Harvest plants** gather fruit without felling. Mature trees yield 4–6
+apples in four seconds; ancient trees yield 7–10 in six seconds, once each autumn.
+Saplings are too young. The fruit disappears after picking and returns next
+autumn; partial work and picked state survive saving. Gathered apples enter normal
 hauling and hungry dwarves can eat them. These are player-designated jobs, with
-no automatic annual orders. See [252 — Apple harvesting](../00_dev_roadmap/252_apple_harvesting.md).
+no automatic annual orders. Crop rules are under Fruit Trees below.
 
-**Juniper harvesting — live 2026-10-09:** standing mature and ancient junipers
-yield 2 and 4 berries respectively once each autumn, after three seconds of hand
-picking. Saplings are too young. Inspector **Harvest berries** and **Orders →
-Harvest plants** share the same player-designated task; no recurring orders are
-posted. Felling now grants wood and possible seeds only. JSON stage
+**Juniper harvesting — live 2026-10-09 (doc 84):** standing mature and ancient
+junipers yield 2 and 4 berries respectively once each autumn, after three seconds
+of hand picking. Saplings are too young. Inspector **Harvest berries** and
+**Orders → Harvest plants** share the same player-designated task; no recurring
+orders are posted. Felling now grants wood and possible seeds only. JSON stage
 `fruit_harvest` defines season, work and yield. Picked state, partial picking and
 felling work save separately, and eight berry-free models show depleted or
-out-of-season trees. See [84 — Juniper berry harvesting](../00_dev_roadmap/84_juniper_berry_harvesting.md).
+out-of-season trees.
 
 **Cave generation status (2026-10-07):** generated caves now expose existing
 soil deposits and can add a rough patch of `base:terrain:soil:cave` on a chamber
@@ -132,7 +154,7 @@ These crops require no light and cannot survive on surface dirt. Dwarves expose 
 |---|---|---|---|
 | `base:flora:plump_helmet` | 6 in-game days  | 4 food units    | Bulbous mushroom; primary underground food staple. Auto-reseeds from mycelium — no seed item needed. See `data/entities/flora/plump_helmet.json` |
 
-### Surface Crops (surface dirt — `base:terrain:surface:dirt_NN`)
+### Surface Crops (surface dirt — `base:terrain:surface:dirt`)
 
 These crops require open sky above the farm block (no ceiling within 10 blocks) and grow on the surface dirt exposed around the mountain entrance. Dwarves must venture outside to tend and harvest them.
 
@@ -164,7 +186,7 @@ Live irrigation uses three-cell Manhattan reach, weaker at distance, two game ho
 
 A surface dirt block is eligible for farming designation only if:
 
-1. The block type is any `base:terrain:surface:dirt_NN` variant.
+1. The block type is `base:terrain:surface:dirt`.
 2. There is **open sky** — no solid block within 10 blocks directly above (checked at designation time).
 3. There are **at least 3 clear air blocks** above for dwarf access.
 
@@ -397,8 +419,8 @@ Surface trees are **world objects, not farm crops**. They are the only surface e
 **Orders → Chop trees** and explorer actions. Per-stage work durations,
 partial progress, designations and felled records persist; authored felling drops
 enter the normal hauling system. Manual annual apple and juniper picking is live
-through **Orders → Harvest plants** and explorer actions. Growth timers and forestry
-zones remain planned. See docs 48, 84 and 252 for behavior and acceptance coverage.
+through **Orders → Harvest plants** and explorer actions (rules under Fruit Trees
+below). Growth timers and forestry zones remain planned.
 
 ### Collision Rule
 
@@ -472,11 +494,25 @@ crop there for ordinary hauling or eating. The tree persists.
 Cancel/Undo releases the worker without losing the
 current crop's partial work. The same tree cannot be picked twice that autumn;
 the next year's crop starts with fresh work. No automatic annual orders are posted.
+Only stages whose `fruit_harvest` has `work_seconds` post a job
+(`SurfaceFloraSpawner.can_harvest_tree`). A marked tree carries one action at a
+time, so felling and picking never run together: cancel one before ordering the
+other. Each keeps its own saved progress (`fell_work_seconds`,
+`harvest_work_seconds`), which never transfers. A crop is one year and season;
+completion stamps `harvested_cycle` before any fruit spawns, so cancellation,
+reload, streaming or a stale completion cannot repeat it, and leaving autumn
+cancels pending and active picking. The crop lands on the picker's own cell, the
+reachable side of the solid trunk.
 
-For world-spawned apple trees, `SurfaceFloraSpawner.resolve_tree_model_for_season()`
-selects `autumn_fruiting` only while that autumn's crop is unpicked. After picking,
-it uses the matching ordinary autumn model without fruit. Saved crop state drives
-the choice after reload or streaming; the trunk body and occupancy remain intact.
+`SurfaceFloraSpawner.resolve_tree_model_for_season()` takes a `picked` flag from
+the saved `harvested_cycle`. Stages with `picked_models` (juniper) use them after
+picking or outside `harvest_season`, so berries show only on an unpicked autumn
+crop. Apples select `autumn_fruiting` only while that autumn's crop is unpicked;
+after picking they use the matching ordinary autumn model without fruit. Saved
+crop state drives the choice after reload or streaming, and season reconciliation
+also runs when a restore changes only the year. A crop change replaces only the
+visual child (`_refresh_tree_crop_visual`); the trunk body, occupancy and
+reservations stay.
 
 **2. Chop harvest (destructive):** Works the same as any other tree — dwarf fells the tree, yielding wood and a seed drop. Apples come exclusively from the non-destructive fruit harvest, not the fell.
 
@@ -485,10 +521,14 @@ the choice after reload or streaming; the trunk body and occupancy remain intact
 | Apple | `base:resources:flora:apple` | Autumn | 4–6 | 7–10 |
 | Juniper | `base:resources:flora:juniper_berry` | Autumn | 2 | 4 |
 
-Apple yields use a deterministic tree/year hash within the authored inclusive
-range. Picking takes four seconds for mature apples and six for ancient apples;
-juniper picking takes three seconds at either adult stage. These values live in
-JSON. Hungry dwarves eat gathered fruit through the normal food system; emergency
+A yield is either a fixed `yield_count` (juniper) or an inclusive
+`yield_min`/`yield_max` (apple) picked by a deterministic tree/year hash, so
+interruption and reload cannot reroll it. Picking takes four seconds for mature
+apples and six for ancient apples; juniper picking takes three seconds at either
+adult stage. These values live in JSON, as do `action_label` and `yield_label`,
+which name the panel action and the worker's activity (apples: **Gather apples**,
+"Harvesting apples"; without them, **Harvest berries** and "berries"). Hungry
+dwarves eat gathered fruit through the normal food system; emergency
 self-foraging of standing plants still targets nearby ripe berry shrubs.
 
 > **Agent note**: Trees are the **only** surface entities with real collision shapes. Giving a `CollisionShape3D` to any farm crop violates the Single-Tile Asset Overflow Rule above.
@@ -531,6 +571,17 @@ beside the tree layer described under World placement and never change it.
   `PlacedEntityRegistry` and gets a `StaticBody3D` on physics Layer 2 with
   `collision_mask = 0`. Every other detail is non-blocking: no occupancy and no
   collider (Hard Rule 5 for plant overhangs).
+- **Plants keep exclusive planting areas.** Bushes and flowers have
+  `planting_radius` 1: `SurfaceDetailPlacement.planting_area()` covers the 3×3
+  columns around the root, from the ground's top up three blocks (or the plant's
+  height). Areas may touch but never overlap, so centres in a row stand at least
+  three blocks apart and two-block diagonal offsets are rejected; plants on
+  different terrain levels never collide just because their X/Z match.
+  Generation, moved and stored plants, cuttings (given the mature area from
+  planting) and queued Place destinations all use it. A queued plan reserves its
+  area at once, cancelling releases it, restore rebuilds it from the saved plan,
+  and a completing plan ignores only its own reservation. The areas carry no
+  occupancy, so dwarves walk through them.
 - **Reeds use actual nearby water.** A reed roots on a dry bank within
   `shore_radius` (4, Manhattan) of a generated water cell, 0–2 blocks above
   that body's local waterline (`min_bank_height` / `max_bank_height`). The
@@ -590,12 +641,17 @@ requested_season → "summer" → push_error and return ""
 Pine and Juniper omit `spring` and `autumn` deliberately — `"summer"` is their defined fallback for those seasons. The resolver must handle a missing key gracefully before attempting variant resolution.
 
 ```gdscript
-static func resolve_tree_model_for_season(stage_data: Dictionary, season: String, world_pos: Vector3i) -> String:
+static func resolve_tree_model_for_season(
+        stage_data: Dictionary, season: String, world_pos: Vector3i, picked := false) -> String:
     var models: Dictionary = stage_data.get("models", {})
-    if season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
+    var fruit: Dictionary = stage_data.get("fruit_harvest", {})
+    # Berry-free art after picking or out of season (juniper; see Fruit Trees).
+    if stage_data.has("picked_models") and (picked or season != String(fruit.get("harvest_season", ""))):
+        models = stage_data.picked_models
+    if not picked and season == "autumn" and stage_data.has("fruit_harvest") and models.has("autumn_fruiting"):
         return resolve_tree_model(models["autumn_fruiting"], world_pos)
     var value = models.get(season, models.get("summer", ""))
-    if value == "":
+    if value is String and value == "":
         push_error("resolve_tree_model_for_season: no model for season '%s'" % season)
         return ""
     return resolve_tree_model(value, world_pos)

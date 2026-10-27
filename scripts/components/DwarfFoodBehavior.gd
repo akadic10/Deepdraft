@@ -259,6 +259,8 @@ func _finish_meal() -> void:
 	last_meal = key
 	last_dining = _dining.outcome()
 	agent._mood.record_dining(last_dining)
+	agent.meet_pieces(_dining.used_pieces())
+	agent.get_mood().record_room("ate", RoomManager.appeal_at(agent.current_cell() + Vector3i.UP))
 	hours_since_meal = 0.0
 	portion.queue_free()
 	portion = null

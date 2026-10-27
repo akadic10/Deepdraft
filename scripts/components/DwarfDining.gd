@@ -196,6 +196,10 @@ func outcome() -> String:
 	if choice.get("seat") != null: return "proper" if choice.get("table") != null else "seat_only"
 	return "table_only" if choice.get("table") != null else "neither"
 
+## The meal's seat and table, those it had: what the dwarf used (doc 41 "Tastes").
+func used_pieces() -> Array:
+	return [choice.get("seat"), choice.get("table")].filter(func(piece: Variant) -> bool: return piece != null)
+
 ## A completed meal can become ordinary idle rest in the same chair. Transfer
 ## the exclusive claim before cleanup; the table claim still belongs to dining.
 func continue_seated() -> bool:

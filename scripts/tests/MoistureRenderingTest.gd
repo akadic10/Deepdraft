@@ -37,8 +37,8 @@ func _run() -> void:
 	gen._maps_ready = true
 	var world := root.get_node("WorldData")
 	world.get_chunk(4,0,4) # Keep this bounded fixture independent of generation.
-	var grass: int = blocks.get_id("base:terrain:surface:grass_01")
-	var dirt: int = blocks.get_id("base:terrain:surface:dirt_01")
+	var grass: int = blocks.get_id("base:terrain:surface:grass")
+	var dirt: int = blocks.get_id("base:terrain:surface:dirt")
 	var chunk: Chunk = world.get_chunk(4,0,4)
 	terrain = Terrain.new()
 	root.add_child(terrain)

@@ -528,9 +528,18 @@ func get_explorer_data(id: Variant) -> Dictionary:
 		for other in animals:
 			if other is Duck and other.flock_id==id.flock_id: count += 1
 		rows.append(["Flock","%d ducks" % count])
-	return {"title": data.display_name, "kind": "Wildlife", "subject": id,
+	# The compact panel (doc 260): the animal itself, and what it is doing or where its
+	# arrival stands. Follow stays lit while the camera follows.
+	var following := is_following(id)
+	var line := String(id.arrival.status if not id.arrival.is_empty() else id.activity)
+	for row: Array in rows:
+		match String(row[0]):
+			"Herd", "Flock": line += " · %s" % String(row[1]).to_lower()
+			"Hunting": line += " · %s" % String(row[1]).to_lower()
+	return {"title": data.display_name, "family": "work", "subject": id, "portrait": id,
+		"status": {"text": line, "tone": "fine"},
 		"rows": rows, "details": data.description,
-		"actions": [{"id":"locate", "text":"Locate"}, {"id":"stop_follow" if is_following(id) else "follow", "text":"Stop following" if is_following(id) else "Follow"}]}
+		"actions": [{"id":"stop_follow" if following else "follow", "text":"Stop following" if following else "Follow", "active": following}, {"id":"locate", "text":"Locate"}]}
 
 func is_following(id: Variant) -> bool:
 	return is_instance_valid(_camera) and _camera.is_following(id)

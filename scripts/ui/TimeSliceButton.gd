@@ -1,15 +1,17 @@
 extends "res://scripts/ui/DockIconButton.gd"
 
-## Use the shared dock interaction/tooltip behavior, with an eight-sided art
-## aperture. The original atlas is retained; outside painted backdrops never
-## appear beyond the copper frame. Rectangular steppers keep their proportions.
+## Use the shared dock interaction/tooltip behavior. Hearthblock icons (doc 259) use
+## the dock's family tile; an atlas region (older painted art) is clipped to an
+## eight-sided aperture so its painted backdrop never shows. Rectangular steppers
+## keep their proportions.
 var artwork: AtlasTexture
 
 
 func setup(entry: Dictionary, texture: Texture2D) -> void:
 	artwork = texture as AtlasTexture
-	super.setup(entry, null)
-	add_theme_stylebox_override("disabled", StyleBoxEmpty.new())
+	super.setup(entry, null if artwork != null else texture)
+	if artwork != null:
+		add_theme_stylebox_override("disabled", StyleBoxEmpty.new())
 	mouse_force_pass_scroll_events = false
 
 

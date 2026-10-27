@@ -245,6 +245,23 @@ func time_string() -> String:
 	return "%02d:%02d" % [h, m]
 
 
+## The calendar at `elapsed`, an elapsed_days() value: its year, season, day and hour.
+## The event log keeps its times this way (doc 23).
+func date_at(elapsed: float) -> Dictionary:
+	var whole := floori(elapsed)
+	var per_year := _days_per_season * _season_order.size()
+	var of_year := posmod(whole, per_year)
+	return {"year": floori(float(whole) / per_year) + 1, "season": _season_order[floori(float(of_year) / _days_per_season)],
+		"day": of_year % _days_per_season + 1, "hour": (elapsed - whole) * _hours_per_day}
+
+
+## The clock at `elapsed` as "HH:MM", as time_string() writes it. Whole minutes survive the
+## trip through elapsed days: 20:30 stays 20:30.
+func time_string_at(elapsed: float) -> String:
+	var minutes := mini(floori(float(date_at(elapsed).hour) * 60.0 + 0.001), _hours_per_day * 60 - 1)
+	return "%02d:%02d" % [floori(minutes / 60.0), minutes % 60]
+
+
 ## Returns the current season's growth rate multiplier for flora.
 ## Used by the farming system when processing growth ticks.
 func growth_rate_multiplier() -> float:
@@ -290,6 +307,16 @@ func get_event_times() -> Dictionary:
 ## Hours in one in-game day (calendar.json time_scale.hours_per_day).
 func hours_per_day() -> int:
 	return _hours_per_day
+
+
+## Days in each season (calendar.json time_scale.days_per_season).
+func days_per_season() -> int:
+	return _days_per_season
+
+
+## The seasons in the calendar's order (calendar.json season_order).
+func season_order() -> Array[String]:
+	return _season_order.duplicate()
 
 
 # ── Config loader ─────────────────────────────────────────────────────────────

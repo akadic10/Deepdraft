@@ -4,9 +4,9 @@ These are the renderer, pipeline and acceptance rules for every solid model. The
 itself is defined in [64 — Hearthblock art direction](64_hearthblock_art_direction.md),
 and [61](61_voxel_art_guide.md) walks through building a model. World lighting is owned
 by `SkyController`'s `hearthblock_lighting` block
-([255](../00_dev_roadmap/255_hearthblock_lighting_pass.md)).
+([64 §Lighting](64_hearthblock_art_direction.md#lighting), doc 255).
 
-All **384** production models are built by `tools/voxel_assets/` on the 1:16 grid.
+All **385** production models are built by `tools/voxel_assets/` on the 1:16 grid.
 
 ## Scale and form
 
@@ -22,7 +22,7 @@ limited to 16×16×16 cells.
 
 Keep local origins and articulation coordinates:
 - Most standing forms are centred horizontally with the ground at Y0.
-- Cell-aligned floors fill [0,1]³, and bridges sit below their walking plane.
+- Bridges sit below their walking plane.
 - Limbs and tools keep joint-local coordinates.
 
 Don't recentre parts. Uniform fitting in storage and catalogues is intentional.
@@ -42,11 +42,18 @@ Family contracts:
   (`plants.py`, `voxel_plants.json`). Young crowns fit below their clearance with real
   depth. Packing translates the exact plant, and picking removes only the fruit.
 - **Dwarves** keep detached hands and feet, all appearance pools, contacts and
-  occupations. The hand is a mitten plus a separate untinted cuff mesh. The head layout
-  rules and tool grips are listed in [64](64_hearthblock_art_direction.md).
-- **Animals** are rigid voxel parts on rigs read from each definition's `visual_pose`.
-  Only the visual root squashes and stretches (`GrazerAgent._squash_stretch`), keeping
-  volume and feet. Parts are never scaled on their own.
+  occupations. The hand is a mitten plus a separate untinted cuff mesh, and the closed
+  eyelids (`presentation/`) sit exactly over the open bead eyes. The head layout
+  rules and tool grips are listed in [64](64_hearthblock_art_direction.md). Any
+  hairstyle may meet any beard and brows, so `dwarves.py` clips wearables against the
+  torso, beards against every man's hairstyle and brows against hair and beards. It then
+  covers the shared head's skin faces with one outward cell (`separate_overlay`), since
+  the same head serves bald dwarves: no pairing may share cells or coincident faces.
+- **Animals** are rigid voxel parts on rigs read from each definition's `visual_pose`;
+  `wildlife.py` splits the deer and wolf legs at the same `visual_pose.knee_y`. Only the
+  visual root squashes and stretches, and only while the animal moves
+  (`GrazerAgent._squash_stretch`, amount in `visual_pose.squash`), keeping volume and
+  feet. Parts are never scaled on their own.
 - **Furniture** keeps footprints, collision, seat and sleep heights, hinges and walking
   surfaces. Table chair profiles, working points, material IDs and saved identities
   belong to the furniture definitions.
@@ -66,9 +73,9 @@ Family contracts:
 | Eyelids and meal servings | `presentation/` | 3 |
 | Wildlife | `animals/` | 23 |
 | Furniture, support forms and flame libraries | `furniture/` | 33 |
-| Loose goods | `items/` | 88 |
-| Structural floors and materials crate | `construction/` | 4 |
-| **Total** | | **384** |
+| Loose goods | `items/` | 86 |
+| Materials crate and built log pieces | `construction/` | 2 |
+| **Total** | | **380** |
 
 Crops fill **defined art paths** only; they don't add farming behaviour.
 
@@ -101,10 +108,13 @@ Occlusion is opt-in (`greedy_mesh_from_voxels(..., occlusion=...)`); families wi
 rebuild byte for byte.
 - Each face corner counts its two side cells and one diagonal cell, on the curve
   `[0.5, 0.68, 0.85, 1.0]` from `tools/art_data/voxel_occlusion.json`.
-- Floors count as solid for shading only.
-- Faces merge only when their colour and all four corner levels agree.
-- Each shaded vertex stores its shade in UV2, so `CraftMaterials` matches the unshaded
-  swatch at that shade within one 8-bit step. `test_hearthblock` simulates that recolour.
+- Floors (a model's `ground` setting) and the wall behind a wall-mounted piece (`wall`,
+  the torch) count as solid for shading only, never for face culling.
+- Faces merge only when their colour and all four corner levels agree; each quad's
+  diagonal follows the brighter pair of corners.
+- Each shaded vertex stores its shade in UV2, because a darkened swatch can equal another
+  swatch of the same wood. `CraftMaterials` matches the unshaded swatch at that shade
+  within one 8-bit step. `test_hearthblock` simulates that recolour.
 
 Trees skip occlusion: on their large stepped faces it tripled the triangle count.
 
@@ -121,27 +131,45 @@ Recolouring:
 - The tunic and mitten cuffs are recoloured per dwarf (`DwarfAssets.dress` →
   `CraftMaterials.apply_colors`), with one shared mesh per colour.
 - Furniture and starter tools use exact semantic wood colours from `CraftMaterials`.
-  Hay, stone, metal, leaves and flame must not share recolourable wood swatches.
+  Hay, stone, metal, leaves and flame must not share recolourable wood swatches. A
+  definition's `material_palette` names its source profile (`source_palettes` in
+  `craft_materials.json`), the authored wood swatches to replace. The recolour also
+  matches each swatch as Godot imports it, truncated to 8 bits, and caches one copy per
+  original mesh, profile and material (doc 118).
 - Test pine, oak, juniper and applewood on real imported geometry. Recolour copies
   through the owner without modifying cached source meshes.
 - Keep gem gloss, flame emission and underground and slice lighting.
 
-Each shadow-casting rigid part contains **VoxelVisual / VoxelShadowProxy** siblings (or
-globally unique suffixed names) under the same moving pivot
-([222](../00_dev_roadmap/222_voxel_shadow_proxies.md)).
-- The shared baker uses coarser inscribed density where it can. Thin branches, limbs
-  and tiny objects may keep fine proxies when a coarse one would erase the silhouette.
-  Manifests record those fallbacks.
+Each shadow-casting rigid part contains **VoxelVisual / VoxelShadowProxy** siblings under
+the same moving pivot (doc 222), so animation, mirroring and slice visibility move the
+pair together. A multi-part GLB names them `VoxelVisual__<part>` and
+`VoxelShadowProxy__<part>`, because Godot's glTF importer makes node names unique across
+the whole file, not only among siblings (`export_asset` in `tools/voxel_assets/common.py`).
+- The proxy is an inscribed coarse mesh (`tools/voxel_shadow.py`). Cells are binned at
+  stride 4, only fully occupied bins survive, boundary bins are clipped to the asset's
+  bounds and holes stay open, so the proxy never swells past the visible surface and
+  falsely shadows it. Colour is ignored. Below 60% of the source volume, or 80% of its
+  span on any axis, the stride halves and the proxy is rebuilt, so thin branches, limbs
+  and tiny objects keep finer proxies. Manifests record each part's stride, retained
+  volume and triangles.
 - `VoxelShadowSetup.configure(root)` sets the visual mesh to **Off** and the proxy to
   **Shadows Only**, with proxy GI disabled. Every loader must configure its output
   before rendering, including galleries and special placement paths.
+  - World loaders get it from `UndergroundLighting.bind_world_tree()` and `bind_tree()`,
+    even before a lighting owner exists. Meshes added later under a bound tree are
+    configured as they enter.
+  - An editor-authored scene adds a node with `VoxelShadowSetup.gd` under the asset's
+    wrapper; its `_ready()` configures the parent in the editor and at runtime.
+  - glTF can't store Godot's shadow-casting setting, so a bare GLB applies neither role.
 - `set_casting(root, false)` keeps a non-casting policy through later world-light
-  binding. Use it for ghosts, thumbnails, portraits, floor icons and lights whose
-  definition disables body casting.
-- Flames, eyelids and servings carry explicit non-casting metadata. Never give a proxy
-  a visible, emissive or transparent material.
+  binding. Use it for ghosts, thumbnails, portraits and floor icons. `FurnitureLighting`
+  sets it on every piece with a light unless its definition sets `body_shadows` (the
+  hearth's masonry does), so a torch never shadows its own light.
+- Flames, eyelids and servings carry explicit non-casting metadata (glTF extras
+  `voxel_cast_shadow: false`). Never give a proxy a visible, emissive or transparent
+  material.
 - Picking, bounds, recolouring, readability outlines, portrait cloning, menu pictures
-  and terrain floor baking use the visual meshes only.
+  and terrain floor baking use the visual meshes only (`VoxelShadowSetup.visual_meshes`).
 
 Rigid reflections use `RigidMeshReflection.gd` (reflected vertices, corrected normals,
 tangents and winding, cached immutable meshes, positive render scales). Closed voxel
@@ -152,16 +180,28 @@ one lighting body; don't fork the lighting equations.
 
 - World terrain blocks stay simple one-unit voxels. Stone, grass and earth carry the
   Hearthblock dressing in `terrain_appearance.gdshaderinc` (values in
-  `appearance_profiles.json` → `dressing`); bedrock and ore blocks are unchanged.
+  `appearance_profiles.json` → `dressing`); bedrock and ore blocks are unchanged. Marks
+  are whole 1:16 cells that fade out before a cell shrinks below a pixel and stay quiet
+  on slice caps. The dressing's fine seam replaces those profiles' soft seam
+  (`seam_strength` 0), and zeroing a profile's `dressing` turns it off.
+- Built logs (doc 275) are not terrain faces. `BuiltLogs` draws each log block as a piece
+  of `construction/logs.glb`: 80 named parts (lying, upright and joint pieces, each in four
+  plate variants) made by `tools/voxel_assets/built_logs.py` from the loose log's recipe,
+  in the hand-hewn source palette that CraftMaterials recolours for each wood. Build's
+  log pictures are the same recipe in each wood (`icons.py`, rendered by
+  `GenerateUiIcons.gd`). See doc 24, "Built logs".
 - Liquid simulation, sky, fog and weather keep their owners. The atmosphere stays the
-  quiet diorama backdrop from [166](../00_dev_roadmap/166_diorama_sky.md).
-- Structural floor models are solid unit tiles. `ConstructionFloorArt` extracts only
-  visual boundary faces into the terrain batch, where exposed-face culling still works
-  at world-block scale.
+  quiet diorama backdrop of doc 166, whose rules are in
+  [24 §Sky](../20_player_interface/24_world_rendering.md#sky).
 - Dust and chip cubes, splash foam and duck wakes are intentional non-casting effects.
   Keep their opacity, fading and motion.
-- The illustrated menus, HUD, icons, outlines and painted loading screens keep their
-  own visual language.
+- UI icons are Hearthblock models in a staged-only `icons` family: their GLBs never ship;
+  `tools/GenerateUiIcons.gd` renders them to PNGs in `assets/ui/icons/` (doc 259).
+- The Sky Dial's pieces are Hearthblock models in a staged-only `sky` family, rendered the
+  same way to layers in `assets/ui/sky_dial/` that share one framing (doc 23, "The Sky
+  Dial").
+- The remaining illustrated menus, outlines and painted loading screens keep their own
+  visual language.
 
 ## Required acceptance for a model change
 

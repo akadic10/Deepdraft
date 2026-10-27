@@ -98,6 +98,7 @@ var _sleep_hours_left: float = 0.0
 var _mood: RefCounted
 var _recreation: RefCounted
 var _food: RefCounted
+var _tastes: RefCounted
 
 ## Fired when a walk order finishes (arrived) or fails (no path / cleared).
 signal walk_finished(success: bool)
@@ -189,6 +190,9 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_mood = preload("res://scripts/components/DwarfMood.gd").new()
 	_food = preload("res://scripts/components/DwarfFoodBehavior.gd").new(self)
 	_mood.food = _food
+	_tastes = preload("res://scripts/components/DwarfTastes.gd").new()
+	_tastes.setup(data.get("tastes", {}), data.get("found_tastes", []))
+	_mood.tastes = _tastes
 	preload("res://scripts/components/DwarfReadability.gd").attach(self)
 	var movement := TaskManager.get_config_section("movement")
 	walk_speed = float(movement.get("walk_speed",walk_speed))
@@ -317,7 +321,13 @@ func _complete_profession_change(key: String) -> void:
 	profession = key
 	if not profession_experience.has(key): profession_experience[key] = 0
 	TaskManager.work_policy_changed()
-	if promoted: WorkFeedback.play_promotion(global_position)
+	if not promoted: return
+	WorkFeedback.play_promotion(global_position)
+	# A promotion is colony news in the event log (doc 23), with the profession's icon.
+	var definition := DwarfAssets.profession_definition(key)
+	var options := {"dwarves": [dwarf_id]}
+	if definition.has("icon"): options.picture = String(definition.icon)
+	EventLog.post("colony", "%s is now a %s." % [dwarf_name, String(definition.get("display_name", "specialist"))], options)
 
 
 func set_work_permission(key: String, allowed: bool) -> void:
@@ -422,7 +432,9 @@ func _process_sleeping(delta: float) -> void:
 		_mood.record_sleep(hours,_rest_behavior.bed_rest.in_personal_bedroom(),RoomManager.temperature_at(sleep_cell))
 		_sleep_hours_left -= hours
 		if _sleep_hours_left <= 0.0:
-			_mood.finish_sleep()
+			# A night in the bed finds the dwarf's taste for it before the room's thought.
+			meet_pieces([_rest_behavior.bed_rest.bed])
+			_mood.finish_sleep(RoomManager.appeal_at(sleep_cell))
 			_rest_behavior.begin_waking()
 
 
@@ -451,6 +463,14 @@ func is_resting() -> bool:
 func get_task_phase() -> int: return _work_execution.task_phase
 func get_mood() -> RefCounted: return _mood
 func get_food() -> RefCounted: return _food
+func get_tastes() -> RefCounted: return _tastes
+
+
+## The dwarf uses these pieces (the bed after a night, a seat and table after a meal or a
+## game): tastes found for the first time go to the journal (doc 41 "Tastes").
+func meet_pieces(pieces: Array) -> void:
+	for news: Dictionary in _tastes.meet(pieces):
+		ColonyJournal.note_taste(self, String(news.id), String(news.kind))
 func get_recreation() -> RefCounted: return _recreation
 func get_rest_behavior() -> RefCounted: return _rest_behavior
 func get_idle_behavior() -> RefCounted: return _idle_behavior
@@ -505,6 +525,8 @@ func serialize_state() -> Dictionary:
 		"gender": gender,
 		"appearance": appearance_state,
 		"traits": traits.duplicate(),
+		"tastes": _tastes.tastes.duplicate(),
+		"found_tastes": _tastes.found.keys(),
 		"profession": profession,
 		"profession_experience": profession_experience.duplicate(true),
 		"work_permissions": work_permissions.duplicate(true),

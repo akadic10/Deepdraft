@@ -18,6 +18,8 @@ Rules
   legacy-code     the words legacy, compat or migrat in game code or data
   world-literal   1024, 1023 or 127 typed out instead of the WorldData constants
   file-length     game scripts over MAX_LINES may not grow
+  type-size       a text size typed as a number instead of a step of UITheme's type scale
+                  (doc 23, "Type"); 3D labels and sizes in proportion to art are not checked
 """
 import argparse
 import json
@@ -118,6 +120,28 @@ WORLD = re.compile(r"(?<![\w.])(1024|1023|127)(?![\w.])")
 FILE_READ = re.compile(r"FileAccess\.open\(|JSON\.parse_string\(|JSON\.new\(")
 # "compatible" and animal migration are ordinary words; old-save support is not.
 LEGACY = re.compile(r"legacy|backwards?[- ]compat\w*|\bcompat\b|\bmigrat(?:e|es|ed|ing)\b", re.IGNORECASE)
+# Calls that set a text size, and the argument that holds it. A script's own helpers join
+# when their definition names a font_size or size parameter.
+SIZE_CALLS = {"add_theme_font_size_override": 1, "format_label": 2, "apply_title": 1, "apply_heading": 1,
+              "add_keycaps": 2, "set_font_size": 2}
+SIZE_HELPER = re.compile(r"^func (_\w+)\(([^)]*)\)")
+HAND_SIZE = re.compile(r"\d+|\d+\s+if\s+.+\s+else\s+\d+")
+
+
+def call_arguments(line, open_at):
+    """The arguments of the call whose '(' is at open_at, or None when it runs past the line."""
+    depth, args, start = 0, [], open_at + 1
+    for i in range(open_at, len(line)):
+        if line[i] in "([{":
+            depth += 1
+        elif line[i] in ")]}":
+            depth -= 1
+            if depth == 0:
+                return args + [line[start:i].strip()]
+        elif line[i] == "," and depth == 1:
+            args.append(line[start:i].strip())
+            start = i + 1
+    return None
 
 
 def game_scripts():
@@ -134,8 +158,23 @@ def check_scripts(findings):
         if len(raw_lines) > MAX_LINES:
             findings.add("file-length", name, "lines", 0, "%d lines" % len(raw_lines), amount=len(raw_lines))
         gated = "dev_tools_enabled" in text or name in DEV_INSIDE_GATED_WINDOW
+        size_calls = dict(SIZE_CALLS)
+        for line in code:
+            helper = SIZE_HELPER.match(line)
+            if helper:
+                params = [p.split(":")[0].split("=")[0].strip() for p in helper.group(2).split(",")]
+                for index, param in enumerate(params):
+                    if param in ("font_size", "size"):
+                        size_calls[helper.group(1)] = index
+        size_call = re.compile(r"\b(%s)\(" % "|".join(size_calls))
         for n, (line, found) in enumerate(zip(code, literals), 1):
             raw = raw_lines[n - 1]
+            if not line.lstrip().startswith("func "):
+                for call in size_call.finditer(line):
+                    args = call_arguments(line, call.end() - 1)
+                    index = size_calls[call.group(1)]
+                    if args is not None and index < len(args) and HAND_SIZE.fullmatch(args[index]):
+                        findings.add("type-size", name, "text size %s" % args[index], n, raw)
             for receiver, member in PRIVATE.findall(line):
                 if receiver not in ("self", "super"):
                     findings.add("private-access", name, "%s.%s" % ("()" if receiver == ")" else receiver, member), n, raw)

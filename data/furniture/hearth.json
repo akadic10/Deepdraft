@@ -89,5 +89,6 @@
   "heat_source": {
     "heat_units": 1600
   },
-  "fire_sound": "campfire"
+  "fire_sound": "campfire",
+  "appeal": {"design": 2, "material_factor": 0}
 }

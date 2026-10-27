@@ -1,13 +1,9 @@
 class_name DockUI
 extends CanvasLayer
 
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 signal tool_requested(tool_id: String)
-## Persistence backend hooks. The dock owns presentation only; SaveManager
-## connects to these signals and owns all file/state work.
-signal save_game_requested()
-signal load_game_requested()
-signal load_autosave_requested()
-signal new_game_requested()
 
 const DOCK_BOTTOM_MARGIN := 24.0
 const PANEL_TOP_MARGIN := 76.0
@@ -38,7 +34,7 @@ var _panel_connector: Line2D
 var _time_slice_hud: Control
 var _sky_dial: Control
 var _sky_hud_root: Control
-var _food_warning: Control
+var _selection_panel: Control
 var _slice_button: Button
 var _speed_buttons: Dictionary = {}
 var _ui_registry: Node
@@ -49,29 +45,35 @@ var _world_info_overlay: CanvasLayer
 var _block_inspector_overlay: CanvasLayer
 var _slice_controller: Node = null
 var _xray_controller: Node = null
+var _appeal_view: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
 var _place_catalog: FurniturePlacePanel
 var _place_window: UIWindow
+var _stamper_panel: Node   # the DEV item stamper's window content, with DEV tools on
+var _blueprint_panel: Node   # the Blueprints window's content (doc 273)
+var _blueprint_controller: Node = null
 var _inventory_panel: Control
 var _inventory_window: UIWindow
+var _events_panel: Control
+var _events_window: UIWindow
+var _colony_panel: Control
+var _colony_window: UIWindow
+var _founding_card: Control
+var _founding_window: UIWindow
 var _craft_panel: Control
 var _craft_window: UIWindow
 var _mining_controller: Node = null
 var _construction_controller: Node = null
 var _room_controller: Node = null
 var _orders: Control
+var _tool_bar: Control   # the bar every tool shows (doc 23, "The tool bar")
+var _bar_tools: Array[Node] = []   # tools registered before the bar exists
 var _toast_layer: CanvasLayer = null
-var _persistence_toast: PanelContainer = null
-var _persistence_toast_label: Label = null
-var _persistence_toast_until_msec: int = 0
-
-## Dock targets whose window content the dock itself owns (doc 24 Phase U2a).
-## Other manager windows (e.g. "dwarves") are registered by their own systems.
-const DOCK_WINDOW_EMOJI: Dictionary = {
-	"trade": "💰",
-}
+var _toasts: Control = null
+var _counts: Node = null   # the live counts on Colony and Place (doc 23, "Counts")
+var _view_banner: Control = null   # names the view that is on, at the top centre (doc 23, "Views")
 
 var _clock_refresh_accum: float = 0.0
 
@@ -91,6 +93,11 @@ func _ready() -> void:
 		_window_manager.window_state_changed.connect(_on_window_state_changed)
 	_build_root()
 	_build_dock()
+	_counts = preload("res://scripts/ui/DockCounts.gd").new()
+	_counts.name = "Counts"
+	_counts.buttons = _button_by_target
+	_counts.furniture = _furniture_controller
+	add_child(_counts)
 	_build_action_panel()
 	_build_sky_dial()
 	_build_time_slice_hud()
@@ -102,11 +109,19 @@ func _ready() -> void:
 	_orders.shelf_visibility_changed.connect(_refresh_active_buttons)
 	if _mining_controller != null: _orders.bind_controller("mine_precision", _mining_controller)
 	_orders.fit_above_dock(_dock_panel.get_global_rect())
-	_build_persistence_toast()
-	_food_warning = preload("ColonyFoodWarning.gd").new()
-	_sky_hud_root.add_child(_food_warning)
+	_tool_bar = preload("res://scripts/ui/ToolBar.gd").new()
+	_tool_bar.name = "ToolBar"
+	_tool_bar.shelf = _orders
+	_tool_bar.reserved_rects = _bar_reserved_rects
+	_tool_bar.xray = _xray_controller
+	_root.add_child(_tool_bar)
+	# Ctrl + Z with no tool on says what it took back.
+	_tool_bar.undone.connect(func(message: String): if _tool_bar.active_tool() == null: show_persistence_status(message))
+	for tool: Node in _bar_tools: _tool_bar.bind_tool(tool)
+	_bar_tools.clear()
+	_tool_bar.fit_above_dock(_dock_panel.get_global_rect())
+	_build_toasts()
 	_position_sky_dial()
-	InteriorTracker.caves_discovered.connect(_on_caves_discovered)
 	tool_requested.connect(func(id: String):
 		if _craft_window != null: _window_manager.close("craft")
 		if _inventory_window != null: _window_manager.close("inventory")
@@ -117,13 +132,12 @@ func _ready() -> void:
 	_set_world_info_overlay(_find_canvas_layer(get_tree().current_scene, "DebugLoadingOverlay"))
 	_set_block_inspector_overlay(_find_canvas_layer(get_tree().current_scene, "BlockInspector"))
 	_refresh_active_buttons()
+	EventLog.changed.connect(_refresh_events_badge)
+	_refresh_events_badge()
 	SaveManager.register_dock(self)
 
 
 func _process(delta: float) -> void:
-	if _persistence_toast != null and _persistence_toast.visible \
-			and Time.get_ticks_msec() >= _persistence_toast_until_msec:
-		_persistence_toast.visible = false
 	_clock_refresh_accum += delta
 	if _clock_refresh_accum < 0.1:
 		return
@@ -131,10 +145,10 @@ func _process(delta: float) -> void:
 	_update_navigation_status()
 
 
-## Persistence toast lives on its own always-on-top HUD layer (doc 24 layer
-## plan: dock 20, windows 22, mouse-ignoring HUD 24) so a dragged window can
-## never cover a save/load result.
-func _build_persistence_toast() -> void:
+## Toasts live on their own always-on-top HUD layer (doc 24 layer plan: dock 20,
+## windows 22, mouse-ignoring HUD 24) so a dragged window can never cover one. Events
+## reach them through EventLog (doc 23).
+func _build_toasts() -> void:
 	_toast_layer = CanvasLayer.new()
 	_toast_layer.name = "ToastLayer"
 	_toast_layer.layer = 24
@@ -146,35 +160,19 @@ func _build_persistence_toast() -> void:
 	toast_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	toast_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_toast_layer.add_child(toast_root)
-
-	_persistence_toast = PanelContainer.new()
-	_persistence_toast.name = "PersistenceToast"
-	_persistence_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_persistence_toast.position = Vector2(-180.0, 28.0)
-	_persistence_toast.custom_minimum_size = Vector2(360.0, 44.0)
-	_persistence_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_persistence_toast.visible = false
-	toast_root.add_child(_persistence_toast)
-	_persistence_toast_label = Label.new()
-	_persistence_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_persistence_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_persistence_toast_label.add_theme_font_size_override("font_size", 15)
-	_persistence_toast.add_child(_persistence_toast_label)
+	_toasts = preload("res://scripts/ui/ToastStack.gd").new()
+	toast_root.add_child(_toasts)
+	_view_banner = preload("res://scripts/ui/ViewBanner.gd").new()
+	toast_root.add_child(_view_banner)
+	_view_banner.toasts = _toasts
+	if _appeal_view != null: _view_banner.bind("appeal", _appeal_view)
+	if _xray_controller != null: _view_banner.bind("xray", _xray_controller)
 
 
+## The player's own messages (saves, loads, the flag, slice hints) as toasts; they
+## never land in the event log.
 func show_persistence_status(message: String, is_error: bool = false) -> void:
-	if _persistence_toast == null:
-		return
-	_persistence_toast.add_theme_stylebox_override(
-		"panel", UITheme.toast_style(is_error))
-	_persistence_toast_label.text = message
-	_persistence_toast.visible = true
-	_persistence_toast_until_msec = Time.get_ticks_msec() + (4500 if is_error else 2500)
-
-
-func _on_caves_discovered(_cells: Array[Vector3i]) -> void:
-	if SaveManager.is_loading(): return
-	show_persistence_status("Cavern discovered. Bring light to explore it.")
+	if _toasts != null: _toasts.show_message(message, is_error)
 
 
 func _build_root() -> void:
@@ -197,26 +195,36 @@ func _build_dock() -> void:
 	_dock_panel.add_child(_dock_row)
 	for entry: Dictionary in _ui_registry.call("get_dock_items"):
 		if bool(entry.get("separator_before", false)):
-			var gap := Control.new()
-			gap.name = "%sGap" % _node_suffix(String(entry.id))
-			gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			gap.custom_minimum_size.x = DOCK_GROUP_GAP
-			_dock_row.add_child(gap)
+			_add_dock_gap("%sGap" % _node_suffix(String(entry.id)))
 		_dock_row.add_child(_make_dock_button(entry))
 	get_viewport().size_changed.connect(_fit_dock)
 	_dock_panel.resized.connect(_position_dock)
 	_fit_dock()
 
 
+## Separates two groups of dock icons.
+func _add_dock_gap(gap_name: String) -> void:
+	var gap := Control.new()
+	gap.name = gap_name
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gap.custom_minimum_size.x = DOCK_GROUP_GAP
+	_dock_row.add_child(gap)
+
+
 func _fit_dock() -> void:
 	if _dock_row == null or _button_by_target.is_empty():
 		return
 	var viewport_width := get_viewport().get_visible_rect().size.x
-	var gaps := _dock_row.get_child_count() - _button_by_target.size()
+	# Every icon in the row gets the same size: the commands and, as the last group, the
+	# view toggles X-ray and Slice (doc 259).
+	var buttons: Array[Button] = []
+	for child in _dock_row.get_children():
+		if child is Button: buttons.append(child)
+	var gaps := _dock_row.get_child_count() - buttons.size()
 	var chrome := 16 + (_dock_row.get_child_count() - 1) * DOCK_ICON_GAP + gaps * DOCK_GROUP_GAP
 	var preferred := DOCK_ICON_SIZE if viewport_width >= 1200 else DOCK_ICON_COMPACT_SIZE
-	var width := floorf(minf(preferred, (viewport_width - 32 - chrome) / _button_by_target.size()))
-	for button: Button in _button_by_target.values():
+	var width := floorf(minf(preferred, (viewport_width - 32 - chrome) / buttons.size()))
+	for button in buttons:
 		button.custom_minimum_size = Vector2(width, width)
 	_dock_panel.reset_size()
 	_position_dock()
@@ -228,15 +236,45 @@ func _position_dock() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	_dock_panel.position = Vector2((viewport_size.x - _dock_panel.size.x) * 0.5,
 		viewport_size.y - DOCK_BOTTOM_MARGIN - _dock_panel.size.y)
-	if _time_slice_hud != null:
-		var utility_width: float = _time_slice_hud.preferred_row_width()
-		if _dock_panel.size.x + utility_width + 48 <= viewport_size.x:
-			_dock_panel.position.x = minf(_dock_panel.position.x, viewport_size.x - 28 - utility_width - _dock_panel.size.x)
 	if _place_catalog != null: _place_catalog.fit_above_dock(_dock_panel.position.y)
 	if _inventory_panel != null: _inventory_panel.fit_above_dock(_dock_panel.position.y)
+	if _events_panel != null: _events_panel.fit_above_dock(_dock_panel.position.y)
+	if _colony_panel != null: _colony_panel.fit_above_dock(_dock_panel.position.y)
 	if _craft_panel != null: _craft_panel.fit_above_dock(_dock_panel.position.y)
 	if _orders != null: _orders.fit_above_dock(_dock_panel.get_global_rect())
+	if _tool_bar != null: _tool_bar.fit_above_dock(_dock_panel.get_global_rect())
 	_position_time_slice_hud()
+
+
+## The compact object panel (doc 260) sits beside the dock: ObjectExplorerController
+## hands it over at startup. The dock's menus and the Orders shelf keep clear of it.
+func attach_selection_panel(panel: Control) -> void:
+	_selection_panel = panel
+	_fit_selection_panel()
+	panel.visibility_changed.connect(_on_selection_view_changed)
+	panel.item_rect_changed.connect(_on_selection_view_changed)
+
+
+## The panel keeps clear of the time controls, and of the slice tower and the X-ray
+## options while they are open.
+func _fit_selection_panel() -> void:
+	if not is_instance_valid(_selection_panel): return
+	var reserved: Array[Rect2] = []
+	if _time_slice_hud != null: reserved = _time_slice_hud.occupied_rects()
+	_selection_panel.fit_beside_dock(_dock_panel.get_global_rect(), reserved)
+
+
+## The compact panel while it shows a selection; null otherwise.
+func _selection_view() -> Control:
+	return _selection_panel if is_instance_valid(_selection_panel) and _selection_panel.is_visible_in_tree() else null
+
+
+func _on_selection_view_changed() -> void:
+	if _orders != null:
+		_orders.inspector = _selection_view()
+		_orders.fit_above_dock(_dock_panel.get_global_rect())
+	if _tool_bar != null: _tool_bar.refresh()
+	if _panel_container != null and _panel_container.visible: call_deferred("_layout_action_panel")
 
 
 func _make_dock_button(entry: Dictionary) -> Button:
@@ -254,7 +292,7 @@ func _build_action_panel() -> void:
 	_panel_container.mouse_force_pass_scroll_events = false
 	_panel_container.visible = false
 	_panel_container.add_theme_stylebox_override("panel", UITheme.hud_panel_style())
-	# Colony menus must remain clickable while the wide roster is open.
+	# Dock menus must remain clickable while the wide roster is open.
 	# Keep the dock at 20, windows at 22, and only its popup menu above them.
 	var menu_layer := CanvasLayer.new()
 	menu_layer.name = "DockMenus"
@@ -298,7 +336,7 @@ func _build_action_panel() -> void:
 	_panel_scroll.add_child(rail)
 	_panel_rail_back = UITheme.make_button("‹", "Back", Vector2(28, 56))
 	_panel_rail_back.name = "IllustratedMenuBack"
-	_panel_rail_back.add_theme_font_size_override("font_size", 28)
+	_panel_rail_back.add_theme_font_size_override("font_size", MEDIUM.name)
 	_panel_rail_back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_panel_rail_back.hide()
 	_panel_rail_back.pressed.connect(func():
@@ -330,7 +368,7 @@ func _layout_action_panel() -> void:
 		_panel_body.columns = mini(preferred, available_columns)
 		# A moved inspector can occupy the center of the menu's usual strip.
 		# Wrap before shrinking icons so every command remains reachable beside it.
-		var inspector := _window_manager.get_ui_window("object_explorer") if _window_manager != null else null
+		var inspector := _selection_view()
 		if inspector != null and inspector.visible:
 			var obstacle := inspector.get_global_rect().grow(PANEL_DOCK_GAP)
 			var proposed_rows := ceili(float(_panel_body.get_child_count()) / _panel_body.columns)
@@ -383,13 +421,11 @@ func _position_action_panel() -> void:
 	var panel_position := Vector2(centered_x, maxf(PANEL_TOP_MARGIN,
 		_dock_panel.position.y - PANEL_DOCK_GAP - _panel_container.size.y))
 	# Keep the menu visually attached to the dock. At compact widths, move only
-	# far enough to clear the inspector, whose higher CanvasLayer would cover it.
-	var inspector := _window_manager.get_ui_window("object_explorer") if _window_manager != null else null
+	# far enough to clear the compact panel beside the dock (doc 260).
+	var inspector := _selection_view()
 	if inspector != null:
-		if not inspector.item_rect_changed.is_connected(_layout_action_panel):
-			inspector.item_rect_changed.connect(_layout_action_panel)
 		var inspector_rect := inspector.get_global_rect().grow(PANEL_DOCK_GAP)
-		if inspector.visible and Rect2(panel_position, _panel_container.size).intersects(inspector_rect):
+		if Rect2(panel_position, _panel_container.size).intersects(inspector_rect):
 			var closest_distance := INF
 			for candidate_x: float in [inspector_rect.position.x - _panel_container.size.x, inspector_rect.end.x]:
 				if candidate_x < 24 or candidate_x + _panel_container.size.x > viewport_width - 24:
@@ -420,6 +456,11 @@ func _position_action_panel() -> void:
 
 func is_action_menu_open() -> bool:
 	return _panel_container != null and _panel_container.visible
+
+
+## The dock's top edge, for windows that fit above it.
+func dock_top() -> float:
+	return _dock_panel.position.y if _dock_panel != null else get_viewport().get_visible_rect().size.y
 
 
 func _close_action_panel() -> void:
@@ -461,8 +502,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
-			and _window_manager != null and _window_manager.is_open("dwarves") \
-			and not _window_manager.is_open("object_explorer"):
+			and _window_manager != null and _window_manager.is_open("dwarves"):
 		_window_manager.close("dwarves")
 		get_viewport().set_input_as_handled()
 
@@ -470,25 +510,34 @@ func _unhandled_input(event: InputEvent) -> void:
 func _build_time_slice_hud() -> void:
 	_time_slice_hud = preload("res://scripts/ui/TimeSliceHUD.gd").new()
 	_time_slice_hud.name = "TimeSliceHUD"
-	var hud_layer := CanvasLayer.new()
-	hud_layer.name = "TimeSliceLayer"
-	hud_layer.layer = 24
-	add_child(hud_layer)
-	hud_layer.add_child(_time_slice_hud)
+	# X-ray and Slice are the dock's last group. The time controls hang under the Sky Dial
+	# and share its status layer: windows the player opens sit above both (doc 259).
+	_add_dock_gap("ViewsGap")
+	_time_slice_hud.view_row = _dock_row
+	_sky_hud_root.add_child(_time_slice_hud)
+	# The tower rises from Slice, so it follows when the dock row moves the button.
+	_time_slice_hud.slice_button.item_rect_changed.connect(_position_time_slice_hud)
+	# The compact panel makes room while the tower or the X-ray options are open.
+	_time_slice_hud.tower.visibility_changed.connect(_fit_selection_panel)
+	_time_slice_hud.xray_panel.visibility_changed.connect(_fit_selection_panel)
+	_time_slice_hud.appeal_panel.visibility_changed.connect(_fit_selection_panel)
 	_time_slice_hud.speed_requested.connect(_set_clock_speed)
 	_time_slice_hud.slice_toggle_requested.connect(_toggle_slice_tool)
 	_speed_buttons = _time_slice_hud.speed_buttons
 	_slice_button = _time_slice_hud.slice_button
 	if _slice_controller != null: _time_slice_hud.bind_slice(_slice_controller)
 	if _xray_controller != null: _time_slice_hud.bind_xray(_xray_controller)
+	if _appeal_view != null: _time_slice_hud.bind_appeal(_appeal_view)
 	get_viewport().size_changed.connect(_position_time_slice_hud)
-	_position_dock()
+	_fit_dock()
 	_update_navigation_status()
 
 
 func _position_time_slice_hud() -> void:
-	if _time_slice_hud == null: return
-	_time_slice_hud.fit_to_viewport(_dock_panel.get_global_rect())
+	if _time_slice_hud == null or _sky_dial == null: return
+	_time_slice_hud.fit_to_viewport(_dock_panel.get_global_rect(), _sky_dial.get_global_rect())
+	# The compact panel keeps clear of the tower and options where they now open.
+	_fit_selection_panel()
 	if _panel_container != null: call_deferred("_position_action_panel")
 	if _window_manager != null: _window_manager.call_deferred("fit_visible_windows")
 
@@ -513,12 +562,10 @@ func _build_sky_dial() -> void:
 func _position_sky_dial() -> void:
 	var viewport := get_viewport().get_visible_rect().size
 	var side := 224.0 if viewport.x >= 1600 else (204.0 if viewport.x >= 1200 else 184.0)
-	_sky_dial.size = Vector2.ONE * side
+	_sky_dial.size = Vector2(side, _sky_dial.height_for(side))
 	_sky_dial.position = Vector2(viewport.x - side - 16, 12)
 	if _window_manager != null: _window_manager.call_deferred("fit_visible_windows")
-	if _food_warning != null:
-		_food_warning.offset_top = _sky_dial.position.y + side + 8
-		_food_warning.offset_bottom = _food_warning.offset_top
+	_position_time_slice_hud()
 
 
 func _set_clock_speed(speed: int) -> void:
@@ -551,6 +598,9 @@ func _dispatch(action: String, target: String) -> void:
 			_toggle_window(target)
 		"open_crafting":
 			open_crafting("",target)
+		"game_menu":
+			_close_action_panel()
+			GameMenu.open()
 		_:
 			push_warning("DockUI: unknown dock action '%s' for target '%s'." % [action, target])
 	_refresh_active_buttons()
@@ -594,6 +644,10 @@ func _open_action_panel(target: String) -> void:
 		_panel_margin.add_theme_constant_override("margin_" + side, 0 if illustrated else 12)
 	_panel_body.add_theme_constant_override("h_separation", 6 if illustrated else 8)
 	_panel_body.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if illustrated else Control.SIZE_EXPAND_FILL
+	# An illustrated menu is sized to show every row, so it never scrolls. Left on, the
+	# scrollbar counts in its width while the icons outgrow the old height, and the menu
+	# kept that room on its right (owner, 2026-10-26).
+	_panel_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED if illustrated else ScrollContainer.SCROLL_MODE_AUTO
 	_panel_back.visible = not String(menu.get("parent", "")).is_empty()
 	_clear_children(_panel_body)
 	_panel_scroll.scroll_vertical = 0
@@ -606,6 +660,7 @@ func _open_action_panel(target: String) -> void:
 			presentation.status_label = "Catalog preview" if presentation.planned else ""
 			icon_button.disabled = _craft_panel == null or section.is_empty()
 		icon_button.setup(presentation, UIRegistry.get_dock_icon(entry))
+		icon_button.shelf = _panel_container
 		icon_button.name = String(entry.id).to_pascal_case()
 		if String(entry.action) == "open_crafting":
 			icon_button.name = "Crafter" + String(entry.target).to_pascal_case()
@@ -637,28 +692,12 @@ func _dispatch_menu_entry(entry: Dictionary) -> void:
 
 ## Live save/test commands use stable IDs, independent of captions and artwork.
 func _dispatch_command(id: String) -> bool:
-	# Finish local UI work before a listener can synchronously reload the scene.
+	# Saving, loading and new games are the game menu's (doc 23).
 	match id:
-		"new_game":
-			_close_action_panel()
-			new_game_requested.emit()
-		"save_game":
-			_close_action_panel()
-			save_game_requested.emit()
-		"load_game":
-			_close_action_panel()
-			load_game_requested.emit()
-		"load_autosave":
-			_close_action_panel()
-			load_autosave_requested.emit()
-		"spawn_drops", "spawn_furniture", "spawn_bushes":
-			if _stockpile_controller != null:
-				_stockpile_controller.call("dev_" + id)
 		"arrival_status_development":
 			var events := get_tree().get_first_node_in_group("world_events")
 			if events != null:
-				show_persistence_status(events.dev_status())
-				_persistence_toast_until_msec = Time.get_ticks_msec() + 6000
+				if _toasts != null: _toasts.show_message(events.dev_status(), false, 6.0)
 		_:
 			return false
 	return true
@@ -680,6 +719,11 @@ func _toggle_window(target: String) -> void:
 		if _orders != null: _orders.set_open(false)
 	if target in ["stockpiles", "inventory"]:
 		_open_inventory()
+		return
+	if target in ["events", "colony"]:
+		# Pages to read beside the work: tools stay as they are.
+		_close_action_panel()
+		if _window_manager != null and _window_manager.has_window(target): _window_manager.toggle(target)
 		return
 	if target == "world_info":
 		_toggle_world_info_overlay()
@@ -725,8 +769,7 @@ func _open_settlement_flag() -> void:
 	var key := FlagPlacementController.FURNITURE_KEY
 	var location: Dictionary = _furniture_controller.get_catalog_location(key)
 	if location.has("position"):
-		var rig: Node = get_viewport().get_camera_3d()
-		while rig != null and not rig.has_method("locate_position"): rig = rig.get_parent()
+		var rig := _camera_rig()
 		if rig != null: rig.locate_position(location.position)
 	if location.has("object_id"):
 		var explorer := get_tree().get_first_node_in_group("object_explorer")
@@ -739,7 +782,6 @@ func _open_settlement_flag() -> void:
 		return
 	if location.state == "packed" and _place_catalog != null:
 		_window_manager.open("place")
-		_place_catalog.category = "rooms"
 		_place_catalog.selected_key = key
 		_place_catalog.begin_browsing()
 		_place_catalog.fit_above_dock(_dock_panel.position.y)
@@ -751,27 +793,46 @@ func _open_settlement_flag() -> void:
 # ── Dock-owned windows (doc 24 Phase U2a) ─────────────────────────────────────
 
 func _register_dock_windows() -> void:
-	var audio_panel := preload("res://scripts/ui/AudioSettingsPanel.gd").new()
-	var audio_window := _window_manager.register_window("audio", "Audio", "", audio_panel,
-		{"persistent": false, "default_pos": Vector2(32, 130)})
-	audio_window.keep_body_on_screen = true
+	# Audio lives on the game menu's Settings page (doc 23).
 	if UIRegistry.dev_tools_enabled:
 		_window_manager.register_window("time_weather_dev", "Time & weather tools", "",
-			_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130)})
+			_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130), "family": "dev"})
 
 	_inventory_panel = preload("res://scripts/ui/ColonyInventoryPanel.gd").new()
 	_inventory_window = _window_manager.register_window("inventory", "Colony Inventory", "", _inventory_panel,
-		{"persistent": false, "default_pos": Vector2(24, 76)})
+		{"persistent": false, "default_pos": Vector2(24, 76), "family": "settlement", "flush": true})
 	_inventory_window.keep_body_on_screen = true
-	UITheme.apply_catalog_window(_inventory_window)
 	_inventory_panel.window = _inventory_window
 	_inventory_panel.locate_requested.connect(_locate_inventory_item)
 	_inventory_panel.fit_above_dock(_dock_panel.position.y)
+	_events_panel = preload("res://scripts/ui/EventsPanel.gd").new()
+	_events_window = _window_manager.register_window("events", "Events", "", _events_panel,
+		{"default_pos": Vector2(24, 76), "family": "people", "flush": true})
+	_events_window.keep_body_on_screen = true
+	_events_panel.window = _events_window
+	_events_panel.locate_requested.connect(_locate_event)
+	_events_panel.fit_above_dock(_dock_panel.position.y)
+	# Colony's page and the founding card follow the settlement the flag keeps (doc 23).
+	_colony_panel = preload("res://scripts/ui/SettlementPanel.gd").new()
+	_colony_window = _window_manager.register_window("colony", _target_title("colony"), "", _colony_panel,
+		{"default_pos": Vector2(24, 76), "family": "people", "flush": true})
+	_colony_window.keep_body_on_screen = true
+	_colony_panel.window = _colony_window
+	_colony_panel.entry_requested.connect(_open_colony_entry)
+	_colony_panel.fit_above_dock(_dock_panel.position.y)
+	_founding_card = preload("res://scripts/ui/FoundingCard.gd").new()
+	_founding_window = _window_manager.register_window("founding", "Found the settlement", "", _founding_card,
+		{"family": "people", "flush": true})
+	_founding_window.keep_body_on_screen = true
+	_founding_card.window = _founding_window
+	_founding_card.found_requested.connect(_found_settlement)
+	_founding_card.cancelled.connect(_cancel_founding)
+	_bind_settlement()
 	var placeholder_targets: Array[String] = ["trade"]
 	for target: String in placeholder_targets:
 		_window_manager.register_window(target, _target_title(target),
-			String(DOCK_WINDOW_EMOJI[target]), _build_placeholder_content(target),
-			{"persistent": true, "min_size": Vector2(300.0, 0.0)})
+			"", _build_placeholder_content(target),
+			{"persistent": true, "min_size": Vector2(300.0, 0.0), "family": "people"})
 
 
 func _build_time_weather_tools() -> Control:
@@ -795,7 +856,7 @@ func _build_time_weather_tools() -> Control:
 	var buttons2 := HBoxContainer.new()
 	buttons2.add_theme_constant_override("separation", 8)
 	column.add_child(buttons2)
-	var weather := UITheme.make_button("Weather →")
+	var weather := UITheme.make_button("Weather ›")
 	weather.pressed.connect(Callable(self, "_cycle_weather"))
 	buttons2.add_child(weather)
 
@@ -812,12 +873,12 @@ func _build_placeholder_content(target: String) -> Control:
 		var row := Label.new()
 		row.text = row_text
 		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		row.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		row.add_theme_font_size_override("font_size", UITheme.TYPE_MEDIUM.body)
 		column.add_child(row)
 	var note := Label.new()
 	note.text = "Planned · Trading and merchant visits are not available yet."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.add_theme_font_size_override("font_size", 11)
+	note.add_theme_font_size_override("font_size", MEDIUM.small)
 	note.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 	column.add_child(note)
 	return column
@@ -849,6 +910,10 @@ func _refresh_active_buttons() -> void:
 		_button_by_target.place.button_pressed = _place_window != null and _place_window.visible
 	if _button_by_target.has("stocks"):
 		_button_by_target.stocks.button_pressed = _inventory_window != null and _inventory_window.visible
+	if _button_by_target.has("events"):
+		_button_by_target.events.button_pressed = _events_window != null and _events_window.visible
+	if _button_by_target.has("colony"):
+		_button_by_target.colony.button_pressed = _colony_window != null and _colony_window.visible
 	if _button_by_target.has("craft"):
 		_button_by_target.craft.button_pressed = (_craft_window != null and _craft_window.visible) \
 			or (_panel_container.visible and _active_panel_target=="craft")
@@ -864,13 +929,14 @@ func _refresh_active_buttons() -> void:
 
 func _on_window_state_changed(_id: String, _open: bool) -> void:
 	if _id == "inventory" and _open and _inventory_panel != null: _inventory_panel.begin_browsing()
+	if _id == "events" and _open and _events_panel != null: _events_panel.begin_viewing()
+	if _id == "colony" and _open and _colony_panel != null: _colony_panel.begin_viewing()
+	# The card's ✕, or Esc on it: the flag tool stays, as Cancel leaves it.
+	if _id == "founding" and not _open: _cancel_founding()
 	if _id == "place":
 		if not _open and _furniture_controller != null: _furniture_controller.deactivate()
 		elif _open and _place_catalog != null: _place_catalog.begin_browsing()
 	_refresh_active_buttons()
-	if _id == "object_explorer" and _panel_container != null:
-		call_deferred("_layout_action_panel")
-		if _orders != null: _orders.inspector = _window_manager.get_ui_window("object_explorer")
 
 
 func _toggle_world_info_overlay() -> void:
@@ -896,7 +962,8 @@ func _target_canvas_visible(target: String) -> bool:
 		"slice":
 			return _slice_controller != null and bool(_slice_controller.call("is_active"))
 		"construction":
-			return _construction_controller != null and _construction_controller.is_active()
+			return (_construction_controller != null and _construction_controller.is_active()) \
+				or (_blueprint_controller != null and _blueprint_controller.is_active())
 		"rooms":
 			return _room_controller != null and _room_controller.has_method("is_active") \
 				and bool(_room_controller.call("is_active"))
@@ -919,8 +986,19 @@ func register_slice_controller(controller: Node) -> void:
 
 func register_xray_controller(controller: Node) -> void:
 	_xray_controller = controller
+	if _view_banner != null: _view_banner.bind("xray", controller)
+	if _tool_bar != null: _tool_bar.xray = controller
 	if _time_slice_hud != null:
 		_time_slice_hud.bind_xray(controller)
+		_position_time_slice_hud.call_deferred()
+
+
+## The Appeal view (AppealViewController) shows its button before X-ray's.
+func register_appeal_view(controller: Node) -> void:
+	_appeal_view = controller
+	if _view_banner != null: _view_banner.bind("appeal", controller)
+	if _time_slice_hud != null:
+		_time_slice_hud.bind_appeal(controller)
 		_position_time_slice_hud.call_deferred()
 
 
@@ -936,6 +1014,49 @@ func _toggle_slice_tool() -> void:
 func register_flag_controller(controller: Node) -> void:
 	_flag_controller = controller
 	_connect_tool_active(controller)
+	_bind_tool(controller)
+	_bind_settlement()
+
+
+## Colony's page reads the settlement from the flag, and the card names it (doc 23).
+func _bind_settlement() -> void:
+	if _flag_controller == null or _colony_panel == null: return
+	_colony_panel.settlement = _flag_controller
+	_founding_card.names = _flag_controller
+	if not _flag_controller.is_connected("naming_started", _open_founding_card):
+		_flag_controller.connect("naming_started", _open_founding_card)
+		_flag_controller.connect("naming_ended", _close_founding_card)
+		_flag_controller.connect("settlement_changed", _colony_panel.refresh)
+
+
+## A click chose where to plant the flag: the card asks for the name, clear of the flag.
+func _open_founding_card(cell: Vector3i) -> void:
+	if not _founding_window.visible:
+		_founding_card.begin()
+		_window_manager.open("founding")
+	var camera := get_viewport().get_camera_3d()
+	var spot := camera.unproject_position(Vector3(cell) + Vector3(0.5, 2.0, 0.5)) if camera != null else Vector2(-1, -1)
+	_founding_card.place_clear_of(spot, _dock_panel.position.y)
+
+
+func _close_founding_card() -> void:
+	_window_manager.close("founding")
+
+
+func _found_settlement(settlement_name: String) -> void:
+	if _flag_controller != null: _flag_controller.found(settlement_name)
+
+
+func _cancel_founding() -> void:
+	if _flag_controller != null: _flag_controller.cancel_naming()
+
+
+## Colony's entries (doc 23): the page closes, and the entry's own window or view opens.
+func _open_colony_entry(target: String) -> void:
+	_window_manager.close("colony")
+	if _window_manager.is_open(target): _window_manager.open(target)
+	else: _toggle_window(target)
+	_refresh_active_buttons()
 
 
 ## Push-registration from StockpileDesignationController (doc 18 Phase 1) —
@@ -944,40 +1065,58 @@ func register_stockpile_controller(controller: Node) -> void:
 	_stockpile_controller = controller
 	_connect_tool_active(controller)
 	if _orders != null: _orders.bind_controller("storage_zone", controller)
+	_bind_tool(controller)
 
 
 func register_furniture_controller(controller: Node) -> void:
 	_furniture_controller = controller
+	if _counts != null: _counts.furniture = controller
 	if _inventory_panel != null: _inventory_panel.bind_controller(controller)
 	_connect_tool_active(controller)
+	_bind_tool(controller)
 	if _window_manager == null or _place_catalog != null: return
 	_place_catalog = FurniturePlacePanel.new()
 	_place_window = _window_manager.register_window("place", "Place an item", "", _place_catalog,
-		{"persistent": false, "default_pos": Vector2(24, 76)})
+		{"persistent": false, "default_pos": Vector2(24, 76), "family": "settlement", "flush": true})
 	_place_window.keep_body_on_screen = true
-	UITheme.apply_catalog_window(_place_window)
 	_place_catalog.window = _place_window
 	_place_catalog.bind_controller(controller)
 	_place_catalog.place_requested.connect(_start_catalog_placement)
 	_place_catalog.fit_above_dock(_dock_panel.position.y)
 
 
+## The DEV item stamper (doc 23): its window, which drives the stamping tool. Stamp announces
+## the tool, so the dock's other tools step aside, as Place does.
+func register_item_stamper(controller: Node) -> void:
+	if _window_manager == null or _stamper_panel != null or not UIRegistry.dev_tools_enabled: return
+	_connect_tool_active(controller)
+	_bind_tool(controller)
+	_stamper_panel = preload("res://scripts/ui/ItemStamperPanel.gd").new()
+	var stamper_window: UIWindow = _window_manager.register_window("item_stamper", "Stamp an item", "", _stamper_panel,
+		{"persistent": false, "default_pos": Vector2(24, 76), "family": "dev", "flush": true})
+	stamper_window.keep_body_on_screen = true
+	stamper_window.visibility_changed.connect(func(): if not stamper_window.visible: controller.deactivate())
+	_stamper_panel.window = stamper_window
+	_stamper_panel.bind_controller(controller)
+	_stamper_panel.stamp_requested.connect(func():
+		tool_requested.emit("item_stamper")
+		controller.activate())
+	_stamper_panel.fit_above_dock(_dock_panel.position.y)
+
+
 func register_crafting_controller(controller: Node) -> void:
 	if _window_manager == null or _craft_panel != null: return
 	_craft_panel = preload("res://scripts/ui/WorkerCraftingPanel.gd").new()
-	_craft_window = _window_manager.register_window("craft", "Rudimentary crafting", "", _craft_panel,
-		{"persistent":false,"default_pos":Vector2(24,76)})
+	_craft_window = _window_manager.register_window("craft", "Crafting", "", _craft_panel,
+		{"persistent":false,"default_pos":Vector2(24,76),"family":"settlement","flush":true})
 	_craft_window.keep_body_on_screen = true
-	UITheme.apply_catalog_window(_craft_window)
 	_craft_panel.window = _craft_window
 	_craft_panel.bind_controller(controller)
-	_craft_panel.crafters_requested.connect(_open_action_panel.bind("craft"))
 	_craft_panel.place_requested.connect(func(key: String):
 		_window_manager.close("craft")
 		_window_manager.open("place")
 		_place_catalog.show_all = true
 		_place_catalog.set_all_toggle(true)
-		_place_catalog.category = "all"
 		_place_catalog.selected_key = key
 		_start_catalog_placement(key))
 	_craft_panel.fit_above_dock(_dock_panel.position.y)
@@ -1042,8 +1181,7 @@ func _locate_inventory_item(key: String, storage_only: bool) -> void:
 			if bool(node.get_meta("equipped", false)): node = node.get_parent() as Node3D
 			if entry.key != key or not node.is_inside_tree() or not node.is_visible_in_tree(): continue
 			locations.append({"kind": "item", "node": node, "position": node.global_position})
-	var rig: Node = get_viewport().get_camera_3d()
-	while rig != null and not rig.has_method("locate_position"): rig = rig.get_parent()
+	var rig := _camera_rig()
 	for location: Dictionary in locations:
 		if float(location.position.y) > items.get_slice_y() + 1.0: continue
 		if location.has("node") and not location.node.is_visible_in_tree(): continue
@@ -1059,17 +1197,71 @@ func _locate_inventory_item(key: String, storage_only: bool) -> void:
 	show_persistence_status("No accessible location on this slice. Change the slice level and try again.")
 
 
+## Events' Locate (doc 23): the view goes to a dwarf where it is now, or to a cell. Events
+## stays open, so the next entry is one click away.
+func _locate_event(target: Dictionary) -> void:
+	var rig := _camera_rig()
+	if rig == null: return
+	if target.has("dwarf"):
+		var agent := TaskManager.get_agent(int(target.dwarf))
+		if agent != null: rig.locate_subject(agent)
+	elif target.has("cell"):
+		rig.locate_position(Vector3(target.cell) + Vector3(0.5, 0.0, 0.5))
+
+
+## The camera rig that answers Locate, or null.
+func _camera_rig() -> Node:
+	var rig: Node = get_viewport().get_camera_3d()
+	while rig != null and not rig.has_method("locate_position"): rig = rig.get_parent()
+	return rig
+
+
+## The Events bell's count (doc 23): what is new, in hay; rust while a warning stands,
+## showing "!" once everything is read.
+func _refresh_events_badge() -> void:
+	if not _button_by_target.has("events"): return
+	var unseen := EventLog.unseen()
+	var warned := not EventLog.pinned().is_empty()
+	var count := ("99+" if unseen > 99 else str(unseen)) if unseen > 0 else ("!" if warned else "")
+	var note := ("1 new event" if unseen == 1 else "%d new events" % unseen) if unseen > 0 else ("A warning stands" if warned else "")
+	_button_by_target.events.show_count(count, "blocked" if warned else "waiting", note)
+
+
 ## Push-registration from MiningDesignationController — gives the dock's
 ## 'mine' entry live pressed-state (the tool previously had none at all).
 func register_mining_controller(controller: Node) -> void:
 	_mining_controller = controller
 	_connect_tool_active(controller)
 	if _orders != null: _orders.bind_controller("mine_precision", controller)
+	_bind_tool(controller)
 
 
 func register_construction_controller(controller: Node) -> void:
 	_construction_controller = controller
 	_connect_tool_active(controller)
+	_bind_tool(controller)
+
+
+## Copy and placing blueprints (doc 273): the Blueprints window, whose Place starts placing
+## (announced, so the dock's other tools step aside), and which opens on what Copy keeps.
+func register_blueprint_controller(controller: Node) -> void:
+	_blueprint_controller = controller
+	_connect_tool_active(controller)
+	_bind_tool(controller)
+	if _window_manager == null or _blueprint_panel != null: return
+	_blueprint_panel = preload("res://scripts/ui/BlueprintLibraryPanel.gd").new()
+	var window: UIWindow = _window_manager.register_window("blueprints", "Blueprints", "", _blueprint_panel,
+		{"persistent": false, "default_pos": Vector2(24, 76), "family": "work", "flush": true})
+	window.keep_body_on_screen = true
+	_blueprint_panel.window = window
+	_blueprint_panel.bind_controller(controller)
+	_blueprint_panel.place_requested.connect(func(id: String):
+		tool_requested.emit("blueprint_place")
+		controller.place(id))
+	controller.blueprint_saved.connect(func(id: String):
+		if not _window_manager.is_open("blueprints"): _window_manager.open("blueprints")
+		_blueprint_panel.select(id, true))
+	_blueprint_panel.fit_above_dock(_dock_panel.position.y)
 
 
 ## Push-registration from RoomOverlayController (🚪 Rooms tool, 2026-08-07) —
@@ -1078,6 +1270,7 @@ func register_construction_controller(controller: Node) -> void:
 func register_room_controller(controller: Node) -> void:
 	_room_controller = controller
 	_connect_tool_active(controller)
+	_bind_tool(controller)
 
 
 ## Push-registration from TreeFellingController — binds the shared surface
@@ -1090,12 +1283,12 @@ func register_chop_controller(controller: Node) -> void:
 		_orders.bind_controller("harvest_plants", controller)
 		_orders.bind_controller("clear_shrubs", controller)
 		_orders.bind_controller("cancel_orders", controller)
+	_bind_tool(controller)
 
 
 func _request_order_tool(tool_id: String) -> void:
 	# Clicking the selected tile keeps its brush and size; Done/Escape exits.
 	if not tool_id.is_empty() and _orders.active_tool_id() == tool_id: return
-	_orders.hide_feedback()
 	tool_requested.emit(tool_id)
 	_orders.refresh()
 	_refresh_active_buttons()
@@ -1117,6 +1310,22 @@ func _connect_tool_active(controller: Node) -> void:
 func _on_tool_active_changed(_active: bool) -> void:
 	_refresh_active_buttons()
 	if _orders != null: _orders.call_deferred("refresh")
+	if _tool_bar != null: _tool_bar.call_deferred("refresh")
+
+
+## A tool joins the tool bar, now or once the bar exists.
+func _bind_tool(controller: Node) -> void:
+	if _tool_bar != null: _tool_bar.bind_tool(controller)
+	elif not _bar_tools.has(controller): _bar_tools.append(controller)
+
+
+## What the tool bar keeps clear of: the time controls, the slice tower and the X-ray and
+## Appeal options while they are open, and the compact panel.
+func _bar_reserved_rects() -> Array:
+	var rects: Array = _time_slice_hud.occupied_rects() if _time_slice_hud != null else []
+	var panel := _selection_view()
+	if panel != null: rects.append(panel.get_global_rect())
+	return rects
 
 
 func _on_slice_active_changed(_active: bool) -> void:

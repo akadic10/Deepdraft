@@ -1,8 +1,7 @@
 extends "res://tools/HearthThemePreview.gd"
 
 ## Exercises the real grouped navigation after the shared UI fixture. Run natively
-## with -- --capture. Layout writes are disabled by the inherited fixture; save/load
-## buttons are observed as signals here, with the persistence backend disconnected.
+## with -- --capture. Layout writes are disabled by the inherited fixture.
 func _capture_inspector() -> void:
 	await super._capture_inspector()
 	var dock = scene.get_node("Dock")
@@ -60,17 +59,10 @@ func _capture_inspector() -> void:
 		"Escape exits Rooms and clears the dock highlight")
 	_click(dock._button_by_target.rooms.get_global_rect().get_center())
 
-	_click(dock._button_by_target.system.get_global_rect().get_center())
+	_click(dock._button_by_target.craft.get_global_rect().get_center())
 	await _settle()
 	_expect(not rooms.is_active() and not dock._button_by_target.rooms.button_pressed,
 		"switching to another dock group exits room inspection")
-	_click(_find_button(dock._panel_body, "Save / Load").get_global_rect().get_center())
-	await _settle()
-	_expect(dock._panel_rail_back.visible and dock._button_by_target.system.button_pressed,
-		"submenu retains its parent group and offers Back")
-	_click(dock._panel_rail_back.get_global_rect().get_center())
-	await _settle()
-	_expect(dock._active_panel_target == "system", "Back returns to Menu")
 	var escape := InputEventKey.new()
 	escape.keycode = KEY_ESCAPE
 	escape.pressed = true
@@ -84,20 +76,12 @@ func _capture_inspector() -> void:
 	_expect(manager.is_open("dwarves") and not dock._panel_container.visible,
 		"Colony opens the existing Dwarves window")
 	manager.close("dwarves")
-	var saved := [0,0,0]
-	for binding in [["save_game_requested", "request_save"], ["load_game_requested", "request_load"],
-		["load_autosave_requested", "request_load_autosave"]]:
-		dock.disconnect(binding[0], Callable(root.get_node("SaveManager"), binding[1]))
-	dock.save_game_requested.connect(func(): saved[0] += 1)
-	dock.load_game_requested.connect(func(): saved[1] += 1)
-	dock.load_autosave_requested.connect(func(): saved[2] += 1)
-	for label in ["Save game", "Load game", "Load autosave"]:
-		_click(dock._button_by_target.system.get_global_rect().get_center())
-		await _settle()
-		_click(_find_button(dock._panel_body, "Save / Load").get_global_rect().get_center())
-		await _settle()
-		_click(_find_button(dock._panel_body, label).get_global_rect().get_center())
-	_expect(saved == [1,1,1], "all persistence actions remain accessible and emit once")
+	var menu = root.get_node("GameMenu")
+	_click(dock._button_by_target.system.get_global_rect().get_center())
+	await _settle()
+	_expect(menu.is_open(), "the Menu button opens the game menu (doc 23)")
+	root.push_input(escape, true)
+	_expect(not menu.is_open(), "Escape closes the game menu")
 
 	_click(dock._speed_buttons[0].get_global_rect().get_center())
 	_expect(clock_node.paused, "Pause controls the authoritative clock")

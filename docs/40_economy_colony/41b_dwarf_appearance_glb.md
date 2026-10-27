@@ -18,14 +18,18 @@ All appearance IDs, pools and save fields are kept. Parts share one frame in wor
 units with root scale 1. Hands and feet are detached, and the logical body is 1×1×3.
 The head layout rules and tool grips are listed in 64.
 
-Limb lighting ([175](../00_dev_roadmap/175_dwarf_limb_lighting.md)): to keep both hands
-and boots lit evenly, the right-part rig root keeps its negative X scale for poses and
-anchors, while its inner mesh uses cached reflected geometry plus a
+Limb lighting (doc 175): to keep both hands and boots lit evenly, the right-part rig
+root keeps its negative X scale for poses and anchors, while its inner mesh uses
+cached reflected geometry plus a
 counter-reflection. Final rendered transforms are positive. Reflect normals and
 tangents and reverse winding with positions; preserve baked colors and runtime
 tints. Never replace this with a plain negative mesh scale or separate right-side
 color compensation. Imported left/source meshes and appearance save IDs remain
-unchanged.
+unchanged. With a plain negative scale the reflected surfaces were lit in reverse:
+the right hand rendered blue-grey and the right boot near-black (2026-10-13).
+`DwarfBodyRig` applies `DwarfAssets.mirrored_limb_mesh()`, which uses the shared
+`RigidMeshReflection` cache (doc 63), so all dwarves share one derived mesh per source
+part.
 
 This document catalogues every visual attribute a dwarf can have and defines the modular GLB file strategy for constructing them at runtime. The design goal is the minimum set of authored files that can express all valid combinations without duplicating geometry per color variant.
 
@@ -172,6 +176,9 @@ multiplies them by the dwarf's colour. Everything else is baked.
 - `hair`, `hair_mid` and `hair_shade` take the hair colour on hair, beards and brows.
 - `tunic`, `tunic_dark` and `tunic_light` are recoloured to the dwarf's clothing colour
   on the torso and both cuffs (`DwarfAssets.CLOTHING`, `CraftMaterials.apply_colors`).
+  The colour is saved in the appearance as `clothing`. A dwarf without one gets it from
+  its id (`DwarfAssets.clothing_for`), so neighbours differ and no other appearance roll
+  changes.
 - Boots, belt, buckle, eyes and the work tools keep their baked colours.
 
 The live code is `DwarfAgent._apply_tints`. The sketch below shows the original idea.

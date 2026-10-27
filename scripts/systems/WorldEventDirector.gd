@@ -1,9 +1,8 @@
 extends Node
 ## Calendar opportunities are independent of population and kills. Providers own
 ## entry routing and actors; this owner owns decisions, expiry and batch progress.
-signal arrival_finished(event_id: String, count: int, edge: String)
-## Dock whose toast announces arrivals (Scene Decoupling Contract).
-@export var dock_ui_path: NodePath
+## A group finished arriving; `place` is inland where it heads (-1 cells when unknown).
+signal arrival_finished(event_id: String, count: int, edge: String, place: Vector3i)
 
 const PREPARATION_BUDGET_USEC := 2000
 const DATA_PATH := "res://data/world_events/arrivals.json"
@@ -106,19 +105,26 @@ func _finish(event: Dictionary, state: Dictionary, reason: String) -> void:
 	var active: Dictionary = state.active
 	_record(active.id, reason, int(active.issued))
 	state.active = {}
-	if int(active.issued) > 0: arrival_finished.emit(event.id, int(active.issued), String(active.edge))
+	if int(active.issued) <= 0: return
+	var place := Vector3i(-1, -1, -1)
+	if not active.route.is_empty():
+		var inland: Array = active.route.back()
+		place = Vector3i(int(inland[0]), int(inland[1]), int(inland[2]))
+	arrival_finished.emit(event.id, int(active.issued), String(active.edge), place)
 
 func _record(id: String, reason: String, count: int) -> void:
 	history.append({"id": id, "result": reason, "count": count, "day": WorldClock.elapsed_days()})
 	if history.size() > 12: history.pop_front()
 
-func _announce(event_id: String, count: int, edge: String) -> void:
-	var dock := get_node_or_null(dock_ui_path) if not dock_ui_path.is_empty() else null
-	if dock == null: return
+## Arrivals land in the colony's event log (doc 23) with the species' picture, and
+## Locate goes inland where the group heads.
+func _announce(event_id: String, count: int, edge: String, place: Vector3i) -> void:
 	for event: Dictionary in config.events:
 		if event.id != event_id: continue
 		var subject := "A %s has" % event.singular_name if count == 1 else "%d %s have" % [count, event.plural_name]
-		dock.show_persistence_status(subject+" arrived from the %s." % edge)
+		var options := {"picture": String(event.picture)}
+		if place.x >= 0: options.place = place
+		EventLog.post("arrival", subject + " arrived from the %s." % edge, options)
 		return
 
 func record_player_hunt(at: Vector3i) -> void:

@@ -193,7 +193,7 @@ func _run() -> void:
 func _test_blocked_edges() -> void:
 	# A narrow flat edge strip surrounded by void. A wall, water or missing
 	# support across the strip must prevent entry, without unrelated detours.
-	var grass: int = root.get_node("BlockRegistry").get_id("base:terrain:surface:grass_01")
+	var grass: int = root.get_node("BlockRegistry").get_id("base:terrain:surface:grass")
 	var stone: int = root.get_node("BlockRegistry").get_id("base:terrain:rock:rock01")
 	for x in range(0, 64):
 		for z in range(400, 416):

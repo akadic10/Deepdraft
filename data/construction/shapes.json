@@ -1,0 +1,18 @@
+{
+  "rectangle": {
+    "label": "Rectangle",
+    "picture": "res://assets/ui/icons/shape_rectangle.png",
+    "tooltip": "Drag corner to corner: walls round it, or filled. One wide, it is a wall. A door gap opens in the side facing you.",
+    "doors": [0, 2, 3, 4]
+  },
+  "circle": {
+    "label": "Circle",
+    "picture": "res://assets/ui/icons/shape_circle.png",
+    "tooltip": "Drag from the centre out: a ring of walls, or filled, up to 31 across."
+  },
+  "stairs": {
+    "label": "Stairs",
+    "picture": "res://assets/ui/icons/shape_stairs.png",
+    "tooltip": "Drag from the foot toward the top: a block up a step, as wide as the drag, with 3 blocks of headroom kept above each step."
+  }
+}

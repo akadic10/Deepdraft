@@ -44,20 +44,25 @@ func refresh() -> void:
 		var issue := Concern.describe(agent)
 		if not _entries.has(id):
 			if issue.is_empty(): continue
-			var icon := TextureRect.new()
+			# The concern's Hearthblock icon on a family tile, as the world order markers.
+			var icon := PanelContainer.new()
 			icon.name = "Need_%d" % agent.dwarf_id
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.add_theme_stylebox_override("panel", UITheme.icon_tile_style(UIRegistry.get_icon_family_color(String(_config.family))))
+			var picture := TextureRect.new()
+			picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.add_child(picture)
 			icon.hide()
 			add_child(icon)
-			_entries[id] = {"agent":agent,"icon":icon,"issue":{},"key":"","pulse":0.0,"alpha":0.0,"clear":false,"checked":false}
+			_entries[id] = {"agent":agent,"icon":icon,"picture":picture,"issue":{},"key":"","pulse":0.0,"alpha":0.0,"clear":false,"checked":false}
 		var entry: Dictionary = _entries[id]
 		var key := String(issue.kind)+String(issue.title) if not issue.is_empty() else ""
 		if key != entry.key:
 			entry.key = key
 			entry.pulse = 0.0
-			if not issue.is_empty(): entry.icon.texture = UIRegistry.get_need_icon(issue.kind)
+			if not issue.is_empty(): entry.picture.texture = UIRegistry.get_need_icon(issue.kind)
 		entry.issue = issue
 	for id: int in _entries.keys():
 		if present.has(id): continue
@@ -67,7 +72,7 @@ func refresh() -> void:
 
 func _update_marker(entry: Dictionary, camera: Camera3D, delta: float, check_visibility: bool) -> void:
 	var agent: DwarfAgent = entry.agent
-	var icon: TextureRect = entry.icon
+	var icon: PanelContainer = entry.icon
 	entry.alpha = move_toward(float(entry.alpha),0.0 if entry.issue.is_empty() else 1.0,delta/float(_config.fade_seconds))
 	entry.pulse += delta
 	icon.hide()
@@ -78,15 +83,16 @@ func _update_marker(entry: Dictionary, camera: Camera3D, delta: float, check_vis
 	var anchor := Vector3(head.x,bounds.end.y,head.z)
 	if camera.is_position_behind(anchor): return
 	var viewport_size := get_viewport().get_visible_rect().size
-	var ui_scale := clampf(viewport_size.y/1080.0,0.8,2.0)
+	# By the screen's own height, so the marks grow with the UI scale too (doc 23).
+	var screen_scale := clampf(float(get_window().size.y)/1080.0,0.8,2.0)
 	var projected_height := camera.unproject_position(agent.global_position).distance_to(camera.unproject_position(agent.global_position+Vector3.UP*3.3))
-	var minimum := float(_config.minimum_dwarf_pixels)*ui_scale
+	var minimum := float(_config.minimum_dwarf_pixels)*screen_scale
 	if projected_height<=minimum: return
 	var zoom_alpha := smoothstep(minimum,minimum*1.8,projected_height)
 	var pulse := 1.0+0.12*sin(PI*clampf(float(entry.pulse)/float(_config.pulse_seconds),0.0,1.0))
-	var width := float(_config.icon_pixels)*ui_scale*pulse
-	icon.size = Vector2(width,width*1.125)
-	icon.position = camera.unproject_position(anchor)-Vector2(width*.5,icon.size.y+6.0*ui_scale)
+	var width := float(_config.icon_pixels)*screen_scale*pulse
+	icon.size = Vector2.ONE*width
+	icon.position = camera.unproject_position(anchor)-Vector2(width*.5,icon.size.y+6.0*screen_scale)
 	if not Rect2(Vector2.ZERO,viewport_size).encloses(icon.get_rect()): return
 	if check_visibility or not entry.checked:
 		entry.clear = _head_visible(camera,head,agent.get_slice_y())

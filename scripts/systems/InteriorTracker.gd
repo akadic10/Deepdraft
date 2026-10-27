@@ -20,6 +20,9 @@ extends Node
 const INTERIOR_HEIGHT := 4
 const NEIGHBORS := [Vector3i.LEFT, Vector3i.RIGHT, Vector3i.UP, Vector3i.DOWN, Vector3i.FORWARD, Vector3i.BACK]
 signal caves_discovered(cells: Array[Vector3i])
+## Caves the colony mined into, after caves_discovered; not the surface caves a new
+## world reveals, nor a load. EventLog lists them (doc 23).
+signal cavern_found(cells: Array[Vector3i])
 var _discovered_caves: Dictionary = {}
 var _known_cells: Dictionary = {}
 
@@ -79,11 +82,21 @@ func on_blocks_mined(blocks: Array[Vector3i]) -> void:
 			var cells := WorldGenerator.get_cave_air_cells(cave_id)
 			for cell: Vector3i in cells: _add_cell(cell)
 			discovered.append_array(cells)
-	if not discovered.is_empty(): caves_discovered.emit(discovered)
+	if not discovered.is_empty():
+		caves_discovered.emit(discovered)
+		cavern_found.emit(discovered)
 
 
 func is_cave_discovered(cave_id: int) -> bool:
 	return _discovered_caves.has(cave_id)
+
+
+## Whether `cell` lies in a cave the colony has not found, in its air or its water. The slice
+## shows it as rock, so every tool takes it for rock: rays stop on it, nothing is placed or
+## planned in it, and Copy keeps it as the rock (Hard Rule 11).
+func is_hidden_cave(cell: Vector3i) -> bool:
+	var cave_id := WorldGenerator.get_cave_id(cell)
+	return cave_id >= 0 and not _discovered_caves.has(cave_id)
 
 
 ## Surface-connected caves are exposed by generation, not by a fictional

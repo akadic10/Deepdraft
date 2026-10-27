@@ -14,6 +14,8 @@ const TEST_AUTOSAVE := TEST_DIRECTORY + "/autosave.json"
 const TEST_AUTOSAVE_BACKUP := TEST_DIRECTORY + "/autosave.backup.json"
 const TEST_AUTOSAVE_TEMP := TEST_DIRECTORY + "/autosave.tmp.json"
 const TEST_AUTOSAVE_BACKUP_STAGE := TEST_DIRECTORY + "/autosave.backup.tmp.json"
+const TEST_NAMED := TEST_DIRECTORY + "/named"
+const NAMED_ID := "named_before_the_flood"
 const WORLD_TIMEOUT_MSEC := 90000
 const LOAD_TIMEOUT_MSEC := 90000
 const OWNER_GROUP := "save_state_owner"
@@ -32,6 +34,7 @@ var _terrain_reference: String = ""
 var _fixture_origin: Vector2i
 var _weather_reference: Dictionary = {}
 var _weather_future: Array[String] = []
+var _settlement_reference: Dictionary = {}
 
 
 func _init() -> void:
@@ -81,6 +84,12 @@ func _run() -> void:
 	if not setup_error.is_empty():
 		_fail(setup_error)
 		return
+	# Founding names the settlement after the world's first suggestion.
+	var flag := _owner("settlement_flag")
+	_settlement_reference = {"name": flag.settlement_name, "founded_day": flag.founded_day}
+	if flag.settlement_name != flag.suggestion(0) or flag.founded_day < 0:
+		_fail("founding did not name the settlement or record its day")
+		return
 	_content_reference = _collect_scene_state()
 	# Save non-initial finite volumes, a paused source and a real solid dam.
 	var water := root.get_node("WaterManager")
@@ -126,8 +135,16 @@ func _run() -> void:
 		return
 	if not await _wait_for_save(): _fail("manual save completion failed"); return
 	var scene_after := JSON.stringify(_collect_scene_state())
+	if String(_save_manager.call("save_slots")[0].colony) != _settlement_reference.name:
+		_fail("the Load list does not read the settlement's name from the top of the save")
+		return
 	if scene_before != scene_after:
 		_fail("saving mutated authoritative scene state")
+		return
+	# Save as… keeps the same moment under a name, beside the two slots.
+	var named_error: String = await _verify_named_save(expected_seed)
+	if not named_error.is_empty():
+		_fail(named_error)
 		return
 
 	# The second save must rotate the first valid snapshot to the backup.
@@ -158,7 +175,7 @@ func _run() -> void:
 	_load_succeeded = false
 	_load_used_backup = false
 	_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-	if not _load_through_dock("load_autosave"):
+	if not _load_through_menu("load_autosave"):
 		_fail("autosave load did not start")
 		return
 	if not await _wait_for_load(LOAD_TIMEOUT_MSEC):
@@ -175,6 +192,10 @@ func _run() -> void:
 	if not autosave_content_diff.is_empty():
 		_fail("autosave content did not round-trip — %s" % autosave_content_diff)
 		return
+	var named_load_error: String = await _verify_named_load(expected_seed)
+	if not named_load_error.is_empty():
+		_fail(named_load_error)
+		return
 
 	# Fault injection goes through SaveFileStore, the sole save-file I/O owner.
 	var corrupt_error := String(_write_fixture(TEST_PRIMARY, "{invalid json"))
@@ -186,7 +207,7 @@ func _run() -> void:
 	_load_succeeded = false
 	_load_used_backup = false
 	_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-	if not _load_through_dock("load_game"):
+	if not _load_through_menu("load_game"):
 		_fail("backup load did not start")
 		return
 	if not await _wait_for_load(LOAD_TIMEOUT_MSEC):
@@ -226,6 +247,10 @@ func _run() -> void:
 	if not rejection_error.is_empty():
 		_fail(rejection_error)
 		return
+	var slot_delete_error := _verify_slot_delete()
+	if not slot_delete_error.is_empty():
+		_fail(slot_delete_error)
+		return
 
 	print("SAVE_MANAGER_ROUND_TRIP_OK")
 	_cleanup_and_quit(0)
@@ -241,7 +266,7 @@ func _verify_snapshot_validation() -> String:
 	var empty_scene := parsed.duplicate(true)
 	empty_scene.scene = {}
 	cases.append({"name": "empty scene", "snapshot": empty_scene})
-	for field: String in ["schema_version", "project", "saved_at_utc", "world_seed", "clock", "weather", "scene"]:
+	for field: String in ["schema_version", "project", "saved_at_utc", "world_seed", "colony_name", "clock", "weather", "scene"]:
 		var missing := parsed.duplicate(true)
 		missing.erase(field)
 		cases.append({"name": "missing " + field, "snapshot": missing})
@@ -253,12 +278,28 @@ func _verify_snapshot_validation() -> String:
 			var malformed := parsed.duplicate(true)
 			malformed.scene[section] = invalid
 			cases.append({"name": "malformed scene." + section, "snapshot": malformed})
+	var journal_line := {"day": 1, "topic": "chilly", "text": "Chilly sleep", "tone": "complaint", "dwarves": [9], "speaker": 9, "name": "Urist", "words": ""}
 	for change in [
-		[["scene","construction","orders",1,"kind"],"unknown_floor"],
+		[["scene","journal","lines"],[journal_line.merged({"tone": "boast"}, true)]],
+		[["scene","journal","lines"],[journal_line.merged({"dwarves": [7]}, true)]],
+		[["scene","journal","lines"],[journal_line, journal_line]],
+		[["scene","journal","lines"],[journal_line.merged({"day": -1}, true)]],
+		[["scene","journal","lines",0,"dwarves"],["9"]],
+		[["scene","settlement_flag","name"],"X"],
+		[["scene","settlement_flag","name"],"Brun\"hald"],
+		[["scene","settlement_flag","founded_day"],"1"],
+		[["scene","settlement_flag","founded_day"],-2],
+		[["colony_name"],12],
+		[["scene","construction","orders",0,"kind"],"unknown_kind"],
+		[["scene","events","next_id"],0],
+		[["scene","events","entries",0,"kind"],"rumour"],
+		[["scene","events","entries",0,"id"],999999],
+		[["scene","events","entries",0,"past"],"Past words on an entry that is no standing warning."],
 		[["scene","terrain","edits",0,"block"],"base:terrain:unknown"],
-		[["scene","construction","orders",0,"materials"],{"":2}],
-		[["scene","construction","orders",0,"materials"],{"":-1}],
-		[["scene","construction","orders",0,"materials"],{"unknown_material":1}],
+		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"":2}}],
+		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"":-1}}],
+		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"unknown_material":1}}],
+		[["scene","construction","orders",0,"materials"],{"base:resources:unknown":{"":1}}],
 		[["scene","construction","orders",0,"total_blocks"],0],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":-1}]],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":1.5}]],
@@ -275,7 +316,7 @@ func _verify_snapshot_validation() -> String:
 		[["world_seed"], "123"], [["world_seed"], true], [["world_seed"], 1.5],
 		[["schema_version"], "1"], [["schema_version"], 1.5], [["schema_version"], true],
 		[["schema_version"], int(parsed.schema_version) - 1],
-		[["scene","construction","orders",1,"total_blocks"],"1"],
+		[["scene","construction","orders",0,"total_blocks"],"1"],
 		[["scene","furniture","installed",0,"material_id"],"base:material:unknown"],
 		[["scene","furniture","ghosts",0,"required_material_id"],"base:material:unknown"],
 		[["scene","stockpiles","zones",0,"storage_filter","tags"],"stockpile_seed"],
@@ -297,6 +338,13 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "dwarves", "roster", 0, "mood", "recreation_retry_hours"], "many"],
 		[["scene", "dwarves", "roster", 0, "mood", "solo_recreation_memory_hours"], -1.0],
 		[["scene", "dwarves", "roster", 0, "mood", "solo_recreation_memory_hours"], "many"],
+		[["scene", "dwarves", "roster", 0, "mood", "ate_room"], "lovely"],
+		[["scene", "dwarves", "roster", 0, "mood", "ate_room_hours"], -1.0],
+		[["scene", "dwarves", "roster", 0, "mood", "played_room"], 3],
+		[["scene", "dwarves", "roster", 0, "mood", "ate_room_taste"], "base:material:pine"],
+		[["scene", "dwarves", "roster", 0, "tastes", "base:furniture:no_such_piece"], "love"],
+		[["scene", "dwarves", "roster", 0, "tastes", "base:furniture:bench"], "adore"],
+		[["scene", "dwarves", "roster", 0, "found_tastes"], ["base:furniture:log_table"]],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 999999],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 0],
 		[["scene","furniture","moves","next_id"],1],
@@ -330,6 +378,7 @@ func _verify_snapshot_validation() -> String:
 		["scene","dwarves","roster",0,"mood","hot_memory_hours"],
 		["scene","wildlife","deer_initialized"],
 		["scene","wildlife","wolf_initialized"],
+		["scene","journal","lines",0,"words"],
 	]:
 		var stripped := parsed.duplicate(true)
 		var parent: Variant = stripped
@@ -421,7 +470,7 @@ func _verify_structural_recovery(expected_seed: int) -> String:
 		_load_succeeded = false
 		_load_used_backup = false
 		_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-		if not _load_through_dock("load_autosave" if autosave else "load_game"):
+		if not _load_through_menu("load_autosave" if autosave else "load_game"):
 			return "structurally invalid primary prevented backup recovery"
 		if not await _wait_for_load(LOAD_TIMEOUT_MSEC): return "structural recovery timed out"
 		if not _load_succeeded or not _load_used_backup: return "structural corruption bypassed backup recovery"
@@ -447,7 +496,7 @@ func _verify_rejected_load_preserves_world() -> String:
 		_load_completed = false
 		_load_succeeded = true
 		_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
-		if _load_through_dock(command): return "load started with both generations invalid"
+		if _load_through_menu(command): return "load started with both generations invalid"
 		if not _load_completed or _load_succeeded: return "rejected load did not report failure"
 		if current_scene.get_instance_id() != scene_id or bool(_save_manager.call("is_loading")):
 			return "rejected load replaced the live scene"
@@ -458,21 +507,95 @@ func _verify_rejected_load_preserves_world() -> String:
 	return ""
 
 
-## Click the production menu button: calling SaveManager directly misses the
-## dock's signal/scene-teardown lifecycle. Rejected loads use this route too.
-func _load_through_dock(command: String) -> bool:
-	var dock := get_first_node_in_group("command_dock")
-	if dock == null:
+## Save as… (doc 23): the colony as it is now under the player's name, in its own file with
+## the name inside, never touching the quick save or the autosave; listed with its name,
+## colony, world and room; the same name again, capitals aside, replacing it and keeping a
+## backup; and a name against the rules refused. Which save Continue picks is
+## StartupSaveTest's.
+func _verify_named_save(expected_seed: int) -> String:
+	var others := {}
+	for path: String in [TEST_PRIMARY, TEST_BACKUP, TEST_AUTOSAVE, TEST_AUTOSAVE_BACKUP]:
+		others[path] = FileAccess.get_sha256(path) if FileAccess.file_exists(path) else ""
+	if not bool(_save_manager.call("request_save_as", "  Before   the flood ")): return "Save as… was refused"
+	if not await _wait_for_save(): return "the named save did not complete"
+	var primary := TEST_NAMED + "/before_the_flood.json"
+	var saved: Dictionary = _save_manager.call("_read_snapshot", primary)
+	if not bool(saved.get("ok", false)): return "the named save did not validate: %s" % saved.get("error", "missing")
+	if String(saved.snapshot.get("save_name", "")) != "Before the flood": return "the named save does not keep its name inside the file"
+	for path: String in others:
+		if (FileAccess.get_sha256(path) if FileAccess.file_exists(path) else "") != others[path]: return "the named save touched " + path
+	var listed: Dictionary = {}
+	for slot: Dictionary in _save_manager.call("save_slots"):
+		if slot.get("named", false): listed = slot
+	if listed.get("id", "") != NAMED_ID or listed.get("name", "") != "Before the flood" or listed.get("colony", "") != _settlement_reference.name \
+			or int(listed.get("seed", 0)) != expected_seed or int(listed.get("bytes", 0)) <= 0:
+		return "the Load list does not give the named save's name, colony, world and room: " + str(listed)
+	if not bool(_save_manager.call("request_save_as", "BEFORE THE FLOOD")): return "saving under the same name was refused"
+	if not await _wait_for_save(): return "replacing the named save did not complete"
+	if not FileAccess.file_exists(TEST_NAMED + "/before_the_flood.backup.json") or FileAccess.file_exists(TEST_NAMED + "/before_the_flood_2.json"):
+		return "the same name, capitals aside, did not replace the save and keep its backup"
+	if bool(_save_manager.call("request_save_as", "Before/the flood")) or bool(_save_manager.call("is_saving")):
+		return "a name against the rules was saved"
+	return ""
+
+
+## A named save loads as the player loads it, through the game menu, and restores the moment
+## it kept. Delete then takes it and its backup away; test storage deletes outright.
+func _verify_named_load(expected_seed: int) -> String:
+	_load_completed = false
+	_load_succeeded = false
+	_load_used_backup = false
+	_save_manager.connect("load_finished", _on_load_finished, CONNECT_ONE_SHOT)
+	if not _load_through_menu("load_" + NAMED_ID): return "the named save's load did not start"
+	if not await _wait_for_load(LOAD_TIMEOUT_MSEC): return "the named save's load timed out"
+	if not _load_succeeded or _load_used_backup: return "the named save did not load from its own file"
+	var error := _verify_restored_state(expected_seed)
+	if not error.is_empty(): return "named save: " + error
+	var difference := _deep_diff(_content_reference, _collect_scene_state(), "scene")
+	if not difference.is_empty(): return "named save content did not round-trip — " + difference
+	if int(_save_manager.call("colony_saved_unix")) <= 0: return "the colony loaded from the named save does not count it as its last save"
+	if not bool(_save_manager.call("request_delete_save", NAMED_ID)): return "Delete refused the named save"
+	if FileAccess.file_exists(TEST_NAMED + "/before_the_flood.json") or FileAccess.file_exists(TEST_NAMED + "/before_the_flood.backup.json"):
+		return "Delete left the named save's files"
+	for slot: Dictionary in _save_manager.call("save_slots"):
+		if slot.get("named", false): return "Delete left the named save in the list"
+	# The save the colony came from is gone, so the menu must not say it was saved.
+	if int(_save_manager.call("colony_saved_unix")) != 0: return "the colony still counts its deleted save as its last"
+	return ""
+
+
+## The quick save and the autosave can be deleted too, even when neither generation would load:
+## both files go (test storage deletes outright) and the Load list shows the slots empty.
+func _verify_slot_delete() -> String:
+	for id: String in ["quick", "auto"]:
+		if not bool(_save_manager.call("request_delete_save", id)): return "Delete refused the %s" % id
+	for path: String in [TEST_PRIMARY, TEST_BACKUP, TEST_AUTOSAVE, TEST_AUTOSAVE_BACKUP]:
+		if FileAccess.file_exists(path): return "Delete left " + path
+	var slots: Array = _save_manager.call("save_slots")
+	if slots[0].exists or slots[1].exists: return "the Load list still shows a deleted slot"
+	if bool(_save_manager.call("request_delete_save", "quick")): return "Delete accepted a slot that holds no save"
+	return ""
+
+
+## Load as a player does, through the game menu (doc 23): Load game…, the slot's Load,
+## then the question's Load. Calling SaveManager directly would miss the menu closing
+## before the scene is replaced. Rejected loads use this route too.
+func _load_through_menu(command: String) -> bool:
+	var menu := root.get_node("GameMenu")
+	menu.open()
+	menu.call("_choose", "load")
+	var id: String = {"load_autosave": "auto", "load_game": "quick"}.get(command, command.trim_prefix("load_"))
+	var pick: Button = menu.get("_slots").find_child("Load_" + id, true, false)
+	if pick == null or pick.disabled:
+		_fail("the Load page offered no " + command)
+		menu.close()
 		return false
-	dock.call("_open_action_panel", "save_load")
-	var entries: Array = root.get_node("UIRegistry").get_menu("save_load").items
-	for i in entries.size():
-		if String(entries[i].id) != command:
-			continue
-		var button: Button = dock.get("_panel_body").get_child(i)
+	pick.pressed.emit()
+	for button: Button in menu.get("_ask_buttons").get_children():
+		if button.text != "Load": continue
 		button.pressed.emit()
-		if dock.call("is_action_menu_open"):
-			_fail("persistence command left the old dock menu open")
+		if menu.is_open():
+			_fail("confirming a load left the game menu open")
 			return false
 		var loading := bool(_save_manager.call("is_loading"))
 		if loading:
@@ -585,10 +708,9 @@ func _build_nonempty_colony_state() -> String:
 	root.get_node("WorldData").restore_terrain({"edits":[
 		{"cell":_pack_v3i(mined_cell),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(mined_cell)))},
 		{"cell":_pack_v3i(standing_stone),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(standing_stone)))},
-		{"cell":_pack_v3i(_surface_cell(16,6)+Vector3i.UP),"block":"base:construction:floor:plank"},
-		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:floor:stone"}]})
-	construction.restore_state({"next_id":703,"orders":[{"id":701,"kind":"stone","materials":{"":1},"total_blocks":1,"cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]},
-			{"id":702,"kind":"stone_floor","total_blocks":1,"cells":[{"cell":_pack_v3i(_surface_cell(20,6)+Vector3i.UP),"work":0.0}]}]})
+		{"cell":_pack_v3i(_surface_cell(16,6)+Vector3i.UP),"block":"base:construction:log:oak:x"},
+		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:log:pine:x"}]})
+	construction.restore_state({"next_id":702,"orders":[{"id":701,"kind":"stone","materials":{"base:resources:stone:rough_stone":{"":1}},"total_blocks":1,"cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]}]})
 	var rebuilt_targets: Array[Vector3i] = [mined_cell]
 	mining._create_zone(rebuilt_targets,102)
 	var caves: Array = _world_generator.get_cave_catalog()
@@ -599,6 +721,9 @@ func _build_nonempty_colony_state() -> String:
 	mining._mine_block_world(cave_wall)
 	if not root.get_node("InteriorTracker").is_cave_discovered(0): return "cave discovery fixture failed"
 	flag.call("_place_flag", flag_cell, false)
+	# A journal line, so the journal's records are validated and restored as well.
+	root.get_node("ColonyJournal").restore_state({"lines": [{"day": 1, "topic": "chilly", "text": "Chilly sleep", "tone": "complaint",
+		"dwarves": [7, 9], "speaker": 9, "name": "Urist", "words": "Woke with frost in my beard. A hearth would not go amiss."}]})
 	stockpiles.call("restore_state", {
 		"zones": [{
 			"id": 201,
@@ -668,6 +793,8 @@ func _build_nonempty_colony_state() -> String:
 				"scar": "none",
 			},
 			"traits": [],
+			"tastes": {"base:furniture:log_bed": "love", "base:material:oak": "like", "base:furniture:bench": "like", "base:material:pine": "dislike"},
+			"found_tastes": ["base:furniture:log_bed"],
 			"profession": "base:profession:miner",
 			"profession_experience": { "base:profession:worker": 7, "base:profession:miner": 123 },
 			"work_permissions": {"haul": false, "mine": true, "gather": false},
@@ -678,7 +805,7 @@ func _build_nonempty_colony_state() -> String:
 			"sleeping": true,
 			"sleep_hours_left": 2.5,
 			"food": {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1},
-			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5},
+			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5,"slept_room":"","slept_room_hours":0.0,"ate_room":"beautiful","ate_room_hours":5.5,"played_room":"","played_room_hours":0.0,"slept_room_taste":"","ate_room_taste":"base:furniture:log_bed","played_room_taste":""},
 			"carried_items": [],
 		}],
 	})
@@ -810,6 +937,10 @@ func _build_nonempty_colony_state() -> String:
 		member.advance(.1, 0.0, [])
 		member.advance(.1, 0.0, [])
 		if int(group.issued) == int(group.count): events._finish(settings, state, "arrived")
+	# The event log (doc 23): an entry with a place and a pinned warning round-trip.
+	var event_log := root.get_node("EventLog")
+	if event_log.post("discovery", "Cavern discovered. Bring light to explore it.", {"place": Vector3i(40, 20, 40)}) <= 0 			or event_log.raise("save_fixture", "A save fixture warning stays pinned.", {"dwarves": [1]}) <= 0:
+		return "event log fixture was not recorded"
 	return ""
 
 
@@ -1049,11 +1180,9 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 2:
 		return "mining zones did not round-trip"
 	var construction_state: Dictionary = scene_state.construction
-	if construction_state.has("built") or construction_state.orders.size()!=2 or not is_equal_approx(construction_state.orders[0].cells[0].work,.65):
-		return "built stone/floors or unfinished construction did not round-trip"
-	if construction_state.orders[1].kind!="stone_floor" or _owner("construction").orders[702]._lease_id>=0:
-		return "floor construction type or profession lock did not round-trip"
-	if int(construction_state.orders[0].get("materials",{}).get("",0))!=1:
+	if construction_state.has("built") or construction_state.orders.size()!=1 or not is_equal_approx(construction_state.orders[0].cells[0].work,.65):
+		return "built blocks or unfinished construction did not round-trip"
+	if int(construction_state.orders[0].get("materials",{}).get("base:resources:stone:rough_stone",{}).get("",0))!=1:
 		return "staged construction stone did not round-trip"
 	for entry: Dictionary in scene_state.terrain.edits:
 		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
@@ -1061,6 +1190,8 @@ func _verify_restored_state(expected_seed: int) -> String:
 			return "constructed terrain was not restored after mining"
 	if not bool((scene_state["settlement_flag"] as Dictionary).get("founded", false)):
 		return "settlement flag did not round-trip"
+	if _owner("settlement_flag").settlement_name != _settlement_reference.name or _owner("settlement_flag").founded_day != _settlement_reference.founded_day:
+		return "the settlement's name or founding day did not round-trip"
 	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 4:
 		return "stockpile state did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
@@ -1082,8 +1213,11 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "dwarf roster/runtime state did not round-trip"
 	if roster[0].food != {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1}:
 		return "food need, last meal, dining arrangement or retry did not round-trip"
-	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5}:
-		return "personal-bedroom sleep progress or dining/thermal/recreation happiness did not round-trip"
+	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5,"slept_room":"","slept_room_hours":0.0,"ate_room":"beautiful","ate_room_hours":5.5,"played_room":"","played_room_hours":0.0,"slept_room_taste":"","ate_room_taste":"base:furniture:log_bed","played_room_taste":""}:
+		return "personal-bedroom sleep progress or dining/thermal/recreation/room happiness did not round-trip"
+	if roster[0].tastes != {"base:furniture:log_bed": "love", "base:material:oak": "like", "base:furniture:bench": "like", "base:material:pine": "dislike"} \
+			or roster[0].found_tastes != ["base:furniture:log_bed"]:
+		return "a dwarf's tastes or the ones found did not round-trip"
 	if furniture_state.installed.filter(func(piece): return piece.get("assigned_dwarf_id",-1)==0).size()!=1:
 		return "personal bed assignment did not round-trip"
 	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:
@@ -1386,6 +1520,11 @@ func _cleanup_test_storage() -> void:
 	]:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	# The named saves' folder holds only the test's own save files.
+	if DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(TEST_NAMED)):
+		for file: String in DirAccess.get_files_at(TEST_NAMED):
+			if file.ends_with(".json"): DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_NAMED.path_join(file)))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_NAMED))
 	var absolute_directory := ProjectSettings.globalize_path(TEST_DIRECTORY)
 	if DirAccess.dir_exists_absolute(absolute_directory):
 		# The fixed test directory is removed only when the exact files above left it empty.

@@ -3,6 +3,7 @@
 # (also run with -All).
 #   -Tests  names or wildcards (Hauling*, LadderTest)   -Area  groups from test_suite.json
 #   -All    every *Test.gd in scripts/tests              -List  print the selection and stop
+# A test passes when it exits 0, prints its pass marker and logs no SCRIPT ERROR to stderr.
 # Output is one summary line plus details for failures; -ShowPasses lists passes too.
 # On full success the run's logs, profiles and new tmp/ output are deleted unless -KeepOutput.
 param(
@@ -51,10 +52,11 @@ if ($All -or ($Area.Count -eq 0 -and $Tests.Count -eq 0)) {
     $lint | ForEach-Object { Write-Output $_ }
 }
 
+# Returns nothing for a missing entry, so @(Get-Setting ...) is empty rather than @($null).
 function Get-Setting($table, [string]$test) {
-    if ($null -eq $table) { return $null }
+    if ($null -eq $table) { return }
     $entry = $table.PSObject.Properties[$test]
-    if ($entry) { return $entry.Value } else { return $null }
+    if ($entry) { return $entry.Value }
 }
 function Find-Group($table, [string]$test) {
     if ($null -eq $table) { return $null }
@@ -85,7 +87,7 @@ $jobs = foreach ($test in $selected) {
     [pscustomobject]@{
         test = $test; index = $index++; phases = @($phases); phase = 0; profile = Join-Path $profileBase $test; out = ''; err = ''
         lock = Find-Group $suite.shared_output $test; timeout = $(if ($timeout) { [int]$timeout } else { 180 })
-        process = $null; timer = $null; passed = $false; exit = $null; timedOut = $false; seconds = 0; failure = ''
+        process = $null; timer = $null; passed = $false; exit = $null; timedOut = $false; seconds = 0; scriptErrors = 0; failure = ''
         allowed = @(Get-Setting $suite.expected_errors $test)
     }
 }
@@ -120,13 +122,21 @@ function Complete-Phase($job) {
     foreach ($text in $job.allowed) {
         $errors = (($errors -split "`r?`n") | Where-Object { -not ($_ -match '^(SCRIPT )?ERROR:' -and $_.Contains($text)) }) -join "`n"
     }
+    # A runtime error ends only the coroutine it happens in, so the test can still print its
+    # marker and exit 0 with its later checks skipped: any SCRIPT ERROR fails it. ERROR and
+    # WARNING lines (audio drivers, push_warning backtraces) don't. Each match keeps its "at:" line.
+    $scriptErrors = @([regex]::Matches($errors, '(?m)^SCRIPT ERROR:.*(?:\r?\n\s+at: .*)?') | ForEach-Object Value)
+    $job.scriptErrors = $scriptErrors.Count
     $job.exit = $job.process.ExitCode
     $job.seconds += [math]::Round($job.timer.Elapsed.TotalSeconds, 1)
     $final = $job.phase -eq $job.phases.Count - 1
     $marker = '_OK\b|_PASS\b|' + [regex]::Escape($job.test) + ': PASS\b'
-    $ok = -not $job.timedOut -and $job.exit -eq 0 -and $errors -notmatch '(?m)^SCRIPT ERROR:|^ERROR:' -and (-not $final -or $output -match $marker)
+    $ok = -not $job.timedOut -and $job.exit -eq 0 -and $scriptErrors.Count -eq 0 -and (-not $final -or $output -match $marker)
     if (-not $ok) {
-        $lines = @(($errors -split "`r?`n") | Where-Object { $_ -match '^(SCRIPT )?ERROR:' } | Select-Object -First 8)
+        # Up to 8 error lines, distinct script errors first, then up to 5 FAIL lines.
+        $errorLines = @($scriptErrors | Select-Object -Unique | ForEach-Object { $_ -split "`r?`n" })
+        $errorLines += @(($errors -split "`r?`n") | Where-Object { $_ -match '^ERROR:' })
+        $lines = @($errorLines | Select-Object -First 8)
         $lines += @(($output -split "`r?`n") | Where-Object { $_ -match 'FAIL' } | Select-Object -First 5)
         if ($lines.Count -eq 0) { $lines = @(($output -split "`r?`n") | Where-Object { $_ } | Select-Object -Last 8) }
         $job.failure = ($lines | ForEach-Object { '    ' + $_.Trim() }) -join "`n"
@@ -164,13 +174,14 @@ while ($pending.Count -gt 0 -or $running.Count -gt 0) {
         $finished += $job
         if (-not $job.passed) {
             $why = if ($job.timedOut) { "timed out after $($job.timeout)s" } else { "exit $($job.exit), $($job.seconds)s" }
+            if ($job.scriptErrors -gt 0) { $why += ", script errors: $($job.scriptErrors)" }
             Write-Output "FAIL $($job.test) ($why)"
             if ($job.failure) { Write-Output $job.failure }
         } elseif ($ShowPasses) { Write-Output "PASS $($job.test) ($($job.seconds)s)" }
     }
 }
 
-$results = @($finished | ForEach-Object { [ordered]@{test=$_.test;passed=$_.passed;exit=$_.exit;seconds=$_.seconds;timeout=$_.timedOut} })
+$results = @($finished | ForEach-Object { [ordered]@{test=$_.test;passed=$_.passed;exit=$_.exit;seconds=$_.seconds;timeout=$_.timedOut;scriptErrors=$_.scriptErrors} })
 $results | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $LogDirectory 'results.json')
 $failed = @($finished | Where-Object { -not $_.passed })
 Write-Output ('{0}/{1} passed in {2}s ({3} parallel)' -f ($finished.Count - $failed.Count), $finished.Count, [math]::Round($clock.Elapsed.TotalSeconds), $Parallel)

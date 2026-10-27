@@ -5,9 +5,7 @@
     "rough_stone"
   ],
   "soil": [
-    "cave_soil",
-    "light_soil",
-    "dark_soil"
+    "soil"
   ],
   "ore": [
     "copper_ore",
@@ -186,7 +184,7 @@
       },
       "shape": "stone"
     },
-    "cave_soil": {
+    "soil": {
       "pattern": "soil",
       "palette": {
         "body": "78604C",
@@ -194,28 +192,6 @@
         "light": "95775A",
         "accent": "B4A081",
         "cleft": "483E34"
-      },
-      "shape": "soil"
-    },
-    "light_soil": {
-      "pattern": "soil",
-      "palette": {
-        "body": "AE8652",
-        "shade": "8B6A42",
-        "light": "C5A26B",
-        "accent": "DED0A9",
-        "cleft": "6B5238"
-      },
-      "shape": "soil"
-    },
-    "dark_soil": {
-      "pattern": "soil",
-      "palette": {
-        "body": "795236",
-        "shade": "5D3F2E",
-        "light": "986A40",
-        "accent": "B79B6D",
-        "cleft": "423127"
       },
       "shape": "soil"
     },

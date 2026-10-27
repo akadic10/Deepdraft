@@ -2,47 +2,67 @@ extends Control
 
 ## Permanent HUD presentation. DockUI owns time actions; SliceController owns
 ## the plane and saved height. No independent clock or slice state lives here.
+## Layout (doc 259, option B): pause, 1x and 2x sit under the Sky Dial; the view
+## toggles X-ray and Slice are the main dock's last group, sized like its other icons.
+## The slice tower and the X-ray options rise from Slice only while that view is on.
+## Their keys (Space, 1, 2, V and X; doc 23 "Keys") work as the buttons do; SliceController
+## owns Slice's.
 signal speed_requested(speed: int)
 signal slice_toggle_requested()
 
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
+## The main dock's button row; the view toggles join it. DockUI sets it before adding
+## the HUD.
+var view_row: Control
 var speed_buttons: Dictionary = {}
 var step_buttons: Dictionary = {}
 var slice_button: Button
-var row: Panel
+var time_panel: Panel
 var tower: Panel
 var readout: Label
 var level_label: Label
 var _plate: Panel
-var _divider: ColorRect
 var _slice: Node
 var _xray: Node
-var xray_panel: PanelContainer
+var _appeal: Node
+var appeal_button: Button
+var appeal_panel: PanelContainer
+var _appeal_labels: Array[Label] = []
+var _appeal_swatches: Array[ColorRect] = []
 var xray_button: Button
+var xray_panel: PanelContainer
 var xray_modes: Dictionary = {}
 var reference_toggle: CheckButton
 var reference_pin: Button
 var reference_readout: Label
+var _options_anchor := Vector2.ZERO   # bottom-right corner for the X-ray options
 
 
 func _ready() -> void:
 	add_to_group("time_slice_hud")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UITheme.apply_surface(self)
-	row = _panel()
+	time_panel = _panel()
+	# Windows step aside from the dial and the time controls under it together.
+	time_panel.add_to_group("sky_dial_extension")
 	tower = _panel()
 	tower.gui_input.connect(_on_tower_input)
 	var entries: Dictionary = UIRegistry.get_time_slice().get("buttons", {})
 	var ids := ["pause", "play", "fast"]
 	for speed in range(3):
-		var button := _button(entries[ids[speed]], row)
+		var button := _button(entries[ids[speed]], time_panel)
 		button.pressed.connect(func(): speed_requested.emit(speed))
 		speed_buttons[speed] = button
-	slice_button = _button(entries.slice, row)
+	var views: Control = view_row if view_row != null else self
+	appeal_button = _button(entries.appeal, views)
+	appeal_button.pressed.connect(func(): if is_instance_valid(_appeal): _appeal.toggle())
+	appeal_button.hide()
+	xray_button = _button(entries.xray, views)
+	xray_button.pressed.connect(func(): if is_instance_valid(_xray): _xray.toggle())
+	xray_button.hide()
+	slice_button = _button(entries.slice, views)
 	slice_button.pressed.connect(func(): slice_toggle_requested.emit())
-	_divider = ColorRect.new()
-	_divider.color = UITheme.HEARTH_COPPER.darkened(.25)
-	_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_divider)
 	for id in ["up_four", "up_one", "down_one", "down_four"]:
 		var button := _button(entries[id], tower)
 		button.toggle_mode = false
@@ -55,13 +75,35 @@ func _ready() -> void:
 	_plate.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
 	_plate.gui_input.connect(_on_tower_input)
 	tower.add_child(_plate)
-	level_label = _label(10)
+	level_label = _label(MEDIUM.small)
 	level_label.text = "LEVEL"
 	level_label.add_theme_color_override("font_color", UITheme.HEARTH_COPPER)
-	readout = _label(24)
-	UITheme.apply_title(readout, 24)
+	readout = _label(MEDIUM.title)
+	UITheme.apply_title(readout, MEDIUM.title)
+	readout.add_theme_font_override("font", UITheme.font("figures"))   # the level steps with the slice
 	_build_xray()
+	_build_appeal()
 	refresh_slice()
+
+
+## Space pauses and resumes before a focused button can take it as a press. A text field
+## keeps it, and it does nothing while the clock is held (the game menu, loading).
+func _input(event: InputEvent) -> void:
+	if not event.is_action_pressed(&"time_pause", false, true) or WorldClock.is_loading_held(): return
+	var focus := get_viewport().gui_get_focus_owner()
+	if focus is LineEdit or focus is TextEdit: return
+	speed_requested.emit(0)
+	get_viewport().set_input_as_handled()
+
+
+## The speed and view keys, after text fields and the game menu have taken theirs.
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"time_normal", false, true): speed_requested.emit(1)
+	elif event.is_action_pressed(&"time_fast", false, true): speed_requested.emit(2)
+	elif event.is_action_pressed(&"view_appeal", false, true) and is_instance_valid(_appeal): _appeal.toggle()
+	elif event.is_action_pressed(&"view_xray", false, true) and is_instance_valid(_xray): _xray.toggle()
+	else: return
+	get_viewport().set_input_as_handled()
 
 
 func _build_xray() -> void:
@@ -72,12 +114,6 @@ func _build_xray() -> void:
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation",3)
 	xray_panel.add_child(body)
-	xray_button = Button.new()
-	xray_button.text = "X-ray"
-	xray_button.toggle_mode = true
-	xray_button.tooltip_text = "See excavated rooms through the mountain. Slice level stays available."
-	xray_button.pressed.connect(func(): if is_instance_valid(_xray): _xray.toggle())
-	body.add_child(xray_button)
 	var modes := HBoxContainer.new()
 	body.add_child(modes)
 	for id in ["full","flat"]:
@@ -90,28 +126,96 @@ func _build_xray() -> void:
 		modes.add_child(button)
 		xray_modes[id] = button
 	reference_toggle = CheckButton.new()
-	reference_toggle.text = "Lower level"
+	reference_toggle.text = "Guide"
 	reference_toggle.tooltip_text = "Project the pinned lower room and stair outlines onto the work level."
 	reference_toggle.toggled.connect(func(on: bool): if is_instance_valid(_xray): _xray.set_reference_enabled(on))
 	body.add_child(reference_toggle)
 	reference_pin = Button.new()
-	reference_pin.text = "Pin this level"
+	reference_pin.text = "Pin guide here"
 	reference_pin.tooltip_text = "Remember this level before moving upward. The dashed guide follows known floors and steps below it."
 	reference_pin.pressed.connect(func(): if is_instance_valid(_xray): _xray.pin_reference())
 	body.add_child(reference_pin)
 	reference_readout = Label.new()
-	reference_readout.add_theme_font_size_override("font_size",12)
+	reference_readout.add_theme_font_size_override("font_size",MEDIUM.small)
 	reference_readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reference_readout.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.add_child(reference_readout)
-	for control in [xray_button,reference_pin,reference_toggle,xray_modes.full,xray_modes.flat]:
-		control.add_theme_font_size_override("font_size",13)
+	for control in [reference_pin,reference_toggle,xray_modes.full,xray_modes.flat]:
+		control.add_theme_font_size_override("font_size",MEDIUM.small)
+
+
+## The Appeal view's scale (doc 23 "The Appeal view"): each word with its tint and range,
+## highest first, above the dock while the view is on, as X-ray's options are.
+func _build_appeal() -> void:
+	appeal_panel = PanelContainer.new()
+	appeal_panel.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
+	appeal_panel.hide()
+	add_child(appeal_panel)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 4)
+	appeal_panel.add_child(body)
+	var words: Array = RoomManager.appeal_config.get("words", [])
+	for i in range(words.size() - 1, -1, -1):
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		body.add_child(row)
+		var swatch := ColorRect.new()
+		swatch.color = Color(String(words[i].get("tint", "#9a978b")))
+		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(swatch)
+		_appeal_swatches.append(swatch)
+		for text: String in [String(words[i].word), _appeal_range(words, i)]:
+			var label := Label.new()
+			label.text = text
+			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			row.add_child(label)
+			_appeal_labels.append(label)
+	var hint := Label.new()
+	hint.text = "Hover a room for its appeal.\nClick it for the room."
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(hint)
+	_appeal_labels.append(hint)
+	_size_appeal(MEDIUM.body)
+
+
+## The scores a word holds: "below 0", "0 to 8", "16 and up".
+static func _appeal_range(words: Array, index: int) -> String:
+	var number := func(value: Variant) -> String: return ("%.1f" % float(value)).trim_suffix(".0")
+	if index == 0: return "below %s" % number.call(words[0].below)
+	if index == words.size() - 1: return "%s and up" % number.call(words[index - 1].below)
+	return "%s to %s" % [number.call(words[index - 1].below), number.call(words[index].below)]
+
+
+func _size_appeal(font_size: int) -> void:
+	for i in range(_appeal_labels.size()):
+		var label := _appeal_labels[i]
+		var word := i < _appeal_labels.size() - 1 and i % 2 == 0
+		UITheme.format_label(label, word, font_size if word else font_size - 1, UITheme.CARD_TITLE if word else UITheme.CARD_TEXT)
+		label.custom_minimum_size.x = float(font_size) * 5.6 if word else 0.0
+	for swatch: ColorRect in _appeal_swatches: swatch.custom_minimum_size = Vector2.ONE * float(font_size + 4)
+
+
+func bind_appeal(controller: Node) -> void:
+	_appeal = controller
+	_appeal.changed.connect(refresh_appeal)
+	appeal_button.show()
+	refresh_appeal()
+
+
+func refresh_appeal() -> void:
+	if not is_instance_valid(_appeal): return
+	var on: bool = _appeal.active
+	appeal_button.set_pressed_no_signal(on)
+	appeal_button.queue_redraw()
+	appeal_panel.visible = on
+	_place_options()
 
 
 func bind_xray(controller: Node) -> void:
 	_xray = controller
 	_xray.changed.connect(refresh_xray)
-	xray_panel.show()
+	xray_button.show()
 	refresh_xray()
 
 
@@ -119,13 +223,27 @@ func refresh_xray() -> void:
 	if not is_instance_valid(_xray): return
 	var active: bool = _xray.mode!="off"
 	xray_button.set_pressed_no_signal(active)
+	xray_button.queue_redraw()
+	xray_panel.visible = active
+	_place_options()
 	for id in xray_modes:
 		xray_modes[id].set_pressed_no_signal(_xray.mode==id)
-	reference_toggle.disabled = not active
-	reference_pin.disabled = not active
 	reference_toggle.set_pressed_no_signal(_xray.show_reference)
-	var height := int(_slice.get_slice_y()) if is_instance_valid(_slice) else SliceController.MAX_SLICE_Y
-	reference_readout.text = ("Work level %d" % height if _xray.working else "View level %d" % height)+("\nReference %d" % _xray.reference_y if active else "\nX-ray off")
+	if _xray.working: reference_readout.text = "Normal view while a tool works"
+	elif _xray.show_reference: reference_readout.text = "Guide: level %d" % _xray.reference_y
+	else: reference_readout.text = "Guide hidden"
+
+
+## The X-ray options sit above the dock, left of the slice tower, and the Appeal view's scale
+## beside them (left of X-ray's while both are open).
+func _place_options() -> void:
+	var right := _options_anchor.x
+	for panel: PanelContainer in [xray_panel, appeal_panel]:
+		if panel == null: continue
+		var minimum := panel.get_combined_minimum_size()
+		panel.size = Vector2(maxf(minimum.x, 240.0) if panel == xray_panel else minimum.x, minimum.y)
+		panel.position = Vector2(right - panel.size.x, _options_anchor.y - panel.size.y)
+		if panel.visible: right = panel.position.x - 8.0
 
 
 func _panel() -> Panel:
@@ -173,11 +291,9 @@ func refresh_slice() -> void:
 	var height := int(_slice.get_slice_y()) if active else SliceController.MAX_SLICE_Y
 	slice_button.set_pressed_no_signal(active)
 	slice_button.disabled = not is_instance_valid(_slice)
-	level_label.visible = active
-	readout.text = str(height) if active else "Full\nworld"
-	readout.add_theme_font_size_override("font_size", 24 if active else 15)
-	readout.position.y = 14 if active else 0
-	readout.size.y = _plate.size.y - readout.position.y
+	# The arrows and level show only while slicing.
+	tower.visible = active
+	readout.text = str(height)
 	for id: String in step_buttons:
 		var button: Button = step_buttons[id]
 		button.disabled = not active or (height >= SliceController.MAX_SLICE_Y if id.begins_with("up") else height <= SliceController.MIN_SLICE_Y)
@@ -203,52 +319,53 @@ func _on_tower_input(event: InputEvent) -> void:
 		accept_event()
 
 
-func fit_to_viewport(main_dock: Rect2) -> void:
-	var viewport := get_viewport_rect().size
-	var side := 64.0 if viewport.x >= 1600 else (56.0 if viewport.x >= 1200 else 48.0)
-	var row_width := side * 4 + 32
-	var row_height := side + 12
-	var step_height := 28.0 if side < 56 else 36.0
-	var tower_height := step_height * 4 + 64
-	if xray_panel.visible: tower_height = maxf(tower_height,xray_panel.get_combined_minimum_size().y+6)
-	size = Vector2(row_width, tower_height + row_height)
-	position = Vector2(viewport.x - 16 - row_width, viewport.y - 24 - size.y)
-	# On compact screens the transport sits above the right end of the main
-	# dock. All controls retain their size; the main commands stay centered.
-	if Rect2(position + Vector2(0, tower_height), Vector2(row_width, row_height)).grow(8).intersects(main_dock):
-		position.y = main_dock.position.y - 8 - size.y
-	row.position = Vector2(0, tower_height)
-	row.size = Vector2(row_width, row_height)
+## Places the time controls under the Sky Dial and the tower and X-ray options above
+## the Slice button. `main_dock` and `sky_dial` are global rects. The view toggles
+## themselves are laid out by the dock row.
+func fit_to_viewport(main_dock: Rect2, sky_dial: Rect2) -> void:
+	position = Vector2.ZERO
+	size = get_viewport_rect().size
+	# Time controls: centred directly under the Sky Dial.
+	var side := 64.0 if sky_dial.size.x >= 220.0 else (56.0 if sky_dial.size.x >= 200.0 else 48.0)
+	time_panel.size = Vector2(side * 3 + 20, side + 12)
+	time_panel.position = Vector2(sky_dial.position.x + (sky_dial.size.x - time_panel.size.x) * 0.5, sky_dial.end.y + 8)
 	for speed: int in speed_buttons:
-		var button: Button = speed_buttons[speed]
-		button.position = Vector2(6 + speed * (side + 4), 6)
-		button.size = Vector2.ONE * side
-	slice_button.position = Vector2(row_width - side - 6, 6)
-	slice_button.size = Vector2.ONE * side
-	_divider.position = Vector2(slice_button.position.x - 7, 10)
-	_divider.size = Vector2(1, side - 8)
-	tower.position = Vector2(slice_button.position.x - 6, 0)
-	tower.size = Vector2(side + 12, tower_height + 5)
-	xray_panel.position = Vector2.ZERO
-	xray_panel.size = Vector2(tower.position.x-8,0)
+		speed_buttons[speed].position = Vector2(6 + speed * (side + 4), 6)
+		speed_buttons[speed].size = Vector2.ONE * side
+	# The slice tower rises above the Slice button, as wide as it. On short screens it
+	# would reach the clock column (the Sky Dial and the time controls), so its steps
+	# shrink (down to 24) to stay clear.
+	var slice_rect := slice_button.get_global_rect()
+	var width := slice_rect.size.x
+	var step_height := 28.0 if width < 56.0 else 36.0
+	var tower_x := slice_rect.position.x - 6
+	var column := sky_dial.merge(Rect2(time_panel.position, time_panel.size))
+	if tower_x < column.end.x and tower_x + width + 12 > column.position.x:
+		var room := main_dock.position.y - 4 - (column.end.y + 8)
+		step_height = clampf(floorf((room - 64) / 4), 24.0, step_height)
+	var tower_height := step_height * 4 + 64
+	tower.size = Vector2(width + 12, tower_height)
+	tower.position = Vector2(tower_x, main_dock.position.y - 4 - tower_height)
 	for index in range(4):
 		var button: Button = step_buttons[["up_four", "up_one", "down_one", "down_four"][index]]
 		button.position = Vector2(6, 6 + index * (step_height + 2) + (48 if index >= 2 else 0))
-		button.size = Vector2(side, step_height)
+		button.size = Vector2(width, step_height)
 	_plate.position = Vector2(6, 6 + 2 * (step_height + 2))
-	_plate.size = Vector2(side, 46)
+	_plate.size = Vector2(width, 46)
 	level_label.position = Vector2.ZERO
-	level_label.size = Vector2(side, 16)
-	readout.size.x = side
+	level_label.size = Vector2(width, 16)
+	readout.position = Vector2(0, 14)
+	readout.size = Vector2(width, 32)
+	_options_anchor = Vector2(tower.position.x - 8, main_dock.position.y - 4)
+	# The scale reads at the dock's own size.
+	if appeal_panel != null: _size_appeal(clampi(roundi(width * 0.24), MEDIUM.small, MEDIUM.heading))
+	_place_options()
 	refresh_slice()
 
 
 func occupied_rects() -> Array[Rect2]:
-	var result: Array[Rect2] = [row.get_global_rect(), tower.get_global_rect()]
+	var result: Array[Rect2] = [time_panel.get_global_rect()]
+	if tower.visible: result.append(tower.get_global_rect())
 	if xray_panel.visible: result.append(xray_panel.get_global_rect())
+	if appeal_panel.visible: result.append(appeal_panel.get_global_rect())
 	return result
-
-
-func preferred_row_width() -> float:
-	var width := get_viewport_rect().size.x
-	return (64.0 if width >= 1600 else (56.0 if width >= 1200 else 48.0)) * 4 + 32

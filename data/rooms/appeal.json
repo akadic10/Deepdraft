@@ -1,3 +1,15 @@
 {
-  "complete_floor_bonus": 5.0
+  "__comment": [
+    "Room appeal (doc 23 'Room appeal'), read by RoomManager. A sealed room's appeal adds up what it holds: each piece's appeal (design and wood, from its furniture JSON), `loose_pile` for each pile of loose goods lying in it and `stocked_cell` for each storage cell holding goods. A room with more than `full_room_tiles` floor tiles counts that share of its total.",
+    "words: the word for a room's appeal, each for scores below its `below` (the last holds the rest). `points` is the happiness a sleep, a meal or a game in such a room gives while its memory lasts (none at 0; the hours are the mood section's room_appeal in task_config.json). `tint` colours the word on the room window's scale."
+  ],
+  "loose_pile": -1.0,
+  "stocked_cell": -0.5,
+  "full_room_tiles": 64,
+  "words": [
+    {"word": "Horrid", "below": 0, "points": -0.06, "tint": "#8b74e8"},
+    {"word": "Plain", "below": 8, "points": 0, "tint": "#9a978b"},
+    {"word": "Pleasant", "below": 16, "points": 0.04, "tint": "#f0a84c"},
+    {"word": "Beautiful", "points": 0.08, "tint": "#ffe27c"}
+  ]
 }

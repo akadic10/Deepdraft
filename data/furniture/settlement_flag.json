@@ -8,5 +8,6 @@
   "placement": "floor",
   "yaw_steps": 4,
   "footprint": { "width": 1, "depth": 1 },
-  "collision_regions": [{ "min": [0, 0, 0], "max": [1, 3, 1] }]
+  "collision_regions": [{ "min": [0, 0, 0], "max": [1, 3, 1] }],
+  "appeal": {"design": 2, "material_factor": 0}
 }

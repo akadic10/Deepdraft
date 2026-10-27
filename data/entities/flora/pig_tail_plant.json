@@ -6,7 +6,7 @@
     "pig_tail_seed items each spring. Seeds have a 40% chance to drop on harvest,",
     "so a well-managed field is self-sustaining — but only just.",
     "",
-    "PLACEMENT: Surface dirt farm plots only (base:terrain:surface:dirt_NN).",
+    "PLACEMENT: Surface dirt farm plots only (base:terrain:surface:dirt).",
     "           Requires open sky — no solid block within 10 blocks above.",
     "           3 clear air blocks above required for dwarf access.",
     "",

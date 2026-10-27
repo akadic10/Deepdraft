@@ -39,6 +39,7 @@ const TOOL_ID := "furniture"
 const SLICE_OFF_Y := SliceController.MAX_SLICE_Y
 const RAY_MAX := 600.0
 const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
+const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _ladders: Node3D
@@ -64,6 +65,8 @@ signal furniture_installed(furniture_key: String, origin_cell: Vector3i)
 signal furniture_uninstalled(furniture_key: String, origin_cell: Vector3i)
 signal catalog_changed()
 signal tool_active_changed(active: bool)
+## A piece was placed by the player: its receipt for the tool bar's Undo (doc 23).
+signal order_created(receipt: Dictionary)
 var _catalog_pending := false
 var _require_stock := false
 var _moving_shrub := ""
@@ -81,6 +84,7 @@ var _active: bool = false
 var _active_key: String = ""          # def being placed while the tool is on
 var _yaw: int = 0
 var _wall_height_offset := 0
+var _stock_words: Array = []   # ready and on their way, for the tool bar
 var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
 var _hover_valid: bool = false
 var _invalid_reason: String = ""     # "" | "cell" | "wall" (hint label text)
@@ -264,7 +268,65 @@ func _emit_catalog_changed() -> void:
 	_seating.dirty = true # Refresh stock-dependent validity even when the mouse is still.
 	if _active and _require_stock and placement_available(_active_key) <= 0:
 		deactivate()
+	_count_stock()
 	catalog_changed.emit()
+
+
+## What the tool bar shows (doc 23, "The tool bar"): the piece being placed or moved with
+## its picture, how many are ready and on their way, a wall piece's mount level as a
+## stepper, and the ghost's hint ("Needs a clear, level 3 × 3 area").
+func tool_bar_state() -> Dictionary:
+	var def: Dictionary = _defs.get(_active_key, {})
+	var moving := _moving_furniture >= 0 or not _moving_shrub.is_empty() or not _moving_water_stone.is_empty()
+	var picture := "res://assets/ui/furniture/%s.png" % _active_key.get_slice(":", 2)
+	if not ResourceLoader.exists(picture): picture = Inventory.thumbnail_path(String(def.get("item_key", "")))
+	var state := {"tool": TOOL_ID, "family": "settlement", "picture": picture, "message": _visuals.hint_text,
+		"name": ("Move · %s" if moving else "Place · %s") % String(def.get("display_name", _active_key))}
+	if _require_stock and not _stock_words.is_empty(): state.standing = _stock_words
+	if WallMount.is_wall(def) and _hover_valid:
+		var level := WallMount.mount_cell(def, _hover_cell).y
+		state.settings = [{"id": "mount", "label": "Mount level", "value": level, "min": level - 1 if _wall_height_offset > -WorldData.WORLD_SIZE_Y else level,
+			"max": level + 1, "keys": "Alt + Wheel", "tooltip": "The level the bracket is fixed at, on the wall you point at."}]
+	return state
+
+
+func set_tool_setting(id: String, value: Variant) -> void:
+	if id != "mount" or not WallMount.is_wall(_defs.get(_active_key, {})) or not _hover_valid: return
+	var step := signi(int(value) - WallMount.mount_cell(_defs[_active_key], _hover_cell).y)
+	_wall_height_offset = clampi(_wall_height_offset + step, -WorldData.WORLD_SIZE_Y, WorldData.WORLD_SIZE_Y)
+	_update_hover(true)
+
+
+## How many of the piece being placed are ready, and on their way, for the tool bar.
+func _count_stock() -> void:
+	_stock_words = []
+	if not _active or not _require_stock: return
+	var coming := int(get_catalog_stock().get(_active_key, {}).get("reserved", 0))
+	_stock_words = ["%d ready" % placement_available(_active_key), "%d on %s way" % [coming, "its" if coming == 1 else "their"]]
+
+
+func order_is_pending(receipt: Dictionary) -> bool:
+	return has_pending_placement(int(receipt.ghost_id))
+
+
+func undo_order(receipt: Dictionary) -> int:
+	if not order_is_pending(receipt): return 0
+	cancel_ghost(int(receipt.ghost_id))
+	return 1
+
+
+func inspect_order(receipt: Dictionary) -> void:
+	var explorer := get_tree().get_first_node_in_group("object_explorer")
+	if order_is_pending(receipt) and int(receipt.ghost_id) > 0 and explorer != null:
+		explorer.select_object(self, "ghost:%d" % int(receipt.ghost_id))
+
+
+## A placement the player made, for the tool bar's Undo.
+func _placed(ghost_id: int) -> void:
+	var def: Dictionary = _defs.get(_active_key, {})
+	var left := placement_available(_active_key) if _require_stock else -1
+	order_created.emit({"ghost_id": ghost_id, "message": "Placed %s%s" % [String(def.get("display_name", _active_key)).to_lower(),
+		" · %d left" % left if left >= 0 else ""]})
 
 func get_stats() -> Dictionary:
 	var uninstalling := 0
@@ -301,6 +363,7 @@ func activate_for(furniture_key: String, require_stock: bool = false) -> void:
 	_active_key = furniture_key
 	_yaw = 0
 	_ensure_preview()
+	_count_stock()
 	tool_active_changed.emit(true)
 
 func deactivate() -> void:
@@ -418,7 +481,7 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 			_hover_cell = Vector3i(-1,-1,-1)
 			_hover_valid = false
 			if _visuals.preview!=null: _visuals.preview.hide()
-			if _visuals.hint_label!=null: _visuals.hint_label.hide()
+			_visuals.hint_text = ""
 			return
 		var camera := get_viewport().get_camera_3d()
 		var point := camera.project_ray_origin(pointer)+camera.project_ray_normal(pointer)*float(hit.distance)
@@ -458,8 +521,7 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 		_hover_valid = false
 		if _visuals.preview != null:
 			_visuals.preview.visible = false
-		if _visuals.hint_label != null:
-			_visuals.hint_label.visible = false
+		_visuals.hint_text = ""
 		return
 	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
 	if cell == _seating.aim and not force and not _seating.dirty:
@@ -605,7 +667,9 @@ func apply_material(node: Node, mat: Material) -> void:
 func _confirm_ghost(definition: Dictionary = {}, restored_move_id: String = "") -> void:
 	if _active_key == _bridges.KEY:
 		var id: int = _bridges.place(_hover_cell,_yaw)
-		if id > 0: ghost_placed.emit(-1_000_000-id)
+		if id > 0:
+			ghost_placed.emit(-1_000_000-id)
+			_placed(-1_000_000-id)
 		_update_hover(true)
 		return
 	if _active_key == _ladders.KEY:
@@ -670,6 +734,7 @@ func _confirm_ghost(definition: Dictionary = {}, restored_move_id: String = "") 
 	print("FurniturePlacementController: ghost %d (%s) at %s yaw %d." % [
 		ghost.ghost_id, _active_key, str(_hover_cell), _yaw])
 	ghost_placed.emit(ghost.ghost_id)
+	if definition.is_empty(): _placed(ghost.ghost_id)
 	_next_ghost_id += 1
 	if definition.is_empty():
 		ghost.update_lease() # Player intent can redirect storage hauling even while paused.
@@ -855,12 +920,14 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int, material
 	# doc 22: RoomManager tracks door/heat-source cells by direct call, not by
 	# subscribing to this signal — it's an autoload and this is a scene node,
 	# so the call has to go this direction (see RoomManager's file header).
-	RoomManager.on_furniture_changed(key, _room_cells(component), def, true)
+	RoomManager.on_furniture_changed(key, room_cells(component), def, true)
 	_next_installed_id += 1
 
 
-func _room_cells(component: InstalledFurnitureComponent) -> Array[Vector3i]:
-	# RoomManager tests anchor+UP: use the mount's actual room, even above a loft.
+## The cells RoomManager counts a piece by (anchor + UP inside the room): its footprint,
+## or for a wall mount the cell below where it hangs, so it counts in its actual room,
+## even above a loft.
+func room_cells(component: InstalledFurnitureComponent) -> Array[Vector3i]:
 	if WallMount.is_wall(component.def):
 		return [WallMount.mount_cell(component.def,component.origin_cell)-Vector3i.UP]
 	return component.cells
@@ -895,7 +962,7 @@ func _teardown_installed(installed_id: int, cancel_lease: bool, dwarf_id: int = 
 	_installed.erase(installed_id)
 	if GridFence.applies(component.def): _fences.sync()
 	furniture_uninstalled.emit(component.furniture_key, component.origin_cell)
-	RoomManager.on_furniture_changed(component.furniture_key, _room_cells(component), component.def, false)
+	RoomManager.on_furniture_changed(component.furniture_key, room_cells(component), component.def, false)
 	if _drop_manager != null and is_instance_valid(_drop_manager) and not component.item_key.is_empty():
 		var cell := component.origin_cell
 		if WallMount.is_wall(component.def): cell = WallMount.mount_cell(component.def,cell)-Vector3i.UP
@@ -1015,15 +1082,16 @@ func _restore_ghost(entry: Dictionary) -> void:
 
 # ── Raycasting ──────────────────────────────────────────────────────────────────
 
-## The first slice-visible solid block under the screen point, on the live block
-## grid (ObjectPicking.terrain_hit). The cell is the solid floor block itself,
-## NavGrid's convention; {} on a miss.
+## The first slice-visible solid block under the screen point, as the slice shows
+## it (ObjectPicking.terrain_hit with concealed_block: a cave not yet found is
+## rock). Construction, Copy and blueprints aim with it too. The cell is the solid
+## floor block itself, NavGrid's convention; {} on a miss.
 func surface_cell_for(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return {}
 	return Picking.terrain_hit(camera.project_ray_origin(screen_pos),
-		camera.project_ray_normal(screen_pos).normalized(), _slice_y, RAY_MAX)
+		camera.project_ray_normal(screen_pos).normalized(), _slice_y, RAY_MAX, Picking.concealed_block)
 
 
 # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────

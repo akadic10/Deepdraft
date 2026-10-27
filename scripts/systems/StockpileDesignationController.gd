@@ -48,25 +48,6 @@ const COLOR_ZONE := Color(0.25, 0.65, 0.90, 0.22)      # confirmed zone fill
 const COLOR_ZONE_EDGE := Color(0.35, 0.80, 1.00, 0.60)
 const EDGE_INSET := 0.08             # perimeter strip width (blocks)
 
-## DEV drop mix (doc 18 Phase 0): item_key -> count, total 20. Keys must match
-## resources.json; all have real GLBs so no fallback cubes appear.
-const DEV_DROP_MIX: Dictionary = {
-	"base:resources:stone:rough_stone": 6,
-	"base:resources:ore:copper": 3,
-	"base:resources:ore:tin": 3,
-	"base:resources:ore:iron": 3,
-	"base:resources:ore:coal": 2,
-	"base:resources:soil:light_soil": 2,
-	"base:resources:soil:cave_soil": 1,
-}
-
-## DEV: a small sample of currently craftable furniture only.
-const DEV_FURNITURE_MIX: Dictionary = {
-	"base:resources:furniture:bench": 1,
-	"base:resources:furniture:hearth": 1,
-	"base:resources:furniture:door": 1,
-}
-
 signal zone_created(zone_id: int)
 signal zone_removed(zone_id: int)
 
@@ -94,14 +75,13 @@ var _zone_overlays: Dictionary = {}  # zone_id -> MeshInstance3D
 var _cell_to_zone: Dictionary = {}   # Vector3i -> zone_id (click lookup)
 
 var _preview_mesh: MeshInstance3D = null
-var _size_label: Label3D = null
 var _overlay_material: StandardMaterial3D = null
 
 var _window_manager: UIWindowManager = null
 var _window_panel: UIWindow = null
 var _window_zone_id: int = -1
 var _window_info_label: Label = null
-var _storage_panel: VBoxContainer
+var _storage_panel: MarginContainer
 
 
 func _ready() -> void:
@@ -143,7 +123,6 @@ func _input(event: InputEvent) -> void:
 			_dragging = false
 			_preview_cells.clear()
 			if _preview_mesh != null: _preview_mesh.hide()
-			if _size_label != null: _size_label.hide()
 		get_viewport().set_input_as_handled()
 
 
@@ -152,7 +131,6 @@ func _notification(what: int) -> void:
 		_dragging = false
 		_preview_cells.clear()
 		if _preview_mesh != null: _preview_mesh.hide()
-		if _size_label != null: _size_label.hide()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -217,8 +195,6 @@ func deactivate() -> void:
 	_preview_cells.clear()
 	if _preview_mesh != null:
 		_preview_mesh.visible = false
-	if _size_label != null:
-		_size_label.visible = false
 	tool_active_changed.emit(false)
 
 
@@ -250,8 +226,6 @@ func _on_left_press(screen_pos: Vector2) -> void:
 
 func _on_left_release(screen_pos: Vector2) -> void:
 	_dragging = false
-	if _size_label != null:
-		_size_label.visible = false
 	# Short click on empty valid ground = 1×1 zone (DRAG_THRESHOLD, doc 22).
 	# NOTE: built explicitly, never via ternary — `[x] if c else []` yields a
 	# plain Array and crashes assigning to Array[Vector3i] (runtime-only error;
@@ -294,7 +268,6 @@ func _rebuild_preview() -> void:
 	if _dragging:
 		_preview_cells = _marquee_valid_cells(_anchor_cell, _hover_cell)
 		_draw_cells(_preview_mesh, _preview_cells, COLOR_VALID, COLOR_VALID_EDGE, _anchor_cell.y)
-		_update_size_label()
 	else:
 		var color_fill := COLOR_VALID if _hover_valid else COLOR_INVALID
 		var color_edge := COLOR_VALID_EDGE if _hover_valid else COLOR_INVALID
@@ -331,36 +304,6 @@ func _marquee_valid_cells(anchor: Vector3i, current: Vector3i) -> Array[Vector3i
 	return cells
 
 
-## Live drag readout — "W × D — N cells" floating above the marquee centre
-## (Alen playtest note 2026-07-06: never make the player count voxels).
-func _update_size_label() -> void:
-	if _size_label == null:
-		_size_label = Label3D.new()
-		_size_label.name = "SizeLabel"
-		_size_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		_size_label.fixed_size = true
-		_size_label.pixel_size = 0.0008
-		_size_label.font_size = 96
-		_size_label.outline_size = 24
-		_size_label.modulate = Color(0.85, 0.95, 1.0)
-		_size_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
-		_size_label.no_depth_test = true
-		add_child(_size_label)
-	var rect := _marquee_rect(_anchor_cell, _hover_cell)
-	var w := rect.z - rect.x + 1
-	var d := rect.w - rect.y + 1
-	var valid := _preview_cells.size()
-	if valid == w * d:
-		_size_label.text = "%d × %d — %d cells" % [w, d, valid]
-	else:
-		_size_label.text = "%d × %d — %d of %d valid" % [w, d, valid, w * d]
-	_size_label.position = Vector3(
-		(float(rect.x) + float(rect.z) + 1.0) * 0.5,
-		float(_anchor_cell.y) + 2.4,
-		(float(rect.y) + float(rect.w) + 1.0) * 0.5)
-	_size_label.visible = true
-
-
 # ── Validity ──────────────────────────────────────────────────────────────────
 
 ## A designatable stockpile cell: in bounds (with margin), above bedrock, dry,
@@ -382,6 +325,9 @@ func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
 	if furniture != null and furniture.has_method("blocks_zone_cell") \
 			and bool(furniture.call("blocks_zone_cell", cell)):
 		return false
+	# A cave not yet found is rock to every tool: no stockpile stands in it (Hard Rule 11).
+	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP):
+		return false
 	return NavGrid.is_walkable(cell)
 
 
@@ -393,14 +339,18 @@ func _confirm_zone(cells: Array[Vector3i]) -> void:
 		"message": "Stockpile created · %d cells" % cells.size()})
 
 
-func get_order_summary() -> String:
-	if _dragging: return "%d valid cells · Release to create storage" % _preview_cells.size()
-	return "Drag over clear, walkable ground to create storage"
-
-
-func get_order_hint() -> String:
-	if _dragging: return "%d valid cells · Release to create stockpile.\nMaximum %d × %d per zone." % [_preview_cells.size(), MAX_ZONE_EXTENT, MAX_ZONE_EXTENT]
-	return "Drag over clear, walkable ground.\nClick an existing zone to inspect its supplies."
+## What the tool bar shows (doc 23, "The tool bar"): while a zone is dragged, its cells
+## and its size, never making the player count blocks (Alen's playtest note, 2026-07-06).
+func tool_bar_state() -> Dictionary:
+	var state := {"tool": TOOL_ID}
+	if _dragging:
+		var rect := _marquee_rect(_anchor_cell, _hover_cell)
+		var w := rect.z - rect.x + 1
+		var d := rect.w - rect.y + 1
+		var blocked := w * d - _preview_cells.size()
+		state.selection = {"count": "%d cell%s" % [_preview_cells.size(), "" if _preview_cells.size() == 1 else "s"],
+			"detail": "%d × %d%s" % [w, d, ", %d blocked" % blocked if blocked > 0 else ""], "at": _pointer_screen}
+	return state
 
 
 func order_is_pending(receipt: Dictionary) -> bool:
@@ -555,63 +505,6 @@ func restore_state(state: Dictionary) -> void:
 				drop_manager.restore_stored_item(item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")))
 
 
-# ── DEV: drop spawner (doc 18 Phase 0) ────────────────────────────────────────
-
-## DEV: drops one packed furniture item of each kind at the view centre
-## (doc 19 Phase 0). Wired to the dock's Storage Zone panel.
-func dev_spawn_furniture() -> void:
-	_dev_spawn_mix(DEV_FURNITURE_MIX)
-
-
-## Spawns the DEV_DROP_MIX (20 mixed drops) around the ground point at the
-## screen centre. Wired to the dock's Storage Zone panel.
-func dev_spawn_drops() -> void:
-	_dev_spawn_mix(DEV_DROP_MIX)
-
-
-## One mature uprooted bush of each registered species, ready for normal
-## hauling and Place → Plants. Keep their saved identity with the flora owner.
-func dev_spawn_bushes() -> void:
-	var center := _screen_center_surface_cell()
-	var plants := get_tree().get_first_node_in_group("surface_details")
-	if center.x < 0 or plants == null: return
-	var floors: Array[Vector3i] = []
-	for ring in range(4):
-		for dx in range(-ring,ring+1):
-			for dz in range(-ring,ring+1):
-				if maxi(absi(dx),absi(dz)) != ring: continue
-				var stand := center+Vector3i(dx,0,dz)
-				if NavGrid.is_walkable(stand) and not WaterManager.has_standing_water(stand+Vector3i.UP): floors.append(stand)
-	var keys: Array = SurfaceDetailRegistry.definitions.keys()
-	keys.sort()
-	var count := 0
-	for key: String in keys:
-		if SurfaceDetailRegistry.get_definition(key).get("kind") != "shrub": continue
-		if floors.is_empty(): break
-		if not String(plants.dev_spawn_packed_shrub(key,floors.pop_front())).is_empty(): count += 1
-	if _dock_ui != null:
-		_dock_ui.show_persistence_status("Spawned %d uprooted bushes near the view centre. Replant through Place → Plants." % count if count>0 else "No clear, dry ground near the view centre for bushes.")
-
-
-func _dev_spawn_mix(mix: Dictionary) -> void:
-	var center := _screen_center_surface_cell()
-	if center.x < 0:
-		push_warning("StockpileDesignationController: no ground at view centre for DEV drops.")
-		return
-	var manager := ItemDropManager.find(get_tree())
-	if manager == null:
-		push_warning("StockpileDesignationController: ItemDropManager not found.")
-		return
-	for item_key: String in mix:
-		var count := int(mix[item_key])
-		for i: int in range(count):
-			var jitter := Vector3i(randi_range(-3, 3), 0, randi_range(-3, 3))
-			var cell := center + jitter
-			# spawn_drop expects the MINED block position; its rest scan walks
-			# down to the floor, so hand it the air block above the surface.
-			manager.spawn_drop(item_key, 1, Vector3i(cell.x, center.y + 1, cell.z))
-
-
 # ── Rendering helpers ─────────────────────────────────────────────────────────
 
 func _ensure_preview_mesh() -> void:
@@ -689,21 +582,15 @@ func _mouse_surface_cell() -> Dictionary:
 	return _surface_cell_for(get_viewport().get_mouse_position() if _pointer_screen == Vector2.INF else _pointer_screen)
 
 
-func _screen_center_surface_cell() -> Vector3i:
-	var hit := _surface_cell_for(get_viewport().get_visible_rect().size * 0.5)
-	if hit.is_empty():
-		return Vector3i(-1, -1, -1)
-	return Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
-
-
-## The first slice-visible solid block under the screen point, on the live block
-## grid (ObjectPicking.terrain_hit): the floor cell itself, NavGrid's convention.
+## The first slice-visible solid block under the screen point, as the slice shows
+## it (ObjectPicking.terrain_hit with concealed_block: a cave not yet found is
+## rock): the floor cell itself, NavGrid's convention.
 func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return {}
 	return Picking.terrain_hit(camera.project_ray_origin(screen_pos),
-		camera.project_ray_normal(screen_pos).normalized(), _slice_y, RAY_MAX)
+		camera.project_ray_normal(screen_pos).normalized(), _slice_y, RAY_MAX, Picking.concealed_block)
 
 
 # ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────
@@ -725,17 +612,14 @@ func _build_window() -> void:
 	if _window_manager == null:
 		return
 
+	# The storage window (doc 261) brings its own margins; its band names the zone.
 	_storage_panel = preload("res://scripts/ui/StorageInspectorPanel.gd").new()
 	_storage_panel.action_requested.connect(func(action: String):
 		if action == "remove": remove_zone(_window_zone_id))
-	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 14)
-	margin.add_child(_storage_panel)
-	_window_panel = _window_manager.register_window(ZONE_WINDOW_ID, "Storage inspector", "", margin,
-		{"default_pos": Vector2(18, 48), "min_size": Vector2(420, 0)})
-	UITheme.apply_catalog_window(_window_panel)
+	_window_panel = _window_manager.register_window(ZONE_WINDOW_ID, "Storage", "", _storage_panel,
+		{"default_pos": Vector2(18, 48), "min_size": Vector2(420, 0), "family": "work", "flush": true})
 	_storage_panel.window = _window_panel
+	_storage_panel.dock = _dock_ui
 	_window_info_label = _storage_panel.info_label
 	_window_panel.keep_body_on_screen = true
 	_window_manager.window_state_changed.connect(_on_zone_window_state_changed)

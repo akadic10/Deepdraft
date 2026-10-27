@@ -45,7 +45,6 @@ var _move_smooth: float = 0.1
 var _edge_scroll: bool  = false
 var _edge_px:     int   = 10
 var _pan_ref_height: float = 135.0   # camera world-Y at default framing; move_speed reads face value here (21_camera.md)
-var _paced_fps_max: float = 75.0     # frame cap ceiling; an even fraction of the refresh rate (0 = uncapped)
 
 var _rot_speed:   float = 0.5
 var _invert_x:    bool  = false
@@ -70,9 +69,9 @@ var _keys_right:    Array[Key] = []
 var _btn_rotate:    MouseButton = MOUSE_BUTTON_RIGHT    # Stonehearth: orbit on right-mouse
 var _btn_drag:      MouseButton = MOUSE_BUTTON_MIDDLE   # Stonehearth: grab-the-ground pan on middle-mouse
 
-# Cursor overlay (emoji shown while orbit/drag is active, like Stonehearth's cursor swap)
+# Cursor overlay (a glyph shown while orbit/drag is active, like Stonehearth's cursor swap)
 var _cursor_enabled:    bool   = true
-var _cursor_orbit:      String = "🔄"
+var _cursor_orbit:      String = "🗘"
 var _cursor_drag:       String = "✋"
 var _cursor_size:       int    = 28
 var _cursor_hide_os:    bool   = true
@@ -93,6 +92,7 @@ var _cursor_label: Label       = null
 var _cursor_os_hidden: bool    = false
 var _last_slice_y: int     = -9999
 var _follow_subject: Node3D
+var _terrain: Node   # the WorldRenderer: the slice plane and found caves _ground follows
 var _audio_context_frame := -1
 var _audio_context: Dictionary = {}
 
@@ -127,25 +127,11 @@ func _ready() -> void:
 	add_to_group("work_audio_view")
 	add_to_group(SaveManager.OWNER_GROUP)
 	_load_settings()
-	_apply_frame_pacing()
+	VideoSettings.pace_frames()   # the Frame rate setting caps frames from here (doc 21)
 	_ensure_child_nodes()   # create arm / spring / camera if not wired in editor
 	_build_cursor_overlay()
 	_apply_initial_transform()
 	print("Camera: ready (FOV %d°, zoom %.0f–%.0f m)." % [int(_fov), _zoom_min, _zoom_max])
-
-
-## Frame pacing (21_camera.md): under vsync a frame that misses a refresh stays
-## on screen for one refresh or two, unpredictably, and panning judders even at
-## a high average rate (2026-10-22: 94% of running frames missed a 120 Hz
-## refresh). Capping at an even fraction of the refresh rate holds every frame
-## for the same number of refreshes.
-func _apply_frame_pacing() -> void:
-	if _paced_fps_max <= 0.0 or DisplayServer.get_name() == "headless": return
-	var refresh := DisplayServer.screen_get_refresh_rate(get_window().current_screen)
-	if refresh <= 0.0: return
-	var divisor := maxi(1, ceili(refresh/_paced_fps_max-0.01))
-	Engine.max_fps = roundi(refresh/divisor)
-	print("Camera: frame pacing %d fps on a %.0f Hz display." % [Engine.max_fps, refresh])
 
 
 func get_work_audio_context() -> Dictionary:
@@ -314,7 +300,6 @@ func _load_settings() -> void:
 	_edge_scroll = mv.get("edge_scroll_enabled",          false)
 	_edge_px     = int(mv.get("edge_scroll_threshold_pixels", 10))
 	_pan_ref_height = mv.get("pan_reference_height",     135.0)
-	_paced_fps_max  = float(mv.get("paced_fps_max",       75.0))
 
 	# rotation ─────────────────────────────────────────────────────────────────
 	var rot := d.get("rotation", {}) as Dictionary
@@ -349,7 +334,7 @@ func _load_settings() -> void:
 	# cursors ────────────────────────────────────────────────────────────────────
 	var cur := d.get("cursors", {}) as Dictionary
 	_cursor_enabled = cur.get("enabled",              true)
-	_cursor_orbit   = cur.get("orbit",                "🔄")
+	_cursor_orbit   = cur.get("orbit",                "🗘")
 	_cursor_drag    = cur.get("drag",                 "✋")
 	_cursor_size    = int(cur.get("size",               28))
 	_cursor_hide_os = cur.get("hide_system_cursor",   true)
@@ -499,8 +484,9 @@ func restore_state(state: Dictionary) -> void:
 
 # ── Cursor overlay (emoji while orbit/drag is active) ─────────────────────────
 
-## Build a tiny CanvasLayer + Label that renders an emoji at the mouse position.
-## (UI lives on a CanvasLayer per Hard Rule 7; the dock proves emoji glyphs render.)
+## Build a tiny CanvasLayer + Label that draws a glyph at the mouse position, from the
+## symbol font shipped with the game (doc 23, "Type"). UI lives on a CanvasLayer per Hard
+## Rule 7. The glyph is plain, so a dark outline keeps it clear over bright ground.
 func _build_cursor_overlay() -> void:
 	if not _cursor_enabled:
 		return
@@ -511,11 +497,14 @@ func _build_cursor_overlay() -> void:
 	_cursor_label = Label.new()
 	_cursor_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_cursor_label.add_theme_font_size_override("font_size", _cursor_size)
+	_cursor_label.add_theme_color_override("font_color", UITheme.CARD_TITLE)
+	_cursor_label.add_theme_color_override("font_outline_color", UITheme.CARD_TITLE_OUTLINE)
+	_cursor_label.add_theme_constant_override("outline_size", 6)
 	_cursor_label.visible = false
 	_cursor_layer.add_child(_cursor_label)
 
 
-## Show ✋ while grab-dragging and 🔄 while orbiting; hide the OS cursor under it.
+## Show ✋ while grab-dragging and 🗘 while orbiting; hide the OS cursor under it.
 func _update_cursor_overlay() -> void:
 	if _cursor_label == null:
 		return
@@ -674,8 +663,8 @@ func _zoom_cursor(zoom_in: bool) -> bool:
 
 
 ## Find the ground point under the cursor by marching the ray against the terrain
-## HEIGHT FIELD (WorldGenerator.get_visible_surface_y) — the same source the overview
-## renderer uses. This works map-wide regardless of which chunks WorldData has
+## HEIGHT FIELD (WorldGenerator.get_visible_surface_y), clamped to the slice as the
+## overview draws it (_ground). This works map-wide regardless of which chunks WorldData has
 ## streamed; the old WorldData voxel DDA missed un-streamed overview columns and fell
 ## back to a plane at the pivot height, which left zoom stuck high above the ground.
 func _zoom_target_point() -> Dictionary:
@@ -686,15 +675,40 @@ func _zoom_target_point() -> Dictionary:
 		camera_node.project_ray_normal(mouse).normalized())
 
 
-## March a ray against the terrain height field; returns {hit, point} where it first
-## drops to/below the surface, or {} on a miss (ray points up, or no ground within range).
+## March a ray against the camera's ground (_ground); returns {hit, point} where it first
+## drops to/below it, or {} on a miss (ray points up, or no ground within range). Zoom,
+## the drag grab and the orbit pivot all aim here, so under a deep slice they follow the
+## cut floor, not the hidden mountain top above it.
 func _march_surface(origin: Vector3, dir: Vector3) -> Dictionary:
 	if not WorldGenerator.has_method("get_visible_surface_y"):
 		return {}
 	if dir.y >= -0.0001:
 		return {}   # not looking downward (the pitch clamp normally prevents this)
-	var hit := Picking.surface_hit(origin, dir, 1200.0, 1.0, 0.0)
+	var hit := Picking.surface_hit(origin, dir, 1200.0, 1.0, 0.0, _ground())
 	return {} if hit.is_empty() else {"hit": true, "point": hit.point}
+
+
+## The ground the camera keeps above and aims at, as a column rule (x, z) -> top block y:
+## the visible surface clamped to the slice plane, then stepped down past mined cells and
+## found caves (WorldData.visible_top_y, the rule the overview draws by). A cave not yet
+## found stays rock, so the camera never dips into hidden space (Hard Rule 11). Bound to
+## this moment's slice and caves; without a renderer (tools, tests) nothing is sliced.
+func _ground() -> Callable:
+	if not is_instance_valid(_terrain) and is_inside_tree():
+		_terrain = get_tree().get_first_node_in_group("terrain_overview_renderer")
+	if not is_instance_valid(_terrain):
+		return _ground_y.bind(WorldData.MAX_Y, {})
+	return _ground_y.bind(int(_terrain.slice_y), _terrain.discovered_cave_blocks())
+
+
+func _ground_y(x: int, z: int, slice_y: int, found_caves: Dictionary) -> int:
+	var surface := int(WorldGenerator.get_visible_surface_y(x, z))
+	var top := WorldData.visible_top_y(x, z, surface, slice_y, found_caves, true)
+	# Water standing in a mined room or a found cave is its ground, as a lake's surface is.
+	var y := mini(surface, slice_y)
+	while y > top and not WaterManager.has_standing_water(Vector3i(x, y, z)):
+		y -= 1
+	return y
 
 
 ## Dynamic orbit pivot (Stonehearth _get_orbit_target). When orbit engages, move the rig
@@ -762,6 +776,8 @@ func _update_slice() -> void:
 ## clipping below or into the surface. Samples a small neighbourhood (not just the
 ## camera's own column) so a tall wall the camera is near also lifts it clear.
 ## Lifts the whole rig (pivot + live position) by the deficit, preserving framing.
+## The terrain is the slice-aware ground (_ground): with the slice cut deep under a
+## mountain the cut floor is the floor, and nothing above the plane holds the camera up.
 func _enforce_camera_floor() -> void:
 	if camera_node == null or _surface_floor_margin <= 0.0:
 		return
@@ -769,20 +785,21 @@ func _enforce_camera_floor() -> void:
 		return
 
 	var cam := camera_node.global_position
+	var ground := _ground()
 
 	# Sample around the LOOK point (the rig pivot = what you're zooming into), not the
 	# camera's own column — so pointing at flat ground lets you get close even when the
 	# camera body sits near a shelf edge behind it. Radius 1 (immediate neighbours only)
-	# so only a true adjacent wall counts. (get_visible_surface_y is terrain-only, so
-	# placed flora/props never inflate the floor.) §8a follow-up.
+	# so only a true adjacent wall counts. (The ground is terrain-only, so placed
+	# flora/props never inflate the floor.) §8a follow-up.
 	var lx := int(floor(_target_pos.x))
 	var lz := int(floor(_target_pos.z))
 
-	var max_surf := int(WorldGenerator.get_visible_surface_y(lx, lz))
+	var max_surf := int(ground.call(lx, lz))
 	var min_surf := max_surf
 	for ox in [-1, 0, 1]:
 		for oz in [-1, 0, 1]:
-			var sy := int(WorldGenerator.get_visible_surface_y(lx + ox, lz + oz))
+			var sy := int(ground.call(lx + ox, lz + oz))
 			if sy > max_surf: max_surf = sy
 			if sy < min_surf: min_surf = sy
 

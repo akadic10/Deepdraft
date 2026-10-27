@@ -39,10 +39,14 @@ func _ready() -> void:
 	# WorldGenerator.generate(). Seeding before the await always found 0 and
 	# silently fell back to randomize(), breaking the same-seed-same-weather
 	# contract documented in the header.
-	_seed_rng()
 	if _clock != null:
 		if not _clock.is_connected("day_changed", _on_day_changed):
 			_clock.connect("day_changed", _on_day_changed)
+	# The title screen opens with no world: New game seeds the weather, and a load restores it.
+	var wg := get_node_or_null("/root/WorldGenerator")
+	if wg != null and int(wg.get("world_seed")) == 0 and get_tree().get_first_node_in_group("title_screen") != null:
+		return
+	_seed_rng()
 	_switch_weather_for_current_season()
 	print("WeatherManager: ready (%d weather types, current = %s)." % [_ordered_ids.size(), _current_id])
 

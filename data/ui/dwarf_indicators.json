@@ -1,4 +1,5 @@
 {
+  "__comment": "The concern badges over dwarves' heads (doc 23). Each concern's Hearthblock icon sits on a tile in the family colour, as the world order markers do; the character sheet and the compact panel show the same pictures. Owned by UIRegistry.",
   "refresh_seconds": 0.25,
   "icon_pixels": 36,
   "minimum_dwarf_pixels": 14,
@@ -6,10 +7,10 @@
   "fade_seconds": 0.18,
   "exhausted_threshold": 0.15,
   "unresolved_rest_seconds": 6.0,
-  "unhappy_threshold": 0.4,
+  "family": "people",
   "icons": {
-    "food": "res://assets/ui/needs/food.svg",
-    "rest": "res://assets/ui/needs/rest.svg",
-    "mood": "res://assets/ui/needs/mood.svg"
+    "food": "res://assets/ui/icons/food.png",
+    "rest": "res://assets/ui/icons/rest.png",
+    "mood": "res://assets/ui/icons/mood_unhappy.png"
   }
 }

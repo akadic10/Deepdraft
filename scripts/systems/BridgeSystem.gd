@@ -362,7 +362,11 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	if route.mode == "build": actions.append({"id":"cancel","text":"Cancel placement"})
 	if route.mode == "ready": actions.append({"id":"remove","text":"Dismantle and recover kit"})
 	if route.mode == "remove": actions.append({"id":"reopen","text":"Cancel dismantling"})
-	return {"title":CraftMaterials.product_name("Log bridge", String(route.get("material_id", ""))),"kind":"Access","rows":[["Status",status[route.mode]],
+	# The compact panel (doc 260): the bridge's picture and its state.
+	return {"title":CraftMaterials.product_name("Log bridge", String(route.get("material_id", ""))),
+		"family":"settlement", "picture":"res://assets/ui/furniture/log_bridge.png",
+		"status":{"text":status[route.mode], "tone":{"build":"waiting","ready":"fine","remove":"waiting","damaged":"blocked"}[route.mode]},
+		"rows":[["Status",status[route.mode]],
 		["Crossing","2 wide · %d-block gap" % route.span],["Kit","Installed" if route.built else "1 reserved"]] + (CraftMaterials.inspection_rows(definition, String(route.get("material_id", ""))) if route.built else []),
 		"details":"Built from the selected bank. Water flows underneath. Dismantling closes entry and waits for the deck to clear.","actions":actions}
 

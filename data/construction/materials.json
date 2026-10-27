@@ -1,0 +1,19 @@
+{
+  "__note": "Build's materials (doc 23, doc 275): the tool bar's MATERIAL row, in order. Each holds construction kinds from blocks.json. A material with a `menu` heading opens a menu of its kinds from its picture (format A, owner 2026-10-26); `woods` adds a row of woods under that heading. Woods are the logs a player builds with: each names its craft material (whose colours the log pieces take), its good, the words for one and many, and its block for each way a log lies (up, along x, along z). Read by BlockRegistry.",
+  "materials": {
+    "stone": {"label": "Stone", "menu": "Stone", "kinds": ["stone"]},
+    "dirt": {"label": "Dirt", "kinds": ["dirt"]},
+    "grass": {"label": "Grass", "kinds": ["grass"]},
+    "wood": {"label": "Wood", "menu": "Log", "woods": "Wood", "kinds": ["log_upright", "log_horizontal"]}
+  },
+  "woods": {
+    "oak": {"label": "Oak", "material": "base:material:oak", "item_key": "base:resources:wood:oak_log", "one": "oak log", "many": "oak logs",
+      "blocks": {"up": "base:construction:log:oak:up", "x": "base:construction:log:oak:x", "z": "base:construction:log:oak:z"}},
+    "pine": {"label": "Pine", "material": "base:material:pine", "item_key": "base:resources:wood:pine_log", "one": "pine log", "many": "pine logs",
+      "blocks": {"up": "base:construction:log:pine:up", "x": "base:construction:log:pine:x", "z": "base:construction:log:pine:z"}},
+    "juniper": {"label": "Juniper", "material": "base:material:juniper", "item_key": "base:resources:wood:juniper_log", "one": "juniper log", "many": "juniper logs",
+      "blocks": {"up": "base:construction:log:juniper:up", "x": "base:construction:log:juniper:x", "z": "base:construction:log:juniper:z"}},
+    "apple": {"label": "Apple", "material": "base:material:applewood", "item_key": "base:resources:wood:apple_wood", "one": "apple wood", "many": "apple wood",
+      "blocks": {"up": "base:construction:log:apple:up", "x": "base:construction:log:apple:x", "z": "base:construction:log:apple:z"}}
+  }
+}

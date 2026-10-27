@@ -79,9 +79,9 @@ var id_rock09:    int = 0
 var id_rock10:    int = 0
 var id_rock11:    int = 0
 var id_cave_soil: int = -1
+var id_grass:     int = 0
+var id_dirt:      int = 0
 var mountain_rock_ids: Array[int] = [] # shelf 1..6 -> rock06..rock01
-var grass_ids:    Array[int] = []   # [0..7] -> active grass_01..grass_08
-var dirt_ids:     Array[int] = []   # [0..3]  -> dirt_01..dirt_04
 var resource_replaceable_rock_ids: Dictionary = {}
 var metal_windows: Array[Dictionary] = []
 var metal_noise: Array[FastNoiseLite] = [] # one field per cached metal window
@@ -128,6 +128,8 @@ func apply_shelf_bands(tops: Array) -> bool:
 func cache_block_ids() -> void:
 	var registry := _autoload("BlockRegistry")
 	id_cave_soil = registry.get_id(&"base:terrain:soil:cave")
+	id_grass     = registry.get_id(&"base:terrain:surface:grass")
+	id_dirt      = registry.get_id(&"base:terrain:surface:dirt")
 	id_void      = registry.get_id(&"base:terrain:void")
 	id_bedrock   = registry.get_id(&"base:terrain:bedrock")
 	id_water     = registry.get_id(&"base:terrain:water:source")
@@ -143,14 +145,6 @@ func cache_block_ids() -> void:
 	mountain_rock_ids.clear()
 	for i in range(6, 0, -1):
 		mountain_rock_ids.append(registry.get_id(StringName("base:terrain:rock:rock%02d" % i)))
-
-	grass_ids.clear()
-	for i in range(1, 9):
-		grass_ids.append(registry.get_id(StringName("base:terrain:surface:grass_%02d" % i)))
-
-	dirt_ids.clear()
-	for i in range(1, 5):
-		dirt_ids.append(registry.get_id(StringName("base:terrain:surface:dirt_%02d" % i)))
 
 	_cache_resource_windows()
 
@@ -273,7 +267,7 @@ func generate_block_id(x: int, y: int, z: int, apply_resource_detail: bool = tru
 
 	# Shelf membership is a property of the column height (surf_y).
 	if _is_lowland_shelf_height(surf_y) and y >= LOWLAND_SHELF_MIN_Y and y <= lowland_shelf_max_y:
-		var lowland_block := _lowland_shelf_block_id(x, z, y)
+		var lowland_block := _lowland_shelf_block_id(y)
 		return _apply_resource_veins(x, y, z, surf_y, lowland_block) if apply_resource_detail else lowland_block
 
 	if _is_foothill_shelf_height(surf_y) and y >= LOWLAND_SHELF_MIN_Y and y < _foothill_shelf_start_for_height(surf_y):
@@ -281,7 +275,7 @@ func generate_block_id(x: int, y: int, z: int, apply_resource_detail: bool = tru
 		return _apply_resource_veins(x, y, z, surf_y, foothill_body_block) if apply_resource_detail else foothill_body_block
 
 	if _is_foothill_shelf_height(surf_y) and y >= foothill_shelf_min_y and y <= foothill_shelf_max_y:
-		var foothill_shelf_block := _foothill_shelf_block_id(x, z, y)
+		var foothill_shelf_block := _foothill_shelf_block_id(y)
 		return _apply_resource_veins(x, y, z, surf_y, foothill_shelf_block) if apply_resource_detail else foothill_shelf_block
 
 	if _is_mountain_shelf_height(surf_y) and y >= LOWLAND_SHELF_MIN_Y and y < mountain_min:
@@ -325,11 +319,11 @@ func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:
 	if lake_columns.has(col) or tarn_columns.has(col):
 		if _surface_region_value(x, z, 7) > 0.72:
 			return _pick_surface_rock(x, z, height)
-		return _dirt_variant(x, z)
+		return id_dirt
 	if _is_water_bank(x, z):
 		if slope >= 2 or _surface_region_value(x, z, 11) > 0.68:
 			return _pick_surface_rock(x, z, height)
-		return _dirt_variant(x, z)
+		return id_dirt
 
 	if slope >= STEEP_SLOPE_ROCK_DELTA:
 		return _pick_surface_rock(x, z, height)
@@ -337,24 +331,24 @@ func _pick_surface_block(x: int, z: int, col: Vector2i) -> int:
 	if domain == DOMAIN_MOUNTAIN:
 		var sheltered_shelf: bool = slope <= 1 and height < 96 and generator.domain_n_map[idx] < 0.68
 		if sheltered_shelf and region > 0.94:
-			return _grass_variant(x, z)
+			return id_grass
 		if sheltered_shelf and region > 0.86:
-			return _dirt_variant(x, z)
+			return id_dirt
 		return _pick_surface_rock(x, z, height)
 
 	if domain == DOMAIN_VALLEY:
 		if slope >= 2 and _surface_region_value(x, z, 17) > 0.35:
 			return _pick_surface_rock(x, z, height)
 		if region < 0.50:
-			return _grass_variant(x, z)
+			return id_grass
 		if region < 0.82:
-			return _dirt_variant(x, z)
+			return id_dirt
 		return _pick_surface_rock(x, z, height)
 
 	if region < 0.62:
-		return _grass_variant(x, z)
+		return id_grass
 	if region < 0.86:
-		return _dirt_variant(x, z)
+		return id_dirt
 	return _pick_surface_rock(x, z, height)
 
 func _surface_slope(x: int, z: int) -> int:
@@ -383,30 +377,10 @@ func _surface_region_value(x: int, z: int, salt: int) -> float:
 	return clampf((macro_hash * 0.62) + (field * 0.38), 0.0, 1.0)
 
 
-## Decorative variants are deterministic and independent of height or edge distance.
-## All eight keys share the grass appearance family; actual grass placement is
-## still determined by the existing material/geography rules.
-func _grass_variant(x: int, z: int) -> int:
-	if grass_ids.is_empty(): return id_rock10
-	var cell := Vector3i(x / MATERIAL_MACRO_CELL_SIZE, generator.world_seed, z / MATERIAL_MACRO_CELL_SIZE)
-	return grass_ids[posmod(hash(cell), grass_ids.size())]
-
-func _dirt_variant(x: int, z: int) -> int:
-	var cell := Vector3i(x / MATERIAL_MACRO_CELL_SIZE, 47, z / MATERIAL_MACRO_CELL_SIZE)
-	return dirt_ids[abs(hash(cell)) % dirt_ids.size()]
-
-
-func _foothill_shelf_block_id(x: int, z: int, y: int) -> int:
+## A foothill shelf is dirt under a grass cap.
+func _foothill_shelf_block_id(y: int) -> int:
 	var shelf_y := (y - foothill_shelf_min_y) % foothill_shelf_height
-	if shelf_y == foothill_shelf_height - 1:
-		return _grass_variant(x, z)
-	if shelf_y <= 1:
-		return dirt_ids[0]
-	if shelf_y <= 3:
-		return dirt_ids[1]
-	if shelf_y <= 5:
-		return dirt_ids[2]
-	return dirt_ids[3]
+	return id_grass if shelf_y == foothill_shelf_height - 1 else id_dirt
 
 
 func _foothill_shelf_start_for_height(h: int) -> int:
@@ -430,17 +404,9 @@ func _altitude_rock_body_id(y: int) -> int:
 	return fallback_rock_id(y)
 
 
-func _lowland_shelf_block_id(x: int, z: int, y: int) -> int:
-	var shelf_y := y - LOWLAND_SHELF_MIN_Y
-	if y == lowland_shelf_max_y:
-		return _grass_variant(x, z)
-	if shelf_y <= 1:
-		return dirt_ids[0]
-	if shelf_y <= 3:
-		return dirt_ids[1]
-	if shelf_y <= 5:
-		return dirt_ids[2]
-	return dirt_ids[3]
+## The lowland shelf is dirt under a grass cap.
+func _lowland_shelf_block_id(y: int) -> int:
+	return id_grass if y == lowland_shelf_max_y else id_dirt
 
 
 func _mountain_shelf_block_id(y: int) -> int:

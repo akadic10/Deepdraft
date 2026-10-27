@@ -13,7 +13,7 @@ func _run() -> void:
 		var key: String = "base:furniture:"+name
 		var recipe: String = "base:recipe:worker:"+name
 		var item: String = "base:resources:furniture:"+name
-		_expect(dock._place_catalog._tiles.has(key), "Place exposes "+name)
+		_expect(dock._place_catalog.has_design(key), "Place exposes "+name)
 		_expect(await _completed(crafting.queue_order(recipe,1)), "Worker crafts "+name)
 		_expect(_count(item)==1, "exactly one packed "+name)
 		var origin := Vector3i(52,20,42) if name=="bench" else Vector3i(58+(["door","log_door_3","log_door_4"].find(name))*12,20,46)

@@ -1,0 +1,45 @@
+{
+  "__note": "Settings' Controls tab (doc 23 \"Keys\"), read by SettingsPanel through UIRegistry: the key list as two columns of groups. Each entry is what the player does, then either its `actions` (input actions in project.godot; their keys come from the input map, so the list follows the game's own keys) or its fixed `keys` (keys the code checks itself, and the mouse). A key is a chord such as \"Shift + Wheel\", its parts on keycaps joined by a plus, or a list of keys shown side by side. Several keys or actions are `joined` by \"or\" unless the entry gives another word: \"/\" pairs them with a label's \"raise / lower\".",
+  "columns": [
+    [
+      {"title": "Camera", "entries": [
+        {"label": "Move", "keys": [["W", "A", "S", "D"], "Arrow keys"]},
+        {"label": "Move slowly (hold)", "keys": ["Shift"]},
+        {"label": "Turn and tilt", "keys": ["Right drag"]},
+        {"label": "Pan", "keys": ["Middle drag"]},
+        {"label": "Zoom to the pointer", "keys": ["Wheel"]}
+      ]},
+      {"title": "Time", "entries": [
+        {"label": "Pause or resume", "actions": ["time_pause"]},
+        {"label": "Normal speed", "actions": ["time_normal"]},
+        {"label": "Fast speed", "actions": ["time_fast"]}
+      ]},
+      {"title": "Windows", "entries": [
+        {"label": "Select a dwarf or object", "keys": ["Click"]},
+        {"label": "Close the front window, or open the menu", "keys": ["Esc"]}
+      ]}
+    ],
+    [
+      {"title": "Views", "entries": [
+        {"label": "Appeal", "actions": ["view_appeal"]},
+        {"label": "X-ray", "actions": ["view_xray"]},
+        {"label": "Slice", "actions": ["slice_toggle"]},
+        {"label": "Raise / lower 4 levels", "actions": ["slice_cell_up", "slice_cell_down"], "joined": "/"},
+        {"label": "Raise / lower 1 level", "actions": ["slice_single_up", "slice_single_down"], "joined": "/"},
+        {"label": "Over the tower: 1 / 4 levels", "keys": ["Wheel", "Ctrl + Wheel"], "joined": "/"}
+      ]},
+      {"title": "Tools", "entries": [
+        {"label": "Finish the tool", "keys": ["Esc"]},
+        {"label": "Take back the newest order", "actions": ["tool_undo"]},
+        {"label": "Turn the piece or blueprint to place", "keys": ["R"]},
+        {"label": "Mining width, or a door gap", "keys": ["Shift + Wheel"]},
+        {"label": "Depth or height", "keys": ["Alt + Wheel"]},
+        {"label": "Remove mining marks", "keys": ["Ctrl + Drag"]},
+        {"label": "Take blocks out of building plans", "keys": ["Ctrl + Drag"]},
+        {"label": "Build's material", "keys": ["Q", "E"], "joined": "/"},
+        {"label": "Shapes' shape", "keys": ["Tab"]},
+        {"label": "Fill a shape, or take a copy's floor too", "keys": ["F"]}
+      ]}
+    ]
+  ]
+}

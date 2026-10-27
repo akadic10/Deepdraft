@@ -798,13 +798,27 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	# Packed furniture shows the appeal of the piece it installs as.
 	var furniture := get_tree().get_first_node_in_group("furniture_controller")
 	var installs_as: Dictionary = furniture.def_for_item(key) if furniture != null else {}
-	return {
+	var appeal_def: Dictionary = def if installs_as.is_empty() else installs_as
+	var data := {
 		"title": CraftMaterials.product_name(String(def.get("display_name", key)), CraftMaterials.of_item(id)),
-		"kind": "Produce crate" if crated else "Resource",
-		"rows": rows + CraftMaterials.inspection_rows(def if installs_as.is_empty() else installs_as, CraftMaterials.of_item(id), true),
+		"rows": rows + CraftMaterials.inspection_rows(appeal_def, CraftMaterials.of_item(id), true),
 		"details": String(def.get("description", "")),
 		"actions": actions,
 	}
+	# The compact panel beside the dock (doc 260): the item's picture, appeal or quantity
+	# on the badge, and where it stands.
+	data.family = "settlement"
+	data.picture = "res://assets/ui/items/%s.png" % key.replace(":", "_")
+	if not ResourceLoader.exists(data.picture):
+		data.picture = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)
+	if appeal_def.has("appeal"):
+		data.badge = CraftMaterials.appeal_badge(appeal_def, CraftMaterials.of_item(id), true)
+	elif crated or quantity_of(id) > 1:
+		data.badge = {"kind": "quantity", "value": rows[1][1], "tooltip": "Quantity"}
+	if in_storage: data.status = {"text": "In storage", "tone": "fine"}
+	elif not Permission.allowed(id): data.status = {"text": "Disallowed: dwarves leave it here", "tone": "blocked"}
+	else: data.status = {"text": "Awaiting collection", "tone": "waiting"}
+	return data
 
 
 func perform_explorer_action(id: Variant, action_id: String) -> void:

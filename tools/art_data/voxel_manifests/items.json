@@ -59,75 +59,11 @@
           ]
         }
       ],
-      "bytes": 67668,
-      "sha256": "7046e89a90f88133843893f67c02922438e74bdd1cfea9fea6c22ab25868b0f3",
-      "path": "assets/models/items/soil/cave_soil.glb",
+      "bytes": 67660,
+      "sha256": "258e94a80b6ff0bb004ef8218e16d749fb901d4f9b518f6c301ac4a305b323e8",
+      "path": "assets/models/items/soil/soil.glb",
       "authoring": {
-        "item": "cave_soil",
-        "source": "tools/voxel_assets/hearthblock_goods.py"
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 924,
-          "visual_triangles": 532,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7965367965367965,
-            "triangles": 88
-          },
-          "min": [
-            -0.375,
-            0.0,
-            -0.375
-          ],
-          "max": [
-            0.375,
-            0.625,
-            0.375
-          ]
-        }
-      ],
-      "bytes": 67668,
-      "sha256": "2a733a92032d87326c5c28c6269f84282ef1dfebe91595d2d36345a577d7a4cf",
-      "path": "assets/models/items/soil/light_soil.glb",
-      "authoring": {
-        "item": "light_soil",
-        "source": "tools/voxel_assets/hearthblock_goods.py"
-      }
-    },
-    {
-      "parts": [
-        {
-          "name": "main",
-          "cells": 924,
-          "visual_triangles": 532,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7965367965367965,
-            "triangles": 88
-          },
-          "min": [
-            -0.375,
-            0.0,
-            -0.375
-          ],
-          "max": [
-            0.375,
-            0.625,
-            0.375
-          ]
-        }
-      ],
-      "bytes": 67668,
-      "sha256": "2071c83e55f45b49f8fa8692f0337bb2ecb8cdf1f42db12b955aa8d3f492f878",
-      "path": "assets/models/items/soil/dark_soil.glb",
-      "authoring": {
-        "item": "dark_soil",
+        "item": "soil",
         "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },

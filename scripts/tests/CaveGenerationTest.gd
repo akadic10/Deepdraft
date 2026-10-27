@@ -144,17 +144,11 @@ func _check_discovery(cave: Dictionary) -> void:
 	mining._mine_blocks_world(breach)
 	var start := wall - Vector3i.UP
 	_expect(not root.get_node("NavGrid").find_path(start, center, 12000).is_empty(), "Dwarf cannot walk from breach into cave.")
-	var saved: Dictionary = mining.serialize_state()
+	# Discovery after a load is SaveManagerRoundTripTest's (the gate): SaveManager restores the
+	# terrain, and with it the discovered caves, before any scene owner.
 	_interior.caves_discovered.disconnect(renderer.add_discovered_cave_blocks)
 	mining.free()
 	renderer.free()
-	_world.clear_world()
-	_interior.clear_runtime_state()
-	mining = load("res://scripts/systems/MiningDesignationController.gd").new()
-	root.add_child(mining)
-	mining.restore_state(saved)
-	_expect(_interior.discovered_cave_count() == 1, "Discovery was not reconstructed from saved mining.")
-	mining.free()
 
 
 func _expect(condition: bool, message: String) -> void:

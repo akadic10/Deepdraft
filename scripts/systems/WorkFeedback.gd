@@ -252,7 +252,8 @@ func mining_impact(position: Vector3, block: Vector3i, visible_id: int, normal: 
 	if not BlockRegistry.is_solid(visible_id):
 		visible_id = BlockRegistry.get_id(config.mining.fallback_block)
 	var kind: String = BlockRegistry.get_def(BlockRegistry.get_key(visible_id)).get("kind","")
-	var family := "soil" if kind in config.mining.soil_kinds else "stone"
+	# mining_soil for earth, mining_wood (chopping) for built wood, else mining_stone.
+	var family := "soil" if kind in config.mining.soil_kinds else "wood" if kind in config.mining.wood_kinds else "stone"
 	_play("mining_"+family,position,block.y)
 	var settings := _mining_colors(config.mining.impact,visible_id)
 	_spawn_burst(position,block.y,settings,float(settings.scale),"mining_impact",normal)

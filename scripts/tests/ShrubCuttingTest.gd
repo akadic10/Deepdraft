@@ -171,18 +171,20 @@ func _capture_young(id: String) -> void:
 	root.get_texture().get_image().save_png("res://tmp/cutting_review/young_inspector.png")
 	var before_dev: Dictionary = details.serialize_state()
 	var before_clock: Dictionary = clock_node.serialize_state()
-	for button: Button in explorer._actions.get_children():
-		if button.text == "DEV: Grow to maturity": _click(button.get_global_rect().get_center())
+	var grow: Button = explorer.get_compact_panel().get_action_button("dev_mature")
+	if grow != null: _click(grow.get_global_rect().get_center())
 	_expect(details.can_uproot(id) and clock_node.serialize_state() == before_clock, "actual DEV button matures only selected plant without advancing calendar")
 	details.restore_state(before_dev)
 	clock_node.restore_state(before_clock)
-	explorer._window.hide()
+	explorer.clear_selection()
 	dock._window_manager.open("place")
 	dock._place_catalog._all_toggle.button_pressed = true
-	dock._place_catalog.category = "plants"
 	dock._place_catalog.refresh()
 	for i in range(8): await process_frame
-	_click(dock._place_catalog._tiles[CUTTING].button.get_global_rect().get_center())
+	dock._place_catalog._scroll.ensure_control_visible(dock._place_catalog.tile(CUTTING))   # Plants sits low in the list
+	for i in range(4): await process_frame
+	_click(dock._place_catalog.tile(CUTTING).get_global_rect().get_center())
+	await process_frame   # a tile press arrives once the click is over
 	_expect(furniture.active_furniture_key() == CUTTING,"actual cutting tile starts planting")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://tmp/cutting_review/place_cuttings.png")
@@ -203,7 +205,7 @@ func _setup_cuttings() -> void:
 	blocks = root.get_node("BlockRegistry")
 	_build_floor()
 	for x in range(32,64):
-		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass_01"))
+		for z in range(32,64): world.set_block(x,20,z,blocks.get_id("base:terrain:surface:grass"))
 	var gen = root.get_node("WorldGenerator")
 	gen.world_seed = 1234
 	gen.heightmap.resize(1024 * 1024)

@@ -108,7 +108,8 @@ var _flight_tree_reach := 32.0 # Conservative initial canopy broad-phase radius.
 const FellingSource = preload("res://scripts/components/TreeFellingComponent.gd")
 var _tree_changes: Dictionary = {} # Vector2i -> authoritative, saveable forestry delta
 var work := preload("res://scripts/components/WorkSourceTable.gd").new() # Vector2i tree id -> TreeFellingComponent
-var _felling_markers: Dictionary = {} # Vector2i -> Label (projected UI, never a pick target)
+const OrderMarker = preload("res://scripts/ui/OrderMarker.gd")
+var _felling_markers: Dictionary = {} # Vector2i -> OrderMarker (projected UI, never a pick target)
 var _felling_marker_layer: CanvasLayer
 signal tree_felling_changed(tree_id: Vector2i)
 
@@ -942,6 +943,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 					status = "Picking %s" % String(fruit.get("yield_label","berries")) if harvesting else "Chopping"
 	if progress > 0.0:
 		status += " · %d%%" % mini(99, floori(progress / maxf(duration, .001) * 100.0))
+	var order_status := status
 	if harvesting:
 		if marked: fruit_status = status
 		status = "Standing"
@@ -951,7 +953,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 	else:
 		if can_harvest_tree(tree_id): actions.append({"id": "harvest", "text": String(fruit.get("action_label","Harvest berries"))})
 		actions.append({"id": "fell", "text": "Fell tree"})
-	return {"title": String(tree["name"]).capitalize() + " tree", "kind": "Tree",
+	var data := {"title": String(tree["name"]).capitalize() + " tree",
 		"rows": [
 			["Growth stage", String(tree["stage"]).capitalize()],
 			["Fruit", fruit_status],
@@ -959,6 +961,25 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 			["Felling yield", ", ".join(guaranteed) if not guaranteed.is_empty() else "None"],
 			["Felling", status],
 		], "details": details, "actions": actions}
+	# The compact panel (doc 260): the tree itself, what felling gives, its fruit, and
+	# either its age or the order's progress.
+	data.family = "work"
+	data.portrait = tree["node"]
+	data.flavour = "Felling yields %s." % (", ".join(guaranteed) if not guaranteed.is_empty() else "no logs")
+	if not species_fruit.is_empty():
+		data.flavour += " %s in %s." % [String(species_fruit.get("yield_label", "fruit")).capitalize(), fruit_season.to_lower()]
+	var age := String(tree["stage"]).capitalize()
+	data.status = {"text": age if species_fruit.is_empty() else "%s · %s" % [age, fruit_status.to_lower()], "tone": "fine"}
+	if marked:
+		data.status = {"text": order_status, "tone": "blocked" if order_status.begins_with("Awaiting")
+			else "fine" if order_status.begins_with("Chopping") or order_status.begins_with("Picking") else "waiting"}
+	elif can_harvest_tree(tree_id):
+		var amount := str(int(fruit.get("yield_count", fruit.get("yield_min", 1))))
+		if not fruit.has("yield_count") and int(fruit.get("yield_max", 1)) != int(fruit.get("yield_min", 1)):
+			amount += "–%d" % int(fruit.yield_max)
+		data.badge = {"icon": "res://assets/ui/items/%s.png" % String(species_fruit.get("yield_item", "")).replace(":", "_"),
+			"value": amount, "tooltip": "%s %s ready to pick" % [amount, String(fruit.get("yield_label", "berries"))]}
+	return data
 
 
 func perform_explorer_action(tree_id: Variant, action_id: String) -> void:
@@ -1263,12 +1284,10 @@ func _update_felling_marker(tree_id: Vector2i) -> void:
 	var bounds := get_explorer_bounds(tree_id)
 	if bounds.size == Vector3.ZERO:
 		return
-	var marker := Label.new()
-	marker.text = "✿" if String(_tree_changes[tree_id].get("action", "fell")) == "harvest" else "🪓"
-	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	marker.add_theme_font_size_override("font_size", 28)
-	marker.add_theme_color_override("font_outline_color", Color(.08, .07, .06, .95))
-	marker.add_theme_constant_override("outline_size", 4)
+	# The Orders icon for the order (doc 259): Chop trees, or Harvest plants for fruit.
+	var kind := "harvest" if String(_tree_changes[tree_id].get("action", "fell")) == "harvest" else "fell"
+	var marker := OrderMarker.new()
+	marker.setup(kind, UIRegistry.get_order_marker(kind), UIRegistry.get_order_marker_tile())
 	marker.visible = false
 	_felling_marker_layer.add_child(marker)
 	_felling_markers[tree_id] = marker
@@ -1278,7 +1297,7 @@ func _update_felling_marker_positions() -> void:
 	var camera := get_viewport().get_camera_3d()
 	var screen := get_viewport().get_visible_rect()
 	for id: Vector2i in _felling_markers:
-		var marker: Label = _felling_markers[id]
+		var marker: Control = _felling_markers[id]
 		var bounds := get_explorer_bounds(id)
 		marker.visible = camera != null and bounds.size != Vector3.ZERO
 		if not marker.visible:
@@ -1299,7 +1318,7 @@ func _update_felling_marker_positions() -> void:
 
 
 func _clear_felling_marker(tree_id: Vector2i) -> void:
-	var marker: Label = _felling_markers.get(tree_id)
+	var marker: Control = _felling_markers.get(tree_id)
 	if is_instance_valid(marker):
 		marker.visible = false
 		marker.queue_free()

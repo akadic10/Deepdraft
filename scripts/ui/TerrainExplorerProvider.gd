@@ -56,7 +56,10 @@ func get_explorer_data(hit: Dictionary) -> Dictionary:
 	if info.is_empty(): return {}
 	var title: String = info.name
 	var face := "Floor" if normal==Vector3i.UP else ("Ceiling" if normal==Vector3i.DOWN else "Wall")
-	return {"title":title,"kind":"Terrain","rows":[["Type",info.category],["Surface","Slice surface" if cut_face else face],
+	# The compact panel (doc 260): what the face is and where; no picture for terrain.
+	var surface := "Slice surface" if cut_face else "%s %s" % [String(info.category), face.to_lower()]
+	return {"title":title, "family":"work", "status":{"text":"%s · level %d" % [surface, cell.y], "tone":"fine"},
+		"rows":[["Type",info.category],["Surface","Slice surface" if cut_face else face],
 		["Level",str(cell.y)]],
 		"details":"Excavate to reveal the material inside this slice." if cut_face and not known else info.description}
 

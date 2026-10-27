@@ -119,6 +119,14 @@
   },
   "mood": {
     "baseline": 0.5,
+    "__comment_steps": "Five words for happiness, read by DwarfMood. Each step holds happiness points (0-100) up to and including `most`; the last holds the rest. Unhappy and Miserable are when the face shows over a dwarf's head. `icon` is the step's Hearthblock face (doc 261).",
+    "steps": [
+      {"word": "Miserable", "most": 25, "line": "Nothing is going right down here.", "icon": "res://assets/ui/icons/mood_miserable.png"},
+      {"word": "Unhappy", "most": 40, "line": "Something down here is wearing on them.", "icon": "res://assets/ui/icons/mood_unhappy.png"},
+      {"word": "Content", "most": 54, "line": "Getting by, neither up nor down.", "icon": "res://assets/ui/icons/mood_content.png"},
+      {"word": "Happy", "most": 64, "line": "Things are going well down here.", "icon": "res://assets/ui/icons/mood_happy.png"},
+      {"word": "Joyful", "line": "Life underground could hardly be better.", "icon": "res://assets/ui/icons/mood_joyful.png"}
+    ],
     "dining": {
       "duration_hours": 8.0,
       "seat_only": 0.03,
@@ -141,6 +149,12 @@
       "bonus": 0.08,
       "solo_bonus": 0.04,
       "duration_hours": 12.0
+    },
+    "room_appeal": {
+      "__comment": "After a sleep, a meal or a game in a sealed room, the room's appeal word gives its points (data/rooms/appeal.json) for these game hours (doc 41). The next sleep, meal or game replaces it.",
+      "slept_hours": 24.0,
+      "ate_hours": 8.0,
+      "played_hours": 12.0
     }
   },
   "readability": {

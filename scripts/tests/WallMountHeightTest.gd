@@ -88,7 +88,7 @@ func _aim_cases() -> void:
 	_expect(Mount.mount_cell(furniture.get_defs()[TORCH],furniture._hover_cell).y==23,"Alt wheel nudges one block upward")
 	_wheel(point,false)
 	_expect(Mount.mount_cell(furniture.get_defs()[TORCH],furniture._hover_cell).y==22,"Alt wheel nudges one block downward")
-	_expect(furniture._visuals.hint_label.text.contains("Alt + wheel"),"placement explains height controls")
+	_expect(furniture._visuals.hint_text.contains("Alt + wheel"),"placement explains height controls")
 	furniture._slice_y = 22
 	furniture._update_hover(true,point)
 	_expect(not furniture._hover_valid,"hidden flame cannot be placed through a slice")

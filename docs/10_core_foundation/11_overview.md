@@ -5,8 +5,8 @@ seasonal weather, finite water, wildlife, underground rooms, rudimentary
 furniture/recreation, staged stone construction with hammer work, dwarf need
 indicators, fullscreen panoramic loading, and discovered-interior Full/Flat
 X-ray with cached slice views. Save schema 2 records final terrain overrides
-and exploration separately. See [220 — Session handoff](../00_dev_roadmap/220_session_handoff_2026_10_17.md)
-for current behavior, validation, remaining limits and the next resume point.
+and exploration separately (doc 220). Current behavior lives in the design doc for each
+area, and later work in the [changelog](../00_dev_roadmap/00_changelog.md).
 Farming, physical brewing-water hauling and the production/trade loop below
 remain design goals. Gems remain finished drops without a Jeweller/polishing stage.
 

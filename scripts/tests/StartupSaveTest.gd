@@ -71,20 +71,19 @@ func _run() -> void:
 		var screen = current_scene.get_node("WorldLoadingScreen")
 		while not screen._released: await process_frame
 		_expect(not _save_manager.is_loading() and screen.loading_state().ready, "loading cover waits for restoration")
-		var dock = get_first_node_in_group("command_dock")
-		dock._open_action_panel("system")
+		var menu = root.get_node("GameMenu")
+		menu.open()
 		for _i in 3: await process_frame
 		if DisplayServer.get_name() != "headless":
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://tmp/startup_resume_20261018/options_menu.png")
-		var entries: Array = root.get_node("UIRegistry").get_menu("system").items
+		menu._buttons.new_game.pressed.emit()
 		var found := false
-		for i in entries.size():
-			if entries[i].id == "new_game":
+		for button: Button in menu._ask_buttons.get_children():
+			if button.text == "Start a new colony":
 				found = true
-				dock._panel_body.get_child(i).pressed.emit()
-				break
-		_expect(found and _save_manager.is_loading(), "real New Game menu button starts scene replacement")
+				button.pressed.emit()
+		_expect(found and _save_manager.is_loading() and not menu.is_open(), "the game menu's New game, once confirmed, starts scene replacement")
 		await scene_changed
 		await process_frame
 		_expect(_world_generator.world_seed != 1234 and _world_generator.world_seed != 9876,
@@ -157,6 +156,14 @@ func _test_selection(snapshot: Dictionary) -> void:
 	var selected: Dictionary = _save_manager._latest_valid_save()
 	_expect(selected.path == TEST_AUTOSAVE_BACKUP and selected.backup and selected.autosave, "autosave backup survives damaged primaries")
 	_expect(before == _file_hashes(), "startup recovery never rewrites a file")
+	# A newer named save wins too, and the notices name it by the name inside it.
+	var named := snapshot.duplicate(true)
+	named.save_name = "First winter"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(TEST_NAMED))
+	_write_save(TEST_NAMED + "/first_winter.json", named, "2026-10-18 20:00:00")
+	selected = _save_manager._latest_valid_save()
+	_expect(selected.path == TEST_NAMED + "/first_winter.json" and selected.label == "\"First winter\"" and not selected.autosave,
+		"a newer named save wins startup and Continue")
 	_cleanup_test_storage()
 
 func _write_save(path: String, snapshot: Dictionary, timestamp: String) -> void:

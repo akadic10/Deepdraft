@@ -7,6 +7,8 @@ extends RefCounted
 ## inspection rows and actions. Actions go back through the controller's public
 ## methods.
 
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
 const GridFence = preload("res://scripts/components/GridFence.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
@@ -62,7 +64,7 @@ func build() -> void:
 
 	_title = Label.new()
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UITheme.apply_title(_title)
+	UITheme.apply_heading(_title)
 	header.add_child(_title)
 
 	var close_button := Button.new()
@@ -71,7 +73,7 @@ func build() -> void:
 	header.add_child(close_button)
 
 	_info = Label.new()
-	_info.add_theme_font_size_override("font_size", 14)
+	_info.add_theme_font_size_override("font_size", MEDIUM.body)
 	column.add_child(_info)
 
 	_build_btn = Button.new()
@@ -79,14 +81,14 @@ func build() -> void:
 	UITheme.apply_button_variant(_build_btn, "dev")
 	_build_btn.focus_mode = Control.FOCUS_NONE
 	_build_btn.custom_minimum_size = Vector2(186.0, 30.0)
-	_build_btn.add_theme_font_size_override("font_size", 13)
+	_build_btn.add_theme_font_size_override("font_size", MEDIUM.small)
 	_build_btn.pressed.connect(_on_primary_pressed)
 	column.add_child(_build_btn)
 
 	_remove_btn = Button.new()
 	_remove_btn.focus_mode = Control.FOCUS_NONE
 	_remove_btn.custom_minimum_size = Vector2(186.0, 30.0)
-	_remove_btn.add_theme_font_size_override("font_size", 13)
+	_remove_btn.add_theme_font_size_override("font_size", MEDIUM.small)
 	_remove_btn.pressed.connect(_on_remove_pressed)
 	column.add_child(_remove_btn)
 
@@ -125,7 +127,7 @@ func open_ghost(id: int) -> void:
 	_build_btn.text = "DEV: Instant Build"
 	UITheme.apply_button_variant(_build_btn, "dev")
 	_build_btn.visible = UIRegistry.dev_tools_enabled and not bool(ghost.def.get("plant", false))
-	_remove_btn.text = "Cancel 📥"
+	_remove_btn.text = "Cancel"
 	UITheme.apply_button_variant(_remove_btn, "danger")
 	_remove_btn.visible = true
 	_layer.visible = true
@@ -140,7 +142,7 @@ func open_installed(id: int) -> void:
 	_title.text = component.display_name()
 	var status_line := "Marked for uninstall — a dwarf is coming." if component.flagged_uninstall else "Installed."
 	_info.text = status_line
-	_build_btn.text = "📤 Cancel uninstall" if component.flagged_uninstall else "📤 Uninstall"
+	_build_btn.text = "Cancel uninstall" if component.flagged_uninstall else "Uninstall"
 	UITheme.apply_button_variant(_build_btn)
 	_build_btn.visible = true
 	_remove_btn.text = "DEV: Remove (drops item)"
@@ -255,6 +257,7 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	var rows: Array = []
 	var actions: Array = []
 	var details := String(piece.def.get("description", ""))
+	var in_use := {}   # the compact panel's line for an installed piece in use (doc 260)
 	if piece is FurnitureGhostComponent:
 		rows.append(["Status", "Awaiting delivery" if piece.has_lease() else "Awaiting packed item"])
 		if WallMount.is_wall(piece.def) and WallMount.work_stands(piece.def,piece.origin_cell,piece.yaw_steps).is_empty():
@@ -271,25 +274,29 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			if heating.is_empty():
 				rows.append(["Heating", "No enclosed room"])
 				details += "\n\nNot inside an enclosed room. Walls, a roof and a door let this hearth heat a room."
+				in_use = {"text": "No enclosed room to heat", "tone": "blocked"}
 			else:
 				rows.append(["Heating room", "%s · #%d" % [heating.room_label, heating.room_id]])
 				rows.append(["Temperature", "%.1f°C · %s" % [heating.temperature_c, heating.comfort]])
 				rows.append(["This hearth", "+%.1f°C" % heating.contribution_c])
+				in_use = {"text": "Heating the %s · %.1f°C" % [String(heating.room_label).to_lower(), heating.temperature_c], "tone": "fine"}
 		if piece.def.get("recreation","") == "board_game":
 			var seat_count: int = controller.get_dining_seats(piece.installed_id).filter(func(slot): return not controller.get_installed(slot.chair_id).flagged_uninstall).size()
 			var game = controller.get_board_games().games.get(piece.installed_id)
 			rows.append(["Log stools", "%d / 2 installed" % seat_count])
 			rows.append(["Game", "Playing together" if game != null and game.together else "Playing alone · partner welcome" if game != null and game.playing else "Going to play" if game != null else "Needs a log stool" if seat_count==0 else "Ready for solo or shared play"])
+			in_use = {"text": rows[-1][1], "tone": "waiting" if seat_count == 0 else "fine"}
 			var effect: Dictionary = TaskManager.get_config_section("mood").recreation
 			rows.append(["Happiness", "Solo +%d · Together +%d for %.0f game hours after a completed game" % [roundi(float(effect.solo_bonus)*100),roundi(float(effect.bonus)*100),float(effect.duration_hours)]])
 		if piece.def.has("sleep_surface"):
 			var assigned: DwarfAgent = TaskManager.get_agent(piece.assigned_dwarf_id)
 			rows.append(["Assigned to", assigned.dwarf_name if is_instance_valid(assigned) else "Unassigned"])
+			in_use = {"text": "%s's bed" % assigned.dwarf_name if is_instance_valid(assigned) else "Anyone may sleep here", "tone": "fine"}
 			var sleeper: DwarfAgent = TaskManager.get_agent(piece.sleep_owner)
 			rows.append(["Sleeper", sleeper.dwarf_name if is_instance_valid(sleeper) else "Available"])
 		rows.append_array(CraftMaterials.inspection_rows(piece.def, piece.material_id))
 		actions = [
-			{"id": "uninstall", "text": "Cancel uninstall" if piece.flagged_uninstall else "Uninstall"},
+			{"id": "uninstall", "text": "Cancel uninstall", "icon": "res://assets/ui/icons/cancel.png"} if piece.flagged_uninstall else {"id": "uninstall", "text": "Uninstall"},
 			{"id": "remove", "text": "DEV: Remove (drops item)", "variant": "dev"},
 		]
 		if piece.def.has("sleep_surface"):
@@ -303,17 +310,18 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		rows.append(["Footprint", String(piece.def.placement_label)])
 	if piece is FurnitureGhostComponent and moves.records.has(piece.required_instance_id):
 		rows[0][1] = "Awaiting uninstall" if int(moves.records[piece.required_instance_id].installed_id)>=0 else "Worker delivery / placement" if piece.has_lease() else "Awaiting packed furniture"
-		return {"title":CraftMaterials.product_name(piece.display_name(),piece.required_material_id),"kind":"Furniture move","rows":rows,
+		return _compact({"title":CraftMaterials.product_name(piece.display_name(),piece.required_material_id),"rows":rows,
 			"details":"A dwarf will pack this exact piece and install it here. Cancelling before packing leaves it installed; cancelling afterward keeps the packed item.",
-			"actions":[{"id":"cancel","text":"Cancel move"}]}
+			"actions":[{"id":"cancel","text":"Cancel move"}]}, piece, in_use)
 	if WallMount.is_wall(piece.def):
 		rows.append(["Mount level",str(WallMount.mount_cell(piece.def,piece.origin_cell).y)])
 		if piece is InstalledFurnitureComponent and piece.flagged_uninstall and piece.wall_work_stands().is_empty(): rows[0][1] = "Waiting for reachable work position"
 	if piece is InstalledFurnitureComponent and piece.furniture_key == "base:furniture:crude_workbench" and not piece.flagged_uninstall:
 		actions.push_front({"id":"craft", "text":"Craft items"})
 		rows.append(["Crafter", "Any Worker"])
+		in_use = {"text": "Any Worker crafts here", "tone": "fine"}
 	if piece.def.has("water_stone"):
-		return {"title":piece.display_name(),"kind":"Water stone placement","rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}
+		return _compact({"title":piece.display_name(),"rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}, piece, in_use)
 	if bool(piece.def.get("plant", false)):
 		var cutting := bool(piece.def.get("from_cutting", false))
 		var status := "Awaiting cutting" if cutting else "Awaiting whole plant"
@@ -323,11 +331,26 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		elif piece.has_lease(): status = "Worker delivery / planting"
 		rows[0] = ["Status", status]
 		rows.append(["Planting", "%d%%" % floori(piece.progress / float(piece.def.planting_seconds) * 100)])
-		return {"title":piece.display_name(), "kind":"Planting", "rows":rows,
+		return _compact({"title":piece.display_name(), "rows":rows,
 			"details":"Uses one cutting to grow a young shrub. Cancelling before completion keeps the cutting intact." if cutting else "The existing plant keeps its seasonal state. Cancelling after uprooting leaves the whole plant available for storage or another placement.",
-			"actions":[{"id":"cancel","text":"Cancel planting"}]}
-	return {"title": piece.display_name(), "kind": "Furniture plan" if piece is FurnitureGhostComponent else "Furniture",
-		"rows": rows, "details": details, "actions": actions}
+			"actions":[{"id":"cancel","text":"Cancel planting"}]}, piece, in_use)
+	return _compact({"title": piece.display_name(), "rows": rows, "details": details, "actions": actions}, piece, in_use)
+
+
+## The compact panel's fields (doc 260): the piece's picture, its appeal on the badge and
+## one status line. A waiting or blocked Status row wins over the in-use line.
+func _compact(data: Dictionary, piece, in_use: Dictionary) -> Dictionary:
+	data.family = "settlement"
+	data.picture = "res://assets/ui/furniture/%s.png" % String(piece.furniture_key).get_slice(":", 2)
+	if piece.def.has("appeal"):
+		var material: String = piece.material_id
+		if piece is FurnitureGhostComponent and not piece.required_material_id.is_empty(): material = piece.required_material_id
+		data.badge = CraftMaterials.appeal_badge(piece.def, material)
+	var state := String(data.rows[0][1])
+	if state.begins_with("Waiting for reachable"): data.status = {"text": state, "tone": "blocked"}
+	elif piece is FurnitureGhostComponent or state != "Installed": data.status = {"text": state, "tone": "waiting"}
+	elif not in_use.is_empty(): data.status = in_use
+	return data
 
 
 func perform_explorer_action(object_id: Variant, action_id: String) -> void:

@@ -3,7 +3,6 @@ extends CanvasLayer
 @export var camera_path: NodePath
 @export var slice_path: NodePath
 @export var window_manager_path: NodePath
-@export var dock_path: NodePath
 var _info: Label
 var _source: Button
 var _dam: Button
@@ -13,8 +12,6 @@ func _ready() -> void:
 	_build.call_deferred()
 
 func _build() -> void:
-	# The flood warning is player feedback, so it stays connected with DEV tools off.
-	WaterManager.flood_warning.connect(func(): get_node(dock_path).show_persistence_status("Rising water is spilling onto dry ground."))
 	if not UIRegistry.dev_tools_enabled:
 		set_process(false)
 		return
@@ -38,7 +35,7 @@ func _build() -> void:
 	hint.text = "Dam edits and withdrawals change the world and are saved.\nUnpause to watch rising water and bank overflow.\nOrdinary water is finite; the spring replenishes it slowly."
 	body.add_child(hint)
 	get_node(window_manager_path).register_window("water_dev","DEV · Water","",body,
-		{"persistent":false,"default_pos":Vector2(18,90),"min_size":Vector2(420,0)})
+		{"persistent":false,"default_pos":Vector2(18,90),"min_size":Vector2(420,0),"family":"dev"})
 
 func _button(parent: Node,label: String,action: Callable) -> Button:
 	var button := Button.new()

@@ -5,6 +5,8 @@ extends VBoxContainer
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const PREFIX := "base:profession:"
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 var director: Node
 var manager: UIWindowManager
 var dock: Node # injected by DwarfDirector; an open dock menu takes Esc first
@@ -50,14 +52,14 @@ func _ready() -> void:
 	portrait_texture.custom_minimum_size = Vector2(54, 60)
 	portrait_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	header.add_child(portrait_texture)
+	header.add_child(UITheme.framed_picture(portrait_texture))   # on the people tile
 	_portrait = Portrait.create_viewport(portrait_texture)
 	var identity := VBoxContainer.new()
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(identity)
-	_identity = _label(identity, "", 23)
-	UITheme.apply_title(_identity, 23)
-	_current = _label(identity, "", 13, UITheme.HEARTH_MUTED)
+	_identity = _label(identity, "", MEDIUM.title)
+	UITheme.apply_heading(_identity, MEDIUM.title)
+	_current = _label(identity, "", MEDIUM.small, UITheme.HEARTH_MUTED)
 	var back := UITheme.make_button("Back to colony", "Return to this dwarf in the colony roster", Vector2(132, 34))
 	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	back.pressed.connect(func():
@@ -73,7 +75,7 @@ func _ready() -> void:
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_theme_constant_override("separation", 8)
 	_body.add_child(left)
-	_label(left, "CAREER PATHS", 11, UITheme.HEARTH_COPPER)
+	_label(left, "CAREER PATHS", MEDIUM.small, UITheme.HEARTH_COPPER)
 	_left_scroll = ScrollContainer.new()
 	_left_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_left_scroll.mouse_force_pass_scroll_events = false
@@ -86,7 +88,7 @@ func _ready() -> void:
 		_entries[key] = entry
 		_build_node(key, entry)
 	_tree.draw.connect(_draw_connections)
-	_label(left, "Current / Available = usable now    ·    Planned = future gameplay", 12, UITheme.HEARTH_MUTED)
+	_label(left, "Current / Available = usable now    ·    Planned = future gameplay", MEDIUM.small, UITheme.HEARTH_MUTED)
 	var details := PanelContainer.new()
 	details.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
 	left.add_child(details)
@@ -99,10 +101,10 @@ func _ready() -> void:
 	detail_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detail_column.add_theme_constant_override("separation", 8)
 	_detail_scroll.add_child(detail_column)
-	_role_name = _label(detail_column, "", 22)
-	UITheme.apply_title(_role_name, 22)
-	_description = _label(detail_column, "", 14)
-	_rewards = _label(detail_column, "", 13, UITheme.HEARTH_MUTED)
+	_role_name = _label(detail_column, "", MEDIUM.title)
+	UITheme.apply_heading(_role_name, MEDIUM.title)
+	_description = _label(detail_column, "", MEDIUM.body)
+	_rewards = _label(detail_column, "", MEDIUM.small, UITheme.HEARTH_MUTED)
 	var right := VBoxContainer.new()
 	right.custom_minimum_size.x = 280
 	right.add_theme_constant_override("separation", 10)
@@ -110,7 +112,7 @@ func _ready() -> void:
 	var paper := PanelContainer.new()
 	_paper = paper
 	paper.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	paper.add_theme_stylebox_override("panel", UITheme.style(UITheme.CATALOG_PAPER, UITheme.CATALOG_GOLD, 2, 3, 18, 18))
+	paper.add_theme_stylebox_override("panel", UITheme.catalog_paper_style())
 	right.add_child(paper)
 	var paper_scroll := ScrollContainer.new()
 	paper_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -121,25 +123,26 @@ func _ready() -> void:
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override("separation", 12)
 	paper_scroll.add_child(column)
-	_paper_heading = _label(column, "COLONY APPOINTMENT", 11, UITheme.CATALOG_MUTED)
-	_appointment = _label(column, "", 23, UITheme.CATALOG_INK)
-	_appointment.add_theme_font_override("font", UITheme.hearth_title_font())
-	_status = _label(column, "", 13, UITheme.CATALOG_INK)
+	_paper_heading = _label(column, "COLONY APPOINTMENT", MEDIUM.small, UITheme.CATALOG_MUTED)
+	_appointment = _label(column, "", MEDIUM.title, UITheme.CATALOG_INK)
+	_appointment.add_theme_font_override("font", UITheme.display_font())
+	_status = _label(column, "", MEDIUM.small, UITheme.CATALOG_INK)
 	column.add_child(HSeparator.new())
-	_label(column, "REQUIREMENTS", 11, UITheme.CATALOG_MUTED)
-	_requirements = _label(column, "", 14, UITheme.CATALOG_INK)
+	_label(column, "REQUIREMENTS", MEDIUM.small, UITheme.CATALOG_MUTED)
+	_requirements = _label(column, "", MEDIUM.body, UITheme.CATALOG_INK)
 	column.add_child(HSeparator.new())
-	_label(column, "Experience stays with each profession.", 12, UITheme.CATALOG_MUTED)
-	_experience = _label(right, "", 13, UITheme.HEARTH_MUTED)
+	_label(column, "Experience stays with each profession.", MEDIUM.small, UITheme.CATALOG_MUTED)
+	_experience = _label(right, "", MEDIUM.small, UITheme.HEARTH_MUTED)
 	_progress = ProgressBar.new()
 	UITheme.hearth_progress(_progress)
 	right.add_child(_progress)
-	_feedback = _label(right, "", 13, UITheme.SUCCESS)
+	_feedback = _label(right, "", MEDIUM.small, UITheme.SUCCESS)
 	_feedback.hide()
 	_promote = UITheme.make_button("", "", Vector2(0, 42))
+	UITheme.apply_catalog_primary(_promote)
 	_promote.pressed.connect(_apply_promotion)
 	right.add_child(_promote)
-	_label(self, "Choose a profession to inspect its work, progression and requirements.", 12, UITheme.HEARTH_MUTED)
+	_label(self, "Choose a profession to inspect its work, progression and requirements.", MEDIUM.small, UITheme.HEARTH_MUTED)
 	get_viewport().size_changed.connect(func(): _fit.call_deferred())
 	set_process(false)
 
@@ -149,24 +152,25 @@ func _build_node(key: String, entry: Dictionary) -> void:
 	button.position = Vector2(entry.position[0], entry.position[1])
 	button.size = Vector2(100, 78)
 	button.toggle_mode = true
+	UITheme.apply_picture_tile(button)
 	button.tooltip_text = entry.summary
 	_tree.add_child(button)
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	box.offset_top = 7
 	box.offset_bottom = -5
-	box.add_theme_constant_override("separation", 4)
+	box.add_theme_constant_override("separation", 2)
 	button.add_child(box)
+	# The profession's Hearthblock icon (doc 259), shared with Crafters and the equipment view.
 	var icon := TextureRect.new()
-	icon.texture = load("res://assets/ui/icons/%s.svg" % entry.icon)
+	icon.texture = load(String(DwarfAssets.profession_definition(key).icon))
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(30, 24)
-	icon.modulate = UITheme.HEARTH_COPPER
+	icon.custom_minimum_size = Vector2(30, 28)
 	box.add_child(icon)
-	var title := _label(box, String(DwarfAssets.profession_definition(key).display_name), 13)
+	var title := _label(box, String(DwarfAssets.profession_definition(key).display_name), MEDIUM.small)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var state := _label(box, "", 11, UITheme.HEARTH_MUTED)
+	var state := _label(box, "", MEDIUM.small, UITheme.HEARTH_MUTED)
 	state.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_ignore_mouse(box)
 	button.pressed.connect(select_profession.bind(key))
@@ -297,7 +301,7 @@ func refresh() -> void:
 		node.state.text = "Current" if key == _agent.profession else "Available" if usable else "Planned"
 		if pending and key == _agent.get_equipment().pending_role: node.state.text = "Collecting tool"
 		node.state.add_theme_color_override("font_color", UITheme.SUCCESS if usable else UITheme.HEARTH_MUTED)
-		node.icon.modulate = UITheme.HEARTH_COPPER if usable or key == _selected else UITheme.HEARTH_MUTED
+		node.icon.modulate = Color.WHITE if usable or key == _selected else Color(.48, .48, .48)   # dimmed like planned dock entries
 		node.button.set_pressed_no_signal(key == _selected)
 	_tree.queue_redraw()
 
@@ -320,7 +324,7 @@ func _fit() -> void:
 	_paper_heading.visible = not _compact
 	_paper_column.add_theme_constant_override("separation", 6 if _compact else 12)
 	_paper.add_theme_stylebox_override("panel", UITheme.style(UITheme.CATALOG_PAPER, UITheme.CATALOG_GOLD, 2, 3, 12 if _compact else 18, 12 if _compact else 18))
-	_appointment.add_theme_font_size_override("font_size", 19 if _compact else 23)
+	_appointment.add_theme_font_size_override("font_size", MEDIUM.heading if _compact else MEDIUM.title)
 	custom_minimum_size.x = minf(1080, viewport.x - 64)
 	_body.custom_minimum_size.y = clampf(viewport.y - (280 if _compact else 294), 236, 600)
 	_detail_scroll.custom_minimum_size.y = 64 if _compact else 150

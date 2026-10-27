@@ -2,6 +2,7 @@ extends SceneTree
 
 ## Focused runtime fixture: real flora/furniture models, screen-space picking,
 ## terrain occlusion, slice/tool exclusion, season replacement and fixed UI rows.
+## Every world object shows in the compact panel beside the dock (doc 260).
 ## godot --headless --path . --script res://scripts/tests/ObjectExplorerTest.gd
 var failures: Array[String] = []
 var flora
@@ -64,7 +65,7 @@ func _run() -> void:
 	camera.current = true
 	root.get_node("WorldGenerator")._maps_ready = true
 	root.size = Vector2i(1280, 800)
-	var row_positions: Array[float] = []
+	var panel_height := -1.0
 	for species_index in range(flora._species.size()):
 		var species: Dictionary = flora._species[species_index]
 		for stage_index in range(3):
@@ -88,12 +89,10 @@ func _run() -> void:
 			_expect(data.rows[0] == ["Growth stage", stage_name.capitalize()], "growth stage value")
 			var expected_fruit := "Too young" if stage_name == "sapling" else "Out of season"
 			_expect(data.rows[1][1] == (expected_fruit if species.name in ["apple", "juniper"] else "N/A"), "fruit applicability")
-			var positions: Array[float] = []
-			for label: Label in explorer._row_values:
-				positions.append(label.global_position.y - explorer._window.position.y)
-			if row_positions.is_empty():
-				row_positions = positions
-			_expect(row_positions == positions, "all species/stages use identical row positions")
+			var compact_tree: Control = explorer.get_compact_panel()
+			_expect(compact_tree.visible and compact_tree._status.text.begins_with(stage_name.capitalize()), "tree panel names its age")
+			if panel_height < 0: panel_height = compact_tree.size.y
+			_expect(is_equal_approx(compact_tree.size.y, panel_height), "all species/stages keep the panel's height")
 
 	# Exact triangles reject empty space within an object's outer bounds.
 	var picking = load("res://scripts/components/ObjectPicking.gd").new()
@@ -126,20 +125,22 @@ func _run() -> void:
 	_click(screen)
 	await process_frame
 	_expect(explorer._object_id == tree_id, "viewport input reaches the shared explorer")
-	_click(explorer._window.position + Vector2(100, 16))
+	var frame: Rect2 = explorer.get_compact_panel()._frame.get_global_rect()
+	_click(Vector2(frame.position.x + 40, frame.end.y - 12))
 	await process_frame
-	_expect(explorer._object_id == tree_id, "window input does not select through the UI")
+	_expect(explorer._object_id == tree_id, "panel input does not select through the UI")
 	furniture._active = true
 	_expect(not explorer.select_at_screen(screen), "active placement tool owns clicks")
 	furniture._active = false
 	flora._on_slice_changed(19)
 	explorer._on_slice_changed(19)
-	_expect(not manager.is_open("object_explorer"), "slice-hidden selection closes")
+	_expect(not explorer.get_compact_panel().visible and explorer._provider == null, "slice-hidden selection closes")
 	_expect(not explorer.select_at_screen(screen), "hidden trees cannot be picked")
 	flora._on_slice_changed(127)
 	explorer._on_slice_changed(127)
 
-	# Furniture uses the same window and its existing authoritative actions.
+	# Furniture uses the compact panel and its existing authoritative actions.
+	var compact: Control = explorer.get_compact_panel()
 	var key := "base:furniture:bench"
 	furniture._install(key, furniture.get_defs()[key], Vector3i(14,20,14), 0)
 	var piece = furniture._installed.values()[0]
@@ -147,6 +148,7 @@ func _run() -> void:
 	await process_frame
 	_expect(explorer.select_at_screen(camera.unproject_position(piece.node.position + Vector3.UP * .5)), "click furniture model")
 	_expect(explorer._provider == furniture, "furniture provider selected")
+	_expect(compact.visible and not manager.is_open("character_sheet"), "furniture opens the compact panel, not the window")
 	var furniture_id: String = explorer._object_id
 	explorer._perform_action("uninstall")
 	_expect(piece.flagged_uninstall, "uninstall action preserved")
@@ -154,21 +156,21 @@ func _run() -> void:
 	_expect(not piece.flagged_uninstall, "cancel uninstall action preserved")
 	furniture._teardown_installed(piece.installed_id, true)
 	explorer._refresh_selected()
-	_expect(furniture.get_explorer_data(furniture_id).is_empty() and not manager.is_open("object_explorer"), "removed object closes explorer")
+	_expect(furniture.get_explorer_data(furniture_id).is_empty() and not compact.visible and explorer._provider == null, "removed object closes its panel")
 
 	items.restore_stored_item("base:resources:seed:oak_acorn",Vector3i(10,20,30),17)
 	var crate: Node3D = items.stored_node_at(Vector3i(10,20,30))
 	_aim_above(crate.position)
 	await process_frame
 	_click(camera.unproject_position(crate.position + Vector3(0,.4,0)))
-	_expect(explorer._provider == items and explorer._row_values[1].text == "17 / 24", "viewport click inspects crate contents")
+	_expect(explorer._provider == items and compact._badge_value.text == "17 / 24", "viewport click inspects crate contents")
 	items.set_quantity(crate,3)
 	explorer._refresh_selected()
-	_expect(explorer._row_values[1].text == "3 / 24" and explorer._outline.visible, "selected crate survives fill-model change")
+	_expect(compact._badge_value.text == "3 / 24" and explorer._outline.visible, "selected crate survives fill-model change")
 	items.withdraw_stored(crate,100)
 	items.take(crate)
 	explorer._refresh_selected()
-	_expect(not manager.is_open("object_explorer"), "picked-up crate closes its ground inspector")
+	_expect(not compact.visible and explorer._provider == null, "picked-up crate closes its ground panel")
 	crate.free()
 
 	# Seasonal recreation must preserve the selected logical tree and row layout.
@@ -178,8 +180,8 @@ func _run() -> void:
 	root.get_node("WorldClock").season = "autumn"
 	flora._on_season_changed("autumn")
 	explorer._refresh_selected()
-	_expect(manager.is_open("object_explorer") and explorer._object_id == apple_id, "selection survives queued season refresh")
-	_expect(explorer._row_values[1].text == "Ready to harvest", "season updates the fruit row")
+	_expect(compact.visible and explorer._object_id == apple_id, "selection survives queued season refresh")
+	_expect(compact._status.text == "Mature · ready to harvest" and compact._badge.visible, "season updates the fruit status and badge")
 	await process_frame
 	var replacement: Node3D = flora._trees[apple_id].node
 	flora._refresh_tree_crop_visual(apple_id)
@@ -189,10 +191,10 @@ func _run() -> void:
 	if "--capture" in OS.get_cmdline_user_args():
 		await _capture(replacement, "res://tmp/object_explorer_review/cabinet_fix/apple_explorer.png")
 	await _check_cabinet(items, replacement)
-	manager.close("object_explorer")
-	_expect(explorer._provider == null and not explorer._outline.visible, "close clears selection")
+	explorer.clear_selection()
+	_expect(explorer._provider == null and not explorer._outline.visible and not compact.visible, "clearing the selection hides the panel and outline")
 	if failures.is_empty():
-		print("OBJECT_EXPLORER_OK: 12 tree stages, exact picking, terrain/slice/tool guards, furniture actions, season continuity, fixed rows")
+		print("OBJECT_EXPLORER_OK: 12 tree stages, exact picking, terrain/slice/tool guards, compact panel for trees, furniture and goods, season continuity")
 	else:
 		for failure in failures:
 			push_error(failure)
@@ -215,33 +217,31 @@ func _build_floor() -> void:
 
 
 func _check_cabinet(items: Node3D, tree: Node3D) -> void:
-	var panel: StyleBoxFlat = explorer._window.get_theme_stylebox("panel")
-	_expect(panel.border_color == UITheme.CATALOG_GOLD, "all explorer subjects share cabinet chrome")
 	var stone := "base:resources:stone:rough_stone"
 	items.spawn_drop(stone, 1, Vector3i(20, 21, 30))
 	var item: Node3D = items._loose.keys()[-1]
+	var compact: Control = explorer.get_compact_panel()
 	for viewport: Vector2i in [Vector2i(960,540), Vector2i(1280,720), Vector2i(2560,1440)]:
 		root.size = viewport
-		_expect(explorer.select_object(items, item), "resource selection uses cabinet")
+		_expect(explorer.select_object(items, item), "resource selection uses the compact panel")
 		for i in range(6): await process_frame
-		# Refresh after text wrapping has resolved its minimum height.
 		explorer._refresh_selected()
 		for i in range(3): await process_frame
-		var window: UIWindow = explorer._window
-		_expect(window.get_global_rect().end.x <= viewport.x and window.get_global_rect().end.y <= viewport.y,
-			"resource cabinet fits %s" % viewport)
-		_expect(explorer._name_label.text == "Rough Stone" and explorer._row_values[1].text == "1", "live resource facts remain")
-		_expect(explorer._details.is_visible_in_tree(), "resource description remains visible")
+		_expect(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(compact.get_global_rect()), "resource panel fits %s" % viewport)
+		_expect(compact.get_title() == "Rough Stone" and compact._status.text == "Awaiting collection"
+			and not compact._badge.visible, "live resource facts remain: a single stone waits for collection")
+		_expect(compact._flavour.is_visible_in_tree() and compact._flavour.text == "A rough-hewn chunk of mountain stone.", "resource description remains visible")
 		if "--capture" in OS.get_cmdline_user_args():
 			camera.position = item.position + Vector3(12,14,16)
 			camera.look_at(item.position)
 			await _save_cabinet_capture("rough_stone_%dx%d" % [viewport.x,viewport.y])
-		_expect(explorer.select_object(flora, tree.get_meta("tree_id")), "tree selection uses the same cabinet")
+		_expect(explorer.select_object(flora, tree.get_meta("tree_id")), "tree selection uses the compact panel")
 		for i in range(6): await process_frame
 		explorer._refresh_selected()
 		for i in range(3): await process_frame
-		_expect(window.get_global_rect().end.y <= viewport.y, "tree facts and actions fit %s" % viewport)
-		_expect(explorer._actions.is_visible_in_tree(), "tree actions remain outside the scroll body")
+		_expect(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(compact.get_global_rect()), "tree panel fits %s" % viewport)
+		_expect(compact.get_action_button("fell") != null and compact.get_action_button("fell").is_visible_in_tree()
+			and compact._picture.texture != null, "the tree shows its portrait and Fell")
 		if "--capture" in OS.get_cmdline_user_args():
 			var center: Vector3 = flora.get_explorer_bounds(tree.get_meta("tree_id")).get_center()
 			camera.position = center + Vector3(18,13,23)

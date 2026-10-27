@@ -122,6 +122,9 @@ func _bind_to_scene() -> void:
 
 	_world_env = _find_by_class(scene, "WorldEnvironment") as WorldEnvironment
 	_sun = _find_by_class(scene, "DirectionalLight3D") as DirectionalLight3D
+	# A scene with no world to light (the title screen) has no sky to drive.
+	if _world_env == null and _sun == null:
+		return
 
 	if _world_env != null:
 		_world_env.tree_exiting.connect(_clear_scene_binding)

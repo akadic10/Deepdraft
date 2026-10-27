@@ -113,7 +113,10 @@ func _review_ui() -> void:
 		water_stones._process(0)
 		_expect(explorer.select_object(water_stones,"wet"),"placed stone can be inspected")
 		await _frames(8)
-		_expect(explorer._window.get_global_rect().end.y<=size.y,"stone controls fit viewport")
+		var compact: Control = explorer.get_compact_panel()
+		_expect(compact.visible and Rect2(Vector2.ZERO,Vector2(size)).encloses(compact.get_global_rect()),"stone panel fits viewport")
+		_expect(compact._status.text.begins_with("Disallowed") and compact._picture.texture != null and compact.get_action_button("permission") != null,
+			"disallowed stone shows its picture, a red status and Allow")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/water_review/stone_disallowed_%dx%d.png" % [size.x,size.y])
 		explorer._perform_action("permission")
@@ -128,16 +131,15 @@ func _review_ui() -> void:
 		if drops.item_key_of(node)=="base:resources:water:dry_stone": dry=node
 	_expect(dry!=null and furniture.get_catalog_stock()["base:water:dry_stone"].available==0,"forbidden packed stone hidden from available stock")
 	drops.set_disallowed(dry,false)
-	manager.close(explorer.WINDOW_ID)
+	explorer.clear_selection()
 	root.size=Vector2i(960,540)
 	await _frames(6)
 	dock._open_place_catalog()
 	var catalog = dock._place_catalog
-	catalog.category="water"
 	catalog.refresh()
 	catalog._select("base:water:dry_stone")
 	await _frames(8)
-	_expect(catalog._tiles["base:water:dry_stone"].image.texture!=null and not catalog._place.disabled,"allowed packed stone has thumbnail and enabled Place")
+	_expect(catalog.tile("base:water:dry_stone").icon!=null and not catalog._place.disabled,"allowed packed stone has thumbnail and enabled Place")
 	_expect(catalog.window.get_global_rect().end.y<=540,"Water catalog fits compact screen")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://tmp/water_review/water_place_960x540.png")

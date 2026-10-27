@@ -1,0 +1,10 @@
+{
+  "__comment": "Hearthblock icon tiles (doc 259): every command icon sits on a tile in its family's colour. UIRegistry owns this file; UITheme draws the tile.",
+  "families": {
+    "work": {"tile": "#4e6178"},
+    "settlement": {"tile": "#7f4a3a"},
+    "people": {"tile": "#2f6a62"},
+    "system": {"tile": "#4f4a5c"},
+    "dev": {"tile": "#8a5a30"}
+  }
+}

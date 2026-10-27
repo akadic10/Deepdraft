@@ -1,0 +1,15 @@
+{
+  "__comment": "The names the world's seed suggests for the settlement (doc 23), read by FlagPlacementController. A suggestion joins one first and one second part of a style; the styles take turns, and SettlementName.gd keeps the rules every name follows (3 to 24 letters, spaces, hyphens and apostrophes).",
+  "styles": [
+    {
+      "id": "dwarvish",
+      "first": ["Brun", "Kol", "Thrum", "Ost", "Skar", "Grim", "Bal", "Har", "Ulf", "Gun", "Tor", "Vel"],
+      "second": ["hald", "gund", "dal", "rok", "berg", "heim", "mar", "grund", "hold", "stad", "vik", "rim"]
+    },
+    {
+      "id": "plain",
+      "first": ["Stone", "Ember", "Copper", "Moss", "Iron", "Oak", "Ash", "Amber", "Granite", "Lantern", "Flint", "Tin"],
+      "second": ["hollow", "deep", "hall", "gate", "root", "vale", "hearth", "ford", "holm", "delve", "wick", "fell"]
+    }
+  ]
+}

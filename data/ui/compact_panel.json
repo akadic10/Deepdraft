@@ -1,0 +1,34 @@
+{
+  "__comment": "The compact object panel beside the dock (doc 260). Each provider action id gets a picture and a line of hover text; the provider's own text stays the button's name. Actions with no entry keep their words on a tan button. DEV actions show dev_icon on the dev tile, apart from the rest. Badges name the picture in the white pill. Owned by UIRegistry.",
+  "family": "work",
+  "dev_family": "dev",
+  "dev_icon": "res://assets/ui/icons/development.png",
+  "actions": {
+    "move": {"icon": "res://assets/ui/icons/move.png", "tooltip": "Choose a new spot. A dwarf packs this piece, carries it there and installs it."},
+    "uninstall": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "A dwarf packs this piece into a crate for storage."},
+    "cancel_move": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Keep the piece where it stands."},
+    "cancel": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Call off this order. Work already done is kept."},
+    "assign_bed": {"icon": "res://assets/ui/icons/assign_owner.png", "tooltip": "Choose who sleeps here, or leave the bed to anyone."},
+    "craft": {"icon": "res://assets/ui/icons/craft.png", "tooltip": "Open crafting at this workbench."},
+    "permission": {"icon": "res://assets/ui/icons/disallow.png", "tooltip": "Dwarves leave disallowed goods where they are."},
+    "place": {"icon": "res://assets/ui/icons/place.png", "tooltip": "Choose where a dwarf sets this stone down."},
+    "follow": {"icon": "res://assets/ui/icons/follow.png", "tooltip": "Keep the camera on this dwarf. Moving the camera stops following."},
+    "locate": {"icon": "res://assets/ui/icons/locate.png", "tooltip": "Center the camera on this dwarf."},
+    "character_sheet": {"icon": "res://assets/ui/icons/character_sheet.png", "tooltip": "Everything about this dwarf: work, needs, equipment and profession."},
+    "stop_follow": {"icon": "res://assets/ui/icons/follow.png", "tooltip": "Keep the camera on this animal. Moving the camera stops following."},
+    "fell": {"icon": "res://assets/ui/icons/chop.png", "tooltip": "A dwarf chops this tree down for its logs."},
+    "harvest": {"icon": "res://assets/ui/icons/harvest_plants.png", "tooltip": "A dwarf picks the ripe crop; the plant stays."},
+    "cancel_felling": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Call off this order. Work already done is kept."},
+    "clear": {"icon": "res://assets/ui/icons/clear_plants.png", "tooltip": "A dwarf clears this away."},
+    "uproot": {"icon": "res://assets/ui/icons/uproot.png", "tooltip": "A dwarf lifts the whole plant for storage or replanting."},
+    "pause": {"icon": "res://assets/ui/icons/pause.png", "tooltip": "Stop work for now; what is built stays."},
+    "resume": {"icon": "res://assets/ui/icons/play.png", "tooltip": "Carry on building."},
+    "remove": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "Dwarves take it apart and recover its parts."},
+    "reopen": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Stop dismantling and open it again."},
+    "pack": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "A dwarf packs this into an item for storage."}
+  },
+  "badges": {
+    "appeal": "res://assets/ui/icons/appeal.png",
+    "quantity": "res://assets/ui/icons/stocks.png"
+  }
+}

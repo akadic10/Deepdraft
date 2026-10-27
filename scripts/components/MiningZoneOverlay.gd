@@ -164,6 +164,7 @@ func _make_size_label(text: String) -> Label3D:
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
 	label.fixed_size = false
+	label.font = UITheme.font("figures")
 	label.font_size = 44
 	label.outline_size = 7
 	label.modulate = Color.WHITE

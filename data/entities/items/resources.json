@@ -96,36 +96,11 @@
     "material_group": "wood",
     "material_palette": "starter_tool"
   },
-  "__comment_soil": "Soft earth — farmable cave soil is the most valuable",
-  "base:resources:soil:cave_soil": {
-    "display_name": "Cave Soil",
-    "description": "Rich subterranean earth, ideal for underground farming.",
-    "model": "res://assets/models/items/soil/cave_soil.glb",
-    "carry_cost": 1,
-    "weight_class": "heavy",
-    "material_tags": [
-      "dirt",
-      "soil",
-      "farmable",
-      "stockpile_soil"
-    ]
-  },
-  "base:resources:soil:light_soil": {
-    "display_name": "Light Soil",
-    "description": "Sandy pale earth, too dry for farming but useful as fill.",
-    "model": "res://assets/models/items/soil/light_soil.glb",
-    "carry_cost": 1,
-    "weight_class": "heavy",
-    "material_tags": [
-      "dirt",
-      "soil",
-      "stockpile_soil"
-    ]
-  },
-  "base:resources:soil:dark_soil": {
-    "display_name": "Dark Soil",
-    "description": "Dense clay-rich earth with a damp, earthy smell.",
-    "model": "res://assets/models/items/soil/dark_soil.glb",
+  "__comment_soil": "Soft earth — one Soil good, dug from grass, dirt and cave soil",
+  "base:resources:soil:soil": {
+    "display_name": "Soil",
+    "description": "Loose earth dug from grass, dirt and cave soil.",
+    "model": "res://assets/models/items/soil/soil.glb",
     "carry_cost": 1,
     "weight_class": "heavy",
     "material_tags": [
@@ -1031,7 +1006,7 @@
   },
   "base:resources:plant:blueberry_bush": {
     "display_name": "Uprooted blueberry bush",
-    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place › Plants. Preserves its crop state.",
     "model": "res://assets/models/flora/bushes/blueberry/blueberry_packed_summer.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1043,7 +1018,7 @@
   },
   "base:resources:plant:elderberry_bush": {
     "display_name": "Uprooted elderberry bush",
-    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place › Plants. Preserves its crop state.",
     "model": "res://assets/models/flora/bushes/elderberry/elderberry_packed_summer.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1055,7 +1030,7 @@
   },
   "base:resources:plant:wild_strawberry_bush": {
     "display_name": "Uprooted wild strawberry",
-    "description": "A living mature shrub with its roots wrapped. Replant through Place → Plants. Preserves its crop state.",
+    "description": "A living mature shrub with its roots wrapped. Replant through Place › Plants. Preserves its crop state.",
     "model": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_packed_summer.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1067,7 +1042,7 @@
   },
   "base:resources:plant:flowers_1": {
     "display_name": "Uprooted cream wildflowers",
-    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "description": "A living flower clump with wrapped roots. Replant through Place › Plants. Keeps its shape and seasonal bloom.",
     "model": "res://assets/models/flora/flowers/flowers_1_packed_summer.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1079,7 +1054,7 @@
   },
   "base:resources:plant:flowers_2": {
     "display_name": "Uprooted heather wildflowers",
-    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "description": "A living flower clump with wrapped roots. Replant through Place › Plants. Keeps its shape and seasonal bloom.",
     "model": "res://assets/models/flora/flowers/flowers_2_packed_summer.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1091,7 +1066,7 @@
   },
   "base:resources:plant:flowers_3": {
     "display_name": "Uprooted gold wildflowers",
-    "description": "A living flower clump with wrapped roots. Replant through Place → Plants. Keeps its shape and seasonal bloom.",
+    "description": "A living flower clump with wrapped roots. Replant through Place › Plants. Keeps its shape and seasonal bloom.",
     "model": "res://assets/models/flora/flowers/flowers_3_packed_summer.glb",
     "carry_cost": 4,
     "weight_class": "heavy",

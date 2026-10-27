@@ -24,7 +24,8 @@ var _visual_queue: Array[String] = []
 const SeasonalRefresh = preload("res://scripts/components/SeasonalRefreshQueue.gd")
 var _seasonal_refresh := SeasonalRefresh.new()
 var _models: Dictionary = {}
-var _markers: Dictionary = {}
+const OrderMarker = preload("res://scripts/ui/OrderMarker.gd")
+var _markers: Dictionary = {} # detail id -> OrderMarker (projected UI, never a pick target)
 var _marker_layer: CanvasLayer
 var _material: StandardMaterial3D
 var _initializing := false
@@ -311,14 +312,31 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	if float(state.get("work_seconds", 0)) > 0:
 		status += " · %d%%" % mini(99, floori(float(state.work_seconds) / float(definition.clearing.work_seconds) * 100))
 	if plant:
-		return {"title": definition.display_name, "kind": "Shore plant" if definition.kind == "reed" else "Wildflowers", "rows": [
+		return _compact({"title": definition.display_name, "rows": [
 			["Appearance", definition.seasonal_labels[WorldClock.season]], ["Clearing", status]],
 			"details": definition.description,
-			"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel clearing" if marked else definition.clear_label}]}
-	return {"title": definition.display_name, "kind": "Surface stone", "rows": [
+			"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel clearing" if marked else definition.clear_label}]},
+			id, status if marked else String(definition.seasonal_labels[WorldClock.season]), marked)
+	var item := String(definition.clearing.item)
+	return _compact({"title": definition.display_name, "rows": [
 		["Clearing", status], ["Yield", "%d × Rough Stone" % int(definition.clearing.count)]],
 		"details": "Walkable loose stones. A worker can gather this clump. Construction displaces it without a yield. Partial work is kept if cancelled." if gathering else "Blocks movement and construction. A worker can break it from an open side. Partial work is kept if cancelled.",
-		"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel gathering" if marked and gathering else "Cancel clearing" if marked else "Gather stones" if gathering else "Clear boulder"}]}
+		"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel gathering" if marked and gathering else "Cancel clearing" if marked else "Gather stones" if gathering else "Clear boulder",
+			"icon": "res://assets/ui/icons/cancel.png" if marked else "res://assets/ui/icons/clear_stones.png"}],
+		"badge": {"icon": "res://assets/ui/items/%s.png" % item.replace(":", "_"), "value": str(int(definition.clearing.count)),
+			"tooltip": "Clearing yields %d rough stone" % int(definition.clearing.count)}},
+		id, status, marked)
+
+
+## The compact panel's fields (doc 260): the object itself as a live portrait, and one
+## status line in its tone (an order waits in amber, a blocked one is red).
+func _compact(data: Dictionary, id: String, status: String, ordered: bool) -> Dictionary:
+	data.family = "work"
+	data.portrait = _records[id].node
+	var tone := "fine"
+	if ordered: tone = "blocked" if status.begins_with("Awaiting") else "waiting" if status.begins_with("Marked") or status.contains("approaching") else "fine"
+	data.status = {"text": status, "tone": tone}
+	return data
 
 
 func perform_explorer_action(id: Variant, action: String) -> void:
@@ -642,13 +660,15 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 	if Shrub.is_young(definition, state):
 		var fraction := clampf(Shrub.grown_days(definition, state) / float(definition.growth_days), 0, 1)
 		var marked_young := bool(state.get("designated", false))
-		return {"title": definition.display_name, "kind": "Young planted shrub", "rows": [
+		var dormant := float(definition.planting.seasonal_growth[WorldClock.season]) <= 0
+		return _compact({"title": definition.display_name, "rows": [
 			["Growth", "%d%% · %.1f growth days remaining" % [floori(fraction * 100), maxf(0, float(definition.growth_days) - Shrub.grown_days(definition, state))]],
 			["Season", "Dormant · growth paused" if float(definition.planting.seasonal_growth[WorldClock.season]) <= 0 else WorldClock.season.capitalize()],
 			["Order", "Clearing" if marked_young else "Growing"]],
 			"details": "Grown from one cutting. Berries, Move and Uproot become available at maturity. Clearing recovers one cutting; construction removes it without a drop. Winter preserves the plant and pauses growth.",
 			"actions": [{"id":"cancel" if marked_young else "clear", "text":"Cancel clearing" if marked_young else "Clear plant"},
-				{"id":"dev_mature", "text":"DEV: Grow to maturity", "variant":"dev"}]}
+				{"id":"dev_mature", "text":"DEV: Grow to maturity", "variant":"dev"}]},
+			id, "Marked for clearing" if marked_young else "Dormant · growth paused" if dormant else "Growing · %d%%" % floori(fraction * 100), marked_young)
 	var ripe := Shrub.available(definition, state)
 	var marked := bool(state.get("designated", false))
 	var harvest := String(state.get("action", "clear")) == "harvest"
@@ -680,10 +700,14 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 		var item: Dictionary = items.get_item_def(item_key) if items != null else {}
 		var label := String(item.get("display_name", item_key.get_slice(":", item_key.get_slice_count(":") - 1).capitalize()))
 		clearing_yields.append("%d × %s (%d%% chance)" % [int(drop.get("count", 1)), label, roundi(float(drop.get("chance", 1.0)) * 100)])
-	return {"title": definition.display_name, "kind": "Transplanted shrub" if state.has("origin") else "Wild shrub", "rows": [
+	var data := _compact({"title": definition.display_name, "rows": [
 		["Crop", status], ["Harvest", "%d berries · %s" % [int(definition.harvest.count), " / ".join(seasons)]]],
-		"details": "Berries regrow after %.1f planted days in season. Regrowth pauses out of season and while packed. Move and Uproot preserve its crop and progress; neither grants berries or a cutting. Clearing removes it permanently.\n\nPossible clearing yield: " % float(definition.harvest.regrow_days) + ", ".join(clearing_yields) + ".\nPlant cuttings through Place → Plants. Construction removes plants without a drop.",
-		"actions": actions}
+		"details": "Berries regrow after %.1f planted days in season. Regrowth pauses out of season and while packed. Move and Uproot preserve its crop and progress; neither grants berries or a cutting. Clearing removes it permanently.\n\nPossible clearing yield: " % float(definition.harvest.regrow_days) + ", ".join(clearing_yields) + ".\nPlant cuttings through Place › Plants. Construction removes plants without a drop.",
+		"actions": actions}, id, status, marked)
+	if ripe and not marked:
+		data.badge = {"icon": "res://assets/ui/items/%s.png" % String(definition.harvest.item).replace(":", "_"),
+			"value": str(int(definition.harvest.count)), "tooltip": "%d berries ready to pick" % int(definition.harvest.count)}
+	return data
 
 
 func _remove(id: String, reason: String, cancel_task := true) -> void:
@@ -730,14 +754,14 @@ func _sync_marker(id: String) -> void:
 		_markers[id].queue_free()
 		_markers.erase(id)
 	if not bool(_changes.get(id, {}).get("designated", false)): return
-	var marker := Label.new()
-	marker.text = "+" if String(SurfaceDetailRegistry.get_definition(_records[id].definition).category) == "scree" else "⛏"
-	if _is_shrub(id): marker.text = "+" if String(_changes[id].get("action", "clear")) == "harvest" else "↑" if String(_changes[id].get("action", "")) == "uproot" else "×"
-	if _is_decorative_plant(id): marker.text = "↑" if _changes[id].get("action") == "uproot" else "×"
-	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	marker.add_theme_font_size_override("font_size", 24)
-	marker.add_theme_color_override("font_color", Color(1, .76, .38))
-	marker.add_theme_constant_override("outline_size", 4)
+	# The Orders icon for the order (doc 259): stones are cleared; shrubs are harvested,
+	# uprooted or cleared; flowers and reeds are uprooted or cleared.
+	var action := String(_changes[id].get("action", "clear"))
+	var kind := "clear_stones"
+	if _is_shrub(id): kind = "harvest" if action == "harvest" else "uproot" if action == "uproot" else "clear_plants"
+	if _is_decorative_plant(id): kind = "uproot" if action == "uproot" else "clear_plants"
+	var marker := OrderMarker.new()
+	marker.setup(kind, UIRegistry.get_order_marker(kind), UIRegistry.get_order_marker_tile())
 	marker.visible = false
 	_marker_layer.add_child(marker)
 	_markers[id] = marker
@@ -746,7 +770,7 @@ func _sync_marker(id: String) -> void:
 func _update_markers() -> void:
 	var camera := get_viewport().get_camera_3d()
 	for id: String in _markers:
-		var marker: Label = _markers[id]
+		var marker: Control = _markers[id]
 		var bounds := get_explorer_bounds(id)
 		var above := bounds.get_center() + Vector3.UP * (bounds.size.y * .5 + .5)
 		marker.visible = camera != null and bounds.size != Vector3.ZERO and not camera.is_position_behind(above)
@@ -1032,9 +1056,9 @@ func _flower_explorer(id: String, definition: Dictionary, state: Dictionary) -> 
 	if marked:
 		var duration := float(definition.transplant.uproot_seconds if uproot else definition.clearing.work_seconds)
 		status = ("Uprooting" if uproot else "Clearing") + " · %d%%" % floori(float(state.get("work_seconds", 0)) / duration * 100)
-	return {"title": definition.transplant.variants[int(_records[id].variant)].display_name, "kind":"Transplanted flowers" if state.has("origin") else "Wildflowers",
+	return _compact({"title": definition.transplant.variants[int(_records[id].variant)].display_name,
 		"rows":[["Appearance", definition.seasonal_labels[WorldClock.season]], ["Bloom", "Blooming" if flower_blooming(id) else "Out of bloom"], ["Order", status]],
-		"details": definition.description, "actions": actions}
+		"details": definition.description, "actions": actions}, id, status if marked else "Blooming" if flower_blooming(id) else "Out of bloom", marked)
 
 
 ## Future hive forage reads living, planted clumps at their current locations.

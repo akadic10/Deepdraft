@@ -71,7 +71,7 @@ func _ready() -> void:
 	footer.text = "Normal discovery: mine through a cave wall.\nClose this window to restore your previous view."
 	body.add_child(footer)
 	_manager.register_window("caves_dev", "DEV · Cave explorer", "", body,
-		{"persistent": false, "default_pos": Vector2(18, 90), "min_size": Vector2(420, 0)})
+		{"persistent": false, "default_pos": Vector2(18, 90), "min_size": Vector2(420, 0), "family": "dev"})
 	_manager.window_state_changed.connect(_on_window_state)
 
 

@@ -7,6 +7,7 @@
       "name": "Crude workbench",
       "output_plural": "workbenches",
       "description": "A rough stump with an axe-hewn top for the colony's first crafts. Workers can make it on clear ground, then haul and install it through Place.",
+      "flavour": "Every hall began as a stump and a dwarf with an axe.",
       "category": "Workshops",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -25,6 +26,7 @@
       "name": "Log torch",
       "output_plural": "torches",
       "description": "A charred branch bound with rough fibre and held by a wooden wall peg. A basic light for the first tunnels.",
+      "flavour": "Dark corners breed rumours. Light them.",
       "category": "Lighting",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -43,6 +45,7 @@
       "name": "Ladder section",
       "output_plural": "ladder sections",
       "description": "Split raw timber into pegged rails and rungs. Each section installs four blocks; taller routes need several sections.",
+      "flavour": "Down is easy. Up is where the rungs earn their keep.",
       "category": "Access",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -61,6 +64,7 @@
       "name": "Log bridge kit",
       "output_plural": "bridge kits",
       "description": "Split and peg timber for a two-block-wide crossing. One kit spans one to five water blocks between matching-height banks.",
+      "flavour": "Two logs and some nerve: the oldest bridge in the mountain.",
       "category": "Access",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -79,6 +83,7 @@
       "name": "Campfire",
       "output_plural": "campfires",
       "description": "A low outdoor stone-ring fire, centered in a 3 × 3 camp area. Place log stools around its edges to gather by the light.",
+      "flavour": "Stones in a ring, logs in the middle, stories all around.",
       "purpose": "Outdoor gathering and light. Always lit when installed; no fuel upkeep yet.",
       "category": "Lighting",
       "ingredient_tag": "timber",
@@ -101,6 +106,7 @@
       "name": "Rudimentary hearth",
       "output_plural": "hearths",
       "description": "A compact 2 × 2 stone room heater with a stacked back, open firebox and glowing coals. Two matching logs and four rough stones.",
+      "flavour": "A room with a hearth is a home; without one, a cellar.",
       "purpose": "Warms a small enclosed bedroom. Face the opening into the room; larger rooms may need more heat. Always lit when installed; no fuel upkeep yet.",
       "category": "Rooms",
       "ingredient_tag": "timber",
@@ -125,6 +131,7 @@
       "name": "Log stool",
       "output_plural": "log stools",
       "description": "A short log cut flat for sitting, with rough bark sides. A simple stump seat for the first camp.",
+      "flavour": "Sit low, eat well, argue loudly.",
       "purpose": "Idle dwarves can sit here and return to work when needed.",
       "category": "Dining",
       "ingredient_tag": "timber",
@@ -144,6 +151,7 @@
       "name": "Log dining table",
       "output_plural": "log dining tables",
       "description": "A broad log slice joined to a narrow central pedestal. Made from two matching logs.",
+      "flavour": "A table turns a meal into a feast, and a feast into a story.",
       "purpose": "Add separate log stools at the four guides for seated dining.",
       "category": "Dining",
       "ingredient_tag": "timber",
@@ -163,6 +171,7 @@
       "name": "Stone hoe",
       "output_plural": "stone hoes",
       "description": "A shaped stone blade fitted to a wooden haft for the colony's first fields.",
+      "flavour": "Even a stone blade wakes the soil.",
       "purpose": "Farmer starter tool. Farming and equipping tools are planned; this item can be crafted and stored.",
       "purpose_short": "Farmer & equipping planned.",
       "category": "Starter tools",
@@ -185,6 +194,7 @@
       "name": "Hunting spear",
       "output_plural": "hunting spears",
       "description": "A stone-tipped wooden spear. A simple hunting weapon that needs no metal or bowstring.",
+      "flavour": "Long enough to reach the deer, short enough to carry home.",
       "purpose": "Hunter starter tool. Player hunting and equipping weapons are planned; this item can be crafted and stored.",
       "purpose_short": "Hunter & equipping planned.",
       "category": "Starter tools",
@@ -207,6 +217,7 @@
       "name": "Crude carpentry kit",
       "output_plural": "carpentry kits",
       "description": "A wooden mallet and stone adze for rough woodworking. An iron saw can be a later upgrade.",
+      "flavour": "Every carpenter's first tools were made by someone who wasn't one.",
       "purpose": "Required to promote a Carpenter. The dwarf collects and equips this kit. Specialist workshop and recipes are planned.",
       "purpose_short": "Required for Carpenter promotion.",
       "category": "Starter tools",
@@ -229,6 +240,7 @@
       "name": "Stone hammer",
       "output_plural": "stone hammers",
       "description": "A heavy stone head fitted to a wooden handle for the colony's first metalworking tools.",
+      "flavour": "The first hammer is always the heaviest.",
       "purpose": "Blacksmith starter tool. Smelting, forging and equipping tools are planned; this item can be crafted and stored.",
       "purpose_short": "Blacksmith & equipping planned.",
       "category": "Starter tools",
@@ -251,6 +263,7 @@
       "name": "Log door (2 wide)",
       "output_plural": "log doors",
       "description": "One rough log leaf swings open as dwarves approach. Fits a 2-block-wide opening and seals the room for warmth.",
+      "flavour": "A door is a wall that learned manners.",
       "category": "Rooms",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -269,6 +282,7 @@
       "name": "Log door (3 wide)",
       "output_plural": "log doors",
       "description": "One rough log leaf swings open as dwarves approach. Fits a 3-block-wide opening and seals the room for warmth.",
+      "flavour": "Wide enough for a barrel, snug enough to stop the draught.",
       "category": "Rooms",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -287,6 +301,7 @@
       "name": "Double log door (4 wide)",
       "output_plural": "log doors",
       "description": "Two rough log leaves swing open as dwarves approach. Fits a 4-block-wide opening and seals the room for warmth.",
+      "flavour": "Big doors for big halls, and bigger quarrels over who left them open.",
       "category": "Rooms",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -305,6 +320,7 @@
       "name": "Log bench",
       "output_plural": "log benches",
       "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating.",
+      "flavour": "Room for three dwarves, or two after supper.",
       "category": "Dining",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -323,6 +339,7 @@
       "name": "Log bed",
       "output_plural": "log beds",
       "description": "Fit rough logs into a low frame and heap it with hay and dried leaves. A simple place for one dwarf to sleep.",
+      "flavour": "Straw on logs beats stone on stone.",
       "purpose": "Dwarves prefer a free bed over the ground. A bed, door, light and sealed enclosure make a bedroom.",
       "category": "Rooms",
       "ingredient_tag": "timber",
@@ -342,7 +359,7 @@
       "name": "Log Fence Post",
       "output_plural": "log fence posts",
       "description": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
-      "purpose": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
+      "flavour": "A row of posts tells beasts and neighbours where the colony begins.",
       "category": "Access",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -361,7 +378,7 @@
       "name": "Log Gate",
       "output_plural": "log gates",
       "description": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
-      "purpose": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
+      "flavour": "A fence that knows when to open.",
       "category": "Access",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -380,7 +397,7 @@
       "name": "Board-game Table",
       "output_plural": "board-game tables",
       "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one log stool for solo play, or two opposite stools to play together for more happiness.",
-      "purpose": "A game scratched into a rough-cut log, with loose stones for counters. Add one log stool for solo play, or two opposite stools to play together for more happiness.",
+      "flavour": "Wars have been won, and friendships lost, across this board.",
       "category": "Recreation",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -416,7 +433,7 @@
         "Workshop fittings"
       ],
       "requirements": "Promote with a crude carpentry kit. Specialist workshop and recipes are planned; a forged saw comes later.",
-      "hint": "Craft a kit under Rudimentary → Starter tools, then promote a dwarf through Colony → Profession."
+      "hint": "Craft a kit under Rudimentary › Starter tools, then promote a dwarf through Colony › Profession."
     },
     {
       "id": "stonemason",
@@ -442,7 +459,7 @@
         "Metal fittings"
       ],
       "requirements": "Entry tool: stone hammer. Iron pickaxes and carpenter saws are future upgrades.",
-      "hint": "The stone hammer is available under Rudimentary → Starter tools."
+      "hint": "The stone hammer is available under Rudimentary › Starter tools."
     },
     {
       "id": "weaponsmith",
@@ -478,7 +495,7 @@
         "Harvest supplies"
       ],
       "requirements": "Entry tool: stone hoe. Farming will use field work; its production controls are still planned.",
-      "hint": "The stone hoe is available under Rudimentary → Starter tools."
+      "hint": "The stone hoe is available under Rudimentary › Starter tools."
     },
     {
       "id": "hunter",
@@ -490,7 +507,7 @@
         "Animal materials"
       ],
       "requirements": "Entry weapon: hunting spear. Player hunting and processing are planned.",
-      "hint": "The hunting spear is available under Rudimentary → Starter tools."
+      "hint": "The hunting spear is available under Rudimentary › Starter tools."
     },
     {
       "id": "miner",

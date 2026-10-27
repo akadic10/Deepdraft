@@ -48,6 +48,14 @@ func appeal(definition: Dictionary, id: String) -> Dictionary:
 	return {"design": design, "material": material, "total": design + material}
 
 
+## The compact panel's appeal badge (doc 260): the total, with the parts on hover.
+func appeal_badge(definition: Dictionary, id: String, packed: bool = false) -> Dictionary:
+	var score := appeal(definition, id)
+	var number := func(value: float) -> String: return ("%.1f" % value).trim_suffix(".0")
+	return {"kind": "appeal", "value": number.call(score.total), "tooltip": "%s %s: %s design + %s material" % [
+		"Appeal when installed" if packed else "Appeal", number.call(score.total), number.call(score.design), number.call(score.material)]}
+
+
 func inspection_rows(definition: Dictionary, id: String, packed: bool = false) -> Array:
 	var rows: Array = []
 	if not id.is_empty(): rows.append(["Material", material_name(id)])

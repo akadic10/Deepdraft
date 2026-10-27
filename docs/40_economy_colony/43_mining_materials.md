@@ -4,14 +4,26 @@
 Granite, basalt, limestone and marble are removed, including their art and
 planned merchant reference. Old saves that contain them are not migrated. The eleven
 terrain rock IDs still share their existing appearance, hardness and Rough Stone
-yields. See [251](../00_dev_roadmap/251_retired_stone_types.md).
+yields (doc 251).
 
-**Built stone (2026-10-12):** Construction spends one rough stone per full voxel
-in cleared space, using the existing natural rock layer at that height. Normal
-mining can remove it again, including cells already present in excavation history,
-and refunds exactly one rough stone. Construction provenance owns this refund;
-natural stone/ore/gem loot rules retain their existing probabilities. There is no
-wall facing or combined mine-and-replace action. See roadmap 127.
+**Built blocks (2026-10-12; materials 2026-10-26, docs 273 and 275):** Build spends one good per
+full voxel in cleared space:
+- **stone:** one rough stone, built as the natural rock layer at that height. Normal
+  mining removes it again and drops by that rock's own rule in
+  `data/terrain/block_resources.json` (one rough stone at 25%), with no guaranteed
+  refund: nothing records who built a block (doc 212);
+- **dirt and grass:** one soil, built as the world's own surface dirt and grass, which
+  mine as natural ones do; grass only under open sky;
+- **logs (doc 275):** one log of the chosen wood (oak, pine, juniper or apple), built as
+  that wood's log standing up or lying along x or z (`base:construction:log:<wood>:<up|x|z>`,
+  kind `log`). Mining one gives its log back whole. A log is a whole solid block for walking,
+  support and rooms; only its look is a log (doc 24, "Built logs").
+
+Cave soil is never built. The plank and stone floors were removed on 2026-10-26
+(doc 12, "No separate floor blocks"). There is no
+wall facing or combined mine-and-replace action, and wall finishes such as
+panelling stay out (owner, 2026-10-12). A thinner wall, if one is added, must fill
+cleared space, never cover kept natural terrain (roadmap 127).
 
 ## Overview
 
@@ -37,28 +49,30 @@ existing rules.
 
 **Terrain appearance (2026-10-13):** Rock keys and their generation/resource rules
 remain authoritative, but all eleven natural-rock variants now share one grey
-colour family. Grass variants are selected deterministically without edge-distance
-maps; all eight share a full-voxel seasonal grass palette. Dirt's decorative
-variant stripes are also removed. Stone, grass and earth now carry the Hearthblock
+colour family. Grass and dirt are one block each (2026-10-26), with full-voxel
+seasonal palettes; the eight grass and four dirt variants, and dirt's decorative
+stripes, are gone. Stone, grass and earth now carry the Hearthblock
 dressing, drawn in the shader only (one-cell edges, seams, flecks, occasional cracks
 or worn patches; `appearance_profiles.json` → `dressing`). Material geography, soil
-depth, caves, resource placement, hardness and yields retain their existing rules. See
-[145 — Base world terrain art](../00_dev_roadmap/145_base_world_terrain_art_plan.md).
+depth, caves, resource placement, hardness and yields retain their existing rules
+(doc 145). The renderer side is in
+[24](../20_player_interface/24_world_rendering.md), "Base terrain art".
 
 ## Geological Spectrum
 
-Wet and dry stones are loose ore-shaped world models, without terrain block IDs
-or mining yields. Surrounding rock remains editable; their source/drain behavior
-stays fixed. See [109](../00_dev_roadmap/109_loose_water_stones.md).
+Wet and dry stones are loose rock world models, without terrain block IDs or
+mining yields. Surrounding rock remains editable; the stones move only through
+their own Pack/Move/Place work (doc 109; rules in
+[33](../30_simulation_systems/33_water_simulation.md)).
 
 | Block Key | Category | Hardness | Yield | Notes |
 |---|---|---|---|---|
 | `base:terrain:rock:rock01`-`rock06` | Mountain rock | 3 | 1× Rough Stone (5%) | Authored mountain shelves |
 | `base:terrain:rock:rock07`-`rock10` | Body rock | 3 | 1× Rough Stone (5%) | Valley/foothill body bands |
 | `base:terrain:rock:rock11` | Foundation rock | 3 | 1× Rough Stone (5%) | Stable band above bedrock |
-| `base:terrain:ore:iron`       | Ore        | 4 | 2× Iron Ore (10%)     | Common ore |
-| `base:terrain:ore:copper`     | Ore        | 3 | 2× Copper Ore (10%)   | Shallow, early-game |
-| `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore (10%)     | Deep, rare |
+| `base:terrain:ore:iron`       | Ore        | 4 | 1× Iron Ore (40%)     | Common ore |
+| `base:terrain:ore:copper`     | Ore        | 3 | 1× Copper Ore (40%)   | Shallow, early-game |
+| `base:terrain:ore:gold`       | Ore        | 5 | 1× Gold Ore (40%)     | Deep, rare |
 | `base:terrain:gem:ruby`       | Gem        | 5 | 1× Ruby               | Very rare, high trade value |
 | `base:terrain:soil:cave`      | Soil       | 1 | 1× Soil (5%)          | Farmable (see `42_farming_brewing.md`) |
 | `base:terrain:bedrock`        | Bedrock    | ∞ | None                  | **Unmovable — Y=0..3 protocol** |
@@ -71,20 +85,24 @@ stays fixed. See [109](../00_dev_roadmap/109_loose_water_stones.md).
 > `base:resources:stone:rough_stone` at 5% chance (tunable — `data/terrain/block_resources.json`;
 > was 50% at launch, cut to 25% on 2026-06-10, then 12% then 5% both on 2026-08-06 — the last cut
 > was explicitly for testing convenience, less stockpile clutter while iterating, not a final
-> economy number). Its purpose is **void fill**: the player will use stocked rough stone to wall
-> up and backfill unwanted openings via a future BUILD designation (mechanic not yet designed —
-> the item and drop exist now so mining execution yields it from day one). May need to come back up once backfill is actually playtestable.
+> economy number). Its purpose is **void fill**: Build (doc 273) spends it on stone blocks.
+> Raised to **25%** on 2026-10-26 with Build, about four blocks dug for each block built; still a
+> playtest number.
 >
-> **Soil (retuned 2026-08-06 twice):** every soil/dirt/grass block (surface grass/dirt variants and
-> `soil:cave`/`soil:light`/`soil:dark`) dropped its soil item at a guaranteed 100% until 2026-08-06,
-> cut to 30%, then to 5% later the same day (same testing-convenience reasoning as stone, now
-> matching it) — tunable in the same file.
+> **Soil (retuned 2026-08-06 twice; one good since 2026-10-26):** grass, dirt and cave soil all
+> drop the one Soil good, `base:resources:soil:soil`. The drop was a guaranteed 100% until
+> 2026-08-06, cut to 30%, then to 5% later the same day (same testing-convenience reasoning as
+> stone, now matching it), and raised to 25% with stone on 2026-10-26, since Build's dirt and
+> grass cost it — tunable in the same file. Light and dark soil, blocks the world
+> never placed and goods nothing used, were removed on 2026-10-26; cave soil stays a block of
+> its own, the ground cave farms are meant for, so farm ground is found by mining, never built.
 >
 > **Ore (retuned 2026-08-14):** all six ores (copper, tin, iron, silver, coal, gold) cut from a
 > guaranteed 100% to **10%** — Alen: drop volume was flooding manual playtests (chests filling
 > with silver/iron faster than they could be placed). Same testing-convenience class as the
 > stone/soil cuts above, explicitly not a balance number; revisit in the economy pass. Gem
-> chances remain untouched (0.65–0.90).
+> chances remain untouched (0.65–0.90). Since 2026-10-11 (doc 122) every ore block drops
+> at most one unit, at 40%, as part of the cover-gated progression (Resource Distribution).
 
 ## Mining animation and feedback — implemented and accepted 2026-10-04
 
@@ -235,6 +253,11 @@ A single click (no drag) always produces a **4×4×4 zone**. Dragging expands th
 > camera-only frames when the hovered block is unchanged. Acceptance: WASD pan stays smooth with
 > the tool active while preview/grid still track the cursor when the mouse moves. (Minor related:
 > holding Ctrl over empty space force-runs the empty-clear branch each frame — negligible.)
+>
+> Since doc 208 (2026-10-17) there is no per-voxel floor grid, so the grid half of this
+> no longer applies: `_rebuild_terrain_grid()` returns at once unless the optional
+> 32 × 32 area guide is on, and an enabled guide rebuilds only when the view moves eight
+> blocks, the slice or zoom radius changes, or a block changes. The hover-preview cost remains.
 
 A single-block tool for surgical work: finishing a room corner, punching a doorway, clearing one specific block. Starts at 1×1×1 and is resized interactively before confirming. Dock `Mine` requests `mine_precision` via `DockUI.tool_requested`; the tool stays active after each confirm for repeated designations.
 
@@ -361,9 +384,10 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
 
 Interruption at any step releases the lease cleanly (`31_task_system.md`, Release Protocol) — the reserved block returns to the destination set, zone progress is never lost.
 
-See [174 — Mining furniture access](../00_dev_roadmap/174_mining_furniture_access.md)
-for the zero-face cache failure after moving a bed, regression coverage and a
-native copied-save completion. Existing zones recover without redesignation.
+Before step 5 listened to occupancy (doc 174), moving a bed away from a wall left
+its zone at zero faces: the cached work list only refreshed on terrain changes.
+Loading recomputes live work positions, so existing zones recover without
+redesignation.
 
 ---
 
@@ -399,8 +423,7 @@ chosen by the player; generation does not raise or flatten a dedicated starting 
 Plains use a real earth body under the grass cap, never grass directly on stone:
 
 - 1 block grass cap,
-- 4–8 blocks of dirt / light soil / dark soil beneath it (broad horizontal bands for readable
-  cliff faces),
+- 4–8 blocks of dirt beneath it,
 - stone only below the soil body, or where slope / mountain influence / bank / exposed-rock
   rules override it.
 
@@ -408,10 +431,12 @@ The mountain is rock-heavy; the plains are earth-heavy.
 
 ### Grass palette rule
 
-Grass colour is **domain language, not random speckle**. The eight active variants split by
-domain: lower plains use `grass_01`–`grass_04`; valley / highland / foothill use
-`grass_05`–`grass_08`. Within a domain, a calm base grass fills the interior and lighter
-variants trace patch edges and terrace lips — region-aware outlining, never per-block noise.
+Grass is **one calm seasonal palette, never speckle or edge outlining** (doc 145, approved
+by the owner on 2026-10-13). Grass and dirt are one block each, `base:terrain:surface:grass`
+and `surface:dirt`, coloured by season from `data/terrain/surface_palettes.json`; the
+colour never depends on height, domain or distance to a terrace edge. Local variation and the Hearthblock dressing
+come from the terrain appearance profiles
+([24](../20_player_interface/24_world_rendering.md), "Base terrain art").
 
 ### Core world composition (seeded macro layout)
 
@@ -436,8 +461,9 @@ position, with the existing terrain-clearance behavior.
 > and `data/biome/*_generation_data.json`. The lessons Deepdraft kept: large readable landforms
 > over noisy detail; broad flat terraces for legible settlement choice; elevation changes as
 > strong terrace drops (~8 blocks foothill, ~12 mountain) rather than slopes; soil strata
-> alternating in 2-block bands for readable side walls; grass edges deliberately lighter than
-> interiors; water biased toward flat ground; props placed as scatter entities after terrain.
+> in 2-block bands; water biased toward flat ground; props placed as scatter entities after
+> terrain. The lighter grass edges and alternating soil colours it also took were dropped
+> on 2026-10-13 (doc 145).
 > Deepdraft uses tuned equivalents of Stonehearth's step sizes but shares no assets or data.
 
 ---
@@ -482,8 +508,7 @@ legacy generator or migration layer is retained.
    changed. See §Cave discovery.
 7. Publish the maps (`is_maps_ready()` and the `maps_ready` signal). Build visible
    tile ranges and generation metrics afterward, then emit `world_complete`. Grass
-   and dirt variants need no separate pass: `WorldBlockFill` picks them on demand
-   from a seeded position hash.
+   and dirt need no separate pass: `WorldBlockFill` places them on demand.
 
 **Planned — open question:** should a later pass add snow caps or cold stone
 variants above some height? Weather snow exists (`data/weather/snow.json`);
@@ -502,15 +527,15 @@ current profile values. Main lakes can be inland or meet any edge; tarns require
 a full 3×3 mountain-shelf surround. These maps describe initial water occupancy;
 live volumes belong to `WaterManager` ([doc 33](../30_simulation_systems/33_water_simulation.md)).
 
-**River generation — live 2026-10-10:** after macro validation and edge detail,
+**River generation — live 2026-10-10 (doc 105):** after macro validation and edge detail,
 `RiverLayout` chooses a downhill connection from an upper rock-face spring to the
 main lake. It preserves Y115 summit columns, cuts authoritative channels, adds
 quiet pools and starts shallow river reaches with a hydraulic gradient. Caves
-are placed afterwards, respecting the resulting water buffers. A natural lake
-fissure drains only excess above its fixed threshold. Stored water is finite;
+are placed afterwards, respecting the resulting water buffers. The dry stone on
+the lakebed drains only excess above its fixed threshold. Stored water is finite;
 mining/solid edits can divert it or cause flooding. `waterline_map` is immutable
 seed data, not a live water-level query. Terrain meshes draw actual beds;
-`WaterRenderer` supplies changing surfaces and cascades. See roadmap 105.
+`WaterRenderer` supplies changing surfaces and cascades.
 
 ### Seed and noise
 
@@ -577,13 +602,15 @@ the surface, and added to the same layout so discovery treats it alike (see
 
 **Discovery.** Mining a block adjacent to generated cave air reveals that whole
 connected cave system. `InteriorTracker` publishes its air to rendering and lighting; this
-does not create mined-block deltas for pre-existing air. Save/load reconstructs
-discovery from the actual saved mining edits. The normal mining picker treats
-hidden cave air as concealed strata, then removes now-empty designations after
-discovery. A worker who reaches a still-hidden planned cell works it as that
+does not write terrain edits for pre-existing air. Discovery is saved apart from terrain
+and survives filling a known cave (doc 12, Save File Serialization; doc 212). The normal
+mining picker treats hidden cave air as concealed strata, then removes now-empty
+designations after discovery. A worker who reaches a still-hidden planned cell works it as that
 strata; the commit breaks into the cave and reveals it, and yields no goods. A
 planned cell that is already open is skipped for the rest of the lease
-([254 §4.1](../00_dev_roadmap/254_full_project_review_2026_10_20.md)).
+(`DwarfWorkExecution._skip_zone_block`), and the skip is not a path failure: the
+previous commit revealed it. Without the skip, a worker re-pulled the open cell from
+its own stand until the stack overflowed (doc 254; `MiningHiddenAirTest`, gate).
 A discovered cave provides walkable space and exposed mining leads;
 it remains dark away from real entrances and installed lights. A generated cave
 does not yet contain water, crops, creatures or loot. Moving the slice never
@@ -641,15 +668,29 @@ sub-surface rock block:
 8. Otherwise keep the authored rock.
 
 **Independent metals (2026-10-08):** gold, silver, iron, copper and tin now use
-separate fields at frequencies 0.055–0.070, producing smaller, distinct patches.
-Coal keeps a broad 0.020 field. Each field uses simplex-smooth noise, two octaves
-and a distinct fixed offset added to the world seed. Settings and cutoffs live in
+separate fields at frequencies 0.075–0.10 (raised in doc 122, so the deeper fields keep
+smaller deposits), producing smaller, distinct patches. Coal keeps a broader 0.045
+field. Each field uses simplex-smooth noise, two octaves and a distinct fixed offset
+added to the world seed. Settings and cutoffs live in
 the ore entries in `block_resources.json`; generation never fits them per seed.
 First-match priority resolves spatial overlaps. Cutoffs need not descend between
 independent fields, so copper no longer takes an entire interval from tin.
 Depth windows, gems, priority, terrain and temporary drops remain unchanged.
 Connected bodies
 can still contain thousands of blocks; there is no hard deposit-size cap.
+
+**Natural cover (doc 122):** each ore and gem also needs `min_burial` blocks of original
+rock above and around it (`block_resources.json`), measured against the untouched
+exterior in every direction, cliff faces and roofs included
+(`WorldBlockFill.has_natural_cover`). The original heightmap decides it, so mining never
+changes a block's geology, and cave interiors do not count as exterior. Cover in blocks:
+coal and copper 2, tin 10, iron 14, jade and amethyst 20, silver 24, gold 28, ruby and
+sapphire 32, emerald and diamond 40; every resource stays above bedrock. `NaturalRockCover`
+precomputes a minimum-surface map per radius, published before generation reads it, so
+no block scans its neighbourhood. In the outer ten-block shell coal and copper use their
+stricter `shallow_noise_threshold`, for sparse entrance seams. The shared gem field runs
+at frequency 0.11 (`WorldGenerator`). This is a progression curve, not evenly spaced
+deposits: a starter tunnel can still cross a large copper body.
 
 **Shared gem/soil semantics:** each of these categories still uses a shared field
 and the first window matching `(y in band, noise > threshold)` wins. Overlapping
@@ -660,9 +701,10 @@ shadowing. Metals no longer share a field, so this does not apply to their cutof
 captured every emerald candidate in their shared Y5–12 range. Diamond now uses
 **0.91**, giving emerald `(0.90, 0.91]` there and reserving `>0.91` for diamond.
 The gem thresholds now strictly descend: diamond .91, emerald .90, sapphire .89,
-ruby .88, amethyst .82, jade .80. This intentionally reduces diamond abundance;
-emerald's own threshold, all depth bands, priority order and drop rates are
-unchanged. At Y4, removed diamond candidates become ordinary foundation rock.
+ruby .88, amethyst .845, jade .83 (the two common gems raised in doc 122). This
+intentionally reduces diamond abundance; emerald's own threshold, all depth bands,
+priority order and drop rates are unchanged. At Y4, removed diamond candidates become
+ordinary foundation rock.
 
 ### Authored Rock Selection
 
@@ -702,11 +744,9 @@ cut ledges expose dirt. Mountain shelves expose their authored rock. Dry banks
 follow these same bands; they are not forced to dirt merely by water adjacency.
 In wet columns the top visible block is water above the solid bed.
 
-There are **8 active grass variants** (`grass_01`–`grass_08`) and **4 dirt
-variants** (`dirt_01`–`dirt_04`). Lowlands use `grass_01`–`grass_04`; foothills
-use `grass_05`–`grass_08`, with cap-band maps choosing the lighter edge variants.
-`_pick_surface_block()` remains a fallback and must not be used to describe or
-measure current authored surface coverage.
+Grass and dirt are one block each (`surface:grass`, `surface:dirt`; see §Grass palette
+rule): a shelf is dirt under its grass cap. `_pick_surface_block()` remains a fallback and must not be used
+to describe or measure current authored surface coverage.
 
 `WorldGenerationMetrics.compute_surface_metrics()` evaluates `WorldBlockFill.generate_block_id()` at
 `max(heightmap, waterline_map)` for every column, then counts material categories
@@ -721,7 +761,7 @@ material volume. It describes the generated world before player edits.
 ### Generation Order Summary
 
 Seed/profile → validated macro layout → height/domain/water column maps →
-protected edge detail → final column validation → dry caves → maps ready → grass bands and
+protected edge detail → final column validation → dry caves → maps ready →
 visible tile ranges → generation metrics; blocks are then read on demand. See Stage A/B above for the
 actual ordering; the former noise-shaped compass layout has been removed.
 

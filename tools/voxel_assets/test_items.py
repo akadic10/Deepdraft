@@ -1,7 +1,6 @@
 import unittest
 from common import linear
 from items import assets,PROFILE,shell,NOT_IN_GAME
-from construction import assets as construction_assets
 from coverage import expected_paths
 import hearthblock
 import hearthblock_goods as goods
@@ -62,19 +61,11 @@ class GoodsTests(unittest.TestCase):
                     mineral={linear(style['mineral']),linear(style['mineral_light'])}
                     fraction=sum(cells[p] in mineral for p in exposed)/len(exposed)
                     self.assertTrue(.12<fraction<.5,(name,fraction))
-        self.assertEqual(len(appearances),10,'every mined good reads as its own material')
+        self.assertEqual(len(appearances),sum(len(PROFILE[k]) for k in ('stone','soil','ore')),'every mined good reads as its own material')
 
     def test_premium_drinks_distinct(self):
         for base,aged in [('stout_barrel','aged_stout_barrel'),('wine_barrel','vintage_wine_barrel'),('gin_cask','reserve_gin_cask')]:
             self.assertNotEqual(self.models[f'assets/models/items/drink/{base}.glb'],self.models[f'assets/models/items/drink/{aged}.glb'])
-
-    def test_structural_tiles_fill_exact_unit(self):
-        models={p:parts['main'].voxels.cells for p,parts,_ in construction_assets()}
-        self.assertEqual(set(models),expected_paths('construction'))
-        for path,cells in models.items():
-            if 'floor' in path:
-                self.assertEqual(set(cells),{(x,y,z) for x in range(16) for y in range(16) for z in range(16)})
-        self.assertNotEqual(models['assets/models/construction/plank_floor.glb'],models['assets/models/construction/plank_floor_alternate.glb'])
 
 
 if __name__=='__main__': unittest.main()

@@ -1,0 +1,6 @@
+{
+  "__note": "The title screen (doc 23, \"The title screen\"), read by TitleScreen through UIRegistry: its art, cropped as the loading screen crops its panoramas (panorama_aspect in data/ui/loading_screen.json), the game's name, and the line under it.",
+  "art": "res://assets/ui/loading/mountain_settlement.png",
+  "name": "DEEPDRAFT",
+  "line": "Dig · Brew · Trade"
+}

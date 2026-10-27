@@ -1,6 +1,6 @@
 extends Node
 
-## Sealed rooms, temperature and finished-floor appeal — docs 34, 22 and 128.
+## Sealed rooms, temperature and appeal — docs 34, 22 and 23 ("Room appeal").
 ## Autoload. Registered after InteriorTracker in project.godot.
 ##
 ## ROOM MODEL: a room is DERIVED state, never saved directly (the InteriorTracker
@@ -41,6 +41,7 @@ extends Node
 ## pending work. Door light boundaries still update immediately.
 
 const RoomRebuild = preload("res://scripts/components/RoomRebuild.gd")
+const RoomAppeal = preload("res://scripts/components/RoomAppeal.gd")
 
 const MAX_ROOM_CELLS := 4096          # ~ a generous 16x16x16 hall; tuning constant
 const DOOR_SEAL_HEIGHT := 4           # air cells above a door's floor cell that seal
@@ -84,6 +85,7 @@ var _last_latency_ms := 0.0
 var _last_main_ms := 0.0
 var temperature_config: Dictionary = {}
 var appeal_config: Dictionary = {}
+var room_kinds: Array = []   # room_kinds.json: what each kind of room needs, in test order
 
 
 func _ready() -> void:
@@ -91,6 +93,7 @@ func _ready() -> void:
 	detection_config = JsonData.read_dict("res://data/rooms/detection.json")
 	temperature_config = JsonData.read_dict("res://data/world_gen/temperature.json")
 	appeal_config = JsonData.read_dict("res://data/rooms/appeal.json")
+	room_kinds = JsonData.read_dict("res://data/rooms/room_kinds.json").get("kinds", [])
 	print("RoomManager: ready (doc 34/22).")
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
 	WorldClock.hour_changed.connect(_on_hour_changed)
@@ -323,21 +326,112 @@ func on_bed_assignment_changed(origin: Vector3i, dwarf_id: int) -> void:
 func _classify_bedroom(room: Dictionary) -> void:
 	var beds := room_beds(room.cells)
 	room.bed_count = beds.size()
+	classify(room, int(_bed_assignments.get(beds[0], -1)) if beds.size() == 1 else -1)
+
+## A room's kind (doc 261): the first kind in room_kinds.json whose needs the room meets,
+## or a plain room. `bed_owner` is the owner of the room's one bed; only a kind that
+## takes an owner keeps it.
+func classify(room: Dictionary, bed_owner: int) -> void:
+	room.owner_id = bed_owner
 	room.room_type = "room"
-	room.owner_id = -1
-	if beds.is_empty() or room.light_count==0 or room.door_cells.is_empty(): return
-	if beds.size()>1:
-		room.room_type = "barracks"
-	else:
-		room.owner_id = int(_bed_assignments.get(beds[0],-1))
-		room.room_type = "personal_bedroom" if room.owner_id>=0 else "bedroom"
+	for kind: Dictionary in room_kinds:
+		if missing_needs(room, kind).is_empty():
+			room.room_type = String(kind.id)
+			break
+	if not bool(room_kind(room).get("owner", false)): room.owner_id = -1
+
+## What a room still lacks to be a kind: its unmet needs (beds, lights, doors, owner).
+func missing_needs(room: Dictionary, kind: Dictionary) -> Array[String]:
+	var counts := room_counts(room)
+	var missing: Array[String] = []
+	var needs: Dictionary = kind.get("needs", {})
+	for need: String in needs:
+		var rule: Dictionary = needs[need]
+		var count := int(counts.get(need, 0))
+		if count < int(rule.get("least", 0)) or (rule.has("most") and count > int(rule.most)): missing.append(need)
+	if bool(kind.get("owner", false)) and int(room.get("owner_id", -1)) < 0: missing.append("owner")
+	return missing
+
+## The counts a room's needs are measured in: whole beds, light sources and door pieces.
+func room_counts(room: Dictionary) -> Dictionary:
+	return {"beds": int(room.get("bed_count", 0)), "lights": int(room.get("light_count", 0)), "doors": room.get("door_cells", {}).size()}
+
+## The room's kind from room_kinds.json, or {} for a plain room.
+func room_kind(room: Dictionary) -> Dictionary:
+	for kind: Dictionary in room_kinds:
+		if String(kind.id) == String(room.get("room_type", "")): return kind
+	return {}
+
+## The kind a room is measured against in the room window: its own, or for a plain room
+## the kind it is fewest needs away from (the first such, in the data's order).
+func nearest_kind(room: Dictionary) -> Dictionary:
+	var own := room_kind(room)
+	if not own.is_empty(): return own
+	var nearest := {}
+	var fewest := 1 << 30
+	for kind: Dictionary in room_kinds:
+		var missing := missing_needs(room, kind).size()
+		if missing < fewest:
+			nearest = kind
+			fewest = missing
+	return nearest
 
 func room_label(room: Dictionary) -> String:
-	match String(room.get("room_type","")):
-		"personal_bedroom": return "Personal bedroom"
-		"barracks": return "Barracks"
-		"bedroom": return "Bedroom"
-	return "Room"
+	return String(room_kind(room).get("label", "Room"))
+
+## The furniture in a room (doc 261): furniture key -> pieces. A piece is the room's when
+## the air above any of its room cells is, as lights and heat are counted (a wall mount by
+## the cell it hangs in); a door belongs to each room it seals.
+func room_furniture(room: Dictionary) -> Dictionary:
+	var counts := {}
+	var furniture := get_tree().get_first_node_in_group("furniture_controller")
+	if furniture == null: return counts
+	var cells: Dictionary = room.get("cells", {})
+	var doors: Dictionary = room.get("door_cells", {})   # door origin -> true
+	for piece in furniture.get_installed_pieces():
+		var anchors: Array[Vector3i] = furniture.room_cells(piece)
+		if anchors.is_empty(): continue
+		if doors.has(anchors[0]) or anchors.any(func(cell: Vector3i): return cells.has(cell + Vector3i.UP)):
+			counts[String(piece.furniture_key)] = int(counts.get(String(piece.furniture_key), 0)) + 1
+	return counts
+
+## A room's appeal (RoomAppeal): its parts, what they add up to, the share its size counts,
+## the score and its word. Worked out when asked, never saved.
+func room_appeal(room: Dictionary) -> Dictionary:
+	return RoomAppeal.score(room, self)
+
+
+## Every sealed room's appeal in one pass, room id -> room_appeal() with the nodes it counts
+## (`warm` pieces, `cool` loose and stocked goods): what the Appeal view draws.
+func all_room_appeals() -> Dictionary:
+	return RoomAppeal.score_all(self)
+
+
+## The appeal of the sealed room around an air cell, or {} outside rooms: what a dwarf's
+## sleep, meal or game there takes in.
+func appeal_at(cell: Vector3i) -> Dictionary:
+	var room := get_room_at(cell)
+	return {} if room.is_empty() else room_appeal(room)
+
+
+## The word for an appeal score (appeal.json): {word, below, points, tint}, each word holding
+## the scores below its `below` and the last the rest.
+func appeal_step(appeal: float) -> Dictionary:
+	var words: Array = appeal_config.get("words", [])
+	for i in range(words.size()):
+		if i == words.size() - 1 or appeal < float(words[i].below): return words[i]
+	return {}
+
+
+func appeal_word(appeal: float) -> String:
+	return String(appeal_step(appeal).get("word", ""))
+
+
+## The words a save may name for a dwarf's room memories, lower case, and "" for none.
+func appeal_word_ids() -> Dictionary:
+	var ids := {"": true}
+	for entry: Dictionary in appeal_config.get("words", []): ids[String(entry.word).to_lower()] = true
+	return ids
 
 
 # ── Triggers ──────────────────────────────────────────────────────────────────
@@ -402,23 +496,6 @@ func _block_id(pos: Vector3i) -> int:
 
 
 # ── Temperature (doc 34, sheltered rock climate) ─────────────────────────────
-
-## Count physical interior walking surfaces, even below furniture. Doorway
-## columns are outside room.cells. Mixed floor materials count together; plans
-## and natural rock never count. Derive this again on terrain edits and load.
-func flooring_stats(cells: Dictionary) -> Dictionary:
-	var total := 0
-	var finished := 0
-	for air: Vector3i in cells:
-		if not cells.has(air+Vector3i.UP) or not cells.has(air+Vector3i.UP*2): continue
-		var id := _block_id(air+Vector3i.DOWN)
-		if not BlockRegistry.is_solid(id): continue
-		total += 1
-		if BlockRegistry.get_def(BlockRegistry.get_key(id)).get("kind","") == "constructed_floor": finished += 1
-	var complete := total > 0 and finished == total
-	return {"floor_tiles":total,"finished_floor_tiles":finished,"flooring_complete":complete,
-		"flooring_appeal":float(appeal_config.complete_floor_bonus) if complete else 0.0}
-
 
 ## Heat sources register at their footprint FLOOR cell (a SOLID ground
 ## block), but a room's `cells` are interior AIR — so the membership test

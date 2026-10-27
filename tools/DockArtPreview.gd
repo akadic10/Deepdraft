@@ -17,8 +17,8 @@ func _capture_inspector() -> void:
 	_expect(dock._button_by_target.keys() == ["orders", "zones", "rooms", "construction", "place", "craft", "colony", "stocks", "system", "development"],
 		"approved ten-command order including Construction and separate Development")
 	for button: Button in dock._button_by_target.values():
-		_expect(button.text.is_empty() and button.icon is AtlasTexture,
-			"caption-free command uses approved illustrated atlas")
+		_expect(button.text.is_empty() and button.icon is Texture2D,
+			"caption-free command shows its Hearthblock icon")
 		_expect(not button.caption.is_empty() and not button.description.is_empty(), "every command has hover information")
 	for viewport_size in [Vector2i(1280,720), Vector2i(960,540), Vector2i(2560,1440)]:
 		root.size = viewport_size

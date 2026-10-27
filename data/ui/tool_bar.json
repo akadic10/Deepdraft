@@ -1,0 +1,20 @@
+{
+  "__note": "The tool bar (doc 23, \"The tool bar\"), read by ToolBar through UIRegistry: the keys each tool shows under its name, as pairs of keys and the words after them. The keys sit on the hover cards' keycaps: a chord such as \"Ctrl + Click\" shows its parts joined by a plus. A tool is named by its id, the dock's target for it; its name, picture and family come from the dock's entry, unless the tool gives its own (Place, Move and the stamper).",
+  "keys": {
+    "mine_precision": [["Drag", "marks blocks"], ["Ctrl + Drag", "unmarks them"]],
+    "chop": [["Click", "a tree, or drag an area"]],
+    "clear_stones": [["Click", "or drag over boulders and loose stone"]],
+    "harvest_plants": [["Click", "or drag over ripe shrubs, apple trees and junipers"]],
+    "clear_shrubs": [["Click", "or drag over shrubs, flowers or reeds"]],
+    "cancel_orders": [["Click", "or drag across marked work"]],
+    "storage_zone": [["Drag", "over clear, walkable ground"], ["Click", "a zone to open it"]],
+    "construct_build": [["Click", "or drag to build"], ["Q / E", "changes material"], ["R", "turns a log"], ["Ctrl + Drag", "takes plans out"]],
+    "construct_shapes": [["Drag", "draws the shape"], ["Tab", "changes shape"], ["Q / E", "changes material"], ["Ctrl + Drag", "takes plans out"]],
+    "construct_copy": [["Drag", "a box round what to copy"], ["Alt + Wheel", "its height"], ["F", "its floor too"]],
+    "blueprint_place": [["Click", "plans it"], ["R", "turns it"]],
+    "furniture": [["Click", "to place"], ["R", "turns it"]],
+    "flag": [["Click", "where the flag stands"]],
+    "rooms": [["Click", "a room to open it"]],
+    "item_stamper": [["Click", "a floor to stamp"]]
+  }
+}

@@ -68,7 +68,7 @@ func _ready() -> void:
 	_hint.text = HINT
 	_hint.position = Vector2(24, 100)
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hint.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+	_hint.add_theme_font_size_override("font_size", UITheme.TYPE_MEDIUM.body)
 	_hint.add_theme_stylebox_override("normal", UITheme.hud_panel_style())
 	_hint_layer.add_child(_hint)
 	_hint.visible = not _shared_order_ui
@@ -324,34 +324,26 @@ func get_order_tool_id() -> String:
 	return "cancel_orders" if _cancel_mode else _detail_tool if _stone_mode else "chop"
 
 
-func get_order_hint() -> String:
+## What the tool bar shows (doc 23, "The tool bar"): while an area is dragged, what it
+## would mark, or the marked work it would cancel.
+func tool_bar_state() -> Dictionary:
+	var state := {"tool": get_order_tool_id()}
+	if not (_dragging and (_box_select or _cancel_mode)): return state
 	if _cancel_mode:
-		if _dragging: return "%d blocks · %d trees · %d stones/plants · Release to cancel.\nOnly marked work is removed." % [_preview_mining.size(), _preview_trees.size(), _preview_stones.size()]
-		return "Click marked work, or drag across blocks, trees, stones and plants.\nStockpiles and placed furniture are kept."
-	if _stone_mode and _detail_tool != "clear_stones":
-		if _dragging and _box_select: return "%d plant%s in area · Release to mark.\nEsc cancels the selection." % [_preview_count(), "" if _preview_count() == 1 else "s"]
-		return "Click ripe shrubs, apple trees or junipers, or drag an area.\nWorkers gather fruit and keep the plants." if _detail_tool == "harvest_plants" else "Click shrubs, flowers or reeds, or drag an area.\nShrubs yield a cutting; flowers and reeds yield no items."
-	if _stone_mode:
-		if _dragging and _box_select: return "%d stone%s in area · Release to mark.\nEsc cancels the selection." % [_preview_stones.size(), "" if _preview_stones.size() == 1 else "s"]
-		return "Click a boulder or loose-stone clump, or drag an area.\nWorkers break boulders and gather loose stones."
-	if _dragging and _box_select: return "%d trees in area · Release to mark.\nEsc cancels the selection." % _preview_trees.size()
-	return "Click a tree, or drag around several.\nMarked trees stay queued after you finish."
+		var total := _preview_mining.size() + _preview_trees.size() + _preview_stones.size()
+		state.selection = {"count": "%d to cancel" % total, "at": _drag_screen,
+			"detail": "%s · %s · %s" % [_counted(_preview_mining.size(), "block"), _counted(_preview_trees.size(), "tree"),
+				_counted(_preview_stones.size(), "stone or plant", "stones or plants")]}
+	elif _stone_mode:
+		state.selection = {"count": _counted(_preview_count(), "stone" if _detail_tool == "clear_stones" else "plant"),
+			"detail": "to mark", "at": _drag_screen}
+	else:
+		state.selection = {"count": _counted(_preview_trees.size(), "tree"), "detail": "to chop", "at": _drag_screen}
+	return state
 
 
-## Compact player feedback; the longer modifier/help text stays in tooltips.
-func get_order_summary() -> String:
-	if _cancel_mode:
-		if _dragging:
-			return "%d blocks · %d trees · %d stones/plants · Release to cancel" % [_preview_mining.size(), _preview_trees.size(), _preview_stones.size()]
-		return "Click or drag across marked work."
-	if _stone_mode:
-		if _dragging and _box_select:
-			return "%d %s in area · Release to mark" % [_preview_count(), "stones" if _detail_tool == "clear_stones" else "plants"]
-		if _detail_tool == "harvest_plants": return "Click or drag over ripe shrubs, apple trees and junipers."
-		if _detail_tool == "clear_shrubs": return "Click or drag over shrubs, flowers or reeds."
-		return "Click or drag over boulders and loose stone."
-	if _dragging and _box_select: return "%d trees in area · Release to mark" % _preview_trees.size()
-	return "Click a tree or drag an area."
+static func _counted(count: int, one: String, many := "") -> String:
+	return "%d %s" % [count, one if count == 1 else (many if not many.is_empty() else one + "s")]
 
 
 func _update_cancel_preview(refresh_candidates: bool = true) -> void:

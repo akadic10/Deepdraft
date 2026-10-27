@@ -1,6 +1,8 @@
 class_name DebugLoadingOverlay
 extends CanvasLayer
 
+# Text sizes come from the type scale (doc 23, "Type").
+const MEDIUM := UITheme.TYPE_MEDIUM
 @export var renderer_path: NodePath
 
 var _panel: PanelContainer
@@ -74,7 +76,7 @@ func _build_ui() -> void:
 	title.text = "World Build"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UITheme.apply_title(title)
+	UITheme.apply_heading(title)
 	header.add_child(title)
 
 	var close := Button.new()
@@ -94,7 +96,7 @@ func _build_ui() -> void:
 
 	_label = Label.new()
 	_label.name = "Stats"
-	_label.add_theme_font_size_override("font_size", 15)
+	_label.add_theme_font_size_override("font_size", MEDIUM.body)
 	body_margin.add_child(_label)
 	_update_text()
 
